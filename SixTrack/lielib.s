@@ -134,6 +134,7 @@
 +dk flowpara
       subroutine flowpara(ifl,jtu)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -147,6 +148,7 @@
 +dk pertpeek
       subroutine pertpeek(st,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -174,6 +176,7 @@
 +dk inputres
       subroutine inputres(mx1,nres1)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -201,6 +204,7 @@
 +dk respoke
       subroutine respoke(mres,nre,ire)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -232,6 +236,7 @@
 +dk liepeek
       subroutine liepeek(iia,icoast)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -259,6 +264,7 @@
 +dk lienot
       subroutine lienot(not)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -273,6 +279,7 @@
 +dk etallnom
       subroutine etallnom(x,n,nom)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -297,6 +304,7 @@
 +dk etall
       subroutine etall(x,n)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -319,6 +327,7 @@
 +dk etall1
       subroutine etall1(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -333,6 +342,7 @@
 +dk dadal1
       subroutine dadal1(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -344,6 +354,7 @@
 +dk etppulnv
       subroutine etppulnv(x,xi,xff)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -375,6 +386,7 @@
 +dk etmtree
       subroutine etmtree(y,x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -409,6 +421,7 @@
 +dk etppush
       subroutine etppush(x,xi)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -436,6 +449,7 @@
 +dk etppush2
       subroutine etppush2(x,xi,xff)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -463,6 +477,7 @@
 +dk ppushlnv
       subroutine ppushlnv(x,xi,xff,nd1)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -494,6 +509,7 @@
 +dk etcct
       subroutine etcct(x,y,z)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -528,6 +544,7 @@
 +dk trx
       subroutine trx(h,rh,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -563,6 +580,7 @@
 +dk trxflo
       subroutine trxflo(h,rh,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -606,6 +624,7 @@
 +dk simil
       subroutine simil(a,x,ai,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -635,6 +654,7 @@
 +dk etini
       subroutine etini(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -656,6 +676,7 @@
 +dk etinv
       subroutine etinv(x,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -699,6 +720,7 @@
 +dk etpin
       subroutine etpin(x,y,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -742,6 +764,7 @@
 +dk dapek0
       subroutine dapek0(v,x,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -762,6 +785,7 @@
 +dk dapok0
       subroutine dapok0(v,x,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -781,6 +805,7 @@
 +dk dapokzer
       subroutine dapokzer(v,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -799,6 +824,7 @@
 +dk davar0
       subroutine davar0(v,x,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -816,6 +842,7 @@
 +dk comcfu
       subroutine comcfu(b,f1,f2,c)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -839,6 +866,7 @@
 +dk take
       subroutine take(h,m,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -902,6 +930,7 @@
 +dk taked
       subroutine taked(h,m,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -935,6 +964,7 @@
 +dk daclrd
       subroutine daclrd(h)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -952,6 +982,7 @@
 +dk dacopd
       subroutine dacopd(h,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -969,6 +1000,7 @@
 +dk dacmud
       subroutine dacmud(h,sca,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -986,6 +1018,7 @@
 +dk dalind
       subroutine dalind(h,rh,ht,rt,hr)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -1009,6 +1042,7 @@
 +dk daread
       subroutine daread(h,nd1,mfile,xipo)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -1049,6 +1083,7 @@
 +dk prresflo
       subroutine prresflo(h,eps,mfile)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -1084,6 +1119,7 @@
 +dk filtres
       real(kind=fPrec) function filtres(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -1112,6 +1148,7 @@
 +dk daflo
       subroutine daflo(h,x,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -1148,6 +1185,7 @@
 +dk daflod
       subroutine daflod(h,x,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -1177,6 +1215,7 @@
 +dk intd
       subroutine intd(v,h,sca)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -1228,6 +1267,7 @@
 +dk difd
       subroutine difd(h1,v,sca)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -1894,13 +1934,13 @@
       enddo
       jtune=isi
 +if crlibm
-      x2pii=(one/atan_rn(one))/eight                                    !hr11
+      x2pii=(one/atan_mb(one))/eight                                    !hr11
 +ei
 +if .not.crlibm
       x2pii=(one/atan(one))/eight                                       !hr11
 +ei
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -2216,6 +2256,7 @@
 +dk xgam
       real(kind=fPrec) function xgam(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2257,20 +2298,20 @@
       enddo
 
 +if crlibm
-      exh=exp_rn(ad/two)
+      exh=exp_mb(ad/two)
 +ei
 +if .not.crlibm
       exh=exp(ad/two)
 +ei
       ex=exh**2
 +if crlibm
-      ans=(four*ex)*(sinh_rn(ad/two)**2+sin_rn(as/two)**2)             !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
 +ei
 +if .not.crlibm
       ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                   !hr11
 +ei
 +if crlibm
-      xgam=(two*(ex*sin_rn(as/two)**2-exh*sinh_rn(ad/two)))/ans       !hr11
+      xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans       !hr11
 +ei
 +if .not.crlibm
       xgam=(two*(ex*sin(as/two)**2-exh*sinh(ad/two)))/ans            !hr11
@@ -2281,6 +2322,7 @@
 +dk xgbm
       real(kind=fPrec) function xgbm(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2321,20 +2363,20 @@
       enddo
 
 +if crlibm
-      exh=exp_rn(ad/two)
+      exh=exp_mb(ad/two)
 +ei
 +if .not.crlibm
       exh=exp(ad/two)
 +ei
       ex=exh**2
 +if crlibm
-      ans=(four*ex)*(sinh_rn(ad/two)**2+sin_rn(as/two)**2)             !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
 +ei
 +if .not.crlibm
       ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                  !hr11
 +ei
 +if crlibm
-      xgbm=(sin_rn(as)*ex)/ans                                           !hr11
+      xgbm=(sin_mb(as)*ex)/ans                                           !hr11
 +ei
 +if .not.crlibm
       xgbm=(sin(as)*ex)/ans                                              !hr11
@@ -2430,6 +2472,7 @@
 +dk dhdjflo
       subroutine dhdjflo(h,t)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2453,7 +2496,7 @@
       call etall(bb2(1),1)
 
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -2484,6 +2527,7 @@
 +dk dhdj
       subroutine dhdj(h,t)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2506,7 +2550,7 @@
       call etallnom(bb2(1),1,'BB2       ')
 
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -2598,6 +2642,7 @@
 +dk rotflo
       subroutine rotflo(ro,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2620,7 +2665,7 @@
       call daclrd(ro)
       do i=1,nd-ndc
 +if crlibm
-        xx=exp_rn(ra(i))
+        xx=exp_mb(ra(i))
 +ei
 +if .not.crlibm
         xx=exp(ra(i))
@@ -2631,13 +2676,13 @@
           si(i)=(-one*sh)*xx                                             !hr11
         else
 +if crlibm
-          co(i)=cos_rn(ang(i))*xx
+          co(i)=cos_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           co(i)=cos(ang(i))*xx
 +ei
 +if crlibm
-          si(i)=sin_rn(ang(i))*xx
+          si(i)=sin_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           si(i)=sin(ang(i))*xx
@@ -2676,6 +2721,7 @@
 +dk rotiflo
       subroutine rotiflo(roi,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2701,7 +2747,7 @@
       call daclrd(roi)
       do i=1,nd-ndc
 +if crlibm
-        xx=exp_rn(-one*ra(i))                                            !hr11
+        xx=exp_mb(-one*ra(i))                                            !hr11
 +ei
 +if .not.crlibm
         xx=exp(-one*ra(i))                                               !hr11
@@ -2712,13 +2758,13 @@
           si(i)=(-one*sh)*xx
         else
 +if crlibm
-          co(i)=cos_rn(ang(i))*xx
+          co(i)=cos_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           co(i)=cos(ang(i))*xx
 +ei
 +if crlibm
-          si(i)=sin_rn(ang(i))*xx
+          si(i)=sin_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           si(i)=sin(ang(i))*xx
@@ -2759,6 +2805,7 @@
 +dk hyper
       subroutine hyper(a,ch,sh)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2767,7 +2814,7 @@
       real(kind=fPrec) a,ch,sh,x,xi
 !   USED IN ROTIFLO AND ROTFLO
 +if crlibm
-      x=exp_rn(a)
+      x=exp_mb(a)
 +ei
 +if .not.crlibm
       x=exp(a)
@@ -2780,6 +2827,7 @@
 +dk ctor
       subroutine ctor(c1,r2,i2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -2812,6 +2860,7 @@
 +dk rtoc
       subroutine rtoc(r1,i1,c2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -2835,6 +2884,7 @@
 +dk ctorflo
       subroutine ctorflo(c,dr,di)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -2854,6 +2904,7 @@
 +dk rtocflo
       subroutine rtocflo(dr,di,c)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -2880,6 +2931,7 @@
 +dk ctord
       subroutine ctord(c,cr,ci)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -2901,6 +2953,7 @@
 +dk rtocd
       subroutine rtocd(cr,ci,c)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -2920,6 +2973,7 @@
 +dk resvec
       subroutine resvec(cr,ci,dr,di)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -2972,6 +3026,7 @@
 +dk reelflo
       subroutine reelflo(c,ci,f,fi)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3018,6 +3073,7 @@
 +dk compcjg
       subroutine compcjg(cr,ci,dr,di)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3065,7 +3121,7 @@
       integer c(*),a2(*),a2i(*)
 !*DAEXT(NO,NV) C(NDIM2),A2(NDIM2),A2I(NDIM2)
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -3112,7 +3168,7 @@
           q(i)=acos(cr(2*i-1,2*i-1)/a(i))
 +ei
 +if crlibm
-          a(i)=log_rn(a(i))
+          a(i)=log_mb(a(i))
 +ei
 +if .not.crlibm
           a(i)=log(a(i))
@@ -3125,14 +3181,14 @@
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
 +if crlibm
-          q(i)=-one*log_rn(ch+shm)                                       !hr11
+          q(i)=-one*log_mb(ch+shm)                                       !hr11
 +ei
 +if .not.crlibm
           q(i)=-one*log(ch+shm)                                          !hr11
 +ei
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
 +if crlibm
-          a(i)=log_rn(a(i))
+          a(i)=log_mb(a(i))
 +ei
 +if .not.crlibm
           a(i)=log(a(i))
@@ -3190,7 +3246,7 @@
      &,sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -3264,7 +3320,7 @@
           write(lout,*) 2*i,rr(2*i),asin(ri(2*i)/rd)/x2pi
 +ei
 +if crlibm
-          write(lout,*) ' alphas ', log_rn(sqrt(rd*rd1))
+          write(lout,*) ' alphas ', log_mb(sqrt(rd*rd1))
 +ei
 +if .not.crlibm
           write(lout,*) ' alphas ', log(sqrt(rd*rd1))
@@ -3333,31 +3389,31 @@
       if(iunst.ne.1) then
         do i=1,nd-ndc
 +if crlibm
-          p(i)=atan_rn(-sai(2*i-1,2*i)/sai(2*i,2*i))
+          p(i)=atan_mb(-sai(2*i-1,2*i)/sai(2*i,2*i))
 +ei
 +if .not.crlibm
           p(i)=atan(-sai(2*i-1,2*i)/sai(2*i,2*i))
 +ei
 +if crlibm
-          s1(2*i-1,2*i-1)=cos_rn(p(i))
+          s1(2*i-1,2*i-1)=cos_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i-1,2*i-1)=cos(p(i))
 +ei
 +if crlibm
-          s1(2*i,2*i)=cos_rn(p(i))
+          s1(2*i,2*i)=cos_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i,2*i)=cos(p(i))
 +ei
 +if crlibm
-          s1(2*i-1,2*i)=sin_rn(p(i))
+          s1(2*i-1,2*i)=sin_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i-1,2*i)=sin(p(i))
 +ei
 +if crlibm
-          s1(2*i,2*i-1)=-sin_rn(p(i))
+          s1(2*i,2*i-1)=-sin_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i,2*i-1)=-sin(p(i))
@@ -3397,6 +3453,7 @@
 +dk mulnd2
       subroutine mulnd2(rt,r)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3568,6 +3625,7 @@
 +dk movemul
       subroutine movemul(rt,xy,rto,xr)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3680,6 +3738,7 @@
 +dk dlie
       real(kind=fPrec) function dlie(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3701,6 +3760,7 @@
 +dk rext
       real(kind=fPrec) function rext(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3731,6 +3791,7 @@
 +dk cpart
       subroutine cpart(h,ch)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -3748,6 +3809,7 @@
 +dk ctoi
       subroutine ctoi(f1,f2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -3773,6 +3835,7 @@
 +dk itoc
       subroutine itoc(f1,f2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -3797,6 +3860,7 @@
 +dk etrtc
       subroutine etrtc(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -3826,6 +3890,7 @@
 +dk etctr
       subroutine etctr(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3855,6 +3920,7 @@
 +dk etcjg
       subroutine etcjg(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -3962,6 +4028,7 @@
 +dk ety
       subroutine ety(nm,n,low,igh,a,ort)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -4072,6 +4139,7 @@
 +dk etyt
       subroutine etyt(nm,n,low,igh,a,ort,z)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if crlibm
 +ca crlibco
@@ -4161,6 +4229,7 @@
 +dk ety2
       subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -4590,6 +4659,7 @@
 +dk etdiv
       subroutine etdiv(a,b,c,d,e,f)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -4648,7 +4718,6 @@
       end
 +dk sympl3
       subroutine sympl3(m)
-      use floatPrecision
 !**********************************************************
 !
 !    SYMPL3
@@ -4662,6 +4731,8 @@
 !
 !  Written by F. Neri  Feb 7 1986
 !
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -4721,6 +4792,7 @@
 +dk averaged
       subroutine averaged(f,a,flag,fave)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -4787,6 +4859,7 @@
 +dk avepol
       real(kind=fPrec) function avepol(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -4855,7 +4928,7 @@
 !     one order is lost because I use PB-field
 
 +if crlibm
-      tpi=atan_rn(one)*eight
+      tpi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       tpi=atan(one)*eight
@@ -4916,6 +4989,7 @@
 +dk planar
       real(kind=fPrec) function planar(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -4949,6 +5023,7 @@
 +dk killnonl
       real(kind=fPrec) function killnonl(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -4976,6 +5051,7 @@
 +dk fexpo1
       subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -5003,6 +5079,7 @@
 +dk etcctpar
       subroutine etcctpar(x,ix,xj,z)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm

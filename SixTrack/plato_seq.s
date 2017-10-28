@@ -103,7 +103,7 @@ C    ESTIMATION OF TUNE WITH FFT
 C.............................................................
 +if crlibm
       DUEPI=ATAN_MB(1D0)*8D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0))
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0))
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
@@ -175,7 +175,7 @@ C............................................................
       ENDIF
 C............................................................
 +if crlibm
-      DUEPI=8*ATAN_RN(1D0)
+      DUEPI=8*ATAN_MB(1D0)
 +ei
 +if .not.crlibm
       DUEPI=8*DATAN(1D0)
@@ -296,8 +296,8 @@ C
 
 C..................................ESTIMATION OF TUNE WITH FFT 
 +if crlibm
-      PI=ATAN_RN(1D0)*4D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
+      PI=ATAN_MB(1D0)*4D0
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0)) 
 +ei
 +if .not.crlibm
       PI=ATAN(1D0)*4D0
@@ -337,10 +337,10 @@ C................................................INTERPOLATION
 +if crlibm
       IF (CF3.GT.CF1) THEN      
         ASSK=DBLE(NFTMAX)+(NPOINT/PI)*
-     .       ATAN2_MB(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
+     .       ATAN2_MB(CF3*SIN_MB(PI/NPOINT),CF2+CF3*COS_MB(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
         ASSK=DBLE(NFTMAX-1)+(NPOINT/PI)*
-     .       ATAN2_MB(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
+     .       ATAN2_MB(CF2*SIN_MB(PI/NPOINT),CF1+CF2*COS_MB(PI/NPOINT))
       ENDIF
 +ei
 +if .not.crlibm
@@ -383,8 +383,8 @@ C
 
 C..................................ESTIMATION OF TUNE WITH FFT 
 +if crlibm
-      PI=ATAN_RN(1D0)*4D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
+      PI=ATAN_MB(1D0)*4D0
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0)) 
 +ei
 +if .not.crlibm
       PI=ATAN(1D0)*4D0
@@ -397,7 +397,7 @@ C.............................................................
       SUM=0D0            !..CHECKS FOR COMPLEX OR REAL DATA
       DO MF=1,NPOINT
 +if crlibm
-        Z(MF)=DCMPLX(X(MF),XP(MF))*SIN_RN(STEP*MF)**2
+        Z(MF)=DCMPLX(X(MF),XP(MF))*SIN_MB(STEP*MF)**2
 +ei
 +if .not.crlibm
         Z(MF)=DCMPLX(X(MF),XP(MF))*SIN(STEP*MF)**2
@@ -436,8 +436,8 @@ C.............................................................
       ENDIF
 C..........................................INTERPOLATION
 +if crlibm
-      CO=COS_RN((2*PI)/DBLE(NPOINT))
-      SI=SIN_RN((2*PI)/DBLE(NPOINT))
+      CO=COS_MB((2*PI)/DBLE(NPOINT))
+      SI=SIN_MB((2*PI)/DBLE(NPOINT))
 +ei
 +if .not.crlibm
       CO=COS((2*PI)/DBLE(NPOINT))
@@ -511,9 +511,9 @@ C create real array DATA out of complex array CDATA
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
 +if crlibm
-        THETA=(8.D0*ATAN_RN(1.D0))/(ISIGN*MMAX)
-        WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
-        WPI=SIN_RN(THETA)
+        THETA=(8.D0*ATAN_MB(1.D0))/(ISIGN*MMAX)
+        WPR=-2.D0*SIN_MB(0.5D0*THETA)**2
+        WPI=SIN_MB(THETA)
 +ei
 +if .not.crlibm
         THETA=(8.D0*ATAN(1.D0))/(ISIGN*MMAX)
@@ -590,9 +590,9 @@ C
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
 +if crlibm
-        THETA=(8.D0*ATAN_RN(1.D0))/(ISIGN*MMAX)
-        WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
-        WPI=SIN_RN(THETA)
+        THETA=(8.D0*ATAN_MB(1.D0))/(ISIGN*MMAX)
+        WPR=-2.D0*SIN_MB(0.5D0*THETA)**2
+        WPI=SIN_MB(THETA)
 +ei
 +if .not.crlibm
         THETA=(8.D0*ATAN(1.D0))/(ISIGN*MMAX)
@@ -656,8 +656,8 @@ C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
 C.............................................................
 +if crlibm
-      DUEPI=ATAN_RN(1D0)*8D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
+      DUEPI=ATAN_MB(1D0)*8D0
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0)) 
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
@@ -670,7 +670,7 @@ C.............................................................
       SUM=0D0
       DO MF=1,MAXN
 +if crlibm
-        Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS_RN(STEP*(MF-MAXN2)))
+        Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS_MB(STEP*(MF-MAXN2)))
 +ei
 +if .not.crlibm
         Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS(STEP*(MF-MAXN2)))
@@ -726,7 +726,7 @@ C
 
 C............................................................  
 +if crlibm
-      DUEPI=ATAN_RN(1D0)*8D0
+      DUEPI=ATAN_MB(1D0)*8D0
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
@@ -743,8 +743,8 @@ C............................................................
       ENDDO
 C............................................................  
 +if crlibm
-      ! EXP_RN expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
-      ZTUNE1=cos_rn(DUEPI*TUNEA1) + ZU*sin_rn(DUEPI*TUNEA1)
+      ! EXP_MB expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
+      ZTUNE1=cos_mb(DUEPI*TUNEA1) + ZU*sin_mb(DUEPI*TUNEA1)
 +ei
 +if .not.crlibm
       ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
@@ -855,7 +855,7 @@ C............................................................
       ENDIF
 C............................................................
 +if crlibm
-      PI=4*ATAN_RN(1.D0)
+      PI=4*ATAN_MB(1.D0)
 +ei
 +if .not.crlibm
       PI=4*ATAN(1.D0)
@@ -1058,8 +1058,8 @@ C...............................INTERPOLATION WITH A GAUSSIAN
       X12=X1-X2
       X13=X1-X3
 +if crlibm
-      Y12=LOG_RN(DBLE(Y1/Y2))
-      Y13=LOG_RN(DBLE(Y1/Y3))
+      Y12=LOG_MB(DBLE(Y1/Y2))
+      Y13=LOG_MB(DBLE(Y1/Y3))
 +ei
 +if .not.crlibm
       Y12=LOG(Y1/Y2)
@@ -1113,7 +1113,7 @@ C............................................................
 +ca crlibco
 +ca crcoall
 +if crlibm
-      DUEPI=8*ATAN_RN(1D+0)
+      DUEPI=8*ATAN_MB(1D+0)
 +ei
 +if .not.crlibm
       DUEPI=8*ATAN(1D+0)
@@ -1133,7 +1133,7 @@ C............................................................
 C.................................ESTIMATION OF TUNE WITH FFT
       SUM=0D0
 +if crlibm
-      MFT=INT(LOG_RN(DBLE(MAX))/LOG_RN(2D+0))
+      MFT=INT(LOG_MB(DBLE(MAX))/LOG_MB(2D+0))
 +ei
 +if .not.crlibm
       MFT=INT(LOG(DBLE(MAX))/LOG(2D+0))
@@ -1184,10 +1184,10 @@ C.........................................BISECTION PROCEDURE
           DO N=1,MAX
 +if crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
-     .        *(1D0+COS_RN(STEP*(2*N-MAX1)))
+     .        *(1D0+COS_MB(STEP*(2*N-MAX1)))
             TMPR=REAL((-(0D+0,1D+0)*OME)*N)
             TMPI=IMAG((-(0D+0,1D+0)*OME)*N)
-            Z(N)=ZC*(EXP_RN(TMPR)*DCMPLX(COS_RN(TMPI),SIN_RN(TMPI))) !exp_rn is only defined for real numbers -> decompose in real and imaginary part
+            Z(N)=ZC*(EXP_MB(TMPR)*DCMPLX(COS_MB(TMPI),SIN_MB(TMPI))) !exp_mb is only defined for real numbers -> decompose in real and imaginary part
 +ei
 +if .not.crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))

@@ -4,6 +4,7 @@
 module scatter
 
   use floatPrecision
+  use mathlib_bouncer
 
   IMPLICIT NONE
 
@@ -1011,8 +1012,8 @@ subroutine scatter_thin(ix, turn)
             ! remember to update ALL the energy arrays
             theta   = 1d3*sqrt(t)/ejfv(j)                  ! Unit mrad
 +if crlibm
-            yv(1,j) = theta*cos_rn(rndPhi(j)) + yv(1,j)
-            yv(2,j) = theta*sin_rn(rndPhi(j)) + yv(2,j)
+            yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
+            yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
 +ei
 +if .not.crlibm
             yv(1,j) = theta*cos(rndPhi(j)) + yv(1,j)
@@ -1069,8 +1070,8 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
         sigmaY  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 2)
 +if crlibm
         retval  = beamtot/(two*(pi*(sigmaX*sigmaY))) &
-                * exp_rn(-half*(x/sigmaX)**2) &
-                * exp_rn(-half*(y/sigmaY)**2)
+                * exp_mb(-half*(x/sigmaX)**2) &
+                * exp_mb(-half*(y/sigmaY)**2)
 +ei
 +if .not.crlibm
         retval  = beamtot/(two*(pi*(sigmaX*sigmaY))) &
@@ -1219,8 +1220,8 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 
     ! Approximate distribution
 +if crlibm
-    g1    =            exp_rn(-b1*tmin)/b1 ! Soft scatter term
-    g3    = (a**2) * ( exp_rn(-b2*tmin)/b2 ) ! Hard scatter term
+    g1    =            exp_mb(-b1*tmin)/b1 ! Soft scatter term
+    g3    = (a**2) * ( exp_mb(-b2*tmin)/b2 ) ! Hard scatter term
 +ei
 +if .not.crlibm
     g1    =        exp(-b1*tmin)/b1 ! Soft scatter term
@@ -1241,9 +1242,9 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         ! Randomly switch between g1 and g3 according to probability
 +if crlibm
         if(rndArr(1) .gt. prob3) then
-            t = tmin - invB1*log_rn(rndArr(2))
+            t = tmin - invB1*log_mb(rndArr(2))
         else
-            t = tmin - invB2*log_rn(rndArr(2))
+            t = tmin - invB2*log_mb(rndArr(2))
         end if
 +ei
 +if .not.crlibm
@@ -1256,9 +1257,9 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         
         ! Exact distribution
 +if crlibm
-        g1 =            exp_rn(-b1*t)                                    ! Soft scatter term
-        g2 =  ( (2*a) * exp_rn( ( (-half)*(b1+b2) )*t ) ) * cos_rn(phi) ! Interference
-        g3 =   (a**2) * exp_rn(-b2*t)                                    ! Hard scatter term
+        g1 =            exp_mb(-b1*t)                                    ! Soft scatter term
+        g2 =  ( (2*a) * exp_mb( ( (-half)*(b1+b2) )*t ) ) * cos_mb(phi) ! Interference
+        g3 =   (a**2) * exp_mb(-b2*t)                                    ! Hard scatter term
         gg = ((g1+g2)+g3)/(g1+g3)
 +ei
 +if .not.crlibm

@@ -1525,14 +1525,14 @@
 !++  has twice the betatron phase advance
          if(.not. do_nsig) nsig = db_nsig(icoll)
 +if crlibm
-          scale_bx = (1d0 + xbeat*sin_rn(4*pi*mux(ie)+
+          scale_bx = (1d0 + xbeat*sin_mb(4*pi*mux(ie)+
 +ei
 +if .not.crlibm
           scale_bx = (1d0 + xbeat*sin(4*pi*mux(ie)+                     &
 +ei
      &xbeatphase)  )
 +if crlibm
-          scale_by = (1d0 + ybeat*sin_rn(4*pi*muy(ie)+
+          scale_by = (1d0 + ybeat*sin_mb(4*pi*muy(ie)+
 +ei
 +if .not.crlibm
           scale_by = (1d0 + ybeat*sin(4*pi*muy(ie)+                     &
@@ -1640,21 +1640,21 @@
           c_tilt(2)  = db_tilt(icoll,2)
 
 +if crlibm
-          calc_aperture = sqrt( xmax**2 * cos_rn(c_rotation)**2         &
+          calc_aperture = sqrt( xmax**2 * cos_mb(c_rotation)**2         &
 +ei
 +if .not.crlibm
           calc_aperture = sqrt( xmax**2 * cos(c_rotation)**2            &
 +ei
 +if crlibm
-     &                    + ymax**2 * sin_rn(c_rotation)**2 )
+     &                    + ymax**2 * sin_mb(c_rotation)**2 )
 +ei
 +if .not.crlibm
      &                    + ymax**2 * sin(c_rotation)**2 )
 +ei
 
 +if crlibm
-          nom_aperture = sqrt( xmax_nom**2 * cos_rn(c_rotation)**2      &
-     &                   + ymax_nom**2 * sin_rn(c_rotation)**2 )
+          nom_aperture = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2      &
+     &                   + ymax_nom**2 * sin_mb(c_rotation)**2 )
 +ei
 +if .not.crlibm
           nom_aperture = sqrt( xmax_nom**2 * cos(c_rotation)**2         &
@@ -1663,8 +1663,8 @@
 !
             pencil_aperture =                                           &
 +if crlibm
-     &                    sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2  &
-     &                    + ymax_pencil**2 * sin_rn(c_rotation)**2 )
+     &                    sqrt( xmax_pencil**2 * cos_mb(c_rotation)**2  &
+     &                    + ymax_pencil**2 * sin_mb(c_rotation)**2 )
 +ei
 +if .not.crlibm
      &                    sqrt( xmax_pencil**2 * cos(c_rotation)**2     &
@@ -1673,8 +1673,8 @@
 
 !++  Get x and y offsets at collimator center point
 +if crlibm
-            x_pencil(icoll) = xmax_pencil * (cos_rn(c_rotation))
-            y_pencil(icoll) = ymax_pencil * (sin_rn(c_rotation))
+            x_pencil(icoll) = xmax_pencil * (cos_mb(c_rotation))
+            y_pencil(icoll) = ymax_pencil * (sin_mb(c_rotation))
 +ei
 +if .not.crlibm
             x_pencil(icoll) = xmax_pencil * (cos(c_rotation))
@@ -1726,8 +1726,8 @@
 
             pencil_dx(icoll)  =                                         &
 +if crlibm
-     &                     sqrt( xmax_pencil**2 * cos_rn(c_rotation)**2 &
-     &                     + ymax_pencil**2 * sin_rn(c_rotation)**2 )   &
+     &                     sqrt( xmax_pencil**2 * cos_mb(c_rotation)**2 &
+     &                     + ymax_pencil**2 * sin_mb(c_rotation)**2 )   &
 +ei
 +if .not.crlibm
      &                     sqrt( xmax_pencil**2 * cos(c_rotation)**2    &
@@ -1752,8 +1752,8 @@
 !     c_tilt(1) =  (xp_pencil0*cos(c_rotation)                  &
 +if crlibm
 !adriana
-               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos_rn(c_rotation)    &
-     &                     + sin_rn(c_rotation)*yp_pencil0)
+               c_tilt(1) = c_tilt(1) + (xp_pencil0*cos_mb(c_rotation)    &
+     &                     + sin_mb(c_rotation)*yp_pencil0)
 +ei
 +if .not.crlibm
                c_tilt(1) = c_tilt(1) + (xp_pencil0*cos(c_rotation)       &
@@ -1770,8 +1770,8 @@
 !                c_tilt(2) =  -1.*(xp_pencil0*cos(c_rotation)             &
 +if crlibm
 !adriana
-                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos_rn(c_rotation)  &
-     &                 + sin_rn(c_rotation)*yp_pencil0)
+                c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos_mb(c_rotation)  &
+     &                 + sin_mb(c_rotation)*yp_pencil0)
 +ei
 +if .not.crlibm
                 c_tilt(2) = c_tilt(2) -1.*(xp_pencil0*cos(c_rotation)     &
@@ -3873,19 +3873,19 @@
      &tbetax(ie)*(xpgrd(j)*1d-3)) /                                     &
      &sqrt(tbetax(ie)*myemitx0_collgap)
 +if crlibm
-                xangle = atan2_rn(xnorm,xpnorm)
+                xangle = atan2_mb(xnorm,xpnorm)
 +ei
 +if .not.crlibm
                 xangle = atan2(xnorm,xpnorm)
 +ei
 +if crlibm
-                xnorm  = xnorm  + dnormx*sin_rn(xangle)
+                xnorm  = xnorm  + dnormx*sin_mb(xangle)
 +ei
 +if .not.crlibm
                 xnorm  = xnorm  + dnormx*sin(xangle)
 +ei
 +if crlibm
-                xpnorm = xpnorm + dnormx*cos_rn(xangle)
+                xpnorm = xpnorm + dnormx*cos_mb(xangle)
 +ei
 +if .not.crlibm
                 xpnorm = xpnorm + dnormx*cos(xangle)
@@ -3902,19 +3902,19 @@
      &tbetay(ie)*(ypgrd(j)*1d-3)) /                                     &
      &sqrt(tbetay(ie)*myemity0_collgap)
 +if crlibm
-                yangle = atan2_rn(ynorm,ypnorm)
+                yangle = atan2_mb(ynorm,ypnorm)
 +ei
 +if .not.crlibm
                 yangle = atan2(ynorm,ypnorm)
 +ei
 +if crlibm
-                ynorm  = ynorm  + dnormy*sin_rn(yangle)
+                ynorm  = ynorm  + dnormy*sin_mb(yangle)
 +ei
 +if .not.crlibm
                 ynorm  = ynorm  + dnormy*sin(yangle)
 +ei
 +if crlibm
-                ypnorm = ypnorm + dnormy*cos_rn(yangle)
+                ypnorm = ypnorm + dnormy*cos_mb(yangle)
 +ei
 +if .not.crlibm
                 ypnorm = ypnorm + dnormy*cos(yangle)
@@ -4357,25 +4357,25 @@
 !++  First do rotation into collimator frame
 !
 +if crlibm
-          x  = x_in(j)*cos_rn(c_rotation) +sin_rn(c_rotation)*y_in(j)
+          x  = x_in(j)*cos_mb(c_rotation) +sin_mb(c_rotation)*y_in(j)
 +ei
 +if .not.crlibm
           x  = x_in(j)*cos(c_rotation) +sin(c_rotation)*y_in(j)
 +ei
 +if crlibm
-          z  = y_in(j)*cos_rn(c_rotation) -sin_rn(c_rotation)*x_in(j)
+          z  = y_in(j)*cos_mb(c_rotation) -sin_mb(c_rotation)*x_in(j)
 +ei
 +if .not.crlibm
           z  = y_in(j)*cos(c_rotation) -sin(c_rotation)*x_in(j)
 +ei
 +if crlibm
-          xp = xp_in(j)*cos_rn(c_rotation)+sin_rn(c_rotation)*yp_in(j)
+          xp = xp_in(j)*cos_mb(c_rotation)+sin_mb(c_rotation)*yp_in(j)
 +ei
 +if .not.crlibm
           xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j)
 +ei
 +if crlibm
-          zp = yp_in(j)*cos_rn(c_rotation)-sin_rn(c_rotation)*xp_in(j)
+          zp = yp_in(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*xp_in(j)
 +ei
 +if .not.crlibm
           zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j)
@@ -4417,7 +4417,7 @@
           endif
           if (tiltangle.lt.0.) then
 +if crlibm
-            x  = x + sin_rn(tiltangle) * c_length
+            x  = x + sin_mb(tiltangle) * c_length
 +ei
 +if .not.crlibm
             x  = x + sin(tiltangle) * c_length
@@ -4739,19 +4739,19 @@
                xp_flk = xp_flk + tiltangle
             elseif (tiltangle.lt.0.d0) then !hr09
                xp_flk = xp_flk + tiltangle
-               x_flk  = x_flk - sin_rn(tiltangle) * ( length-(sInt+sp) )
+               x_flk  = x_flk - sin_mb(tiltangle) * ( length-(sInt+sp) )
             endif
             x_flk = (x_flk + c_aperture/2d0) + mirror*c_offset !hr09
             x_flk    = mirror * x_flk
             xp_flk   = mirror * xp_flk
-            y_flk  = yInt  *cos_rn(-1d0*c_rotation) -                         &          
-     &           x_flk  *sin_rn(-1d0*c_rotation)
-            yp_flk = ypInt *cos_rn(-1d0*c_rotation) -                         &
-     &           xp_flk *sin_rn(-1d0*c_rotation)
-            x_flk  = x_flk  *cos_rn(-1d0*c_rotation) +                         &
-     &           yInt  *sin_rn(-1d0*c_rotation)
-            xp_flk = xp_flk *cos_rn(-1d0*c_rotation) +                         &
-     &           ypInt *sin_rn(-1d0*c_rotation)
+            y_flk  = yInt  *cos_mb(-1d0*c_rotation) -                         &
+     &           x_flk  *sin_mb(-1d0*c_rotation)
+            yp_flk = ypInt *cos_mb(-1d0*c_rotation) -                         &
+     &           xp_flk *sin_mb(-1d0*c_rotation)
+            x_flk  = x_flk  *cos_mb(-1d0*c_rotation) +                         &
+     &           yInt  *sin_mb(-1d0*c_rotation)
+            xp_flk = xp_flk *cos_mb(-1d0*c_rotation) +                         &
+     &           ypInt *sin_mb(-1d0*c_rotation)
 
 +ei
 +if .not.crlibm
@@ -4843,7 +4843,7 @@
                 xp = xp + tiltangle
 !
 +if crlibm
-                x  = x - sin_rn(tiltangle) * c_length
+                x  = x - sin_mb(tiltangle) * c_length
 +ei
 +if .not.crlibm
                 x  = x - sin(tiltangle) * c_length
@@ -4864,49 +4864,49 @@
 !++  Last do rotation into collimator frame
 !
 +if crlibm
-            x_in(j)  = x  *cos_rn(-1d0*c_rotation) +                    &
+            x_in(j)  = x  *cos_mb(-1d0*c_rotation) +                    &
 +ei
 +if .not.crlibm
             x_in(j)  = x  *cos(-1d0*c_rotation) +                       &
 +ei
 +if crlibm
-     &z  *sin_rn(-1d0*c_rotation)
+     &z  *sin_mb(-1d0*c_rotation)
 +ei
 +if .not.crlibm
      &z  *sin(-1d0*c_rotation)
 +ei
 +if crlibm
-            y_in(j)  = z  *cos_rn(-1d0*c_rotation) -                    &
+            y_in(j)  = z  *cos_mb(-1d0*c_rotation) -                    &
 +ei
 +if .not.crlibm
             y_in(j)  = z  *cos(-1d0*c_rotation) -                       &
 +ei
 +if crlibm
-     &x  *sin_rn(-1d0*c_rotation)
+     &x  *sin_mb(-1d0*c_rotation)
 +ei
 +if .not.crlibm
      &x  *sin(-1d0*c_rotation)
 +ei
 +if crlibm
-            xp_in(j) = xp *cos_rn(-1d0*c_rotation) +                    &
+            xp_in(j) = xp *cos_mb(-1d0*c_rotation) +                    &
 +ei
 +if .not.crlibm
             xp_in(j) = xp *cos(-1d0*c_rotation) +                       &
 +ei
 +if crlibm
-     &zp *sin_rn(-1d0*c_rotation)
+     &zp *sin_mb(-1d0*c_rotation)
 +ei
 +if .not.crlibm
      &zp *sin(-1d0*c_rotation)
 +ei
 +if crlibm
-            yp_in(j) = zp *cos_rn(-1d0*c_rotation) -                    &
+            yp_in(j) = zp *cos_mb(-1d0*c_rotation) -                    &
 +ei
 +if .not.crlibm
             yp_in(j) = zp *cos(-1d0*c_rotation) -                       &
 +ei
 +if crlibm
-     &xp *sin_rn(-1d0*c_rotation)
+     &xp *sin_mb(-1d0*c_rotation)
 +ei
 +if .not.crlibm
      &xp *sin(-1d0*c_rotation)
@@ -4922,25 +4922,25 @@
 !
                x00  = mirror * x00
 +if crlibm
-               x_in(j)  = x00  *cos_rn(-1d0*c_rotation) +
+               x_in(j)  = x00  *cos_mb(-1d0*c_rotation) +
 +ei
 +if .not.crlibm
                x_in(j)  = x00  *cos(-1d0*c_rotation) +
 +ei
 +if crlibm
-     &z00  *sin_rn(-1d0*c_rotation)
+     &z00  *sin_mb(-1d0*c_rotation)
 +ei
 +if .not.crlibm
      &z00  *sin(-1d0*c_rotation)
 +ei
 +if crlibm
-               y_in(j)  = z00  *cos_rn(-1d0*c_rotation) -               &
+               y_in(j)  = z00  *cos_mb(-1d0*c_rotation) -               &
 +ei
 +if .not.crlibm
                y_in(j)  = z00  *cos(-1d0*c_rotation) -                  &
 +ei
 +if crlibm
-     &x00  *sin_rn(-1d0*c_rotation)
+     &x00  *sin_mb(-1d0*c_rotation)
 +ei
 +if .not.crlibm
      &x00  *sin(-1d0*c_rotation)
@@ -5129,25 +5129,25 @@ c$$$          endif
 !JUNE2005 CHANGE TO MAKE THE RHIC TREATMENT EASIER...
 !JUNE2005
 !+if crlibm
-!          x  = x_in(j)*cos_rn(c_rotation) +sin_rn(c_rotation)*y_in(j)
+!          x  = x_in(j)*cos_mb(c_rotation) +sin_mb(c_rotation)*y_in(j)
 !+ei
 !+if .not.crlibm
 !          x  = x_in(j)*cos(c_rotation) +sin(c_rotation)*y_in(j)
 !+ei
 !+if crlibm
-!          z  = y_in(j)*cos_rn(c_rotation) -sin_rn(c_rotation)*x_in(j)
+!          z  = y_in(j)*cos_mb(c_rotation) -sin_mb(c_rotation)*x_in(j)
 !+ei
 !+if .not.crlibm
 !          z  = y_in(j)*cos(c_rotation) -sin(c_rotation)*x_in(j)
 !+ei
 !+if crlibm
-!          xp = xp_in(j)*cos_rn(c_rotation)+sin_rn(c_rotation)*yp_in(j)
+!          xp = xp_in(j)*cos_mb(c_rotation)+sin_mb(c_rotation)*yp_in(j)
 !+ei
 !+if .not.crlibm
 !          xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j)
 !+ei
 !+if crlibm
-!          zp = yp_in(j)*cos_rn(c_rotation)-sin_rn(c_rotation)*xp_in(j)
+!          zp = yp_in(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*xp_in(j)
 !+ei
 !+if .not.crlibm
 !          zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j)
@@ -5204,7 +5204,7 @@ c$$$          endif
             xp = xp - tiltangle
           elseif (tiltangle.lt.0.) then
 +if crlibm
-            x  = x + sin_rn(tiltangle) * c_length
+            x  = x + sin_mb(tiltangle) * c_length
 +ei
 +if .not.crlibm
             x  = x + sin(tiltangle) * c_length
@@ -5567,7 +5567,7 @@ c$$$          endif
               xp = xp + tiltangle
 !
 +if crlibm
-              x  = x - sin_rn(tiltangle) * c_length
+              x  = x - sin_mb(tiltangle) * c_length
 +ei
 +if .not.crlibm
               x  = x - sin(tiltangle) * c_length
@@ -5595,49 +5595,49 @@ c$$$          endif
 !
 !JUNE2005
 !+if crlibm
-!            x_in(j)  = x  *cos_rn(-1.*c_rotation) +                     &
+!            x_in(j)  = x  *cos_mb(-1.*c_rotation) +                     &
 !+ei
 !+if .not.crlibm
 !            x_in(j)  = x  *cos(-1.*c_rotation) +                        &
 !+ei
 !+if crlibm
-!     &z  *sin_rn(-1.*c_rotation)
+!     &z  *sin_mb(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
 !     &z  *sin(-1.*c_rotation)
 !+ei
 !+if crlibm
-!            y_in(j)  = z  *cos_rn(-1.*c_rotation) -                     &
+!            y_in(j)  = z  *cos_mb(-1.*c_rotation) -                     &
 !+ei
 !+if .not.crlibm
 !            y_in(j)  = z  *cos(-1.*c_rotation) -                        &
 !+ei
 !+if crlibm
-!     &x  *sin_rn(-1.*c_rotation)
+!     &x  *sin_mb(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
 !     &x  *sin(-1.*c_rotation)
 !+ei
 !+if crlibm
-!            xp_in(j) = xp *cos_rn(-1.*c_rotation) +                     &
+!            xp_in(j) = xp *cos_mb(-1.*c_rotation) +                     &
 !+ei
 !+if .not.crlibm
 !            xp_in(j) = xp *cos(-1.*c_rotation) +                        &
 !+ei
 !+if crlibm
-!     &zp *sin_rn(-1.*c_rotation)
+!     &zp *sin_mb(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
 !     &zp *sin(-1.*c_rotation)
 !+ei
 !+if crlibm
-!            yp_in(j) = zp *cos_rn(-1.*c_rotation) -                     &
+!            yp_in(j) = zp *cos_mb(-1.*c_rotation) -                     &
 !+ei
 !+if .not.crlibm
 !            yp_in(j) = zp *cos(-1.*c_rotation) -                        &
 !+ei
 !+if crlibm
-!     &xp *sin_rn(-1.*c_rotation)
+!     &xp *sin_mb(-1.*c_rotation)
 !+ei
 !+if .not.crlibm
 !     &xp *sin(-1.*c_rotation)
@@ -5658,25 +5658,25 @@ c$$$          endif
 !
                x00  = mirror * x00
 +if crlibm
-               x_in(j)  = x00  *cos_rn(-1.d0*c_rotation) +              &!hr09
+               x_in(j)  = x00  *cos_mb(-1.d0*c_rotation) +              &!hr09
 +ei
 +if .not.crlibm
                x_in(j)  = x00  *cos(-1.d0*c_rotation) +                 &!hr09
 +ei
 +if crlibm
-     &z00  *sin_rn(-1.d0*c_rotation)                                     !hr09
+     &z00  *sin_mb(-1.d0*c_rotation)                                     !hr09
 +ei
 +if .not.crlibm
      &z00  *sin(-1.d0*c_rotation)                                        !hr09
 +ei
 +if crlibm
-               y_in(j)  = z00  *cos_rn(-1.d0*c_rotation) -              &!hr09
+               y_in(j)  = z00  *cos_mb(-1.d0*c_rotation) -              &!hr09
 +ei
 +if .not.crlibm
                y_in(j)  = z00  *cos(-1.d0*c_rotation) -                 &!hr09
 +ei
 +if crlibm
-     &x00  *sin_rn(-1.d0*c_rotation)                                     !hr09
+     &x00  *sin_mb(-1.d0*c_rotation)                                     !hr09
 +ei
 +if .not.crlibm
      &x00  *sin(-1.d0*c_rotation)                                        !hr09
@@ -5765,7 +5765,7 @@ c$$$          endif
 +if .not.merlinscatter
       if        ( inter.eq.2 ) then
 +if crlibm
-           gettran = (-1d0*log_rn(dble(rndm4())))/bn(xmat)               !hr09
+           gettran = (-1d0*log_mb(dble(rndm4())))/bn(xmat)               !hr09
 +ei
 +if .not.crlibm
            gettran = (-1d0*log(dble(rndm4())))/bn(xmat)                  !hr09
@@ -5773,7 +5773,7 @@ c$$$          endif
 !
          elseif ( inter .eq. 3 ) then
 +if crlibm
-           gettran = (-1d0*log_rn(dble(rndm4())))/bpp                    !hr09
+           gettran = (-1d0*log_mb(dble(rndm4())))/bpp                    !hr09
 +ei
 +if .not.crlibm
            gettran = (-1d0*log(dble(rndm4())))/bpp                       !hr09
@@ -5781,7 +5781,7 @@ c$$$          endif
 !
          elseif ( inter .eq. 4 ) then
 +if crlibm
-           xm2 = exp_rn( dble(rndm4()) * xln15s )
+           xm2 = exp_mb( dble(rndm4()) * xln15s )
 +ei
 +if .not.crlibm
            xm2 = exp( dble(rndm4()) * xln15s )
@@ -5795,7 +5795,7 @@ c$$$          endif
                 bsd = (7.d0 * bpp) / 12.d0                               !hr09
            endif
 +if crlibm
-           gettran = (-1d0*log_rn(dble(rndm4())))/bsd                    !hr09
+           gettran = (-1d0*log_mb(dble(rndm4())))/bsd                    !hr09
 +ei
 +if .not.crlibm
            gettran = (-1d0*log(dble(rndm4())))/bsd                       !hr09
@@ -5876,7 +5876,7 @@ c$$$          endif
       parameter(cnorm=2.607d-5,cnform=0.8561d3) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
 
 +if crlibm
-      ruth=real((cnorm*exp_rn(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*  &!hr09
+      ruth=real((cnorm*exp_mb(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*  &!hr09
      &(zatom(mcurr)/dble(t))**2)
 +ei
 +if .not.crlibm
@@ -6010,7 +6010,7 @@ c$$$          endif
       ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
 +if .not.merlinscatter
 +if crlibm
-      xln15s=log_rn(0.15d0*ecmsq)                                        !hr09
+      xln15s=log_mb(0.15d0*ecmsq)                                        !hr09
 +ei
 +if .not.crlibm
       xln15s=log(0.15d0*ecmsq)                                           !hr09
@@ -6018,17 +6018,17 @@ c$$$          endif
 
 +if crlibm
 !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
-      pptot=0.041084d0-0.0023302d0*log_rn(ecmsq)+0.00031514d0*
-     &  log_rn(ecmsq)**2
+      pptot=0.041084d0-0.0023302d0*log_mb(ecmsq)+0.00031514d0*
+     &  log_mb(ecmsq)**2
 
 !Claudia used the fit from TOTEM for ppel (in barn)
-      ppel=(11.7d0-1.59d0*log_rn(ecmsq)+0.134d0*log_rn(ecmsq)**2)/1000
+      ppel=(11.7d0-1.59d0*log_mb(ecmsq)+0.134d0*log_mb(ecmsq)**2)/1000
 
 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-      ppsd=(4.3d0+0.3d0*log_rn(ecmsq))/1000
+      ppsd=(4.3d0+0.3d0*log_mb(ecmsq))/1000
 
 !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-      bpp=7.156d0+1.439d0*log_rn(sqrt(ecmsq))
+      bpp=7.156d0+1.439d0*log_mb(sqrt(ecmsq))
 +ei
 
 +if .not.crlibm
@@ -6194,7 +6194,7 @@ c$$$          endif
 !++  Get monte-carlo interaction length.
 
 +if crlibm
-10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
+10    zlm1=(-1d0*xintl(mat))*log_mb(dble(rndm4()))                       !hr09
 +ei
 +if .not.crlibm
 10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))                          !hr09
@@ -6422,7 +6422,7 @@ c$$$          endif
 !++  Get monte-carlo interaction length.
 !
 +if crlibm
-10    zlm1=(-1d0*xintl(mat))*log_rn(dble(rndm4()))                       !hr09
+10    zlm1=(-1d0*xintl(mat))*log_mb(dble(rndm4()))                       !hr09
 +ei
 +if .not.crlibm
 10    zlm1=(-1d0*xintl(mat))*log(dble(rndm4()))
@@ -6600,7 +6600,7 @@ c$$$          endif
       r2=v1**2+v2**2                                                     !hr09
       if(r2.ge.1.d0) goto 5
 +if crlibm
-      a=sqrt((-2.d0*log_rn(r2))/r2)                                      !hr09
+      a=sqrt((-2.d0*log_mb(r2))/r2)                                      !hr09
 +ei
 +if .not.crlibm
       a=sqrt((-2.d0*log(r2))/r2)                                         !hr09
@@ -6609,8 +6609,8 @@ c$$$          endif
       z2=v2*a
       ss=sqrt(s)    
 +if crlibm
-      xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log_rn(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
-      xxp=xp0+ss*z2*(1+0.038*log_rn(s))  
+      xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log_mb(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
+      xxp=xp0+ss*z2*(1+0.038*log_mb(s))
 
 +ei
 +if .not.crlibm
@@ -6731,8 +6731,8 @@ c$$$          endif
       I_s=exenergy(mat_i)**2
       part_1=K*zatom(mat_i)/(anuc(mat_i)*beta_s)
 +if crlibm 
-      delta=log_rn(PE/exenergy(mat_i))+log_rn(beta_p*gamma_p)-0.5
-      part_2=0.5*log_rn((2*me*beta_s*gamma_s*T)/I_s)
+      delta=log_mb(PE/exenergy(mat_i))+log_mb(beta_p*gamma_p)-0.5
+      part_2=0.5*log_mb((2*me*beta_s*gamma_s*T)/I_s)
 +ei                   
 +if .not.crlibm 
       delta=log(PE/exenergy(mat_i))+log(beta_p*gamma_p)-0.5
@@ -6866,8 +6866,8 @@ c$$$          endif
 +if crlibm
       ! Bethe Bloch mean energy loss
       EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     +     (0.5*log_rn((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
-     +     -betar**2.0-log_rn(plen/exEn)-log_rn(bgr)+0.5);
+     +     (0.5*log_mb((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
+     +     -betar**2.0-log_mb(plen/exEn)-log_mb(bgr)+0.5);
 
       EnLo=EnLo*rho(IS)*0.1*DZ  ![GeV]
 
@@ -6877,7 +6877,7 @@ c$$$          endif
        ! cross section - see Alfredo's presentation for derivation
        cs_tail=((k*zatom(IS))/(anuc(IS)*betar**2))*
      + ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-
-     + (log_rn(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+
+     + (log_mb(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+
      + ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
 
        ! probability of being in tail: cross section * density * path length
@@ -6888,8 +6888,8 @@ c$$$          endif
        ! determine based on random number if tail energy loss occurs.
        if(ranc.lt.prob_tail)then
          EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*
-     +   (0.5*log_rn((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
-     +   -betar**2.0-log_rn(plen/exEn)-log_rn(bgr)+0.5+
+     +   (0.5*log_mb((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))
+     +   -betar**2.0-log_mb(plen/exEn)-log_mb(bgr)+0.5+
      +   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
 
 
@@ -6966,7 +6966,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !++  Calculate the gammas
 !
 +if crlibm
-      pi=4d0*atan_rn(1d0)
+      pi=4d0*atan_mb(1d0)
 +ei
 +if .not.crlibm
       pi=4d0*atan(1d0)
@@ -7018,7 +7018,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         myemitx = myemitx0*(mynex + ((2d0*dble(rndm4()-0.5))*mdex) )**2  !hr09
         xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-        myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
+        myx(j)   = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
         myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))                 !hr09
@@ -7034,7 +7034,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
         myemity = myemity0*(myney + ((2d0*dble(rndm4()-0.5))*mdey) )**2  !hr09
         ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-        myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
+        myy(j)   = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
         myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))                 !hr09
@@ -7123,7 +7123,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
             myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
             xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-            myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
+            myx(j)   = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
             myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))             !hr09
@@ -7139,11 +7139,11 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 !
 +if crlibm
-            iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
+            iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )              !hr09
 !
-            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
-     &           myalphay * cos_rn(phiy))                                !hr09
+            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)              !hr09
+            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) +  &!hr09
+     &           myalphay * cos_mb(phiy))                                !hr09
 +ei
 +if .not.crlibm
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
@@ -7156,7 +7156,7 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
             myemity = myemity0*(myney+((2d0*dble(rndm4()-0.5))*mdey))**2 !hr09
             ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-            myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
+            myy(j)   = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
             myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))             !hr09
@@ -7171,11 +7171,11 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-            iix = (-1d0* myemitx0) * log_rn( dble(rndm4()) )             !hr09
+            iix = (-1d0* myemitx0) * log_mb( dble(rndm4()) )             !hr09
 !
-            myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
-     &           myalphax * cos_rn(phix))                                !hr09
+            myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)              !hr09
+            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) +  &!hr09
+     &           myalphax * cos_mb(phix))                                !hr09
 +ei
 +if .not.crlibm
             iix = (-1d0* myemitx0) * log( dble(rndm4()) )                !hr09
@@ -7187,11 +7187,11 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then                   !hr09
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-            iix = (-1d0* myemitx0) * log_rn( dble(rndm4()) )             !hr09
+            iix = (-1d0* myemitx0) * log_mb( dble(rndm4()) )             !hr09
 !
-            myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
-     &           myalphax * cos_rn(phix))                                !hr09
+            myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)              !hr09
+            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) +  &!hr09
+     &           myalphax * cos_mb(phix))                                !hr09
 +ei
 +if .not.crlibm
             iix = (-1d0*myemitx0) * log( dble(rndm4()) )                 !hr09
@@ -7202,10 +7202,10 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 +ei
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-            iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
-            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
-     &           myalphay * cos_rn(phiy))                                !hr09
+            iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )              !hr09
+            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)              !hr09
+            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) +  &!hr09
+     &           myalphay * cos_mb(phiy))                                !hr09
 +ei
 +if .not.crlibm
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
@@ -7414,7 +7414,7 @@ c$$$     &           myalphay * cos(phiy))
             myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2 !hr09
             xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-            myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
+            myx(j)   = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
             myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))             !hr09
@@ -7430,11 +7430,11 @@ c$$$     &           myalphay * cos(phiy))
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 !
 +if crlibm
-            iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
+            iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )              !hr09
 !
-            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
-     &           myalphay * cos_rn(phiy))                                !hr09
+            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)              !hr09
+            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) +  &!hr09
+     &           myalphay * cos_mb(phiy))                                !hr09
 +ei
 +if .not.crlibm
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
@@ -7447,7 +7447,7 @@ c$$$     &           myalphay * cos(phiy))
             myemity = myemity0*(myney+((2d0*dble(rndm4()-0.5))*mdey))**2 !hr09
             ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-            myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))          !hr09
+            myy(j)   = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))          !hr09
 +ei
 +if .not.crlibm
             myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))             !hr09
@@ -7462,11 +7462,11 @@ c$$$     &           myalphay * cos(phiy))
 !
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-            iix = (-1d0*myemitx0) * log_rn( dble(rndm4()) )              !hr09
+            iix = (-1d0*myemitx0) * log_mb( dble(rndm4()) )              !hr09
 !
-            myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
-     &           myalphax * cos_rn(phix))                                !hr09
+            myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)              !hr09
+            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) +  &!hr09
+     &           myalphax * cos_mb(phix))                                !hr09
 +ei
 +if .not.crlibm
             iix = (-1d0*myemitx0) * log( dble(rndm4()) )                 !hr09
@@ -7478,11 +7478,11 @@ c$$$     &           myalphay * cos(phiy))
          elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then                   !hr09
             phix = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-            iix = (-1d0*myemitx0) * log_rn( dble(rndm4()) )              !hr09
+            iix = (-1d0*myemitx0) * log_mb( dble(rndm4()) )              !hr09
 !
-            myx(j) = sqrt((2d0*iix)*mybetax) * cos_rn(phix)              !hr09
-            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_rn(phix) +  &!hr09
-     &           myalphax * cos_rn(phix))                                !hr09
+            myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)              !hr09
+            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) +  &!hr09
+     &           myalphax * cos_mb(phix))                                !hr09
 +ei
 +if .not.crlibm
             iix = (-1d0*myemitx0) * log( dble(rndm4()) )                 !hr09
@@ -7493,10 +7493,10 @@ c$$$     &           myalphay * cos(phiy))
 +ei
             phiy = (2d0*pi)*dble(rndm4())                                !hr09
 +if crlibm
-            iiy = (-1d0*myemity0) * log_rn( dble(rndm4()) )              !hr09
-            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_rn(phiy)              !hr09
-            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_rn(phiy) +  &!hr09
-     &           myalphay * cos_rn(phiy))                                !hr09
+            iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )              !hr09
+            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)              !hr09
+            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) +  &!hr09
+     &           myalphay * cos_mb(phiy))                                !hr09
 +ei
 +if .not.crlibm
             iiy = (-1d0*myemity0) * log( dble(rndm4()) )                 !hr09
@@ -7625,7 +7625,7 @@ c$$$     &           myalphay * cos(phiy))
 !++  Calculate the gammas
 !
 +if crlibm
-      pi=4d0*atan_rn(1d0)
+      pi=4d0*atan_mb(1d0)
 +ei
 +if .not.crlibm
       pi=4d0*atan(1d0)
@@ -7671,7 +7671,7 @@ c$$$     &           myalphay * cos(phiy))
         myemitx = myemitx0*(mynex + ((2d0*dble(rndm4()-0.5))*mdex) )**2  !hr09
         xsigmax = sqrt(mybetax*myemitx)
 +if crlibm
-        myx(j)   = xsigmax * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
+        myx(j)   = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
         myx(j)   = xsigmax * sin((2d0*pi)*dble(rndm4()))                 !hr09
@@ -7687,7 +7687,7 @@ c$$$     &           myalphay * cos(phiy))
         myemity = myemity0*(myney + ((2d0*dble(rndm4()-0.5))*mdey) )**2  !hr09
         ysigmay = sqrt(mybetay*myemity)
 +if crlibm
-        myy(j)   = ysigmay * sin_rn((2d0*pi)*dble(rndm4()))              !hr09
+        myy(j)   = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))              !hr09
 +ei
 +if .not.crlibm
         myy(j)   = ysigmay * sin((2d0*pi)*dble(rndm4()))                 !hr09
@@ -7997,7 +7997,7 @@ c$$$     &           myalphay * cos(phiy))
                     !See ran_gauss(cut)
 
 +if crlibm
-      twopi=8d0*atan_rn(1d0)                                             !hr09
+      twopi=8d0*atan_mb(1d0)                                             !hr09
 +ei
 +if .not.crlibm
       twopi=8d0*atan(1d0)
@@ -8007,16 +8007,16 @@ c$$$     &           myalphay * cos(phiy))
          r = max(r, 0.5d0**32)
          r = min(r, 1d0-0.5d0**32)
 +if crlibm
-         u1 = sqrt(-2d0*log_rn( r ))
+         u1 = sqrt(-2d0*log_mb( r ))
 +ei
 +if .not.crlibm
          u1 = sqrt(-2d0*log( r ))
 +ei
          u2 = dble(rndm5(0))
 +if crlibm
-         x = u1 * cos_rn(twopi*u2)
+         x = u1 * cos_mb(twopi*u2)
       else
-         x = u1 * sin_rn(twopi*u2)
+         x = u1 * sin_mb(twopi*u2)
 +ei
 +if .not.crlibm
          x = u1 * cos(twopi*u2)
@@ -8876,7 +8876,7 @@ c$$$     &           myalphay * cos(phiy))
       save
       
 +if crlibm
-            twopi=8d0*atan_rn(1d0) !Why not 2*pi, where pi is in block "common"?
+            twopi=8d0*atan_mb(1d0) !Why not 2*pi, where pi is in block "common"?
 +ei
 +if .not.crlibm
             twopi=8d0*atan(1d0)
@@ -8886,21 +8886,21 @@ c$$$     &           myalphay * cos(phiy))
               r = max(r, 0.5d0**32)
               r = min(r, 1d0-0.5d0**32)
 +if crlibm
-              u1 = sqrt(-2d0*log_rn( r ))
+              u1 = sqrt(-2d0*log_mb( r ))
 +ei
 +if .not.crlibm
               u1 = sqrt(-2d0*log( r ))
 +ei
               u2 = dble(rndm4( ))
 +if crlibm
-              x = u1 * cos_rn(twopi*u2)
+              x = u1 * cos_mb(twopi*u2)
 +ei
 +if .not.crlibm
               x = u1 * cos(twopi*u2)
 +ei
             else
 +if crlibm
-              x = u1 * sin_rn(twopi*u2)
+              x = u1 * sin_mb(twopi*u2)
 +ei
 +if .not.crlibm
               x = u1 * sin(twopi*u2)

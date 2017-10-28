@@ -1830,7 +1830,7 @@
       idacex(1) = 0
       call daall(idacex(1),1,'$$DACEX $$',inob,invb)
 +if crlibm
-      ckon = log_rn(ckon)
+      ckon = log_mb(ckon)
 +ei
 +if .not.crlibm
       ckon = log(ckon)
@@ -3060,7 +3060,7 @@
       elseif(cf.eq.'EXP ') then
 !        EXP(A0+P) = EXP(A0)*(1+P+P**2/2!+...)
 +if crlibm
-         ea  = exp_rn(a0)
+         ea  = exp_mb(a0)
 +ei
 +if .not.crlibm
          ea  = exp(a0)
@@ -3078,7 +3078,7 @@
             return
          endif
 +if crlibm
-         ea  = log_rn(a0)
+         ea  = log_mb(a0)
 +ei
 +if .not.crlibm
          ea  = log(a0)
@@ -3097,7 +3097,7 @@
          sa  = sin(a0)
 +ei
 +if crlibm
-         ca  = cos_rn(a0)
+         ca  = cos_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cos(a0)
@@ -3116,7 +3116,7 @@
          sa  = sin(a0)
 +ei
 +if crlibm
-         ca  = cos_rn(a0)
+         ca  = cos_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cos(a0)
@@ -3165,7 +3165,7 @@
 !
       elseif(cf.eq.'TAN ') then
 +if crlibm
-         if(abs(cos_rn(a0)).lt.epsmac) then
+         if(abs(cos_mb(a0)).lt.epsmac) then
 +ei
 +if .not.crlibm
          if(abs(cos(a0)).lt.epsmac) then
@@ -3182,7 +3182,7 @@
          sa  = sin(a0)
 +ei
 +if crlibm
-         ca  = cos_rn(a0)
+         ca  = cos_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cos(a0)
@@ -3225,7 +3225,7 @@
          sa  = sin(a0)
 +ei
 +if crlibm
-         ca  = cos_rn(a0)
+         ca  = cos_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cos(a0)
@@ -3317,7 +3317,7 @@
       elseif(cf.eq.'ATAN') then
 !        ATAN(A0+P) = ATAN(A0)+1/(1+A0**2)*P-A0/(1+A0**2)**2*P**2+....)
 +if crlibm
-         xf(0) = atan_rn(a0)
+         xf(0) = atan_mb(a0)
 +ei
 +if .not.crlibm
          xf(0) = atan(a0)
@@ -3333,7 +3333,7 @@
          endif
       elseif(cf.eq.'ACOT') then
 +if crlibm
-         xf(0) = two*atan_rn(one)-atan_rn(a0)
+         xf(0) = two*atan_mb(one)-atan_mb(a0)
 +ei
 +if .not.crlibm
          xf(0) = two*atan(one)-atan(a0)
@@ -3350,13 +3350,13 @@
          endif
       elseif(cf.eq.'SINH') then
 +if crlibm
-         sa  = sinh_rn(a0)
+         sa  = sinh_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sinh(a0)
 +ei
 +if crlibm
-         ca  = cosh_rn(a0)
+         ca  = cosh_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cosh(a0)
@@ -3373,13 +3373,13 @@
          endif
       elseif(cf.eq.'COSH') then
 +if crlibm
-         sa  = sinh_rn(a0)
+         sa  = sinh_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sinh(a0)
 +ei
 +if crlibm
-         ca  = cosh_rn(a0)
+         ca  = cosh_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cosh(a0)
@@ -3396,13 +3396,13 @@
          endif
       elseif(cf.eq.'TANH') then
 +if crlibm
-         sa  = sinh_rn(a0)
+         sa  = sinh_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sinh(a0)
 +ei
 +if crlibm
-         ca  = cosh_rn(a0)
+         ca  = cosh_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cosh(a0)
@@ -3420,7 +3420,7 @@
          endif
       elseif(cf.eq.'COTH') then
 +if crlibm
-         if(abs(sinh_rn(a0)).lt.epsmac) then
+         if(abs(sinh_mb(a0)).lt.epsmac) then
 +ei
 +if .not.crlibm
          if(abs(sinh(a0)).lt.epsmac) then
@@ -3431,13 +3431,13 @@
             return
          endif
 +if crlibm
-         sa  = sinh_rn(a0)
+         sa  = sinh_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sinh(a0)
 +ei
 +if crlibm
-         ca  = cosh_rn(a0)
+         ca  = cosh_mb(a0)
 +ei
 +if .not.crlibm
          ca  = cosh(a0)
@@ -3456,7 +3456,7 @@
          endif
       elseif(cf.eq.'ASNH') then
 +if crlibm
-         xf(0) = log_rn(a0+sqrt(a0*a0+one))
+         xf(0) = log_mb(a0+sqrt(a0*a0+one))
 +ei
 +if .not.crlibm
          xf(0) = log(a0+sqrt(a0*a0+one))
@@ -3479,7 +3479,7 @@
             return
          endif
 +if crlibm
-         xf(0) = log_rn(a0+sqrt(a0*a0-one))
+         xf(0) = log_mb(a0+sqrt(a0*a0-one))
 +ei
 +if .not.crlibm
          xf(0) = log(a0+sqrt(a0*a0-one))
@@ -3502,7 +3502,7 @@
             return
          endif
 +if crlibm
-         xf(0) =  half*log_rn((1+a0)/(1-a0))
+         xf(0) =  half*log_mb((1+a0)/(1-a0))
 +ei
 +if .not.crlibm
          xf(0) =  half*log((1+a0)/(1-a0))
@@ -3524,7 +3524,7 @@
             return
          endif
 +if crlibm
-         xf(0) =  half*log_rn((a0+1)/(a0-1))
+         xf(0) =  half*log_mb((a0+1)/(a0-1))
 +ei
 +if .not.crlibm
          xf(0) =  half*log((a0+1)/(a0-1))
@@ -3582,7 +3582,7 @@
 !    DAR
 !
 +if crlibm
-         e1 = exp_rn(-a0*a0)
+         e1 = exp_mb(-a0*a0)
 +ei
 +if .not.crlibm
          e1 = exp(-a0*a0)
@@ -3594,7 +3594,7 @@
          a5 = 1.061405429_fPrec
          p  = .3275911_fPrec
 +if crlibm
-         rpi4 = sqrt(atan_rn(one))
+         rpi4 = sqrt(atan_mb(one))
 +ei
 +if .not.crlibm
          rpi4 = sqrt(atan(one))
