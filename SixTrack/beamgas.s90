@@ -261,7 +261,7 @@
       use lorentzcommon
       implicit none
 !YIL: parnum
-!+ca parnum
++ca parnum
 
 !YIL: parpro
 +ca parpro
@@ -322,8 +322,8 @@
       pressID=0
       j=1
       do while (pressID.eq.0.and.j.le.bgmaxx)
-       if ((pressARRAY(1,j).gt.(totals-0.01)).and.                      &
-     &     (pressARRAY(1,j).le.(totals+0.01)))                          &
+       if ((pressARRAY(1,j).gt.(totals-c1m2)).and.                      &
+     &     (pressARRAY(1,j).le.(totals+c1m2)))                          &
      &          pressID=j
         j=j+1
       enddo
@@ -333,9 +333,9 @@
       endif
       
       doLorentz=0
-      if ((abs(yv(1,1)).gt.3e-3).or.(abs(yv(2,1)).gt.3e-3)) then ! do a Lorentz boost of DPMJET events
+      if ((abs(yv(1,1)).gt.3e-3_fPrec).or.(abs(yv(2,1)).gt.3e-3_fPrec)) then ! do a Lorentz boost of DPMJET events
        !YIL warning: hardcoded mass of protons:
-       protonmass=938.3
+       protonmass=938.3_fPrec
        doLorentz=1
         tmpPX=yv(1,1) !don't think I can send array elements to functions??
         tmpPY=yv(2,1)
@@ -401,13 +401,13 @@
          oldCoordinates(4)=xv(1,j)
          oldCoordinates(5)=xv(2,j)
          
-         if(doLorentz.eq.1d0) then ! we need to boost the dpmjet event first:
-         totMomentum=sqrt(bgEdb(choice)**2-(protonmass*1e-3)**2)
+         if(doLorentz.eq.one) then ! we need to boost the dpmjet event first:
+         totMomentum=sqrt(bgEdb(choice)**2-(protonmass*c1m3)**2)
          tmpPX=bgxpdb(choice)*totMomentum
          tmpPY=bgypdb(choice)*totMomentum
-         protonmass=protonmass*1e-3
+         protonmass=protonmass*c1m3
          call lorentzBoost(tmpPX,tmpPY,totMomentum,protonmass)
-         protonmass=protonmass*1e3
+         protonmass=protonmass*c1e3
 !         This returns E,px,py,pz, need xp,yp
          totMomentum=sqrt(new4MomCoord(2)**2+new4MomCoord(3)**2+        &
      &    new4MomCoord(4)**2)
@@ -445,13 +445,13 @@
           z=matmul(rotm,z)
 !                adding the angles to the yv vector:
       if (z(3).eq.0) then
-        yv(1,j) = acos(0.0)*1e3
+        yv(1,j) = acos(0.0)*c1e3
         yv(2,j) = 1.0*yv(1,j)
       else
 !        xp
-        yv(1,j) = atan(z(1)/z(3))*1e3
+        yv(1,j) = atan(z(1)/z(3))*c1e3
 !        yp
-        yv(2,j) = atan(z(2)/z(3))*1e3
+        yv(2,j) = atan(z(2)/z(3))*c1e3
       endif
 !        energy WARNING: I DO NOT KNOW ALL THE PLACES I NEED TO INSERT THE ENERGY????
          ejv(j) = bgEdb(choice)*1000
@@ -461,8 +461,8 @@
          ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
          dpsv(j)=(ejfv(j)-e0f)/e0f
-         oidpsv(j)=1.0/(1.0+dpsv(j))
-         dpsv1(j)=dpsv(j)*1.0d3*oidpsv(j)
+         oidpsv(j)=one/(one+dpsv(j))
+         dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
       
 !       writing down the scattering location information
       write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),      &
@@ -481,7 +481,7 @@
       endif
 !       if (pressARRAY(2,pressID)*njobs*dpmjetevents).gt.(bgParameters(3)+1)
       else
-      bgParameters(1) = totals+0.001
+      bgParameters(1) = totals+c1m3
       bgParameters(2) = bgParameters(2)+bgParameters(3)
       bgParameters(3) = 0
 !       if (pressARRAY(2,pressID)*njobs*dpmjetevents).gt.(bgParameters(3)+1)
@@ -516,6 +516,7 @@
       use beamgascommon
       IMPLICIT NONE
 
++ca parnum
 +ca crcoall
       
       integer check,j,i
@@ -589,8 +590,8 @@
       end if
       end do
       do 1328 i = j,bgmaxx
-       pressARRAY(1,i)=-1.0
-       pressARRAY(2,i)=0.0
+       pressARRAY(1,i)=-one
+       pressARRAY(2,i)=zero
 1328  continue
 !       count the number of lines in dpmjet
       j=1
@@ -599,7 +600,7 @@
 !       Here you can set the energy acceptance (0.95 means at least 95% of nominal energy)
 !       0.001 is because minenergy must be in GeV whereas myenom is in MeV
 !       Note to self: Remember to update this in batchrun.sh immediately! :)
-      minenergy=ecutoff*myenom*0.001
+      minenergy=ecutoff*myenom*c1m3
       filereaderror=0
       do
 !          2212 is the proton id. We do not load other particles.
@@ -650,9 +651,9 @@
       
 !       YOU HAVE TO PUT THESE INITIALIZATIONS AT THE END OF THE ROUTINE
 !       FOR SOME STRANGE FORTRAN-REASON
-      bgParameters(1)=0.0
-      bgParameters(2)=0.0
-      bgParameters(3)=0.0
+      bgParameters(1)=zero
+      bgParameters(2)=zero
+      bgParameters(3)=zero
       
       bgid=0
       check=0
@@ -687,10 +688,10 @@
       real(kind=fPrec) sinax, sinay, cosax, cosay
       real(kind=fPrec) ax,ay
       
-      sinax = sin(ax*0.001)
-      cosax = cos(ax*0.001)
-      sinay = sin(ay*0.001)
-      cosay = cos(ay*0.001)
+      sinax = sin(ax*c1m3)
+      cosax = cos(ax*c1m3)
+      sinay = sin(ay*c1m3)
+      cosay = cos(ay*c1m3)
       
       matrix(1,1)=cosax
       matrix(1,2)=-sinax*sinay
@@ -732,6 +733,7 @@
       use lorentzcommon
       implicit none
        
++ca parnum
        real(kind=fPrec) px,py,ptot,mass
        real(kind=fPrec) oldcoord(4)
 
@@ -743,7 +745,7 @@
        oldcoord(3)=py
        oldcoord(4)=sqrt(ptot**2-px**2-py**2) ! E/c, px,py,pz
        do j=1,4 
-        new4MomCoord(j)=0.0
+        new4MomCoord(j)=zero
        enddo
        
        ! Matrix multiplication: 
@@ -787,6 +789,7 @@
        use lorentzcommon
        implicit none
 
++ca parnum
        real(kind=fPrec) E,xp,yp,mass
        ! local variables:
        real(kind=fPrec) v0,gpart,p0,b(3),b2,b2inv,g
@@ -797,19 +800,19 @@
         p0=sqrt(E**2-mass**2)
         v0=p0/(gpart*mass)
 ! !         print v0
-        b(1)=xp*1e-3*v0 ! relativistic beta...
-        b(2)=yp*1e-3*v0
-        b(3)=0.0 ! Assumed no movement of CM in longitudinal direction...
-        b2=0.0
+        b(1)=xp*c1m3*v0 ! relativistic beta...
+        b(2)=yp*c1m3*v0
+        b(3)=zero ! Assumed no movement of CM in longitudinal direction...
+        b2=zero
         do j=1,3
          b2=b2+b(j)*b(j)
         enddo
         if (b2>0) then
-         b2inv=1/b2
+         b2inv=one/b2
         else
          b2inv=0
                 endif
-        g=1.0/sqrt(1.0-b2) ! relativistic gamma for the boost
+        g=one/sqrt(one-b2) ! relativistic gamma for the boost
 !         write(*,*) "DEBUG, g: ",g, v0, xp,yp,E,mass
 
                 lorentzmatrix(1,1)=g /g
@@ -818,7 +821,7 @@
         lorentzmatrix(1,j)=-b(j-1)*g /g
         lorentzmatrix(j,1)=-b(j-1)*g /g
         
-        lorentzmatrix(j,j) = (1.0 + (g-1.0)* b(j-1)**2*b2inv) /g
+        lorentzmatrix(j,j) = (one + (g-one)* b(j-1)**2*b2inv) /g
       enddo
 !         
         lorentzmatrix(2,3) = ((g-1)* b(1)*b(2)*b2inv) /g
