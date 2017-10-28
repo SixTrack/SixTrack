@@ -6953,7 +6953,7 @@ cc2008
             cx=angp(1,ii-1)*angp(2,ii-1)+angp(1,ii)*angp(2,ii)
             if(abs(sx).gt.c1m15.or.abs(cx).gt.c1m15) then
 +if crlibm
-              dphi(j)=atan2_rn(sx,cx)/x2pi
+              dphi(j)=atan2_mb(sx,cx)/x2pi
 +ei
 +if .not.crlibm
               dphi(j)=atan2(sx,cx)/x2pi
@@ -20374,7 +20374,7 @@ c$$$         endif
               write(7,*) bez(ix)
 +if tilt
 +if crlibm
-              write(7,*) xsi(i),zsi(i),atan2_rn(tilts(i),tiltc(i))
+              write(7,*) xsi(i),zsi(i),atan2_mb(tilts(i),tiltc(i))
 +ei
 +if .not.crlibm
               write(7,*) xsi(i),zsi(i),atan2(tilts(i),tiltc(i))
@@ -20390,7 +20390,7 @@ c$$$         endif
               write(7,*) bez(ix)
 +if tilt
 +if crlibm
-              write(7,*) xsi(i),zsi(i),atan2_rn(tilts(i),tiltc(i))
+              write(7,*) xsi(i),zsi(i),atan2_mb(tilts(i),tiltc(i))
 +ei
 +if .not.crlibm
               write(7,*) xsi(i),zsi(i),atan2(tilts(i),tiltc(i))
@@ -34670,7 +34670,7 @@ c$$$         endif
         cx=x(1,ii-1)*x(2,ii-1)+x(1,ii)*x(2,ii)
         if(abs(sx).gt.c1m15.or.abs(cx).gt.c1m15) then
 +if crlibm
-          phi(i)=atan2_rn(sx,cx)
+          phi(i)=atan2_mb(sx,cx)
 +ei
 +if .not.crlibm
           phi(i)=atan2(sx,cx)
@@ -38285,49 +38285,49 @@ c$$$            endif
         gazi=t(2,4)**2+t(3,4)**2                                         !hr06
         gazii=t(4,4)**2+t(5,4)**2                                        !hr06
 +if crlibm
-        if(abs(t(2,1)).gt.pieni) phxi=atan2_rn(t(3,1),t(2,1))
+        if(abs(t(2,1)).gt.pieni) phxi=atan2_mb(t(3,1),t(2,1))
 +ei
 +if .not.crlibm
         if(abs(t(2,1)).gt.pieni) phxi=atan2(t(3,1),t(2,1))
 +ei
 +if crlibm
-        if(abs(t(4,1)).gt.pieni) phxii=atan2_rn(t(5,1),t(4,1))
+        if(abs(t(4,1)).gt.pieni) phxii=atan2_mb(t(5,1),t(4,1))
 +ei
 +if .not.crlibm
         if(abs(t(4,1)).gt.pieni) phxii=atan2(t(5,1),t(4,1))
 +ei
 +if crlibm
-        if(abs(t(2,3)).gt.pieni) phzi=atan2_rn(t(3,3),t(2,3))
+        if(abs(t(2,3)).gt.pieni) phzi=atan2_mb(t(3,3),t(2,3))
 +ei
 +if .not.crlibm
         if(abs(t(2,3)).gt.pieni) phzi=atan2(t(3,3),t(2,3))
 +ei
 +if crlibm
-        if(abs(t(4,3)).gt.pieni) phzii=atan2_rn(t(5,3),t(4,3))
+        if(abs(t(4,3)).gt.pieni) phzii=atan2_mb(t(5,3),t(4,3))
 +ei
 +if .not.crlibm
         if(abs(t(4,3)).gt.pieni) phzii=atan2(t(5,3),t(4,3))
 +ei
 +if crlibm
-        if(abs(t(2,2)).gt.pieni) phxpi=atan2_rn(t(3,2),t(2,2))
+        if(abs(t(2,2)).gt.pieni) phxpi=atan2_mb(t(3,2),t(2,2))
 +ei
 +if .not.crlibm
         if(abs(t(2,2)).gt.pieni) phxpi=atan2(t(3,2),t(2,2))
 +ei
 +if crlibm
-        if(abs(t(4,2)).gt.pieni) phxpii=atan2_rn(t(5,2),t(4,2))
+        if(abs(t(4,2)).gt.pieni) phxpii=atan2_mb(t(5,2),t(4,2))
 +ei
 +if .not.crlibm
         if(abs(t(4,2)).gt.pieni) phxpii=atan2(t(5,2),t(4,2))
 +ei
 +if crlibm
-        if(abs(t(2,4)).gt.pieni) phzpi=atan2_rn(t(3,4),t(2,4))
+        if(abs(t(2,4)).gt.pieni) phzpi=atan2_mb(t(3,4),t(2,4))
 +ei
 +if .not.crlibm
         if(abs(t(2,4)).gt.pieni) phzpi=atan2(t(3,4),t(2,4))
 +ei
 +if crlibm
-        if(abs(t(4,4)).gt.pieni) phzpii=atan2_rn(t(5,4),t(4,4))
+        if(abs(t(4,4)).gt.pieni) phzpii=atan2_mb(t(5,4),t(4,4))
 +ei
 +if .not.crlibm
         if(abs(t(4,4)).gt.pieni) phzpii=atan2(t(5,4),t(4,4))
@@ -45241,21 +45241,21 @@ c$$$            endif
       angiii=zero
       if(abs(txyz(1)).gt.pieni.or.abs(txyz(2)).gt.pieni)                &
 +if crlibm
-     &angi=atan2_rn(txyz(2),txyz(1))
+     &angi=atan2_mb(txyz(2),txyz(1))
 +ei
 +if .not.crlibm
      &angi=atan2(txyz(2),txyz(1))
 +ei
       if(abs(txyz(3)).gt.pieni.or.abs(txyz(4)).gt.pieni)                &
 +if crlibm
-     &angii=atan2_rn(txyz(4),txyz(3))
+     &angii=atan2_mb(txyz(4),txyz(3))
 +ei
 +if .not.crlibm
      &angii=atan2(txyz(4),txyz(3))
 +ei
       if(abs(txyz(5)).gt.pieni.or.abs(txyz(6)).gt.pieni)                &
 +if crlibm
-     &angiii=atan2_rn(txyz(6)*cma1,txyz(5)*cma2)
+     &angiii=atan2_mb(txyz(6)*cma1,txyz(5)*cma2)
 +ei
 +if .not.crlibm
      &angiii=atan2(txyz(6)*cma1,txyz(5)*cma2)
@@ -47836,7 +47836,7 @@ c$$$            endif
 !---------------------------------------------------------------------
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
 +if crlibm
-        a=atan2_rn(b,c)
+        a=atan2_mb(b,c)
 +ei
 +if .not.crlibm
         a=atan2(b,c)
@@ -47869,7 +47869,7 @@ c$$$            endif
 +ei
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
 +if crlibm
-        f=atan2_rn(b,c)
+        f=atan2_mb(b,c)
 +ei
 +if .not.crlibm
         f=atan2(b,c)

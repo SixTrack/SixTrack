@@ -223,6 +223,7 @@
 !
       subroutine daini(no,nv,iunit)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -509,6 +510,7 @@
 +dk dallsta
       subroutine dallsta(ldanow)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -593,6 +595,7 @@
 +dk daallno
       subroutine daallno(ic,l,ccc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -705,6 +708,7 @@
 +dk daall
       subroutine daall(ic,l,ccc,no,nv)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -821,6 +825,7 @@
 +dk dadal
       subroutine dadal(idal,l)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -872,6 +877,7 @@
 +dk davar
       subroutine davar(ina,ckon,i)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -975,6 +981,7 @@
 +dk danot
       subroutine danot(not)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -1004,6 +1011,7 @@
 +dk getdanot
       subroutine getdanot(not)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1057,6 +1065,7 @@
 +dk dapek
       subroutine dapek(ina,jj,cjj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1232,6 +1241,7 @@
 +dk dapok
       subroutine dapok(ina,jj,cjj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1463,6 +1473,7 @@
 +dk dacop
       subroutine dacop(ina,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1539,6 +1550,7 @@
 +dk datrashn
       subroutine datrashn(idif,ina,inbb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1689,6 +1701,7 @@
 +dk daexx
       subroutine daexx(ina,inb,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -1757,6 +1770,7 @@
 +dk dacex
       subroutine dacex(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -1789,6 +1803,7 @@
 +dk dacext
       subroutine dacext(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -1863,6 +1878,7 @@
 +dk daexct
       subroutine daexct(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if cr
@@ -1913,6 +1929,7 @@
 +dk damul
       subroutine damul(ina,inb,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -1950,6 +1967,7 @@
 +dk damult
       subroutine damult(ina,inb,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if cr
@@ -2052,6 +2070,7 @@
 +dk dadiv
       subroutine dadiv(ina,inb,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -2078,6 +2097,7 @@
 +dk dasqr
       subroutine dasqr(ina,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -2111,6 +2131,7 @@
 +dk dasqrt
       subroutine dasqrt(ina,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -2231,6 +2252,7 @@
 +dk dacad
       subroutine dacad(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -2270,6 +2292,7 @@
 +dk dacsu
       subroutine dacsu(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -2386,6 +2409,7 @@
 +dk dasuc
       subroutine dasuc(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if cr
@@ -2417,6 +2441,7 @@
 +dk dacmu
       subroutine dacmu(ina,ckon,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -2467,6 +2492,7 @@
 +dk dacmut
       subroutine dacmut(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -2549,6 +2575,7 @@
 +dk dacdi
       subroutine dacdi(ina,ckon,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -2582,6 +2609,7 @@
 +dk dadic
       subroutine dadic(ina,ckon,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -2625,6 +2653,7 @@
 +dk dacma
       subroutine dacma(ina,inb,bfac,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if cr
@@ -2691,6 +2720,7 @@
 +dk dalint
       subroutine dalint(ina,afac,inb,bfac,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -2858,6 +2888,7 @@
 +dk dafun
       subroutine dafun(cf,ina,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -2913,6 +2944,7 @@
 +dk dafunt
       subroutine dafunt(cf,ina,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -3059,7 +3091,7 @@
       elseif(cf.eq.'SIN ') then
 !        SIN(A0+P) = SIN(A0)*(1-P**2/2!+P**4/4!) + COS(A0)*(P-P**3/3!+P**5/5!)
 +if crlibm
-         sa  = sin_rn(a0)
+         sa  = sin_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sin(a0)
@@ -3078,7 +3110,7 @@
       elseif(cf.eq.'COS ') then
 !        COS(A0+P) = COS(A0)*(1-P**2/2!+P**4/4!) - SIN(A0)*(P-P**3/3!+P**5/5!)
 +if crlibm
-         sa  = sin_rn(a0)
+         sa  = sin_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sin(a0)
@@ -3144,7 +3176,7 @@
             return
          endif
 +if crlibm
-         sa  = sin_rn(a0)
+         sa  = sin_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sin(a0)
@@ -3176,7 +3208,7 @@
          endif
       elseif(cf.eq.'COT ') then
 +if crlibm
-         if(abs(sin_rn(a0)).lt.epsmac) then
+         if(abs(sin_mb(a0)).lt.epsmac) then
 +ei
 +if .not.crlibm
          if(abs(sin(a0)).lt.epsmac) then
@@ -3187,7 +3219,7 @@
             return
          endif
 +if crlibm
-         sa  = sin_rn(a0)
+         sa  = sin_mb(a0)
 +ei
 +if .not.crlibm
          sa  = sin(a0)
@@ -3226,7 +3258,7 @@
             return
          endif
 +if crlibm
-         xf(0) = asin_rn(a0)
+         xf(0) = asin_mb(a0)
 +ei
 +if .not.crlibm
          xf(0) = asin(a0)
@@ -3264,7 +3296,7 @@
             return
          endif
 +if crlibm
-         xf(0) =  acos_rn(a0)
+         xf(0) =  acos_mb(a0)
 +ei
 +if .not.crlibm
          xf(0) =  acos(a0)
@@ -3638,6 +3670,7 @@
 +dk dacom
       subroutine dacom(ina,inb,dnorm)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if cr
 +ca crcoall
@@ -3666,6 +3699,7 @@
 +dk dapos
       subroutine dapos(ina,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -3746,6 +3780,7 @@
 +dk dacctt
       subroutine dacctt(mb,ib,mc,ic,ma,ia)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -3837,6 +3872,7 @@
 +dk mtree
       subroutine mtree(mb,ib,mc,ic)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -4208,6 +4244,7 @@
 +dk dainvt
       subroutine dainvt(ma,ia,mb,ib)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -4668,6 +4705,7 @@
 +dk dadert
       subroutine dadert(idif,ina,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -4850,6 +4888,7 @@
 +dk dacfurt
       subroutine dacfurt(ina,fun,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5005,6 +5044,7 @@
 +dk dacfuit
       subroutine dacfuit(ina,fun,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5088,6 +5128,7 @@
 +dk dacfut
       subroutine dacfut(ina,fun,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5170,6 +5211,7 @@
 +dk dapri
       subroutine dapri(ina,iunit)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -5311,6 +5353,7 @@
 +dk dapri77
       subroutine dapri77(ina,iunit)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -5445,6 +5488,7 @@
 +dk dashift
       subroutine dashift(ina,inc,ishift)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5584,6 +5628,7 @@
 +dk darea
       subroutine darea(ina,iunit)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5746,6 +5791,7 @@
 +dk darea77
       subroutine darea77(ina,iunit)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5833,6 +5879,7 @@
 +dk dadeb
       subroutine dadeb(iunit,c,istop)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5889,6 +5936,7 @@
 +dk dainf
       subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5921,6 +5969,7 @@
 +dk dapac
       subroutine dapac(inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -5964,6 +6013,7 @@
 +dk dachk
       subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6025,6 +6075,7 @@
 +dk damch
       subroutine damch(iaa,ia)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6129,6 +6180,7 @@
 +dk datra
       subroutine datra(idif,ina,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6218,6 +6270,7 @@
 +dk etred
       subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6303,6 +6356,7 @@
 +dk dehash
       subroutine dehash(no1,nv1,ic1,ic2,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -6428,6 +6482,7 @@
 +dk daran
       subroutine daran(ina,cm,xran)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -6493,6 +6548,7 @@
 +dk bran
       real(kind=fPrec) function bran(xran)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -6506,7 +6562,7 @@
       xran = xran + c1e1
       if(xran.gt.c1e4) xran = xran - 9999.12345_fPrec
 +if crlibm
-      bran = abs(sin_rn(xran))
+      bran = abs(sin_mb(xran))
 +ei
 +if .not.crlibm
       bran = abs(sin(xran))
@@ -6557,6 +6613,7 @@
 +dk danorm2t
       subroutine danorm2t(ina,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6638,6 +6695,7 @@
 +dk danormrt
       subroutine danormrt(ina,inb)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6698,6 +6756,7 @@
 +dk dapri6
       subroutine dapri6(ina,result,ien,i56)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6785,6 +6844,7 @@
 +dk darea6
       subroutine darea6(ina,zfeld,i56)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -6927,6 +6987,7 @@
 +dk daprimax
       subroutine daprimax(ina,iunit)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -7040,6 +7101,7 @@
 +dk damono
       subroutine damono(ina,jd,cfac,istart,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -7107,6 +7169,7 @@
 +dk dacycle
       subroutine dacycle(ina,ipresent,value,j,illa)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -7164,6 +7227,7 @@
 +dk daorder
       subroutine daorder(ina,iunit,jx,invo,nchop)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm
@@ -7279,6 +7343,7 @@
 +dk datrash
       subroutine datrash(idif,ina,inc)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
 +if crlibm

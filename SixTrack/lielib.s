@@ -48,6 +48,7 @@
 +dk lieinit
       subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1255,6 +1256,7 @@
 +dk expflo
       subroutine expflo(h,x,y,eps,nrmax)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1607,6 +1609,7 @@
 +dk flofacg
       subroutine flofacg(xy,h,epsone)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -1856,6 +1859,7 @@
 +dk mapnormf
       subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -2072,6 +2076,7 @@
 +dk orderflo
       subroutine orderflo(h,ft,x,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -3039,6 +3044,7 @@
 +dk midbflo
       subroutine midbflo(c,a2,a2i,q,a,st)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +if crlibm
@@ -3100,7 +3106,7 @@
         if(st(i)+c1m3.gt.one) then                                   !hr11
           a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
 +if crlibm
-          q(i)=acos_rn(cr(2*i-1,2*i-1)/a(i))
+          q(i)=acos_mb(cr(2*i-1,2*i-1)/a(i))
 +ei
 +if .not.crlibm
           q(i)=acos(cr(2*i-1,2*i-1)/a(i))
@@ -3161,6 +3167,7 @@
 +dk mapflol
       subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -3245,13 +3252,13 @@
           rd1=sqrt(rr(2*i-1)**2+ri(2*i-1)**2)
           rd=sqrt(rr(2*i)**2+ri(2*i)**2)
 +if crlibm
-          write(lout,*) 2*i-1,rr(2*i-1),asin_rn(ri(2*i-1)/rd1)/x2pi
+          write(lout,*) 2*i-1,rr(2*i-1),asin_mb(ri(2*i-1)/rd1)/x2pi
 +ei
 +if .not.crlibm
           write(lout,*) 2*i-1,rr(2*i-1),asin(ri(2*i-1)/rd1)/x2pi
 +ei
 +if crlibm
-          write(lout,*) 2*i,rr(2*i),asin_rn(ri(2*i)/rd)/x2pi
+          write(lout,*) 2*i,rr(2*i),asin_mb(ri(2*i)/rd)/x2pi
 +ei
 +if .not.crlibm
           write(lout,*) 2*i,rr(2*i),asin(ri(2*i)/rd)/x2pi
@@ -3423,6 +3430,7 @@
 +dk movearou
       subroutine movearou(rt)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -3603,6 +3611,7 @@
 +dk initpert
       subroutine initpert(st,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -3881,6 +3890,7 @@
 +dk eig6
       subroutine eig6(fm,reval,aieval,revec,aievec)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
@@ -4802,6 +4812,7 @@
 +dk couplean
       subroutine couplean(map1,tune,map2,oneturn)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall

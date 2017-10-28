@@ -2,6 +2,7 @@
 
       module platoFMA
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 	
       contains
@@ -14,7 +15,6 @@
 * Conversion single->double precission by K.Sjobak, Dec. 2016
 *
       SUBROUTINE CFFT(A,MSIGN)
-      use floatPrecision
       IMPLICIT NONE
       COMPLEX*16 A(*),U,W,T
       INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
@@ -79,7 +79,6 @@ C                                   MODIFICATIONS
 C
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT1(X,XP,MAXN)
-      
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -103,7 +102,7 @@ C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
 C.............................................................
 +if crlibm
-      DUEPI=ATAN_RN(1D0)*8D0
+      DUEPI=ATAN_MB(1D0)*8D0
       MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0))
 +ei
 +if .not.crlibm
@@ -198,9 +197,9 @@ C.............................................................
         STHETA=((-X(N)*XP(N+1)+X(N+1)*XP(N))/R1)/R2
 +if crlibm
         IF (STHETA.GE.0) THEN
-          THETA=ACOS_RN(CTHETA)
+          THETA=ACOS_MB(CTHETA)
           ELSE
-          THETA=DUEPI-ACOS_RN(CTHETA) 
+          THETA=DUEPI-ACOS_MB(CTHETA) 
         END IF
 +ei
 +if .not.crlibm
@@ -237,7 +236,6 @@ C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE FIT(X,Y,N,A,B)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER N,I
       REAL(KIND=fPrec) X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
@@ -284,7 +282,7 @@ C
 C AUTHOR:     E. TODESCO - INFN AND CERN 
 C
 
-      REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)              
+      REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -339,10 +337,10 @@ C................................................INTERPOLATION
 +if crlibm
       IF (CF3.GT.CF1) THEN      
         ASSK=DBLE(NFTMAX)+(NPOINT/PI)*
-     .       ATAN2_RN(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
+     .       ATAN2_MB(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
         ASSK=DBLE(NFTMAX-1)+(NPOINT/PI)*
-     .       ATAN2_RN(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
+     .       ATAN2_MB(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
       ENDIF
 +ei
 +if .not.crlibm
@@ -369,7 +367,7 @@ C
 C AUTHOR:     E. TODESCO - INFN AND CERN 
 C
 
-      REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)              
+      REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -450,7 +448,7 @@ C..........................................INTERPOLATION
       SCRA3=(P1**2+P2**2)+((2*P1)*P2)*CO
       SCRA4=(-SCRA2+P2*SQRT(SCRA1))/SCRA3
 +if crlibm
-      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN_RN(SI*SCRA4)
+      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN_MB(SI*SCRA4)
 +ei
 +if .not.crlibm
       ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN(SI*SCRA4)
@@ -477,7 +475,6 @@ C           GOOD LUCK, BABY
 C
 
       SUBROUTINE FFT_PLATO(CDATA,NN,ISIGN)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -564,7 +561,6 @@ C           GOOD LUCK, BABY
 C
 
       SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -716,7 +712,6 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE ZFUN(TUNE,Z,MAXN,TUNEA1,DELTAT)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -813,7 +808,6 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE CALC(ZV,ZPP,ZP,MAXD)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER MAXD,NP
       COMPLEX*16 ZV,ZPP,ZP
@@ -875,7 +869,7 @@ C.....................EVALUATION OF THE AVERAGE PHASE ADVANCE
         S1=X(I+1)*X(I)+P(I+1)*P(I)
         S2=SQRT((X(I)*X(I)+P(I)*P(I))*(X(I+1)*X(I+1)+P(I+1)*P(I+1)))
 +if crlibm
-        S3=ACOS_RN(S1/S2)
+        S3=ACOS_MB(S1/S2)
 +ei
 +if .not.crlibm
         S3=ACOS(S1/S2)
