@@ -2,6 +2,7 @@
 
       module platoFMA
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 	
       contains
@@ -14,7 +15,6 @@
 * Conversion single->double precission by K.Sjobak, Dec. 2016
 *
       SUBROUTINE CFFT(A,MSIGN)
-      use floatPrecision
       IMPLICIT NONE
       COMPLEX*16 A(*),U,W,T
       INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
@@ -79,7 +79,6 @@ C                                   MODIFICATIONS
 C
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT1(X,XP,MAXN)
-      
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -92,7 +91,6 @@ C
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
       
-+ca crlibco
 +ca crcoall
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
@@ -103,8 +101,8 @@ C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
 C.............................................................
 +if crlibm
-      DUEPI=ATAN_RN(1D0)*8D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0))
+      DUEPI=ATAN_MB(1D0)*8D0
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0))
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
@@ -166,7 +164,6 @@ C
      &TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
-+ca crlibco
 +ca crcoall
 C............................................................
       IF (MAX.LE.0) THEN
@@ -176,7 +173,7 @@ C............................................................
       ENDIF
 C............................................................
 +if crlibm
-      DUEPI=8*ATAN_RN(1D0)
+      DUEPI=8*ATAN_MB(1D0)
 +ei
 +if .not.crlibm
       DUEPI=8*DATAN(1D0)
@@ -198,9 +195,9 @@ C.............................................................
         STHETA=((-X(N)*XP(N+1)+X(N+1)*XP(N))/R1)/R2
 +if crlibm
         IF (STHETA.GE.0) THEN
-          THETA=ACOS_RN(CTHETA)
+          THETA=ACOS_MB(CTHETA)
           ELSE
-          THETA=DUEPI-ACOS_RN(CTHETA) 
+          THETA=DUEPI-ACOS_MB(CTHETA) 
         END IF
 +ei
 +if .not.crlibm
@@ -237,7 +234,6 @@ C     AUTHORS: R. BARTOLINI A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE FIT(X,Y,N,A,B)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER N,I
       REAL(KIND=fPrec) X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
@@ -284,7 +280,7 @@ C
 C AUTHOR:     E. TODESCO - INFN AND CERN 
 C
 
-      REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)              
+      REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -294,12 +290,10 @@ C
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER),ZSING(MAXITER)
 
-+ca crlibco
-
 C..................................ESTIMATION OF TUNE WITH FFT 
 +if crlibm
-      PI=ATAN_RN(1D0)*4D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
+      PI=ATAN_MB(1D0)*4D0
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0)) 
 +ei
 +if .not.crlibm
       PI=ATAN(1D0)*4D0
@@ -339,10 +333,10 @@ C................................................INTERPOLATION
 +if crlibm
       IF (CF3.GT.CF1) THEN      
         ASSK=DBLE(NFTMAX)+(NPOINT/PI)*
-     .       ATAN2_RN(CF3*SIN_RN(PI/NPOINT),CF2+CF3*COS_RN(PI/NPOINT))
+     .       ATAN2_MB(CF3*SIN_MB(PI/NPOINT),CF2+CF3*COS_MB(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
         ASSK=DBLE(NFTMAX-1)+(NPOINT/PI)*
-     .       ATAN2_RN(CF2*SIN_RN(PI/NPOINT),CF1+CF2*COS_RN(PI/NPOINT))
+     .       ATAN2_MB(CF2*SIN_MB(PI/NPOINT),CF1+CF2*COS_MB(PI/NPOINT))
       ENDIF
 +ei
 +if .not.crlibm
@@ -369,7 +363,7 @@ C
 C AUTHOR:     E. TODESCO - INFN AND CERN 
 C
 
-      REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)              
+      REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -381,12 +375,10 @@ C
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca crlibco
-
 C..................................ESTIMATION OF TUNE WITH FFT 
 +if crlibm
-      PI=ATAN_RN(1D0)*4D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
+      PI=ATAN_MB(1D0)*4D0
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0)) 
 +ei
 +if .not.crlibm
       PI=ATAN(1D0)*4D0
@@ -399,7 +391,7 @@ C.............................................................
       SUM=0D0            !..CHECKS FOR COMPLEX OR REAL DATA
       DO MF=1,NPOINT
 +if crlibm
-        Z(MF)=DCMPLX(X(MF),XP(MF))*SIN_RN(STEP*MF)**2
+        Z(MF)=DCMPLX(X(MF),XP(MF))*SIN_MB(STEP*MF)**2
 +ei
 +if .not.crlibm
         Z(MF)=DCMPLX(X(MF),XP(MF))*SIN(STEP*MF)**2
@@ -438,8 +430,8 @@ C.............................................................
       ENDIF
 C..........................................INTERPOLATION
 +if crlibm
-      CO=COS_RN((2*PI)/DBLE(NPOINT))
-      SI=SIN_RN((2*PI)/DBLE(NPOINT))
+      CO=COS_MB((2*PI)/DBLE(NPOINT))
+      SI=SIN_MB((2*PI)/DBLE(NPOINT))
 +ei
 +if .not.crlibm
       CO=COS((2*PI)/DBLE(NPOINT))
@@ -450,7 +442,7 @@ C..........................................INTERPOLATION
       SCRA3=(P1**2+P2**2)+((2*P1)*P2)*CO
       SCRA4=(-SCRA2+P2*SQRT(SCRA1))/SCRA3
 +if crlibm
-      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN_RN(SI*SCRA4)
+      ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN_MB(SI*SCRA4)
 +ei
 +if .not.crlibm
       ASSK=DBLE(NN)+((NPOINT/2)/PI)*ASIN(SI*SCRA4)
@@ -477,14 +469,11 @@ C           GOOD LUCK, BABY
 C
 
       SUBROUTINE FFT_PLATO(CDATA,NN,ISIGN)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
       COMPLEX*16 CDATA(NN)
       REAL*8 DATA(2*NN)
-
-+ca crlibco
 
       N=2*NN
 C create real array DATA out of complex array CDATA
@@ -514,9 +503,9 @@ C create real array DATA out of complex array CDATA
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
 +if crlibm
-        THETA=(8.D0*ATAN_RN(1.D0))/(ISIGN*MMAX)
-        WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
-        WPI=SIN_RN(THETA)
+        THETA=(8.D0*ATAN_MB(1.D0))/(ISIGN*MMAX)
+        WPR=-2.D0*SIN_MB(0.5D0*THETA)**2
+        WPI=SIN_MB(THETA)
 +ei
 +if .not.crlibm
         THETA=(8.D0*ATAN(1.D0))/(ISIGN*MMAX)
@@ -564,13 +553,11 @@ C           GOOD LUCK, BABY
 C
 
       SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL*8 WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
       REAL*8 DATA(*)
 
-+ca crlibco
       N=2*NN
       J=1
       DO 11 I=1,N,2
@@ -594,9 +581,9 @@ C
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
 +if crlibm
-        THETA=(8.D0*ATAN_RN(1.D0))/(ISIGN*MMAX)
-        WPR=-2.D0*SIN_RN(0.5D0*THETA)**2
-        WPI=SIN_RN(THETA)
+        THETA=(8.D0*ATAN_MB(1.D0))/(ISIGN*MMAX)
+        WPR=-2.D0*SIN_MB(0.5D0*THETA)**2
+        WPI=SIN_MB(THETA)
 +ei
 +if .not.crlibm
         THETA=(8.D0*ATAN(1.D0))/(ISIGN*MMAX)
@@ -649,7 +636,6 @@ C
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca crlibco
 +ca crcoall
 C.............................................................
       IF (MAXN.GT.MAXITER) THEN
@@ -660,8 +646,8 @@ C.............................................................
 C    ESTIMATION OF TUNE WITH FFT 
 C.............................................................
 +if crlibm
-      DUEPI=ATAN_RN(1D0)*8D0
-      MFT=INT(LOG_RN(DBLE(MAXN))/LOG_RN(2D0)) 
+      DUEPI=ATAN_MB(1D0)*8D0
+      MFT=INT(LOG_MB(DBLE(MAXN))/LOG_MB(2D0)) 
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
@@ -674,7 +660,7 @@ C.............................................................
       SUM=0D0
       DO MF=1,MAXN
 +if crlibm
-        Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS_RN(STEP*(MF-MAXN2)))
+        Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS_MB(STEP*(MF-MAXN2)))
 +ei
 +if .not.crlibm
         Z(MF)=DCMPLX(X(MF),XP(MF))*(1D0+COS(STEP*(MF-MAXN2)))
@@ -716,7 +702,6 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE ZFUN(TUNE,Z,MAXN,TUNEA1,DELTAT)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -727,11 +712,10 @@ C
       COMPLEX*16 ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
 
-+ca crlibco
 
 C............................................................  
 +if crlibm
-      DUEPI=ATAN_RN(1D0)*8D0
+      DUEPI=ATAN_MB(1D0)*8D0
 +ei
 +if .not.crlibm
       DUEPI=ATAN(1D0)*8D0
@@ -748,8 +732,8 @@ C............................................................
       ENDDO
 C............................................................  
 +if crlibm
-      ! EXP_RN expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
-      ZTUNE1=cos_rn(DUEPI*TUNEA1) + ZU*sin_rn(DUEPI*TUNEA1)
+      ! EXP_MB expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
+      ZTUNE1=cos_mb(DUEPI*TUNEA1) + ZU*sin_mb(DUEPI*TUNEA1)
 +ei
 +if .not.crlibm
       ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
@@ -813,7 +797,6 @@ C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 C
 
       SUBROUTINE CALC(ZV,ZPP,ZP,MAXD)
-      use floatPrecision
       IMPLICIT NONE
       INTEGER MAXD,NP
       COMPLEX*16 ZV,ZPP,ZP
@@ -849,7 +832,6 @@ C............................................................
      &ADVSIG,ADVMIN,ADVMAX
       DIMENSION X(*),P(*)
 
-+ca crlibco
 +ca crcoall
 C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
@@ -861,7 +843,7 @@ C............................................................
       ENDIF
 C............................................................
 +if crlibm
-      PI=4*ATAN_RN(1.D0)
+      PI=4*ATAN_MB(1.D0)
 +ei
 +if .not.crlibm
       PI=4*ATAN(1.D0)
@@ -875,7 +857,7 @@ C.....................EVALUATION OF THE AVERAGE PHASE ADVANCE
         S1=X(I+1)*X(I)+P(I+1)*P(I)
         S2=SQRT((X(I)*X(I)+P(I)*P(I))*(X(I+1)*X(I+1)+P(I+1)*P(I+1)))
 +if crlibm
-        S3=ACOS_RN(S1/S2)
+        S3=ACOS_MB(S1/S2)
 +ei
 +if .not.crlibm
         S3=ACOS(S1/S2)
@@ -1009,7 +991,6 @@ C............................................................
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX*16 Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
-+ca crlibco
 +ca crcoall
 C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
@@ -1064,8 +1045,8 @@ C...............................INTERPOLATION WITH A GAUSSIAN
       X12=X1-X2
       X13=X1-X3
 +if crlibm
-      Y12=LOG_RN(DBLE(Y1/Y2))
-      Y13=LOG_RN(DBLE(Y1/Y3))
+      Y12=LOG_MB(DBLE(Y1/Y2))
+      Y13=LOG_MB(DBLE(Y1/Y3))
 +ei
 +if .not.crlibm
       Y12=LOG(Y1/Y2)
@@ -1116,10 +1097,9 @@ C............................................................
       COMPLEX*16 ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX*16 Z(MAXITER),FOME,ZC,SD,SP
 
-+ca crlibco
 +ca crcoall
 +if crlibm
-      DUEPI=8*ATAN_RN(1D+0)
+      DUEPI=8*ATAN_MB(1D+0)
 +ei
 +if .not.crlibm
       DUEPI=8*ATAN(1D+0)
@@ -1139,7 +1119,7 @@ C............................................................
 C.................................ESTIMATION OF TUNE WITH FFT
       SUM=0D0
 +if crlibm
-      MFT=INT(LOG_RN(DBLE(MAX))/LOG_RN(2D+0))
+      MFT=INT(LOG_MB(DBLE(MAX))/LOG_MB(2D+0))
 +ei
 +if .not.crlibm
       MFT=INT(LOG(DBLE(MAX))/LOG(2D+0))
@@ -1190,10 +1170,10 @@ C.........................................BISECTION PROCEDURE
           DO N=1,MAX
 +if crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))
-     .        *(1D0+COS_RN(STEP*(2*N-MAX1)))
+     .        *(1D0+COS_MB(STEP*(2*N-MAX1)))
             TMPR=REAL((-(0D+0,1D+0)*OME)*N)
             TMPI=IMAG((-(0D+0,1D+0)*OME)*N)
-            Z(N)=ZC*(EXP_RN(TMPR)*DCMPLX(COS_RN(TMPI),SIN_RN(TMPI))) !exp_rn is only defined for real numbers -> decompose in real and imaginary part
+            Z(N)=ZC*(EXP_MB(TMPR)*DCMPLX(COS_MB(TMPI),SIN_MB(TMPI))) !exp_mb is only defined for real numbers -> decompose in real and imaginary part
 +ei
 +if .not.crlibm
             ZC=(X(N)-(0D+0,1D+0)*PX(N))

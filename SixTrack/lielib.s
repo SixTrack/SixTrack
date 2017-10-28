@@ -48,12 +48,10 @@
 +dk lieinit
       subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,iref1,nd1,ndc1,ndim,ndpt1,nis,no1,nv1
       real(kind=fPrec) ang,ra,st
 !! Lieinit initializes AD Package and Lielib
@@ -133,10 +131,8 @@
 +dk flowpara
       subroutine flowpara(ifl,jtu)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 +ca vecflow
       integer ifl,jtu
       iflow=ifl
@@ -146,10 +142,8 @@
 +dk pertpeek
       subroutine pertpeek(st,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,nreso,ntt
       real(kind=fPrec) ang,ra,st
       parameter (ndim=3)
@@ -173,10 +167,8 @@
 +dk inputres
       subroutine inputres(mx1,nres1)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,ndim,ndim2,nreso,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -200,10 +192,8 @@
 +dk respoke
       subroutine respoke(mres,nre,ire)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ire,j,ndim,ndim2,nre,nreso,ntt
       real(kind=fPrec) ang,ra,st
       parameter (ndim=3)
@@ -231,10 +221,8 @@
 +dk liepeek
       subroutine liepeek(iia,icoast)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,nreso,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -258,10 +246,8 @@
 +dk lienot
       subroutine lienot(not)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer no,not
 
       call danot(not)
@@ -272,11 +258,9 @@
 +dk etallnom
       subroutine etallnom(x,n,nom)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,n,nd2
 ! CREATES A AD-VARIABLE WHICH CAN BE DESTROYED BY DADAL
 ! allocates vector of n polynomials and give it the name NOM=A10
@@ -296,11 +280,9 @@
 +dk etall
       subroutine etall(x,n)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,n,nd2
 ! allocates vector of n polynomials
       integer x(*),i1(4),i2(4)
@@ -318,10 +300,8 @@
 +dk etall1
       subroutine etall1(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer x
 !frs
       x=0
@@ -332,10 +312,8 @@
 +dk dadal1
       subroutine dadal1(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer x
       call dadal(x,1)
       return
@@ -343,11 +321,9 @@
 +dk etppulnv
       subroutine etppulnv(x,xi,xff)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -374,11 +350,9 @@
 +dk etmtree
       subroutine etmtree(y,x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ie,iv,ndim,ndim2,nt,ntt
 ! ROUTINES USING THE MAP IN AD-FORM
       parameter (ndim=3)
@@ -408,10 +382,8 @@
 +dk etppush
       subroutine etppush(x,xi)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -435,10 +407,8 @@
 +dk etppush2
       subroutine etppush2(x,xi,xff)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -462,11 +432,9 @@
 +dk ppushlnv
       subroutine ppushlnv(x,xi,xff,nd1)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,nd1,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -493,11 +461,9 @@
 +dk etcct
       subroutine etcct(x,y,z)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ie,iv,ndim,ndim2,nt,ntt
 !  Z=XoY
       parameter (ndim=3)
@@ -527,11 +493,9 @@
 +dk trx
       subroutine trx(h,rh,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ie,iv,ndim,ndim2,nt,ntt
 !  :RH: = Y :H: Y^-1 =  :HoY:
       parameter (ndim=3)
@@ -562,10 +526,8 @@
 +dk trxflo
       subroutine trxflo(h,rh,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer j,k,ndim,ndim2,ntt
 !  *RH* = Y *H* Y^-1  CHANGE OF A VECTOR FLOW OPERATOR
       parameter (ndim=3)
@@ -605,10 +567,8 @@
 +dk simil
       subroutine simil(a,x,ai,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,ntt
 !  Y= AoXoAI
       parameter (ndim=3)
@@ -634,11 +594,9 @@
 +dk etini
       subroutine etini(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
 !  X=IDENTITY
       parameter (ndim=3)
@@ -655,11 +613,9 @@
 +dk etinv
       subroutine etinv(x,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ie1,ie2,iv1,iv2,ndim,ndim2,nt,ntt
 ! Y=X^-1
       parameter (ndim=3)
@@ -698,11 +654,9 @@
 +dk etpin
       subroutine etpin(x,y,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ie1,ie2,iv1,iv2,jj,ndim,ndim2,nt,ntt
 !  Y=PARTIAL INVERSION OF X SEE BERZ'S PACKAGE
       parameter (ndim=3)
@@ -741,10 +695,8 @@
 +dk dapek0
       subroutine dapek0(v,x,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,jj,ndim2,ntt
       real(kind=fPrec) x
 !- MORE EXTENSIONS OF BASIC BERZ'S PACKAGE
@@ -761,10 +713,8 @@
 +dk dapok0
       subroutine dapok0(v,x,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,jj,ndim2,ntt
       real(kind=fPrec) x
       parameter (ndim2=6)
@@ -780,11 +730,9 @@
 +dk dapokzer
       subroutine dapokzer(v,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,jj,ndim2,ntt
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -798,10 +746,8 @@
 +dk davar0
       subroutine davar0(v,x,jj)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,jj,ndim2,ntt
       real(kind=fPrec) x
       parameter (ndim2=6)
@@ -815,10 +761,8 @@
 +dk comcfu
       subroutine comcfu(b,f1,f2,c)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) f1,f2
       external f1,f2
 ! Complex dacfu
@@ -838,10 +782,8 @@
 +dk take
       subroutine take(h,m,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,m,ndim,ntt
       real(kind=fPrec) r
 !  HT= H_M  (TAKES M^th DEGREE PIECE ALL VARIABLES INCLUDED)
@@ -901,10 +843,8 @@
 +dk taked
       subroutine taked(h,m,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,m,ndim2,ntt
 !  \VEC{HT}= \VEC{H_M}  (TAKES M^th DEGREE PIECE ALL VARIABLES INCLUDED)
       parameter (ndim2=6)
@@ -934,10 +874,8 @@
 +dk daclrd
       subroutine daclrd(h)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim2,ntt
 ! clear a map : a vector of nd2 polynomials
       parameter (ndim2=6)
@@ -951,10 +889,8 @@
 +dk dacopd
       subroutine dacopd(h,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim2,ntt
 !    H goes into HT  (nd2 array)
       parameter (ndim2=6)
@@ -968,10 +904,8 @@
 +dk dacmud
       subroutine dacmud(h,sca,ht)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim2,ntt
       real(kind=fPrec) sca
       parameter (ndim2=6)
@@ -985,10 +919,8 @@
 +dk dalind
       subroutine dalind(h,rh,ht,rt,hr)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim2
       real(kind=fPrec) rh,rt
       parameter (ndim2=6)
@@ -1008,10 +940,8 @@
 +dk daread
       subroutine daread(h,nd1,mfile,xipo)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,mfile,nd1,ndim2,ntt
       real(kind=fPrec) rx,xipo
 !  read a map
@@ -1032,9 +962,6 @@
       subroutine daprid(h,n1,n2,mfile)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,mfile,n1,n2,ndim2,ntt
 !  print a map
       parameter (ndim2=6)
@@ -1048,11 +975,9 @@
 +dk prresflo
       subroutine prresflo(h,eps,mfile)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,mfile,ndim2,ntt
       real(kind=fPrec) deps,eps,filtres
 !  print a map   in resonance basis for human consumption (useless)
@@ -1083,11 +1008,9 @@
 +dk filtres
       real(kind=fPrec) function filtres(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ic,ndim
       parameter (ndim=3)
 !      PARAMETER (NTT=40)
@@ -1111,10 +1034,8 @@
 +dk daflo
       subroutine daflo(h,x,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
 ! LIE EXPONENT ROUTINES WITH FLOW OPERATORS
 
@@ -1147,10 +1068,8 @@
 +dk daflod
       subroutine daflod(h,x,y)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1176,11 +1095,9 @@
 +dk intd
       subroutine intd(v,h,sca)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       real(kind=fPrec) dlie,sca
 ! IF SCA=-1.D0
@@ -1227,10 +1144,8 @@
 +dk difd
       subroutine difd(h1,v,sca)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       real(kind=fPrec) sca
 ! INVERSE OF INTD ROUTINE
@@ -1255,12 +1170,10 @@
 +dk expflo
       subroutine expflo(h,x,y,eps,nrmax)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,nrmax,ntt
       real(kind=fPrec) coe,eps,r,rbefore
 ! DOES EXP( \VEC{H} ) X = Y
@@ -1326,9 +1239,6 @@
       subroutine expflod(h,x,w,eps,nrmax)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer j,ndim,ndim2,nrmax,ntt
       real(kind=fPrec) eps
 ! DOES EXP( \VEC{H} ) \VEC{X} = \VEC{Y}
@@ -1357,9 +1267,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ifac,ndim,ndim2,nmax,nrmax,nrmin,ntt
       real(kind=fPrec) eps,sca
 ! IFAC=1
@@ -1412,9 +1319,6 @@
       subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ifac,ndim,ndim2,nrmax,nrmin,ntt
       real(kind=fPrec) sca
 ! IFAC=1
@@ -1438,9 +1342,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer ifac,ndim,ndim2,nrma,nrmax,nrmi,nrmin,ntt
       real(kind=fPrec) sca
 !   WRAPPED ROUTINES FOR THE OPERATOR  \VEC{H}=:H:
@@ -1468,9 +1369,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,ndim,ndim2,ntt
 ! ETCOM TAKES THE BRACKET OF TWO VECTOR FIELDS.
       parameter (ndim2=6)
@@ -1508,9 +1406,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
 ! ETPOI TAKES THE POISSON BRACKET OF TWO FUNCTIONS
       parameter (ndim2=6)
@@ -1550,9 +1445,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,non,ntt
       real(kind=fPrec) eps
 ! WRAPPING EXPFLO
@@ -1577,9 +1469,6 @@
       subroutine expnd2(h,x,w,eps,nrmax)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer j,ndim,ndim2,nrmax,ntt
       real(kind=fPrec) eps
 ! WRAPPING EXPFLOD USING EXP1D
@@ -1607,12 +1496,10 @@
 +dk flofacg
       subroutine flofacg(xy,h,epsone)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,k,kk,ndim,ndim2,nrmax,ntt
       real(kind=fPrec) eps,epsone,r,xn,xnbefore,xnorm,xnorm1,xx
 ! GENERAL ONE EXPONENT FACTORIZATION
@@ -1699,9 +1586,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer k,ndim,ndim2,ntt
 ! GENERAL DRAGT-FINN FACTORIZATION
       parameter (ndim=3)
@@ -1741,9 +1625,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,ntt
 ! SYMPLECTIC DRAGT-FINN FACTORIZATION WRAPPING FLOFAC
       parameter (ndim=3)
@@ -1768,9 +1649,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer isi,ndim,ndim2,nord,ntt
 !--NORMALIZATION ROUTINES OF LIELIB
 !- WRAPPING MAPNORMF
@@ -1795,9 +1673,6 @@
       subroutine gettura(psq,radsq)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ik,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1817,9 +1692,6 @@
       subroutine setidpr(idprint,nplan)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer idprint,ik,ndim,ndim2,nplan
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1839,9 +1711,6 @@
       subroutine idprset(idprint)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer idprint,ndim,ndim2
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -1856,12 +1725,10 @@
 +dk mapnormf
       subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer ij,isi,ndim,ndim2,nord,ntt
       real(kind=fPrec) angle,p,rad,st,x2pi,x2pii
       parameter (ndim=3)
@@ -1890,13 +1757,13 @@
       enddo
       jtune=isi
 +if crlibm
-      x2pii=(one/atan_rn(one))/eight                                    !hr11
+      x2pii=(one/atan_mb(one))/eight                                    !hr11
 +ei
 +if .not.crlibm
       x2pii=(one/atan(one))/eight                                       !hr11
 +ei
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -1945,9 +1812,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,nord,ntt
       real(kind=fPrec) xic
 ! GETTING TO THE FIXED POINT AND CHANGING TIME APPROPRIATELY IN THE
@@ -2049,9 +1913,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ic,ndim
 ! USED IN A DACFU CALL OF GOFIX
       parameter (ndim=3)
@@ -2072,12 +1933,10 @@
 +dk orderflo
       subroutine orderflo(h,ft,x,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer k,ndim,ndim2,ntt
       real(kind=fPrec) ang,ra
 !-   NONLINEAR NORMALIZATION PIECE OF MAPNORMF
@@ -2149,9 +2008,6 @@
       subroutine nuanaflo(h,ft)
       use floatPrecision
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       real(kind=fPrec) dfilt,filt,xgam,xgbm
 ! RESONANCE DENOMINATOR OPERATOR (1-R^-1)^-1
@@ -2211,11 +2067,9 @@
 +dk xgam
       real(kind=fPrec) function xgam(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ic,ij,ik,ndim,ndim2
       real(kind=fPrec) ad,ans,as,ex,exh
 ! XGAM AND XGBM ARE THE EIGENVALUES OF THE OPERATOR NEWANAFLO
@@ -2252,20 +2106,20 @@
       enddo
 
 +if crlibm
-      exh=exp_rn(ad/two)
+      exh=exp_mb(ad/two)
 +ei
 +if .not.crlibm
       exh=exp(ad/two)
 +ei
       ex=exh**2
 +if crlibm
-      ans=(four*ex)*(sinh_rn(ad/two)**2+sin_rn(as/two)**2)             !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
 +ei
 +if .not.crlibm
       ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                   !hr11
 +ei
 +if crlibm
-      xgam=(two*(ex*sin_rn(as/two)**2-exh*sinh_rn(ad/two)))/ans       !hr11
+      xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans       !hr11
 +ei
 +if .not.crlibm
       xgam=(two*(ex*sin(as/two)**2-exh*sinh(ad/two)))/ans            !hr11
@@ -2276,11 +2130,9 @@
 +dk xgbm
       real(kind=fPrec) function xgbm(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ic,ij,ik,ndim,ndim2
       real(kind=fPrec) ad,ans,as,ex,exh
       parameter (ndim=3)
@@ -2316,20 +2168,20 @@
       enddo
 
 +if crlibm
-      exh=exp_rn(ad/two)
+      exh=exp_mb(ad/two)
 +ei
 +if .not.crlibm
       exh=exp(ad/two)
 +ei
       ex=exh**2
 +if crlibm
-      ans=(four*ex)*(sinh_rn(ad/two)**2+sin_rn(as/two)**2)             !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
 +ei
 +if .not.crlibm
       ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                  !hr11
 +ei
 +if crlibm
-      xgbm=(sin_rn(as)*ex)/ans                                           !hr11
+      xgbm=(sin_mb(as)*ex)/ans                                           !hr11
 +ei
 +if .not.crlibm
       xgbm=(sin(as)*ex)/ans                                              !hr11
@@ -2342,9 +2194,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ic,ic1,ic2,ij,ik,ji,ndim,ndim2,nreso
 !  PROJECTION FUNCTIONS ON THE KERNEL ANMD RANGE OF (1-R^-1)
 !-  THE KERNEL OF (1-R^-1)
@@ -2396,9 +2245,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,nreso
       real(kind=fPrec) fil,filt
 !-  THE RANGE OF (1-R^-1)^1
@@ -2425,11 +2271,9 @@
 +dk dhdjflo
       subroutine dhdjflo(h,t)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       real(kind=fPrec) coe,x2pi
 ! CONVENIENT TUNE SHIFT FINDED FOR SYMPLECTIC CASE (NU,DL)(H)=T
@@ -2448,7 +2292,7 @@
       call etall(bb2(1),1)
 
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -2479,11 +2323,9 @@
 +dk dhdj
       subroutine dhdj(h,t)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       real(kind=fPrec) coe,x2pi
       parameter (ndim=3)
@@ -2501,7 +2343,7 @@
       call etallnom(bb2(1),1,'BB2       ')
 
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -2539,9 +2381,6 @@
       use floatPrecision
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,ndim,ndim2,ntt
       real(kind=fPrec) ang,r1,r2,ra,st
 ! POKES IN \VEC{H}  ANGLES AND DAMPING COEFFFICIENTS
@@ -2593,11 +2432,9 @@
 +dk rotflo
       subroutine rotflo(ro,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       real(kind=fPrec) ang,ch,co,ra,sh,si,sim,xx
 ! CREATES R AND R^-1 USING THE EXISTING ANGLES AND DAMPING
@@ -2615,7 +2452,7 @@
       call daclrd(ro)
       do i=1,nd-ndc
 +if crlibm
-        xx=exp_rn(ra(i))
+        xx=exp_mb(ra(i))
 +ei
 +if .not.crlibm
         xx=exp(ra(i))
@@ -2626,13 +2463,13 @@
           si(i)=(-one*sh)*xx                                             !hr11
         else
 +if crlibm
-          co(i)=cos_rn(ang(i))*xx
+          co(i)=cos_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           co(i)=cos(ang(i))*xx
 +ei
 +if crlibm
-          si(i)=sin_rn(ang(i))*xx
+          si(i)=sin_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           si(i)=sin(ang(i))*xx
@@ -2671,11 +2508,9 @@
 +dk rotiflo
       subroutine rotiflo(roi,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       real(kind=fPrec) ang,ch,co,ra,sh,si,sim,simv,xx
 ! CREATES  R^-1
@@ -2696,7 +2531,7 @@
       call daclrd(roi)
       do i=1,nd-ndc
 +if crlibm
-        xx=exp_rn(-one*ra(i))                                            !hr11
+        xx=exp_mb(-one*ra(i))                                            !hr11
 +ei
 +if .not.crlibm
         xx=exp(-one*ra(i))                                               !hr11
@@ -2707,13 +2542,13 @@
           si(i)=(-one*sh)*xx
         else
 +if crlibm
-          co(i)=cos_rn(ang(i))*xx
+          co(i)=cos_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           co(i)=cos(ang(i))*xx
 +ei
 +if crlibm
-          si(i)=sin_rn(ang(i))*xx
+          si(i)=sin_mb(ang(i))*xx
 +ei
 +if .not.crlibm
           si(i)=sin(ang(i))*xx
@@ -2754,15 +2589,13 @@
 +dk hyper
       subroutine hyper(a,ch,sh)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) a,ch,sh,x,xi
 !   USED IN ROTIFLO AND ROTFLO
 +if crlibm
-      x=exp_rn(a)
+      x=exp_mb(a)
 +ei
 +if .not.crlibm
       x=exp(a)
@@ -2775,11 +2608,9 @@
 +dk ctor
       subroutine ctor(c1,r2,i2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer ndim2,ntt
 ! CHANGES OF BASIS
 !   C1------> R2+I R1
@@ -2807,10 +2638,8 @@
 +dk rtoc
       subroutine rtoc(r1,i1,c2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim2,ntt
 !  INVERSE OF CTOR
       parameter (ndim2=6)
@@ -2830,10 +2659,8 @@
 +dk ctorflo
       subroutine ctorflo(c,dr,di)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,ntt
 ! FLOW CTOR
       parameter (ndim=3)
@@ -2849,10 +2676,8 @@
 +dk rtocflo
       subroutine rtocflo(dr,di,c)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,ntt
 ! FLOW RTOC
       parameter (ndim=3)
@@ -2875,10 +2700,8 @@
 +dk ctord
       subroutine ctord(c,cr,ci)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
 ! ROUTINES USED IN THE INTERMEDIATE STEPS OF CTORFLO AND RTOCFLO
 ! SAME AS CTOR  OVER ARRAYS CONTAINING ND2 COMPONENTS
@@ -2896,10 +2719,8 @@
 +dk rtocd
       subroutine rtocd(cr,ci,c)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
 !  INVERSE OF CTORD
       parameter (ndim=3)
@@ -2915,10 +2736,8 @@
 +dk resvec
       subroutine resvec(cr,ci,dr,di)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
 ! DOES THE SPINOR PART IN CTORFLO
       parameter (ndim=3)
@@ -2967,11 +2786,9 @@
 +dk reelflo
       subroutine reelflo(c,ci,f,fi)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
 ! DOES THE SPINOR PART IN RTOCFLO
       parameter (ndim=3)
@@ -3013,11 +2830,9 @@
 +dk compcjg
       subroutine compcjg(cr,ci,dr,di)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ndim2,ntt
 ! TAKES THE COMPLEX CONJUGATE IN RESONANCE BASIS OF A POLYNOMIAL
       parameter (ndim=3)
@@ -3039,11 +2854,9 @@
 +dk midbflo
       subroutine midbflo(c,a2,a2i,q,a,st)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,ndim,ndim2,ntt
       real(kind=fPrec) a,ch,cm,cr,q,r,sa,sai,shm,                       &
      &st,x2pi
@@ -3059,7 +2872,7 @@
       integer c(*),a2(*),a2i(*)
 !*DAEXT(NO,NV) C(NDIM2),A2(NDIM2),A2I(NDIM2)
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -3100,13 +2913,13 @@
         if(st(i)+c1m3.gt.one) then                                   !hr11
           a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
 +if crlibm
-          q(i)=acos_rn(cr(2*i-1,2*i-1)/a(i))
+          q(i)=acos_mb(cr(2*i-1,2*i-1)/a(i))
 +ei
 +if .not.crlibm
           q(i)=acos(cr(2*i-1,2*i-1)/a(i))
 +ei
 +if crlibm
-          a(i)=log_rn(a(i))
+          a(i)=log_mb(a(i))
 +ei
 +if .not.crlibm
           a(i)=log(a(i))
@@ -3119,14 +2932,14 @@
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
 +if crlibm
-          q(i)=-one*log_rn(ch+shm)                                       !hr11
+          q(i)=-one*log_mb(ch+shm)                                       !hr11
 +ei
 +if .not.crlibm
           q(i)=-one*log(ch+shm)                                          !hr11
 +ei
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
 +if crlibm
-          a(i)=log_rn(a(i))
+          a(i)=log_mb(a(i))
 +ei
 +if .not.crlibm
           a(i)=log(a(i))
@@ -3161,12 +2974,10 @@
 +dk mapflol
       subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ier,iunst,j,l,n,n1,ndim,ndim2
       real(kind=fPrec) ap,ax,cm,cr,                                     &
      &p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
@@ -3183,7 +2994,7 @@
      &,sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
 +if crlibm
-      x2pi=atan_rn(one)*eight
+      x2pi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       x2pi=atan(one)*eight
@@ -3245,19 +3056,19 @@
           rd1=sqrt(rr(2*i-1)**2+ri(2*i-1)**2)
           rd=sqrt(rr(2*i)**2+ri(2*i)**2)
 +if crlibm
-          write(lout,*) 2*i-1,rr(2*i-1),asin_rn(ri(2*i-1)/rd1)/x2pi
+          write(lout,*) 2*i-1,rr(2*i-1),asin_mb(ri(2*i-1)/rd1)/x2pi
 +ei
 +if .not.crlibm
           write(lout,*) 2*i-1,rr(2*i-1),asin(ri(2*i-1)/rd1)/x2pi
 +ei
 +if crlibm
-          write(lout,*) 2*i,rr(2*i),asin_rn(ri(2*i)/rd)/x2pi
+          write(lout,*) 2*i,rr(2*i),asin_mb(ri(2*i)/rd)/x2pi
 +ei
 +if .not.crlibm
           write(lout,*) 2*i,rr(2*i),asin(ri(2*i)/rd)/x2pi
 +ei
 +if crlibm
-          write(lout,*) ' alphas ', log_rn(sqrt(rd*rd1))
+          write(lout,*) ' alphas ', log_mb(sqrt(rd*rd1))
 +ei
 +if .not.crlibm
           write(lout,*) ' alphas ', log(sqrt(rd*rd1))
@@ -3326,31 +3137,31 @@
       if(iunst.ne.1) then
         do i=1,nd-ndc
 +if crlibm
-          p(i)=atan_rn(-sai(2*i-1,2*i)/sai(2*i,2*i))
+          p(i)=atan_mb(-sai(2*i-1,2*i)/sai(2*i,2*i))
 +ei
 +if .not.crlibm
           p(i)=atan(-sai(2*i-1,2*i)/sai(2*i,2*i))
 +ei
 +if crlibm
-          s1(2*i-1,2*i-1)=cos_rn(p(i))
+          s1(2*i-1,2*i-1)=cos_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i-1,2*i-1)=cos(p(i))
 +ei
 +if crlibm
-          s1(2*i,2*i)=cos_rn(p(i))
+          s1(2*i,2*i)=cos_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i,2*i)=cos(p(i))
 +ei
 +if crlibm
-          s1(2*i-1,2*i)=sin_rn(p(i))
+          s1(2*i-1,2*i)=sin_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i-1,2*i)=sin(p(i))
 +ei
 +if crlibm
-          s1(2*i,2*i-1)=-sin_rn(p(i))
+          s1(2*i,2*i-1)=-sin_mb(p(i))
 +ei
 +if .not.crlibm
           s1(2*i,2*i-1)=-sin(p(i))
@@ -3390,11 +3201,9 @@
 +dk mulnd2
       subroutine mulnd2(rt,r)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ia,j,ndim,ndim2
       real(kind=fPrec) r,rt,rtt
       parameter (ndim2=6)
@@ -3423,12 +3232,10 @@
 +dk movearou
       subroutine movearou(rt)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ic,j,ndim,ndim2
       real(kind=fPrec) rt,rto,s,xr,xrold,xy,xyz,xz,xzy,yz
       parameter (ndim2=6)
@@ -3560,11 +3367,9 @@
 +dk movemul
       subroutine movemul(rt,xy,rto,xr)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,k,ndim,ndim2
       real(kind=fPrec) rt,rto,xr,xy
       parameter (ndim2=6)
@@ -3603,12 +3408,10 @@
 +dk initpert
       subroutine initpert(st,ang,ra)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,nn,nreso
       real(kind=fPrec) ang,ra,st
 !   X-RATED
@@ -3671,11 +3474,9 @@
 +dk dlie
       real(kind=fPrec) function dlie(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim
       parameter (ndim=3)
 !      PARAMETER (NTT=40)
@@ -3692,11 +3493,9 @@
 +dk rext
       real(kind=fPrec) function rext(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,lie,mo,ndim
       parameter (ndim=3)
 !      PARAMETER (NTT=40)
@@ -3722,10 +3521,8 @@
 +dk cpart
       subroutine cpart(h,ch)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim,ntt
       real(kind=fPrec) rext
       parameter (ndim=3)
@@ -3739,10 +3536,8 @@
 +dk ctoi
       subroutine ctoi(f1,f2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim2,ntt
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -3764,10 +3559,8 @@
 +dk itoc
       subroutine itoc(f1,f2)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer ndim2,ntt
       parameter (ndim2=6)
       parameter (ntt=40)
@@ -3788,10 +3581,8 @@
 +dk etrtc
       subroutine etrtc(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -3817,11 +3608,9 @@
 +dk etctr
       subroutine etctr(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -3846,10 +3635,8 @@
 +dk etcjg
       subroutine etcjg(x)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,ntt
       parameter (ndim=3)
       parameter (ndim2=6)
@@ -3881,12 +3668,10 @@
 +dk eig6
       subroutine eig6(fm,reval,aieval,revec,aievec)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer jet,ndim2
 !**************************************************************************
 
@@ -3952,10 +3737,8 @@
 +dk ety
       subroutine ety(nm,n,low,igh,a,ort)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,m,n,ii,jj,la,mp,nm,igh,kp1,low
       real(kind=fPrec) a(nm,n),ort(igh)
       real(kind=fPrec) f,g,h,scale
@@ -4062,10 +3845,8 @@
 +dk etyt
       subroutine etyt(nm,n,low,igh,a,ort,z)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,n,kl,mm,mp,nm,igh,low,mp1
       real(kind=fPrec) a(nm,igh),ort(igh),z(nm,n)
       real(kind=fPrec) g
@@ -4151,11 +3932,9 @@
 +dk ety2
       subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,j,k,l,m,n,en,ii,jj,ll,mm,na,nm,nn,                      &
      &igh,its,low,mp2,enm2,ierr
       real(kind=fPrec) h(nm,n),wr(n),wi(n),z(nm,n)
@@ -4580,11 +4359,9 @@
 +dk etdiv
       subroutine etdiv(a,b,c,d,e,f)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
 !   computes the complex division
 !     a + ib = (c + id)/(e + if)
 !  very slow, but tries to be as accurate as
@@ -4638,7 +4415,6 @@
       end
 +dk sympl3
       subroutine sympl3(m)
-      use floatPrecision
 !**********************************************************
 !
 !    SYMPL3
@@ -4652,11 +4428,10 @@
 !
 !  Written by F. Neri  Feb 7 1986
 !
+      use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer n
       parameter ( n = 3 )
       integer kp,kq,lp,lq,jp,jq,i
@@ -4711,11 +4486,9 @@
 +dk averaged
       subroutine averaged(f,a,flag,fave)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer isi,ndim,ndim2,nord,ntt
       real(kind=fPrec) avepol
 !      TAKES THE AVERAGE OF A FUNCTION F
@@ -4777,11 +4550,9 @@
 +dk avepol
       real(kind=fPrec) function avepol(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim
       parameter (ndim=3)
 !      PARAMETER (NTT=40)
@@ -4802,12 +4573,10 @@
 +dk couplean
       subroutine couplean(map1,tune,map2,oneturn)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim,ndim2,no1,nord,ntt
       real(kind=fPrec) crazy,tpi
 !  map1 ascript a1 not there
@@ -4844,7 +4613,7 @@
 !     one order is lost because I use PB-field
 
 +if crlibm
-      tpi=atan_rn(one)*eight
+      tpi=atan_mb(one)*eight
 +ei
 +if .not.crlibm
       tpi=atan(one)*eight
@@ -4905,11 +4674,9 @@
 +dk planar
       real(kind=fPrec) function planar(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ndim
       parameter (ndim=3)
 !      PARAMETER (NTT=40)
@@ -4938,11 +4705,9 @@
 +dk killnonl
       real(kind=fPrec) function killnonl(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ic,ndim
       parameter (ndim=3)
 !      PARAMETER (NTT=40)
@@ -4965,11 +4730,9 @@
 +dk fexpo1
       subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer ifac,ndim,ndim2,nrma,nrmax,nrmi,nrmin,ntt
       real(kind=fPrec) sca
       parameter (ndim=3)
@@ -4992,11 +4755,9 @@
 +dk etcctpar
       subroutine etcctpar(x,ix,xj,z)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca parnum
-+if crlibm
-+ca crlibco
-+ei
       integer i,ie,ix,ndim,ndim2,ntt
       real(kind=fPrec) xj
       parameter (ndim=3)

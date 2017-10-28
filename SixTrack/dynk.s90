@@ -3,7 +3,8 @@
 module dynk
 
     use floatPrecision
-
+    use mathlib_bouncer
+    
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
@@ -2691,9 +2692,6 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     real(kind=fPrec) round_near
 +ei
 
-+if crlibm
-+ca crlibco
-+ei
 
 +ca crcoall
 
@@ -2886,16 +2884,11 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
         retval = (-1)*dynk_computeFUN(funcs_dynk(funNum,3),turn)
 
     case (31)                                                         ! SQRT
-!+if crlibm
-!      retval = sqrt_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-!+ei
-!+if .not.crlibm      
         retval = sqrt(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-!+ei
 
     case (32)                                                         ! SIN
 +if crlibm
-        retval = sin_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = sin_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
         retval = sin(dynk_computeFUN(funcs_dynk(funNum,3),turn))
@@ -2903,7 +2896,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     case (33)                                                         ! COS
 +if crlibm
-        retval = cos_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = cos_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
         retval = cos(dynk_computeFUN(funcs_dynk(funNum,3),turn))
@@ -2911,7 +2904,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     case (34)                                                         ! LOG
 +if crlibm
-        retval = log_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = log_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
         retval = log(dynk_computeFUN(funcs_dynk(funNum,3),turn))
@@ -2919,7 +2912,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     case (35)                                                         ! LOG10
 +if crlibm
-        retval = log10_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = log10_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
         retval = log10(dynk_computeFUN(funcs_dynk(funNum,3),turn))
@@ -2927,7 +2920,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     case (36)                                                         ! EXP
 +if crlibm
-        retval = exp_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
+        retval = exp_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 +ei
 +if .not.crlibm
         retval = exp(dynk_computeFUN(funcs_dynk(funNum,3),turn))
@@ -2960,7 +2953,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
       case (60)                                                         ! SINF
 +if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * SIN_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+               * SIN_MB( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
 +ei
@@ -2973,7 +2966,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     case (61)                                                         ! COSF
 +if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * COS_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+               * COS_MB( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
 +ei
@@ -2986,7 +2979,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     case (62)                                                         ! COSF_RIPP
 +if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * COS_RN( (two*pi)*real(turn-1,fPrec)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
+               * COS_MB( (two*pi)*real(turn-1,fPrec)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 +ei
 +if .not.crlibm

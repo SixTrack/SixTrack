@@ -71,10 +71,6 @@
 !     speed of light
       parameter(clight = 2.99792458e8_fPrec)
 
-
-+cd crlibco
-      real(kind=fPrec) sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
-     &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
 +cd crcoall
 !     Standard output unit
 !     For CR version, this is the "buffer file" fort.92;
@@ -97,4 +93,3 @@
 +ei
 
       end module floatPrecision
-
