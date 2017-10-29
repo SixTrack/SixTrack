@@ -8,21 +8,9 @@
       character(len=80) sixtit,commen
       integer icode
       double precision dpscor,sigcor
-      integer i,ia,ia0,    &
-     &ifipa,ilapa,  &
-     &itopa,j,  &
-     &nfile,ntwin,   &
-     &numl,n
-      double precision    &
-     &b, &
-     &c, &
-     &c1,clo,clop,d,d1,di0, &
-     &dip0,dizu0,dmmac,dnms,dnumlr,  &
-     &dummy,e,e1,&
-     &f,f1,g,g1,&
-     &h, &
-     &h1,p,p1,  &
-     &qwc,ta
+      integer i,ia,ia0,ifipa,ilapa,itopa,j,nfile,ntwin,numl,n
+      double precision b,c,c1,clo,clop,d,d1,di0,dip0,dizu0,dmmac,dnms,dnumlr,  &
+           dummy,e,e1,f,f1,g,g1,h,h1,p,p1,qwc,ta
       character(len=8) cdate,ctime,progrm
       character(len=25) ch1
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
