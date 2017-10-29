@@ -2887,44 +2887,19 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
         retval = sqrt(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 
     case (32)                                                         ! SIN
-+if crlibm
         retval = sin_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = sin(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
 
     case (33)                                                         ! COS
-+if crlibm
         retval = cos_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = cos(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
 
     case (34)                                                         ! LOG
-+if crlibm
         retval = log_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = log(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
 
     case (35)                                                         ! LOG10
-+if crlibm
         retval = log10_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = log10(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
 
     case (36)                                                         ! EXP
-+if crlibm
         retval = exp_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = exp(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
 
     case (40)                                                         ! CONST
         retval = fexpr_dynk(funcs_dynk(funNum,3))
@@ -2951,42 +2926,20 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
                            fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
       case (60)                                                         ! SINF
-+if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
                * SIN_MB( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
-+ei
-+if .not.crlibm
-        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * SIN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-                    + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
 
     case (61)                                                         ! COSF
-+if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
                * COS_MB( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
-+ei
-+if .not.crlibm
-        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * COS( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-                    + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
-
     case (62)                                                         ! COSF_RIPP
-+if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
                * COS_MB( (two*pi)*real(turn-1,fPrec)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
-+if .not.crlibm
-        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               *COS   ( (two*pi)*real(turn-1,fPrec)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
-                       + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
 
     case (80)                                                         ! PELP
         foff = funcs_dynk(funNum,3)
@@ -2998,7 +2951,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
             retval = ( fexpr_dynk(foff+6)*(turn-fexpr_dynk(foff))**2 ) / 2.0 + fexpr_dynk(foff+5)
         else if (turn .le. fexpr_dynk(foff+2)) then ! <= t1
             ! Exponential
-            retval = fexpr_dynk(foff+7)*exp( fexpr_dynk(foff+8)*turn )
+            retval = fexpr_dynk(foff+7)*exp( fexpr_dynk(foff+8)*turn ) !!!!!! WTF ????? EXP, should be EXP_MB !!!!!!!!!!!!!
         else if (turn .le. fexpr_dynk(foff+3)) then ! <= td
             ! Linear (max ramp rate)
             retval = fexpr_dynk(foff+10)*(turn-fexpr_dynk(foff+2)) + fexpr_dynk(foff+9)

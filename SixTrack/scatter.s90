@@ -1008,14 +1008,8 @@ subroutine scatter_thin(ix, turn)
             ! Use generator t and xi to update particle j;
             ! remember to update ALL the energy arrays
             theta   = 1d3*sqrt(t)/ejfv(j)                  ! Unit mrad
-+if crlibm
             yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
             yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
-+ei
-+if .not.crlibm
-            yv(1,j) = theta*cos(rndPhi(j)) + yv(1,j)
-            yv(2,j) = theta*sin(rndPhi(j)) + yv(2,j)
-+ei
             
             ! Output to file
             write(667,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
@@ -1062,16 +1056,9 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
         beamtot = scatter_fdata(scatter_PROFILE(profileIdx,3))
         sigmaX  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 1)
         sigmaY  = scatter_fdata(scatter_PROFILE(profileIdx,3) + 2)
-+if crlibm
         retval  = beamtot/(two*(pi*(sigmaX*sigmaY))) &
                 * exp_mb(-half*(x/sigmaX)**2) &
                 * exp_mb(-half*(y/sigmaY)**2)
-+ei
-+if .not.crlibm
-        retval  = beamtot/(two*(pi*(sigmaX*sigmaY))) &
-                * exp(-half*(x/sigmaX)**2) &
-                * exp(-half*(y/sigmaY)**2)
-+ei
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
@@ -1210,14 +1197,8 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     real(kind=fPrec) g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
 
     ! Approximate distribution
-+if crlibm
     g1    =            exp_mb(-b1*tmin)/b1 ! Soft scatter term
     g3    = (a**2) * ( exp_mb(-b2*tmin)/b2 ) ! Hard scatter term
-+ei
-+if .not.crlibm
-    g1    =        exp(-b1*tmin)/b1 ! Soft scatter term
-    g3    = a**2 * exp(-b2*tmin)/b2 ! Hard scatter term
-+ei
     prob3 = g3/(g1+g3)              ! Probability of g3
     
     ! Pre-calculate inverses
@@ -1231,34 +1212,17 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         call ranecu(rndArr, 3, -1)
 
         ! Randomly switch between g1 and g3 according to probability
-+if crlibm
         if(rndArr(1) .gt. prob3) then
             t = tmin - invB1*log_mb(rndArr(2))
         else
             t = tmin - invB2*log_mb(rndArr(2))
         end if
-+ei
-+if .not.crlibm
-        if(rndArr(1) .gt. prob3) then
-            t = tmin - invB1*log(rndArr(2))
-        else
-            t = tmin - invB2*log(rndArr(2))
-        end if
-+ei
         
         ! Exact distribution
-+if crlibm
         g1 =            exp_mb(-b1*t)                                    ! Soft scatter term
         g2 =  ( (2*a) * exp_mb( ( (-half)*(b1+b2) )*t ) ) * cos_mb(phi) ! Interference
         g3 =   (a**2) * exp_mb(-b2*t)                                    ! Hard scatter term
         gg = ((g1+g2)+g3)/(g1+g3)
-+ei
-+if .not.crlibm
-        g1 =        exp(-b1*t)                       ! Soft scatter term
-        g2 =  2*a * exp(-half*(b1+b2)*t) * cos(phi) ! Interference
-        g3 = a**2 * exp(-b2*t)                       ! Hard scatter term
-        gg = (g1+g2+g3)/(g1+g3)
-+ei
         
         ! Check hit/miss on exact distribution
         ! if miss, get new t value
