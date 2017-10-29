@@ -40,7 +40,7 @@ if [ -x "$(command -v gawk)" ]; then
     astuce_linter sixtrack.s
     astuce_linter plato_seq.s90
     astuce_linter lielib.s90
-    astuce_linter dabnew.s
+    astuce_linter dabnew.s90
 else
     echo
     echo "WARNING: You have not installed gawk (GNU AWK)."
