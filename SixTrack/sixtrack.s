@@ -1332,12 +1332,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd timefct
-+if crlibm
           expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
-+ei
-+if .not.crlibm
-          expt =  exp(-real(n,fPrec)/tcnst35(i))
-+ei
 +cd dainicom
 *FOX  D V DA EXT SIGMDA NORD NVAR ; D V DA EXT DPDA NORD NVAR ;
 *FOX  D V DA EXT DPDA1 NORD NVAR ; D V DA EXT RV NORD NVAR ;
@@ -2018,7 +2013,6 @@
 !
       crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
       cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-+if crlibm
             yv(1,j)=crkve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
      &cikve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
             yv(2,j)=cikve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
@@ -2027,17 +2021,6 @@
      &xv(2,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
             cikve=xv(2,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
      &xv(1,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
-+ei
-+if .not.crlibm
-            yv(1,j)=crkve*cos((strackz(i)*ejf0v(j))/ejfv(j))+           &!hr02
-     &cikve*sin((strackz(i)*ejf0v(j))/ejfv(j))                           !hr02
-            yv(2,j)=cikve*cos((strackz(i)*ejf0v(j))/ejfv(j))-           &!hr02
-     &crkve*sin((strackz(i)*ejf0v(j))/ejfv(j))                           !hr02
-            crkve=xv(1,j)*cos((strackz(i)*ejf0v(j))/ejfv(j))+           &!hr02
-     &xv(2,j)*sin((strackz(i)*ejf0v(j))/ejfv(j))                         !hr02
-            cikve=xv(2,j)*cos((strackz(i)*ejf0v(j))/ejfv(j))-           &!hr02
-     &xv(1,j)*sin((strackz(i)*ejf0v(j))/ejfv(j))                         !hr02
-+ei
             xv(1,j)=crkve
             xv(2,j)=cikve
             yv(1,j)=yv(1,j)+xv(2,j)*strackx(i)
@@ -2171,18 +2154,10 @@
 +cd kicklso1
             crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)              !hr02
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-+if crlibm
             dyy1=(crkve*cos_mb(ek(IX)/(one+dpp))+                       &!hr02
      &cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
             dyy2=(cikve*cos_mb(ek(IX)/(one+dpp))-                       &!hr02
      &crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2)                             !hr02
-+ei
-+if .not.crlibm
-            dyy1=(crkve*cos(ek(IX)/(one+dpp))+                          &!hr02
-     &cikve*sin(ek(IX)/(one+dpp)))-y(1,1)                                !hr02
-            dyy2=(cikve*cos(ek(IX)/(one+dpp))-                          &!hr02
-     &crkve*sin(ek(IX)/(one+dpp)))-y(1,2)                                !hr02
-+ei
 +cd kickl01v
 +if .not.tilt
         dyy1=zero
@@ -2238,18 +2213,10 @@
 +cd kickuso1
             crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)              !hr02
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-+if crlibm
             dyy1=(crkve*cos_mb(ek(IX)/(one+dpp))+                       &!hr02
      &cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1)                             !hr02
             dyy2=(cikve*cos_mb(ek(IX)/(one+dpp))-                       &!hr02
      &crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2)                             !hr02
-+ei
-+if .not.crlibm
-            dyy1=(crkve*cos(ek(IX)/(one+dpp))+                          &!hr02
-     &cikve*sin(ek(IX)/(one+dpp)))-y(1,1)                                !hr02
-            dyy2=(cikve*cos(ek(IX)/(one+dpp))-                          &!hr02
-     &crkve*sin(ek(IX)/(one+dpp)))-y(1,2)                                !hr02
-+ei
         y(1,1)=y(1,1)+dyy1
         y(1,2)=y(1,2)+dyy2
 +cd kicku01v
@@ -2553,18 +2520,10 @@
 +cd kickaso1
             crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)              !hr02
             cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)              !hr02
-+if crlibm
             dyy1=(crkve*cos_mb(ek(IX))/(one+dpp))+                      &!hr02
      &(cikve*sin_mb(ek(IX))/(one+dpp))-y(1,1)                            !hr02
             dyy2=cikve*cos_mb(ek(IX)/(one+dpp))-                        &!hr02
      &crkve*sin_mb(ek(IX)/(one+dpp))-y(1,2)                              !hr02
-+ei
-+if .not.crlibm
-            dyy1=(crkve*cos(ek(IX))/(one+dpp))+                         &!hr02
-     &(cikve*sin(ek(IX))/(one+dpp))-y(1,1)                               !hr02
-            dyy2=cikve*cos(ek(IX)/(one+dpp))-                           &!hr02
-     &crkve*sin(ek(IX)/(one+dpp))-y(1,2)                                 !hr02
-+ei
         mpe=20
         qu=ed(IX)
         qv=ek(IX)
@@ -2574,12 +2533,7 @@
             do l=1,2
               ll=2*l
               if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
                 phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-                phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
               else
                 phibf(l)=pi2
               endif
@@ -2587,30 +2541,17 @@
 +cd phas2so1
             crkve=t(i,2)-(t(i,1)*qu)*qv                                  !hr02
             cikve=t(i,4)-(t(i,3)*qu)*qv                                  !hr02
-+if crlibm
             t(i,2)=crkve*cos_mb(qv)+cikve*sin_mb(qv)                     !hr02
             t(i,4)=cikve*cos_mb(qv)-crkve*sin_mb(qv)                     !hr02
             crkve=t(i,1)*cos_mb(qv)+t(i,3)*sin_mb(qv)                    !hr02
             cikve=t(i,3)*cos_mb(qv)-t(i,1)*sin_mb(qv)                    !hr02
-+ei
-+if .not.crlibm
-            t(i,2)=crkve*cos(qv)+cikve*sin(qv)                           
-            t(i,4)=cikve*cos(qv)-crkve*sin(qv)                           !hr02
-            crkve=t(i,1)*cos(qv)+t(i,3)*sin(qv)
-            cikve=t(i,3)*cos(qv)-t(i,1)*sin(qv)                          !hr02
-+ei
             t(i,1)=crkve
             t(i,3)=cikve
 +cd phas3so1
             do l=1,2
               ll=2*l
               if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
                 dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-                dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
               else
                 dphi=pi2-phibf(l)             
               endif
@@ -3855,48 +3796,25 @@
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
 !---------CrabFreq input in MHz (ek)
 !---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
         crabfreq=ek(ix)*c1e3
 
         do j=1,napx ! loop over particles
          crabamp=(ed(ix)/ejfv(j))*c1e3                                   !hr03
 
 +if .not.tilt
-+if crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))         !hr03
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix)))*c1m3   !hr03
-+ei
-+if .not.crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))            !hr03
-      dpsv(j)=dpsv(j) -                                                 &!hr03
-     &((((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*             &!hr03
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix)))*c1m3      !hr03
-+ei
 +ei
 +if tilt
-+if crlibm
         yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))         !hr03
       dpsv(j)=dpsv(j) -                                                 &!hr03
      &((((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*             &!hr03
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix)))*c1m3   !hr03
-+ei
-+if .not.crlibm
-        yv(xory,j)=yv(xory,j) - crabamp*                                &!hr03
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix))            !hr03
-      dpsv(j)=dpsv(j) -                                                 &!hr03
-     &((((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*             &!hr03
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph(ix)))*c1m3      !hr03
-+ei
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -3910,12 +3828,7 @@
       enddo
 +cd ccmul2
 ! JBG RF CC Multipoles
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
           crabamp2 = ed(ix)!/(1+dpsv(j))
           crabfreq=ek(ix)*c1e3
 !          write(*,*) ''
@@ -3927,7 +3840,6 @@
           do j=1,napx
 +ca alignva
 +if .not.tilt
-+if crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
@@ -3935,19 +3847,8 @@
       dpsv(j)=dpsv(j) - ((((half*(crabamp2*oidpsv(j)))*(crkve**2-       &!hr13
      &cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*                   &!hr13
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-        yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-      dpsv(j)=dpsv(j) - ((((half*(crabamp2*oidpsv(j)))*(crkve**2-       &!hr13
-     &cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*                   &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-+ei
 +ei
 +if tilt
-+if crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
@@ -3955,16 +3856,6 @@
       dpsv(j)=dpsv(j) - ((((half*(crabamp2*oidpsv(j)))*(crkve**2-       &!hr13
      &cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*                   &!hr13
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-        yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-      dpsv(j)=dpsv(j) - ((((half*(crabamp2*oidpsv(j)))*(crkve**2-       &!hr13
-     &cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*                   &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
-+ei
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -3978,18 +3869,12 @@
                 enddo
 +cd ccmul2s
 ! JBG RF CC Multipoles 2
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
           crabamp2 = ed(ix)!/(1+dpsv(j))
           crabfreq=ek(ix)*c1e3
           do j=1,napx
 +ca alignva
 +if .not.tilt
-+if crlibm
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
      &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
@@ -3997,19 +3882,8 @@
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
      &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-+ei
-+if .not.crlibm
-        yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-        yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-+ei
 +ei
 +if tilt
-+if crlibm
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
      &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
@@ -4017,16 +3891,6 @@
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
      &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-+ei
-+if .not.crlibm
-        yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-        yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-+ei
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -4040,12 +3904,7 @@
                 enddo
 +cd ccmul3
 ! JBG RF CC Multipoles
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
           crabamp3 = ed(ix)!/(1+dpsv(j))
           crabfreq=ek(ix)*c1e3
 !          write(*,*) ''
@@ -4057,7 +3916,6 @@
           do j=1,napx
 +ca alignva
 +if .not.tilt
-+if crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
@@ -4066,20 +3924,8 @@
       dpsv(j)=dpsv(j)-(((((one/three)*(crabamp3*oidpsv(j)))*(crkve**3-  &!hr13
      &(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight))*c1m6)*     &!hr13
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
-     &(crkve**2-cikve**2))*                                             &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-      yv(2,j)=yv(2,j)-((two*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-      dpsv(j)=dpsv(j)-(((((one/three)*(crabamp3*oidpsv(j)))*(crkve**3-  &!hr13
-     &(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight))*c1m6)*     &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-+ei
 +ei
 +if tilt
-+if crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
@@ -4088,17 +3934,6 @@
       dpsv(j)=dpsv(j)-(((((one/three)*(crabamp3*oidpsv(j)))*(crkve**3-  &!hr13
      &(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight))*c1m6)*     &!hr13
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
-     &(crkve**2-cikve**2))*                                             &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-      yv(2,j)=yv(2,j)-((two*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-      dpsv(j)=dpsv(j)-(((((one/three)*(crabamp3*oidpsv(j)))*(crkve**3-  &!hr13
-     &(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight))*c1m6)*     &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
-+ei
 +ei
        ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -4112,18 +3947,12 @@
                 enddo
 +cd ccmul3s
 ! JBG RF CC Multipoles 2
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
           crabamp3 = ed(ix)!/(1+dpsv(j))
           crabfreq=ek(ix)*c1e3
           do j=1,napx
 +ca alignva
 +if .not.tilt
-+if crlibm
 !        yv(2,j)=yv(2,j)-2*(1/2.)*(crabamp3*oidpsv(j))*c1m3*             &
         yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
      &((cikve**2)-(crkve**2)))*                                         & 
@@ -4134,19 +3963,7 @@
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
      &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
 +ei
-+if .not.crlibm
-        yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
-     &((cikve**2)-(crkve**2)))*                                         & 
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-        yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
-     &c1m3)*cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(cikve**3-    &
-     &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-+ei
-+ei
 +if tilt
-+if crlibm
         yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
      &((cikve**2)-(crkve**2)))*                                         & 
      &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
@@ -4155,17 +3972,6 @@
       dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(cikve**3-    &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
      &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-+ei
-+if .not.crlibm
-        yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
-     &((cikve**2)-(crkve**2)))*                                         & 
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-        yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
-     &c1m3)*cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(cikve**3-    &
-     &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-+ei
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -4179,12 +3985,7 @@
                 enddo
 +cd ccmul4
 ! JBG RF CC Multipoles
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
           crabamp4 = ed(ix)!/(1+dpsv(j))
           crabfreq=ek(ix)*c1e3
           ! Sixtrack uses mm and mrad, input m^{-n+1}
@@ -4197,7 +3998,6 @@
           do j=1,napx
 +ca alignva
 +if .not.tilt
-+if crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
      &(crkve**3-(three*crkve)*cikve**2))*c1m6)*                         &!hr13
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
@@ -4208,22 +4008,8 @@
      &(six*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*two)*pi)/clight))*c1m9)*                              &!hr13
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
-     &(crkve**3-(three*crkve)*cikve**2))*c1m6)*                         &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-        yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
-     &((three*cikve)*crkve**2-cikve**3))*c1m6)*                         &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((0.25_fPrec*(crabamp4*oidpsv(j)))*(crkve**4- &!hr13
-     &(six*crkve**2)*cikve**2+cikve**4))*                               &!hr13
-     &(((crabfreq*two)*pi)/clight))*c1m9)*                              &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-+ei
 +ei
 +if tilt
-+if crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
      &(crkve**3-(three*crkve)*cikve**2))*c1m6)*                         &!hr13
      &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
@@ -4234,19 +4020,6 @@
      &(six*crkve**2)*cikve**2+cikve**4))*                               &!hr13
      &(((crabfreq*two)*pi)/clight))*c1m9)*                              &!hr13
      &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
-     &(crkve**3-(three*crkve)*cikve**2))*c1m6)*                         &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-        yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
-     &((three*cikve)*crkve**2-cikve**3))*c1m6)*                         &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((0.25_fPrec*(crabamp4*oidpsv(j)))*(crkve**4- &!hr13
-     &(six*crkve**2)*cikve**2+cikve**4))*                               &!hr13
-     &(((crabfreq*two)*pi)/clight))*c1m9)*                              &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
-+ei
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -4260,19 +4033,13 @@
                 enddo
 +cd ccmul4s
 ! JBG RF CC Multipoles
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
           crabamp4 = ed(ix)!/(1+dpsv(j))
           crabfreq=ek(ix)*c1e3
           ! Sixtrack uses mm and mrad, input m^{-n+1}
           do j=1,napx
 +ca alignva
 +if .not.tilt
-+if crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
      &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
      &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
@@ -4283,22 +4050,8 @@
      &*cikve)-(cikve**3*crkve)))*                                       &
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
      &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
-     &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-        yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
-     &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
-     &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-+ei
 +ei
 +if tilt
-+if crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
      &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
      &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
@@ -4309,19 +4062,6 @@
      &*cikve)-(cikve**3*crkve)))*                                       &
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
      &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-+ei
-+if .not.crlibm
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
-     &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-        yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
-     &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
-     &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-+ei
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -4337,12 +4077,7 @@
           nfree=nturn1(ix)
          if(n.gt.nfree) then
           nac=n-nfree
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
 !---------ACdipAmp input in Tesla*meter converted to KeV/c
 !---------ejfv(j) should be in MeV/c --> ACdipAmp/ejfv(j) is in mrad
           acdipamp=(ed(ix)*clight)*c1m3                                !hr03
@@ -4356,41 +4091,20 @@
           do j=1,napx
 +if .not.tilt
               if(nramp1.gt.nac) then
-+if crlibm
                 yv(xory,j)=yv(xory,j)+(((acdipamp*                      &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
-+ei
-+if .not.crlibm
-                yv(xory,j)=yv(xory,j)+(((acdipamp*                      &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))*                      &!hr03
-     &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
-+ei
               endif
               if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
-+if crlibm
                 yv(xory,j)=yv(xory,j)+(acdipamp*                        &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
-+ei
-+if .not.crlibm
-                yv(xory,j)=yv(xory,j)+(acdipamp*                        &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)                !hr03
-+ei
               endif
               if(nac.ge.(nramp1+nplato).and.(nramp2+nramp1+nplato).gt.  &
      &nac)then
-+if crlibm
               yv(xory,j)=yv(xory,j)+((acdipamp*                         &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/real(nramp2,fPrec)))/&
      &ejfv(j)      !hr03
-+ei
-+if .not.crlibm
-              yv(xory,j)=yv(xory,j)+((acdipamp*                         &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))*                      &!hr03
-     &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/dble(nramp2,fPrec)))/&
-     &ejfv(j) !hr03
-+ei
               endif
 +ei
 +if tilt
@@ -4402,71 +4116,29 @@
         acdipamp1=-acdipamp*tilts(i)
       endif
               if(nramp1.gt.nac) then
-+if crlibm
                 yv(1,j)=yv(1,j)+(((acdipamp1*                           &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
-+ei
-+if .not.crlibm
-                yv(1,j)=yv(1,j)+(((acdipamp1*                           &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))*                      &!hr03
-     &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
-+ei
-+if crlibm
                 yv(2,j)=yv(2,j)+(((acdipamp2*                           &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
-+ei
-+if .not.crlibm
-                yv(2,j)=yv(2,j)+(((acdipamp2*                           &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))*                      &!hr03
-     &real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)                       !hr03
-+ei
               endif
               if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
-+if crlibm
                 yv(1,j)=yv(1,j)+(acdipamp1*                             &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
-+ei
-+if .not.crlibm
-                yv(1,j)=yv(1,j)+(acdipamp1*                             &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)                !hr03
-+ei
-+if crlibm
                 yv(2,j)=yv(2,j)+(acdipamp2*                             &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
-+ei
-+if .not.crlibm
-                yv(2,j)=yv(2,j)+(acdipamp2*                             &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)                !hr03
-+ei
               endif
               if(nac.ge.(nramp1+nplato).and.(nramp2+nramp1+nplato).gt.  &
      &nac)then
-+if crlibm
               yv(1,j)=yv(1,j)+((acdipamp1*                              &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/                     &
      &real(nramp2,fPrec)))/ejfv(j)      !hr03
-+ei
-+if .not.crlibm
-              yv(1,j)=yv(1,j)+((acdipamp1*                              &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))*                      &!hr03
-     &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/                     &
-     &real(nramp2,fPrec)))/ejfv(j)      !hr03
-+ei
-+if crlibm
               yv(2,j)=yv(2,j)+((acdipamp2*                              &!hr03
      &sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*                   &!hr03
      &((-one*real(nac-nramp1-nramp2-nplato,fPrec))/                     &
      &real(nramp2,fPrec)))/ejfv(j)      !hr03
-+ei
-+if .not.crlibm
-              yv(2,j)=yv(2,j)+((acdipamp2*                              &!hr03
-     &sin(((two*pi)*qd)*real(nac,fPrec)+acphase))*                      &!hr03
-     &((-one*real(nac-nramp1-nramp2-nplato,fPrec))                      &
-     &/real(nramp2,fPrec)))/ejfv(j)      !hr03
-+ei
               endif
 +ei
       enddo
@@ -4850,48 +4522,18 @@
 *FOX   Y(2)=Y(2)+CCCC/(ONE+DPDA) ;
       endif
 +cd beamr3s1
-+if crlibm
               qu1=((((crad*ptnfac(ix))*crkvebf)/                        &!hr03
      &rho2bf)*(one-exp_mb(-one*tkbf)))/(one+dpp)                         !hr03
-+ei
-+if .not.crlibm
-              qu1=((((crad*ptnfac(ix))*crkvebf)/                        &!hr03
-     &rho2bf)*(one-exp(-one*tkbf)))/(one+dpp)                            !hr03
-+ei
-+if crlibm
               qv1=((((crad*ptnfac(ix))*cikvebf)/                        &!hr03
      &rho2bf)*(one-exp_mb(-one*tkbf)))/(one+dpp)                         !hr03
-+ei
-+if .not.crlibm
-              qv1=((((crad*ptnfac(ix))*cikvebf)/                        &!hr03
-     &rho2bf)*(one-exp(-one*tkbf)))/(one+dpp)                            !hr03
-+ei
 +cd beamr3s2
-+if crlibm
               qu=((qu1-((((crad*ptnfac(ix))*crkvebf)/                   &!hr03
      &rho2bf)*(one-exp_mb(-one*tkbf)))/(one+dpp))/crkve)*half            !hr03
-+ei
-+if .not.crlibm
-              qu=((qu1-((((crad*ptnfac(ix))*crkvebf)/                   &!hr03
-     &rho2bf)*(one-exp(-one*tkbf)))/(one+dpp))/crkve)*half               !hr03
-+ei
-+if crlibm
               qv=((qv1-((((crad*ptnfac(ix))*cikvebf)/                   &!hr03
      &rho2bf)*(one-exp_mb(-one*tkbf)))/(one+dpp))/cikve)*half            !hr03
-+ei
-+if .not.crlibm
-              qv=((qv1-((((crad*ptnfac(ix))*cikvebf)/                   &!hr03
-     &rho2bf)*(one-exp(-one*tkbf)))/(one+dpp))/cikve)*half               !hr03
-+ei
 +cd beamr3of
-+if crlibm
             beamoff4=(((crad*ptnfac(ix))*crk)/                          &!hr03
      &rho2b)*(one-exp_mb(-one*tkb))                                      !hr03
-+ei
-+if .not.crlibm
-            beamoff4=(((crad*ptnfac(ix))*crk)/                          &!hr03
-     &rho2b)*(one-exp(-one*tkb))                                         !hr03
-+ei
 +if debug
 !GOTCHA
 !     if (dokcalls.ge.445959) then
@@ -4899,14 +4541,8 @@
 !       call wda('beamoff4',beamoff4,1,0,0,0)
 !     endif
 +ei
-+if crlibm
             beamoff5=(((crad*ptnfac(ix))*cik)/                          &!hr03
      &rho2b)*(one-exp_mb(-one*tkb))                                      !hr03
-+ei
-+if .not.crlibm
-            beamoff5=(((crad*ptnfac(ix))*cik)/                          &!hr03
-     &rho2b)*(one-exp(-one*tkb))                                         !hr03
-+ei
 +cd beam11s
             if(abs(sigman(1,imbb(i))).lt.pieni.or.                      &
      &abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
@@ -5097,39 +4733,15 @@
 +ei
       endif
 +cd beama4s1
-+if crlibm
               qu1=((rkbf*(crzbf-exp_mb(-one*tkbf)*cbzbf))*               !hr03
      &sign(one,crkvebf))/(one+dpp)                                       !hr03
-+ei
-+if .not.crlibm
-              qu1=((rkbf*(crzbf-exp(-one*tkbf)*cbzbf))*                 &!hr03
-     &sign(one,crkvebf))/(one+dpp)                                       !hr03
-+ei
-+if crlibm
               qv1=((rkbf*(crxbf-exp_mb(-one*tkbf)*cbxbf))*               !hr03
      &sign(one,cikvebf))/(one+dpp)                                       !hr03
-+ei
-+if .not.crlibm
-              qv1=((rkbf*(crxbf-exp(-one*tkbf)*cbxbf))*                 &!hr03
-     &sign(one,cikvebf))/(one+dpp)                                       !hr03
-+ei
 +cd beama4s2
-+if crlibm
               qu=((qu1-((rkbf*(crzbf-exp_mb(-one*tkbf)*cbzbf))*         &!hr03
      &sign(one,crkvebf))/(one+dpp))/crkve)*half                          !hr03
-+ei
-+if .not.crlibm
-              qu=((qu1-((rkbf*(crzbf-exp(-one*tkbf)*cbzbf))*            &!hr03
-     &sign(one,crkvebf))/(one+dpp))/crkve)*half                          !hr03
-+ei
-+if crlibm
               qv=((qv1-((rkbf*(crxbf-exp_mb(-one*tkbf)*cbxbf))*          !hr03
      &sign(one,cikvebf))/(one+dpp))/cikve)*half                          !hr03
-+ei
-+if .not.crlibm
-              qv=((qv1-((rkbf*(crxbf-exp(-one*tkbf)*cbxbf))*             !hr03 &
-     &sign(one,cikvebf))/(one+dpp))/cikve)*half                          !hr03
-+ei
 +cd beama4of
 +if debug
 !     call wda('4ofrkb',rkb,0,0,0,0)
@@ -5146,14 +4758,8 @@
 !     write(*,*) '4ofcrk',crk
 !     write(*,*) '4ofexp',-exp_mb(-one*tkb)
 +ei
-+if crlibm
               beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*              &!hr03
      &sign(one,crk)                                                      !hr03
-+ei
-+if .not.crlibm
-              beamoff4=(rkb*(crzb-exp(-one*tkb)*cbzb))*                 &!hr03
-     &sign(one,crk)                                                      !hr03
-+ei
 +if debug
 !GOTCHA
 !     if (dokcalls.ge.445959) then
@@ -5164,14 +4770,8 @@
 !       read(222)
 !     endif
 +ei
-+if crlibm
               beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*              &!hr03
      &sign(one,cik)                                                      !hr03
-+ei
-+if .not.crlibm
-              beamoff5=(rkb*(crxb-exp(-one*tkb)*cbxb))*                 &!hr03
-     &sign(one,cik)                                                      !hr03
-+ei
 +cd beamco
               if(ibbc.eq.0) then
                 crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
@@ -5201,75 +4801,27 @@
             tkb(j)=rho2b(j)/(two*sigman2(1,imbb(i)))
 +cd beamr3
             if(ibbc.eq.0) then
-+if crlibm
           yv(1,j)=yv(1,j)+oidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))                      !hr03
-+ei
-+if .not.crlibm
-          yv(1,j)=yv(1,j)+oidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
-     &(one-exp(-one*tkb(j)))-beamoff(4,imbb(i)))                         !hr03
-+ei
-+if crlibm
           yv(2,j)=yv(2,j)+oidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))                      !hr03
-+ei
-+if .not.crlibm
-          yv(2,j)=yv(2,j)+oidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
-     &(one-exp(-one*tkb(j)))-beamoff(5,imbb(i)))                         !hr03
-+ei
             else
-+if crlibm
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)     !hr03
-+ei
-+if .not.crlibm
-              cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
-     &(one-exp(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-      &!hr03
-     &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
-     &(one-exp(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)        !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
               yv(1,j)=yv(1,j)+oidpsv(j)*cccc
-+if crlibm
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)     !hr03
-+ei
-+if .not.crlibm
-              cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
-     &(one-exp(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+      &!hr03
-     &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
-     &(one-exp(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)        !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
               yv(2,j)=yv(2,j)+oidpsv(j)*cccc
             endif
 +cd beamr3o
-+if crlibm
                 beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*    &!hr03
      &(one-exp_mb(-one*tkb(j)))                                          !hr03
-+ei
-+if .not.crlibm
-                beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*    &!hr03
-     &(one-exp(-one*tkb(j)))                                             !hr03
-+ei
-+if crlibm
                 beamoff(5,imbb(i))=((strack(i)*cikveb(j))/rho2b(j))*    &!hr03
      &(one-exp_mb(-one*tkb(j)))                                          !hr03
-+ei
-+if .not.crlibm
-                beamoff(5,imbb(i))=((strack(i)*cikveb(j))/rho2b(j))*    &!hr03
-     &(one-exp(-one*tkb(j)))                                             !hr03
-+ei
 +cd beam11
             do j=1,napx
               r2b(j)=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
@@ -5297,84 +4849,32 @@
               call errf(zbb(j),xbb(j),cbzb(j),cbxb(j))
 +cd beama4
               if(ibbc.eq.0) then
-+if crlibm
                 yv(1,j)=yv(1,j)+oidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbzb(j)))*sign(one,crkveb(j))-beamoff(4,imbb(i)))                  !hr03
-+ei
-+if .not.crlibm
-                yv(1,j)=yv(1,j)+oidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
-     &exp(-one*tkb(j))*                                                 &!hr03
-     &cbzb(j)))*sign(one,crkveb(j))-beamoff(4,imbb(i)))                  !hr03
-+ei
-+if crlibm
                 yv(2,j)=yv(2,j)+oidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbxb(j)))*sign(one,cikveb(j))-beamoff(5,imbb(i)))                  !hr03
-+ei
-+if .not.crlibm
-                yv(2,j)=yv(2,j)+oidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
-     &exp(-one*tkb(j))*                                                 &!hr03
-     &cbxb(j)))*sign(one,cikveb(j))-beamoff(5,imbb(i)))                  !hr03
-+ei
               else
-+if crlibm
                 cccc=((rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*   &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),11)-((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)           !hr03
-+ei
-+if .not.crlibm
-                cccc=((rkb(j)*(crzb(j)-exp(-one*tkb(j))*cbzb(j)))*      &
-     &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &
-     &bbcu(imbb(i),11)-((rkb(j)*(crxb(j)-exp(-one*tkb(j))*cbxb(j)))*    &
-     &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)           
-+ei
-+if crlibm
-+ei
-+if .not.crlibm
-+ei
                 yv(1,j)=yv(1,j)+oidpsv(j)*cccc
-+if crlibm
                 cccc=((rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*   &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),12)+((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)           !hr03
-+ei
-+if .not.crlibm
-                cccc=((rkb(j)*(crzb(j)-exp(-one*tkb(j))*cbzb(j)))*      &!hr03
-     &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
-     &bbcu(imbb(i),12)+((rkb(j)*(crxb(j)-exp(-one*tkb(j))*cbxb(j)))*    &!hr03
-     &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)           !hr03
-+ei
-!+if crlibm
-!+ei
-!+if .not.crlibm
-!+ei
                 yv(2,j)=yv(2,j)+oidpsv(j)*cccc
               endif
             enddo
 +cd beama4o
-+if crlibm
               beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*  &!hr03
      &cbzb(j)))*                                                        &!hr03
      &sign(one,crkveb(j))                                                !hr03
-+ei
-+if .not.crlibm
-              beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp(-one*tkb(j))*     &!hr03
-     &cbzb(j)))*                                                        &!hr03
-     &sign(one,crkveb(j))                                                !hr03
-+ei
-+if crlibm
               beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*  &!hr03
      &cbxb(j)))*                                                        &!hr03
      &sign(one,cikveb(j))                                                !hr03
-+ei
-+if .not.crlibm
-              beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp(-one*tkb(j))*     &!hr03
-     &cbxb(j)))*                                                        &!hr03
-     &sign(one,cikveb(j))                                                !hr03
-+ei
             enddo
 +cd beamwzf1
             enddo
@@ -6952,12 +6452,7 @@ cc2008
             sx=angp(2,ii-1)*angp(1,ii)-angp(1,ii-1)*angp(2,ii)
             cx=angp(1,ii-1)*angp(2,ii-1)+angp(1,ii)*angp(2,ii)
             if(abs(sx).gt.c1m15.or.abs(cx).gt.c1m15) then
-+if crlibm
               dphi(j)=atan2_mb(sx,cx)/x2pi
-+ei
-+if .not.crlibm
-              dphi(j)=atan2(sx,cx)/x2pi
-+ei
             else
               dphi(j)=zero
             endif
@@ -7332,12 +6827,7 @@ cc2008
           do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=zero
             endif
@@ -7357,12 +6847,7 @@ cc2008
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr03
 +cd trom03
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=-one*phibf(l)                                         !hr08
             endif
@@ -7535,108 +7020,6 @@ cc2008
       yv(1,j) = yv(1,j)*(one + dpsv(j))
       yv(2,j) = yv(2,j)*(one + dpsv(j))
 
-! start not crlibm wire
-+if .not.crlibm
-
-! ibeco = 0
-      if(ibeco.eq.0) then
-! 2 symplectic rotation of coordinate system (tx, ty)
-          yi = yi-(((xi*sin(tx))*yv(2,j))/                              &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos(atan(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-              &
-     &yv(2,j)**2))-tx)
-          xi = xi*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/                    &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
-          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
-     &sin(atan(yv(1,j)/                                                 &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
-
-          xi = xi-(((yi*sin(ty))*yv(1,j))/                              &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos(atan(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-              &
-     &yv(2,j)**2))-ty)
-          yi = yi*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/                    &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-          yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                  &
-     &sin(atan(yv(2,j)/                                                 &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
-
-! 3 apply wire kick
-          RTWO = xi**2+yi**2
-          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-
-! ibeco = 1:
-      elseif(ibeco.eq.1) then
-! 2 symplectic rotation of coordinate system (tx, ty) + closed orbit
-          yi = yi-(((xi*sin(tx))*yv(2,j))/                              &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos(atan(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-              &
-     &yv(2,j)**2))-tx)
-          xi = xi*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/                    &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
-
-          dyi = dyi-(((dxi*sin(tx))*yv(2,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos(atan(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-              &
-     &yv(2,j)**2))-tx)
-          dxi = dxi*(cos(tx)-sin(tx)*tan(atan(yv(1,j)/                  &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
-  
-          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
-     &sin(atan(yv(1,j)/                                                 &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
-
-          xi = xi-(((yi*sin(ty))*yv(1,j))/                              &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos(atan(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-              &
-     &yv(2,j)**2))-ty)
-          yi = yi*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/                    &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-      
-          dxi = dxi-(((dyi*sin(ty))*yv(1,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos(atan(yv(2,j)/sqrt(((1d0+dpsv(j))**2-yv(1,j)**2)-              &
-     &yv(2,j)**2))-ty)
-          dyi = dyi*(cos(ty)-sin(ty)*tan(atan(yv(2,j)/                  &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-     
-          yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                  &
-     &sin(atan(yv(2,j)/                                                 &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
- 
-! 3 apply wire kick
-          RTWO = xi**2+yi**2
-          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-! subtract closed orbit kick
-! wire kick is negative px -> px - wirekick - (-closed orbit kick)
-          RTWO = dxi**2+dyi**2
-          yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*                         &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*                         &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-
-      endif
-
-
-! 4 symplectic rotation of coordinate system (-ty, -tx)
-      yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
-     &sin(atan(yv(2,j)/                                                 &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
-      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
-     &sin(atan(yv(1,j)/                                                 &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
-
-+ei
-!-----------------------------------------------------------------------
-! end not crlibm wire
-! start crlibm wire
-+if crlibm
 !ibeco = 0
       if(ibeco.eq.0) then
 ! 2 symplectic rotation of coordinate system (tx, ty)
@@ -7730,9 +7113,6 @@ cc2008
       yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
      &sin_mb(atan_mb(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
-
-+ei
-! end crlibm wire
 
 ! px -> x'; py -> y'
       yv(1,j) = yv(1,j)/(1d0 + dpsv(j))
@@ -9259,12 +8639,7 @@ cc2008
       data sgn/c1e2/ainv,bmat,cmat,cvec,dvec/48.0_fPrec/
       save
 !-----------------------------------------------------------------------
-+if crlibm
       pi2in=one/(eight*atan_mb(one))
-+ei
-+if .not.crlibm
-      pi2in=one/(eight*atan(one))
-+ei
 !-----------------------------------------------------------------------
       do 40 i=0,3
         do 30 j=1,3
@@ -10174,12 +9549,7 @@ cc2008
       data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48.0_fPrec/
       save
 !-----------------------------------------------------------------------
-+if crlibm
       pi2in=one/(eight*atan_mb(one))
-+ei
-+if .not.crlibm
-      pi2in=one/(eight*atan(one))
-+ei
 !-----------------------------------------------------------------------
       do 30 i=0,4
         do 20 j=1,5
@@ -11227,12 +10597,7 @@ cc2008
         h=one/(3.2_fPrec*q)
         nc=7+int(23.0_fPrec*q)                                               !hr05
 !       xl=h**(1-nc)
-+if crlibm
         xl=exp_mb((1-nc)*log_mb(h))                                      !yil11
-+ei
-+if .not.crlibm
-        xl=exp((1-nc)*log(h))                                            !yil11
-+ei
 +if debug
 !       call wda('errfq',q,nc,0,0,0)
 !       call wda('errfh',h,nc,0,0,0)
@@ -11284,18 +10649,8 @@ cc2008
       endif
 !      if(y.eq.0.) wx=exp(-x**2)
       if(yy.lt.zero) then
-+if crlibm
         wx=(two*exp_mb(y**2-x**2))*cos_mb((two*x)*y)-wx                  !hr05
-+ei
-+if .not.crlibm
-        wx=(two*exp(y**2-x**2))*cos((two*x)*y)-wx                        !hr05
-+ei
-+if crlibm
         wy=((-one*two)*exp_mb(y**2-x**2))*sin_mb((two*x)*y)-wy           !hr05
-+ei
-+if .not.crlibm
-        wy=((-one*two)*exp(y**2-x**2))*sin((two*x)*y)-wy                 !hr05
-+ei
         if(xx.gt.zero) wy=-one*wy                                        !hr05
       else
         if(xx.lt.zero) wy=-one*wy
@@ -11701,12 +11056,7 @@ cc2008
       if(numx.gt.nde(2)) phas=zero
       if(numx.gt.nde(2)) return
       phas=phas0
-+if crlibm
       e0=e0+hsy(1)*sin_mb(phas)
-+ei
-+if .not.crlibm
-      e0=e0+hsy(1)*sin(phas)
-+ei
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
       end
@@ -11731,12 +11081,7 @@ cc2008
       save
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
-+if crlibm
       e0=e0+hsy(1)*sin_mb(phas)
-+ei
-+if .not.crlibm
-      e0=e0+hsy(1)*sin(phas)
-+ei
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
       end
@@ -18788,27 +18133,12 @@ c$$$         endif
       endif
       if(ya.eq.zero) then                                                 !hr05
 !        v=dcmplx(exp(-xa**2),dimag(v))
-+if crlibm
         vr=exp_mb(-one*xa**2)                                            !hr05
-+ei
-+if .not.crlibm
-        vr=exp(-one*xa**2)                                               !hr05
-+ei
       endif
       if(y.lt.zero) then
 !        v=2*exp(-dcmplx(xa,ya)**2)-v
-+if crlibm
         vr=(two*exp_mb(ya**2-xa**2))*cos_mb((two*xa)*ya)-vr              !hr05
-+ei
-+if .not.crlibm
-        vr=(two*exp(ya**2-xa**2))*cos((two*xa)*ya)-vr                    !hr05
-+ei
-+if crlibm
         vi=(-two*exp_mb(ya**2-xa**2))*sin_mb((two*xa)*ya)-vi             !hr05
-+ei
-+if .not.crlibm
-        vi=(-two*exp(ya**2-xa**2))*sin((two*xa)*ya)-vi                   !hr05
-+ei
         if(x.gt.zero) vi=-one*vi                                          !hr05
       else
         if(x.lt.zero) vi=-one*vi                                          !hr05
@@ -18943,12 +18273,7 @@ c$$$         endif
       data iseed1,iseed2 / 12345, 67890 /
       save
 !-----------------------------------------------------------------------
-+if crlibm
       pi = four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi = four*atan(one)
-+ei
 !     DO 100 I = 1,LEN
       i=1
    10 do 20 j = 1,2
@@ -18965,12 +18290,7 @@ c$$$         endif
 
       if (mcut.ge.0) then !mcut = -1 => Generate uniform numbers!
 !     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
-+if crlibm
          rvec0 = sqrt(((-one*two)*log_mb(r(1))))*cos_mb((two*pi)*r(2))      !hr05
-+ei
-+if .not.crlibm
-         rvec0 = (sqrt((-one*two)*log(r(1))))*cos((two*pi)*r(2))            !hr05
-+ei
       else if (mcut.eq.-1) then
          rvec0 = r(1)
       end if
@@ -19058,53 +18378,19 @@ c$$$         endif
    40   fok=(el(i)*ed(i))/dpsq                                           !hr05
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
-+if crlibm
         fok1=(tan_mb(fok*half))/rho
-+ei
-+if .not.crlibm
         fok1=(tan(fok*half))/rho
-+ei
-+if crlibm
         si=sin_mb(fok)
-+ei
-+if .not.crlibm
-        si=sin(fok)
-+ei
-+if crlibm
         co=cos_mb(fok)
-+ei
-+if .not.crlibm
-        co=cos(fok)
-+ei
         al(1,ih,j,i)=one
         al(2,ih,j,i)=rho*si
         al(3,ih,j,i)=zero
         al(4,ih,j,i)=one
         al(5,ih,j,i)=((-one*dpp)*((rho*(one-co))/dpsq))*c1e3             !hr05
-+if crlibm
         al(6,ih,j,i)=((-one*dpp)*((two*tan_mb(fok*half))/dpsq))*c1e3     !hr05
-+ei
-+if .not.crlibm
-        al(6,ih,j,i)=((-one*dpp)*((two*tan(fok*half))/dpsq))*c1e3        !hr05
-+ei
-+if crlibm
         sm1=cos_mb(fok)
-+ei
-+if .not.crlibm
-        sm1=cos(fok)
-+ei
-+if crlibm
         sm2=sin_mb(fok)*rho
-+ei
-+if .not.crlibm
-        sm2=sin(fok)*rho
-+ei
-+if crlibm
         sm3=(-one*sin_mb(fok))/rho                                       !hr05
-+ei
-+if .not.crlibm
-        sm3=(-one*sin(fok))/rho                                          !hr05
-+ei
         sm5=((-one*rho)*dpsq)*(one-sm1)                                  !hr05
         sm6=((-one*sm2)*dpsq)/rho                                        !hr05
         sm12=el(i)-sm1*sm2
@@ -19122,12 +18408,7 @@ c$$$         endif
 !--VERTIKAL
         ih=ih+1
         if(ih.gt.2) ih=1
-+if crlibm
         g=tan_mb(fok*half)/rho
-+ei
-+if .not.crlibm
-        g=tan(fok*half)/rho
-+ei
         gl=el(i)*g
         al(1,ih,j,i)=one-gl
         al(2,ih,j,i)=el(i)
@@ -19146,18 +18427,8 @@ c$$$         endif
    60   fok=(el(i)*ed(i))/dpsq                                           !hr05
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
-+if crlibm
         si=sin_mb(fok)
-+ei
-+if .not.crlibm
-        si=sin(fok)
-+ei
-+if crlibm
         co=cos_mb(fok)
-+ei
-+if .not.crlibm
-        co=cos(fok)
-+ei
         rhoc=(rho*(one-co))/dpsq                                         !hr05
         siq=si/dpsq
         al(1,ih,j,i)=co
@@ -19206,18 +18477,8 @@ c$$$         endif
         fi=el(i)*hi
         if(fok.gt.zero) goto 110
   100   ih=ih+1
-+if crlibm
         al(1,ih,j,i)=cos_mb(fi)
-+ei
-+if .not.crlibm
-        al(1,ih,j,i)=cos(fi)
-+ei
-+if crlibm
         hi1=sin_mb(fi)
-+ei
-+if .not.crlibm
-        hi1=sin(fi)
-+ei
         al(2,ih,j,i)=hi1/hi
         al(3,ih,j,i)=(-one*hi1)*hi                                       !hr05
         al(4,ih,j,i)=al(1,ih,j,i)
@@ -19229,12 +18490,7 @@ c$$$         endif
         if(ih.eq.2) goto 190
 !--DEFOCUSSING
   110   ih=ih+1
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -19261,18 +18517,8 @@ c$$$         endif
         fi=hi*el(i)
         if(fok.gt.zero) goto 160
   140   ih=ih+1
-+if crlibm
         si=sin_mb(fi)
-+ei
-+if .not.crlibm
-        si=sin(fi)
-+ei
-+if crlibm
         co=cos_mb(fi)
-+ei
-+if .not.crlibm
-        co=cos(fi)
-+ei
         wfa=((wf/afok)*(one-co))/dpsq                                    !hr05
         wfhi=((wf/hi)*si)/dpsq                                           !hr05
         al(1,ih,j,i)=co
@@ -19296,12 +18542,7 @@ c$$$         endif
         aek=abs(ek(i)/dpd)
         hi=sqrt(aek)
         fi=hi*el(i)
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -19317,12 +18558,7 @@ c$$$         endif
         goto 190
 !--DEFOCUSSING
   160   ih=ih+1
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -19348,18 +18584,8 @@ c$$$         endif
         aek=abs(ek(i)/dpd)
         hi=sqrt(aek)
         fi=hi*el(i)
-+if crlibm
         si=sin_mb(fi)
-+ei
-+if .not.crlibm
-        si=sin(fi)
-+ei
-+if crlibm
         co=cos_mb(fi)
-+ei
-+if .not.crlibm
-        co=cos(fi)
-+ei
         al(1,ih,j,i)=co
         al(2,ih,j,i)=si/hi
         al(3,ih,j,i)=(-one*si)*hi                                        !hr05
@@ -19379,12 +18605,7 @@ c$$$         endif
 !  EDGE FOCUSSING
 !-----------------------------------------------------------------------
   180   rhoi=ed(i)/dpsq
-+if crlibm
         fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr05
-+ei
-+if .not.crlibm
-        fok=rhoi*tan((el(i)*rhoi)*half)                                  !hr05
-+ei
         al(1,1,j,i)=one
         al(2,1,j,i)=zero
         al(3,1,j,i)=fok
@@ -20307,12 +19528,7 @@ c$$$         endif
               write(7,*) '3'
               write(7,*) bez(ix)
 +if tilt
-+if crlibm
               write(7,*) xsi(i),zsi(i),atan2_mb(tilts(i),tiltc(i))
-+ei
-+if .not.crlibm
-              write(7,*) xsi(i),zsi(i),atan2(tilts(i),tiltc(i))
-+ei
 +ei
 +if .not.tilt
               write(7,*) xsi(i),zsi(i),zero
@@ -20323,12 +19539,7 @@ c$$$         endif
               write(7,*) '4'
               write(7,*) bez(ix)
 +if tilt
-+if crlibm
               write(7,*) xsi(i),zsi(i),atan2_mb(tilts(i),tiltc(i))
-+ei
-+if .not.crlibm
-              write(7,*) xsi(i),zsi(i),atan2(tilts(i),tiltc(i))
-+ei
 +ei
 +if .not.tilt
               write(7,*) xsi(i),zsi(i),zero
@@ -20481,12 +19692,7 @@ c$$$         endif
             endif
             goto 480
           endif
-+if crlibm
           pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-          pi=four*atan(one)
-+ei
 
           if(kzz.eq.23) then
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
@@ -21126,12 +20332,7 @@ c$$$         endif
       do i=1,100
         jj(i)=0
       enddo
-+if crlibm
       x2pi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      x2pi=atan(one)*eight
-+ei
       i4(1,1)=1
       i4(1,2)=1
       i4(2,1)=3
@@ -21715,12 +20916,7 @@ c$$$         endif
 +ca beam6dfi
           goto 440
         endif
-+if crlibm
           pi=4d0*atan_mb(1d0)
-+ei
-+if .not.crlibm
-          pi=4d0*atan(1d0)
-+ei
         if(kzz.eq.23) then
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
 !       call dapri(EJF1,234)
@@ -22965,42 +22161,14 @@ c$$$         endif
          write(lout,'(a)') " expected 0 or 1. This is a BUG!"
          call prror(-1)
       endif
-+if crlibm
       sphi=sin_mb(phi)
       sphi2=sin_mb(phi2)
-+ei
-+if .not.crlibm
-      sphi=sin(phi)
-      sphi2=sin(phi2)
-+ei
-+if crlibm
       cphi=cos_mb(phi)
       cphi2=cos_mb(phi2)
-+ei
-+if .not.crlibm
-      cphi=cos(phi)
-      cphi2=cos(phi2)
-+ei
-+if crlibm
       tphi=tan_mb(phi)
       tphi2=tan_mb(phi2)
-+ei
-+if .not.crlibm
-      tphi=tan(phi)
-      tphi2=tan(phi2)
-+ei
-+if crlibm
       salpha=sin_mb(alpha)
-+ei
-+if .not.crlibm
-      salpha=sin(alpha)
-+ei
-+if crlibm
       calpha=cos_mb(alpha)
-+ei
-+if .not.crlibm
-      calpha=cos(alpha)
-+ei
 !     define slices
       call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
       call boostf(sphi,cphi,tphi,salpha,calpha,track)
@@ -24010,12 +23178,7 @@ c$$$         endif
       call comnul
       commen=' '
       progrm='SIXTRACK'
-+if crlibm
       pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi=four*atan(one)
-+ei
       pi2=pi*half
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
@@ -24705,18 +23868,8 @@ c$$$         endif
           dchi=chid*rad
           do 320 i2=1,2
             i3=ia+i2-1
-+if crlibm
             sic=sin_mb(chi)
-+ei
-+if .not.crlibm
-            sic=sin(chi)
-+ei
-+if crlibm
             coc=cos_mb(chi)
-+ei
-+if .not.crlibm
-            coc=cos(chi)
-+ei
             x1(1)=x11*coc
             x1(2)=x11*sic
             x1(3)=x13*coc
@@ -27353,19 +26506,9 @@ c$$$         endif
             ejf0v(j)=ejfv(j)
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(kz(ix).eq.12) then
-+if crlibm
               ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
-+ei
-+if .not.crlibm
-              ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phasc(ix))
-+ei
             else
-+if crlibm
               ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
-+ei
-+if .not.crlibm
-              ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j))
-+ei
             endif
             ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -28015,21 +27158,10 @@ c$$$         endif
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr
             if(kz(ix).eq.12) then
-+if crlibm
               ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+     &!hr01
      &                                    phasc(ix))                     !hr01
-+ei
-+if .not.crlibm
-              ejv(j)=ejv(j)+ed(ix)*sin((hsyc(ix)*sigmv(j)+phas)+        &
-     &                                 phasc(ix))                        !hr01
-+ei
             else
-+if crlibm
               ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
-+ei
-+if .not.crlibm
-              ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j)+phas)
-+ei
             endif
 !           ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
             ejfv(j)=sqrt((ejv(j)-pma)*(ejv(j)+pma))
@@ -30900,19 +30032,9 @@ c$$$         endif
               ejf0v(j)=ejfv(j)
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
               if(kz(ix).eq.12) then
-+if crlibm
                 ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
-+ei
-+if .not.crlibm
-                ejv(j)=ejv(j)+ed(ix)*sin(hsyc(ix)*sigmv(j)+phasc(ix))
-+ei
               else
-+if crlibm
                 ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
-+ei
-+if .not.crlibm
-                ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j))
-+ei
               endif
               ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -31565,21 +30687,10 @@ c$$$         endif
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
               if(kz(ix).eq.12) then
-+if crlibm
                 ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+   &!hr01
      &                                      phasc(ix))
-+ei
-+if .not.crlibm
-                ejv(j)=ejv(j)+ed(ix)*sin((hsyc(ix)*sigmv(j)+phas)+      &!hr01
-     &                                   phasc(ix))
-+ei
               else
-+if crlibm
                 ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
-+ei
-+if .not.crlibm
-                ejv(j)=ejv(j)+hsy(1)*sin(hsy(3)*sigmv(j)+phas)
-+ei
               endif
               ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -32071,52 +31182,16 @@ c$$$         endif
           do 50 j=1,napx
             fok(j)=fokm/dpsq(j)
             rho(j)=(one/ed(l))*dpsq(j)
-+if crlibm
             fok1(j)=(tan_mb(fok(j)*half))/rho(j)
-+ei
-+if .not.crlibm
-            fok1(j)=(tan(fok(j)*half))/rho(j)
-+ei
-+if crlibm
             si(j)=sin_mb(fok(j))
-+ei
-+if .not.crlibm
-            si(j)=sin(fok(j))
-+ei
-+if crlibm
             co(j)=cos_mb(fok(j))
-+ei
-+if .not.crlibm
-            co(j)=cos(fok(j))
-+ei
             al(2,ih1,j,l)=rho(j)*si(j)
       al(5,ih1,j,l)=((-one*dpsv(j))*((rho(j)*(one-co(j)))/dpsq(j)))*c1e3 !hr01
-+if crlibm
       al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(fok(j)*half))/dpsq(j)))&!hr01
      &*c1e3                                                              !hr01
-+ei
-+if .not.crlibm
-      al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan(fok(j)*half))/dpsq(j)))   &!hr01
-     &*c1e3                                                              !hr01
-+ei
-+if crlibm
             sm1(j)=cos_mb(fok(j))
-+ei
-+if .not.crlibm
-            sm1(j)=cos(fok(j))
-+ei
-+if crlibm
             sm2(j)=sin_mb(fok(j))*rho(j)
-+ei
-+if .not.crlibm
-            sm2(j)=sin(fok(j))*rho(j)
-+ei
-+if crlibm
             sm3(j)=-sin_mb(fok(j))/rho(j)
-+ei
-+if .not.crlibm
-            sm3(j)=-sin(fok(j))/rho(j)
-+ei
             sm12(j)=el(l)-sm1(j)*sm2(j)
             sm23(j)=sm2(j)*sm3(j)
       as3(j)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-   &!hr01
@@ -32139,12 +31214,7 @@ c$$$         endif
      &as6(j)*fok1(j)**2+fok1(j)*as4(j)                                   !hr01
             as(6,ih1,j,l)=as6(j)
 !--VERTIKAL
-+if crlibm
             g(j)=tan_mb(fok(j)*half)/rho(j)
-+ei
-+if .not.crlibm
-            g(j)=tan(fok(j)*half)/rho(j)
-+ei
             gl(j)=el(l)*g(j)
             al(1,ih2,j,l)=one-gl(j)
             al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                        !hr01
@@ -32173,18 +31243,8 @@ c$$$         endif
           do 70 j=1,napx
             fok(j)=fokm/dpsq(j)
             rho(j)=(one/ed(l))*dpsq(j)
-+if crlibm
             si(j)=sin_mb(fok(j))
-+ei
-+if .not.crlibm
-            si(j)=sin(fok(j))
-+ei
-+if crlibm
             co(j)=cos_mb(fok(j))
-+ei
-+if .not.crlibm
-            co(j)=cos(fok(j))
-+ei
             rhoc(j)=(rho(j)*(one-co(j)))/dpsq(j)                         !hr01
             siq(j)=si(j)/dpsq(j)
             al(1,ih1,j,l)=co(j)
@@ -32226,18 +31286,8 @@ c$$$         endif
             hi(j)=sqrt(aek(j))
             fi(j)=el(l)*hi(j)
             if(fok(j).le.zero) then
-+if crlibm
               al(1,1,j,l)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-              al(1,1,j,l)=cos(fi(j))
-+ei
-+if crlibm
               hi1(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-              hi1(j)=sin(fi(j))
-+ei
               if(abs(hi(j)).le.pieni) then
                 al(2,1,j,l)=el(l)
               else
@@ -32256,12 +31306,7 @@ c$$$         endif
      &aek(j))/c4e3                                                       !hr01
        as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3  !hr01
 !--DEFOCUSSING
-+if crlibm
               hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-              hp(j)=exp(fi(j))
-+ei
               hm(j)=one/hp(j)
               hc(j)=(hp(j)+hm(j))*half
               hs(j)=(hp(j)-hm(j))*half
@@ -32278,18 +31323,8 @@ c$$$         endif
      &aek(j))/c4e3                                                       !hr01
       as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr01
             else
-+if crlibm
               al(1,2,j,l)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-              al(1,2,j,l)=cos(fi(j))
-+ei
-+if crlibm
               hi1(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-              hi1(j)=sin(fi(j))
-+ei
               if(abs(hi(j)).le.pieni) then
                 al(2,2,j,l)=el(l)
               else
@@ -32308,12 +31343,7 @@ c$$$         endif
      &aek(j))/c4e3                                                       !hr01
         as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3 !hr01
 !--DEFOCUSSING
-+if crlibm
               hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-              hp(j)=exp(fi(j))
-+ei
               hm(j)=one/hp(j)
               hc(j)=(hp(j)+hm(j))*half
               hs(j)=(hp(j)-hm(j))*half
@@ -32368,18 +31398,8 @@ c$$$         endif
 +ei
             endif
             if(fok(j).lt.(-one*pieni)) then                              !hr06
-+if crlibm
               si(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-              si(j)=sin(fi(j))
-+ei
-+if crlibm
               co(j)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-              co(j)=cos(fi(j))
-+ei
               wfa(j)=((wf(j)/afok(j))*(one-co(j)))/dpsq(j)               !hr01
               wfhi(j)=((wf(j)/hi(j))*si(j))/dpsq(j)                      !hr01
               al(1,ih1,j,l)=co(j)
@@ -32411,12 +31431,7 @@ c$$$         endif
               aek(j)=abs(ekv(j,l)/dpd(j))
               hi(j)=sqrt(aek(j))
               fi(j)=hi(j)*el(l)
-+if crlibm
               hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-              hp(j)=exp(fi(j))
-+ei
               hm(j)=one/hp(j)
               hc(j)=(hp(j)+hm(j))*half
               hs(j)=(hp(j)-hm(j))*half
@@ -32432,12 +31447,7 @@ c$$$         endif
             endif
 !--DEFOCUSSING
             if(fok(j).gt.pieni) then
-+if crlibm
               hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-              hp(j)=exp(fi(j))
-+ei
               hm(j)=one/hp(j)
               hc(j)=(hp(j)+hm(j))*half
               hs(j)=(hp(j)-hm(j))*half
@@ -32472,18 +31482,8 @@ c$$$         endif
               aek(j)=abs(ekv(j,l)/dpd(j))
               hi(j)=sqrt(aek(j))
               fi(j)=hi(j)*el(l)
-+if crlibm
               si(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-              si(j)=sin(fi(j))
-+ei
-+if crlibm
               co(j)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-              co(j)=cos(fi(j))
-+ei
               al(1,ih2,j,l)=co(j)
               al(2,ih2,j,l)=si(j)/hi(j)
               al(3,ih2,j,l)=(-one*si(j))*hi(j)                           !hr01
@@ -32502,12 +31502,7 @@ c$$$         endif
 !-----------------------------------------------------------------------
   140     do 150 j=1,napx
             rhoi(j)=ed(l)/dpsq(j)
-+if crlibm
             fok(j)=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                  !hr01
-+ei
-+if .not.crlibm
-            fok(j)=rhoi(j)*tan((el(l)*rhoi(j))*half)                     !hr01
-+ei
             al(3,1,j,l)=fok(j)
             al(3,2,j,l)=-fok(j)
   150     continue
@@ -32636,55 +31631,19 @@ c$$$         endif
         do 50 j=1,napx
           fok(j)=fokm/dpsq(j)
           rho(j)=(one/ed(l))*dpsq(j)
-+if crlibm
           fok1(j)=(tan_mb(fok(j)*half))/rho(j)
-+ei
-+if .not.crlibm
-          fok1(j)=(tan(fok(j)*half))/rho(j)
-+ei
-+if crlibm
           si(j)=sin_mb(fok(j))
-+ei
-+if .not.crlibm
-          si(j)=sin(fok(j))
-+ei
-+if crlibm
           co(j)=cos_mb(fok(j))
-+ei
-+if .not.crlibm
-          co(j)=cos(fok(j))
-+ei
           al(1,ih1,j,l)=one
           al(2,ih1,j,l)=rho(j)*si(j)
           al(3,ih1,j,l)=zero
           al(4,ih1,j,l)=one
       al(5,ih1,j,l)=((-one*dpsv(j))*((rho(j)*(one-co(j)))/dpsq(j)))*c1e3 !hr06
-+if crlibm
       al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(fok(j)*half))/dpsq(j)))&!hr06
      &*c1e3                                                              !hr06
-+ei
-+if .not.crlibm
-      al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan(fok(j)*half))/dpsq(j)))   &!hr06
-     &*c1e3                                                              !hr06
-+ei
-+if crlibm
           sm1(j)=cos_mb(fok(j))
-+ei
-+if .not.crlibm
-          sm1(j)=cos(fok(j))
-+ei
-+if crlibm
           sm2(j)=sin_mb(fok(j))*rho(j)
-+ei
-+if .not.crlibm
-          sm2(j)=sin(fok(j))*rho(j)
-+ei
-+if crlibm
           sm3(j)=(-one*sin_mb(fok(j)))/rho(j)                            !hr06
-+ei
-+if .not.crlibm
-          sm3(j)=(-one*sin(fok(j)))/rho(j)                               !hr06
-+ei
           sm12(j)=el(l)-sm1(j)*sm2(j)
           sm23(j)=sm2(j)*sm3(j)
          as3(j)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-&!hr06
@@ -32701,12 +31660,7 @@ c$$$         endif
      &-(rvv(j)*sm12(j))/(c4e3*rho(j)**2))+fok1(j)*as4(j)                 !hr06
           as(6,ih1,j,l)=as6(j)
 !--VERTIKAL
-+if crlibm
           g(j)=tan_mb(fok(j)*half)/rho(j)
-+ei
-+if .not.crlibm
-          g(j)=tan(fok(j)*half)/rho(j)
-+ei
           gl(j)=el(l)*g(j)
           al(1,ih2,j,l)=one-gl(j)
           al(2,ih2,j,l)=el(l)
@@ -32735,18 +31689,8 @@ c$$$         endif
         do 70 j=1,napx
           fok(j)=fokm/dpsq(j)
           rho(j)=(one/ed(l))*dpsq(j)
-+if crlibm
           si(j)=sin_mb(fok(j))
-+ei
-+if .not.crlibm
-          si(j)=sin(fok(j))
-+ei
-+if crlibm
           co(j)=cos_mb(fok(j))
-+ei
-+if .not.crlibm
-          co(j)=cos(fok(j))
-+ei
           rhoc(j)=(rho(j)*(one-co(j)))/dpsq(j)                           !hr06
           siq(j)=si(j)/dpsq(j)
           al(1,ih1,j,l)=co(j)
@@ -32785,18 +31729,8 @@ c$$$         endif
           hi(j)=sqrt(aek(j))
           fi(j)=el(l)*hi(j)
           if(fok(j).le.zero) then
-+if crlibm
             al(1,1,j,l)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-            al(1,1,j,l)=cos(fi(j))
-+ei
-+if crlibm
             hi1(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-            hi1(j)=sin(fi(j))
-+ei
             if(abs(hi(j)).le.pieni) then
               al(2,1,j,l)=el(l)
             else
@@ -32810,12 +31744,7 @@ c$$$         endif
      &aek(j))/c4e3                                                       !hr06
       as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
-+if crlibm
             hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
             hm(j)=one/hp(j)
             hc(j)=(hp(j)+hm(j))*half
             hs(j)=(hp(j)-hm(j))*half
@@ -32832,18 +31761,8 @@ c$$$         endif
      &/c4e3                                                              !hr06
       as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr06
           else
-+if crlibm
             al(1,2,j,l)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-            al(1,2,j,l)=cos(fi(j))
-+ei
-+if crlibm
             hi1(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-            hi1(j)=sin(fi(j))
-+ei
             if(abs(hi(j)).le.pieni) then
               al(2,2,j,l)=el(l)
             else
@@ -32857,12 +31776,7 @@ c$$$         endif
      &aek(j))/c4e3                                                       !hr06
       as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
-+if crlibm
             hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
             hm(j)=one/hp(j)
             hc(j)=(hp(j)+hm(j))*half
             hs(j)=(hp(j)-hm(j))*half
@@ -32919,18 +31833,8 @@ c$$$         endif
             as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                        !hr06
           endif
           if(fok(j).lt.(-one*pieni)) then                                !hr06
-+if crlibm
             si(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-            si(j)=sin(fi(j))
-+ei
-+if crlibm
             co(j)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-            co(j)=cos(fi(j))
-+ei
             wfa(j)=((wf(j)/afok(j))*(one-co(j)))/dpsq(j)                 !hr06
             wfhi(j)=((wf(j)/hi(j))*si(j))/dpsq(j)                        !hr06
             al(1,ih1,j,l)=co(j)
@@ -32955,12 +31859,7 @@ c$$$         endif
             aek(j)=abs(ekv(j,l)/dpd(j))
             hi(j)=sqrt(aek(j))
             fi(j)=hi(j)*el(l)
-+if crlibm
             hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
             hm(j)=one/hp(j)
             hc(j)=(hp(j)+hm(j))*half
             hs(j)=(hp(j)-hm(j))*half
@@ -32977,12 +31876,7 @@ c$$$         endif
           endif
 !--DEFOCUSSING
           if(fok(j).gt.pieni) then
-+if crlibm
             hp(j)=exp_mb(fi(j))
-+ei
-+if .not.crlibm
-            hp(j)=exp(fi(j))
-+ei
             hm(j)=one/hp(j)
             hc(j)=(hp(j)+hm(j))*half
             hs(j)=(hp(j)-hm(j))*half
@@ -33010,18 +31904,8 @@ c$$$         endif
             aek(j)=abs(ekv(j,l)/dpd(j))
             hi(j)=sqrt(aek(j))
             fi(j)=hi(j)*el(l)
-+if crlibm
             si(j)=sin_mb(fi(j))
-+ei
-+if .not.crlibm
-            si(j)=sin(fi(j))
-+ei
-+if crlibm
             co(j)=cos_mb(fi(j))
-+ei
-+if .not.crlibm
-            co(j)=cos(fi(j))
-+ei
             al(1,ih2,j,l)=co(j)
             al(2,ih2,j,l)=si(j)/hi(j)
             al(3,ih2,j,l)=(-one*si(j))*hi(j)                             !hr06
@@ -33039,12 +31923,7 @@ c$$$         endif
 !-----------------------------------------------------------------------
   140   do 150 j=1,napx
           rhoi(j)=ed(l)/dpsq(j)
-+if crlibm
           fok(j)=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                    !hr06
-+ei
-+if .not.crlibm
-          fok(j)=rhoi(j)*tan((el(l)*rhoi(j))*half)                       !hr06
-+ei
           al(1,1,j,l)=one
           al(2,1,j,l)=zero
           al(3,1,j,l)=fok(j)
@@ -33200,12 +32079,7 @@ c$$$         endif
    10 continue
       qwc(3)=zero
       call comnul
-+if crlibm
       pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi=four*atan(one)
-+ei
       pi2=pi*half
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr08
@@ -34528,12 +33402,7 @@ c$$$         endif
       time0=0.
       call timex(time0)
 !--Initialization
-+if crlibm
       x2pi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      x2pi=atan(one)*eight
-+ei
       coe=(-one*two)/x2pi                                                !hr08
       no=nordf
       if(nord1.gt.no) nord1=no
@@ -34680,12 +33549,7 @@ c$$$         endif
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
       save
 !-----------------------------------------------------------------------
-+if crlibm
       pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi=four*atan(one)
-+ei
       if(icode.ge.4.and.its6d.eq.0) then
         do 10 i=1,2
           do 10 j=1,4
@@ -34719,12 +33583,7 @@ c$$$         endif
         sx=x(2,ii-1)*x(1,ii)-x(1,ii-1)*x(2,ii)
         cx=x(1,ii-1)*x(2,ii-1)+x(1,ii)*x(2,ii)
         if(abs(sx).gt.c1m15.or.abs(cx).gt.c1m15) then
-+if crlibm
           phi(i)=atan2_mb(sx,cx)
-+ei
-+if .not.crlibm
-          phi(i)=atan2(sx,cx)
-+ei
         else
           phi(i)=zero
         endif
@@ -34776,18 +33635,8 @@ c$$$         endif
       chi=chi0*rad
       dchi=chid*rad
       do 50 i=1,itra
-+if crlibm
         si=sin_mb(chi)
-+ei
-+if .not.crlibm
-        si=sin(chi)
-+ei
-+if crlibm
         co=cos_mb(chi)
-+ei
-+if .not.crlibm
-        co=cos(chi)
-+ei
         x1(1)=x11*co
         x1(2)=x11*si
         x1(3)=x13*co
@@ -35011,18 +33860,8 @@ c$$$         endif
       do 140 i=1,4
         ta(i,3)=ta(i,3)/sqrn
   140 ta(i,4)=ta(i,4)/sqrn
-+if crlibm
       qw(1)= atan_mb(yclam1/(one+rclam1))/pi
-+ei
-+if .not.crlibm
-      qw(1)= atan(yclam1/(one+rclam1))/pi
-+ei
-+if crlibm
       qw(2)= atan_mb(yclam2/(one+rclam2))/pi
-+ei
-+if .not.crlibm
-      qw(2)= atan(yclam2/(one+rclam2))/pi
-+ei
 !-----------------------------------------------------------------------
 !  OPTICAL PARAMETERS AT THE STARTING POINT
 !-----------------------------------------------------------------------
@@ -36160,38 +34999,18 @@ c$$$         endif
    40   fok=el(i)*ed(i)/dpsq
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
-+if crlibm
         si=sin_mb(fok)
-+ei
-+if .not.crlibm
-        si=sin(fok)
-+ei
-+if crlibm
         co=cos_mb(fok)
-+ei
-+if .not.crlibm
-        co=cos(fok)
-+ei
         a(i,ih,1)=one
         a(i,ih,2)=rho*si
         a(i,ih,3)=zero
         a(i,ih,4)=one
         a(i,ih,5)=((-one*rho)*(one-co))/dpsq                             !hr06
-+if crlibm
         a(i,ih,6)=((-one*two)*tan_mb(fok*half))/dpsq                     !hr06
-+ei
-+if .not.crlibm
-        a(i,ih,6)=((-one*two)*tan(fok*half))/dpsq                        !hr06
-+ei
 !--VERTIKAL
         ih=ih+1
         if(ih.gt.2) ih=1
-+if crlibm
         g=tan_mb(fok*half)/rho
-+ei
-+if .not.crlibm
-        g=tan(fok*half)/rho
-+ei
         gl=el(i)*g
         a(i,ih,1)=one-gl
         a(i,ih,2)=el(i)
@@ -36206,18 +35025,8 @@ c$$$         endif
    60   fok=el(i)*ed(i)/dpsq
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
-+if crlibm
         si=sin_mb(fok)
-+ei
-+if .not.crlibm
-        si=sin(fok)
-+ei
-+if crlibm
         co=cos_mb(fok)
-+ei
-+if .not.crlibm
-        co=cos(fok)
-+ei
         a(i,ih,1)=co
         a(i,ih,2)=rho*si
         a(i,ih,3)=(-one*si)/rho                                          !hr06
@@ -36253,30 +35062,15 @@ c$$$         endif
         fi=el(i)*hi
         if(fok.gt.zero) goto 110
   100   ih=ih+1
-+if crlibm
         a(i,ih,1)=cos_mb(fi)
-+ei
-+if .not.crlibm
-        a(i,ih,1)=cos(fi)
-+ei
-+if crlibm
         hi1=sin_mb(fi)
-+ei
-+if .not.crlibm
-        hi1=sin(fi)
-+ei
         a(i,ih,2)=hi1/hi
         a(i,ih,3)=(-one*hi1)*hi                                          !hr06
         a(i,ih,4)=a(i,ih,1)
         if(ih.eq.2) goto 200
 !--DEFOCUSSING
   110   ih=ih+1
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -36300,18 +35094,8 @@ c$$$         endif
         fi=hi*el(i)
         if(fok.gt.zero) goto 160
   140   ih=ih+1
-+if crlibm
         si=sin_mb(fi)
-+ei
-+if .not.crlibm
-        si=sin(fi)
-+ei
-+if crlibm
         co=cos_mb(fi)
-+ei
-+if .not.crlibm
-        co=cos(fi)
-+ei
         a(i,ih,1)=co
         a(i,ih,2)=si/hi
         a(i,ih,3)=(-one*si)*hi                                           !hr06
@@ -36322,12 +35106,7 @@ c$$$         endif
         if(ih.gt.2) ih=1
         hi=sqrt(abs(ek(i)/dpd))
         fi=hi*el(i)
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -36340,12 +35119,7 @@ c$$$         endif
         goto 200
 !--DEFOCUSSING
   160   ih=ih+1
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -36359,18 +35133,8 @@ c$$$         endif
         if(ih.gt.2) ih=1
         hi=sqrt(abs(ek(i)/dpd))
         fi=hi*el(i)
-+if crlibm
         si=sin_mb(fi)
-+ei
-+if .not.crlibm
-        si=sin(fi)
-+ei
-+if crlibm
         co=cos_mb(fi)
-+ei
-+if .not.crlibm
-        co=cos(fi)
-+ei
         a(i,ih,1)=co
         a(i,ih,2)=si/hi
         a(i,ih,3)=(-one*si)*hi                                           !hr06
@@ -36386,12 +35150,7 @@ c$$$         endif
 !  EDGE FOCUSSING
 !-----------------------------------------------------------------------
   180   rhoi=ed(i)/dpsq
-+if crlibm
         fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr06
-+ei
-+if .not.crlibm
-        fok=rhoi*tan((el(i)*rhoi)*half)                                  !hr06
-+ei
         a(i,1,1)=one
         a(i,1,2)=zero
         a(i,1,3)=fok
@@ -36461,38 +35220,18 @@ c$$$         endif
    40   fok=el(i)*ed(i)/dpsq
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
-+if crlibm
         si=sin_mb(fok)
-+ei
-+if .not.crlibm
-        si=sin(fok)
-+ei
-+if crlibm
         co=cos_mb(fok)
-+ei
-+if .not.crlibm
-        co=cos(fok)
-+ei
         aeg(i,ih,1)=one
         aeg(i,ih,2)=rho*si
         aeg(i,ih,3)=zero
         aeg(i,ih,4)=one
         aeg(i,ih,5)=((-one*rho)*(one-co))/dpsq                           !hr06
-+if crlibm
         aeg(i,ih,6)=((-one*two)*tan_mb(fok*half))/dpsq                   !hr06
-+ei
-+if .not.crlibm
-        aeg(i,ih,6)=((-one*two)*tan(fok*half))/dpsq                      !hr06
-+ei
 !--VERTIKAL
         ih=ih+1
         if(ih.gt.2) ih=1
-+if crlibm
         g=tan_mb(fok*half)/rho
-+ei
-+if .not.crlibm
-        g=tan(fok*half)/rho
-+ei
         gl=el(i)*g
         aeg(i,ih,1)=one-gl
         aeg(i,ih,2)=el(i)
@@ -36507,18 +35246,8 @@ c$$$         endif
    60   fok=el(i)*ed(i)/dpsq
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
-+if crlibm
         si=sin_mb(fok)
-+ei
-+if .not.crlibm
-        si=sin(fok)
-+ei
-+if crlibm
         co=cos_mb(fok)
-+ei
-+if .not.crlibm
-        co=cos(fok)
-+ei
         aeg(i,ih,1)=co
         aeg(i,ih,2)=rho*si
         aeg(i,ih,3)=(-one*si)/rho                                        !hr06
@@ -36554,30 +35283,15 @@ c$$$         endif
         fi=el(i)*hi
         if(fok.gt.zero) goto 110
   100   ih=ih+1
-+if crlibm
         aeg(i,ih,1)=cos_mb(fi)
-+ei
-+if .not.crlibm
-        aeg(i,ih,1)=cos(fi)
-+ei
-+if crlibm
         hi1=sin_mb(fi)
-+ei
-+if .not.crlibm
-        hi1=sin(fi)
-+ei
         aeg(i,ih,2)=hi1/hi
         aeg(i,ih,3)=(-one*hi1)*hi                                        !hr06
         aeg(i,ih,4)=aeg(i,ih,1)
         if(ih.eq.2) goto 190
 !--DEFOCUSSING
   110   ih=ih+1
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -36601,18 +35315,8 @@ c$$$         endif
         fi=hi*el(i)
         if(fok.gt.zero) goto 160
   140   ih=ih+1
-+if crlibm
         si=sin_mb(fi)
-+ei
-+if .not.crlibm
-        si=sin(fi)
-+ei
-+if crlibm
         co=cos_mb(fi)
-+ei
-+if .not.crlibm
-        co=cos(fi)
-+ei
         aeg(i,ih,1)=co
         aeg(i,ih,2)=si/hi
         aeg(i,ih,3)=(-one*si)*hi                                         !hr06
@@ -36623,12 +35327,7 @@ c$$$         endif
         if(ih.gt.2) ih=1
         hi=sqrt(abs(ek(i)/dpd))
         fi=hi*el(i)
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -36641,12 +35340,7 @@ c$$$         endif
         goto 190
 !--DEFOCUSSING
   160   ih=ih+1
-+if crlibm
         hp=exp_mb(fi)
-+ei
-+if .not.crlibm
-        hp=exp(fi)
-+ei
         hm=one/hp
         hc=(hp+hm)*half
         hs=(hp-hm)*half
@@ -36660,18 +35354,8 @@ c$$$         endif
         if(ih.gt.2) ih=1
         hi=sqrt(abs(ek(i)/dpd))
         fi=hi*el(i)
-+if crlibm
         si=sin_mb(fi)
-+ei
-+if .not.crlibm
-        si=sin(fi)
-+ei
-+if crlibm
         co=cos_mb(fi)
-+ei
-+if .not.crlibm
-        co=cos(fi)
-+ei
         aeg(i,ih,1)=co
         aeg(i,ih,2)=si/hi
         aeg(i,ih,3)=(-one*si)*hi                                         !hr06
@@ -36687,12 +35371,7 @@ c$$$         endif
 !  EDGE FOCUSSING
 !-----------------------------------------------------------------------
   180   rhoi=ed(i)/dpsq
-+if crlibm
         fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr06
-+ei
-+if .not.crlibm
-        fok=rhoi*tan((el(i)*rhoi)*half)                                  !hr06
-+ei
         aeg(i,1,1)=one
         aeg(i,1,2)=zero
         aeg(i,1,3)=fok
@@ -37425,12 +36104,7 @@ c$$$            endif
           do 100 l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=pi2
             endif
@@ -37439,12 +36113,7 @@ c$$$            endif
           do 110 l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=pi2-phibf(l)
             endif
@@ -37470,12 +36139,7 @@ c$$$            endif
           do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=zero
             endif
@@ -37495,12 +36159,7 @@ c$$$            endif
           do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=-one*phibf(l)                                         !hr06
             endif
@@ -37542,12 +36201,7 @@ c$$$            endif
         do 170 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
             phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-            phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
           else
             phibf(l)=zero
           endif
@@ -37567,12 +36221,7 @@ c$$$            endif
         do 180 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
             dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-            dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
           else
             dphi=-one*phibf(l)                                           !hr06
           endif
@@ -37598,12 +36247,7 @@ c$$$            endif
         do 200 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
             phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-            phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
           else
             phibf(l)=zero
           endif
@@ -37623,12 +36267,7 @@ c$$$            endif
         do 210 l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
             dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-            dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
           else
             dphi=-phibf(l)
           endif
@@ -38280,54 +36919,15 @@ c$$$            endif
         gaxii=t(4,2)**2+t(5,2)**2                                        !hr06
         gazi=t(2,4)**2+t(3,4)**2                                         !hr06
         gazii=t(4,4)**2+t(5,4)**2                                        !hr06
-+if crlibm
         if(abs(t(2,1)).gt.pieni) phxi=atan2_mb(t(3,1),t(2,1))
-+ei
-+if .not.crlibm
-        if(abs(t(2,1)).gt.pieni) phxi=atan2(t(3,1),t(2,1))
-+ei
-+if crlibm
         if(abs(t(4,1)).gt.pieni) phxii=atan2_mb(t(5,1),t(4,1))
-+ei
-+if .not.crlibm
         if(abs(t(4,1)).gt.pieni) phxii=atan2(t(5,1),t(4,1))
-+ei
-+if crlibm
         if(abs(t(2,3)).gt.pieni) phzi=atan2_mb(t(3,3),t(2,3))
-+ei
-+if .not.crlibm
-        if(abs(t(2,3)).gt.pieni) phzi=atan2(t(3,3),t(2,3))
-+ei
-+if crlibm
         if(abs(t(4,3)).gt.pieni) phzii=atan2_mb(t(5,3),t(4,3))
-+ei
-+if .not.crlibm
-        if(abs(t(4,3)).gt.pieni) phzii=atan2(t(5,3),t(4,3))
-+ei
-+if crlibm
         if(abs(t(2,2)).gt.pieni) phxpi=atan2_mb(t(3,2),t(2,2))
-+ei
-+if .not.crlibm
-        if(abs(t(2,2)).gt.pieni) phxpi=atan2(t(3,2),t(2,2))
-+ei
-+if crlibm
         if(abs(t(4,2)).gt.pieni) phxpii=atan2_mb(t(5,2),t(4,2))
-+ei
-+if .not.crlibm
-        if(abs(t(4,2)).gt.pieni) phxpii=atan2(t(5,2),t(4,2))
-+ei
-+if crlibm
         if(abs(t(2,4)).gt.pieni) phzpi=atan2_mb(t(3,4),t(2,4))
-+ei
-+if .not.crlibm
-        if(abs(t(2,4)).gt.pieni) phzpi=atan2(t(3,4),t(2,4))
-+ei
-+if crlibm
         if(abs(t(4,4)).gt.pieni) phzpii=atan2_mb(t(5,4),t(4,4))
-+ei
-+if .not.crlibm
-        if(abs(t(4,4)).gt.pieni) phzpii=atan2(t(5,4),t(4,4))
-+ei
         if(abs(t(2,1)).le.pieni) phxi=pi*half
         if(abs(t(4,1)).le.pieni) then
           if(bexii.gt.pieni) phxii=pi*half
@@ -38349,21 +36949,10 @@ c$$$            endif
         endif
         if(abs(t(4,4)).le.pieni) phzpii=pi*half
         if(abs(eui*(bexi-bezi)+euii*(bexii-bezii)).gt.pieni) then
-+if crlibm
           couuang=half*atan_mb((two*((eui*sqrt(bexi*bezi))*             &!hr06
      &cos_mb(phxi-phzi)+                                                &!hr06
      &(euii*sqrt(bexii*bezii))*cos_mb(phxii-phzii)))/ (eui*(bexi-bezi)  &!hr06
      &+euii*(bexii-bezii)))                                              !hr06
-+ei
-+if .not.crlibm
-          couuang=half*atan((two*((eui*sqrt(bexi*bezi))*cos(phxi-phzi)+ &!hr06
-     &(euii*sqrt(bexii*bezii))*cos(phxii-phzii)))/ (eui*(bexi-bezi)     &!hr06
-     &+euii*(bexii-bezii)))                                              !hr06
-+ei
-!if crlibm
-!ei
-!if .not.crlibm
-!ei
         else
           couuang=zero
         endif
@@ -38593,14 +37182,8 @@ c$$$            endif
         do 70 i=1,nhmoni
           b(i)=real(bclorb(i,1))
           do 70 j=1,nhcorr
-+if crlibm
       ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac&!hr06
      &(j,1))-qwc1(1)*pi))*c1e3)/(2d0*sin_mb(qwc1(1)*pi)))                !hr06
-+ei
-+if .not.crlibm
-      ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos(abs(pam(i,1)- pac  &!hr06
-     &(j,1))-qwc1(1)*pi))*c1e3)/(2d0*sin(qwc1(1)*pi)))                   !hr06
-+ei
    70   continue
         call calrms(b,nhmoni,rmsx,ptpx)
 !-- MICADO WITH HOUSEHOLDER TRANSFORMATION
@@ -38610,14 +37193,8 @@ c$$$            endif
         do 80 i=1,nvmoni
           b(i)=real(bclorb(i,2))                                         !hr06
           do 80 j=1,nvcorr
-+if crlibm
       ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac&!hr06
      &(j,2))-qwc1(2)*pi))*c1e3)/(2d0*sin_mb(qwc1(2)*pi)))                !hr06
-+ei
-+if .not.crlibm
-      ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos(abs(pam(i,2)-pac   &!hr06
-     &(j,2))-qwc1(2)*pi))*c1e3)/(2*sin(qwc1(2)*pi)))                     !hr06
-+ei
    80   continue
         call calrms(b,nvmoni,rmsz,ptpz)
         write(lout,10030) ii-1,rmsx,rmsz
@@ -39529,18 +38106,8 @@ c$$$            endif
           zfz(izu)=extalign(i,1)
           izu=izu+1
           zfz(izu)=extalign(i,2)
-+if crlibm
           tiltc(i)=cos_mb(extalign(i,3)*c1m3)
-+ei
-+if .not.crlibm
-          tiltc(i)=cos(extalign(i,3)*c1m3)
-+ei
-+if crlibm
           tilts(i)=sin_mb(extalign(i,3)*c1m3)
-+ei
-+if .not.crlibm
-          tilts(i)=sin(extalign(i,3)*c1m3)
-+ei
         else
           izu=izu+3
         endif
@@ -39672,12 +38239,7 @@ c$$$            endif
           do 80 l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=pi2
             endif
@@ -39688,12 +38250,7 @@ c$$$            endif
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=pi2-phibf(l)
             endif
@@ -39705,12 +38262,7 @@ c$$$            endif
           do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=zero
             endif
@@ -39725,12 +38277,7 @@ c$$$            endif
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=-one*phibf(l)                                         !hr06
             endif
@@ -40996,18 +39543,10 @@ c$$$            endif
           elseif(kzz.eq.25) then
             crkve=y(j,1)-(x(j,1)*qu)*qv                                  !hr06
             cikve=y(j,2)-(x(j,2)*qu)*qv                                  !hr06
-+if crlibm
             y(j,1)=crkve*cos_mb(qv)+cikve*sin_mb(qv)                     !hr09
             y(j,2)=cikve*cos_mb(qv)-crkve*sin_mb(qv)                     !hr09
             crkve=x(j,1)*cos_mb(qv)+x(j,2)*sin_mb(qv)                    !hr09
             cikve=x(j,2)*cos_mb(qv)-x(j,1)*sin_mb(qv)                    !hr09
-+ei
-+if .not.crlibm
-            y(j,1)=crkve*cos(qv)+cikve*sin(qv) 
-            y(j,2)=cikve*cos(qv)-crkve*sin(qv)                           !hr06
-            crkve=x(j,1)*cos(qv)+x(j,2)*sin(qv) 
-            cikve=x(j,2)*cos(qv)-x(j,1)*sin(qv)                          !hr06
-+ei
             x(j,1)=crkve 
             x(j,2)=cikve 
           else
@@ -41161,12 +39700,7 @@ c$$$            endif
           do 150 l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=pi2
             endif
@@ -41177,12 +39711,7 @@ c$$$            endif
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=pi2-phibf(l)
             endif
@@ -41195,12 +39724,7 @@ c$$$            endif
           do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=zero
             endif
@@ -41215,12 +39739,7 @@ c$$$            endif
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=-one*phibf(l)
             endif
@@ -41595,18 +40114,8 @@ c$$$            endif
 !--RE=DISTANCE FROM THE RESONANCE
             re(np,nv)=re1-dble(ip(np,nv))                                !hr06
             res=re(np,nv)/radi
-+if crlibm
            chy(np,nv)=cos_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
-+ei
-+if .not.crlibm
-           chy(np,nv)=cos((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
-+ei
-+if crlibm
            shy(np,nv)=sin_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
-+ei
-+if .not.crlibm
-            shy(np,nv)=sin((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)   !hr06
-+ei
   690     continue
   700   continue
         do 760 np=nta,mpe
@@ -42367,12 +40876,7 @@ c$$$            endif
             do 190 l=1,2
               ll=2*l
               if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
                 phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-                phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
               else
                 phibf(l)=pi2
               endif
@@ -42385,12 +40889,7 @@ c$$$            endif
               clo0(l)=t(1,ll-1)
               clop0(l)=t(1,ll)
               if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
                 dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-                dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
               else
                 dphi=pi2-phibf(l)
               endif
@@ -42404,12 +40903,7 @@ c$$$            endif
             do l=1,2
               ll=2*l
               if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
                 phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-                phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
               else
                 phibf(l)=zero
               endif
@@ -42427,12 +40921,7 @@ c$$$            endif
               clo0(l)=t(1,ll-1)
               clop0(l)=t(1,ll)
               if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
                 dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-                dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
               else
                 dphi=-phibf(l)
               endif
@@ -42837,22 +41326,10 @@ c$$$            endif
 !--RE=DISTANCE FROM THE RESONANCE
               re(np,nv)=re1-dble(ip(np,nv))
               res=re(np,nv)/radi
-+if crlibm
           chy(np,nv)=cos_mb((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
      &res*etl)                                                           !hr06
-+ei
-+if .not.crlibm
-          chy(np,nv)=cos((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))-    &!hr06
-     &res*etl)                                                           !hr06
-+ei
-+if crlibm
           shy(np,nv)=sin_mb((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
      &res*etl)                                                           !hr06
-+ei
-+if .not.crlibm
-          shy(np,nv)=sin((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))-    &!hr06
-     &res*etl)                                                           !hr06
-+ei
   710       continue
   720     continue
           do 780 np=nta,mpe
@@ -43144,21 +41621,11 @@ c$$$            endif
         write(lout,*)
         return
       endif
-+if crlibm
       pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi=four*atan(one)
-+ei
       iv2=2*iv
       iv3=iv+1
 !      vtu1=(((-one*ekk)*(half**iv2))*dfac(iv2))/pi                       !hr06
-+if crlibm
       vtu1=(((-one*ekk)*exp_mb(dble(iv2)*log_mb(half)))*dfac(iv2))/pi    !hr13
-+ei
-+if .not.crlibm
-      vtu1=(((-one*ekk)*exp(dble(iv2)*log(half)))*dfac(iv2))/pi          !hr13
-+ei
       dtu1=zero
       dtu2=zero
       do 10 iv4=1,iv3
@@ -43168,37 +41635,19 @@ c$$$            endif
         if(mod(iv6,2).ne.0) vor=-one                                 !hr06
 !        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*(beta(1)**iv5)* (beta&
 !     &(2)**iv6)
-+if crlibm
         vtu2=(((vor/(dfac(iv5+1)**2))/(dfac(iv6+1)**2))*                &!hr13
      &exp_mb(dble(iv5)*log_mb(beta(1))))*                               &!hr13
      &exp_mb(dble(iv6)*log_mb(beta(2)))                                  !hr13
-+ei
-+if .not.crlibm
-        vtu2=(((vor/(dfac(iv5+1)**2))/(dfac(iv6+1)**2))*                &!hr13
-     &exp(dble(iv5)*log(beta(1))))*exp(dble(iv6)*log(beta(2)))           !hr13
-+ei
         if(iv5.ne.0) then
 !          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)     !hr06
-+if crlibm
          dtu1=dtu1+((vtu2*dble(iv5))*exp_mb(dble(iv5-1)*log_mb(ep(1))))*&!hr13
      &         exp_mb(dble(iv6)*log_mb(ep(2)))                           !hr13
-+ei
-+if .not.crlibm
-          dtu1=dtu1+((vtu2*dble(iv5))*exp(dble(iv5-1)*log(ep(1))))*     &!hr13
-     &         exp(dble(iv6)*log(ep(2)))                                 !hr13
-+ei
          dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+(vtu2*dble(iv5))*vtu1 !hr06
         endif
         if(iv6.ne.0) then
 !          dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))     !hr06
-+if crlibm
           dtu2=dtu2+((vtu2*dble(iv6))*exp_mb(dble(iv5)*log_mb(ep(1))))* &!hr13
      &                exp_mb(dble(iv6-1)*log_mb(ep(2)))                  !hr13
-+ei
-+if .not.crlibm
-          dtu2=dtu2+((vtu2*dble(iv6))*exp(dble(iv5)*log(ep(1))))*       &!hr13
-     &                exp(dble(iv6-1)*log(ep(2)))                        !hr13
-+ei
          dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+(vtu2*dble(iv6))*vtu1 !hr06
         endif
    10 continue
@@ -43347,12 +41796,7 @@ c$$$            endif
           do 150 l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=pi2
             endif
@@ -43363,12 +41807,7 @@ c$$$            endif
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=pi2-phibf(l)
             endif
@@ -43381,12 +41820,7 @@ c$$$            endif
           do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
-+if .not.crlibm
-              phibf(l)=atan(t(ll+1,ll-1)/t(ll,ll-1))
-+ei
             else
               phibf(l)=zero
             endif
@@ -43401,12 +41835,7 @@ c$$$            endif
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             if(abs(t(ll,ll-1)).gt.pieni) then
-+if crlibm
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
-+if .not.crlibm
-              dphi=atan(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-+ei
             else
               dphi=-phibf(l)
             endif
@@ -43778,18 +42207,8 @@ c$$$            endif
 !--RE=DISTANCE FROM THE RESONANCE
             re(np,nv)=re1-real(ip(np,nv),fPrec)                          !hr06
             res=re(np,nv)/radi
-+if crlibm
            chy(np,nv)=cos_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
-+ei
-+if .not.crlibm
-           chy(np,nv)=cos((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
-+ei
-+if crlibm
            shy(np,nv)=sin_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
-+ei
-+if .not.crlibm
-           shy(np,nv)=sin((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl)    !hr06
-+ei
   660     continue
   670   continue
         do 730 np=nta,mpe
@@ -44679,12 +43098,7 @@ c$$$            endif
       endif ! END if(nprint.eq.1)
       
 !--INITIALISATION
-+if crlibm
       tpi=eight*atan_mb(one)                                               !hr06
-+ei
-+if .not.crlibm
-      tpi=eight*atan(one)                                                  !hr06
-+ei
       prec=c1m1
       i1=0
       i11=1
@@ -45161,26 +43575,11 @@ c$$$            endif
       angii=zero
       angiii=zero
       if(abs(txyz(1)).gt.pieni.or.abs(txyz(2)).gt.pieni)                &
-+if crlibm
      &angi=atan2_mb(txyz(2),txyz(1))
-+ei
-+if .not.crlibm
-     &angi=atan2(txyz(2),txyz(1))
-+ei
       if(abs(txyz(3)).gt.pieni.or.abs(txyz(4)).gt.pieni)                &
-+if crlibm
      &angii=atan2_mb(txyz(4),txyz(3))
-+ei
-+if .not.crlibm
-     &angii=atan2(txyz(4),txyz(3))
-+ei
       if(abs(txyz(5)).gt.pieni.or.abs(txyz(6)).gt.pieni)                &
-+if crlibm
      &angiii=atan2_mb(txyz(6)*cma1,txyz(5)*cma2)
-+ei
-+if .not.crlibm
-     &angiii=atan2(txyz(6)*cma1,txyz(5)*cma2)
-+ei
       evt=evx+evz
       evxma=evx
       evzma=evz
@@ -45393,18 +43792,8 @@ c$$$            endif
       bold=bold+b
       b=b-b0
       dle1c=zero
-+if crlibm
       if(b.gt.zero) dle1c=log_mb(b)
-+ei
-+if .not.crlibm
-      if(b.gt.zero) dle1c=log(b)
-+ei
-+if crlibm
       if(b.lt.zero) dle1c=-one*log_mb(-one*b)                            !hr06
-+ei
-+if .not.crlibm
-      if(b.lt.zero) dle1c=-one*log(-one*b)                               !hr06
-+ei
       dle1=dle1+dle1c
 !--EMITTANCES WITH LINEAR COUPLING CONT.
       evt1=evx1+evz1
@@ -45436,17 +43825,7 @@ c$$$            endif
         i2=i2+1
         dle(i2)=dle1/real(iav,fPrec)                                     !hr06
         if(ia.gt.0) then
-+if crlibm
-!ERIC bug fixed...........
-!eric     tle1=real(log_mb(dble(ia)))
-!bugfix   tle1=log_mb(dble(ia))                                          !hr06
           tle1=log_mb(dble(ia))                                          !hr06
-+ei
-+if .not.crlibm
-!eric     tle1=log(real(ia))
-!bugfix   tle1=log(dble(ia))                                             !hr06
-          tle1=log(dble(ia))                                             !hr06
-+ei
           if(i2.gt.1) then
             biav(i2-1)=bold/dble(iav)                                    !hr06
 +if debug
@@ -46343,12 +44722,7 @@ c$$$            endif
      &'Apparently horizontal FFT data are corrupted'
                   xxaux=one
                 endif
-+if crlibm
-                fzs(k1)=real(log10_mb(xxaux))
-+ei
-+if .not.crlibm
-                fzs(k1)=real(log10(xxaux))
-+ei
+                fzs(k1)=real(log10_mb(xxaux)) !! REAL ???? CHECKME !!!
               else
                 fzs(k1)=real(xxaux)
               endif
@@ -46377,12 +44751,7 @@ c$$$            endif
      &'Apparently vertical FFT data are corrupted'
                   zzaux=one
                 endif
-+if crlibm
                 fzs(k1)=real(log10_mb(zzaux))
-+ei
-+if .not.crlibm
-                fzs(k1)=real(log10(zzaux))                               !hr06
-+ei
               else
                 fzs(k1)=real(zzaux)
               endif
@@ -47494,12 +45863,7 @@ c$$$            endif
 
                 !Some general calculations
                 eps123_0(m)=epsnxyzv(l,1,m) ! initial amplitude
-+if crlibm
                 phi123_0(m)=atan_mb(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
-+ei
-+if .not.crlibm
-                phi123_0(m)=atan(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))   ! inital phase
-+ei
                 eps123_min(m)=minval( epsnxyzv(l,1:nturns(l),m) )       ! minimum emittance
                 eps123_max(m)=maxval( epsnxyzv(l,1:nturns(l),m) )       ! maximum emittance
                 eps123_avg(m)=sum(epsnxyzv(l,1:nturns(l),m))/nturns(l)  ! average emittance
@@ -47694,29 +46058,14 @@ c$$$            endif
         k=k/2
         goto 20
    30 j=j+k
-+if crlibm
       pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi=four*atan(one)
-+ei
       do 50 l=1,m
         le=2**l
         le1=le/2
         ur=one
         ui=zero
-+if crlibm
         wr=cos_mb(pi/dble(le1))                                          !hr06
-+ei
-+if .not.crlibm
-        wr=cos(pi/dble(le1))                                             !hr06
-+ei
-+if crlibm
         wi=-one*sin_mb(pi/dble(le1))                                     !hr06
-+ei
-+if .not.crlibm
-        wi=-one*sin(pi/dble(le1))                                        !hr06
-+ei
         do 50 j=1,le1
           do 40 i=j,n,le
             ip=i+le1
@@ -47747,12 +46096,7 @@ c$$$            endif
       save
 !---------------------------------------------------------------------
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
-+if crlibm
         a=atan2_mb(b,c)
-+ei
-+if .not.crlibm
-        a=atan2(b,c)
-+ei
       else
         a=zero
       endif
@@ -47770,19 +46114,9 @@ c$$$            endif
 +ca commphin
       save
 !---------------------------------------------------------------------
-+if crlibm
       tpi=eight*atan_mb(one)                                               !hr06
-+ei
-+if .not.crlibm
-      tpi=eight*atan(one)                                                  !hr06
-+ei
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
-+if crlibm
         f=atan2_mb(b,c)
-+ei
-+if .not.crlibm
-        f=atan2(b,c)
-+ei
         ie=ie+1
         phase(k,ie)=f/tpi+d
         if(i.ne.1.and.-f.gt.pieni) phase(k,ie)=phase(k,ie)+one
@@ -47867,12 +46201,7 @@ c$$$            endif
       dimension di0(2),dip0(2)
       save
 !-----------------------------------------------------------------------
-+if crlibm
       pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi=four*atan(one)
-+ei
       sigcor=one
       dpscor=one
       read(90,end=60,iostat=ierro) sixtit,commen,cdate,ctime, progrm,   &
@@ -48260,42 +46589,14 @@ c$$$            endif
          call prror(-1)
       endif
 
-+if crlibm
       sphi=sin_mb(phi)
       sphi2=sin_mb(phi2)
-+ei
-+if .not.crlibm
-      sphi=sin(phi)
-      sphi2=sin(phi2)
-+ei
-+if crlibm
       cphi=cos_mb(phi)
       cphi2=cos_mb(phi2)
-+ei
-+if .not.crlibm
-      cphi=cos(phi)
-      cphi2=cos(phi2)
-+ei
-+if crlibm
       tphi=tan_mb(phi)
       tphi2=tan_mb(phi2)
-+ei
-+if .not.crlibm
-      tphi=tan(phi)
-      tphi2=tan(phi2)
-+ei
-+if crlibm
       salpha=sin_mb(alpha)
-+ei
-+if .not.crlibm
-      salpha=sin(alpha)
-+ei
-+if crlibm
       calpha=cos_mb(alpha)
-+ei
-+if .not.crlibm
-      calpha=cos(alpha)
-+ei
 !     define slices
       call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
       call boost(np,sphi,cphi,tphi,salpha,calpha,track)
@@ -48553,12 +46854,7 @@ c$$$            endif
         xxyy=sigxx+sigyy
         const=zero
         if(abs(xxyy).gt.pieni) const=x/xxyy
-+if crlibm
         expfac=exp_mb(-one*const)                                        !hr06
-+ei
-+if .not.crlibm
-        expfac=exp(-one*const)                                           !hr06
-+ei
         bbfx=zero
         bbfy=zero
         bbgx=zero
@@ -48582,12 +46878,7 @@ c$$$            endif
         if(ibtyp.eq.0) call errf(arg1x,arg1y,wy1,wx1)
         if(ibtyp.eq.1) call wzsub(arg1x,arg1y,wy1,wx1)
         if(x.lt.c1e2) then
-+if crlibm
           expfac=exp_mb(-half*x)                                        !hr06
-+ei
-+if .not.crlibm
-          expfac=exp(-half*x)                                           !hr06
-+ei
           arg2x=arg1x/sigxy
           arg2y=arg1y*sigxy
           if(ibtyp.eq.0) call errf(arg2x,arg2y,wy2,wx2)
@@ -48636,12 +46927,7 @@ c$$$            endif
       data border /eight/
       save
 !-----------------------------------------------------------------------
-+if crlibm
       pi=four*atan_mb(one)
-+ei
-+if .not.crlibm
-      pi=four*atan(one)
-+ei
       sigz=sigzs/cphi2
 ! DEFINE `STARRED' COORDINATES
 !  BORD is longitudinal border star(3,mbea) is the barycenter of region
@@ -48651,14 +46937,8 @@ c$$$            endif
         yy=(one/real(nsli,fPrec))*real(i-1,fPrec)                        !hr06
         if(i.ne.1) bord1=gauinv(yy)                                      !hr06
         if(i.eq.1) bord1=-one*border                                     !hr06
-+if crlibm
         star(3,i)=(((exp_mb((-one*bord**2)*half)-                       &!hr06
      &exp_mb((-one*bord1**2)*half))/sqrt(two*pi))*real(nsli,fPrec))*sigz !hr06
-+ei
-+if .not.crlibm
-       star(3,i)=(((exp((-one*bord**2)*half)-exp((-one*bord1**2)*half))/&!hr06
-     &sqrt(two*pi))*dble(nsli))*sigz                                     !hr06
-+ei
         bord=bord1
         !JBG When doing slicing phi=0 for crab crossing
         ! star(1,i)=0.
@@ -48733,12 +47013,7 @@ c$$$            endif
       gauinv=(((e4*q+e3)*q+e2)*q+e1)*q+e0
       goto 200
  170  if(q.le.zero) goto 900
-+if crlibm
       t=sqrt(-two*log_mb(q))
-+ei
-+if .not.crlibm
-      t=sqrt(-two*log(q))
-+ei
       gauinv=(t+f0)+f1/(f2+t)                                            !hr06
  200  if(p.lt.zero) gauinv=-one*gauinv                                    !hr06
       return
@@ -49774,7 +48049,7 @@ c$$$            endif
 +ei
 +if .not.fio
 +if .not.crlibm
-        read(54,*,end=10,err=20) myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j)
+        read(54,*,end=10,err=20) myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j) !!! WTF?!? THIS IS GOING OVER THE END OF THE CHARACTER LIMIT !!!
 +ei
 +if crlibm
         read (54,'(A)',end=10) ch 
