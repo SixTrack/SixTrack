@@ -1756,18 +1756,8 @@
         rads(itu)=zero
       enddo
       jtune=isi
-+if crlibm
       x2pii=(one/atan_mb(one))/eight                                    !hr11
-+ei
-+if .not.crlibm
-      x2pii=(one/atan(one))/eight                                       !hr11
-+ei
-+if crlibm
       x2pi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      x2pi=atan(one)*eight
-+ei
       call dacopd(x,xy)
 ! goto fix point in the parameters + pt to order nord>=1
       call gofix(xy,a1,a1i,nord)
@@ -2105,25 +2095,10 @@
         as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
-+if crlibm
       exh=exp_mb(ad/two)
-+ei
-+if .not.crlibm
-      exh=exp(ad/two)
-+ei
       ex=exh**2
-+if crlibm
       ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
-+ei
-+if .not.crlibm
-      ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                   !hr11
-+ei
-+if crlibm
       xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans       !hr11
-+ei
-+if .not.crlibm
-      xgam=(two*(ex*sin(as/two)**2-exh*sinh(ad/two)))/ans            !hr11
-+ei
 
       return
       end
@@ -2167,25 +2142,10 @@
         as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
-+if crlibm
       exh=exp_mb(ad/two)
-+ei
-+if .not.crlibm
-      exh=exp(ad/two)
-+ei
       ex=exh**2
-+if crlibm
       ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
-+ei
-+if .not.crlibm
-      ans=(four*ex)*(sinh(ad/two)**2+sin(as/two)**2)                  !hr11
-+ei
-+if crlibm
       xgbm=(sin_mb(as)*ex)/ans                                           !hr11
-+ei
-+if .not.crlibm
-      xgbm=(sin(as)*ex)/ans                                              !hr11
-+ei
 
       return
       end
@@ -2291,12 +2251,7 @@
       call etall(bb1(1),1)
       call etall(bb2(1),1)
 
-+if crlibm
       x2pi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      x2pi=atan(one)*eight
-+ei
       call ctorflo(h,b1,b2)
       coe=one/x2pi
 
@@ -2342,12 +2297,7 @@
       call etallnom(bb1(1),1,'BB1       ')
       call etallnom(bb2(1),1,'BB2       ')
 
-+if crlibm
       x2pi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      x2pi=atan(one)*eight
-+ei
       call ctor(h,b1(1),b2(1))
       coe=-two/x2pi
       do i=1,nd-ndc
@@ -2451,29 +2401,14 @@
       integer ro(*)
       call daclrd(ro)
       do i=1,nd-ndc
-+if crlibm
         xx=exp_mb(ra(i))
-+ei
-+if .not.crlibm
-        xx=exp(ra(i))
-+ei
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
           si(i)=(-one*sh)*xx                                             !hr11
         else
-+if crlibm
           co(i)=cos_mb(ang(i))*xx
-+ei
-+if .not.crlibm
-          co(i)=cos(ang(i))*xx
-+ei
-+if crlibm
           si(i)=sin_mb(ang(i))*xx
-+ei
-+if .not.crlibm
-          si(i)=sin(ang(i))*xx
-+ei
         endif
       enddo
       do i=1,nd-ndc
@@ -2530,29 +2465,14 @@
 
       call daclrd(roi)
       do i=1,nd-ndc
-+if crlibm
         xx=exp_mb(-one*ra(i))                                            !hr11
-+ei
-+if .not.crlibm
-        xx=exp(-one*ra(i))                                               !hr11
-+ei
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
           si(i)=(-one*sh)*xx
         else
-+if crlibm
           co(i)=cos_mb(ang(i))*xx
-+ei
-+if .not.crlibm
-          co(i)=cos(ang(i))*xx
-+ei
-+if crlibm
           si(i)=sin_mb(ang(i))*xx
-+ei
-+if .not.crlibm
-          si(i)=sin(ang(i))*xx
-+ei
         endif
       enddo
       do i=1,nd-ndc
@@ -2594,12 +2514,7 @@
 +ca parnum
       real(kind=fPrec) a,ch,sh,x,xi
 !   USED IN ROTIFLO AND ROTFLO
-+if crlibm
       x=exp_mb(a)
-+ei
-+if .not.crlibm
-      x=exp(a)
-+ei
       xi=one/x
       ch=(x+xi)/two
       sh=(x-xi)/two
@@ -2871,12 +2786,7 @@
       dimension sa(ndim2,ndim2),sai(ndim2,ndim2),cm(ndim2,ndim2)
       integer c(*),a2(*),a2i(*)
 !*DAEXT(NO,NV) C(NDIM2),A2(NDIM2),A2I(NDIM2)
-+if crlibm
       x2pi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      x2pi=atan(one)*eight
-+ei
 
       do i=1,ntt
         jx(i)=0
@@ -2912,18 +2822,8 @@
       do i=1,nd-ndc
         if(st(i)+c1m3.gt.one) then                                   !hr11
           a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
-+if crlibm
           q(i)=acos_mb(cr(2*i-1,2*i-1)/a(i))
-+ei
-+if .not.crlibm
-          q(i)=acos(cr(2*i-1,2*i-1)/a(i))
-+ei
-+if crlibm
           a(i)=log_mb(a(i))
-+ei
-+if .not.crlibm
-          a(i)=log(a(i))
-+ei
           if(cr(2*i-1,2*i).lt.zero) q(i)=x2pi-q(i)
         else
           a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)                 !hr11
@@ -2931,19 +2831,9 @@
           shm=cr(2*i-1,2*i)/a(i)
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
-+if crlibm
           q(i)=-one*log_mb(ch+shm)                                       !hr11
-+ei
-+if .not.crlibm
-          q(i)=-one*log(ch+shm)                                          !hr11
-+ei
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
-+if crlibm
           a(i)=log_mb(a(i))
-+ei
-+if .not.crlibm
-          a(i)=log(a(i))
-+ei
         endif
       enddo
 
@@ -2993,12 +2883,7 @@
       dimension rr(ndim2),ri(ndim2),sa(ndim2,ndim2),xx(ndim)            &
      &,sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
-+if crlibm
       x2pi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      x2pi=atan(one)*eight
-+ei
       n1=0
 !     frank/etienne
       do i=1,ndim2
@@ -3055,24 +2940,9 @@
         do i=1,nd-ndc
           rd1=sqrt(rr(2*i-1)**2+ri(2*i-1)**2)
           rd=sqrt(rr(2*i)**2+ri(2*i)**2)
-+if crlibm
           write(lout,*) 2*i-1,rr(2*i-1),asin_mb(ri(2*i-1)/rd1)/x2pi
-+ei
-+if .not.crlibm
-          write(lout,*) 2*i-1,rr(2*i-1),asin(ri(2*i-1)/rd1)/x2pi
-+ei
-+if crlibm
           write(lout,*) 2*i,rr(2*i),asin_mb(ri(2*i)/rd)/x2pi
-+ei
-+if .not.crlibm
-          write(lout,*) 2*i,rr(2*i),asin(ri(2*i)/rd)/x2pi
-+ei
-+if crlibm
           write(lout,*) ' alphas ', log_mb(sqrt(rd*rd1))
-+ei
-+if .not.crlibm
-          write(lout,*) ' alphas ', log(sqrt(rd*rd1))
-+ei
         enddo
         write(lout,*)
      &' select ',nd-ndc,                                                &
@@ -3136,36 +3006,11 @@
 ! phase advances)
       if(iunst.ne.1) then
         do i=1,nd-ndc
-+if crlibm
           p(i)=atan_mb(-sai(2*i-1,2*i)/sai(2*i,2*i))
-+ei
-+if .not.crlibm
-          p(i)=atan(-sai(2*i-1,2*i)/sai(2*i,2*i))
-+ei
-+if crlibm
           s1(2*i-1,2*i-1)=cos_mb(p(i))
-+ei
-+if .not.crlibm
-          s1(2*i-1,2*i-1)=cos(p(i))
-+ei
-+if crlibm
           s1(2*i,2*i)=cos_mb(p(i))
-+ei
-+if .not.crlibm
-          s1(2*i,2*i)=cos(p(i))
-+ei
-+if crlibm
           s1(2*i-1,2*i)=sin_mb(p(i))
-+ei
-+if .not.crlibm
-          s1(2*i-1,2*i)=sin(p(i))
-+ei
-+if crlibm
           s1(2*i,2*i-1)=-sin_mb(p(i))
-+ei
-+if .not.crlibm
-          s1(2*i,2*i-1)=-sin(p(i))
-+ei
         enddo
         call mulnd2(s1,sai)
 ! adjust sa to have sa(1,1)>0 and sa(3,3)>0 rotate by pi if necessary.
@@ -4612,12 +4457,7 @@
 !  this a-script should around the fixed point to all orders
 !     one order is lost because I use PB-field
 
-+if crlibm
       tpi=atan_mb(one)*eight
-+ei
-+if .not.crlibm
-      tpi=atan(one)*eight
-+ei
       do i=1,nd2
         call dacfu(map1(i),killnonl,m1(i))
       enddo
