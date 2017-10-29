@@ -20918,7 +20918,7 @@ c$$$         endif
 +ca beam6dfi
           goto 440
         endif
-          pi=4d0*atan_mb(1d0)
+          pi=four*atan_mb(one)
         if(kzz.eq.23) then
 *FOX  CRABAMP=ED(IX)/(EJF1) ;
 !       call dapri(EJF1,234)
@@ -44118,9 +44118,9 @@ c$$$            endif
         i2=i2+1
         dle(i2)=dle1/real(iav,fPrec)                                     !hr06
         if(ia.gt.0) then
-          tle1=log_mb(dble(ia))                                          !hr06
+          tle1=log_mb(real(ia,fPrec))                                          !hr06
           if(i2.gt.1) then
-            biav(i2-1)=bold/dble(iav)                                    !hr06
+            biav(i2-1)=bold/real(iav,fPrec)                                    !hr06
 +if debug
 !           call warr('biav',biav(i2-1),i2,0,0,0)
 +ei

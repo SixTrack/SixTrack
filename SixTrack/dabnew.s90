@@ -247,10 +247,10 @@
 +ca alloc
 
 !
-      character aa*10
+      character(len=10) aa
       dimension n(lnv+1),k(0:lnv),j(lnv),jj(lnv)
 +if boinc
-      character*256 filename
+      character(len=256) filename
 +ei
 !
       if(eps.le.zero) eps=1.e-38_fPrec
@@ -293,24 +293,23 @@
         iscrri(i)=0
         rs(i)=zero
       enddo
-!
+
       if(nv.gt.lnv.or.no.gt.lno) then
          write(lout,*)'ERROR IN SUBROUTINE DAINI, NO, NV = ',no,nv
          call dadeb(31,'ERR DAINI ',1)
       endif
-!
+
       ibase = no+1
       js    = nv/2
       if(real(ibase,fPrec)**((nv+1)/2).gt.real(lia,fPrec)) then          !hr10
-         write(lout,*)'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',
-     &' LIA = ',lia
+         write(lout,*) 'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',' LIA = ',lia
          call dadeb(31,'ERR DAINI ',1)
       endif
-!
+
       icmax = 0
       nn    = 0
       k(0)  = 0
-!
+
       do 100 io2=0,no
 !     ***************
 !
@@ -607,8 +606,8 @@
 !
       integer ic(*)
       logical incnda
-      character c*10,ccc*10
-!
+      character(len=10) c,ccc
+
       no=nomax
       nv=nvmax
       ind = 1
@@ -618,11 +617,10 @@
 !         IF(IDANO(IC(I)).EQ.NO.AND.IDANV(IC(I)).EQ.NV) THEN
         else
           if(nv.ne.0.and.(no.gt.nomax.or.nv.gt.nvmax)) then
-             write(lout,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ',
-     &no,nv,' NOMAX, NVMAX = ',nomax,nvmax
+             write(lout,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ', no,nv,' NOMAX, NVMAX = ',nomax,nvmax
             call dadeb(31,'ERR DAALL ',1)
           endif
-!
+
 20        if (allvec(ind)) then
            ind = ind + 1
            goto 20
@@ -633,8 +631,7 @@
              incnda = .true.
              nda = nda + 1
              if(nda.gt.lda) then
-         write(lout,*)                                                  &
-     &'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
+         write(lout,*) 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
              call dadeb(31,'ERR DAALL ',1)
              endif
           endif
@@ -718,8 +715,8 @@
 !
       integer ic(*)
       logical incnda
-      character c*10,ccc*10
-!
+      character(len=10) c,ccc
+
       ind = 1
 
       do 10 i=1,l
@@ -728,11 +725,10 @@
 !         IF(IDANO(IC(I)).EQ.NO.AND.IDANV(IC(I)).EQ.NV) THEN
         else
           if(nv.ne.0.and.(no.gt.nomax.or.nv.gt.nvmax)) then
-             write(lout,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ',
-     &no,nv,' NOMAX, NVMAX = ',nomax,nvmax
+             write(lout,*)'ERROR IN DAALL, VECTOR ',c,' HAS NO, NV = ', no,nv,' NOMAX, NVMAX = ',nomax,nvmax
             call dadeb(31,'ERR DAALL ',1)
           endif
-!
+
 20        if (allvec(ind)) then
            ind = ind + 1
            goto 20
@@ -744,8 +740,7 @@
              nda = nda + 1
              ndat=nda
              if(nda.gt.lda) then
-        write(lout,*)                                                   &
-     &'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
+        write(lout,*) 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
              call dadeb(31,'ERR DAALL ',1)
              endif
           endif
@@ -2780,7 +2775,7 @@
 !-----------------------------------------------------------------------------1
 +ca dabinc
 !
-      character cf*4
+      character(len=4) cf
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -2836,7 +2831,8 @@
 +ca dabinc
 +ca parnum
 !
-      character cf*4,cfh*4,abcs*26,abcc*26
+      character(len=4) cf,cfh
+      character(len=26) abcs,abcc
       dimension xf(0:lno),jj(lnv)
 !
       data jj /lnv*0/
@@ -3754,8 +3750,7 @@
 !     ***********************
 !
       if(nterm.ne.ntermf.or.nterm.ne.idall(ichk(1))) then
-         write(lout,*)'ERROR IN MTREE, NTERM, NTERMF, IDALL(ICHK) =  '
-     &,nterm,ntermf,idall(ichk(1))
+         write(lout,*)'ERROR IN MTREE, NTERM, NTERMF, IDALL(ICHK) =  ',nterm,ntermf,idall(ichk(1))
          call dadeb(31,'ERR MTREE4',1)
       endif
 !
@@ -3778,7 +3773,7 @@
       integer i,ic,iv,jc,jl,jv,lda,lea,lia,lno,lnv,lst,mc,mf
 +ca dabinc
       dimension mc(*)
-      character*20 line
+      character(len=20) line
       if(mf.le.0) return
       write(mf,*) 0,0,jc+1,0,line
       do 10 i=1,ic
@@ -3997,12 +3992,12 @@
 !     **********************************************************
 !
       call matinv(aa,ai,ia,lnv,ier)
-!
+
       if(ier.eq.132) then
          write(lout,*)'ERROR IN ROUTINE DAINV'
          call dadeb(31,'ERR DAINV3',1)
       endif
-!
+
       ier = 0
       do 140 i=1,ib
       do 140 j=1,ib
@@ -4012,9 +4007,7 @@
  120  prod = prod + aa(i,k)*ai(k,j)
       if(i.eq.j) prod = prod - one
       if(abs(prod).gt.100*epsmac) then
-         write(lout,*)                                                  &
-     &'ERROR IN DAINV, INVERSION DID NOT WORK,I,J,PROD = ',
-     &i,j,prod,epsmac,eps
+         write(lout,*) 'ERROR IN DAINV, INVERSION DID NOT WORK,I,J,PROD = ',i,j,prod,epsmac,eps
          ier = 1
 !ETIENNE
       return
@@ -4024,20 +4017,20 @@
       call dapok(mb(i),jj,ai(i,j))
       call dapok(ml(i),jj,ai(i,j))
  140  continue
-!
+
       if(ier.eq.1) call dadeb(31,'ERR DAINV4',1)
 !
 !     ITERATIVELY COMPUTING DIFFERENT PARTS OF THE INVERSE
 !     ****************************************************
 !
 !     MB (OF ORDER I) = A1^-1 o [ E - ANL (NONLINEAR) o MB (OF ORDER I) ]
-!
+
       nocut0 = nocut
-!
+
       do 250 i=2,nocut
-!
+
       nocut = i
-!
+
       call dacct(ma,ia,mb,ib,ms,ia)
       do 240 j=1,ib
       do 230 k=1,ib
@@ -4046,11 +4039,11 @@
       call dapek(ms(j),jj,amsjj)
       call dapok(ms(j),jj,amsjj+one)
  240  continue
-!
+
       call dacct(ml,ia,ms,ia,mb,ib)
-!
+
  250  continue
-!
+
       nocut = nocut0
 !
 !     FLIPPING BACK SIGN OF A, FILLING UP FIRST ORDER PART AGAIN
@@ -4093,7 +4086,7 @@
       do 12 i=1,n
          do 11 j=1,n
             aw(i,j) = a(i,j)
-11       ai(i,j) = 0.0
+11       ai(i,j) = zero
 12    ai(i,i) = one
 
       call ludcmp(aw,n,nmax,indx,d,ier)
@@ -4995,7 +4988,7 @@
 +ca crcoall
       integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,lda,   &
      &lea,lia,lno,lnv,lst
-      character c10*10,k10*10
+      character(len=10) c10,k10
 !     ***************************
 !       Etienne
 !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
@@ -5270,7 +5263,7 @@
 +ca daname
 !-----------------------------------------------------------------------------3
 !
-      character c10*10
+      character(len=10) c10
       dimension j(lnv)
 !
       if(ina.lt.1.or.ina.gt.nda) then
@@ -5433,7 +5426,7 @@
 +ca daname
 !-----------------------------------------------------------------------------3
 !
-      character c10*10,k10*10
+      character(len=10) c10,k10
       dimension j(lnv)
 !
       if(ina.lt.1.or.ina.gt.nda) then
@@ -5517,7 +5510,7 @@
 +ca daname
 !-----------------------------------------------------------------------------3
 !
-      character c*10
+      character(len=10) c
 !
 !etienne
 
@@ -5600,9 +5593,9 @@
 +ca dabinc
 !
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
+
       ic = ipoc - 1
-!
+
          do 100 i=1,nmmax
          ccc = cc(i)
          if(abs(ccc).lt.eps) goto 100
@@ -5611,13 +5604,13 @@
          i1(ic) = ie1(i)
          i2(ic) = ie2(i)
  100     continue
-!
+
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DAPAC '
          call dadeb(31,'ERR DAPAC ',1)
       endif
-!
+
       return
       end
 !
@@ -5633,16 +5626,16 @@
 !
 !     THIS SUBROUTINE CHECKS IF THE VECTORS A, B AND C
 !     HAVE COMPATIBLE ATTRIBUTES
-!
+
       parameter(lsw=1)
-!
+
       if(lsw.eq.1) return
-!
+
       ierr = 0
-!
+
 !     CASE OF A UNARY OPERATION
 !     *************************
-!
+
       if(inob.eq.-1.and.invb.eq.-1) then
          invsum = inva + invc
          if(invsum.eq.0) then
@@ -5653,14 +5646,13 @@
             if(inoa.gt.inoc.or.inva.gt.invc) ierr = 1
          endif
          if(ierr.eq.1) then
-            write(lout,*)'ERROR IN DACHK, ',ina,' AND ',inc,
-     &' ARE INCOMPATIBLE',inoa,inva,inoc,invc
+            write(lout,*)'ERROR IN DACHK, ',ina,' AND ',inc,' ARE INCOMPATIBLE',inoa,inva,inoc,invc
             call dadeb(31,'ERR DACHK1',1)
          endif
-!
+
 !     CASE OF A BINARY OPERATION
 !     **************************
-!
+
       else
          invsum = inva + invb + invc
          if(invsum.eq.0) then
@@ -5672,15 +5664,14 @@
      &inva.gt.invc.or.invb.gt.invc) ierr = 1
          endif
          if(ierr.eq.1) then
-            write(lout,*)'ERROR IN DACHK, ',ina,',',inb,' AND ',inc,
-     &' ARE INCOMPATIBLE'
+            write(lout,*)'ERROR IN DACHK, ',ina,',',inb,' AND ',inc,' ARE INCOMPATIBLE'
             call dadeb(31,'ERR DACHK2',1)
          endif
       endif
-!
+
       return
       end
-!
+
 +dk damch
       subroutine damch(iaa,ia)
       use floatPrecision
@@ -5692,16 +5683,15 @@
 !
 !     THIS SUBROUTINE CHECKS IF THE IA VECTORS IN THE MATRIX IA HAVE
 !     IDENTICAL ATTRIBUTES.
-!
+
       dimension iaa(*)
-!
+
       call dainf(iaa(1),ino1,inv1,ipoa,ilma,illa)
-!
+
       do 10 i=2,ia
       call dainf(iaa(i),inoi,invi,ipoa,ilma,illa)
       if(ino1.ne.inoi.or.inv1.ne.invi) then
-         write(lout,*)'ERROR IN DAMCH, VECTORS ',iaa(1),' AND ',iaa(i),
-     &' ARE INCOMPATIBLE '
+         write(lout,*)'ERROR IN DAMCH, VECTORS ',iaa(1),' AND ',iaa(i),' ARE INCOMPATIBLE '
 +if cr
       call abend('                                                  ')
 +ei
@@ -6080,10 +6070,9 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
-!
+
       if(inva.eq.0.or.nomax.eq.1) then
          do 10 i=ipoa,ipoa+ilma-1
          if(cm.gt.zero) then
@@ -6097,15 +6086,14 @@
          idall(ina) = idalm(ina)
          return
       endif
-!
+
       if(inoa.ne.nomax.or.inva.ne.nvmax) then
-         write(lout,*)'ERROR IN DARAN, ONLY VECTORS WITH NO = NOMAX AND'
-     &//' NV = NVMAX ALLOWED'
+         write(lout,*)'ERROR IN DARAN, ONLY VECTORS WITH NO = NOMAX AND'//' NV = NVMAX ALLOWED'
          call dadeb(31,'ERR DARAN1',1)
       endif
-!
+
       call daclr(1)
-!
+
       do 100 i=1,nmmax
       if(cm.gt.zero) then
          cc(i) = bran(xran)
@@ -6118,9 +6106,9 @@
          call dadeb(31,'ERR DARAN2',1)
       endif
  100  continue
-!
+
       call dapac(ina)
-!
+
       return
       end
 !
@@ -6455,8 +6443,7 @@
         io1=io1+j(i)
   15  continue
       if(io1.ne.io) then
-        if(iwarnv.eq.0) write(lout,*)'WARNING IN DAREA6, FILE ',
-     &'CONTAINS MORE VARIABLES THAN VECTOR'
+        if(iwarnv.eq.0) write(lout,*)'WARNING IN DAREA6, FILE ', 'CONTAINS MORE VARIABLES THAN VECTOR'
         iwarnv = 1
         goto 10
       endif
@@ -6776,10 +6763,10 @@
 +ca dabinc
 +ca daname
 !-----------------------------------------------------------------------------3
-!
-      character c10*10
+
+      character(len=10) c10
       dimension j(lnv),jx(lnv),jt(lnv)
-!
+
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
 +if cr
@@ -6789,13 +6776,13 @@
          stop 
 +ei
       endif
-!
+
       inoa = idano(ina)
       inva = idanv(ina)
       ipoa = idapo(ina)
       ilma = idalm(ina)
       illa = idall(ina)
-!
+
       do 5 i=1,lnv
       jt(i)=0
    5  j(i) = 0
@@ -6967,7 +6954,7 @@
 +ca dabinc
       integer n
       character*(*) dumpname
-      character*10 mydump
+      character(len=10) mydump
       mydump=dumpname
       write(99) mydump,n,i
       write(99) cc
