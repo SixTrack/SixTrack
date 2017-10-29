@@ -4093,7 +4093,7 @@
       do 12 i=1,n
          do 11 j=1,n
             aw(i,j) = a(i,j)
-11       ai(i,j) = 0.0
+11       ai(i,j) = zero
 12    ai(i,i) = one
 
       call ludcmp(aw,n,nmax,indx,d,ier)

@@ -3661,7 +3661,7 @@
   130    continue
 !     ********** form (i-(u*ut)/h)*a*(i-(u*ut)/h) **********
          do 160 i = 1, igh
-            f = 0.0
+            f = zero
 !     ********** for j=igh step -1 until m do -- **********
             do 140 jj = m, igh
                j = mp - jj
@@ -3998,20 +3998,20 @@
       en = na
       goto 60
 !     ********** two roots found **********
-  280 p = (y - x) / 2.0
+  280 p = (y - x) / two
       q = p * p + w
       zz = sqrt(abs(q))
       h(en,en) = x + t
       x = h(en,en)
       h(na,na) = y + t
-      if (q .lt. 0.0) goto 320
+      if (q .lt. zero) goto 320
 !     ********** real pair **********
       zz = p + sign(zz,p)
       wr(na) = x + zz
       wr(en) = wr(na)
-      if (zz .ne. 0.0) wr(en) = x - w / zz
-      wi(na) = 0.0
-      wi(en) = 0.0
+      if (zz .ne. zero) wr(en) = x - w / zz
+      wi(na) = zero
+      wi(en) = zero
       x = h(en,na)
       s = abs(x) + abs(zz)
       p = x / s
@@ -4072,14 +4072,14 @@
             do 610 j = m, na
   610       r = r + h(i,j) * h(j,en)
 !
-  620       if (wi(i) .ge. 0.0) goto 630
+  620       if (wi(i) .ge. zero) goto 630
             zz = w
             s = r
             goto 700
   630       m = i
-            if (wi(i) .ne. 0.0) goto 640
+            if (wi(i) .ne. zero) goto 640
             t = w
-            if (w .eq. 0.0) t = machep * norm
+            if (w .eq. zero) t = machep * norm
             h(i,en) = -r / t
             goto 700
 !     ********** solve real equations **********
@@ -4109,15 +4109,15 @@
   720    call etdiv(z3r,z3i,zero,-h(na,en),h(na,na)-p,q)
          h(na,na) = z3r
          h(na,en) = z3i
-  730    h(en,na) = 0.0
-         h(en,en) = 1.0
+  730    h(en,na) = zero
+         h(en,en) = one
          enm2 = na - 1
          if (enm2 .eq. 0) goto 800
 !     ********** for i=en-2 step -1 until 1 do -- **********
          do 790 ii = 1, enm2
             i = na - ii
             w = h(i,i) - p
-            ra = 0.0
+            ra = zero
             sa = h(i,en)
 !
             do 760 j = m, na
@@ -4125,13 +4125,13 @@
                sa = sa + h(i,j) * h(j,en)
   760       continue
 !
-            if (wi(i) .ge. 0.0) goto 770
+            if (wi(i) .ge. zero) goto 770
             zz = w
             r = ra
             s = sa
             goto 790
   770       m = i
-            if (wi(i) .ne. 0.0) goto 780
+            if (wi(i) .ne. zero) goto 780
 !           z3 = cmplx(-ra,-sa) / cmplx(w,q)
 !           h(i,na) = real(z3)
 !           h(i,en) = aimag(z3)
@@ -4143,8 +4143,8 @@
   780       x = h(i,i+1)
             y = h(i+1,i)
             vr = (wr(i) - p) * (wr(i) - p) + wi(i) * wi(i) - q * q
-            vi = (wr(i) - p) * 2.0 * q
-            if (vr .eq. 0.0 .and. vi .eq. 0.0) vr = machep * norm       &
+            vi = (wr(i) - p) * two * q
+            if (vr .eq. zero .and. vi .eq. zero) vr = machep * norm       &
      &* (abs(w) + abs(q) + abs(x) + abs(y) + abs(zz))
 !           z3 = cmplx(x*r-zz*ra+q*sa,x*s-zz*sa-q*ra) / cmplx(vr,vi)
 !           h(i,na) = real(z3)
@@ -4182,7 +4182,7 @@
          m = min0(j,igh)
 !
          do 880 i = low, igh
-            zz = 0.0
+            zz = zero
 !
             do 860 k = low, m
   860       zz = zz + z(i,k) * h(k,j)
