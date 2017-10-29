@@ -83,11 +83,10 @@
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      REAL(KIND=fPrec) X,XP, DUEPI, STEP, SUM, FTMAX, TUNEFOU, DELTAT,
-     &     TUNE1, TUNE
+      REAL(KIND=fPrec) X,XP, DUEPI, STEP, SUM, FTMAX, TUNEFOU, DELTAT, TUNE1, TUNE
       INTEGER MAXN, MFT, NPOINT, MAXN2, MF, NPMIN, NPMAX, NFTMAX, NFT
       COMPLEX(kind=fPrec) Z
-      COMPLEX(kind=fPrec) ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
+      COMPLEX(kind=fPrec), DIMENSION(MAXITER) :: ZSING ! Temp Z for CFFT, used to be SINGle precission
       
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
@@ -156,16 +155,14 @@
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAX,MAX1,MAX2,N
-      REAL(KIND=fPrec) X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,&
-     &TUNEAPA,U,ATUNE,TUNEF,TUNE
+      REAL(KIND=fPrec) X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
 +ca parnum
 +ca crcoall
 !C............................................................
       IF (MAX.LE.0) THEN
-         WRITE(lout,'(a)')
-     &        '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
+         WRITE(lout,'(a)') '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
 !C............................................................
@@ -225,8 +222,7 @@
 +ca crcoall
 !C............................................................
       IF (N.LE.0) THEN
-        WRITE(lout,'(a)')
-     &       '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
+        WRITE(lout,'(a)') '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
 !C.............................................................
@@ -310,11 +306,9 @@
       CF2=ABS(ZSING(NFTMAX))
       CF3=ABS(ZSING(NFTMAX+1))
       IF (CF3.GT.CF1) THEN      
-        ASSK=REAL(NFTMAX,fPrec)+(NPOINT/PI)*
-     .       ATAN2_MB(CF3*SIN_MB(PI/NPOINT),CF2+CF3*COS_MB(PI/NPOINT))
+        ASSK=REAL(NFTMAX,fPrec)+(NPOINT/PI)*ATAN2_MB(CF3*SIN_MB(PI/NPOINT),CF2+CF3*COS_MB(PI/NPOINT))
       ELSEIF (CF3.LE.CF1) THEN                   
-        ASSK=REAL(NFTMAX-1,fPrec)+(NPOINT/PI)*
-     .       ATAN2_MB(CF2*SIN_MB(PI/NPOINT),CF1+CF2*COS_MB(PI/NPOINT))
+        ASSK=REAL(NFTMAX-1,fPrec)+(NPOINT/PI)*ATAN2_MB(CF2*SIN_MB(PI/NPOINT),CF1+CF2*COS_MB(PI/NPOINT))
       ENDIF
       TUNEABT=one-(ASSK-one)/REAL(NPOINT,fPrec) !1D+0 = 1D0, i.e. real(kind=fPrec) 1.0?
 !C............................................................  
@@ -336,8 +330,7 @@
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MFT,MF,NPMIN,NPMAX,NFTMAX,NN,NFT
-      REAL(KIND=fPrec) X,XP,PI,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,
-     &CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
+      REAL(KIND=fPrec) X,XP,PI,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
       COMPLEX(kind=fPrec) Z
       COMPLEX(kind=fPrec) ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
@@ -564,10 +557,9 @@
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,MFT,NPOINT,MAXN2,MF,NPMAX,NPMIN,NFTMAX,NFT
-      REAL(KIND=fPrec) X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,
-     &TUNE
+      REAL(KIND=fPrec) X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,TUNE
       COMPLEX(kind=fPrec) Z
-      COMPLEX(kind=fPrec) ZSING(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
+      COMPLEX(kind=fPrec), DIMENSION(MAXITER) :: ZSING  ! Temp Z for CFFT, used to be SINGle precission
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
@@ -631,9 +623,8 @@
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER ND,MAXN,NUM,NTEST,NCONT,NFT,NC
-      REAL(KIND=fPrec) DUEPI,ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2,
-     &TUNE1,TUNE2,DTUNE1,DTUNE2,RATIO,TUNE3,DTUNE3,TUNETEST,TUNEVAL,
-     &TUNEVMAX,TUNE
+      REAL(KIND=fPrec) DUEPI,ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2, &
+     &TUNE1,TUNE2,DTUNE1,DTUNE2,RATIO,TUNE3,DTUNE3,TUNETEST,TUNEVAL,TUNEVMAX,TUNE
       COMPLEX(kind=fPrec) ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
 
@@ -748,8 +739,7 @@
 !C............................................................
       IMPLICIT NONE
       INTEGER N,I
-      REAL(KIND=fPrec) X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,
-     &ADVSIG,ADVMIN,ADVMAX
+      REAL(KIND=fPrec) X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,ADVSIG,ADVMIN,ADVMAX
       DIMENSION X(*),P(*)
 +ca parnum
 +ca crcoall
@@ -757,8 +747,7 @@
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
 !C............................................................
       IF (N.LE.0) THEN
-        WRITE(lout,'(a)')
-     &       '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
+        WRITE(lout,'(a)') '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
 !C............................................................
@@ -782,8 +771,7 @@
 !C............................................................
       ENDDO
 !C...............................................COMPUTES SIGMA
-      ADVSIG=SQRT((((ADVS/(N-1))/4)/PI)/PI-
-     .            (((ADV/(N-1))/2)/PI)*(((ADV/(N-1))/2)/PI))
+      ADVSIG=SQRT((((ADVS/(N-1))/4)/PI)/PI-(((ADV/(N-1))/2)/PI)*(((ADV/(N-1))/2)/PI))
 !C......................................NORMALIZATION TO [0,1]
       ADV1=-ADV1
       IF(ADV1.LT.0) ADV1=1+ADV1
@@ -828,14 +816,12 @@
 +ca crcoall
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-        write(lout,'(a)')
-     &       '***ERROR(TUNEFFT): TOO MANY ITERATES'
+        write(lout,'(a)') '***ERROR(TUNEFFT): TOO MANY ITERATES'
         call prror(-1)
       ENDIF
 !C............................................................
       IF (N.LE.0) THEN
-        write(lout,'(a)')
-     &       '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
+        write(lout,'(a)') '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
 !C............................................COMPUTATION OF M
@@ -897,8 +883,7 @@
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER N,M,NPOINT,NPMAX,NPMIN,ITUNE,I
-      REAL(KIND=fPrec) SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,
-     &X213,A,B
+      REAL(KIND=fPrec) SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,X213,A,B
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec) Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
@@ -906,14 +891,12 @@
 +ca crcoall
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-        write(lout,'(a)')
-     &       '***ERROR(TUNEFFTI): TOO MANY ITERATES'
+        write(lout,'(a)') '***ERROR(TUNEFFTI): TOO MANY ITERATES'
         call prror(-1)
       ENDIF
 !C............................................................
       IF (N.LE.0) THEN
-        write(lout,'(a)')
-     &       '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
+        write(lout,'(a)') '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
 !C............................................COMPUTATION OF M
@@ -995,10 +978,8 @@
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      INTEGER MAX,NPOINT,MF,NFTMAX,NPMIN,NPMAX,NFT,JITER,JMAX,MAX1,JIT,
-     &I,K,JOM,J,N,MBODE,MFT
-      REAL(KIND=fPrec) DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,
-     &OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
+      INTEGER MAX,NPOINT,MF,NFTMAX,NPMIN,NPMAX,NFT,JITER,JMAX,MAX1,JIT,I,K,JOM,J,N,MBODE,MFT
+      REAL(KIND=fPrec) DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
       REAL(KIND=fPrec) X(*),PX(*)
       COMPLEX(kind=fPrec) ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC,SD,SP
@@ -1008,14 +989,12 @@
       DUEPI=EIGHT*ATAN_MB(ONE)
 !C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
-        write(lout,'(a)')
-     &       '***ERROR(TUNELASK): TOO MANY ITERATIONS'
+        write(lout,'(a)') '***ERROR(TUNELASK): TOO MANY ITERATIONS'
         call prror(-1)
       ENDIF
 !C............................................................
       IF (MAX.LE.0) THEN
-        write(lout,'(a)')
-     &       '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
+        write(lout,'(a)') '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
         call prror(-1)
       ENDIF
 !C.................................ESTIMATION OF TUNE WITH FFT
@@ -1066,16 +1045,13 @@
           OME=OMEMIN+((OMEMAX-OMEMIN)/(JMAX-ONE))*(J-ONE)
           DO N=1,MAX
 +if crlibm
-            ZC=(X(N)-(ZERO,ONE)*PX(N))
-     .        *(ONE+COS_MB(STEP*(2*N-MAX1)))
+            ZC=(X(N)-(ZERO,ONE)*PX(N))*(ONE+COS_MB(STEP*(2*N-MAX1)))
             TMPR=REAL((-(ZERO,ONE)*OME)*N)
             TMPI=AIMAG((-(ZERO,ONE)*OME)*N)
-            Z(N)=ZC*(EXP_MB(TMPR)*CMPLX(COS_MB(TMPI),SIN_MB(TMPI)       &
-     &,fPrec)) !exp_mb is only defined for real numbers -> decompose in real and imaginary part
+            Z(N)=ZC*(EXP_MB(TMPR)*CMPLX(COS_MB(TMPI),SIN_MB(TMPI),fPrec)) !exp_mb is only defined for real numbers -> decompose in real and imaginary part
 +ei
 +if .not.crlibm
-            ZC=(X(N)-(ZERO,ONE)*PX(N))
-     .        *(ONE+COS(STEP*(2*N-MAX1)))
+            ZC=(X(N)-(ZERO,ONE)*PX(N))*(ONE+COS(STEP*(2*N-MAX1)))
             Z(N)=ZC*EXP(-(ZERO,ONE)*OME*N)
 +ei
           ENDDO
@@ -1084,8 +1060,7 @@
           MBODE=(MAX-5)/4
           DO I=0,MBODE
             K=4*I
-            FOME=FOME+((SEVEN*(Z(1+K)+Z(5+K))+32.0_fPrec*(Z(2+K)        &
-     &+Z(4+K)))+12.0_fPrec*Z(3+K))
+            FOME=FOME+((SEVEN*(Z(1+K)+Z(5+K))+32.0_fPrec*(Z(2+K)+Z(4+K)))+12.0_fPrec*Z(3+K))
           ENDDO
           FOME=((HALF*FOME)/45.0_fPrec)/REAL(MBODE+1,fPrec)
 !C..........SEARCH FOR MAXIMUM OF SCALAR PRODUCT AND DEFINITION
