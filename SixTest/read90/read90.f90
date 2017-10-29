@@ -42,7 +42,7 @@
      &istw,itf,ivox,ivoz,iwg,kwtype,ndafi,nprint,nstart,nstop
       double precision cma1,cma2,dfft,dphix,dphiz,dres,qx0,qz0
       real hmal
-      character*80 toptit,sixtit,commen
+      character(len=80) toptit,sixtit,commen
       integer icode,idam,its6d
       double precision dpscor,sigcor
       integer ichromc,ilinc,iqmodc
@@ -69,11 +69,11 @@
      &ta64,ta65,tasum,tidnt,tle1,tlo,tph6,tphx,tphz,tpi,txyz,txyz2,x,   &
      &xing,xinv,xp,xp0,xxaux,xxmax,xxmin,xxi,xxr,xyzv,xyzv2,zing,zinv,  &
      &zp,zp0,zzaux,zzmax,zzmin,zzi,zzr
-      character*80 title(20),chxtit(20),chytit(20)
-      character*8 cdate,ctime,progrm
-      character*11 hvs
-      character*8192 ch
-      character*25 ch1
+      character(len=80) title(20),chxtit(20),chytit(20)
+      character(len=8) cdate,ctime,progrm
+      character(len=11) hvs
+      character(len=8192) ch
+      character(len=25) ch1
       dimension tle(nlya),dle(nlya)
       dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
       dimension xinv(ninv),invx(ninv),zinv(ninv),invz(ninv)
@@ -475,9 +475,9 @@
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e
-      character*1 str(999)
-      character*24 lstr
-      character*3 e3
+      character(len=1) str(999)
+      character(len=24) lstr
+      character(len=3) e3
       mode=2
       ndigits=17
       ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1))

@@ -5,7 +5,7 @@
       integer line,word,i
       logical diff,diffs
       logical hasInputFile
-      character*80 buffer
+      character(len=80) buffer
 ! Now compare the closed orbit in 53-60 as well
       do i=1,60
         prob(i) = 0
