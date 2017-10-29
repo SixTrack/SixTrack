@@ -1760,12 +1760,7 @@
 !
       idacex(1) = 0
       call daall(idacex(1),1,'$$DACEX $$',inob,invb)
-+if crlibm
       ckon = log_mb(ckon)
-+ei
-+if .not.crlibm
-      ckon = log(ckon)
-+ei
       call dacmu(ina,ckon,idacex(1))
       call dafun('EXP   ',idacex(1),inb)
       call dadal(idacex(1),1)
@@ -2933,12 +2928,7 @@
 !
       elseif(cf.eq.'EXP ') then
 !        EXP(A0+P) = EXP(A0)*(1+P+P**2/2!+...)
-+if crlibm
          ea  = exp_mb(a0)
-+ei
-+if .not.crlibm
-         ea  = exp(a0)
-+ei
          xf(0) = ea
          do 604 i=1,no
   604    xf(i) = xf(i-1)/real(i,fPrec)
@@ -2951,12 +2941,7 @@
             lfun = 0
             return
          endif
-+if crlibm
          ea  = log_mb(a0)
-+ei
-+if .not.crlibm
-         ea  = log(a0)
-+ei
          xf(0) = ea
          xf(1) = one/a0
          do 605 i=2,no
@@ -2964,18 +2949,8 @@
 !
       elseif(cf.eq.'SIN ') then
 !        SIN(A0+P) = SIN(A0)*(1-P**2/2!+P**4/4!) + COS(A0)*(P-P**3/3!+P**5/5!)
-+if crlibm
          sa  = sin_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sin(a0)
-+ei
-+if crlibm
          ca  = cos_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cos(a0)
-+ei
          xf(0) = sa
          xf(1) = ca
          do 606 i=2,no
@@ -2983,18 +2958,8 @@
 !
       elseif(cf.eq.'COS ') then
 !        COS(A0+P) = COS(A0)*(1-P**2/2!+P**4/4!) - SIN(A0)*(P-P**3/3!+P**5/5!)
-+if crlibm
          sa  = sin_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sin(a0)
-+ei
-+if crlibm
          ca  = cos_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cos(a0)
-+ei
          xf(0) = ca
          xf(1) = -one*sa                                                 !hr10
          do 607 i=2,no
@@ -3038,29 +3003,14 @@
   610    xf(i) = (-one*xf(i-2))/real(i*(i+1),fPrec)                      !hr10
 !
       elseif(cf.eq.'TAN ') then
-+if crlibm
          if(abs(cos_mb(a0)).lt.epsmac) then
-+ei
-+if .not.crlibm
-         if(abs(cos(a0)).lt.epsmac) then
-+ei
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
          endif
-+if crlibm
          sa  = sin_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sin(a0)
-+ei
-+if crlibm
          ca  = cos_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cos(a0)
-+ei
          xf(0) = sa/ca
          xf(1) = (one/ca)/ca                                            !hr10
          xf(2) = ((((two*sa)/ca)/ca)/ca)/two
@@ -3081,29 +3031,14 @@
 +ei
          endif
       elseif(cf.eq.'COT ') then
-+if crlibm
          if(abs(sin_mb(a0)).lt.epsmac) then
-+ei
-+if .not.crlibm
-         if(abs(sin(a0)).lt.epsmac) then
-+ei
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
          endif
-+if crlibm
          sa  = sin_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sin(a0)
-+ei
-+if crlibm
          ca  = cos_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cos(a0)
-+ei
          xf(0) = ca/sa
          xf(1) = (-one/sa)/sa
          xf(2) = ((((two*ca)/sa)/sa)/sa)/two                           !hr10
@@ -3131,12 +3066,7 @@
             lfun = 0
             return
          endif
-+if crlibm
          xf(0) = asin_mb(a0)
-+ei
-+if .not.crlibm
-         xf(0) = asin(a0)
-+ei
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
 !        xf(1) = (1.d0-a0**2)**(-0.5d0)                                  !hr10
@@ -3169,12 +3099,7 @@
             lfun = 0
             return
          endif
-+if crlibm
          xf(0) =  acos_mb(a0)
-+ei
-+if .not.crlibm
-         xf(0) =  acos(a0)
-+ei
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
          scr =  (one-a0**2)**(-half)                                   !hr10
@@ -3190,12 +3115,7 @@
          endif
       elseif(cf.eq.'ATAN') then
 !        ATAN(A0+P) = ATAN(A0)+1/(1+A0**2)*P-A0/(1+A0**2)**2*P**2+....)
-+if crlibm
          xf(0) = atan_mb(a0)
-+ei
-+if .not.crlibm
-         xf(0) = atan(a0)
-+ei
          xf(1) = one/(one+a0*a0)
          xf(2) = -a0*(xf(1)*xf(1))
          xf(3) = (a0*a0-one/three)*xf(1)**3
@@ -3206,12 +3126,7 @@
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ACOT') then
-+if crlibm
          xf(0) = two*atan_mb(one)-atan_mb(a0)
-+ei
-+if .not.crlibm
-         xf(0) = two*atan(one)-atan(a0)
-+ei
          scr = one/(one+a0*a0)
          xf(1) = -scr
          xf(2) = a0*(scr*scr)
@@ -3223,18 +3138,8 @@
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'SINH') then
-+if crlibm
          sa  = sinh_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sinh(a0)
-+ei
-+if crlibm
          ca  = cosh_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cosh(a0)
-+ei
          xf(0) = sa
          xf(1) = ca
          xf(2) = sa/two
@@ -3246,18 +3151,8 @@
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'COSH') then
-+if crlibm
          sa  = sinh_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sinh(a0)
-+ei
-+if crlibm
          ca  = cosh_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cosh(a0)
-+ei
          xf(0) = ca
          xf(1) = sa
          xf(2) = ca/two
@@ -3269,18 +3164,8 @@
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'TANH') then
-+if crlibm
          sa  = sinh_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sinh(a0)
-+ei
-+if crlibm
          ca  = cosh_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cosh(a0)
-+ei
          xf(0) = sa/ca
          xf(1) = one/ca/ca
          xf(2) = -two*sa/ca/ca/ca/two
@@ -3293,29 +3178,14 @@
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'COTH') then
-+if crlibm
          if(abs(sinh_mb(a0)).lt.epsmac) then
-+ei
-+if .not.crlibm
-         if(abs(sinh(a0)).lt.epsmac) then
-+ei
             lfun = 0
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
-+if crlibm
          sa  = sinh_mb(a0)
-+ei
-+if .not.crlibm
-         sa  = sinh(a0)
-+ei
-+if crlibm
          ca  = cosh_mb(a0)
-+ei
-+if .not.crlibm
-         ca  = cosh(a0)
-+ei
          xf(0) = ca/sa
          xf(1) = -one/sa/sa
          xf(2) =  two*ca/sa/sa/sa/two
@@ -3329,12 +3199,7 @@
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ASNH') then
-+if crlibm
          xf(0) = log_mb(a0+sqrt(a0*a0+one))
-+ei
-+if .not.crlibm
-         xf(0) = log(a0+sqrt(a0*a0+one))
-+ei
          xf(1) = (one+a0*a0)**(-half)
          xf(2) = -a0*xf(1)**three/two
          xf(3) = (two*a0*a0-one)*xf(1)**five/six
@@ -3352,12 +3217,7 @@
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
-+if crlibm
          xf(0) = log_mb(a0+sqrt(a0*a0-one))
-+ei
-+if .not.crlibm
-         xf(0) = log(a0+sqrt(a0*a0-one))
-+ei
          xf(1) = (a0*a0-one)**(-half)
          xf(2) = -a0*xf(1)**three/two
          xf(3) = (two*a0*a0+one)*xf(1)**five/six
@@ -3375,12 +3235,7 @@
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
-+if crlibm
          xf(0) =  half*log_mb((1+a0)/(1-a0))
-+ei
-+if .not.crlibm
-         xf(0) =  half*log((1+a0)/(1-a0))
-+ei
          xf(1) =  one/(one-a0*a0)
          xf(2) =  a0*(xf(1)*xf(1))
          xf(3) = (a0*a0+one/three)*xf(1)**3
@@ -3397,12 +3252,7 @@
             call dadeb(31,'ERR DAFUN ',1)
             return
          endif
-+if crlibm
          xf(0) =  half*log_mb((a0+1)/(a0-1))
-+ei
-+if .not.crlibm
-         xf(0) =  half*log((a0+1)/(a0-1))
-+ei
          scr =  one/(-one+a0*a0)
          xf(1) = -scr
          xf(2) =  a0*(scr*scr)
@@ -3455,24 +3305,14 @@
 !    ERF(X) STELLT DAS INTEGRAL VON 0 BIS X VON [ 2/SQRT(PI) * EXP(-X*X) ]
 !    DAR
 !
-+if crlibm
          e1 = exp_mb(-a0*a0)
-+ei
-+if .not.crlibm
-         e1 = exp(-a0*a0)
-+ei
          a1 = .254829592_fPrec
          a2 = -.284496736_fPrec
          a3 = 1.421413741_fPrec
          a4 = -1.453152027_fPrec
          a5 = 1.061405429_fPrec
          p  = .3275911_fPrec
-+if crlibm
          rpi4 = sqrt(atan_mb(one))
-+ei
-+if .not.crlibm
-         rpi4 = sqrt(atan(one))
-+ei
          t  = one/(one+p*a0)
          e2 = one-t*(a1+t*(a2+t*(a3+t*(a4+t*a5))))*e1
          xf(0)= e2
@@ -6297,20 +6137,11 @@
 !
       xran = xran + c1e1
       if(xran.gt.c1e4) xran = xran - 9999.12345_fPrec
-+if crlibm
       bran = abs(sin_mb(xran))
-+ei
-+if .not.crlibm
-      bran = abs(sin(xran))
-+ei
       bran = c1e1*bran
       bran = bran - int(bran)
-!      IF(BRAN.LT. .1D0) BRAN = BRAN + .1D0
-!
       return
       end
-!
-!
 
 +dk danorm2
       subroutine danorm2(ina,inc)
