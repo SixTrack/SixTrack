@@ -43354,15 +43354,15 @@ c$$$            endif
      &        ia,ifipa,
      &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
 
-         b=real(b_tmp,real64)
+         b=real(b_tmp,fPrec)
          
-         c=real(c_tmp,real64)
-         d=real(d_tmp,real64)
-         e=real(e_tmp,real64)
-         f=real(f_tmp,real64)
-         g=real(g_tmp,real64)
-         h=real(h_tmp,real64)
-         p=real(p_tmp,real64)
+         c=real(c_tmp,fPrec)
+         d=real(d_tmp,fPrec)
+         e=real(e_tmp,fPrec)
+         f=real(f_tmp,fPrec)
+         g=real(g_tmp,fPrec)
+         h=real(h_tmp,fPrec)
+         p=real(p_tmp,fPrec)
          
       elseif(ntwin.eq.2) then
          read(nfile,end=200,iostat=ierro)
@@ -43371,23 +43371,23 @@ c$$$            endif
      &        ilapa,
      &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
          
-         b=real(b_tmp,real64)
+         b=real(b_tmp,fPrec)
          
-         c=real(c_tmp,real64)
-         d=real(d_tmp,real64)
-         e=real(e_tmp,real64)
-         f=real(f_tmp,real64)
-         g=real(g_tmp,real64)
-         h=real(h_tmp,real64)
-         p=real(p_tmp,real64)
+         c=real(c_tmp,fPrec)
+         d=real(d_tmp,fPrec)
+         e=real(e_tmp,fPrec)
+         f=real(f_tmp,fPrec)
+         g=real(g_tmp,fPrec)
+         h=real(h_tmp,fPrec)
+         p=real(p_tmp,fPrec)
          
-         c1=real(c1_tmp,real64)
-         d1=real(d1_tmp,real64)
-         e1=real(e1_tmp,real64)
-         f1=real(f1_tmp,real64)
-         g1=real(g1_tmp,real64)
-         h1=real(h1_tmp,real64)
-         p1=real(p1_tmp,real64)
+         c1=real(c1_tmp,fPrec)
+         d1=real(d1_tmp,fPrec)
+         e1=real(e1_tmp,fPrec)
+         f1=real(f1_tmp,fPrec)
+         g1=real(g1_tmp,fPrec)
+         h1=real(h1_tmp,fPrec)
+         p1=real(p1_tmp,fPrec)
          
       endif
 +ei
@@ -43415,26 +43415,26 @@ c$$$            endif
       ia=ia_stf
       ifipa=ifipa_stf
       
-      b=real(b_tmp,real64)
+      b=real(b_tmp,fPrec)
       
-      c=real(c_tmp,real64)
-      d=real(d_tmp,real64)
-      e=real(e_tmp,real64)
-      f=real(f_tmp,real64)
-      g=real(g_tmp,real64)
-      h=real(h_tmp,real64)
-      p=real(p_tmp,real64)
+      c=real(c_tmp,fPrec)
+      d=real(d_tmp,fPrec)
+      e=real(e_tmp,fPrec)
+      f=real(f_tmp,fPrec)
+      g=real(g_tmp,fPrec)
+      h=real(h_tmp,fPrec)
+      p=real(p_tmp,fPrec)
 
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
          
-         c1=real(c1_tmp,real64)
-         d1=real(d1_tmp,real64)
-         e1=real(e1_tmp,real64)
-         f1=real(f1_tmp,real64)
-         g1=real(g1_tmp,real64)
-         h1=real(h1_tmp,real64)
-         p1=real(p1_tmp,real64)
+         c1=real(c1_tmp,fPrec)
+         d1=real(d1_tmp,fPrec)
+         e1=real(e1_tmp,fPrec)
+         f1=real(f1_tmp,fPrec)
+         g1=real(g1_tmp,fPrec)
+         h1=real(h1_tmp,fPrec)
+         p1=real(p1_tmp,fPrec)
       endif
 +ei
       if(ierro.gt.0) then
@@ -43527,15 +43527,15 @@ c$$$            endif
          read(nfile,end=530,iostat=ierro)
      &        ia,ifipa,
      &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-         b=real(b_tmp,real64)
+         b=real(b_tmp,fPrec)
          
-         c=real(c_tmp,real64)
-         d=real(d_tmp,real64)
-         e=real(e_tmp,real64)
-         f=real(f_tmp,real64)
-         g=real(g_tmp,real64)
-         h=real(h_tmp,real64)
-         p=real(p_tmp,real64)
+         c=real(c_tmp,fPrec)
+         d=real(d_tmp,fPrec)
+         e=real(e_tmp,fPrec)
+         f=real(f_tmp,fPrec)
+         g=real(g_tmp,fPrec)
+         h=real(h_tmp,fPrec)
+         p=real(p_tmp,fPrec)
          
       elseif(ntwin.eq.2) then
          read(nfile,end=530,iostat=ierro)
@@ -43544,23 +43544,23 @@ c$$$            endif
      &        ilapa,
      &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
 
-         b=real(b_tmp,real64)
+         b=real(b_tmp,fPrec)
          
-         c=real(c_tmp,real64)
-         d=real(d_tmp,real64)
-         e=real(e_tmp,real64)
-         f=real(f_tmp,real64)
-         g=real(g_tmp,real64)
-         h=real(h_tmp,real64)
-         p=real(p_tmp,real64)
+         c=real(c_tmp,fPrec)
+         d=real(d_tmp,fPrec)
+         e=real(e_tmp,fPrec)
+         f=real(f_tmp,fPrec)
+         g=real(g_tmp,fPrec)
+         h=real(h_tmp,fPrec)
+         p=real(p_tmp,fPrec)
          
-         c1=real(c1_tmp,real64)
-         d1=real(d1_tmp,real64)
-         e1=real(e1_tmp,real64)
-         f1=real(f1_tmp,real64)
-         g1=real(g1_tmp,real64)
-         h1=real(h1_tmp,real64)
-         p1=real(p1_tmp,real64)
+         c1=real(c1_tmp,fPrec)
+         d1=real(d1_tmp,fPrec)
+         e1=real(e1_tmp,fPrec)
+         f1=real(f1_tmp,fPrec)
+         g1=real(g1_tmp,fPrec)
+         h1=real(h1_tmp,fPrec)
+         p1=real(p1_tmp,fPrec)
       endif
 +ei
 +if stf
@@ -43586,26 +43586,26 @@ c$$$            endif
       ia=ia_stf
       ifipa=ifipa_stf
       
-      b=real(b_tmp,real64)
+      b=real(b_tmp,fPrec)
       
-      c=real(c_tmp,real64)
-      d=real(d_tmp,real64)
-      e=real(e_tmp,real64)
-      f=real(f_tmp,real64)
-      g=real(g_tmp,real64)
-      h=real(h_tmp,real64)
-      p=real(p_tmp,real64)
+      c=real(c_tmp,fPrec)
+      d=real(d_tmp,fPrec)
+      e=real(e_tmp,fPrec)
+      f=real(f_tmp,fPrec)
+      g=real(g_tmp,fPrec)
+      h=real(h_tmp,fPrec)
+      p=real(p_tmp,fPrec)
       
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
          
-         c1=real(c1_tmp,real64)
-         d1=real(d1_tmp,real64)
-         e1=real(e1_tmp,real64)
-         f1=real(f1_tmp,real64)
-         g1=real(g1_tmp,real64)
-         h1=real(h1_tmp,real64)
-         p1=real(p1_tmp,real64)
+         c1=real(c1_tmp,fPrec)
+         d1=real(d1_tmp,fPrec)
+         e1=real(e1_tmp,fPrec)
+         f1=real(f1_tmp,fPrec)
+         g1=real(g1_tmp,fPrec)
+         h1=real(h1_tmp,fPrec)
+         p1=real(p1_tmp,fPrec)
       endif
 +ei
       if(ierro.gt.0) then
@@ -43850,15 +43850,15 @@ c$$$            endif
      &        ia,ifipa,
      &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
 
-         b=real(b_tmp,real64)
+         b=real(b_tmp,fPrec)
          
-         c=real(c_tmp,real64)
-         d=real(d_tmp,real64)
-         e=real(e_tmp,real64)
-         f=real(f_tmp,real64)
-         g=real(g_tmp,real64)
-         h=real(h_tmp,real64)
-         p=real(p_tmp,real64)
+         c=real(c_tmp,fPrec)
+         d=real(d_tmp,fPrec)
+         e=real(e_tmp,fPrec)
+         f=real(f_tmp,fPrec)
+         g=real(g_tmp,fPrec)
+         h=real(h_tmp,fPrec)
+         p=real(p_tmp,fPrec)
 
       elseif(ntwin.eq.2) then
          read(nfile,end=270,iostat=ierro)
@@ -43867,23 +43867,23 @@ c$$$            endif
      &        ilapa,
      &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
          
-         b=real(b_tmp,real64)
+         b=real(b_tmp,fPrec)
          
-         c=real(c_tmp,real64)
-         d=real(d_tmp,real64)
-         e=real(e_tmp,real64)
-         f=real(f_tmp,real64)
-         g=real(g_tmp,real64)
-         h=real(h_tmp,real64)
-         p=real(p_tmp,real64)
+         c=real(c_tmp,fPrec)
+         d=real(d_tmp,fPrec)
+         e=real(e_tmp,fPrec)
+         f=real(f_tmp,fPrec)
+         g=real(g_tmp,fPrec)
+         h=real(h_tmp,fPrec)
+         p=real(p_tmp,fPrec)
          
-         c1=real(c1_tmp,real64)
-         d1=real(d1_tmp,real64)
-         e1=real(e1_tmp,real64)
-         f1=real(f1_tmp,real64)
-         g1=real(g1_tmp,real64)
-         h1=real(h1_tmp,real64)
-         p1=real(p1_tmp,real64)
+         c1=real(c1_tmp,fPrec)
+         d1=real(d1_tmp,fPrec)
+         e1=real(e1_tmp,fPrec)
+         f1=real(f1_tmp,fPrec)
+         g1=real(g1_tmp,fPrec)
+         h1=real(h1_tmp,fPrec)
+         p1=real(p1_tmp,fPrec)
       endif
 +ei
 +if stf
@@ -43909,26 +43909,26 @@ c$$$            endif
       ia=ia_stf
       ifipa=ifipa_stf
       
-      b=real(b_tmp,real64)
+      b=real(b_tmp,fPrec)
       
-      c=real(c_tmp,real64)
-      d=real(d_tmp,real64)
-      e=real(e_tmp,real64)
-      f=real(f_tmp,real64)
-      g=real(g_tmp,real64)
-      h=real(h_tmp,real64)
-      p=real(p_tmp,real64)
+      c=real(c_tmp,fPrec)
+      d=real(d_tmp,fPrec)
+      e=real(e_tmp,fPrec)
+      f=real(f_tmp,fPrec)
+      g=real(g_tmp,fPrec)
+      h=real(h_tmp,fPrec)
+      p=real(p_tmp,fPrec)
       
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
          
-         c1=real(c1_tmp,real64)
-         d1=real(d1_tmp,real64)
-         e1=real(e1_tmp,real64)
-         f1=real(f1_tmp,real64)
-         g1=real(g1_tmp,real64)
-         h1=real(h1_tmp,real64)
-         p1=real(p1_tmp,real64)
+         c1=real(c1_tmp,fPrec)
+         d1=real(d1_tmp,fPrec)
+         e1=real(e1_tmp,fPrec)
+         f1=real(f1_tmp,fPrec)
+         g1=real(g1_tmp,fPrec)
+         h1=real(h1_tmp,fPrec)
+         p1=real(p1_tmp,fPrec)
       endif
 +ei
       if(ierro.gt.0) then
@@ -44311,15 +44311,15 @@ c$$$            endif
  315    read(nfile,end=350,iostat=ierro)
      &       ia,ifipa,
      &       b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-        b=real(b_tmp,real64)
+        b=real(b_tmp,fPrec)
         
-        c=real(c_tmp,real64)
-        d=real(d_tmp,real64)
-        e=real(e_tmp,real64)
-        f=real(f_tmp,real64)
-        g=real(g_tmp,real64)
-        h=real(h_tmp,real64)
-        p=real(p_tmp,real64)
+        c=real(c_tmp,fPrec)
+        d=real(d_tmp,fPrec)
+        e=real(e_tmp,fPrec)
+        f=real(f_tmp,fPrec)
+        g=real(g_tmp,fPrec)
+        h=real(h_tmp,fPrec)
+        p=real(p_tmp,fPrec)
 +ei
 +if stf
 !     STF case: read tracking data until one reaches right particle.
@@ -44334,15 +44334,15 @@ c$$$            endif
         ia=ia_stf
         ifipa=ifipa_stf
         
-        b=real(b_tmp,real64)
+        b=real(b_tmp,fPrec)
         
-        c=real(c_tmp,real64)
-        d=real(d_tmp,real64)
-        e=real(e_tmp,real64)
-        f=real(f_tmp,real64)
-        g=real(g_tmp,real64)
-        h=real(h_tmp,real64)
-        p=real(p_tmp,real64)
+        c=real(c_tmp,fPrec)
+        d=real(d_tmp,fPrec)
+        e=real(e_tmp,fPrec)
+        f=real(f_tmp,fPrec)
+        g=real(g_tmp,fPrec)
+        h=real(h_tmp,fPrec)
+        p=real(p_tmp,fPrec)
 +ei
         if(ierro.gt.0) then
            write(lout,10320) nfile
@@ -44867,15 +44867,15 @@ c$$$            endif
      &              ia,ifipa,
      &              b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
 
-               b=real(b_tmp,real64)
+               b=real(b_tmp,fPrec)
                
-               c=real(c_tmp,real64)
-               d=real(d_tmp,real64)
-               e=real(e_tmp,real64)
-               f=real(f_tmp,real64)
-               g=real(g_tmp,real64)
-               h=real(h_tmp,real64)
-               p=real(p_tmp,real64)
+               c=real(c_tmp,fPrec)
+               d=real(d_tmp,fPrec)
+               e=real(e_tmp,fPrec)
+               f=real(f_tmp,fPrec)
+               g=real(g_tmp,fPrec)
+               h=real(h_tmp,fPrec)
+               p=real(p_tmp,fPrec)
                
             elseif(ntwin.eq.2) then
                read(nfile,end=470,iostat=ierro)
@@ -44885,23 +44885,23 @@ c$$$            endif
      &              b_tmp,c1_tmp,d1_tmp,e1_tmp,
      &              f1_tmp,g1_tmp,h1_tmp,p1_tmp
                
-               b=real(b_tmp,real64)
+               b=real(b_tmp,fPrec)
                
-               c=real(c_tmp,real64)
-               d=real(d_tmp,real64)
-               e=real(e_tmp,real64)
-               f=real(f_tmp,real64)
-               g=real(g_tmp,real64)
-               h=real(h_tmp,real64)
-               p=real(p_tmp,real64)
+               c=real(c_tmp,fPrec)
+               d=real(d_tmp,fPrec)
+               e=real(e_tmp,fPrec)
+               f=real(f_tmp,fPrec)
+               g=real(g_tmp,fPrec)
+               h=real(h_tmp,fPrec)
+               p=real(p_tmp,fPrec)
                
-               c1=real(c1_tmp,real64)
-               d1=real(d1_tmp,real64)
-               e1=real(e1_tmp,real64)
-               f1=real(f1_tmp,real64)
-               g1=real(g1_tmp,real64)
-               h1=real(h1_tmp,real64)
-               p1=real(p1_tmp,real64)
+               c1=real(c1_tmp,fPrec)
+               d1=real(d1_tmp,fPrec)
+               e1=real(e1_tmp,fPrec)
+               f1=real(f1_tmp,fPrec)
+               g1=real(g1_tmp,fPrec)
+               h1=real(h1_tmp,fPrec)
+               p1=real(p1_tmp,fPrec)
             endif
 +ei
 +if stf
@@ -44927,26 +44927,26 @@ c$$$            endif
             ia=ia_stf
             ifipa=ifipa_stf
 
-            b=real(b_tmp,real64)
+            b=real(b_tmp,fPrec)
             
-            c=real(c_tmp,real64)
-            d=real(d_tmp,real64)
-            e=real(e_tmp,real64)
-            f=real(f_tmp,real64)
-            g=real(g_tmp,real64)
-            h=real(h_tmp,real64)
-            p=real(p_tmp,real64)
+            c=real(c_tmp,fPrec)
+            d=real(d_tmp,fPrec)
+            e=real(e_tmp,fPrec)
+            f=real(f_tmp,fPrec)
+            g=real(g_tmp,fPrec)
+            h=real(h_tmp,fPrec)
+            p=real(p_tmp,fPrec)
             
             if(ntwin.eq.2) then
                ilapa=ilapa_stf
 
-               c1=real(c1_tmp,real64)
-               d1=real(d1_tmp,real64)
-               e1=real(e1_tmp,real64)
-               f1=real(f1_tmp,real64)
-               g1=real(g1_tmp,real64)
-               h1=real(h1_tmp,real64)
-               p1=real(p1_tmp,real64)
+               c1=real(c1_tmp,fPrec)
+               d1=real(d1_tmp,fPrec)
+               e1=real(e1_tmp,fPrec)
+               f1=real(f1_tmp,fPrec)
+               g1=real(g1_tmp,fPrec)
+               h1=real(h1_tmp,fPrec)
+               p1=real(p1_tmp,fPrec)
             endif
 +ei
             if(ierro.gt.0) then
