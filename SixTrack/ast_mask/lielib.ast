@@ -1,4 +1,4 @@
-lielib.s common_headers.s
+lielib.s90 common_headers.s
 lielibn.f
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
 e LIEINIT

@@ -261,11 +261,11 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 
 # Select which fortran files to generate and compile
 if(DA)
-	LIST(APPEND FORS_FIXFORM sixda sixsc sixscfox dabnew lielib)
-	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle)
+	LIST(APPEND FORS_FIXFORM sixda sixsc sixscfox dabnew)
+	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle lielib)
 else()
-	LIST(APPEND FORS_FIXFORM track sixve sixvefox dabnews lielib)
-	LIST(APPEND FORS_FREEFORM beamgas scatter dynk floatprecision bouncy_castle plato_seq)
+	LIST(APPEND FORS_FIXFORM track sixve sixvefox dabnews)
+	LIST(APPEND FORS_FREEFORM beamgas scatter dynk floatprecision bouncy_castle plato_seq lielib)
 endif()
 
 if(NOT DA AND DATAMODS)

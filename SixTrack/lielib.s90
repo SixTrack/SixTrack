@@ -2915,8 +2915,7 @@
       call mulnd2(xj,w)
       call mulnd2(cr,w)
       if(idpr.ge.0.or.idpr.eq.-102) then
-        write(lout,*)                                                   &
-     &'Check of the symplectic condition on the linear part'
+        write(lout,*) 'Check of the symplectic condition on the linear part'
         xsu=zero
         do i=1,nd2
           write(lout,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
@@ -2924,9 +2923,7 @@
             xsu=xsu+abs(w(i,j))
           enddo
         enddo
-        write(lout,*)'deviation for symplecticity ',                    &
-     &100.0_fPrec*(xsu-nd2)/xsu,
-     &' %'
+        write(lout,*)'deviation for symplecticity ', 100.0_fPrec*(xsu-nd2)/xsu,' %'
 +if debug
 !       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
 +ei
@@ -2934,8 +2931,7 @@
       call eig6(cr,rr,ri,vr,vi)
       if(idpr.ge.0) then
         write(lout,*) '   '
-        write(lout,*) '       Index         Real Part  ',
-     &'       ArcSin(Imaginary Part)/2/pi'
+        write(lout,*) '       Index         Real Part  ','       ArcSin(Imaginary Part)/2/pi'
         write(lout,*) '   '
         do i=1,nd-ndc
           rd1=sqrt(rr(2*i-1)**2+ri(2*i-1)**2)
@@ -2944,9 +2940,7 @@
           write(lout,*) 2*i,rr(2*i),asin_mb(ri(2*i)/rd)/x2pi
           write(lout,*) ' alphas ', log_mb(sqrt(rd*rd1))
         enddo
-        write(lout,*)
-     &' select ',nd-ndc,                                                &
-     &' eigenplanes (odd integers <0 real axis)'
+        write(lout,*) ' select ',nd-ndc,' eigenplanes (odd integers <0 real axis)'
         read(5,*) (n(i),i=1,nd-ndc)
       elseif(idpr.eq.-100) then
         do i=1,nd-ndc
@@ -2977,8 +2971,7 @@
         x(i)=zero
         xx(i)=one
         do j=1,nd-ndc
-          x(i)=vr(2*j-1,n(i))*vi(2*j,n(i))-vr(2*j,n(i))*vi(2*j-1,n(i))+ &
-     &x(i)
+          x(i)=vr(2*j-1,n(i))*vi(2*j,n(i))-vr(2*j,n(i))*vi(2*j-1,n(i))+x(i)
         enddo
       enddo
 
@@ -2988,7 +2981,7 @@
       enddo
       do i=1,nd2-ndc2
         do j=1,nd-ndc
-          if(st(j)+0.001.gt.one) then
+          if(st(j)+c1m3.gt.one) then
             sai(2*j-1,i)=vr(i,n(j))*xx(j)/x(j)
             sai(2*j,i)=vi(i,n(j))/x(j)
           else
@@ -3625,19 +3618,21 @@
 !     modified by filippo neri.
 !
 !
++ca parnum
+
       la = igh - 1
       kp1 = low + 1
       if (la .lt. kp1) goto 200
 !
       do 180 m = kp1, la
-         h = 0.0
-         ort(m) = 0.0
-         scale = 0.0
+         h = zero
+         ort(m) = zero
+         scale = zero
 !     ********** scale column (algol tol then not needed) **********
          do 90 i = m, igh
    90    scale = scale + abs(a(i,m-1))
 !
-         if (scale .eq. 0.0) goto 180
+         if (scale .eq. zero) goto 180
          mp = m + igh
 !     ********** for i=igh step -1 until m do -- **********
          do 100 ii = m, igh
@@ -3651,7 +3646,7 @@
          ort(m) = ort(m) - g
 !     ********** form (i-(u*ut)/h) * a **********
          do 130 j = m, n
-            f = 0.0
+            f = zero
 !     ********** for i=igh step -1 until m do -- **********
             do 110 ii = m, igh
                i = mp - ii
@@ -3733,31 +3728,32 @@
 !
 !     fortran routine by b. s. garbow.
 !     modified by f. neri.
-!
-!
+
++ca parnum
+
 !     ********** initialize z to identity matrix **********
       do 80 i = 1, n
-!
+
          do 60 j = 1, n
-   60    z(i,j) = 0.0
-!
-         z(i,i) = 1.0
+   60    z(i,j) = zero
+
+         z(i,i) = one
    80 continue
-!
+
       kl = igh - low - 1
       if (kl .lt. 1) goto 200
 !     ********** for mp=igh-1 step -1 until low+1 do -- **********
       do 140 mm = 1, kl
          mp = igh - mm
-         if (a(mp,mp-1) .eq. 0.0) goto 140
+         if (a(mp,mp-1) .eq. zero) goto 140
          mp1 = mp + 1
-!
+
          do 100 i = mp1, igh
   100    ort(i) = a(i,mp-1)
-!
+
          do 130 j = mp, igh
-            g = 0.0
-!
+            g = zero
+
             do 110 i = mp, igh
   110       g = g + ort(i) * z(i,j)
 !     ********** divisor below is negative of h formed in orthes.
@@ -3858,25 +3854,25 @@
 !                **********
       machep = 1.0e-17_fPrec
 !     machep = r1mach(4)
-!
+
       ierr = 0
-      norm = 0.0
+      norm = zero
       k = 1
 !     ********** store roots isolated by balanc
 !                and compute matrix norm **********
       do 50 i = 1, n
-!
+
          do 40 j = k, n
    40    norm = norm + abs(h(i,j))
-!
+
          k = i
          if (i .ge. low .and. i .le. igh) goto 50
          wr(i) = h(i,i)
-         wi(i) = 0.0
+         wi(i) = zero
    50 continue
-!
+
       en = igh
-      t = 0.0
+      t = zero
 !     ********** search for next eigenvalues **********
    60 if (en .lt. low) goto 340
       its = 0
@@ -3888,7 +3884,7 @@
          l = en + low - ll
          if (l .eq. low) goto 100
          s = abs(h(l-1,l-1)) + abs(h(l,l))
-         if (s .eq. 0.0) s = norm
+         if (s .eq. zero) s = norm
          if (abs(h(l,l-1)) .le. machep * s) goto 100
    80 continue
 !     ********** form shift **********
@@ -3906,9 +3902,9 @@
   120 h(i,i) = h(i,i) - x
 !
       s = abs(h(en,na)) + abs(h(na,enm2))
-      x = 0.75 * s
+      x = 0.75_fPrec * s
       y = x
-      w = -0.4375 * s * s
+      w = -0.4375_fPrec * s * s
   130 its = its + 1
 !     ********** look for two consecutive small
 !                sub-diagonal elements.
@@ -3933,9 +3929,9 @@
   150 mp2 = m + 2
 !
       do 160 i = mp2, en
-         h(i,i-2) = 0.0
+         h(i,i-2) = zero
          if (i .eq. mp2) goto 160
-         h(i,i-3) = 0.0
+         h(i,i-3) = zero
   160 continue
 !     ********** double qr step involving rows l to en and
 !                columns m to en **********
@@ -3944,10 +3940,10 @@
          if (k .eq. m) goto 170
          p = h(k,k-1)
          q = h(k+1,k-1)
-         r = 0.0
+         r = zero
          if (notlas) r = h(k+2,k-1)
          x = abs(p) + abs(q) + abs(r)
-         if (x .eq. 0.0) goto 260
+         if (x .eq. zero) goto 260
          p = p / x
          q = q / x
          r = r / x
@@ -3998,7 +3994,7 @@
 !     ********** one root found **********
   270 h(en,en) = x + t
       wr(en) = h(en,en)
-      wi(en) = 0.0
+      wi(en) = zero
       en = na
       goto 60
 !     ********** two roots found **********
@@ -4052,7 +4048,7 @@
       goto 60
 !     ********** all roots found.  backsubstitute to find
 !                vectors of upper triangular form **********
-  340 if (norm .eq. 0.0) goto 1001
+  340 if (norm .eq. zero) goto 1001
 !     ********** for en=n step -1 until 1 do -- **********
       do 800 nn = 1, n
          en = n + 1 - nn
@@ -4064,7 +4060,7 @@
          if (q.gt.0) goto 800
 !     ********** real vector **********
   600    m = en
-         h(en,en) = 1.0
+         h(en,en) = one
          if (na .eq. 0) goto 800
 !     ********** for i=en-1 step -1 until 1 do -- **********
          do 700 ii = 1, na
