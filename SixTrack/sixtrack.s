@@ -258,6 +258,7 @@
      &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrr,nskew,                 &
      &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
      &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml
+      
       real(kind=fPrec) a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
      &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
@@ -270,6 +271,7 @@
      &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,         &
      &acdipph, crabph, bbbx, bbby, bbbs,                                &
      &crabph2, crabph3, crabph4
+
 +if time
       real(kind=fPrec) tcnst35,exterr35,zfz35
       integer icext35
@@ -24234,7 +24236,7 @@ c$$$         endif
             call writebin_header(ia,ia+1,91-ia2,ierro,
      &        cdate,ctime,progrm)
 +if cr
-            call flush(91-ia2)
+            flush(91-ia2)
             binrecs(ia2)=1
           endif
 +ei
@@ -24243,7 +24245,7 @@ c$$$         endif
             call writebin_header(ia,ia+1,90,ierro,
      &        cdate,ctime,progrm)
 +if cr
-            call flush(90)
+            flush(90)
             binrecs(ia2)=1
           endif
 +ei
@@ -27595,7 +27597,8 @@ c$$$         endif
       real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
       real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
       real(kind=real64) tas_tmp(6,6)
-      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp
+      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,
+     &     sigcor_tmp,dpscor_tmp
       
       real(kind=real64) zero64,one64
       parameter(zero64 = 0.0_real64)
@@ -27620,37 +27623,41 @@ c$$$         endif
          enddo
       enddo
       
-      mmac_tmp  = real(mmac,       real64)
-      nms_tmp   = real(nms(ia_p1), real64)
-      izu0_tmp  = real(izu0,       real64)
-      numlr_tmp = real(numlr_tmp,  real64)
+      mmac_tmp   = real(mmac,       real64)
+      nms_tmp    = real(nms(ia_p1), real64)
+      izu0_tmp   = real(izu0,       real64)
+      numlr_tmp  = real(numlr,      real64)
+      sigcor_tmp = real(sigcor,     real64)
+      dpscor_tmp = real(dpscor,     real64)
       
       write(fileunit_in,iostat=ierro_wbh)
-     &sixtit,commen,cdate, ctime,progrm, ia_p1,ia_p2, napx, icode,numl, &
-     &qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                              &
-     &clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),            &
-     &clo6v_tmp(3),clop6v_tmp(3),                                       &
-     &di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                        &
-     &zero64,one64,                                                     &
-     &tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                           &
-     &tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                           &
-     &tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                           &
-     &tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                           &
-     &tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                           &
-     &tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                           &
-     &tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                           &
-     &tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                           &
-     &tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                           &
-     &tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                           &
-     &tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                           &
-     &tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                           &
-     &mmac_tmp,nms_tmp,izu0_tmp,                                        &
-     &dble(numlr),sigcor,dpscor,                                        &
-     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,          &
-     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,   &
-     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,   &
-     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,   &
-     &zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64
+     &     sixtit,commen,cdate, ctime,progrm,                           &
+     &     ia_p1,ia_p2, napx, icode,numl,                               &
+     &     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
+     &     clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),       &
+     &     clo6v_tmp(3),clop6v_tmp(3),                                  &
+     &     di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                   &
+     &     zero64,one64,                                                &
+     &     tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                      &
+     &     tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                      &
+     &     tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                      &
+     &     tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                      &
+     &     tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                      &
+     &     tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                      &
+     &     tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                      &
+     &     tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                      &
+     &     tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                      &
+     &     tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                      &
+     &     tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                      &
+     &     tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                      &
+     &     mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,                         &
+     &     sigcor_tmp,dpscor_tmp,                                       &
+     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+     &     zero64,zero64,zero64,zero64
       
       end subroutine writebin_header
       
@@ -42585,8 +42592,6 @@ c$$$            endif
      &numl
 +if stf
       integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
-      real(kind=fPrec) b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
-     &c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
 +ei
       real tim1,tim2,fxs,fzs
       real(kind=fPrec) const,dle,slope,tle,varlea,wgh
@@ -42606,6 +42611,20 @@ c$$$            endif
      &ta64,ta65,tasum,tidnt,tle1,tlo,tph6,tphx,tphz,tpi,txyz,txyz2,x,   &
      &xing,xinv,xp,xp0,xxaux,xxmax,xxmin,xxi,xxr,xyzv,xyzv2,zing,zinv,  &
      &zp,zp0,zzaux,zzmax,zzmin,zzi,zzr
+
+      !The fort.90 file is always with real64, so we need some temps to read it
+      ! For the header:
+      real(kind=real64) qwc_tmp(3), clo_tmp(3), clop_tmp(3)
+      real(kind=real64) di0_tmp(2), dip0_tmp(2)
+      real(kind=real64) ta_tmp(6,6)
+      real(kind=real64) dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,
+     &     sigcor_tmp,dpscor_tmp
+      real(kind=real64) dummy64
+      
+      !For the actual tracking data
+      real(kind=real64) b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+      real(kind=real64) c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+      
       character(len=80) title(20),chxtit(20),chytit(20)
       character(len=8) cdate,ctime,progrm
       character*11 hvs
@@ -42745,24 +42764,64 @@ c$$$            endif
       rewind nfile
       ia=0
 +if .not.stf
-      read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
-     &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
-     &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
-     &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
-     &ta(2,1),ta(2,2),ta(2,3),ta(2,4),ta(2,5),ta(2,6), ta(3,1),ta(3,2), &
-     &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
-     &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
-     &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
-     &dnumlr,sigcor,dpscor
+      read(nfile,end=510,iostat=ierro)
+     &     sixtit,commen,cdate,ctime,progrm,
+     &     ifipa,ilapa,itopa,icode,numl,
+     &     qwc_tmp(1),qwc_tmp(2),qwc_tmp(3),
+     &     clo_tmp(1),clop_tmp(1),clo_tmp(2),clop_tmp(2),
+     &     clo_tmp(3),clop_tmp(3),
+     &     di0_tmp(1),dip0_tmp(1),di0_tmp(2),dip0_tmp(2),
+     &     dummy64,dummy64,
+     &     ta_tmp(1,1),ta_tmp(1,2),ta_tmp(1,3),
+     &     ta_tmp(1,4),ta_tmp(1,5),ta_tmp(1,6),
+     &     ta_tmp(2,1),ta_tmp(2,2),ta_tmp(2,3),
+     &     ta_tmp(2,4),ta_tmp(2,5),ta_tmp(2,6),
+     &     ta_tmp(3,1),ta_tmp(3,2),ta_tmp(3,3),
+     &     ta_tmp(3,4),ta_tmp(3,5),ta_tmp(3,6),
+     &     ta_tmp(4,1),ta_tmp(4,2),ta_tmp(4,3),
+     &     ta_tmp(4,4),ta_tmp(4,5),ta_tmp(4,6),
+     &     ta_tmp(5,1),ta_tmp(5,2),ta_tmp(5,3),
+     &     ta_tmp(5,4),ta_tmp(5,5),ta_tmp(5,6),
+     &     ta_tmp(6,1),ta_tmp(6,2),ta_tmp(6,3),
+     &     ta_tmp(6,4),ta_tmp(6,5),ta_tmp(6,6),
+     &     dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,
+     &     sigcor_tmp,dpscor_tmp
+      
       if(ierro.gt.0) then
-        write(lout,10320) nfile
+         write(lout,10320) nfile
 +if cr
-        goto 551
+         goto 551
 +ei
 +if .not.cr
-        goto 550
+         goto 550
 +ei
       endif
+      
+      !Convert it to the current working precission
+      do i=1,3
+         qwc(i)  = real(qwc_tmp (i), fPrec)
+         clo(i)  = real(clo_tmp (i), fPrec)
+         clop(i) = real(clop_tmp(i), fPrec)
+      end do
+      
+      do i=1,2
+         di0(i)  = real(di0_tmp (i), fPrec)
+         dip0(i) = real(dip0_tmp(i), fPrec)
+      enddo
+      
+      do i=1,6
+         do j=1,6
+            ta(j,i) = real(ta_tmp(j,i), fPrec)
+         end do
+      end do
+      
+      dmmac  = real(dmmac_tmp,  fPrec)
+      dnms   = real(dnms_tmp,   fPrec)
+      dizu0  = real(dizu0_tmp,  fPrec)
+      dnumlr = real(dnumlr_tmp, fPrec)
+      sigcor = real(sigcor_tmp, fPrec)
+      dpscor = real(dpscor_tmp, fPrec)
+      
 +if .not.cr
       sumda(1)=numl
 +ei
@@ -42778,15 +42837,66 @@ c$$$            endif
         imad=0
         rewind nfile
         call join
-        read(nfile,end=520,iostat=ierro) sixtit,commen,cdate,ctime,     &
-     &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo     &
-     &(1),clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0     &
-     &(2),dip0(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta       &
-     &(1,5),ta(1,6), ta(2,1),ta(2,2),ta(2,3),ta(2,4),ta(2,5),ta(2,6),   &
-     &ta(3,1),ta(3,2),ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta       &
-     &(4,2),ta(4,3),ta(4,4),ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),   &
-     &ta(5,4),ta(5,5),ta(5,6), ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta       &
-     &(6,5),ta(6,6), dmmac,dnms,dizu0,dnumlr,sigcor,dpscor
+
+        read(nfile,end=520,iostat=ierro)
+     &     sixtit,commen,cdate,ctime,progrm,
+     &     ifipa,ilapa,itopa,icode,numl,
+     &     qwc_tmp(1),qwc_tmp(2),qwc_tmp(3),
+     &     clo_tmp(1),clop_tmp(1),clo_tmp(2),clop_tmp(2),
+     &     clo_tmp(3),clop_tmp(3),
+     &     di0_tmp(1),dip0_tmp(1),di0_tmp(2),dip0_tmp(2),
+     &     dummy64,dummy64,
+     &     ta_tmp(1,1),ta_tmp(1,2),ta_tmp(1,3),
+     &     ta_tmp(1,4),ta_tmp(1,5),ta_tmp(1,6),
+     &     ta_tmp(2,1),ta_tmp(2,2),ta_tmp(2,3),
+     &     ta_tmp(2,4),ta_tmp(2,5),ta_tmp(2,6),
+     &     ta_tmp(3,1),ta_tmp(3,2),ta_tmp(3,3),
+     &     ta_tmp(3,4),ta_tmp(3,5),ta_tmp(3,6),
+     &     ta_tmp(4,1),ta_tmp(4,2),ta_tmp(4,3),
+     &     ta_tmp(4,4),ta_tmp(4,5),ta_tmp(4,6),
+     &     ta_tmp(5,1),ta_tmp(5,2),ta_tmp(5,3),
+     &     ta_tmp(5,4),ta_tmp(5,5),ta_tmp(5,6),
+     &     ta_tmp(6,1),ta_tmp(6,2),ta_tmp(6,3),
+     &     ta_tmp(6,4),ta_tmp(6,5),ta_tmp(6,6),
+     &     dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,
+     &     sigcor_tmp,dpscor_tmp
+
+        if(ierro.gt.0) then
+           write(lout,10320) nfile
++if cr
+           goto 551
++ei
++if .not.cr
+           goto 550
++ei
+        endif
+
+        !Convert it to the current working precission
+        do i=1,3
+           qwc(i)  = real(qwc_tmp (i), fPrec)
+           clo(i)  = real(clo_tmp (i), fPrec)
+           clop(i) = real(clop_tmp(i), fPrec)
+        end do
+        
+        do i=1,2
+           di0(i)  = real(di0_tmp (i), fPrec)
+           dip0(i) = real(dip0_tmp(i), fPrec)
+        enddo
+        
+        do i=1,6
+           do j=1,6
+              ta(j,i) = real(ta_tmp(j,i), fPrec)
+           end do
+        end do
+        
+        dmmac  = real(dmmac_tmp,  fPrec)
+        dnms   = real(dnms_tmp,   fPrec)
+        dizu0  = real(dizu0_tmp,  fPrec)
+        dnumlr = real(dnumlr_tmp, fPrec)
+        sigcor = real(sigcor_tmp, fPrec)
+        dpscor = real(dpscor_tmp, fPrec)
+
+        !MadX convention
         ta(1,6)=ta(1,6)*c1e3
         ta(2,6)=ta(2,6)*c1e3
         ta(3,6)=ta(3,6)*c1e3
@@ -42797,42 +42907,75 @@ c$$$            endif
         ta(6,3)=ta(6,3)*c1m3
         ta(6,4)=ta(6,4)*c1m3
         ta(6,5)=ta(6,5)*c1m3
-        if(ierro.gt.0) then
-          write(lout,10320) nfile
-+if cr
-          goto 551
-+ei
-+if .not.cr
-          goto 550
-+ei
-        endif
+
       endif
 +ei ! END +if .not.stf
 +if stf
       !Read header lines until a match is found
- 555  read(nfile,end=510,iostat=ierro) sixtit,commen,cdate,ctime,       &
-     &progrm,ifipa,ilapa,itopa,icode,numl,qwc(1),qwc(2),qwc(3), clo(1), &
-     &clop(1),clo(2),clop(2),clo(3),clop(3), di0(1),dip0(1),di0(2),dip0 &
-     &(2),dummy,dummy, ta(1,1),ta(1,2),ta(1,3),ta(1,4),ta(1,5),ta(1,6), &
-     &ta(2,1),ta(2,2),ta(2,3),ta(2,4),ta(2,5),ta(2,6), ta(3,1),ta(3,2), &
-     &ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
-     &ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
-     &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
-     &dnumlr,sigcor,dpscor
-      if(ifipa.ne.posi) then !IFIPA=first particle, POSI=requested particle
-        goto 555             !Get the next header...
+ 555  continue      
+      read(nfile,end=510,iostat=ierro)
+     &     sixtit,commen,cdate,ctime,progrm,
+     &     ifipa,ilapa,itopa,icode,numl,
+     &     qwc_tmp(1),qwc_tmp(2),qwc_tmp(3),
+     &     clo_tmp(1),clop_tmp(1),clo_tmp(2),clop_tmp(2),
+     &     clo_tmp(3),clop_tmp(3),
+     &     di0_tmp(1),dip0_tmp(1),di0_tmp(2),dip0_tmp(2),
+     &     dummy64,dummy64,
+     &     ta_tmp(1,1),ta_tmp(1,2),ta_tmp(1,3),
+     &     ta_tmp(1,4),ta_tmp(1,5),ta_tmp(1,6),
+     &     ta_tmp(2,1),ta_tmp(2,2),ta_tmp(2,3),
+     &     ta_tmp(2,4),ta_tmp(2,5),ta_tmp(2,6),
+     &     ta_tmp(3,1),ta_tmp(3,2),ta_tmp(3,3),
+     &     ta_tmp(3,4),ta_tmp(3,5),ta_tmp(3,6),
+     &     ta_tmp(4,1),ta_tmp(4,2),ta_tmp(4,3),
+     &     ta_tmp(4,4),ta_tmp(4,5),ta_tmp(4,6),
+     &     ta_tmp(5,1),ta_tmp(5,2),ta_tmp(5,3),
+     &     ta_tmp(5,4),ta_tmp(5,5),ta_tmp(5,6),
+     &     ta_tmp(6,1),ta_tmp(6,2),ta_tmp(6,3),
+     &     ta_tmp(6,4),ta_tmp(6,5),ta_tmp(6,6),
+     &     dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,
+     &     sigcor_tmp,dpscor_tmp
+
+      if(ifipa.ne.posi) then    !IFIPA=first particle, POSI=requested particle
+        goto 555                !Get the next header...
       endif
       ! TODO: Protect against no valid headers found,
       ! i.e. posi > itopa.
       if(ierro.gt.0) then
-        write(lout,10320) nfile
+         write(lout,10320) nfile
 +if cr
-        goto 551
+         goto 551
 +ei
 +if .not.cr
-        goto 550
+         goto 550
 +ei
       endif
+      
+      !Convert it to the current working precission
+      do i=1,3
+         qwc(i)  = real(qwc_tmp (i), fPrec)
+         clo(i)  = real(clo_tmp (i), fPrec)
+         clop(i) = real(clop_tmp(i), fPrec)
+      end do
+      
+      do i=1,2
+         di0(i)  = real(di0_tmp (i), fPrec)
+         dip0(i) = real(dip0_tmp(i), fPrec)
+      enddo
+      
+      do i=1,6
+         do j=1,6
+            ta(j,i) = real(ta_tmp(j,i), fPrec)
+         end do
+      end do
+      
+      dmmac  = real(dmmac_tmp,  fPrec)
+      dnms   = real(dnms_tmp,   fPrec)
+      dizu0  = real(dizu0_tmp,  fPrec)
+      dnumlr = real(dnumlr_tmp, fPrec)
+      sigcor = real(sigcor_tmp, fPrec)
+      dpscor = real(dpscor_tmp, fPrec)
+      
 +if .not.cr
       sumda(1)=numl
 +ei
@@ -42871,16 +43014,16 @@ c$$$            endif
       do i=1,itopa,2
          read(nfile)
       enddo
-       !--read first track data for particle at posi
-      do !Loop safe, will anyway end EOF is reached.
+      !--read first track data for particle at posi
+      do !The loop is safe, it will anyway end if EOF is reached.
          read(nfile,end=530,iostat=ierro) iaa, j
          if (j.eq.posi) exit
       enddo
       if(ierro.gt.0) then
-        write(lout,10320) nfile
-        goto 550
+         write(lout,10320) nfile
+         goto 550
       endif
-      !--bypass records till 2nd run of same particle is reached
+      !--bypass records until the 2nd turn of same particle is reached
       do
          read(nfile,end=535,iostat=ierro) iab, j
          if (j.eq.posi) exit
@@ -42890,7 +43033,8 @@ c$$$            endif
         goto 550
       endif
 +ei !END +if stf
- 600  if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya        !hr06
+
+      if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya !hr06
 
       rewind nfile
 
@@ -43205,41 +43349,92 @@ c$$$            endif
 !----------------------------------------------------------------------
   190 ifipa=0
 +if .not.stf
-      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro)
-     &     ia,ifipa,b,c,d,e,f,g,h,p
-      if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
-     &     ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
+      if(ntwin.eq.1) then
+         read(nfile,end=200,iostat=ierro)
+     &        ia,ifipa,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+
+         b=real(b_tmp,real64)
+         
+         c=real(c_tmp,real64)
+         d=real(d_tmp,real64)
+         e=real(e_tmp,real64)
+         f=real(f_tmp,real64)
+         g=real(g_tmp,real64)
+         h=real(h_tmp,real64)
+         p=real(p_tmp,real64)
+         
+      elseif(ntwin.eq.2) then
+         read(nfile,end=200,iostat=ierro)
+     &        ia,ifipa,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
+     &        ilapa,
+     &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+         
+         b=real(b_tmp,real64)
+         
+         c=real(c_tmp,real64)
+         d=real(d_tmp,real64)
+         e=real(e_tmp,real64)
+         f=real(f_tmp,real64)
+         g=real(g_tmp,real64)
+         h=real(h_tmp,real64)
+         p=real(p_tmp,real64)
+         
+         c1=real(c1_tmp,real64)
+         d1=real(d1_tmp,real64)
+         e1=real(e1_tmp,real64)
+         f1=real(f1_tmp,real64)
+         g1=real(g1_tmp,real64)
+         h1=real(h1_tmp,real64)
+         p1=real(p1_tmp,real64)
+         
+      endif
 +ei
 +if stf
 !STF case: read tracking data until one reaches right particle.
-      if(ntwin.eq.1) read(nfile,end=200,iostat=ierro)
-     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
-      if(ntwin.eq.2) read(nfile,end=200,iostat=ierro)
-     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
-     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+      if(ntwin.eq.1) then
+         read(nfile,end=200,iostat=ierro)
+     &        ia_stf,ifipa_stf,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+         
+      elseif(ntwin.eq.2) then
+         read(nfile,end=200,iostat=ierro)
+     &        ia_stf,ifipa_stf,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &        ilapa_stf,
+     &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+         
+      endif
+      
       if(ifipa_stf.ne.posi) then
         goto 190
       endif
-!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      
+      ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
       ifipa=ifipa_stf
-      b=b_stf
-      c=c_stf
-      d=d_stf
-      e=e_stf
-      f=f_stf
-      g=g_stf
-      h=h_stf
-      p=p_stf
+      
+      b=real(b_tmp,real64)
+      
+      c=real(c_tmp,real64)
+      d=real(d_tmp,real64)
+      e=real(e_tmp,real64)
+      f=real(f_tmp,real64)
+      g=real(g_tmp,real64)
+      h=real(h_tmp,real64)
+      p=real(p_tmp,real64)
+
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-         c1=c1_stf
-         d1=d1_stf
-         e1=e1_stf
-         f1=f1_stf
-         g1=g1_stf
-         h1=h1_stf
-         p1=p1_stf
+         
+         c1=real(c1_tmp,real64)
+         d1=real(d1_tmp,real64)
+         e1=real(e1_tmp,real64)
+         f1=real(f1_tmp,real64)
+         g1=real(g1_tmp,real64)
+         h1=real(h1_tmp,real64)
+         p1=real(p1_tmp,real64)
       endif
 +ei
       if(ierro.gt.0) then
@@ -43247,7 +43442,8 @@ c$$$            endif
         goto 550
       endif
       if(ifipa.lt.1) goto 190
-      if((ia-nstart).lt.0) goto 190                                      !hr06
+      if((ia-nstart).lt.0) goto 190
+      
       if(progrm.eq.'MAD') then
 +if .not.stf
         c=c*c1e3
@@ -43327,41 +43523,89 @@ c$$$            endif
 
  210  ifipa=0
 +if .not.stf
-      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
-     &     ia,ifipa,b,c,d,e,f,g,h,p
-      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
-     &     ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
+      if(ntwin.eq.1) then
+         read(nfile,end=530,iostat=ierro)
+     &        ia,ifipa,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+         b=real(b_tmp,real64)
+         
+         c=real(c_tmp,real64)
+         d=real(d_tmp,real64)
+         e=real(e_tmp,real64)
+         f=real(f_tmp,real64)
+         g=real(g_tmp,real64)
+         h=real(h_tmp,real64)
+         p=real(p_tmp,real64)
+         
+      elseif(ntwin.eq.2) then
+         read(nfile,end=530,iostat=ierro)
+     &        ia,ifipa,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
+     &        ilapa,
+     &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+
+         b=real(b_tmp,real64)
+         
+         c=real(c_tmp,real64)
+         d=real(d_tmp,real64)
+         e=real(e_tmp,real64)
+         f=real(f_tmp,real64)
+         g=real(g_tmp,real64)
+         h=real(h_tmp,real64)
+         p=real(p_tmp,real64)
+         
+         c1=real(c1_tmp,real64)
+         d1=real(d1_tmp,real64)
+         e1=real(e1_tmp,real64)
+         f1=real(f1_tmp,real64)
+         g1=real(g1_tmp,real64)
+         h1=real(h1_tmp,real64)
+         p1=real(p1_tmp,real64)
+      endif
 +ei
 +if stf
 !     STF case: read tracking data until one reaches right particle.
-      if(ntwin.eq.1) read(nfile,end=530,iostat=ierro)
-     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
-      if(ntwin.eq.2) read(nfile,end=530,iostat=ierro)
-     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
-     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+      if(ntwin.eq.1) then
+         read(nfile,end=530,iostat=ierro)
+     &        ia_stf,ifipa_stf,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+         
+      elseif(ntwin.eq.2) then
+         read(nfile,end=530,iostat=ierro)
+     &        ia_stf,ifipa_stf,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &        ilapa_stf,
+     &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+      endif
+      
       if(ifipa_stf.ne.posi) then
          goto 210
       endif
-!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      
+      ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
       ifipa=ifipa_stf
-      b=b_stf
-      c=c_stf
-      d=d_stf
-      e=e_stf
-      f=f_stf
-      g=g_stf
-      h=h_stf
-      p=p_stf
+      
+      b=real(b_tmp,real64)
+      
+      c=real(c_tmp,real64)
+      d=real(d_tmp,real64)
+      e=real(e_tmp,real64)
+      f=real(f_tmp,real64)
+      g=real(g_tmp,real64)
+      h=real(h_tmp,real64)
+      p=real(p_tmp,real64)
+      
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-         c1=c1_stf
-         d1=d1_stf
-         e1=e1_stf
-         f1=f1_stf
-         g1=g1_stf
-         h1=h1_stf
-         p1=p1_stf
+         
+         c1=real(c1_tmp,real64)
+         d1=real(d1_tmp,real64)
+         e1=real(e1_tmp,real64)
+         f1=real(f1_tmp,real64)
+         g1=real(g1_tmp,real64)
+         h1=real(h1_tmp,real64)
+         p1=real(p1_tmp,real64)
       endif
 +ei
       if(ierro.gt.0) then
@@ -43601,41 +43845,90 @@ c$$$            endif
       iskc=0
   240 ifipa=0
 +if .not.stf
-      if(ntwin.eq.1) read(nfile,end=270,iostat=ierro)
-     &ia,ifipa,b,c,d,e,f,g,h,p
-      if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
-     &ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
+      if(ntwin.eq.1) then
+         read(nfile,end=270,iostat=ierro)
+     &        ia,ifipa,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+
+         b=real(b_tmp,real64)
+         
+         c=real(c_tmp,real64)
+         d=real(d_tmp,real64)
+         e=real(e_tmp,real64)
+         f=real(f_tmp,real64)
+         g=real(g_tmp,real64)
+         h=real(h_tmp,real64)
+         p=real(p_tmp,real64)
+
+      elseif(ntwin.eq.2) then
+         read(nfile,end=270,iostat=ierro)
+     &        ia,ifipa,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
+     &        ilapa,
+     &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+         
+         b=real(b_tmp,real64)
+         
+         c=real(c_tmp,real64)
+         d=real(d_tmp,real64)
+         e=real(e_tmp,real64)
+         f=real(f_tmp,real64)
+         g=real(g_tmp,real64)
+         h=real(h_tmp,real64)
+         p=real(p_tmp,real64)
+         
+         c1=real(c1_tmp,real64)
+         d1=real(d1_tmp,real64)
+         e1=real(e1_tmp,real64)
+         f1=real(f1_tmp,real64)
+         g1=real(g1_tmp,real64)
+         h1=real(h1_tmp,real64)
+         p1=real(p1_tmp,real64)
+      endif
 +ei
 +if stf
 !     STF case: read tracking data until one reaches right particle.
-      if(ntwin.eq.1) read(nfile,end=270,iostat=ierro)
-     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
-      if(ntwin.eq.2) read(nfile,end=270,iostat=ierro)
-     & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
-     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+      if(ntwin.eq.1) then
+         read(nfile,end=270,iostat=ierro)
+     &        ia_stf,ifipa_stf,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+         
+      elseif(ntwin.eq.2) then
+         read(nfile,end=270,iostat=ierro)
+     &        ia_stf,ifipa_stf,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &        ilapa_stf,
+     &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+      endif
+      
       if(ifipa_stf.ne.posi) then
          goto 240
       endif
-!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+      
+      ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
       ifipa=ifipa_stf
-      b=b_stf
-      c=c_stf
-      d=d_stf
-      e=e_stf
-      f=f_stf
-      g=g_stf
-      h=h_stf
-      p=p_stf
+      
+      b=real(b_tmp,real64)
+      
+      c=real(c_tmp,real64)
+      d=real(d_tmp,real64)
+      e=real(e_tmp,real64)
+      f=real(f_tmp,real64)
+      g=real(g_tmp,real64)
+      h=real(h_tmp,real64)
+      p=real(p_tmp,real64)
+      
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-         c1=c1_stf
-         d1=d1_stf
-         e1=e1_stf
-         f1=f1_stf
-         g1=g1_stf
-         h1=h1_stf
-         p1=p1_stf
+         
+         c1=real(c1_tmp,real64)
+         d1=real(d1_tmp,real64)
+         e1=real(e1_tmp,real64)
+         f1=real(f1_tmp,real64)
+         g1=real(g1_tmp,real64)
+         h1=real(h1_tmp,real64)
+         p1=real(p1_tmp,real64)
       endif
 +ei
       if(ierro.gt.0) then
@@ -44015,45 +44308,61 @@ c$$$            endif
         ifipa=0
         ! Read 1st particle only
 +if .not.stf
- 315    read(nfile,end=350,iostat=ierro) ia,ifipa,b,c,d,e,f,g,h,p
+ 315    read(nfile,end=350,iostat=ierro)
+     &       ia,ifipa,
+     &       b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+        b=real(b_tmp,real64)
+        
+        c=real(c_tmp,real64)
+        d=real(d_tmp,real64)
+        e=real(e_tmp,real64)
+        f=real(f_tmp,real64)
+        g=real(g_tmp,real64)
+        h=real(h_tmp,real64)
+        p=real(p_tmp,real64)
 +ei
 +if stf
 !     STF case: read tracking data until one reaches right particle.
- 315  read(nfile,end=350,iostat=ierro)
-     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
+ 315    read(nfile,end=350,iostat=ierro)
+     &       ia_stf,ifipa_stf,
+     &       b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+        
         if(ifipa_stf.ne.posi) then
           goto 315
         endif
-!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+        ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
         ia=ia_stf
         ifipa=ifipa_stf
-        b=b_stf
-        c=c_stf
-        d=d_stf
-        e=e_stf
-        f=f_stf
-        g=g_stf
-        h=h_stf
-        p=p_stf
+        
+        b=real(b_tmp,real64)
+        
+        c=real(c_tmp,real64)
+        d=real(d_tmp,real64)
+        e=real(e_tmp,real64)
+        f=real(f_tmp,real64)
+        g=real(g_tmp,real64)
+        h=real(h_tmp,real64)
+        p=real(p_tmp,real64)
 +ei
         if(ierro.gt.0) then
-          write(lout,10320) nfile
-          goto 550
+           write(lout,10320) nfile
+           goto 550
         endif
+        
         if(ifipa.lt.1) goto 340
         if(progrm.eq.'MAD') then
 +if .not.stf
-          c=c*c1e3
-          d=d*c1e3
-          e=e*c1e3
-          f=f*c1e3
-          g=g*c1e3
-          p=p*c1e3
+           c=c*c1e3
+           d=d*c1e3
+           e=e*c1e3
+           f=f*c1e3
+           g=g*c1e3
+           p=p*c1e3
 +ei
 +if stf
-          write(lout,*)
-     &         "ERROR in postpr: program=MAD not valid for STF."
-          call prror(-1)
+           write(lout,*)
+     &          "ERROR in postpr: program=MAD not valid for STF."
+           call prror(-1)
 +ei
         endif !END if(program.eq.'MAD')
 
@@ -44553,42 +44862,92 @@ c$$$            endif
           do 460 j=1,i11*iskip+nstart
  435        ifipa=0
 +if .not.stf
-            if(ntwin.eq.1) read(nfile,end=470,iostat=ierro)
-     &           ia,ifipa,b,c,d,e,f,g,h,p
-            if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
-     &           ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
+            if(ntwin.eq.1) then
+               read(nfile,end=470,iostat=ierro)
+     &              ia,ifipa,
+     &              b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+
+               b=real(b_tmp,real64)
+               
+               c=real(c_tmp,real64)
+               d=real(d_tmp,real64)
+               e=real(e_tmp,real64)
+               f=real(f_tmp,real64)
+               g=real(g_tmp,real64)
+               h=real(h_tmp,real64)
+               p=real(p_tmp,real64)
+               
+            elseif(ntwin.eq.2) then
+               read(nfile,end=470,iostat=ierro)
+     &              ia,ifipa,
+     &              b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
+     &              ilapa,
+     &              b_tmp,c1_tmp,d1_tmp,e1_tmp,
+     &              f1_tmp,g1_tmp,h1_tmp,p1_tmp
+               
+               b=real(b_tmp,real64)
+               
+               c=real(c_tmp,real64)
+               d=real(d_tmp,real64)
+               e=real(e_tmp,real64)
+               f=real(f_tmp,real64)
+               g=real(g_tmp,real64)
+               h=real(h_tmp,real64)
+               p=real(p_tmp,real64)
+               
+               c1=real(c1_tmp,real64)
+               d1=real(d1_tmp,real64)
+               e1=real(e1_tmp,real64)
+               f1=real(f1_tmp,real64)
+               g1=real(g1_tmp,real64)
+               h1=real(h1_tmp,real64)
+               p1=real(p1_tmp,real64)
+            endif
 +ei
 +if stf
 !     STF case: read tracking data until one reaches right particle.
-            if(ntwin.eq.1) read(nfile,end=470,iostat=ierro)
-     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
-            if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
-     &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
-     &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
+            if(ntwin.eq.1) then
+               read(nfile,end=470,iostat=ierro)
+     &              ia_stf,ifipa_stf,
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+            elseif(ntwin.eq.2) then
+               read(nfile,end=470,iostat=ierro)
+     &              ia_stf,ifipa_stf,
+     &              b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &              ilapa_stf,
+     &              b_tmp,c1_tmp,d1_tmp,e1_tmp,
+     &              f1_tmp,g1_tmp,h1_tmp,p1_tmp
+            endif
+            
             if(ifipa_stf.ne.posi) then
               goto 435
             endif
-!     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
-      ia=ia_stf
-      ifipa=ifipa_stf
-      b=b_stf
-      c=c_stf
-      d=d_stf
-      e=e_stf
-      f=f_stf
-      g=g_stf
-      h=h_stf
-      p=p_stf
-      if(ntwin.eq.2) then
-         ilapa=ilapa_stf
-         c1=c1_stf
-         d1=d1_stf
-         e1=e1_stf
-         f1=f1_stf
-         g1=g1_stf
-         h1=h1_stf
-         p1=p1_stf
-      endif
+           
+            ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
+            ia=ia_stf
+            ifipa=ifipa_stf
+
+            b=real(b_tmp,real64)
+            
+            c=real(c_tmp,real64)
+            d=real(d_tmp,real64)
+            e=real(e_tmp,real64)
+            f=real(f_tmp,real64)
+            g=real(g_tmp,real64)
+            h=real(h_tmp,real64)
+            p=real(p_tmp,real64)
+            
+            if(ntwin.eq.2) then
+               ilapa=ilapa_stf
+
+               c1=real(c1_tmp,real64)
+               d1=real(d1_tmp,real64)
+               e1=real(e1_tmp,real64)
+               f1=real(f1_tmp,real64)
+               g1=real(g1_tmp,real64)
+               h1=real(h1_tmp,real64)
+               p1=real(p1_tmp,real64)
+            endif
 +ei
             if(ierro.gt.0) then
               write(lout,10320) nfile
