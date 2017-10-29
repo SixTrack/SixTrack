@@ -43401,7 +43401,7 @@ c$$$            endif
       elseif(ntwin.eq.2) then
          read(nfile,end=200,iostat=ierro)
      &        ia_stf,ifipa_stf,
-     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
      &        ilapa_stf,
      &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
          
@@ -43573,7 +43573,7 @@ c$$$            endif
       elseif(ntwin.eq.2) then
          read(nfile,end=530,iostat=ierro)
      &        ia_stf,ifipa_stf,
-     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
      &        ilapa_stf,
      &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
       endif
@@ -43896,7 +43896,7 @@ c$$$            endif
       elseif(ntwin.eq.2) then
          read(nfile,end=270,iostat=ierro)
      &        ia_stf,ifipa_stf,
-     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
      &        ilapa_stf,
      &        b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
       endif
@@ -44913,7 +44913,7 @@ c$$$            endif
             elseif(ntwin.eq.2) then
                read(nfile,end=470,iostat=ierro)
      &              ia_stf,ifipa_stf,
-     &              b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+     &              b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,
      &              ilapa_stf,
      &              b_tmp,c1_tmp,d1_tmp,e1_tmp,
      &              f1_tmp,g1_tmp,h1_tmp,p1_tmp
