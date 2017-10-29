@@ -8638,7 +8638,7 @@ cc2008
       dimension ainv(2,2),bmat(2,10),cmat(2,10),cvec(2),dvec(2)
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(3)
-      data sgn/c1e2/ainv,bmat,cmat,cvec,dvec/48.0_fPrec/
+      data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48*zero/
       save
 !-----------------------------------------------------------------------
       pi2in=one/(eight*atan_mb(one))
@@ -9291,6 +9291,7 @@ cc2008
       real(kind=fPrec) fder,fun,objf,objgrd,x
       dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
       save
++ca parnum
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -9548,7 +9549,7 @@ cc2008
       dimension ainv(2,2),bmat(2,10),cmat(2,10),cvec(2),dvec(2)
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(2)
-      data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48.0_fPrec/
+      data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48*zero/
       save
 !-----------------------------------------------------------------------
       pi2in=one/(eight*atan_mb(one))
@@ -10063,6 +10064,7 @@ cc2008
       implicit none
       integer j,j1,j2,j3,j4,j5,j6,jel,jord,jp,l,kointer
       real(kind=fPrec) thama,thamp
++ca parnum
 +ca commadha
 +ca commadh2
       dimension thamp(0:1),thama(0:4)
@@ -10334,6 +10336,7 @@ cc2008
       dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
       dimension iuser(*),tunedx(10),tunedy(10)
       save
++ca parnum
 !-----------------------------------------------------------------------
       do 30 jel=0,1
         do 20 jord=1,iuser(1)
@@ -10542,9 +10545,9 @@ cc2008
         do 390 kord=iuser(2),iuser(1)
           sgn=one
           if(((jord+kord)/2)*2.ne.(jord+kord)) sgn=-one
-          add1=one/dble((jord+kord)+1)                                  !hr04
-          add2=user(3)/dble((jord+kord)+3)                               !hr04
-          weight=((user(4)**((jord+kord)+1))*(one+sgn))*(add1+add2)*   &!hr04
+          add1=one/real((jord+kord)+1,fPrec)                             !hr04
+          add2=user(3)/real((jord+kord)+3,fPrec)                         !hr04
+          weight=((user(4)**((jord+kord)+1))*(one+sgn))*(add1+add2)*    &!hr04
      &user(5)                                                            !hr04
           tunex=tunex+(fun(0,jord)*fun(0,kord))*weight                   !hr04
           tuney=tuney+(fun(1,jord)*fun(1,kord))*weight                   !hr04
@@ -10560,7 +10563,7 @@ cc2008
       objf=user(1)**2*tunex+user(2)**2*tuney                             !hr04
 !-----------------------------------------------------------------------
       do 410 jvar=1,n
-        objgrd(jvar)=(two*user(1)**2)*tunedx(jvar)+ (two*user(2)**2)  &
+        objgrd(jvar)=(two*user(1)**2)*tunedx(jvar)+ (two*user(2)**2)    &
      &*tunedy(jvar)
   410 continue
 !-----------------------------------------------------------------------
@@ -33291,15 +33294,15 @@ c$$$         endif
       do_coll = .false.
       
       ! From common /grd/
-      emitnx0_dist = 0.0
-      emitny0_dist = 0.0
-      emitnx0_collgap = 0.0
-      emitny0_collgap = 0.0
+      emitnx0_dist = zero
+      emitny0_dist = zero
+      emitnx0_collgap = zero
+      emitny0_collgap = zero
       ! From common /ralph/
-      myemitx0_dist = 0.0
-      myemity0_dist = 0.0
-      myemitx0_collgap = 0.0
-      myemity0_collgap = 0.0
+      myemitx0_dist = zero
+      myemity0_dist = zero
+      myemitx0_collgap = zero
+      myemity0_collgap = zero
 +ei
 !
 !-----------------------------------------------------------------------
@@ -33314,12 +33317,13 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
 +ca crcoall
       integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
       real(kind=fPrec) c,c1
       character(len=80) aaa
-      character*18 a18
-      character*58 a58
+      character(len=18) a18
+      character(len=58) a58
       dimension jj(100)
       save
 !-----------------------------------------------------------------------
@@ -33338,14 +33342,14 @@ c$$$         endif
         write(iu2,'(A80)') aaa
         read(iu1,'(A80)') aaa
         write(iu2,'(A80)') aaa
-!
+
         if(nno.eq.1) then
           do 10 i=1,5
             read(iu1,'(6X,2X,G20.14,I5)') c,ii
             write(iu2,'(6X,2X,G20.14,I5)') c,ii
    10     continue
           if (j.eq.5) then
-            write(iu2,'(6X,2X,G20.14,I5)') 1d0,5
+            write(iu2,'(6X,2X,G20.14,I5)') one,5
           else
             write(iu2,'(6X,2X,G20.14,I5)') zero,5
           endif
@@ -33358,9 +33362,9 @@ c$$$         endif
      &=1,5)
           if(ii.eq.0) then
             if(j.eq.5.and.ioo.lt.2) then
-              write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') iio+1,1d0,1, &
+              write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') iio+1,one,1, &
      &0,0,0,0,1,0
-              write(iu2,*) 1d0
+              write(iu2,*) one
             endif
             goto 30
           endif
@@ -33369,9 +33373,9 @@ c$$$         endif
           read(iu1,*) c1
           if(j.eq.5.and.(io.eq.2.or.jj(5).eq.1).and.iplus.eq.0) then
             iplus=1
-            write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,1d0,io,0,0, &
+            write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,one,io,0,0, &
      &0,0,1,0
-            write(iu2,*) 1d0
+            write(iu2,*) one
           endif
           write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj&
      &(i),i=1,4),0,jj(5)
