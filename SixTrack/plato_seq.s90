@@ -26,7 +26,7 @@
       NV2=N/2
       NM1=N-1
       J=1
-      DO 7 I=1,NM1
+      DO I=1,NM1
       IF(I.GE.J) GO TO 5
       T=A(J)
       A(J)=A(I)
@@ -37,33 +37,45 @@
       K=K/2
       GO TO 6
  7    J=J+K
-      DO 8 I=1,N,2
-      T=A(I+1)
-      A(I+1)=A(I)-T
- 8    A(I )=A(I)+T
+      END DO
+
+      DO I=1,N,2
+        T=A(I+1)
+        A(I+1)=A(I)-T
+        A(I )=A(I)+T
+      END DO
+
       IF(M.EQ.1) RETURN
       C=zero
       S=ISIGN(1,MSIGN)
       LE=2
-      DO 20 L=2,M
-      W=CMPLX(C,S,fPrec)
-      U=W
-      C=SQRT(C*half+half)
-      S=AIMAG(W)/(C+C)
-      LE1=LE
-      LE=LE1+LE1
-      DO 9 I=1,N,LE
-      IP=I+LE1
-      T=A(IP)
-      A(IP)=A(I)-T
- 9    A(I) =A(I)+T
-      DO 20 J=2,LE1
-      DO 10 I=J,N,LE
-      IP=I+LE1
-      T=A(IP)*U
-      A(IP)=A(I)-T
- 10   A(I) =A(I)+T
- 20   U=U*W
+
+      DO L=2,M
+        W=CMPLX(C,S,fPrec)
+        U=W
+        C=SQRT(C*half+half)
+        S=AIMAG(W)/(C+C)
+        LE1=LE
+        LE=LE1+LE1
+
+        DO I=1,N,LE
+          IP=I+LE1
+          T=A(IP)
+          A(IP)=A(I)-T
+          A(I) =A(I)+T
+        END DO
+
+        DO J=2,LE1
+          DO I=J,N,LE
+            IP=I+LE1
+            T=A(IP)*U
+            A(IP)=A(I)-T
+            A(I) =A(I)+T
+          END DO
+          U=U*W
+        END DO
+      END DO
+
       RETURN
       END SUBROUTINE
 
