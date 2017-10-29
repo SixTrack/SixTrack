@@ -212,7 +212,7 @@
       
       INQUIRE(FILE=fname,EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a,a)') "Error in read90 - file '"//trim(fname)//"' was not found"
+         write(*,'(a,a,a)') "Error in read90 - file '"//trim(fname)//"' was not found; try --help?"
          flush(stdout)
          stop 19
       endif
@@ -249,59 +249,65 @@
          endif
       endif
       
-      write (ounit,*) 'Read header, record=', n
+      write (ounit,'(1x,a,i10,a)') 'Read record = ', n, " (header)"
       ntwin=1
       if(ilapa.ne.ifipa) ntwin=2
-      write (ounit,*) 'Header ntwin ',ntwin,ifipa,ilapa
-      ! ifipa=0
       n=n+1 !Increase record number
-      write(ounit,*) sixtit
-      write(ounit,*) commen
-      write (ounit,*) progrm,itopa,icode,numl
+      
+      write (ounit,'(2x,a,i1,1x,i10,1x,i10)') 'ntwin, first_particle, last_particle : ',ntwin,ifipa,ilapa
+      ! ifipa=0
+      write(ounit,'(2x,a,a)')   "Title           : ", sixtit
+      write(ounit,'(2x,a,a)')   "Comment         : ", commen
+!      write(ounit,'(2x,a,a)')   "cdate           : ", cdate !Skip the date and time; these won't match between different runs when we do a diff..
+!      write(ounit,'(2x,a,a)')   "ctime           : ", ctime
+      write(ounit,'(2x,a,a)')   "Program         : ", progrm
+      write(ounit,'(2x,a,i10)') "Total particles : ", itopa
+      write(ounit,'(2x,a,i10)') "icode           : ", icode
+      write(ounit,'(2x,a,i10)') "numl            : ", numl
       errno=dtostr(qwc(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Qx:      ",ch1
       errno=dtostr(qwc(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Qy:      ",ch1
       errno=dtostr(qwc(3),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Qz:      ",ch1
       errno=dtostr(clo(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x_clo:   ", ch1
       errno=dtostr(clop(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x'_clo:  ",ch1
       errno=dtostr(clo(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y_clo:   ", ch1
       errno=dtostr(clop(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y'_clo:  ", ch1
       errno=dtostr(clo(3),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "clo(3):  ", ch1
       errno=dtostr(clop(3),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "clop(3): ", ch1
       errno=dtostr(di0(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "di0(1):  ", ch1
       errno=dtostr(dip0(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dip0(1): ", ch1
       errno=dtostr(di0(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "di0(2):  ", ch1
       errno=dtostr(dip0(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dip0(2): ",ch1
       do i=1,6
         do j=1,6
           errno=dtostr(ta(i,j),ch1)
-          write (ounit,*) ch1
+          write (ounit,'(2x, A, I1, A, I1, A, A)') 'tas(',i,',',j,'): ',ch1
         enddo
       enddo
       errno=dtostr(dmmac,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dmmac:   ', ch1
       errno=dtostr(dnms,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dnms:    ', ch1
       errno=dtostr(dizu0,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dizu0:   ', ch1
       errno=dtostr(dnumlr,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dnumlr:  ', ch1
       errno=dtostr(sigcor,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'sigcor:  ', ch1
       errno=dtostr(dpscor,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dpscor:  ', ch1
 
       if (STF) then
          if (ifipa .lt. itopa-1) goto 100 !Read more headers
@@ -342,43 +348,42 @@
       n=n+1
       
   212 continue
-! Do conversion and print, add text later?
-      write (ounit,*) 'Read record ',n
-      write (ounit,*) 'Turn ',ia,'   Particle ',ifipa
+      write (ounit,'(1x,a,i10,a)') 'Read record = ', n, " (particle(s))"
+      write (ounit,'(2x,a,i10,a,i10,a)') 'Turn ',ia,'   Particle ',ifipa, " (1st)"
       errno=dtostr(b,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dam:     ", ch1
       errno=dtostr(c,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x mm:    ", ch1
       errno=dtostr(d,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x' mrad: ", ch1
       errno=dtostr(e,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y mm:    ", ch1
       errno=dtostr(f,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y' mrad: ", ch1
       errno=dtostr(g,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "ds mm    ", ch1
       errno=dtostr(h,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dp/p0:   ", ch1
       errno=dtostr(p,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Energy:  ", ch1
       if(ntwin.eq.2) then
-        write (ounit,*) 'Turn ',ia,'   Particle ',ilapa
-        errno=dtostr(b,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(c1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(d1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(e1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(f1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(g1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(h1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(p1,ch1)
-        write(ounit,*) ch1
+         write (ounit,'(2x,a,i10,a,i10,a)') 'Turn ',ia,'   Particle ',ilapa, " (2nd)"
+         errno=dtostr(b,ch1)
+         write(ounit,'(2x,a,a)') "dam:     ", ch1
+         errno=dtostr(c1,ch1)
+         write(ounit,'(2x,a,a)') "x mm:    ", ch1
+         errno=dtostr(d1,ch1)
+         write(ounit,'(2x,a,a)') "x' mrad: ", ch1
+         errno=dtostr(e1,ch1)
+         write(ounit,'(2x,a,a)') "y mm:    ", ch1
+         errno=dtostr(f1,ch1)
+         write(ounit,'(2x,a,a)') "y' mrad: ", ch1
+         errno=dtostr(g1,ch1)
+         write(ounit,'(2x,a,a)') "ds mm    ", ch1
+         errno=dtostr(h1,ch1)
+         write(ounit,'(2x,a,a)') "dp/p0:   ", ch1
+         errno=dtostr(p1,ch1)
+         write(ounit,'(2x,a,a)') "Energy:  ", ch1
       endif
       goto 211
   510 continue

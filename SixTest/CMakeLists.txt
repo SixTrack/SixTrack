@@ -15,7 +15,7 @@ ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
 set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf1014 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
-set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\n.*19")
+set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found; try --help?\n.*19")
 
 ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
