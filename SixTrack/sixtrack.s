@@ -8638,7 +8638,7 @@ cc2008
       dimension ainv(2,2),bmat(2,10),cmat(2,10),cvec(2),dvec(2)
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(3)
-      data sgn/c1e2/ainv,bmat,cmat,cvec,dvec/48.0_fPrec/
+      data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48*zero/
       save
 !-----------------------------------------------------------------------
       pi2in=one/(eight*atan_mb(one))
@@ -9291,6 +9291,7 @@ cc2008
       real(kind=fPrec) fder,fun,objf,objgrd,x
       dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
       save
++ca parnum
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -9548,7 +9549,7 @@ cc2008
       dimension ainv(2,2),bmat(2,10),cmat(2,10),cvec(2),dvec(2)
       dimension work(450),user(500),sex(10),sgn(10,10)
       dimension istate(20),iwork(40),iuser(2)
-      data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48.0_fPrec/
+      data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48*zero/
       save
 !-----------------------------------------------------------------------
       pi2in=one/(eight*atan_mb(one))
@@ -10063,6 +10064,7 @@ cc2008
       implicit none
       integer j,j1,j2,j3,j4,j5,j6,jel,jord,jp,l,kointer
       real(kind=fPrec) thama,thamp
++ca parnum
 +ca commadha
 +ca commadh2
       dimension thamp(0:1),thama(0:4)
@@ -10334,6 +10336,7 @@ cc2008
       dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
       dimension iuser(*),tunedx(10),tunedy(10)
       save
++ca parnum
 !-----------------------------------------------------------------------
       do 30 jel=0,1
         do 20 jord=1,iuser(1)
@@ -10542,9 +10545,9 @@ cc2008
         do 390 kord=iuser(2),iuser(1)
           sgn=one
           if(((jord+kord)/2)*2.ne.(jord+kord)) sgn=-one
-          add1=one/dble((jord+kord)+1)                                  !hr04
-          add2=user(3)/dble((jord+kord)+3)                               !hr04
-          weight=((user(4)**((jord+kord)+1))*(one+sgn))*(add1+add2)*   &!hr04
+          add1=one/real((jord+kord)+1,fPrec)                             !hr04
+          add2=user(3)/real((jord+kord)+3,fPrec)                         !hr04
+          weight=((user(4)**((jord+kord)+1))*(one+sgn))*(add1+add2)*    &!hr04
      &user(5)                                                            !hr04
           tunex=tunex+(fun(0,jord)*fun(0,kord))*weight                   !hr04
           tuney=tuney+(fun(1,jord)*fun(1,kord))*weight                   !hr04
@@ -10560,7 +10563,7 @@ cc2008
       objf=user(1)**2*tunex+user(2)**2*tuney                             !hr04
 !-----------------------------------------------------------------------
       do 410 jvar=1,n
-        objgrd(jvar)=(two*user(1)**2)*tunedx(jvar)+ (two*user(2)**2)  &
+        objgrd(jvar)=(two*user(1)**2)*tunedx(jvar)+ (two*user(2)**2)    &
      &*tunedy(jvar)
   410 continue
 !-----------------------------------------------------------------------
@@ -10618,8 +10621,8 @@ cc2008
         rx(nu+1)=zero
         ry(nu+1)=zero
         do 10 n=nu,1,-1
-          tx=xh+dble(n)*rx(n+1)                                          !hr05
-          ty=yh-dble(n)*ry(n+1)                                          !hr05
+          tx=xh+real(n,fPrec)*rx(n+1)                                          !hr05
+          ty=yh-real(n,fPrec)*ry(n+1)                                          !hr05
           tn=tx**2+ty**2                                                 !hr05
           rx(n)=(half*tx)/tn                                            !hr05
           ry(n)=(half*ty)/tn                                            !hr05
@@ -10816,8 +10819,8 @@ cc2008
               vtdddr = vtdd13i - vtdd24i
               vtdddi = vtdd24r - vtdd13r
 !  Evaluate polynomial.
-              vxhrel = vxh - dble(vmu)
-              vyhrel = vyh - dble(vnu)
+              vxhrel = vxh - real(vmu,fPrec)
+              vyhrel = vyh - real(vnu,fPrec)
               vusum3=half*(vtdd13r+                                     &
      &       (vxhrel*vtdddr-vyhrel*vtdddi))
               vvsum3=half*(vtdd13i+                                     &
@@ -10895,8 +10898,8 @@ cc2008
         vtdddr = vtdd13i - vtdd24i
         vtdddi = vtdd24r - vtdd13r
 !  Evaluate polynomial.
-        vxhrel = vxh - dble(vmu)
-        vyhrel = vyh - dble(vnu)
+        vxhrel = vxh - real(vmu,fPrec)
+        vyhrel = vyh - real(vnu,fPrec)
         vusum3=half*(vtdd13r+                                           &
      & (vxhrel*vtdddr-vyhrel*vtdddi))
         vvsum3=half*(vtdd13i+                                           &
@@ -10990,8 +10993,8 @@ cc2008
       tdddr = tdd13i - tdd24i
       tdddi = tdd24r - tdd13r
 !  Evaluate polynomial.
-      xhrel = xh - dble(mu)
-      yhrel = yh - dble(nu)
+      xhrel = xh - real(mu,fPrec)
+      yhrel = yh - real(nu,fPrec)
       usum3 = half*( tdd13r + ( xhrel*tdddr - yhrel*tdddi ) )
       vsum3 = half*( tdd13i + ( xhrel*tdddi + yhrel*tdddr ) )
       yhrel = yhrel - one
@@ -12941,7 +12944,7 @@ cc2008
         write(lout,10340)
   720   phas=phag*rad
         if(ncy.ne.0) then
-          hsy(1)=u0/dble(ncy)
+          hsy(1)=u0/real(ncy,fPrec)
         else
           hsy(1)=u0
         endif
@@ -12961,8 +12964,8 @@ cc2008
 +ei
         qigam=(pma**2/e0)/e0                                             !hr05
         qbet=one-qigam
-        halc3=((((((-one*(qigam-alc))*dble(ition))*harm)*u0)/e0)*cosy)/ &!hr05
-     &((two*pi)*qbet)                                                    !hr05
+        halc3=((((((-one*(qigam-alc))*real(ition,fPrec))*harm)*u0)/e0)  &
+     &*cosy)/((two*pi)*qbet)                                             !hr05
         if(halc3.lt.zero) call prror(28)
         qs=sqrt(halc3)
       else
@@ -13134,11 +13137,11 @@ cc2008
       rsum=zero
       do 800 i=1,nzfz
   800 rsum=rsum+zfz(i)
-      rmean=rsum/dble(nzfz)                                              !hr05
+      rmean=rsum/real(nzfz,fPrec)                                              !hr05
       rsqsum=zero
       do 810 i=1,nzfz
   810 rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
-      rdev=sqrt(rsqsum/dble(nzfz))                                       !hr05
+      rdev=sqrt(rsqsum/real(nzfz,fPrec))                                       !hr05
       write(lout,10410) izu0,nzfz,rmean,rdev
       if(mcut.eq.0) write(lout,10430)
       if(mcut.gt.0) write(lout,10440) mcut
@@ -15524,7 +15527,7 @@ cc2008
                   endif
                   if (i.gt.0) then ! 6D, allow 1 or more slices
                      parbe(j,17)=1      ! Is 6D
-                     parbe(j,2)=dble(i) ! Number of slices
+                     parbe(j,2)=real(i,fPrec) ! Number of slices
                      parbe(j,1)=xang
                      parbe(j,3)=xplane
                      parbe(j,5)=separx
@@ -15543,7 +15546,7 @@ cc2008
                      goto 1660
                   else if(i.eq.0) then ! 4D, single slice only
                      parbe(j,17)=0      ! Type is 4D
-                     parbe(j,2)=dble(i) ! Number of slices is always 0
+                     parbe(j,2)=real(i,fPrec) ! Number of slices is always 0
                      parbe(j,1)=xang    ! not the crossing angle but sigmaxx
                      parbe(j,3)=xplane  ! not the xplane but sigmayy
                      parbe(j,5)=separx
@@ -15741,7 +15744,7 @@ cc2008
          do 1620 j=1,il
             if(idat.eq.bez(j).and.kz(j).eq.20) then
                ibb6d=1
-               parbe(j,2)=dble(i) !hr12
+               parbe(j,2)=real(i,fPrec) !hr12
                parbe(j,1)=xang
                parbe(j,3)=xplane
                parbe(j,18)=xstr
@@ -16873,12 +16876,12 @@ cc2008
         enddo
       else
         do j=1,il
-          if(parbe(j,2).gt.dble(mbea)) then
+          if(parbe(j,2).gt.real(mbea,fPrec)) then
              write(lout,'(a,i5,a,i5,a,a16,a,i5)')
      &            'ERROR: Requested ',
      &            int(parbe(j,2)), " slices for 6D beam-beam element"//
      &            ' #',j, " named ", bez(j), ", maximum is mbea =",mbea
-            parbe(j,2)=dble(mbea)
+            parbe(j,2)=real(mbea,fPrec)
             call prror(-1) !Treat this warning as an error
          endif
         enddo
@@ -17700,7 +17703,7 @@ c$$$         endif
             phasc(ix) = phasc(ix)*rad
             
             hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
-            hsyc(ix)=(c1m3*hsyc(ix))*dble(itionc(ix)) ! trauthin/trauthck
+            hsyc(ix)=(c1m3*hsyc(ix))*real(itionc(ix),fPrec) ! trauthin/trauthck
          endif
 !--BEAM-BEAM
       elseif(kz(ix).eq.20) then
@@ -18061,8 +18064,8 @@ c$$$         endif
       do 2 j=0,ny+1
          do 1 i=0,nx+1
             k = k+1
-            x=dble(i)*h                                                  !hr05
-            y=dble(j)*h                                                  !hr05
+            x=real(i,fPrec)*h                                                  !hr05
+            y=real(j,fPrec)*h                                                  !hr05
             call mywwerf(x,y,wr,wi)
             wtreal(k)=wr
             wtimag(k)=wi
@@ -18097,8 +18100,8 @@ c$$$         endif
         ri(37)=zero
         do n=36,1,-1
 !          t=zh+n*dconjg(r(n+1))
-          tr=zhr+dble(n)*rr(n+1)                                         !hr05
-          ti=zhi-dble(n)*ri(n+1)                                         !hr05
+          tr=zhr+real(n,fPrec)*rr(n+1)                                         !hr05
+          ti=zhi-real(n,fPrec)*ri(n+1)                                         !hr05
 !          r(n)=hf*t/(dreal(t)**2+dimag(t)**2)
           rr(n)=(hf*tr)/(tr**2+ti**2)                                    !hr05
           ri(n)=(hf*ti)/(tr**2+ti**2)                                    !hr05
@@ -18287,7 +18290,7 @@ c$$$         endif
         if (iseed2.lt.0) iseed2 = iseed2+2147483399
         iz = iseed1-iseed2
         if (iz.lt.1) iz = iz+2147483562
-        r(j) = dble(iz)*4.656613d-10                                     !hr05
+        r(j) = real(iz,fPrec)*4.656613e-10_fPrec                                     !hr05
    20 continue
 
       if (mcut.ge.0) then !mcut = -1 => Generate uniform numbers!
@@ -18297,7 +18300,7 @@ c$$$         endif
          rvec0 = r(1)
       end if
       
-      if(abs(rvec0).le.dble(mcut) .or. mcut.eq.0 .or. mcut.eq.-1) then
+      if(abs(rvec0).le.real(mcut,fPrec).or.mcut.eq.0.or.mcut.eq.-1) then
         rvec(i) = rvec0
         i=i+1
       endif
@@ -22147,13 +22150,13 @@ c$$$         endif
          phi=param(ne,1)
          nsli=param(ne,2)
          alpha=param(ne,3)
-         f=param(ne,4)/dble(nsli)
+         f=param(ne,4)/real(nsli,fPrec)
          phi2=param(ne,18)
       else if(beam_expflag .eq. 1) then
          phi=param(ne,1)
          nsli=param(ne,2)
          alpha=param(ne,3)
-         f=param(ne,4)/dble(nsli)
+         f=param(ne,4)/real(nsli,fPrec)
          !sepax=param(ne,5)     !Not actually used anywhere?
          !sepay=param(ne,6)     !Not actually used anywhere?
          phi2=phi               !Note - phi2 is not a free parameter anymore
@@ -23315,7 +23318,7 @@ c$$$         endif
    90 fake(2,i)=zero
       itra=2
       amp00=amp(1)
-      if(napx.ne.1) damp=((amp00-amp0)/dble(napx-1))/2d0                 !hr05
+      if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
       napx=2*napx
       iation=abs(ition)
       ib0=0
@@ -23333,11 +23336,11 @@ c$$$         endif
           rsum=zero
           do 100 i=1,nzfz
   100     rsum=rsum+zfz(i)
-          rmean=rsum/dble(nzfz)                                          !hr05
+          rmean=rsum/real(nzfz,fPrec)                                          !hr05
           rsqsum=zero
           do 110 i=1,nzfz
   110     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
-          rdev=sqrt(rsqsum/dble(nzfz))                                   !hr05
+          rdev=sqrt(rsqsum/real(nzfz,fPrec))                                   !hr05
           write(lout,10320) m*izu0,nzfz,rmean,rdev
           write(lout,10070)
         endif
@@ -23458,11 +23461,11 @@ c$$$         endif
         dp1=dp00
         dp0=dp00
         if(imc.gt.1) then
-          ddp1=(two*dp0)/(dble(imc)-one)                                 !hr05
+          ddp1=(two*dp0)/(real(imc,fPrec)-one)                                 !hr05
         endif
         do 250 ib=1,imc
           if(imc.gt.1) then
-            dp1=dp0-(dble(ib)-one)*ddp1                                  !hr05
+            dp1=dp0-(real(ib,fPrec)-one)*ddp1                                  !hr05
           endif
           dp10=dp1
 !-----------------------------------------------------------------------
@@ -23536,7 +23539,7 @@ c$$$         endif
 !     call abend('before mydaini                                    ')
 +ei
               do i=1,2
-                qwc(i)=dble(int(qwc(i)))+wxys(i)
+                qwc(i)=real(int(qwc(i)),fPrec)+wxys(i)
               enddo
               if(ilin.ge.2) then
 +if debug
@@ -23803,7 +23806,7 @@ c$$$         endif
             bet0v(ib2,2)=bet0(2)
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
-            ampv(ib2)=amp(1)-damp*dble(ib1-1) !hr05
+            ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
             if (ib1.eq.napx-1 .and. ib1.ne.1) then
                !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
                ! This is helpfull when doing DA studies and checking the "overlap"
@@ -23842,7 +23845,7 @@ c$$$         endif
       if(ibidu.eq.2) then
 +ca dump2 !read(32)
 +ca dump3 !list of variables
-        damp=((amp(1)-amp0)/dble(napx/2-1))/2d0                          !hr05
+        damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
       endif
       do 80 i=1,npart
         pstop(i)=.false.
@@ -33307,15 +33310,15 @@ c$$$         endif
       do_coll = .false.
       
       ! From common /grd/
-      emitnx0_dist = 0.0
-      emitny0_dist = 0.0
-      emitnx0_collgap = 0.0
-      emitny0_collgap = 0.0
+      emitnx0_dist = zero
+      emitny0_dist = zero
+      emitnx0_collgap = zero
+      emitny0_collgap = zero
       ! From common /ralph/
-      myemitx0_dist = 0.0
-      myemity0_dist = 0.0
-      myemitx0_collgap = 0.0
-      myemity0_collgap = 0.0
+      myemitx0_dist = zero
+      myemity0_dist = zero
+      myemitx0_collgap = zero
+      myemity0_collgap = zero
 +ei
 !
 !-----------------------------------------------------------------------
@@ -33330,12 +33333,13 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
 +ca crcoall
       integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
       real(kind=fPrec) c,c1
       character(len=80) aaa
-      character*18 a18
-      character*58 a58
+      character(len=18) a18
+      character(len=58) a58
       dimension jj(100)
       save
 !-----------------------------------------------------------------------
@@ -33354,14 +33358,14 @@ c$$$         endif
         write(iu2,'(A80)') aaa
         read(iu1,'(A80)') aaa
         write(iu2,'(A80)') aaa
-!
+
         if(nno.eq.1) then
           do 10 i=1,5
             read(iu1,'(6X,2X,G20.14,I5)') c,ii
             write(iu2,'(6X,2X,G20.14,I5)') c,ii
    10     continue
           if (j.eq.5) then
-            write(iu2,'(6X,2X,G20.14,I5)') 1d0,5
+            write(iu2,'(6X,2X,G20.14,I5)') one,5
           else
             write(iu2,'(6X,2X,G20.14,I5)') zero,5
           endif
@@ -33374,9 +33378,9 @@ c$$$         endif
      &=1,5)
           if(ii.eq.0) then
             if(j.eq.5.and.ioo.lt.2) then
-              write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') iio+1,1d0,1, &
+              write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') iio+1,one,1, &
      &0,0,0,0,1,0
-              write(iu2,*) 1d0
+              write(iu2,*) one
             endif
             goto 30
           endif
@@ -33385,9 +33389,9 @@ c$$$         endif
           read(iu1,*) c1
           if(j.eq.5.and.(io.eq.2.or.jj(5).eq.1).and.iplus.eq.0) then
             iplus=1
-            write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,1d0,io,0,0, &
+            write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,one,io,0,0, &
      &0,0,1,0
-            write(iu2,*) 1d0
+            write(iu2,*) one
           endif
           write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj&
      &(i),i=1,4),0,jj(5)
@@ -44647,10 +44651,10 @@ c$$$            endif
             jm1=j-1
             if(im1.eq.0.and.jm1.eq.0) goto 410
             if(im1+jm1.gt.ires) goto 410
-            ares=dble(im1)*ffx+dble(jm1)*ffz                             !hr06
+            ares=real(im1,fPrec)*ffx+real(jm1,fPrec)*ffz                             !hr06
             dares=anint(ares)
             ares=ares-dares
-            ared=dble(im1)*ffx-dble(jm1)*ffz                             !hr06
+            ared=real(im1,fPrec)*ffx-real(jm1,fPrec)*ffz                             !hr06
             dared=anint(ared)
             ared=ared-dared
             if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,&
@@ -46440,8 +46444,8 @@ c$$$            endif
         le1=le/2
         ur=one
         ui=zero
-        wr=cos_mb(pi/dble(le1))                                          !hr06
-        wi=-one*sin_mb(pi/dble(le1))                                     !hr06
+        wr=cos_mb(pi/real(le1,fPrec))                                          !hr06
+        wi=-one*sin_mb(pi/real(le1,fPrec))                                     !hr06
         do 50 j=1,le1
           do 40 i=j,n,le
             ip=i+le1
@@ -46457,8 +46461,8 @@ c$$$            endif
         ur=uur
    50 continue
       do 60 i=1,n
-        ar(i)=(ar(i)/dble(n))*2                                          !hr06
-        ai(i)=(ai(i)/dble(n))*2                                          !hr06
+        ar(i)=(ar(i)/real(n,fPrec))*2                                          !hr06
+        ai(i)=(ai(i)/real(n,fPrec))*2                                          !hr06
    60 continue
       return
       end
@@ -46884,7 +46888,7 @@ c$$$            endif
 ! and we always print the maximum DMMAC as NMAC
 ! or zero which should really be OK I think.
 ! N.B. If particle is lost nms is 0, so we set mmac to zero too 
-      d(60)=dble(nmac)
+      d(60)=real(nmac,fPrec)
       if (nint(d(59)).eq.0) d(60)=zero
       write(lout,10030) i,nint(d(59)),nint(d(60)),                      &
      &nint(d(59))*nint(d(24))
@@ -46948,7 +46952,7 @@ c$$$            endif
          phi=param(ne,1)
          nsli=param(ne,2)
          alpha=param(ne,3)
-         f=param(ne,4)/dble(nsli)
+         f=param(ne,4)/real(nsli,fPrec)
          phi2=param(ne,18)
       else if(beam_expflag .eq. 1) then
          alpha=param(ne,3)
@@ -46956,7 +46960,7 @@ c$$$            endif
          nsli=param(ne,2)
          !sepax=param(ne,4)     !Not actually used anywhere?
          !sepay=param(ne,5)     !Not actually used anywhere?
-         f=param(ne,4)/dble(nsli)
+         f=param(ne,4)/real(nsli,fPrec)
          phi2=phi               !Note - phi2 is not a free parameter anymore
       else
          write(lout,'(a)') "ERROR in subroutine beamint"
@@ -48099,7 +48103,7 @@ c$$$            endif
       do 335   i  =  1, nm1
          nmi  =  n-i
          do 332   j  =  1, i
-            s33  =  dble(a(i,j))                                         !hr07
+            s33  =  real(a(i,j),fPrec)                                         !hr07
             do 331   k  =  1, nmi
                s33  =  dotf(a(i+k,j),a(i,i+k),s33)
  331           continue
