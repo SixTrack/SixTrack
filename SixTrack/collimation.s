@@ -27,11 +27,9 @@
 !<
       subroutine collimate_init()
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -498,11 +496,9 @@
 !<
       subroutine collimate_start_sample(nsample)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -1180,11 +1176,9 @@
 !<
       subroutine collimate_start_collimator(stracki)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -1466,11 +1460,10 @@
 !<
       subroutine collimate_do_collimator(stracki)
       use floatPrecision
+      use mathlib_bouncer
+      
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -2468,11 +2461,9 @@
 !<
       subroutine collimate_end_collimator()
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -2911,11 +2902,9 @@
 !<
       subroutine collimate_end_sample(j)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -3120,11 +3109,9 @@
 !<
       subroutine collimate_exit()
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -3286,11 +3273,9 @@
 !<
       subroutine collimate_start_turn(n)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -3330,11 +3315,9 @@
 !<
       subroutine collimate_start_element(i)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -3443,12 +3426,10 @@
 !<
       subroutine collimate_end_element(i)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -3634,12 +3615,9 @@
 !<
       subroutine collimate_end_turn(n)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -4228,11 +4206,9 @@
      &flagsec, j_slices, nabs_type)
 
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 
 +ca commonex
 +ca parpro
@@ -5026,11 +5002,9 @@ c$$$          endif
 !++  - Put real dp/dx
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !
       real(kind=fPrec) sx, sz
 !
@@ -5725,10 +5699,8 @@ c$$$          endif
 !<
       function ichoix(ma)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 +ca interac
       integer ma,i,ichoix
       real(kind=fPrec) aran
@@ -5751,11 +5723,8 @@ c$$$          endif
 !<
       function gettran(inter,xmat,p)
       use floatPrecision
-
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 +ca interac
       integer inter,length,xmat
       real(kind=fPrec) p,gettran,t,xm2,bsd
@@ -5841,10 +5810,8 @@ c$$$          endif
 !<
       subroutine tetat(t,p,tx,tz)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) t,p,tx,tz,va,vb,va2,vb2,r2,teta
       real rndm4
       teta = sqrt(t)/p
@@ -5866,10 +5833,8 @@ c$$$          endif
 !<
       function ruth(t)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 +ca interac
       real ruth,t
       real(kind=fPrec) cnorm,cnform
@@ -5892,10 +5857,8 @@ c$$$          endif
 !<
       block data scdata
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 +ca interac
       integer i
 ! Total number of materials are defined in nmat
@@ -5994,12 +5957,10 @@ c$$$          endif
 !<
       subroutine scatin(plab)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +if merlinscatter
 +ca database
-+ei
-+if crlibm
-+ca crlibco
 +ei
 +ca interac
       integer ma,i
@@ -6133,11 +6094,8 @@ c$$$          endif
 !<
       subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
       use floatPrecision
-
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 !
 +ca interac
 +ca flukavars
@@ -6381,10 +6339,8 @@ c$$$          endif
 !<
       subroutine jaw0(s,nabs)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 !
 +ca interac
       integer nabs,inter,ichoix,icoll,iturn,ipart
@@ -6534,10 +6490,8 @@ c$$$          endif
 !<
       subroutine mcs(s)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 !      save h,dh,bn
 +ca interac
       real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
@@ -6586,10 +6540,8 @@ c$$$          endif
 !<
       subroutine scamcs(xx,xxp,s,radl_mat)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
       real(kind=fPrec) radl_mat
       real rndm4
@@ -6673,10 +6625,8 @@ c$$$          endif
 
       subroutine iterat(a,b,dh,s)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if cr
-+ca crcoall
-+ei
 +if crlibm
 +ca crlibco
 +ei
@@ -6702,6 +6652,7 @@ c$$$          endif
 !<
       function get_dpodx(p,mat_i)          !Claudia
       use floatPrecision
+      use mathlib_bouncer
       implicit none
       integer mat
 +ca collMatNum
@@ -6716,9 +6667,6 @@ c$$$          endif
       real(kind=fPrec) p
       integer mat_i
       real(kind=fPrec) dpodx,get_dpodx   
-+if crlibm
-+ca crlibco
-+ei
 
       mp2=mp**2
       me2=me**2
@@ -6813,7 +6761,9 @@ c$$$          endif
 ! EnLo energy loss in GeV/meter
 
       use floatPrecision
+      use mathlib_bouncer
       IMPLICIT none
+      
       integer IS
 +ca collMatNum
       real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
@@ -6835,10 +6785,6 @@ c$$$          endif
       data re/2.818d-15/  !electron radius [m]
       data me/0.510998910/ !electron mass [MeV/c^2]
       data mp/938.272013/ !proton mass [MeV/c^2]
-
-+if crlibm
-+ca crlibco
-+ei
 
       mom=PC*1.0d3              ! [GeV/c] -> [MeV/c]
       enr=(mom*mom+mp*mp)**0.5  ! [MeV]
@@ -6945,11 +6891,10 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !  Generate distribution
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
+      
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !
 +ca collpara
 +ca dbmkdist
@@ -7088,11 +7033,9 @@ c      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !
 +ca collpara
 +ca dbmkdist
@@ -7358,11 +7301,9 @@ c$$$     &           myalphay * cos(phiy))
 !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !
 +ca collpara
 +ca dbmkdist
@@ -7546,12 +7487,10 @@ c$$$     &           myalphay * cos(phiy))
 !               DE     -> [ MeV ]
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +ca collpara
 +ca dbmkdist
 
@@ -7605,11 +7544,9 @@ c$$$     &           myalphay * cos(phiy))
      &myyp, myp, mys)
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !
 +ca collpara
 +ca dbmkdist
@@ -7768,11 +7705,9 @@ c$$$     &           myalphay * cos(phiy))
      &     enerror, bunchlength )
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 !
 +ca collpara
 +ca dbmkdist
@@ -7910,10 +7845,8 @@ c$$$     &           myalphay * cos(phiy))
 
       function rndm4()
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
       integer len, in
       real rndm4, a
       save IN,a
@@ -7983,11 +7916,9 @@ c$$$     &           myalphay * cos(phiy))
 ! 
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
       
-+if crlibm
-+ca crlibco
-+ei
       logical flag
       real rndm5
       real(kind=fPrec) x, u1, u2, twopi, r,cut
@@ -8081,11 +8012,9 @@ c$$$     &           myalphay * cos(phiy))
 !!!      ISVEC must be dimensioned 25 in the calling program        ++
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       integer lenv,isdext,iseeds,maxlev,ndskip,itwo24,next,j24,i24,     &
      &inseed,mkount,kount,in24,nskip,lxdflt,jsdflt,jseed,lp,i,k,icons,  &
      &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout2,ins,lux,ilx,&
@@ -8364,11 +8293,9 @@ c$$$     &           myalphay * cos(phiy))
 !    4. both FUNLXP and FUNPCT use RADAPT for Gaussian integration.
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       external func
       integer ifunc,ierr
       real x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1, &
@@ -8417,11 +8344,9 @@ c$$$     &           myalphay * cos(phiy))
 !        Array XFCUM is filled from NLO to NLO+NBINS, which makes
 !        the number of values NBINS+1, or the number of bins NBINS
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       external func
       integer ierr,nbins,nlo,ifunc,nz,ibin,maxz,iz,nitmax,ihome
       real tftot,xhigh,xlow,func,xfcum,rteps,tpctil,tz,tzmax,x,f,tcum,  &
@@ -8537,10 +8462,8 @@ c$$$     &           myalphay * cos(phiy))
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 +ca funint
       integer len,ibuf,j,j1
       real array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
@@ -8608,11 +8531,9 @@ c$$$     &           myalphay * cos(phiy))
 !         OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
 !         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       external func
       integer logn,nslice,i,k
       real xhigh,xlow,x2high,x2low,func,xmid,xh,xl,xnew
@@ -8689,10 +8610,9 @@ c$$$     &           myalphay * cos(phiy))
 !        can be set to zero, in which case only the other is used.
 
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
+
       external f
       integer nseg,ndim,nter,nsegd,i,iter,ibig
       real err,res,abstol,reltol,b,a,xlo,xhi,tval,ters,te,root,xhib,    &
@@ -8772,10 +8692,9 @@ c$$$     &           myalphay * cos(phiy))
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine rgs56p(f,a,b,res,err)
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
+
       integer i
       real err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
       real(kind=fPrec) e5,e6
@@ -8821,11 +8740,9 @@ c$$$     &           myalphay * cos(phiy))
       integer function mclock_liar( )
 !
       use floatPrecision
+      use mathlib_bouncer
       implicit none
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
       save
 !
       integer    mclock
@@ -8864,10 +8781,8 @@ c$$$     &           myalphay * cos(phiy))
 !
 !*********************************************************************
       use floatPrecision
+      use mathlib_bouncer
       implicit none
-+if crlibm
-+ca crlibco
-+ei
 
       logical flag
       DATA flag/.TRUE./
