@@ -278,7 +278,7 @@
 +ei
       real hmal
       character(len=16) bez,bezb,bezr,erbez,bezl
-      character(len=80) toptit,sixtit,commen
+      character(len=80) toptit,sixtit,commen !DANGER: If the len changes, CRCHECK will break.
       common/erro/ierro,erbez
       common/kons/pi,pi2,pisqrt,rad
       common/str /il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
@@ -22690,7 +22690,8 @@ c$$$         endif
 +if .not.cr
       character(len=80) day,runtim
 +ei
-      character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header
+      character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
+                                          !DANGER: If the len changes, CRCHECK will break.
 +if boinc
       character*256 filename
 +ei
@@ -27587,6 +27588,7 @@ c$$$         endif
       integer, intent(inout) :: ierro_wbh
       
       character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
+                                          !DANGER: If the len changes, CRCHECK will break.
 +ca parnum
 +ca parpro
 +ca common
@@ -27630,8 +27632,12 @@ c$$$         endif
       sigcor_tmp = real(sigcor,     real64)
       dpscor_tmp = real(dpscor,     real64)
       
+      ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+      ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+      ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+      
       write(fileunit_in,iostat=ierro_wbh)
-     &     sixtit,commen,cdate, ctime,progrm,                           &
+     &     sixtit,commen,cdate,ctime,progrm,                            &
      &     ia_p1,ia_p2, napx, icode,numl,                               &
      &     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
      &     clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),       &
@@ -27779,6 +27785,11 @@ c$$$         endif
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
                   e0_tmp       = real(e0,        real64)
+                  
+                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+                  
 +if .not.stf
                   write(91-ia2,iostat=ierro)                            &
 +ei
@@ -27819,6 +27830,10 @@ c$$$         endif
                   dpsv_tmp(2)  = real(dpsv(ie),  real64)
                   
                   e0_tmp       = real(e0,        real64)
+                  
+                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
 +if .not.stf
                   write(91-ia2,iostat=ierro)                            &
 +ei
@@ -32000,7 +32015,8 @@ c$$$         endif
 !-----------------------------------------------------------------------
       character(len=10) cmonth
       character(len=80) day,runtim
-      character(len=8) cdate,ctime
+      character(len=8) cdate,ctime !Note: Keep in sync with maincr
+                                   !DANGER: If the len changes, CRCHECK will break.
       dimension qw(2),qwc(3),clo0(2),clop0(2)
       dimension eps(2),epsa(2)
       dimension cmonth(12)
@@ -42626,7 +42642,8 @@ c$$$            endif
       real(kind=real64) c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
       
       character(len=80) title(20),chxtit(20),chytit(20)
-      character(len=8) cdate,ctime,progrm
+      character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
+                                          !DANGER: If the len changes, CRCHECK will break.
       character*11 hvs
       character*8192 ch
 +if crlibm
@@ -48536,7 +48553,7 @@ c$$$            endif
       use scatter, only : scatter_active, scatter_crcheck_readdata,
      &     scatter_crcheck_positionFiles
       
-!     use, intrinsic :: iso_fortran_env, only : output_unit
+      use, intrinsic :: iso_fortran_env, only : int32
 
       implicit none
 +ca crcoall
@@ -48564,8 +48581,13 @@ c$$$            endif
 +ca dbdumpcr
 +ca version
       integer i,j,k,l,m,ia
-      integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
+      integer lstring,myia,mybinrecs,binrecs94
+
+      !DANGER: IF THE LENGTH OF THE RECORDS IN WRITEBIN(_HEADER)CHANGES,
+      ! THESE ARRAYS MUST BE UPDATED
+      integer(int32) hbuff,tbuff
       dimension hbuff(253),tbuff(35)
+      
       logical lopen,lerror
 
       !For skipping through binary DUMP files (format 3&8)
@@ -48584,8 +48606,7 @@ c$$$            endif
       write(93,*)                                                       &
      &'SIXTRACR CRCHECK CALLED lout=',lout,'restart',restart,           &
      &'rerun',rerun,'checkp',checkp
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
 +if debug
                    !call system('../crcheck >> crlog')
 +ei
@@ -48606,12 +48627,10 @@ c$$$            endif
 !--   Check at least one restart file is readable
        write(93,*)                                                      &
      &'SIXTRACR CRCHECK checking fort.95/96'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+       flush(93)
       if (fort95) then
         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1 VERSION'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         
         rewind 95
         
@@ -48625,15 +48644,13 @@ c$$$            endif
      &          "version=",version,"moddate=",moddate
            write(93,*) "Version mismatch; giving up on this file."
 
-           endfile(93,iostat=ierro)
-           backspace(93,iostat=ierro)
+           flush(93)
 
            goto 100
         endif
         
         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         
         read(95,err=100,end=100)                                        &
      &crnumlcr,                                                         &
@@ -48649,8 +48666,7 @@ c$$$            endif
      &crnapx,                                                           &
      &cre0
         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         read(95,err=100,end=100)                                        &
      &(crbinrecs(j),j=1,(crnapxo+1)/2),                                 &
      &(crnumxv(j),j=1,crnapxo),                                         &
@@ -48680,8 +48696,7 @@ c$$$            endif
 !GRD-042008
       if(lhc.eq.9) then
         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 4 BNL'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         read(95,err=100,end=100)                                        &
      &crn_cut,                                                          &
      &crn_nocut,                                                        &
@@ -48698,23 +48713,20 @@ c$$$            endif
 +ei
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       read(95,err=100,end=100)
      &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
+         flush(93)
          call dynk_crcheck_readdata(95,lerror)
          if (lerror) goto 100
       endif
 
       if(scatter_active) then
          write(93,*) "SIXTRACR CRCHECK reading fort.95 Record 7 SCATTER"
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
+         flush(93)
          call scatter_crcheck_readdata(95,lerror)
          if (lerror) goto 100
       endif
@@ -48727,8 +48739,7 @@ c$$$            endif
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK verifying Record 8 extended vars fort.95',      &
      &' crnapxo=',crnapxo
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           read(95,end=100,err=100,iostat=ierro)                         &
      &((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
      &((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
@@ -48767,12 +48778,10 @@ c$$$            endif
      &(wfhi(j),j=1,crnapxo)
           backspace (95,iostat=ierro)
           write(93,*) 'CRCHECK read fort.95 EXTENDED OK'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK leaving fort.95 for CRSTART EXTENDED'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
         endif
         read95=.true.
         goto 103
@@ -48780,19 +48789,16 @@ c$$$            endif
   100 if (.not.read95) then
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 95'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
       endif
       if (fort96) then
         write(93,*) 'CRCHECK trying fort.96 instead'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         
         rewind 96
 
         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1 VERSION'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
 
         read(96,err=101,end=101)
      &       cr_version,cr_moddate
@@ -48804,15 +48810,13 @@ c$$$            endif
      &          "version=",version,"moddate=",moddate
            write(93,*) "Version mismatch; giving up on this file."
            
-           endfile(93,iostat=ierro)
-           backspace(93,iostat=ierro)
+           flush(93)
            
            goto 101
         endif
         
         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         read(96,err=101,end=101,iostat=ierro)                           &
      &crnumlcr,                                                         &
      &crnuml,                                                           &
@@ -48827,8 +48831,7 @@ c$$$            endif
      &crnapx,                                                           &
      &cre0
         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
       read(96,err=101,end=101,iostat=ierro)                             &
      &(crbinrecs(j),j=1,(crnapxo+1)/2),                                 &
      &(crnumxv(j),j=1,crnapxo),                                         &
@@ -48858,8 +48861,7 @@ c$$$            endif
 !GRD-042008
       if(lhc.eq.9) then
         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 4 BNL'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         read(96,err=101,end=101)                                        &
      &crn_cut,                                                          &
      &crn_nocut,                                                        &
@@ -48876,23 +48878,20 @@ c$$$            endif
 +ei
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DUMP'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       read(96,err=100,end=100)
      &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
+         flush(93)
          call dynk_crcheck_readdata(96,lerror)
          if (lerror) goto 101
       endif
 
       if(scatter_active) then
          write(93,*) "SIXTRACR CRCHECK reading fort.96 Record 7 SCATTER"
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
+         flush(93)
          call scatter_crcheck_readdata(96,lerror)
          if (lerror) goto 101
       endif
@@ -48905,11 +48904,9 @@ c$$$            endif
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK verifying Record 8 extended vars fort.96,',     &
      &' crnapxo=',crnapxo
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           write(93,*) 'CRCHECK verifying extended vars fort.96'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           read(96,end=101,err=101,iostat=ierro)                         &
      &((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
      &((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
@@ -48948,12 +48945,10 @@ c$$$            endif
      &(wfhi(j),j=1,crnapxo)
           backspace (96,iostat=ierro)
           write(93,*) 'SIXTRACR CRCHECK read fort.96 EXTENDED OK'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK, leaving fort.96 for CRSTART EXTENDED'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
         endif
         read96=.true.
         goto 103
@@ -48961,8 +48956,7 @@ c$$$            endif
   101 if (.not.read96) then
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 96'
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
+        flush(93)
       endif
   103 continue
       
@@ -48996,14 +48990,14 @@ c$$$            endif
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK crbinrecs ',                                    &
      &(crbinrecs(j),j=1,(crnapxo+1)/2)
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         
 !--   First we position fort.6 to last checkpoint
         do j=1,crsixrecs
            read(6,'(a1024)',end=604,err=106,iostat=ierro) arecord
            sixrecs=sixrecs+1
         end do
+        !This is not a FLUSH!
         endfile (6,iostat=ierro)
   604   backspace (6,iostat=ierro)
 +if debug
@@ -49011,8 +49005,7 @@ c$$$            endif
 +ei
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK found fort.6 sixrecs=',sixrecs
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -49024,32 +49017,32 @@ c$$$            endif
   610     read(52,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
+          !This is not a FLUSH!
           endfile (52,iostat=ierro)
   608     backspace (52,iostat=ierro)
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
   611     read(53,'(a1024)',end=609,err=109,iostat=ierro) arecord
           bllrec=bllrec+1
           if (bllrec.lt.crbllrec) goto 611
+          !This is not a FLUSH!
           endfile (53,iostat=ierro)
   609     backspace (53,iostat=ierro)
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK found fort.53 bllrec=',bllrec
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
 +ei
 +if boinc
   610     read(10,'(a1024)',end=608,err=108,iostat=ierro) arecord
           bnlrec=bnlrec+1
           if (bnlrec.lt.crbnlrec) goto 610
+          !This is not a FLUSH!
           endfile (10,iostat=ierro)
   608     backspace (10,iostat=ierro)
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK found fort.10 bnlrec=',bnlrec
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
 +ei
         endif
 !GRDRHIC
@@ -49066,16 +49059,14 @@ c$$$            endif
             write(93,*)                                                 &
      &'SIXTRACR CRCHECK *** ERROR *** New numl .lt. crnumlcr',          &
      &numl,crnumlcr
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
+            flush(93)
             write(lout,*) 'SIXTRACR CRCHECK numl .lt. crnumlcr'
             call prror(-1)
           endif
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK re-sets numl in binary file headers from ',     &
      &crnuml,' to ',numl
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
 
 !--   Reposition binary files fort.90 etc. / singletrackfile.dat
 +if bnlelens
@@ -49099,7 +49090,7 @@ c$$$            endif
             mybinrecs=0
             binrecs94=0
             myia=91-ia
-            !Copy header
+            !Copy header into integer array hbuff
             read(91-ia,err=105,end=105,iostat=ierro) hbuff
             mybinrecs=mybinrecs+1
             hbuff(51)=numl ! Reset the number of turns (not very elegant)
@@ -49124,7 +49115,7 @@ c$$$            endif
             read(94,err=105,end=105,iostat=ierro) hbuff
             binrecs94=binrecs94+1
             write(91-ia,err=105,iostat=ierro) hbuff
-            ! Copy particle tracking data
+            ! Copy particle tracking data into integer array tbuff
             do j=2,crbinrecs(ia)
               if(ntwin.ne.2) then
                 read(94,err=105,end=105,iostat=ierro)                   &
@@ -49136,6 +49127,7 @@ c$$$            endif
               endif
               binrecs94=binrecs94+1
             end do ! END "j=2,crbinrecs(ia)"
+            !This is not a FLUSH!
             endfile (91-ia,iostat=ierro)
             backspace (91-ia,iostat=ierro)
             rewind 94
@@ -49190,6 +49182,7 @@ c$$$            endif
                 binrecs94=binrecs94+1
              enddo
           end do
+          !This is not a FLUSH!
           endfile   (90,iostat=ierro)
           backspace (90,iostat=ierro)
 +ei ! END +if stf
@@ -49230,10 +49223,11 @@ c$$$            endif
                 endif
               mybinrecs=mybinrecs+1
    11         continue
+              !This is not a FLUSH!
               endfile (91-ia,iostat=ierro)
               backspace (91-ia,iostat=ierro)
              else ! Number of ecords written to this file < general number of records written
-                  ! => Particle has been lost before last CP, no need to reposition.
+                  ! => Particle has been lost before last checkpoint, no need to reposition.
               write(93,*)                                               &
      &'SIXTRACR CRCHECK ignoring IA ',ia,' Unit ',myia
             endif
@@ -49267,8 +49261,7 @@ c$$$            endif
         if (lhc.eq.9) then
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK skipping binary files for bnlelens'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
         endif
 !GRDRHIC
 !GRD-042008
@@ -49277,16 +49270,13 @@ c$$$            endif
       !reposition dynksets.dat
       if (ldynk .and.(.not.ldynkfiledisable) ) then
          write(93,*) "SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
-         
+         flush(93)
          call dynk_crcheck_positionFiles
       endif !END if (ldynk .and.(.not.ldynkfiledisable) )
       
       !Reposition files for DUMP
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP files"
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       do i=-1, il
          if (ldump(i)) then
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
@@ -49306,8 +49296,7 @@ c$$$            endif
                write(93,*) "Error - index=",i,"is unknown"
                goto 111
             endif
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
+            flush(93)
             
             inquire( unit=dumpunit(i), opened=lopen )
             if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
@@ -49359,6 +49348,7 @@ c$$$            endif
       ! the actual position is the sum of the dumpfileposes
       do i=0, il
          if (ldump(i)) then
+            !This is not a FLUSH!
             endfile (dumpunit(i),iostat=ierro)
             
             ! Change from 'readwrite' to 'write'
@@ -49390,8 +49380,7 @@ c$$$            endif
       if(scatter_active) then
          write(93,*)
      &        "SIXTRACR CRCHECK REPOSITIONING scatter_log.txt"
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
+         flush(93)
          
          call scatter_crcheck_positionFiles
          
@@ -49401,6 +49390,7 @@ c$$$            endif
         restart=.true.
         write(lout,'(a80)')                                                   &
      &runtim
+        !Flush or truncate?
         endfile (lout,iostat=ierro)
         backspace (lout,iostat=ierro)
 +if debug
@@ -49408,8 +49398,7 @@ c$$$            endif
 +ei
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK restart=TRUE',' crnumlcr=',crnumlcr
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
         return
       endif
       
@@ -49467,8 +49456,7 @@ c$$$            endif
 !--  fort.6. We don't need to count records at all
   605 write(93,*)                                                       &
      &'SIXTRACR CRCHECK no restart possible checkp=',checkp
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       if (.not.checkp) then
         if (rerun) then
 !--   we nevertheless have an existing fort.6
@@ -49476,14 +49464,12 @@ c$$$            endif
 !--   92 to avoid abend copying it again
           write(93,*)                                                   &
      &'SIXTRACR CRCHECK overwriting fort.6'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
         endif
 !--   and just use fort.6 from now on
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK giving up on LOUT'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+        flush(93)
 +if debug
                    !call system('../crcheck >> crlog')
 +ei
@@ -49500,8 +49486,10 @@ c$$$            endif
         enddo
     2   write(6,'(a)') arecord(1:lstring)
         goto 3
+        !Not a flush?
     1   endfile (6,iostat=ierro)
         backspace (6,iostat=ierro)
+        !This is not a FLUSH!
         rewind lout
         endfile (lout,iostat=ierro)
         close(lout)
@@ -49515,14 +49503,12 @@ c$$$            endif
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.6, iostat=',ierro
       write(93,*)                                                       &
      &'sixrecs=',sixrecs,' crsixrecs=',crsixrecs
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       write(lout,*)'SIXTRACR CRCHECK failure positioning fort.6'
       call prror(-1)
  107  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.92, iostat=',ierro
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       write(lout,*)'SIXTRACR CRCHECK failure positioning fort.92'
       call prror(-1)
 +if bnlelens
@@ -49532,16 +49518,14 @@ c$$$            endif
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.52, iostat=',ierro
       write(93,*)                                                       &
      &'bnlrec=',bnlrec,' crbnlrec=',crbnlrec
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       write(lout,*)'SIXTRACR CRCHECK failure positioning fort.52'
       call prror(-1)
  109  write(93,*)                                                       &
      &'SIXTRACR CRCHECK *** ERROR *** reading fort.53, iostat=',ierro
       write(93,*)                                                       &
      &'bllrec=',bllrec,' crbllrec=',crbllrec
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       write(lout,*)'SIXTRACR CRCHECK failure positioning fort.53'
       call prror(-1)
 !GRDRHIC
@@ -49552,8 +49536,7 @@ c$$$            endif
      &' reading DUMP file#', dumpunit(i),' iostat=',ierro
       write(93,*)                                                       &
      &'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      flush(93)
       write(lout,*)'SIXTRACR CRCHECK failure positioning DUMP file'
       call prror(-1)
 
