@@ -20191,12 +20191,14 @@ c$$$         endif
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
       
-      write(12,*) dare(x(1))
-      write(12,*) dare(y(1))
-      write(12,*) dare(x(2))
-      write(12,*) dare(y(2))
-      write(12,*) dare(sigmda)
-      write(12,*) dare(dpda)
+      write(12,990) dare(x(1))
+      write(12,990) dare(y(1))
+      write(12,990) dare(x(2))
+      write(12,990) dare(y(2))
+      write(12,990) dare(sigmda)
+      write(12,990) dare(dpda)
+
+990   format(E22.15)
 
       write(lout,10010)
       
@@ -21910,13 +21912,15 @@ c$$$         endif
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
       
-      write(12,*) dare(x(1))
-      write(12,*) dare(y(1))
-      write(12,*) dare(x(2))
-      write(12,*) dare(y(2))
-      write(12,*) dare(sigmda)
-      write(12,*) dare(dpda)
-      
+      write(12,990) dare(x(1))
+      write(12,990) dare(y(1))
+      write(12,990) dare(x(2))
+      write(12,990) dare(y(2))
+      write(12,990) dare(sigmda)
+      write(12,990) dare(dpda)
+
+990   format(E22.15)
+
       write(lout,10010)
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
