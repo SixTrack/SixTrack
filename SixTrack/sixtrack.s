@@ -28576,7 +28576,7 @@ c$$$         endif
          write(93,*) 'WRITEBIN bailing out on restart'
          write(93,*) 'numl, nnuml, numx, numlcr '
          write(93,*)  numl,nnuml,numx,numlcr
-         call flush(93)
+         flush(93)
          return
       else
 +if .not.debug
@@ -28585,7 +28585,7 @@ c$$$         endif
             write(93,*)
      &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
             write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
-            call flush(93)
+            flush(93)
 +if .not.debug
          endif
 +ei
@@ -28598,15 +28598,15 @@ c$$$         endif
 +if bnlelens
          if (lhc.ne.9) then
             write(93,*) 'WRITEBIN writing binrec ',binrec+1
-            call flush(93)
+            flush(93)
          else
             write(93,*) 'WRITEBIN skipping write for bnlelens',binrec+1
-            call flush(93)
+            flush(93)
          endif
 +ei
 +if .not.bnlelens
          write(93,*) 'WRITEBIN writing binrec ',binrec+1
-         call flush(93)
+         flush(93)
 +ei
 +if .not.debug
       endif
@@ -28651,10 +28651,10 @@ c$$$         endif
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
 +if .not.stf
-                  call flush(91-ia2)
+                  flush(91-ia2)
 +ei
 +if stf
-                  call flush(90)
+                  flush(90)
 +ei                 
 +if cr
                   binrecs(ia2)=binrecs(ia2)+1
@@ -28695,10 +28695,10 @@ c$$$         endif
      &               xv_tmp(2,2),yv_tmp(2,2),                           &
      &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp                    &
 +if .not.stf
-                  call flush(91-ia2)
+                  flush(91-ia2)
 +ei
 +if stf
-                  call flush(90)
+                  flush(90)
 +ei                 
 
 +if cr
@@ -28713,10 +28713,10 @@ c$$$         endif
                   write(lout,*) 'ERROR CODE : ',ierro
                   write(lout,*)
 +if cr
-                  call flush(lout)
+                  flush(lout)
 +ei
 +if .not.cr
-                  call flush(12)
+                  flush(12)
 +ei
                   nthinerr=3000
                   return
@@ -28752,7 +28752,7 @@ c$$$         endif
          if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
             write(93,*) 'WRITEBIN written binrec ',binrec
-            call flush(93)
+            flush(93)
 +if .not.debug
          endif
 +ei
@@ -44401,7 +44401,7 @@ c$$$            endif
      &ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
      &dnumlr,sigcor,dpscor
       if(ifipa.ne.posi) then !IFIPA=first particle, POSI=requested particle
-	goto 555             !Get the next header...
+        goto 555             !Get the next header...
       endif
       ! TODO: Protect against no valid headers found,
       ! i.e. posi > itopa.
@@ -44425,7 +44425,7 @@ c$$$            endif
       if(icode.eq.3.or.icode.eq.5.or.icode.eq.6) idam=2
       if(icode.eq.7) idam=3
       if(ilapa.ne.ifipa) then !Is first particle != Last particle?
-	ntwin=2               !(ntwin=1 is the default in postpr)
+        ntwin=2               !(ntwin=1 is the default in postpr)
 !--   binrecs is indexed as 1,2,3,... (=i.e.(91-nfile) in the non-STF version,
 !--   while posi values are called as 1,3,5, so using posi1 for crbinrecs index later
       endif
@@ -44578,7 +44578,7 @@ c$$$            endif
         bet0(2)=zero
       endif
       do 135 i=1,3
-	ii=2*i
+        ii=2*i
         rbeta(ii-1)=sqrt(bet0(i))
         rbeta(ii)=rbeta(ii-1)
         if(abs(rbeta(ii-1)).lt.pieni) rbeta(ii-1)=one
@@ -44804,7 +44804,7 @@ c$$$            endif
      & ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
       if(ifipa_stf.ne.posi) then
-	goto 190
+        goto 190
       endif
 !     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
@@ -45643,8 +45643,8 @@ c$$$            endif
  315  read(nfile,end=350,iostat=ierro)
      &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf
         if(ifipa_stf.ne.posi) then
-	  goto 315
-	endif
+          goto 315
+        endif
 !     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
         ia=ia_stf
         ifipa=ifipa_stf
@@ -46186,9 +46186,9 @@ c$$$            endif
             if(ntwin.eq.2) read(nfile,end=470,iostat=ierro)
      &ia_stf,ifipa_stf,b_stf,c_stf,d_stf,e_stf,f_stf,g_stf,h_stf,p_stf,
      &ilapa_stf,b_stf,c1_stf,d1_stf,e1_stf,f1_stf,g1_stf,h1_stf,p1_stf
-	    if(ifipa_stf.ne.posi) then
-	      goto 435
-	    endif
+            if(ifipa_stf.ne.posi) then
+              goto 435
+            endif
 !     Found right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
       ifipa=ifipa_stf
