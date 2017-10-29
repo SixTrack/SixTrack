@@ -4,7 +4,7 @@
 !  Read a fort.90 and print with correct binary/decimal conversion
 !-----------------------------------------------------------------------
       implicit none
-      integer errno,dtostr
+      integer errno
       character(len=80) sixtit,commen
       integer icode
       double precision dpscor,sigcor
@@ -27,7 +27,14 @@
       character(len=25) ch1
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6)
-
+      
+      interface
+         integer function dtostr(x,results)
+           double precision, intent(in) :: x
+           character*(*), intent(out) :: results
+         end function dtostr
+      end interface
+      
       integer :: stat
       
       INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
@@ -406,12 +413,11 @@
 !----------------------------------------------------------------------
       end
       integer function dtostr(x,results)
-! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
-! crlibm
+! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface copied from roundctl
       use, intrinsic :: iso_fortran_env, only : stdout=>output_unit
       implicit none
-      double precision x
-      character*(*) results
+      double precision, intent(in) :: x
+      character*(*), intent(out) :: results
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e
