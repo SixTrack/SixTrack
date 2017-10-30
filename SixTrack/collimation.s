@@ -2421,7 +2421,7 @@
       rcyp(j)=yp_tmp*cos(-1d0*c_rotation)-sin(-1d0*c_rotation)*xp_tmp
 
           if(part_hit(j) .ne. 0) then
-            part_hit(j) = (10000*ie+iturn)
+            part_hit(j) = (10000*ie+iturn)    !!! TODO !!!
           endif
 
           if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
@@ -2537,7 +2537,7 @@
 
 !APRIL2005 IN ORDER TO GET RID OF NUMERICAL ERRORS, JUST DO THE TREATMENT FOR
 !APRIL2005 IMPACTING PARTICLES...
-            if (part_hit(j).eq.(10000*ie+iturn)) then
+            if (part_hit(j).eq.(10000*ie+iturn)) then !!! TODO
 !++  For zero length element track back half collimator length
 ! DRIFT PART
 !       write(lout,*) j, ' hit ', part_hit(j)
@@ -2627,7 +2627,7 @@
 !!     &)
 
 !++  First check for particle interaction at this collimator and this turn
-            if (part_hit(j).eq. (10000*ie+iturn) ) then
+            if (part_hit(j).eq. (10000*ie+iturn) ) then !!! TODO
 
 !++  Fill the change in particle angle into histogram
               if(dowrite_impact) then
@@ -2771,14 +2771,14 @@
 !++  If the interacting particle was lost, add-up counters for absorption
 !++  Note: a particle with x/y >= 99. never hits anything any more in
 !++        the logic of this program. Be careful to always fulfill this!
-              if (part_abs_pos(j).ne.0 .and. part_abs_turn(j).eq.0) then
+              if (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
                 n_absorbed = n_absorbed + 1
                 cn_absorbed(icoll) = cn_absorbed(icoll) + 1
                 n_tot_absorbed = n_tot_absorbed + 1
-                iturn_last_hit = part_hit_before(j)-                    &
+                iturn_last_hit = part_hit_before(j)-                    & !!! TODO
      &int(part_hit_before(j)/10000)*10000
                 iturn_absorbed = part_hit(j)-                           &
-     &int(part_hit(j)/10000)*10000
+     &int(part_hit(j)/10000)*10000                                        !!! TODO
                 if (iturn_last_hit.eq.0) iturn_last_hit =               &
      &iturn_absorbed
                 iturn_survive  = iturn_absorbed - iturn_last_hit
@@ -2833,7 +2833,7 @@
             num_selabs = 0
 
             do j = 1, napx
-              if ( part_hit(j).eq.(10000*ie+iturn) ) then
+              if ( part_hit(j).eq.(10000*ie+iturn) ) then    !!! TODO
                 num_selhit = num_selhit+1
                 if (part_abs_pos(j) .eq.0 .and.
      &              part_abs_turn(j).eq.0       ) then
@@ -2858,7 +2858,7 @@
             sqsum    = 0d0
 
             do j = 1, napx
-              if ( part_hit(j).eq.(10000*ie+iturn) ) then
+              if ( part_hit(j).eq.(10000*ie+iturn) ) then  !!! TODO
                 if (part_impact(j).lt.-0.5d0) then
                   write(lout,*) 'ERR>  Found invalid impact parameter!',&
      &                  part_impact(j)
@@ -3889,9 +3889,9 @@
                 xpnorm = xpnorm + dnormx*cos(xangle)
 +ei
                 xgrd(j)   = 1000d0 *
-     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
+     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )   !!! TODO
                 xpgrd(j)  = 1000d0 *
-     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
+     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)    !!! TODO
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
 
                 ynorm  = (ygrd(j)*1d-3)
@@ -3918,9 +3918,9 @@
                 ypnorm = ypnorm + dnormy*cos(yangle)
 +ei
                 ygrd(j)   = 1000d0 *
-     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
+     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) ) !!! TODO
                 ypgrd(j)  = 1000d0 * 
-     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
+     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)  !!! TODO
      &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
 
                 endif
@@ -4675,7 +4675,7 @@
 !     &name(j),iturn,icoll,nabs,s_impact,s+sp,impact(j),x
 !            endif
 !JUNE2005
-            lhit(j) = 10000*ie + iturn
+            lhit(j) = 10000*ie + iturn !!! TODO
 
 
 !-- September2006  TW added from Ralphs code
@@ -5488,7 +5488,7 @@ c$$$          endif
                z  = (z + n_aperture/2d0) + mirror*c_offset               !hr09
             endif
 !JUNE2005
-            lhit(j) = 10000*ie + iturn
+            lhit(j) = 10000*ie + iturn !!! TODO
 !
 !++  If particle is absorbed then set x and y to 99.99 mm
 !
