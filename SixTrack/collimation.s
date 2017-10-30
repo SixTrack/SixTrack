@@ -4525,7 +4525,7 @@
 !               xp = xp - tiltangle
 !             endif
 !
-       write(9997,'(f10.8,(2x,f10.8),(2x,f10.8),(2x,f10.8)(2x,f10.8))')     
+       write(9997,'(f10.8,(2x,f10.8),(2x,f10.8),(2x,f10.8),(2x,f10.8))')&
      &            x, xp, z, zp, tiltangle
 
 !
@@ -6772,7 +6772,7 @@ c$$$          endif
       real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
       real(kind=fPrec) thl,Tt,cs_tail,prob_tail
       real(kind=fPrec) ranc
-      REAL*4 RNDM4
+      real(kind=real32) RNDM4
       real(kind=fPrec) anuc,zatom,rho,emr
 
 
