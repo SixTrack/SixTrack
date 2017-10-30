@@ -246,19 +246,18 @@
 
 +ca alloc
 
-!
       character(len=10) aa
       dimension n(lnv+1),k(0:lnv),j(lnv),jj(lnv)
 +if boinc
       character(len=256) filename
 +ei
-!
+
       if(eps.le.zero) eps=1.e-38_fPrec
 !      if(EPS.le.0.d0) eps=1.d-90
       epsmac=c1m7
       if(nv.eq.0) return
       ndamaxi=0
-!
+
       do 5 i=1, lda
         allvec(i) = .false.
 5     continue
@@ -275,12 +274,12 @@
       call danum(no,nv,nmmax)
       nocut = no
       lfi   = 0
-!
+
       do 10 i=0,lia
       ia1(i) = 0
       ia2(i) = 0
   10  continue
-!
+
 ! Eric
       do i=1,lst
         i1(i)=0
@@ -350,17 +349,17 @@
          ic2   = k(jl)
          icmax = max(icmax,ic2)
          k(jl) = 0
-!
+
          ia2(ic2) = nn
-!
+
          do 80 io1=0,no-io2
 !        ******************
-!
+
          n(js+1) = io1
          jd      = 1
-!
+
   70     jl      = jl + jd
-!
+
          if(jl.eq.js) then
             goto 80
          elseif(jd.eq.1) then
@@ -368,10 +367,10 @@
          else
             j(jl) = j(jl) + 1
          endif
-!
+
          k(jl)    = k(jl-1)*ibase + j(jl)
          n(jl+1)  = n(jl) - j(jl)
-!
+
          if(j(jl).gt.n(jl)) then
             jd    = -1
             goto 70
@@ -385,65 +384,62 @@
             ic1   = k(jl)
             icmax = max(icmax,ic1)
             nn = nn + 1
-!
+
             ie1(nn) = ic1
             ie2(nn) = ic2
             i1 (nn) = ic1
             i2 (nn) = ic2
             if(ic2.eq.0) ia1(ic1) = nn
             ieo(nn) = io1 + io2
-!
+
             goto 70
          endif
-!
+
    80    continue
-!
+
          jd = -1
          goto 50
       endif
-!
+
   100 continue
   110 continue
-!
+
       if(nn.gt.lea) then
          write(lout,*)'ERROR IN DAINI, NN = ',nn,' EXCEEDS LEA'
          call dadeb(31,'ERR DAINI ',1)
       endif
-!
+
 !     ALLOCATING SCRATCH VARIABLES
 !     ****************************
-!
+
       iall(1) = 0
       call daall(iall(1),1,'$$UNPACK$$',nomax,nvmax)
-!
-      do 150 i=0,nomax
-      aa = '$$MUL   $$'
-      write(aa(6:10),'(I5)') i
-      iall(1) = 0
-!      CALL DAALL(IALL,1,AA,I,NVMAX)
-      call daall(iall(1),1,aa,nomax,nvmax)
- 150  continue
-!
+
+      do i=0,nomax
+        aa = '$$MUL   $$'
+        write(aa(6:10),'(I5)') i
+        iall(1) = 0
+!       CALL DAALL(IALL,1,AA,I,NVMAX)
+        call daall(iall(1),1,aa,nomax,nvmax)
+      end do
+
       idall(1) = nmmax
-!
+
 !     DOUBLE CHECKING ARRAYS IE1,IE2,IA1,IA2
 !     **************************************
-!
-      do 300 i=1,nmmax
-!
-      jjj = ia1(ie1(i)) + ia2(ie2(i))
-      if(jjj.ne.i) then
-         write(lout,*)                                                  &
-     &'ERROR IN DAINI IN ARRAYS IE1,IE2,IA1,IA2 AT I = ',i
-         call dadeb(31,'ERR DAINI ',1)
-      endif
-!
- 300  continue
-!
+
+      do i=1,nmmax
+        jjj = ia1(ie1(i)) + ia2(ie2(i))
+        if(jjj.ne.i) then
+          write(lout,*) 'ERROR IN DAINI IN ARRAYS IE1,IE2,IA1,IA2 AT I = ',i
+          call dadeb(31,'ERR DAINI ',1)
+        endif
+      end do
+
       if(iunit.eq.0) return
-!
+
       write(lout,*)'ARRAY SETUP DONE, BEGIN PRINTING'
-!
+
       iout = 32
 +if boinc
       call boincrf('DAINI.DAT',filename)
@@ -464,20 +460,19 @@
 +ei
 !CRAY OPEN(IOUT,FILE='DAINI',STATUS='UNKNOWN',FORM='FORMATTED')          *CRAY
 !CRAY REWIND IOUT                                                        *CRAY
-!
-      write(iout,'(/A/A/)') ' ARRAYS I1 THROUGH I20, IE1,IE2,IEO',      &
-     &' **********************************'
-      do 200 i=1,nmmax
-      call dancd(ie1(i),ie2(i),jj)
-      write(iout,'(1X,I5,2X,4(5I2,1X),3I6)') i,(jj(jjjj),jjjj=1,lnv),   &
-     &ie1(i),ie2(i),ieo(i)
- 200  continue
-!
+
+      write(iout,'(/A/A/)') ' ARRAYS I1 THROUGH I20, IE1,IE2,IEO',' **********************************'
+      do i=1,nmmax
+        call dancd(ie1(i),ie2(i),jj)
+        write(iout,'(1X,I5,2X,4(5I2,1X),3I6)') i,(jj(jjjj),jjjj=1,lnv),ie1(i),ie2(i),ieo(i)
+      end do
+
       write(iout,'(/A/A/)') ' ARRAYS IA1,IA2',' **************'
-      do 210 i=0,icmax
-      write(iout,'(3I10)') i,ia1(i),ia2(i)
- 210  continue
-!
+
+      do i=0,icmax
+        write(iout,'(3I10)') i,ia1(i),ia2(i)
+      end do
+
       return
       end
 +dk daexter
@@ -492,10 +487,9 @@
 !-----------------------------------------------------------------------------9
 +ca alloc
 
-!
-      do 5 i=1, lda
+      do i=1, lda
         allvec(i)=.false.
-5     continue
+      end do
 
       return
       end
@@ -514,7 +508,6 @@
 !-----------------------------------------------------------------------------9
 +ca alloc
 
-!
       ldanow=0
       do 5 i=1, lda
         if(allvec(i)) ldanow=ldanow+1
@@ -603,7 +596,7 @@
 !-----------------------------------------------------------------------------9
 +ca daname
 !-----------------------------------------------------------------------------3
-!
+
       integer ic(*)
       logical incnda
       character(len=10) c,ccc
@@ -639,7 +632,7 @@
           allvec(ind) = .true.
 
           ic(i) = ind
-!
+
           if(nv.ne.0) then
             call danum(no,nv,ndanum)
           else
@@ -667,7 +660,7 @@
              nst = nst + ndanum
             endif
           endif
-!
+
           if(nst.gt.lst) then
             x=-one
             write(lout,*)'ERROR IN DAALL, STACK EXHAUSTED '
@@ -678,14 +671,14 @@
 !            X=DSQRT(X)
             call dadeb(31,'ERR DAALL ',1)
           endif
-!
+
           if(nv.eq.0.or.nomax.eq.1) then
             call daclr(ic(i))
             idall(ic(i)) = idalm(ic(i))
           endif
         endif
   10  continue
-!
+
       if(nda.gt.ndamaxi) ndamaxi=nda
 
       return
@@ -712,7 +705,7 @@
 !-----------------------------------------------------------------------------9
 +ca daname
 !-----------------------------------------------------------------------------3
-!
+
       integer ic(*)
       logical incnda
       character(len=10) c,ccc
@@ -748,7 +741,7 @@
           allvec(ind) = .true.
 
           ic(i) = ind
-!
+
           if(nv.ne.0) then
             call danum(no,nv,ndanum)
           else
@@ -777,7 +770,7 @@
              nst = nst + ndanum
             endif
           endif
-!
+
           if(nst.gt.lst) then
             x=-one
             write(lout,*)'ERROR IN DAALL, STACK EXHAUSTED '
@@ -788,7 +781,7 @@
 !            X=DSQRT(X)
             call dadeb(31,'ERR DAALL ',1)
           endif
-!
+
 !          IF(NV.EQ.0) THEN
           if(nv.eq.0.or.nomax.eq.1) then
             call daclr(ic(i))
@@ -796,12 +789,12 @@
           endif
         endif
   10  continue
-!
+
       if(nda.gt.ndamaxi) ndamaxi=nda
 
       return
       end
-!
+
 +dk dadal
       subroutine dadal(idal,l)
       use floatPrecision
@@ -823,8 +816,7 @@
 
       do 10 i=l,1,-1
         if(idal(i).le.nomax+2.or.idal(i).gt.nda) then
-          write(lout,*)                                                 &
-     &'ERROR IN ROUTINE DADAL, IDAL(I),NDA = ',idal(i),nda
+          write(lout,*) 'ERROR IN ROUTINE DADAL, IDAL(I),NDA = ',idal(i),nda
           call dadeb(31,'ERR DADAL ',1)
         endif
         if(idal(i).eq.nda) then
@@ -868,19 +860,18 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
-!
-!
+
+
       if(i.gt.inva) then
          write(lout,*)'ERROR IN DAVAR, I = ',i,' EXCEEDS INVA = ',inva
          call dadeb(31,'ERR DAVAR ',1)
       endif
-!
+
       if(nomax.eq.1) then
          if(i.gt.inva) then
-            write(lout,*)                                               &
-     &'ERROR IN DAVAR, I = ',i,' EXCEEDS INVA = ',inva
+            write(lout,*) 'ERROR IN DAVAR, I = ',i,' EXCEEDS INVA = ',inva
 !           CALL DADEB(31,'ERR DAVAR3',1)
          endif
          call daclr(ina)
@@ -890,7 +881,7 @@
       endif
 
       ibase = nomax+1
-!
+
       if(i.gt.(nvmax+1)/2) then
         ic1 = 0
         ic2 = ibase**((i-(nvmax+1)/2)-1)                                 !hr10
@@ -898,13 +889,13 @@
         ic1 = ibase**(i-1)
         ic2 = 0
       endif
-!
+
       if(abs(ckon).gt.eps) then
          idall(ina) = 2
          cc(ipoa) = ckon
          i1(ipoa) = 0
          i2(ipoa) = 0
-!
+
          cc(ipoa+1) = one
          i1(ipoa+1) = ic1
          i2(ipoa+1) = ic2
@@ -914,10 +905,10 @@
          i1(ipoa) = ic1
          i2(ipoa) = ic2
       endif
-!
+
       return
       end
-!
+
 +dk dacon
       subroutine dacon(ina,ckon)
       use floatPrecision
@@ -930,10 +921,10 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
-!
-!
+
+
       if(nomax.eq.1) then
          call daclr(ina)
          cc(ipoa) = ckon
@@ -945,10 +936,10 @@
       i1(ipoa) = 0
       i2(ipoa) = 0
       if(abs(ckon).lt.eps) idall(ina) = 0
-!
+
       return
       end
-!
+
 +dk danot
       subroutine danot(not)
       use floatPrecision
@@ -962,17 +953,17 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       if(not.gt.nomax) then
          write(lout,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
          call dadeb(31,'ERR DANOT ',1)
       endif
-!
+
       nocut = not
 +if debug
 !     call warr('nocut',zero,0,0,0,0)
 +ei
-!
+
       return
       end
 
@@ -990,14 +981,14 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       if(not.gt.nomax) then
          write(lout,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
          call dadeb(31,'ERR DANOT ',1)
       endif
-!
+
       not=nocut
-!
+
       return
       end
 
@@ -1014,16 +1005,16 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       if(deps.ge.zero) then
         eps = deps
       else
         deps=eps
       endif
-!
+
       return
       end
-!
+
 +dk dapek
       subroutine dapek(ina,jj,cjj)
       use floatPrecision
@@ -1041,7 +1032,7 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension jj(lnv)
 +if debug
 !Eric
@@ -1053,9 +1044,9 @@
 !     if (dapcalls.ge.606380)                                           &
 !    &call warr('dapek1',zero,dapcalls,ina,jj(1),1)
 +ei
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
-!
+
 +if debug
 !     if (dapcalls.ge.606380) then
 !     call warr('ina',zero,ina,0,0,0)
@@ -1066,7 +1057,7 @@
 !     call warr('illa',zero,illa,0,0,0)
 !     endif
 +ei
-!
+
       if(illa.eq.0) then   ! etienne shit
         cjj = zero                                                        !hr10
        return
@@ -1104,12 +1095,12 @@
 
       ii1 = (nvmax+1)/2
       ibase = nomax+1
-!
+
 !     DETERMINE INDEX TO BE SEARCHED FOR
 !     **********************************
-!
+
       call dadcd(jj,ic1,ic2)
-!
+
 !ETIENNE
       if(ic1.gt.lia.or.ic2.gt.lia) then
        write(lout,*) 'DISASTER IN DAPEK, INA= ',ina
@@ -1118,7 +1109,7 @@
       endif
 !ETIENNE
       ic = ia1(ic1) + ia2(ic2)
-!
+
 !     DETERMINE IF MONOMIAL TO BE POKED CONFORMS WITH INOA, INVA,NOCUT
 !     ****************************************************************
 !
@@ -1129,12 +1120,12 @@
 !
 !     DETERMINE IF MONOMIAL IS INSIDE FIRST AND LAST MONOMIALS OF A
 !     *************************************************************
-!
+
       iu = ipoa
       iz = ipoa + illa - 1
       icu = ia1(i1(iu))+ia2(i2(iu))
       icz = ia1(i1(iz))+ia2(i2(iz))
-!
+
       if(illa.eq.0) then
          cjj = zero                                                       !hr10
          return
@@ -1164,17 +1155,17 @@
          cjj = zero                                                       !hr10
          return
       endif
-!
+
 !     SEARCHING PROPER MONOMIAL
 !     *************************
-!
+
  10   continue
       if(iz-iu.le.1) then
          cjj = 0
          return
       endif
       i = (iu+iz)/2
-!
+
 !     if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
       mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
       if(mchk.lt.0) goto 20
@@ -1183,6 +1174,7 @@
  20   iu = i
       goto 10
  30   cjj = cc(i)
+
 +if debug
 !     if (dapcalls.ge.606380)                                           &
 !    &call warr('dapek5',cjj,5,i,0,0)
@@ -1194,9 +1186,9 @@
       return
  40   iz = i
       goto 10
-!
+
       end
-!
+
 +dk dapok
       subroutine dapok(ina,jj,cjj)
       use floatPrecision
@@ -1275,9 +1267,9 @@
 
 !     DETERMINE INDEX TO BE SEARCHED FOR
 !     **********************************
-!
+
       call dadcd(jj,ic1,ic2)
-!
+
       ic = ia1(ic1) + ia2(ic2)
 !
 !     DETERMINE IF MONOMIAL TO BE POKED CONFORMS WITH INOA, INVA,NOCUT
@@ -1288,14 +1280,14 @@
 !         CALL DADEB(31,'ERR DAPOK ',1)
 !      ENDIF
 !      IF(ICO.GT.NOCUT) RETURN
-!
+
       if(illa.ne.0) then ! etienne shit
       iu = ipoa
       iz = ipoa + illa - 1
-!
+
 !     DETERMINE IF MONOMIAL IS INSIDE FIRST AND LAST MONOMIALS OF A
 !     *************************************************************
-!
+
       icu = ia1(i1(iu))+ia2(i2(iu))
       icz = ia1(i1(iz))+ia2(i2(iz))
       endif
@@ -1318,21 +1310,21 @@
          i = iz + 1
          goto 100
       endif
-!
-!
+
+
 !     SEARCHING PLACE TO POKE INTO OR BEFORE WHICH TO POKE
 !     ****************************************************
-!
+
       iu = ipoa
       iz = ipoa + illa
-!
+
  10   continue
       if(iz-iu.le.1) then
          i = iz
          goto 100
       endif
       i = (iu+iz)/2
-!
+
 !      if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
       mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
       if(mchk.lt.0) goto 20
@@ -1344,12 +1336,12 @@
       goto 200
  40   iz = i
       goto 10
-!
+
 !     INSERTING THE MONOMIAL, MOVING THE REST
 !     ***************************************
-!
+
  100  continue
-!
+
 +if debug
 !      if (dokcalls.ge.445959) then
 !      call wda('eps',eps,0,0,0,0)
@@ -1357,7 +1349,7 @@
 !      endif
 +ei
       if(abs(cjj).lt.eps) return
-!
+
       do 110 ii=ipoa+illa,i+1,-1
       cc(ii) = cc(ii-1)
       i1(ii) = i1(ii-1)
@@ -1387,17 +1379,17 @@
 !      endif
 +ei
       if(abs(cjj).lt.eps) then
-         do 210 ii=i,ipoa+illa-2
-         cc(ii) = cc(ii+1)
-         i1(ii) = i1(ii+1)
-         i2(ii) = i2(ii+1)
- 210     continue
+         do ii=i,ipoa+illa-2
+           cc(ii) = cc(ii+1)
+           i1(ii) = i1(ii+1)
+           i2(ii) = i2(ii+1)
+         end do
          idall(ina) = illa - 1
       endif
       return
-!
+
       end
-!
+
 +dk daclr
       subroutine daclr(inc)
       use floatPrecision
@@ -1411,18 +1403,16 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
-      do 100 i=ipoc,ipoc+ilmc-1
-!
-      cc(i) = zero
-!
- 100  continue
-!
+
+      do i=ipoc,ipoc+ilmc-1
+        cc(i) = zero
+      end do
+
       return
       end
-!
+
 +dk dacop
       subroutine dacop(ina,inb)
       use floatPrecision
@@ -1438,18 +1428,18 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
+
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INB,INOB,INVB)
-!
+
       ib = ipob - 1
-!
+
       iif = 0
       if(nomax.eq.1.or.inva.eq.0) iif = 1
 +if debug
@@ -1464,7 +1454,7 @@
 +ei
 
       do 100 ia = ipoa,ipoa+illa-1
-!
+
       if(iif.eq.0) then
         if(ieo(ia1(i1(ia))+ia2(i2(ia))).gt.nocut) goto 100
       endif
@@ -1484,19 +1474,18 @@
 !       call wda('daiba2',cc(ia),ia,0,0,0)
 !     endif
 +ei
-!
+
  100  continue
-!
+
       idall(inb) = (ib - ipob) + 1                                       !hr10
       if(idall(inb).gt.idalm(inb)) then
          write(lout,*)'ERROR IN DACOP'
          call dadeb(31,'ERR DACOP ',1)
       endif
-!
+
       return
       end
 
-!
 +dk datrashn
       subroutine datrashn(idif,ina,inbb)
       use floatPrecision
@@ -1515,7 +1504,7 @@
 !-----------------------------------------------------------------------------1
 +ca dabinc
       integer jd(lnv)
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       inb(1)=0
 
@@ -1526,28 +1515,27 @@
       endif
 
       call daclr(inb(1))
-!
-!
-      do 100 ia = ipoa,ipoa+illa-1
-!
-      if(nomax.ne.1) then
-        call dancd(i1(ia),i2(ia),jd)
-      else
-        do i=1,lnv
-          jd(i)=0
-        enddo
-        if(ia.ne.ipoa) then
-          jd(ia-ipoa+1)=1
-        endif
-      endif
 
-      call dapek(ina,jd,rr)
-      jd(idif)=0
-      if(abs(rr).gt.zero) call dapok(inb(1),jd,rr)
-!
- 100  continue
-!
-!
+      do ia = ipoa,ipoa+illa-1
+
+        if(nomax.ne.1) then
+          call dancd(i1(ia),i2(ia),jd)
+        else
+          do i=1,lnv
+            jd(i)=0
+          end do
+
+          if(ia.ne.ipoa) then
+            jd(ia-ipoa+1)=1
+          endif
+        endif
+
+        call dapek(ina,jd,rr)
+        jd(idif)=0
+        if(abs(rr).gt.zero) call dapok(inb(1),jd,rr)
+      end do
+
+
       if(inbb.eq.ina) then
          call dacop(inb(1),inbb)
          call dadal(inb(1),1)
@@ -1566,7 +1554,7 @@
 !
 !     THIS SUBROUTINE PERFORMS A DA ADDITION OF THE DA VECTORS A AND B.
 !     THE RESULT IS STORED IN C.
-!
+
       if(ina.ne.inc.and.inb.ne.inc) then
          call dalin(ina,+one,inb,+one,inc)
       else
@@ -1577,10 +1565,10 @@
          call dacop(idaadd(1),inc)
          call dadal(idaadd(1),1)
       endif
-!
+
       return
       end
-!
+
 +dk dasub
       subroutine dasub(ina,inb,inc)
       use floatPrecision
@@ -1591,7 +1579,7 @@
 !
 !     THIS SUBROUTINE PERFORMS A DA SUBTRACTION OF THE DA VECTORS A AND B.
 !     THE RESULT IS STORED IN C.
-!
+
       if(ina.ne.inc.and.inb.ne.inc) then
          call dalin(ina,+one,inb,-one,inc)
       else
@@ -1602,16 +1590,15 @@
          call dacop(idasub(1),inc)
          call dadal(idasub(1),1)
       endif
-!
+
       return
       end
-!
+
 +dk damulin
       subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
       use floatPrecision
       implicit none
-      integer ina,inb,inc,incc(1),ind,ine,inoc,invc,lda,lea,lia,lno,lnv,&
-     &lst
+      integer ina,inb,inc,incc(1),ind,ine,inoc,invc,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) coe1,coe2
 !     *****************************
 !
@@ -1621,8 +1608,6 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
-!
 
       call daall(incc(1),1,'$$DAJUNK$$',inoc,invc)
       call damul(ina,inb,incc(1))
@@ -1633,8 +1618,6 @@
       return
       end
 
-!
-!
 ! ANFANG UNTERPROGRAMM
 +dk daexx
       subroutine daexx(ina,inb,inc)
@@ -1642,8 +1625,7 @@
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,             &
-     &lia,lno,lnv,lst
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
       integer inaa(1),inbb(1)
 +ca dabinc
 !     ******************************
@@ -1687,14 +1669,14 @@
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
+
       idaexx(1) = 0
       call daall(idaexx(1),1,'$$DAEXX $$',inoc,invc)
       call dafun('LOG   ',ina,inc)
       call damul(inb,inc,idaexx(1))
       call dafun('EXP   ',idaexx(1),inc)
       call dadal(idaexx(1),1)
-!
+
       return
       end
 
@@ -1705,8 +1687,7 @@
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
-     &lnv,lst
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
       integer incc(1)
       real(kind=fPrec) ckon
 +ca dabinc
@@ -1747,19 +1728,19 @@
 !-----------------------------------------------------------------------------9
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
+
       if(ckon.le.0) then
          write(lout,*)'ERROR IN DACEX, CKON NOT POSITIVE'
 !        CALL DADEB(31,'ERR DACEX1',1)
       endif
-!
+
       idacex(1) = 0
       call daall(idacex(1),1,'$$DACEX $$',inob,invb)
       ckon = log_mb(ckon)
       call dacmu(ina,ckon,idacex(1))
       call dafun('EXP   ',idacex(1),inb)
       call dadal(idacex(1),1)
-!
+
       return
       end
 
@@ -1767,8 +1748,7 @@
       subroutine daexc(ina,ckon,inb)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
-     &lnv,lst
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
       integer incc(1)
       real(kind=fPrec) ckon
 +ca dabinc
@@ -1813,7 +1793,7 @@
 !-----------------------------------------------------------------------------1
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
+
       idaexc(1) = 0
       call daall(idaexc(1),1,'$$DAEXC $$',inob,invb)
 
@@ -1837,7 +1817,7 @@
         endif
       endif
       call dadal(idaexc(1),1)
-!
+
       return
       end
 
@@ -1899,13 +1879,13 @@
 +ca dabinc
 !
       dimension ipno(0:lno),noff(0:lno)
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
+
 !      CALL DACHK(INA,INOA,INVA, INB,INOB,INVB, INC,INOC,INVC)
-!
+
 !     CASE OF FIRST ORDER ONLY
 !     ************************
 
@@ -1914,68 +1894,71 @@
          ccipoa = cc(ipoa)
          ccipob = cc(ipob)
          cc(ipoc) = ccipoa*ccipob
-         do 20 i=1,minv
-  20     cc(ipoc+i) = ccipoa*cc(ipob+i) + ccipob*cc(ipoa+i)
-         do 30 i=ipoc+minv+1,ipoc+invc
-  30     cc(i) = zero
+
+         do i=1,minv
+           cc(ipoc+i) = ccipoa*cc(ipob+i) + ccipob*cc(ipoa+i)
+         end do
+
+         do i=ipoc+minv+1,ipoc+invc
+           cc(i) = zero
+         end do
+
          return
       endif
-!
+
 !     GENERAL CASE
 !     ************
-!
-      do 10 i=0,nomax
-      noff(i) = idapo(i+2)
-  10  ipno(i) = 0
-!
+
+      do i=0,nomax
+        noff(i) = idapo(i+2)
+        ipno(i) = 0
+      end do
+
       call daclr(1)
-!
+
 !     RE-SORTING THE VECTOR B INTO PIECES THAT ARE OF ONLY ONE ORDER
 !     *************************************************************
-!
-      do 50 ib=ipob,ipob+illb-1
-!
-      noib = ieo(ia1(i1(ib))+ia2(i2(ib)))
-      ipos = ipno(noib) + 1
-      ipno(noib) = ipos
-      inob = noff(noib) + ipos
-!
-      cc(inob) = cc(ib)
-      i1(inob) = i1(ib)
-      i2(inob) = i2(ib)
-!
-  50  continue
-!
-      do 60 i=0,nomax
-  60  idall(i+2) = ipno(i)
-!
+
+      do ib=ipob,ipob+illb-1
+        noib = ieo(ia1(i1(ib))+ia2(i2(ib)))
+        ipos = ipno(noib) + 1
+        ipno(noib) = ipos
+        inob = noff(noib) + ipos
+
+        cc(inob) = cc(ib)
+        i1(inob) = i1(ib)
+        i2(inob) = i2(ib)
+      end do
+
+      do i=0,nomax
+        idall(i+2) = ipno(i)
+      end do
+
 !     PERFORMING ACTUAL MULTIPLICATION
 !     ********************************
-!
+
       nom = min(nocut,inoc)
-!
-      do 100 ia=ipoa,ipoa+illa-1
-!
-      i1ia = i1(ia)
-      i2ia = i2(ia)
-      ccia = cc(ia)
-!
-      do 100 noib = 0,nom-ieo(ia1(i1(ia))+ia2(i2(ia)))
-!
-      ioffb = noff(noib)
-!
-      do 100 ib = ioffb+1,ioffb+ipno(noib)
-!
-      ic = ia2(i2ia+i2(ib)) + ia1(i1ia + i1(ib))
-      cc(ic) = cc(ic) + ccia*cc(ib)
-!
- 100  continue
-!
+
+      do ia=ipoa,ipoa+illa-1
+        i1ia = i1(ia)
+        i2ia = i2(ia)
+        ccia = cc(ia)
+
+        do noib = 0,nom-ieo(ia1(i1(ia))+ia2(i2(ia)))
+          ioffb = noff(noib)
+
+          do ib = ioffb+1,ioffb+ipno(noib)
+            ic = ia2(i2ia+i2(ib)) + ia1(i1ia + i1(ib))
+            cc(ic) = cc(ic) + ccia*cc(ib)
+          end do
+        end do
+      end do
+
       call dapac(inc)
-!
+
       return
       end
-!
+
 +dk dadiv
       subroutine dadiv(ina,inb,inc)
       use floatPrecision
@@ -1986,20 +1969,20 @@
 +ei
       integer idadiv(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
 !     *****************************
-!
+
 !     THIS SUBROUTINE PERFORMS A DA DIVISION OF THE DA VECTORS A AND B.
 !     THE RESULT IS STORED IN C.
-!
+
       idadiv(1) = 0
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
       call daall(idadiv(1),1,'$$DADIV $$',inoc,invc)
       call dafun('INV ',inb,idadiv(1))
       call damul(ina,idadiv(1),inc)
       call dadal(idadiv(1),1)
-!
+
       return
       end
-!
+
 +dk dasqr
       subroutine dasqr(ina,inc)
       use floatPrecision
@@ -2008,15 +1991,13 @@
 +if cr
 +ca crcoall
 +ei
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
-     &lst,incc(1)
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
 !     *************************
 !
 !     THIS SUBROUTINE SQUARES THE VECTOR A AND STORES THE RESULT IN C.
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
 
       if(ina.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -2048,17 +2029,19 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension ipno(0:lno),noff(0:lno)
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
+
 !      CALL DACHK(INA,INOA,INVA,'          ',-1,-1,INC,INOC,INVC)
-!
+
       if(inva+invc.eq.0) then
-         do 5 i=0,illa-1
-  5      cc(ipoc+i) = cc(ipoa+i)**2                                      !hr10
+         do i=0,illa-1
+           cc(ipoc+i) = cc(ipoa+i)**2                                      !hr10
+         end do
+
          idall(inc) = idall(ina)
          if(idall(inc).gt.idalm(inc)) then
             write(lout,*)'ERROR IN DASQR '
@@ -2074,81 +2057,85 @@
          minv = min(inva,invc)
          ccipoa = cc(ipoa)
          cc(ipoc) = ccipoa**2                                            !hr10
-         do 20 i=1,minv
-  20     cc(ipoc+i) = two*ccipoa*cc(ipoa+i)
-         do 30 i=ipoc+minv+1,ipoc+invc
-  30     cc(i) = zero
+
+         do i=1,minv
+           cc(ipoc+i) = two*ccipoa*cc(ipoa+i)
+         end do
+
+         do i=ipoc+minv+1,ipoc+invc
+           cc(i) = zero
+         end do
+
          return
       endif
-!
+
 !     GENERAL CASE
 !     ************
-!
-      do 10 i=0,nomax
-      noff(i) = idapo(i+2)
-  10  ipno(i) = 0
-!
+
+      do i=0,nomax
+        noff(i) = idapo(i+2)
+        ipno(i) = 0
+      end do
+
       call daclr(1)
-!
+
 !     RESORTING THE VECTOR A INTO PIECES THAT ARE OF ONLY ONE ORDER
 !     *************************************************************
-!
-      do 50 ia=ipoa,ipoa+illa-1
-!
-      noia = ieo(ia1(i1(ia))+ia2(i2(ia)))
-      ipos = ipno(noia) + 1
-      ipno(noia) = ipos
-      inoa = noff(noia) + ipos
-!
-      cc(inoa) = cc(ia)
-      i1(inoa) = i1(ia)
-      i2(inoa) = i2(ia)
-!
-  50  continue
-!
-      do 60 i=0,nomax
-  60  idall(i+2) = ipno(i)
-!
+
+      do ia=ipoa,ipoa+illa-1
+        noia = ieo(ia1(i1(ia))+ia2(i2(ia)))
+        ipos = ipno(noia) + 1
+        ipno(noia) = ipos
+        inoa = noff(noia) + ipos
+
+        cc(inoa) = cc(ia)
+        i1(inoa) = i1(ia)
+        i2(inoa) = i2(ia)
+      end do
+
+      do i=0,nomax
+        idall(i+2) = ipno(i)
+      end do
+
 !     PERFORMING ACTUAL MULTIPLICATION
 !     ********************************
-!
+
       nom = min(nocut,inoc)
-!
-      do 100 noia = 0,nom/2
-!
-      ioffa = noff(noia)
-!
-      do 100 ia=ioffa+1,ioffa+ipno(noia)
-!
-      i1ia = i1(ia)
-      i2ia = i2(ia)
-      ccia = cc(ia)
-!
-      ic = ia2(i2ia+i2ia) + ia1(i1ia+i1ia)
-      cc(ic) = cc(ic) + ccia**2                                          !hr10
-      ccia = ccia + ccia
-!
-      do 100 noib = noia,nom-noia
-!
-      ioffb = noff(noib)
-      if(noib.eq.noia) then
-         ib1 = ia + 1
-      else
-         ib1 = ioffb + 1
-      endif
-!
-      do 100 ib = ib1,ioffb+ipno(noib)
-!
-      ic = ia2(i2ia+i2(ib)) + ia1(i1ia + i1(ib))
-      cc(ic) = cc(ic) + ccia*cc(ib)
-!
- 100  continue
-!
+
+      do noia = 0,nom/2
+        ioffa = noff(noia)
+
+        do ia=ioffa+1,ioffa+ipno(noia)
+          i1ia = i1(ia)
+          i2ia = i2(ia)
+          ccia = cc(ia)
+
+          ic = ia2(i2ia+i2ia) + ia1(i1ia+i1ia)
+          cc(ic) = cc(ic) + ccia**2                                          !hr10
+          ccia = ccia + ccia
+
+          do noib = noia,nom-noia
+
+            ioffb = noff(noib)
+            if(noib.eq.noia) then
+              ib1 = ia + 1
+            else
+              ib1 = ioffb + 1
+            endif
+
+            do ib = ib1,ioffb+ipno(noib)
+              ic = ia2(i2ia+i2(ib)) + ia1(i1ia + i1(ib))
+              cc(ic) = cc(ic) + ccia*cc(ib)
+            end do
+          end do
+        end do
+      end do
+
       call dapac(inc)
-!
+
       return
       end
-!
+
 +dk dacad
       subroutine dacad(ina,ckon,inb)
       use floatPrecision
@@ -2157,8 +2144,7 @@
 +if cr
 +ca crcoall
 +ei
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
-     &lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon,const
 !     ******************************
 !
@@ -2168,24 +2154,23 @@
 +ca dabinc
       integer jj(lnv)
       data jj / lnv*0 /
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
-!
+
       call dacop(ina,inb)
-!
+
       if(nomax.eq.1) then
          cc(ipob) = cc(ipob) + ckon
          return
       endif
-!
+
       call dapek(inb,jj,const)
       call dapok(inb,jj,const+ckon)
-!
+
       return
       end
-!
+
 +dk dacsu
       subroutine dacsu(ina,ckon,inb)
       use floatPrecision
@@ -2194,8 +2179,7 @@
 +if cr
 +ca crcoall
 +ei
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
-     &lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon,const
 !     ******************************
 !
@@ -2209,7 +2193,7 @@
 +ca dabinc
       integer jj(lnv)
       data jj / lnv*0 /
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
 +if debug
@@ -2232,10 +2216,9 @@
 !       endif
 !     endif
 +ei
-!
-!
+
       call dacop(ina,inb)
-!
+
 +if debug
 !     if (umcalls.eq.8) then
 !       if (dumpl.ne.0) then
@@ -2296,10 +2279,10 @@
 !       endif
 !     endif
 +ei
-!
+
       return
       end
-!
+
 +dk dasuc
       subroutine dasuc(ina,ckon,inb)
       use floatPrecision
@@ -2309,8 +2292,7 @@
 +if cr
 +ca crcoall
 +ei
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
-     &lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon
 !     ******************************
 !
@@ -2318,17 +2300,16 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
-!
+
       call dacsu(ina,ckon,inb)
       call dacmu(inb,-one,inb)
-!
+
       return
       end
-!
+
 +dk dacmu
       subroutine dacmu(ina,ckon,inc)
       use floatPrecision
@@ -2337,8 +2318,7 @@
 +if cr
 +ca crcoall
 +ei
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
-     &lst,incc(1)
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
       real(kind=fPrec) ckon
 !     ******************************
 !
@@ -2352,7 +2332,6 @@
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
-!
 
       if(ina.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -2384,8 +2363,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,  &
-     &ipoa,ipob,lda,lea,lia,lno,lnv,lst,minv
+      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst,minv
       real(kind=fPrec) ckon
 !     ******************************
 !
@@ -2399,19 +2377,23 @@
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
-!
+
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INB,INOB,INVB)
-!
+
       if(nomax.eq.1) then
          minv = min(inva,invb)
-         do 20 i=0,minv
-  20     cc(ipob+i) = cc(ipoa+i) * ckon
-         do 30 i=ipob+minv+1,ipob+invb
-  30     cc(i) = zero
+
+         do i=0,minv
+           cc(ipob+i) = cc(ipoa+i) * ckon
+         end do
+
+         do i=ipob+minv+1,ipob+invb
+           cc(i) = zero
+         end do
+
 +if debug
 !     if (dokcalls.ge.445959) then
 !       call wda('dacmutz',ckon,ipoa,ipob,0,0)
@@ -2419,7 +2401,7 @@
 +ei
          return
       endif
-!
+
       if(abs(ckon).lt.eps) then
          idall(inb) = 0
 +if debug
@@ -2430,33 +2412,33 @@
 +ei
          return
       endif
-!
+
       ib = ipob - 1
-!
+
       do 100 ia=ipoa,ipoa+illa-1
-!
+
       if(ieo(ia1(i1(ia))+ia2(i2(ia))).gt.nocut) goto 100
       ib = ib + 1
       cc(ib) = cc(ia)*ckon
       i1(ib) = i1(ia)
       i2(ib) = i2(ia)
-!
+
  100  continue
 +if debug
 !     if (dokcalls.ge.445959) then
 !       call wda('dacmut100',ckon,ipoa,illa,0,0)
 !     endif
 +ei
-!
+
       idall(inb) = (ib-ipob)+1                                           !hr10
       if(idall(inb).gt.idalm(inb)) then
-         write(lout,*)'ERROR IN DACMU '
-         call dadeb(31,'ERR DACMU ',1)
+        write(lout,*)'ERROR IN DACMU '
+        call dadeb(31,'ERR DACMU ',1)
       endif
-!
+
       return
       end
-!
+
 +dk dacdi
       subroutine dacdi(ina,ckon,inb)
       use floatPrecision
@@ -2464,8 +2446,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,&
-     &lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon
 !     ******************************
 !
@@ -2473,21 +2454,20 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       if(ckon.eq.zero) then
          write(lout,*)'ERROR IN DACDI, CKON IS ZERO'
          call dadeb(31,'ERR DACDI ',1)
       endif
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
-!
+
       call dacmu(ina,one/ckon,inb)
-!
+
       return
       end
-!
+
 +dk dadic
       subroutine dadic(ina,ckon,inc)
       use floatPrecision
@@ -2495,8 +2475,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer idadic(1),illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,&
-     &ipoa,ipoc,lda,lea,lia,lno,lnv,lst
+      integer idadic(1),illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon
 !      parameter(zero=0.0_fPrec)
 !     ******************************
@@ -2505,30 +2484,29 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
-!
+
       if(abs(ckon).lt.eps) then
-         call dacon(inc,zero)
-         return
+        call dacon(inc,zero)
+        return
       endif
 
       idadic(1) = 0
       call daall(idadic(1),1,'$$DADIC $$',inoc,invc)
 
       if(ckon.eq.zero) then
-         write(lout,*)'ERROR IN DACDI and DADIC, CKON IS ZERO'
-         call dadeb(31,'ERR DACDI ',1)
+        write(lout,*)'ERROR IN DACDI and DADIC, CKON IS ZERO'
+        call dadeb(31,'ERR DACDI ',1)
       endif
       call dacdi(ina,ckon,idadic(1))
       call dafun('INV ',idadic(1),inc)
       call dadal(idadic(1),1)
-!
+
       return
       end
-!
+
 +dk dacma
       subroutine dacma(ina,inb,bfac,inc)
       use floatPrecision
@@ -2538,8 +2516,7 @@
 +if cr
 +ca crcoall
 +ei
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,         &
-     &lno,lnv,lst,idacma(1)
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,idacma(1)
       real(kind=fPrec) bfac
 !     **********************************
 !
@@ -2549,23 +2526,22 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
       idacma(1) = 0
       call daall(idacma(1),1,'$$DACMA $$',inoc,invc)
       call dalin(ina,+one,inb,bfac,idacma(1))
       call dacop(idacma(1),inc)
       call dadal(idacma(1),1)
-!
+
       return
       end
-!
+
 +dk dalin
       subroutine dalin(ina,afac,inb,bfac,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
-     &lnv,lst,incc(1)
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
       real(kind=fPrec) afac,bfac
 !     ***************************************
 !
@@ -2574,7 +2550,6 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
 
       if(ina.eq.inc.or.inb.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -2608,21 +2583,24 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
+
 !      CALL DACHK(INA,INOA,INVA, INB,INOB,INVB, INC,INOC,INVC)
-!
-!
+
       if(nomax.eq.1) then
-         minv = min(inva,invb,invc)
-         do 7 i=0,minv
- 7       cc(ipoc+i) = cc(ipoa+i) * afac + cc(ipob+i) * bfac
-         do 8 i=ipoc+minv+1,ipoc+invc
- 8       cc(i) = zero
-         return
+        minv = min(inva,invb,invc)
+        do i=0,minv
+          cc(ipoc+i) = cc(ipoa+i) * afac + cc(ipob+i) * bfac
+        end do
+
+        do i=ipoc+minv+1,ipoc+invc
+          cc(i) = zero
+        end do
+
+        return
       endif
 
       ia = ipoa
@@ -2633,7 +2611,7 @@
       icmax = (ipoc+ilmc)-1                                              !hr10
       ja = ia1(i1(ia)) + ia2(i2(ia))
       jb = ia1(i1(ib)) + ia2(i2(ib))
-!
+
       if(ia.gt.iamax) then
          ismin = ib
          ismax = ibmax
@@ -2646,20 +2624,20 @@
          copf  = afac
          goto 50
       endif
-!
+
 !     COMPARING
 !     *********
-!
+
   10  continue
 !      if(ja-jb) 30,20,40
       mchk=ja-jb
       if(mchk.lt.0) goto 30
       if(mchk.eq.0) goto 20
       if(mchk.gt.0) goto 40
-!
+
 !     ADDING TWO TERMS
 !     ****************
-!
+
   20  continue
       ccc = cc(ia)*afac + cc(ib)*bfac
       if(abs(ccc).lt.eps) goto 25
@@ -2686,10 +2664,10 @@
       ja = ia1(i1(ia)) + ia2(i2(ia))
       jb = ia1(i1(ib)) + ia2(i2(ib))
       goto 10
-!
+
 !     STORING TERM A
 !     **************
-!
+
   30  continue
       if(ieo(ia1(i1(ia))+ia2(i2(ia))).gt.nocut) goto 35
       ccc = cc(ia)*afac
@@ -2708,10 +2686,10 @@
       endif
       ja = ia1(i1(ia)) + ia2(i2(ia))
       goto 10
-!
+
 !     STORING TERM B
 !     **************
-!
+
   40  continue
       if(ieo(ia1(i1(ib))+ia2(i2(ib))).gt.nocut) goto 45
       ccc = cc(ib)*bfac
@@ -2730,10 +2708,10 @@
       endif
       jb = ia1(i1(ib)) + ia2(i2(ib))
       goto 10
-!
+
 !     COPYING THE REST
 !     ****************
-!
+
   50  continue
       do 60 is=ismin,ismax
       if(ieo(ia1(i1(is))+ia2(i2(is))).gt.nocut) goto 60
@@ -2744,17 +2722,17 @@
       i1(ic) = i1(is)
       i2(ic) = i2(is)
   60  continue
-!
+
       idall(inc) = (ic - ipoc) + 1                                       !hr10
-!
+
       if(idall(inc).gt.idalm(inc)) then
-         write(lout,*)'ERROR IN DALIN, RESULT HAS TOO MANY TERMS '
-         call dadeb(31,'ERR DALIN ',1)
+        write(lout,*)'ERROR IN DALIN, RESULT HAS TOO MANY TERMS '
+        call dadeb(31,'ERR DALIN ',1)
       endif
-!
+
       return
       end
-!
+
 +dk dafun
       subroutine dafun(cf,ina,inc)
       use floatPrecision
@@ -2763,8 +2741,7 @@
 +if cr
 +ca crcoall
 +ei
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
-     &lst,incc(1)
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
 !     ****************************
 !
 !     THIS SUBROUTINE COMPUTES THE FUNCTION CF OF THE DA VECTOR A
@@ -2774,7 +2751,7 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       character(len=4) cf
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
@@ -2782,15 +2759,16 @@
 +ei
 
       if(ina.eq.inc) then
-       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
+        call dainf(inc,inoc,invc,ipoc,ilmc,illc)
         incc(1)=0
-       call daall(incc(1),1,'$$DAJUNK$$',inoc,invc)
-       call dafunt(cf,ina,incc(1))
-       call dacop(incc(1),inc)
-       call dadal(incc(1),1)
+        call daall(incc(1),1,'$$DAJUNK$$',inoc,invc)
+        call dafunt(cf,ina,incc(1))
+        call dacop(incc(1),inc)
+        call dadal(incc(1),1)
       else
-       call dafunt(cf,ina,inc)
+        call dafunt(cf,ina,inc)
       endif
+
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('dafun',zero,0,0,0,0)
@@ -2830,57 +2808,57 @@
 !-----------------------------------------------------------------------------1
 +ca dabinc
 +ca parnum
-!
+
       character(len=4) cf,cfh
       character(len=26) abcs,abcc
       dimension xf(0:lno),jj(lnv)
-!
+
       data jj /lnv*0/
       data abcs /'abcdefghijklmnopqrstuvwxyz'/
       data abcc /'ABCDEFGHIJKLMNOPQRSTUVWXYZ'/
-!
+
       if(cf(1:1).eq.' ') then
-         cfh(1:3) = cf(2:4)
-         cfh(1:4) = ' '
-         cf = cfh
+        cfh(1:3) = cf(2:4)
+        cfh(1:4) = ' '
+        cf = cfh
       endif
-!
-      do 5 i=1,4
-      ind = index(abcs,cf(i:i))
-      if(ind.ne.0) cf(i:i) = abcc(ind:ind)
-  5   continue
-!
+
+      do i=1,4
+        ind = index(abcs,cf(i:i))
+        if(ind.ne.0) cf(i:i) = abcc(ind:ind)
+      end do
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
+
 !     CASE OF NV = 0 WHICH MEANS COORDINATEWISE OPERATION
 !     ***************************************************
 !
 !     CASE OF NV > 0 WHICH MEANS DIFFERENTIAL ALGEBRAIC OPERATION
 !     ***********************************************************
-!
+
       if(cf.eq.'SQR ') then
-         call dasqr(ina,inc)
-         return
+        call dasqr(ina,inc)
+        return
       endif
-!
+
 !     ALLOCATE VARIABLES, PICK ZEROTH ORDER TERM
 !     ******************************************
-!
+
       ipow(1) = 0
       inon(1) = 0
       iscr(1) = 0
-!
+
       call daall(ipow(1),1,'$$DAFUN1$$',inoc,invc)
       call daall(inon(1),1,'$$DAFUN2$$',inoc,invc)
       call daall(iscr(1),1,'$$DAFUN3$$',inoc,invc)
-!
+
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
-!
+
       call dapek(ina,jj,a0)
-!
+
       no = min(nocut,inoa,inoc)
-!
+
 !     BRANCHING TO DIFFERENT FUNCTIONS
 !     ********************************
 !
@@ -2893,9 +2871,10 @@
             return
          endif
          xf(0) = one/a0
-         do 601 i=1,no
-  601    xf(i) = (-one*xf(i-1))/a0
-!
+         do i=1,no
+           xf(i) = (-one*xf(i-1))/a0
+         end do
+
       elseif(cf.eq.'SQRT') then
 !        SQRT(A0+P) = SQRT(A0)*(1+1/2(P/A0)-1/8*(P/A0)**2+...)
          if(a0.le.zero) then                                              !hr10
@@ -2906,9 +2885,10 @@
          endif
          ra = sqrt(a0)                                                   !hr10
          xf(0) = ra
-         do 602 i=1,no
-  602    xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-3,fPrec) !hr10
-!
+         do i=1,no
+           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-3,fPrec) !hr10
+         end do
+
       elseif(cf.eq.'ISRT') then
 !        1/SQRT(A0+P) = 1/SQRT(A0)*(1-1/2(P/A0)+3/8*(P/A0)**2-...)
          if(a0.le.zero) then                                              !hr10
@@ -2919,16 +2899,18 @@
          endif
          era = one/sqrt(a0)                                             !hr10
          xf(0) = era
-         do 603 i=1,no
-  603    xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-1,fPrec) !hr10
-!
+         do i=1,no
+           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-1,fPrec) !hr10
+         end do
+
       elseif(cf.eq.'EXP ') then
 !        EXP(A0+P) = EXP(A0)*(1+P+P**2/2!+...)
          ea  = exp_mb(a0)
          xf(0) = ea
-         do 604 i=1,no
-  604    xf(i) = xf(i-1)/real(i,fPrec)
-!
+         do i=1,no
+           xf(i) = xf(i-1)/real(i,fPrec)
+         end do
+
       elseif(cf.eq.'LOG ') then
 !        LOG(A0+P) = LOG(A0) + (P/A0) - 1/2*(P/A0)**2 + 1/3*(P/A0)**3 - ...)
          if(a0.le.zero) then                                              !hr10
@@ -2940,27 +2922,30 @@
          ea  = log_mb(a0)
          xf(0) = ea
          xf(1) = one/a0
-         do 605 i=2,no
-  605    xf(i) = (((-one*xf(i-1))/a0)/real(i,fPrec))*real((i-1),fPrec)                !hr10
-!
+         do i=2,no
+           xf(i) = (((-one*xf(i-1))/a0)/real(i,fPrec))*real((i-1),fPrec)                !hr10
+         end do
+
       elseif(cf.eq.'SIN ') then
 !        SIN(A0+P) = SIN(A0)*(1-P**2/2!+P**4/4!) + COS(A0)*(P-P**3/3!+P**5/5!)
          sa  = sin_mb(a0)
          ca  = cos_mb(a0)
          xf(0) = sa
          xf(1) = ca
-         do 606 i=2,no
-  606    xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                       !hr10
-!
+         do i=2,no
+           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                       !hr10
+         end do
+
       elseif(cf.eq.'COS ') then
 !        COS(A0+P) = COS(A0)*(1-P**2/2!+P**4/4!) - SIN(A0)*(P-P**3/3!+P**5/5!)
          sa  = sin_mb(a0)
          ca  = cos_mb(a0)
          xf(0) = ca
          xf(1) = -one*sa                                                 !hr10
-         do 607 i=2,no
-  607    xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                      !hr10
-!
+         do i=2,no
+           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                      !hr10
+         end do
+
       elseif(cf.eq.'SIRX') then
 !        SIN(SQRT(P))/SQRT(P) = 1 - P/3! + P**2/5! - P**3/7! + ...
          if(a0.ne.zero) then                                              !hr10
@@ -2970,9 +2955,10 @@
             return
          endif
          xf(0)=one
-         do 608 i=1,no
-  608    xf(i) = (-one*xf(i-1))/real((2*i)*(2*i+1),fPrec)                !hr10
-!
+         do i=1,no
+           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i+1),fPrec)                !hr10
+         end do
+
       elseif(cf.eq.'CORX') then
 !        COS(SQRT(P)) = 1 - P/2! + P**2/4! - P**3/6! + ...
          if(a0.ne.zero) then                                              !hr10
@@ -2982,9 +2968,10 @@
             return
          endif
          xf(0)=one
-         do 609 i=1,no
-  609    xf(i) = (-one*xf(i-1))/real((2*i)*(2*i-1),fPrec)                !hr10
-!
+         do i=1,no
+           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i-1),fPrec)                !hr10
+         end do
+
       elseif(cf.eq.'SIDX') then
 !        SIN(P)/P = 1 - P**2/3! + P**4/5! - P**6/7! + ...
          if(a0.ne.zero) then                                              !hr10
@@ -2995,9 +2982,10 @@
          endif
          xf(0)=one
          xf(1)=zero
-         do 610 i=2,no
-  610    xf(i) = (-one*xf(i-2))/real(i*(i+1),fPrec)                      !hr10
-!
+         do i=2,no
+           xf(i) = (-one*xf(i-2))/real(i*(i+1),fPrec)                      !hr10
+         end do
+
       elseif(cf.eq.'TAN ') then
          if(abs(cos_mb(a0)).lt.epsmac) then
             write(lout,1000) cf,ina,a0
@@ -3011,11 +2999,9 @@
          xf(1) = (one/ca)/ca                                            !hr10
          xf(2) = ((((two*sa)/ca)/ca)/ca)/two
          xf(3) = (((((two*ca**2+six*sa**2)/ca)/ca)/ca)/ca)/six          !hr10
-         xf(4) = ((((((16.0_fPrec*sa+eight*sa**3)/ca)/ca)/ca)/ca)/ca)   &
-     &/24.0_fPrec    !hr10
-         xf(5) = (((((((((16.0_fPrec*ca**2+(24.0_fPrec*ca**2)*sa**2)+   &
-     &80.0_fPrec*sa**2)+40.0_fPrec*sa**4)/ca)/ca)/ca)/ca)/ca)/ca)       &
-     &/120.0_fPrec !hr10
+         xf(4) = ((((((16.0_fPrec*sa+eight*sa**3)/ca)/ca)/ca)/ca)/ca)/24.0_fPrec    !hr10
+         xf(5) = (((((((((16.0_fPrec*ca**2+(24.0_fPrec*ca**2)*sa**2)+80.0_fPrec*sa**2)+40.0_fPrec*sa**4)/ca)/ca)/ca)/ca)/ca)/ca)/&
+     &120.0_fPrec !hr10
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3039,11 +3025,9 @@
          xf(1) = (-one/sa)/sa
          xf(2) = ((((two*ca)/sa)/sa)/sa)/two                           !hr10
          xf(3) = (((((-one*(two*sa**2+six*ca**2))/sa)/sa)/sa)/sa)/six    !hr10
-         xf(4) = ((((((16.0_fPrec*ca+eight*ca**3)/sa)/sa)/sa)/sa)/sa)   &
-     &/24.0_fPrec !hr10
-         xf(5) = (((((((-one*(((16.0_fPrec*sa**2+(24.0_fPrec*sa**2)*    &
-     &ca**2)+80.0_fPrec*ca**2)+ 40.0_fPrec*ca**4))/sa)/sa)/sa)/sa)/sa)  &
-     &/sa)/120.0_fPrec         !hr10
+         xf(4) = ((((((16.0_fPrec*ca+eight*ca**3)/sa)/sa)/sa)/sa)/sa)/24.0_fPrec !hr10
+         xf(5) = (((((((-one*(((16.0_fPrec*sa**2+(24.0_fPrec*sa**2)*ca**2)+80.0_fPrec*ca**2)+ 40.0_fPrec*ca**4))/sa)/sa)/sa)/sa)/&
+     &sa)/sa)/120.0_fPrec         !hr10
 
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
@@ -3070,15 +3054,12 @@
 !        xf(2) = (a0*xf(1)**3.d0)/2.d0                                   !hr10
          xf(2) = (a0*(xf(1)*xf(1)*xf(1)))/two                            !eric
 !        xf(3) = ((1.d0+2.d0*a0**2)*xf(1)**5.d0)/6.d0                    !hr10
-         xf(3) = ((one+two*(a0*a0))*                                    &
-     &           (xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/six                   !eric
+         xf(3) = ((one+two*(a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/six                   !eric
 !        xf(4) = ((9.d0*a0+6.d0*a0**3)*xf(1)**7.d0)/24.d0                !hr10
-         xf(4) = ((nine*a0+six*(a0*a0*a0))*                             &
-     &           (xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/24.0_fPrec !eric
+         xf(4) = ((nine*a0+six*(a0*a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/24.0_fPrec !eric
 !        xf(5) = ((9.d0+72.d0*a0**2+24.d0*a0**4)*xf(1)**9.d0)/120.d0     !hr10
-         xf(5) = ((nine+72.0_fPrec*(a0*a0)+24.0_fPrec*(a0*a0*a0*a0))*   &
-     &   (xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))       &
-     & /120.0_fPrec !eric
+         xf(5) = ((nine+72.0_fPrec*(a0*a0)+24.0_fPrec*(a0*a0*a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))    &
+     &/120.0_fPrec !eric
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
 +if cr
@@ -3103,8 +3084,7 @@
          xf(2) = ((-one*a0)*scr**three)/two                              !hr10
          xf(3) = ((-one*(one+two*a0**2))*scr**five)/six               !hr10
          xf(4) = ((-one*(nine*a0+six*a0**3))*scr**seven)/24.0_fPrec           !hr10
-         xf(5) =((-one*(nine+72.0_fPrec*a0**2+24.0_fPrec*a0**4))        &
-     & *scr**nine)/120.0_fPrec !hr10
+         xf(5) =((-one*(nine+72.0_fPrec*a0**2+24.0_fPrec*a0**4))*scr**nine)/120.0_fPrec !hr10
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3167,8 +3147,7 @@
          xf(2) = -two*sa/ca/ca/ca/two
          xf(3) = (-two*ca*ca+six*sa*sa)/ca/ca/ca/ca/six
          xf(4) =(16.0_fPrec*sa-eight*sa*sa*sa)/ca/ca/ca/ca/ca/24.0_fPrec
-         xf(5) = (16.0_fPrec*ca*ca-24.0_fPrec*ca*ca*sa*sa-80.0_fPrec    &
-     &*sa*sa+40.0_fPrec*sa*sa*sa*sa)/ca/ca/ca/ca/ca/ca/120.0_fPrec
+         xf(5) = (16.0_fPrec*ca*ca-24.0_fPrec*ca*ca*sa*sa-80.0_fPrec*sa*sa+40.0_fPrec*sa*sa*sa*sa)/ca/ca/ca/ca/ca/ca/120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3186,10 +3165,8 @@
          xf(1) = -one/sa/sa
          xf(2) =  two*ca/sa/sa/sa/two
          xf(3) = (two*sa*sa-six*ca*ca)/sa/sa/sa/sa/six
-         xf(4) = (16.0_fPrec*ca+eight*ca*ca*ca)/sa/sa/sa/sa/sa/         &
-     &24.0_fPrec
-         xf(5) = (16.0_fPrec*sa*sa+24.0_fPrec*sa*sa*ca*ca-80.0_fPrec    &
-     &*ca*ca-40.0_fPrec*ca*ca*ca*ca)/sa/sa/sa/sa/sa/sa/120.0_fPrec
+         xf(4) = (16.0_fPrec*ca+eight*ca*ca*ca)/sa/sa/sa/sa/sa/24.0_fPrec
+         xf(5) = (16.0_fPrec*sa*sa+24.0_fPrec*sa*sa*ca*ca-80.0_fPrec*ca*ca-40.0_fPrec*ca*ca*ca*ca)/sa/sa/sa/sa/sa/sa/120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3200,8 +3177,7 @@
          xf(2) = -a0*xf(1)**three/two
          xf(3) = (two*a0*a0-one)*xf(1)**five/six
          xf(4) = (nine*a0-six*a0*a0*a0)*xf(1)**seven/24.0_fPrec
-         xf(5) = (nine-72.0_fPrec*a0*a0+24.0_fPrec*a0*a0*a0*a0)*        &
-     &xf(1)**nine/120.0_fPrec
+         xf(5) = (nine-72.0_fPrec*a0*a0+24.0_fPrec*a0*a0*a0*a0)*xf(1)**nine/120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3218,8 +3194,7 @@
          xf(2) = -a0*xf(1)**three/two
          xf(3) = (two*a0*a0+one)*xf(1)**five/six
          xf(4) = (-nine*a0-six*a0*a0*a0)*xf(1)**seven/24.0_fPrec
-         xf(5) = (nine+72.0_fPrec*a0*a0+24.0_fPrec*a0*a0*a0*a0)*        &
-     &xf(1)**nine/120.0_fPrec
+         xf(5) = (nine+72.0_fPrec*a0*a0+24.0_fPrec*a0*a0*a0*a0)*xf(1)**nine/120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3316,8 +3291,7 @@
          xf(2) = -a0*e1/rpi4
          xf(3) = (-two+four*a0*a0)/six*e1/rpi4
          xf(4) = (12.0_fPrec*a0-eight*a0*a0*a0)/24.0_fPrec*e1/rpi4
-         xf(5) = (16.0_fPrec*a0*a0*a0*a0-48.0_fPrec*a0*a0+12.0_fPrec)/  &
-     &120.0_fPrec*e1/rpi4
+         xf(5) = (16.0_fPrec*a0*a0*a0*a0-48.0_fPrec*a0*a0+12.0_fPrec)/120.0_fPrec*e1/rpi4
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3325,30 +3299,28 @@
       else
          write(lout,*)'ERROR, UNSOPPORTED FUNCTION ',cf
       endif
-!
+
       call dacon(inc,xf(0))
       call dacop(ina,inon(1))
       call dapok(inon(1),jj,zero)
       call dacon(ipow(1),one)
-!
+
       do 800 i=1,min(no,nocut)
-!
+
       call damul(inon(1),ipow(1),iscr(1))
       call dacop(iscr(1),ipow(1))
       call dacma(inc,ipow(1),xf(i),inc)
-!
+
  800  continue
-!
- 1000 format('ERROR IN DAFUN, ',a4,' DOES NOT EXIST FOR VECTOR ',i10,   &
-     &'CONST TERM  = ',e12.5)
-!
+
+ 1000 format('ERROR IN DAFUN, ',a4,' DOES NOT EXIST FOR VECTOR ',i10,'CONST TERM  = ',e12.5)
+
       call dadal(iscr(1),1)
       call dadal(inon(1),1)
       call dadal(ipow(1),1)
-!
+
       return
       end
-!
 
 +dk daabs
       subroutine daabs(ina,anorm)
@@ -3363,17 +3335,17 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
-!
+
       anorm = zero
-      do 100 i=ipoa,ipoa+illa-1
-      anorm = anorm + abs(cc(i))
- 100  continue
-!
+      do i=ipoa,ipoa+illa-1
+        anorm = anorm + abs(cc(i))
+      end do
+
       return
       end
-!
+
 +dk dacom
       subroutine dacom(ina,inb,dnorm)
       use floatPrecision
@@ -3388,17 +3360,16 @@
 !
 !     THIS SUBROUTINE COMPARES TWO DA VECTORS BY RETURNING THE NORM
 !     OF THE DIFFERENCE
-!
+
       idacom(1) = 0
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
       call daall(idacom(1),1,'$$DACOM $$',inoc,invc)
       call dasub(ina,inb,idacom(1))
       call daabs(idacom(1),dnorm)
       call dadal(idacom(1),1)
-!
+
       return
       end
-!
 
 +dk dapos
       subroutine dapos(ina,inb)
@@ -3417,37 +3388,35 @@
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
-!
+
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INB,INOB,INVB)
-!
+
       ib = ipob - 1
-!
+
       do 100 ia = ipoa,ipoa+illa-1
-!
+
       if(ieo(ia1(i1(ia))+ia2(i2(ia))).gt.nocut) goto 100
       ib     = ib + 1
       cc(ib) = abs(cc(ia))
       i1(ib) = i1(ia)
       i2(ib) = i2(ia)
-!
+
  100  continue
-!
+
       idall(inb) = ib - ipob + 1
       if(idall(inb).gt.idalm(inb)) then
          write(lout,*)'ERROR IN DAPOS '
          call dadeb(31,'ERR DAPOS ',1)
       endif
-!
+
       return
       end
-!
+
 +dk dacct
       subroutine dacct(ma,ia,mb,ib,mc,ic)
       use floatPrecision
       implicit none
-      integer i,ia,ib,ic,ij,illc,ilmc,inoc,invc,ipoc,lda,lea,lia,lno,   &
-     &lnv,lst
+      integer i,ia,ib,ic,ij,illc,ilmc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
 !     ***********************************
 !
 !     THIS SUBROUTINE PERFORMS A CONCATENATION MA = MB o MC
@@ -3456,17 +3425,23 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       integer mon(lnv),mb(*),mc(*),ma(*)
 
       if(ma(1).eq.mc(1).or.mb(1).eq.mc(1)) then
         call dainf(mc(1),inoc,invc,ipoc,ilmc,illc)
-        do 101 ij=1,ic
- 101    mon(ij)=0
+
+        do ij=1,ic
+          mon(ij)=0
+        end do
+
         call daall(mon,ic,'$$DAJUNK$$',inoc,invc)
         call dacctt(ma,ia,mb,ib,mon,ic)
-        do 9 i=1,ic
- 9      call dacop(mon(i),mc(i))
+
+        do i=1,ic
+          call dacop(mon(i),mc(i))
+        end do
+
         call dadal(mon,ic)
       else
         call dacctt(ma,ia,mb,ib,mc,ic)
@@ -3520,50 +3495,50 @@
          write(lout,*)'ERROR IN DACCT, IC.NE.INVB'
          call dadeb(31,'ERR DACCT2',1)
       endif
-!
+
 !     ALLOCATING LOCAL VECTORS AND CALLING MTREE
 !     ******************************************
-!
-      do 50 i=1,ib
-  50  icc(i) = 0
-!
-      do 60 i=1,nomax+1
-  60  mon(i) = 0
-!
+
+      do i=1,ib
+        icc(i) = 0
+      end do
+
+      do i=1,nomax+1
+        mon(i) = 0
+      end do
+
       call daall(icc,ib,'$$DACCT $$',nomax,nvmax)
       call daall(mon,nomax+1,'$$DAMON $$',inoc,invc)
-!
+
       call mtree(mb,ib,icc,ib)
-!
+
 !     PERFORMING CONCATENATION
 !     ************************
-!
-      do 80 i=1,ia
-      call dacon(ma(i),cc(idapo(icc(i))))
-  80  continue
-!
+
+      do i=1,ia
+        call dacon(ma(i),cc(idapo(icc(i))))
+      end do
+
       call dacon(mon(1),one)
-!
-      do 100 i=1,idall(icc(1))-1
-!
-      jl = i1(idapo(icc(1))+i)
-      jv = i2(idapo(icc(1))+i)
-!
-      call damul(mon(jl),mc(jv),mon(jl+1))
-!
-      do 100 iv=1,ia
-!
-      ccf = cc(idapo(icc(iv))+i)
-      if(abs(ccf).gt.eps) call dacma(ma(iv),mon(jl+1),ccf,ma(iv))
-!
- 100  continue
-!
+
+      do i=1,idall(icc(1))-1
+        jl = i1(idapo(icc(1))+i)
+        jv = i2(idapo(icc(1))+i)
+
+        call damul(mon(jl),mc(jv),mon(jl+1))
+
+        do iv=1,ia
+          ccf = cc(idapo(icc(iv))+i)
+          if(abs(ccf).gt.eps) call dacma(ma(iv),mon(jl+1),ccf,ma(iv))
+        end do
+      end do
+
       call dadal(mon,nomax+1)
       call dadal(icc,ib)
-!
+
       return
       end
-!
+
 +dk mtree
       subroutine mtree(mb,ib,mc,ic)
       use floatPrecision
@@ -3584,38 +3559,38 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       integer jj(lnv),jv(0:lno),mb(*),mc(*)
-!
+
 !     CONSISTENCY CHECKS
 !     ******************
-!
+
       iib = mb(1)
       iic = mc(1)
       call dainf(iib,inob,invb,ipob,ilmb,illb)
       call dainf(iic,inoc,invc,ipoc,ilmc,illc)
-!
+
       call damch(mb,ib)
       call damch(mc,ic)
-!
+
       if(ib.ne.ic) then
          write(lout,*)'ERROR IN MTREE, IB .NE. IC'
          call dadeb(31,'ERR MTREE1',1)
       endif
-!
+
 !     ALLOCATING LOCAL VECTORS
 !     ************************
-!
+
       ichk(1) = 0
       call daall(ichk(1),1,'$$MTREE $$',nomax,nvmax)
-!
+
 !     FIND ALL THE ENTRIES TO BE LOOKED FOR
 !     *************************************
-!
+
       call daclr(1)
-!
+
       cc(1) = one
-!
+
       do 100 i=1,ib
       if(nomax.eq.1) then
       do 91 ib1 = 2,7
@@ -3629,14 +3604,14 @@
    90 continue
       endif
   100 continue
-!
+
       do 150 ii=1,inob
-!
+
 !     SEARCHING FOR FATHER FOR EACH TERM
-!
+
       do 140 i=1,nmmax
       if(cc(i).lt.half) goto 140
-!
+
       jnon = 0
       call dancd(i1(i),i2(i),jj)
       do 130 j=1,invb
@@ -3648,59 +3623,60 @@
       jj(j) = jj(j) + 1
       if(apek.ge.half) goto 140
   130 continue
-!
+
       if(jnon.eq.0) goto 140
-!
+
 !     TERM IS AN ORPHAN, SO CREATE FOSTER FATHER
-!
+
       jj(jnon) = jj(jnon) - 1
       call dadcd(jj,ic1,ic2)
       cc(ia1(ic1)+ia2(ic2)) = one
-!
+
   140 continue
   150 continue
-!
+
       call dapac(ichk(1))
 !ETIENNE      CALL DAPRI(ICHK,32)
 !
 !     SETTING UP TREE STRUCTURE
 !     *************************
-!
+
       ntermf = idall(ichk(1))
-!
+
 !     ZEROTH ORDER TERMS
 !     ******************
-!
-      do 160 i=1,lnv
- 160  jj(i) = 0
-!
+
+      do i=1,lnv
+        jj(i) = 0
+      end do
+
       do 170 i=1,ib
       call dapek(mb(i),jj,bbijj)
       i1(idapo(mc(i))) = 0
       i2(idapo(mc(i))) = 0
       cc(idapo(mc(i))) = bbijj
  170  continue
-!
+
       call dapek(ichk(1),jj,chkjj)
       if(chkjj.gt.half) then
          call dapok(ichk(1),jj,-one)
       else
-         write(lout,*)                                                  &
-     &'ERROR IN MTREE, ZEROTH ORDER TERM OF ICHK IS ZERO'
+         write(lout,*) 'ERROR IN MTREE, ZEROTH ORDER TERM OF ICHK IS ZERO'
          call dadeb(31,'ERR MTREE2',1)
       endif
-!
+
       nterm = 1
-!
+
 !     HIGHER ORDER TERMS
 !     ******************
-!
-      do 180 jl=1,inob
- 180  jv(jl) = 0
-!
+
+      do jl=1,inob
+        jv(jl) = 0
+      end do
+
       jl = 0
       chkjj = one
-!
+
  200  continue
       if(jl.eq.0.and.chkjj.le.half) goto 250
       if(jl.lt.inob.and.chkjj.gt.half) then
@@ -3718,19 +3694,19 @@
          jv(jl) = jv(jl) + 1
          jj(jv(jl)) = jj(jv(jl)) + 1
       endif
-!
+
       call dapek(ichk(1),jj,chkjj)
-!
+
       if(chkjj.le.half) goto 200
-!
+
       nterm = nterm + 1
       if(nterm.gt.idalm(mc(1))) then
          write(lout,*)'ERROR IN MTREE, NTERM TOO LARGE'
          call dadeb(31,'ERR MTREE3',1)
       endif
-!
+
       call dapok(ichk(1),jj,-one)
-!
+
 !     write(6,*)'JL,JV = ',JL,JV(JL)
       do 210 i=1,ib
       call dapek(mb(i),jj,bbijj)
@@ -3738,34 +3714,35 @@
       i2(idapo(mc(i))+nterm-1) = jv(jl)
       cc(idapo(mc(i))+nterm-1) = bbijj
  210  continue
-!
+
       goto 200
-!
+
  250  continue
-!
-      do 260 i=1,ib
- 260  idall(mc(i)) = nterm
-!
+
+      do i=1,ib
+        idall(mc(i)) = nterm
+      end do
+
 !     PERFORMING CROSS CHECKS
 !     ***********************
-!
+
       if(nterm.ne.ntermf.or.nterm.ne.idall(ichk(1))) then
          write(lout,*)'ERROR IN MTREE, NTERM, NTERMF, IDALL(ICHK) =  ',nterm,ntermf,idall(ichk(1))
          call dadeb(31,'ERR MTREE4',1)
       endif
-!
+
       do 270 i=idapo(ichk(1)),idapo(ichk(1))+nterm-1
       if(abs(cc(i)+one).gt.epsmac) then
          write(lout,*)'ERROR IN MTREE, NOT ALL TERMS IN ICHK ARE -1'
          call dadeb(31,'ERR MTREE5',1)
       endif
  270  continue
-!
+
       call dadal(ichk(1),1)
-!
+
       return
       end
-!
+
 +dk ppushpr
       subroutine ppushpri(mc,ic,mf,jc,line)
       use floatPrecision
@@ -3810,28 +3787,30 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension mc(*),xf(*),xi(*),xm(lno+1) ,xt(lno)
-!
+
       do i=1,ic
         xt(i)=xi(i)
-      enddo
-      do 10 i=1,ic
-  10  xf(i) = cc(idapo(mc(i)))
-!
+      end do
+
+      do i=1,ic
+        xf(i) = cc(idapo(mc(i)))
+      end do
+
       xm(1) = one
-!
-      do 100 i=1,idall(mc(1))-1
-!
-      jl = i1(idapo(mc(1))+i)
-      jv = i2(idapo(mc(1))+i)
-      xx = xm(jl)*xt(jv)
-      xm(jl+1) = xx
-!
-      do 100 iv=1,ic
-      xf(iv) = xf(iv) + cc(idapo(mc(iv))+i) * xx
- 100  continue
-!
+
+      do i=1,idall(mc(1))-1
+        jl = i1(idapo(mc(1))+i)
+        jv = i2(idapo(mc(1))+i)
+        xx = xm(jl)*xt(jv)
+        xm(jl+1) = xx
+
+        do iv=1,ic
+          xf(iv) = xf(iv) + cc(idapo(mc(iv))+i) * xx
+        end do
+      end do
+
       return
       end
 
@@ -3849,27 +3828,25 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension xi(*),xm(lno+1) ,xt(lno)
-!
+
       do i=1,nvmax
         xt(i)=xi(i)
-      enddo
+      end do
 
       xf = cc(idapo(mc))
-!
+
       xm(1) = one
-!
-      do 100 i=1,idall(mc)-1
-!
-      jl = i1(idapo(mc)+i)
-      jv = i2(idapo(mc)+i)
-      xx = xm(jl)*xt(jv)
-      xm(jl+1) = xx
-!
-      xf = xf + cc(idapo(mc)+i) * xx
- 100  continue
-!
+
+      do i=1,idall(mc)-1
+        jl = i1(idapo(mc)+i)
+        jv = i2(idapo(mc)+i)
+        xx = xm(jl)*xt(jv)
+        xm(jl+1) = xx
+        xf = xf + cc(idapo(mc)+i) * xx
+      end do
+
       return
       end
 
@@ -3878,8 +3855,7 @@
       use floatPrecision
       implicit none
 +ca parnum
-      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,  &
-     &lst
+      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) x
 !     *****************************
 !
@@ -3888,33 +3864,42 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
-      integer jj(lnv),ml(lnv),ma(*),mb(*)
-!
-      dimension x(lnv)
-!
 
-      do 1 i=1,lnv
- 1    jj(i)=0
+      integer jj(lnv),ml(lnv),ma(*),mb(*)
+      dimension x(lnv)
+
+      do i=1,lnv
+        jj(i)=0
+      end do
 
       if(ma(1).eq.mb(1)) then
         call dainf(mb(1),inob,invb,ipob,ilmb,illb)
-        do 9 i=1,ia
- 9      call dapok(ma(i),jj,zero)
-        do 101 ij=1,ib
- 101    ml(ij)=0
+        do i=1,ia
+          call dapok(ma(i),jj,zero)
+        end do
+
+        do ij=1,ib
+          ml(ij)=0
+        end do
+
         call daall(ml,ib,'$$DAJUNK$$',inob,invb)
         call dainvt(ma,ia,ml,ib)
-        do 90 i=1,ib
- 90     call dacop(ml(i),mb(i))
+
+        do i=1,ib
+          call dacop(ml(i),mb(i))
+        end do
+
         call dadal(ml,ib)
       else
-        do 99 i=1,ia
-        call dapek(ma(i),jj,x(i))
- 99     call dapok(ma(i),jj,zero)
+        do i=1,ia
+          call dapek(ma(i),jj,x(i))
+          call dapok(ma(i),jj,zero)
+        end do
+
         call dainvt(ma,ia,mb,ib)
-        do 999 i=1,ia
- 999    call dapok(ma(i),jj,x(i))
+        do i=1,ia
+          call dapok(ma(i),jj,x(i))
+        end do
       endif
 
       return
@@ -3937,24 +3922,24 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       integer jj(lnv),ms(lnv),ml(lnv),ma(*),mb(*)
-!
       dimension aa(lnv,lnv),ai(lnv,lnv)
-!
+
       call dainf(ma(1),inoa,inva,ipoa,ilma,illa)
       call dainf(mb(1),inob,invb,ipob,ilmb,illb)
-!
+
 !     CONSISTENCY CHECKS
 !     ******************
-!
+
       call damch(ma,ia)
       call damch(mb,ib)
 !etienne
-      do 959 ie=1,ib
- 959  call dacon(mb(ie),zero)
+      do ie=1,ib
+        call dacon(mb(ie),zero)
+      end do
 !etienne
-!
+
       if(ia.ne.ib) then
          write(lout,*)'ERROR IN DAINV, IA .NE. IB'
          call dadeb(31,'ERR DAINV1',1)
@@ -3962,35 +3947,38 @@
          write(lout,*)'ERROR IN DAINV, IA.NE.INVA.OR.IB.NE.INVB'
          call dadeb(31,'ERR DAINV2',1)
       endif
-!
+
 !     ALLOCATING LOCAL VECTORS
 !     ************************
-!
+
       do 10 i=1,ia
       ms(i) = 0
       ml(i) = 0
   10  continue
-!
+
       call daall(ms,ia,'$$INV   $$',inoa,inva)
       call daall(ml,ia,'$$INVL  $$',inoa,inva)
-!
+
 !     EXTRACTING LINEAR MATRIX, GENERATING NONLINEAR PART OF A
 !     ********************************************************
-!
-      do 115 i=1,ib
-      do 110 j=1,ib
-      do 105 k=1,ib
- 105  jj(k) = 0
-      jj(j) = 1
-      call dapek(ma(i),jj,amjj)
-      if(abs(amjj).gt.eps) call dapok(ma(i),jj,zero)
- 110  aa(i,j) = amjj
-      call dacmu(ma(i),-one,ma(i))
- 115  continue
-!
+
+      do i=1,ib
+        do j=1,ib
+          do k=1,ib
+            jj(k) = 0
+          end do
+
+          jj(j) = 1
+          call dapek(ma(i),jj,amjj)
+          if(abs(amjj).gt.eps) call dapok(ma(i),jj,zero)
+          aa(i,j) = amjj
+        end do
+        call dacmu(ma(i),-one,ma(i))
+      end do
+
 !     INVERTING LINEAR MATRIX, CHECKING RESULT AND STORING IN ML
 !     **********************************************************
-!
+
       call matinv(aa,ai,ia,lnv,ier)
 
       if(ier.eq.132) then
@@ -3999,24 +3987,31 @@
       endif
 
       ier = 0
-      do 140 i=1,ib
-      do 140 j=1,ib
-      prod = zero
-      do 120 k=1,ib
-      jj(k) = 0
- 120  prod = prod + aa(i,k)*ai(k,j)
-      if(i.eq.j) prod = prod - one
-      if(abs(prod).gt.100*epsmac) then
-         write(lout,*) 'ERROR IN DAINV, INVERSION DID NOT WORK,I,J,PROD = ',i,j,prod,epsmac,eps
-         ier = 1
+
+      do i=1,ib
+        do j=1,ib
+        prod = zero
+
+        do k=1,ib
+          jj(k) = 0
+          prod = prod + aa(i,k)*ai(k,j)
+        end do
+
+        if(i.eq.j) prod = prod - one
+
+        if(abs(prod).gt.100*epsmac) then
+          write(lout,*) 'ERROR IN DAINV, INVERSION DID NOT WORK,I,J,PROD = ',i,j,prod,epsmac,eps
+          ier = 1
 !ETIENNE
-      return
+          return
 !ETIENNE
-      endif
-      jj(j) = 1
-      call dapok(mb(i),jj,ai(i,j))
-      call dapok(ml(i),jj,ai(i,j))
- 140  continue
+        endif
+
+        jj(j) = 1
+        call dapok(mb(i),jj,ai(i,j))
+        call dapok(ml(i),jj,ai(i,j))
+        end do
+      end do
 
       if(ier.eq.1) call dadeb(31,'ERR DAINV4',1)
 !
@@ -4027,43 +4022,42 @@
 
       nocut0 = nocut
 
-      do 250 i=2,nocut
-
-      nocut = i
-
-      call dacct(ma,ia,mb,ib,ms,ia)
-      do 240 j=1,ib
-      do 230 k=1,ib
- 230  jj(k) = 0
-      jj(j) = 1
-      call dapek(ms(j),jj,amsjj)
-      call dapok(ms(j),jj,amsjj+one)
- 240  continue
-
-      call dacct(ml,ia,ms,ia,mb,ib)
-
- 250  continue
+      do i=2,nocut
+        nocut = i
+        call dacct(ma,ia,mb,ib,ms,ia)
+        do j=1,ib
+          do k=1,ib
+            jj(k) = 0
+          end do
+          jj(j) = 1
+          call dapek(ms(j),jj,amsjj)
+          call dapok(ms(j),jj,amsjj+one)
+        end do
+        call dacct(ml,ia,ms,ia,mb,ib)
+      end do
 
       nocut = nocut0
-!
+
 !     FLIPPING BACK SIGN OF A, FILLING UP FIRST ORDER PART AGAIN
 !     **********************************************************
-!
-      do 320 i=1,ib
-      call dacmu(ma(i),-one,ma(i))
-      do 320 j=1,ib
-      do 310 k=1,ib
- 310  jj(k) = 0
-      jj(j) = 1
-      call dapok(ma(i),jj,aa(i,j))
- 320  continue
-!
+
+      do i=1,ib
+        call dacmu(ma(i),-one,ma(i))
+        do j=1,ib
+          do k=1,ib
+            jj(k) = 0
+          end do
+        jj(j) = 1
+        call dapok(ma(i),jj,aa(i,j))
+        end do
+      end do
+
       call dadal(ml,ia)
       call dadal(ms,ia)
-!
+
       return
       end
-!
+
 +dk matinv
       subroutine matinv(a,ai,n,nmx,ier)
       use floatPrecision
@@ -4083,20 +4077,25 @@
       parameter (nmax=400)
       dimension a(nmx,nmx),ai(nmx,nmx),aw(nmax,nmax),indx(nmax)
 
-      do 12 i=1,n
-         do 11 j=1,n
-            aw(i,j) = a(i,j)
-11       ai(i,j) = zero
-12    ai(i,i) = one
+      do i=1,n
+        do j=1,n
+          aw(i,j) = a(i,j)
+          ai(i,j) = zero
+        end do
+
+        ai(i,i) = one
+      end do
 
       call ludcmp(aw,n,nmax,indx,d,ier)
       if (ier .eq. 132) return
-      do 13 j=1,n
-13    call lubksb(aw,n,nmax,indx,ai(1,j),nmx)
-!
+
+      do j=1,n
+        call lubksb(aw,n,nmax,indx,ai(1,j),nmx)
+      end do
+
       return
       end
-!
+
 +dk ludcmp
       subroutine ludcmp(a,n,np,indx,d,ier)
       use floatPrecision
@@ -4177,7 +4176,7 @@
       if(a(n,n).eq.zero) a(n,n)=tiny
       return
       end
-!
+
 +dk lubksb
       subroutine lubksb(a,n,np,indx,b,nmx)
       use floatPrecision
@@ -4195,7 +4194,7 @@
 !           B: RHS OF LINEAR EQUATION - WILL BE OVERWRITTEN BY X
 !
 !     REFERENCE: NUMERICAL RECIPIES BY PRESS ET AL (CAMBRIDGE) PG. 36
-!
+
       dimension a(np,np), indx(np), b(nmx)
       ii = 0
       do 12 i=1,n
@@ -4224,15 +4223,13 @@
 14    continue
       return
       end
-!
 
 +dk dapin
       subroutine dapin(ma,ia,mb,ib,jx)
       use floatPrecision
       implicit none
 +ca parnum
-      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,  &
-     &lst
+      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) x
 !     *****************************
 !
@@ -4241,33 +4238,46 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
-      integer jj(lnv),ml(lnv),ma(*),mb(*),jx(*)
-!
-      dimension x(lnv)
-!
 
-      do 1 i=1,lnv
- 1    jj(i)=0
+      integer jj(lnv),ml(lnv),ma(*),mb(*),jx(*)
+      dimension x(lnv)
+
+      do i=1,lnv
+        jj(i)=0
+      end do
 
       if(ma(1).eq.mb(1)) then
         call dainf(mb(1),inob,invb,ipob,ilmb,illb)
-        do 9 i=1,ia
- 9      call dapok(ma(i),jj,zero)
-        do 101 ij=1,ib
- 101    ml(ij)=0
+
+        do i=1,ia
+          call dapok(ma(i),jj,zero)
+        end do
+
+        do ij=1,ib
+          ml(ij)=0
+        end do
+
         call daall(ml,ib,'$$DAJUNK$$',inob,invb)
         call dapint(ma,ia,ml,ib,jx)
-        do 90 i=1,ib
- 90     call dacop(ml(i),mb(i))
+
+        do i=1,ib
+          call dacop(ml(i),mb(i))
+        end do
+
         call dadal(ml,ib)
       else
-        do 99 i=1,ia
-        call dapek(ma(i),jj,x(i))
- 99     call dapok(ma(i),jj,zero)
+
+        do i=1,ia
+          call dapek(ma(i),jj,x(i))
+          call dapok(ma(i),jj,zero)
+        end do
+
         call dapint(ma,ia,mb,ib,jx)
-        do 999 i=1,ia
- 999    call dapok(ma(i),jj,x(i))
+
+        do i=1,ia
+          call dapok(ma(i),jj,x(i))
+        end do
+
       endif
 
       return
@@ -4278,8 +4288,7 @@
       use floatPrecision
       implicit none
 +ca parnum
-      integer i,ia,ib,illa,ilma,inoa,inva,ipoa,k,lda,lea,lia,lno,lnv,   &
-     &lst
+      integer i,ia,ib,illa,ilma,inoa,inva,ipoa,k,lda,lea,lia,lno,lnv,lst
 !     **********************************
 !
 !     THIS SUBROUTINE PERFORMS A PARTIAL INVERSION OF THE ROWS MARKED WITH
@@ -4287,54 +4296,54 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
-      integer jj(lnv),jind(*),ma(*),mb(*),mn(lnv),mi(lnv),me(lnv)
-!
-      call dainf(ma(1),inoa,inva,ipoa,ilma,illa)
-!
 
-      do 5 i=1,ia
-      mn(i) = 0
-      mi(i) = 0
-      me(i) = 0
-  5   continue
-!
+      integer jj(lnv),jind(*),ma(*),mb(*),mn(lnv),mi(lnv),me(lnv)
+
+      call dainf(ma(1),inoa,inva,ipoa,ilma,illa)
+
+      do i=1,ia
+        mn(i) = 0
+        mi(i) = 0
+        me(i) = 0
+      end do
+
       call daall(mn,ia,'$$PIN1  $$',inoa,inva)
       call daall(mi,ia,'$$PIN2  $$',inoa,inva)
       call daall(me,ia,'$$PIN3  $$',inoa,inva)
-!
-      do 10 i=1,ia
-      do  8 k=1,nvmax
-  8   jj(k) = 0
-      jj(i) = 1
-  10  call dapok(me(i),jj,one)
-!
-      do 20 i=1,ia
-      call dacop(ma(i),mn(i))
-      if(jind(i).eq.0) call dacop(me(i),mn(i))
-  20  continue
-!
+
+      do i=1,ia
+        do k=1,nvmax
+          jj(k) = 0
+        end do
+        jj(i) = 1
+        call dapok(me(i),jj,one)
+      end do
+
+      do i=1,ia
+        call dacop(ma(i),mn(i))
+        if(jind(i).eq.0) call dacop(me(i),mn(i))
+      end do
+
       call dainv(mn,ia,mi,ia)
-!
-      do 30 i=1,ia
-      if(jind(i).eq.0) call dacop(ma(i),me(i))
-  30  continue
-!
+
+      do i=1,ia
+        if(jind(i).eq.0) call dacop(ma(i),me(i))
+      end do
+
       call dacct(me,ia,mi,ia,mb,ib)
-!
+
       call dadal(me,ia)
       call dadal(mi,ia)
       call dadal(mn,ia)
-!
+
       return
       end
-!
+
 +dk dader
       subroutine dader(idif,ina,inc)
       use floatPrecision
       implicit none
-      integer idif,illc,ilmc,ina,inc,incc(1),inoc,invc,ipoc,lda,lea,lia,&
-     &lno,lnv,lst
+      integer idif,illc,ilmc,ina,inc,incc(1),inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
 !     ******************************
 !
 !     THIS SUBROUTINE COMPUTES THE DERIVATIVE WITH RESPECT TO VARIABLE I
@@ -4342,7 +4351,7 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
 
       if(ina.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -4398,62 +4407,64 @@
         call dacon(inc,rr)
         return
       endif
-!
+
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
-!
+
       ibase = nomax + 1
-!
+
       if(idif.gt.(nvmax+1)/2) then
          ider1  = 0
          ider1s = 0
          ider2  = idif-(nvmax+1)/2
          ider2s = 1
-         do 10 jj=1,ider2-1
-  10     ider2s = ider2s*ibase
+         do jj=1,ider2-1
+           ider2s = ider2s*ibase
+         end do
          xdivi  = ider2s*ibase
       else
          ider1  = idif
          ider1s = 1
-         do 20 jj=1,ider1-1
-  20     ider1s = ider1s*ibase
+         do jj=1,ider1-1
+           ider1s = ider1s*ibase
+         end do
          ider2  = 0
          ider2s = 0
          xdivi  = ider1s*ibase
       endif
-!
+
       ibase = nomax+1
-!
+
       ic = ipoc-1
-!
+
       do 100 i=ipoa,ipoa+illa-1
-!
+
       if(ider1.eq.0) then
          iee = i2(i)
       else
          iee = i1(i)
       endif
-!
+
       x = iee/xdivi
       ifac = int(ibase*(x-int(x+epsmac)+epsmac))
-!
+
       if(ifac.eq.0) goto 100
-!
+
       ic = ic + 1
       cc(ic) = cc(i)*ifac
       i1(ic) = i1(i) - ider1s
       i2(ic) = i2(i) - ider2s
-!
+
  100  continue
-!
+
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DADER '
          call dadeb(31,'ERR DADER2',1)
       endif
-!
+
       return
       end
-!
+
 +dk dapoi
       subroutine dapoi(ina,inb,inc,n)
       use floatPrecision
@@ -4732,42 +4743,41 @@
       return
       endif
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
-!
+
       ic = ipoc - 1
-!
+
       do ia=ipoa,ipoa+illa-1
-!
+
       call dancd(i1(ia),i2(ia),j)
       cfac = aimag(fun(j))
 !      IF(dABS(CFAC).LT.EPS) GOTO 100
 !      IF(dABS(CFAC*CC(IA)).LT.EPS) GOTO 100
        if(abs(cfac*cc(ia)).lt.eps.or.abs(cc(ia)).lt.eps) goto 100
-!
+
       ic = ic + 1
       cc(ic) = cc(ia)*cfac
       i1(ic) = i1(ia)
       i2(ic) = i2(ia)
-!
+
  100  continue
       enddo
-!
+
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DACFU '
          call dadeb(31,'ERR DACFU ',1)
       endif
-!
+
       return
       end
-!
+
 +dk dacfut
       subroutine dacfut(ina,fun,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
-     &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) cfac,fun,rr
       external fun
 !     *****************************
@@ -4778,13 +4788,12 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension j(lnv)
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
-!
+
       if(nomax.eq.1) then
         do i=1,lnv
         j(i)=0
@@ -4812,33 +4821,32 @@
       return
       endif
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
-!
+
       ic = ipoc - 1
-!
+
       do 100 ia=ipoa,ipoa+illa-1
-!
+
       call dancd(i1(ia),i2(ia),j)
       cfac = fun(j)
 !      IF(dABS(CFAC).LT.EPS) GOTO 100
 !      IF(dABS(CFAC*CC(IA)).LT.EPS) GOTO 100
        if(abs(cfac*cc(ia)).lt.eps.or.abs(cc(ia)).lt.eps) goto 100
-!
+
       ic = ic + 1
       cc(ic) = cc(ia)*cfac
       i1(ic) = i1(ia)
       i2(ic) = i2(ia)
-!
+
  100  continue
-!
+
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DACFU '
          call dadeb(31,'ERR DACFU ',1)
       endif
-!
+
       return
       end
-!
 
 +dk dapri
       subroutine dapri(ina,iunit)
@@ -4847,8 +4855,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,k, &
-     &lda,lea,lia,lno,lnv,lst
+      integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,k,lda,lea,lia,lno,lnv,lst
 !     ***************************
 !       Frank
 !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
@@ -4859,8 +4866,7 @@
       dimension j(lnv)
 +ca daname
 !-----------------------------------------------------------------------------3
-!
-!
+
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
 !        X = SQRT(-ONE)
@@ -4872,40 +4878,38 @@
          stop 
 +ei
       endif
-!
+
       inoa = idano(ina)
       inva = idanv(ina)
       ipoa = idapo(ina)
       ilma = idalm(ina)
       illa = idall(ina)
-!
-      write(iunit,'(/1X,A,A,I5,A,I5,A,I5/1X,A/)')                       &
-     &daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina,            &
+
+      write(iunit,'(/1X,A,A,I5,A,I5,A,I5/1X,A/)') daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina, &
      &'***********'//'**********************************'
-!
+
       iout = 0
       ioa = 0
 
       if(inva.eq.0) then
-         write(iunit,'(A)')                                             &
-     &'    I  VALUE  '
+         write(iunit,'(A)') '    I  VALUE  '
 +if crlibm
 +if .not.lf95
                                                   call enable_xp()
 +ei
 +ei
-         do 80 i = ipoa,ipoa+illa-1
-         write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
-!Eric
- 80      write(111) cc(i)
+         do i = ipoa,ipoa+illa-1
+           write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
+           !Eric
+           write(111) cc(i)
+         end do
 +if crlibm
 +if .not.lf95
                                                   call disable_xp()
 +ei
 +ei
       elseif(nomax.eq.1) then
-         if(illa.ne.0) write(iunit,'(A)')                               &
-     &'    I  COEFFICIENT          ORDER   EXPONENTS'
+         if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
          if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
 +if crlibm
 +if .not.lf95
@@ -4921,8 +4925,7 @@
              j(i-1)=1
              ioa=1
            endif
-         write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                 &
-     &iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
+         write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(111) cc(ipoa+i-1)
 !Eric
 !        write(iunit,*) cc(ipoa+i-1)
@@ -4935,8 +4938,7 @@
 +ei
 +ei
       else
-         if(illa.ne.0) write(iunit,'(A)')                               &
-     &'    I  COEFFICIENT          ORDER   EXPONENTS'
+         if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
          if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
       do 100 ioa = 0,inoa
         do 100 ii=ipoa,ipoa+illa-1
@@ -4951,8 +4953,7 @@
                                                   call enable_xp()
 +ei
 +ei
-          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                &
-     &iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
+          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !Eric
          write(111) cc(ii)
 !ETIENNE
@@ -4969,11 +4970,11 @@
 +ei
 +ei
  100  continue
-!
+
       endif
 
       write(iunit,'(A)') '                                      '
-!
+
 !Eric
       write(111) zero
       return
@@ -4986,8 +4987,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,lda,   &
-     &lea,lia,lno,lnv,lst
+      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,lda,lea,lia,lno,lnv,lst
       character(len=10) c10,k10
 !     ***************************
 !       Etienne
@@ -4998,9 +4998,9 @@
       dimension j(lnv)
 +ca daname
 !-----------------------------------------------------------------------------3
-!
-        if(iunit.eq.0) return
-!
+
+      if(iunit.eq.0) return
+
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
 +if cr
@@ -5010,7 +5010,7 @@
          stop 
 +ei
       endif
-!
+
       inoa = idano(ina)
       inva = idanv(ina)
       ipoa = idapo(ina)
@@ -5025,21 +5025,19 @@
 !        WRITE(6,*) MORE,' ',DANAME(MORE)
 !        GOTO 611
 !        ENDIF
-      write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)')                  &
-     &daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina,            &
+      write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)') daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina, &
      &'***********'//'**********************************'
-!
-      if(illa.ne.0) write(iunit,'(A)')                                  &
-     &'    I  COEFFICIENT          ORDER   EXPONENTS'
+
+      if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
       if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
-!
+
       c10='      NO ='
       k10='      NV ='
 
       write(iunit,'(A10,I6,A10,I6)') c10,inoa,k10,inva
 
       iout = 0
-!
+
 !      DO 100 IOA = 0,INOA
        do 100 ioa = 0,nocut
        do 100 ii=ipoa,ipoa+illa-1
@@ -5062,7 +5060,6 @@
         if(ii.ne.ipoa) j(ii-ipoa)=1
         iout = iout+1
       endif
-!
 
 +if crlibm
 +if .not.lf95
@@ -5088,11 +5085,12 @@
 
       endif
 !ETIENNE
-!
+
  100  continue
-!
-      do 111 i=1,lnv
- 111  j(i)=0
+
+      do i=1,lnv
+        j(i)=0
+      end do
 
       if(iout.eq.0) iout=1
 +if crlibm
@@ -5102,7 +5100,7 @@
 +ei
 
       write(iunit,502) -iout,zero,(j(i),i=1,inva)
-!
+
 +if crlibm
 +if .not.lf95
                                                   call disable_xp()
@@ -5117,8 +5115,7 @@
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,j,lda,         &
-     &lea,lia,lno,lnv,lst
+      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,j,lda,lea,lia,lno,lnv,lst
 +ca dabinc
 !-----------------------------------------------------------------------------9
       dimension j(lnv)
@@ -5127,8 +5124,6 @@
 !
       integer inb(1),ishift,ich,ik,jd(lnv),inc
 !-----------------------------------------------------------------------------3
-!
-!
 
       inb(1)=0
       if(ina.lt.1.or.ina.gt.nda) then
@@ -5140,7 +5135,7 @@
          stop 
 +ei
       endif
-!
+
       inoa = idano(ina)
       inva = idanv(ina)
       ipoa = idapo(ina)
@@ -5157,7 +5152,7 @@
 !        GOTO 611
 !        ENDIF
       iout = 0
-!
+
 !      DO 100 IOA = 0,INOA
        do 100 ioa = 0,nocut
        do 100 ii=ipoa,ipoa+illa-1
@@ -5180,7 +5175,6 @@
         if(ii.ne.ipoa) j(ii-ipoa)=1
         iout = iout+1
       endif
-!
 
 !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
       if(abs(cc(ii)).gt.eps) then
@@ -5236,15 +5230,16 @@
 
       endif
 !ETIENNE
-!
+
  100  continue
-!
-      do 111 i=1,lnv
- 111  j(i)=0
+
+      do i=1,lnv
+        j(i)=0
+      end do
 
       call dacop(inb(1),inc)
       call dadal(inb(1),1)
-!
+
       return
       end
 
@@ -5254,18 +5249,17 @@
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,  &
-     &ipoa,iunit,iwarin,iwarno,iwarnv,j,lda,lea,lia,lno,lnv,lst,nno
+      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,ipoa,iunit,iwarin,iwarno,iwarnv,j,lda,lea,lia,lno,lnv,lst,nno
       real(kind=fPrec) c
 !       Frank
 +ca dabinc
 !-----------------------------------------------------------------------------9
 +ca daname
 !-----------------------------------------------------------------------------3
-!
+
       character(len=10) c10
       dimension j(lnv)
-!
+
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAREA, INA = ',ina
 !        X = SQRT(-ONE)
@@ -5277,33 +5271,33 @@
          stop 
 +ei
       endif
-!
+
       inoa = idano(ina)
       inva = idanv(ina)
       ipoa = idapo(ina)
       ilma = idalm(ina)
       illa = idall(ina)
-!
-      do 5 i=1,lnv
-   5  j(i) = 0
-!
+
+      do i=1,lnv
+        j(i) = 0
+      end do
+
       call daclr(1)
-!
+
       ic = 0
-!
+
       iwarno = 0
       iwarnv = 0
       iwarin = 0
-!
+
       read(iunit,'(A10)') c10
       read(iunit,'(18X,I4)') nno
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
-!
-!
+
       iin = 0
-!
+
   10  continue
 +if debug
 !     c=0.d0
@@ -5315,8 +5309,7 @@
                                                   call enable_xp()
 +ei
 +ei
-      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                     &
-     &ii,c,io,(j(i),i=1,inva)
+      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(j(i),i=1,inva)
 +if crlibm
 +if .not.lf95
                                                   call disable_xp()
@@ -5355,9 +5348,10 @@
          iwarin = 1
       endif
       io1 = 0
-      do 15 i=1,inva
-  15  io1 = io1 + j(i)
-!
+      do i=1,inva
+        io1 = io1 + j(i)
+      end do
+
       if(io1.ne.io) then
          iwarnv = 1
          goto 10
@@ -5368,7 +5362,7 @@
          iwarno = 1
          goto 10
       endif
-!
+
       if(nomax.ne.1) then
         ic = ic + 1
         call dadcd(j,ii1,ii2)
@@ -5396,26 +5390,24 @@
         goto 10
       endif
 
-!
   20  continue
-!
+
       if(nomax.ne.1) call dapac(ina)
-!
+
 +if debug
 !     call wda('dar9c',c,9,0,0,0)
 +ei
       return
       end
 !FF
-!
+
 +dk darea77
       subroutine darea77(ina,iunit)
       use floatPrecision
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,ipoa,    &
-     &iunit,j,k,lda,lea,lia,lno,lnv,lst,nojoh,nvjoh
+      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,ipoa,iunit,j,k,lda,lea,lia,lno,lnv,lst,nojoh,nvjoh
       real(kind=fPrec) c
 !     ***************************
 !     Etienne
@@ -5425,10 +5417,10 @@
 +ca dabinc
 +ca daname
 !-----------------------------------------------------------------------------3
-!
+
       character(len=10) c10,k10
       dimension j(lnv)
-!
+
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
 +if cr
@@ -5438,28 +5430,28 @@
          stop 
 +ei
       endif
-!
+
       inoa = idano(ina)
       inva = idanv(ina)
       ipoa = idapo(ina)
       ilma = idalm(ina)
       illa = idall(ina)
-!
-      do 5 i=1,lnv
-   5  j(i) = 0
-!
+
+      do i=1,lnv
+        j(i) = 0
+      end do
+
       call daclr(1)
-!
-!
+
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10,I6,A10,I6)') c10,nojoh,k10,nvjoh
-!
+
       iin = 0
-!
+
   10  continue
       iin = iin + 1
       read(iunit,*) ii,c,(j(k),k=1,nvjoh)
@@ -5485,11 +5477,11 @@
         cc(ipoa+iche)=c
       endif
       goto 10
-!
+
   20  continue
-!
+
       if(nomax.ne.1) call dapac(ina)
-!
+
       return
       end
 
@@ -5509,11 +5501,10 @@
 +ca dabinc
 +ca daname
 !-----------------------------------------------------------------------------3
-!
-      character(len=10) c
-!
-!etienne
 
+      character(len=10) c
+
+!etienne
       write(lout,*) '  ',c
 +if cr
       call abend('                                                  ')
@@ -5522,9 +5513,7 @@
       stop 
 +ei
       end
-!
-!
-!
+
 +dk danum
       subroutine danum(no,nv,numda)
       use floatPrecision
@@ -5534,16 +5523,17 @@
 !
 !     THIS SUBROUTINE COMPUTES THE NUMBER OF MONOMIALS OF
 !     ORDER NO AND NUMBER OF VARIABLES NV
-!
+
       numda = 1
       mm = max(nv,no)
-!
-      do 5 i=1,min(nv,no)
-  5   numda = (numda*(mm+i))/i
-!
+
+      do i=1,min(nv,no)
+        numda = (numda*(mm+i))/i
+      end do
+
       return
       end
-!
+
 +dk dainf
       subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
       use floatPrecision
@@ -5558,7 +5548,7 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       if(inc.ge.1.and.inc.le.nda) then
          inoc = idano(inc)
          invc = idanv(inc)
@@ -5567,13 +5557,13 @@
          illc = idall(inc)
          return
       endif
-!
+
       write(lout,*) 'ERROR IN DAINF, DA VECTOR ',inc,' NOT FOUND '
       call dadeb(31,'ERR DAINF ',1)
-!
+
       return
       end
-!
+
 +dk dapac
       subroutine dapac(inc)
       use floatPrecision
@@ -5591,7 +5581,7 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
 
       ic = ipoc - 1
@@ -5680,7 +5670,7 @@
 +ca crcoall
       integer i,ia,iaa,illa,ilma,ino1,inoi,inv1,invi,ipoa
 !     ************************
-!
+
 !     THIS SUBROUTINE CHECKS IF THE IA VECTORS IN THE MATRIX IA HAVE
 !     IDENTICAL ATTRIBUTES.
 
@@ -5700,10 +5690,10 @@
 +ei
       endif
   10  continue
-!
+
       return
       end
-!
+
 +dk dadcd
       subroutine dadcd(jj,ic1,ic2)
       use floatPrecision
@@ -5715,22 +5705,24 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       integer jj(lnv)
       ibase = nomax + 1
       isplit = (nvmax+1)/2
       ic1 = 0
       ic2 = 0
-!
-      do 10 i=nvmax,isplit+1,-1
- 10   ic2 = ic2*ibase + jj(i)
-!
-      do 20 i=isplit,1,-1
- 20   ic1 = ic1*ibase + jj(i)
-!
+
+      do i=nvmax,isplit+1,-1
+        ic2 = ic2*ibase + jj(i)
+      end do
+
+      do i=isplit,1,-1
+        ic1 = ic1*ibase + jj(i)
+      end do
+
       return
       end
-!
+
 +dk dancd
       subroutine dancd(ic1,ic2,jj)
       use floatPrecision
@@ -5743,26 +5735,29 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       integer jj(*)
       ibase = nomax + 1
       isplit = (nvmax+1)/2
-!
+
       ic = ic1
-      do 10 i=1,isplit
-      x  = real(ic,fPrec)/real(ibase,fPrec)
-      ic = int(x+epsmac)
-  10  jj(i) = nint(ibase*(x-ic))
-!
+      do i=1,isplit
+        x  = real(ic,fPrec)/real(ibase,fPrec)
+        ic = int(x+epsmac)
+        jj(i) = nint(ibase*(x-ic))
+      end do
+
       ic = ic2
-      do 20 i=isplit+1,nvmax
-      x  = real(ic,fPrec)/real(ibase,fPrec)
-      ic = int(x+epsmac)
-  20  jj(i) = nint(ibase*(x-ic))
-!
-      do 30 i=nvmax+1,lnv
-  30  jj(i) = 0
-!
+
+      do i=isplit+1,nvmax
+        x  = real(ic,fPrec)/real(ibase,fPrec)
+        ic = int(x+epsmac)
+        jj(i) = nint(ibase*(x-ic))
+      end do
+
+      do i=nvmax+1,lnv
+        jj(i) = 0
+      end do
       return
       end
 
@@ -5785,72 +5780,72 @@
 !     dx^n/dx= x^(n-1)
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
-!
+
 !       CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
-!
 
       if(nomax.eq.1) then
         call dader(idif,ina,inc)
         return
       endif
       ibase = nomax + 1
-!
+
       if(idif.gt.(nvmax+1)/2) then
          ider1  = 0
          ider1s = 0
          ider2  = idif-(nvmax+1)/2
          ider2s = 1
-         do 10 jj=1,ider2-1
-  10     ider2s = ider2s*ibase
+         do jj=1,ider2-1
+           ider2s = ider2s*ibase
+         end do
          xdivi  = ider2s*ibase
       else
          ider1  = idif
          ider1s = 1
-         do 20 jj=1,ider1-1
-  20     ider1s = ider1s*ibase
+         do jj=1,ider1-1
+           ider1s = ider1s*ibase
+         end do
          ider2  = 0
          ider2s = 0
          xdivi  = ider1s*ibase
       endif
-!
+
       ibase = nomax+1
-!
+
       ic = ipoc-1
-!
+
       do 100 i=ipoa,ipoa+illa-1
-!
+
       if(ider1.eq.0) then
-         iee = i2(i)
+        iee = i2(i)
       else
-         iee = i1(i)
+        iee = i1(i)
       endif
-!
+
       x = iee/xdivi
       ifac = int(ibase*(x-int(x+epsmac)+epsmac))
-!
+
       if(ifac.eq.0) goto 100
-!
+
 !etienne      IFAC = INT(IBASE*(X-INT(X)+1.D-8))
-!
+
 !etienne      IF(IFAC.EQ.0) GOTO 100
-!
+
       ic = ic + 1
       cc(ic) = cc(i)
       i1(ic) = i1(i) - ider1s
       i2(ic) = i2(i) - ider2s
-!
+
  100  continue
-!
+
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DADTRA'
          call dadeb(111,'ERR DADTRA',1)
       endif
-!
+
       return
       end
 
@@ -5924,16 +5919,18 @@
       isplit = (nv1+1)/2
       ic1 = 0
       ic2 = 0
-!
-      do 10 i=nv1,isplit+1,-1
- 10   ic2 = ic2*ibase + jj(i)
-!
-      do 20 i=isplit,1,-1
- 20   ic1 = ic1*ibase + jj(i)
-!
+
+      do i=nv1,isplit+1,-1
+        ic2 = ic2*ibase + jj(i)
+      end do
+
+      do i=isplit,1,-1
+        ic1 = ic1*ibase + jj(i)
+      end do
+
       return
       end
-!
+
 +dk dehash
       subroutine dehash(no1,nv1,ic1,ic2,jj)
       use floatPrecision
@@ -5941,8 +5938,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,        &
-     &no1,nv1
+      integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,no1,nv1
       real(kind=fPrec) x
 !     ****************************
 !
@@ -5950,25 +5946,27 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       integer jj(*)
 
       epsmac=c1m7
       ibase = no1 + 1
       isplit = (nv1+1)/2
-!
+
       ic = ic1
-      do 10 i=1,isplit
-      x  = real(ic,fPrec)/real(ibase,fPrec)
-      ic = int(x+epsmac)
-  10  jj(i) = nint(ibase*(x-ic))
-!
+      do i=1,isplit
+        x  = real(ic,fPrec)/real(ibase,fPrec)
+        ic = int(x+epsmac)
+        jj(i) = nint(ibase*(x-ic))
+      end do
+
       ic = ic2
-      do 20 i=isplit+1,nv1
-      x  = real(ic,fPrec)/real(ibase,fPrec)
-      ic = int(x+epsmac)
-  20  jj(i) = nint(ibase*(x-ic))
-!
+      do i=isplit+1,nv1
+        x  = real(ic,fPrec)/real(ibase,fPrec)
+        ic = int(x+epsmac)
+        jj(i) = nint(ibase*(x-ic))
+      end do
+
       return
       end
 
@@ -5976,21 +5974,18 @@
       subroutine daswap(j1,j2,inb)
       use floatPrecision
       implicit none
-      integer ia,ic,ic1,ic2,illb,ilmb,inb,inob,invb,ipob,j1,j2,jj,k1,k2,&
-     &lda,lea,lia,lno,lnv,lst
+      integer ia,ic,ic1,ic2,illb,ilmb,inb,inob,invb,ipob,j1,j2,jj,k1,k2,lda,lea,lia,lno,lnv,lst
 !     *************************
 !
 !     SWAP A DA VECTOR
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension jj(lnv)
 
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-
       call daclr(1)
-!
 
       do 100 ia = ipob,ipob+illb-1
 
@@ -6006,10 +6001,9 @@
       cc(ic) = cc(ia)
       i1(ic) = ic1
       i2(ic) = ic2
-!
+
  100  continue
-!
-!
+
       call dapac(inb)
       return
       end
@@ -6019,8 +6013,7 @@
       use floatPrecision
       implicit none
 +ca parnum
-      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,  &
-     &ipoa,ipob,ja,jb,lda,lea,lia,lno,lnv,lst,nd2
+      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,ja,jb,lda,lea,lia,lno,lnv,lst,nd2
       real(kind=fPrec) anorm,gau
 !     ***************************
 !
@@ -6028,26 +6021,26 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension ja(lnv),jb(lnv)
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-!
+
       anorm = zero
 
-      do 100 ia=ipoa,ipoa+illa-1
-      do 101 ib=ipob,ipob+illb-1
-      call dancd(i1(ia),i2(ia),ja)
-      call dancd(i1(ib),i2(ib),jb)
-      gau=one
-      do 102 i=1,nd2
- 102  gau= facint(ja(i)+jb(i))*gau
-      anorm = anorm + cc(ia)*cc(ib)*gau
- 101  continue
- 100  continue
+      do ia=ipoa,ipoa+illa-1
+        do ib=ipob,ipob+illb-1
+          call dancd(i1(ia),i2(ia),ja)
+          call dancd(i1(ib),i2(ib),jb)
+          gau=one
+          do i=1,nd2
+            gau= facint(ja(i)+jb(i))*gau
+          end do
+          anorm = anorm + cc(ia)*cc(ib)*gau
+        end do
+      end do
 
-!
       return
       end
 
@@ -6058,8 +6051,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,       &
-     &lst
+      integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) bran,cm,xran
 !     ************************
 !
@@ -6531,9 +6523,9 @@
 !-----------------------------------------------------------------------------9
 +ca daname
 !-----------------------------------------------------------------------------3
-!
+
       dimension j(lnv)
-!
+
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
 +if cr
@@ -6543,13 +6535,13 @@
          stop 
 +ei
       endif
-!
+
       inoa = idano(ina)
       inva = idanv(ina)
       ipoa = idapo(ina)
       ilma = idalm(ina)
       illa = idall(ina)
-!
+
       iout = 0
       ioa = 0
 
@@ -6559,8 +6551,9 @@
                                                   call enable_xp()
 +ei
 +ei
-         do 80 i = ipoa,ipoa+illa-1
- 80      write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
+         do i = ipoa,ipoa+illa-1
+           write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
+         end do
 +if crlibm
 +if .not.lf95
                                                   call disable_xp()
@@ -6613,13 +6606,10 @@
 +ei
           endif
 !ETIENNE
-!
  100  continue
       endif
-!
-
 !     WRITE(IUNIT,'(A)') '                                      '
-!
+
       return
       end
 !FF
@@ -6642,9 +6632,9 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       dimension jd(*)
-!
+
       if(ina.eq.inc) then
        write(lout,*) ' USE DIFFERENT POWER SERIES IN DAMONO '
 +if cr
@@ -6660,35 +6650,31 @@
         istart=illa
         return
       endif
-!
-!
+
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
-!
+
       ic = ipoc - 1
-!
+
       ia=ipoa+istart-1
-!
+
       call dancd(i1(ia),i2(ia),jd)
 
-!
       ic = ic + 1
       cc(ic) = cc(ia)
        cfac=cc(ia)
       i1(ic) = i1(ia)
       i2(ic) = i2(ia)
  100  continue
-!
-!
+
+
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DAMONO'
          call dadeb(31,'ERR DAMONO',1)
       endif
-!
+
       return
       end
-!
-!
 
 +dk dacycle
       subroutine dacycle(ina,ipresent,value,j,illa)
@@ -6697,8 +6683,7 @@
       implicit none
 +ca parnum
 +ca crcoall
-      integer i,ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent,j,lda,lea,&
-     &lia,lno,lnv,lst
+      integer i,ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent,j,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) value
 !     ***************************
 !
@@ -6720,12 +6705,15 @@
         stop 
 +ei
       endif
-!
+
       if(ina.eq.0) then
         value=zero
         illa=0
-        do 111 i=1,lnv
- 111    j(i)=0
+
+        do i=1,lnv
+          j(i)=0
+        end do
+
         return
       endif
 
@@ -6783,26 +6771,27 @@
       ilma = idalm(ina)
       illa = idall(ina)
 
-      do 5 i=1,lnv
-      jt(i)=0
-   5  j(i) = 0
-!
+      do i=1,lnv
+        jt(i)=0
+        j(i) = 0
+      end do
+
       call daclr(1)
-!
+
       ic = 0
-!
+
       iwarno = 0
       iwarnv = 0
       iwarin = 0
-!
+
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
       read(iunit,'(A10)') c10
-!
+
       iin = 0
-!
+
   10  continue
       iin = iin + 1
 +if crlibm
@@ -6810,15 +6799,14 @@
                                                   call enable_xp()
 +ei
 +ei
-      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                     &
-     &ii,c,io,(jt(i),i=1,invo)
+      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jt(i),i=1,invo)
 +if crlibm
 +if .not.lf95
                                                   call disable_xp()
       read(111) c
 +ei
 +ei
-!
+
       if(ii.eq.0) goto 20
 !etienne
 !Eric
@@ -6835,28 +6823,34 @@
 +ei
 +ei
       read(111) c
-      do 999 jh=1,invo
- 999  j(jh)=jt(jx(jh))
-      do 998 jh=nchop+1,inva
- 998  j(jh)=0
+
+      do jh=1,invo
+        j(jh)=jt(jx(jh))
+      end do
+
+      do jh=nchop+1,inva
+        j(jh)=0
+      end do
 !etienne
       io1 = 0
-      do 15 i=1,inva
-  15  io1 = io1 + j(i)
-!
+
+      do i=1,inva
+        io1 = io1 + j(i)
+      end do
+
       ic = ic + 1
       call dadcd(j,ii1,ii2)
       ic = ia1(ii1) + ia2(ii2)
       cc(ic) = c
       goto 10
-!
+
   20  continue
-!
+
       call dapac(ina)
-!
+
       return
       end
-!
+
 !ETIENNE
 +dk datrash
       subroutine datrash(idif,ina,inc)
@@ -6875,7 +6869,7 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-!
+
       integer jx(lnv)
 
 !      call daclr(1)
@@ -6884,36 +6878,37 @@
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-!
-!
+
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
-!
+
       ibase = nomax + 1
-!
+
       if(idif.gt.(nvmax+1)/2) then
          ider1  = 0
          ider1s = 0
          ider2  = idif-(nvmax+1)/2
          ider2s = 1
-         do 10 jj=1,ider2-1
-  10     ider2s = ider2s*ibase
+         do jj=1,ider2-1
+           ider2s = ider2s*ibase
+         end do
          xdivi  = ider2s*ibase
       else
          ider1  = idif
          ider1s = 1
-         do 20 jj=1,ider1-1
-  20     ider1s = ider1s*ibase
+         do jj=1,ider1-1
+           ider1s = ider1s*ibase
+         end do
          ider2  = 0
          ider2s = 0
          xdivi  = ider1s*ibase
       endif
-!
+
       ibase = nomax+1
-!
+
       ic = ipoc-1
-!
+
       do 100 i=ipoa,ipoa+illa-1
-!
+
       call dancd(i1(i),i2(i),jx)
 
       ikil1=0
