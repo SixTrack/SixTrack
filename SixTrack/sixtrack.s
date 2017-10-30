@@ -223,12 +223,11 @@
 +ei
 +cd parbeam
       integer idim,kstep,nx,ny
-      real(kind=fPrec) h,half,hrecip,one,wtimag,wtreal,xcut,ycut
+      real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
       parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
       parameter ( h = 1.0_fPrec/63.0_fPrec )
       parameter ( nx = 490, ny = 470 )
       parameter ( idim = (nx+2)*(ny+2) )
-      parameter ( half = 0.5_fPrec, one = 1.0_fPrec )
       common /wzcom1/ hrecip, kstep
       common /wzcom2/ wtreal(idim), wtimag(idim)
 +cd parbeam_exp
@@ -10955,6 +10954,7 @@ cc2008
      &xhrel,y,yh,yhrel
 +ca parpro
 +ca parbeam
++ca parnum
       parameter ( a1 = 0.5124242248d0, a2 = 0.0517653588d0 )
       parameter ( b1 = 0.2752551286d0, b2 = 2.7247448714d0 )
       save
