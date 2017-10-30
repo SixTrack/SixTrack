@@ -270,11 +270,15 @@ endif()
 
 if(NOT DA AND DATAMODS)
 	LIST(APPEND FORS_FIXFORM datamods)
-endif()
+endif(NOT DA AND DATAMODS)
 
 if(COLLIMAT)
 	LIST(APPEND FORS_FIXFORM collimation)
-endif()
+endif(COLLIMAT)
+
+if(HDF5)
+	LIST(APPEND FORS_FREEFORM hdf5_sixtrack)
+endif(HDF5)
 
 foreach(loop IN LISTS FORS_FIXFORM)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)

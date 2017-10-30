@@ -2499,13 +2499,18 @@
 +ca rhicelens
 +ei
 
++if hdf5
+!   YIL: In order to make sure we are sending the correct
+!        data types to appendreading..
+       INTEGER hdfturn,hdfpid,hdftyp
+       real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
++ei
+
       real(kind=fPrec) c5m4,stracki
 
 +if fast
       c5m4=5.0d-4
 +ei
-
-
 
 !++  Output information:
 !++
@@ -3462,6 +3467,13 @@
 +ca rhicelens
 +ei
 
++if hdf5
+!   YIL: In order to make sure we are sending the correct
+!        data types to appendreading..
+       INTEGER hdfturn,hdfpid,hdftyp
+       real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
++ei
+
       if (firstrun) then
         if (rselect.gt.0 .and. rselect.lt.65) then
           do j = 1, napx
@@ -3650,6 +3662,12 @@
 +ca rhicelens
 +ei
 
++if hdf5
+!   YIL: In order to make sure we are sending the correct
+!        data types to appendreading..
+       INTEGER hdfturn,hdfpid,hdftyp
+       real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
++ei
       integer n
 !__________________________________________________________________
 !++  Now do analysis at selected elements...

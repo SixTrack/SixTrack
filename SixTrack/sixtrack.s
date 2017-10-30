@@ -18709,11 +18709,12 @@ c$$$         endif
 *FOX  DPD=ONE+DPDA ;
 *FOX  DPSQ=SQRT(DPD) ;
       do 220 i=1,il
-        do 10 ih=1,2
-          do 10 ip=1,6
+        do ih=1,2
+          do ip=1,6
 *FOX  ALDA(IH,IP)=ZERO ;
 *FOX  ASDA(IH,IP)=ZERO ;
-   10   continue
+          end do
+        end do
         if(abs(el(i)).le.pieni) goto 190
         kz1=kz(i)+1
 !       goto(20,40,100,60,80,90,130,170,180),kz1
@@ -19002,9 +19003,9 @@ c$$$         endif
 !   NONLINEAR INSERTION
 !-----------------------------------------------------------------------
   190   continue
-        do 210 ih=1,2
-          do 210 ip=1,6
-            do 200 ien=1,nord+1
+        do ih=1,2
+          do ip=1,6
+            do ien=1,nord+1
               if (nvar2.eq.5) then
                 call dapri6(alda(ih,ip),result,ien,5)
                 ald6(i,ih,ip,ien) = result
@@ -19021,8 +19022,9 @@ c$$$         endif
                 call dapri6(asda(ih,ip),result,ien,4)
                 asd6(i,ih,ip,ien) = result
               endif
-  200       continue
-  210   continue
+            end do
+          end do
+        end do
   220 continue
 !     DADAL AUTOMATIC INCLUSION
       return
@@ -26197,12 +26199,6 @@ c$$$         endif
 +ca exactvars
 +ca commonex
 +ca crcoall
-+if hdf5
-!   YIL: In order to make sure we are sending the correct
-!        data types to appendreading..
-       INTEGER hdfturn,hdfpid,hdftyp
-       real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
-+ei
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,  &
