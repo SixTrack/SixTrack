@@ -67,8 +67,8 @@
 ! This is empty if -crlibm and causes a problem with astuce
 ! if +crlibm we define parameters for dtostr
 +if crlibm
-      character*8192 ch
-      character*25 ch1
+      character(len=8192) ch
+      character(len=25) ch1
       integer errno,l1,l2
       integer dtostr
 +ei
@@ -82,8 +82,8 @@
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
       logical rerun,start,restart,checkp,fort95,fort96,read95,read96
-      character*1024 arecord
-      character*20 stxt
+      character(len=1024) arecord
+      character(len=20) stxt
       character(len=80) runtim
 ! Note order of placement in COMMON crdata is important
 ! for the alignment of the data
@@ -646,7 +646,7 @@
      &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
      &sigsecut3,sigsecut2,enerror,bunchlength
 
-      character*24 name_sel
+      character(len=24) name_sel
       character(len=80) coll_db
       character(len=16) castordir
       character(len=80) filename_dis
@@ -698,19 +698,19 @@
 !
 
       real(kind=fPrec) ielem,iclr,grd
-      character*160 ch
-      character*320 ch1
+      character(len=160) ch
+      character(len=320) ch1
       logical flag
 !
       integer k,np0
       integer   mclock_liar
 !
-      character*160 cmd
-      character*160 cmd2
-      character*1 ch0
-      character*2 ch00
-      character*3 ch000
-      character*4 ch0000
+      character(len=160) cmd
+      character(len=160) cmd2
+      character(len=1) ch0
+      character(len=2) ch00
+      character(len=3) ch000
+      character(len=4) ch0000
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -803,7 +803,7 @@
      &     alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 
-      character*4 c_material     !material
+      character(len=4) c_material     !material
 
       common /dbthinc/ cx,cxp,cy,cyp,                                   &
      &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
@@ -950,7 +950,7 @@
 !      integer   mclock_liar
 !
       character(len=16) db_name1(max_ncoll),db_name2(max_ncoll)
-      character*4 db_material(max_ncoll)
+      character(len=4) db_material(max_ncoll)
 !APRIL2005
       real(kind=fPrec) db_nsig(max_ncoll),db_length(max_ncoll),         &
      &db_offset(max_ncoll),db_rotation(max_ncoll),                      &
@@ -979,7 +979,7 @@
       common /counting/ counted_r,counted_x,counted_y
 
       integer   samplenumber
-      character*4 smpl
+      character(len=4) smpl
       character(len=80) pfile
       common /samplenumber/ pfile,smpl,samplenumber
 !
@@ -1021,7 +1021,7 @@
       real(kind=fPrec) c_aperture  !aperture in m
       real(kind=fPrec) c_offset    !offset in m
       real(kind=fPrec) c_tilt(2)   !tilt in radian
-      character*4      c_material  !material
+      character(len=4) c_material  !material
 !
       character*(nc) filen,tit
 !
@@ -6246,10 +6246,11 @@ cc2008
               dip0xs(jj)=dip0xs(jj1)
               di0zs(jj)=di0zs(jj1)
               dip0zs(jj)=dip0zs(jj1)
-              do 210 ib2=1,6
-                do 210 ib3=1,6
+              do ib2=1,6
+                do ib3=1,6
                   tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
-  210         continue
+                end do
+              end do
    35       continue
           endif
           lnapx=lnapx-1
@@ -11135,7 +11136,7 @@ cc2008
       character(len=16) iss,iqq,iele,ilm,ilm0,idum,corr,norm
       character(len=16) kl,kr,orga,post,ripp,beam,trom
       character(len=16) coll
-      character*60 ihead
+      character(len=60) ihead
       integer nchars
       parameter (nchars=160)
       character*(nchars) ch
@@ -17262,8 +17263,8 @@ cc2008
       implicit none
       integer ii,ikz
       real(kind=fPrec) rdum1,rdum2,rel1
-      character*160  ch
-      character*320 ch1
+      character(len=160)  ch
+      character(len=320) ch1
       character(len=16) idat
       integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
       data lineno2 /0/
@@ -17778,7 +17779,7 @@ c$$$         endif
       integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
       character*(*) chars
       character*(*) fields(*)
-      character*999 localstr
+      character(len=999) localstr
 !     This routine splits the chars input into space separated
 !     fields, up to nfields maximum. It returns the no of
 !     fields in nf. All spaces are ignored but treated as separators.
@@ -17886,7 +17887,7 @@ c$$$         endif
       integer nchars,nofields
       integer errno,nfields,f,l
       character*(*) fields(*)
-      character*999 localstr
+      character(len=999) localstr
       real(kind=fPrec) value
 
       write (lout,10000)
@@ -17910,7 +17911,7 @@ c$$$         endif
 +ca crcoall
       integer errno,nunit,lineno,nfields,nf,lf,l
       character* (*) chars
-      character*999 localstr
+      character(len=999) localstr
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
       write (lout,*) 'Reading unit no (fort.)',nunit,' Line',lineno
@@ -17948,9 +17949,9 @@ c$$$         endif
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e
-      character*1 str(17)
-      character*24 lstr
-      character*3 e3
+      character(len=1) str(17)
+      character(len=24) lstr
+      character(len=3) e3
       
       mode=2
       ndigits=17
@@ -19143,7 +19144,7 @@ c$$$         endif
      &rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,      &
      &zfeld1,zfeld2,zrb,zs, crabfreq, crabpht, crabpht2, crabpht3,      &
      &crabpht4
-      character*300 ch
+      character(len=300) ch
 +ca parpro
 +ca parnum
 +ca common
@@ -19164,7 +19165,7 @@ c$$$         endif
 *FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
 +if fast
-      c5m4=5.0d-4
+      c5m4=5.0e-4_fPrec
 +ei
       if(mout2.eq.1) then
 +if nagfor
@@ -19989,11 +19990,13 @@ c$$$         endif
             benkcc=ed(ix)*benkc(irm(ix))
             r0a=one
             r000=r0*r00(irm(ix))
-            do 243 j=1,mmul
+
+            do j=1,mmul
               fake(1,j)=(bbi(i,j)*r0a)/benkcc                            !hr08
               fake(2,j)=(aai(i,j)*r0a)/benkcc                            !hr08
               r0a=r0a*r000
-  243       continue
+            end do
+
             write(9,'(a16)') bez(ix)
             write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
             write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
@@ -20286,13 +20289,13 @@ c$$$         endif
 ! For treatment and/or conversion of BEAM parameters in/to the new format
 +ca parbeam_exp
 +if crlibm
-      character*1000 ch
-      character*25 ch1
+      character(len=1000) ch
+      character(len=25) ch1
       integer errno,l1
       integer dtostr
 +ei
       logical lopen
-      character*256 filename
+      character(len=256) filename
 
       save
 !-----------------------------------------------------------------------
@@ -22690,7 +22693,7 @@ c$$$         endif
      &taus,x11,x13
       integer idummy(6)
       character(len=10) cmonth
-      character*4 cpto
+      character(len=4) cpto
 +if cr
       character(len=80) day
 +ei
@@ -22700,7 +22703,7 @@ c$$$         endif
       character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
                                           !DANGER: If the len changes, CRCHECK will break.
 +if boinc
-      character*256 filename
+      character(len=256) filename
 +ei
 +if crlibm
       integer nchars
@@ -23696,9 +23699,13 @@ c$$$         endif
 +ei
           do 220 ib1=1,napx
             iar=ib1+(m+ib-2)*napx
-            do 200 ib2=1,6
-              do 200 ib3=1,6
-  200       tau(ib2,ib3)=tas(iar,ib3,ib2)
+
+            do ib2=1,6
+              do ib3=1,6
+                tau(ib2,ib3)=tas(iar,ib3,ib2)
+              end do
+            end do
+
             if(abs(tau(1,1)).le.pieni.and.abs(tau(2,2)).le.pieni) then
               tau(1,1)=one
               tau(2,2)=one
@@ -23722,10 +23729,11 @@ c$$$         endif
      &(tau(2,6)))+abs(tau(3,6)))+abs(tau(4,6)))-two                      !hr05
                 if(abs(taus).ge.pieni) its6d=1
               endif
-              do 210 ib2=1,6
-                do 210 ib3=1,6
+              do ib2=1,6
+                do ib3=1,6
                   tasau(iar,ib2,ib3)=tau(ib2,ib3)
-  210         continue
+                end do
+              end do
             endif
   220     continue
           if(ierro.ne.0) then
@@ -25443,10 +25451,13 @@ c$$$         endif
           benkcc=ed(ix)*benkc(irm(ix))
           r0a=one
           r000=r0*r00(irm(ix))
-          do 160 j=1,mmul
+
+          do j=1,mmul
             fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
             fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
-  160     r0a=r0a*r000
+            r0a=r0a*r000
+          end do
+
           write(9,'(a16)') bez(ix)
           write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
           write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
@@ -25462,9 +25473,12 @@ c$$$         endif
           write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
           write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
           write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-          do 170 j=1,20
+
+          do j=1,20
             fake(1,j)=zero
-  170     fake(2,j)=zero
+            fake(2,j)=zero
+          end do
+
         endif
         goto 290
         
@@ -27163,7 +27177,8 @@ c$$$         endif
    30     e0o=e0
           e0fo=e0f
           call adia(n,e0f)
-          do 40 j=1,napx
+
+          do j=1,napx
             ejf0v(j)=ejfv(j)
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr
@@ -27181,7 +27196,9 @@ c$$$         endif
             dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
             if(sigmv(j).gt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
-   40     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                             !hr01
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                             !hr01
+          end do
+
           if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                      &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),j=1,napx)
           goto 640
@@ -28222,10 +28239,13 @@ c$$$         endif
           di0au(2)=dip0xs(ia)
           di0au(3)= di0zs(ia)
           di0au(4)=dip0zs(ia)
-          do 10 ib2=1,6
-            do 10 ib3=1,6
+
+          do ib2=1,6
+            do ib3=1,6
               tau(ib2,ib3)=tasau(ia,ib2,ib3)
-   10     continue
+            end do
+          end do
+
           call distance(xau,cloau,di0au,tau,dam1)
           dam(ia)=dam1
           dam(ie)=dam1
@@ -29175,10 +29195,12 @@ c$$$         endif
           benkcc=ed(ix)*benkc(irm(ix))
           r0a=one
           r000=r0*r00(irm(ix))
-          do 160 j=1,mmul
+          do j=1,mmul
             fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
             fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
-  160     r0a=r0a*r000
+            r0a=r0a*r000
+          end do
+
           write(9,'(a16)') bez(ix)
           write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
           write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
@@ -29194,9 +29216,12 @@ c$$$         endif
           write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
           write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
           write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-          do 170 j=1,20
+
+          do j=1,20
             fake(1,j)=zero
-  170     fake(2,j)=zero
+            fake(2,j)=zero
+          end do
+
         endif
         goto 290
         
@@ -30051,13 +30076,15 @@ c$$$         endif
 !     endif
 +ei
 +ei
-            do 30 jb=1,jmel
+            do jb=1,jmel
               jx=mtyp(ix,jb)
-              do 30 j=1,napx
+              do j=1,napx
 +ca thcklin
-   30       continue
+              end do
+            end do
             goto 500
-   40       do 50 j=1,napx
+
+   40       do j=1,napx
               ejf0v(j)=ejfv(j)
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
               if(kz(ix).eq.12) then
@@ -30071,7 +30098,9 @@ c$$$         endif
               oidpsv(j)=one/(one+dpsv(j))
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
               yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
-   50       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
+              yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
+            end do
+
             if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                    &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),                &
      &j=1,napx)
@@ -30702,16 +30731,18 @@ c$$$         endif
      &           500,500,761),ktrack(i)
             goto 500
    20       jmel=mel(ix)
-            do 30 jb=1,jmel
+            do jb=1,jmel
               jx=mtyp(ix,jb)
-              do 30 j=1,napx
+              do j=1,napx
 +ca thcklin
-   30       continue
+              end do
+            end do
             goto 500
    40       e0o=e0
             e0fo=e0f
             call adia(n,e0f)
-            do 50 j=1,napx
+
+            do j=1,napx
               ejf0v(j)=ejfv(j)
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
@@ -30727,8 +30758,11 @@ c$$$         endif
               oidpsv(j)=one/(one+dpsv(j))
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
             if(sigmv(j).gt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
+
               yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
-   50       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
+              yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
+            end do
+
             if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                    &
      &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),                &
      &j=1,napx)
@@ -32198,12 +32232,15 @@ c$$$         endif
           endif
           im=irm(ix)
           r0a=one
-          do 50 k=1,nmz
+
+          do k=1,nmz
             izu=izu+1
             aai(i,k)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
             izu=izu+1
             bbi(i,k)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
-   50     r0a=r0a*r0
+            r0a=r0a*r0
+          end do
+
           izu=izu+2*mmul-2*nmz
         endif
    60 continue
@@ -34405,7 +34442,7 @@ c$$$         endif
 +ca commonl
 +ca commondl
       integer idummy(nn)
-      character*6 chp(3),chd(3)
+      character(len=6) chp(3),chd(3)
       dimension xx(6),dlo(6),cloc(6),dd(6),dc(6),am(nn,nn)
       integer nerror
 +if bnlelens
@@ -42652,10 +42689,10 @@ c$$$            endif
       character(len=80) title(20),chxtit(20),chytit(20)
       character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
                                           !DANGER: If the len changes, CRCHECK will break.
-      character*11 hvs
-      character*8192 ch
+      character(len=11) hvs
+      character(len=8192) ch
 +if crlibm
-      character*25 ch1
+      character(len=25) ch1
       integer errno,l1,l2
       integer dtostr
 +ei
@@ -45521,7 +45558,7 @@ c$$$            endif
       real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
       
 +if boinc
-      character*256 filename
+      character(len=256) filename
 +ei
 
 +if fio
@@ -46800,7 +46837,7 @@ c$$$            endif
 +ca crcoall
       integer i,ierro,j
       real(kind=fPrec) d,dlost
-      character*4 ch
+      character(len=4) ch
 +ca parnum
 +ca parpro
       dimension d(60)
@@ -47413,7 +47450,7 @@ c$$$            endif
 +ca crcoall
       integer i,kounte,l,lgfile,limitm,limitr,log,logf
       parameter(kounte = 27)
-      character*6         ercode,   code(kounte)
+      character(len=6)    ercode,   code(kounte)
       logical             mflag,    rflag
       integer             kntm(kounte),       kntr(kounte)
 !-----------------------------------------------------------------------
@@ -47518,7 +47555,7 @@ c$$$            endif
 +ca parnum
       integer idim,ifail,ir,jfail,k,kprnt,n
       real t1,t2,t3,a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
-      character*6 name
+      character(len=6) name
       dimension ir(n),a(idim,n)
       data name/'RINV'/,kprnt/0/
       save
@@ -47639,7 +47676,7 @@ c$$$            endif
       integer ir
       real t1,t2,t3
       real(kind=fPrec) a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
-      character*6 name
+      character(len=6) name
       dimension ir(n),a(idim,n)
       data name/'DINV'/,kprnt/0/
       save
@@ -47757,7 +47794,7 @@ c$$$            endif
       implicit none
 +ca crcoall
       integer idim,k,kprnt,lgfile,n
-      character*6 name
+      character(len=6) name
       logical mflag,rflag
       save
 !-----------------------------------------------------------------------
@@ -47793,7 +47830,7 @@ c$$$            endif
      &jrange,junder,k,l,n,normal,nxch
       real a,det,g1,g2,one,p,pivotf,q,sizef,t,tf,x,y,zero
       real(kind=fPrec) s11,s12,dotf
-      character*6 hname
+      character(len=6) hname
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
       data      g1, g2              /  1.0e-37,  1.0e37  /               !hr07
@@ -47877,7 +47914,7 @@ c$$$            endif
      &jrange,junder,k,l,n,normal,nxch
       real g1,g2,p,pivotf,q,sizef,t
       real(kind=fPrec) a,det,dotf,zero,one,s11,s12,x,y,tf
-      character*6         hname
+      character(len=6)         hname
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
       data      g1, g2              /  1.0e-37,  1.0e37  /               !hr07
@@ -47961,7 +47998,7 @@ c$$$            endif
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
       real a,b,te,x,y
       real(kind=fPrec) dotf,s21,s22
-      character*6 hname
+      character(len=6) hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' RFEQN'  /
       save
@@ -48018,7 +48055,7 @@ c$$$            endif
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
       real(kind=fPrec) a,b,x,y,te
       real(kind=fPrec) dotf,s21,s22
-      character*6 hname
+      character(len=6) hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' DFEQN'  /
       save
@@ -48075,7 +48112,7 @@ c$$$            endif
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
       real a,ti,x,y
       real(kind=fPrec) dotf,s31,s32,s33,s34
-      character*6 hname
+      character(len=6) hname
       dimension ir(*),a(idim,*)
       data      hname               /  ' RFINV'  /
       save
@@ -48144,7 +48181,7 @@ c$$$            endif
 +ca parnum
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
       real(kind=fPrec) a,dotf,s31,s32,s33,s34,ti,x,y
-      character*6 hname
+      character(len=6) hname
       dimension ir(*),a(idim,*)
       data      hname               /  ' DFINV'  /
       save
@@ -48211,7 +48248,7 @@ c$$$            endif
       implicit none
 +ca crcoall
       integer idim,k,lgfile,n
-      character*6 name
+      character(len=6) name
       logical mflag,rflag
       save
 !-----------------------------------------------------------------------
@@ -48604,7 +48641,7 @@ c$$$            endif
      &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
 
 +if boinc
-      character*256 filename
+      character(len=256) filename
 +ei
       save
       restart=.false.
@@ -49594,7 +49631,7 @@ c$$$            endif
       integer lstring,osixrecs,ncalls
       logical lerror
 +if boinc
-      character*256 filename
+      character(len=256) filename
 +ei
       data ncalls /0/
       save
@@ -50242,7 +50279,7 @@ c$$$         backspace (93,iostat=ierro)
       real(kind=fPrec) dynk_newValue
 
       integer j,l,k,m,i
-      character*256 filename
+      character(len=256) filename
       save
       write(93,*)                                                       &
      &'SIXTRACR CRSTART called crnumlcr',crnumlcr
@@ -50806,11 +50843,11 @@ c$$$         backspace (93,iostat=ierro)
 +ca errout
       integer i,lstring,j
       character*(*) cstring
-      character*256 filename
+      character(len=256) filename
       real(kind=fPrec) sumda(60)
       logical fopen
-      character*8192 ch
-      character*25 ch1
+      character(len=8192) ch
+      character(len=25) ch1
       integer errno,l1,l2
       integer dtostr
       integer ich
