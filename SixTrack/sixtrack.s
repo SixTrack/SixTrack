@@ -3897,7 +3897,7 @@
       ejv(j)=ejv(j) -                                                   &!hr03
      &((((((crabamp*crabfreq)*2d0)*pi)/clight)                          &!hr03
      &*xv(xory,j))*                                                     &!hr03
-     &cos_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi           &!hr03
+     &cos_rn((((sigmv(j)/(clight))*crabfreq)*2d0)*pi                    &!hr03
      & + crabph(ix)))                                                    !hr03
 
 
@@ -3910,7 +3910,7 @@
       ejv(j)=ejv(j) -                                                   &!hr03
      &((((((crabamp*crabfreq)*2d0)*pi)/clight)                          &!hr03
      &*xv(xory,j))*                                                     &!hr03
-     &cos((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi              &!hr03
+     &cos((((sigmv(j)/(clight)*crabfreq)*2d0)*pi                       &!hr03
      & + crabph(ix)))                                                    !hr03
 +ei
 +ei
@@ -3972,51 +3972,54 @@ print *, "we are here!!!"
 +if .not.tilt
 +if crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
-     &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))       
+     &cos_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))       
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
-     &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))      
+     &sin_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))      
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))       
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))        
+     &sin((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))        
 +ei
 +ei
 +if tilt
 +if crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
-     &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi           &!hr13
+     &+ crabph2(ix))       
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
-     &cos_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
-      dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
+     &cos_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi           &!hr13
+     & + crabph2(ix))
+      ejv(j)=ejv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-        &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &sin_rn((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &sin_rn((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi           &!hr13
+     &+ crabph2(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))       
         yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*                 &!hr13
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((0.5d0*(crabamp2*oidpsv(j)))*(crkve**2-      &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))           
+     &sin((((sigmv(j)/(clight*(e0/e0f)))*crabfreq)*2d0)*pi + crabph2(ix))           
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=dpsv(j)*e0f+e0f
-      ejv(j)=sqrt(ejfv(j)**2+pma**2)                                     !hr03
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     !hr03
+      dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
 +cd ccmul2s
@@ -20659,20 +20662,24 @@ C Should get me a NaN
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP2=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP2=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
 *FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT2);
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
+*FOX  /(ONE+DPDA) ;
 *FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT2);
-*FOX  DPDA1=DPDA1 - (CRABAMP2)*(CIKVE*CRKVE)
-*FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*C1M3*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT2) ;
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
+*FOX  /(ONE+DPDA) ;
+*FOX  EJ1=EJ1 - (CRABAMP2)*(CIKVE*CRKVE)
+*FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*C1E3*C1E3*C1E3*C1E3*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -21895,22 +21902,26 @@ C Should get me a NaN
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf ! JBG Including misalignments
-*FOX  CRABAMP2=ED(IX)/(ONE+DPDA) ;
-!       call dapri(EJF1,234)
+*FOX  CRABAMP2=ED(IX) ;
+
 !       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
         crabpht2=crabph2(ix)
 *FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT2);
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI 
+*FOX  + CRABPHT2)/(ONE+DPDA);
 *FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT2);
-*FOX  DPDA1=DPDA1 - (1/2.)*(CRABAMP2)*(CRKVE*CRKVE-
-*FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*C1M3*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT2) ;
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI
+*FOX  + CRABPHT2)/(ONE+DPDA);
+*FOX  EJ1=EJ1 - (1/2.)*(CRABAMP2)*(CRKVE*CRKVE-
+*FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3/CLIGHT*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -21923,20 +21934,25 @@ C Should get me a NaN
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
-*FOX  CRABAMP2=ED(IX)/(ONE+DPDA) ;
++ca alignf
+*FOX  CRABAMP2=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
 *FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT2);
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
+*FOX  /(ONE+DPDA) ;
 *FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT2);
-*FOX  DPDA1=DPDA1 - (CRABAMP2)*(CIKVE*CRKVE)
-*FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*C1M3*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT2) ;
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
+*FOX  /(ONE+DPDA) ;
+*FOX  EJ1=EJ1 - (1/2.)*(CRABAMP2)*(CIKVE*CRKVE)
+*FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3/CLIGHT*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -21949,22 +21965,24 @@ C Should get me a NaN
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP3=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP3=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 *FOX  Y(1)=Y(1) + 2*(1/2.)*CRABAMP3*((CRKVE*CRKVE)-
-*FOX  (CIKVE*CIKVE))*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  DPDA1=DPDA1 - 2*(1/6.)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
+*FOX  (CIKVE*CIKVE))*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  EJ1=EJ1 - 2*(1/6.)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
 *FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  C1M6*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  C1M6*E0F/CLIGHT*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT3);
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -21978,22 +21996,24 @@ C Should get me a NaN
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP3=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP3=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 *FOX  Y(2)=Y(2) - 2*(1/2.)*CRABAMP3*((CIKVE*CIKVE)-
-*FOX  (CRKVE*CRKVE))*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  DPDA1=DPDA1 + 2*(1/6.)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
+*FOX  (CRKVE*CRKVE))*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  EJ1=EJ1 + 2*(1/6.)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
 *FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  C1M6*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  C1M6*E0F/CLIGHT*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT3);
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -22006,23 +22026,28 @@ C Should get me a NaN
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP4=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP4=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 *FOX  Y(1)=Y(1) + 6*(1/6.)*(CRABAMP4)*
-*FOX  (CRKVE*CRKVE*CRKVE-(3*CRKVE*CIKVE*CIKVE))*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
+*FOX  (CRKVE*CRKVE*CRKVE-(3*CRKVE*CIKVE*CIKVE))*C1M6*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
+*FOX  /(ONE+DPDA) ;
 *FOX  Y(2)=Y(2) - 6*(1/6.)*(CRABAMP4)*
-*FOX  (3*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
-*FOX  DPDA1=DPDA1-6*(1/24.)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
+*FOX  (3*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M6*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
+*FOX  /(ONE+DPDA) ;
+*FOX  EJ1=EJ1-6*(1/24.)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
 *FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
-*FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
+*FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT4) ;
+
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -22036,23 +22061,27 @@ C Should get me a NaN
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP4=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP4=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 *FOX  Y(1)=Y(1) + 6*(1/6.)*(CRABAMP4)*
-*FOX  (CIKVE*CIKVE*CIKVE-(3*CIKVE*CRKVE*CRKVE))*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
+*FOX  (CIKVE*CIKVE*CIKVE-(3*CIKVE*CRKVE*CRKVE))*C1M6*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
+*FOX  /(ONE+DPDA) ;
 *FOX  Y(2)=Y(2) + 6*(1/6.)*(CRABAMP4)*
-*FOX  (3*CRKVE*CIKVE*CIKVE-CRKVE*CRKVE*CRKVE)*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
-*FOX  DPDA1=DPDA1+6*(1/6.)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CIKVE-
-*FOX  CIKVE*CIKVE*CIKVE*CRKVE)*
+*FOX  (3*CRKVE*CIKVE*CIKVE-CRKVE*CRKVE*CRKVE)*C1M6*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
+*FOX  /(ONE+DPDA) ;
+*FOX  EJ1=EJ1+6*(1/6.)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CIKVE-
+*FOX  CIKVE*CIKVE*CIKVE*CRKVE)*E0F*
 *FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT4) ;
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
