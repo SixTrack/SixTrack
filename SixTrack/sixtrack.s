@@ -12368,13 +12368,13 @@ cc2008
           read(fields(11),*) numlmax
           nf=nf-1
         endif
-! and default nnmul to numl
-        nnuml=numl
-! and numlcp to 1000
-        if(numlcp.eq.0) numlcp=1000
       endif
 +ei
 +ei
+      ! and default nnmul to numl
+      nnuml=numl
+      ! and numlcp to 1000
+      if(numlcp.eq.0) numlcp=1000
 +if fio
 +if crlibm
       call enable_xp()
