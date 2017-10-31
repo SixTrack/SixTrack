@@ -938,8 +938,8 @@ add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 
 ##build astuce
-add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
-SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
+#add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
+#SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
 
 add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
 add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
@@ -1107,7 +1107,7 @@ add_dependencies(SixTrack copy_input_files generate_input)
 add_custom_target(run_astuce)
 
 #make running astuce depend on astuce being built and the input files being in place
-add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks astuce_old)
+add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks )
 
 #This target cleans the define flags
 add_custom_target(astuce_clean_define_flags)
@@ -1294,7 +1294,7 @@ endforeach()
 set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/6.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
-	target_link_libraries(astuce_old ${MSYS_QUADMATH})
+#	target_link_libraries(astuce_old ${MSYS_QUADMATH})
 	target_link_libraries(dafor ${MSYS_QUADMATH})
 	target_link_libraries(SixTrack ${MSYS_QUADMATH})
 endif()
