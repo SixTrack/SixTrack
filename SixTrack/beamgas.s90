@@ -1,13 +1,4 @@
 +dk beamGasK
-+if .not.beamgas
-      subroutine nobeamgasactive
-      use floatPrecision
-+ca crcoall
-      write(lout,*) &
-      "Dummy routine in beamgas.f if beamgas module off"
-      end subroutine
-+ei
-+if beamgas
 !>
 !! @brief Module containing constants for beamgas part
 !!
@@ -647,7 +638,4 @@
 !         write(*,*) "DEBUG,lMAT: ", lorentzmatrix(i,1:4)
 !        enddo
       end subroutine
-
-
-+ei
 
