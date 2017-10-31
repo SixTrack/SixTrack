@@ -923,7 +923,7 @@ if(NAFF)
 		SET(FFTW_USE_STATIC_LIBS 1)
 	endif()
 	find_package(FFTW REQUIRED)
-	include_directories( ${FFTW3_INCLUDES} )
+	include_directories( ${FFTW_INCLUDES} )
 	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
 	
