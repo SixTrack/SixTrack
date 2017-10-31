@@ -1190,9 +1190,9 @@
 
       character dump_fname (-1:nele)*(getfields_l_max_string)
       
-      common /dumpdb/ ldump, ndumpt, dumpunit,
-     &                dumpfirst, dumplast,
-     &                dumpfmt, ldumphighprec, ldumpfront,
+      common /dumpdb/ ldump, ndumpt, dumpunit,                          &
+     &                dumpfirst, dumplast,                              &
+     &                dumpfmt, ldumphighprec, ldumpfront,               &
      &                dump_fname
       common /dumpOptics/ dumptas,dumptasinv,dumpclo
 !
@@ -1274,8 +1274,8 @@
       character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
       integer fma_first (fma_max), fma_last (fma_max)        !first and last turn used for FMA
       integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,
-     &     fma_norm_flag,fma_first,fma_last,
+      common /fma_var/ fma_fname,fma_method,fma_numfiles,               &
+     &     fma_norm_flag,fma_first,fma_last,                            &
      &     fma_flag,fma_writeNormDUMP
 
 !
