@@ -273,7 +273,7 @@ if(DA)
 	LIST(APPEND FORS_FIXFORM sixda sixsc sixscfox)
 	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle lielib dabnew)
 else()
-	LIST(APPEND FORS_FIXFORM track sixve sixvefox)
+	LIST(APPEND FORS_FIXFORM track sixve sixvefox fma)
 	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews)
 endif()
 
