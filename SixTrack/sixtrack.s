@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.11'/
-      data moddate /'22.10.2017'/
+      data version /'4.7.13'/
+      data moddate /'27.10.2017'/
 +cd license
 !!SixTrack
 !!
@@ -23620,6 +23620,7 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
+      double precision round_near
       data lineno /0/
 +ei
 +if debug
@@ -24875,9 +24876,182 @@ C Should get me a NaN
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
           write(lout,10020) ampv(ia),amp(2),epsa
         else
++if .not.crlibm
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
      &(2,ia+1), sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
++ei
++if crlibm
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(1,ia)]"
+             call prror(-1)
+          endif
+          xv(1,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(1,ia)]"
+             call prror(-1)
+          endif
+          yv(1,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(2,ia)]"
+             call prror(-1)
+          endif
+          xv(2,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(2,ia)]"
+             call prror(-1)
+          endif
+          yv(2,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ sigmv(ia)]"
+             call prror(-1)
+          endif
+          sigmv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV sigmv(ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ dpsv(ia)]"
+             call prror(-1)
+          endif
+          dpsv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV dpsv(ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(1,ia+1)]"
+             call prror(-1)
+          endif
+          xv(1,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia+1)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(1,ia+1)]"
+             call prror(-1)
+          endif
+          yv(1,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(2,ia+1)]"
+             call prror(-1)
+          endif
+          xv(2,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(2,ia+1)]"
+             call prror(-1)
+          endif
+          yv(2,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [READ sigmv(ia+1)]"
+             call prror(-1)
+          endif
+          sigmv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [CONV sigmv(ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [READ dpsv(ia+1)]"
+             call prror(-1)
+          endif
+          dpsv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [CONV dpsv(ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ e0]"
+             call prror(-1)
+          endif
+          e0 = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV e0]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ ejv(ia)]"
+             call prror(-1)
+          endif
+          ejv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV ejv(ia)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ ejv(ia+1)]"
+             call prror(-1)
+          endif
+          ejv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV ejv(ia+1)]"
+             call prror(-1)
+          endif
+
++ei
           if(ierro.ne.0) call prror(56)
           e0f=sqrt(e0**2-pma**2)                                         !hr05
           ejfv(ia)=sqrt(ejv(ia)**2-pma**2)                               !hr05
@@ -33012,6 +33186,7 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
+      double precision round_near
       data lineno /0/
 +ei
 +ca version
