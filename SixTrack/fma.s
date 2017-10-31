@@ -1,4 +1,8 @@
 +dk fma
+
+      module FMA
+
+      contains
       
       subroutine fma_error(ierro,str,subroutine_name)
 !-----------------------------------------------------------------------*
@@ -925,3 +929,5 @@
  1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2 / not hiprec as in dump subroutine
  1988 format (2(1x,A20),1x,I8,18(1X,1PE16.9),3(1X,I8)) !fmt for fma output file
       end subroutine fma_postpr
+
+      end module fma

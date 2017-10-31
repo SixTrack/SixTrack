@@ -22600,7 +22600,9 @@ c$$$         endif
 +ei
       use scatter, only : scatter_active, scatter_initialize
 
-      use dynk, only: dynk_izuIndex
+      use dynk, only : dynk_izuIndex
+
+      use fma, only : fma_postpr
       
       use, intrinsic :: iso_fortran_env, only : output_unit
       
