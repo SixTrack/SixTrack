@@ -20658,22 +20658,7 @@ C Should get me a NaN
           pi=4d0*atan(1d0)
 +ei
 
-          if(kzz.eq.23) then
-*FOX  CRABAMP=ED(IX)/(EJF1) ;
-             crabfreq=ek(ix)*c1e3
-             crabpht=crabph(ix)
-*FOX  Y(1)=Y(1) - CRABAMP*C1E3*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
-*FOX  DPDA1=DPDA1 - CRABAMP*CRABFREQ*2D0*PI/CLIGHT*X(1)*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT) ;
-*FOX  EJF0=EJF1 ;
-*FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
-*FOX  Y(1)=EJF0/EJF1*Y(1) ;
-*FOX  Y(2)=EJF0/EJF1*Y(2) ;
-          endif
-          if(kzz.eq.-23) then
+        if(kzz.eq.23) then
 *FOX  CRABAMP=ED(IX) ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
@@ -20720,10 +20705,50 @@ C Should get me a NaN
 *FOX  DPDA=DPDA1*C1M3 ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
-          endif
+          goto 440
+      endif
+
 ! JBG RF CC Multipoles
+        if(kzz.eq.26) then
+            ! JBG bypass this element if 4D/5D case
+            if(iclo6.eq.0) then
+!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+                goto 440
+            endif
+          xs=xsi(i) ! JBG change of variables for misal calculations
+          zs=zsi(i)
++ca alignf ! JBG Including misalignments
+*FOX  CRABAMP2=ED(IX) ;
+
+!       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
+        crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
+        crabpht2=crabph2(ix)
+*FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI 
+*FOX  + CRABPHT2)/(ONE+DPDA);
+*FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI
+*FOX  + CRABPHT2)/(ONE+DPDA);
+*FOX  EJ1=EJ1 - (1/2.)*(CRABAMP2)*(CRKVE*CRKVE-
+*FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
+
+*FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+
+*FOX  DPDA=DPDA1*C1M3 ;
+*FOX  Y(1)=EJF0/EJF1*Y(1) ;
+*FOX  Y(2)=EJF0/EJF1*Y(2) ;
+          goto 440
+      endif
           if(kzz.eq.-26) then
-          xs=xsi(i)
+            ! JBG bypass this element if 4D/5D case
+            if(iclo6.eq.0) then
+!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+                goto 440
+            endif
+          xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf
 *FOX  CRABAMP2=ED(IX) ;
@@ -20735,8 +20760,8 @@ C Should get me a NaN
 *FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
 *FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
 *FOX  /(ONE+DPDA) ;
-*FOX  EJ1=EJ1 - (CRABAMP2)*(CIKVE*CRKVE)
-*FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*C1E3*C1E3*C1E3*C1E3*
+*FOX  EJ1=EJ1 - (1/2.)*(CRABAMP2)*(CIKVE*CRKVE)
+*FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 *FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
 
 *FOX  EJF0=EJF1 ;
@@ -20748,98 +20773,100 @@ C Should get me a NaN
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.27) then
+            ! JBG bypass this element if 4D/5D case
+            if(iclo6.eq.0) then
+!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+                goto 440
+            endif 
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP3=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP3=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 *FOX  Y(1)=Y(1) + 2*(1/2.)*CRABAMP3*((CRKVE*CRKVE)-
-*FOX  (CIKVE*CIKVE))*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  DPDA1=DPDA1 - 2*(1/6.)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
+*FOX  (CIKVE*CIKVE))*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  EJ1=EJ1 - 2*(1/6.)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
 *FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  C1M6*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  C1M6*E0F*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT3);
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
+          goto 440
           endif
           if(kzz.eq.-27) then
+            ! JBG bypass this element if 4D/5D case
+            if(iclo6.eq.0) then
+!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+                goto 440
+            endif 
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP3=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP3=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 *FOX  Y(2)=Y(2) - 2*(1/2.)*CRABAMP3*((CIKVE*CIKVE)-
-*FOX  (CRKVE*CRKVE))*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT3);
-*FOX  DPDA1=DPDA1 + 2*(1/6.)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
+*FOX  (CRKVE*CRKVE))*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
+*FOX  EJ1=EJ1 + 2*(1/6.)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
 *FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  C1M6*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT3) ;
+*FOX  C1M6*E0F*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT3);
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
           if(kzz.eq.28) then
+            ! JBG bypass this element if 4D/5D case
+            if(iclo6.eq.0) then
+!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+                goto 440
+            endif
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-*FOX  CRABAMP4=ED(IX)/(ONE+DPDA) ;
+*FOX  CRABAMP4=ED(IX) ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 *FOX  Y(1)=Y(1) + 6*(1/6.)*(CRABAMP4)*
-*FOX  (CRKVE*CRKVE*CRKVE-(3*CRKVE*CIKVE*CIKVE))*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
+*FOX  (CRKVE*CRKVE*CRKVE-(3*CRKVE*CIKVE*CIKVE))*C1M6*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
+*FOX  /(ONE+DPDA) ;
 *FOX  Y(2)=Y(2) - 6*(1/6.)*(CRABAMP4)*
-*FOX  (3*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
-*FOX  DPDA1=DPDA1-6*(1/24.)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
+*FOX  (3*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M6*
+*FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
+*FOX  /(ONE+DPDA) ;
+*FOX  EJ1=EJ1-6*(1/24.)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
 *FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
-*FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
+*FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*
+*FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT4) ;
+
+
 *FOX  EJF0=EJF1 ;
+*FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+*FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+*FOX  RV=EJ1/E0*E0F/EJF1 ;
 *FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 *FOX  Y(1)=EJF0/EJF1*Y(1) ;
 *FOX  Y(2)=EJF0/EJF1*Y(2) ;
-          endif
-          if(kzz.eq.-28) then
-          xs=xsi(i)
-          zs=zsi(i)
-+ca alignf
-*FOX  CRABAMP4=ED(IX)/(ONE+DPDA) ;
-             crabfreq=ek(ix)*c1e3
-             crabpht4=crabph4(ix)
-*FOX  Y(1)=Y(1) + 6*(1/6.)*(CRABAMP4)*
-*FOX  (CIKVE*CIKVE*CIKVE-(3*CIKVE*CRKVE*CRKVE))*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
-*FOX  Y(2)=Y(2) + 6*(1/6.)*(CRABAMP4)*
-*FOX  (3*CRKVE*CIKVE*CIKVE-CRKVE*CRKVE*CRKVE)*C1M3*C1M3*
-*FOX  COS(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI + CRABPHT4);
-*FOX  DPDA1=DPDA1+6*(1/6.)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CIKVE-
-*FOX  CIKVE*CIKVE*CIKVE*CRKVE)*
-*FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  SIN(SIGMDA/C1E3/CLIGHT*CRABFREQ*2D0*PI+CRABPHT4) ;
-*FOX  EJF0=EJF1 ;
-*FOX  DPDA=DPDA1*C1M3 ;
-*FOX  EJF1=E0F*(ONE+DPDA) ;
-*FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
-*FOX  Y(1)=EJF0/EJF1*Y(1) ;
-*FOX  Y(2)=EJF0/EJF1*Y(2) ;
+
           endif
           ipch=0
           if(ncor.gt.0) then
@@ -22070,7 +22097,7 @@ C Should get me a NaN
 *FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
 *FOX  EJ1=EJ1 + 2*(1/6.)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
 *FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-*FOX  C1M6*E0F
+*FOX  C1M6*E0F*
 *FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT3);
 
 *FOX  EJF0=EJF1 ;
