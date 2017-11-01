@@ -1,0 +1,167 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+DEFAULT_READ_TIMEOUT	../include/Connection.h	17;"	d
+DEFAULT_WRITE_TIMEOUT	../include/Connection.h	18;"	d
+FLUKAIO_CONNECTION_H__	../include/Connection.h	2;"	d
+FLUKAIO_FLUKAIOSERVER_H__	../include/FlukaIOServer.h	2;"	d
+FLUKAIO_FLUKAIOSERVER_PRIV_H__	FlukaIOServer_private.h	2;"	d
+FLUKAIO_FLUKAIO_H__	../include/FlukaIO.h	2;"	d
+FLUKAIO_FLUKAIO_PRIV_H__	FlukaIO_private.h	2;"	d
+FLUKAIO_FORTRANFLUKAIO_H__	../include/FortranFlukaIO.h	2;"	d
+FLUKAIO_HANDSHAKE_H__	FlukaIOHandshake.h	2;"	d
+FLUKAIO_IN_CACHE	../include/FlukaIO.h	29;"	d
+FLUKAIO_MAJOR_VERSION	../include/FlukaIO.h	11;"	d
+FLUKAIO_MAX_CONNECTIONS	FortranFlukaIO.c	7;"	d	file:
+FLUKAIO_MAX_SERVERS	FortranFlukaIO.c	8;"	d	file:
+FLUKAIO_MESSAGE_H__	../include/Message.h	2;"	d
+FLUKAIO_MINOR_VERSION	../include/FlukaIO.h	12;"	d
+FLUKAIO_NETIO_PRIV_H__	NetIO.h	2;"	d
+FLUKAIO_OUT_CACHE	../include/FlukaIO.h	22;"	d
+FLUKAIO_PARTICLE_INFO_H__	../include/ParticleInfo.h	2;"	d
+FLUKAIO_VERSION	../include/FlukaIO.h	13;"	d
+IN_BUFFER_LEN	../include/Connection.h	13;"	d
+MSG_EOB_LEN	../include/Message.h	30;"	d
+MSG_EOC_LEN	../include/Message.h	31;"	d
+MSG_HEADER_LEN	../include/Message.h	27;"	d
+MSG_HSK_LEN	../include/Message.h	32;"	d
+MSG_IPT_LEN	../include/Message.h	29;"	d
+MSG_PART_LEN	../include/Message.h	28;"	d
+N_CONF	../include/Message.h	/^	N_CONF  = 0x04,$/;"	e	enum:flukaio_message_type_e
+N_END	../include/Message.h	/^	N_END   = 0x03,$/;"	e	enum:flukaio_message_type_e
+N_EOB	../include/Message.h	/^	N_EOB   = 0x02,$/;"	e	enum:flukaio_message_type_e
+N_ERR	../include/Message.h	/^	N_ERR   = 0x00,$/;"	e	enum:flukaio_message_type_e
+N_HSK	../include/Message.h	/^	N_HSK   = 0x06,$/;"	e	enum:flukaio_message_type_e
+N_IPT	../include/Message.h	/^	N_IPT   = 0x05,$/;"	e	enum:flukaio_message_type_e
+N_OTHER	../include/Message.h	/^	N_OTHER = 0xff$/;"	e	enum:flukaio_message_type_e
+N_PART	../include/Message.h	/^	N_PART  = 0x01,$/;"	e	enum:flukaio_message_type_e
+OUT_BUFFER_LEN	../include/Connection.h	14;"	d
+_data	../include/Message.h	/^	union _data {$/;"	u	struct:__anon4
+_flukaio_connection_t	../include/Connection.h	/^typedef struct _flukaio_connection_t {$/;"	s
+aa	../include/ParticleInfo.h	/^	uint16_t aa;$/;"	m	struct:__anon5
+accept	../include/FlukaIOServer.h	/^	int (*accept)(int server_sockfd);$/;"	m	struct:__anon1
+can_read	../include/Connection.h	/^	int     (*can_read)(int fd, long timeout_sec, long timeout_usec);$/;"	m	struct:_flukaio_connection_t
+can_write	../include/Connection.h	/^	int     (*can_write)(int fd, long timeout_sec, long timeout_usec);$/;"	m	struct:_flukaio_connection_t
+connect	../include/Connection.h	/^	int     (*connect)(const char *host, int portnum);$/;"	m	struct:_flukaio_connection_t
+connection_can_read	Connection.c	/^int connection_can_read(flukaio_connection_t *conn)$/;"	f
+connection_can_write	Connection.c	/^int connection_can_write(flukaio_connection_t *conn)$/;"	f
+connection_connect	Connection.c	/^int connection_connect(flukaio_connection_t *conn, const char *host, int port) {$/;"	f
+connection_create	../include/FlukaIOServer.h	/^	flukaio_connection_t* (*connection_create)(int);$/;"	m	struct:__anon1
+connection_create	Connection.c	/^flukaio_connection_t *connection_create(int fd)$/;"	f
+connection_destroy	Connection.c	/^void connection_destroy(flukaio_connection_t *conn)$/;"	f
+connection_flush	Connection.c	/^ssize_t connection_flush(flukaio_connection_t *conn)$/;"	f
+connection_push_message	Connection.c	/^ssize_t connection_push_message(flukaio_connection_t * conn,$/;"	f
+connection_read	Connection.c	/^ssize_t connection_read(flukaio_connection_t *conn)$/;"	f
+connection_read_message_from	Connection.c	/^inline ssize_t connection_read_message_from(flukaio_message_t *msg, const void *buffer, size_t buffer_len)$/;"	f
+connection_receive_message	Connection.c	/^ssize_t connection_receive_message(flukaio_connection_t *conn, flukaio_message_t *msg)$/;"	f
+connection_set_read_timeout	Connection.c	/^int connection_set_read_timeout(flukaio_connection_t *conn, long timeout)$/;"	f
+connection_set_write_timeout	Connection.c	/^int connection_set_write_timeout(flukaio_connection_t *conn, long timeout)$/;"	f
+connection_write	Connection.c	/^ssize_t connection_write(flukaio_connection_t *conn)$/;"	f
+connection_write_message_bin	Connection.c	/^ssize_t connection_write_message_bin($/;"	f
+connections	FortranFlukaIO.c	/^static flukaio_connection_t *connections[FLUKAIO_MAX_CONNECTIONS];$/;"	v	file:
+create_fortran_string	FortranFlukaIO.c	/^char * create_fortran_string(const char *str, const long str_len) {$/;"	f
+data	../include/Message.h	/^	} data;$/;"	m	struct:__anon4	typeref:union:__anon4::_data
+fd	../include/Connection.h	/^	int fd;                             \/**< Socket file descriptor *\/$/;"	m	struct:_flukaio_connection_t
+fd	../include/FlukaIOServer.h	/^	int fd;$/;"	m	struct:__anon1
+flukaio_conn	FlukaIO.c	/^flukaio_connection_t* flukaio_conn() {$/;"	f
+flukaio_connect	FlukaIO.c	/^flukaio_connection_t *flukaio_connect(flukaio_connection_t *conn, const char *host, int port) {$/;"	f
+flukaio_connection_t	../include/Connection.h	/^} flukaio_connection_t;$/;"	t	typeref:struct:_flukaio_connection_t
+flukaio_disconnect	FlukaIO.c	/^void flukaio_disconnect(flukaio_connection_t *conn) {$/;"	f
+flukaio_handshake_client	FlukaIOHandshake.c	/^int (*flukaio_handshake_client)(flukaio_connection_t * conn) = &impl_flukaio_handshake_client;$/;"	v
+flukaio_handshake_server	FlukaIOHandshake.c	/^int (*flukaio_handshake_server)(flukaio_connection_t * conn) = &impl_flukaio_handshake_server;$/;"	v
+flukaio_hsk_data_t	../include/Message.h	/^} flukaio_hsk_data_t;$/;"	t	typeref:struct:__anon3
+flukaio_ipt_data_t	../include/Message.h	/^} flukaio_ipt_data_t;$/;"	t	typeref:struct:__anon2
+flukaio_message_t	../include/Message.h	/^} flukaio_message_t;$/;"	t	typeref:struct:__anon4
+flukaio_message_type_e	../include/Message.h	/^enum flukaio_message_type_e {$/;"	g
+flukaio_message_type_t	../include/Message.h	/^typedef uint8_t flukaio_message_type_t;$/;"	t
+flukaio_receive_message	FlukaIO.c	/^ssize_t flukaio_receive_message(flukaio_connection_t *conn, flukaio_message_t *msg)$/;"	f
+flukaio_send_eob	FlukaIO.c	/^ssize_t flukaio_send_eob(flukaio_connection_t *conn)$/;"	f
+flukaio_send_eoc	FlukaIO.c	/^ssize_t flukaio_send_eoc(flukaio_connection_t *conn)$/;"	f
+flukaio_send_hsk	FlukaIO.c	/^ssize_t flukaio_send_hsk(flukaio_connection_t *conn, uint16_t major, uint16_t minor, uint32_t key)$/;"	f
+flukaio_send_ipt	FlukaIO.c	/^ssize_t flukaio_send_ipt(flukaio_connection_t *conn, uint32_t turn, uint16_t ipt)$/;"	f
+flukaio_send_particle	FlukaIO.c	/^ssize_t flukaio_send_particle(flukaio_connection_t *conn, const particle_info_t *part)$/;"	f
+flukaio_server_accept	FlukaIOServer.c	/^flukaio_connection_t *flukaio_server_accept(flukaio_server_t* server)$/;"	f
+flukaio_server_create	FlukaIOServer.c	/^flukaio_server_t* flukaio_server_create()$/;"	f
+flukaio_server_get_port	FlukaIOServer.c	/^int flukaio_server_get_port(flukaio_server_t* server) {$/;"	f
+flukaio_server_shutdown	FlukaIOServer.c	/^int flukaio_server_shutdown(flukaio_server_t* server)$/;"	f
+flukaio_server_start	FlukaIOServer.c	/^int flukaio_server_start(flukaio_server_t* server, unsigned int port)$/;"	f
+flukaio_server_t	../include/FlukaIOServer.h	/^} flukaio_server_t;$/;"	t	typeref:struct:__anon1
+flukaio_wait_message	FlukaIO.c	/^ssize_t flukaio_wait_message(flukaio_connection_t *conn, flukaio_message_t *msg) {$/;"	f
+gen	../include/ParticleInfo.h	/^	uint32_t gen;$/;"	m	struct:__anon5
+get_connection	FortranFlukaIO.c	/^static flukaio_connection_t *get_connection(int cid)$/;"	f	file:
+get_server	FortranFlukaIO.c	/^static flukaio_server_t *get_server(int serverid)$/;"	f	file:
+hsk	../include/Message.h	/^		flukaio_hsk_data_t hsk;$/;"	m	union:__anon4::_data
+id	../include/ParticleInfo.h	/^	uint32_t id;$/;"	m	struct:__anon5
+impl_flukaio_handshake_client	FlukaIOHandshake.c	/^int impl_flukaio_handshake_client(flukaio_connection_t * conn) {$/;"	f
+impl_flukaio_handshake_server	FlukaIOHandshake.c	/^int impl_flukaio_handshake_server(flukaio_connection_t * conn) {$/;"	f
+in_buffer	../include/Connection.h	/^	char   in_buffer[IN_BUFFER_LEN];    \/**< Input data buffer *\/$/;"	m	struct:_flukaio_connection_t
+in_buffer_end	../include/Connection.h	/^	size_t in_buffer_end;               \/**< End position of the data in the buffer (bytes) *\/$/;"	m	struct:_flukaio_connection_t
+in_buffer_len	../include/Connection.h	/^	size_t in_buffer_len;               \/**< Length of the data in the buffer (bytes) *\/$/;"	m	struct:_flukaio_connection_t
+in_buffer_size	../include/Connection.h	/^	size_t in_buffer_size;              \/**< Total size of the buffer (bytes) *\/$/;"	m	struct:_flukaio_connection_t
+in_buffer_start	../include/Connection.h	/^	size_t in_buffer_start;             \/**< Start position of the data in the buffer (bytes) *\/$/;"	m	struct:_flukaio_connection_t
+ipt	../include/Message.h	/^		flukaio_ipt_data_t ipt;$/;"	m	union:__anon4::_data
+ipt	../include/Message.h	/^	uint16_t ipt;$/;"	m	struct:__anon2
+key	../include/Message.h	/^	uint32_t key; \/\/ random key$/;"	m	struct:__anon3
+m	../include/ParticleInfo.h	/^	double m;$/;"	m	struct:__anon5
+major	../include/Message.h	/^	uint16_t major; \/\/ version$/;"	m	struct:__anon3
+minor	../include/Message.h	/^	uint16_t minor;$/;"	m	struct:__anon3
+netio_can_read	NetIO.c	/^int netio_can_read(int fd, long timeout_sec, long timeout_usec)$/;"	f
+netio_can_write	NetIO.c	/^int netio_can_write(int fd, long timeout_sec, long timeout_usec)$/;"	f
+netio_connect	NetIO.c	/^int netio_connect(const char *host, int portnum)$/;"	f
+netio_read	NetIO.c	/^ssize_t netio_read(const int fd, void *buf, size_t len)$/;"	f
+netio_server_accept	NetIO.c	/^int netio_server_accept(int server_sockfd)$/;"	f
+netio_server_shutdown	NetIO.c	/^int netio_server_shutdown(int server_sockfd)$/;"	f
+netio_server_start	NetIO.c	/^int netio_server_start(int *port, int *sockfd)$/;"	f
+netio_set_nodelay	NetIO.c	/^int netio_set_nodelay(int fd) {$/;"	f
+netio_set_nonblocking	NetIO.c	/^int netio_set_nonblocking(int fd) {$/;"	f
+netio_write	NetIO.c	/^ssize_t netio_write(int fd, const void *buf, size_t count)$/;"	f
+netio_xwrite	NetIO.c	/^static ssize_t netio_xwrite(int fd, const void *buf, size_t len)$/;"	f	file:
+ntaccept_	FortranFlukaIO.c	/^int ntaccept_(const int *serverid)$/;"	f
+ntconnect_	FortranFlukaIO.c	/^int ntconnect_(char *host, int *port, const long hostlen)$/;"	f
+ntend_	FortranFlukaIO.c	/^int ntend_(const int *cid) {$/;"	f
+ntgetport_	FortranFlukaIO.c	/^int ntgetport_(const int *serverid) {$/;"	f
+ntinit_	FortranFlukaIO.c	/^int ntinit_()$/;"	f
+ntrecv_	FortranFlukaIO.c	/^int ntrecv_($/;"	f
+ntrtimeout_	FortranFlukaIO.c	/^int ntrtimeout_(const int *cid, const int *seconds) {$/;"	f
+ntsendeob_	FortranFlukaIO.c	/^int ntsendeob_(const int *cid) {$/;"	f
+ntsendeoc_	FortranFlukaIO.c	/^int ntsendeoc_(const int *cid) {$/;"	f
+ntsendipt_	FortranFlukaIO.c	/^int ntsendipt_(const int *cid, const uint32_t *turn, const uint16_t *ipt) {$/;"	f
+ntsendp_	FortranFlukaIO.c	/^int ntsendp_($/;"	f
+ntserver_	FortranFlukaIO.c	/^int ntserver_() {$/;"	f
+ntshdwn_	FortranFlukaIO.c	/^int ntshdwn_(const int *serverid) {$/;"	f
+ntstart_	FortranFlukaIO.c	/^int ntstart_(const int *serverid, int *port) {$/;"	f
+ntwait_	FortranFlukaIO.c	/^int ntwait_($/;"	f
+ntwtimeout_	FortranFlukaIO.c	/^int ntwtimeout_(const int *cid, const int *seconds) {$/;"	f
+out_buffer	../include/Connection.h	/^	char   out_buffer[OUT_BUFFER_LEN];  \/**< Output data buffer *\/$/;"	m	struct:_flukaio_connection_t
+out_buffer_len	../include/Connection.h	/^	size_t out_buffer_len;              \/**< Length of the data in the buffer (bytes) *\/$/;"	m	struct:_flukaio_connection_t
+out_buffer_size	../include/Connection.h	/^	size_t out_buffer_size;             \/**< Total size of the buffer (bytes) *\/$/;"	m	struct:_flukaio_connection_t
+particle	../include/Message.h	/^		particle_info_t particle;$/;"	m	union:__anon4::_data
+particle_info_t	../include/ParticleInfo.h	/^} particle_info_t;$/;"	t	typeref:struct:__anon5
+pc	../include/ParticleInfo.h	/^	double pc;$/;"	m	struct:__anon5
+port	../include/FlukaIOServer.h	/^	int port;$/;"	m	struct:__anon1
+read	../include/Connection.h	/^	ssize_t (*read)(int fd, void *buf, size_t n);$/;"	m	struct:_flukaio_connection_t
+read_timeout	../include/Connection.h	/^	int read_timeout;                   \/**< Timeout for reading operations (seconds) *\/$/;"	m	struct:_flukaio_connection_t
+servers	FortranFlukaIO.c	/^static flukaio_server_t *servers[FLUKAIO_MAX_SERVERS];$/;"	v	file:
+set_nodelay	../include/Connection.h	/^	int     (*set_nodelay)(int fd);$/;"	m	struct:_flukaio_connection_t
+set_nonblocking	../include/Connection.h	/^	int     (*set_nonblocking)(int fd);$/;"	m	struct:_flukaio_connection_t
+shutdown	../include/FlukaIOServer.h	/^	int (*shutdown)(int server_sockfd);$/;"	m	struct:__anon1
+size	../include/Message.h	/^	uint16_t size; \/**< Total size in bytes of the message (including headers) *\/$/;"	m	struct:__anon4
+start	../include/FlukaIOServer.h	/^	int (*start)(int *port, int *sockfd);$/;"	m	struct:__anon1
+store_connection	FortranFlukaIO.c	/^int store_connection(flukaio_connection_t *conn)$/;"	f
+store_server	FortranFlukaIO.c	/^int store_server(flukaio_server_t *server)$/;"	f
+t	../include/ParticleInfo.h	/^	double t;$/;"	m	struct:__anon5
+turn	../include/Message.h	/^	uint32_t turn;$/;"	m	struct:__anon2
+tx	../include/ParticleInfo.h	/^	double tx;$/;"	m	struct:__anon5
+ty	../include/ParticleInfo.h	/^	double ty;$/;"	m	struct:__anon5
+type	../include/Message.h	/^	flukaio_message_type_t type;  \/**< Type of message *\/$/;"	m	struct:__anon4
+tz	../include/ParticleInfo.h	/^	double tz;$/;"	m	struct:__anon5
+weight	../include/ParticleInfo.h	/^	double weight;$/;"	m	struct:__anon5
+write	../include/Connection.h	/^	ssize_t (*write)(int fd, const void *buf, size_t len);$/;"	m	struct:_flukaio_connection_t
+write_timeout	../include/Connection.h	/^	int write_timeout;                  \/**< Timeout for writing operations (seconds) *\/$/;"	m	struct:_flukaio_connection_t
+x	../include/ParticleInfo.h	/^	double x;$/;"	m	struct:__anon5
+y	../include/ParticleInfo.h	/^	double y;$/;"	m	struct:__anon5
+z	../include/ParticleInfo.h	/^	double z;$/;"	m	struct:__anon5
+zz	../include/ParticleInfo.h	/^	uint16_t zz;$/;"	m	struct:__anon5

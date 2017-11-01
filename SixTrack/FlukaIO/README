@@ -1,0 +1,26 @@
+FlukaIO 
+=======
+
+How to compile
+==============
+
+In a machine with CppUTest correctly configured, it can be compiled and tested running "make".
+
+In a machine without CppUTest both 32 and 64 bit versions of the libraries can be compiled issuing the following commands:
+
+make libs BUILD32=Y
+make clean
+make libs BUILD64=Y
+
+The resulting libraries will be compiled under the directory "lib".
+
+Documentation
+=============
+
+The doxygen documentation can be generated with the command "make doc"
+
+Compiling samples
+=================
+
+Run "make samples" to compile sample clients and servers under samples directory.
+
