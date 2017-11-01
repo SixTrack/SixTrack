@@ -3890,7 +3890,6 @@
 
 +if .not.tilt
 +if crlibm
-       print *, "noTilt" 
        yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
      &sin_rn((((sigmv(j)/((clight*(e0f/e0))))*                          &!hr03
      &crabfreq)*2d0)*pi + crabph(ix))*oidpsv(j)                          !hr03
@@ -3903,7 +3902,6 @@
 
 +ei
 +if .not.crlibm
-      print *, "noTiltCRM" 
        yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
      &sin((((sigmv(j)/((clight*(e0f/e0))))*                             &!hr03
      &crabfreq)*2d0)*pi + crabph(ix)))*oidpsv(j)                         !hr03
@@ -3916,9 +3914,6 @@
 +ei
 +if tilt
 +if crlibm
-
-       print *, "This is the one!"
-
        yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
      &sin_rn((((sigmv(j)/((clight*(e0f/e0))))*                          &!hr03
      &crabfreq)*2d0)*pi + crabph(ix))*oidpsv(j)                          !hr03
@@ -3929,7 +3924,6 @@
      & + crabph(ix)))                                                    !hr03
 +ei
 +if .not.crlibm
-print *, "we are here!!!"
        yv(xory,j)=yv(xory,j) - crabamp*c1e3/e0f*                        &!hr03
      &sin((((sigmv(j)/((clight*(e0f/e0))))*                             &!hr03
      &crabfreq)*2d0)*pi + crabph(ix))*oidpsv(j)                          !hr03                                    
@@ -4052,7 +4046,7 @@ print *, "we are here!!!"
      &cos_rn((((sigmv(j)/(clight*(e0f/e0)))                             &
      &*crabfreq)*2d0)*pi + crabph2(ix))
       ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))                      &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*e0f*                          & 
+     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*e0f*                         & 
      &sin_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi 
      &+ crabph2(ix)) 
 +ei
@@ -4078,7 +4072,7 @@ print *, "we are here!!!"
      &cos_rn((((sigmv(j)/(clight*(e0f/e0)))                             &
      &*crabfreq)*2d0)*pi + crabph2(ix))
       ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))                      &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*e0f*                          & 
+     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*e0f*                         & 
      &sin_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi 
      &+ crabph2(ix))                                                    &
 +ei
@@ -4142,15 +4136,15 @@ print *, "we are here!!!"
 +if .not.crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
-     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi           &!hr13
+     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi              &!hr13
      & + crabph3(ix))                     
       yv(2,j)=yv(2,j)-                                                  &!hr13
      &((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*                &!hr13
-     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi           &!hr13 
+     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi              &!hr13 
      &+ crabph3(ix))
       ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*e0f    &!hr13
-     &*sin((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi          &!hr13
+     &*sin((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi             &!hr13
      &+ crabph3(ix))
 +ei
 +ei
@@ -4382,26 +4376,32 @@ print *, "we are here!!!"
 +if crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
      &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi + crabph4(ix))
+     &cos_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi           &
+     &+ crabph4(ix))
         yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
      &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi + crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
+     &cos_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi           &
+     &+ crabph4(ix))
+      ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3                          &
      &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi + crabph4(ix))
+     &(((crabfreq*2d0)*pi)/clight))*c1m9)*e0f*                          &
+     &sin_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi 
+     &+ crabph4(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
      &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi              &
+     &+ crabph4(ix))
         yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
      &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
+     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi              &
+     &+ crabph4(ix))
+      ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3                          &
      &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &(((crabfreq*2d0)*pi)/clight))*c1m9)*e0f*                          &
+     &sin((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi 
+     &+ crabph4(ix))
 +ei
 +ei
 +if tilt
@@ -4414,23 +4414,26 @@ print *, "we are here!!!"
      &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
      &cos_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi           &
      &+ crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp4)*((crkve**3                        &
+      ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3                          &
      &*cikve)-(cikve**3*crkve)))*                                       &
      &(((crabfreq*2d0)*pi)/clight))*c1m9)*e0f*                          &
-     &sin_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi           &
-     & + crabph4(ix))
+     &sin_rn((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi 
+     &+ crabph4(ix))
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
      &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi              &
+     &+ crabph4(ix))
         yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
      &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
-      dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
+     &cos((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi              &
+     &+ crabph4(ix))
+      ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3                          &
      &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &(((crabfreq*2d0)*pi)/clight))*c1m9)*e0f*                          &
+     &sin((((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi 
+     &+ crabph4(ix))
 +ei
 +ei
       ejf0v(j)=ejfv(j)
