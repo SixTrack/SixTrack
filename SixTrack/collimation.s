@@ -2436,7 +2436,7 @@
      &icoll,c_rotation,                                                 &
      &0.0,                                                              &!hr09
      &0.0,0.0,0.0,0.0,                                                  &
-     &part_abs(j),flukaname(j),iturn  !!! THIS IS JUST WRONG!! It should not be part_abs here.
+     &part_abs(j),flukaname(j),iturn  !!! TODO -  It should not be part_abs here.
               endif
 
             part_abs_pos(j)  = ie
@@ -2524,10 +2524,12 @@
 
 !++  Output information:
 !++
-!++  PART_HIT(MAX_NPART)     Hit flag for last hit (10000*element# + turn#)  !! TODO!!
-!++  PART_ABS(MAX_NPART)     Abs flag (10000*element# + turn#) !! TODO!!
-!++  PART_IMPACT(MAX_NPART)  Impact parameter (0 for inner face)
-!++  PART_INDIV(MAX_NPART)   Divergence of impacting particles
+!++  PART_HIT_POS (MAX_NPART)  Hit flag for last hit
+!++  PART_HIT_TURN(MAX_NPART)  Hit flag for last hit
+!++  PART_ABS_POS (MAX_NPART)  Abs flag
+!++  PART_ABS_TURN(MAX_NPART)  Abs flag
+!++  PART_IMPACT  (MAX_NPART)  Impact parameter (0 for inner face)
+!++  PART_INDIV   (MAX_NPART)  Divergence of impacting particles
 !------------------------------------------------------------------------------
 !++  Calculate average impact parameter and save info for all
 !++  collimators. Copy information back and do negative drift.
@@ -2666,7 +2668,7 @@
 +ei
 +if .not.hdf5
        write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
-     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           & ! TODO: if max(ipart) > 100, then we've got multiple particles with the same "ID". Thus multiple samples should NOT be allowed when number of particles >= 100.
+     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
      &rcxp0(j)*1d3+torbxp(ie),                                          &
      &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &

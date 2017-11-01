@@ -15579,20 +15579,6 @@ cc2008
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
-
-      if(do_coll .and. numl.ge.10000) then
-         write(lout,*) ""
-         write(lout,*) "Error when parsing COLL block in fort.3"
-         write(lout,*) "Collimation supports a maximum of 10000 turns;"
-         write(lout,*) " trying to use more than this "//
-     &        "corrupts the output files."
-         write(lout,*) "Sorry!"
-         write(lout,*) ""
-         
-         call prror(-1)
-      endif
-      
-
       
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
@@ -15612,6 +15598,18 @@ cc2008
          write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
          write(lout,*) "Please reduce the number of particles or loops"
          write(lout,*) ""
+         
+         call prror(-1)
+      endif
+
+      if(iclr.eq.2 .and. napx*2.ge.100 .and. nloop.gt.1) then
+         write(lout,*) ""
+         write(lout,*) "Error when parsing COLL block in fort.3"
+         write(lout,*) "If nloop > 1 then you must have napx*2 < 100"
+         write(lout,*) " or else the particle numbers in the"
+         write(lout,*) " output gets confused."
+         write(lout,*) "napx  = ", napx
+         write(lout,*) "nloop = ", nloop
          
          call prror(-1)
       endif
