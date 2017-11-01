@@ -3459,14 +3459,14 @@
 !! collimate_end_element()
 !! This routine is called at the end of every element
 !<
-      subroutine collimate_end_element(i)
+      subroutine collimate_end_element
       implicit none
 
 +ca crcoall
 +if crlibm
 +ca crlibco
 +ei
-      integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      integer ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       double precision benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
@@ -3649,7 +3649,7 @@
 !! collimate_end_turn()
 !! This routine is called at the end of every turn
 !<
-      subroutine collimate_end_turn(n)
+      subroutine collimate_end_turn
       implicit none
 
 +ca crcoall
@@ -3688,7 +3688,6 @@
 +ca rhicelens
 +ei
 
-      integer n
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
 
@@ -3707,14 +3706,10 @@
               ygrd(j)  = xv(2,j)
               ypgrd(j) = yv(2,j)
 
-              xineff(j)  = xv(1,j)                                      &
-     &- torbx(ie)
-              xpineff(j) = yv(1,j)                                      &
-     &- torbxp(ie)
-              yineff(j)  = xv(2,j)                                      &
-     &- torby(ie)
-              ypineff(j) = yv(2,j)                                      &
-     &- torbyp(ie)
+              xineff(j)  = xv(1,j) - torbx (ie)
+              xpineff(j) = yv(1,j) - torbxp(ie)
+              yineff(j)  = xv(2,j) - torby (ie)
+              ypineff(j) = yv(2,j) - torbyp(ie)
 
               pgrd(j)  = ejv(j)
 !APRIL2005
@@ -4006,7 +4001,7 @@
 
 !------------------------------------------------------------------------
 !++  Write final distribution
-      if (dowrite_dist.and.(ie.eq.iu).and.(n.eq.numl)) then
+      if (dowrite_dist.and.(ie.eq.iu).and.(iturn.eq.numl)) then
         open(unit=9998, file='distn.dat')
         write(9998,*)
      &'# 1=x 2=xp 3=y 4=yp 5=z 6 =E'

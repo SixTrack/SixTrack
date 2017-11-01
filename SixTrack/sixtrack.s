@@ -27960,7 +27960,7 @@ C Should get me a NaN
   640     continue
 !GRD UPGRADE JANUARY 2005
 +if collimat
-      call collimate_end_element(i)
+      call collimate_end_element
 +ei
 !GRD END OF UPGRADE
 
@@ -27976,7 +27976,7 @@ C Should get me a NaN
 
 
 +if collimat
-      call collimate_end_turn(n)
+      call collimate_end_turn
 +ei
 
 +if .not.collimat
