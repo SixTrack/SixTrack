@@ -2449,7 +2449,7 @@
 
           call FLUSH()
 
-          endif !part_abs_pos(j) .eq. 0 && part_abs_turn(j) .eq. 0
+          endif !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
         enddo
 !      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
 +ei
@@ -3400,7 +3400,6 @@
               yv(2,j) = 0d0
               ejv(j)  = myenom
               sigmv(j)= 0d0
-              !part_abs(j) = 10000*ie + iturn !!! HARD TURN LIMIT FOR COLLIMAT ???
               part_abs_pos(j)=ie
               part_abs_turn=iturn
               secondary(j) = 0
@@ -3908,9 +3907,9 @@
                 xpnorm = xpnorm + dnormx*cos(xangle)
 +ei
                 xgrd(j)   = 1000d0 *
-     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )   !!! TODO
+     &                     (xnorm * sqrt(tbetax(ie)*myemitx0_collgap) )
                 xpgrd(j)  = 1000d0 *
-     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)    !!! TODO
+     &                     ( (xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)
      &-talphax(ie)*xgrd(j)*1d-3)/tbetax(ie))
 
                 ynorm  = (ygrd(j)*1d-3)
@@ -3937,9 +3936,9 @@
                 ypnorm = ypnorm + dnormy*cos(yangle)
 +ei
                 ygrd(j)   = 1000d0 *
-     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) ) !!! TODO
+     &                     (ynorm * sqrt(tbetay(ie)*myemity0_collgap) )
                 ypgrd(j)  = 1000d0 * 
-     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)  !!! TODO
+     &                     ( (ypnorm*sqrt(tbetay(ie)*myemity0_collgap)
      &-talphay(ie)*ygrd(j)*1d-3)/tbetay(ie))
 
                 endif
@@ -4824,7 +4823,6 @@
                  fracab = fracab + 1
                  x = 99.99d-3
                  z = 99.99d-3
-                 !part_abs_local(j) = 10000*ie + iturn
                  part_abs_pos_local(j) = ie
                  part_abs_turn_local(j) = iturn
                  lint(j) = zlm
@@ -5559,7 +5557,6 @@ c$$$          endif
 !              z = 99.99*1e-3
               x = 99.99*1.0d-3
               z = 99.99*1.0d-3
-              !part_abs_local(j) = 10000*ie + iturn
               part_abs_pos_local(j) = ie
               part_abs_turn_local(j) = iturn
               lint(j) = zlm

@@ -935,7 +935,7 @@
 
 
       integer secondary(npart),tertiary(npart),other(npart),            &
-     &part_hit_before_turn(npart), part_hit_before_pos(npart) !!!Part_hit_before is a local variable??
+     &part_hit_before_pos(npart), part_hit_before_turn(npart)
       double precision part_indiv(npart),part_linteract(npart)
 
       integer part_hit_pos(npart),part_hit_turn(npart),                 &
@@ -945,6 +945,7 @@
       double precision part_impact(npart)
       common /stats/ part_impact,                                       &
      &     part_hit_pos,part_hit_turn,                                  &
+     &     part_hit_before_pos, part_hit_before_turn,                   &
      &     part_abs_pos,part_abs_turn,                                  &
      &     nabs_type,part_indiv,                                        &
      &     part_linteract,secondary,tertiary,other
