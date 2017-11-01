@@ -89,12 +89,23 @@
 
       real(kind=fPrec) crade,clight,pmae,pmap
 
++if .not.fluka
 !     proton mass (MeV)
       parameter(pmap = 938.271998_fPrec)
 
 !     electron mass from PDG, 2002
 !     electron mass (MeV)
       parameter(pmae = .510998902_fPrec)
++ei
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 08-12-2014
+!     synch masses of proton and electron to values used by FLUKA
+!     inserted in main code by the 'fluka' compilation flag
+!     proton and electron mass from PDG, 2014
+      parameter(pmap = 0.938272046e3_fPrec)
+      parameter(pmae = 0.510998928_fPrec)
++ei
 
 !     classical electron radius
       parameter(crade = 2.817940285e-15_fPrec)
