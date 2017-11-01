@@ -935,14 +935,17 @@
 
 
       integer secondary(npart),tertiary(npart),other(npart),            &
-     &part_hit_before(npart)
+     &part_hit_before_turn(npart), part_hit_before_pos(npart) !!!Part_hit_before is a local variable??
       double precision part_indiv(npart),part_linteract(npart)
 
-      integer part_hit(npart),part_abs_pos(npart),part_abs_turn(npart), &
+      integer part_hit_pos(npart),part_hit_turn(npart),                 &
+     &     part_abs_pos(npart),part_abs_turn(npart),                    &
      &     n_tot_absorbed,n_absorbed,                                   &
      &     part_select(npart),nabs_type(npart)
       double precision part_impact(npart)
-      common /stats/ part_impact,part_hit,part_abs_pos,part_abs_turn,   &
+      common /stats/ part_impact,                                       &
+     &     part_hit_pos,part_hit_turn,                                  &
+     &     part_abs_pos,part_abs_turn,                                  &
      &     nabs_type,part_indiv,                                        &
      &     part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
@@ -1027,7 +1030,7 @@
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
       
-      integer lhit(npart),                                              &
+      integer lhit_pos(npart),lhit_turn(npart),                         &
      &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
      &     name(npart),nabs_type(npart)
 !MAY2005

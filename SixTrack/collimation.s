@@ -735,9 +735,10 @@
 !GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
       napx = napx00
       do j = 1, napx
-         part_hit(j)    = 0
-         part_abs_pos(j)= 0
-         part_abs_turn(j)= 0
+         part_hit_pos(j)    = 0
+         part_hit_turn(j)   = 0
+         part_abs_pos(j)    = 0
+         part_abs_turn(j)   = 0
          part_select(j) = 1
          part_indiv(j)  = -1e-6
          part_linteract(j) = 0d0
@@ -2038,7 +2039,8 @@
               rcyp(j) = (yv(2,j)-torbyp(ie))/1d3
               rcp(j)  = ejv(j)/1d3
               rcs(j)  = 0d0
-              part_hit_before(j) = part_hit(j)
+              part_hit_before_turn(j) = part_hit_turn(j)
+              part_hit_before_pos(j)  = part_hit_pos(j)
               rcx0(j)  = rcx(j)
               rcxp0(j) = rcxp(j)
               rcy0(j)  = rcy(j)
@@ -2087,7 +2089,8 @@
      &              c_aperture, nom_aperture,                           &
      &              c_offset, c_tilt,                                   &
      &              rcx, rcxp, rcy, rcyp,                               &
-     &              rcp, rcs, napx, enom_gev, part_hit,                 &
+     &              rcp, rcs, napx, enom_gev,                           &
+     &              part_hit_pos,part_hit_turn,                         &
      &              part_abs_pos,part_abs_turn,                         &
      &              part_impact, part_indiv, part_linteract,            &
      &              onesided,                                           &
@@ -2365,7 +2368,8 @@
      &                    c_tilt,                                       &
      &                    rcx, rcxp, rcy, rcyp,                         &
      &                    rcp, rcs, napx, enom_gev,                     &
-     &                    part_hit, part_abs_pos, part_abs_turn,        &
+     &                    part_hit_pos, part_hit_turn,                  &
+     &                    part_abs_pos, part_abs_turn,                  &
      &                    part_impact, part_indiv,                      &
      &                    part_linteract, onesided, flukaname,          &
      &                    secondary,                                    &
@@ -2407,7 +2411,7 @@
 
 !! Get the particle back + information
           call g4_collimate_return(rcx(j), rcy(j), rcxp(j), rcyp(j),
-     & rcp(j),part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
+     & rcp(j),part_hit(j), part_abs(j), part_impact(j), part_indiv(j), !TODO - fixme, part_hit/part_abs!!
      & part_linteract(j))
 
 !! Rotate back into the accelerator frame
@@ -2420,8 +2424,9 @@
       rcxp(j)=xp_tmp*cos(-1d0*c_rotation)+sin(-1d0*c_rotation)*yp_tmp
       rcyp(j)=yp_tmp*cos(-1d0*c_rotation)-sin(-1d0*c_rotation)*xp_tmp
 
-          if(part_hit(j) .ne. 0) then
-            part_hit(j) = (10000*ie+iturn)    !!! TODO !!!
+          if(part_hit_pos(j).ne.0 .and. part_hit_turn(j).ne.0) then
+             part_hit_pos = ie
+             part_hit_turn = iturn
           endif
 
           if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
@@ -2452,7 +2457,8 @@
                   call collimate2(c_material, c_length, c_rotation,     &
      &                 c_aperture, c_offset, c_tilt,                    &
      &                 rcx, rcxp, rcy, rcyp,                            &
-     &                 rcp, rcs, napx, enom_gev, part_hit,              &
+     &                 rcp, rcs, napx, enom_gev,                        &
+     &                 part_hit_pos,part_hit_turn,                      &
      &                 part_abs_pos, part_abs_turn,                     &
      &                 part_impact, part_indiv, part_linteract,         &
      &                 onesided, flukaname, secondary, 1, nabs_type)    &
@@ -2519,7 +2525,7 @@
 
 !++  Output information:
 !++
-!++  PART_HIT(MAX_NPART)     Hit flag for last hit (10000*element# + turn#)
+!++  PART_HIT(MAX_NPART)     Hit flag for last hit (10000*element# + turn#)  !! TODO!!
 !++  PART_ABS(MAX_NPART)     Abs flag (10000*element# + turn#) !! TODO!!
 !++  PART_IMPACT(MAX_NPART)  Impact parameter (0 for inner face)
 !++  PART_INDIV(MAX_NPART)   Divergence of impacting particles
@@ -2537,7 +2543,8 @@
 
 !APRIL2005 IN ORDER TO GET RID OF NUMERICAL ERRORS, JUST DO THE TREATMENT FOR
 !APRIL2005 IMPACTING PARTICLES...
-            if (part_hit(j).eq.(10000*ie+iturn)) then !!! TODO
+             if (part_hit_pos(j) .eq.ie .and.
+     &           part_hit_turn(j).eq.iturn    ) then
 !++  For zero length element track back half collimator length
 ! DRIFT PART
 !       write(lout,*) j, ' hit ', part_hit(j)
@@ -2627,7 +2634,8 @@
 !!     &)
 
 !++  First check for particle interaction at this collimator and this turn
-            if (part_hit(j).eq. (10000*ie+iturn) ) then !!! TODO
+            if (part_hit_pos (j).eq.ie .and.
+     &          part_hit_turn(j).eq.iturn    ) then
 
 !++  Fill the change in particle angle into histogram
               if(dowrite_impact) then
@@ -2635,7 +2643,9 @@
      &               ipart(j)+100*samplenumber,iturn,sampl(ie)
               endif
 
-              if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
+              ! Particle has impacted
+              if(part_abs_pos(j) .ne.0 .and.
+     &           part_abs_turn(j).ne.0      ) then
                 if(dowrite_impact) then
                   write(47,'(i8,1x,i4,1x,f8.2)')                        &
      &ipart(j)+100*samplenumber,iturn,sampl(ie)
@@ -2657,16 +2667,18 @@
 +ei
 +if .not.hdf5
        write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')
-     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           &
+     &ipart(j)+100*samplenumber,iturn,sampl(ie)-0.5*c_length,           & ! TODO: if max(ipart) > 100, then we've got multiple particles with the same "ID". Thus multiple samples should NOT be allowed when number of particles >= 100.
      &(rcx0(j)*1d3+torbx(ie))-0.5*c_length*(rcxp0(j)*1d3+torbxp(ie)),   &
      &rcxp0(j)*1d3+torbxp(ie),                                          &
      &(rcy0(j)*1d3+torby(ie))-0.5*c_length*(rcyp0(j)*1d3+torbyp(ie)),   &
      &rcyp0(j)*1d3+torbyp(ie),                                          &
      &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
 +ei
-              endif
+              endif !ENDIF part_abs_pos(j) .ne.0 .and. part_abs_turn(j).ne.0
 
-              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+              !This is basically the ELSE to the previous if; here we've found a newly hit particle
+              if (part_abs_pos (j).eq.0 .and.
+     &            part_abs_turn(j).eq.0       ) then
                 xkick = rcxp(j) - rcxp0(j)
                 ykick = rcyp(j) - rcyp0(j)
 
@@ -2674,19 +2686,19 @@
      &                db_name1(icoll)(1:4).eq.'COLM'.or.                &
      &                db_name1(icoll)(1:5).eq.'COLH0'.or.               &
      &                db_name1(icoll)(1:5).eq.'COLV0') then
-                        secondary(j) = 1
+                     secondary(j) = 1
                   elseif (db_name1(icoll)(1:3).eq.'TCS'.or.             &
      &                    db_name1(icoll)(1:4).eq.'COLH1'.or.           &
      &                    db_name1(icoll)(1:4).eq.'COLV1'.or.           &
      &                    db_name1(icoll)(1:4).eq.'COLH2') then
-                       tertiary(j)  = 2
+                     tertiary(j)  = 2
                   elseif ((db_name1(icoll)(1:3).eq.'TCL').or.           &
      &                  (db_name1(icoll)(1:3).eq.'TCT').or.             &
      &                  (db_name1(icoll)(1:3).eq.'TCD').or.             &
      &                  (db_name1(icoll)(1:3).eq.'TDI')) then
-                          other(j)     = 4
+                     other(j)     = 4
                   endif
-              endif
+              endif !ENDIF part_abs_pos (j).eq.0 .and. part_abs_turn(j).eq.0
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
       if (dowritetracks) then
@@ -2772,21 +2784,20 @@
 !++  Note: a particle with x/y >= 99. never hits anything any more in
 !++        the logic of this program. Be careful to always fulfill this!
               if (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
-                n_absorbed = n_absorbed + 1
-                cn_absorbed(icoll) = cn_absorbed(icoll) + 1
-                n_tot_absorbed = n_tot_absorbed + 1
-                iturn_last_hit = part_hit_before(j)-                    & !!! TODO
-     &int(part_hit_before(j)/10000)*10000
-                iturn_absorbed = part_hit(j)-                           &
-     &int(part_hit(j)/10000)*10000                                        !!! TODO
-                if (iturn_last_hit.eq.0) iturn_last_hit =               &
-     &iturn_absorbed
-                iturn_survive  = iturn_absorbed - iturn_last_hit
+                 n_absorbed = n_absorbed + 1
+                 cn_absorbed(icoll) = cn_absorbed(icoll) + 1
+                 n_tot_absorbed = n_tot_absorbed + 1
+                 iturn_last_hit = part_hit_before_turn(j)
+                 iturn_absorbed = part_hit_turn(j)
+                 if (iturn_last_hit.eq.0) then
+                    iturn_last_hit = iturn_absorbed
+                    iturn_survive  = iturn_absorbed - iturn_last_hit
+                 endif
               endif
-
+                 
 !++  End of check for hit this turn and element
-            endif
-          end do ! end do j = 1, napx
+           endif
+        end do ! end do j = 1, napx
 
 !++  Calculate statistical observables and save into files...
           if (n_impact.gt.0) then
@@ -2833,7 +2844,9 @@
             num_selabs = 0
 
             do j = 1, napx
-              if ( part_hit(j).eq.(10000*ie+iturn) ) then    !!! TODO
+               if( part_hit_pos (j).eq.ie .and.
+     &             part_hit_turn(j).eq.iturn    ) then
+               
                 num_selhit = num_selhit+1
                 if (part_abs_pos(j) .eq.0 .and.
      &              part_abs_turn(j).eq.0       ) then
@@ -2858,20 +2871,26 @@
             sqsum    = 0d0
 
             do j = 1, napx
-              if ( part_hit(j).eq.(10000*ie+iturn) ) then  !!! TODO
-                if (part_impact(j).lt.-0.5d0) then
-                  write(lout,*) 'ERR>  Found invalid impact parameter!',&
-     &                  part_impact(j)
-                  write(outlun,*) 'ERR>  Invalid impact parameter!',    &
-     &                  part_impact(j)
-                  call prror(-1)
-                endif
-                n_impact = n_impact + 1
-                sum = sum + part_impact(j)
-                sqsum = sqsum + part_impact(j)**2
-                if (part_hit(j).gt.0 .and. dowrite_impact)              &
-     &write(49,*) part_impact(j), part_indiv(j)
-              endif
+               if ( part_hit_pos (j).eq.ie .and.
+     &              part_hit_turn(j).eq.iturn    ) then
+                  if (part_impact(j).lt.-0.5d0) then
+                     write(lout,*)
+     &                    'ERR>  Found invalid impact parameter!',
+     &                    part_impact(j)
+                     write(outlun,*)
+     &                    'ERR>  Invalid impact parameter!',
+     &                    part_impact(j)
+                     call prror(-1)
+                  endif
+                  n_impact = n_impact + 1
+                  sum = sum + part_impact(j)
+                  sqsum = sqsum + part_impact(j)**2
+                  if (part_hit_pos (j).ne.0 .and.
+     &                part_hit_turn(j).ne.0 .and.
+     &                dowrite_impact              ) then
+                     write(49,*) part_impact(j), part_indiv(j)
+                  endif
+               endif
             end do
             if (n_impact.gt.0) then
               average = sum/n_impact
@@ -3955,15 +3974,16 @@
               dpsvgrd(imov)        = dpsvgrd(j)
               oidpsvgrd(imov)      = oidpsvgrd(j)
               dpsv1grd(imov)       = dpsv1grd(j)
-              part_hit(imov)    = part_hit(j)
-              !part_abs(imov)    = part_abs(j)
+              part_hit_pos(imov)   = part_hit_pos(j)
+              part_hit_turn(imov)  = part_hit_turn(j)
               part_abs_pos(imov)   = part_abs_pos(j)
               part_abs_turn(imov)  = part_abs_turn(j)
               part_select(imov) = part_select(j)
               part_impact(imov) = part_impact(j)
               part_indiv(imov)  = part_indiv(j)
               part_linteract(imov)  = part_linteract(j)
-              part_hit_before(imov) = part_hit_before(j)
+              part_hit_before_pos(imov)  = part_hit_before_pos(j)
+              part_hit_before_turn(imov) = part_hit_before_turn(j)
               secondary(imov) = secondary(j)
               tertiary(imov) = tertiary(j)
               other(imov) = other(j)
@@ -4222,7 +4242,9 @@
 !<
       subroutine collimate2(c_material, c_length, c_rotation,           &
      &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
-     &     np, enom, lhit,part_abs_pos_local, part_abs_turn_local,      &
+     &     np, enom,                                                    &
+     &     lhit_pos, lhit_turn,                                         &
+     &     part_abs_pos_local, part_abs_turn_local,                     &
      &     impact, indiv, lint, onesided,name,                          &
      &     flagsec, j_slices, nabs_type)
       implicit none
@@ -4675,9 +4697,10 @@
 !     &name(j),iturn,icoll,nabs,s_impact,s+sp,impact(j),x
 !            endif
 !JUNE2005
-            lhit(j) = 10000*ie + iturn !!! TODO
-
-
+            
+            lhit_pos(j) = ie
+            lhit_turn(j) = iturn
+            
 !-- September2006  TW added from Ralphs code
 !--------------------------------------------------------------
 !++ Change tilt for pencil beam impact
@@ -5002,7 +5025,8 @@ c$$$          endif
      &     c_aperture, n_aperture,                                      &
      &     c_offset, c_tilt,                                            &
      &     x_in, xp_in, y_in,                                           &
-     &     yp_in, p_in, s_in, np, enom, lhit,                           &
+     &     yp_in, p_in, s_in, np, enom,                                 &
+     &     lhit_pos,lhit_turn,                                          &
      &     part_abs_pos_local, part_abs_turn_local,                     &
      &     impact, indiv, lint, onesided,                               &
      &     name)
@@ -5488,7 +5512,8 @@ c$$$          endif
                z  = (z + n_aperture/2d0) + mirror*c_offset               !hr09
             endif
 !JUNE2005
-            lhit(j) = 10000*ie + iturn !!! TODO
+            lhit_pos(j)  = ie
+            lhit_turn(j) = iturn
 !
 !++  If particle is absorbed then set x and y to 99.99 mm
 !
