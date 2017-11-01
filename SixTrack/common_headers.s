@@ -5,8 +5,8 @@
 +cd parnum
       real(kind=fPrec) c180e0,c1e1,c1e12,c1e13,c1e15,c1e16,c1e2,c1e3,   &
      &c1e4,c1e6,c1m1,c1m7,c1m10,c1m12,c1m13,c1m15,c1m18,c1m2,c1m21,     &
-     &c1m24,c1m3,c1m36,c1m38,c1m6,c1m9,c2e3,c4e3,crade,clight,four,half,&
-     &one,pieni,pmae,pmap,three,two,zero,five,six,seven,eight,nine,c1e9,&
+     &c1m24,c1m3,c1m36,c1m38,c1m6,c1m9,c2e3,c4e3,four,half,             &
+     &one,pieni,three,two,zero,five,six,seven,eight,nine,c1e9,          &
      &c1e10,c1e7,c1m8
 
 !     changing this will break many tests
@@ -58,19 +58,6 @@
       parameter(c1m36 = 1.0e-36_fPrec)
       parameter(c1m38 = 1.0e-38_fPrec)
 
-!     proton mass (MeV)
-      parameter(pmap = 938.271998_fPrec)
-
-!     electron mass from PDG, 2002
-!     electron mass (MeV)
-      parameter(pmae = .510998902_fPrec)
-
-!     classical electron radius
-      parameter(crade = 2.817940285e-15_fPrec)
-
-!     speed of light
-      parameter(clight = 2.99792458e8_fPrec)
-
 +cd crcoall
 !     Standard output unit
 !     For CR version, this is the "buffer file" fort.92;
@@ -93,3 +80,27 @@
 +ei
 
       end module floatPrecision
+
++dk   physical_constants
+
+      module physical_constants
+
+      use floatPrecision
+
+      real(kind=fPrec) crade,clight,pmae,pmap
+
+!     proton mass (MeV)
+      parameter(pmap = 938.271998_fPrec)
+
+!     electron mass from PDG, 2002
+!     electron mass (MeV)
+      parameter(pmae = .510998902_fPrec)
+
+!     classical electron radius
+      parameter(crade = 2.817940285e-15_fPrec)
+
+!     speed of light
+      parameter(clight = 2.99792458e8_fPrec)
+
+      end module physical_constants
+

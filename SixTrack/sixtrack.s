@@ -11109,6 +11109,7 @@ cc2008
      &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,
      &     dynk_inputsanitycheck, dynk_allocate
       
+      use physical_constants
       implicit none
 +ca crcoall
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -20235,6 +20236,7 @@ c$$$         endif
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use physical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -21660,6 +21662,7 @@ c$$$         endif
 
       use floatPrecision
       use mathlib_bouncer
+      use physical_constants
       implicit none
 +ca crcoall
       integer ix,idaa,i
@@ -25659,6 +25662,7 @@ c$$$         endif
 !<
       subroutine thin4d(nthinerr)
       use floatPrecision
+      use physical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
@@ -26184,6 +26188,7 @@ c$$$         endif
 !<
       subroutine thin6d(nthinerr)
       use floatPrecision
+      use physical_constants
       use mathlib_bouncer
 
 +if datamods
@@ -27017,6 +27022,7 @@ c$$$         endif
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use physical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
@@ -28366,6 +28372,7 @@ c$$$         endif
 !-----------------------------------------------------------------------
 
       use floatPrecision
+      use physical_constants
 
       implicit none
 
@@ -29344,6 +29351,7 @@ c$$$         endif
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use physical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
@@ -29887,6 +29895,7 @@ c$$$         endif
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use physical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
@@ -30582,6 +30591,7 @@ c$$$         endif
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use physical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
