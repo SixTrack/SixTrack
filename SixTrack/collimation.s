@@ -2439,7 +2439,6 @@
      &part_abs(j),flukaname(j),iturn  !!! THIS IS JUST WRONG!! It should not be part_abs here.
               endif
 
-            !part_abs(j) = (10000*ie+iturn)
             part_abs_pos(j)  = ie
             part_abs_turn(j) = iturn
             rcx(j) = 99.99d-3
@@ -2674,31 +2673,36 @@
      &rcyp0(j)*1d3+torbyp(ie),                                          &
      &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
 +ei
-              endif !ENDIF part_abs_pos(j) .ne.0 .and. part_abs_turn(j).ne.0
 
-              !This is basically the ELSE to the previous if; here we've found a newly hit particle
-              if (part_abs_pos (j).eq.0 .and.
-     &            part_abs_turn(j).eq.0       ) then
-                xkick = rcxp(j) - rcxp0(j)
-                ykick = rcyp(j) - rcyp0(j)
-
-                  if (db_name1(icoll)(1:3).eq.'TCP'.or.                 &
+              !Here we've found a newly hit particle
+              elseif (part_abs_pos (j).eq.0 .and.
+     &                part_abs_turn(j).eq.0       ) then
+                 xkick = rcxp(j) - rcxp0(j)
+                 ykick = rcyp(j) - rcyp0(j)
+                 
+                 if (db_name1(icoll)(1:3).eq.'TCP'.or.                  &
      &                db_name1(icoll)(1:4).eq.'COLM'.or.                &
      &                db_name1(icoll)(1:5).eq.'COLH0'.or.               &
      &                db_name1(icoll)(1:5).eq.'COLV0') then
-                     secondary(j) = 1
-                  elseif (db_name1(icoll)(1:3).eq.'TCS'.or.             &
-     &                    db_name1(icoll)(1:4).eq.'COLH1'.or.           &
-     &                    db_name1(icoll)(1:4).eq.'COLV1'.or.           &
-     &                    db_name1(icoll)(1:4).eq.'COLH2') then
-                     tertiary(j)  = 2
-                  elseif ((db_name1(icoll)(1:3).eq.'TCL').or.           &
-     &                  (db_name1(icoll)(1:3).eq.'TCT').or.             &
-     &                  (db_name1(icoll)(1:3).eq.'TCD').or.             &
-     &                  (db_name1(icoll)(1:3).eq.'TDI')) then
-                     other(j)     = 4
-                  endif
-              endif !ENDIF part_abs_pos (j).eq.0 .and. part_abs_turn(j).eq.0
+                    secondary(j) = 1
+                 elseif (db_name1(icoll)(1:3).eq.'TCS'.or.              &
+     &                   db_name1(icoll)(1:4).eq.'COLH1'.or.            &
+     &                   db_name1(icoll)(1:4).eq.'COLV1'.or.            &
+     &                   db_name1(icoll)(1:4).eq.'COLH2') then
+                    tertiary(j)  = 2
+                 elseif ((db_name1(icoll)(1:3).eq.'TCL').or.            &
+     &                   (db_name1(icoll)(1:3).eq.'TCT').or.            &
+     &                   (db_name1(icoll)(1:3).eq.'TCD').or.            &
+     &                   (db_name1(icoll)(1:3).eq.'TDI')) then
+                    other(j)     = 4
+                 endif
+              else
+                 write(lout,*) "Error in collimate_end_collimator"
+                 write(lout,*) "Particle cannot be both absorbed"//
+     &                " and not absorbed."
+                 write(lout,*) part_abs_pos (j),  part_abs_turn(j)
+                 call prror(-1)
+              endif
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
       if (dowritetracks) then
@@ -3401,7 +3405,7 @@
               ejv(j)  = myenom
               sigmv(j)= 0d0
               part_abs_pos(j)=ie
-              part_abs_turn=iturn
+              part_abs_turn(j)=iturn
               secondary(j) = 0
               tertiary(j)  = 0
               other(j) = 0
