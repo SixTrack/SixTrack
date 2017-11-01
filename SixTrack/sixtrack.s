@@ -11110,6 +11110,17 @@ cc2008
      &     dynk_inputsanitycheck, dynk_allocate
       
       use physical_constants
+
++if fluka
+
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
+
++ei
+
       implicit none
 +ca crcoall
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -11225,7 +11236,10 @@ cc2008
 !     - scatter
       character(len=16) scat
       data scat /'SCAT'/
-      
+!     - coupling:
+      character(len=16) fluk
+      data fluk /'FLUK'/
+
 +if crlibm
       real(kind=fPrec) round_near
 +ei
@@ -11439,6 +11453,13 @@ cc2008
 !GRD
       if(idat.eq.coll) goto 1285
 !GRD
+
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     brand new input blocks
+!     always in main code
+!     - coupling:
+      if(idat.eq.fluk) goto 1800
 
 !     - dump beam population:
       if(idat.eq.dump) goto 2000
@@ -14047,6 +14068,11 @@ cc2008
       goto 110
 !-----------------------------------------------------------------------
 !  APERTURE LIMITATIONS
+!  A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
+!  last modified: 14-01-2015
+!  original LIMI block extended to deal with RectEllipse, Octagon and
+!     RaceTrack aperture types, and with offset/tilting of profile
+!  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
   950 write(lout,10320)
   960 read(3,10020,end=1530,iostat=ierro) ch
@@ -15866,6 +15892,159 @@ cc2008
         if(j1.lt.6) goto 1740
       enddo
       goto 1700
+!-----------------------------------------------------------------------
+!  COUPLING WITH FLUKA
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!  last modified: 17-07-2013
+!-----------------------------------------------------------------------
+ 1800 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
++if .not.fluka
+
+!     inserted in main code if the 'fluka' compilation flag is NOT issued
+
+      write(lout,*)
+      write(lout,*) "     FLUKA coupling not supported in this version"
+      write(lout,*) "     please recompile with proper flags"
+      write(lout,*)
+      call prror(-1)
+
++ei
++if fluka
+
+!     inserted in main code by the 'fluka' compilation flag
+
+      if(ch(1:1).eq.'/') goto 1800
+      if(ch(:4).eq.next) then
+        write(*,10520) fluk
+        if ( fluka_enable ) then
+!         dump all elements found:
+          do ii=1,il
+             if(fluka_type(ii).ne.FLUKA_NONE) then
+               write(*,10510) bez(ii), fluka_type(ii),                  &
+     &                        fluka_geo_index(ii),fluka_synch_length(ii)
+             endif
+          enddo
+          write(lout,*) ''
+          write(lout,*) '        keys to FLUKA types:'
+          write(lout,*) FLUKA_ELEMENT,' --> simple element'
+          write(lout,*) FLUKA_ENTRY,' --> entrance point'
+          write(lout,*) FLUKA_EXIT,' --> exit point'
+          write(lout,*) ''
+          if ( fluka_debug  ) write(lout,*) "        --> DEBUG enabled!"
+        else
+          write(lout,*) ''
+          write(lout,*) ' !! no element flagged for coupling !!'
+          write(lout,*) '    --> disabling coupling flags/labelling'
+          write(lout,*) ''
+          fluka_enable = .false.
+          fluka_debug  = .false.
+          do ii=1,il
+             fluka_type(ii) = FLUKA_NONE
+          enddo
+        endif
+        goto 110
+      endif
+
+      lineno3=lineno3+1
+      ch1(:83)=ch(:80)//' / '
+      if(ch1(:4).eq.'DEBU') then
+        fluka_debug = .true.
+        goto 1800
+      elseif(ch1(:4).eq.'LOGU') then
+        read(ch1,*) idat, ii
+        if ( ii.gt.0 ) then
+          fluka_log_unit = ii
+        else
+          write(lout,*) ' no valid unit for logging coupling messages'
+          write(lout,*) '   in block ',fluk
+          write(lout,*) '   parsed line:'
+          write(lout,*) ch(:80)
+          write(lout,*) ''
+          call prror(-1)
+        endif
+      endif
+
+!     parse line:
+      read(ch1,*) idat, idat2, ii, tmplen
+
+!     1. find idat (ie name of entrance element) in the list of SINGLE ELEMENTs:
+      do i1=1,il
+         if(bez(i1).eq.idat) goto 1801
+      enddo
+!     failing research:
+      write(lout,*) ''
+      write(lout,*) ' Un-identified SINGLE ELEMENT ', idat
+      write(lout,*) '   in block ',fluk
+      write(lout,*) '   parsed line:'
+      write(lout,*) ch(:80)
+      write(lout,*) ''
+      call prror(-1)
+
+!     2. find idat2 (ie name of exit element) in the list of SINGLE ELEMENTs:
+ 1801 do i2=1,il
+         if(bez(i2).eq.idat2) goto 1802
+      enddo
+!     failing research:
+      write(lout,*) ''
+      write(lout,*) ' Un-identified SINGLE ELEMENT ', idat2
+      write(lout,*) '   in block ',fluk
+      write(lout,*) '   parsed line:'
+      write(lout,*) ch(:80)
+      write(lout,*) ''
+      call prror(-1)
+
+ 1802 continue
+
+!     3. check that the current markers have not been already flagged
+      if ( fluka_type(i1).ne.FLUKA_NONE ) then
+        write(lout,*) ''
+        write(lout,*) ' SINGLE ELEMENT ', bez(i1)
+        write(lout,*) '   in block ',fluk
+        write(lout,*) '   was alredy labelled as fluka marker:'
+        write(lout,*) '     you cannot overwrite'
+        write(lout,*) '   parsed line:'
+        write(lout,*) ch(:80)
+        write(lout,*) ''
+        call prror(-1)
+      endif
+      if ( fluka_type(i2).ne.FLUKA_NONE ) then
+        write(lout,*) ''
+        write(lout,*) ' SINGLE ELEMENT ', bez(i2)
+        write(lout,*) '   in block ',fluk
+        write(lout,*) '   was alredy labelled as fluka marker:'
+        write(lout,*) '     you cannot overwrite'
+        write(lout,*) '   parsed line:'
+        write(lout,*) ch(:80)
+        write(lout,*) ''
+        call prror(-1)
+      endif
+
+!     4. disentangle between just a simple element or an interval of elements
+!        in the accelerator structure, labelled as Fluka insertion:
+      if ( i1.eq.i2 ) then
+        fluka_type(i1) = FLUKA_ELEMENT
+        fluka_geo_index(i1)  = ii
+        fluka_synch_length(i1) = tmplen
+        write(fluka_log_unit,*)
+     &'# Found         Fluka element as SING EL num',i1
+      else
+        fluka_type(i1) = FLUKA_ENTRY
+        fluka_geo_index(i1)  = ii
+        fluka_type(i2) = FLUKA_EXIT
+        fluka_geo_index(i2)  = ii
+        fluka_synch_length(i2) = tmplen
+        write(fluka_log_unit,*)
+     &'# Found entrance Fluka element as SING EL num',i1
+        write(fluka_log_unit,*)
+     &'# Found exit     Fluka element as SING EL num',i2
+      endif
+!     wait to find at least one FLUKA insertion before actually enabling
+!       the coupling
+      if(.not.fluka_enable) fluka_enable = .true.
+
++ei
+      goto 1800
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
 !  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
