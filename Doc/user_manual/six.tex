@@ -3396,6 +3396,7 @@ To use normalized coordinates for th FMA analysis is always possible in case of 
 	\item the FMA analysis is only implemented for the start of the sequence (StartDUMP). For other elements the normalization matrix would need to be obtained from the LINE block, which has not been checked in case of 4D optics.
 	\item 4D tracking with scan in energy is disabled as in this case the normalization matrix would need to be saved for each element and particle, which requires a huge amount of memory breaking other parts of the code.	
 \end{itemize}
+In general it is also recommended to already normalize the coordinates in DUMP as this is faster than in FMA.
 
 \paragraph{Keyword}
 FMA
@@ -3404,21 +3405,21 @@ FMA
 variable, one for each file with particle amplitudes and tune calculation method, and one for each flag given.
 
 \paragraph{Format of input block}
-\texttt{filename\_1 method\_1 (fma\_flag\_norm\_1)}\\
+\texttt{filename\_1 method\_1 (fma\_flag\_norm\_1 (fma\_first\_turn fma\_last\_turn))}\\
 or \texttt{NoNormDUMP}\\
 
 The FMA block has to be proceeded by the LINE block (calculation of the normalization matrix) and the DUMP block (dump particle coordinates).
 \begin{verbatim}
 DUMP
 element_name_1 1 unit_1 2 filename_1 first_turn_1 last_turn_1
-element_name_2 1 unit_2 2 filename_2 first_turn_2 last_turn_3
+element_name_2 1 unit_2 2 filename_2 first_turn_2 last_turn_2
 NEXT
 LINE
 ELEMENT  0 2 1 emit_1 emit_2
 NEXT
 FMA
-filename_1 method_1 fma_flag_norm_1
-filename_2 method_2 fma_flag_norm_2
+filename_1 method_1 fma_flag_norm_1 fma_first_turn_1 fma_last_turn_1
+filename_2 method_2 fma_flag_norm_2 fma_first_turn_2 fma_last_turn_2
 NEXT
 \end{verbatim}
 For the DUMP block (Sec.~\ref{sec:DUMP}) the frequency has to be 1 (dump every turn) and the file format has to be 2 or 3.
@@ -3455,7 +3456,9 @@ NAFF \cite{NAFFpaper, NAFFpaper2}
 \subparagraph{fma\_flag\_norm}
 optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\verb|fma_flag_norm=1|). For using physical coordinates explicitly set (\verb|fma_flag_norm=0|). See \textbf{Description} for the conditions under which normalization is available.
 
-
+\subparagraph{fma\_first\_turn, fma\_last\_turn}
+Turns used for FMA analysis. As the DUMP files are used as input for the FMA analysis \texttt{fma\_first\_turn} must be larger \texttt{first\_turn} in the DUMP block and  \texttt{fma\_last\_turn} must be smaller than \texttt{last\_turn} in the DUMP block. If \texttt{fma\_last\_turn = -1} the last turn number in the dump file is taken as the last turn number, including the last turn tracked if the \texttt{last} setting of the dump equals -1.
+By default, FMA will use the same turns as for the DUMP.
 
 \subparagraph{NoNormDUMP} is a flag for disabling the \texttt{NORM\_filename*} output files.
 This saves disk space and speeds up the calculation of the FMA.
@@ -3494,7 +3497,8 @@ The FMA block returns the output files \verb|NORM_filename*| containing the norm
 			& & \verb|   # eps0*,eps2*,eps3* all in 1.e-6*m,     phi* [rad] | \\
 			& & \verb|  # inputfile method id q1 q2 q3 eps1_min eps2_min eps3_min | \\
 			& & \quad \verb| eps1_max eps2_max eps3_max eps1_avg eps2_avg eps3_avg |\\
-			& & \quad \verb| eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0| \\\hline
+			& & \quad \verb| eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0| \\
+			& & \quad \verb| norm_flag first_turn last_turn|\\\hline
 			3 - eof & Lines & see header in line 1-2: The lines are ordered as particles 1-npart for (inputfile1,method1), then  particles 1-npart for (inputfile2,method2), etc.. The minimum (min), maximum (max) and average (avg) are taken over the number of turns in the inputfile (fiel specified in the FMA and DUMP block). Units are $\mu \rm m$ for \verb|eps*| and rad for \verb|phi*|, where \verb|phi*| is the angle in the normalized phase space coordinates.\\\hline
 		\end{tabularx}
 	\end{center}
@@ -3513,12 +3517,12 @@ ELEMENT  0 2 1 3.75 3.75
 NEXT
 FMA
 IP3_DUMP_1 TUNELASK
-IP3_DUMP_2 TUNELASK
+IP3_DUMP_2 TUNELASK 1 512 1024
 IP3_DUMP_3 TUNELASK 0
-IP3_DUMP_4 TUNELASK 0
+IP3_DUMP_4 TUNELASK 0 512 1024
 NEXT
 \end{verbatim}
-where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). 
+where for \verb|IP3_DUMP_1| and \verb|IP3_DUMP_2| the tunes are calculated using normalized coordinates (default) and for \verb|IP3_DUMP_3| and \verb|IP3_DUMP_4| the physical coordinates are used (\verb|fma_norm_flag| equal 0). For \verb|IP3_DUMP_2| and \verb|IP3_DUMP_4| the turns from 512 to 1024 are used for the FMA analysis. This is particularly useful for detecting the maximum diffusion in tunes by taking the maximum over difference over several moving windows.
 
 Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \verb|IP3..1| etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \verb|IP3|), as they are installed in front of the element given in the from statement in the cycle command.
 
