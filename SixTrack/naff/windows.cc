@@ -1,5 +1,4 @@
 #include "windows.h"
-#include <boost/math/special_functions/round.hpp>
 
 std::vector<std::complex<double>> cheb_window(const size_t N, const double a = 5.0) {
   std::vector<double> out;
@@ -117,7 +116,7 @@ std::vector<std::complex<double>> taylor_window(const size_t N, const double SLL
   std::vector<std::complex<double>> out;
   std::vector<double> ww(N);
   double A = acosh(pow(10, SLL)) / pi;
-  double NBAR = boost::math::round((2 * pow(A, 2) + 0.5)+0.5);
+  double NBAR = round((2 * pow(A, 2) + 0.5)+0.5);
 
   //auto calculateFm = [] (int m, double sp2, double a, int nBar) {
   auto calculateFm = [] (size_t m, double sp2, double a, size_t nBar) {
