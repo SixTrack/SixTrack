@@ -232,6 +232,8 @@
                ofoutput = .TRUE.
 
             else
+               write(*,*) "Did not recognize argument '"//trim(cmdarg_arg)//"'"
+               write(*,*)
                write(*,*) "USAGE: read90 (--STF) (--SP <number> | --PR <number> <number>) (--fname <name>) (--ofname <name>)"
                write(*,*) "The --STF flag indicates that the file is in the new STF format"
                write(*,*) "The --SP and --PR flag can only be used together with the --STF flag,"

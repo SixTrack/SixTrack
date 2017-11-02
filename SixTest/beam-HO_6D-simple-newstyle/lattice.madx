@@ -1,0 +1,55 @@
+mqf: multipole, knl:={0,kf*l.mq};
+mqd: multipole, knl:={0,kd*l.mq};
+mb: multipole, knl:={ab},l=l.mb;
+bb: beambeam, xma=0,yma=0,sigx=0,sigy=0,charge=0;
+
+cav: rfcavity, volt=5,harmon=16,lag=0.5;
+
+ab=2*pi/40;
+kf= 0.5;
+kd=-0.5;
+l.mq=0.3;
+l.mb=10;
+
+l.cell=l.mb*2;
+
+cell: sequence,l=l.cell;
+bb, at=0;
+mb1: mb, at=l.mb/2;
+mqf, at=l.mb;
+mb2: mb, at=3*l.mb/2;
+mqd, at=2*l.mb;
+cav, at=2*l.mb;
+endsequence;
+
+emitx=5e-6;
+emity=5e-6;
+
+beam,exn=emitx,eyn=emity,energy=450,charge=1e10,particle=proton;
+
+use,sequence=cell;
+
+twiss;
+
+match;
+global,q1=0.31;
+global,q2=0.32;
+vary,name=kf;
+vary,name=kd;
+jacobian,calls=10,tolerance=1e-22;
+endmatch;
+
+emit;
+
+twiss,file=twiss_cell.tfs;
+
+sixtrack;
+
+
+
+
+
+
+
+
+
