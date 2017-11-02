@@ -21,6 +21,9 @@ cd boinc
 
 if [[ $(uname) == FreeBSD* ]]; then
     MAKE=/usr/local/bin/gmake ./_autosetup -f
+elif [[ $(uname) == OpenBSD* ]]; then
+#These numbers will need updating in the future.
+    AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.15 MAKE=/usr/local/bin/gmake ./_autosetup -f
 elif [[ $(uname) == NetBSD* ]]; then
     MAKE=/usr/pkg/bin/gmake ./_autosetup -f
 elif [[ $(uname) == Darwin* ]]; then

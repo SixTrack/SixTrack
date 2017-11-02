@@ -56,6 +56,10 @@ if(NOT COLLIMAT)
                 SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
         endif()
 
+	if(NAFF)
+                SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
+        endif()
+	
         #only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
         if(BNLELENS)
                 SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
@@ -107,6 +111,11 @@ if(NOT COLLIMAT)
           elensidealthck4d
           elensidealthck6d
           fma
+          fma_binary
+          dump7_fma
+          dump7_fma_thin4d
+          dump8_fma
+          dump9
           thick6ddynk
           wire_thck4d
           wire_thck6d
@@ -185,7 +194,15 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
         SET( DUMP_BIN_FILE NONE )
         if(TST MATCHES dump_binary)
-                SET( DUMP_BIN_FILE dump.dat )
+                SET( DUMP_BIN_FILE dump.dat,dumpStart.dat )
+        elseif(TST MATCHES fma_binary)
+                SET( DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
+        elseif(TST MATCHES dump7_fma)
+                SET( DUMP_BIN_FILE IP3_DUMP_1 )
+        elseif(TST MATCHES dump8_fma)
+                SET( DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1 )
+        elseif(TST MATCHES dump7_fma_thin4d)
+                SET( DUMP_BIN_FILE dump_ip3 )
         endif()
 
         ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/SixTest/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE})
@@ -281,6 +298,10 @@ SET(FAST_TESTS
   dump4
   dump5
   dump6
+  dump7_fma
+  dump7_fma_thin4d
+  dump8_fma
+  dump9
   fcc
   elensidealthin6d_DYNK_RANDU
   elensidealthin6d_DYNK_RANDON
@@ -309,6 +330,8 @@ SET(MEDIUM_TESTS
   tilt
   lostevery
   fma
+  fma_binary
+  fma_naff
   frs
   frs60
   eric

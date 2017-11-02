@@ -1,0 +1,6 @@
+Test to check that
+1) dump format 8 works
+2) dump format 8 can be read by FMA
+3) dump format 8 contains the same data as dump format 7; to check just compare
+   IP3_DUMP_1.converted with ../dump7_fma/NORM_IP3_DUMP_1
+4) START_DUMP_1.converted and IP3_DUMP_1.converted have to agree except for the last digits. This differnece comes from the slightly different closed orbit in the 6D optics and the one used for the initialization of the particles used in case of StartDUMP
