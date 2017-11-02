@@ -4,6 +4,5 @@ df vvector,crlibm,tilt,fast,collimat,cr,boinc,bpm,beamgas,bnlelens,bignblz,debug
 e tra_thck
 e tra_thin
 e nwrtbnl
-e dynktrack
 e bdextrack
 ex
