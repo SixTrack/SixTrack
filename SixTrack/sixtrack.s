@@ -37490,9 +37490,6 @@ C Should get me a NaN
       intent(in) getfields_fields, getfields_lfields, getfields_nfields      
 
 +ca combdex
-+if cr
-+ca crcoall
-+ei
 
       !TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
       ! Currently not implemented.
