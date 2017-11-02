@@ -2,7 +2,7 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.7'/
+      data version /'4.7.8'/
       data moddate /'14.09.2017'/
 +cd license
 !!SixTrack
@@ -16,7 +16,7 @@
 !!A. Rossi, C. Tambasco, T. Weiler,
 !!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
 !!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fiascaris, J.F. Wagner, J. Wretborn, CERN
+!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K.B. Olsen, CERN
 !!M. Fitterer, FNAL, CERN
 !!A. Patapenka,  NIU, CERN
 !!G. Robert-Demolaize, BNL
@@ -17693,7 +17693,12 @@ cc2008
 !  Last modified: 29-08-2017
 !-----------------------------------------------------------------------
  2900 continue
-      !We have a SCATTER block; let's allocate the memory for it!
+      ! We have a SCATTER block; let's allocate the memory for it!
+      if (scatter_active) then
+         write(lout,*) "ERROR while parsing SCATTER in fort.3"
+         write(lout,*) "More than one SCATTER block encountered?"
+         call prror(-1)
+      end if
       call scatter_allocate
       
  2901 read(3,10020, end=1530, iostat=ierro) ch
@@ -17704,11 +17709,6 @@ cc2008
       
       if (ch(:4).eq.next) then
          
-         if (scatter_active) then
-            write(lout,*) "ERROR while parsing SCATTER in fort.3"
-            write(lout,*) "More than one SCATTER block encountered?"
-            call prror(-1)
-         end if
          scatter_active = .true.
 
          if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
@@ -33839,6 +33839,9 @@ C Should get me a NaN
      &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,
      &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,
      &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
++if cr
+     &     , scatter_filepos
++ei
 
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
      &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
@@ -34620,7 +34623,10 @@ C Should get me a NaN
 
       scatter_seed1 = -1
       scatter_seed2 = -1
-      
+
++if cr
+      scatter_filepos = -1
++ei
 !--COLLIMATION----------------------------------------------------------
 +if collimat
 !--COLLIMATION----------------------------------------------------------
@@ -50243,6 +50249,9 @@ c$$$            endif
      &iexpr_dynk_cr,fexpr_dynk_cr,cexpr_dynk_cr,
      &cexpr_dynk_cr,fsets_dynk_cr,
      &ldynkfiledisable, dynkfilepos_cr,dynkfilepos
+
+      use scatter, only : scatter_active, scatter_crcheck_readdata,
+     &     scatter_crcheck_positionFiles
       
 !     use, intrinsic :: iso_fortran_env, only : output_unit
 
@@ -50267,15 +50276,16 @@ c$$$            endif
 +ei
 +ca crco
 +ca comgetfields
++ca stringzerotrim      
 +ca dbdump
 +ca dbdumpcr
 +ca version
       integer i,j,k,l,m,ia
       integer lstring,hbuff,tbuff,myia,mybinrecs,binrecs94
       dimension hbuff(253),tbuff(35)
-      logical lopen
+      logical lopen,lerror
 
-      !For skipping through binary DUMP files (format 3)
+      !For skipping through binary DUMP files (format 3&8)
       integer tmp_ID, tmp_nturn, tmp_ktrack
       double precision tmp_dcum, tmp_x,tmp_xp,
      &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
@@ -50435,13 +50445,21 @@ c$$$         endfile (93,iostat=ierro)
 c$$$         backspace (93,iostat=ierro)
       endif
 
+      if(scatter_active) then
+         write(93,*) "SIXTRACR CRCHECK reading fort.95 Record 7 SCATTER"
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
+         call scatter_crcheck_readdata(95,lerror)
+         if (lerror) goto 100
+      endif
+      
 !ERIC new extended checkpoint for synuthck
       if (crsythck) then
 !ERICVARS
 ! and make sure we can read the extended vars before leaving fort.95
 ! We will re-read them in crstart to be sure they are restored correctly
           write(93,*)                                                   &
-     &'SIXTRACR CRCHECK verifying Record 7 extended vars fort.95',      &
+     &'SIXTRACR CRCHECK verifying Record 8 extended vars fort.95',      &
      &' crnapxo=',crnapxo
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
@@ -50622,6 +50640,13 @@ c$$$         endfile (93,iostat=ierro)
 c$$$         backspace (93,iostat=ierro)
       endif
 
+      if(scatter_active) then
+         write(93,*) "SIXTRACR CRCHECK reading fort.96 Record 7 SCATTER"
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
+         call scatter_crcheck_readdata(96,lerror)
+         if (lerror) goto 101
+      endif
 
 !ERIC new extended checkpoint for synuthck
         if (crsythck) then
@@ -50629,7 +50654,7 @@ c$$$         backspace (93,iostat=ierro)
 ! and make sure we can read the extended vars before leaving fort.96
 ! We will re-read them in crstart to be sure they are correct
           write(93,*)                                                   &
-     &'SIXTRACR CRCHECK verifying Record 6 extended vars fort.96,',     &
+     &'SIXTRACR CRCHECK verifying Record 8 extended vars fort.96,',     &
      &' crnapxo=',crnapxo
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
@@ -51072,12 +51097,21 @@ c$$$         backspace (93,iostat=ierro)
       do i=-1, il
          if (ldump(i)) then
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
-            if (i .ne. 0) then
+            if (i .gt. 0) then
                write(93,*) "element=",bez(i), "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
-            else
+     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//
+     &              "' format=",dumpfmt(i)
+            else if (i.eq.0) then
                write(93,*) "element=","ALL" , "unit=",dumpunit(i),
-     &              " filename=",dump_fname(i), "format=",dumpfmt(i)
+     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//
+     &              "' format=",dumpfmt(i)
+            else if(i .eq. -1) then
+               write(93,*) "element=","StartDump" , "unit=",dumpunit(i),
+     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//
+     &              "' format=",dumpfmt(i)
+            else
+               write(93,*) "Error - index=",i,"is unknown"
+               goto 111
             endif
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
@@ -51159,6 +51193,16 @@ c$$$         backspace (93,iostat=ierro)
             endif
          endif
       end do
+
+      if(scatter_active) then
+         write(93,*)
+     &        "SIXTRACR CRCHECK REPOSITIONING scatter_log.txt"
+         endfile (93,iostat=ierro)
+         backspace (93,iostat=ierro)
+         
+         call scatter_crcheck_positionFiles
+         
+      endif
       
 !--     Set up flag for tracking routines to call CRSTART
         restart=.true.
@@ -51349,6 +51393,8 @@ c$$$         backspace (93,iostat=ierro)
      &maxdata_dynk,maxsets_dynk,
      &iexpr_dynk,fexpr_dynk,cexpr_dynk,fsets_dynk_cr
 
+      use scatter, only : scatter_active, scatter_crpoint
+      
       implicit none
 +ca crcoall
 +ca parpro
@@ -51374,6 +51420,7 @@ c$$$         backspace (93,iostat=ierro)
 +ca crco
       integer i,j,l,k,m
       integer lstring,osixrecs,ncalls
+      logical lerror
 +if boinc
       character*256 filename
 +ei
@@ -51594,7 +51641,21 @@ c$$$         backspace (93,iostat=ierro)
         endfile (95,iostat=ierro)
         backspace (95,iostat=ierro)
       endif
-
+      
+      if (scatter_active) then
++if .not.debug
+         if (ncalls.le.20.or.numx.ge.numl-20) then
++ei
+            write(93,*) 'SIXTRACR CRPOINT writing SCATTER vars fort.95'
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
++if .not.debug
+         endif
++ei
+         call scatter_crpoint(95,lerror,ierro)
+         if (lerror) goto 100
+      endif
+      
       if (sythckcr) then
 +if .not.debug
         if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -51840,7 +51901,21 @@ c$$$         backspace (93,iostat=ierro)
         endfile (96,iostat=ierro)
         backspace (96,iostat=ierro)
       endif
-
+      
+      if (scatter_active) then
++if .not.debug
+         if (ncalls.le.20.or.numx.ge.numl-20) then
++ei
+            write(93,*) 'SIXTRACR CRPOINT writing SCATTER vars fort.96'
+            endfile (93,iostat=ierro)
+            backspace (93,iostat=ierro)
++if .not.debug
+         endif
++ei
+         call scatter_crpoint(96,lerror,ierro)
+         if (lerror) goto 100
+      endif
+      
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
 +if .not.debug
@@ -51992,7 +52067,8 @@ c$$$         backspace (93,iostat=ierro)
      &cexpr_dynk,cexpr_dynk_cr,
      &nsets_unique_dynk,dynk_setvalue,
      &csets_unique_dynk,fsets_dynk_cr
-      
+
+      use scatter, only: scatter_active, scatter_crstart
       
       implicit none
 +ca crcoall
@@ -52156,6 +52232,10 @@ c$$$         backspace (93,iostat=ierro)
          enddo
       endif
 
+      if (scatter_active) then
+         call scatter_crstart
+      endif
+      
       if (crsythck) then
 !ERICVARS now read the extended vars from fort.95/96.
         if (cril.ne.il) then
@@ -52885,7 +52965,7 @@ c$$$         backspace (93,iostat=ierro)
       implicit none
 
 +ca comgetfields
-+ca stringzerotrim
+!+ca stringzerotrim
       
       integer,          intent(in) :: file_unit
       character(len=*), intent(in) :: file_name
@@ -52920,7 +53000,7 @@ c$$$         backspace (93,iostat=ierro)
       if (ierro .ne. 0) then
          write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')
      &        "Error when opening file '",
-     &        trim(stringzerotrim(file_name)),
+     &        trim(file_name),
      &        "' on unit #", file_unit, ", iostat =",ierro
          return
       endif
@@ -52954,7 +53034,7 @@ c$$$         backspace (93,iostat=ierro)
       endif
       write(error_unit,'(a,1x,i5,1x,a,a,a)')
      &     "******* Last",printLines,"lines of file '",
-     &     trim(stringzerotrim(file_name)),"': *******"
+     &     trim(file_name),"': *******"
       
       i = fileBuff_idx          !Position in buffer (we have already incremented i)
       j = 0                     !How many have we printed
@@ -52967,7 +53047,7 @@ c$$$         backspace (93,iostat=ierro)
 
       write(error_unit,'(a,a,a)')
      &     "******* Done writing tail of file '",
-     &     trim(stringzerotrim(file_name)),
+     &     trim(file_name),
      &     "' to stderr *******"
       
       end subroutine print_lastlines_to_stderr

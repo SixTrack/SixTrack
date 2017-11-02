@@ -3,7 +3,7 @@ PRIN
 /
 / Lifted from test elensidealthin6d'
 TRACKING PARAMETERS-----------------------------------------------------
-100 0 32 0 6.89493 0 1
+1000 0 32 0 6.89493 0 1
 1 1 2 1 2
 0 0 1 1 1 50000 2
 NEXT
@@ -64,11 +64,15 @@ NEXT
 /
 / Set the scattering scaling to 0.0 except in turn 11.
 DYNK
-FUN zero CONST  0.0
-FUN ten  CONST 10.0
+DEBUG
+FUN zero CONST 0.0
+FUN one  CONST 1.0
+FUN 0.1  CONST 0.1
 SET ip1_scatter scaling zero  1 10 0
-SET ip1_scatter scaling ten  11 11 0
-SET ip1_scatter scaling zero 12 -1 0
+SET ip1_scatter scaling one  11 11 0
+SET ip1_scatter scaling zero 12 499 0
+SET ip1_scatter scaling 0.1 500 600 0
+SET ip1_scatter scaling zero 601 -1 0
 NEXT
 SCATTER
 DEBUG
