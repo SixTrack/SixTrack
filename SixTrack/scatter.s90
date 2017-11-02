@@ -117,20 +117,20 @@ subroutine scatter_allocate
               STAT=stat)
 
     if (stat.ne.0) then
-       write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE(); stat=",stat
-       call prror(-1)
-    endif
+        write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE(); stat=",stat
+        call prror(-1)
+    end if
     
     ! Zero the memory, as is done in comnul.
     ! One disadvantage of doing this is that we force all the memory to be real,
     ! while in most cases much of it could actually be virtual...
     do i=1, scatter_maxdata
-       scatter_idata(i) = 0
-       scatter_fdata(i) = zero
-       do j=1, scatter_maxstrlen
-          scatter_cdata(i)(j:j) = char(0)
-       end do
-    enddo
+        ! scatter_idata(i) = 0
+        ! scatter_fdata(i) = zero
+        do j=1, scatter_maxstrlen
+            scatter_cdata(i)(j:j) = char(0)
+        end do
+    end do
     
 +if cr
     write(lout,'(A,I8)') "SCATTER_ALLOCATE [CR] : scatter_maxdata=",scatter_maxdata
@@ -142,7 +142,7 @@ subroutine scatter_allocate
     if (stat.ne.0) then
        write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE [CR]; stat=",stat
        call prror(-1)
-    endif
+    end if
 +ei
 end subroutine scatter_allocate
 
@@ -164,26 +164,26 @@ subroutine scatter_initialize
     ! in this case the scatter_log.txt is already open and positioned,
     ! so don't try to open the file again.
     if(scatter_filepos .eq. -1) then
-       write(93,'(a)') "SCATTER> scatter_initialize opening new file scatter_log.txt"
+        write(93,'(a)') "SCATTER> scatter_initialize opening new file scatter_log.txt"
 +ei
-       inquire( unit=667, opened=lopen )
-       if (lopen) then
-          write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
-          write(lout,*) "Unit 667 was already taken."
-          call prror(-1)
-       end if
-       
-       open(667,file="scatter_log.txt",status="replace",form="formatted")
-       write(667,"(A)") "# scatter_log"
-       write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
+        inquire( unit=667, opened=lopen )
+        if (lopen) then
+            write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
+            write(lout,*) "Unit 667 was already taken."
+            call prror(-1)
+        end if
+        
+        open(667,file="scatter_log.txt",status="replace",form="formatted")
+        write(667,"(A)") "# scatter_log"
+        write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
 +if cr
-       scatter_filepos = 2
-       endfile(667,iostat=ierro)
-       backspace(667,iostat=ierro)
+        scatter_filepos = 2
+        endfile(667,iostat=ierro)
+        backspace(667,iostat=ierro)
     else
-       write(93,'(a)') "SCATTER> scatter_initialize kept already opened file scatter_log.txt"
-    endif !scatter_filepos .eq. -1
+        write(93,'(a)') "SCATTER> scatter_initialize kept already opened file scatter_log.txt"
+    end if !scatter_filepos .eq. -1
 +ei
     
 end subroutine scatter_initialize
@@ -197,10 +197,10 @@ subroutine scatter_closefiles
     logical lopen
     
     if (scatter_active) then
-       inquire(unit=667, opened=lopen)
-       if (lopen) close(667,err=667)
-667    continue
-    endif
+        inquire(unit=667, opened=lopen)
+        if (lopen) close(667,err=667)
+667     continue
+    end if
 
 end subroutine scatter_closefiles
 
@@ -998,7 +998,7 @@ subroutine scatter_thin(ix, turn)
 
         call ranecu(rndPhi, napx, -1)
         call ranecu(rndP,   napx, -1)
-        rndPhi = rndPhi*(2d0*pi)
+        rndPhi = rndPhi*(two*pi)
 
         do j=1, napx
             ! Compute the cross section at this s
@@ -1022,7 +1022,7 @@ subroutine scatter_thin(ix, turn)
 
             ! Use generator t and xi to update particle j;
             ! remember to update ALL the energy arrays
-            theta   = 1d3*sqrt(t)/ejfv(j)                  ! Unit mrad
+            theta   = c1e3*sqrt(t)/ejfv(j)                  ! Unit mrad
 +if crlibm
             yv(1,j) = theta*cos_rn(rndPhi(j)) + yv(1,j)
             yv(2,j) = theta*sin_rn(rndPhi(j)) + yv(2,j)
@@ -1086,14 +1086,14 @@ double precision function scatter_profile_getDensity(profileIdx, x, y) result(re
         offsetX = scatter_fdata(tmpIdx + 3)
         offsetY = scatter_fdata(tmpIdx + 4)
 +if crlibm
-        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY)))     &
-                * exp_rn(-0.5d0*((x-offsetX)/sigmaX)**2) &
-                * exp_rn(-0.5d0*((y-offsetY)/sigmaY)**2)
+        retval  = beamtot/(two*(pi*(sigmaX*sigmaY)))     &
+                * exp_rn(-half*((x-offsetX)/sigmaX)**2) &
+                * exp_rn(-half*((y-offsetY)/sigmaY)**2)
 +ei
 +if .not.crlibm
-        retval  = beamtot/(2d0*(pi*(sigmaX*sigmaY)))  &
-                * exp(-0.5d0*((x-offsetX)/sigmaX)**2) &
-                * exp(-0.5d0*((y-offsetY)/sigmaY)**2)
+        retval  = beamtot/(two*(pi*(sigmaX*sigmaY)))  &
+                * exp(-half*((x-offsetX)/sigmaX)**2) &
+                * exp(-half*((y-offsetY)/sigmaY)**2)
 +ei
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
@@ -1157,7 +1157,8 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
         end if
 
     case default
-        write(lout,*) "SCATTER> ERROR in scatter_generator_getCrossSection"
+        write(lout,*) "SCATTER> ERROR in scatter_gen+ca crcoall
+erator_getCrossSection"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
                       "for profile '"// trim(stringzerotrim( &
                       scatter_cdata(scatter_PROFILE(profileIdx,1)) &
@@ -1199,8 +1200,8 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
         tmin   = scatter_fdata(tmpIdx+4)
         
         t  = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
-        xi = 0d0   ! Dummy value, for now
-        t  = t*1d6 ! Scale return variable to MeV^2
+        xi = zero   ! Dummy value, for now
+        t  = t*c1e6 ! Scale return variable to MeV^2
 
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getTandXi"
@@ -1244,8 +1245,8 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     prob3 = g3/(g1+g3)              ! Probability of g3
     
     ! Pre-calculate inverses
-    invB1 = 1.0d0/b1
-    invB2 = 1.0d0/b2
+    invB1 = one/b1
+    invB2 = one/b2
 
     nItt   = 0
     maxItt = 1000000
@@ -1271,15 +1272,15 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         
         ! Exact distribution
 +if crlibm
-        g1 =             exp_rn(-b1*t)                               ! Soft scatter term
-        g2 =  ((2d0*a) * exp_rn(((-0.5d0)*(b1+b2))*t)) * cos_rn(phi) ! Interference
-        g3 =    (a**2) * exp_rn(-b2*t)                               ! Hard scatter term
+        g1 =             exp_rn(-b1*t)                              ! Soft scatter term
+        g2 =  ((two*a) * exp_rn(((-half)*(b1+b2))*t)) * cos_rn(phi) ! Interference
+        g3 =    (a**2) * exp_rn(-b2*t)                              ! Hard scatter term
         gg = ((g1+g2)+g3)/(g1+g3)
 +ei
 +if .not.crlibm
-        g1 =          exp(-b1*t)                       ! Soft scatter term
-        g2 =  2d0*a * exp(-0.5d0*(b1+b2)*t) * cos(phi) ! Interference
-        g3 =   a**2 * exp(-b2*t)                       ! Hard scatter term
+        g1 =          exp(-b1*t)                      ! Soft scatter term
+        g2 =  two*a * exp(-half*(b1+b2)*t) * cos(phi) ! Interference
+        g3 =   a**2 * exp(-b2*t)                      ! Hard scatter term
         gg = (g1+g2+g3)/(g1+g3)
 +ei
         
