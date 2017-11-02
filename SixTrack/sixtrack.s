@@ -258,7 +258,7 @@
      &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
      &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml
       
-      real(kind=fPrec) a,ak0,aka,alfx,alfz,amp0,aper,apx,apz,ape,bbcu,  &
+      real(kind=fPrec) a,ak0,aka,alfx,alfz,amp0,aper,bbcu,              &
      &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
      &di0,dip0,dki,dkq,dma,dmap,dphix,dphiz,dppoff,dpscor,dqq,dres,dsi, &
@@ -312,7 +312,6 @@
       common/cororb/betam(nmon1,2),pam(nmon1,2),betac(ncor1,2),         &
      &pac(ncor1,2),bclorb(nmon1,2),nhmoni,nhcorr,nvmoni,nvcorr,         &
      &ncororb(nele)
-      common/apert/apx(nele),apz(nele),ape(3,nele)
       common/clos/sigma0(2),iclo,ncorru,ncorrep
       common/combin/icomb0(20),icomb(ncom,20),ratio(ncom,20),           &
      &ratioe(nele),iratioe(nele),icoe
@@ -347,6 +346,66 @@
       integer wire_num_aux              ! auxiliary variable to count number of wires
       integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
       common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
++cd comApeInfo
+!     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 28-11-2016
+!     always in main code
+!     use a dedicated array to store the type of aperture of each SINGLE ELEMENT
+!        and if it is tilted / offcentered
+      integer kape
+      logical lapeofftlt
+!     keep in mind if any aperture profile is assigned to any
+!       SINGLE ELEMENT or not
+      logical limifound
+!     echoing / dumpint acquired infos
+      logical ldmpaper                       ! Flag for activating the dump
+      integer aperunit                       ! unit for the output file
+      character(len=16) aper_filename             ! name of the output file
+      integer loadunit                       ! unit for the external load file
+      character(len=16) load_file             ! name of the external load file
+!     array to keep track of lost particles if they are not killed
+!     for now, it stores the ID of the particle lost
+      integer plost
+!     flag for killing particles at the aperture check or let them live
+      logical apflag
+      logical lexist
+      real(kind=fPrec) ape
++if .not.backtrk
+      common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
+     &  plost(npart), aper_filename, aperunit, ldmpaper, limifound,     
+     &  apflag, load_file, loadunit
++ei
++if backtrk
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 24-11-2016
+!     NB: add also temporary variables for back-tracking
+!         inserted in main code by the 'backtrk' compilation flag
+      common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
+     &  plost(npart), yold(2,npart), apold(7), sold, bktpre, kapold,    &
+     &  limifound, aper_filename, aperunit, ldmpaper, apflag,           
+     &  load_file, loadunit
++ei
+!     recognised aperture types:
+!     - 2: rectangle
+!     - 3: ellipse
+!     - 4: rectellipse
+!     - 5: octagon
+!     - 6: racetrack
+!     A.Mereghetti
+!     last modified: 01-12-2016
+      character(len=2) rect,elli,reel,ratr,octa,nana
+      data  rect, elli, reel, ratr, octa, nana                          &
+     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'NA' /
++if backtrk
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 24-11-2016
+!     additional variables for back-tracking, when computing locations of
+!        lost particles
+!     inserted in main code by the 'backtrk' compilation flag
+      integer kapold
+      real(kind=fPrec) yold,sold,apold,bktpre
++ei
+
 +cd commons
       integer idz,itra
 +if vvector
@@ -402,6 +461,13 @@
       real tlim,time0,time1,time2,time3,trtime
 ! fixes for CPU time (for all versions, not just crlibm).
       real pretime,posttime,tottime
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     status of connection
+!     inserted in main code by the 'fluka' compilation flag
+      integer fluka_con
++ei
       common/xz/xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),              &
      &aai(nblz,mmul),bbi(nblz,mmul)
       common/damp/damp,ampt
@@ -1450,7 +1516,7 @@
      &mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
      &dech,dsm0,itco,itcro,itqv,iout,qw0,iq,iqmod,kpa,iqmod6,bez,elbe,  &
      &bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac,pac,  &
-     &bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,apx,apz,sigma0,iclo,   &
+     &bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,           &
      &ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
      &icoe,ise,mesa,mp,m21,m22,m23,                                     &
      &ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
@@ -2136,8 +2202,8 @@
 +ei
 +cd cclxxh
 +if .not.tilt
-        dyy1=ekk*crkve*cos((((sigz/clight)*ek(IX)*c1e3)*two)*pi)
-        dyy2=-ekk*cikve*cos((((sigz/clight)*ek(IX)*c1e3)*two)*pi)
+        dyy1=ekk*crkve*cos_mb((((sigz/clight)*ek(IX)*c1e3)*two)*pi)
+        dyy2=-ekk*cikve*cos_mb((((sigz/clight)*ek(IX)*c1e3)*two)*pi)
 +ei
 +if tilt
         dyy1=ekk*(tiltc(k)*crkve+tilts(k)*cikve)
@@ -6103,206 +6169,76 @@ cc2008
       endif
       
 +cd lostpart
-          llost=.false.
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 17-07-2013
+!         on-line aperture check
+!         always in main code
+          call lostpart(n, i, ix, llost, nthinerr )
+!         stop tracking if no particle survives to this element
+          if(nthinerr.ne.0) return
++if backtrk
+!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!         last modified: 24-11-2016
+!         store old infos for back-tracking at aperture check at downstream locations
+!         inserted in main code by the 'backtrk' compilation flag
+          if ( kape(ix).ne.0 ) then
+!           Store old s value
+            sold  =  dcum(i)
+!           Store information of aperture
+            kapold = kape(ix)
+            do j=1,7
+              apold(j) = ape(j,ix)
+            end do
+          end if
++ei
+
++cd backtrkinit
+
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 24-11-2016
+!     initialise variables for back-tracking particles
+!     inserted in main code by the 'backtrk' compilation flag
+!     . store 'old' angle of particles
+      do j=1,napx
+        yold(1,j) = yv(1,j)
+        yold(2,j) = yv(2,j)
+      end do
+!     . store 'old' s value
+      sold = dcum(0)
+!     . store information of aperture
+!       force general aperture, i.e. RE with aper(1) and aper(2)
+!       assumption: tracked particles do not fall outside aperture
+!         limits in the first elements...
+      kapold = 2
+      do j=1,7
+         apold(j) = zero
+      end do
+      apold(1) = aper(1)
+      apold(2) = aper(2)
+      apold(3) = sqrt(2.)*aper(1)
+      apold(4) = sqrt(2.)*aper(2)
+      if ( ktrack(1).ne.1 ) then
+         if ( kape(ic(1)-nblo).ne.0 ) then
+!        the first entry of the lattice sequence is a 
+!           SINGLE ELEMENT, to which an aperture profile
+!           is assigned
+            kapold = kape(ic(1)-nblo)
+            do j=1,7
+               apold(j) = ape(j,ic(1)-nblo)
+            end do
+         endif
+      endif
++cd backtrksave
+
+!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!         last modified: 24-11-2016
+!         store old angle of particles
+!         inserted in main code by the 'backtrk' compilation flag
           do j=1,napx
-             llost=llost.or.                                            &
-     &abs(xv(1,j)).gt.aper(1).or.abs(xv(2,j)).gt.aper(2)
-          enddo
-          if (llost) then
-             kpz=abs(kp(ix))
-             if(kpz.eq.2) then
-                call lostpar3(i,ix,nthinerr)
-                if(nthinerr.ne.0) return
-             elseif(kpz.eq.3) then
-                call lostpar4(i,ix,nthinerr)
-                if(nthinerr.ne.0) return
-             else
-                call lostpar2(i,ix,nthinerr)
-                if(nthinerr.ne.0) return
-             endif
-          endif
-+cd lost1a
-      ilostch=0
-      do 10 j=1,napx
-        if(abs(xv(1,j)).gt.aper(1).or.abs(xv(2,j)).gt.aper(2).or.       &
-!     &isnan(xv(1,j),xv(1,j)).or.isnan(xv(2,j),xv(2,j))) then
-     &myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))) then
-          ilostch=1
-          pstop(nlostp(j))=.true.
-        endif
-  10  continue
-      do 20 j=1,napx
-        if(pstop(nlostp(j))) then
-          aperv(nlostp(j),1)=aper(1)
-          aperv(nlostp(j),2)=aper(2)
-+cd lost1b
-      ilostch=0
-      do 10 j=1,napx
-        if(abs(xv(1,j)).gt.apx(ix).or.abs(xv(2,j)).gt.apz(ix).or.       &
-!     &isnan(xv(1,j),xv(1,j)).or.isnan(xv(2,j),xv(2,j))) then
-     &myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))) then
-          ilostch=1
-          pstop(nlostp(j))=.true.
-        endif
-  10  continue
-      do 20 j=1,napx
-        if(pstop(nlostp(j))) then
-          aperv(nlostp(j),1)=apx(ix)
-          aperv(nlostp(j),2)=apz(ix)
-+cd lost1c
-      ilostch=0
-      do 10 j=1,napx
-        if(xv(1,j)**2*ape(1,ix)+xv(2,j)**2*ape(2,ix).gt.                &!hr03
-     &ape(3,ix).or.                                                     &
-!     &isnan(xv(1,j),xv(1,j)).or.isnan(xv(2,j),xv(2,j))) then
-     &myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))) then
-          ilostch=1
-          pstop(nlostp(j))=.true.
-        endif
-  10  continue
-      do 20 j=1,napx
-        if(pstop(nlostp(j))) then
-          aperv(nlostp(j),1)=apx(ix)
-          aperv(nlostp(j),2)=apz(ix)
-+cd lost2a
-          iv(nlostp(j))=i
-          ixv(nlostp(j))=ix
-+cd lost2
-          xvl(1,nlostp(j))=xv(1,j)
-          xvl(2,nlostp(j))=xv(2,j)
-          yvl(1,nlostp(j))=yv(1,j)
-          yvl(2,nlostp(j))=yv(2,j)
-          dpsvl(nlostp(j))=dpsv(j)
-          ejvl(nlostp(j))=ejv(j)
-          sigmvl(nlostp(j))=sigmv(j)
-          numxv(nlostp(j))=numx
-          nnumxv(nlostp(j))=numx
-+cd lost3a
-          if(mod(nlostp(j),2).eq.one) then
-            write(lout,10000) nlostp(j),nms(nlostp(j))*izu0,
-     &dp0v(nlostp(j)),numxv(nlostp(j)),abs(xvl(1,nlostp(j))),           &
-     &aperv(nlostp(j),1),abs(xvl(2,nlostp(j))),                         &
-     &aperv(nlostp(j),2)
-          else
-            write(lout,10000) nlostp(j),nms(nlostp(j)-1)*izu0,
-     &dp0v(nlostp(j)-1),numxv(nlostp(j)),abs(xvl(1,nlostp(j))),         &
-     &aperv(nlostp(j),1),abs(xvl(2,nlostp(j))),                         &
-     &aperv(nlostp(j),2)
-          endif
-+cd lost3b
-          if(mod(nlostp(j),2).eq.one) then
-            write(lout,10000) nlostp(j),nms(nlostp(j))*izu0,
-     &dp0v(nlostp(j)),numxv(nlostp(j)),iv(nlostp(j)),                   &
-     &abs(xvl(1,nlostp(j))),aperv(nlostp(j),1),                         &
-     &abs(xvl(2,nlostp(j))),aperv(nlostp(j),2),                         &
-     &ixv(nlostp(j)),kz(ixv(nlostp(j))),bez(ixv(nlostp(j)))
-          else
-            write(lout,10000) nlostp(j),nms(nlostp(j)-1)*izu0,
-     &dp0v(nlostp(j)-1),numxv(nlostp(j)),iv(nlostp(j)),                 &
-     &abs(xvl(1,nlostp(j))),aperv(nlostp(j),1),                         &
-     &abs(xvl(2,nlostp(j))),aperv(nlostp(j),2),                         &
-     &ixv(nlostp(j)),kz(ixv(nlostp(j))),bez(ixv(nlostp(j)))
-          endif
-+cd lost4
-        endif
-   20 continue
-      lnapx=napx
-      do 30 j=napx,1,-1
-        if(pstop(nlostp(j))) then
-          if(j.ne.lnapx) then
-            do 35 jj=j,lnapx-1
-              jj1=jj+1
-              nlostp(jj)=nlostp(jj1)
-              xv(1,jj)=xv(1,jj1)
-              xv(2,jj)=xv(2,jj1)
-              yv(1,jj)=yv(1,jj1)
-              yv(2,jj)=yv(2,jj1)
-+if bnlelens
-!GRDRHIC
-!GRD-042008
-              namepart(jj)=namepart(jj1)
-!GRDRHIC
-!GRD-042008
-+ei
-              dpsv(jj)=dpsv(jj1)
-              sigmv(jj)=sigmv(jj1)
-              ejfv(jj)=ejfv(jj1)
-              ejv(jj)=ejv(jj1)
-              rvv(jj)=rvv(jj1)
-+if rvet
-              rvet(jj)=rvet(jj1)
-+ei
-              oidpsv(jj)=oidpsv(jj1)
-              dpsv1(jj)=dpsv1(jj1)
-              clo6v(1,jj)=clo6v(1,jj1)
-              clo6v(2,jj)=clo6v(2,jj1)
-              clo6v(3,jj)=clo6v(3,jj1)
-              clop6v(1,jj)=clop6v(1,jj1)
-              clop6v(2,jj)=clop6v(2,jj1)
-              clop6v(3,jj)=clop6v(3,jj1)
-!--beam-beam element
-              di0xs(jj)=di0xs(jj1)
-              dip0xs(jj)=dip0xs(jj1)
-              di0zs(jj)=di0zs(jj1)
-              dip0zs(jj)=dip0zs(jj1)
-              do ib2=1,6
-                do ib3=1,6
-                  tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
-                end do
-              end do
-   35       continue
-          endif
-          lnapx=lnapx-1
-        endif
-   30 continue
-      if(lnapx.eq.0) then
-        write(lout,*) ''
-        write(lout,*) ''
-        write(lout,*) '***********************'
-        write(lout,*) '** ALL PARTICLE LOST **'
-        write(lout,*) '**   PROGRAM STOPS   **'
-        write(lout,*) '***********************'
-        write(lout,*) ''
-        write(lout,*) ''
-        nthinerr=3001
-        nnuml=numl
-        return
-      endif
-      if(ithick.eq.1.and.ilostch.eq.1) then
-+if cr
-+if debug
-!       write(93,*) 'ERIC lostpar??? calling synuthck!!!'
-!       endfile (93,iostat=ierro)
-!       backspace (93,iostat=ierro)
-+ei
-+ei
-        call synuthck
-      endif
-      napx=lnapx
-      return
-+cd lost5a
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
-     &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
-     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,   &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
-     &'   APERTURE = ',f15.3/)
-      end
-+cd lost5b
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
-     &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
-     &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
-     &'HORIZ:  AMPLITUDE = ',ES23.16,'   RE-APERTURE = ',f15.3/ t10,    &
-     &'VERT:   AMPLITUDE = ',ES23.16,'   RE-APERTURE = ',f15.3/ t10,    &
-     &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
-      end
-+cd lost5c
-10000 format(t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,       &
-     &' RANDOM SEED ',i8, ' MOMENTUM DEVIATION ',g12.5/ t10,            &
-     &' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,                 &
-     &'HORIZ:  AMPLITUDE = ',ES23.16,'   EL-APERTURE = ',f15.3/ t10,    &
-     &'VERT:   AMPLITUDE = ',ES23.16,'   EL-APERTURE = ',f15.3/ t10,    &
-     &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
-      end
+            yold(1,j) = yv(1,j)
+            yold(2,j) = yv(2,j)
+          end do
+
 +cd umlalid
           iwrite=0
           if(nlin.eq.0) then
@@ -8128,8 +8064,48 @@ cc2008
 +ei
 +ei ! END +if debug
 
+!     A.Mereghetti, D.Sinuela Pastor and P.G.Ortega, for the FLUKA Team
+!     last modified: 04-07-2014
+!     open unit where lostpart will dump lost particles
+!     allways in main code
+      open(999)
+
 ! END of +cd open
-      
+
++cd flukaclose
+
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     clean closure of communication with fluka and un-set mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      fluka_con = fluka_is_running()
+      if (fluka_con.eq.0) then
+        if ( .not. fluka_connected ) then
+!         temporarily connect to fluka, to properly terminate the run
+          fluka_con = fluka_connect()
+          if (fluka_con.eq.-1) then
+!           no hope to properly close the run
+            write(lout,*) '[Fluka] unable to connect to fluka while'
+            write(lout,*) '        closing the simulation: please,'
+            write(lout,*) '        manually kill all its instances'
+            write(fluka_log_unit,*) '# unable to connect to fluka while'
+            write(fluka_log_unit,*) '#  closing the simulation: please,'
+            write(fluka_log_unit,*) '#  manually kill all its instances'
+            goto 1982
+          endif
+          write(lout,*) '[Fluka] Successfully connected to Fluka server'
+          write(lout,*) '[Fluka]     (only temporarily)'
+          write(fluka_log_unit,*)                                       &
+     &'# Successfully connected to Fluka server'
+          write(fluka_log_unit,*)                                       &
+     &'#     (only temporarily)'
+        endif
+        call fluka_end
+      endif
+ 1982 call fluka_mod_end
+      flush(lout)
+!      flush(fluka_log_unit)
+
 +cd rvet0
       e0f=sqrt(e0**2-pma**2)                                             !hr03
 +if rvet
@@ -8602,9 +8578,16 @@ cc2008
       end if
 
       call scatter_closefiles
+
+!     A.Mereghetti, D.Sinuela Pastor and P.G.Ortega, for the FLUKA Team
+!     last modified: 04-07-2014
+!     close unit where lostpart has dumped lost particles
+!     always in main code
+      close(999)
       
       return
       end subroutine
+
 +dk cor_ord
       subroutine coruord
 !-----------------------------------------------------------------------
@@ -11132,7 +11115,8 @@ cc2008
       integer ifiend35
       real(kind=fPrec) tcnst
 +ei
-      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,apxx,apzz,bk0d,bkad, &
+      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,                     &
+     &ap11,ap22,ap33,ap44,apang,ofxx,ofzz,apxx,apzz,bk0d,bkad,          &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
@@ -11142,9 +11126,9 @@ cc2008
       
       character(len=16) sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character(len=16) fluc,chro,tune,iter,limi,orbi,deco
-      character(len=16) beze,bez0,go,rect,elli,comb,sear,subr
+      character(len=16) beze,bez0,go,comb,sear,subr
       character(len=16) free,geom,cavi,disp,reso,bezext
-      character(len=16) idat,next,mult,line,init,ic0,imn,icel,irel
+      character(len=16) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
       character(len=16) iss,iqq,iele,ilm,ilm0,idum,corr,norm
       character(len=16) kl,kr,orga,post,ripp,beam,trom
       character(len=16) coll
@@ -11204,6 +11188,11 @@ cc2008
 +ca wireparam
 +ca zipf
 +ca parbeam_exp
++ca comApeInfo
+
+      !Fluka related, might be best to lock to real64
+      real(kind=fPrec) tmpamplfact, tmplen
+
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
       dimension extaux(40),bezext(nblz)
@@ -11214,8 +11203,8 @@ cc2008
       data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco    &
      &/'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR',                  &
      &'RESO','DISP','POST','RIPP','DECO'/
-      data rect,elli,comb,free,geom,cavi,beam,trom                      &
-     &/'RE','EL','COMB','FREE','GEOM','CAV','BEAM','TROM'/
+      data comb,free,geom,cavi,beam,trom                                &
+     &/'COMB','FREE','GEOM','CAV','BEAM','TROM'/
       data idum,kl,kr,orga,norm,corr/' ','(',')','ORGA','NORM','CORR'/
       data coll /'COLL'/
 !     - dump beam population:
@@ -11243,6 +11232,10 @@ cc2008
 +if crlibm
       real(kind=fPrec) round_near
 +ei
+
+      logical lapefound
+      logical lerr1
+
       save
 !-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
@@ -12979,12 +12972,7 @@ cc2008
         halc=harm*alc
         halc2=harm/tlen
         hsy(3)=(two*pi)*halc2                                            !hr05
-+if crlibm
         cosy=cos_mb(phas)
-+ei
-+if .not.crlibm
-        cosy=cos(phas)
-+ei
         qigam=(pma**2/e0)/e0                                             !hr05
         qbet=one-qigam
         halc3=((((((-one*(qigam-alc))*real(ition,fPrec))*harm)*u0)/e0)  &
@@ -14074,28 +14062,136 @@ cc2008
 !     RaceTrack aperture types, and with offset/tilting of profile
 !  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
-  950 write(lout,10320)
-  960 read(3,10020,end=1530,iostat=ierro) ch
+  950 continue
+      loadunit = 3
+  951 continue
+      read(loadunit,10020,end=952,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 960
-      apxx=zero
-      apzz=zero
+      if(ch(1:1).eq.'/') goto 951
+
+!  P.G.Ortega, 14-01-2015, reading apertures from external file
+      if(ch(:4).eq.'LOAD') then
+        call intepr(5,1,ch,ch1)
+        read(ch1,*) idat, loadunit, load_file
+        inquire( file=load_file, exist=lexist )
+        if ( .not. lexist ) then
+            write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",
+     &      "IN THE RUNNING FOLDER"
+            call prror(-1)
+        endif
+        if(load_file .ne. ' ') then
+           open(loadunit,file=load_file,form='formatted') 
+           write(lout,*) 'APERTURES READ FROM FILE: ',load_file
+        else
+           open(loadunit,form='formatted')
+           write(lout,*) 'APERTURES READ FROM FILE: fort.',loadunit
+        endif
+        goto 951
+      endif
+
+!  P.G.Ortega,  04-07-2014, flag for dumping the aperture model
+      if(ch(:4).eq.prin) then
+        call intepr(5,1,ch,ch1)
+        read(ch1,*) idat, aperunit, aper_filename
+        ldmpaper  = .true.
+        goto 951
+      endif
+
+!  P.G.Ortega,  14-08-2014, flag for saving particles at aperture check
+      if(ch(:4).eq.'SAVE') then
+        apflag  = .true.
+        goto 951
+      endif
+
+      if(ch(:4).eq.next) then
+        if ( limifound ) then
+          write(lout,10320)
+!         dump all elements found:
+          do ii=1,il
+            if ( kape(ii).eq.2 ) then
+              irel=rect
+            elseif ( kape(ii).eq.3 ) then
+              irel=elli
+            elseif ( kape(ii).eq.4 ) then
+              irel=reel
+            elseif ( kape(ii).eq.5 ) then
+              irel=octa
+            elseif ( kape(ii).eq.6 ) then
+              irel=ratr
+            endif
+
+            if ( kape(ii) .ne. 0 ) then
+              write(lout,10330)
+     &           bez(ii), irel, ape(1,ii), ape(2,ii), ape(3,ii),        &
+     &               ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
+            endif
+          enddo
++if backtrk
+!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!         last modified: 12-06-2014
+!         echo precision for back-tracking, when computing locations of lost
+!            particles
+!         inserted in main code by the 'backtrk' compilation flag
+          write(lout,*)''
+          write(lout,*)'       back-tracking at aperture LIMIs is on'
+          write(lout,*)'            with precision [m]:',bktpre
+          write(lout,*)''
++ei
+        else
+          write(lout,                                                   &
+     &        '(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
+        endif
+        goto 110
+      endif
+      ap11=zero
+      ap22=zero
+      ap33=zero
+      ap44=zero
+      apang=zero
+      ofxx=zero
+      ofzz=zero
+
++if .not.backtrk
+      if(ch(:4).eq.'PREC') then
+        write(lout,*)
+        write(lout,*) 'WARNING: PREC statement active only in case'
+        write(lout,*) '  backtrc pre-processing is on; ignoring...'
+        write(lout,*)
+        goto 951
+      endif
++ei
++if backtrk
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 12-06-2014
+!     set precision for back-tracking, when computing locations of lost
+!         particles
+!     inserted in main code by the 'backtrk' compilation flag
+      if(ch(:4).eq.'PREC') then
+        call intepr(1,1,ch,ch1)
+        read(ch1,*) idat, tmplen
+        if ( tmplen.le.zero ) then
+          write(lout,*) 'WARNING: Wrong precision value: ', tmplen
+          write(lout,*) '  in LIMI input block, ignoring...'
+          write(lout,*) '  Using default [m]: ', bktpre
+        else
+           bktpre = tmplen
+        endif
+        goto 951
+      endif
++ei
       call intepr(8,1,ch,ch1)
 +if fio
-+if crlibm
++if crlibm 
       call enable_xp()
 +ei
       read(ch1,*,round='nearest')                                       &
-     & idat,irel,apxx,apzz
-+if crlibm
-      call disable_xp()
-+ei
+     & idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
 +ei
 
 +if .not.fio
 +if .not.crlibm
-      read(ch1,*) idat,irel,apxx,apzz
+      read(ch1,*) idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
 +ei
 +if crlibm
       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
@@ -14108,32 +14204,89 @@ cc2008
         nf=nf-1
       endif
       if (nf.gt.0) then
-        apxx=fround(errno,fields,3)
+        ap11=fround(errno,fields,3)
         nf=nf-1
       endif
       if (nf.gt.0) then
-        apzz=fround(errno,fields,4)
+        ap22=fround(errno,fields,4)
           nf=nf-1
       endif
+      if (nf.gt.0) then
+        ap33=fround(errno,fields,5)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        ap44=fround(errno,fields,6)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        apang=fround(errno,fields,7)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        ofxx=fround(errno,fields,8)
+        nf=nf-1
+      endif
+      if (nf.gt.0) then
+        ofzz=fround(errno,fields,9)
+        nf=nf-1
+      endif
+
 +ei
 +ei
+      lapefound=.false.
       do 970 j=1,il
       if(idat.ne.bez(j)) goto 970
-      kp(j)=1
-      if(irel.eq.rect) kp(j)=2
-      apx(j)=apxx
-      apz(j)=apzz
-      if(irel.eq.rect) then
-        kp(j)=3
-        ape(1,j)=apzz**2                                                 !hr05
-        ape(2,j)=apxx**2                                                 !hr05
-        ape(3,j)=apxx**2*apzz**2                                         !hr05
+      lapefound=.true.
+      ape(1,j)=ap11
+      ape(2,j)=ap22
+      ape(3,j)=ap33
+      ape(4,j)=ap44
+      ape(5,j)=apang
+      ape(6,j)=ofxx
+      ape(7,j)=ofzz
+      if(irel.eq.rect) then !Rectangle
+        kape(j)=2
+!       get ready for a RL-equinvalent description
+        ape(3,j)=sqrt(two)*ape(1,j)
+        ape(4,j)=sqrt(two)*ape(2,j)
+      elseif(irel.eq.elli) then !Ellipse
+        kape(j)=3
+!       get ready for a RL-equinvalent description
+        ape(3,j)=ape(1,j)
+        ape(4,j)=ape(2,j)
+      else if(irel.eq.reel) then !Rectellipse
+        kape(j)=4
+      else if(irel.eq.octa) then !Octagon  
+        kape(j)=5
+      else if(irel.eq.ratr) then !Racetrack
+        kape(j)=6
+      else
+        write(lout,*) 'Aperture profile not identified for element ',   &
+     &idat
+        write(lout,*) '  value:', irel
+        call prror(-1)
       endif
-      write(lout,10330) bez(j),irel,apxx,apzz
+      if (ape(5,j).ne.zero.or.ape(6,j).ne.zero.or.ape(7,j).ne.zero) then
+         lapeofftlt(j) = .true.
+      endif
+      limifound=.true.
   970 continue
-! Eric temporary fix for BUG??? Uncommnted for Riccardo 14/2/2015
-      if(idat.ne.next) goto 960
-      goto 110
+
+      if(.not. lapefound) then
+        write(lout,*)
+        write(lout,*) 'WARNING: Unidentified element ', idat
+        write(lout,*) '  in LIMI input block, ignoring...'
+        write(lout,*)
+      endif
+      goto 951
+  952 continue
+      if ( loadunit .ne. 3 ) then
+        close(loadunit)
+        goto 950
+      endif
+      goto 1530
+
 !-----------------------------------------------------------------------
 !  ORBIT CORRECTION
 !-----------------------------------------------------------------------
@@ -15916,12 +16069,12 @@ cc2008
 
       if(ch(1:1).eq.'/') goto 1800
       if(ch(:4).eq.next) then
-        write(*,10520) fluk
+        write(lout,10520) fluk
         if ( fluka_enable ) then
 !         dump all elements found:
           do ii=1,il
              if(fluka_type(ii).ne.FLUKA_NONE) then
-               write(*,10510) bez(ii), fluka_type(ii),                  &
+               write(lout,10510) bez(ii), fluka_type(ii),                  &
      &                        fluka_geo_index(ii),fluka_synch_length(ii)
              endif
           enddo
@@ -17408,6 +17561,9 @@ cc2008
      &'ELEMENT NAME',8x,'EVERY # TURNs',2x,
      &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,
      &"FirstTurn",6x,"LastTurn") !DUMP/STAT/BMAT
+10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
+10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
+     &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
 10070 format(1x,i3,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
      &1x,d13.6,1x,d14.7,1x,d13.6)
 10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
@@ -17429,9 +17585,14 @@ cc2008
      &,'     |               |    ',a16,'   |    ',a16,'   |')
 10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12) !BMAT/STAT/DUMP
 10472 format(t10,a)                           !BMAT/STAT/DUMP
+10490 format(t10,a16,4x,a40,2x,1pe16.9)
+10510 format(t10,a16,4x,i8,12x,i8,4x,1pe16.9)
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
      &t10,'TROMBONE #      NAME'/)
 10710 format(t22,i4,5x,a16)
+10890 format(1x,'--> function ',i2,' of combo # ',i4,' of element',a16, &
+     &'does not exist!')
+10891 format(1x,'--> single element ',a16,' is a thick lens one!')
       end
       
       subroutine write4
@@ -18565,7 +18726,6 @@ c$$$         endif
         if(abs(fok).le.pieni) goto 10
         rho=(one/ed(i))*dpsq
         fok1=(tan_mb(fok*half))/rho
-        fok1=(tan(fok*half))/rho
         si=sin_mb(fok)
         co=cos_mb(fok)
         al(1,ih,j,i)=one
@@ -22787,7 +22947,17 @@ c$$$         endif
       use fma, only : fma_postpr
       
       use, intrinsic :: iso_fortran_env, only : output_unit
-      
+
+      use physical_constants
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca crcoall
 +ca errout
@@ -22866,6 +23036,7 @@ c$$$         endif
 +ca stringzerotrim
 +ca fma
 +ca zipf
++ca comApeInfo
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -23280,6 +23451,20 @@ c$$$         endif
         xv(2,i)=zero
         yv(1,i)=zero
         yv(2,i)=zero
+!       P.Garcia Ortega, for the FLUKA Team
+!       last modified: 14-08-2014
+!       additional variables for aperture check, to keep track of lost
+!       particles if they are not killed
+        plost(i)=0
++if backtrk
+!       A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!       last modified: 12-06-2014
+!       additional variables for back-tracking, when computing locations of
+!          lost particles
+!       inserted in main code by the 'backtrk' compilation flag
+        yold(1,i)=zero
+        yold(2,i)=zero
++ei
         dam(i)=zero
         ekkv(i)=zero
         sigmv(i)=zero
@@ -23381,6 +23566,15 @@ c$$$         endif
       pi2=pi*half
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     initialise fluka module
+!     inserted in main code by the 'fluka' compilation flag
+      call fluka_mod_init(npart, nele, clight)
++ei
+
       call daten
 +if datamods
       if (ithick.eq.1) call allocate_thickarrays(npart,nele,nblo)
@@ -23407,6 +23601,8 @@ c$$$         endif
         write(lout,10025)
         goto 550
       endif
+
++if .not.fluka
 !--SETTING UP THE PLOTTING
       if(ipos.eq.1.and.                                                 &
      &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
@@ -23505,7 +23701,8 @@ c$$$         endif
       goto 520 !Jump to after particle&optics initialization,
                ! and also after tracking.
       endif !if(ipos.eq.1.and.napx.eq.0)
-      
++ei ! END +if .not.fluka
+
       do 90 i=1,20
         fake(1,i)=zero
    90 fake(2,i)=zero
@@ -23538,7 +23735,25 @@ c$$$         endif
           write(lout,10070)
         endif
         if(m.eq.1) call ord
+
++if fluka
+!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!       last modified: 01-12-2016
+!       check integrity of coupling markers
+!       inserted in main code by the 'fluka' compilation flag
+        if (fluka_enable) call check_coupling_integrity
++ei
+
+!       P. G. Ortega, for the FLUKA Team
+!       last modified: 01-07-2014
+!       dump aperture model
+!       always in main code
+        if (ldmpaper) then
+          call dump_aperture_model
+        endif
+
         call clorb(ded)
+
 +if debug
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
@@ -24029,6 +24244,41 @@ c$$$         endif
 +ei
 
       napx=(napx*imc)*mmac                                               !hr05
+
++if fluka
+
+!     A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis 
+!             for the FLUKA Team
+!     last modified: 11-06-2014
+!     start connection to FLUKA and initialise max ID
+!     inserted in main code by the 'fluka' compilation flag
+      if(fluka_enable) then
+        fluka_con = fluka_is_running()
+        if(fluka_con.eq.-1) then
+       write(lout,*) '[Fluka] Error: Fluka is expected to run but it is'
+       write(lout,*) '               NOT actually the case'
+          write(fluka_log_unit,*)                                       &
+     &                '# Fluka is expected to run but it is'
+          write(fluka_log_unit,*)                                       &
+     &                '               NOT actually the case'
+          call prror(-1)
+        endif
+        write(lout,*) '[Fluka] Initializing FlukaIO interface...'
+        write(fluka_log_unit,*) '# Initializing FlukaIO interface...'
+        fluka_con = fluka_connect()
+        if(fluka_con.eq.-1) then
+          write(lout,*) '[Fluka] Error connecting to Fluka server'
+          write(fluka_log_unit,*) '# Error connecting to Fluka server'
+          call prror(-1)
+        endif
+        write(lout,*) '[Fluka] Successfully connected to Fluka server'
+        write(fluka_log_unit,*)                                         &
+     &'# Successfully connected to Fluka server'
+        fluka_connected = .true.
+      endif
+
++ei
+
 +if cr
       write(93,*) 'MAINCR setting napxo=',napx
       endfile (93,iostat=ierro)
@@ -24525,6 +24775,52 @@ c$$$         endif
       end if
 !---------------------------------------END OF 'BLOCK'
 
++if fluka
+!     P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
+!     last modified: 26-08-2014
+!     send napx to fluka
+!     inserted in main code by the 'fluka' compilation flag
+      if(fluka_enable) then
+        write(lout,*) '[Fluka] Sending napx: ', napx
+        write(fluka_log_unit,*) '# Sending napx: ', napx
+        fluka_con = fluka_init_max_uid( napx )
+        if (fluka_con .lt. 0) then
+           write(*, *) '[Fluka] Error: failed to send napx to fluka ',
+     &  napx
+           write(fluka_log_unit, *) '# failed to send napx to fluka ',
+     &  napx
+           call prror(-1)
+        end if
+        write(lout,*) '[Fluka] Sending napx successful;'
+        write(fluka_log_unit,*) '# Sending napx successful;'
+        flush(lout)
+        flush(fluka_log_unit)
+      endif
+
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 18-01-2016
+!     initialise energy/momentum/rest mass of reference particle in mod_fluka
+!         and synch magnetic rigidity with Fluka (for the time being, consider
+!         only protons);
+!     inserted in main code by the 'fluka' compilation flag
+      if(fluka_enable) then
+        write(lout,*) '[Fluka] Updating ref particle'
+        write(fluka_log_unit,*) '# Updating ref particle'
+        call flush
+        fluka_con = fluka_set_synch_part( e0, e0f, pma, 1 )
+        if (fluka_con .lt. 0) then
+          write(lout, *) '[Fluka] Error: failed to update ref particle'
+          write(fluka_log_unit, *) '# failed to update ref particle'
+          call prror(-1)
+        end if
+        write(lout,*) '[Fluka] Updating ref successful;'
+        write(fluka_log_unit,*) '# Updating ref particle successful;'
+        flush(lout)
+        flush(fluka_log_unit)
+      endif
+
++ei
+
 !     A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 01-07-2014
 !     call routine for calculating dcum, necessary for the online
@@ -24896,11 +25192,15 @@ c$$$         endif
       if(nthinerr.eq.3001) goto 460
 !---------------------------------------  END OF LOOP OVER TURNS
   460 continue
++if .not.fluka
       napxto=0
++ei
 ! and set numx=nnuml (for writebin) NOT for LOST particles
 ! because all lost set nnuml=numl
       numx=nnuml
       id=0
+
++if .not.fluka
 +if cr
       if (.not.restart) then  
 ! If restart is true , we haven't done any tracking
@@ -25024,6 +25324,31 @@ c$$$         endif
           id=ig
         endif
   470 continue
++ei
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     print stable particles only
+!     inserted in main code by the 'fluka' compilation flag
+      write(lout,*)
+      write(lout,10340)
+      if ( napxo .gt. 0 ) then
+        write(lout,*)
+        write(lout,10350) napxo
+        write(lout,*)
+        write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []',      &
+     &    'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
+        write(lout,*)
+        do ia=1,napxo
+         if(.not.pstop(ia)) then
+          write(lout,10370)                                             &
+     &fluka_uid(ia), fluka_gen(ia), fluka_weight(ia),                   &
+     &xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3,       &
+     &ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
+         end if
+        end do
+      end if
++ei
 
 ! POSTPROCESSING (POSTPR)
 
@@ -25081,6 +25406,7 @@ c$$$         endif
 +ei
 +ei
 
++if .not.fluka
 +if .not.stf
         iposc=0
         if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
@@ -25168,6 +25494,18 @@ c$$$         endif
         call igmeta(999,0)
         call hplend
       endif
++ei
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 28-05-2014
+!     collect a couple of goto statements, sending code flow
+!       to different plotting points, which are not actually
+!       inserted
+!     inserted in main code by the 'fluka' compilation flag
+ 490  continue
+ 520  continue
++ca flukaclose
++ei
       time3=0.
       call timex(time3)
 ! Note that crpoint no longer destroys time2
@@ -25351,6 +25689,17 @@ c$$$         endif
      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
      &'  -   DEVIATION=',f15.7)
 10330 format(/10x,'ERROR IN OPENING FILES')
+10340 format(131('-'))
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     print stable particles only (format directives)
+!     inserted in main code by the 'fluka' compilation flag
+10350 format(4X,I8,1X,'SURVIVING PARTICLES:')
+10360 format(2(1X,A8),8(1X,A16))
+10370 format(2(1X,I8),8(1X,1PE16.9))
+10380 format(10x,f47.33)
++ei
       end
 +dk tra_thin
 !>
@@ -25365,6 +25714,15 @@ c$$$         endif
       use mathlib_bouncer
       use scatter, only : scatter_elemPointer
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca crcoall
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -25847,6 +26205,15 @@ c$$$         endif
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca exactvars
 +ca commonex
@@ -25862,9 +26229,11 @@ c$$$         endif
      &acdipamp1, crabamp, crabfreq
 +ca wiretracktmp
       logical llost
+
 +if time
       real(kind=fPrec) expt
 +ei
+
 +ca parnum
 +ca common
 +ca common2
@@ -25877,19 +26246,26 @@ c$$$         endif
 +ca commonm1
 +ca commontr
 +ca beamdim
+
 +if cr
 +ca crco
 +ei
+
       dimension dpsv3(npart)
+
 +if bnlelens
 +ca rhicelens
 +ca bnlio
 +ei
+
 +ca comgetfields
 +ca dbdump
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
++ca dbdcum
++ca comApeInfo
+
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -25969,6 +26345,49 @@ c$$$         endif
 +if time
 +ca timefct
 +ei
+
++if fluka
+
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 17-07-2013
+!         is the current entry an instance of a FLUKA element?
+!         inserted in main code by the 'fluka' compilation flag
+          if (fluka_enable) then
+            if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
+                                    !      be SINGLE ELEMENTs
+              if(fluka_type(ix).ne.FLUKA_NONE) then
+                if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+                  call kernel_fluka_element( n, i, ix )
++if backtrk
++ca backtrksave
++ei
+                  goto 620
+                else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+                  fluka_inside = .true.
+                  call kernel_fluka_entrance( n, i, ix )
+                  goto 625
+                else if(fluka_type(ix).eq.FLUKA_EXIT) then
+                  fluka_inside = .false.
+                  call kernel_fluka_exit( n, i, ix )
++if backtrk
++ca backtrksave
++ei
+                  goto 620
+                end if
+              end if
+            end if
+            if(fluka_inside) then
+              if(fluka_debug) then
+                write(lout,*) '[Fluka] Skipping lattice element at ', i
+                write(fluka_log_unit,*)
+     &'# Skipping lattice element at ', i
+              end if
+              goto 630
+            end if
+          endif
+
++ei
+
           goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630, !1-10
      &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210, !11-20
      &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !21-30
@@ -25986,6 +26405,9 @@ c$$$         endif
           else
 +ca ex4Ddrift
           endif
++if backtrk
++ca backtrksave
++ei
           goto 630
 !--HORIZONTAL DIPOLE
    30     do 40 j=1,napx
@@ -26339,15 +26761,22 @@ c$$$         endif
 
 +ca lostpart
 
+  625     continue
+
       if (.not. ldumpfront) then
 +ca dumplines
       endif
 
   630   continue
-        call lostpart(nthinerr)
-        if(nthinerr.ne.0) return
+
+!        call lostpart(nthinerr)
+!        if(nthinerr.ne.0) return
+
         if(ntwin.ne.2) call dist1
++if .not.fluka
         if(mod(n,nwr(4)).eq.0) call write6(n)
++ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -26357,6 +26786,15 @@ c$$$         endif
 !GRDRHIC
 !GRD-042008
 +ei
+
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     increase napxto, to get an estimation of particles*turns
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = napxto + napx
++ei
+
   640 continue
       return
       end
@@ -26381,6 +26819,15 @@ c$$$         endif
 !   'press' or 'PRESS' (only for first turn)
 ! - YIL: Added call to beamGasInit just after readcollimator
 +ei
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca exactvars
 +ca commonex
@@ -26438,12 +26885,21 @@ c$$$         endif
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
++ca dbdcum
++ca comApeInfo
+      real(kind=fPrec) dEpTur
       save
 !-----------------------------------------------------------------------
 +if fast
       c5m4=5.0d-4
 +ei
       nthinerr=0
+
+!     fluka
+!     dE per turn [MeV]
+      dEpTur=zero
+      write(lout,*)'-->dEpTur[MeV]:',dEpTur
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -26451,6 +26907,17 @@ c$$$         endif
 +ca bnlin
 !GRDRHIC
 !GRD-042008
++ei
+
++if backtrk
++ca backtrkinit
++ei
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     initialise napxto
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = 0
 +ei
 
 !This is the loop over turns: label 660
@@ -26487,8 +26954,25 @@ c$$$         endif
 +ei
         numx=n-1
 
+        if (dEpTur.ne.zero) then
+           do j=1,napx
+              ejf0v(j)=ejfv(j)
+              ejv(j)=ejv(j)-dEpTur
+              ejfv(j)=sqrt(ejv(j)**2-pma**2)
+              rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+              dpsv(j)=(ejfv(j)-e0f)/e0f
+              oidpsv(j)=one/(one+dpsv(j))
+              dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+              yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+              yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          enddo
+        endif
+
++if .not.fluka
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
++ei
+
 +if cr
 !  does not call CRPOINT if restart=.true.
 !  (and note that writebin does nothing if restart=.true.
@@ -26551,6 +27035,47 @@ c$$$         endif
 !           backspace (93,iostat=ierro)
 !         endif
 +ei
+
++if fluka
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 17-07-2013
+!         is the current entry an instance of a FLUKA element?
+!         inserted in main code by the 'fluka' compilation flag
+          if (fluka_enable) then
+            if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
+                                    !      be SINGLE ELEMENTs
+              if(fluka_type(ix).ne.FLUKA_NONE) then
+                if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+                  call kernel_fluka_element( n, i, ix )
++if backtrk
++ca backtrksave
++ei
+                  goto 640
+                else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+                  fluka_inside = .true.
+                  call kernel_fluka_entrance( n, i, ix )
+                  goto 645
+                else if(fluka_type(ix).eq.FLUKA_EXIT) then
+                  fluka_inside = .false.
+                  call kernel_fluka_exit( n, i, ix )
++if backtrk
++ca backtrksave
++ei
+                  goto 640
+                end if
+              end if
+            end if
+            if(fluka_inside) then
+              if(fluka_debug) then
+                write(*,*) '[Fluka] Skipping lattice element at ', i
+                write(fluka_log_unit,*)
+     &'# Skipping lattice element at ', i
+              end if
+              goto 650
+            end if
+          endif
++ei !END +if fluka
+
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
 !     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
@@ -26705,6 +27230,10 @@ c$$$         endif
             enddo
           else
 +ca ex6Ddrift
+
++if backtrk
++ca backtrksave
++ei
           endif
           goto 650
 +ei
@@ -27145,9 +27674,9 @@ c$$$         endif
 +ei
 !GRD END OF UPGRADE
 
-+if .not.collimat
 +ca lostpart
-+ei
+
+  645     continue
 
       if (.not. ldumpfront) then
 +ca dumplines
@@ -27161,10 +27690,12 @@ c$$$         endif
 +ei
 
 +if .not.collimat
-        call lostpart(nthinerr)
-        if(nthinerr.ne.0) return
+!        call lostpart(nthinerr)
+!        if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
++if .not.fluka
         if(mod(n,nwr(4)).eq.0) call write6(n)
++ei
 +ei
 
 +if bnlelens
@@ -27175,6 +27706,14 @@ c$$$         endif
         endif
 !GRDRHIC
 !GRD-042008
++ei
+
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     increase napxto, to get an estimation of particles*turns
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = napxto + napx
 +ei
 
   660 continue !END loop over turns
@@ -27188,7 +27727,7 @@ c$$$         endif
 +ei
 
       return
-      end
+      end subroutine thin6d
 
 !==============================================================================
 !
@@ -27203,6 +27742,15 @@ c$$$         endif
       use floatPrecision
       use physical_constants
       use mathlib_bouncer
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
 +if datamods
       use bigmats
 +ei
@@ -27250,6 +27798,8 @@ c$$$         endif
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
++ca dbdcum
++ca comApeInfo
       save
 !-----------------------------------------------------------------------
 +if fast
@@ -27762,7 +28312,7 @@ c$$$         endif
       endif
 
   650   continue
-        call lostpart(nthinerr)
+        !call lostpart(nthinerr)
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
         if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -28215,95 +28765,36 @@ c$$$         endif
       return
       end
 
-      subroutine lostpart(nthinerr)
+      subroutine lostpart(turn, i, ix, llost, nthinerr)
 !-----------------------------------------------------------------------
 !
-!  F. SCHMIDT
+!     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified:  8-12-2014
+!     aperture check and dump lost particles
+!     always in main code
 !-----------------------------------------------------------------------
-!  3 February 1999
+!     7 April 2014
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
-      implicit none
-+ca crcoall
-!      logical isnan
-      logical myisnan
-      integer ib2,ib3,ilostch,j,jj,jj1,lnapx,nthinerr
-+ca parpro
-+ca parnum
-+ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonmn
-+ca commonm1
-+ca commontr
-+if bnlelens
-+ca rhicelens
-+ei
-      save
-!-----------------------------------------------------------------------
-+ca lost1a
-+ca lost2
-+ca lost3a
-+ca lost4
-+ca lost5a
 
-      subroutine lostpar2(i,ix,nthinerr)
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
-      implicit none
-+ca crcoall
-!      logical isnan
-      logical myisnan
-      integer i,ib2,ib3,ilostch,ix,j,jj,jj1,lnapx,nthinerr
-+ca parpro
-+ca parnum
-+ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonmn
-+ca commonm1
-+ca commontr
-+if bnlelens
-+ca rhicelens
-+ei
-      save
-!-----------------------------------------------------------------------
-+ca lost1a
-+ca lost2a
-+ca lost2
-+ca lost3b
-+ca lost4
-+ca lost5b
+      use physical_constants
 
-      subroutine lostpar3(i,ix,nthinerr)
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
++if fluka
+      use mod_fluka
++ei
       implicit none
+!     parameters
+      integer turn  ! turn number
+      integer i     ! element entry in the lattice
+      integer ix    ! single element type index
+      logical llost ! at least one particle was lost
++if cr
 +ca crcoall
++ei
 !      logical isnan
       logical myisnan
-      integer i,ib2,ib3,ilostch,ix,j,jj,jj1,lnapx,nthinerr
+      integer ib2,ib3,ilostch,j,jj,jj1,jjx,lnapx
 +ca parpro
 +ca parnum
 +ca common
@@ -28319,52 +28810,1610 @@ c$$$         endif
 +if bnlelens
 +ca rhicelens
 +ei
++if collimat
+! Module to access ipart array
++ca collpara
++ca dbthin6d
++ca dbcommon
++ei
++ca dbdcum
++ca comApeInfo
+!     temporary variables
+      logical checkRE, checkEL, checkRL, checkOC, checkRT 
+      logical lparID
+      integer nthinerr
+      double precision apxx, apyy, apxy, aps, apc
+      double precision xchk(2,npart)
++if backtrk
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 12-06-2014
+!     additional variables for back-tracking, when computing locations of
+!        lost particles
+!     inserted in main code by the 'backtrk' compilation flag
+      integer niter       ! number of iterations
+      integer kapert      ! temporal integer for aperture type
+      logical llos(npart) ! temporal logic array for interpolation
+      double precision xlos(2,npart), aprr(7), step(npart), length,
+     & slos(npart), apnew(7), xnew(2)
++ei
       save
 !-----------------------------------------------------------------------
-+ca lost1b
-+ca lost2a
-+ca lost2
-+ca lost3b
-+ca lost4
-+ca lost5b
+      llost=.false.
 
-      subroutine lostpar4(i,ix,nthinerr)
+!     Set pstop for each particle
+
+      if ( limifound ) then
+
+         if ( lapeofftlt(ix) ) then
+!           Include offset and angle rotation
+            do j=1,napx
+               call roffpos( xv(1,j), xv(2,j), xchk(1,j), xchk(2,j),
+     &                       ape(5,ix), ape(6,ix), ape(7,ix) )
+            end do
+         else
+!           use original coordinates
+            do j=1,napx
+               xchk(1,j)=xv(1,j)
+               xchk(2,j)=xv(2,j)
+            end do
+         end if
+
+!        go through all possible types
+         
+         if ( kape(ix).eq.2 ) then
+!           Rectangle
+            do j=1,napx
+               pstop(j)=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix))
+     &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            end do
+         else if( kape(ix).eq.3 ) then
+!           Ellipse
+            apxx = ape(3,ix)**2.
+            apyy = ape(4,ix)**2.
+            apxy = apxx * apyy
+            do j=1,napx
+               pstop(j)=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy )
+     & .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            end do
+         else if( kape(ix).eq.4 ) then
+!           RectEllipse
+            apxx = ape(3,ix)**2.
+            apyy = ape(4,ix)**2.
+            apxy = apxx * apyy
+            do j=1,napx
+               pstop(j)=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),
+     &                      apxx, apyy, apxy ) .or.
+     &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            end do
+         else if( kape(ix).eq.5 ) then
+!           Octagon
+!           First parameter: outer radius of corners [mm]
+!           Second parameter: subtended angle between corners of the side
+!                           without cooling pipes (vertical sides)[rad]
+            aps = ape(1,ix)*sin_mb(ape(2,ix)/two)
+            apc = ape(1,ix)*cos_mb(ape(2,ix)/two)
+            do j=1,napx
+               pstop(j)=checkOC( xchk(1,j), xchk(2,j), aps, apc ) .or.
+     &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            end do
+         else if( kape(ix).eq.6 ) then
+!           Racetrack
+!           NB: it follows the MadX definition
+            apxy = ape(3,ix)**2.
+            do j=1,napx
+               pstop(j)=checkRT( xchk(1,j), xchk(2,j),
+     &              ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or.
+     &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            end do
+         else
+!           Unknown aperture type, general check (set in the ITER block)
+            do j=1,napx
+               pstop(j)=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2))
+     &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            end do
+         endif
+      else
+!        no actual aperture profile is assigned to any SINGLE ELEMENT
+!        use the general check (set in the ITER block)
+         do j=1,napx
+            pstop(j) = checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2) )
+     &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+         end do
+      endif
+
+!     is there at least a particle lost?
+      do j=1,napx
+         if ( pstop(j) ) then
+            llost=.true.
+            goto 10
+         endif
+      enddo
+ 10   continue
+
+      if ( llost ) then
+
++if backtrk
+!        A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
+!        last modified: 24-11-2016
+!        back-track particles, in order to better estimate actual loss point
+!        inserted in main code by the 'backtrk' compilation flag
+
+!        Initialise arrays
+         do j=1,napx
+           xlos(1,j) = xv(1,j)
+           xlos(2,j) = xv(2,j)
+           llos(j)   = pstop(j)
+           slos(j)   = dcum(i)
+           step(j)   = 1.d0
+! AM -> !          AMdebug
+! AM ->            if ( pstop(j) ) then
+! AM ->               write (*,*) 'ape loss:', turn, i, ix, bez(ix), dcum(i),
+! AM ->      &         fluka_uid(j), fluka_gen(j), xv(1,j)*1d-3, yv(1,j)*1d-3,
+! AM ->      &         xv(2,j)*1d-3, yv(2,j)*1d-3, ejfv(j)*1d-3, llos(j)
+! AM ->            endif
+         enddo
+     
+         if ( kape(ix) .ne. 0 ) then
+
+           ! initialize temporary aperture profile;
+           ! it can be either a constant aperture or a changing one (only RL
+           !    allowed, for the moment!)
+           kapert = kape(ix)
+           do jj=1,7
+             apnew(jj) = ape(jj,ix)
+           enddo
+           if ( kape(ix) .ge. 5 .or. kapold .ge. 5 ) then
+             ! force constant Racetrack or Octagon profile
+             do jj=1,7
+               apold(jj) = apnew(jj)
+             end do
+           else
+             ! a possible RL-equivalent transition
+             kapert = 4
+           endif
+
+           ! Length between elements
+           length = dcum(i)-sold
+           if ( length .lt. 0.0d0 ) then
+             ! pay attention to overflow:
+             ! length = dcum(i)+(dcum(iu+1)-sold)
+             length = length+dcum(iu+1)
+           endif
+           if ( length .le. bktpre ) goto 11
+
+           ! Number of iterations (ln(2x/precision)/ln(2)+1)
+           niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
+
+           ! Interpolation of the lost particles position down to bktpre
+           ! only for already lost particles
+           do jj=1,niter
+             do j=1,napx
+               if(pstop(j)) then
+                 ! Update parameter
+                 if ( llos(j) ) then
+                   step(j) = step(j) - one / (two**(jj))
+                 else
+                   step(j) = step(j) + one / (two**(jj))
+                 endif
+           
+                 ! step discretized, to compare with BeamLossPattern
+                 if (jj.eq.niter) then
+                   slos(j) = int((sold+length*step(j))/bktpre+1.)*bktpre
+                   step(j) = (slos(j)-sold)/length
+                 end if
+           
+                 ! Update position
+                 xlos(1,j) = xv(1,j) -yold(1,j)*(one-step(j))*length
+                 xlos(2,j) = xv(2,j) -yold(2,j)*(one-step(j))*length
+                 slos(j)   = sold    +length*step(j)
+           
+                 ! Update apertures
+                 do jj1=1,7
+                   aprr(jj1)=apold(jj1)+(apnew(jj1)-apold(jj1))*step(j)
+                 end do
+           
+                 ! Check aperture
+                 if ( lapeofftlt(ix) ) then
+                    call roffpos( xlos(1,j), xlos(2,j), xnew(1),xnew(2),&
+     &                            aprr(5), aprr(6), aprr(7) )
+                 else
+                    xnew(1) = xlos(1,j)
+                    xnew(2) = xlos(2,j)
+                 end if
+                 if ( kapert.eq.4 ) then
+!                   RectEllipse
+                    apxx = aprr(3)**2.
+                    apyy = aprr(4)**2.
+                    apxy = apxx * apyy
+                    llos(j) = checkRL( xnew(1),xnew(2),aprr(1),aprr(2), &
+     &                       apxx, apyy, apxy ) .or.                    &
+     &                  myisnan(xnew(1),xnew(1)).or.                    &
+     &                  myisnan(xnew(2),xnew(2))
+                 else if ( kapert.eq.5 ) then
+!                   Octagon
+!                   First parameter: outer radius of corners [mm]
+!                   Second parameter: subtended angle between corners of
+!                                     the side without cooling pipes
+!                                     (vertical sides)[rad]
+                    aps = aprr(1)*sin_mb(aprr(2)/two)
+                    apc = aprr(1)*cos_mb(aprr(2)/two)
+                    llos(j) = checkOC( xnew(1), xnew(2), aps, apc ).or. &
+     &                  myisnan(xnew(1),xnew(1)).or.                    &
+     &                  myisnan(xnew(2),xnew(2))
+                 else if ( kapert.eq.6 ) then
+!                   Racetrack
+!                   NB: it follows the MadX definition
+                    llos(j) = checkRT( xnew(1), xnew(2),                &
+     &                     aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or.&
+     &                  myisnan(xnew(1),xnew(1)).or.                    &
+     &                  myisnan(xnew(2),xnew(2))
+                 end if
+! AM -> !                AMdebug
+! AM ->                  write(*,*) 'new loss:', turn, i, ix, bez(ix), slos(j), 
+! AM ->      &    fluka_uid(j), fluka_gen(j), xlos(1,j)*1d-3, yv(1,j)*1d-3,
+! AM ->      &     xlos(2,j)*1d-3, yv(2,j)*1d-3, ejfv(j)*1d-3, llos(j)
+               endif
+             enddo
+           enddo
+           
+  11       continue
+        
+         endif
++ei
+
+!        If lost particles aren't killed, the lost info is dumped only
+!        the first time they hit the aperture. Their secondaries generated
+!        from a lost particles are considered lost as well
+         if ( apflag ) then
+           do j=1,napx
+             if(pstop(j)) then
+               lparID = .false.
+               jjx=1
++if collimat
+               do jj=1,npart
++ei
++if .not.collimat
+                 do jj=1,napx
++ei
+                 if (plost(jj).ne.0) then
++if fluka
+                 if ( fluka_uid(j).eq.plost(jj).or.                     &
+     &                  fluka_gen(j).eq.plost(jj) )
++ei
++if collimat
+                   if ( ipart(j)+100*samplenumber .eq. plost(jj) )
++ei
++if .not.collimat.and..not.fluka
+                   if ( j .eq. plost(jj) )
++ei
+     &             lparID=.true.
+                   jjx=jj+1 !points to the last zero 
+                 end if
+               end do
+               if (lparID) then
+                 !old lost particle or secondary, don't print it
+                 pstop(j) = .false.
+               else
+                 !new lost particle, store ID and print it
++if fluka
+                 plost(jjx) = fluka_uid(j)
++ei
++if collimat
+                 plost(jjx) = ipart(j)+100*samplenumber
++ei
++if .not.collimat.and..not.fluka
+                 plost(jjx) = j
++ei
+                end if
+              end if
+            end do
+          end if
+
+
+         ! Print to 999
+         do j=1,napx
+           if(pstop(j)) then
++if backtrk
+!            A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
+!            last modified: 11-06-2014
+!            back-track particles, in order to better estimate actual loss point
+!            inserted in main code by the 'backtrk' compilation flag
+             if ( slos(j).gt.dcum(iu+1) ) then
+                ! pay attention to overflow:
+                slos(j)=slos(j)-dcum(iu+1)
+             endif
++ei
+             write(999,                                                 &
++if fluka
+     &         '(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7))')     &
++ei
++if .not.fluka
+     &         '(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7))')        &
++ei
++if .not.backtrk
+     &         turn, i, ix, bez(ix), dcum(i),                           &
++ei
++if backtrk
+     &         turn, i, ix, bez(ix), slos(j),                           &
++ei
++if fluka
+     &         fluka_uid(j), fluka_gen(j), fluka_weight(j),             &
++ei
++if collimat
+     &         ipart(j)+100*samplenumber,                               &
++ei
++if .not.fluka.and..not.collimat
+     &         j,                                                       &
++ei
++if .not.backtrk
+     &         xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3,                &
++ei
++if backtrk
+     &         xlos(1,j)*1d-3, yv(1,j)*1d-3, xlos(2,j)*1d-3,            &
++ei
+     &         yv(2,j)*1d-3,ejfv(j)*1d-3, (ejv(j)-e0)*1d6,              &
+     &         -1.0d-03 * (sigmv(j)/clight) * (e0/e0f)
+           endif
+         end do
+
+!        Don't kill lost particle if apflag is activated
+         if ( apflag ) then
+           do j=1,napx
+             pstop(j) = .false.
+           end do
+         end if
+
+         ! Compact array
+         lnapx=napx
+         do j=napx,1,-1
+           if(pstop(j)) then
+             if(j.ne.lnapx) then
+               do jj=j,lnapx-1
+                 jj1=jj+1
+                 nlostp(jj)=nlostp(jj1)
+                 xv(1,jj)=xv(1,jj1)
+                 xv(2,jj)=xv(2,jj1)
+                 yv(1,jj)=yv(1,jj1)
+                 yv(2,jj)=yv(2,jj1)
++if bnlelens
+                 namepart(jj)=namepart(jj1)
++ei
+                 dpsv(jj)=dpsv(jj1)
+                 sigmv(jj)=sigmv(jj1)
+                 ejfv(jj)=ejfv(jj1)
+                 ejv(jj)=ejv(jj1)
+                 rvv(jj)=rvv(jj1)
++if rvet
+                 rvet(jj)=rvet(jj1)
++ei
+                 oidpsv(jj)=oidpsv(jj1)
+                 dpsv1(jj)=dpsv1(jj1)
+                 clo6v(1,jj)=clo6v(1,jj1)
+                 clo6v(2,jj)=clo6v(2,jj1)
+                 clo6v(3,jj)=clo6v(3,jj1)
+                 clop6v(1,jj)=clop6v(1,jj1)
+                 clop6v(2,jj)=clop6v(2,jj1)
+                 clop6v(3,jj)=clop6v(3,jj1)
+!--beam-beam element
+                 di0xs(jj)=di0xs(jj1)
+                 dip0xs(jj)=dip0xs(jj1)
+                 di0zs(jj)=di0zs(jj1)
+                 dip0zs(jj)=dip0zs(jj1)
+                 do ib2=1,6
+                   do ib3=1,6
+                     tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+                   end do
+                 end do
+               end do
++if fluka
+               if (fluka_enable) call fluka_lostpart(lnapx, j) ! Inform fluka
++ei
+             endif
+             lnapx=lnapx-1
+           endif
+         end do
+
+
+         napx=lnapx
+      endif
+
+      napxo = napx
+
+      if(napx.eq.0) then
+        write(*,*)
+        write(*,*)
+        write(*,*) '************************'
+        write(*,*) '** ALL PARTICLES LOST **'
+        write(*,*) '**   PROGRAM STOPS    **'
+        write(*,*) '************************'
+        write(*,*)
+        write(*,*)
+        nthinerr = 3000
+        return
+      end if
+
+      end subroutine lostpart
+
+      subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
+!
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     centre/rotate position of particles in case of offcentered/tilted 
+!        aperture types
+!     always in main code
+!  
+!     input parameters:
+!        x : horizontal particle position [mm]
+!        y : vertical   particle position [mm]
+!        tlt:  tilt angle of the aperture profile [rad]
+!        xoff: horizontal aperture offset [mm]
+!        yoff: vertical   aperture offset [mm]
+!
+!     output parameters:
+!        xnew : offcentered/tilted horizontal particle position [mm]
+!        ynew : offcentered/tilted vertical   particle position [mm]
+!
 !-----------------------------------------------------------------------
 !
-!  F. SCHMIDT
+      use floatPrecision
+      use mathlib_bouncer
+
+      implicit none
+
++ca parnum
+
+!     parameters
+      double precision x, y, xnew, ynew, tlt, xoff, yoff
+
+!     temporary variables
+      double precision theta, radio, xtmp, ytmp, ttmp
+
+      xtmp = x+xoff
+      ytmp = y+yoff
+      theta = atan2_mb(ytmp, xtmp)
+      radio = sqrt(xtmp**two + ytmp**two)
+      ttmp = theta-tlt
+      xnew = radio * cos_mb(ttmp)
+      ynew = radio * sin_mb(ttmp)
+      return
+      end subroutine
+
+      logical function checkRE( x, y, apex, apey )
 !-----------------------------------------------------------------------
-!  3 February 1999
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against REctangle aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      implicit none
+!     parameters
+      double precision x, y, apex, apey
+      checkRE = ( abs(x).gt.apex ).or.( abs(y).gt.apey )
+      return
+      end function
+
+      logical function checkEL( x, y, apxx, apyy, apxy )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against ELlipse aperture
+!     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
       implicit none
-+ca crcoall
-!      logical isnan
-      logical myisnan
-      integer i,ib2,ib3,ilostch,ix,j,jj,jj1,lnapx,nthinerr
++ca parnum
+
+!     parameters
+      double precision x, y, apxx, apyy, apxy
+
+      checkEL = x**two*apyy+y**two*apxx .gt. apxy
+      return
+      end function
+
+      logical function checkRL( x, y, apex, apey, apxx, apyy, apxy )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against Rect-Ellipse aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
+!     parameters
+      double precision x, y, apex, apey, apxx, apyy, apxy
+
+!     temporary variables
+      logical checkRE, checkEL
+
+      checkRL = checkRE( x, y, apex, apey ) .or.
+     &          checkEL( x, y, apxx, apyy, apxy )
+      return
+      end function
+
+      logical function checkOC( x, y, apes, apec )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against OCtagon aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
+!     parameters
+      double precision x, y, apes, apec
+
+!     temporary variables
+      logical checkRE
+
+      checkOC = checkRE( x, y, apec, apec ) .or.
+     &          ( ( abs(x)+abs(y) ).gt.( apes+apec ) )
+      return
+      end function
+
+      logical function checkRT( x, y, apex, apey, r, r2 )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 19-05-2014
+!     check particle position against RaceTrack aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
+!     parameters
+      double precision x, y, apex, apey, r, r2
+
+!     temporary variables
+      logical checkRE
+
+      checkRT = checkRE( x, y, apex+r, apey+r ) .or.                    &
+     &          ( ( (abs(x)-apex)**2.+(abs(y)-apey)**2.).gt.r2 )
+      return
+      end function
+
+      subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 20-12-2016
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
 +ca parpro
 +ca parnum
 +ca common
-+ca common2
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
++ca commonmn
++ca commontr
++ca comApeInfo
+
+!     interface variables
+      integer itElUp,itElDw
+      logical lInsUp
+!     run time variables
+      integer iElUp, iElDw, ixApeUp, ixApeDw, jj, iuold
+      logical lExtremes, lsame
+      double precision aPrec
+!     precision on aperture parameters to be identical
+      data aPrec / c1m6 / 
+
+!     do not overwrite interface variables
+      iElUp=itElUp
+      iElDw=itElDw
+!     handling extremes of lattice structure?
+      lExtremes=iElUp.eq.iu.and.iElDw.eq.1
+
+!     upstream marker 
+      iuold=iu
+      call contour_aperture_marker( iElUp, lInsUp  )
+!     the addition of the upstream aperture marker may have
+!        shifted by one the downstream entries
+!     NB: if lExtremes, the upstream marker is the last entry
+!         in the lattice structure! Hence, no other entry is shifted!
+      if ( .not.lExtremes ) then
+         if ( iu-iuold.ne.0 ) then
+            iElDw=iElDw+(iu-iuold)
+            write(*,*) '...inserted upstream marker - downstream'
+     &//' entries shifted by',iu-iuold
+         else
+            write(*,*) '...no need to insert an upstream marker'
+         end if
+      end if
+
+!     downstream marker 
+      iuold=iu
+      call contour_aperture_marker( iElDw, .false. )
+!     the addition of the downstream aperture marker may have
+!        shifted by one the downstream entries
+      if ( iu-iuold.ne.0 ) then
+!        NB: if lExtremes, the downstream entry is the first entry
+!            in the lattice structure! Hence, if a new entry has been inserted,
+!            the upstream entry (at the end of the lattice structure) is
+!            shifted by 1
+         if ( lExtremes ) then
+            iElUp=iElUp+(iu-iuold)
+         end if
+         write(*,*) '...inserted downstream marker - downstream'
+     &//' entries shifted by',iu-iuold
+      else
+         write(*,*) '...no need to insert a downstream marker'
+      end if
+
+      if ( lExtremes ) then
+!        check that the aperture markers at the extremities of accelerator
+!           lattice structure are the same
+         ixApeUp=ic(iElUp)-nblo
+         ixApeDw=ic(iElDw)-nblo
+         lsame = ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
+         if ( lsame ) then
+            do jj=1,7
+               lsame = lsame .and. 
+     &           abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
+               if ( .not. lsame ) exit
+            end do
+         end if
+         if ( .not.lsame ) then
+            write(*,*)' ERROR - different aperture markers'
+     &//' at extremeties of accelerator lattice strucure'
+            call dump_aperture_header( -1 )
+            call dump_aperture_marker( -1, ixApeUp, iElUp )
+            call dump_aperture_marker( -1, ixApeDw, iElDw )
+            call prror(-1)
+         end if 
+      end if
+
+      end subroutine contour_aperture_markers
+
+      subroutine contour_aperture_marker( iEl, lInsUp )
+!
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 20-12-2016
+!     put an aperture marker at iEl
+!     NB: it can be either a brand new entry in lattice sequence or
+!         updating an existing one
+!     interface variables:
+!     - iEl: entry in lattice sequence to be checked
+!     - lInsUp: if true, the new aperture marker is inserted upstream of
+!       iEl
+!     always in main code
+!-----------------------------------------------------------------------
+
+      use floatPrecision
+
++if fluka
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
+
++ei
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca dbdcum
++ca comApeInfo
++ca crcoall
+!     interface variables
+      integer iEl
+      logical lInsUp
+!     temporary variables
+      integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,
+     & itmpape,iNew, ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,
+     & ixEl
+      double precision tmpape(7), ddcum, sPrec, aPrec
+      logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
+      character*16 CrtApeName
+
+!     precision on s-coordinates to be identical
+      data sPrec / 1.0D-07 / 
+!     precision on aperture parameters to be identical
+      data aPrec / 1.0D-06 / 
+
+!     echo of input parameters
+      write(*,*) ''
+      write(*,*)' CALL TO CONTOUR_APERTURE_MARKER...'
+
+!     check upstream element
+      ixEl=ic(iEl)-nblo
+      if ( iEl.eq.iu ) then
+!        end of lattice sequence: a marker might be needed
+         if ( ixEl.le.0 ) then
+            ix=INEESE()
+            iu=INEELS( 0 )
+            ic(iu)=ix+nblo
+            iEl=iu
+            ixEl=ix
+            bez(ixEl)='e.latt.aper'
+            write(*,*) ' -> inserted empty marker at end of lattice'
+         endif
+      elseif ( iEl.eq.1 ) then
+!        beginning of lattice sequence: a marker might be needed
+         if ( ixEl.le.0 ) then
+            ix=INEESE()
+            iu=INEELS( 1 )
+            ic(1)=ix+nblo
+            iEl=1
+            ixEl=ix
+            bez(ixEl)='s.latt.aper'
+            write(*,*) ' -> inserted empty marker at start of lattice'
++if fluka
+         elseif ( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.
+     &            fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
+!           A.Mereghetti
+!           last modified: 18-01-2017
+!           force aperture marker upstream of FLUKA_ENTRY
+!           inserted in main code by the 'fluka' compilation flag
+            ix=INEESE()
+            iu=INEELS( 1 )
+            ic(1)=ix+nblo
+            iEl=1
+            ixEl=ix
+            bez(ixEl)='s.latt.aper'
+            write(*,*) ' -> inserted empty marker at start of lattice'
+     &//' since first entry is a FLUKA element'
++ei
+         endif
+      elseif ( ixEl.le.0 ) then
+         write(*,*) 'ERROR - lattice element at: i=',iEl
+         write(*,*) 'is NOT a SINGLE ELEMENT!'
+         call prror(-1)
+      endif
+!     echo
+      write(*,*)' look for aperture markers closest to:'
+      write(*,*)' i=',iEl,' - ix=',ixEl,
+     &' - name: ',bez(ixEl), ' - s=',dcum(iEl)
+
+!     candidate aperture marker
+      if ( lInsUp ) then
+         iNew=iEl-1
+      else
+         iNew=iEl
+      end if
+      ixNew=ic(iNew)-nblo
+      if ( iEl.eq.iu ) then
+!        end of lattice sequence
+         iSrcUp=iNew
+         iSrcDw=1
+      else if ( iEl.eq.1 ) then
+!        beginning of lattice sequence:
+         iSrcUp=iu
+         iSrcDw=iEl
+      else
+         iSrcUp=iNew
+         iSrcDw=iEl
+      end if
+
+!     - get closest upstream aperture marker
+!       NB: no risk of overflow, as first/last element in lattice
+!           sequence should be aperture markers (and the first
+!           call of this function is meant to verify this assumption)
+      iApeUp=-1
+      ixApeUp=-1
+      lApeUp=.false.
+      do i=iSrcUp,1,-1
+        ix=ic(i)-nblo
+        if(ix.gt.0) then
+!         SINGLE ELEMENT 
++if fluka
+!         inserted in main code by the 'fluka' compilation flag
+!         aperture markers should not coincide with a FLUKA element
+          if ( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
++ei
++if .not.fluka
+          if ( kape(ix).ne.0 ) then
++ei
+             iApeUp=i
+             ixApeUp=ix
+             exit
+          endif
+        endif
+      enddo
+      if ( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
+         write(lout,*)' ERROR - could not find upstream marker'
+         call prror(-1)
+      end if
+!     - get closest downstream aperture marker
+!       NB: no risk of overflow, as first/last element in lattice
+!           sequence should be aperture markers (and the first
+!           call of this function is meant to verify this assumption)
+      iApeDw=-1
+      ixApeDw=-1
+      lApeDw=.false.
+      do i=iSrcDw,iu
+        ix=ic(i)-nblo
+        if(ix.gt.0) then
+!         SINGLE ELEMENT 
++if fluka
+!         inserted in main code by the 'fluka' compilation flag
+!         aperture markers should not coincide with a FLUKA element
+          if ( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
++ei
++if .not.fluka
+          if ( kape(ix).ne.0 ) then
++ei
+             iApeDw=i
+             ixApeDw=ix
+             exit
+          endif
+        endif
+      enddo
+      if ( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
+         write(lout,*)' ERROR - could not find downstream marker'
+         call prror(-1)
+      end if
+!     - echo found apertures
+      call dump_aperture_header( -1 )
+      call dump_aperture_marker( -1, ixApeUp, iApeUp )
+      call dump_aperture_marker( -1, ixApeDw, iApeDw )
+!     - checks:
+!       . iNew is iApeUp
+      lApeUp=iApeUp.eq.iNew.and.ixApeUp.eq.ixNew
+!       . iNew is at the same s as iApeUp (inlcuding ring overvlow)
+      lAupDcum=abs(dcum(iNew)-dcum(iApeUp)).lt.sPrec.or.
+     &         abs(dcum(iNew)-dcum(iApeUp)-tlen).lt.sPrec
+!       . iNew is iApeDw
+      lApeDw=iApeDw.eq.iNew.and.ixApeDw.eq.ixNew
+!       . iNew is at the same s as ApeDw (inlcuding ring overvlow)
+      lAdwDcum=abs(dcum(iNew)-dcum(iApeDw)).lt.sPrec.or.
+     &         abs(dcum(iNew)-dcum(iApeDw)-tlen).lt.sPrec
+!       . constant aperture?
+      lconst = ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
+      if ( lconst ) then
+         do jj=1,7
+            lconst = lconst .and. 
+     &           abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
+            if ( .not. lconst ) exit
+         end do
+      end if
+!       . can iNew be assigned an aperture marker?
+!         ie is it a single element and is it used anywhere else?
+      lApe=lApeUp.or.lApeDw
+      lAss=ixNew.gt.0.and.check_SE_unique(iNew,ixNew).eq.-1
+
+!     some action is needed
+      if ( .not.lApe ) then
+!        . iNew must be assigned an aperture
+         ixApeNewFrom=-1
+         lfit=.false.
+         itmpape=0
+         do jj=1,7
+            tmpape(jj)=c1e3
+         end do
+!        . aperture profile
+         if ( lconst.or.lAupDcum ) then
+!           constant aperture or upstream aperture marker at the same s-location 
+!             -> it is wise to use the upstream aperture
+            ixApeNewFrom=ixApeUp
+         elseif ( lAdwDcum ) then
+!           same s-location as the closest downstream aperture marker
+!             -> it is wise to use it!
+            ixApeNewFrom=ixApeDw
+         else
+!           varying aperture -> we need to interpolate
+            call interp_aperture( iApeUp,ixApeUp, iApeDw,ixApeDw,
+     &                            itmpape,tmpape, dcum(iNew) )
+            lfit=.true.
+         endif
+!        . aperture entry
+         if ( .not.lAss ) then
+!           ixNew cannot be assigned an aperture marker: we have to insert
+!                a new entry in the lattice sequence
+            if ( lfit ) then
+               ixNew=INEESE()
+               bez(ixNew)=CrtApeName()
+            end if
+            iNew=iNew+1
+            iu=INEELS( iNew )
+         end if
+!        . assign aperture profile
+         if ( lAss.or.lfit ) then
+!           aperture model must be copied
+            call copy_aperture( ixNew,ixApeNewFrom,itmpape,tmpape )
+            ic(iNew)=ixNew+nblo
+         elseif ( ixApeNewFrom.gt.-1 ) then
+!           an existing aperture model can be assigned
+            ic(iNew)=ixApeNewFrom+nblo
+         else
+!           this should never happen
+            write(lout,*)' ERROR in aperture auto assignment.'
+            call prror(-1)
+         end if
+      end if
+
+!     echo for checking
+      write(lout,*) ' ...echo results of assignment:'
+      call dump_aperture_header( -1 )
+      call dump_aperture_marker( -1, ic(iNew)-nblo, iNew )
+
+!     go home, man
+      iEl=iNew
+      return
+
+ 1982 format (a16,2(1x,a2),8(1x,f15.5))
+      end subroutine contour_aperture_marker
+
+      character(len=16) function CrtApeName()
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 01-12-2016
+!     Create Aperture Name
+!     always in main code
+!-----------------------------------------------------------------------
+      implicit none
+      integer iApe, ii
+      data iApe / 0 /
+      save iApe
+      iApe=iApe+1
+      write(CrtApeName, "(A10,I6)") "auto.aper.", iApe
+      do ii=11,16
+         if ( CrtApeName(ii:ii) .eq. ' ' ) CrtApeName(ii:ii)='0'
+      enddo
+      end function CrtApeName
+
+      subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 30-11-2016
+!     interpolate aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca dbdcum
++ca comApeInfo
+
+!     interface variables
+      integer iUp, ixUp, iDw, ixDw, oKApe
+      double precision oApe(7), spos
+!     temporary variables
+      double precision ddcum, mdcum
+      integer jj
+
+      if ( kape(ixDw).gt.4 ) then
+!        force constant Racetrack or Octagon profile
+         oKApe = kape(ixDw)
+         do jj=1,7
+            oApe(jj) = ape(jj,ixDw)
+         end do
+      elseif ( kape(ixUp).gt.4 ) then
+!        force constant Racetrack or Octagon profile
+         oKApe = kape(ixUp)
+         do jj=1,7
+            oApe(jj) = ape(jj,ixUp)
+         end do
+      else
+!        force rectellipse aperture and interpolate
+         oKApe = 4
+         ddcum = spos-dcum(iUp)
+         if ( ddcum.lt.zero ) ddcum=tlen+ddcum
+         mdcum = dcum(iDw)-dcum(iUp)
+         if ( mdcum.lt.zero ) mdcum=tlen+mdcum
+! AM ->          write(*,*) ixUp,ixDw,spos,dcum(iUp),dcum(iDw),tlen,ddcum,mdcum
+         do jj=1,7
+            oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum
+     &               +ape(jj,ixUp)
+! AM ->             write(*,*) jj,ape(jj,ixDw),ape(jj,ixUp)
+         end do
+      end if
+      
+      end subroutine interp_aperture
+
+      character(len=2) function get_ape_type( tkape )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 08-12-2016
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
++ca parpro
++ca comApeInfo
+!     interface variables
+      integer tkape
+      if (tkape.eq.2) then
+         get_ape_type=rect
+      elseif (tkape.eq.3) then
+         get_ape_type=elli
+      elseif (tkape.eq.4) then
+         get_ape_type=reel
+      elseif (tkape.eq.5) then
+         get_ape_type=octa
+      elseif (tkape.eq.6) then
+         get_ape_type=ratr
+      endif
+      return
+      end function get_ape_type
+
+      subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 02-12-2016
+!     copy aperture, either from an existing one or from the one
+!       received on the fly
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca dbdcum
++ca comApeInfo
+
+!     interface variables
+      integer ixApeTo, ixApeFrom, nKApe
+      double precision nApe(7)
+!     temporary variables
+      integer jj
+
+      if ( ixApeFrom.gt.0 ) then
+!        copy aperture marker from existing SINGLE ELEMENT
+         kape(ixApeTo)=kape(ixApeFrom)
+         do jj=1,7
+            ape(jj,ixApeTo)=ape(jj,ixApeFrom)
+         end do
+      else
+!        copy aperture marker from temporary one
+         kape(ixApeTo)=nKApe
+         do jj=1,7
+            ape(jj,ixApeTo)=nApe(jj)
+         end do
+      end if
+      
+      end subroutine copy_aperture
+
+      subroutine dump_aperture_model
+!
+!-----------------------------------------------------------------------
+!     by P.Garcia Ortega, for the FLUKA Team, and A.Mereghetti
+!     last modified: 08-12-2016
+!     dump apertures 
+!     always in main code
+!-----------------------------------------------------------------------
+!
+      use floatPrecision
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca comApeInfo
++ca dbdcum
++ca crcoall
+
+!     temporary variables
+      integer i, ix
+      logical lopen
++if backtrk
+      integer iOld, ixOld, niter, oKApe,jj
+      double precision aprr,slos,step
+      dimension aprr(7)
+      character(len=2) aptype, get_ape_type
++ei
+
+      call flush
+
+      write(lout,*)''
+      write(lout,10340)
+      write(lout,*)''
+      write(lout,*)' DUMP OF APERTURE MODEL'
+      write(lout,*)''
+        
+      inquire( unit=aperunit, opened=lopen )
+      if ( .not.lopen ) then
+         if ( aperunit.ne.0 ) then
+            if ( aper_filename.eq.' ' ) then
+               open( aperunit, form='formatted' )
+               write(lout,*) 'DUMPED IN UNIT: ',aperunit
+            else
+               open( aperunit, file=aper_filename, form='formatted' )
+               write(lout,*) 'DUMPED IN FILE: ',aper_filename
+            endif
+         endif
+      endif
+
+!     Header
+      call dump_aperture_header( aperunit )
+
++if backtrk
+      iOld=1
+      ixOld=ic(iOld)-nblo
+      if ( kape(ixOld).eq.0 ) then
+         write(*,*) ' ERROR - first element of lattice structure'
+     &//' is not assigned any aperture type'
+         call prror(-1)
+      else
+         call dump_aperture_marker( aperunit, ixOld, iOld )
+      endif
++ei
+
+      call flush
+
+      do i=2,iu
+        ix=ic(i)-nblo
+        if(ix.gt.0) then
+!         SINGLE ELEMENT 
+          if ( kape(ix) .ne. 0 ) then
++if .not.backtrk
+            call dump_aperture_marker( aperunit, ix, i )
++ei
++if backtrk
+
+            !Number of iterations 
+! AM ->             write(*,*) 'i,ix,kape(ix):',i,ix,kape(ix)
+            call flush
+            if ( (dcum(i)-dcum(iOld)).gt.zero) then
+               niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
+! AM ->                write(*,*) 'niter:',niter
+               call flush
+               do jj=1,niter
+! AM ->                   write(*,*) 'dcum(iOld),dcum(i),bktpre,jj:',
+! AM ->      & dcum(iOld),dcum(i),bktpre,jj
+                  call flush
+                  slos = int(dcum(iOld)/bktpre+jj)*bktpre
+! AM ->                   write(*,*) 'slos:',slos
+                  call flush
+                  step = (slos-dcum(iOld))/(dcum(i)-dcum(iOld))
+! AM ->                   write(*,*) 'step:',step
+                  call flush
+                  if ( step.lt.zero .or. step.gt.one ) exit
+                  call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
+! AM ->             write(*,*) iOld,ixOld,i,ix,oKApe, aprr(1),
+! AM ->      &aprr(2),aprr(3),aprr(4),aprr(5),aprr(6),aprr(7),slos
+                  call flush
+                  aptype=get_ape_type( oKApe )
+! AM ->                   write(*,*) aptype
+                  call flush
+                  call dump_aperture( aperunit, bez(ix), aptype, slos,
+     & aprr )
+                  call flush
+               end do
+            end if
+! AM ->             write(*,*) 'done'
+            iOld=i
+            ixOld=ix
+            call flush
++ei
+          endif
+        endif
+      enddo
+
+ 1984 format (a16,1x,a2,8(1x,f15.5))
+10340 format(131('-'))
+
+      end subroutine dump_aperture_model
+
+      subroutine dumpMe
+      use floatPrecision
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca comApeInfo
++ca dbdcum
+
+!     temporary variables
+      integer i, ix
+
+      write(*,*) 'dumpMe - start'
+      do i=1,iu
+         ix=ic(i)-nblo
+         if ( ix.gt.0 ) then
+            write(*,*) i,bez(ix),dcum(i),kape(ix)
+         else
+            write(*,*) i,bezb(ic(i)),dcum(i)
+         endif
+      enddo
+      write(*,*) 'dumpMe - end'
+
+      end subroutine dumpMe
+
+      subroutine dump_aperture( iunit, name, aptype, spos, ape )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 08-12-2016
+!     dump single aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+!     interface variables
+      integer iunit
+      character*2 aptype
+      character*16 name
+      double precision ape(7)
+      double precision spos
+!     dump info
+      if( iunit.lt.0 ) then
+         write(*,1984) name, aptype, spos, ape(1), ape(2),
+     &             ape(3), ape(4), ape(5), ape(6), ape(7)
+      else
+         write(iunit,1984) name, aptype, spos, ape(1),
+     & ape(2), ape(3), ape(4), ape(5), ape(6), ape(7)
+      endif
+      return
+ 1984 format (1x,a16,1x,a2,8(1x,f15.5))
+      end subroutine dump_aperture
+
+      subroutine dump_aperture_marker( iunit, ixEl, iEl )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 08-12-2016
+!     dump single aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca dbdcum
++ca comApeInfo
+
+!     interface variables
+      integer iunit, iEl, ixEl
+!     temporary variables
+      character(len=2) get_ape_type, aptype
+
+      aptype=get_ape_type( kape(ixEl) )
+      call dump_aperture( iunit, bez(ixEl), aptype, dcum(iEl),
+     & ape(1:7,ixEl) )
+
+      return
+      end subroutine dump_aperture_marker
+
+      subroutine dump_aperture_header( iunit )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 30-11-2016
+!     dump single aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+!     temporary variables
+      integer iunit
+!     Header of dumped aperture markers
+      if( iunit .lt. 0 ) then
+         write(*,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',
+     & 'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]',
+     & 'yoff[mm]'
+      else
+         write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',
+     & 'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]',
+     & 'yoff[mm]'
+      endif
+      return
+ 1984 format (a1,a16,1x,a6,1x,a11,7(1x,a15))
+      end subroutine dump_aperture_header
+
+      subroutine dump_statistics( nturn, ientry, ix, unit, lhighprec )
+!
+!-----------------------------------------------------------------------
+!     by A.Mereghetti and D.Sinuela-Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     compute and dump some simple statistics about the beam population
+!     always in main code
+!-----------------------------------------------------------------------
+!
+      use floatPrecision
+      use physical_constants
+      implicit none
+
++ca parpro
++ca parnum
++ca common
 +ca commonmn
 +ca commonm1
 +ca commontr
-+if bnlelens
-+ca rhicelens
-+ei
-      save
++ca dbdcum
+
+!     interface variables:
+      integer nturn, ientry, ix, unit
+      logical lhighprec
+
+!     statistical quantities (used only locally)
+      double precision x_sum , y_sum , xpsum , ypsum
+      double precision x_sum2, y_sum2, xpsum2, ypsum2
+      double precision pcsum , dtsum , desum
+      double precision pcsum2, dtsum2, desum2
+
+!     temporary variables
+      integer japx
+
+!     initialise statistical analysis
+      x_sum=zero
+      y_sum=zero
+      xpsum=zero
+      ypsum=zero
+      pcsum=zero
+      dtsum=zero
+      desum=zero
+      x_sum2=zero
+      y_sum2=zero
+      xpsum2=zero
+      ypsum2=zero
+      pcsum2=zero
+      dtsum2=zero
+      desum2=zero
+      
+      if ( napx.eq.0 ) then
+!       this case should never happen, as aperture check is always performed
+!         beforehand, and it closes the simulation in case no particle
+!         remains to be tracked; but still, keep it in, for security
+        write(*,*) 'error while computing the statistics of the current'
+        write(*,*) '  revolution: empty beam population'
+        write(*,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: ",I8)')
+     &                 ientry, ix, bez(ix), dcum(ientry), nturn
+        call prror(-1)
+      elseif ( napx.eq.1 ) then
+        x_sum=xv(1,1)     ! [mm] 
+        y_sum=xv(2,1)     ! [mm] 
+        xpsum=yv(1,1)     ! [0.001]
+        ypsum=yv(2,1)     ! [0.001]
+        pcsum=ejfv(1)     ! [MeV/c]
+        dtsum=sigmv(1)    ! [mm] 
+        desum=(ejv(1)-e0) ! [MeV] 
+        x_sum2=zero
+        y_sum2=zero
+        xpsum2=zero
+        ypsum2=zero
+        pcsum2=zero
+        dtsum2=zero
+        desum2=zero
+      else
+!       perform analysis:
+!       - compute mean values:
+        do japx=1,napx
+           x_sum=x_sum+xv(1,japx)     ! [mm]   
+           y_sum=y_sum+xv(2,japx)     ! [mm]   
+           xpsum=xpsum+yv(1,japx)     ! [0.001]
+           ypsum=ypsum+yv(2,japx)     ! [0.001]
+           pcsum=pcsum+ejfv(japx)     ! [MeV/c]
+           dtsum=dtsum+sigmv(japx)    ! [mm]   
+           desum=desum+(ejv(japx)-e0) ! [MeV]  
+        enddo
+        x_sum=x_sum/dble(napx)       ! [mm]   
+        y_sum=y_sum/dble(napx)       ! [mm]   
+        xpsum=xpsum/dble(napx)       ! [0.001]
+        ypsum=ypsum/dble(napx)       ! [0.001]
+        pcsum=pcsum/dble(napx)       ! [MeV/c]
+        dtsum=dtsum/dble(napx)       ! [mm]   
+        desum=desum/dble(napx)       ! [MeV]
+!       - compute standard deviations:
+        do japx=1,napx
+           x_sum2=x_sum2+(xv(1,japx)-x_sum)**2
+           y_sum2=y_sum2+(xv(2,japx)-y_sum)**2
+           xpsum2=xpsum2+(yv(1,japx)-xpsum)**2
+           ypsum2=ypsum2+(yv(2,japx)-ypsum)**2
+           pcsum2=pcsum2+(ejfv(japx)-pcsum)**2
+           dtsum2=dtsum2+(sigmv(japx)-dtsum)**2
+           desum2=desum2+((ejv(japx)-e0)-desum)**2
+        enddo
+!         ...use the unbiased formulation!
+        x_sum2=sqrt(x_sum2/dble(napx-1))
+        y_sum2=sqrt(y_sum2/dble(napx-1))
+        xpsum2=sqrt(xpsum2/dble(napx-1))
+        ypsum2=sqrt(ypsum2/dble(napx-1))
+        pcsum2=sqrt(pcsum2/dble(napx-1))
+        dtsum2=sqrt(dtsum2/dble(napx-1))
+        desum2=sqrt(desum2/dble(napx-1))
+      endif
+
+!     dump it:
+      if ( lhighprec ) then
+         write(unit,1981)                                               &
+     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
+     &           x_sum*1d-3 , y_sum*1d-3 , xpsum*1d-3 , ypsum*1d-3 ,    &
+     &           pcsum*1d-3 , -1d-3*(dtsum/clight)*(e0/e0f), desum*1d6, &
+     &           x_sum2*1d-3, y_sum2*1d-3, xpsum2*1d-3, ypsum2*1d-3,    &
+     &           pcsum2*1d-3, 1d-3*(dtsum2/clight)*(e0/e0f), desum2*1d6
+      else
+         write(unit,1982)                                               &
+     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
+     &           x_sum*1d-3 , y_sum*1d-3 , xpsum*1d-3 , ypsum*1d-3 ,    &
+     &           pcsum*1d-3 , -1d-3*(dtsum/clight)*(e0/e0f), desum*1d6, &
+     &           x_sum2*1d-3, y_sum2*1d-3, xpsum2*1d-3, ypsum2*1d-3,    &
+     &           pcsum2*1d-3, 1d-3*(dtsum2/clight)*(e0/e0f), desum2*1d6
+      endif
+      return
+
+ 1981 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,14(1X,1PE25.18))
+ 1982 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,14(1X,1PE16.9))
+      end subroutine
+
+      subroutine dump_beam_mtrix( nturn, ientry, ix, unit, lhighprec )
+!
 !-----------------------------------------------------------------------
-+ca lost1c
-+ca lost2a
-+ca lost2
-+ca lost3b
-+ca lost4
-+ca lost5c
+!     by A.Mereghetti, for the FLUKA Team
+!     last modified: 02-09-2014
+!     compute and dump the beam matrix
+!     always in main code
+!-----------------------------------------------------------------------
+!
+      use floatPrecision
+      use physical_constants
+
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commonm1
++ca commontr
++ca dbdcum
+
+!     interface variables:
+      integer nturn, ientry, ix, unit
+      logical lhighprec
+
+!     statistical quantities (used only locally)
+      double precision x_sum2, y_sum2, xpsum2, ypsum2, xxpsum, yypsum
+      double precision E_sum2, dtsum2, Edtsum
+      double precision temix, temiy, tbetx, tbety, talfx, talfy
+      double precision temil, tbetl, talfl
+
+!     temporary variables
+      integer japx
+      logical lerr
+      double precision tmpE, tmpT
+
+      lerr=.false.
+
+!     initialise statistical analysis
+      x_sum2=zero
+      y_sum2=zero
+      xpsum2=zero
+      ypsum2=zero
+      xxpsum=zero
+      yypsum=zero
+      E_sum2=zero
+      dtsum2=zero
+      Edtsum=zero
+      temix=zero
+      temiy=zero
+      temil=zero
+      tbetx=zero
+      tbety=zero
+      tbetl=zero
+      talfx=zero
+      talfy=zero
+      talfl=zero
+      
+      if ( napx.eq.0 ) then
+!       this case should never happen, as aperture check is always performed
+!         beforehand, and it closes the simulation in case no particle
+!         remains to be tracked; but still, keep it in, for security
+        write(*,*)'error while computing the beam matrix of the current'
+        write(*,*)'  revolution: empty beam population'
+        write(*,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: ",I8)')
+     &                 ientry, ix, bez(ix), dcum(ientry), nturn
+        call prror(-1)
+      else
+!       compute beam matrix
+!       - sum of squares
+        do japx=1,napx
+           tmpE=(ejv(japx)-e0)*1d-3              ! [GeV]
+           tmpT=-sigmv(japx)/clight*(e0/e0f)*1d6 ! [ns]
+           x_sum2=x_sum2+(xv(1,japx))**2         ! [mm^2]
+           y_sum2=y_sum2+(xv(2,japx))**2         ! [mm^2]
+           E_sum2=E_sum2+tmpE**2                 ! [GeV^2]
+           xpsum2=xpsum2+(yv(1,japx))**2         ! [0.001^2]
+           ypsum2=ypsum2+(yv(2,japx))**2         ! [0.001^2]
+           dtsum2=dtsum2+tmpT**2                 ! [ns^2]
+           xxpsum=xxpsum+xv(1,japx)*yv(1,japx)   ! [mm*0.001]
+           yypsum=yypsum+xv(2,japx)*yv(2,japx)   ! [mm*0.001]
+           Edtsum=Edtsum+tmpE*tmpT               ! [eVs]
+        enddo
+!       - averages
+        x_sum2=x_sum2/dble(napx) ! [mm^2]
+        y_sum2=y_sum2/dble(napx) ! [mm^2]
+        E_sum2=E_sum2/dble(napx) ! [GeV^2]
+        xpsum2=xpsum2/dble(napx) ! [0.001^2]
+        ypsum2=ypsum2/dble(napx) ! [0.001^2]
+        dtsum2=dtsum2/dble(napx) ! [ns^2]
+        xxpsum=xxpsum/dble(napx) ! [mm*0.001]
+        yypsum=yypsum/dble(napx) ! [mm*0.001]
+        Edtsum=Edtsum/dble(napx) ! [eVs]
+!       - actual quantities
+!         . horizontal plane
+        temix=x_sum2*xpsum2-xxpsum**2
+        if ( temix .lt. zero ) then
+           temix=abs(temix)
+           write(*,*) ''
+           write(*,*) ' problems of precision when computing the hor'
+           write(*,*) '   emittance (beam matrix analysis)'
+           write(*,*) ' at element (ientry,ix,bez,dcum) ', 
+     &                  ientry, ix, bez(ix), dcum(ientry)
+           write(*,*) '   at turn ',nturn
+           write(*,*) ''
+           lerr=.true.
+        endif
+        temix=sqrt(temix)         ! [mm 0.001]
+        talfx=-xxpsum/temix       ! []
+        tbetx=x_sum2/temix        ! [m]
+!         . vertical plane
+        temiy=y_sum2*ypsum2-yypsum**2
+        if ( temiy .lt. zero ) then
+           temiy=abs(temiy)
+           write(*,*) ''
+           write(*,*) ' problems of precision when computing the ver'
+           write(*,*) '   emittance (beam matrix analysis)'
+           write(*,*) ' at element (ientry,ix,bez,dcum) ', 
+     &                  ientry, ix, bez(ix), dcum(ientry)
+           write(*,*) '   at turn ',nturn
+           write(*,*) ''
+           lerr=.true.
+        endif
+        temiy=sqrt(temiy)         ! [mm 0.001]
+        talfy=-yypsum/temiy       ! []
+        tbety=y_sum2/temiy        ! [m]
+!         . longitudinal plane
+        temil=E_sum2*dtsum2-Edtsum**2
+        if ( temil .lt. zero ) then
+           temil=abs(temil)
+           write(*,*) ''
+           write(*,*) ' problems of precision when computing the lon'
+           write(*,*) '   emittance (beam matrix analysis)'
+           write(*,*) ' at element (ientry,ix,bez,dcum) ', 
+     &                  ientry, ix, bez(ix), dcum(ientry)
+           write(*,*) '   at turn ',nturn
+           write(*,*) ''
+           lerr=.true.
+        endif
+        temil=sqrt(temil)         ! [eVs]
+        talfl=-Edtsum/temil       ! []
+        tbetl=dtsum2/temil        ! [ns]
+      endif
+
+!     dump it:
+      if ( lhighprec ) then
+         write(unit,1981)                                               &
+     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
+     &           temix, tbetx, talfx, temiy, tbety, talfy,
+     &           temil, tbetl, talfl
+      else
+         write(unit,1982)                                               &
+     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
+     &           temix, tbetx, talfx, temiy, tbety, talfy,
+     &           temil, tbetl, talfl
+      endif
+
+      if ( lerr ) call prror(-1)
+
+      return
+
+ 1981 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,9(1X,1PE25.18))
+ 1982 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,9(1X,1PE16.9))
+      end subroutine
+
 
       subroutine dist1
 !-----------------------------------------------------------------------
@@ -29536,6 +31585,15 @@ c$$$         endif
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
@@ -29577,6 +31635,18 @@ c$$$         endif
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     force re-computation of transport matrices of linear elements
+!     inserted in main code by the 'fluka' compilation flag
+      logical recompute_linear_matrices
++ei
+
++ca dbdcum
++ca comApeInfo
+
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -30049,7 +32119,7 @@ c$$$         endif
       endif
 
   480     continue
-          call lostpart(nthinerr)
+          !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -30080,6 +32150,15 @@ c$$$         endif
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -30125,6 +32204,18 @@ c$$$         endif
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     force re-computation of transport matrices of linear elements
+!     inserted in main code by the 'fluka' compilation flag
+      logical recompute_linear_matrices
++ei
+
++ca dbdcum
++ca comApeInfo
+
       save
 +if debug
 !-----------------------------------------------------------------------
@@ -30737,7 +32828,7 @@ c$$$         endif
 !===================================================================
 !===================================================================
 +ei
-          call lostpart(nthinerr)
+          !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -30776,6 +32867,15 @@ c$$$         endif
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -30817,6 +32917,24 @@ c$$$         endif
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     force re-computation of transport matrices of linear elements
+!     inserted in main code by the 'fluka' compilation flag
+      logical recompute_linear_matrices
+
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 12-01-2016
+!     temporary integer variable, for updating ref part
+!     inserted in main code by the 'fluka' compilation flag
+      integer mtemp
++ei
+
++ca dbdcum
++ca comApeInfo
+
       save
 !-----------------------------------------------------------------------
       nthinerr=0
@@ -31339,7 +33457,7 @@ c$$$         endif
       endif
 
   500     continue
-          call lostpart(nthinerr)
+          !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
           if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -33161,11 +35279,12 @@ c$$$         endif
         benkc(i)=zero
         r00(i)=zero
 
-        apx(i)=c1e3
-        apz(i)=c1e3
-        ape(1,i)=c1e6
-        ape(2,i)=c1e6
-        ape(3,i)=c1e12
+! Old aperture type variables
+!        apx(i)=c1e3
+!        apz(i)=c1e3
+!        ape(1,i)=c1e6
+!        ape(2,i)=c1e6
+!        ape(3,i)=c1e12
 
         ratioe(i)=one
         hsyc(i)=zero
@@ -33552,6 +35671,300 @@ c$$$         endif
 !-----------------------------------------------------------------------
       return
       end
+
+      subroutine SELNUL( iel )
+!-----------------------------------------------------------------------
+!     A.Mereghetti, 2016-03-14
+!     initialise a single element to empty
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
++ca   parpro
++ca   parnum
++ca   common
++ca   commons
++ca   comApeInfo
+
+!     local variables
+      integer iel, i1, i3, i4
+
+      kz(iel)=0
+      kp(iel)=0
+      irm(iel)=0
+      imtr(iel)=0
+      nmu(iel)=0
+      kpa(iel)=0
+      isea(iel)=0
+      ncororb(iel)=0
+      iratioe(iel)=0
+      itionc(iel)=0
+      dki(iel,1)=zero
+      dki(iel,2)=zero
+      dki(iel,3)=zero
+      ed(iel)=zero
+      el(iel)=zero
+      ek(iel)=zero
+      sm(iel)=zero
+      xpl(iel)=zero
+      xrms(iel)=zero
+      zpl(iel)=zero
+      zrms(iel)=zero
+      benkc(iel)=zero
+      r00(iel)=zero
+      
+      kape(iel)=0
+      lapeofftlt(iel)=.false.
+      do i1=1,7
+         ape(i1,iel)=c1e3
+      end do
+      ratioe(iel)=one
+      hsyc(iel)=zero
+      phasc(iel)=zero
+      ptnfac(iel)=zero
+!      wirel(iel)=zero
+      acdipph(iel)=zero
+      crabph(iel)=zero
+      crabph2(iel)=zero
+      crabph3(iel)=zero
+      crabph4(iel)=zero
+      bez(iel)=' '
+      bezl(iel)=' '
+      do 120 i3=1,2
+         do 120 i4=1,6
+            a(iel,i3,i4)=zero
++if .not.vvector
+            do 120 i1=1,2
++ei
++if vvector
+            do 120 i1=1,npart
++ei
+               al(i4,i3,i1,iel)=zero
+               as(i4,i3,i1,iel)=zero
++if .not.vvector
+               at(i4,i3,i1,iel)=zero
+               a2(i4,i3,i1,iel)=zero
++ei
+  120 continue
+      do 130 i1=1,mmul
+         bk0(iel,i1)=zero
+         ak0(iel,i1)=zero
+         bka(iel,i1)=zero
+         aka(iel,i1)=zero
+  130 continue
+      do 140 i1=1,3
+         bezr(i1,iel)=' '
+  140 continue
+      ! JBG increasing parbe to dimension 5
+      do i1=1,5
+         parbe(iel,i1)=zero
+      enddo
+      
+      return
+      end subroutine
+
+      subroutine STRNUL( iel )
+!-----------------------------------------------------------------------
+!     A.Mereghetti, 2016-03-14
+!     initialise an element in lattice structure to empty
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+      
++ca parpro
++ca parnum
++ca common
++ca commonxz
++ca commonmn
+
+!     local variables
+      integer iel, i1, i2, i3, j
+
+      ic(iel)=0
+      mzu(iel)=0
+      icext(iel)=0
++if time
+      icext35(iel)=0
++ei
+      icextal(iel)=0
+      extalign(iel,1)=zero
+      extalign(iel,2)=zero
+      extalign(iel,3)=zero
+      sigmoff(iel)=zero
+      tiltc(iel)=one
+      tilts(iel)=zero
+
+!--Beam-Beam------------------------------------------------------------
+      imbb(iel)=0
+      do j=1,40
+         exterr(iel,j)=zero
++if time
+         exterr35(iel,j)=zero
++ei
+      enddo
+      xsi(iel)=zero
+      zsi(iel)=zero
+      smi(iel)=zero
+      smizf(iel)=zero
+      do i1=1,mmul
+         aai(iel,i1)=zero
+         bbi(iel,i1)=zero
+      enddo
+      do i3=1,mmul
+         do i2=1,nmac
+            aaiv(i3,i2,iel)=zero
+            bbiv(i3,i2,iel)=zero
+         enddo
+      enddo
+      return
+      end subroutine
+
+      integer function INEELS( iEl )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 01-12-2016
+!     Insert a New Empty Element in Lattice Structure
+!     interface variables:
+!     - iEl: index in lattice structure where to insert the element
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca dbdcum
+
+!     interface variables
+      integer iEl
+!     temporary variables
+      integer i,ii,iInsert
+
+      if ( iu.gt.nblz-3) then
+         write(*,*)'ERROR: not enough space for adding element '
+     &//'in lattice structure!'
+         write(*,*)'       please, increase nblz and recompile!'
+         call prror(-1)
+      end if
+      iu=iu+1
+      if ( iEl.eq.0 ) then
+!        append
+         iInsert=iu
+      elseif ( iEl .lt. 0 ) then
+         iInsert=iu+iEl
+      else
+         iInsert=iEl
+      end if
+      if ( iInsert.le.iu ) then
+!     shift by one all lattice elements, to make room for the new
+!        starting marker
+         do i=iu,iInsert+1,-1
+            ic(i)=ic(i-1)
+            icext(i)=icext(i-1)
+            icextal(i)=icextal(i-1)
+            extalign(i,1)=extalign(i-1,1)
+            extalign(i,2)=extalign(i-1,2)
+            extalign(i,3)=extalign(i-1,3)
+            do ii=1,40
+               exterr(i,ii)=exterr(i-1,ii)
++if time
+               exterr35(i,ii)=exterr35(i-1,ii)
++ei
+            enddo
++if time
+            tcnst35(i)=tcnst35(i-1)
++ei
+            dcum(i)=dcum(i-1)
+         enddo
+      endif
+
+!     initialise element to empty
+      call STRNUL(iInsert)
+!     update dcum of added element
+      dcum(iInsert)=dcum(iInsert-1)
+!     return iu
+      INEELS=iu
+      end function INEELS
+
+      integer function INEESE()
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 01-12-2016
+!     Insert a New Empty Element (empty) in SINGLE ELEMENTS
+!     for the moment, it only appends the new single element
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
+
+      il=il+1
+      if ( il.gt.nele ) then
+         write(*,*)'ERROR: not enough space for adding element '
+     &//'in list of SINGLE ELEMENTs!'
+         write(*,*)'       please, increase nele and recompile!'
+         call prror(-1)
+      endif
+
+!     initialise element to empty
+      call SELNUL(il)
+
+!     returned variable
+      INEESE=il
+
+      end function INEESE
+
+
+      integer function check_SE_unique( iEl, ixEl )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 01-12-2016
+!     check that a given entry in the sequence is unique
+!     interface variables:
+!     - iEl:  index in lattice structure to be checked
+!     - ixEl: index in array of SINGLE ELEMENTs of the element to be checked
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+
+      implicit none
+
++ca parpro
++ca parnum
++ca common
++ca commonmn
++ca commontr
++ca dbdcum
+
+!     interface variables
+      integer iEl, ixEl
+!     temporary variables
+      integer i,ix
+
+      check_SE_unique=-1
+      do i=1,iu
+         ix=ic(i)-nblo
+         if(ix.gt.0) then
+!     SINGLE ELEMENT 
+            if ( i.ne.iEl .and. ix.eq.ixEl ) then
+               check_SE_unique=i
+               exit
+            endif
+         endif
+      enddo
+
+      return
+      
+      end function check_SE_unique
+
 +dk umschr
       subroutine umschr(iu1,iu2)
 !-----------------------------------------------------------------------
@@ -35652,6 +38065,15 @@ c$$$         endif
       use floatPrecision
       use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : error_unit
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
 +ca crcoall
       integer ier
@@ -35663,6 +38085,15 @@ c$$$         endif
 +if bnlelens
 +ca rhicelens
 +ei
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     status of connection
+!     inserted in main code by the 'fluka' compilation flag
+      integer fluka_con
++ei
+
 +ca errout
       save
 !-----------------------------------------------------------------------
@@ -35894,6 +38325,9 @@ c$$$         endif
 
  1870 continue
 !-----------------------------------------------------------------------
++if fluka
++ca flukaclose
++ei
       call closeUnits
 +if cr
       call abend('                                                  ')
@@ -37176,7 +39610,7 @@ c$$$            endif
         gazii=t(4,4)**2+t(5,4)**2                                        !hr06
         if(abs(t(2,1)).gt.pieni) phxi=atan2_mb(t(3,1),t(2,1))
         if(abs(t(4,1)).gt.pieni) phxii=atan2_mb(t(5,1),t(4,1))
-        if(abs(t(4,1)).gt.pieni) phxii=atan2(t(5,1),t(4,1))
+        if(abs(t(4,1)).gt.pieni) phxii=atan2_mb(t(5,1),t(4,1))
         if(abs(t(2,3)).gt.pieni) phzi=atan2_mb(t(3,3),t(2,3))
         if(abs(t(4,3)).gt.pieni) phzii=atan2_mb(t(5,3),t(4,3))
         if(abs(t(2,2)).gt.pieni) phxpi=atan2_mb(t(3,2),t(2,2))
