@@ -1371,8 +1371,13 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{frequency}   & MHz     & Frequency \\
     & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
   \hline
-    \multirow{3}{*}{\parbox{4cm}{Electron lens \\ ($\pm$29),\\ Section~\ref{sec:elen}}}
+    \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
     & \texttt{thetamax}     & mrad      & Maximum angular kick \\
+    &      &       &  \\
+    &      &       &  \\
+  \hline
+    \multirow{3}{*}{\parbox{4cm}{Scattering \\ (40),\\ Section~\ref{sec:scatter}}}
+    & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter:elem} \\
     &      &       &  \\
     &      &       &  \\
   \hline
@@ -1903,7 +1908,7 @@ The FLUKA version implements this, we should make sure that we are compatible wi
 \paragraph{Format} \emph{name type thetamax r2 r2ovr1 offset\_x offset\_y flag\_entrance flag\_exit}
 A description of the input parameters for the different e-lens types is given in Table~\ref{tab:elen}. Currently only the ideal hollow electron lens is implemented in SixTrack (type ANNULAR).
 \begin{center}
-	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{9.2cm}|}
+	\begin{longtable}{|p{2.25cm} | p{2.0cm} p{1.0cm} p{9.0cm}|}
 		%Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
 		\caption{Input parameters for ELEN block.}
 		\label{tab:elen} \\*
@@ -1936,7 +1941,7 @@ A description of the input parameters for the different e-lens types is given in
 		
 		& \emph{type} & - &
 		type of electron lens. Available types are ANNULAR. \\*
-		\hline
+		%\hline
 
 		\hline
 		\rowcolor{blue!15}
@@ -1987,6 +1992,21 @@ BLOC56            hel1              hel2
 \end{verbatim}
 Note that all parameters except for the type are set to 0 in the single element definition.
 
+\subsection{Scattering}
+\label{sec:scatter}
+
+\subsubsection{ELEMent}
+\label{sec:scatter:elem}
+
+\subsubsection{PROfile}
+%\label{sec:scatter:pro}
+
+\subsubsection{GENerator}
+%\label{sec:scatter:gen}
+
+\subsubsection{SEED}
+
+\subsubsection{DEBUG}
 
 \section{Organising Tasks}
 

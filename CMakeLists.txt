@@ -7,7 +7,7 @@
 ###################################################################################################
 
 #Set the cmake version required
-cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
@@ -242,22 +242,29 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 
 # Select which fortran files to generate and compile
 if(DA)
-	SET(FORS sixda sixsc sixscfox dabnew lielib)
+	LIST(APPEND FORS_FIXFORM sixda sixsc sixscfox dabnew lielib)
 else()
-	SET(FORS track sixve sixvefox dabnews lielib plato_seq)
+	LIST(APPEND FORS_FIXFORM track sixve sixvefox dabnews lielib plato_seq)
+	LIST(APPEND FORS_FREEFORM beamgas scatter)
 endif()
 
 if(NOT DA AND DATAMODS)
-	SET(FORS datamods ${FORS})
+	LIST(APPEND FORS_FIXFORM datamods)
 endif()
 
 if(COLLIMAT)
-	SET(FORS collimation ${FORS})
+	LIST(APPEND FORS_FIXFORM collimation)
 endif()
 
-foreach(loop IN ITEMS ${FORS})
+foreach(loop IN LISTS FORS_FIXFORM)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
+foreach(loop IN LISTS FORS_FREEFORM)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
+endforeach()
+
+#List of files that must be treated by DAFOR
+LIST(APPEND FORS_DAFOR sixvefox sixscfox sixda)
 
 if(BOINC AND NOT API)
 	#We have a BOINC build but no API, load the fake API substitute for debugging.
@@ -268,10 +275,6 @@ if(LIBARCHIVE)
 	add_library(libArchive_wrapper STATIC  libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
 	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif()
-
-#add back in beamgas, which is in free format
-SET(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} beamgas.f90)
-SET(FORS ${FORS} beamgas)
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -958,7 +961,7 @@ endif()
 
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s)
+file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
@@ -1078,8 +1081,7 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-
-foreach(loop IN ITEMS ${FORS})
+foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
 	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
@@ -1185,23 +1187,34 @@ foreach(loop IN ITEMS ${FORS})
 endforeach(loop)
 
 add_custom_target(generate_input)
-add_dependencies(generate_input run_astuce dafor rename_beamgas)
+add_dependencies(generate_input run_astuce dafor)
 
-#we rename beamgas.f to beamgas.f90 since it should be in free format fortran
-add_custom_target(rename_beamgas)
-add_dependencies(rename_beamgas run_astuce)
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/beamgas.f90 COMMAND ${CMAKE_COMMAND} -E copy beamgasn.f beamgas.f90 DEPENDS rename_beamgas)
-
-foreach(loop IN ITEMS ${FORS})
-	#This runs astuce
-#	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> < ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast  > ${loop}_ast.log)
+## Run ASTUCE and DAFOR to generate Fortran source files ##
+foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
+	message(STATUS "Will run astuce to generate ${loop}n.f using ${loop}.ast")
 	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
-
-	if(${loop} STREQUAL sixvefox OR ${loop} STREQUAL sixscfox OR ${loop} STREQUAL sixda)
-		message(STATUS "Will run dafor on ${loop}.f")
+	
+	LIST(FIND FORS_DAFOR   ${loop}  FORS_DAFOR_LISTINDEX )
+	LIST(FIND FORS_FIXFORM ${loop}  FORS_FIXFORM_LISTINDEX )
+	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
+	
+	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
+		message(STATUS "Will run dafor to generate ${loop}.f from ${loop}n.f")
+		if(NOT ${FORS_FIXFORM_LISTINDEX} GREATER -1)
+			message(FATAL_ERROR "Was configured to run dafor on ${loop}, but this is not a fixform file!")
+		endif()
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND $<TARGET_FILE:dafor> ${loop}n.f ${loop}.f > ${loop}_dafor.log DEPENDS run_astuce)
-	else()
+		
+	elseif(${FORS_FIXFORM_LISTINDEX} GREATER -1)
+		message(STATUS "Will copy ${loop}n.f to ${loop}.f")
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f DEPENDS run_astuce)
+		
+	elseif(${FORS_FREEFORM_LISTINDEX} GREATER -1)
+		message(STATUS "Will copy ${loop}n.f to ${loop}.f90")
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f90 DEPENDS run_astuce)
+		
+	else()
+		message(FATAL_ERROR "Error when preprocessing ${loop}: Logic error in CMakeLists.txt.")
 	endif()
 endforeach()
 

@@ -171,11 +171,11 @@
 ! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,
+      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,
+      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,        &
      &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
@@ -1321,20 +1321,20 @@
 !     some variables / parameters for a more flexible parsing of input lines
 !     always in main code
 
-*     parameters for the parser
+!     parameters for the parser
       integer getfields_n_max_fields, getfields_l_max_string
       parameter ( getfields_n_max_fields = 10  ) ! max number of returned fields
       parameter ( getfields_l_max_string = 161 ) ! max len of parsed line and its fields
                                                  ! (nchars in daten +1 to always make room for \0)
 
-*     array of fields
-      character getfields_fields
+!     array of fields
+      character getfields_fields                                        &
      &     ( getfields_n_max_fields )*( getfields_l_max_string )
-*     number of identified fields
+!     number of identified fields
       integer getfields_nfields
-*     length of each what:
+!     length of each what:
       integer getfields_lfields( getfields_n_max_fields )
-*     an error flag
+!     an error flag
       logical getfields_lerr
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1343,7 +1343,7 @@
 ! Definitions necessary for using the "stringzerotrim" function,
 ! which is defined in deck "stringhandling".
 ! Requires block comgetfields for getfields_l_max_string.
-! Used in at least DYNK, FMA, ZIPF, and DUMP.
+! Used in at least DYNK, FMA, ZIPF, DUMP, and SCATTER.
 ! K. Sjobak, BE-ABP/HSS
       integer stringzerotrim_maxlen
       parameter (stringzerotrim_maxlen=getfields_l_max_string) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
@@ -2279,6 +2279,18 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
      &'1.'
                 call prror(-1) 
               end select
++cd scat_tck
+      !Thick scattering
+      if (scatter_debug) then
+         write(lout,*) "SCATTER> In scat_tck, ix=",
+     &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
+      endif
+!     TODO
++cd scat_thi
+      !Thin scattering
+      ! It is already checked that scatter_elemPointer != 0
+      call scatter_thin(ix,n)
+      
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
@@ -4898,6 +4910,13 @@ C     Block with data/fields needed for checkpoint/restart of DYNK
 !electron lens (HEL)
         if(kzz.eq.29) then
           ktrack(i)=63
+          goto 290
+        endif
++cd scatter
+! SCATTER block
+       if (kzz.eq.40 .and. scatter_elemPointer(ix).ne.0) then
+          ! FOR NOW, ASSUME THIN SCATTER; ktrack(i)=65 RESERVED FOR THICK SCATTER
+          ktrack(i)=64
           goto 290
         endif
 +cd crab1
@@ -9069,7 +9088,7 @@ cc2008
 +if .not.datamods
       subroutine nodatamods
 +ca crcoall
-      write(lout,*)
+      write(lout,*)                                                     &
      &"Dummy routine in bigmats.f if beamgas module is off."
       end subroutine
 +ei
@@ -9139,12 +9158,13 @@ cc2008
       end subroutine
       
       subroutine deallocate_thickarrays
-      
+      !TODO
       end subroutine
       
       end module
 +dk close
       subroutine closeUnits
+      use scatter, only : scatter_closefiles
       implicit none
 +ca parpro
 +ca common
@@ -9367,7 +9387,6 @@ cc2008
             endif
          end do
       end if
-      
 
 !     Close BDEX
       if (bdex_enable) then
@@ -9380,6 +9399,9 @@ cc2008
          enddo
       endif
 
+      call scatter_closefiles
+      
+      return
       end subroutine
 +dk cor_ord
       subroutine coruord
@@ -11910,6 +11932,12 @@ cc2008
 !-----------------------------------------------------------------------
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
+      use scatter, only : scatter_active, scatter_debug,
+     &     scatter_seed1,scatter_seed2,
+     &     scatter_dumpdata,
+     &     scatter_parseELEM, scatter_parseProfile,
+     &     scatter_parseGenerator, scatter_parseSEED,
+     &     scatter_allocate
       implicit none
 +ca crcoall
 +if crlibm
@@ -12040,6 +12068,10 @@ cc2008
 !     - zipf
       character*16 zipf
       data zipf /'ZIPF'/
+!     - scatter
+      character*16 scat
+      data scat /'SCAT'/
+      
 +if crlibm
       double precision round_near
 +ei
@@ -12274,6 +12306,7 @@ cc2008
       !DIST = 2600
       !HION = 2700
       if(idat.eq.zipf) goto 2800
+      if(idat.eq.scat) goto 2900
       
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -16929,8 +16962,8 @@ cc2008
      &           len(ch), ": '"// trim(ch)// "'"
             do ii=1,getfields_nfields
                write (lout,*)
-     &              "DYNKDEBUG> Field(",ii,") ='",
-     &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+     &              "DYNKDEBUG> Field(",ii,") ='"//
+     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
             enddo
          endif
          call dynk_parseFUN(getfields_fields,
@@ -16947,8 +16980,8 @@ cc2008
      &           len(ch), ": '"//trim(ch)//"'"
             do ii=1,getfields_nfields
                write (lout,*)
-     &              "DYNKDEBUG> Field(",ii,") ='",
-     &              getfields_fields(ii)(1:getfields_lfields(ii)),"'"
+     &              "DYNKDEBUG> Field(",ii,") ='"//
+     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
             enddo
          endif
          call dynk_parseSET(getfields_fields,
@@ -17690,7 +17723,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  ZIPF
 !  K. Sjobak, BE-ABP/HSS
-!  Last modified: 7/2 2017
+!  Last modified: 7/2-2017
 !-----------------------------------------------------------------------
  2800 read(3,10020, end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -17752,6 +17785,85 @@ cc2008
      &     getfields_fields(1)(1:getfields_lfields(1))
       
       goto 2800                 !Read the next line of the ZIPF block
+
+!-----------------------------------------------------------------------
+!  SCATTER
+!  K. Sjobak, V. Olsen BE-ABP-HSS
+!  Last modified: 29-08-2017
+!-----------------------------------------------------------------------
+ 2900 continue
+      !We have a SCATTER block; let's allocate the memory for it!
+      call scatter_allocate
+      
+ 2901 read(3,10020, end=1530, iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2901 ! skip comment line
+      
+      if (ch(:4).eq.next) then
+         
+         if (scatter_active) then
+            write(lout,*) "ERROR while parsing SCATTER in fort.3"
+            write(lout,*) "More than one SCATTER block encountered?"
+            call prror(-1)
+         end if
+         scatter_active = .true.
+
+         if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
+            write(lout,*) "ERROR while parsing SCATTER in fort.3"
+            write(lout,*) "No SEED sets were specified"
+            call prror(-1)
+         endif
+         
+         if (scatter_debug) call scatter_dumpdata
+         goto 110               !Read next block or ENDE
+      endif
+      
+      if (ch(:5).eq."DEBUG") then
+         scatter_debug = .true.
+         write(lout,'(a)') "SCATTER> Scatter block debugging is ON."
+         goto 2901
+      endif
+      
+      call getfields_split( ch, getfields_fields, getfields_lfields,
+     &     getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) call prror(51)
+      if (scatter_debug) then
+         write (lout,'(A,I4,A)')
+     &        "SCATTER> Got a block, len=",
+     &        len(trim(ch)), ": '"// trim(ch)// "'"
+         do ii=1,getfields_nfields
+            write (lout,'(a,I4,A)')
+     &           "SCATTER> Field(",ii,") ='"//
+     &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
+         enddo
+      endif
+
+      ! ***** PARSE SCATTER ELEM STATEMENT *****
+      if (ch(:4).eq."ELEM") then
+         call scatter_parseElem(getfields_fields,getfields_lfields,     &
+     &                          getfields_nfields)
+      ! ***** PARSE SCATTER PRO STATEMENT *****
+      else if (ch(:3).eq."PRO") then
+         call scatter_parseProfile(getfields_fields,getfields_lfields,  &
+     &                             getfields_nfields)
+      ! ***** PARSE SCATTER GEN STATEMENT *****
+      else if (ch(:3).eq."GEN") then
+         call scatter_parseGenerator(getfields_fields,getfields_lfields,&
+     &                               getfields_nfields)
+      ! ***** PARSE SCATTER SEED STATEMENT *****
+      else if (ch(:4).eq."SEED") then
+         call scatter_parseSEED(getfields_fields,getfields_lfields,     &
+     &                          getfields_nfields)
+      else
+         write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
+         write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
+         call prror(-1)
+      endif
+      
+      goto 2901                 !Read the next line of the SCATTER block
+      
 !----------------------------------------------------------------------------
 !     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
 !-----------------------------------------------------------------------------
@@ -23751,6 +23863,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use scatter, only : scatter_active, scatter_initialize
       use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
 +ca crcoall
@@ -25731,6 +25844,12 @@ C Should get me a NaN
         endif !If ldump(i) -> Dump on this element
       enddo !Loop over elements with index i
 
+      ! ! ! Initialize SCATTER ! ! !
+      if (scatter_active) then
+         call scatter_initialize
+      endif
+
+      
 !                                !
 !     ****** TRACKING ******     !
 !                                !
@@ -26233,6 +26352,7 @@ C Should get me a NaN
 !!--------------------------------------------------------------------------
 !<
       subroutine trauthin(nthinerr)
+      use scatter, only : scatter_elemPointer
       implicit none
 +ca crcoall
 +if crlibm
@@ -26272,6 +26392,7 @@ C Should get me a NaN
 +ca stringzerotrim
 +ca comdynk
       logical dynk_isused
+! +ca elensparam
 +ca parbeam_exp
       save
 !-----------------------------------------------------------------------
@@ -26331,22 +26452,22 @@ C Should get me a NaN
 +ca beam13
 +ca beama4o
             else if(ibtyp.eq.1) then
-+ca beam11
++ca beam11   !do j=1,napx
 +ca beama1
 +ca beamcoo
 +ca beama2
 +ca beama3
-+ca beamwzf1
-+ca beama4o
-+ca beams23
-+ca beam21
++ca beamwzf1 !end do; do j=1,napx
++ca beama4o  !end do
++ca beams23  !end if; end if; end if;    if;if;if
++ca beam21   !do
 +ca beama1
 +ca beamcoo
 +ca beama2
 +ca beam22
 +ca beama3
 +ca beam23
-+ca beama4o
++ca beama4o !end do
             else if(ibtyp.eq.1) then
 +ca beam21
 +ca beama1
@@ -26355,13 +26476,14 @@ C Should get me a NaN
 +ca beama3
 +ca beamwzf2
 +ca beama4o
-+ca beams24
++ca beams24 !end if; end if; end if; goto 290
 
 +ca wire
 +ca acdip1
 +ca crab1
 +ca crab_mult
 +ca elens
++ca scatter
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
@@ -27246,6 +27368,7 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use scatter, only : scatter_thin, scatter_debug
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
@@ -27446,14 +27569,20 @@ C Should get me a NaN
 
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
-! JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
+!     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
+!          if (ktrack(i) .eq. 1) then !BLOCK of linear elements
+!             write (lout,*) "Kick for element", i,ix, "[BLOCK]"
+!          else
+!             write(lout,*) "Kick for element",
+!     &            i,ix,bez(ix),ktrack(i),kp(ix)
+!          endif
           goto( 10, 30,740,650,650,650,650,650,650,650,!1-10
      &          50, 70, 90,110,130,150,170,190,210,230,!11-20
      &         440,460,480,500,520,540,560,580,600,620,!21-30
      &         640,410,250,270,290,310,330,350,370,390,!31-40
      &         680,700,720,730,748,650,650,650,650,650,!41-50
      &         745,746,751,752,753,754,755,758,756,759,!51-60
-     &         757,760,761),ktrack(i)
+     &         757,760,761,762,763),ktrack(i)
 +ei
 +if collimat
 !          if (myktrack .eq. 1) then !BLOCK of linear elements
@@ -27467,7 +27596,7 @@ C Should get me a NaN
      &        640, 410, 250, 270, 290, 310, 330, 350, 370, 390, !31-40
      &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !41-50
      &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !51-60
-     &        757, 760, 761 ),myktrack
+     &        757, 760, 761, 762, 763 ),myktrack
           write (lout,*) "WARNING: Non-handled element in thin6d()!",
      &                " i=", i, "ix=", ix, "myktrack=",  myktrack,
      &                " bez(ix)='", bez(ix),"' SKIPPED"
@@ -28012,6 +28141,14 @@ C Should get me a NaN
          do j=1,napx
 +ca kickelens
          enddo
+         goto 640
+!--scatter (thin)
+ 762     continue
++ca scat_thi
+         goto 640
+!--scatter (thick)
+ 763     continue
++ca scat_tck
          goto 640
 !----------------------------
 
@@ -33804,7 +33941,16 @@ C Should get me a NaN
 +if datamods
       use bigmats
 +ei
+      use scatter, only :
+     &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,
+     &scatter_PROFILE, scatter_GENERATOR,
+     &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
+     &scatter_nidata, scatter_nfdata, scatter_ncdata,
+     &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,
+     &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,
+     &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
       implicit none
+      
 +if crlibm
 +ca crlibco
 +ei
@@ -34477,7 +34623,7 @@ C Should get me a NaN
       
       do i=1,maxdata_dynk
          iexpr_dynk(i) = 0
-         fexpr_dynk(i) = 0.0
+         fexpr_dynk(i) = zero
          do j=1,maxstrlen_dynk
             cexpr_dynk(i)(j:j) = char(0)
          enddo
@@ -34497,7 +34643,7 @@ C Should get me a NaN
             csets_unique_dynk(i,1)(j:j) = char(0)
             csets_unique_dynk(i,2)(j:j) = char(0)
          enddo
-         fsets_origvalue_dynk(i) = 0.0
+         fsets_origvalue_dynk(i) = zero
       enddo
       
       do i=1,nele
@@ -34547,6 +34693,46 @@ C Should get me a NaN
          enddo
       enddo
       
+!--SCATTER-------------------------------------------------------------
+      scatter_debug = .false.
+      scatter_nidata = 0
+      scatter_nfdata = 0
+      scatter_ncdata = 0
+      scatter_nELEM  = 0
+      scatter_nPROFILE = 0
+      scatter_nGENERATOR  = 0
+
+      do i=1,nele
+         scatter_elemPointer(i) = 0
+      end do
+
+      do i=1,scatter_maxELEM
+         do j=1,scatter_maxGenELEM
+            scatter_ELEM(i,j) = 0
+         end do
+         scatter_ELEM_scale(i) = zero
+      end do
+      
+      do i=1,scatter_maxPROFILE
+         scatter_PROFILE(i,1)=0
+         scatter_PROFILE(i,2)=0
+         scatter_PROFILE(i,3)=0
+         scatter_PROFILE(i,4)=0
+         scatter_PROFILE(i,5)=0
+      end do
+      
+      do i=1,scatter_maxGENERATOR
+         scatter_GENERATOR(i,1)=0
+         scatter_GENERATOR(i,2)=0
+         scatter_GENERATOR(i,3)=0
+         scatter_GENERATOR(i,4)=0
+         scatter_GENERATOR(i,5)=0
+      end do
+
+      scatter_seed1 = -1
+      scatter_seed2 = -1
+      
+!--COLLIMATION----------------------------------------------------------
 +if collimat
 !--COLLIMATION----------------------------------------------------------
       do_coll = .false.
@@ -39050,7 +39236,7 @@ C Should get me a NaN
 
       if (getfields_nfields .ne. 7) then
          write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-         write (lout,*) "Expected 6 fields on line while parsing SET."
+         write (lout,*) "Expected 7 fields on line while parsing SET."
          write (lout,*) "Correct syntax:"
          write (lout,*) "SET element_name attribute_name function_name",
      &                  " startTurn endTurn turnShift"
@@ -40283,6 +40469,7 @@ C+ei
 !     last modified: 31-10-2014
 !     Set the value of the element's attribute
 !-----------------------------------------------------------------------
+      use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       implicit none
 
 +ca parpro
@@ -40296,7 +40483,7 @@ C+ei
 +ca comdynk
 +ca elensparam
 +ca crcoall
-
+      
       character(maxstrlen_dynk) element_name, att_name
       double precision newValue
       intent (in) element_name, att_name, newValue
@@ -40447,6 +40634,13 @@ c$$$            endif
                else
                   goto 100 !ERROR
                endif
+
+            elseif (el_type.eq.40) then          ! Scatter
+               if(att_name_stripped.eq."scaling") then
+                  scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
+               else
+                  goto 100 !ERROR
+               endif
                
             else
                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
@@ -40490,6 +40684,7 @@ c$$$            endif
 !     Note: Expects that arguments element_name and att_name are
 !     zero-terminated strings of length maxstrlen_dynk!
 !-----------------------------------------------------------------------
+      use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       implicit none
 +ca parpro
 +ca parnum
@@ -40501,7 +40696,7 @@ c$$$            endif
 +ca comdynk
 +ca elensparam
 +ca crcoall
-
+      
       character(maxstrlen_dynk) element_name, att_name
       intent(in) element_name, att_name
       
@@ -40636,6 +40831,14 @@ c$$$               endif
             elseif (el_type.eq.29) then     ! Electron lens
                if(att_name_s.eq."thetamax") then ! [mrad]
                   dynk_getvalue = elens_theta_max(ii)
+               else
+                  goto 100 !ERROR
+               endif
+
+            elseif (el_type.eq.40) then ! Scatter
+               if(att_name_s.eq."scaling") then
+                  dynk_getvalue =
+     &                 scatter_ELEM_scale(scatter_elemPointer(ii))
                else
                   goto 100 !ERROR
                endif
@@ -58187,824 +58390,4 @@ c$$$         backspace (93,iostat=ierro)
  100  format (a10,(Z20))
       end
 !DUMPS
-+ei
-+dk hdf5K
-+if hdf5
-!>
-!! @brief module that contains the code necessary for hdf5 support
-!!
-!<
-      MODULE SIXTRACKHDF5
-      
-      USE HDF5
-      
-      IMPLICIT NONE
-
-        CHARACTER(LEN=20), PARAMETER :: HFNAME = "tracks2.h5"
-        INTEGER(HID_T) :: hfile_id
-        INTEGER(HID_T) :: h5set_id       ! Dataset identifier
-        INTEGER(HID_T) :: h5space_id,memspace     ! Dataspace identifier
-        INTEGER(HID_T) :: crp_list        ! dataset creatation property identifier 
-        CHARACTER(LEN=6), PARAMETER :: h5setname = "tracks"     ! Dataset name
-        INTEGER     ::   h5error
-        INTEGER, PARAMETER :: incr = 1024
-        INTEGER(HSIZE_T), DIMENSION(2) :: h5dims,maxdims,data_dims,     &
-     &                                    offset
-        INTEGER     ::   h5rank = 2                        ! Dataset rank
-        REAL, DIMENSION(9,incr) :: data_in2
-      CONTAINS
-      
-      SUBROUTINE WRITETOFILE
-+if debug
-+ca crcoall
-+ei
-          CALL h5dextend_f(h5set_id, h5dims, h5error)
-          CALL h5dget_space_f(h5set_id, h5space_id, h5error)
-          
-          !
-          ! Get updated dataspace
-          !
-          data_dims(1)=9 ! to be sure..
-          data_dims(2)=mod(h5dims(2)-1,incr)+1
-          offset(1)=0
-          offset(2)=h5dims(2)-data_dims(2)
-          !
-          ! Select hyperslab in the dataset.
-          !
-          CALL h5sselect_hyperslab_f(h5space_id, H5S_SELECT_SET_F,      &
-     &                               offset, data_dims , h5error)
-          CALL h5screate_simple_f(h5rank, data_dims, memspace, h5error) 
-+if debug
-      write (lout,*) "DBG HDFw",h5dims,"off",offset,"ddims",data_dims
-+ei
-          CALL H5dwrite_f(h5set_id, H5T_NATIVE_REAL, data_in2,          &
-            data_dims, h5error,file_space_id = h5space_id, mem_space_id &
-     &       = memspace)
-      END SUBROUTINE WRITETOFILE
-      END MODULE SIXTRACKHDF5
-     
-      !>
-      !! @todo attribute (header) not yet working...
-      !< 
-      SUBROUTINE INITHDF5
-        USE SIXTRACKHDF5
-
-        CHARACTER(LEN=9), PARAMETER :: aname = "header"   ! Attribute name
-
-        INTEGER(HID_T) :: attr_id       ! Attribute identifier 
-        INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier 
-        INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier 
-        INTEGER(HSIZE_T) :: adims = 1   ! Attribute dimension
-        INTEGER     ::   arank = 1      ! Attribure rank
-        INTEGER(SIZE_T) :: attrlen      ! Length of the attribute string
-
-        CHARACTER*80 ::  attr_data      ! Attribute data
-        attr_data = "1=pid 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type"
-        attrlen = 80
-        h5dims=(/9,0/)
-
-          !Initialize FORTRAN predifined datatypes
-          CALL h5open_f(h5error) 
-
-          CALL h5fcreate_f(HFNAME, H5F_ACC_TRUNC_F, hfile_id, h5error)
-          
-          !Create the data space with unlimited length.
-          maxdims = (/INT(9,HSIZE_T), H5S_UNLIMITED_F/)
-          CALL h5screate_simple_f(h5rank, h5dims, h5space_id,           &
-     &      h5error, maxdims)
-          !Modify dataset creation properties, i.e. enable chunking
-          CALL h5pcreate_f(H5P_DATASET_CREATE_F, crp_list, h5error)
-          CALL h5pset_deflate_f (crp_list, 4, h5error)
-          
-          data_dims=(/9,incr/)
-          CALL h5pset_chunk_f(crp_list, h5rank, data_dims, h5error)
-          
-          !Create a dataset with 9Xunlimited dimensions using cparms creation properties .
-          CALL h5dcreate_f(hfile_id, h5setname, H5T_NATIVE_REAL,        &
-     &                     h5space_id, h5set_id, h5error, crp_list )
-
-          ! Create datatype for the attribute.
-          CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, h5error)
-          CALL h5tset_size_f(atype_id, attrlen, h5error)
-
-          !Create a dataspace for the attribute
-          CALL h5screate_f(H5S_SCALAR_F,aspace_id,h5error)
-
-          ! Create dataset attribute.
-          CALL h5acreate_f(h5set_id, aname, atype_id, aspace_id,        &
-     &                     attr_id, h5error)
-          
-          ! Write the attribute data.
-          data_dims(1) = 1
-          CALL h5awrite_f                                               &
-     &    (attr_id, atype_id, attr_data, data_dims, h5error)
-          data_dims(1) = 9
-          ! Close the attribute. 
-          CALL h5aclose_f(attr_id, h5error)
-    
-      END SUBROUTINE INITHDF5
-
-      SUBROUTINE APPENDREADING(pid,turn,s,x,xp,y,yp,dee,typ)
-       USE SIXTRACKHDF5
-       INTEGER turn,pid,typ
-       DOUBLE PRECISION x,xp,y,yp,dee,s
-+if debug
-+ca crcoall
-+ei
-
-+if debug
-      write (lout,*) "DBG HDF app: using position mod(h5dims(2),incr)", &
-      & mod(h5dims(2),incr)
-+ei
-       data_in2(1,mod(h5dims(2),incr) + 1)=pid
-       data_in2(2,mod(h5dims(2),incr) + 1)=turn
-       data_in2(3,mod(h5dims(2),incr) + 1)=s
-       data_in2(4,mod(h5dims(2),incr) + 1)=x
-       data_in2(5,mod(h5dims(2),incr) + 1)=xp
-       data_in2(6,mod(h5dims(2),incr) + 1)=y
-       data_in2(7,mod(h5dims(2),incr) + 1)=yp
-       data_in2(8,mod(h5dims(2),incr) + 1)=dee
-       data_in2(9,mod(h5dims(2),incr) + 1)=typ
-
-       h5dims(2)=h5dims(2)+1
-+if debug
-       write (lout,*) "DBG HDF app: h5dims(2) now,", h5dims(2)
-+ei
-
-+if debug
-!rkwee
-       write (lout,*) "DBG HDF app: data_in2[-1]", pid, turn, &
-       & s, x, xp, y, yp, dee, typ
-+ei
-          !
-          !Extend the dataset. Dataset becomes 10 x 3.
-          !
-          if (mod(h5dims(2),incr).eq.0) then
-              CALL WRITETOFILE()
-          endif
-      END SUBROUTINE APPENDREADING
-      
-      SUBROUTINE CLOSEHDF5
-       USE SIXTRACKHDF5
-        
-          if (mod(h5dims(2),incr).ne.0) then
-              CALL WRITETOFILE()
-          endif
-
-       !
-       ! End access to the dataset and release resources used by it.
-       !
-       CALL h5dclose_f(h5set_id, h5error)
-  
-       !
-       ! Terminate access to the data space.
-       !
-       CALL h5sclose_f(h5space_id, h5error)
-     
-       !
-       ! Close the file.
-       !
-       CALL h5fclose_f(hfile_id, h5error)
-  
-       !
-       ! Close FORTRAN interface.
-       !
-       CALL h5close_f(h5error)
-      END SUBROUTINE CLOSEHDF5
-+ei
-+dk beamGasK
-+if .not.beamgas
-      subroutine nobeamgasactive
-+ca crcoall
-      write(lout,*) &
-      "Dummy routine in beamgas.f if beamgas module off"
-      end subroutine
-+ei
-+if beamgas
-!>
-!! @brief Module containing constants for beamgas part
-!!
-!<
-      module beamgascommon
-!       common to beamGasInit and beamGas
-      integer, parameter :: bgmaxx=40000,bamount=1000
-      integer bgmax,bgid,bgiddb(bgmaxx),ibgloc,pressID,njobs,njobthis,  &
-     &        dpmjetevents
-      real pressARRAY(2,bgmaxx)
-!       bgParameters are s_null, n_null and n_here
-!       these values are needed to know when enough particles are scattered
-!       at a given point
-!       s_null tells you how far the scattering process has gone so far
-!       required that s_now > s_null (move s_null to s_now+ small delta
-!       afterwards)
-!       n_null tells you how many particles are scattered in previous gas
-!       elements
-!       n_here is a counter telling you how many particles are scattered
-!       at this location
-      double precision bgParameters(3)
-      real bgxpdb(bgmaxx),bgypdb(bgmaxx),bgEdb(bgmaxx)
-      end module beamgascommon
-
-      module lorentzcommon
-      ! Common to lorentzBoost and createLorentzMatrix
-      double precision lorentzmatrix(4,4),new4MomCoord(4)
-      end module lorentzcommon
-!>
-!! \brief YIL subroutine beam gas scattering process.
-!!
-!! 
-!! This is a part of the inclusion of beam gas simulation for sixtrack
-!!
-!! Any "pressure element" (i.e. an element starting with\n
-!! press) should call this function.\n
-!! It will cycle through all primary particles and\n
-!! scatter according to rules generated.
-!! 
-!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
-!!
-!! @date Last modified 21. Jul. 2010
-!!
-!!
-!! \param myix The block ID number
-!! \param secondary This is the array that tells which of the 64 particles are secondaries
-!! \param totals This is the position around the ring, calculated from the start flag in fort.2
-!! \param myenom This is an array with the energy of the 64 particles
-!! \param ipart This is an array with the id number of each particle
-!!
-!! \warning This is the one-turn version
-!! \return The subroutine does not return anything
-!! \see thin6d, beamGasInit and rotateMatrix
-!< 
-      subroutine beamGas( myix, secondary, totals, myenom, ipart )      
-!BELOW YOU FIND NEW ADDITIONS:
-      use beamgascommon
-      use lorentzcommon
-      implicit none
-!YIL: parnum
-!+ca parnum
-
-!YIL: parpro
-+ca parpro
-
-!YIL: parbeam
-+ca parbeam
-
-!YIL: collpara
-+ca collpara
-
-!YIL: COMMON
-+ca common
-
-!YIL: COMMONMN
-+ca commonmn
-
-!~: commonm1
-+ca commonm1
-
-!YIL: INFO
-+ca info
-
-!YIL: DBCOMMON
-+ca dbcommon
-
-!YIL: commontr
-+ca commontr
-
-+ca crcoall
-
-!YIL: This is leftovers that does not have a cd-block
-
-      !YIL need to save, this is input variable
-      double precision myenom
-      integer ipart(npart)
-      
-      !YIL: think this probably should be saved as well...
-      integer   mynp
-      common /mynp/ mynp
-
-!These are local subroutine stuff
-      double precision totals,oldCoordinates(5),protonmass,             &
-     & totMomentum, doLorentz,tmpPX,tmpPY
-      
-
-      integer choice,myix
-      double precision rotm(3,3), z(3),ztmp(3) ! the variable used to store rotation matrix and coordinates
-!       CHECK: Is ichar('0')=48 and so on for all systems??
-      
-      integer i,j,k,i_tmp
-      
-      pressID=0
-      j=1
-      do while (pressID.eq.0.and.j.le.bgmaxx)
-       if ((pressARRAY(1,j).gt.(totals-0.01)).and.                      &
-     &     (pressARRAY(1,j).le.(totals+0.01)))                          &
-     &          pressID=j
-        j=j+1
-      enddo
-      if (pressID.eq.0) then
-       write(lout,*) 'Couldnt find pressure marker at',totals
-       call prror(-1)
-      endif
-      
-      doLorentz=0
-      if ((abs(yv(1,1)).gt.3e-3).or.(abs(yv(2,1)).gt.3e-3)) then ! do a Lorentz boost of DPMJET events
-       !YIL warning: hardcoded mass of protons:
-       protonmass=938.3
-       doLorentz=1
-        tmpPX=yv(1,1) !don't think I can send array elements to functions??
-        tmpPY=yv(2,1)
-        call createLorentzMatrix(myenom,tmpPX,tmpPY,protonmass)
-      endif
-      do j = 2,napx
-      choice=0
-      if ((secondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
-     &      (bgParameters(1).le.totals)) then   
-+if debug
-      write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
-     & pressARRAY(2,pressID)*njobs*dpmjetevents
-+ei
-  668 continue
-!       Warning: We round DOWN to the nearest integer at each 
-!       location. It is needed in order not to run out of particles
-!       In generate_pmarkers.py the normalized sum is accordingly changed to 1
-      if ((pressARRAY(2,pressID)*njobs*dpmjetevents).gt.                &
-     &    (bgParameters(3)+1)) then
-      bgParameters(3)=bgParameters(3)+1
-      if (((bgParameters(2)+bgParameters(3)).gt.(dpmjetevents*njobthis))&
-     & .and.((bgParameters(2)+bgParameters(3)).le.                      &
-     & (dpmjetevents*(njobthis+1)))) then
-!       The scattering id is increased by one for each interaction
-      bgid=bgid+1
-      
-      do while (bgid.gt.bgiddb(ibgloc))
-!       get to the right place in the lists
-         ibgloc=ibgloc+1
-      enddo
-      
-      if(bgid.lt.bgiddb(ibgloc)) then ! no proton for this scattering event
-!       check that this works correctly!!!!!!
-         write(777,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),   &
-     &      yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom,           &
-     &      bgid+njobthis*dpmjetevents
-!       writing down the scattering location information
-      write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),      &
-     &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),                       &
-     &   bgid+njobthis*dpmjetevents,bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),&
-     &   yv(2,j)
-         part_abs(j) = 1
-      goto 669
-      endif
-      if(bgid.eq.bgiddb(ibgloc)) then ! a proton was found for this scattering event
-
-            choice=ibgloc
-!        If several protons, the one with max energy is used
-!        THIS IS NECESSARY SINCE ALL PROTONS ARE READ INTO LIST!
-      do i_tmp = 1,10
-        if (bgiddb(choice).ne.bgiddb(ibgloc+i_tmp)) then
-          exit
-        endif
-        if (bgEdb(ibgloc+i_tmp).gt.bgEdb(choice)) then
-          choice=ibgloc+i_tmp
-        endif  
-      end do
-
-         
-         oldCoordinates(1)=yv(1,j)
-         oldCoordinates(2)=yv(2,j)
-         oldCoordinates(3)=ejv(j)
-         oldCoordinates(4)=xv(1,j)
-         oldCoordinates(5)=xv(2,j)
-         
-         if(doLorentz.eq.1d0) then ! we need to boost the dpmjet event first:
-         totMomentum=sqrt(bgEdb(choice)**2-(protonmass*1e-3)**2)
-         tmpPX=bgxpdb(choice)*totMomentum
-         tmpPY=bgypdb(choice)*totMomentum
-         protonmass=protonmass*1e-3
-         call lorentzBoost(tmpPX,tmpPY,totMomentum,protonmass)
-         protonmass=protonmass*1e3
-!         This returns E,px,py,pz, need xp,yp
-         totMomentum=sqrt(new4MomCoord(2)**2+new4MomCoord(3)**2+        &
-     &    new4MomCoord(4)**2)
-         call rotateMatrix(yv(1,1),yv(2,1),rotm) !we also need to "rotate back" before we're in the "same state"
-         z(1) = (new4MomCoord(2)/totMomentum)
-         z(2) = (new4MomCoord(3)/totMomentum)
-         z(3) = (new4MomCoord(4)/totMomentum)
-!          rotating the vector into the orbit reference system:
-         z = matmul(rotm,z)
-          if (z(3).eq.0) then
-           write(lout,*) "ERROR> there is something wrong",             &
-     &      " with your dpmjet event", bgiddb(choice),totMomentum,      &
-     &      new4MomCoord
-            call prror(-1)
-          else
-!           boosted xp event
-           bgxpdb(choice) = z(1)
-!           boosted yp event
-           bgypdb(choice) = z(2)
-           bgEdb(choice) = new4MomCoord(1) ! boosted energy
-! DEBUG: 
-!         write(684,*) bgxpdb(choice),bgypdb(choice),bgEdb(choice),      &
-!     &     new4MomCoord
-! END DEBUG
-          endif
-         endif ! doLorentz
-         call rotateMatrix(yv(1,j),yv(2,j),rotm)
-!          creating resulting vector [x,y,z] from dpmjet:
-         z(1) = (bgxpdb(choice)) ! this is correct, since dpmjet gives xp=px/p and so on...
-         z(2) = (bgypdb(choice))
-         z(3) = sqrt(1-z(1)**2-z(2)**2)
-         
-!          rotating the vector into the orbit reference system:
-          ztmp=z
-          z=matmul(rotm,z)
-!                adding the angles to the yv vector:
-      if (z(3).eq.0) then
-        yv(1,j) = acos(0.0)*1e3
-        yv(2,j) = 1.0*yv(1,j)
-      else
-!        xp
-        yv(1,j) = atan(z(1)/z(3))*1e3
-!        yp
-        yv(2,j) = atan(z(2)/z(3))*1e3
-      endif
-!        energy WARNING: I DO NOT KNOW ALL THE PLACES I NEED TO INSERT THE ENERGY????
-         ejv(j) = bgEdb(choice)*1000
-!YIL Copied this here, think these are all variables in need of an update
-!++  Energy update, as recommended by Frank [comment from collimat part]
-!
-         ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
-         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-         dpsv(j)=(ejfv(j)-e0f)/e0f
-         oidpsv(j)=1.0/(1.0+dpsv(j))
-         dpsv1(j)=dpsv(j)*1.0d3*oidpsv(j)
-      
-!       writing down the scattering location information
-      write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),      &
-     &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),oldCoordinates(3),            &
-     &   bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
-     &   oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
-         secondary(j)=1
-         
-!       if bgid.eq.bgiddb(ibgloc) end statement
-      endif
-      
-!       if njob correct range statement
-      else if((bgParameters(2)+bgParameters(3)).le.                     &
-     &   (dpmjetevents*njobthis)) then
-      goto 668
-      endif
-!       if (pressARRAY(2,pressID)*njobs*dpmjetevents).gt.(bgParameters(3)+1)
-      else
-      bgParameters(1) = totals+0.001
-      bgParameters(2) = bgParameters(2)+bgParameters(3)
-      bgParameters(3) = 0
-!       if (pressARRAY(2,pressID)*njobs*dpmjetevents).gt.(bgParameters(3)+1)
-      endif
-!       check secondary if statement
-      endif
-!       end j=1,napx statement
-  669 continue
-      enddo
-      end subroutine
-      
-      
-!>
-!! \brief YIL subroutine beam gas initiation.
-!!
-!! This function must be called during the initialization of\n
-!! the simulation, if beam gas should be included.
-!! 
-!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
-!!
-!! @date Last updated 25. July 2009
-!!
-!! \warning This is the version with scattering only in first turn
-!! \param myenom Needs to know nom. energy to know which events to skip
-!! \return The subroutine does not return anything
-!! \see beamGas and maincr
-!! \todo pressure marker ID not used anymore, should be removed
-!< 
-      subroutine beamGasInit(myenom)
-      
-      use beamgascommon
-      IMPLICIT NONE
-
-+ca crcoall
-      
-      integer check,j,i
-      double precision myenom,minenergy
-
-      integer   mynp
-      common /mynp/ mynp
-      
-      character*11 bg_var
-      integer filereaderror, previousEvent,numberOfEvents
-      real bg_val,ecutoff,pPOS,pVAL
-
-      write(lout,*) '************************'
-      write(lout,*) '****                 ***'
-      write(lout,*) '***Beam gas initiation**'
-      write(lout,*) '****      YIL        ***'
-      write(lout,*) '************************'
-      write(lout,*) ''
-      
-! DEBUG: open debug file...      
-!      open(684,file='debugfile.txt')
-! END DEBUG
-      open(666,file='dpmjet.eve')
-      open(667,file='scatterLOC.txt')
-      write(667,*)'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=E',      &
-     & ' 10=eventID 11=dpmjetID 12=newEnergy 13=oldX 14=oldY 15=oldXP   & 
-     & 16=oldYP'
-      write(667,*)'# These are original coordinates of proton after impa&
-     &ct, and old xp,yp'
-      write(667,*)
-      
-
-!       initialize pressure markers array
-!       DO THIS BEFORE OTHER STUFF, AS YOU MIGHT DO STUPID THINGS TO VARIABLES
-!       (LEARNED THE HARD WAY!!!)
-      open(778,file='beamgas_config.txt')
-      open(779,file='pressure_profile.txt')
-      filereaderror=0
-      do
-         read(778,*,IOSTAT=filereaderror) bg_var, bg_val
-      if (filereaderror.lt.0) then
-!       end of file
-         exit
-      else if (filereaderror.eq.0.and.bg_var.eq.'thisjob') then
-        njobthis = bg_val
-      else if (filereaderror.eq.0.and.bg_var.eq.'njobs') then
-        njobs = bg_val
-      else if (filereaderror.eq.0.and.bg_var.eq.'dpmjetev') then
-        dpmjetevents = bg_val
-      else if (filereaderror.eq.0.and.bg_var.eq.'ecutoff') then
-        ecutoff = bg_val
-      end if
-      end do 
-      j=1
-      do
-         read(779,*,IOSTAT=filereaderror) pPOS, pVAL
-      if (filereaderror.eq.0) then
-      pressARRAY(1,j)=pPOS
-      pressARRAY(2,j)=pVAL
-      j=j+1
-       if (j>bgmaxx) then
-         write(lout,*) 'ERROR> Too many pressure markers!'
-         call prror(-1)
-       endif
-      else if (filereaderror.lt.0) then
-!       means that end of file is reached
-         exit
-      else if (filereaderror.gt.0) then
-!       means that this line did not correspond to normal input
-!       do not need to perform anything (probably a comment line)
-      end if
-      end do
-      do 1328 i = j,bgmaxx
-       pressARRAY(1,i)=-1.0
-       pressARRAY(2,i)=0.0
-1328  continue
-!       count the number of lines in dpmjet
-      j=1
-      previousEvent=0
-      numberOfEvents=0
-!       Here you can set the energy acceptance (0.95 means at least 95% of nominal energy)
-!       0.001 is because minenergy must be in GeV whereas myenom is in MeV
-!       Note to self: Remember to update this in batchrun.sh immediately! :)
-      minenergy=ecutoff*myenom*0.001
-      filereaderror=0
-      do
-!          2212 is the proton id. We do not load other particles.
-!          The other particles will be used to generate a complete file
-!          afterwards.
-!          ONLY LOAD PROTONS WITH ENERGY OFFSET BELOW 5%!!
-         read(666,*,IOSTAT=filereaderror) bgiddb(j), check, bgxpdb(j),  &
-     &      bgypdb(j), bgEdb(j)
-         if (check.eq.2212.and.bgEdb(j).gt.minenergy) then
-            if (bgiddb(j).ne.previousEvent) then
-               previousEvent=bgiddb(j)
-               numberOfEvents=numberOfEvents+1
-            endif
-            j=j+1
-         endif
-         if (filereaderror.lt.0) exit
-!        If we have more events in the dpmjet file than
-!        what we are supposed to simulate, we stop here...
-         if (previousEvent.gt.dpmjetevents) exit
-         if (numberOfEvents.gt.(bgmaxx-1)) then
-         write(lout,*) 'ERROR> Too many dpmjet events!'
-         call prror(-1)
-      endif
-      enddo
-!       number of lines in dpmjet - 1
-      bgmax=j
-      close(666)
-      write(lout,*) 'INFO> Trackable events in dpmjet.eve: ', bgmax-1
-      if (numberOfEvents.gt.mynp) then 
-         write(lout,*) 'ERROR> You need to generate less dpmjet events!'
-         write(lout,*) 'ERROR> There were too many trackable events...'
-         write(lout,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
-         write(lout,*) 'ERROR> You generated ',numberOfEvents,' trackable  &
-     &events'
-         call prror(-1)
-      endif
-      write(lout,*) 'INFO> This is job number: ', njobthis
-      write(lout,*) 'INFO> Total number of jobs is: ', njobs
-      write(lout,*) 'INFO> Total number of particles in simulation: ',     &
-     &   njobs*dpmjetevents
-      close(778)
-      open(777,file='localLOSSES.txt')
-      write(777,*)                                                      &
-     &'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=DE/E 10=CollisionID'
-      write(777,*) '# Note that name is not unique, but CollisionID is'
-      write(777,*) '# Note that s is particle coordinate, not bunch     &
-     & coordinate'
-      
-!       YOU HAVE TO PUT THESE INITIALIZATIONS AT THE END OF THE ROUTINE
-!       FOR SOME STRANGE FORTRAN-REASON
-      bgParameters(1)=0.0
-      bgParameters(2)=0.0
-      bgParameters(3)=0.0
-      
-      bgid=0
-      check=0
-      ibgloc=1
-      
-      end subroutine
-      
-!> \brief The routine returns a 3x3 rotation matrix for cartesian coordinates
-!! 
-!! The function rotates cartesian coordinates based on an angle of the old and new\n
-!! z-axis in the xz-plane (ax) and yz-plane (ay), given in milliradians. Typically\n
-!! a particle with a small offset from the closed orbit (z-direction)
-!! 
-!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
-!!
-!! @date Last modified: 26. Mar. 2010
-!! 
-!! \warning The angles of the particle should be in rad even though ax and ay
-!! are in millirad! Dpmjet uses rad while sixtrack stores xp,yp in millirad!
-!! \warning edit Mar10: changed sign of entire matrix, think it was wrong?
-!! \param ax Angle in x-direction [millirad]
-!! \param ay Angle in y-direction [millirad]
-!! \param matrix 3x3 array which will contain the returned rotation matrix
-!! 
-!! \return The subroutine returns a 3x3 rotation matrix
-!! \see beamGas
-!!
-!<
-      subroutine rotateMatrix(ax,ay,matrix)
-      double precision matrix(3,3)
-      double precision sinax, sinay, cosax, cosay
-      double precision ax,ay
-      
-      sinax = sin(ax*0.001)
-      cosax = cos(ax*0.001)
-      sinay = sin(ay*0.001)
-      cosay = cos(ay*0.001)
-      
-      matrix(1,1)=cosax
-      matrix(1,2)=-sinax*sinay
-      matrix(1,3)=sinax*cosay
-      
-      matrix(2,1)=-sinax*sinay
-      matrix(2,2)=cosay
-      matrix(2,3)=sinay*cosax
-      
-      
-      matrix(3,1)=-sinax
-      matrix(3,2)=-sinay
-      matrix(3,3)=cosax*cosay
-      end subroutine
-
-!>
-!! \brief Performs Lorentz boost on a given coordinate set
-!!
-!! This code performs a Lorentz boost on the coordinates px,py,E
-!! The Lorentz transfer matrix must be initialized first, using subroutine
-!! createLorentzMatrix.
-!! 
-!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
-!!
-!! @date Last modified 28. July 2010
-!!
-!!
-!! \param px [GeV] Momentum in x-direction
-!! \param py [GeV] Momentum in y-direction
-!! \param p [GeV] Total particle momentum
-!! \param mass [GeV] Particle mass
-!!
-!! \return new4MomCoord will contain the 4-momentum coordinates after boost
-!! \see createLorentzMatrix
-!< 
-      subroutine lorentzBoost(px,py,ptot,mass)
-      
-      use lorentzcommon
-      implicit none
-       
-       double precision px,py,ptot,mass
-       double precision oldcoord(4)
-
-       integer i,j
-       
-       
-       oldcoord(1)=sqrt(ptot**2+mass**2)
-       oldcoord(2)=px
-       oldcoord(3)=py
-       oldcoord(4)=sqrt(ptot**2-px**2-py**2) ! E/c, px,py,pz
-       do j=1,4 
-        new4MomCoord(j)=0.0
-       enddo
-       
-       ! Matrix multiplication: 
-       do i=1,4
-         do j=1,4
-         new4MomCoord(i)=new4MomCoord(i)+lorentzmatrix(i,j)*oldcoord(j)
-         enddo
-       enddo        
-!        write(*,*)
-!        write(*,*) "DEBUG, n4M: ", new4MomCoord
-!        write(*,*)
-!        do i=1,4
-!         write(*,*) "DEBUG, lM: ", lorentzmatrix(i,1:4)
-!        enddo
-      end subroutine 
-!>
-!! \brief Creates Lorentz transform matrix
-!!
-!! This subroutine sets up (or updates) the Lorentz matrix
-!! used for Lorentz boost. This Lorentz boost is used for 
-!! implementing the crossing angle in distributions that
-!! are coming from head-on collisions. Used for IR cross talk.
-!! Because the boost shouldn't increase the energy of the distribution,
-!! the entire matrix is divided by the gamma factor!
-!!  
-!! @author Yngve Inntjore Levinsen <yngve.inntjore.levinsen@cern.ch>
-!!
-!! @date Last modified 28. July 2010
-!!
-!!
-!! \param E [MeV] energy of the BEAM
-!! \param xp [mrad] forward cosine in x-direction of the ORBIT coordinates
-!! \param yp [mrad] forward cosine in y-direction of the ORBIT coordinates
-!! \param mass [MeV] mass of the particle type
-!!
-!! \return Nothing
-!! \warning Matrix divided by gamma factor!
-!! \see lorentzBoost
-!< 
-      subroutine createLorentzMatrix(E,xp,yp,mass)
-       use lorentzcommon
-       implicit none
-
-       double precision E,xp,yp,mass
-       ! local variables:
-       double precision v0,gpart,p0,b(3),b2,b2inv,g
-
-       integer i,j
-        
-        gpart=E/mass ! relativistic gamma for the particles
-        p0=sqrt(E**2-mass**2)
-        v0=p0/(gpart*mass)
-! !         print v0
-        b(1)=xp*1e-3*v0 ! relativistic beta...
-        b(2)=yp*1e-3*v0
-        b(3)=0.0 ! Assumed no movement of CM in longitudinal direction...
-        b2=0.0
-        do j=1,3
-         b2=b2+b(j)*b(j)
-        enddo
-        if (b2>0) then
-         b2inv=1/b2
-        else
-         b2inv=0
-                endif
-        g=1.0/sqrt(1.0-b2) ! relativistic gamma for the boost
-!         write(*,*) "DEBUG, g: ",g, v0, xp,yp,E,mass
-
-                lorentzmatrix(1,1)=g /g
-      do j=2,4 
-       lorentzmatrix(1,j)=g /g
-        lorentzmatrix(1,j)=-b(j-1)*g /g
-        lorentzmatrix(j,1)=-b(j-1)*g /g
-        
-        lorentzmatrix(j,j) = (1.0 + (g-1.0)* b(j-1)**2*b2inv) /g
-      enddo
-!         
-        lorentzmatrix(2,3) = ((g-1)* b(1)*b(2)*b2inv) /g
-        lorentzmatrix(3,2) = (lorentzmatrix(2,3)) /g
-        
-        lorentzmatrix(2,4) = ((g-1)* b(1)*b(3)*b2inv) /g
-        lorentzmatrix(4,2) = (lorentzmatrix(2,4)) /g
-        
-        lorentzmatrix(3,4) = ((g-1)* b(2)*b(3)*b2inv) /g
-        lorentzmatrix(4,3) = (lorentzmatrix(3,4)) /g
-        
-!        do i=1,4
-!         write(*,*) "DEBUG,lMAT: ", lorentzmatrix(i,1:4)
-!        enddo
-      end subroutine
-
-
 +ei
