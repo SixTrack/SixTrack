@@ -97,15 +97,13 @@ contains !Subroutines are defined below this line
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Last modified: 02-11-2017
 ! =================================================================================================
 subroutine scatter_allocate
     implicit none
 
 +ca crcoall
 +ca parpro
-
-+ca parnum
 
     integer stat
     integer i,j
@@ -121,12 +119,8 @@ subroutine scatter_allocate
         call prror(-1)
     end if
     
-    ! Zero the memory, as is done in comnul.
-    ! One disadvantage of doing this is that we force all the memory to be real,
-    ! while in most cases much of it could actually be virtual...
+    ! Zero the memory for strings.
     do i=1, scatter_maxdata
-        ! scatter_idata(i) = 0
-        ! scatter_fdata(i) = zero
         do j=1, scatter_maxstrlen
             scatter_cdata(i)(j:j) = char(0)
         end do
@@ -943,7 +937,7 @@ end subroutine scatter_parseSeed
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 24-10-2017
+!  Last modified: 02-11-2017
 ! =================================================================================================
 subroutine scatter_thin(ix, turn)
     implicit none
@@ -983,7 +977,7 @@ subroutine scatter_thin(ix, turn)
     if (scaling.le.pieni) then
        !Skip the whole thing if the scaling is zero
        return
-    endif
+    end if
 
     !Compute the "standard" s (used for cross sections)
     !(ask profile for the p)
@@ -1054,7 +1048,7 @@ end subroutine scatter_thin
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 26-10-2017
+!  Last modified: 02-11-2017
 ! =================================================================================================
 double precision function scatter_profile_getDensity(profileIdx, x, y) result(retval)
     
@@ -1067,6 +1061,7 @@ double precision function scatter_profile_getDensity(profileIdx, x, y) result(re
 +ca crlibco
 +ei
 +ca stringzerotrim
++ca parnum
     
     integer, intent(in) :: profileIdx
     real(kind=real64), intent(in) :: x, y
@@ -1157,8 +1152,7 @@ double precision function scatter_generator_getCrossSection(profileIDX, generato
         end if
 
     case default
-        write(lout,*) "SCATTER> ERROR in scatter_gen+ca crcoall
-erator_getCrossSection"
+        write(lout,*) "SCATTER> ERROR in scatter_generator_getCrossSection"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
                       "for profile '"// trim(stringzerotrim( &
                       scatter_cdata(scatter_PROFILE(profileIdx,1)) &
@@ -1171,12 +1165,13 @@ end function scatter_generator_getCrossSection
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Last modified: 02-11-2017
 ! =================================================================================================
 subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     implicit none
 
 +ca crcoall
++ca parnum
 
     integer, intent(in) :: generatorIDX
     double precision, intent(out) :: t, xi
@@ -1214,7 +1209,7 @@ end subroutine scatter_generator_getTandXi
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Last modified: 02-11-2017
 !  Based on Helmut Burkhardt's code presented on 05-04-2017
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
 !  https://indico.cern.ch/event/625576/
@@ -1226,6 +1221,7 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 +ca crlibco
 +ei
 +ca crcoall
++ca parnum
 
     double precision, intent(in) :: a, b1, b2, phi, tmin
 
