@@ -251,10 +251,10 @@ subroutine scatter_crcheck_positionFiles
     logical lopen
     integer ierro
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
     integer j
-    character*1024 arecord
+    character(len=1024) arecord
     
     inquire( unit=667, opened=lopen )
     if(lopen) then
