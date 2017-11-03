@@ -18,6 +18,7 @@
 +ca parpro
 +ca common
 +ca commontr
++ca crcoall
 
 !     temporary variables
       integer i1 , i2
@@ -27,20 +28,20 @@
 
       lerr = .false.
 
-      write (*,*) ''
-      write (*,10010)
-      write (*,*) ' CALL TO CHECK_COUPLING_INTEGRITY '
-      write (*,*) ' NB: only entrance/exit markers are listed;'
-      write (*,*) '     a single entry is by definition righteous'
-      write (*,10010)
-      write (*,*) ''
-      write (*,*) ''
-      write (*,*) '        keys to FLUKA types:'
-      write (*,*) FLUKA_ELEMENT,' --> simple element'
-      write (*,*) FLUKA_ENTRY,' --> entrance point'
-      write (*,*) FLUKA_EXIT,' --> exit point'
-      write (*,*) ''
-      write (*,*) ''
+      write(lout,*) ''
+      write(lout,10010)
+      write(lout,*) ' CALL TO CHECK_COUPLING_INTEGRITY '
+      write(lout,*) ' NB: only entrance/exit markers are listed;'
+      write(lout,*) '     a single entry is by definition righteous'
+      write(lout,10010)
+      write(lout,*) ''
+      write(lout,*) ''
+      write(lout,*) '        keys to FLUKA types:'
+      write(lout,*) FLUKA_ELEMENT,' --> simple element'
+      write(lout,*) FLUKA_ENTRY,' --> entrance point'
+      write(lout,*) FLUKA_EXIT,' --> exit point'
+      write(lout,*) ''
+      write(lout,*) ''
 
       i1=1
       do while ( i1.le.iu )
@@ -48,10 +49,10 @@
 !         SINGLE ELEMENT
           ix1=ic(i1)-nblo
           if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
-            write (*,*) ''
-            write (*,*) ''
-            write (*,10020) 'entry type', 'name', 'ID SING EL ID struct', 'ID geom'
-            write(*,10030) fluka_type(ix1), bez(ix1), ix1, i1, fluka_geo_index(ix1)
+            write(lout,*) ''
+            write(lout,*) ''
+            write(lout,10020) 'entry type', 'name', 'ID SING EL ID struct', 'ID geom'
+            write(lout,10030) fluka_type(ix1), bez(ix1), ix1, i1, fluka_geo_index(ix1)
             istart = i1+1
             istop  = iu
             lcurturn = .true.
@@ -63,7 +64,7 @@
                 ix2=ic(i2)-nblo
                 if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
                   if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
-                    write(*,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
+                    write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
                     call contour_aperture_markers( i1, i2, .true.  )
                     i1 = i2 + 1
                     lfound = .true.
@@ -73,15 +74,15 @@
                       goto 1983
                     endif
                   else
-                    write(*,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
-                    write(*,*) 'ERROR! un-matched geo index'
-                    write(*,*) ''
+                    write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
+                    write(lout,*) 'ERROR! un-matched geo index'
+                    write(lout,*) ''
                     lerr = .true.
                   endif
                 elseif ( fluka_type(ix2).ne.FLUKA_NONE ) then
-                  write(*,*) 'ERROR! non-exit point when entrance is on'
-                  write(*,*) ''
-                  write(*,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
+                  write(lout,*) 'ERROR! non-exit point when entrance is on'
+                  write(lout,*) ''
+                  write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
                   lerr = .true.
                 endif
               endif
@@ -98,8 +99,8 @@
               else
 !               failing research:
 !               NB: in principle, this should never happen, but let's be picky
-                write(*,*)'ERROR! entrance point does not have the exit'
-                write(*,*)''
+                write(lout,*)'ERROR! entrance point does not have the exit'
+                write(lout,*)''
                 lerr = .true.
               endif
             endif
@@ -112,8 +113,8 @@
 
  1983 continue
       if ( lerr ) then
-        write(*,*) ' at least one inconsistency in flagging elements'
-        write(*,*) '    for coupling: please check carefully...'
+        write(lout,*) ' at least one inconsistency in flagging elements'
+        write(lout,*) '    for coupling: please check carefully...'
         call prror(-1)
       endif
 
@@ -138,11 +139,13 @@
       use mod_fluka
       implicit none
 
++ca parnum
 +ca parpro
 +ca common
 +ca commonmn
 +ca commonm1
 +ca commontr
++ca crcoall
 
 !     interface variables:
       integer nturn, i, ix
@@ -167,7 +170,7 @@
       ret = fluka_send_receive( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv )
 
       if (ret.eq.-1) then
-         write(*,*)'[Fluka] Error in Fluka communication in kernel_fluka_element...'
+         write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_element...'
          write(fluka_log_unit,*)'# Error in Fluka communication in kernel_fluka_element...'
          call prror(-1)
       end if
@@ -181,8 +184,8 @@
          ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
          rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))
          dpsv  (j) = (ejfv(j)-e0f)/e0f
-         oidpsv(j) = 1.0D+00/(1.0D+00+dpsv(j))
-         dpsv1 (j) = (dpsv(j)*1.0D+03)*oidpsv(j)
+         oidpsv(j) = one/(one+dpsv(j))
+         dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
       end do
 
 !     empty places
@@ -191,12 +194,12 @@
          nlostp(j) = j
          pstop (j) = .true.
 !        Update values related to momentum
-         ejv   (j) = 0.0D+00
-         rvv   (j) = 1.0D+00
-         ejfv  (j) = 0.0D+00
-         dpsv  (j) = 0.0D+00
-         oidpsv(j) = 1.0D+00
-         dpsv1 (j) = 0.0D+00
+         ejv   (j) = zero
+         rvv   (j) = one
+         ejfv  (j) = zero
+         dpsv  (j) = zero
+         oidpsv(j) = one
+         dpsv1 (j) = zero
       end do
 
 !     au revoir:
@@ -216,9 +219,11 @@
       use mod_fluka
       implicit none
 
++ca parnum
 +ca parpro
 +ca common
 +ca commonmn
++ca crcoall
 
 !     interface variables:
       integer nturn, i, ix
@@ -229,7 +234,7 @@
 
       save
 
-      eltot = 0.0D+00
+      eltot = zero
 
       if (fluka_debug) then
 !        where are we?
@@ -243,7 +248,7 @@
       ret = fluka_send( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv )
 
       if (ret.eq.-1) then
-         write(*,*)'[Fluka] Error in Fluka communication in kernel_fluka_entrance...'
+         write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_entrance...'
          write(fluka_log_unit,*)'# Error in Fluka communication in kernel_fluka_entrance...'
          call prror(-1)
       end if
@@ -265,11 +270,13 @@
       use mod_fluka
       implicit none
 
++ca parnum
 +ca parpro
 +ca common
 +ca commonmn
 +ca commonm1
 +ca commontr
++ca crcoall
 
 !     interface variables:
       integer nturn, i, ix
@@ -294,7 +301,7 @@
       ret = fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv )
 
       if (ret.eq.-1) then
-         write(*,*)'[Fluka] Error in Fluka communication in kernel_fluka_exit...'
+         write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_exit...'
          write(fluka_log_unit,*)'# Error in Fluka communication in kernel_fluka_exit...'
          call prror(-1)
       end if
@@ -308,8 +315,8 @@
          ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
          rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))
          dpsv  (j) = (ejfv(j)-e0f)/e0f
-         oidpsv(j) = 1.0D+00/(1.0D+00+dpsv(j))
-         dpsv1 (j) = (dpsv(j)*1.0D+03)*oidpsv(j)
+         oidpsv(j) = one/(one+dpsv(j))
+         dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
       end do
 
 !     empty places
@@ -318,12 +325,12 @@
          nlostp(j) = j
          pstop (j) = .true.
 !        Update values related to momentum
-         ejv   (j) = 0.0D+00
-         rvv   (j) = 1.0D+00
-         ejfv  (j) = 0.0D+00
-         dpsv  (j) = 0.0D+00
-         oidpsv(j) = 1.0D+00
-         dpsv1 (j) = 0.0D+00
+         ejv   (j) = zero
+         rvv   (j) = one
+         ejfv  (j) = zero
+         dpsv  (j) = zero
+         oidpsv(j) = one
+         dpsv1 (j) = zero
       end do
 
 !     au revoir:
