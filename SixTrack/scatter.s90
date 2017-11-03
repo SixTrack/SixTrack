@@ -1112,15 +1112,19 @@ end function scatter_profile_getDensity
 !  Last modified: 09-2017
 ! =================================================================================================
 subroutine scatter_profile_getParticle(profileIdx, x, y, xp, yp, E)
-
+    
     implicit none
-
+    
     integer, intent(in) :: profileIdx
     double precision, intent(in)  :: x, y
     double precision, intent(out) :: xp, yp, E
-
+    
     ! Return a particle to collide with
-
+    ! Add dummy variables for now, which stops ifort from complaining
+    xp = 0d0
+    yp = 0d0
+    E  = 0d0
+    
 end subroutine scatter_profile_getParticle
 
 ! =================================================================================================
