@@ -3950,21 +3950,21 @@
 +ca alignva
 +if .not.tilt
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
-     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &*(((crabfreq*two)*pi)/clight))*c1m3)*                             & 
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
 +ei
 +if tilt
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
       dpsv(j)=dpsv(j) - ((((crabamp2*oidpsv(j))*(cikve*crkve))          &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             & 
-     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph2(ix))
+     &*(((crabfreq*two)*pi)/clight))*c1m3)*                             & 
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph2(ix))
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -4030,22 +4030,22 @@
 !        yv(2,j)=yv(2,j)-2*(1/2.)*(crabamp3*oidpsv(j))*c1m3*             &
         yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
      &((cikve**2)-(crkve**2)))*                                         & 
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-        yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
-     &c1m3)*cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(cikve**3-    &
-     &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
-     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
+        yv(1,j)=yv(1,j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
+     &c1m3)*cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
+      dpsv(j)=dpsv(j)+(((((one/three)*(crabamp3*oidpsv(j)))*(cikve**3-  &
+     &((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*   & 
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
 +ei
 +if tilt
         yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
      &((cikve**2)-(crkve**2)))*                                         & 
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-        yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
-     &c1m3)*cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3*oidpsv(j)))*(cikve**3-    &
-     &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
-     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph3(ix))
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
+        yv(1,j)=yv(1,j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
+     &c1m3)*cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
+      dpsv(j)=dpsv(j)+(((((one/three)*(crabamp3*oidpsv(j)))*(cikve**3-  &
+     &((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*   & 
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph3(ix))
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -4115,27 +4115,27 @@
 +ca alignva
 +if .not.tilt
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
-     &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &(cikve**3-(three*cikve)*crkve**2))*c1m6)*                         &
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
         yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
-     &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &((three*crkve)*cikve**2-crkve**3))*c1m6)*                         &
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*tow)*pi + crabph4(ix))
       dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
      &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &(((crabfreq*two)*pi)/clight))*c1m9)*                              &
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
 +ei
 +if tilt
         yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
-     &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &(cikve**3-(three*cikve)*crkve**2))*c1m6)*                         &
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
         yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
-     &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &((three*crkve)*cikve**2-crkve**3))*c1m6)*                         &
+     &cos_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
       dpsv(j)=dpsv(j) - ((((crabamp4*oidpsv(j))*((crkve**3              &
      &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &sin_mb((((sigmv(j)/clight)*crabfreq)*2d0)*pi + crabph4(ix))
+     &(((crabfreq*two)*pi)/clight))*c1m9)*                              &
+     &sin_mb((((sigmv(j)/clight)*crabfreq)*two)*pi + crabph4(ix))
 +ei
       ejf0v(j)=ejfv(j)
       ejfv(j)=dpsv(j)*e0f+e0f
@@ -6873,14 +6873,18 @@ cc2008
             pux=xv(1,j)
             dpsv3(j)=dpsv(j)*c1e3
             xv(1,j)=((cotr(irrtr,1)+rrtr(irrtr,1,1)*pux)+               &!hr03
-     &rrtr(irrtr,1,2)*yv(1,j))+(dble(idz(1))*dpsv3(j))*rrtr(irrtr,1,6)   !hr03
+     &rrtr(irrtr,1,2)*yv(1,j))+(real(idz(1),fPrec)*dpsv3(j))*           &
+     &rrtr(irrtr,1,6)   !hr03
             yv(1,j)=((cotr(irrtr,2)+rrtr(irrtr,2,1)*pux)+               &!hr03
-     &rrtr(irrtr,2,2)*yv(1,j))+(dble(idz(1))*dpsv3(j))*rrtr(irrtr,2,6)   !hr03
+     &rrtr(irrtr,2,2)*yv(1,j))+(real(idz(1),fPrec)*dpsv3(j))*           &
+     &rrtr(irrtr,2,6)   !hr03
             pux=xv(2,j)
             xv(2,j)=((cotr(irrtr,3)+rrtr(irrtr,3,3)*pux)+               &!hr03
-     &rrtr(irrtr,3,4)*yv(2,j))+(dble(idz(2))*dpsv3(j))*rrtr(irrtr,3,6)   !hr03
+     &rrtr(irrtr,3,4)*yv(2,j))+(real(idz(2),fPrec)*dpsv3(j))*           &
+     &rrtr(irrtr,3,6)   !hr03
             yv(2,j)=((cotr(irrtr,4)+rrtr(irrtr,4,3)*pux)+               &!hr03
-     &rrtr(irrtr,4,4)*yv(2,j))+(dble(idz(2))*dpsv3(j))*rrtr(irrtr,4,6)   !hr03
+     &rrtr(irrtr,4,4)*yv(2,j))+(real(idz(2),fPrec)*dpsv3(j))*           &
+     &rrtr(irrtr,4,6)   !hr03
           enddo
 
 !----------------------------------------------------------------------
@@ -9237,9 +9241,9 @@ cc2008
               icont=icont+1
 !-----------------------------------------------------------------------
               fun(l)=fun(l)+(user(l*nmax+icont)*(x(1)**j1))*(x(2)**j2)
-              fder(l,1)=fder(l,1)+((user(l*nmax+icont)*dble(j1))*(x(1)  &!hr04
-     &**(j1-1)))*(x(2)**j2)                                              !hr04
-              fder(l,2)=fder(l,2)+((user(l*nmax+icont)*dble(j2))        &!hr04
+              fder(l,1)=fder(l,1)+((user(l*nmax+icont)*real(j1,fPrec))* &
+     &(x(1)**(j1-1)))*(x(2)**j2)                                         !hr04
+              fder(l,2)=fder(l,2)+((user(l*nmax+icont)*real(j2,fPrec))  &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1))                                        !hr04
    50       continue
    60     continue
@@ -42720,17 +42724,19 @@ c$$$            endif
             n2=nv-np
             nn2=abs(n2)
             nn1=np-nn2
-            re1=dble(nn1)*qxt+dble(n2)*qzt                               !hr06
+            re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt                   !hr06
             ipt=0
             do 680 ii=1,nre
   680       if(n2.eq.nrr(ii)) ipt=ipr(ii)
             ip(np,nv)=int(re1+half)+ipt
             if(-one*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt
 !--RE=DISTANCE FROM THE RESONANCE
-            re(np,nv)=re1-dble(ip(np,nv))                                !hr06
+            re(np,nv)=re1-real(ip(np,nv),fPrec)                          !hr06
             res=re(np,nv)/radi
-           chy(np,nv)=cos_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
-           shy(np,nv)=sin_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
+           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
+     &phi(2))-res*etl) !hr06
+           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
+     &phi(2))-res*etl) !hr06
   690     continue
   700   continue
         do 760 np=nta,mpe
@@ -42743,7 +42749,7 @@ c$$$            endif
               nn2=abs(nv-np2)
               nv1=np2-nn2+(i-1)*2+1
               nv2=np-nv1+2
-              rn2=dble(nn2)*half                                         !hr06
+              rn2=real(nn2,fPrec)*half                                    !hr06
 !--EVENESS OF N2
               mm=0
               gerad=rn2-aint(rn2)
@@ -42855,8 +42861,9 @@ c$$$            endif
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-      vdt2=(vdt1*e(nv1,nv2))/dble(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4)) !hr06
-            vdt3=dble(nn2)*ea+dble(nn1)*eb                               !hr06
+      vdt2=(vdt1*e(nv1,nv2))/                                           &
+     &real(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4),fPrec) !hr06
+            vdt3=dble(nn2)*ea+real(nn1,fPrec)*eb                         !hr06
             if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+                    &
      &real(nn1*nv11,fPrec)*eb          !hr06
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
@@ -43820,8 +43827,8 @@ c$$$            endif
           l2=1
           do 580 l=4,nmz
             l1=l-3
-            ab1(4)=ab1(4)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-            ab2(4)=ab2(4)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
+            ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))     !hr06
+            ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))     !hr06
   580     l2=l2*l/l1
   590     b(5,1)=b1**2                                                   !hr06
           b(1,5)=b2**2                                                   !hr06
@@ -43838,8 +43845,8 @@ c$$$            endif
           l2=1
           do 600 l=5,nmz
             l1=l-4
-            ab1(5)=ab1(5)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-            ab2(5)=ab2(5)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
+            ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
+            ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
   600     l2=l2*l/l1
   610     b(6,1)=b(5,1)*sb1
           b(1,6)=b(1,5)*sb2
@@ -43856,8 +43863,8 @@ c$$$            endif
           l2=1
           do 620 l=6,nmz
             l1=l-5
-            ab1(6)=ab1(6)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-            ab2(6)=ab2(6)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
+            ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
+            ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
   620     l2=l2*l/l1
   630     b(7,1)=b(6,1)*sb1
           b(1,7)=b(1,6)*sb2
@@ -43875,8 +43882,8 @@ c$$$            endif
           l2=1
           do 640 l=7,nmz
             l1=l-6
-            ab1(7)=ab1(7)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-            ab2(7)=ab2(7)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
+            ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
+            ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
   640     l2=l2*l/l1
   650     b(8,1)=b(7,1)*sb1
           b(1,8)=b(1,7)*sb2
@@ -43895,8 +43902,8 @@ c$$$            endif
           l2=1
           do 660 l=8,nmz
             l1=l-7
-            ab1(8)=ab1(8)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-            ab2(8)=ab2(8)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
+            ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
+            ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
   660     l2=l2*l/l1
   670     b(9,1)=b(8,1)*sb1
           b(1,9)=b(1,8)*sb2
@@ -43915,8 +43922,8 @@ c$$$            endif
           l2=1
           do 680 l=9,nmz
             l1=l-8
-            ab1(9)=ab1(9)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-            ab2(9)=ab2(9)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
+            ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))     !hr06
+            ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))     !hr06
   680     l2=l2*l/l1
   690     b(10,1)=b(9,1)*sb1
           b(1,10)=b(1,9)*sb2
@@ -43935,16 +43942,16 @@ c$$$            endif
               n2=nv-np
               nn2=abs(n2)
               nn1=np-nn2
-              re1=dble(nn1)*qxt+dble(n2)*qzt                             !hr06
+              re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt                             !hr06
               ip(np,nv)=int(re1+half)+ipc
               if(-one*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipc
 !--RE=DISTANCE FROM THE RESONANCE
-              re(np,nv)=re1-dble(ip(np,nv))
+              re(np,nv)=re1-real(ip(np,nv),fPrec)
               res=re(np,nv)/radi
-          chy(np,nv)=cos_mb((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
-     &res*etl)                                                           !hr06
-          shy(np,nv)=sin_mb((dble(nn1)*pie*phi(1)+dble(n2)*pie*phi(2))- &!hr06
-     &res*etl)                                                           !hr06
+          chy(np,nv)=cos_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)* &
+     &pie*phi(2))-res*etl)                                                           !hr06
+          shy(np,nv)=sin_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)* &
+     &pie*phi(2))-res*etl)                                                           !hr06
   710       continue
   720     continue
           do 780 np=nta,mpe
@@ -43957,7 +43964,7 @@ c$$$            endif
                 nn2=abs(nv-np2)
                 nv1=np2-nn2+(i-1)*2+1
                 nv2=np-nv1+2
-                rn2=dble(nn2)*half                                       !hr06
+                rn2=real(nn2,fPrec)*half                                            !hr06
 !--EVENESS OF N2
                 mm=0
                 gerad=rn2-aint(rn2)
@@ -44079,7 +44086,7 @@ c$$$            endif
         do 880 np=nta,nte
           write(lout,10080) np
           write(lout,10030)
-          vdt1=dble(nnf(np))/(dble(nz2(np))*pi)                          !hr06
+          vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)               !hr06
           np2=np
           nkk=0
           write(lout,10090) np
@@ -44099,10 +44106,12 @@ c$$$            endif
               nf1=nn1+i
               nf3=nkk-i+1
               nf4=nf3+nn2
-          vdt2=vdt1*e(nv1,nv2)/dble(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4))   !hr06
-              vdt3=dble(nn2)*ea+dble(nn1)*eb                             !hr06
+          vdt2=vdt1*e(nv1,nv2)/                                         &
+     &         real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec)             !hr06
+              vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                 !hr06
               vdt4=vdt3
-              if(n2.ge.0) vdt3=dble(n2*nv21)*ea+dble(nn1*nv11)*eb        !hr06
+              if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+                  &
+     &                         real(nn1*nv11,fPrec)*eb                   !hr06
               rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
               rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
   840       continue
@@ -44112,8 +44121,8 @@ c$$$            endif
             rc=zero
             rs=zero
             do 860 i=1,nkk
-              rc=rc+dble(mis)*rtc(np2,nv,np,i)                           !hr06
-              rs=rs+dble(mis)*rts(np2,nv,np,i)                           !hr06
+              rc=rc+real(mis,fPrec)*rtc(np2,nv,np,i)                     !hr06
+              rs=rs+real(mis,fPrec)*rts(np2,nv,np,i)                     !hr06
               mis=-mis
   860       continue
             sdel2=sqrt(rc**2+rs**2)                                      !hr06
@@ -44135,8 +44144,10 @@ c$$$            endif
             min1=-1
   890       min2=min1
             do 900 i=1,nkk
-             rtc(np,nv,np,1)=rtc(np,nv,np,1)+dble(min2)*rtc(np,nv,nph,i) !hr06
-             rts(np,nv,np,1)=rts(np,nv,np,1)+dble(min2)*rts(np,nv,nph,i) !hr06
+             rtc(np,nv,np,1)=rtc(np,nv,np,1)+real(min2,fPrec)*          &
+     &rtc(np,nv,nph,i) !hr06
+             rts(np,nv,np,1)=rts(np,nv,np,1)+real(min2,fPrec)*          &
+     &rts(np,nv,nph,i) !hr06
               min2=-min2
   900       continue
             nph=nph+2
@@ -44240,7 +44251,8 @@ c$$$            endif
       iv2=2*iv
       iv3=iv+1
 !      vtu1=(((-one*ekk)*(half**iv2))*dfac(iv2))/pi                       !hr06
-      vtu1=(((-one*ekk)*exp_mb(dble(iv2)*log_mb(half)))*dfac(iv2))/pi    !hr13
+      vtu1=(((-one*ekk)*exp_mb(real(iv2,fPrec)*log_mb(half)))*          &
+     &dfac(iv2))/pi    !hr13
       dtu1=zero
       dtu2=zero
       do 10 iv4=1,iv3
@@ -44251,19 +44263,20 @@ c$$$            endif
 !        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*(beta(1)**iv5)* (beta&
 !     &(2)**iv6)
         vtu2=(((vor/(dfac(iv5+1)**2))/(dfac(iv6+1)**2))*                &!hr13
-     &exp_mb(dble(iv5)*log_mb(beta(1))))*                               &!hr13
-     &exp_mb(dble(iv6)*log_mb(beta(2)))                                  !hr13
+     &exp_mb(real(iv5,fPrec)*log_mb(beta(1))))*                         &!hr13
+     &exp_mb(real(iv6,fPrec)*log_mb(beta(2)))                            !hr13
         if(iv5.ne.0) then
-!          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)     !hr06
-         dtu1=dtu1+((vtu2*dble(iv5))*exp_mb(dble(iv5-1)*log_mb(ep(1))))*&!hr13
-     &         exp_mb(dble(iv6)*log_mb(ep(2)))                           !hr13
+!          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)    !hr06
+         dtu1=dtu1+((vtu2*real(iv5,fPrec))*exp_mb(real(iv5-1,fPrec)*    &
+     &log_mb(ep(1))))*exp_mb(real(iv6,fPrec)*log_mb(ep(2)))                           !hr13
          dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+(vtu2*dble(iv5))*vtu1 !hr06
         endif
         if(iv6.ne.0) then
 !          dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))     !hr06
-          dtu2=dtu2+((vtu2*dble(iv6))*exp_mb(dble(iv5)*log_mb(ep(1))))* &!hr13
-     &                exp_mb(dble(iv6-1)*log_mb(ep(2)))                  !hr13
-         dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+(vtu2*dble(iv6))*vtu1 !hr06
+          dtu2=dtu2+((vtu2*real(iv6,fPrec))*exp_mb(real(iv5,fPrec)*     &
+     &log_mb(ep(1))))*exp_mb(real(iv6-1,fPrec)*log_mb(ep(2)))                  !hr13
+         dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+                     &
+     &(vtu2*real(iv6,fPrec))*vtu1 !hr06
         endif
    10 continue
       dtu(1,iv)=dtu(1,iv)+vtu1*dtu1
@@ -44822,8 +44835,10 @@ c$$$            endif
 !--RE=DISTANCE FROM THE RESONANCE
             re(np,nv)=re1-real(ip(np,nv),fPrec)                          !hr06
             res=re(np,nv)/radi
-           chy(np,nv)=cos_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
-           shy(np,nv)=sin_mb((dble(nn1)*phi(1)+dble(n2)*phi(2))-res*etl) !hr06
+           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
+     &phi(2))-res*etl) !hr06
+           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
+     &phi(2))-res*etl) !hr06
   660     continue
   670   continue
         do 730 np=nta,mpe
