@@ -1104,9 +1104,9 @@ subroutine scatter_profile_getParticle(profileIdx, x, y, xp, yp, E)
 
     ! Return a particle to collide with
     ! Add dummy variables for now, which stops ifort from complaining
-    xp = 0d0
-    yp = 0d0
-    E  = 0d0
+    xp = zero
+    yp = zero
+    E  = zero
     
 end subroutine scatter_profile_getParticle
 
