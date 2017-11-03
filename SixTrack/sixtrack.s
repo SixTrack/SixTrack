@@ -9263,12 +9263,12 @@ cc2008
 !-----------------------------------------------------------------------
               fun(l)=fun(l)+((user(l*nmax+icont)*(x(1)**j1))*(x(2)**j2))&!hr04
      &*(x(3)**j3)                                                        !hr04
-              fder(l,1)=fder(l,1)+(((user(l*nmax+icont)*dble(j1))*(x(1) &!hr04
-     &**(j1-1)))*(x(2)**j2))*(x(3)**j3)                                  !hr04
-                fder(l,2)=fder(l,2)+(((user(l*nmax+icont)*dble(j2))     &!hr04
-     &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3)                            !hr04
-                fder(l,3)=fder(l,3)+(((user(l*nmax+icont)*dble(j3))     &!hr04
-     &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1))                            !hr04
+              fder(l,1)=fder(l,1)+(((user(l*nmax+icont)*real(j1,fPrec))*&
+     &(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3)                             !hr04
+                fder(l,2)=fder(l,2)+(((user(l*nmax+icont)*              &
+     &real(j2,fPrec))*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3)             !hr04
+                fder(l,3)=fder(l,3)+(((user(l*nmax+icont)*              &
+     &real(j3,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1))             !hr04
    80         continue
    90       continue
   100     continue
@@ -9289,13 +9289,13 @@ cc2008
 !-----------------------------------------------------------------------
                   fun(l)=fun(l)+(((user(l*nmax+icont)*(x(1)**j1))       &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
-                fder(l,1)=fder(l,1)+((((user(l*nmax+icont)*dble(j1))*(x &!hr04
+          fder(l,1)=fder(l,1)+((((user(l*nmax+icont)*real(j1,fPrec))*(x &!hr04
      &(1)**(j1-1)))*(x(2)**j2))*(x(3 )**j3))*(x(4)**j4)                  !hr04
-                  fder(l,2)=fder(l,2)+((((user(l*nmax+icont)*dble(j2))  &!hr04
+            fder(l,2)=fder(l,2)+((((user(l*nmax+icont)*real(j2,fPrec))  &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3 )**j3))*(x(4)**j4)               !hr04
-                  fder(l,3)=fder(l,3)+((((user(l*nmax+icont)*dble(j3))  &!hr04
+            fder(l,3)=fder(l,3)+((((user(l*nmax+icont)*real(j3,fPrec))  &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3 )**(j3-1)))*(x(4)**j4)               !hr04
-                  fder(l,4)=fder(l,4)+((((user(l*nmax+icont)*dble(j4))  &!hr04
+            fder(l,4)=fder(l,4)+((((user(l*nmax+icont)*real(j4,fPrec))  &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3 )**j3))*(x(4)**(j4-1))               !hr04
   120           continue
   130         continue
@@ -9319,19 +9319,19 @@ cc2008
 !-----------------------------------------------------------------------
                     fun(l)=fun(l)+((((user(l*nmax+icont)*(x(1)**j1))    &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)                    !hr04
-                 fder(l,1)=fder(l,1)+(((((user(l*nmax+icont) *dble(j1)) &!hr04
+           fder(l,1)=fder(l,1)+(((((user(l*nmax+icont) *real(j1,fPrec)) &!hr04
      &*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-                 fder(l,2)=fder(l,2)+(((((user(l*nmax+icont) *dble(j2)) &!hr04
+           fder(l,2)=fder(l,2)+(((((user(l*nmax+icont) *real(j2,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-                 fder(l,3)=fder(l,3)+(((((user(l*nmax+icont) *dble(j3)) &!hr04
+           fder(l,3)=fder(l,3)+(((((user(l*nmax+icont) *real(j3,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-                 fder(l,4)=fder(l,4)+(((((user(l*nmax+icont) *dble(j4)) &
+           fder(l,4)=fder(l,4)+(((((user(l*nmax+icont) *real(j4,fPrec)) &
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1)))              &
      &*(x(5)**j5)
-                 fder(l,5)=fder(l,5)+(((((user(l*nmax+icont) *dble(j5)) &!hr04
+           fder(l,5)=fder(l,5)+(((((user(l*nmax+icont) *real(j5,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)            &!hr04
      &**(j5-1))                                                          !hr04
   170             continue
@@ -9359,22 +9359,22 @@ cc2008
                      fun(l)=fun(l)+(((((user(l*nmax+icont) *(x(1)**j1)) &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &!hr04
      &*(x(6)**j6)                                                        !hr04
-                fder(l,1)=fder(l,1)+((((((user(l*nmax+icont) *dble(j1)) &!hr04
+          fder(l,1)=fder(l,1)+((((((user(l*nmax+icont) *real(j1,fPrec)) &!hr04
      &*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-                fder(l,2)=fder(l,2)+((((((user(l*nmax+icont) *dble(j2)) &!hr04
+          fder(l,2)=fder(l,2)+((((((user(l*nmax+icont) *real(j2,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-                fder(l,3)=fder(l,3)+((((((user(l*nmax+icont) *dble(j3)) &!hr04
+          fder(l,3)=fder(l,3)+((((((user(l*nmax+icont) *real(j3,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-                fder(l,4)=fder(l,4)+((((((user(l*nmax+icont) *dble(j4)) &!hr04
+          fder(l,4)=fder(l,4)+((((((user(l*nmax+icont) *real(j4,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1)))              &!hr04
      &*(x(5)**j5))*(x(6)**j6)                                            !hr04
-                fder(l,5)=fder(l,5)+((((((user(l*nmax+icont) *dble(j5)) &!hr04
+          fder(l,5)=fder(l,5)+((((((user(l*nmax+icont) *real(j5,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x               &!hr04
      &(5)**(j5-1)))*(x(6)**j6)                                           !hr04
-                fder(l,6)=fder(l,6)+((((((user(l*nmax+icont) *dble(j6)) &!hr04
+          fder(l,6)=fder(l,6)+((((((user(l*nmax+icont) *real(j6,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))                  &!hr04
      &*(x(5)**j5))*(x(6)**(j6-1))                                        !hr04
   230               continue
@@ -10271,7 +10271,7 @@ cc2008
               icont=icont+1
 !-----------------------------------------------------------------------
               fun(l,jp)=fun(l,jp)+user(icont)*(x(1)**j1)
-              fder(l,jp,1)=fder(l,jp,1)+(user(icont)*dble(j1))*(x(1)    &!hr04
+        fder(l,jp,1)=fder(l,jp,1)+(user(icont)*real(j1,fPrec))*(x(1)    &!hr04
      &**(j1-1))                                                          !hr04
    40       continue
    50     continue
@@ -10289,9 +10289,9 @@ cc2008
                 icont=icont+1
 !-----------------------------------------------------------------------
                 fun(l,jp)=fun(l,jp)+(user(icont)*(x(1)**j1))*(x(2)**j2)  !hr04
-                fder(l,jp,1)=fder(l,jp,1)+((user(icont)*dble(j1))*(x(1) &!hr04
+          fder(l,jp,1)=fder(l,jp,1)+((user(icont)*real(j1,fPrec))*(x(1) &!hr04
      &**(j1-1)))*(x(2)**j2)                                              !hr04
-                fder(l,jp,2)=fder(l,jp,2)+((user(icont)*dble(j2))       &!hr04
+          fder(l,jp,2)=fder(l,jp,2)+((user(icont)*real(j2,fPrec))       &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1))                                        !hr04
    70         continue
    80       continue
@@ -10312,11 +10312,11 @@ cc2008
 !-----------------------------------------------------------------------
                fun(l,jp)=fun(l,jp)+((user(icont)*(x(1)**j1))*(x(2)**j2))&!hr04
      &*(x(3)**j3)                                                        !hr04
-                  fder(l,jp,1)=fder(l,jp,1)+(((user(icont)*dble(j1))*(x &!hr04
+            fder(l,jp,1)=fder(l,jp,1)+(((user(icont)*real(j1,fPrec))*(x &!hr04
      &(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3)                               !hr04
-                  fder(l,jp,2)=fder(l,jp,2)+(((user(icont)*dble(j2))    &!hr04
+            fder(l,jp,2)=fder(l,jp,2)+(((user(icont)*real(j2,fPrec))    &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3)                            !hr04
-                  fder(l,jp,3)=fder(l,jp,3)+(((user(icont)*dble(j3))    &!hr04
+            fder(l,jp,3)=fder(l,jp,3)+(((user(icont)*real(j3,fPrec))    &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1))                            !hr04
   110           continue
   120         continue
@@ -10340,13 +10340,13 @@ cc2008
 !-----------------------------------------------------------------------
                     fun(l,jp)=fun(l,jp)+(((user(icont)*(x(1)**j1))      &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
-                 fder(l,jp,1)=fder(l,jp,1)+((((user(icont)*dble(j1))*(x &!hr04
+           fder(l,jp,1)=fder(l,jp,1)+((((user(icont)*real(j1,fPrec))*(x &!hr04
      &(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                   !hr04
-                    fder(l,jp,2)=fder(l,jp,2)+((((user(icont)*dble(j2)) &!hr04
+              fder(l,jp,2)=fder(l,jp,2)+((((user(icont)*real(j2,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4)                !hr04
-                    fder(l,jp,3)=fder(l,jp,3)+((((user(icont)*dble(j3)) &!hr04
+              fder(l,jp,3)=fder(l,jp,3)+((((user(icont)*real(j3,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4)                !hr04
-                    fder(l,jp,4)=fder(l,jp,4)+((((user(icont)*dble(j4)) &!hr04
+              fder(l,jp,4)=fder(l,jp,4)+((((user(icont)*real(j4,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1))                !hr04
   160             continue
   170           continue
@@ -10372,19 +10372,19 @@ cc2008
 !-----------------------------------------------------------------------
                       fun(l,jp)=fun(l,jp)+((((user(icont)*(x(1)**j1))   &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)                    !hr04
-                   fder(l,jp,1)=fder(l,jp,1)+(((((user(icont)*dble(j1)) &!hr04
+             fder(l,jp,1)=fder(l,jp,1)+(((((user(icont)*real(j1,fPrec)) &!hr04
      &*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-                   fder(l,jp,2)=fder(l,jp,2)+(((((user(icont)*dble(j2)) &!hr04
+             fder(l,jp,2)=fder(l,jp,2)+(((((user(icont)*real(j2,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-                   fder(l,jp,3)=fder(l,jp,3)+(((((user(icont)*dble(j3)) &!hr04
+             fder(l,jp,3)=fder(l,jp,3)+(((((user(icont)*real(j3,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-                   fder(l,jp,4)=fder(l,jp,4)+(((((user(icont)*dble(j4)) &!hr04
+             fder(l,jp,4)=fder(l,jp,4)+(((((user(icont)*real(j4,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1)))              &!hr04
      &*(x(5)**j5)                                                        !hr04
-                   fder(l,jp,5)=fder(l,jp,5)+(((((user(icont)*dble(j5)) &!hr04
+             fder(l,jp,5)=fder(l,jp,5)+(((((user(icont)*real(j5,fPrec)) &!hr04
      &*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x               &!hr04
      &(5)**(j5-1))                                                       !hr04
   220               continue
@@ -10415,23 +10415,23 @@ cc2008
                        fun(l,jp)=fun(l,jp)+(((((user(icont)*(x(1)**j1)) &!hr04
      &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &!hr04
      &*(x(6)**j6)                                                        !hr04
-                       fder(l,jp,1)=fder(l,jp,1)+((((((user(icont)*dble &!hr04
-     &(j1))*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))                     &!hr04
+                       fder(l,jp,1)=fder(l,jp,1)+((((((user(icont)*real &!hr04
+     &(j1,fPrec))*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))               &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)
-                       fder(l,jp,2)=fder(l,jp,2)+((((((user(icont)*dble &!hr04
-     &(j2))*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))                     &!hr04
+                       fder(l,jp,2)=fder(l,jp,2)+((((((user(icont)*real &!hr04
+     &(j2,fPrec))*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))               &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)                                !hr04
-                       fder(l,jp,3)=fder(l,jp,3)+((((((user(icont)*dble &!hr04
-     &(j3))*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))                     &!hr04
+                       fder(l,jp,3)=fder(l,jp,3)+((((((user(icont)*real &!hr04
+     &(j3,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))               &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)                                !hr04
-                       fder(l,jp,4)=fder(l,jp,4)+((((((user(icont)*dble &!hr04
-     &(j4))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)                   &!hr04
+                       fder(l,jp,4)=fder(l,jp,4)+((((((user(icont)*real &!hr04
+     &(j4,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)             &!hr04
      &**(j4-1)))*(x(5)**j5))*(x(6)**j6)                                  !hr04
-                       fder(l,jp,5)=fder(l,jp,5)+((((((user(icont)*dble &!hr04
-     &(j5))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))                         &!hr04
+                       fder(l,jp,5)=fder(l,jp,5)+((((((user(icont)*real &!hr04
+     &(j5,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))                   &!hr04
      &*(x(4)**j4))*(x(5)**(j5-1)))*(x(6)**j6)                            !hr04
-                       fder(l,jp,6)=fder(l,jp,6)+((((((user(icont)*dble &!hr04
-     &(j6))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))                         &!hr04
+                       fder(l,jp,6)=fder(l,jp,6)+((((((user(icont)*real &!hr04
+     &(j6,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))                   &!hr04
      &*(x(4)**j4))*(x(5)**j5))*(x(6)**(j6-1))                            !hr04
   290                 continue
   300               continue
@@ -24241,8 +24241,8 @@ c$$$         endif
           if(rat.lt.(-one*pieni)) dsign=-one*one                         !hr05
           x11=ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
           x13=(x11*dsign)*sqrt(abs(rat))                                 !hr05
-          amp(2)=(dsign*dble(1-iver))*(abs(x11)*sqrt(bet0z2)+abs(x13)*  &!hr05
-     &sqrt(bet0v(ia,2)))                                                 !hr05
+          amp(2)=(dsign*real(1-iver,fPrec))*                            &
+     &(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))                 !hr05
           x1(5)=zero
           x1(6)=dpsv(ia)*sqrt(bet0s1)
           chi=chi0*rad
