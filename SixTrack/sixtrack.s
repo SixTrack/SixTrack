@@ -1166,7 +1166,7 @@
      &pptco,ppeco,sdcoe,freeco,fnavo,zatom,exenergy
 !electron density and plasma energy
       real(kind=fPrec) edens, pleng
-      parameter(fnavo=6.02214129d23)
+      parameter(fnavo=6.02214129e23_fPrec)
       real cgen
       character * 4 mname(nmat)
       common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
@@ -18323,11 +18323,12 @@ c$$$         endif
       implicit none
       integer i,j,k
       real(kind=fPrec) wi,wr,x,y
++ca parnum
 +ca parpro
 +ca parbeam
       save
 !-----------------------------------------------------------------------
-      hrecip = 1.d0/h
+      hrecip = one/h
       kstep = nx+2
       k = 0
       do 2 j=0,ny+1
@@ -18350,7 +18351,7 @@ c$$$         endif
       integer n
       real(kind=fPrec) c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
      &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
-      parameter (z1=1,hf=z1/2.0_fPrec,z10=10.0_fPrec)
+      parameter (z1=one,hf=z1/two,z10=c1e1)
       parameter (c1=74.0_fPrec/z10,c2=83.0_fPrec/z10)
       parameter (c3=z10/32.0_fPrec,c4=16.0_fPrec/z10)
 !     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
@@ -29073,13 +29074,13 @@ c$$$         endif
      &         j,                                                       &
 +ei
 +if .not.backtrk
-     &         xv(1,j)*1d-3, yv(1,j)*1d-3, xv(2,j)*1d-3,                &
+     &         xv(1,j)*c1m3, yv(1,j)*c1m3, xv(2,j)*c1m3,                &
 +ei
 +if backtrk
-     &         xlos(1,j)*1d-3, yv(1,j)*1d-3, xlos(2,j)*1d-3,            &
+     &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3,            &
 +ei
-     &         yv(2,j)*1d-3,ejfv(j)*1d-3, (ejv(j)-e0)*1d6,              &
-     &         -1.0d-03 * (sigmv(j)/clight) * (e0/e0f)
+     &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)-e0)*c1e6,             &
+     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f)
            endif
          end do
 
@@ -30248,8 +30249,8 @@ c$$$         endif
 !       compute beam matrix
 !       - sum of squares
         do japx=1,napx
-           tmpE=(ejv(japx)-e0)*1d-3              ! [GeV]
-           tmpT=-sigmv(japx)/clight*(e0/e0f)*1d6 ! [ns]
+           tmpE=(ejv(japx)-e0)*c1m3              ! [GeV]
+           tmpT=-sigmv(japx)/clight*(e0/e0f)*c1e6! [ns]
            x_sum2=x_sum2+(xv(1,japx))**2         ! [mm^2]
            y_sum2=y_sum2+(xv(2,japx))**2         ! [mm^2]
            E_sum2=E_sum2+tmpE**2                 ! [GeV^2]
@@ -34644,7 +34645,7 @@ c$$$         endif
       endif
       do 100 l=1,2
         epsa(l)=amp(l)**2/bet0(l)                                        !hr08
-        eps(l)=epsa(l)*1d6
+        eps(l)=epsa(l)*c1e6
         x(1,l)=x(1,l)+(clo(l)*dble(idz(l)))*dble(1-idfor)                !hr08
         y(1,l)=y(1,l)+(clop(l)*dble(idz(l)))*dble(1-idfor)               !hr08
   100 continue
@@ -35134,8 +35135,8 @@ c$$$         endif
    20 continue
       corr(1,1)=zero
       corr(1,2)=zero
-      chromc(1)=9.999999d23
-      chromc(2)=9.999999d23
+      chromc(1)=9.999999e23_fPrec
+      chromc(2)=9.999999e23_fPrec
       do 30 i=1,4
         nwr(i)=0
    30 continue
@@ -36778,7 +36779,7 @@ c$$$         endif
       edcor(2)=ed(iq2)
       edcor1=edcor(1)
       edcor2=edcor(2)
-      coro=1d38
+      coro=1e38_fPrec
       cor=0
       ncorr=0
       do ncorr=1,itcro+1
@@ -36895,8 +36896,8 @@ c$$$         endif
       do 10 l=1,2
         clo(l)=dpp*di0(l)
         clop(l)=dpp*dip0(l)
-        dx(l)=1e6
-        dy(l)=1e6
+        dx(l)=c1e6
+        dy(l)=c1e6
    10 continue
       call envar(dpp)
       call umlauf(dpp,1,ierr)
@@ -36999,7 +37000,7 @@ c$$$         endif
       chd(2)='  D-Y '
       chd(3)='  D-S '
       cor=zero
-      coro=1d38
+      coro=1e38_fPrec
       ii=0
       if(ndimf.eq.3) then
         do l=1,2
@@ -37463,8 +37464,8 @@ c$$$         endif
       do 10 l=1,2
         clo(l)=dpp*di0(l)
         clop(l)=dpp*dip0(l)
-        dx(l)=1d6                                                        !hr06
-        dy(l)=1d6                                                        !hr06
+        dx(l)=c1e6                                                        !hr06
+        dy(l)=c1e6                                                        !hr06
    10 continue
       call envar(dpp)
       call umlauf(dpp,1,ierr)
@@ -39456,21 +39457,21 @@ c$$$            endif
               if(kp(ixwl).eq.3) then
                  nhmoni=nhmoni+1
                  betam(nhmoni,1)=b1(1)
-                 pam(nhmoni,1)=(p1(1)*2d0)*pi
+                 pam(nhmoni,1)=(p1(1)*two)*pi
                  bclorb(nhmoni,1)=c(1)
               else if(kp(ixwl).eq.4) then
                  nhcorr=nhcorr+1
                  betac(nhcorr,1)=b1(1)
-                 pac(nhcorr,1)=(p1(1)*2d0)*pi
+                 pac(nhcorr,1)=(p1(1)*two)*pi
               else if(kp(ixwl).eq.-3) then
                  nvmoni=nvmoni+1
                  betam(nvmoni,2)=b1(2)
-                 pam(nvmoni,2)=(p1(2)*2d0)*pi
+                 pam(nvmoni,2)=(p1(2)*two)*pi
                  bclorb(nvmoni,2)=c(2)
               else if(kp(ixwl).eq.-4) then
                  nvcorr=nvcorr+1
                  betac(nvcorr,2)=b1(2)
-                 pac(nvcorr,2)=(p1(2)*2d0)*pi
+                 pac(nvcorr,2)=(p1(2)*two)*pi
               endif
            endif
         endif
@@ -39709,8 +39710,8 @@ c$$$            endif
 +ei
       save
 !-----------------------------------------------------------------------
-      rzero=0.0
-      rzero1=0.0
+      rzero=zero
+      rzero1=zero
       do 10 l=1,2
         clo0(l)=zero
         clop0(l)=zero
@@ -39802,7 +39803,7 @@ c$$$            endif
           b(i)=real(bclorb(i,1))
           do 70 j=1,nhcorr
       ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac&!hr06
-     &(j,1))-qwc1(1)*pi))*c1e3)/(2d0*sin_mb(qwc1(1)*pi)))                !hr06
+     &(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi)))                !hr06
    70   continue
         call calrms(b,nhmoni,rmsx,ptpx)
 !-- MICADO WITH HOUSEHOLDER TRANSFORMATION
@@ -39813,7 +39814,7 @@ c$$$            endif
           b(i)=real(bclorb(i,2))                                         !hr06
           do 80 j=1,nvcorr
       ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac&!hr06
-     &(j,2))-qwc1(2)*pi))*c1e3)/(2d0*sin_mb(qwc1(2)*pi)))                !hr06
+     &(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi)))                !hr06
    80   continue
         call calrms(b,nvmoni,rmsz,ptpz)
         write(lout,10030) ii-1,rmsx,rmsz
@@ -46886,9 +46887,9 @@ c$$$            endif
         write(lout,*) 'WARNING: IAPZ IS ZERO'
         iapz=1
       endif
-      tphx=dphx/dble(iapx)                                               !hr06
-      tphz=dphz/dble(iapz)                                               !hr06
-      if(iap6.gt.0) tph6=dph6/dble(iap6)                                 !hr06
+      tphx=dphx/real(iapx,fPrec)                                         !hr06
+      tphz=dphz/real(iapz,fPrec)                                         !hr06
+      if(iap6.gt.0) tph6=dph6/real(iap6,fPrec)                           !hr06
 !--STANDARD DEVIATION OF PHASEADVANCES
       do 290 i=1,iapx
   290 sdpx=sdpx+(phase(1,i)-tphx)**2                                     !hr06
@@ -46896,9 +46897,9 @@ c$$$            endif
   300 sdpz=sdpz+(phase(2,i)-tphz)**2                                     !hr06
       do 310 i=1,iap6
   310 sdp6=sdp6+(phase(3,i)-tph6)**2                                     !hr06
-      sdpx=sqrt(sdpx)/dble(iapx)                                         !hr06
-      sdpz=sqrt(sdpz)/dble(iapz)                                         !hr06
-      if(iap6.gt.0) sdp6=sqrt(sdp6)/dble(iap6)                           !hr06
+      sdpx=sqrt(sdpx)/real(iapx,fPrec)                                   !hr06
+      sdpz=sqrt(sdpz)/real(iapz,fPrec)                                   !hr06
+      if(iap6.gt.0) sdp6=sqrt(sdp6)/real(iap6,fPrec)                     !hr06
 !--AVERAGED EMITTANCES
       di11=i11
       if(i11.eq.0) then
@@ -47071,16 +47072,16 @@ c$$$            endif
       if(nstop.lt.ia.and.(ia.lt.numl.or.ia.lt.nint(dnumlr))) nlost=1
 +if vvector
       if(nnumxv(ifipa).eq.0.and.nnumxv(ilapa).eq.0) then
-        sumda(22)=dble(ia)                                               !hr06
-        sumda(23)=dble(ia)                                               !hr06
+        sumda(22)=real(ia,fPrec)                                         !hr06
+        sumda(23)=real(ia,fPrec)                                         !hr06
       else
-        sumda(22)=dble(nnumxv(ifipa))                                    !hr06
-        sumda(23)=dble(nnumxv(ilapa))                                    !hr06
+        sumda(22)=real(nnumxv(ifipa),fPrec)                              !hr06
+        sumda(23)=real(nnumxv(ilapa),fPrec)                              !hr06
       endif
 +ei
 +if .not.vvector
-      sumda(22)=dble(ia)                                                 !hr06
-      sumda(23)=dble(ia)                                                 !hr06
+      sumda(22)=real(ia,fPrec)                                           !hr06
+      sumda(23)=real(ia,fPrec)                                           !hr06
 +ei
 +if cr
 ! TRY a FIX for nnuml
@@ -47090,20 +47091,20 @@ c$$$            endif
 !       if (nint(sumda(23)).eq.numl) sumda(23)=dble(nnuml)
 !     endif
 +ei
-      sumda(2)=dble(nlost)
+      sumda(2)=real(nlost,fPrec)
       sumda(9)=dp1-clop(3)
 !--GET DIFFERENCE IN THE NUMBER OF TURNS PER DATA ENTRY : TIDNT
 !--NOW CONSIDERING ONLY TURNS LARGER THAN NSTART
-      tidnt=dble(((ia-nstart)+idnt)/i11)                                 !hr06
+      tidnt=real(((ia-nstart)+idnt)/i11,fPrec)                           !hr06
       if(i2.ge.2) then
         if(nprint.eq.1) write(lout,10110)
         ilyap=0
         slopem=zero
         do 360 i=1,i2-1
-          iturn=nint(dble((i+1)*iav)*tidnt)                              !hr06
+          iturn=nint(real((i+1)*iav,fPrec)*tidnt)                        !hr06
           if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),     &
      &varlea(i)
-          if(biav(i).gt.0.1d0) ilyap=1
+          if(biav(i).gt.c1m1) ilyap=1
           slopem=max(slopem,slope(i))
   360   continue
         if(nprint.eq.1) write(lout,10130)
@@ -47140,7 +47141,7 @@ c$$$            endif
           jm1=j-1
           if(im1.eq.0.and.jm1.eq.0) goto 370
           if(im1+jm1.gt.ires) goto 370
-          ares=dble(im1)*tphx+dble(jm1)*tphz                             !hr06
+          ares=real(im1,fPrec)*tphx+real(jm1,fPrec)*tphz                 !hr06
           dares=anint(ares)
           ares=ares-dares
           if(abs(ares).lt.armin) then
@@ -47148,7 +47149,7 @@ c$$$            endif
             im1s=im1
             jm1s=jm1
           endif
-          ared=dble(im1)*tphx-dble(jm1)*tphz                             !hr06
+          ared=real(im1,fPrec)*tphx-real(jm1,fPrec)*tphz                 !hr06
           dared=anint(ared)
           ared=ared-dared
           if(abs(ared).lt.armin) then
@@ -47163,8 +47164,8 @@ c$$$            endif
      &1) write(lout,10170) im1,-jm1,dared,ared
   370 continue
       if(armin.lt.armin0) then
-        sumda(16)=dble(im1s)                                             !hr06
-        sumda(17)=dble(jm1s)                                             !hr06
+        sumda(16)=real(im1s,fPrec)                                       !hr06
+        sumda(17)=real(jm1s,fPrec)                                       !hr06
         sumda(18)=sumda(16)+abs(sumda(17))
       endif
       if(iwarx.eq.1.and.nprint.eq.1) write(lout,10150)
@@ -47446,8 +47447,8 @@ c$$$            endif
           pmax(i3)=pmax(i3)+pcha
   430   continue
         if(iffw.eq.2) then
-          pmin(22)=xxmin/(1d0+abs(prec))
-          pmin(24)=zzmin/(1d0+abs(prec))
+          pmin(22)=xxmin/(one+abs(prec))
+          pmin(24)=zzmin/(one+abs(prec))
         endif
         if((i.eq.1.and.idis.eq.1).or. (i.gt.1.and.i.le.8.and.icow.eq.1) &
      &.or. ((i.eq.9.or.i.eq.10).and.istw.eq.1).and. (pmin(i1).ne.pmax   &
