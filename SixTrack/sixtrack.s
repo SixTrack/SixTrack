@@ -2,8 +2,8 @@
       character(len=8) version  !Keep data type in sync with 'cr_version'
       character(len=10) moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.14'/
-      data moddate /'31.10.2017'/
+      data version /'4.7.15'/
+      data moddate /'02.11.2017'/
 +cd license
 !!SixTrack
 !!
@@ -935,7 +935,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
 !
-! THIS BLOCK IS COMMON TO BOTH THIN6D AND TRAUTHIN SUBROUTINES
+! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
 !
       integer ieff,ieffdpop
 !
@@ -981,14 +981,20 @@
 
 
       integer secondary(npart),tertiary(npart),other(npart),            &
-     &part_hit_before(npart)
+     &part_hit_before_pos(npart), part_hit_before_turn(npart)
       real(kind=fPrec) part_indiv(npart),part_linteract(npart)
 
-      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed &
-     &,part_select(npart),nabs_type(npart)
+      integer part_hit_pos(npart),part_hit_turn(npart),                 &
+     &     part_abs_pos(npart),part_abs_turn(npart),                    &
+     &     n_tot_absorbed,n_absorbed,                                   &
+     &     part_select(npart),nabs_type(npart)
       real(kind=fPrec) part_impact(npart)
-      common /stats/ part_impact,part_hit,part_abs,nabs_type,part_indiv,&
-     &part_linteract,secondary,tertiary,other
+      common /stats/ part_impact,                                       &
+     &     part_hit_pos,part_hit_turn,                                  &
+     &     part_hit_before_pos, part_hit_before_turn,                   &
+     &     part_abs_pos,part_abs_turn,                                  &
+     &     nabs_type,part_indiv,                                        &
+     &     part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
@@ -1070,9 +1076,10 @@
 
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-!MAY2005
-!      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
+      
+      integer lhit_pos(npart),lhit_turn(npart),                         &
+     &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
+     &     name(npart),nabs_type(npart)
 !MAY2005
       real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -15087,20 +15094,6 @@ cc2008
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
-
-      if(do_coll .and. numl.ge.10000) then
-         write(lout,*) ""
-         write(lout,*) "Error when parsing COLL block in fort.3"
-         write(lout,*) "Collimation supports a maximum of 10000 turns;"
-         write(lout,*) " trying to use more than this "//
-     &        "corrupts the output files."
-         write(lout,*) "Sorry!"
-         write(lout,*) ""
-         
-         call prror(-1)
-      endif
-      
-
       
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
@@ -15120,6 +15113,18 @@ cc2008
          write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
          write(lout,*) "Please reduce the number of particles or loops"
          write(lout,*) ""
+         
+         call prror(-1)
+      endif
+
+      if(iclr.eq.2 .and. napx*2.ge.100 .and. nloop.gt.1) then
+         write(lout,*) ""
+         write(lout,*) "Error when parsing COLL block in fort.3"
+         write(lout,*) "If nloop > 1 then you must have napx*2 < 100"
+         write(lout,*) " or else the particle numbers in the"
+         write(lout,*) " output gets confused."
+         write(lout,*) "napx  = ", napx
+         write(lout,*) "nloop = ", nloop
          
          call prror(-1)
       endif
@@ -27191,7 +27196,7 @@ c$$$         endif
               gammax = (one + talphax(ie)**2)/tbetax(ie)
               gammay = (one + talphay(ie)**2)/tbetay(ie)
 
-              if (part_abs(j).eq.0) then
+              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
@@ -27670,7 +27675,7 @@ c$$$         endif
   640     continue
 !GRD UPGRADE JANUARY 2005
 +if collimat
-      call collimate_end_element(i)
+      call collimate_end_element
 +ei
 !GRD END OF UPGRADE
 
@@ -27686,7 +27691,7 @@ c$$$         endif
 
 
 +if collimat
-      call collimate_end_turn(n)
+      call collimate_end_turn
 +ei
 
 +if .not.collimat
