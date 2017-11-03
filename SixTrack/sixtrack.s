@@ -17462,7 +17462,8 @@ cc2008
      &'  THE FOLLOWING ELEMENTS ARE RELATED IN STRENGTHS--->'/ t10,     &
      &'ELEMENT RELATED TO ELEMENT BY THE RATIO'/)
 10320 format(//131('-')//t10,'DATA BLOCK APERTURE LIMITATIONS'/ /t10,   &
-     &'TYP',t20,'FORM',t30,'APERT-H',t40,'APERT-V')
+     &'NAME',16x,'TYP',5x,'APER_1',7x,'APER_2',8x,'APER_3',7x,          &
+     &'APER_4',7x,'ANGLE',8x,'X_OFFSET',5x,'Y_OFFSET'/)
 10340 format(t10,'NO CAVITIES SPECIFIED'/)
 10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
      &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
@@ -17498,7 +17499,7 @@ cc2008
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
 10310 format(t10,a16,10x,a16,6x,f20.15)
-10330 format(t8,a16,t18,a2,t30,f8.2,t40,f8.2)
+10330 format(t10,a16,4x,a2,7(1x,f12.4))
 10360 format(5x,'| ELEMENT  |           ',a16,'           |           ',&
      &'    |               |               |               |')
 10390 format(5x,'| ELEMENTS |                              |    ',a16,  &
