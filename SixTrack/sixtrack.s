@@ -8276,89 +8276,6 @@ cc2008
             endif
    60     continue
 
-+dk nocode
-      !Dummy deck to satisfy astuce in case of no decks in the fortran file...
-+if .not.datamods
-      subroutine nodatamods
-+ca crcoall
-      write(lout,*)                                                     &
-     &"Dummy routine in bigmats.f if beamgas module is off."
-      end subroutine
-+ei
-
-+dk datamods
-      module bigmats
-      use floatPrecision
-!     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
-      
-      !Big arrays used for thick tracking
-      real(kind=fPrec), allocatable :: al(:,:,:,:), as(:,:,:,:)
-      real(kind=fPrec), allocatable :: ekv(:,:)
-      real(kind=fPrec), allocatable :: hv(:,:,:,:), bl1v(:,:,:,:)
-      
-      save
-
-      contains !Here comes the subroutines!
-
-      subroutine allocate_thickarrays(npart,nele,nblo)
-      use floatPrecision
-      implicit none
-      integer, intent(in) :: npart,nele,nblo
-      integer stat
-      integer i1,i2,i3,i4,i
-+ca crcoall
-+ca parnum
-
-+if .not.vvector
-      write(lout,*) "ERROR: DATAMODS requires VVECTOR!"
-      call prror(-1)
-+ei      
-      
-      write(lout,*) "ALLOCATE_THICKARRAYS: npart/nele/nblo=",
-     &npart,nele,nblo
-      
-      allocate(al(6,2,npart,nele), as(6,2,npart,nele),
-     &     ekv(npart,nele),
-     &     hv(6,2,npart,nblo), bl1v(6,2,npart,nblo), STAT = stat)
-      if (stat.ne.0) then
-         write(lout,*) "ERROR in allocate_thickarrays(); stat=",stat
-         call prror(-1)
-      endif
-
-      !ZERO the newly allocated arrays
-
-      !Code from MAINCR
-      do i=1,npart
-         do i1=1,nblo
-            do i2=1,2
-               do i3=1,6
-                  hv(i3,i2,i,i1)=zero
-                  bl1v(i3,i2,i,i1)=zero
-               end do
-            end do
-         end do
-      end do
-
-      !Code from COMNUL
-      do i=1,nele
-         do i3=1,2
-            do i4=1,6
-               do i1=1,npart
-                  al(i4,i3,i1,i)=zero
-                  as(i4,i3,i1,i)=zero
-               end do
-            end do
-         end do
-      end do
-      end subroutine
-      
-      subroutine deallocate_thickarrays
-      use floatPrecision
-      !TODO
-      end subroutine
-      
-      end module
-
 +dk close
       subroutine closeUnits
       use floatPrecision
@@ -35744,8 +35661,10 @@ c$$$         endif
 +if vvector
             do 120 i1=1,npart
 +ei
++if .not.datamods
                al(i4,i3,i1,iel)=zero
                as(i4,i3,i1,iel)=zero
++ei
 +if .not.vvector
                at(i4,i3,i1,iel)=zero
                a2(i4,i3,i1,iel)=zero

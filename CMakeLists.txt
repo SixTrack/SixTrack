@@ -283,7 +283,7 @@ else()
 endif()
 
 if(NOT DA AND DATAMODS)
-	LIST(APPEND FORS_FIXFORM datamods)
+	LIST(APPEND FORS_FREEFORM datamods)
 endif(NOT DA AND DATAMODS)
 
 if(COLLIMAT)
