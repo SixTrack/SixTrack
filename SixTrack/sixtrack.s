@@ -28744,8 +28744,8 @@ c$$$         endif
       logical checkRE, checkEL, checkRL, checkOC, checkRT 
       logical lparID
       integer nthinerr
-      double precision apxx, apyy, apxy, aps, apc
-      double precision xchk(2,npart)
+      real(kind=fPrec) apxx, apyy, apxy, aps, apc
+      real(kind=fPrec) xchk(2,npart)
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 12-06-2014
@@ -28755,7 +28755,7 @@ c$$$         endif
       integer niter       ! number of iterations
       integer kapert      ! temporal integer for aperture type
       logical llos(npart) ! temporal logic array for interpolation
-      double precision xlos(2,npart), aprr(7), step(npart), length,
+      real(kind=fPrec) xlos(2,npart), aprr(7), step(npart), length,
      & slos(npart), apnew(7), xnew(2)
 +ei
       save
@@ -29186,10 +29186,10 @@ c$$$         endif
 +ca parnum
 
 !     parameters
-      double precision x, y, xnew, ynew, tlt, xoff, yoff
+      real(kind=fPrec) x, y, xnew, ynew, tlt, xoff, yoff
 
 !     temporary variables
-      double precision theta, radio, xtmp, ytmp, ttmp
+      real(kind=fPrec) theta, radio, xtmp, ytmp, ttmp
 
       xtmp = x+xoff
       ytmp = y+yoff
@@ -29208,9 +29208,10 @@ c$$$         endif
 !     check particle position against REctangle aperture
 !     always in main code
 !-----------------------------------------------------------------------
+      use floatPrecision
       implicit none
 !     parameters
-      double precision x, y, apex, apey
+      real(kind=fPrec) x, y, apex, apey
       checkRE = ( abs(x).gt.apex ).or.( abs(y).gt.apey )
       return
       end function
@@ -29228,7 +29229,7 @@ c$$$         endif
 +ca parnum
 
 !     parameters
-      double precision x, y, apxx, apyy, apxy
+      real(kind=fPrec) x, y, apxx, apyy, apxy
 
       checkEL = x**two*apyy+y**two*apxx .gt. apxy
       return
@@ -29245,7 +29246,7 @@ c$$$         endif
       implicit none
 
 !     parameters
-      double precision x, y, apex, apey, apxx, apyy, apxy
+      real(kind=fPrec) x, y, apex, apey, apxx, apyy, apxy
 
 !     temporary variables
       logical checkRE, checkEL
@@ -29266,7 +29267,7 @@ c$$$         endif
       implicit none
 
 !     parameters
-      double precision x, y, apes, apec
+      real(kind=fPrec) x, y, apes, apec
 
 !     temporary variables
       logical checkRE
@@ -29287,7 +29288,7 @@ c$$$         endif
       implicit none
 
 !     parameters
-      double precision x, y, apex, apey, r, r2
+      real(kind=fPrec) x, y, apex, apey, r, r2
 
 !     temporary variables
       logical checkRE
@@ -29319,7 +29320,7 @@ c$$$         endif
 !     run time variables
       integer iElUp, iElDw, ixApeUp, ixApeDw, jj, iuold
       logical lExtremes, lsame
-      double precision aPrec
+      real(kind=fPrec) aPrec
 !     precision on aperture parameters to be identical
       data aPrec / c1m6 / 
 
@@ -29430,7 +29431,7 @@ c$$$         endif
       integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,
      & itmpape,iNew, ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,
      & ixEl
-      double precision tmpape(7), ddcum, sPrec, aPrec
+      real(kind=fPrec) tmpape(7), ddcum, sPrec, aPrec
       logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
       character*16 CrtApeName
 
@@ -29701,9 +29702,9 @@ c$$$         endif
 
 !     interface variables
       integer iUp, ixUp, iDw, ixDw, oKApe
-      double precision oApe(7), spos
+      real(kind=fPrec) oApe(7), spos
 !     temporary variables
-      double precision ddcum, mdcum
+      real(kind=fPrec) ddcum, mdcum
       integer jj
 
       if ( kape(ixDw).gt.4 ) then
@@ -29782,7 +29783,7 @@ c$$$         endif
 
 !     interface variables
       integer ixApeTo, ixApeFrom, nKApe
-      double precision nApe(7)
+      real(kind=fPrec) nApe(7)
 !     temporary variables
       integer jj
 
@@ -29828,7 +29829,7 @@ c$$$         endif
       logical lopen
 +if backtrk
       integer iOld, ixOld, niter, oKApe,jj
-      double precision aprr,slos,step
+      real(kind=fPrec) aprr,slos,step
       dimension aprr(7)
       character(len=2) aptype, get_ape_type
 +ei
@@ -29966,8 +29967,8 @@ c$$$         endif
       integer iunit
       character*2 aptype
       character*16 name
-      double precision ape(7)
-      double precision spos
+      real(kind=fPrec) ape(7)
+      real(kind=fPrec) spos
 !     dump info
       if( iunit.lt.0 ) then
          write(*,1984) name, aptype, spos, ape(1), ape(2),
@@ -30061,10 +30062,10 @@ c$$$         endif
       logical lhighprec
 
 !     statistical quantities (used only locally)
-      double precision x_sum , y_sum , xpsum , ypsum
-      double precision x_sum2, y_sum2, xpsum2, ypsum2
-      double precision pcsum , dtsum , desum
-      double precision pcsum2, dtsum2, desum2
+      real(kind=fPrec) x_sum , y_sum , xpsum , ypsum
+      real(kind=fPrec) x_sum2, y_sum2, xpsum2, ypsum2
+      real(kind=fPrec) pcsum , dtsum , desum
+      real(kind=fPrec) pcsum2, dtsum2, desum2
 
 !     temporary variables
       integer japx
@@ -30197,15 +30198,15 @@ c$$$         endif
       logical lhighprec
 
 !     statistical quantities (used only locally)
-      double precision x_sum2, y_sum2, xpsum2, ypsum2, xxpsum, yypsum
-      double precision E_sum2, dtsum2, Edtsum
-      double precision temix, temiy, tbetx, tbety, talfx, talfy
-      double precision temil, tbetl, talfl
+      real(kind=fPrec) x_sum2, y_sum2, xpsum2, ypsum2, xxpsum, yypsum
+      real(kind=fPrec) E_sum2, dtsum2, Edtsum
+      real(kind=fPrec) temix, temiy, tbetx, tbety, talfx, talfy
+      real(kind=fPrec) temil, tbetl, talfl
 
 !     temporary variables
       integer japx
       logical lerr
-      double precision tmpE, tmpT
+      real(kind=fPrec) tmpE, tmpT
 
       lerr=.false.
 

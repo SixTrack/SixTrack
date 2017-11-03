@@ -1,5 +1,7 @@
 module mod_fluka
 
+  use floatPrecision
+
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 18-01-2016
   ! fortran 90 module for coupling SixTrack to FLUKA
@@ -74,7 +76,7 @@ module mod_fluka
   logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
   integer, public, allocatable :: fluka_type(:)                    ! type of insertion (one per SINGLE ELEMENT)
   integer, public, allocatable :: fluka_geo_index(:)               ! index of insertion (one per SINGLE ELEMENT)
-  double precision, public, allocatable :: fluka_synch_length(:)   ! length of insertion [m] (one per SINGLE ELEMENT)
+  real(kind=fPrec), public, allocatable :: fluka_synch_length(:)   ! length of insertion [m] (one per SINGLE ELEMENT)
   ! recognised insertion types
   integer, parameter, public :: FLUKA_NONE    = 0, & ! no insertion
                                 FLUKA_ELEMENT = 1, & ! insertion covers only the present SINGLE ELEMENT
@@ -85,23 +87,23 @@ module mod_fluka
   integer, public :: fluka_max_uid                         ! Highest particle ID
   integer*4, public, allocatable :: fluka_uid(:)           ! particle ID
   integer*4, public, allocatable :: fluka_gen(:)           ! ID of parent particle
-  double precision, public, allocatable :: fluka_weight(:) ! statistical weight (>0.0)
+  real(kind=fPrec), public, allocatable :: fluka_weight(:) ! statistical weight (>0.0)
 
   ! Useful values
   integer :: fluka_nsent     ! Temporary count of sent particles
   integer :: fluka_nrecv     ! Temporary count of received particles
-  double precision, public :: fluka_clight ! [m/s]
+  real(kind=fPrec), public :: fluka_clight ! [m/s]
 
   ! Reference particle
-  double precision, public :: fluka_e0     ! [GeV]
-  double precision, public :: fluka_pc0    ! [GeV/c]
-  double precision, public :: fluka_mass0  ! [GeV/c2]
-  double precision, public :: fluka_brho0  ! [Tm]
+  real(kind=fPrec), public :: fluka_e0     ! [GeV]
+  real(kind=fPrec), public :: fluka_pc0    ! [GeV/c]
+  real(kind=fPrec), public :: fluka_mass0  ! [GeV/c2]
+  real(kind=fPrec), public :: fluka_brho0  ! [Tm]
   integer,          public :: fluka_chrg0  ! []
 
   ! hack for Li-7
-  !double precision, parameter :: MLI = 6.5338351903884577D0
-  !double precision, parameter :: RLI = 3D0/1D0
+  !real(kind=fPrec), parameter :: MLI = 6.5338351903884577D0
+  !real(kind=fPrec), parameter :: RLI = 3D0/1D0
 
   contains
 
@@ -112,7 +114,7 @@ module mod_fluka
 
     ! interface variables
     integer :: maxp, nele
-    double precision :: clight
+    real(kind=fPrec) :: clight
 
     ! temporary variables
     integer :: j
@@ -196,7 +198,7 @@ module mod_fluka
 
     ! Fluka I/O parameters
     integer*4         :: flid, flgen
-    double precision  :: flwgt, flx, fly, flz, flxp, flyp, flpc, flm, flt
+    real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flpc, flm, flt
     integer*2         :: flaa, flzz
     integer*1         :: mtype
 
@@ -238,10 +240,10 @@ module mod_fluka
 
     ! Parameters
     integer           :: turn, ipt, npart
-    double precision  :: el
-    double precision  :: x(fluka_max_npart), xp(fluka_max_npart)
-    double precision  :: y(fluka_max_npart), yp(fluka_max_npart)
-    double precision  :: s(fluka_max_npart), etot(fluka_max_npart)
+    real(kind=fPrec)  :: el
+    real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
+    real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
+    real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
 
     fluka_send_receive = fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot)
     if(fluka_send_receive.eq.-1) return
@@ -256,14 +258,14 @@ module mod_fluka
 
     ! Interface variables
     integer           :: turn, ipt, npart
-    double precision  :: el
-    double precision  :: x(fluka_max_npart), xp(fluka_max_npart)
-    double precision  :: y(fluka_max_npart), yp(fluka_max_npart)
-    double precision  :: s(fluka_max_npart), etot(fluka_max_npart)
+    real(kind=fPrec)  :: el
+    real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
+    real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
+    real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
 
     ! Fluka I/O parameters
     integer*4         :: flid, flgen
-    double precision  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
+    real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
     integer*2         :: flaa, flzz
     integer*1         :: mtype
 
@@ -367,14 +369,14 @@ module mod_fluka
 
     ! Interface variables
     integer           :: turn, ipt, npart
-    double precision  :: el
-    double precision  :: x(fluka_max_npart), xp(fluka_max_npart)
-    double precision  :: y(fluka_max_npart), yp(fluka_max_npart)
-    double precision  :: s(fluka_max_npart), etot(fluka_max_npart)
+    real(kind=fPrec)  :: el
+    real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
+    real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
+    real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
 
     ! Fluka I/O parameters
     integer*4         :: flid, flgen
-    double precision  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
+    real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
     integer*2         :: flaa, flzz
     integer*1         :: mtype
 
@@ -492,7 +494,7 @@ module mod_fluka
     implicit none
 
     ! interface variables
-    double precision :: e0, pc0, mass0
+    real(kind=fPrec) :: e0, pc0, mass0
     integer          :: chrg0
 
     ! Auxiliary variables

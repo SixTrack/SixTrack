@@ -152,7 +152,7 @@
 
 !     temporary variables
       integer ret, j
-      double precision eltot
+      real(kind=fPrec) eltot
 
       save
 
@@ -230,7 +230,7 @@
 
 !     temporary variables
       integer ret, j
-      double precision eltot
+      real(kind=fPrec) eltot
 
       save
 
@@ -283,7 +283,7 @@
 
 !     temporary variables
       integer ret, j
-      double precision eltot
+      real(kind=fPrec) eltot
 
       save
 
