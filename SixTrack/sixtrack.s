@@ -10645,7 +10645,7 @@ cc2008
       parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
       parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
       real(kind=fPrec) xm,xx,yy
-      parameter (xm=1d120)
+      parameter (xm=1e16_fPrec)
 !     temporary arrays to facilitate vectorisation
       integer in,out,ins,outs
       dimension ins(npart),outs(npart)
