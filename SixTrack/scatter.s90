@@ -1097,7 +1097,9 @@ end function scatter_profile_getDensity
 subroutine scatter_profile_getParticle(profileIdx, x, y, xp, yp, E)
     
     implicit none
-    
+
++ca parnum
+ 
     integer, intent(in) :: profileIdx
     real(kind=fPrec), intent(in)  :: x, y
     real(kind=fPrec), intent(out) :: xp, yp, E
