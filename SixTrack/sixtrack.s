@@ -46605,7 +46605,9 @@ c$$$            endif
       implicit none
 +ca parnum
       integer idim,ifail,ir,jfail,k,kprnt,n
-      real t1,t2,t3,a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
+      real(kind=fPrec) t1,t2,t3,a,det,temp,s,                           &
+     &c11,c12,c13,c21,c22,c23,c31,c32,c33
+
       character(len=6) name
       dimension ir(n),a(idim,n)
       data name/'RINV'/,kprnt/0/
@@ -46674,7 +46676,7 @@ c$$$            endif
 !
       det=a(1,1)*a(2,2)-a(1,2)*a(2,1)
       if(det.eq.zero) goto 8
-      s=1e0/det                                                          !hr07
+      s=one/det                                                          !hr07
       c11   =s*a(2,2)
       a(1,2)=(-one*s)*a(1,2)                                             !hr07
       a(2,1)=(-one*s)*a(2,1)                                             !hr07
@@ -46685,7 +46687,7 @@ c$$$            endif
 !  N=1 CASE.
 !
     5 if(a(1,1).eq.zero) goto 8
-      a(1,1)=1e0/a(1,1)                                                  !hr07
+      a(1,1)=one/a(1,1)                                                  !hr07
       return
 !
 !  N.GT.3 CASES.  FACTORIZE MATRIX AND INVERT.
@@ -46877,16 +46879,16 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
       integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
-      real a,det,g1,g2,one,p,pivotf,q,sizef,t,tf,x,y,zero
+      real(kind=fPrec) a,det,g1,g2,p,pivotf,q,sizef,t,tf,x,y
       real(kind=fPrec) s11,s12,dotf
       character(len=6) hname
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
-      data      g1, g2              /  1.0e-37,  1.0e37  /               !hr07
+      data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
       data      hname               /  ' RFACT'  /
-      data      zero, one           /  0., 1.  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
       save
@@ -46951,7 +46953,7 @@ c$$$            endif
             a(k,j+1)  =  real(-one*dotf(a(j,j+1),a(k,j),s12))            !hr07
  143        continue
  144     continue
- 150  if(mod(nxch,2) .ne. 0)  det  =  -1e0*det
+ 150  if(mod(nxch,2) .ne. 0)  det  =  -one*det
       if(jfail .ne. jrange)   det  =  zero
       ir(n)  =  nxch
       return
@@ -46961,16 +46963,17 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
       integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
-      real g1,g2,p,pivotf,q,sizef,t
-      real(kind=fPrec) a,det,dotf,zero,one,s11,s12,x,y,tf
+      real(kind=fPrec) g1,g2,p,pivotf,q,sizef,t
+      real(kind=fPrec) a,det,dotf,s11,s12,x,y,tf
       character(len=6)         hname
       dimension ir(*),a(idim,*)
+
 !      data      g1, g2              /  1.e-37,  1.e37  /
-      data      g1, g2              /  1.0e-37,  1.0e37  /               !hr07
+      data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
       data      hname               /  ' DFACT'  /
-      data      zero, one           /  0.d0, 1.d0  /
       data      normal, imposs      /  0, -1  /
       data      jrange, jover, junder  /  0, +1, -1  /
       save
@@ -47047,7 +47050,7 @@ c$$$            endif
       implicit none
 +ca parnum
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
-      real a,b,te,x,y
+      real(kind=fPrec) a,b,te,x,y
       real(kind=fPrec) dotf,s21,s22
       character(len=6) hname
       dimension ir(*),a(idim,*),b(idim,*)
@@ -47161,7 +47164,7 @@ c$$$            endif
       implicit none
 +ca parnum
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
-      real a,ti,x,y
+      real(kind=fPrec) a,ti,x,y
       real(kind=fPrec) dotf,s31,s32,s33,s34
       character(len=6) hname
       dimension ir(*),a(idim,*)
@@ -47175,7 +47178,7 @@ c$$$            endif
  310  if(n .eq. 1)  return
       a(2,1)  =  real((-one*real(a(2,2),fPrec)) *                       &
      &dotf(a(1,1),a(2,1),zero))     !hr07
-      a(1,2)  =  -1e0*a(1,2)                                             !hr07
+      a(1,2)  =  -one*a(1,2)                                             !hr07
       if(n .eq. 2)  goto 330
       do 314    i  =  3, n
          im2  =  i-2
@@ -47190,7 +47193,7 @@ c$$$            endif
             a(j,i)  =  real(-one*s32)                                    !hr07
  312        continue
       a(i,i-1)=real((-one*dble(a(i,i)))*dotf(a(i-1,i-1),a(i,i-1),zero))  !hr07
-         a(i-1,i)  =  -1e0*a(i-1,i)                                      !hr07
+         a(i-1,i)  =  -one*a(i-1,i)                                      !hr07
  314     continue
  330  nm1  =  n-1
       do 335   i  =  1, nm1
