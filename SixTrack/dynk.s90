@@ -231,7 +231,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 +ei
 
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
 
 +if fio
@@ -2438,7 +2438,7 @@ subroutine dynk_apply(turn)
 +ca comgetfields
 +ca stringzerotrim
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
 
 +if collimat
@@ -3571,10 +3571,10 @@ subroutine dynk_crcheck_positionFiles
     logical lopen
     integer ierro
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
     integer j
-    character*1024 arecord
+    character(len=1024) arecord
 
     inquire(unit=665, opened=lopen)
     if (lopen) then
