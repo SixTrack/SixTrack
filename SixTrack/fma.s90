@@ -237,7 +237,7 @@ contains
              ! check if fma_last < 0 and !=-1
              if (fma_last(i) .le. 0) then
                 write(lout,*) 'ERROR in fma_postpr: Last turn in FMA block must be -1 or a positive integer, "//&
-                     "but fma_last=',fma_last(i),'!'
+     &                "but fma_last=',fma_last(i),'!'
                 call prror(-1)
              endif
              ! if fma_last >0 check that fma_last < dump_last

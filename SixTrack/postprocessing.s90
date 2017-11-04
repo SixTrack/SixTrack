@@ -741,8 +741,11 @@
       finv=tpi/real(ninv,fPrec)                                                !hr06
       dani(1)=zero
       dani(ninv+1)=tpi
-      do 150 i=1,ninv-1
-  150 dani(i+1)=real(i,fPrec)*finv                                             !hr06
+
+      do i=1,ninv-1
+        dani(i+1)=real(i,fPrec)*finv                                             !hr06
+      end do
+
       dle1=zero
       bold=zero
       dle1c=zero
@@ -1200,6 +1203,7 @@
       emta=emt
       emx0=emx
       emz0=emz
+
 !--COURANT SYNDER
       xyzv(1)=c
       xyzv(2)=d
@@ -1207,20 +1211,25 @@
       xyzv(4)=f
       xyzv(5)=g
       xyzv(6)=h
+
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
         xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
         xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
       endif
-      do 220 iq=1,6
+
+      do iq=1,6
         txyz(iq)=zero
-        do 220 jq=1,6
+        do jq=1,6
           txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
-  220 continue
+        end do
+      end do
+
 !--INITIAL COORDINATES
       if(nprint.eq.1.and.ia.eq.0) then
         write(lout,*) 'DISTANCE = ',b
       endif
+
 !--EMITTANCES WITH LINEAR COUPLING
       evx=txyz(1)**2+txyz(2)**2                                          !hr06
       evz=txyz(3)**2+txyz(4)**2                                          !hr06
@@ -1231,35 +1240,43 @@
       xyzv2(4)=f1
       xyzv2(5)=g1
       xyzv2(6)=h1
+
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
         xyzv2(2)=xyzv2(2)*((one+xyzv2(6))+clop(3))                       !hr06
         xyzv2(4)=xyzv2(4)*((one+xyzv2(6))+clop(3))                       !hr06
       endif
-      do 225 iq=1,6
+
+      do iq=1,6
         txyz2(iq)=zero
-        do 225 jq=1,6
+        do jq=1,6
           txyz2(iq)=txyz2(iq)+t(jq,iq)*xyzv2(jq)
-  225 continue
+        end do
+      end do
+
       evx2=txyz2(1)**2+txyz2(2)**2                                       !hr06
       evz2=txyz2(3)**2+txyz2(4)**2                                       !hr06
       write(toptit(3)(6:15),10010) sqrt(evx*bet0(1))+sqrt(evz*bet0x2)
       write(toptit(3)(23:32),10010) sqrt(evz*bet0(2))+sqrt(evx*bet0z2)
+
       if(its6d.eq.1) then
         emiii=txyz(5)**2*cma2**2+txyz(6)**2*cma1**2
       else
         emiii=zero
       endif
+
 !--COURANT SYNDER CONT.
-      do 230 iq=1,6
+      do iq=1,6
         txyz(iq)=txyz(iq)*rbeta(iq)
-  230 continue
+      end do
+
       c0=txyz(1)
       d0=txyz(2)
       e0=txyz(3)
       f0=txyz(4)
       g0=txyz(5)*cma2
       h0=txyz(6)*cma1
+
 !--MIN MAX VALUES
       pmin(2)=b
       pmax(2)=b
@@ -1277,6 +1294,7 @@
       pmax(10)=h0
       pmin(16)=p
       pmax(16)=p
+
 !--EMITTANCES WITH LINEAR COUPLING CONT.
       emi=evx
       emii=evz
@@ -1867,20 +1885,22 @@
         endif
 
 ! normalisation with t-matrix = inverse matrix of eigenvectors
-        do 320 iq=1,6
+        do iq=1,6
           txyz(iq)=zero
-          do 320 jq=1,6
+          do jq=1,6
             txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
-  320   continue
+          end do
+        end do
 
 !--MEAN EMITTANCES WITH LINEAR COUPLING
         evx=txyz(1)**2+txyz(2)**2                                        !hr06
         evz=txyz(3)**2+txyz(4)**2                                        !hr06
 
 !--COURANT SYNDER CONT.
-        do 330 iq=1,6
+        do iq=1,6
           txyz(iq)=txyz(iq)*rbeta(iq)
-  330   continue
+        end do
+
         c=txyz(1)
         d=txyz(2)
         e=txyz(3)
@@ -1939,15 +1959,17 @@
         if(nprint.eq.1) write(lout,10110)
         ilyap=0
         slopem=zero
-        do 360 i=1,i2-1
+
+        do i=1,i2-1
           iturn=nint(real((i+1)*iav,fPrec)*tidnt)                        !hr06
-          if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),     &
-     &varlea(i)
+          if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),varlea(i)
           if(biav(i).gt.c1m1) ilyap=1
           slopem=max(slopem,slope(i))
-  360   continue
+        end do
+
         if(nprint.eq.1) write(lout,10130)
         sumda(10)=biav(i2-1)
+
         if(ilyap.eq.0) then
          sumda(11)=slope(i2-1)                                           !hr06
         else
@@ -2007,6 +2029,8 @@
           if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,jm1,dares,ares
           if(abs(ared).lt.dres.and.jm1.ne.0.and.im1.ne.0.and.nprint.eq.1) write(lout,10170) im1,-jm1,dared,ared
   370 continue
+
+
       if(armin.lt.armin0) then
         sumda(16)=real(im1s,fPrec)                                       !hr06
         sumda(17)=real(jm1s,fPrec)                                       !hr06
@@ -2495,15 +2519,16 @@
               xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                    !hr06
             endif
 
-            do 440 iq=1,6
+            do iq=1,6
               txyz(iq)=zero
-              do 440 jq=1,6
+              do jq=1,6
                 txyz(iq)=txyz(iq)+t(jq,iq)*xyzv(jq)
-  440       continue
+              end do
+            end do
 
-            do 450 iq=1,6
+            do iq=1,6
               txyz(iq)=txyz(iq)*rbeta(iq)
-  450       continue
+            end do
 
             c=txyz(1)
             d=txyz(2)
@@ -2949,6 +2974,7 @@
       nv2=n/2
       nm1=n-1
       j=1
+
       do 30 i=1,nm1
         if(i.gt.j)goto 10
         tr=ar(j)
@@ -2963,16 +2989,18 @@
         k=k/2
         goto 20
    30 j=j+k
+
       pi=four*atan_mb(one)
-      do 50 l=1,m
+
+      do l=1,m
         le=2**l
         le1=le/2
         ur=one
         ui=zero
         wr=cos_mb(pi/real(le1,fPrec))                                          !hr06
         wi=-one*sin_mb(pi/real(le1,fPrec))                                     !hr06
-        do 50 j=1,le1
-          do 40 i=j,n,le
+        do j=1,le1
+          do i=j,n,le
             ip=i+le1
             tr=ar(ip)*ur-ai(ip)*ui
             ti=ar(ip)*ui+ai(ip)*ur
@@ -2980,15 +3008,19 @@
             ai(ip)=ai(i)-ti
             ar(i)=ar(i)+tr
             ai(i)=ai(i)+ti
-   40     continue
-        uur=ur*wr-ui*wi
-        ui=ur*wi+ui*wr
-        ur=uur
-   50 continue
-      do 60 i=1,n
+          end do
+
+          uur=ur*wr-ui*wi
+          ui=ur*wi+ui*wr
+          ur=uur
+        end do
+      end do
+
+      do i=1,n
         ar(i)=(ar(i)/real(n,fPrec))*2                                          !hr06
         ai(i)=(ai(i)/real(n,fPrec))*2                                          !hr06
-   60 continue
+      end do
+
       return
       end
 

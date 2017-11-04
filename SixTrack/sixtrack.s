@@ -24723,6 +24723,7 @@ c$$$         endif
         write(lout,*) '[Fluka] Sending napx: ', napx
         write(fluka_log_unit,*) '# Sending napx: ', napx
         fluka_con = fluka_init_max_uid( napx )
+
         if (fluka_con .lt. 0) then
            write(*, *) '[Fluka] Error: failed to send napx to fluka ',
      &  napx
@@ -24730,6 +24731,7 @@ c$$$         endif
      &  napx
            call prror(-1)
         end if
+
         write(lout,*) '[Fluka] Sending napx successful;'
         write(fluka_log_unit,*) '# Sending napx successful;'
         flush(lout)
@@ -24745,13 +24747,17 @@ c$$$         endif
       if(fluka_enable) then
         write(lout,*) '[Fluka] Updating ref particle'
         write(fluka_log_unit,*) '# Updating ref particle'
-        call flush
+        flush(lout)
+        flush(fluka_log_unit)
+
         fluka_con = fluka_set_synch_part( e0, e0f, pma, 1 )
+
         if (fluka_con .lt. 0) then
           write(lout, *) '[Fluka] Error: failed to update ref particle'
           write(fluka_log_unit, *) '# failed to update ref particle'
           call prror(-1)
         end if
+
         write(lout,*) '[Fluka] Updating ref successful;'
         write(fluka_log_unit,*) '# Updating ref particle successful;'
         flush(lout)
@@ -29852,8 +29858,6 @@ c$$$         endif
       character(len=2) aptype, get_ape_type
 +ei
 
-      call flush
-
       write(lout,*)''
       write(lout,10340)
       write(lout,*)''
@@ -29888,8 +29892,6 @@ c$$$         endif
       endif
 +ei
 
-      call flush
-
       do i=2,iu
         ix=ic(i)-nblo
         if(ix.gt.0) then
@@ -29902,38 +29904,29 @@ c$$$         endif
 
             !Number of iterations 
 ! AM ->             write(*,*) 'i,ix,kape(ix):',i,ix,kape(ix)
-            call flush
             if ( (dcum(i)-dcum(iOld)).gt.zero) then
                niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
 ! AM ->                write(*,*) 'niter:',niter
-               call flush
                do jj=1,niter
 ! AM ->                   write(*,*) 'dcum(iOld),dcum(i),bktpre,jj:',
 ! AM ->      & dcum(iOld),dcum(i),bktpre,jj
-                  call flush
                   slos = int(dcum(iOld)/bktpre+jj)*bktpre
 ! AM ->                   write(*,*) 'slos:',slos
-                  call flush
                   step = (slos-dcum(iOld))/(dcum(i)-dcum(iOld))
 ! AM ->                   write(*,*) 'step:',step
-                  call flush
                   if ( step.lt.zero .or. step.gt.one ) exit
                   call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
 ! AM ->             write(*,*) iOld,ixOld,i,ix,oKApe, aprr(1),
 ! AM ->      &aprr(2),aprr(3),aprr(4),aprr(5),aprr(6),aprr(7),slos
-                  call flush
                   aptype=get_ape_type( oKApe )
 ! AM ->                   write(*,*) aptype
-                  call flush
                   call dump_aperture( aperunit, bez(ix), aptype, slos,
      & aprr )
-                  call flush
                end do
             end if
 ! AM ->             write(*,*) 'done'
             iOld=i
             ixOld=ix
-            call flush
 +ei
           endif
         endif
