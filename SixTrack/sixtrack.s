@@ -14946,8 +14946,9 @@ cc2008
 +ei
  1350 continue
  1360 continue
-      do 1380 i=1,6
-      do 1380 j=1,il
+
+      do i=1,6
+      do j=1,il
         if(iskew.eq.2.and.i.gt.4) goto 1380
         if(ilm0(i).eq.bez(j)) then
           if(i.le.4) then
@@ -14956,13 +14957,16 @@ cc2008
             if(kz(j).ne.2) call prror(8)
           endif
           nskew(i)=j
-          do 1370 i2=1,6
+          doi2=1,6
             if(nskew(i2).ne.0.and.(nskew(i2).eq.nskew(i)) .and.(i2.ne.i)&
      &) call prror(63)
- 1370     continue
+          end do
         endif
+      end do
+      end do
  1380 continue
       goto 110
+
 !GRD-----------------------------------------------------------------------
 !  COLLIMATION INPUT BLOCK
 !GRD-----------------------------------------------------------------------
@@ -35143,6 +35147,7 @@ c$$$         endif
         alfx(i)=zero
         alfz(i)=zero
    10 continue
+
       do 20 i=1,3
         iq(i)=0
         hsy(i)=zero
@@ -35155,47 +35160,63 @@ c$$$         endif
           corr(i,i1)=zero
         enddo
    20 continue
+
       corr(1,1)=zero
       corr(1,2)=zero
       chromc(1)=9.999999e23_fPrec
       chromc(2)=9.999999e23_fPrec
+
       do 30 i=1,4
         nwr(i)=0
    30 continue
+
       do 40 i=1,5
         ipr(i)=0
         nrr(i)=0
         nu(i)=0
         toptit(i)=' '
    40 continue
+
       do 50 i=1,6
         nskew(i)=0
    50 continue
+
       do 60 i=1,10
         dtr(i)=zero
         coel(i)=' '
    60 continue
+
       do 70 i=1,12
         ire(i)=0
    70 continue
+
       do 80 i=1,nper
         msym(i)=0
    80 continue
-      do 90 i=1,6
-        do 90 j=1,6
+
+      do i=1,6
+        do j=1,6
           ta(i,j)=zero
-   90 continue
-      do 100 i=1,2
-        do 100 j=1,6
+        end do
+      end do
+
+      do i=1,2
+        do j=1,6
           exz(i,j)=zero
-  100 continue
-      do 110 i1=1,9
-        do 110 i2=1,18
-          do 110 i3=1,10
-            do 110 i4=1,5
+        end do
+      end do
+
+      do i1=1,9
+        do i2=1,18
+          do i3=1,10
+            do i4=1,5
               rtc(i1,i2,i3,i4)=zero
               rts(i1,i2,i3,i4)=zero
-  110 continue
+            end do
+          end do
+        end do
+      end do
+
 !--NUMBER OF PARTICLES--------------------------------------------------
       do i=1,npart
         do i1=1,6
@@ -35204,8 +35225,9 @@ c$$$         endif
           enddo
         enddo
       enddo
+
 !--NUMBER OF ELEMENTS---------------------------------------------------
-      do 150 i=1,nele
+      do i=1,nele
         kz(i)=0
         kp(i)=0
         irm(i)=0
@@ -35266,36 +35288,44 @@ c$$$         endif
                 a2(i4,i3,i1,i)=zero
 +ei
   120   continue
+
         do 130 i1=1,mmul
           bk0(i,i1)=zero
           ak0(i,i1)=zero
           bka(i,i1)=zero
           aka(i,i1)=zero
   130   continue
+
         do 140 i1=1,3
           bezr(i1,i)=' '
   140   continue
+
         do i1=1,18
           parbe(i,i1)=zero
         enddo
-  150 continue
+      end do
+
 !--NUMBER OF BLOCKS-----------------------------------------------------
-      do 180 i=1,nblo
+      do i=1,nblo
         mel(i)=0
         mstr(i)=0
         elbe(i)=zero
         bezb(i)=' '
-        do 160 i1=1,2
-          do 160 i2=1,6
+
+        do i1=1,2
+          do i2=1,6
             bl1(i,i1,i2)=zero
             bl2(i,i1,i2)=zero
-  160   continue
-        do 170 j=1,nelb
+          end do
+        end do
+
+        do j=1,nelb
           mtyp(i,j)=0
-  170   continue
-  180 continue
+        end do
+      end do
+
 !--# OF STRUCTURE ELEMENTS----------------------------------------------
-      do 190 i=1,nblz
+      do i=1,nblz
         ic(i)=0
         mzu(i)=0
         icext(i)=0
@@ -35309,30 +35339,36 @@ c$$$         endif
         sigmoff(i)=zero
         tiltc(i)=one
         tilts(i)=zero
+
 !--Beam-Beam------------------------------------------------------------
         imbb(i)=0               !Mapping from a STRUCTURE ELEMENT (here: index i)
                                 ! to the beam-beam tables (arrays with size nbb)
 !--Other stuff (not beam-beam)...
-        do 190 j=1,40
+        do j=1,40
           exterr(i,j)=zero
 +if time
           exterr35(i,j)=zero
 +ei
-        xsi(i)=zero
-        zsi(i)=zero
-        smi(i)=zero
-        smizf(i)=zero
-        do i1=1,mmul
-          aai(i,i1)=zero
-          bbi(i,i1)=zero
-        enddo
-        do i3=1,mmul
-          do i2=1,nmac
-            aaiv(i3,i2,i)=zero
-            bbiv(i3,i2,i)=zero
-          enddo
-        enddo
-  190 continue
+          xsi(i)=zero
+          zsi(i)=zero
+          smi(i)=zero
+          smizf(i)=zero
+
+          do i1=1,mmul
+            aai(i,i1)=zero
+            bbi(i,i1)=zero
+          end do
+
+          do i3=1,mmul
+            do i2=1,nmac
+              aaiv(i3,i2,i)=zero
+              bbiv(i3,i2,i)=zero
+            end do
+          end do
+
+        end do
+      end do
+
 !-- BEAM-EXP------------------------------------------------------------
       beam_expflag = 0
       beam_expfile_open = .false.
@@ -35357,43 +35393,51 @@ c$$$         endif
           y(i,i1)=zero
   210   continue
   220 continue
+
 !--COMBINATION OF ELEMENTS----------------------------------------------
-      do 240 i1=1,20
+      do i1=1,20
         icomb0(i1)=0
-        do 230 i=1,ncom
+        do i=1,ncom
           icomb(i,i1)=0
           ratio(i,i1)=zero
-  230   continue
-  240 continue
+        end do
+      end do
+
 !--PAW------------------------------------------------------------------
-      do 250 i=1,nplo
+      do i=1,nplo
         hmal(i)=0.0
-  250 continue
+      end do
+
 !--TROMBONES------------------------------------------------------------
       do i=1,ntr
         do i1=1,6
           cotr(i,i1)=zero
           do i2=1,6
             rrtr(i,i1,i2)=zero
-          enddo
-        enddo
-      enddo
+          end do
+        en ddo
+      end do
+
 !--Beam-Beam------------------------------------------------------------
       do i=1,nbb
         do j=1,2
           sigman(j,i)=zero
           sigman2(j,i)=zero
           sigmanq(j,i)=zero
-        enddo
+        end do
+
         do j=1,6
           clobeam(j,i)=zero
           beamoff(j,i)=zero
-        enddo
+        end do
+
         do j=1,12
           bbcu(i,j)=zero
-        enddo
+        end do
+
         bbcu(i,11)=one
-      enddo
+      end do
+
 !--DA-------------------------------------------------------------------
       do i1=1,2
         xx_da(i1)=0
@@ -35403,8 +35447,9 @@ c$$$         endif
           asda_da(i1,i2)=0
           aldaq_da(i1,i2)=0
           asdaq_da(i1,i2)=0
-        enddo
-      enddo
+        end do
+      end do
+
       do i=1,mcor
         smida_da(i)=0
       enddo
@@ -35416,7 +35461,7 @@ c$$$         endif
 !     always in main code
       do i=0,nblz+1
          dcum(i)=zero
-      enddo
+      end do
 
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
@@ -35426,14 +35471,16 @@ c$$$         endif
 !     always in main code
       ldumphighprec = .false.
       ldumpfront    = .false.
+
       do i1=-1,nblz
         do i2=1,6
           dumpclo(i1,i2)=0
           do i3=1,6
             dumptas(i1,i2,i3)=0
-          enddo
-        enddo
-      enddo
+          end do
+        end do
+      end do
+
       do i=-1,nele
         ldump(i)    = .false.
         ndumpt(i)   = 0
@@ -35443,26 +35490,30 @@ c$$$         endif
         dumpfmt(i)  = 0
         do j=1,getfields_l_max_string
            dump_fname(i)(j:j) = char(0)
-        enddo
+        end do
 +if cr
         dumpfilepos(i) = -1
 +ei
-      enddo
+      end do
+
 !--FMA ANALYSIS---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
       fma_flag = .false.
       fma_writeNormDUMP = .true.
       fma_numfiles = 0
+
       do i=1,fma_max
         fma_first(i) = 0
         fma_last(i)  = 0
         fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
+
         do j=1,getfields_l_max_string
           fma_fname(i)(j:j) = char(0)
           fma_method(i)(j:j) = char(0)
-        enddo
-      enddo
+        end do
+      end do
+
 !combine multiple elments in one loope
 !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !2) --WIRE - WIRE ELEMENT---------------------------------------------------------
@@ -35488,17 +35539,20 @@ c$$$         endif
         wire_dispy(i)   = 0
         wire_tiltx(i)   = 0
         wire_tilty(i)   = 0
-      enddo
+      end do
+
 ! 2) loop over structure elements
       do i=1,nblz
         wire_num(i)=0
-      enddo
+      end do
+
 ! 3) loop over number of wires
       do i=1,wire_max
         do j=1,6
           wire_clo(j,i)=zero
-        enddo
-      enddo
+        end do
+      end do
+
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 03-09-2014
@@ -35612,6 +35666,7 @@ c$$$         endif
       emitny0_dist = zero
       emitnx0_collgap = zero
       emitny0_collgap = zero
+
       ! From common /ralph/
       myemitx0_dist = zero
       myemity0_dist = zero
@@ -35666,9 +35721,11 @@ c$$$         endif
       
       kape(iel)=0
       lapeofftlt(iel)=.false.
+
       do i1=1,7
          ape(i1,iel)=c1e3
       end do
+
       ratioe(iel)=one
       hsyc(iel)=zero
       phasc(iel)=zero
@@ -35681,37 +35738,43 @@ c$$$         endif
       crabph4(iel)=zero
       bez(iel)=' '
       bezl(iel)=' '
-      do 120 i3=1,2
-         do 120 i4=1,6
-            a(iel,i3,i4)=zero
+
+      do i3=1,2
+        do i4=1,6
+          a(iel,i3,i4)=zero
 +if .not.vvector
-            do 120 i1=1,2
+          do i1=1,2
 +ei
 +if vvector
-            do 120 i1=1,npart
+          do i1=1,npart
 +ei
 +if .not.datamods
-               al(i4,i3,i1,iel)=zero
-               as(i4,i3,i1,iel)=zero
+            al(i4,i3,i1,iel)=zero
+            as(i4,i3,i1,iel)=zero
 +ei
 +if .not.vvector
-               at(i4,i3,i1,iel)=zero
-               a2(i4,i3,i1,iel)=zero
+            at(i4,i3,i1,iel)=zero
+            a2(i4,i3,i1,iel)=zero
 +ei
-  120 continue
-      do 130 i1=1,mmul
+          end do
+        end do
+      end do
+
+      do i1=1,mmul
          bk0(iel,i1)=zero
          ak0(iel,i1)=zero
          bka(iel,i1)=zero
          aka(iel,i1)=zero
-  130 continue
-      do 140 i1=1,3
+      end do
+
+      do i1=1,3
          bezr(i1,iel)=' '
-  140 continue
+      end do
+
       ! JBG increasing parbe to dimension 5
       do i1=1,5
          parbe(iel,i1)=zero
-      enddo
+      end do
       
       return
       end subroutine
@@ -35794,6 +35857,7 @@ c$$$         endif
 
 !     interface variables
       integer iEl
+
 !     temporary variables
       integer i,ii,iInsert
 
@@ -36451,6 +36515,7 @@ c$$$         endif
         rcw2(2)=zero
         ycw2(2)=zero
       endif
+
 !--LEAVING COMPLEX NUMBERS
       do 60 i=1,4
         ta(i,1)=rcw1(i)
@@ -36458,6 +36523,7 @@ c$$$         endif
         ta(i,2)=ycw1(i)
         ta(i,4)=ycw2(i)
    60 continue
+
 !--NORMALISATION OF EIGENVALUES
       rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &!hr06
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
@@ -36465,26 +36531,39 @@ c$$$         endif
       if(rn1.eq.zero) goto 160                                            !hr06
       if(rn1.gt.zero) goto 90                                             !hr06
    70 yclam1=-one*yclam1                                                 !hr06
-      do 80 i=1,4
-   80 ta(i,2)=-one*ta(i,2)                                               !hr06
+
+      do i=1,4
+        ta(i,2)=-one*ta(i,2)                                               !hr06
+      end do
+
    90 sqrn=sqrt(abs(rn1))
-      do 100 i=1,4
+
+      do i=1,4
         ta(i,1)=ta(i,1)/sqrn
-  100 ta(i,2)=ta(i,2)/sqrn
+        ta(i,2)=ta(i,2)/sqrn
+      end do
+
       rn2=((ta(1,3)*ta(2,4)-ta(2,3)*ta(1,4))                            &!hr06
      &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)                                  !hr06
       if(rn2.lt.zero) goto 110                                           !hr06
       if(rn2.eq.zero) goto 160                                           !hr06
       if(rn2.gt.zero) goto 130                                           !hr06
   110 yclam2=-one*yclam2                                                 !hr06
-      do 120 i=1,4
-  120 ta(i,4)=-one*ta(i,4)                                               !hr06
+
+      do i=1,4
+        ta(i,4)=-one*ta(i,4)                                               !hr06
+      end do
+
   130 sqrn=sqrt(abs(rn2))
-      do 140 i=1,4
+
+      do i=1,4
         ta(i,3)=ta(i,3)/sqrn
-  140 ta(i,4)=ta(i,4)/sqrn
+        ta(i,4)=ta(i,4)/sqrn
+      end do
+
       qw(1)= atan_mb(yclam1/(one+rclam1))/pi
       qw(2)= atan_mb(yclam2/(one+rclam2))/pi
+
 !-----------------------------------------------------------------------
 !  OPTICAL PARAMETERS AT THE STARTING POINT
 !-----------------------------------------------------------------------
@@ -36500,12 +36579,15 @@ c$$$         endif
       alf0(1)=alfx(1)
       bet0(2)=betz(2)
       alf0(2)=alfz(2)
+
       if(ta(1,1).lt.-pieni) then
-        do 150 i=1,4
-          do 150 j=1,4
+        do i=1,4
+          do j=1,4
             ta(i,j)=-one*ta(i,j)
-  150   continue
+          end do
+        end do
       endif
+
       return
 !-----------------------------------------------------------------------
   160 ierro=1
@@ -36533,19 +36615,24 @@ c$$$         endif
 +ei
       save
 !-----------------------------------------------------------------------
-      do 60 k=1,mblo
+      do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
         n=mtyp(k,jm)
-        do 10 l=1,2
-          do 10 m=1,6
+
+        do l=1,2
+          do m=1,6
             h(1,l,m)=a(i,l,m)
-   10   g(1,l,m)=a(n,l,m)
+            g(1,l,m)=a(n,l,m)
+          end do
+        end do
+
         if(jm.eq.1) goto 40
-        do 30 j=2,jm
+
+        do j=2,jm
           i=mtyp(k,j)
           n=mtyp(k,jm-j+1)
-          do 20 l=1,2
+          do l=1,2
             h(j,l,1)=h(j-1,l,1)*a(i,l,1)+h(j-1,l,3)*a(i,l,2)
             h(j,l,2)=h(j-1,l,2)*a(i,l,1)+h(j-1,l,4)*a(i,l,2)
             h(j,l,3)=h(j-1,l,1)*a(i,l,3)+h(j-1,l,3)*a(i,l,4)
@@ -36558,13 +36645,18 @@ c$$$         endif
             h(j,l,6)=(h(j-1,l,5)*a(i,l,3)+h(j-1,l,6)*a(i,l,4))+a(i,l,6)  !hr06
             g(j,l,5)=(g(j-1,l,5)*a(n,l,1)+g(j-1,l,6)*a(n,l,2))+a(n,l,5)  !hr06
             g(j,l,6)=(g(j-1,l,5)*a(n,l,3)+g(j-1,l,6)*a(n,l,4))+a(n,l,6)  !hr06
-   20     continue
-   30   continue
-   40   do 50 l=1,2
-          do 50 m=1,6
+          end do
+        end do
+
+   40   do l=1,2
+          do m=1,6
             bl1(k,l,m)=h(jm,l,m)
-   50   bl2(k,l,m)=g(jm,l,m)
-   60 continue
+            bl2(k,l,m)=g(jm,l,m)
+          end do
+        end do
+
+      end do
+
       return
       end
 
@@ -36590,19 +36682,24 @@ c$$$         endif
 +ei
       save
 !-----------------------------------------------------------------------
-      do 60 k=1,mblo
+      do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
         n=mtyp(k,jm)
-        do 10 l=1,2
-          do 10 m=1,6
+
+        do l=1,2
+          do m=1,6
             h(1,l,m)=aeg(i,l,m)
-   10   g(1,l,m)=aeg(n,l,m)
+            g(1,l,m)=aeg(n,l,m)
+          end do
+         end do
+
         if(jm.eq.1) goto 40
-        do 30 j=2,jm
+
+        do j=2,jm
           i=mtyp(k,j)
           n=mtyp(k,jm-j+1)
-          do 20 l=1,2
+          do l=1,2
             h(j,l,1)=h(j-1,l,1)*aeg(i,l,1)+h(j-1,l,3)*aeg(i,l,2)
             h(j,l,2)=h(j-1,l,2)*aeg(i,l,1)+h(j-1,l,4)*aeg(i,l,2)
             h(j,l,3)=h(j-1,l,1)*aeg(i,l,3)+h(j-1,l,3)*aeg(i,l,4)
@@ -36619,13 +36716,18 @@ c$$$         endif
      &(n,l,5)                                                            !hr06
             g(j,l,6)=(g(j-1,l,5)*aeg(n,l,3)+g(j-1,l,6)*aeg(n,l,4))+aeg  &!hr06
      &(n,l,6)                                                            !hr06
-   20     continue
-   30   continue
-   40   do 50 l=1,2
-          do 50 m=1,6
+          end do
+        end do
+
+   40   do l=1,2
+          do m=1,6
             bl1eg(k,l,m)=h(jm,l,m)
-   50   bl2eg(k,l,m)=g(jm,l,m)
-   60 continue
+            bl2eg(k,l,m)=g(jm,l,m)
+          end do
+        end do
+
+      end do
+
       return
       end
 
@@ -36656,19 +36758,23 @@ c$$$         endif
 !-----------------------------------------------------------------------
       cor=zero
       coro=1.0e38_fPrec
-      do 10 i=1,2
-        do 10 j=1,4
+
+      do i=1,2
+        do j=1,4
           dsm(i,j)=zero
           sens(i,j)=zero
-   10 continue
-      do 20 i=1,2
+        end do
+      end do
+
+      do i=1,2
         xi(i)=zero
         zi(i)=zero
         dm(i)=zero
         sm0(i)=zero
         qwc(i)=zero
         cro0(i)=zero
-   20 continue
+      end do
+
       qwc(3)=zero
       write(lout,10010)
       dsm(1,2)=dsm0
@@ -36705,23 +36811,27 @@ c$$$         endif
           sens(1,ii)=suxy/su2
           sens(2,ii)=suzy/su2
           if(ii.ne.3) goto 80
+
 !--COMPENSATION OF CHROMATICITY
-          do 60 l=1,2
+          do l=1,2
             cro0(l)=sens(l,1)-cro(l)
             xi(l)=(sens(1,l+1)-sens(1,1))/dsm0
-   60     zi(l)=(sens(2,l+1)-sens(2,1))/dsm0
+            zi(l)=(sens(2,l+1)-sens(2,1))/dsm0
+          end do
+
           cor=sqrt(cro0(1)**2+cro0(2)**2)                                !hr06
           if(jj.eq.1.or.cor.lt.coro) then
             coro=cor
             det=xi(1)*zi(2)-zi(1)*xi(2)
             dm(1)=(cro0(2)*xi(2)-cro0(1)*zi(2))/det                      !hr06
             dm(2)=(cro0(1)*zi(1)-cro0(2)*xi(1))/det                      !hr06
-            do 70 l=1,2
+
+            do l=1,2
               sm0(l)=ed(is(l))
               isl=is(l)
               ed(isl)=ed(isl)+dm(l)
               if(kp(isl).eq.5) call combel(isl)
- 70         continue
+            end do
           else
             write(lout,10035)
             return
@@ -36934,11 +37044,14 @@ c$$$         endif
         dczp=abs(dy(2))
         if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
      &goto 50
-        do 20 l=1,2
+
+        do l=1,2
           x(1,l)=clo(l)
           y(1,l)=clop(l)
           x0(l)=x(1,l)
-   20   y0(l)=y(1,l)
+         y0(l)=y(1,l)
+        end do
+
         call matrix(dpp,am)
         if(ierro.ne.0) return
         do 30 l=1,2
@@ -41836,8 +41949,9 @@ c$$$            endif
         ix=ic(k)
         if(ix.gt.nblo) goto 60
         if(ix.le.0) goto 40
-        do 30 j=1,ium
-          do 30 kx=1,2
+
+        do j=1,ium
+          do kx=1,2
             if(ithick.eq.1) then
               puf=x(j,kx)
              x(j,kx)=(bl1(ix,kx,1)*puf+bl1(ix,kx,2)*y(j,kx))+dpr(j)*bl1 &!hr06
@@ -41847,11 +41961,14 @@ c$$$            endif
             else
               x(j,kx)=x(j,kx)+bl1(ix,kx,2)*y(j,kx)
             endif
-   30   continue
+          end do
+        end do
+
         goto 350
    40   ix=-ix
-        do 50 j=1,ium
-          do 50 kx=1,2
+
+        do j=1,ium
+          do kx=1,2
             if(ithick.eq.1) then
               puf=x(j,kx)
              x(j,kx)=(bl2(ix,kx,1)*puf+bl2(ix,kx,2)*y(j,kx))+dpr(j)*bl2 &!hr06
@@ -41861,7 +41978,9 @@ c$$$            endif
             else
               x(j,kx)=x(j,kx)+bl2(ix,kx,2)*y(j,kx)
             endif
-   50   continue
+          end do
+        end do
+
         goto 350
    60   ix=ix-nblo
         qu=zero
@@ -42244,33 +42363,40 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
       ium=5
-      do 10 i=1,ium
+      do i=1,ium
         dpr(i)=zero
-   10 continue
-      do 20 i=1,ium
-        do 20 j=1,4
+      end do
+
+      do i=1,ium
+        do j=1,4
           t(i,j)=zero
-   20 continue
-      do 30 i=1,2
+        end do
+      end do
+
+      do i=1,2
         beta(i)=zero
         alfa(i)=zero
         phi(i)=zero
         phibf(i)=zero
         qw(i)=zero
         ep(i)=zero
-   30 continue
-      do 40 i=1,10
+      end do
+
+      do i=1,10
         nnf(i)=0
-        do 40 j=1,18
+        do j=1,18
           ip(i,j)=0
           re(i,j)=zero
-   40 continue
-      do 50 i=1,mmul
+        end do
+      end do
+
+      do i=1,mmul
         aa(i)=zero
         bb(i)=zero
         cr(i)=zero
         ci(i)=zero
-   50 continue
+      end do
+
       do 100 i=1,9
         nz2(i)=0
         do 90 j=1,18
@@ -42289,6 +42415,7 @@ c$$$            endif
    80     continue
    90   continue
   100 continue
+
       btc=zero
       bts=zero
       phy=zero
@@ -42300,24 +42427,33 @@ c$$$            endif
       etl=zero
       radi=totl/pie
       dpr(1)=dpp*c1e3
+
       call clorb(dpp)
       call betalf(dpp,qw)
+
       if(ierro.ne.0) call prror(22+ierro)
       call envar(dpp)
+
 !--STARTVALUES OF THE TRAJECTORIES
-      do 110 l=1,2
+      do l=1,2
         ll=2*l
         alfa(l)=alf0(l)
         beta(l)=bet0(l)
         t(1,ll-1)=clo(l)
-  110 t(1,ll)=clop(l)
-      do 120 i=1,4
-        do 120 j=1,4
+         t(1,ll)=clop(l)
+      end do
+
+      do i=1,4
+        do j=1,4
           t(i+1,j)=ta(j,i)
-  120 t(i+1,j)=ta(j,i)
+          t(i+1,j)=ta(j,i)
+         end do
+      end do
+
 !--EP=EMITTANCE IN PI*MM*MRAD
       ep(1)=tam1**2/beta(1)                                              !hr06
       ep(2)=tam2**2/beta(2)                                              !hr06
+
 !--SINGLE TURN BLOCKLOOP
       izu=0
       do 770 k=1,iu
@@ -43451,6 +43587,7 @@ c$$$            endif
   100       continue
   110     continue
   120   continue
+
         write(lout,10030)
         write(lout,10020)
         pie=two*pi
@@ -43460,14 +43597,21 @@ c$$$            endif
         dpr(1)=dpp*c1e3
         dpr(6)=c1e3
         dpp1=dpp+ded
+
         call clorb(dpp1)
-        do 130 l=1,2
+
+        do l=1,2
           clo0(l)=clo(l)
-  130   clop0(l)=clop(l)
+          clop0(l)=clop(l)
+        end do
+
         call clorb(dpp)
-        do 140 l=1,2
+
+        do l=1,2
           di0(l)=(clo0(l)-clo(l))/ded
-  140   dip0(l)=(clop0(l)-clop(l))/ded
+          dip0(l)=(clop0(l)-clop(l))/ded
+        end do
+
         write(lout,10030)
         write(lout,10120) (di0(l),dip0(l),l=1,2)
         call betalf(dpp,qw)
@@ -43475,36 +43619,46 @@ c$$$            endif
         if(ierro.ne.0) call prror(22+ierro)
         write(lout,10070) dpp,qwc(1),qwc(2)
         call envar(dpp)
+
 !--STARTVALUES OF THE TRAJECTORIES
-        do 150 l=1,2
+        do l=1,2
           ll=2*l
           alfa(l)=alf0(l)
           beta(l)=bet0(l)
           t(1,ll-1)=clo(l)
           t(1,ll)=clop(l)
           clo0(l)=clo(l)
-  150   clop0(l)=clop(l)
-        do 160 i=1,4
-          do 160 j=1,4
+          clop0(l)=clop(l)
+        end do
+
+        do i=1,4
+          do j=1,4
             t(i+1,j)=ta(j,i)
-  160   t(i+1,j)=ta(j,i)
+            t(i+1,j)=ta(j,i)
+          end do
+        end do
+
         write(lout,10030)
         write(lout,10040)
         write(lout,10030)
         write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),     &
      &phi(l),                                                           &
      &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
+
 !--EP=EMITTANCE IN PI*MM*MRAD
         ep(1)=tam1**2/beta(1)                                            !hr06
         ep(2)=tam2**2/beta(2)                                            !hr06
         write(lout,10050) tam1,ep(1),tam2,ep(2)
         write(lout,10030)
+
 !--SINGLE TURN BLOCKLOOP
         izu=0
         do 790 k=1,iu
-          do 170 k1=1,10
+          do k1=1,10
             ab1(k1)=zero
-  170     ab2(k1)=zero
+            ab2(k1)=zero
+          end do
+
           ix=ic(k)
           if(ix.gt.nblo) goto 250
           jj=0
@@ -43514,38 +43668,48 @@ c$$$            endif
           jj=mel(ix)+1
           dj=-1
   180     jm=mel(ix)
+
 !--SINGLE TURN BLOCKLOOP
           do 240 j=1,jm
             jj=jj+dj
             jk=mtyp(ix,jj)
             if(ithick.eq.1.and.kz(jk).ne.0) goto 210
             if(ithick.eq.0.and.kz(jk).ne.0) goto 790
+
 !--PURE DRIFTLENGTH
             etl=etl+el(jk)
-            do 190 l=1,2
+            do l=1,2
               ll=2*l
               if(abs(t(ll,ll-1)).gt.pieni) then
                 phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
               else
                 phibf(l)=pi2
               endif
-              do 190 i=1,ium
-  190       t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
-            do 200 l=1,2
+              do i=1,ium
+                t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
+              end do
+            end do
+
+            do l=1,2
               ll=2*l
               beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                      !hr06
               alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll)) !hr06
               clo0(l)=t(1,ll-1)
               clop0(l)=t(1,ll)
+
               if(abs(t(ll,ll-1)).gt.pieni) then
                 dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
               else
                 dphi=pi2-phibf(l)
               endif
+
               if(-one*dphi.gt.pieni) dphi=dphi+pi                        !hr06
-  200       phi(l)=phi(l)+dphi/pie
+              phi(l)=phi(l)+dphi/pie
+            end do
+
             nr=nr+1
             goto 240
+
 !--MAGNETELEMENT
   210       continue
             if(kz(jk).ne.8) etl=etl+el(jk)
@@ -43580,6 +43744,7 @@ c$$$            endif
             nr=nr+1
   240     continue
           goto 790
+
 !--NL-INSERTION
   250     ix=ix-nblo
           qu=zero
@@ -43614,6 +43779,7 @@ c$$$            endif
           goto(260,270,280,290,300,310,320,330,340,350,360,790,790,790, &
      &      790,790,790,790,790,790,790,790,790,355,356,790,790,790),kzz
           goto 790
+
 !--HORIZONTAL DIPOLE
   260     ekk=ekk*c1e3
 +ca kicka01h
