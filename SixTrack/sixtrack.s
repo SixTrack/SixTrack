@@ -40551,7 +40551,11 @@ c$$$            endif
 !*********************************************************************
       use floatPrecision
       use mathlib_bouncer
+
       implicit none
+
++ca parnum
+
       integer k,k1,m,n,ncor1,nmon1
       real(kind=fPrec) a,b,beta,h
       parameter (nmon1 = 600)
