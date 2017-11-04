@@ -24310,14 +24310,22 @@ c$$$         endif
             oidpsv(ia+1)=one/(one+dpsv(ia+1))
           endif
           if(iclo6.ne.2) then
-            xv(1,ia)=xv(1,ia)+(clov(1,ia)*dble(idz(1)))*dble(1-idfor)    !hr05
-            yv(1,ia)=yv(1,ia)+(clopv(1,ia)*dble(idz(1)))*dble(1-idfor)   !hr05
-            xv(2,ia)=xv(2,ia)+(clov(2,ia)*dble(idz(2)))*dble(1-idfor)    !hr05
-            yv(2,ia)=yv(2,ia)+(clopv(2,ia)*dble(idz(2)))*dble(1-idfor)   !hr05
-          xv(1,ia+1)=xv(1,ia+1)+(clov(1,ia)*dble(idz(1)))*dble(1-idfor)  !hr05
-          yv(1,ia+1)=yv(1,ia+1)+(clopv(1,ia)*dble(idz(1)))*dble(1-idfor) !hr05
-          xv(2,ia+1)=xv(2,ia+1)+(clov(2,ia)*dble(idz(2)))*dble(1-idfor)  !hr05
-          yv(2,ia+1)=yv(2,ia+1)+(clopv(2,ia)*dble(idz(2)))*dble(1-idfor) !hr05
+            xv(1,ia)=xv(1,ia)+(clov(1,ia)*real(idz(1),fPrec))*          &
+     &real(1-idfor,fPrec)    !hr05
+            yv(1,ia)=yv(1,ia)+(clopv(1,ia)*real(idz(1),fPrec))*         &
+     &real(1-idfor,fPrec)   !hr05
+            xv(2,ia)=xv(2,ia)+(clov(2,ia)*real(idz(2),fPrec))*          &
+     &real(1-idfor,fPrec)    !hr05
+            yv(2,ia)=yv(2,ia)+(clopv(2,ia)*real(idz(2),fPrec))*         &
+     &real(1-idfor,fPrec)   !hr05
+            xv(1,ia+1)=xv(1,ia+1)+(clov(1,ia)*real(idz(1),fPrec))*      &
+     &real(1-idfor,fPrec)  !hr05
+            yv(1,ia+1)=yv(1,ia+1)+(clopv(1,ia)*real(idz(1),fPrec))*     &
+     &real(1-idfor,fPrec) !hr05
+            xv(2,ia+1)=xv(2,ia+1)+(clov(2,ia)*real(idz(2),fPrec))*      &
+     &real(1-idfor,fPrec)  !hr05
+            yv(2,ia+1)=yv(2,ia+1)+(clopv(2,ia)*real(idz(2),fPrec))*     &
+     &real(1-idfor,fPrec) !hr05
           endif
           ejfv(ia)=e0f*(one+dpsv(ia))
           ejfv(ia+1)=e0f*(one+dpsv(ia+1))
@@ -26063,9 +26071,10 @@ c$$$         endif
         endif
 +ei
 
-        hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
+        hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                            !hr01
         do 310 jj=1,nele
-          if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
+          if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*                    &
+     &     real(itionc(jj),fPrec)     !hr01
   310   continue
         if(abs(phas).ge.pieni) then
           write(lout,*) ''
@@ -30128,13 +30137,13 @@ c$$$         endif
            dtsum=dtsum+sigmv(japx)    ! [mm]   
            desum=desum+(ejv(japx)-e0) ! [MeV]  
         enddo
-        x_sum=x_sum/dble(napx)       ! [mm]   
-        y_sum=y_sum/dble(napx)       ! [mm]   
-        xpsum=xpsum/dble(napx)       ! [0.001]
-        ypsum=ypsum/dble(napx)       ! [0.001]
-        pcsum=pcsum/dble(napx)       ! [MeV/c]
-        dtsum=dtsum/dble(napx)       ! [mm]   
-        desum=desum/dble(napx)       ! [MeV]
+        x_sum=x_sum/real(napx,fPrec) ! [mm]   
+        y_sum=y_sum/real(napx,fPrec) ! [mm]   
+        xpsum=xpsum/real(napx,fPrec) ! [0.001]
+        ypsum=ypsum/real(napx,fPrec) ! [0.001]
+        pcsum=pcsum/real(napx,fPrec) ! [MeV/c]
+        dtsum=dtsum/real(napx,fPrec) ! [mm]   
+        desum=desum/real(napx,fPrec) ! [MeV]
 !       - compute standard deviations:
         do japx=1,napx
            x_sum2=x_sum2+(xv(1,japx)-x_sum)**2
@@ -30146,30 +30155,30 @@ c$$$         endif
            desum2=desum2+((ejv(japx)-e0)-desum)**2
         enddo
 !         ...use the unbiased formulation!
-        x_sum2=sqrt(x_sum2/dble(napx-1))
-        y_sum2=sqrt(y_sum2/dble(napx-1))
-        xpsum2=sqrt(xpsum2/dble(napx-1))
-        ypsum2=sqrt(ypsum2/dble(napx-1))
-        pcsum2=sqrt(pcsum2/dble(napx-1))
-        dtsum2=sqrt(dtsum2/dble(napx-1))
-        desum2=sqrt(desum2/dble(napx-1))
+        x_sum2=sqrt(x_sum2/real(napx-1,fPrec))
+        y_sum2=sqrt(y_sum2/real(napx-1,fPrec))
+        xpsum2=sqrt(xpsum2/real(napx-1,fPrec))
+        ypsum2=sqrt(ypsum2/real(napx-1,fPrec))
+        pcsum2=sqrt(pcsum2/real(napx-1,fPrec))
+        dtsum2=sqrt(dtsum2/real(napx-1,fPrec))
+        desum2=sqrt(desum2/real(napx-1,fPrec))
       endif
 
 !     dump it:
       if ( lhighprec ) then
          write(unit,1981)                                               &
      &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           x_sum*1d-3 , y_sum*1d-3 , xpsum*1d-3 , ypsum*1d-3 ,    &
-     &           pcsum*1d-3 , -1d-3*(dtsum/clight)*(e0/e0f), desum*1d6, &
-     &           x_sum2*1d-3, y_sum2*1d-3, xpsum2*1d-3, ypsum2*1d-3,    &
-     &           pcsum2*1d-3, 1d-3*(dtsum2/clight)*(e0/e0f), desum2*1d6
+     &           x_sum*c1m3 , y_sum*c1m3 , xpsum*c1m3 , ypsum*c1m3 ,    &
+     &           pcsum*c1m3 , -c1m3*(dtsum/clight)*(e0/e0f), desum*c1e6,&
+     &           x_sum2*c1m3, y_sum2*c1m3, xpsum2*c1m3, ypsum2*c1m3,    &
+     &           pcsum2*c1m3, c1m3*(dtsum2/clight)*(e0/e0f), desum2*c1e6
       else
          write(unit,1982)                                               &
      &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           x_sum*1d-3 , y_sum*1d-3 , xpsum*1d-3 , ypsum*1d-3 ,    &
-     &           pcsum*1d-3 , -1d-3*(dtsum/clight)*(e0/e0f), desum*1d6, &
-     &           x_sum2*1d-3, y_sum2*1d-3, xpsum2*1d-3, ypsum2*1d-3,    &
-     &           pcsum2*1d-3, 1d-3*(dtsum2/clight)*(e0/e0f), desum2*1d6
+     &           x_sum*c1m3 , y_sum*c1m3 , xpsum*c1m3 , ypsum*c1m3 ,    &
+     &           pcsum*c1m3 , -c1m3*(dtsum/clight)*(e0/e0f), desum*c1e6,&
+     &           x_sum2*c1m3, y_sum2*c1m3, xpsum2*c1m3, ypsum2*c1m3,    &
+     &           pcsum2*c1m3, c1m3*(dtsum2/clight)*(e0/e0f), desum2*c1e6
       endif
       return
 
@@ -30198,6 +30207,7 @@ c$$$         endif
 +ca commonm1
 +ca commontr
 +ca dbdcum
++ca crcoall
 
 !     interface variables:
       integer nturn, ientry, ix, unit
@@ -30262,29 +30272,31 @@ c$$$         endif
            Edtsum=Edtsum+tmpE*tmpT               ! [eVs]
         enddo
 !       - averages
-        x_sum2=x_sum2/dble(napx) ! [mm^2]
-        y_sum2=y_sum2/dble(napx) ! [mm^2]
-        E_sum2=E_sum2/dble(napx) ! [GeV^2]
-        xpsum2=xpsum2/dble(napx) ! [0.001^2]
-        ypsum2=ypsum2/dble(napx) ! [0.001^2]
-        dtsum2=dtsum2/dble(napx) ! [ns^2]
-        xxpsum=xxpsum/dble(napx) ! [mm*0.001]
-        yypsum=yypsum/dble(napx) ! [mm*0.001]
-        Edtsum=Edtsum/dble(napx) ! [eVs]
+        x_sum2=x_sum2/real(napx,fPrec) ! [mm^2]
+        y_sum2=y_sum2/real(napx,fPrec) ! [mm^2]
+        E_sum2=E_sum2/real(napx,fPrec) ! [GeV^2]
+        xpsum2=xpsum2/real(napx,fPrec) ! [0.001^2]
+        ypsum2=ypsum2/real(napx,fPrec) ! [0.001^2]
+        dtsum2=dtsum2/real(napx,fPrec) ! [ns^2]
+        xxpsum=xxpsum/real(napx,fPrec) ! [mm*0.001]
+        yypsum=yypsum/real(napx,fPrec) ! [mm*0.001]
+        Edtsum=Edtsum/real(napx,fPrec) ! [eVs]
 !       - actual quantities
 !         . horizontal plane
         temix=x_sum2*xpsum2-xxpsum**2
+
         if ( temix .lt. zero ) then
            temix=abs(temix)
-           write(*,*) ''
-           write(*,*) ' problems of precision when computing the hor'
-           write(*,*) '   emittance (beam matrix analysis)'
-           write(*,*) ' at element (ientry,ix,bez,dcum) ', 
+           write(lout,*) ''
+           write(lout,*) ' problems of precision when computing the hor'
+           write(lout,*) '   emittance (beam matrix analysis)'
+           write(lout,*) ' at element (ientry,ix,bez,dcum) ', 
      &                  ientry, ix, bez(ix), dcum(ientry)
-           write(*,*) '   at turn ',nturn
-           write(*,*) ''
+           write(lout,*) '   at turn ',nturn
+           write(lout,*) ''
            lerr=.true.
         endif
+
         temix=sqrt(temix)         ! [mm 0.001]
         talfx=-xxpsum/temix       ! []
         tbetx=x_sum2/temix        ! [m]
@@ -31480,10 +31492,13 @@ c$$$         endif
         write(lout,*) ''
         call thck4d(nthinerr)
       else
-        hsy(3)=(c1m3*hsy(3))*dble(ition)                                 !hr01
-        do 310 jj=1,nele
-          if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*dble(itionc(jj))     !hr01
-  310   continue
+        hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
+
+        do jj=1,nele
+          if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*                    &
+     &real(itionc(jj),fPrec)     !hr01
+        end do
+
         if(abs(phas).ge.pieni) then
           write(lout,*) ''
           write(lout,*) 'Calling thck6dua subroutine'
