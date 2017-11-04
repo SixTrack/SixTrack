@@ -11173,33 +11173,44 @@ cc2008
       irecuin=0
       iss(1)=' '
       iss(2)=' '
-      do 10 i=1,5
+
+      do i=1,5
         iqq(i)=' '
-   10 continue
-      do 20 i=1,nele
+      end do
+
+      do i=1,nele
         bez0(i)=' '
-   20 continue
-      do 30 i=1,nblo
-        do 30 j=1,nelb
+      end do
+
+      do i=1,nblo
+        do j=1,nelb
           beze(i,j)=' '
-   30 continue
-      do 40 i=1,40
+        end do
+      end do
+
+      do i=1,40
         ilm0(i)=' '
         extaux(i)=zero
-   40 continue
-      do 50 i=1,10
+      end do
+
+      do i=1,10
         coel(i)=' '
-   50 continue
-      do 60 i=1,ncom
-        do 60 j=1,20
+      end do
+
+      do i=1,ncom
+        do j=1,20
           icel(i,j)=' '
-   60 continue
-      do 70 i=1,10
+        end do
+      end do
+
+      do i=1,10
         ic0(i)=' '
-   70 continue
-      do 80 i=1,nelb
+      end do
+
+      do i=1,nelb
         ilm(i)=' '
-   80 continue
+      end do
+
       emitnx=zero
       emitny=zero
       ihead=' '
@@ -11213,6 +11224,7 @@ cc2008
       ncy2=0
       ndum=0
       numl=1
+
 !  Initialise new input parameters
       numlmax=1000000
       numlcp=0
@@ -11680,8 +11692,11 @@ cc2008
       read(ch1,*) mper,(msym(k),k=1,mper)
       if(mper.gt.nper) call prror(17)
       i=0
-  220 do 230 m=1,40
-  230 ilm0(m)=idum
+
+  220 do m=1,40
+        ilm0(m)=idum
+      end do
+
       if(imod.eq.1) then
   240   read(3,10020,end=1530,iostat=ierro) ch
         if(ierro.gt.0) call prror(58)
@@ -11735,13 +11750,17 @@ cc2008
   300 continue
   310 k0=l-1
       goto 220
+
 !-----------------------------------------------------------------------
 !  STRUCTURE INPUT
 !  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
 !-----------------------------------------------------------------------
   320 i=0
-  330 do 340 k=1,40
-  340 ilm0(k)=idum
+
+  330 do k=1,40
+        ilm0(k)=idum
+      end do
+
       if(imod.eq.1) then
   350   read(3,10020,end=1530,iostat=ierro) ch
         if(ierro.gt.0) call prror(58)
@@ -11762,8 +11781,11 @@ cc2008
       do 420 ii=1,80
         if(ch(ii:ii).eq.kl) then !kl='('
           if(ii.gt.1) then
-            do 370 jj=1,ii-1
-  370       if(ch(jj:jj).ne.' ') goto 380
+
+            do jj=1,ii-1
+              if(ch(jj:jj).ne.' ') goto 380
+            end do
+
           endif
           iw=1
           goto 390
@@ -11777,8 +11799,9 @@ cc2008
           if(iw0.le.0) goto 330
           idi=i-ia
           do 410 k=1,iw0
-            do 400 j=1,idi
-  400       ic(i+j)=ic(i+j-idi)
+            do j=1,idi
+              ic(i+j)=ic(i+j-idi)
+            end do
             i=i+idi
   410     continue
           mbloz=i
@@ -12537,11 +12560,15 @@ cc2008
 +ei
 +ei
   580 continue
-      do 590 j=1,il
-      if(iss(1).eq.bez(j)) is(1)=j
-  590 if(iss(2).eq.bez(j)) is(2)=j
+
+      do j=1,il
+        if(iss(1).eq.bez(j)) is(1)=j
+        if(iss(2).eq.bez(j)) is(2)=j
+      end do
+
       if(ichrom0.ge.1.and.ichrom0.le.3) ichrom=ichrom0
       goto 110
+
 !-----------------------------------------------------------------------
 !  TUNE ADJUSTMENT
 !-----------------------------------------------------------------------
@@ -12553,9 +12580,12 @@ cc2008
       if(ch(1:1).eq.'/') goto 610
       if(ch(:4).eq.next) then
         if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni) then
-          do 620 j=1,il
+
+          do j=1,il
             if(iqq(1).eq.bez(j)) iq(1)=j
-  620     if(iqq(2).eq.bez(j)) iq(2)=j
+            if(iqq(2).eq.bez(j)) iq(2)=j
+          end do
+
           goto 110
         else
           write(lout,10370)
@@ -12759,8 +12789,11 @@ cc2008
       if(idat.eq.'BLOCK') iprint=1
       ilin=1
       if(ilin0.ge.1.and.ilin0.le.3) ilin=ilin0
-  670 do 680 m=1,40
-  680 ilm0(m)=idum
+
+  670 do m=1,40
+        ilm0(m)=idum
+      end do
+
   690 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -12776,6 +12809,7 @@ cc2008
       bezl(nlin)=ilm0(m)
   700 continue
       goto 670
+
 !-----------------------------------------------------------------------
 !  SYNCHROTRON OSCILLATIONS
 !-----------------------------------------------------------------------
@@ -13077,12 +13111,18 @@ cc2008
       call recuin(izu0,irecuin)
       call ranecu(zfz,nzfz,mcut)
       rsum=zero
-      do 800 i=1,nzfz
-  800 rsum=rsum+zfz(i)
+
+      do i=1,nzfz
+        rsum=rsum+zfz(i)
+      end do
+
       rmean=rsum/real(nzfz,fPrec)                                              !hr05
       rsqsum=zero
-      do 810 i=1,nzfz
-  810 rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
+
+      do i=1,nzfz
+        rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
+      end do
+
       rdev=sqrt(rsqsum/real(nzfz,fPrec))                                       !hr05
       write(lout,10410) izu0,nzfz,rmean,rdev
       if(mcut.eq.0) write(lout,10430)
@@ -13784,14 +13824,18 @@ cc2008
       endif
       goto 110
   870 call prror(80)
+
 !-----------------------------------------------------------------------
 !  ORGANISATION OF RANDOM NUMBERS
 !-----------------------------------------------------------------------
   880 write(lout,10130)
       write(lout,10350)
-      do 890 i=1,3
-      do 890 j=1,nele
-  890 bezr(i,j)=idum !Initialize all bezr to idum=' '
+
+      do i=1,3
+        do j=1,nele
+          bezr(i,j)=idum !Initialize all bezr to idum=' '
+        end do
+      end do
       
   900 iorg=iorg+1
   910 read(3,10020,end=1530,iostat=ierro) ch
@@ -13815,9 +13859,12 @@ cc2008
             im=im+1
             j0=0
             j1=0
-            do 920 i=1,il
+
+            do i=1,il
                if(bez(i).eq.bezr(2,iorg)) j1=i
- 920           if(bez(i).eq.bezr(3,iorg)) j0=i
+               if(bez(i).eq.bezr(3,iorg)) j0=i
+            end do
+
             if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
      &              call prror(29)
 
@@ -13826,11 +13873,13 @@ cc2008
             r00(j0)=r00(j1)
             imo=irm(j1)
             nmu(j0)=nmu(j1)
-            do 930 i1=1,nmu(j0)
+
+            do i1=1,nmu(j0)
                bk0(im,i1)=bk0(imo,i1)
                bka(im,i1)=bka(imo,i1)
                ak0(im,i1)=ak0(imo,i1)
- 930           aka(im,i1)=aka(imo,i1)
+               aka(im,i1)=aka(imo,i1)
+            end do
 
          endif
          goto 900
@@ -14299,13 +14348,18 @@ cc2008
       endif
  1020 continue
       goto 990
+
 !-----------------------------------------------------------------------
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
  1030 ii=0
-      do 1040 jj=1,ncom
-      do 1040 ll=1,20
- 1040 icel(jj,ll)=idum
+
+      do jj=1,ncom
+        do ll=1,20
+          icel(jj,ll)=idum
+        end do
+      end do 
+
       write(lout,10130)
       write(lout,10300)
  1050 ii=ii+1
@@ -14333,10 +14387,12 @@ cc2008
 +ei
 +if crlibm
       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+
       if (nf.gt.0) then
         read(fields(1),*) idat
         nf=nf-1
       endif
+
       do l=1,20
         if (nf.gt.0) then
           ratio(ii,l)=fround(errno,fields,l*2)
@@ -14346,20 +14402,24 @@ cc2008
           read(fields(l*2+1),*) icel(ii,l)
           nf=nf-1
         endif
-      enddo
+      end do
 +ei
 +ei
-      do 1080 j=1,il
-      if(idat.ne.bez(j)) goto 1070
-      kp(j)=5
-      icomb0(ii)=j
-      ratioe(j)=one
- 1070 do 1080 l=1,20
-        if(bez(j).eq.icel(ii,l)) then
-          icomb(ii,l)=j
-          ratioe(j)=ratio(ii,l)
-        endif
- 1080 continue
+      do j=1,il
+        if(idat.ne.bez(j)) goto 1070
+        kp(j)=5
+        icomb0(ii)=j
+        ratioe(j)=one
+
+ 1070   do l=1,20
+          if(bez(j).eq.icel(ii,l)) then
+            icomb(ii,l)=j
+            ratioe(j)=ratio(ii,l)
+          endif
+        end do
+      end do
+
+
       jj=icomb0(ii)
       if(jj.eq.0) goto 1050
       do 1090 m=1,20
@@ -14444,6 +14504,7 @@ cc2008
       if(nte.lt.nta.or.nte.gt.9) call prror(37)
       isub=1
       goto 110
+
 !-----------------------------------------------------------------------
 !  RESONANCE-COMPENSATION
 !-----------------------------------------------------------------------
@@ -14592,6 +14653,7 @@ cc2008
  1190 continue
       irmod2=1
       goto 110
+
 !-----------------------------------------------------------------------
 !  SEARCH FOR OPTIMUM PLACES TO COMPENSATE RESONANCES
 !-----------------------------------------------------------------------
@@ -14661,13 +14723,19 @@ cc2008
      &.or.abs(m23).gt.mp) call prror(48)
       ise=1
       k0=0
- 1220 do 1230 m=1,40
- 1230 ilm0(m)=idum
+
+ 1220 do m=1,40
+        ilm0(m)=idum
+      end do
+
  1240 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
+
       lineno3=lineno3+1
+
       if(ch(1:1).eq.'/') goto 1240
       call intepr(3,1,ch,ch1)
+
 ! character strings so should be OK
       read(ch1,*) idat,(ilm0(m),m=2,40)
       if(idat.eq.next) goto 110
@@ -14689,6 +14757,7 @@ cc2008
  1260 continue
  1270 k0=k-1
       goto 1220
+
 !-----------------------------------------------------------------------
 !  POSTPROCESSING
 !-----------------------------------------------------------------------
@@ -18641,17 +18710,21 @@ c$$$         endif
         kz1=kz(i)+1
         goto(10,30,90,50,70,80,120,170,180),kz1
         goto 190
+
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
-   10   do 20 l=1,2
+   10   do l=1,2
           al(1,l,j,i)=one
           al(2,l,j,i)=el(i)
           al(3,l,j,i)=zero
           al(4,l,j,i)=one
-   20   as(6,l,j,i)=((-one*rv)*al(2,l,j,i))/c2e3                         !hr05
+          as(6,l,j,i)=((-one*rv)*al(2,l,j,i))/c2e3                         !hr05
+        end do
+
         as(1,1,j,i)=(el(i)*(one-rv))*c1e3                                !hr05
         goto 190
+
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET
 !  HORIZONTAL
@@ -24230,10 +24303,13 @@ c$$$         endif
 +ca dump3 !list of variables
         damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
       endif
-      do 80 i=1,npart
+
+      do i=1,npart
         pstop(i)=.false.
         nnumxv(i)=numl
-   80 numxv(i)=numl
+        numxv(i)=numl
+      end do
+
       rat0=rat
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
@@ -24572,10 +24648,13 @@ c$$$         endif
             di0au(2)=dip0xs(ia)
             di0au(3)= di0zs(ia)
             di0au(4)=dip0zs(ia)
-            do 330 ib2=1,6
-              do 330 ib3=1,6
+
+            do ib2=1,6
+              do ib3=1,6
                 tau(ib2,ib3)=tasau(ia,ib2,ib3)
-  330       continue
+              end do
+            end do
+
             call distance(xau,cloau,di0au,tau,dam1)
             dam(ia)=dam1
             dam(ia+1)=dam1
@@ -24661,8 +24740,9 @@ c$$$         endif
                                 ! Thus crbinrecs(:) .le. binrec
 +ei
       if(e0.gt.pieni) then
-        do 350 j=1,napx
-  350   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+        do j=1,napx
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+        end do
       else
         call prror(79)
       endif
@@ -24677,15 +24757,19 @@ c$$$         endif
       do 440 k=1,mblo
         jm=mel(k)
         ikk=mtyp(k,1)
-        do 370 lkk=1,2
-          do 370 mkk=1,6
-            do 360 ia=1,napx
+
+        do lkk=1,2
+          do mkk=1,6
+            do ia=1,napx
               dpoff=dpsv(ia)*c1e3
               if(abs(dpoff).le.pieni) dpoff=one
               hv(mkk,lkk,ia,1)=al(mkk,lkk,ia,ikk)
-  360       if(mkk.eq.5.or.mkk.eq.6) hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)  &
+            if(mkk.eq.5.or.mkk.eq.6) hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)  &
      &/dpoff
-  370   continue
+            end do
+          end do
+        end do
+
         if(jm.eq.1) goto 410
         do 400 j=2,jm
           ikk=mtyp(k,j)
@@ -24708,11 +24792,15 @@ c$$$         endif
   380       continue
   390     continue
   400   continue
-  410   do 430 lkk=1,2
-          do 430 mkk=1,6
-            do 420 ia=1,napx
-  420       bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
-  430   continue
+
+  410   do lkk=1,2
+          do mkk=1,6
+            do ia=1,napx
+              bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
+            end do
+          end do
+        end do
+
   440 continue
 
       end if
@@ -34417,14 +34505,20 @@ c$$$         endif
       endif
       call ord
       call clorb(ded)
-      do 20 l=1,2
+
+      do l=1,2
         clo0(l)=clo(l)
-   20 clop0(l)=clop(l)
+        clop0(l)=clop(l)
+      end do
+
       call clorb(zero)
-      do 30 l=1,2
+
+      do l=1,2
         ll=2*l
         di0(l)=(clo0(l)-clo(l))/ded
-   30 dip0(l)=(clop0(l)-clop(l))/ded
+        dip0(l)=(clop0(l)-clop(l))/ded
+      end do
+
       amp00=amp(1)
       iation=abs(ition)
       call corrorb
@@ -35270,14 +35364,14 @@ c$$$         endif
         crabph4(i)=zero
         bez(i)=' '
         bezl(i)=' '
-        do 120 i3=1,2
-          do 120 i4=1,6
+        do i3=1,2
+          do i4=1,6
             a(i,i3,i4)=zero
 +if .not.vvector
-            do 120 i1=1,2
+            do i1=1,2
 +ei
 +if vvector
-              do 120 i1=1,npart
+            do i1=1,npart
 +ei
 +if .not.datamods
                 al(i4,i3,i1,i)=zero
@@ -35287,7 +35381,9 @@ c$$$         endif
                 at(i4,i3,i1,i)=zero
                 a2(i4,i3,i1,i)=zero
 +ei
-  120   continue
+            end do
+          end do
+        end do
 
         do 130 i1=1,mmul
           bk0(i,i1)=zero
@@ -36238,33 +36334,41 @@ c$$$         endif
 !-----------------------------------------------------------------------
       pi=four*atan_mb(one)
       if(icode.ge.4.and.its6d.eq.0) then
-        do 10 i=1,2
-          do 10 j=1,4
+        do i=1,2
+          do j=1,4
             x(i,j)=x(i,j)-di0(j)*x(i,6)
-   10   continue
+          end do
+        end do
       endif
+
       do 60 i=1,2
         do 20 j=1,6
           x(i,j)=x(i,j)-clo(j)
    20   continue
+
         if(its6d.eq.1) then
           x(i,2)=x(i,2)/((one+x(i,6))+clo(6))                            !hr06
           x(i,4)=x(i,4)/((one+x(i,6))+clo(6))                            !hr06
         endif
+
         do 40 iq=1,6
           x1(i,iq)=zero
           do 30 jq=1,6
             x1(i,iq)=x1(i,iq)+t(jq,iq)*x(i,jq)
    30     continue
    40   continue
+
         do 50 j=1,6
           x(i,j)=x1(i,j)
    50   continue
+
    60 continue
+
       do 70 i=1,2
         x(i,5)=x(i,5)*sigcor
         x(i,6)=x(i,6)*dpscor
    70 continue
+
       do 80 i=1,3
         ii=2*i
         sx=x(2,ii-1)*x(1,ii)-x(1,ii-1)*x(2,ii)
@@ -37604,10 +37708,12 @@ c$$$         endif
         dx(l)=c1e6                                                        !hr06
         dy(l)=c1e6                                                        !hr06
    10 continue
+
       call envar(dpp)
       call umlauf(dpp,1,ierr)
       ierro=ierr
       if(ierro.ne.0) call prror(36)
+
       do 40 ii=1,itco
         dcx=abs(dx(1))
         dcxp=abs(dy(1))
@@ -37615,13 +37721,18 @@ c$$$         endif
         dczp=abs(dy(2))
         if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
      &return
-        do 20 l=1,2
+
+        do l=1,2
           x(1,l)=clo(l)
           y(1,l)=clop(l)
           x0(l)=x(1,l)
-   20   y0(l)=y(1,l)
+          y0(l)=y(1,l)
+        end do
+
         call matrix(dpp,am)
+
         if(ierro.ne.0) call prror(36)
+
         do 30 l=1,2
           ll=2*l
           x1(l)=x(1,l)
@@ -37634,6 +37745,7 @@ c$$$         endif
           clo(l)=clo(l)+dclo(l)
           clop(l)=clop(l)+dclop(l)
    30   continue
+
    40 continue
 !-----------------------------------------------------------------------
       return
@@ -37718,15 +37830,18 @@ c$$$         endif
         kz1=kz(i)+1
         goto(10,30,90,50,70,80,120,170,180),kz1
         goto 200
+
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
-   10   do 20 l=1,2
+   10   do l=1,2
           a(i,l,1)=one
           a(i,l,2)=el(i)
           a(i,l,3)=zero
-   20   a(i,l,4)=one
+          a(i,l,4)=one
+        end do
         goto 200
+
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET
 !  HORIZONTAL
@@ -37939,15 +38054,19 @@ c$$$         endif
         kz1=kz(i)+1
         goto(10,30,90,50,70,80,120,170,180),kz1
         goto 190
+
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
-   10   do 20 l=1,2
+   10   do l=1,2
           aeg(i,l,1)=one
           aeg(i,l,2)=el(i)
           aeg(i,l,3)=zero
-   20   aeg(i,l,4)=one
+          aeg(i,l,4)=one
+        end do
+
         goto 190
+
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET
 !  HORIZONTAL
@@ -39751,6 +39870,7 @@ c$$$            endif
       endif
       return
       end
+
 +dk loesd
       subroutine loesd (rmat, vec,dimakt,dimtot,kod)
 !-----------------------------------------------------------------------
@@ -39770,7 +39890,7 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
       kod=1
-      do 50 j=1,dimakt
+      do j=1,dimakt
         emax=zero
         do 10 ik=j,dimakt
           if(abs(emax).gt.abs(rmat(j,ik)) .or.emax.ne.emax) goto 10
@@ -39781,33 +39901,43 @@ c$$$            endif
           write(lout,*) '  ****   ERROR IN LOESD   **** '
           return
         endif
-   20   do 30 l=j,dimakt
+
+   20   do l=j,dimakt
           r=rmat(l,j)
           rmat(l,j)=rmat(l,indi)
           rmat(l,indi)=r
           rmat(l,j)=rmat(l,j)/emax
-   30   continue
+        end do
+
         r=vec(indi)
         vec(indi)=vec(j)
         vec(j)=r/emax
         if(j.eq.dimakt) goto 60
         jy=j+1
-        do 50 jk=jy,dimakt
+
+        do jk=jy,dimakt
           r=rmat(j,jk)
-          do 40 kk=jy,dimakt
+
+          do kk=jy,dimakt
             rmat(kk,jk)= rmat(kk,jk)-r*rmat(kk,j)
-   40     continue
+          end do
           vec(jk)=vec(jk)-vec(j)*r
-   50 continue
+        end do
+      end do
+
    60 n=dimakt
       n1=dimakt-1
-      do 70 j=1,n1
-        do 70 k=1,j
+
+      do j=1,n1
+        do k=1,j
           vec(n-j)=vec(n-j)-rmat(n-k+1,n-j)*vec(n-k+1)
-   70 continue
+        end do
+      end do
+
       kod = 0
       return
       end
+
 +dk matrix
       subroutine matrix(dpp,am)
       use floatPrecision
@@ -39826,27 +39956,36 @@ c$$$            endif
 +ei
       save
 !-----------------------------------------------------------------------
-      do 10 i=2,5
-        do 10 l=1,2
-          x(i,l)=zero
-   10 y(i,l)=zero
+      do i=2,5
+        do l=1,2
+           x(i,l)=zero
+           y(i,l)=zero
+        end do
+      end do
+
       x(2,1)=one
       y(3,1)=one
       x(4,2)=one
       y(5,2)=one
-      do 20 l=1,2
+
+      do l=1,2
         x(1,l)=clo(l)
-   20 y(1,l)=clop(l)
+        y(1,l)=clop(l)
+      end do
+
       call umlauf(dpp,5,ierr)
       ierro=ierr
-      do 30 i=1,4
+
+      do i=1,4
         am(1,i)=x(i+1,1)
         am(2,i)=y(i+1,1)
         am(3,i)=x(i+1,2)
-   30 am(4,i)=y(i+1,2)
+        am(4,i)=y(i+1,2)
+      end do
 !-----------------------------------------------------------------------
       return
       end
+
 +dk orbit
       subroutine corrorb
 !-----------------------------------------------------------------------
@@ -39903,7 +40042,7 @@ c$$$            endif
       end do
 
       do l=1,ncor1
-        xinc(l)=0.0
+        xinc(l)=zero
         nx(l)=0
       end do
 
@@ -39916,6 +40055,7 @@ c$$$            endif
 
       write(lout,*)
       write(lout,10000)
+
       if(ncorru.eq.0) then
         call prror(84)
       else
@@ -39925,15 +40065,18 @@ c$$$            endif
           write(lout,10020) ncorru,ncorrep
         endif
       endif
+
       write(lout,*)
 
 !-- SAVE OLD 'LINOPT' SETTINGS
       iprinto=iprint
       nto=nt
       ntcoo=ntco
-      do 50 i=1,nlin
+
+      do i=1,nlin
         bezlo(i)=bezl(i)
-   50 continue
+      end do
+
       nlino=nlin
 
 !-- PUT MONITORS AND CORRECTORS INTO LINOPT SETTINGS
@@ -39941,11 +40084,13 @@ c$$$            endif
       iprint=0
       ntco=0
       nlin=0
-      do 60 i=1,il
+
+      do i=1,il
         if(kp(i).eq.3.or.kp(i).eq.4.or. kp(i).eq.-3.or.kp(i).eq.-4) bezl&
      &(i)=bez(i)
         nlin=nlin+1
-   60 continue
+      end do
+
       call linopt(zero)
       call phasad(zero,qwc1)
 
@@ -40016,14 +40161,17 @@ c$$$            endif
 
         if(ihflag.eq.0) then
           write(lout,*)
-          do 90 ij=1,ncorru/10
+
+          do ij=1,ncorru/10
             write(lout,10050) (nx(10*(ij-1)+k), k=1,10)
-   90     continue
+          end do
+
           if(mod(ncorru,10).gt.0) then
             write(lout,10050) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
           endif
           call putorb(xinc,nx,1)
         endif
+
 !-- MICADO WITH HOUSEHOLDER TRANSFORMATION
         call htls(ar,b,nvmoni,nvcorr,xinc,nx,orbr,ncorru,rzero,rzero1)
 
@@ -40032,6 +40180,7 @@ c$$$            endif
           do 100 ij=1,ncorru/10
             write(lout,10060) (nx(10*(ij-1)+k), k=1,10)
   100     continue
+
           if(mod(ncorru,10).gt.0) then
             write(lout,10060) (nx(10*(ij-1)+k), k=1,mod(ncorru,10))
           endif
@@ -40127,9 +40276,11 @@ c$$$            endif
       nt=nto
       ntco=ntcoo
       nlin=nlino
+
       do 220 i=1,nlin
         bezl(i)=bezlo(i)
   220 continue
+
       ncorru=0
 !-----------------------------------------------------------------------
       return
@@ -45486,16 +45637,19 @@ c$$$            endif
 +ei
       save
 !-----------------------------------------------------------------------
-      do 10 i=1,6
+      do i=1,6
         bb(i)=zero
         dsm(i)=zero
         sn(i)=zero
         sen(i)=zero
         ss(i)=zero
         d1(i)=zero
-        do 10 j=1,6
+
+        do j=1,6
           aa(i,j)=zero
-   10 continue
+        end do
+      end do
+
       do 20 i=1,3
         qwc(i)=zero
    20 continue
