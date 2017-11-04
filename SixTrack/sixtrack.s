@@ -39969,30 +39969,37 @@ c$$$            endif
 
       write(lout,*)
       call orbinit
+
 !-- CORRECT BOTH PLANES
       if(ncorrep.eq.0) then
         icflag=1
         ncorrep=itco
       endif
       do 110 ii=1,ncorrep
+
 !-- HORIZONTAL PLANE FIRST
-        do 70 i=1,nhmoni
+        do i=1,nhmoni
           b(i)=real(bclorb(i,1))
-          do 70 j=1,nhcorr
+          do j=1,nhcorr
       ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac&!hr06
      &(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi)))                !hr06
-   70   continue
+          end do
+        end do
+
         call calrms(b,nhmoni,rmsx,ptpx)
+
 !-- MICADO WITH HOUSEHOLDER TRANSFORMATION
         call htls(ar,b,nhmoni,nhcorr,xinc,nx,orbr,ncorru,rzero,rzero1)
 
 !-- VERTICAL PLANE HERE
-        do 80 i=1,nvmoni
+        do i=1,nvmoni
           b(i)=real(bclorb(i,2))                                         !hr06
-          do 80 j=1,nvcorr
+          do j=1,nvcorr
       ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac&!hr06
      &(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi)))                !hr06
-   80   continue
+          end do
+        end do
+
         call calrms(b,nvmoni,rmsz,ptpz)
         write(lout,10030) ii-1,rmsx,rmsz
         write(lout,10040) ii-1,ptpx,ptpz
@@ -40038,10 +40045,13 @@ c$$$            endif
       do 120 i=1,nhmoni
         b(i)=real(bclorb(i,1))                                           !hr06
   120 continue
+
       call calrms(b,nhmoni,rmsx,ptpx)
+
       do 130 i=1,nvmoni
         b(i)=real(bclorb(i,2))                                           !hr06
   130 continue
+
       call calrms(b,nvmoni,rmsz,ptpz)
       write(lout,10030) ncorrep,rmsx,rmsz
       write(lout,10040) ncorrep,ptpx,ptpz
@@ -40076,14 +40086,19 @@ c$$$            endif
             endif
   150     continue
           call linopt(zero)
+
           do 160 i=1,nhmoni
             b(i)=real(bclorb(i,1))                                       !hr06
   160     continue
+
           call calrms(b,nhmoni,rmsx,ptpx)
+
           do 170 i=1,nvmoni
             b(i)=real(bclorb(i,2))                                       !hr06
   170     continue
+
           call calrms(b,nvmoni,rmsz,ptpz)
+
           write(lout,10150) ii,rmsx,rmsz
           write(lout,10160) ii,ptpx,ptpz
           write(lout,*)
@@ -40092,6 +40107,7 @@ c$$$            endif
      &goto 190
   180   continue
       endif
+
       if((ii-1).eq.itco) write(lout,10130) itco
   190 continue
 
@@ -40099,6 +40115,7 @@ c$$$            endif
       do 200 i=1,nhmoni
         write(28,*) i,bclorb(i,1)
   200 continue
+
       do 210 i=1,nhmoni
         write(29,*) i,bclorb(i,2)
   210 continue
@@ -40317,6 +40334,7 @@ c$$$            endif
    10 continue
       return
       end
+
       subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 !*********************************************************************
 !     Subroutine HTLS to make Householder transform                  *
@@ -40337,9 +40355,9 @@ c$$$            endif
 +ca crcoall
       integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1, &
      &nmon1
-      real a,b,piv,pivt,ptop,r,rho,rmss,x,xiter,xptp,xrms
-      real rms,ptp
-      real g,h,sig,beta
+      real(kind=fPrec) a,b,piv,pivt,ptop,r,rho,rmss,x,xiter,xptp,xrms
+      real(kind=fPrec) rms,ptp
+      real(kind=fPrec) g,h,sig,beta
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1),x(ncor1),ipiv(ncor1),r(nmon1)
@@ -40351,28 +40369,32 @@ c$$$            endif
 ! --- calcul du premier pivot
 
 !============================
-      beta=0.0
+      beta=zero
 
-      do 10 ij1=1,500
-   10 rho(ij1)=0.0
+      do ij1=1,500
+        rho(ij1)=zero
+      end do
 
       k2=n + 1
       piv=zero
 
       do 40 k=1,n
         ipiv(k)=k
-        h=0.0                                                            !hr06
-        g=0.0                                                            !hr06
-        do 20 i=1,m
+        h=zero                                                           !hr06
+        g=zero                                                           !hr06
+
+        do i=1,m
           h=h+a(i,k)*a(i,k)
           g=g+a(i,k)*b(i)
-   20   continue
+        end do
+
         rho(k)=h
         rho(k2) = g
         pivt = g**2/h                                                    !hr06
         if(pivt-piv.le.0) goto 40
         if(pivt-piv.gt.0) goto 30
    30   piv = pivt
+
         kpiv=k
    40 k2 = k2 + 1
 
@@ -40499,7 +40521,7 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
       integer j,k,k1,m,n,nc,ncor1,nmon1
-      real a,beta,h
+      real(kind=fPrec) a,beta,h
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
@@ -40531,22 +40553,24 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
       integer k,k1,m,n,ncor1,nmon1
-      real a,b,beta,h
+      real(kind=fPrec) a,b,beta,h
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1)
       save
 !-----------------------------------------------------------------------
 
-      h=0.0                                                              !hr06
+      h=zero                                                           !hr06
 
-      do 10 k1=k,m
-   10 h=h+a(k1,k)*b(k1)
+      do k1=k,m
+        h=h+a(k1,k)*b(k1)
+      end do
 
       h=beta*h
 
-      do 20 k1=k,m
-   20 b(k1)=b(k1)-a(k1,k)*h
+      do k1=k,m
+        b(k1)=b(k1)-a(k1,k)*h
+      end do
 
       end
       subroutine htrl(a,b,m,n,k,rho)
