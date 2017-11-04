@@ -38716,18 +38716,23 @@ c$$$         endif
       nvcorr=0
       ium=6
       pie=two*pi
+
       if(ncorru.eq.0) then
         write(lout,10010)
         write(lout,10000)
       endif
-      do 10 i=1,ium
+
+      do i=1,ium
         dpr(i)=zero
-   10 continue
-      do 20 i=1,ium
-        do 20 j=1,4
+      end do
+
+      do i=1,ium
+        do j=1,4
           t(i,j)=zero
-   20 continue
-      do 30 i=1,2
+        end do
+      end do
+
+      do i=1,2
         beta(i)=zero
         alfa(i)=zero
         phibf(i)=zero
@@ -38738,48 +38743,67 @@ c$$$         endif
         dip00(i)=zero
         qw(i)=zero
         qwc(i)=zero
-   30 continue
+      end do
+
       qwc(3)=zero
-      do 40 i=1,mmul
+
+      do i=1,mmul
         aa(i)=zero
         bb(i)=zero
         cr(i)=zero
         ci(i)=zero
-   40 continue
+      end do
+
       etl=zero
       dpr(1)=dpp*c1e3
       dpr(6)=one
       dpp1=dpp+ded
       call clorb(dpp1)
-      do 50 l=1,2
+
+      do l=1,2
         clo0(l)=clo(l)
-   50 clop0(l)=clop(l)
+        clop0(l)=clop(l)
+      end do
+
       call clorb(dpp)
-      do 60 l=1,2
+
+      do l=1,2
         ll=2*l
         di0(l)=(clo0(l)-clo(l))/ded
         dip0(l)=(clop0(l)-clop(l))/ded
         t(6,ll-1)=di0(l)
-   60 t(6,ll)=dip0(l)
+        t(6,ll)=dip0(l)
+      end do
+
       if(ncorru.eq.0) then
         write(lout,10010)
         write(lout,10050) (di0(l),dip0(l),l=1,2)
       endif
+
       call betalf(dpp,qw)
       call phasad(dpp,qwc)
+
       if(ierro.ne.0) call prror(22+ierro)
       if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
+
       call envar(dpp)
+
       if(ithick.eq.1) call envardis(dpp1,aeg,bl1eg,bl2eg)
+
 !--STARTVALUES OF THE TRAJECTORIES
-      do 70 l=1,2
+      do l=1,2
         ll=2*l
         t(1,ll-1)=clo(l)
-   70 t(1,ll)=clop(l)
-      do 80 i=1,4
-        do 80 j=1,4
+        t(1,ll)=clop(l)
+      end do
+
+      do i=1,4
+        do j=1,4
           t(i+1,j)=ta(j,i)
-   80 t(i+1,j)=ta(j,i)
+          t(i+1,j)=ta(j,i)
+        end do
+      end do
+
       if(ncorru.eq.0) then
         write(lout,10010)
         if(iprint.eq.1) write(lout,10030)
@@ -38895,11 +38919,13 @@ c$$$            endif
           if(kz(jk).ne.8) etl=etl+el(jk)
           do l=1,2
             ll=2*l
+
             if(abs(t(ll,ll-1)).gt.pieni) then
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
             else
               phibf(l)=zero
             endif
+
             puf=t(6,ll-1)
          t(6,ll-1)=(((((aeg(jk,l,1)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,2)*(t &!hr06
      &(1,ll)+t(6,ll)*ded))+aeg(jk,l,5)*dpp1*c1e3)- a(jk,l,1)*t          &!hr06
@@ -38907,19 +38933,23 @@ c$$$            endif
            t(6,ll)=(((((aeg(jk,l,3)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,4)*(t &!hr06
      &(1,ll)+t(6,ll)*ded))+aeg(jk,l,6)*dpp1*c1e3)- a(jk,l,3)*t          &!hr06
      &(1,ll-1))-a(jk,l,4)*t(1,ll))- a(jk,l,6)*dpr(1))/ded                !hr06
+
             do i=1,ium-1
               puf=t(i,ll-1)
             t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
             t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
             enddo
           enddo
+
           do l=1,2
             ll=2*l
+
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
             else
               dphi=-one*phibf(l)                                         !hr06
             endif
+
             if(kz(jk).ne.8.and.-one*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi/pie
           enddo
@@ -39849,24 +39879,34 @@ c$$$            endif
 !-----------------------------------------------------------------------
       rzero=zero
       rzero1=zero
-      do 10 l=1,2
+      do l=1,2
         clo0(l)=zero
         clop0(l)=zero
         di0(l)=zero
-   10 dip0(l)=zero
+       dip0(l)=zero
+      end do
+
       call clorb(ded)
       if(ierro.gt.0) call prror(4)
-      do 20 l=1,2
+
+      do l=1,2
         clo0(l)=clo(l)
-   20 clop0(l)=clop(l)
+        clop0(l)=clop(l)
+      end do
+
       call clorb(zero)
       if(ierro.gt.0) call prror(5)
-      do 30 l=1,2
+
+      do l=1,2
         di0(l)=(clo0(l)-clo(l))/ded
-   30 dip0(l)=(clop0(l)-clop(l))/ded
-      do 40 l=1,ncor1
+        dip0(l)=(clop0(l)-clop(l))/ded
+      end do
+
+      do l=1,ncor1
         xinc(l)=0.0
-   40 nx(l)=0
+        nx(l)=0
+      end do
+
       if(iclo.eq.0) return
 !-- ORBIT CORRECTION
       ihflag=0
@@ -40661,24 +40701,31 @@ c$$$            endif
 +ei
       save
 !-----------------------------------------------------------------------
-      do 10 i=1,nblz
+      do i=1,nblz
         ilf(i)=0
         ilfr(i)=0
-   10 continue
-      do 20 i=1,nele
+      end do
+
+      do i=1,nele
         iran(i)=0
         inz(i)=0
-        do 20 j=1,5
+        do j=1,5
           jra(i,j)=0
-   20 continue
+        end do
+      end do
+
       if(mper.eq.1) goto 40
-      do 30 i=2,mper
-        do 30 j=1,mbloz
+
+      do i=2,mper
+        do j=1,mbloz
           ii=(i-1)*mbloz+j
           ihi=j
           if(msym(i).lt.0) ihi=mbloz-j+1
           ic(ii)=msym(i)*ic(ihi)
-   30 if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+          if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+        end do
+      end do
+
 !--ORGANISATION OF RANDOM NUMBERS
    40 iu=mper*mbloz
       if(niu(1).lt.0) niu(1)=iabs(niu(1))
@@ -40888,6 +40935,7 @@ c$$$            endif
   190 continue
       return
       end
+
 +dk phasad
       subroutine phasad(dpp,qwc)
 !-----------------------------------------------------------------------
@@ -40925,28 +40973,34 @@ c$$$            endif
       qxsa = zero
       qxse = zero
 !GRD
-      do 10 i=1,ium
+      do i=1,ium
         dpr(i)=zero
-   10 continue
-      do 20 i=1,ium
-        do 20 j=1,4
+      end do
+
+      do i=1,ium
+        do j=1,4
           t(i,j)=zero
-   20 continue
-      do 30 i=1,2
+        end do
+      end do
+
+      do i=1,2
         beta(i)=zero
         alfa(i)=zero
         phi(i)=zero
         phibf(i)=zero
         qw(i)=zero
         qwc(i)=zero
-   30 continue
+      end do
+
       qwc(3)=zero
-      do 40 i=1,mmul
+
+      do i=1,mmul
         aa(i)=zero
         bb(i)=zero
         cr(i)=zero
         ci(i)=zero
-   40 continue
+      end do
+
       pie=two*pi
       ikpv=0
       dpr(1)=dpp*c1e3
@@ -40963,17 +41017,23 @@ c$$$            endif
 !     call dumpbin('aenvarqmod',88,R88
 !     call abend('aenvarqmod                                        ')
 +ei
+
 !--STARTVALUES OF THE TRAJECTORIES
-      do 50 l=1,2
+      do l=1,2
         ll=2*l
         alfa(l)=alf0(l)
         beta(l)=bet0(l)
         t(1,ll-1)=clo(l)
-   50 t(1,ll)=clop(l)
-      do 60 i=1,4
-        do 60 j=1,4
+        t(1,ll)=clop(l)
+      end do
+
+      do i=1,4
+        do j=1,4
           t(i+1,j)=ta(j,i)
-   60 t(i+1,j)=ta(j,i)
+          t(i+1,j)=ta(j,i)
+        end do
+      end do
+
 !--SINGLE TURN BLOCKLOOP
       izu=0
       do 450 k=1,iu
@@ -40986,33 +41046,44 @@ c$$$            endif
         jj=mel(ix)+1
         dj=-1
    70   jm=mel(ix)
+
 !--BLOCKELEMENTLOOP
         do 130 j=1,jm
           jj=jj+dj
           jk=mtyp(ix,jj)
           if(ithick.eq.1.and.kz(jk).ne.0) goto 100
           if(ithick.eq.0.and.kz(jk).ne.0) goto 450
+
 !--PURE DRIFTLENGTH
-          do 80 l=1,2
+          do l=1,2
             ll=2*l
+
             if(abs(t(ll,ll-1)).gt.pieni) then
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
             else
               phibf(l)=pi2
             endif
-            do 80 i=1,ium
-   80     t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
-          do 90 l=1,2
+
+            do i=1,ium
+              t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
+            end do
+          end do
+
+          do l=1,2
             ll=2*l
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
             else
               dphi=pi2-phibf(l)
             endif
+
             if(-one*dphi.gt.pieni) dphi=dphi+pi                          !hr06
-   90     phi(l)=phi(l)+dphi/pie
+            phi(l)=phi(l)+dphi/pie
+          end do
+
           goto 130
 !--MAGNETELEMENT
   100     continue
@@ -41338,9 +41409,12 @@ c$$$            endif
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   430   continue
-        do 440 l=1,2
+
+        do l=1,2
           ll=2*l
-  440   alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))       !hr06
+          alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))       !hr06
+        end do
+
   450 continue
       qwc(1)=phi(1)
       qwc(2)=phi(2)
@@ -41386,23 +41460,29 @@ c$$$            endif
 +ei
       save
 !-----------------------------------------------------------------------
-      do 10 i=1,3
+      do i=1,3
         bb(i)=zero
         qx(i)=zero
         qz(i)=zero
         sm0(i)=zero
         qwc(i)=zero
-        do 10 j=1,3
+        do j=1,3
           aa(i,j)=zero
-   10 continue
-      do 20 i=1,3
-        do 20 j=1,5
+        end do
+      end do
+
+      do i=1,3
+        do j=1,5
           sens(i,j)=zero
-   20 continue
-      do 30 i=1,2
-        do 30 j=1,2
+        end do
+      end do
+
+      do i=1,2
+        do j=1,2
           aa1(i,j)=zero
-   30 continue
+        end do
+      end do
+
       write(lout,10010)
       sqx=zero
       sqz=zero
@@ -41411,6 +41491,7 @@ c$$$            endif
       iq1=iq(1)
       iq2=iq(2)
       if(kz(iq1).ne.2.or.kz(iq2).ne.2) call prror(8)
+
       if (abs(el(iq1)).le.pieni.or.abs(el(iq2)).le.pieni) then
         sm0(1)=ed(iq1)
         sm0(2)=ed(iq2)
@@ -41418,10 +41499,12 @@ c$$$            endif
         sm0(1)=ek(iq1)
         sm0(2)=ek(iq2)
       endif
+
       if(kp(iq1).eq.5) call combel(iq1)
       if(kp(iq2).eq.5) call combel(iq2)
       sens(1,1)=qw0(1)
       sens(2,1)=qw0(2)
+
       if(abs(qw0(3)).gt.pieni) then
         iq3=iq(3)
         if(kz(iq3).ne.2) call prror(8)
@@ -41435,6 +41518,7 @@ c$$$            endif
       else
         nite=2
       endif
+
       call clorb(dpp)
       if(ierro.gt.0) call prror(9)
       call phasad(dpp,qwc)
@@ -42457,9 +42541,12 @@ c$$$            endif
 !--SINGLE TURN BLOCKLOOP
       izu=0
       do 770 k=1,iu
-        do 130 k1=1,10
+
+        do k1=1,10
           ab1(k1)=zero
-  130   ab2(k1)=zero
+          ab2(k1)=zero
+        end do
+
         ix=ic(k)
         if(ix.gt.nblo) goto 210
         jj=0
@@ -42477,16 +42564,20 @@ c$$$            endif
           if(ithick.eq.0.and.kz(jk).ne.0) goto 770
 !--PURE DRIFTLENGTH
           etl=etl+el(jk)
-          do 150 l=1,2
+
+          do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
             else
               phibf(l)=pi2
             endif
-            do 150 i=1,ium
-  150     t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
-          do 160 l=1,2
+            do i=1,ium
+              t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
+            end do
+          end do
+
+          do l=1,2
             ll=2*l
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
@@ -42496,7 +42587,9 @@ c$$$            endif
               dphi=pi2-phibf(l)
             endif
             if(-one*dphi.gt.pieni) dphi=dphi+pi
-  160     phi(l)=phi(l)+dphi
+            phi(l)=phi(l)+dphi
+          end do
+
           goto 200
 !--MAGNETELEMENT
   170     continue
@@ -42651,9 +42744,12 @@ c$$$            endif
         qv=zero
         lmin=3
         if(nmz.eq.1) lmin=2
-        do 350 l=lmin,mmul
+
+        do l=lmin,mmul
           cr(l)=zero
-  350   ci(l)=zero
+          ci(l)=zero
+        end do
+
         do 360 l=1,nmz
 +ca multl13
   360   continue
@@ -42734,9 +42830,11 @@ c$$$            endif
 !-----------------------------------------------------------------------
 !  SKEW-QUADRUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
-        do 510 l=2,nmz
+        do l=2,nmz
           l1=l-1
-  510   ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
+          ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
+        end do
+
   520   b1=beta(1)
         b2=beta(2)
         sb1=sqrt(b1)
@@ -42753,11 +42851,13 @@ c$$$            endif
 !  REGULAR-SEXTUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 530 l=3,nmz
+        do l=3,nmz
           l1=l-2
           ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  530   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   540   b(4,1)=b1*sb1
         b(1,4)=b2*sb2
         b(3,2)=b1*sb2
@@ -42766,15 +42866,18 @@ c$$$            endif
         if(mpe.eq.3.or.(mpe.eq.9.and.nmz.le.3)) goto 670
         if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq&
      &.7) goto 560
+
 !-----------------------------------------------------------------------
 !  REGULAR-OCTUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 550 l=4,nmz
+        do l=4,nmz
           l1=l-3
           ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  550   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   560   b(5,1)=b1**2                                                     !hr06
         b(1,5)=b2**2                                                     !hr06
         b(4,2)=b(3,2)*sb1
@@ -42784,15 +42887,18 @@ c$$$            endif
         if(mpe.eq.4.or.(mpe.eq.9.and.nmz.le.4)) goto 670
         if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7)        &
      &goto 580
+
 !-----------------------------------------------------------------------
 !  REGULAR-DEKAPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 570 l=5,nmz
+        do l=5,nmz
           l1=l-4
           ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  570   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   580   b(6,1)=b(5,1)*sb1
         b(1,6)=b(1,5)*sb2
         b(5,2)=b(4,2)*sb1
@@ -42802,15 +42908,18 @@ c$$$            endif
         if(nta.gt.6) goto 600
         if(mpe.eq.5.or.(mpe.eq.9.and.nmz.le.5)) goto 670
         if(mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 600
+
 !-----------------------------------------------------------------------
 !  REGULAR-12-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 590 l=6,nmz
+        do l=6,nmz
           l1=l-5
           ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  590   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   600   b(7,1)=b(6,1)*sb1
         b(1,7)=b(1,6)*sb2
         b(6,2)=b(5,2)*sb1
@@ -42821,15 +42930,18 @@ c$$$            endif
         if(nta.gt.7) goto 620
         if(mpe.eq.6.or.(mpe.eq.9.and.nmz.le.6)) goto 670
         if(mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 620
+
 !-----------------------------------------------------------------------
 !  REGULAR-14-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 610 l=7,nmz
+        do l=7,nmz
           l1=l-6
           ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  610   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   620   b(8,1)=b(7,1)*sb1
         b(1,8)=b(1,7)*sb2
         b(7,2)=b(7,1)*sb2
@@ -42845,11 +42957,13 @@ c$$$            endif
 !  REGULAR-16-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 630 l=8,nmz
+        do l=8,nmz
           l1=l-7
           ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  630   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   640   b(9,1)=b(8,1)*sb1
         b(1,9)=b(1,8)*sb2
         b(8,2)=b(8,1)*sb2
@@ -42865,11 +42979,13 @@ c$$$            endif
 !  REGULAR-18-POLE
 !-----------------------------------------------------------------------
         l2=1
-        do 650 l=9,nmz
+        do l=9,nmz
           l1=l-8
           ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  650   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   660   b(10,1)=b(9,1)*sb1
         b(1,10)=b(1,9)*sb2
         b(9,2)=b(9,1)*sb2
@@ -42889,8 +43005,11 @@ c$$$            endif
             nn1=np-nn2
             re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt                   !hr06
             ipt=0
-            do 680 ii=1,nre
-  680       if(n2.eq.nrr(ii)) ipt=ipr(ii)
+
+            do ii=1,nre
+              if(n2.eq.nrr(ii)) ipt=ipr(ii)
+            end do
+
             ip(np,nv)=int(re1+half)+ipt
             if(-one*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt
 !--RE=DISTANCE FROM THE RESONANCE
@@ -43037,13 +43156,16 @@ c$$$            endif
         if(np2.ge.1) goto 780
   810 continue
       if(nur.eq.0) goto 840
+
       do 830 j=1,nur
         jk=j*2
-        do 820 i=1,nur
+        do i=1,nur
           jl=nu(i)-npp-jk
           if(jl.eq.0) min(j)=1
-  820   if(jl.eq.0) goto 830
+          if(jl.eq.0) goto 830
+        end do
   830 continue
+
   840 m2=npp+2
       m4=npp+4
       m6=npp+6
@@ -43093,22 +43215,28 @@ c$$$            endif
       nta=npp
       nte=npp
       dpp=dppr
-      do 10 i=1,10
+
+      do i=1,10
         bb(i)=zero
         dsm(i)=zero
         sn(i)=zero
         sen(i)=zero
         ss(i)=zero
         d1(i)=zero
-        do 10 j=1,10
+
+        do j=1,10
           aa(i,j)=zero
-   10 continue
-      do 20 i=1,12
+        end do
+      end do
+
+      do i=1,12
         irr(i)=0
-   20 continue
-      do 30 i=1,3
+      end do
+
+      do i=1,3
         qwc(i)=zero
-   30 continue
+      end do
+
       k=1
       jj1=0
       jj2=0
@@ -43266,9 +43394,12 @@ c$$$            endif
   170   continue
         if(nre.eq.0) goto 190
         call resex(dpp)
-        do 180 i=1,jjr
+
+        do i=1,jjr
           ss(i)=dtr(i)
-  180   d1(i)=abs(ss(i))
+          d1(i)=abs(ss(i))
+        end do
+
   190   if(nch.eq.0) goto 210
         se2=zero
         se11=zero
@@ -43299,19 +43430,25 @@ c$$$            endif
         if(nre.eq.0) goto 270
         write(lout,10080) no,nrr(1),sen(1),ss(1),sen(2),ss(2)
         if(nre.eq.1) goto 240
-        do 230 i=2,nre
+
+        do i=2,nre
           i2=2*i
           i1=i2-1
-  230   write(lout,10090) nrr(i),sen(i1),ss(i1),sen(i2),ss(i2)
+          write(lout,10090) nrr(i),sen(i1),ss(i1),sen(i2),ss(i2)
+        end do
+
   240   write(lout,10100)
         write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),&
      &ed(irr(2))
         if(nre.eq.1) goto 260
-        do 250 i=2,nre
+
+        do i=2,nre
           i2=2*i
           i1=i2-1
-  250   write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn&
+        write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn&
      &(i2), ed(irr(i2))
+        end do
+
   260   write(lout,10070)
   270   if(nch.eq.0) goto 280
         write(lout,10120) sen(j3),ss(j3),sen(j4),ss(j4)
@@ -43329,13 +43466,19 @@ c$$$            endif
      &ek(irr(j2)),                                                      &
      &irr(j2)
         endif
-  290   do 300 i=1,j2
-  300   if(d1(i).gt.dsi) goto 310
+
+  290   do i=1,j2
+          if(d1(i).gt.dsi) goto 310
+        end do
+
         nta=ntao
         nte=nteo
         return
-  310   do 320 i=1,j2
-  320   bb(i)=ss(i)
+
+  310   do i=1,j2
+          bb(i)=ss(i)
+        end do
+
         if(nqc.eq.1) bb(j1)=bb(j1)-qw0(1)
         if(nqc.eq.1) bb(j2)=bb(j2)-qw0(2)
   330 continue
@@ -43519,6 +43662,7 @@ c$$$            endif
       dfac(9)=40320.0_fPrec                                              !hr13
       dfac(10)=362880.0_fPrec                                            !hr13
       if(ipt.eq.1) ipl=3
+
       do 940 ipcc=1,ipl
         ipc=ipcc-ipl+1
         if(ipt.eq.0) ipc=0
@@ -43529,14 +43673,18 @@ c$$$            endif
         del=zero
         ns=0
         ik=0
-        do 10 i=1,ium
+
+        do i=1,ium
           dpr(i)=zero
-   10   continue
-        do 20 i=1,ium
-          do 20 j=1,4
+        end do
+
+        do i=1,ium
+          do j=1,4
             t(i,j)=zero
-   20   continue
-        do 30 i=1,2
+          end do
+        end do
+
+        do i=1,2
           beta(i)=zero
           alfa(i)=zero
           phi(i)=zero
@@ -43546,30 +43694,39 @@ c$$$            endif
           clo0(i)=zero
           clop0(i)=zero
           ep(i)=zero
-   30   continue
+        end do
+
         qwc(3)=zero
-        do 40 i=1,10
+        do i=1,10
           nnf(i)=0
-          do 40 j=1,18
+          do j=1,18
             re(i,j)=zero
             ip(i,j)=0
-   40   continue
-        do 50 i=1,mmul
+          end do
+        end do
+
+        do i=1,mmul
           aa(i)=zero
           bb(i)=zero
           cr(i)=zero
           ci(i)=zero
-   50   continue
-        do 60 i=1,2
-          do 60 j=1,5
+        end do
+
+        do i=1,2
+          do j=1,5
             dtu(i,j)=zero
-   60   continue
-        do 70 i=1,5
-          do 70 j=0,4
-            do 70 k=0,4
+          end do
+        end do
+
+        do i=1,5
+          do j=0,4
+            do k=0,4
               dtup(1,i,j,k)=zero
               dtup(2,i,j,k)=zero
-   70   continue
+            end do
+          end do
+        end do
+
         do 120 i=1,9
           nz2(i)=0
           do 110 j=1,18
@@ -43886,11 +44043,14 @@ c$$$            endif
           qv=zero
           lmin=3
           if(nmz.eq.1) lmin=2
-          do 370 l=lmin,mmul
+
+          do l=lmin,mmul
             aa(l)=zero
             bb(l)=zero
             cr(l)=zero
-  370     ci(l)=zero
+            ci(l)=zero
+          end do
+
           do 380 l=1,nmz
 +ca multl13
   380     continue
@@ -43970,22 +44130,28 @@ c$$$            endif
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   520     continue
-          do 530 l=1,2
+
+          do l=1,2
             ll=2*l
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
-  530     clop0(l)=t(1,ll)
+            clop0(l)=t(1,ll)
+          end do
+
           if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 790
           if(mpe.lt.nta) goto 790
           if(mpe.gt.nte) mpe=nte
           if(nta.gt.2) goto 550
           if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.  &
      &mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 550
+
 !-----------------------------------------------------------------------
 !  SKEW-QUADRUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
-          do 540 l=2,nmz
+          do l=2,nmz
             l1=l-1
-  540     ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+            ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          end do
+
   550     b1=beta(1)
           b2=beta(2)
           sb1=sqrt(b1)
@@ -43997,15 +44163,18 @@ c$$$            endif
           if(mpe.eq.2.or.(mpe.eq.9.and.nmz.le.2)) goto 700
           if(mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx &
      &.eq.6.or.mx.eq.7) goto 570
+
 !-----------------------------------------------------------------------
 !  REGULAR-SEXTUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
           l2=1
-          do 560 l=3,nmz
+          do l=3,nmz
             l1=l-2
             ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
             ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
-  560     l2=l2*l/l1
+            l2=l2*l/l1
+          end do
+
   570     b(4,1)=b1*sb1
           b(1,4)=b2*sb2
           b(3,2)=b1*sb2
@@ -44014,15 +44183,18 @@ c$$$            endif
           if(mpe.eq.3.or.(mpe.eq.9.and.nmz.le.3)) goto 700
           if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx &
      &.eq.7) goto 590
+
 !-----------------------------------------------------------------------
 !  REGULAR-OCTUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
           l2=1
-          do 580 l=4,nmz
+          do l=4,nmz
             l1=l-3
             ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))     !hr06
             ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))     !hr06
-  580     l2=l2*l/l1
+            l2=l2*l/l1
+          end do
+
   590     b(5,1)=b1**2                                                   !hr06
           b(1,5)=b2**2                                                   !hr06
           b(4,2)=b(3,2)*sb1
@@ -44032,15 +44204,18 @@ c$$$            endif
           if(mpe.eq.4.or.(mpe.eq.9.and.nmz.le.4)) goto 700
           if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7)      &
      &goto 610
+
 !-----------------------------------------------------------------------
 !  REGULAR-DEKAPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
           l2=1
-          do 600 l=5,nmz
+          do l=5,nmz
             l1=l-4
             ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
             ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
-  600     l2=l2*l/l1
+            l2=l2*l/l1
+          end do
+
   610     b(6,1)=b(5,1)*sb1
           b(1,6)=b(1,5)*sb2
           b(5,2)=b(4,2)*sb1
@@ -44050,15 +44225,18 @@ c$$$            endif
           if(nta.gt.6) goto 630
           if(mpe.eq.5.or.(mpe.eq.9.and.nmz.le.5)) goto 700
           if(mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 630
+
 !-----------------------------------------------------------------------
 !  REGULAR-12-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
           l2=1
-          do 620 l=6,nmz
+          do l=6,nmz
             l1=l-5
             ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
             ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
-  620     l2=l2*l/l1
+            l2=l2*l/l1
+          end do
+
   630     b(7,1)=b(6,1)*sb1
           b(1,7)=b(1,6)*sb2
           b(6,2)=b(5,2)*sb1
@@ -44069,15 +44247,18 @@ c$$$            endif
           if(nta.gt.7) goto 650
           if(mpe.eq.6.or.(mpe.eq.9.and.nmz.le.6)) goto 700
           if(mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 650
+
 !-----------------------------------------------------------------------
 !  REGULAR-14-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
           l2=1
-          do 640 l=7,nmz
+          do l=7,nmz
             l1=l-6
             ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
             ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
-  640     l2=l2*l/l1
+            l2=l2*l/l1
+          end do
+
   650     b(8,1)=b(7,1)*sb1
           b(1,8)=b(1,7)*sb2
           b(7,2)=b(7,1)*sb2
@@ -44089,15 +44270,18 @@ c$$$            endif
           if(nta.gt.8) goto 670
           if(mpe.eq.7.or.(mpe.eq.9.and.nmz.le.7)) goto 700
           if(mx.eq.6.or.mx.eq.7) goto 670
+
 !-----------------------------------------------------------------------
 !  REGULAR-16-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
           l2=1
-          do 660 l=8,nmz
+          do l=8,nmz
             l1=l-7
             ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
             ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
-  660     l2=l2*l/l1
+            l2=l2*l/l1
+          end do
+
   670     b(9,1)=b(8,1)*sb1
           b(1,9)=b(1,8)*sb2
           b(8,2)=b(8,1)*sb2
@@ -44109,15 +44293,18 @@ c$$$            endif
           b(5,5)=b(4,5)*sb1
           if(mpe.eq.8.or.(mpe.eq.9.and.nmz.le.8)) goto 700
           if(mx.eq.7) goto 690
+
 !-----------------------------------------------------------------------
 !  REGULAR-18-POLE
 !-----------------------------------------------------------------------
           l2=1
-          do 680 l=9,nmz
+          do l=9,nmz
             l1=l-8
             ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))     !hr06
             ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))     !hr06
-  680     l2=l2*l/l1
+            l2=l2*l/l1
+          end do
+
   690     b(10,1)=b(9,1)*sb1
           b(1,10)=b(1,9)*sb2
           b(9,2)=b(9,1)*sb2
@@ -44265,15 +44452,20 @@ c$$$            endif
   800   continue
         write(lout,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu &
      &(2,2),dtu(2,3),dtu(2,4),dtu(2,5),gtu2
-        do 810 i=1,2
-          do 810 j=1,5
-            do 810 l=0,4
-              do 810 k=0,4
+
+        do i=1,2
+          do j=1,5
+            do l=0,4
+              do k=0,4
                 if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
      &(lout,10160)
                 if(abs(dtup(i,j,k,l)).gt.pieni) write(lout,             &
      &'(10X,G17.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
-  810   continue
+              end do
+            end do
+          end do
+        end do
+
         write(lout,10060)
         write(lout,10030)
         do 880 np=nta,nte
@@ -44522,10 +44714,12 @@ c$$$            endif
       do 10 i=1,ium
         dpr(i)=zero
    10 continue
-      do 20 i=1,ium
-        do 20 j=1,4
+      do i=1,ium
+        do j=1,4
           t(i,j)=zero
-   20 continue
+        end do
+      end do
+
       do 30 i=1,2
         beta(i)=zero
         alfa(i)=zero
@@ -44534,18 +44728,22 @@ c$$$            endif
         qw(i)=zero
         ep(i)=zero
    30 continue
-      do 40 i=1,10
+
+      do i=1,10
         nnf(i)=0
-        do 40 j=1,18
+        do j=1,18
           ip(i,j)=0
           re(i,j)=zero
-   40 continue
+        end do
+      end do
+
       do 50 i=1,mmul
         aa(i)=zero
         bb(i)=zero
         cr(i)=zero
         ci(i)=zero
    50 continue
+
       do 100 i=1,9
         nz2(i)=0
         do 90 j=1,18
@@ -44563,6 +44761,7 @@ c$$$            endif
    80     continue
    90   continue
   100 continue
+
       btc=zero
       bts=zero
       phy=zero
@@ -44578,26 +44777,35 @@ c$$$            endif
       call betalf(dpp,qw)
       if(ierro.ne.0) call prror(22+ierro)
       call envar(dpp)
+
 !--STARTVALUES OF THE TRAJECTORIES
-      do 110 l=1,2
+      do l=1,2
         ll=2*l
         alfa(l)=alf0(l)
         beta(l)=bet0(l)
         t(1,ll-1)=clo(l)
-  110 t(1,ll)=clop(l)
-      do 120 i=1,4
-        do 120 j=1,4
+        t(1,ll)=clop(l)
+      end do
+
+      do i=1,4
+        do j=1,4
           t(i+1,j)=ta(j,i)
-  120 t(i+1,j)=ta(j,i)
+          t(i+1,j)=ta(j,i)
+        end do
+      end do
+
 !--EP=EMITTANCE IN PI*MM*MRAD
       ep(1)=tam1**2/beta(1)                                              !hr06
       ep(2)=tam2**2/beta(2)                                              !hr06
+
 !--SINGLE TURN BLOCKLOOP
       izu=0
       do 740 k=1,iu
-        do 130 k1=1,10
+        do k1=1,10
           ab1(k1)=zero
-  130   ab2(k1)=zero
+          ab2(k1)=zero
+        end do
+
         ix=ic(k)
         if(ix.gt.nblo) goto 210
         jj=0
@@ -44613,29 +44821,40 @@ c$$$            endif
           jk=mtyp(ix,jj)
           if(ithick.eq.1.and.kz(jk).ne.0) goto 170
           if(ithick.eq.0.and.kz(jk).ne.0) goto 740
+
 !--PURE DRIFTLENGTH
           etl=etl+el(jk)
-          do 150 l=1,2
+          do l=1,2
             ll=2*l
+
             if(abs(t(ll,ll-1)).gt.pieni) then
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
             else
               phibf(l)=pi2
             endif
-            do 150 i=1,ium
-  150     t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
-          do 160 l=1,2
+
+            do i=1,ium
+              t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
+            end do
+          end do
+
+          do l=1,2
             ll=2*l
             beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
             else
               dphi=pi2-phibf(l)
             endif
+
             if(-one*dphi.gt.pieni) dphi=dphi+pi                          !hr06
-  160     phi(l)=phi(l)+dphi
+            phi(l)=phi(l)+dphi
+          end do
+
           goto 200
+
 !--MAGNETELEMENT
   170     continue
           if(kz(jk).ne.8) etl=etl+el(jk)
@@ -44789,9 +45008,12 @@ c$$$            endif
         qv=zero
         lmin=3
         if(nmz.eq.1) lmin=2
-        do 330 l=lmin,mmul
+
+        do l=lmin,mmul
           cr(l)=zero
-  330   ci(l)=zero
+          ci(l)=zero
+        end do
+
         do 340 l=1,nmz
 +ca multl13
   340   continue
@@ -44868,12 +45090,15 @@ c$$$            endif
         if(nta.gt.2) goto 500
         if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx  &
      &.eq.5.or.mx.eq.6.or.mx.eq.7) goto 500
+
 !-----------------------------------------------------------------------
 !  SKEW-QUADRUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
-        do 490 l=2,nmz
+        do l=2,nmz
           l1=l-1
-  490   ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
+          ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
+        end do
+
   500   b1=beta(1)
         b2=beta(2)
         sb1=sqrt(b1)
@@ -44885,15 +45110,18 @@ c$$$            endif
         if(mpe.eq.2.or.(mpe.eq.9.and.nmz.le.2)) goto 650
         if(mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq&
      &.6.or.mx.eq.7) goto 520
+
 !-----------------------------------------------------------------------
 !  REGULAR-SEXTUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 510 l=3,nmz
+        do l=3,nmz
           l1=l-2
           ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  510   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   520   b(4,1)=b1*sb1
         b(1,4)=b2*sb2
         b(3,2)=b1*sb2
@@ -44902,15 +45130,18 @@ c$$$            endif
         if(mpe.eq.3.or.(mpe.eq.9.and.nmz.le.3)) goto 650
         if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq&
      &.7) goto 540
+
 !-----------------------------------------------------------------------
 !  REGULAR-OCTUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 530 l=4,nmz
+        do l=4,nmz
           l1=l-3
           ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  530   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   540   b(5,1)=b1**2                                                     !hr06
         b(1,5)=b2**2                                                     !hr06
         b(4,2)=b(3,2)*sb1
@@ -44920,15 +45151,18 @@ c$$$            endif
         if(mpe.eq.4.or.(mpe.eq.9.and.nmz.le.4)) goto 650
         if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7)        &
      &goto 560
+
 !-----------------------------------------------------------------------
 !  REGULAR-DEKAPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 550 l=5,nmz
+        do l=5,nmz
           l1=l-4
           ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  550   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   560   b(6,1)=b(5,1)*sb1
         b(1,6)=b(1,5)*sb2
         b(5,2)=b(4,2)*sb1
@@ -44938,15 +45172,18 @@ c$$$            endif
         if(nta.gt.6) goto 580
         if(mpe.eq.5.or.(mpe.eq.9.and.nmz.le.5)) goto 650
         if(mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 580
+
 !-----------------------------------------------------------------------
 !  REGULAR-12-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 570 l=6,nmz
+        do l=6,nmz
           l1=l-5
           ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  570   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   580   b(7,1)=b(6,1)*sb1
         b(1,7)=b(1,6)*sb2
         b(6,2)=b(5,2)*sb1
@@ -44957,15 +45194,18 @@ c$$$            endif
         if(nta.gt.7) goto 600
         if(mpe.eq.6.or.(mpe.eq.9.and.nmz.le.6)) goto 650
         if(mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 600
+
 !-----------------------------------------------------------------------
 !  REGULAR-14-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 590 l=7,nmz
+        do l=7,nmz
           l1=l-6
           ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  590   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   600   b(8,1)=b(7,1)*sb1
         b(1,8)=b(1,7)*sb2
         b(7,2)=b(7,1)*sb2
@@ -44977,15 +45217,18 @@ c$$$            endif
         if(nta.gt.8) goto 620
         if(mpe.eq.7.or.(mpe.eq.9.and.nmz.le.7)) goto 650
         if(mx.eq.6.or.mx.eq.7) goto 620
+
 !-----------------------------------------------------------------------
 !  REGULAR-16-POLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
-        do 610 l=8,nmz
+        do l=8,nmz
           l1=l-7
           ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  610   l2=l2*l/l1
+          l2=l2*l/l1
+        end do
+
   620   b(9,1)=b(8,1)*sb1
         b(1,9)=b(1,8)*sb2
         b(8,2)=b(8,1)*sb2
@@ -44997,15 +45240,18 @@ c$$$            endif
         b(5,5)=b(4,5)*sb1
         if(mpe.eq.8.or.(mpe.eq.9.and.nmz.le.8)) goto 650
         if(mx.eq.7) goto 640
+
 !-----------------------------------------------------------------------
 !  REGULAR-18-POLE
 !-----------------------------------------------------------------------
         l2=1
-        do 630 l=9,nmz
+        do l=9,nmz
           l1=l-8
           ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
           ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
-  630   l2=l2*l/l1
+         l2=l2*l/l1
+        end do
+
   640   b(10,1)=b(9,1)*sb1
         b(1,10)=b(1,9)*sb2
         b(9,2)=b(9,1)*sb2
