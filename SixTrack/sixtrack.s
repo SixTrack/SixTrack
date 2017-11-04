@@ -22285,9 +22285,9 @@ c$$$         endif
       real(kind=fPrec) cc,dare,dum,xlim,ylim
 +ca parpro
 +ca parnum
-      parameter(cc = 1.12837916709551d0)
-      parameter(xlim = 5.33d0)
-      parameter(ylim = 4.29d0)
+      parameter(cc = 1.12837916709551_fPrec)
+      parameter(xlim = 5.33_fPrec)
+      parameter(ylim = 4.29_fPrec)
 +ca common
 +ca commons
 +ca commont2
@@ -27112,11 +27112,11 @@ c$$$         endif
             sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)    &
      &*yv(1,j)+yv(2,j)*yv(2,j)))
 +ei
-              xj     = (xv(1,j)-torbx(ie))/1d3
-              xpj    = (yv(1,j)-torbxp(ie))/1d3
-              yj     = (xv(2,j)-torby(ie))/1d3
-              ypj    = (yv(2,j)-torbyp(ie))/1d3
-              pj     = ejv(j)/1.e3
+              xj     = (xv(1,j)-torbx(ie))/c1e3
+              xpj    = (yv(1,j)-torbxp(ie))/c1e3
+              yj     = (xv(2,j)-torby(ie))/c1e3
+              ypj    = (yv(2,j)-torbyp(ie))/c1e3
+              pj     = ejv(j)/c1e3
 
               if(firstrun) then
                 if (iturn.eq.1.and.j.eq.1) then
@@ -27131,12 +27131,12 @@ c$$$         endif
               if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
-     &2d0*talphax(ie)*xj*xpj +                                          &
+     &two*talphax(ie)*xj*xpj +                                          &
      &tbetax(ie)*xpj**2 )/myemitx0_collgap
      &)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
-     &2d0*talphay(ie)*yj*ypj +                                          &
+     &two*talphay(ie)*yj*ypj +                                          &
      &tbetay(ie)*ypj**2 )/myemity0_collgap
      &)
                 sum_ax(ie)   = sum_ax(ie) + nspx
@@ -28911,7 +28911,7 @@ c$$$         endif
 
            ! Length between elements
            length = dcum(i)-sold
-           if ( length .lt. 0.0d0 ) then
+           if ( length .lt. zero ) then
              ! pay attention to overflow:
              ! length = dcum(i)+(dcum(iu+1)-sold)
              length = length+dcum(iu+1)
@@ -31692,15 +31692,15 @@ c$$$         endif
               puxve=xv(1,j)
               puzve=yv(1,j)
               xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+        &!hr01
-     &((dble(idz1)*bl1v(5,1,j,ix))*dpsv(j))*c1e3                         !hr01
+     &((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3                         !hr01
               yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+        &!hr01
-     &((dble(idz1)*bl1v(6,1,j,ix))*dpsv(j))*c1e3                         !hr01
+     &((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3                         !hr01
               puxve=xv(2,j)
               puzve=yv(2,j)
               xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+        &!hr01
-     &((dble(idz2)*bl1v(5,2,j,ix))*dpsv(j))*c1e3                         !hr01
+     &((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3                         !hr01
               yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+        &!hr01
-     &((dble(idz2)*bl1v(6,2,j,ix))*dpsv(j))*c1e3                         !hr01
+     &((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3                         !hr01
    30       continue
             goto 480
 !--HORIZONTAL DIPOLE
@@ -34661,8 +34661,8 @@ c$$$         endif
       do 100 l=1,2
         epsa(l)=amp(l)**2/bet0(l)                                        !hr08
         eps(l)=epsa(l)*c1e6
-        x(1,l)=x(1,l)+(clo(l)*dble(idz(l)))*dble(1-idfor)                !hr08
-        y(1,l)=y(1,l)+(clop(l)*dble(idz(l)))*dble(1-idfor)               !hr08
+        x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)                !hr08
+        y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)               !hr08
   100 continue
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       if(iclo6.eq.0) then
@@ -36202,7 +36202,7 @@ c$$$         endif
           phi(i)=zero
         endif
    80 continue
-      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/dble(idam))/pi            !hr06
+      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi            !hr06
 !-----------------------------------------------------------------------
       return
       end
@@ -36238,7 +36238,7 @@ c$$$         endif
       if(rat.lt.-one*pieni) dsign=-one*one
       x11=amp(1)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
       x13=(x11*dsign)*sqrt(abs(rat))                                     !hr08
-      amp(2)=(dsign*dble(1-iver))*                                      &!hr08
+      amp(2)=(dsign*real(1-iver,fPrec))*                                &!hr08
      &(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))                     !hr08
       x1(5)=zero
       if(iclo6.eq.1.or.iclo6.eq.2) then
@@ -36677,7 +36677,7 @@ c$$$         endif
             if(kp(isl).eq.5) call combel(isl)
    30     continue
           do 40 n=1,5
-            dpp=de2*dble(3-n)                                            !hr06
+            dpp=de2*real(3-n,fPrec)                                            !hr06
             call clorb(dpp)
             if(ierro.gt.0) call prror(12)
             call phasad(dpp,qwc)
@@ -39892,8 +39892,8 @@ c$$$            endif
       if(sigma0(1).gt.pieni.or.sigma0(2).gt.pieni) then
         do 180 ii=1,itco
           write(lout,10140)
-          hfac=sigma0(1)/dble(rmsx)                                      !hr06
-          vfac=sigma0(2)/dble(rmsz)                                      !hr06
+          hfac=sigma0(1)/real(rmsx,fPrec)                                      !hr06
+          vfac=sigma0(2)/real(rmsz,fPrec)                                      !hr06
           do 150 i=1,il
             kzz=kz(i)
             kpz=kp(i)
@@ -39925,8 +39925,8 @@ c$$$            endif
           write(lout,10150) ii,rmsx,rmsz
           write(lout,10160) ii,ptpx,ptpz
           write(lout,*)
-          if(abs(dble(rmsx)-sigma0(1)).lt.dsi.and.                      &!hr06
-     &       abs(dble(rmsz)-sigma0(2)).lt.dsi)                          &!hr06
+          if(abs(real(rmsx,fPrec)-sigma0(1)).lt.dsi.and.                      &!hr06
+     &       abs(real(rmsz,fPrec)-sigma0(2)).lt.dsi)                          &!hr06
      &goto 190
   180   continue
       endif
@@ -40034,7 +40034,7 @@ c$$$            endif
             if(nx(j).eq.kcorr) then
               kcorru=kcorru+1
               ckickold=sm(ix)+zfz(izu)*ek(ix)
-              zfz(izu)=zfz(izu)+dble(xinc(j))/ek(ix)                     !hr06
+              zfz(izu)=zfz(izu)+real(xinc(j),fPrec)/ek(ix)                     !hr06
               ckicknew=sm(ix)+zfz(izu)*ek(ix)
               write(lout,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,    &
      &ckicknew*c1e3
@@ -40061,7 +40061,7 @@ c$$$            endif
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
                   ckickold=ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k))/r0a
-           zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-ak0     &!hr06
+           zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-ak0&!hr06
      &(im,k)))/aka(im,k)                                                 !hr06
                   ckicknew=(ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k)))/r0a  !hr06
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
@@ -40076,7 +40076,7 @@ c$$$            endif
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
                   ckickold=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
-           zfz(izu)=zfz(izu)+(c1e3* (dble(xinc(j))/(r0a*ed(ix))-bk0     &!hr06
+           zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-bk0&!hr06
      &(im,k)))/bka(im,k)                                                 !hr06
                   ckicknew=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
                   write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
@@ -41627,7 +41627,7 @@ c$$$            endif
 !     call abend('after  daini                                      ')
 +ei
           do i=1,mm
-            qwc(i)=dble(intwq(i))+corr(1,i)                              !hr06
+            qwc(i)=real(intwq(i),fPrec)+corr(1,i)                              !hr06
           enddo
           dq1=qwc(1)-qw0(1)
           dq2=qwc(2)-qw0(2)
@@ -41701,7 +41701,7 @@ c$$$            endif
           iqmodc=3
           call mydaini(2,2,nd2,mm,nd2,1)
           do i=1,mm
-            qwc(i)=dble(intwq(i))+wxys(i)                                !hr06
+            qwc(i)=real(intwq(i),fPrec)+wxys(i)                                !hr06
           enddo
 +if debug 
 !     call warr('qwc',qwc(1),1,0,0,0)
@@ -41728,7 +41728,7 @@ c$$$            endif
         iqmodc=3
         call mydaini(2,2,nd2,mm,nd2,1)
         do i=1,mm
-          qwc(i)=dble(intwq(i))+wxys(i)                                  !hr06
+          qwc(i)=real(intwq(i),fPrec)+wxys(i)                                  !hr06
         enddo
         if(ncorr.eq.itqv+1) write(lout,10070) nd2,itqv
         if(ncorr.eq.1) then
@@ -42585,12 +42585,13 @@ c$$$            endif
         if(nta.gt.2) goto 520
         if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx  &
      &.eq.5.or.mx.eq.6.or.mx.eq.7) goto 520
+
 !-----------------------------------------------------------------------
 !  SKEW-QUADRUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         do 510 l=2,nmz
           l1=l-1
-  510   ab2(2)=ab2(2)+dble(l1)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
+  510   ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
   520   b1=beta(1)
         b2=beta(2)
         sb1=sqrt(b1)
@@ -42602,14 +42603,15 @@ c$$$            endif
         if(mpe.eq.2.or.(mpe.eq.9.and.nmz.le.2)) goto 670
         if(mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq&
      &.6.or.mx.eq.7) goto 540
+
 !-----------------------------------------------------------------------
 !  REGULAR-SEXTUPOLE;MULTIPOLES UP TO 9-TH ORDER
 !-----------------------------------------------------------------------
         l2=1
         do 530 l=3,nmz
           l1=l-2
-          ab1(3)=ab1(3)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(3)=ab2(3)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   530   l2=l2*l/l1
   540   b(4,1)=b1*sb1
         b(1,4)=b2*sb2
@@ -42625,8 +42627,8 @@ c$$$            endif
         l2=1
         do 550 l=4,nmz
           l1=l-3
-          ab1(4)=ab1(4)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(4)=ab2(4)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   550   l2=l2*l/l1
   560   b(5,1)=b1**2                                                     !hr06
         b(1,5)=b2**2                                                     !hr06
@@ -42643,8 +42645,8 @@ c$$$            endif
         l2=1
         do 570 l=5,nmz
           l1=l-4
-          ab1(5)=ab1(5)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(5)=ab2(5)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   570   l2=l2*l/l1
   580   b(6,1)=b(5,1)*sb1
         b(1,6)=b(1,5)*sb2
@@ -42661,8 +42663,8 @@ c$$$            endif
         l2=1
         do 590 l=6,nmz
           l1=l-5
-          ab1(6)=ab1(6)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(6)=ab2(6)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   590   l2=l2*l/l1
   600   b(7,1)=b(6,1)*sb1
         b(1,7)=b(1,6)*sb2
@@ -42680,8 +42682,8 @@ c$$$            endif
         l2=1
         do 610 l=7,nmz
           l1=l-6
-          ab1(7)=ab1(7)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(7)=ab2(7)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   610   l2=l2*l/l1
   620   b(8,1)=b(7,1)*sb1
         b(1,8)=b(1,7)*sb2
@@ -42700,8 +42702,8 @@ c$$$            endif
         l2=1
         do 630 l=8,nmz
           l1=l-7
-          ab1(8)=ab1(8)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(8)=ab2(8)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   630   l2=l2*l/l1
   640   b(9,1)=b(8,1)*sb1
         b(1,9)=b(1,8)*sb2
@@ -42720,8 +42722,8 @@ c$$$            endif
         l2=1
         do 650 l=9,nmz
           l1=l-8
-          ab1(9)=ab1(9)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(9)=ab2(9)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   650   l2=l2*l/l1
   660   b(10,1)=b(9,1)*sb1
         b(1,10)=b(1,9)*sb2
@@ -42879,7 +42881,7 @@ c$$$            endif
             nf4=nf3+nn2
       vdt2=(vdt1*e(nv1,nv2))/                                           &
      &real(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4),fPrec) !hr06
-            vdt3=dble(nn2)*ea+real(nn1,fPrec)*eb                         !hr06
+            vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                         !hr06
             if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+                    &
      &real(nn1*nv11,fPrec)*eb          !hr06
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
@@ -44285,7 +44287,8 @@ c$$$            endif
 !          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)    !hr06
          dtu1=dtu1+((vtu2*real(iv5,fPrec))*exp_mb(real(iv5-1,fPrec)*    &
      &log_mb(ep(1))))*exp_mb(real(iv6,fPrec)*log_mb(ep(2)))                           !hr13
-         dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+(vtu2*dble(iv5))*vtu1 !hr06
+         dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+                     &
+     &(vtu2*real(iv5,fPrec))*vtu1 !hr06
         endif
         if(iv6.ne.0) then
 !          dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))     !hr06
@@ -44713,8 +44716,8 @@ c$$$            endif
         l2=1
         do 510 l=3,nmz
           l1=l-2
-          ab1(3)=ab1(3)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(3)=ab2(3)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   510   l2=l2*l/l1
   520   b(4,1)=b1*sb1
         b(1,4)=b2*sb2
@@ -44730,8 +44733,8 @@ c$$$            endif
         l2=1
         do 530 l=4,nmz
           l1=l-3
-          ab1(4)=ab1(4)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(4)=ab2(4)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   530   l2=l2*l/l1
   540   b(5,1)=b1**2                                                     !hr06
         b(1,5)=b2**2                                                     !hr06
@@ -44748,8 +44751,8 @@ c$$$            endif
         l2=1
         do 550 l=5,nmz
           l1=l-4
-          ab1(5)=ab1(5)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(5)=ab2(5)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   550   l2=l2*l/l1
   560   b(6,1)=b(5,1)*sb1
         b(1,6)=b(1,5)*sb2
@@ -44766,8 +44769,8 @@ c$$$            endif
         l2=1
         do 570 l=6,nmz
           l1=l-5
-          ab1(6)=ab1(6)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(6)=ab2(6)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   570   l2=l2*l/l1
   580   b(7,1)=b(6,1)*sb1
         b(1,7)=b(1,6)*sb2
@@ -44785,8 +44788,8 @@ c$$$            endif
         l2=1
         do 590 l=7,nmz
           l1=l-6
-          ab1(7)=ab1(7)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(7)=ab2(7)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   590   l2=l2*l/l1
   600   b(8,1)=b(7,1)*sb1
         b(1,8)=b(1,7)*sb2
@@ -44805,8 +44808,8 @@ c$$$            endif
         l2=1
         do 610 l=8,nmz
           l1=l-7
-          ab1(8)=ab1(8)+dble(l2)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(8)=ab2(8)+dble(l2)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
+          ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
   610   l2=l2*l/l1
   620   b(9,1)=b(8,1)*sb1
         b(1,9)=b(1,8)*sb2
@@ -44962,7 +44965,7 @@ c$$$            endif
       e(6,5)=e(5,5)*sea
       e(5,6)=e(5,5)*seb
       do 780 np=nta,nte
-        vdt1=dble(nnf(np))/(dble(nz2(np))*pi)                            !hr06
+        vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)                            !hr06
         np2=np
         nkk=0
   750   nkk=nkk+1
@@ -44979,9 +44982,12 @@ c$$$            endif
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-            vdt2=vdt1*e(nv1,nv2)/dble(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4)) !hr06
-            vdt3=dble(nn2)*ea+dble(nn1)*eb                               !hr06
-            if(n2.ge.0) vdt3=dble(n2*nv21)*ea+dble(nn1*nv11)*eb          !hr06
+            vdt2=vdt1*e(nv1,nv2)/                                       &
+     &real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec) !hr06
+            vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                               !hr06
+            if(n2.ge.0) then
+              vdt3=real(n2*nv21,fPrec)*ea+real(nn1*nv11,fPrec)*eb          !hr06
+            end if
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
             rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
   760     continue
@@ -46421,7 +46427,7 @@ c$$$            endif
       data      jrange, jover, junder  /  0, +1, -1  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s11)  =  dble(x)*dble(y) + s11
+      dotf(x,y,s11)  =  real(x,fPrec)*real(y,fPrec) + s11
       ipairf(j,k)  =  j*2**12 + k
       pivotf(x)    =  abs(x)
       sizef(x)     =  abs(x)
@@ -46470,8 +46476,8 @@ c$$$            endif
          jm1  =  j-1
          jp1  =  j+1
          do 143   k  =  jp1, n
-            s11  =  -one*dble(a(j,k))                                    !hr07
-            s12  =  -one*dble(a(k,j+1))                                  !hr07
+            s11  =  -one*real(a(j,k),fPrec)                                    !hr07
+            s12  =  -one*real(a(k,j+1),fPrec)                                  !hr07
             if(j .eq. 1)  goto 142
             do 141  i  =  1, jm1
                s11  =  dotf(a(i,k),a(j,i),s11)
@@ -46584,7 +46590,7 @@ c$$$            endif
       data      hname               /  ' RFEQN'  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s21)  =  dble(x)*dble(y) + s21
+      dotf(x,y,s21)  =  real(x,fPrec)*real(y,fPrec) + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
       call tmprnt(hname,n,idim,k)
       return
@@ -46607,16 +46613,16 @@ c$$$            endif
       do 243    l  =  1, k
          do 232   i  =  2, n
             im1  =  i-1
-            s21  =  -one* dble(b(i,l))                                   !hr07
+            s21  =  -one* real(b(i,l),fPrec)                                   !hr07
             do 231   j  =  1, im1
                s21  =  dotf(a(i,j),b(j,l),s21)
  231           continue
-            b(i,l)  =  real((-one*dble(a(i,i)))*s21)                     !hr07
+            b(i,l)  =  real((-one*real(a(i,i),fPrec))*s21)                     !hr07
  232        continue
          nm1  =  n-1
          do 242   i  =  1, nm1
             nmi  =  n-i
-            s22  =  -one*dble(b(nmi,l))                                  !hr07
+            s22  =  -one*real(b(nmi,l),fPrec)                                  !hr07
             do 241   j  =  1, i
                nmjp1  =  n - j+1
                s22    =  dotf(a(nmi,nmjp1),b(nmjp1,l),s22)
@@ -46698,12 +46704,13 @@ c$$$            endif
       data      hname               /  ' RFINV'  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s31)  =  dble(x)*dble(y) + s31
+      dotf(x,y,s31)  =  real(x,fPrec)*real(y,fPrec) + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
          call tmprnt(hname,n,idim,0)
          return
  310  if(n .eq. 1)  return
-      a(2,1)  =  real((-one*dble(a(2,2))) * dotf(a(1,1),a(2,1),zero))     !hr07
+      a(2,1)  =  real((-one*real(a(2,2),fPrec)) *                       &
+     &dotf(a(1,1),a(2,1),zero))     !hr07
       a(1,2)  =  -1e0*a(1,2)                                             !hr07
       if(n .eq. 2)  goto 330
       do 314    i  =  3, n
@@ -46983,7 +46990,7 @@ c$$$            endif
       if(icnt.le.2) goto 3
 !Eric
       e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &!hr07
-     &dble(icnt-2)
+     &real(icnt-2,fPrec)
       goto 4
 !
 !     ISUFFICIENT POINTS
@@ -49514,14 +49521,14 @@ c$$$         backspace (93,iostat=ierro)
       do i=1,60
         sumda(i)=zero
       enddo
-      sumda(52)=dble(ttot)
+      sumda(52)=real(ttot,fPrec)
 !     the CPU
       call timex(time1)
       trtime=time1-time0
 +if cr
       trtime=trtime+crtime3  
 +ei
-      sumda(60)=dble(trtime)
+      sumda(60)=real(trtime,fPrec)
 ! Note it COULD happen that napxo is 0 for a very very early error
 ! and even napx!!!
       if (napxo.eq.0.and.napx.eq.0) napxo=1
