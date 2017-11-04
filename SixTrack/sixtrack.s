@@ -111,8 +111,7 @@
 !GRD-042008
 +ei
       common/crio/                                                      &
-     &cre0,
-     &crxv(2,npart),cryv(2,npart),                                      &
+     &cre0,crxv(2,npart),cryv(2,npart),                                 &
      &crsigmv(npart),crdpsv(npart),crdpsv1(npart),crejv(npart),         &
      &crejfv(npart),craperv(npart,2),crxvl(2,npart),cryvl(2,npart),     &
      &crdpsvl(npart),crejvl(npart),crsigmvl(npart),                     &
