@@ -2911,13 +2911,13 @@
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(20d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
-        ab2(4)=(20d0*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
+        ab1(4)=(20.0_fPrec*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
+        ab2(4)=(20.0_fPrec*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(5)=(15d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
-        ab2(5)=(15d0*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
+        ab1(5)=(15.0_fPrec*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
+        ab2(5)=(15.0_fPrec*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -2949,23 +2949,23 @@
         cxzi=zl
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-        ab1(6)=(21d0*ekk)*cxzyr                                          !hr02
-        ab2(6)=(-21d0*ekk)*cxzyi                                         !hr02
+        ab1(6)=(21.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(6)=(-21.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(5)=(35d0*ekk)*cxzyr                                          !hr02
-        ab2(5)=(-35d0*ekk)*cxzyi                                         !hr02
+        ab1(5)=(35.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(5)=(-35.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(35d0*ekk)*cxzyr                                          !hr02
-        ab2(4)=(-35d0*ekk)*cxzyi                                         !hr02
+        ab1(4)=(35.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(4)=(-35.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(3)=(21d0*ekk)*cxzyr                                          !hr02
-        ab2(3)=(-21d0*ekk)*cxzyi                                         !hr02
+        ab1(3)=(21.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(3)=(-21.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -3022,8 +3022,8 @@
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        qu=(7d0*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                         !hr02
-        qv=(7d0*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
+        qu=(seven*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                         !hr02
+        qv=(seven*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
         ab1(2)=qu
         ab2(2)=-one*qv                                                   !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -3050,28 +3050,28 @@
         cxzi=zl
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-        ab1(7)=(28d0*ekk)*cxzyr                                          !hr02
-        ab2(7)=(-28d0*ekk)*cxzyi                                         !hr02
+        ab1(7)=(28.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(7)=(-28.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(6)=(56d0*ekk)*cxzyr                                          !hr02
-        ab2(6)=(-56d0*ekk)*cxzyi                                         !hr02
+        ab1(6)=(56.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(6)=(-56.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(5)=(70d0*ekk)*cxzyr                                          !hr02
-        ab2(5)=(-70d0*ekk)*cxzyi                                         !hr02
+        ab1(5)=(70.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(5)=(-70.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(56d0*ekk)*cxzyr                                          !hr02
-        ab2(4)=(-56d0*ekk)*cxzyi                                         !hr02
+        ab1(4)=(56.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(4)=(-56.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(3)=(28d0*ekk)*cxzyr                                          !hr02
-        ab2(3)=(-28d0*ekk)*cxzyi                                         !hr02
+        ab1(3)=(28.0_fPrec*ekk)*cxzyr                                          !hr02
+        ab2(3)=(-28.0_fPrec*ekk)*cxzyi                                         !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -3111,28 +3111,28 @@
         tiltckuk=tiltck4*tiltc(k)-tiltsk4*tilts(k)
         tiltsk5=tiltck4*tilts(k)+tiltsk4*tiltc(k)
         tiltck5=tiltckuk
-        ab1(7)=(28d0*ekk)*(tiltck5*cxzyr+tiltsk5*cxzyi)                  !hr02
-        ab2(7)=(28d0*ekk)*(tiltsk5*cxzyr-tiltck5*cxzyi)                  !hr02
+        ab1(7)=(28.0_fPrec*ekk)*(tiltck5*cxzyr+tiltsk5*cxzyi)                  !hr02
+        ab2(7)=(28.0_fPrec*ekk)*(tiltsk5*cxzyr-tiltck5*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(6)=(56d0*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
-        ab2(6)=(56d0*ekk)*(tiltsk4*cxzyr-tiltck4*cxzyi)                  !hr02
+        ab1(6)=(56.0_fPrec*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
+        ab2(6)=(56.0_fPrec*ekk)*(tiltsk4*cxzyr-tiltck4*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(5)=(70d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
-        ab2(5)=(70d0*ekk)*(tiltsk3*cxzyr-tiltck3*cxzyi)                  !hr02
+        ab1(5)=(70.0_fPrec*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
+        ab2(5)=(70.0_fPrec*ekk)*(tiltsk3*cxzyr-tiltck3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(56d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
-        ab2(4)=(56d0*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
+        ab1(4)=(56.0_fPrec*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
+        ab2(4)=(56.0_fPrec*ekk)*(tiltsk2*cxzyr-tiltck2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(3)=(28d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
-        ab2(3)=(28d0*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
+        ab1(3)=(28.0_fPrec*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
+        ab2(3)=(28.0_fPrec*ekk)*(tiltsk1*cxzyr-tiltck1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -3490,18 +3490,18 @@
         cxzi=zl
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-        ab1(5)=(15d0*ekk)*cxzyi                                          !hr02
-        ab2(5)=(15d0*ekk)*cxzyr                                          !hr02
+        ab1(5)=(15.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(5)=(15.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(20d0*ekk)*cxzyi                                          !hr02
-        ab2(4)=(20d0*ekk)*cxzyr                                          !hr02
+        ab1(4)=(20.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(4)=(20.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(3)=(15d0*ekk)*cxzyi                                          !hr02
-        ab2(3)=(15d0*ekk)*cxzyr                                          !hr02
+        ab1(3)=(15.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(3)=(15.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -3631,23 +3631,23 @@
         tiltckuk=tiltck3*tiltc(k)-tiltsk3*tilts(k)
         tiltsk4=tiltck3*tilts(k)+tiltsk3*tiltc(k)
         tiltck4=tiltckuk
-        ab1(6)=(21d0*ekk)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr02
-        ab2(6)=(21d0*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
+        ab1(6)=(21.0_fPrec*ekk)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr02
+        ab2(6)=(21.0_fPrec*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(5)=(35d0*ekk)*(tiltck3*cxzyi-tiltsk3*cxzyr)                  !hr02
-        ab2(5)=(35d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
+        ab1(5)=(35.0_fPrec*ekk)*(tiltck3*cxzyi-tiltsk3*cxzyr)                  !hr02
+        ab2(5)=(35.0_fPrec*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(35d0*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
-        ab2(4)=(35d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
+        ab1(4)=(35.0_fPrec*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
+        ab2(4)=(35.0_fPrec*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(3)=(21d0*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
-        ab2(3)=(21d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
+        ab1(3)=(21.0_fPrec*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
+        ab2(3)=(21.0_fPrec*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -3679,28 +3679,28 @@
         cxzi=zl
         cxzyr=cxzr**2-cxzi**2                                            !hr08
         cxzyi=cxzr*cxzi+cxzi*cxzr
-        ab1(7)=(28d0*ekk)*cxzyi                                          !hr02
-        ab2(7)=(28d0*ekk)*cxzyr                                          !hr02
+        ab1(7)=(28.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(7)=(28.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(6)=(56d0*ekk)*cxzyi                                          !hr02
-        ab2(6)=(56d0*ekk)*cxzyr                                          !hr02
+        ab1(6)=(56.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(6)=(56.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(5)=(70d0*ekk)*cxzyi                                          !hr02
-        ab2(5)=(70d0*ekk)*cxzyr                                          !hr02
+        ab1(5)=(70.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(5)=(70.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(56d0*ekk)*cxzyi                                          !hr02
-        ab2(4)=(56d0*ekk)*cxzyr                                          !hr02
+        ab1(4)=(56.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(4)=(56.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(3)=(28d0*ekk)*cxzyi                                          !hr02
-        ab2(3)=(28d0*ekk)*cxzyr                                          !hr02
+        ab1(3)=(28.0_fPrec*ekk)*cxzyi                                          !hr02
+        ab2(3)=(28.0_fPrec*ekk)*cxzyr                                          !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -3740,28 +3740,28 @@
         tiltckuk=tiltck4*tiltc(k)-tiltsk4*tilts(k)
         tiltsk5=tiltck4*tilts(k)+tiltsk4*tiltc(k)
         tiltck5=tiltckuk
-        ab1(7)=(28d0*ekk)*(tiltck5*cxzyi-tiltsk5*cxzyr)                  !hr02
-        ab2(7)=(28d0*ekk)*(tiltck5*cxzyr+tiltsk5*cxzyi)                  !hr02
+        ab1(7)=(28.0_fPrec*ekk)*(tiltck5*cxzyi-tiltsk5*cxzyr)                  !hr02
+        ab2(7)=(28.0_fPrec*ekk)*(tiltck5*cxzyr+tiltsk5*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(6)=(56d0*ekk)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr02
-        ab2(6)=(56d0*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
+        ab1(6)=(56.0_fPrec*ekk)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr02
+        ab2(6)=(56.0_fPrec*ekk)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(5)=(70d0*ekk)*(tiltck3*cxzyi-tiltsk3*cxzyr)                  !hr02
-        ab2(5)=(70d0*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
+        ab1(5)=(70.0_fPrec*ekk)*(tiltck3*cxzyi-tiltsk3*cxzyr)                  !hr02
+        ab2(5)=(70.0_fPrec*ekk)*(tiltck3*cxzyr+tiltsk3*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(4)=(56d0*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
-        ab2(4)=(56d0*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
+        ab1(4)=(56.0_fPrec*ekk)*(tiltck2*cxzyi-tiltsk2*cxzyr)                  !hr02
+        ab2(4)=(56.0_fPrec*ekk)*(tiltck2*cxzyr+tiltsk2*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        ab1(3)=(28d0*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
-        ab2(3)=(28d0*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
+        ab1(3)=(28.0_fPrec*ekk)*(tiltck1*cxzyi-tiltsk1*cxzyr)                  !hr02
+        ab2(3)=(28.0_fPrec*ekk)*(tiltck1*cxzyr+tiltsk1*cxzyi)                  !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
@@ -4298,7 +4298,7 @@
           ekko=ekk
           cxzyr=cxzr**2-cxzi**2                                          !hr08
           cxzyi=cxzr*cxzi+cxzi*cxzr
-          ekk=(36d0*ekko)*cxzyi                                          !hr03
+          ekk=(36.0_fPrec*ekko)*cxzyi                                          !hr03
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4306,7 +4306,7 @@
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-          ekk=(126d0*ekko)*cxzyi                                         !hr03
+          ekk=(126.0_fPrec*ekko)*cxzyi                                         !hr03
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4314,7 +4314,7 @@
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-          ekk=(84d0*ekko)*cxzyi                                          !hr03
+          ekk=(84.0_fPrec*ekko)*cxzyi                                          !hr03
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +if tilt
@@ -4349,7 +4349,7 @@
           call detune(5,ekk,ep,beta,dtu,dtup,dfac)
           cxzyr=cxzr*cxzr-cxzi*cxzi
           cxzyi=cxzr*cxzi+cxzi*cxzr
-          ekk=(36d0*ekko)*(tiltck8*cxzyi-tiltsk8*cxzyr)                  !hr03
+          ekk=(36.0_fPrec*ekko)*(tiltck8*cxzyi-tiltsk8*cxzyr)                  !hr03
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4357,7 +4357,7 @@
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-          ekk=(126d0*ekko)*(tiltck6*cxzyi-tiltsk6*cxzyr)                 !hr03
+          ekk=(126.0_fPrec*ekko)*(tiltck6*cxzyi-tiltsk6*cxzyr)                 !hr03
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -4365,7 +4365,7 @@
           cxzyrr=cxzyr*cxzr-cxzyi*cxzi
           cxzyi=cxzyr*cxzi+cxzyi*cxzr
           cxzyr=cxzyrr
-          ekk=(84d0*ekko)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr03
+          ekk=(84.0_fPrec*ekko)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr03
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 +ei
 +cd beams1
@@ -5368,12 +5368,12 @@
 +ei
 +cd mul4v05
 +if time
-              yv1j=(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(1d0-expt))          &!hr03
-     &+(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(1d0-expt))*xlvj                 &!hr03
-     &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(1d0-expt))*zlvj                  !hr03
-              yv2j=(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(1d0-expt))          &!hr03
-     &-(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(1d0-expt))*zlvj                 &!hr03
-     &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(1d0-expt))*xlvj                  !hr03
+              yv1j=(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt))          &!hr03
+     &+(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*xlvj                 &!hr03
+     &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*zlvj                  !hr03
+              yv2j=(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt))          &!hr03
+     &-(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*zlvj                 &!hr03
+     &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*xlvj                  !hr03
               crkve=xlvj
               cikve=zlvj
 +ei
@@ -5388,13 +5388,13 @@
                   crkveuk=crkve*xlvj-cikve*zlvj
                   cikve=crkve*zlvj+cikve*xlvj
                   crkve=crkveuk
-                  yv1j=(yv1j+(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(1d0-expt))&!hr03
+                  yv1j=(yv1j+(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
      &*crkve)                                                           &!hr03
-     &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(1d0-expt))                      &!hr03
+     &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
      &*cikve                                                             !hr03
-                  yv2j=(yv2j-(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(1d0-expt))&!hr03
+                  yv2j=(yv2j-(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
      &*cikve)                                                           &!hr03
-     &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(1d0-expt))                      &!hr03
+     &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
      &*crkve                                                             !hr03
 +ei
 +if .not.time
@@ -5417,9 +5417,9 @@
 +if .not.tilt
 +if time
               yv(1,j)=yv(1,j)+(bbiv(1,1,i)*expt                         &
-     &+bbiv35(1,1,i)*(1d0-expt))*oidpsv(j)                               !hr03
+     &+bbiv35(1,1,i)*(one-expt))*oidpsv(j)                               !hr03
               yv(2,j)=yv(2,j)+(aaiv(1,1,i)                              &
-     &+aaiv35(1,1,i)*(1d0-expt))*oidpsv(j)                               !hr03
+     &+aaiv35(1,1,i)*(one-expt))*oidpsv(j)                               !hr03
 +ei
 +if .not.time
               yv(1,j)=yv(1,j)+bbiv(1,1,i)*oidpsv(j)
@@ -5429,12 +5429,12 @@
 +if tilt
 +if time
               yv(1,j)=yv(1,j)+(tiltc(i)*(bbiv(1,1,i)*expt               &
-     &+bbiv35(1,1,i)*(1d0-expt))-                                       &!hr03
-     &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(1d0-expt)))             &!hr03
+     &+bbiv35(1,1,i)*(one-expt))-                                       &!hr03
+     &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hr03
      &*oidpsv(j)
               yv(2,j)=yv(2,j)+(tiltc(i)*(aaiv(1,1,i)*expt               &
-     &+aaiv35(1,1,i)*(1d0-expt))+                                       &!hr03
-     &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(1d0-expt)))             &!hr03
+     &+aaiv35(1,1,i)*(one-expt))+                                       &!hr03
+     &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hr03
      &*oidpsv(j)
 +ei
 +if .not.time
@@ -7042,16 +7042,16 @@ cc2008
 ! 3 apply wire kick
           RTWO = xi**2+yi**2
           yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
-     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
           yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
-     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
 ! subtract closed orbit kick
 ! wire kick is negative px -> px - wirekick - (-closed orbit kick)
           RTWO = dxi**2+dyi**2
           yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*                         &
-     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
           yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*                         &
-     &(sqrt((embl+L)**2+4d0*RTWO)-sqrt((embl-L)**2+4d0*RTWO) ))/RTWO
+     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
       
       endif
 
@@ -7064,8 +7064,8 @@ cc2008
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 
 ! px -> x'; py -> y'
-      yv(1,j) = yv(1,j)/(1d0 + dpsv(j))
-      yv(2,j) = yv(2,j)/(1d0 + dpsv(j))
+      yv(1,j) = yv(1,j)/(one + dpsv(j))
+      yv(2,j) = yv(2,j)/(one + dpsv(j))
 !-----------------------------------------------------------------------
 ! END OF WIRE MAP
 !-----------------------------------------------------------------------
@@ -8567,6 +8567,7 @@ cc2008
       do 50 j=1,10
         sgn(j,j)=-one
    50 continue
+
 !-----------------------------------------------------------------------
 !---- SPECIFIES THE I/O UNITS FOR THE NAG ROUTINES
 !-----------------------------------------------------------------------
@@ -8581,6 +8582,7 @@ cc2008
       call readd1(user,jaord,jpord)
 !-----------------------------------------------------------------------
       if(jaord.eq.2.or.jpord.eq.3) goto 130
+
 !-----------------------------------------------------------------------
 !---- DEFINES THE MATRIX WITH THE LINEAR CONSTRAINTS
 !-----------------------------------------------------------------------
@@ -8594,12 +8596,13 @@ cc2008
 !-----------------------------------------------------------------------
         cvec(jrow)=-one*hda(jrow-1,1,1,0)                                !hr04
    80 continue
+
 !-----------------------------------------------------------------------
 !---- DEFINES THE RELATION BETWEEN THE FIRST TWO SEXTUPOLES AND THE
 !---- OTHERS
 !-----------------------------------------------------------------------
       det=(a(1,1)*a(2,2)-a(2,1)*a(1,2))
-      detinv=1d0/det
+      detinv=one/det
       ainv(1,1)=detinv*a(2,2)
       ainv(1,2)=-one*detinv*a(1,2)                                       !hr04
       ainv(2,1)=-one*detinv*a(2,1)                                       !hr04
@@ -10866,8 +10869,8 @@ cc2008
 +ca parpro
 +ca parbeam
 +ca parnum
-      parameter ( a1 = 0.5124242248d0, a2 = 0.0517653588d0 )
-      parameter ( b1 = 0.2752551286d0, b2 = 2.7247448714d0 )
+      parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
+      parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
       save
 !-----------------------------------------------------------------------
       if ( x.ge.xcut .or. y.ge.ycut ) goto 1000
