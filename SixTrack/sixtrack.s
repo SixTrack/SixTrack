@@ -24725,7 +24725,7 @@ c$$$         endif
         fluka_con = fluka_init_max_uid( napx )
 
         if (fluka_con .lt. 0) then
-           write(*, *) '[Fluka] Error: failed to send napx to fluka ',
+           write(lout,*) '[Fluka] Error: failed to send napx to fluka ',
      &  napx
            write(fluka_log_unit, *) '# failed to send napx to fluka ',
      &  napx
@@ -27013,7 +27013,7 @@ c$$$         endif
             end if
             if(fluka_inside) then
               if(fluka_debug) then
-                write(*,*) '[Fluka] Skipping lattice element at ', i
+                write(lout,*) '[Fluka] Skipping lattice element at ', i
                 write(fluka_log_unit,*)
      &'# Skipping lattice element at ', i
               end if
@@ -28735,9 +28735,9 @@ c$$$         endif
       integer i     ! element entry in the lattice
       integer ix    ! single element type index
       logical llost ! at least one particle was lost
-+if cr
+
 +ca crcoall
-+ei
+
 !      logical isnan
       logical myisnan
       integer ib2,ib3,ilostch,j,jj,jj1,jjx,lnapx
@@ -29166,14 +29166,14 @@ c$$$         endif
       napxo = napx
 
       if(napx.eq.0) then
-        write(*,*)
-        write(*,*)
-        write(*,*) '************************'
-        write(*,*) '** ALL PARTICLES LOST **'
-        write(*,*) '**   PROGRAM STOPS    **'
-        write(*,*) '************************'
-        write(*,*)
-        write(*,*)
+        write(lout,*)
+        write(lout,*)
+        write(lout,*) '************************'
+        write(lout,*) '** ALL PARTICLES LOST **'
+        write(lout,*) '**   PROGRAM STOPS    **'
+        write(lout,*) '************************'
+        write(lout,*)
+        write(lout,*)
         nthinerr = 3000
         return
       end if
@@ -29337,6 +29337,7 @@ c$$$         endif
 +ca commonmn
 +ca commontr
 +ca comApeInfo
++ca crcoall
 
 !     interface variables
       integer itElUp,itElDw
@@ -29364,10 +29365,10 @@ c$$$         endif
       if ( .not.lExtremes ) then
          if ( iu-iuold.ne.0 ) then
             iElDw=iElDw+(iu-iuold)
-            write(*,*) '...inserted upstream marker - downstream'
+            write(lout,*) '...inserted upstream marker - downstream'
      &//' entries shifted by',iu-iuold
          else
-            write(*,*) '...no need to insert an upstream marker'
+            write(lout,*) '...no need to insert an upstream marker'
          end if
       end if
 
@@ -29384,10 +29385,10 @@ c$$$         endif
          if ( lExtremes ) then
             iElUp=iElUp+(iu-iuold)
          end if
-         write(*,*) '...inserted downstream marker - downstream'
+         write(lout,*) '...inserted downstream marker - downstream'
      &//' entries shifted by',iu-iuold
       else
-         write(*,*) '...no need to insert a downstream marker'
+         write(lout,*) '...no need to insert a downstream marker'
       end if
 
       if ( lExtremes ) then
@@ -29404,7 +29405,7 @@ c$$$         endif
             end do
          end if
          if ( .not.lsame ) then
-            write(*,*)' ERROR - different aperture markers'
+            write(lout,*)' ERROR - different aperture markers'
      &//' at extremeties of accelerator lattice strucure'
             call dump_aperture_header( -1 )
             call dump_aperture_marker( -1, ixApeUp, iElUp )
@@ -29457,16 +29458,16 @@ c$$$         endif
      & ixEl
       real(kind=fPrec) tmpape(7), ddcum, sPrec, aPrec
       logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
-      character*16 CrtApeName
+      character(len=16) CrtApeName
 
 !     precision on s-coordinates to be identical
-      data sPrec / 1.0D-07 / 
+      data sPrec / c1m7 / 
 !     precision on aperture parameters to be identical
-      data aPrec / 1.0D-06 / 
+      data aPrec / c1m6 / 
 
 !     echo of input parameters
-      write(*,*) ''
-      write(*,*)' CALL TO CONTOUR_APERTURE_MARKER...'
+      write(lout,*) ''
+      write(lout,*)' CALL TO CONTOUR_APERTURE_MARKER...'
 
 !     check upstream element
       ixEl=ic(iEl)-nblo
@@ -29479,7 +29480,7 @@ c$$$         endif
             iEl=iu
             ixEl=ix
             bez(ixEl)='e.latt.aper'
-            write(*,*) ' -> inserted empty marker at end of lattice'
+            write(lout,*) ' -> inserted empty marker at end of lattice'
          endif
       elseif ( iEl.eq.1 ) then
 !        beginning of lattice sequence: a marker might be needed
@@ -29490,7 +29491,7 @@ c$$$         endif
             iEl=1
             ixEl=ix
             bez(ixEl)='s.latt.aper'
-            write(*,*) ' -> inserted empty marker at start of lattice'
+            write(lout,*)' -> inserted empty marker at start of lattice'
 +if fluka
          elseif ( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.
      &            fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
@@ -29504,18 +29505,18 @@ c$$$         endif
             iEl=1
             ixEl=ix
             bez(ixEl)='s.latt.aper'
-            write(*,*) ' -> inserted empty marker at start of lattice'
+           write(lout,*) ' -> inserted empty marker at start of lattice'&
      &//' since first entry is a FLUKA element'
 +ei
          endif
       elseif ( ixEl.le.0 ) then
-         write(*,*) 'ERROR - lattice element at: i=',iEl
-         write(*,*) 'is NOT a SINGLE ELEMENT!'
+         write(lout,*) 'ERROR - lattice element at: i=',iEl
+         write(lout,*) 'is NOT a SINGLE ELEMENT!'
          call prror(-1)
       endif
 !     echo
-      write(*,*)' look for aperture markers closest to:'
-      write(*,*)' i=',iEl,' - ix=',ixEl,
+      write(lout,*)' look for aperture markers closest to:'
+      write(lout,*)' i=',iEl,' - ix=',ixEl,
      &' - name: ',bez(ixEl), ' - s=',dcum(iEl)
 
 !     candidate aperture marker
@@ -29884,7 +29885,7 @@ c$$$         endif
       iOld=1
       ixOld=ic(iOld)-nblo
       if ( kape(ixOld).eq.0 ) then
-         write(*,*) ' ERROR - first element of lattice structure'
+         write(lout,*) ' ERROR - first element of lattice structure'
      &//' is not assigned any aperture type'
          call prror(-1)
       else
@@ -29948,20 +29949,21 @@ c$$$         endif
 +ca commontr
 +ca comApeInfo
 +ca dbdcum
++ca crcoall
 
 !     temporary variables
       integer i, ix
 
-      write(*,*) 'dumpMe - start'
+      write(lout,*) 'dumpMe - start'
       do i=1,iu
          ix=ic(i)-nblo
          if ( ix.gt.0 ) then
-            write(*,*) i,bez(ix),dcum(i),kape(ix)
+            write(lout,*) i,bez(ix),dcum(i),kape(ix)
          else
-            write(*,*) i,bezb(ic(i)),dcum(i)
+            write(lout,*) i,bezb(ic(i)),dcum(i)
          endif
       enddo
-      write(*,*) 'dumpMe - end'
+      write(lout,*) 'dumpMe - end'
 
       end subroutine dumpMe
 
@@ -29974,20 +29976,25 @@ c$$$         endif
 !-----------------------------------------------------------------------
       use floatPrecision
       implicit none
+
++ca crcoall
+
 !     interface variables
       integer iunit
-      character*2 aptype
-      character*16 name
+      character(len=2) aptype
+      character(len=16) name
       real(kind=fPrec) ape(7)
       real(kind=fPrec) spos
+
 !     dump info
       if( iunit.lt.0 ) then
-         write(*,1984) name, aptype, spos, ape(1), ape(2),
+         write(lout,1984) name, aptype, spos, ape(1), ape(2),
      &             ape(3), ape(4), ape(5), ape(6), ape(7)
       else
          write(iunit,1984) name, aptype, spos, ape(1),
      & ape(2), ape(3), ape(4), ape(5), ape(6), ape(7)
       endif
+
       return
  1984 format (1x,a16,1x,a2,8(1x,f15.5))
       end subroutine dump_aperture
@@ -30031,11 +30038,14 @@ c$$$         endif
 !-----------------------------------------------------------------------
       use floatPrecision
       implicit none
++ca crcoall
+
 !     temporary variables
       integer iunit
+
 !     Header of dumped aperture markers
       if( iunit .lt. 0 ) then
-         write(*,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',
+         write(lout,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',
      & 'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]',
      & 'yoff[mm]'
       else
@@ -30067,6 +30077,7 @@ c$$$         endif
 +ca commonm1
 +ca commontr
 +ca dbdcum
++ca crcoall
 
 !     interface variables:
       integer nturn, ientry, ix, unit
@@ -30101,10 +30112,10 @@ c$$$         endif
 !       this case should never happen, as aperture check is always performed
 !         beforehand, and it closes the simulation in case no particle
 !         remains to be tracked; but still, keep it in, for security
-        write(*,*) 'error while computing the statistics of the current'
-        write(*,*) '  revolution: empty beam population'
-        write(*,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: ",I8)')
-     &                 ientry, ix, bez(ix), dcum(ientry), nturn
+      write(lout,*)'error while computing the statistics of the current'
+      write(lout,*)'  revolution: empty beam population'
+      write(lout,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: "     &
+     & ,I8)') ientry, ix, bez(ix), dcum(ientry), nturn
         call prror(-1)
       elseif ( napx.eq.1 ) then
         x_sum=xv(1,1)     ! [mm] 
@@ -30244,12 +30255,12 @@ c$$$         endif
       
       if ( napx.eq.0 ) then
 !       this case should never happen, as aperture check is always performed
-!         beforehand, and it closes the simulation in case no particle
-!         remains to be tracked; but still, keep it in, for security
-        write(*,*)'error while computing the beam matrix of the current'
-        write(*,*)'  revolution: empty beam population'
-        write(*,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: ",I8)')
-     &                 ientry, ix, bez(ix), dcum(ientry), nturn
+!       beforehand, and it closes the simulation in case no particle
+!       remains to be tracked; but still, keep it in, for security
+        write(lout,*)'error while computing the beam matrix of the'
+        write(lout,*)'current revolution: empty beam population'
+        write(lout,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: ",  &
+     &I8)') ientry, ix, bez(ix), dcum(ientry), nturn
         call prror(-1)
       else
 !       compute beam matrix
@@ -30300,13 +30311,13 @@ c$$$         endif
         temiy=y_sum2*ypsum2-yypsum**2
         if ( temiy .lt. zero ) then
            temiy=abs(temiy)
-           write(*,*) ''
-           write(*,*) ' problems of precision when computing the ver'
-           write(*,*) '   emittance (beam matrix analysis)'
-           write(*,*) ' at element (ientry,ix,bez,dcum) ', 
+           write(lout,*) ''
+           write(lout,*) ' problems of precision when computing the ver'
+           write(lout,*) '   emittance (beam matrix analysis)'
+           write(lout,*) ' at element (ientry,ix,bez,dcum) ', 
      &                  ientry, ix, bez(ix), dcum(ientry)
-           write(*,*) '   at turn ',nturn
-           write(*,*) ''
+           write(lout,*) '   at turn ',nturn
+           write(lout,*) ''
            lerr=.true.
         endif
         temiy=sqrt(temiy)         ! [mm 0.001]
@@ -30316,13 +30327,13 @@ c$$$         endif
         temil=E_sum2*dtsum2-Edtsum**2
         if ( temil .lt. zero ) then
            temil=abs(temil)
-           write(*,*) ''
-           write(*,*) ' problems of precision when computing the lon'
-           write(*,*) '   emittance (beam matrix analysis)'
-           write(*,*) ' at element (ientry,ix,bez,dcum) ', 
+           write(lout,*) ''
+           write(lout,*) ' problems of precision when computing the lon'
+           write(lout,*) '   emittance (beam matrix analysis)'
+           write(lout,*) ' at element (ientry,ix,bez,dcum) ', 
      &                  ientry, ix, bez(ix), dcum(ientry)
-           write(*,*) '   at turn ',nturn
-           write(*,*) ''
+           write(lout,*) '   at turn ',nturn
+           write(lout,*) ''
            lerr=.true.
         endif
         temil=sqrt(temil)         ! [eVs]
@@ -35779,6 +35790,7 @@ c$$$         endif
 +ca commonmn
 +ca commontr
 +ca dbdcum
++ca crcoall
 
 !     interface variables
       integer iEl
@@ -35786,9 +35798,9 @@ c$$$         endif
       integer i,ii,iInsert
 
       if ( iu.gt.nblz-3) then
-         write(*,*)'ERROR: not enough space for adding element '
+         write(lout,*)'ERROR: not enough space for adding element '
      &//'in lattice structure!'
-         write(*,*)'       please, increase nblz and recompile!'
+         write(lout,*)'       please, increase nblz and recompile!'
          call prror(-1)
       end if
       iu=iu+1
@@ -35847,12 +35859,13 @@ c$$$         endif
 +ca common
 +ca commonmn
 +ca commontr
++ca crcoall
 
       il=il+1
       if ( il.gt.nele ) then
-         write(*,*)'ERROR: not enough space for adding element '
+         write(lout,*)'ERROR: not enough space for adding element '
      &//'in list of SINGLE ELEMENTs!'
-         write(*,*)'       please, increase nele and recompile!'
+         write(lout,*)'       please, increase nele and recompile!'
          call prror(-1)
       endif
 
