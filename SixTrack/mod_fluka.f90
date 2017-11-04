@@ -2,6 +2,8 @@ module mod_fluka
 
   use floatPrecision
 
+  use, intrinsic :: ISO_FORTRAN_ENV, only : int8, int16, int32, int64
+
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 18-01-2016
   ! fortran 90 module for coupling SixTrack to FLUKA
@@ -55,14 +57,14 @@ module mod_fluka
              ntend
 
   ! FlukaIO Message types
-  integer*1, parameter :: FLUKA_PART = 1, &
-                          FLUKA_EOB  = 2, &
-                          FLUKA_EOC  = 3, &
-                          FLUKA_CONF = 4, &
-                          FLUKA_IPT  = 5, &
-                          FLUKA_HSK  = 6, &
-                          FLUKA_NPART= 7, &
-                          FLUKA_BRHO = 8
+  integer(kind=int8), parameter :: FLUKA_PART = 1, &
+                                   FLUKA_EOB  = 2, &
+                                   FLUKA_EOC  = 3, &
+                                   FLUKA_CONF = 4, &
+                                   FLUKA_IPT  = 5, &
+                                   FLUKA_HSK  = 6, &
+                                   FLUKA_NPART= 7, &
+                                   FLUKA_BRHO = 8
   ! connection ID
   integer :: fluka_cid
 
@@ -83,11 +85,11 @@ module mod_fluka
                                 FLUKA_ENTRY   = 2, & ! SINGLE ELEMENT marking the start of the insertion
                                 FLUKA_EXIT    = 3    ! SINGLE ELEMENT marking the end   of the insertion
   ! ancillary tracking values
-  integer, public :: fluka_max_npart                       ! Maximum number of particles (array size)
-  integer, public :: fluka_max_uid                         ! Highest particle ID
-  integer*4, public, allocatable :: fluka_uid(:)           ! particle ID
-  integer*4, public, allocatable :: fluka_gen(:)           ! ID of parent particle
-  real(kind=fPrec), public, allocatable :: fluka_weight(:) ! statistical weight (>0.0)
+  integer, public :: fluka_max_npart                          ! Maximum number of particles (array size)
+  integer, public :: fluka_max_uid                            ! Highest particle ID
+  integer(kind=int32), public, allocatable :: fluka_uid(:)    ! particle ID
+  integer(kind=int32), public, allocatable :: fluka_gen(:)    ! ID of parent particle
+  real(kind=fPrec), public, allocatable    :: fluka_weight(:) ! statistical weight (>0.0)
 
   ! Useful values
   integer :: fluka_nsent     ! Temporary count of sent particles
@@ -197,10 +199,10 @@ module mod_fluka
     integer :: n
 
     ! Fluka I/O parameters
-    integer*4         :: flid, flgen
+    integer(kind=int32)         :: flid, flgen
     real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flpc, flm, flt
-    integer*2         :: flaa, flzz
-    integer*1         :: mtype
+    integer(kind=int16)         :: flaa, flzz
+    integer(kind=int8)          :: mtype
 
     write(fluka_log_unit,*) "# FlukaIO: sending End of Computation signal"
 
@@ -208,7 +210,7 @@ module mod_fluka
     n = ntsendeoc(fluka_cid)
     if(n.lt.0) then
       write(fluka_log_unit,*) "# FlukaIO error: Error sending End of Computation"
-      call flush
+      flush(fluka_log_unit)
       return
     end if
 
@@ -218,7 +220,7 @@ module mod_fluka
           flm, flpc, flt)
     if(n.eq.-1) then
       write(fluka_log_unit,*) "# FlukaIO error: Server timed out while waiting End of Computation"
-      call flush
+      flush(fluka_log_unit)
       return
     end if
     if(mtype.ne.FLUKA_EOC) then
@@ -264,16 +266,16 @@ module mod_fluka
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
 
     ! Fluka I/O parameters
-    integer*4         :: flid, flgen
+    integer(kind=int32)         :: flid, flgen
     real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
-    integer*2         :: flaa, flzz
-    integer*1         :: mtype
+    integer(kind=int16)         :: flaa, flzz
+    integer(kind=int8)          :: mtype
 
     ! Auxiliary variables
     integer :: j
     integer :: n
 
-    call flush(fluka_log_unit)
+    flush(fluka_log_unit)
 
     fluka_send = 0
 
@@ -375,10 +377,10 @@ module mod_fluka
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
 
     ! Fluka I/O parameters
-    integer*4         :: flid, flgen
+    integer(kind=int32)         :: flid, flgen
     real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
-    integer*2         :: flaa, flzz
-    integer*1         :: mtype
+    integer(kind=int16)         :: flaa, flzz
+    integer(kind=int8)          :: mtype
 
     ! Auxiliary variables
     integer :: n, j
@@ -467,7 +469,7 @@ module mod_fluka
       " sent = ", fluka_nsent, &
       " received = ", fluka_nrecv, &
       " max_uid = ", fluka_max_uid
-    call flush(fluka_log_unit)
+    flush(fluka_log_unit)
 
   end function fluka_receive
 
@@ -477,9 +479,8 @@ module mod_fluka
     integer, intent(in) :: npart, i
 
     if(fluka_debug) then
-      write(fluka_log_unit, *) '# fluka_lostpart called with npart (lnapx for SixTrack) = ', &
-           npart, ', i = ', i
-      call flush(fluka_log_unit)
+      write(fluka_log_unit, *) '# fluka_lostpart called with npart (lnapx for SixTrack) = ', npart, ', i = ', i
+      flush(fluka_log_unit)
     end if
 
     fluka_uid(i:npart-1) = fluka_uid(i+1:npart)
@@ -511,7 +512,7 @@ module mod_fluka
     write(fluka_log_unit,*) ' - momentum  [GeV/c]:',fluka_pc0
     write(fluka_log_unit,*) ' - mass     [GeV/c2]:',fluka_mass0
     write(fluka_log_unit,*) ' - charge        [e]:',fluka_chrg0
-    call flush
+    flush(fluka_log_unit)
 
     ! update magnetic rigidity, unless division by clight and 10^-9
     fluka_brho0 = fluka_pc0 / dble(fluka_chrg0)
@@ -525,7 +526,7 @@ module mod_fluka
     write(fluka_log_unit,*) ' synchronised magnetic rigidity with Fluka'
     write(fluka_log_unit,*) '    transmitted value [Tm/0.3]:', fluka_brho0
     write(fluka_log_unit,*) '    in proper units       [Tm]:', fluka_brho0 / ( fluka_clight*1.0D-09 )
-    call flush
+    flush(fluka_log_unit)
 
   end function fluka_set_synch_part
 
