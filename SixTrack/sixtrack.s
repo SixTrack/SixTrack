@@ -8535,7 +8535,7 @@ cc2008
       integer i,ifail,istate,iter,iuser,iwork,j,jaord,jbound,jcol,jcomp,&
      &jconf,jord,jpord,jrow,jsex,jvar,k,kcol,l,liwork,lwork,mcor,n,     &
      &nclin,ncnln,nconf,ndim2,nout,nrel,nrowa,nrowj,nrowr
-      real a,bl,bu,c,cjac,clamda,objf,objgrd,r,user,work
+      real(kind=fPrec) a,bl,bu,c,cjac,clamda,objf,objgrd,r,user,work
       real(kind=fPrec) ainv,bmat,chia,chib,cmat,cvec,det,detinv,dvec,   &
      &pi2in,sex,sgn
       external e04udm,objfun1
@@ -39861,9 +39861,9 @@ c$$$            endif
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
      &nlino,ntcoo,nto,nx
 +ca parpro
-      real ar(nmon1,ncor1)
-      real b(nmon1),orbr(nmon1),xinc(ncor1)
-      real rmsx,ptpx,rmsz,ptpz,rzero,rzero1
+      real(kind=fPrec) ar(nmon1,ncor1)
+      real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
+      real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
       real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
       character(len=16) bezlo(nele)
 +ca parnum
@@ -39908,6 +39908,7 @@ c$$$            endif
       end do
 
       if(iclo.eq.0) return
+
 !-- ORBIT CORRECTION
       ihflag=0
       ivflag=0
@@ -39934,6 +39935,7 @@ c$$$            endif
         bezlo(i)=bezl(i)
    50 continue
       nlino=nlin
+
 !-- PUT MONITORS AND CORRECTORS INTO LINOPT SETTINGS
 !-- GET TWISS PARAMETERS AND DISTORTED ORBIT BACK
       iprint=0
@@ -40170,6 +40172,7 @@ c$$$            endif
 10160 format(t5,'---- SCALING ITERATION NO. ',i4,' HOR.-PTP: ',f6.3,    &
      &' VER.-PTP: ',f6.3)
       end
+
       subroutine putorb(xinc,nx,npflag)
 !-----------------------------------------------------------------------
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
@@ -40177,10 +40180,11 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
+
 +ca crcoall
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
 +ca parpro
-      real xinc(ncor1)
+      real(kind=fPrec) xinc(ncor1)
       real(kind=fPrec) ckicknew,ckickold,r0,r0a
 +ca parnum
 +ca common
@@ -40272,6 +40276,7 @@ c$$$            endif
 10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,   &
      &' MRAD')
       end
+
       subroutine orbinit
 !-----------------------------------------------------------------------
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
@@ -40577,6 +40582,7 @@ c$$$            endif
       end do
 
       end
+
       subroutine htrl(a,b,m,n,k,rho)
 !*********************************************************************
 !     Subroutine HTRL to make Householder transform                  *
@@ -40588,8 +40594,9 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
       integer i,k,kk,kl,kn,lv,m,n,ncor1,nmon1
-      real a,b,beta,rho
+      real(kind=fPrec) a,b,beta,rho
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1),b(nmon1),rho(3*ncor1)
@@ -40597,7 +40604,7 @@ c$$$            endif
 !-----------------------------------------------------------------------
 
       do 10 i= 1,k,1
-        b(i)= 0.0                                                        !hr06
+        b(i)= zero                                                       !hr06
    10 continue
 
       do 20 kk=1,k
@@ -40605,11 +40612,12 @@ c$$$            endif
         kn=n+k-kk+1
         kl=k-kk+1
 
-        beta=-1.0/(rho(kn)*a(kl,kl))                                     !hr06
+        beta=-one/(rho(kn)*a(kl,kl))                                     !hr06
         call htbl(a,b,m,n,kl,beta)
    20 continue
 
       end
+
       subroutine htul(a,m,n,k,sig,beta)
 !*********************************************************************
 !     Subroutine HTUL to make Householder transform                  *
@@ -40621,14 +40629,15 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
       integer i,k,m,n,ncor1,nmon1
-      real a,beta,h,sig
+      real(kind=fPrec) a,beta,h,sig
       parameter (nmon1 = 600)
       parameter (ncor1 = 600)
       dimension a(nmon1,ncor1)
       save
 !-----------------------------------------------------------------------
-      sig=0.0                                                            !hr06
+      sig=zero                                                          !hr06
 
       do 10 i=k,m
         sig=sig+a(i,k)* a(i,k)
@@ -40637,11 +40646,12 @@ c$$$            endif
       sig=sqrt(sig)
 !     on choisit le signe correct pour SIG:
       h=a(k,k)
-      if(h.lt.0.0)sig=-1.0*sig                                           !hr06
+      if(h.lt.zero)sig=-one*sig                                          !hr06
       beta=h + sig
       a(k,k)=beta
-      beta=1.0/(sig*beta)                                                !hr06
+      beta=one/(sig*beta)                                                !hr06
       end
+
       subroutine calrms(r,m,rms,ptp)
 !*********************************************************************
 !     Subroutine CALRMS to calculate rms                             *
@@ -40653,13 +40663,14 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
       integer i,imax,imin,m,maxmin
-      real ave,ptp,r,rms,xave,xrms
+      real(kind=fPrec) ave,ptp,r,rms,xave,xrms
       dimension r(m)
       save
 !-----------------------------------------------------------------------
-      xave = 0.0
-      xrms = 0.0
+      xave = zero
+      xrms = zero
 
       do 10 i=1,m
         xave = xave + r(i)
@@ -40675,6 +40686,7 @@ c$$$            endif
       rms=sqrt(rms)
       return
       end
+
       function maxmin (a,n,m)
 !-----------------------------------------------------------------------
 !     if M=0, MAXMIN=lowest index of minimum element in A
@@ -40685,21 +40697,24 @@ c$$$            endif
       use mathlib_bouncer
       implicit none
       integer i,m,maxmin,n
-      real a,curent
+      real(kind=fPrec) a,curent
       dimension a(n)
       save
 !-----------------------------------------------------------------------
       maxmin=1
       if (n.lt.1) return
       curent=a(1)
+
       do 10 i=2,n
         if ((m.eq.0).and.(a(i).ge.curent)) goto 10
         if ((m.eq.1).and.(a(i).le.curent)) goto 10
         curent=a(i)
         maxmin=i
    10 continue
+
       return
       end
+
 +dk ord
       subroutine ord
 !-----------------------------------------------------------------------
