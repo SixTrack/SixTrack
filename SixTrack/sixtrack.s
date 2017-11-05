@@ -371,7 +371,7 @@
       real(kind=fPrec) ape
 +if .not.backtrk
       common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
-     &  plost(npart), aper_filename, aperunit, ldmpaper, limifound,     
+     &  plost(npart), aper_filename, aperunit, ldmpaper, limifound,     &
      &  apflag, load_file, loadunit
 +ei
 +if backtrk
@@ -1320,11 +1320,11 @@
       ! wire_flagco = -1: dispx = xwire - xco -> rx = x - xco + xsep
       ! -> rx = x + xwire
       integer          :: wire_flagco(nele)     
-      real(kind=fPrec) :: wire_dispx(nele),
+      real(kind=fPrec) :: wire_dispx(nele),                             &
      &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
-      real(kind=fPrec) :: wire_tiltx(nele),
+      real(kind=fPrec) :: wire_tiltx(nele),                             &
      &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
-      common /wireparamco/ wire_current,wire_lint,wire_lphys,
+      common /wireparamco/ wire_current,wire_lint,wire_lphys,           &
      &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
 +cd wiretracktmp
 ! temporary variables
@@ -2139,28 +2139,28 @@
 ! 3) calculate kick
                 if (rrelens.gt.r1elens) then ! rrelens <= r1 -> no kick from elens
                   if (rrelens.lt.elens_r2(ix)) then ! r1 <= rrelens < r2
-                    frrelens = (elens_r2(ix)/(rrelens**2))*
+                    frrelens = (elens_r2(ix)/(rrelens**2))*             &
      &((((rrelens**2)/(r1elens**2))-1)/(elens_r2ovr1(ix)**2 - 1))
                   endif
                   if (rrelens.ge.elens_r2(ix)) then ! r1 < r2 <= rrelens
                     frrelens = elens_r2(ix)/(rrelens**2)
                   endif
-                  yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xelens
+                  yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xelens   &
      &                 * oidpsv(j)
-                  yv(2,j)=yv(2,j)-elens_theta_max(ix)*frrelens*yelens
+                  yv(2,j)=yv(2,j)-elens_theta_max(ix)*frrelens*yelens   &
      &                 * oidpsv(j)
                 endif
 ! include bends at entrance and exit of elens
               case default
-               write(lout,*) 'ERROR in deck kickelens: elens_type='
-     &,elens_type(ix),' not recognized. Possible values for type are: ',
+               write(lout,*) 'ERROR in deck kickelens: elens_type='     &
+     &,elens_type(ix),' not recognized. Possible values for type are: ',&
      &'1.'
                 call prror(-1) 
               end select
 +cd scat_tck
       !Thick scattering
       if (scatter_debug) then
-         write(lout,*) "SCATTER> In scat_tck, ix=",
+         write(lout,*) "SCATTER> In scat_tck, ix=",                     &
      &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
       endif
 !     TODO
@@ -4862,9 +4862,9 @@
                 crkveb(j)=parbe(ix,5)
                 cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +                &
      &                parbe(ix,6)*bbcu(imbb(i),12)
-                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-                 &
      &               parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
@@ -4962,10 +4962,10 @@
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-               track6d(1,j)=((xv(1,j)+parbe(ix,5)) -
+               track6d(1,j)=((xv(1,j)+parbe(ix,5)) -                    &
      &              clobeam(1,imbb(i)))*c1m3
               track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -
+              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -                     &
      &             clobeam(2,imbb(i)))*c1m3
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
@@ -6136,11 +6136,11 @@ cc2008
           if ( ldump(0) ) then
 !           dump at all SINGLE ELEMENTs
             if ( ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1 ) then
-               if (   (n.ge.dumpfirst(0)) .and.
-     &              ( (n.le.dumplast(0)) .or. (dumplast(0).eq.-1) )
+               if (   (n.ge.dumpfirst(0)) .and.                         &
+     &              ( (n.le.dumplast(0)) .or. (dumplast(0).eq.-1) )     &
      &              ) then
-                  call dump_beam_population( n, i, ix, dumpunit(0),
-     &                 dumpfmt(0), ldumphighprec, 
+                  call dump_beam_population( n, i, ix, dumpunit(0),     &
+     &                 dumpfmt(0), ldumphighprec,                       &
      &                 dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
                endif
             endif
@@ -6150,11 +6150,11 @@ cc2008
              if ( ldump(ix) ) then
                 ! dump at this precise SINGLE ELEMENT
                 if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
-                   if (   (n.ge.dumpfirst(ix)) .and. 
-     &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )
+                   if (   (n.ge.dumpfirst(ix)) .and.                    &
+     &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )&
      &                ) then
-                      call dump_beam_population( n, i, ix, dumpunit(ix),
-     &                     dumpfmt(ix), ldumphighprec, 
+                      call dump_beam_population( n, i, ix, dumpunit(ix),&
+     &                     dumpfmt(ix), ldumphighprec,                  &
      &                     dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
                    endif
                 endif
@@ -6164,11 +6164,11 @@ cc2008
 !     StartDUMP - dump on the first element
       if (ldump(-1)) then
          if ( ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1 ) then
-            if (   (n.ge.dumpfirst(-1)) .and.
-     &           ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )
+            if (   (n.ge.dumpfirst(-1)) .and.                           &
+     &           ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )      &
      &           ) then
-               call dump_beam_population( n, 0, 0, dumpunit(-1),
-     &              dumpfmt(-1), ldumphighprec, 
+               call dump_beam_population( n, 0, 0, dumpunit(-1),        &
+     &              dumpfmt(-1), ldumphighprec,                         &
      &              dumpclo(-1,1:6),dumptasinv(-1,1:6,1:6) )
             endif
          endif
@@ -6932,11 +6932,11 @@ cc2008
       cur = wire_current(ix)
 
       if (abs(wire_flagco(ix)).ne.1) then
-        write(lout,
-     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
-     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
-     &'be either 1 or -1! Did you define all wires in the WIRE block?',
-     &'bez(',ix,') = ',bez(ix),
+        write(lout,                                                     &
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')                       &
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',  &
+     &'be either 1 or -1! Did you define all wires in the WIRE block?', &
+     &'bez(',ix,') = ',bez(ix),                                         &
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
         call prror(-1)
       endif
@@ -22066,10 +22066,10 @@ c$$$         endif
       NNORM_=c1m7/chi
 
       if (abs(wire_flagco(ix)).ne.1) then
-        write(lout,
-     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')
-     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',
-     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),
+        write(lout,                                                     &
+     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')                       &
+     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',  &
+     &'be either 1 or -1!','bez(',ix,') = ',bez(ix),                    &
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
         call prror(-1)
       endif
@@ -25328,7 +25328,7 @@ c$$$         endif
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejvl(ia),ejvl(ie)
-          if(ierro.ne.0) write(lout,*)
+          if(ierro.ne.0) write(lout,*)                                  &
      &'Warning from maincr: fort.12 has ',                              &
      &'corrupted output probably due to lost particle: ',ia,            &
      &' or: ',ie
@@ -25348,7 +25348,7 @@ c$$$         endif
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
           if(ierro.ne.0)
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
      &         'corrupted output probably due to lost particle: ',ie
         endif
         if(pstop(ia).and..not.pstop(ie)) then
@@ -26006,8 +26006,8 @@ c$$$         endif
         if(abs(r0).le.pieni.or.nmz.eq.0) then
           if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
             if ( dynk_isused(i) ) then
-              write(lout,*)
-     &        "ERROR: Element of type 11 (bez=",bez(ix),
+              write(lout,*)                                             &
+     &        "ERROR: Element of type 11 (bez=",bez(ix),                &
      &        ") is off in fort.2, but on in DYNK. Not implemented."
               call prror(-1)
             endif
@@ -26453,12 +26453,12 @@ c$$$         endif
 
 +ei
 
-          goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630, !1-10
-     &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210, !11-20
-     &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !21-30
-     &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370, !31-40
-     &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630, !41-50
-     &         745, 746, 751,  752, 753, 754, 630, 630, 630, 630, !51-60
+          goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630,       &!1-10
+     &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210,       &!11-20
+     &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600,       &!21-30
+     &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370,       &!31-40
+     &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630,       &!41-50
+     &         745, 746, 751,  752, 753, 754, 630, 630, 630, 630,       &!51-60
      &         630, 630, 761),ktrack(i) ! 630 = skip element
           goto 630
    10     stracki=strack(i) 
@@ -27150,12 +27150,12 @@ c$$$         endif
 !             write(lout,*) "Kick for element",
 !     &            i,ix,bez(ix),ktrack(i),kp(ix)
 !          endif
-          goto( 10, 30,740,650,650,650,650,650,650,650,!1-10
-     &          50, 70, 90,110,130,150,170,190,210,230,!11-20
-     &         440,460,480,500,520,540,560,580,600,620,!21-30
-     &         640,410,250,270,290,310,330,350,370,390,!31-40
-     &         680,700,720,730,748,650,650,650,650,650,!41-50
-     &         745,746,751,752,753,754,755,758,756,759,!51-60
+          goto( 10, 30,740,650,650,650,650,650,650,650,                 &!1-10
+     &          50, 70, 90,110,130,150,170,190,210,230,                 &!11-20
+     &         440,460,480,500,520,540,560,580,600,620,                 &!21-30
+     &         640,410,250,270,290,310,330,350,370,390,                 &!31-40
+     &         680,700,720,730,748,650,650,650,650,650,                 &!41-50
+     &         745,746,751,752,753,754,755,758,756,759,                 &!51-60
      &         757,760,761,762,763),ktrack(i)
 +ei
 +if collimat
@@ -27164,15 +27164,15 @@ c$$$         endif
 !          else
 !             write(*,*) "Kick for element", i,ix,bez(ix),myktrack,kp(ix)
 !          endif
-          goto(10,  30, 740, 650, 650, 650, 650, 650, 650, 650, !1-10
-     &         50,  70,  90, 110, 130, 150, 170, 190, 210, 230, !11-20
-     &        440, 460, 480, 500, 520, 540, 560, 580, 600, 620, !21-30
-     &        640, 410, 250, 270, 290, 310, 330, 350, 370, 390, !31-40
-     &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650, !41-50
-     &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759, !51-60
+          goto(10,  30, 740, 650, 650, 650, 650, 650, 650, 650,         &!1-10
+     &         50,  70,  90, 110, 130, 150, 170, 190, 210, 230,         &!11-20
+     &        440, 460, 480, 500, 520, 540, 560, 580, 600, 620,         &!21-30
+     &        640, 410, 250, 270, 290, 310, 330, 350, 370, 390,         &!31-40
+     &        680, 700, 720, 730, 748, 650, 650, 650, 650, 650,         &!41-50
+     &        745, 746, 751, 752, 753, 754, 755, 758, 756, 759,         &!51-60
      &        757, 760, 761, 762, 763 ),myktrack
-          write (lout,*) "WARNING: Non-handled element in thin6d()!",
-     &                " i=", i, "ix=", ix, "myktrack=",  myktrack,
+          write (lout,*) "WARNING: Non-handled element in thin6d()!",   &
+     &                " i=", i, "ix=", ix, "myktrack=",  myktrack,      &
      &                " bez(ix)='", bez(ix),"' SKIPPED"
 +ei
           goto 650
@@ -27953,12 +27953,12 @@ c$$$         endif
 +ca timefct
 +ei
 !--------count44
-          goto(10 ,30 ,740,650,650,650,650,650,650,650,!1-10
-     &         50 ,70 ,90 ,110,130,150,170,190,210,230,!11-20
-     &         440,460,480,500,520,540,560,580,600,620,!21-30
-     &         640,410,250,270,290,310,330,350,370,390,!31-40
-     &         680,700,720,730,748,650,650,650,650,650,!41-50
-     &         745,746,751,752,753,754,650,650,650,650,!51-60
+          goto(10 ,30 ,740,650,650,650,650,650,650,650,                 &!1-10
+     &         50 ,70 ,90 ,110,130,150,170,190,210,230,                 &!11-20
+     &         440,460,480,500,520,540,560,580,600,620,                 &!21-30
+     &         640,410,250,270,290,310,330,350,370,390,                 &!31-40
+     &         680,700,720,730,748,650,650,650,650,650,                 &!41-50
+     &         745,746,751,752,753,754,650,650,650,650,                 &!51-60
      &         650,650,761),ktrack(i)
           goto 650
    10     stracki=strack(i)
@@ -28394,7 +28394,7 @@ c$$$         endif
       return
       end
 
-      subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,
+      subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,    &
      &     cdate,ctime,progrm)
 !-------------------------------------------------------------------------
 !     Subroutine for writing the header of the binary files (fort.90 etc.)
@@ -28421,7 +28421,7 @@ c$$$         endif
       real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
       real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
       real(kind=real64) tas_tmp(6,6)
-      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,
+      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,            &
      &     sigcor_tmp,dpscor_tmp
       
       real(kind=real64) zero64,one64
@@ -28458,7 +28458,7 @@ c$$$         endif
       ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
       ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
       
-      write(fileunit_in,iostat=ierro_wbh)
+      write(fileunit_in,iostat=ierro_wbh)                               &
      &     sixtit,commen,cdate,ctime,progrm,                            &
      &     ia_p1,ia_p2, napx, icode,numl,                               &
      &     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
@@ -28530,7 +28530,7 @@ c$$$         endif
       data ncalls /0/
 +ei
 
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),
+      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
      &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
       
       save
@@ -28669,7 +28669,7 @@ c$$$         endif
      &               nlostp(ia)+1,dam_tmp,                              &
      &               xv_tmp(1,2),yv_tmp(1,2),                           &
      &               xv_tmp(2,2),yv_tmp(2,2),                           &
-     &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp                    &
+     &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 +if .not.stf
                   flush(91-ia2)
 +ei
@@ -28683,7 +28683,7 @@ c$$$         endif
                endif
                if(ierro.ne.0) then
                   write(lout,*)
-                  write(lout,*)
+                  write(lout,*)                                         &
      &                 '*** ERROR ***,PROBLEM WRITING TO FILE# : ',     &
      &                 91-ia2
                   write(lout,*) 'ERROR CODE : ',ierro
@@ -28912,7 +28912,7 @@ c$$$         endif
          if ( lapeofftlt(ix) ) then
 !           Include offset and angle rotation
             do j=1,napx
-               call roffpos( xv(1,j), xv(2,j), xchk(1,j), xchk(2,j),
+               call roffpos( xv(1,j), xv(2,j), xchk(1,j), xchk(2,j),    &
      &                       ape(5,ix), ape(6,ix), ape(7,ix) )
             end do
          else
@@ -28928,7 +28928,7 @@ c$$$         endif
          if ( kape(ix).eq.2 ) then
 !           Rectangle
             do j=1,napx
-               pstop(j)=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix))
+               pstop(j)=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix))&
      &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.3 ) then
@@ -28937,7 +28937,7 @@ c$$$         endif
             apyy = ape(4,ix)**2.
             apxy = apxx * apyy
             do j=1,napx
-               pstop(j)=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy )
+               pstop(j)=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy )   &
      & .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.4 ) then
@@ -28946,8 +28946,8 @@ c$$$         endif
             apyy = ape(4,ix)**2.
             apxy = apxx * apyy
             do j=1,napx
-               pstop(j)=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),
-     &                      apxx, apyy, apxy ) .or.
+               pstop(j)=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),&
+     &                      apxx, apyy, apxy ) .or.                     &
      &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.5 ) then
@@ -28958,7 +28958,7 @@ c$$$         endif
             aps = ape(1,ix)*sin_mb(ape(2,ix)/two)
             apc = ape(1,ix)*cos_mb(ape(2,ix)/two)
             do j=1,napx
-               pstop(j)=checkOC( xchk(1,j), xchk(2,j), aps, apc ) .or.
+               pstop(j)=checkOC( xchk(1,j), xchk(2,j), aps, apc ) .or.  &
      &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.6 ) then
@@ -28966,14 +28966,14 @@ c$$$         endif
 !           NB: it follows the MadX definition
             apxy = ape(3,ix)**2.
             do j=1,napx
-               pstop(j)=checkRT( xchk(1,j), xchk(2,j),
-     &              ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or.
+               pstop(j)=checkRT( xchk(1,j), xchk(2,j),                  &
+     &              ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or.        &
      &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else
 !           Unknown aperture type, general check (set in the ITER block)
             do j=1,napx
-               pstop(j)=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2))
+               pstop(j)=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2))&
      &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          endif
@@ -28981,7 +28981,7 @@ c$$$         endif
 !        no actual aperture profile is assigned to any SINGLE ELEMENT
 !        use the general check (set in the ITER block)
          do j=1,napx
-            pstop(j) = checkRE( xv(1,j), xv(2,j), aper(1), aper(2) )
+            pstop(j) = checkRE( xv(1,j), xv(2,j), aper(1), aper(2) )    &
      &  .or.myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
          end do
       endif
@@ -29146,10 +29146,10 @@ c$$$         endif
      &                  fluka_gen(j).eq.plost(jj) )
 +ei
 +if collimat
-                   if ( ipart(j)+100*samplenumber .eq. plost(jj) )
+                   if ( ipart(j)+100*samplenumber .eq. plost(jj) )      &
 +ei
 +if .not.collimat.and..not.fluka
-                   if ( j .eq. plost(jj) )
+                   if ( j .eq. plost(jj) )                              &
 +ei
      &             lparID=.true.
                    jjx=jj+1 !points to the last zero 
@@ -29394,7 +29394,7 @@ c$$$         endif
 !     temporary variables
       logical checkRE, checkEL
 
-      checkRL = checkRE( x, y, apex, apey ) .or.
+      checkRL = checkRE( x, y, apex, apey ) .or.                        &
      &          checkEL( x, y, apxx, apyy, apxy )
       return
       end function
@@ -29415,7 +29415,7 @@ c$$$         endif
 !     temporary variables
       logical checkRE
 
-      checkOC = checkRE( x, y, apec, apec ) .or.
+      checkOC = checkRE( x, y, apec, apec ) .or.                        &
      &          ( ( abs(x)+abs(y) ).gt.( apes+apec ) )
       return
       end function
@@ -29484,7 +29484,7 @@ c$$$         endif
       if ( .not.lExtremes ) then
          if ( iu-iuold.ne.0 ) then
             iElDw=iElDw+(iu-iuold)
-            write(lout,*) '...inserted upstream marker - downstream'
+            write(lout,*) '...inserted upstream marker - downstream'    &
      &//' entries shifted by',iu-iuold
          else
             write(lout,*) '...no need to insert an upstream marker'
@@ -29504,7 +29504,7 @@ c$$$         endif
          if ( lExtremes ) then
             iElUp=iElUp+(iu-iuold)
          end if
-         write(lout,*) '...inserted downstream marker - downstream'
+         write(lout,*) '...inserted downstream marker - downstream'     &
      &//' entries shifted by',iu-iuold
       else
          write(lout,*) '...no need to insert a downstream marker'
@@ -29518,13 +29518,13 @@ c$$$         endif
          lsame = ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
          if ( lsame ) then
             do jj=1,7
-               lsame = lsame .and. 
+               lsame = lsame .and.                                      &
      &           abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
                if ( .not. lsame ) exit
             end do
          end if
          if ( .not.lsame ) then
-            write(lout,*)' ERROR - different aperture markers'
+            write(lout,*)' ERROR - different aperture markers'          &
      &//' at extremeties of accelerator lattice strucure'
             call dump_aperture_header( -1 )
             call dump_aperture_marker( -1, ixApeUp, iElUp )
@@ -29572,8 +29572,8 @@ c$$$         endif
       integer iEl
       logical lInsUp
 !     temporary variables
-      integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,
-     & itmpape,iNew, ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,
+      integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,      &
+     & itmpape,iNew, ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,  &
      & ixEl
       real(kind=fPrec) tmpape(7), ddcum, sPrec, aPrec
       logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
@@ -29612,7 +29612,7 @@ c$$$         endif
             bez(ixEl)='s.latt.aper'
             write(lout,*)' -> inserted empty marker at start of lattice'
 +if fluka
-         elseif ( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.
+         elseif ( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.                 &
      &            fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
 !           A.Mereghetti
 !           last modified: 18-01-2017
@@ -29635,7 +29635,7 @@ c$$$         endif
       endif
 !     echo
       write(lout,*)' look for aperture markers closest to:'
-      write(lout,*)' i=',iEl,' - ix=',ixEl,
+      write(lout,*)' i=',iEl,' - ix=',ixEl,                             &
      &' - name: ',bez(ixEl), ' - s=',dcum(iEl)
 
 !     candidate aperture marker
@@ -29724,18 +29724,18 @@ c$$$         endif
 !       . iNew is iApeUp
       lApeUp=iApeUp.eq.iNew.and.ixApeUp.eq.ixNew
 !       . iNew is at the same s as iApeUp (inlcuding ring overvlow)
-      lAupDcum=abs(dcum(iNew)-dcum(iApeUp)).lt.sPrec.or.
+      lAupDcum=abs(dcum(iNew)-dcum(iApeUp)).lt.sPrec.or.                &
      &         abs(dcum(iNew)-dcum(iApeUp)-tlen).lt.sPrec
 !       . iNew is iApeDw
       lApeDw=iApeDw.eq.iNew.and.ixApeDw.eq.ixNew
 !       . iNew is at the same s as ApeDw (inlcuding ring overvlow)
-      lAdwDcum=abs(dcum(iNew)-dcum(iApeDw)).lt.sPrec.or.
+      lAdwDcum=abs(dcum(iNew)-dcum(iApeDw)).lt.sPrec.or.                &
      &         abs(dcum(iNew)-dcum(iApeDw)-tlen).lt.sPrec
 !       . constant aperture?
       lconst = ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
       if ( lconst ) then
          do jj=1,7
-            lconst = lconst .and. 
+            lconst = lconst .and.                                       &
      &           abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
             if ( .not. lconst ) exit
          end do
@@ -29765,7 +29765,7 @@ c$$$         endif
             ixApeNewFrom=ixApeDw
          else
 !           varying aperture -> we need to interpolate
-            call interp_aperture( iApeUp,ixApeUp, iApeDw,ixApeDw,
+            call interp_aperture( iApeUp,ixApeUp, iApeDw,ixApeDw,       &
      &                            itmpape,tmpape, dcum(iNew) )
             lfit=.true.
          endif
@@ -29872,7 +29872,7 @@ c$$$         endif
          if ( mdcum.lt.zero ) mdcum=tlen+mdcum
 ! AM ->          write(*,*) ixUp,ixDw,spos,dcum(iUp),dcum(iDw),tlen,ddcum,mdcum
          do jj=1,7
-            oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum
+            oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum            &
      &               +ape(jj,ixUp)
 ! AM ->             write(*,*) jj,ape(jj,ixDw),ape(jj,ixUp)
          end do
@@ -30004,7 +30004,7 @@ c$$$         endif
       iOld=1
       ixOld=ic(iOld)-nblo
       if ( kape(ixOld).eq.0 ) then
-         write(lout,*) ' ERROR - first element of lattice structure'
+         write(lout,*) ' ERROR - first element of lattice structure'    &
      &//' is not assigned any aperture type'
          call prror(-1)
       else
@@ -30040,7 +30040,7 @@ c$$$         endif
 ! AM ->      &aprr(2),aprr(3),aprr(4),aprr(5),aprr(6),aprr(7),slos
                   aptype=get_ape_type( oKApe )
 ! AM ->                   write(*,*) aptype
-                  call dump_aperture( aperunit, bez(ix), aptype, slos,
+                  call dump_aperture( aperunit, bez(ix), aptype, slos,  &
      & aprr )
                end do
             end if
@@ -30107,10 +30107,10 @@ c$$$         endif
 
 !     dump info
       if( iunit.lt.0 ) then
-         write(lout,1984) name, aptype, spos, ape(1), ape(2),
+         write(lout,1984) name, aptype, spos, ape(1), ape(2),           &
      &             ape(3), ape(4), ape(5), ape(6), ape(7)
       else
-         write(iunit,1984) name, aptype, spos, ape(1),
+         write(iunit,1984) name, aptype, spos, ape(1),                  &
      & ape(2), ape(3), ape(4), ape(5), ape(6), ape(7)
       endif
 
@@ -30142,7 +30142,7 @@ c$$$         endif
       character(len=2) get_ape_type, aptype
 
       aptype=get_ape_type( kape(ixEl) )
-      call dump_aperture( iunit, bez(ixEl), aptype, dcum(iEl),
+      call dump_aperture( iunit, bez(ixEl), aptype, dcum(iEl),          &
      & ape(1:7,ixEl) )
 
       return
@@ -30164,12 +30164,12 @@ c$$$         endif
 
 !     Header of dumped aperture markers
       if( iunit .lt. 0 ) then
-         write(lout,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',
-     & 'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]',
+         write(lout,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',   &
+     & 'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]', &
      & 'yoff[mm]'
       else
-         write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',
-     & 'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]',
+         write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]',  &
+     & 'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]', &
      & 'yoff[mm]'
       endif
       return
@@ -30416,7 +30416,7 @@ c$$$         endif
            write(lout,*) ''
            write(lout,*) ' problems of precision when computing the hor'
            write(lout,*) '   emittance (beam matrix analysis)'
-           write(lout,*) ' at element (ientry,ix,bez,dcum) ', 
+           write(lout,*) ' at element (ientry,ix,bez,dcum) ',           &
      &                  ientry, ix, bez(ix), dcum(ientry)
            write(lout,*) '   at turn ',nturn
            write(lout,*) ''
@@ -30433,7 +30433,7 @@ c$$$         endif
            write(lout,*) ''
            write(lout,*) ' problems of precision when computing the ver'
            write(lout,*) '   emittance (beam matrix analysis)'
-           write(lout,*) ' at element (ientry,ix,bez,dcum) ', 
+           write(lout,*) ' at element (ientry,ix,bez,dcum) ',           &
      &                  ientry, ix, bez(ix), dcum(ientry)
            write(lout,*) '   at turn ',nturn
            write(lout,*) ''
@@ -30449,7 +30449,7 @@ c$$$         endif
            write(lout,*) ''
            write(lout,*) ' problems of precision when computing the lon'
            write(lout,*) '   emittance (beam matrix analysis)'
-           write(lout,*) ' at element (ientry,ix,bez,dcum) ', 
+           write(lout,*) ' at element (ientry,ix,bez,dcum) ',           &
      &                  ientry, ix, bez(ix), dcum(ientry)
            write(lout,*) '   at turn ',nturn
            write(lout,*) ''
@@ -30464,12 +30464,12 @@ c$$$         endif
       if ( lhighprec ) then
          write(unit,1981)                                               &
      &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           temix, tbetx, talfx, temiy, tbety, talfy,
+     &           temix, tbetx, talfx, temiy, tbety, talfy,              &
      &           temil, tbetl, talfl
       else
          write(unit,1982)                                               &
      &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           temix, tbetx, talfx, temiy, tbety, talfy,
+     &           temix, tbetx, talfx, temiy, tbety, talfy,              &
      &           temil, tbetl, talfl
       endif
 
@@ -30596,7 +30596,7 @@ c$$$         endif
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
           id=id+1
           ie=id+1
-          write(lout,10010)
+          write(lout,10010)                                             &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
      &e0,ejv(id),ejv(ie)
@@ -30605,6 +30605,7 @@ c$$$         endif
      &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
      &e0,ejv(id),ejv(ie)
           id=id+1
+
 !-- FIRST PARTICLES LOST
         else if(pstop(ia).and..not.pstop(ig)) then
           id=id+1
@@ -30612,6 +30613,7 @@ c$$$         endif
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
+
 !-- SECOND PARTICLES LOST
         else if(.not.pstop(ia).and.pstop(ig)) then
           id=id+1
@@ -30619,6 +30621,7 @@ c$$$         endif
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),     &
      &e0,ejv(id),ejvl(ig)
+
 !-- BOTH PARTICLES LOST
         else if(pstop(ia).and.pstop(ig)) then
           write(12,10010,iostat=ierro)                                  &
@@ -30629,7 +30632,7 @@ c$$$         endif
    10 continue
 +if .not.cr
       if(ierro.ne.0) then
-         write(lout,*) 'ERROR from write6: fort.12 has ',
+         write(lout,*) 'ERROR from write6: fort.12 has ',               &
      &        'corrupted output probably due to lost particles'
 +if debug
 !        call dumpbin(' write6',0,0)                                     !hr09
@@ -30773,16 +30776,16 @@ c$$$         endif
          endif
          if ( lhighprec ) then
             do j=1,napx
-               write(unit,1983) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, localDcum, xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,
+               write(unit,1983) nlostp(j)+(samplenumber-1)*npart,       &
+     &              nturn, localDcum, xv(1,j),                          &
+     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,          &
      &              localKtrack
             enddo
          else
             do j=1,napx
-               write(unit,1984) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, localDcum, xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,
+               write(unit,1984) nlostp(j)+(samplenumber-1)*npart,       &
+     &              nturn, localDcum, xv(1,j),                          &
+     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,          &
      &              localKtrack
             enddo
          endif
@@ -30797,7 +30800,7 @@ c$$$         endif
       ! Same as fmt 1, but also include z (for crab cavities etc.)
       else if (fmt .eq. 2) then
          if (i.eq.0 .and. ix.eq.0) then
-            localDcum = 0.0
+            localDcum = zero
             localKtrack = 0
          else
             localDcum = dcum(i)
@@ -30805,16 +30808,16 @@ c$$$         endif
          endif
          if ( lhighprec ) then
             do j=1,napx
-               write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, localDcum, xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+               write(unit,1985) nlostp(j)+(samplenumber-1)*npart,       &
+     &              nturn, localDcum, xv(1,j),                          &
+     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),                &
      &              (ejv(j)-e0)/e0, localKtrack
             enddo
          else
             do j=1,napx
-               write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
-     &              nturn, localDcum, xv(1,j),
-     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+               write(unit,1986) nlostp(j)+(samplenumber-1)*npart,       &
+     &              nturn, localDcum, xv(1,j),                          &
+     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),                &
      &              (ejv(j)-e0)/e0, localKtrack
             enddo
          endif
@@ -30828,16 +30831,16 @@ c$$$         endif
       !Same as fmt 2, but in Fortran binary
       else if (fmt .eq. 3) then
          if (i.eq.0 .and. ix.eq.0) then
-            localDcum = 0.0
+            localDcum = zero
             localKtrack = 0
          else
             localDcum = dcum(i)
             localKtrack = ktrack(i)
          endif
          do j=1,napx
-            write(unit) nlostp(j)+(samplenumber-1)*npart,
-     &           nturn, localDcum, xv(1,j),
-     &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),
+            write(unit) nlostp(j)+(samplenumber-1)*npart,               &
+     &           nturn, localDcum, xv(1,j),                             &
+     &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),                   &
      &           (ejv(j)-e0)/e0, localKtrack
          enddo
          
@@ -30851,13 +30854,13 @@ c$$$         endif
       !Average bunch position
       else if (fmt .eq. 4) then
          if (i.eq.0 .and. ix.eq.0) then
-            localDcum = 0.0
+            localDcum = zero
          else
             localDcum = dcum(i)
          endif
          
          do l=1,6
-            xyz(l) = 0.0
+            xyz(l) = zero
          end do
          
          do j=1,napx
@@ -30871,10 +30874,10 @@ c$$$         endif
 
          xyz = xyz/napx
          if ( lhighprec ) then
-            write(unit,1989) napx, nturn, localDcum,
+            write(unit,1989) napx, nturn, localDcum,                    &
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
          else
-            write(unit,1990) napx, nturn, localDcum,
+            write(unit,1990) napx, nturn, localDcum,                    &
      &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
          endif
 
@@ -30887,15 +30890,15 @@ c$$$         endif
       !Average beam positon + beam matrix
       else if (fmt.eq.5 .or. fmt.eq.6) then
          if (i.eq.0 .and. ix.eq.0) then
-            localDcum = 0.0
+            localDcum = zero
          else
             localDcum = dcum(i)
          endif
          
          do l=1,6
-            xyz(l) = 0.0
+            xyz(l) = zero
             do k=1,6
-               xyz2(l,k) = 0.0
+               xyz2(l,k) = zero
             end do
          end do
          
@@ -30997,22 +31000,22 @@ c$$$         endif
          xyz2(6,6)  = xyz2(6,6) /napx
          
          if ( lhighprec ) then
-            write(unit,1991) napx, nturn, localDcum,
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
-     &                                              xyz2(5,5),xyz2(6,5),
+            write(unit,1991) napx, nturn, localDcum,                    &
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
+     &                                              xyz2(5,5),xyz2(6,5),&
      &                                                        xyz2(6,6)
          else
-            write(unit,1992) napx, nturn, localDcum,
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
-     &                                              xyz2(5,5),xyz2(6,5),
+            write(unit,1992) napx, nturn, localDcum,                    &
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
+     &                                              xyz2(5,5),xyz2(6,5),&
      &                                                        xyz2(6,6)
          endif
 
@@ -31028,7 +31031,7 @@ c$$$         endif
       ! fmt 9 same as fmt 5/6, but in normalized coordinates
       else if (fmt .eq. 7 .or. fmt .eq. 8 .or. fmt .eq. 9) then
          if (i.eq.0 .and. ix.eq.0) then
-            localDcum = 0.0
+            localDcum = zero
             localKtrack = 0
          else
             localDcum = dcum(i)
@@ -31037,9 +31040,9 @@ c$$$         endif
 
          ! initialize parameters for writing of beam moments
          do l=1,6
-            xyz(l) = 0.0
+            xyz(l) = zero
             do k=1,6
-               xyz2(l,k) = 0.0
+               xyz2(l,k) = zero
             end do
          end do
 
@@ -31056,9 +31059,9 @@ c$$$         endif
                 xyz_particle(m)=xyz_particle(m)-clo(m)
              enddo
              ! convert to canonical variables
-             xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+
+             xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+    &
      &            clo(6))
-             xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+
+             xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+    &
      &            clo(6))
              ! normalize nxyz=fma_tas_inv*xyz
              ! initialize nxyz
@@ -31067,7 +31070,7 @@ c$$$         endif
              enddo
              do m=1,6
                 do n=1,6
-                   nxyz_particle(m)=nxyz_particle(m)+
+                   nxyz_particle(m)=nxyz_particle(m)+                   &
      &                  tasinv(m,n)*xyz_particle(n)
                 enddo
                 ! a) convert nxyzv(6) to 1.e-3 sqrt(m)
@@ -31079,16 +31082,16 @@ c$$$         endif
 
              if (fmt .eq. 7) then
                if ( lhighprec ) then
-                   write(unit,1985) nlostp(j)+(samplenumber-1)*npart,
-     &                  nturn, localDcum, nxyz_particle(1),
-     &                  nxyz_particle(2),nxyz_particle(3),
-     &                  nxyz_particle(4),nxyz_particle(5),
+                   write(unit,1985) nlostp(j)+(samplenumber-1)*npart,   &
+     &                  nturn, localDcum, nxyz_particle(1),             &
+     &                  nxyz_particle(2),nxyz_particle(3),              &
+     &                  nxyz_particle(4),nxyz_particle(5),              &
      &                  nxyz_particle(6),localKtrack
                else
-                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,
-     &                  nturn, localDcum, nxyz_particle(1),
-     &                  nxyz_particle(2),nxyz_particle(3),
-     &                  nxyz_particle(4),nxyz_particle(5),
+                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,   &
+     &                  nturn, localDcum, nxyz_particle(1),             &
+     &                  nxyz_particle(2),nxyz_particle(3),              &
+     &                  nxyz_particle(4),nxyz_particle(5),              &
      &                  nxyz_particle(6),localKtrack
                endif
 
@@ -31100,10 +31103,10 @@ c$$$         endif
 +ei
                
              else if (fmt .eq. 8) then
-                 write(unit) nlostp(j)+(samplenumber-1)*npart,
-     &                nturn, localDcum, nxyz_particle(1),
-     &                nxyz_particle(2),nxyz_particle(3),
-     &                nxyz_particle(4),nxyz_particle(5),
+                 write(unit) nlostp(j)+(samplenumber-1)*npart,          &
+     &                nturn, localDcum, nxyz_particle(1),               &
+     &                nxyz_particle(2),nxyz_particle(3),                &
+     &                nxyz_particle(4),nxyz_particle(5),                &
      &                nxyz_particle(6),localKtrack
                  !Flush
                  endfile (unit,iostat=ierro)
@@ -31166,22 +31169,22 @@ c$$$         endif
            xyz2(6,6)  = xyz2(6,6) /napx
 
            if ( lhighprec ) then
-            write(unit,1991) napx, nturn, localDcum,
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
-     &                                              xyz2(5,5),xyz2(6,5),
+            write(unit,1991) napx, nturn, localDcum,                    &
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
+     &                                              xyz2(5,5),xyz2(6,5),&
      &                                                        xyz2(6,6)
            else
-            write(unit,1992) napx, nturn, localDcum,
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),
-     &                                              xyz2(5,5),xyz2(6,5),
+            write(unit,1992) napx, nturn, localDcum,                    &
+     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
+     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
+     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
+     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
+     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
+     &                                              xyz2(5,5),xyz2(6,5),&
      &                                                        xyz2(6,6)
            endif
            !Flush
@@ -31194,7 +31197,7 @@ c$$$         endif
          
       !Unrecognized format fmt
       else
-         write (lout,*)
+         write (lout,*)                                                 &
      & "DUMP> Format",fmt, "not understood for unit", unit
          call prror(-1)
       endif
@@ -31442,8 +31445,8 @@ c$$$         endif
         if(abs(r0).le.pieni.or.nmz.eq.0) then
           if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
             if ( dynk_isused(i) ) then
-              write(lout,*)
-     &        "ERROR: Element of type 11 (bez=",bez(ix),
+              write(lout,*)                                             &
+     &        "ERROR: Element of type 11 (bez=",bez(ix),                &
      &        ") is off in fort.2, but on in DYNK. Not implemented."
               call prror(-1)
             endif
@@ -31793,8 +31796,8 @@ c$$$         endif
 +ei bpm
       
       if (ldumpfront) then
-         write (lout,*) 
-     & "DUMP/FRONT not yet supported on thick elements "//
+         write (lout,*)                                                 &
+     & "DUMP/FRONT not yet supported on thick elements "//              &
      & "due to lack of test cases. Please contact developers!"
          call prror(-1)
 !+ca dumplines
@@ -31806,12 +31809,12 @@ c$$$         endif
             endif
 
 !----------count=43
-            goto( 20,480,740,480,480,480,480,480,480,480,!1-10
-     &            40, 60, 80,100,120,140,160,180,200,220,!11-20
-     &           270,290,310,330,350,370,390,410,430,450,!21-30
-     &           470,240,500,520,540,560,580,600,620,640,!31-40
-     &           680,700,720,480,748,480,480,480,480,480,!41-50
-     &           745,746,751,752,753,754,480,480,480,480,!51-60
+            goto( 20,480,740,480,480,480,480,480,480,480,               &!1-10
+     &            40, 60, 80,100,120,140,160,180,200,220,               &!11-20
+     &           270,290,310,330,350,370,390,410,430,450,               &!21-30
+     &           470,240,500,520,540,560,580,600,620,640,               &!31-40
+     &           680,700,720,480,748,480,480,480,480,480,               &!41-50
+     &           745,746,751,752,753,754,480,480,480,480,               &!51-60
      &           480,480,761),ktrack(i)
             goto 480
    20       do 30 j=1,napx
@@ -31829,6 +31832,7 @@ c$$$         endif
      &((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3                         !hr01
    30       continue
             goto 480
+
 !--HORIZONTAL DIPOLE
    40       do 50 j=1,napx
 +ca kickv01h
@@ -32383,8 +32387,8 @@ c$$$         endif
 +ei bpm
 
       if (ldumpfront) then
-         write (lout,*) 
-     & "DUMP/FRONT not yet supported on thick elements "//
+         write (lout,*)                                                 &
+     & "DUMP/FRONT not yet supported on thick elements "//              &
      & "due to lack of test cases. Please contact developers!"
          call prror(-1)
 !+ca dumplines
@@ -32403,12 +32407,12 @@ c$$$         endif
 +ei
 !----------count 44
 !----------count 54! Eric
-            goto( 20, 40,740,500,500,500,500,500,500,500,!1-10
-     &            60, 80,100,120,140,160,180,200,220,240,!11-20
-     &           290,310,330,350,370,390,410,430,450,470,!21-30
-     &           490,260,520,540,560,580,600,620,640,660,!31-40
-     &           680,700,720,730,748,500,500,500,500,500,!41-50
-     &           745,746,751,752,753,754,500,500,500,500,!51-60
+            goto( 20, 40,740,500,500,500,500,500,500,500,               &!1-10
+     &            60, 80,100,120,140,160,180,200,220,240,               &!11-20
+     &           290,310,330,350,370,390,410,430,450,470,               &!21-30
+     &           490,260,520,540,560,580,600,620,640,660,               &!31-40
+     &           680,700,720,730,748,500,500,500,500,500,               &!41-50
+     &           745,746,751,752,753,754,500,500,500,500,               &!51-60
      &           500,500,761),ktrack(i)
             goto 500
    20       jmel=mel(ix)
@@ -33085,8 +33089,8 @@ c$$$         endif
 +ei bpm
 
       if (ldumpfront) then
-         write (lout,*) 
-     & "DUMP/FRONT not yet supported on thick elements "//
+         write (lout,*)                                                 &
+     & "DUMP/FRONT not yet supported on thick elements "//              &
      & "due to lack of test cases. Please contact developers!"
          call prror(-1)
       endif
@@ -33097,12 +33101,12 @@ c$$$         endif
             endif
 
 !----------count 56
-            goto( 20, 40,740,500,500,500,500,500,500,500,!1-10
-     &            60, 80,100,120,140,160,180,200,220,240,!11-20
-     &           290,310,330,350,370,390,410,430,450,470,!21-30
-     &           490,260,520,540,560,580,600,620,640,660,!31-40
-     &           680,700,720,730,748,500,500,500,500,500,!41-50
-     &           745,746,751,752,753,754,500,500,500,500,!51-60
+            goto( 20, 40,740,500,500,500,500,500,500,500,               &!1-10
+     &            60, 80,100,120,140,160,180,200,220,240,               &!11-20
+     &           290,310,330,350,370,390,410,430,450,470,               &!21-30
+     &           490,260,520,540,560,580,600,620,640,660,               &!31-40
+     &           680,700,720,730,748,500,500,500,500,500,               &!41-50
+     &           745,746,751,752,753,754,500,500,500,500,               &!51-60
      &           500,500,761),ktrack(i)
             goto 500
    20       jmel=mel(ix)
@@ -33513,7 +33517,7 @@ c$$$         endif
 
   748     continue
 +ca wirekick
-  750     continue                                                      `
+  750     continue
           goto 490
 
 !----------------------------
@@ -33632,8 +33636,8 @@ c$$$         endif
             sm3(j)=-sin_mb(fok(j))/rho(j)
             sm12(j)=el(l)-sm1(j)*sm2(j)
             sm23(j)=sm2(j)*sm3(j)
-      as3(j)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-   &!hr01
-     &(rho(j)*dpsq(j))*(one-sm1(j)))                                    &!hr01
+         as3(j)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-&!hr01
+     &(rho(j)*dpsq(j))*(one-sm1(j)))                                     !hr01
             as4(j)=((-one*rvv(j))*sm23(j))/c2e3                          !hr01
             as6(j)=((-one*rvv(j))*(el(l)+sm1(j)*sm2(j)))/c4e3            !hr01
 +if rvet
