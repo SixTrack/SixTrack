@@ -23546,17 +23546,21 @@ c$$$         endif
         bet0v(i,2)=zero
         ampv(i)=zero
 +if .not.datamods !This code moved to bigmats.allocate_thickarrays
-        do 40 i1=1,nblo
-          do 40 i2=1,2
-            do 40 i3=1,6
+        do i1=1,nblo
+          do i2=1,2
+            do i3=1,6
               hv(i3,i2,i,i1)=zero
               bl1v(i3,i2,i,i1)=zero
-   40   continue
+            end do
+          end do
+        end do
 +ei
-        do 50 i1=1,6
-          do 50 i2=1,6
+        do i1=1,6
+          do i2=1,6
             tas(i,i1,i2)=zero
-   50   continue
+          end do
+        end do
+
         qwcs(i,1)=zero
         qwcs(i,2)=zero
         qwcs(i,3)=zero
@@ -23710,9 +23714,11 @@ c$$$         endif
       endif !if(ipos.eq.1.and.napx.eq.0)
 +ei ! END +if .not.fluka
 
-      do 90 i=1,20
+      do i=1,20
         fake(1,i)=zero
-   90 fake(2,i)=zero
+        fake(2,i)=zero
+      end do
+
       itra=2
       amp00=amp(1)
       if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
@@ -23731,12 +23737,18 @@ c$$$         endif
           call recuin(m*izu0,irecuin)
           call ranecu(zfz,nzfz,mcut)
           rsum=zero
-          do 100 i=1,nzfz
-  100     rsum=rsum+zfz(i)
+
+          do i=1,nzfz
+            rsum=rsum+zfz(i)
+          end do
+
           rmean=rsum/real(nzfz,fPrec)                                          !hr05
           rsqsum=zero
-          do 110 i=1,nzfz
-  110     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
+
+          do i=1,nzfz
+            rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
+          end do
+
           rdev=sqrt(rsqsum/real(nzfz,fPrec))                                   !hr05
           write(lout,10320) m*izu0,nzfz,rmean,rdev
           write(lout,10070)
@@ -23765,19 +23777,24 @@ c$$$         endif
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
 +ei
-        do 120 l=1,2
+        do l=1,2
           clo0(l)=clo(l)
-  120   clop0(l)=clop(l)
+          clop0(l)=clop(l)
+        end do
+
         call clorb(zero)
 +if debug
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
 +ei
-        do 130 l=1,2
+        do l=1,2
           ll=2*l
           di0(l)=(clo0(l)-clo(l))/ded
-  130   dip0(l)=(clop0(l)-clop(l))/ded
+          dip0(l)=(clop0(l)-clop(l))/ded
+        end do
+
         call corrorb
+
         if(irmod2.eq.1) call rmod(dp1)
         if(iqmod.ne.0) call qmod0
         if(ichrom.eq.1.or.ichrom.eq.3) call chroma
@@ -23904,6 +23921,7 @@ c$$$         endif
                 endif
               enddo
             endif
+
             do 190 ib1=1,napx
               ib3=ib1+(m+ib-2)*napx
 !--beam-beam element
@@ -23920,10 +23938,13 @@ c$$$         endif
               qwcs(ib3,1)=qwc(1)
               qwcs(ib3,2)=qwc(2)
               qwcs(ib3,3)=qwc(3)
-              do 180 i2=1,6
-                do 180 j2=1,6
+
+              do i2=1,6
+                do j2=1,6
                   tas(ib3,i2,j2)=tasm(i2,j2)
-  180         continue
+                end do
+              end do
+
   190       continue
           else
             if(idp.eq.1.and.iation.eq.1) then
@@ -24002,6 +24023,7 @@ c$$$         endif
 +ei
               if(nvar2.le.5) ition=itiono
               if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
+
               if(ilin.ge.2) then
                 nlinoo=nlin
                 nlin=nlino
@@ -24011,6 +24033,7 @@ c$$$         endif
                 call mydaini(2,2,5,2,5,1)
                 nlin=nlinoo
               endif
+
               do ncrr=1,iu
                 ix=ic(ncrr)
                 if(ix.gt.nblo) ix=ix-nblo
@@ -24021,6 +24044,7 @@ c$$$         endif
                 endif
               enddo
             endif
+
             do 170 i=1,napx
               iar=(m+ib-2)*napx+i
               clo6v(1,iar)=clo(1)
@@ -24034,9 +24058,13 @@ c$$$         endif
               qwcs(iar,1)=qwc(1)
               qwcs(iar,2)=qwc(2)
               qwcs(iar,3)=zero
-              do 160 i2=1,4
-                do 160 j2=1,4
-  160         tas(iar,i2,j2)=tasm(i2,j2)
+
+              do i2=1,4
+                do j2=1,4
+                  tas(iar,i2,j2)=tasm(i2,j2)
+                end do
+              end do
+
   170       continue
           endif
           iar=(m+ib-2)*napx+1
@@ -39024,16 +39052,20 @@ c$$$            endif
 
 !--IN BLOCK: PURE DRIFTLENGTH (above: If ITHICK=1 and kz!=0, goto 120->MAGNETELEMENT)
           etl=etl+el(jk)
-          do 100 l=1,2
+
+          do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
               phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
             else
               phibf(l)=pi2
             endif
-            do 100 i=1,ium
-  100     t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
-          do 110 l=1,2
+            do i=1,ium
+              t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
+            end do
+          end do
+
+          do l=1,2
             ll=2*l
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
@@ -39041,7 +39073,8 @@ c$$$            endif
               dphi=pi2-phibf(l)
             endif
             if((-one*dphi).gt.pieni) dphi=dphi+pi                        !hr06
-  110     phi(l)=phi(l)+dphi/pie
+            phi(l)=phi(l)+dphi/pie
+          end do
 
           nr=nr+1
 +if .not.collimat.and..not.bnlelens
@@ -39127,13 +39160,16 @@ c$$$            endif
         if(ix.le.0) goto 190
 !--REGULAR RUN THROUGH BLOCKS
         etl=etl+elbe(ix)
-        do 170 l=1,2
+
+        do l=1,2
           ll=2*l
+
           if(abs(t(ll,ll-1)).gt.pieni) then
             phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
           else
             phibf(l)=zero
           endif
+
           puf=t(6,ll-1)
       t(6,ll-1)=(((((bl1eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,2)*(t&!hr06
      &(1,ll)+t(6,ll)*ded))+ bl1eg(ix,l,5)*dpp1*c1e3)- bl1(ix,l,1)*t     &!hr06
@@ -39141,13 +39177,16 @@ c$$$            endif
       t(6,ll)=(((((bl1eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,4)*(t  &!hr06
      &(1,ll)+t(6,ll)*ded))+ bl1eg(ix,l,6)*dpp1*c1e3)- bl1(ix,l,3)*t     &!hr06
      &(1,ll-1))-bl1(ix,l,4)*t(1,ll))- bl1(ix,l,6)*dpr(1))/ded            !hr06
-          do 170 i=1,ium-1
+
+          do i=1,ium-1
             puf=t(i,ll-1)
             t(i,ll-1)=(bl1(ix,l,1)*puf+bl1(ix,l,2)*t(i,ll))+dpr(i)*bl1  &!hr06
      &(ix,l,5)                                                           !hr06
-  170   t(i,ll)=(bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll))+dpr(i)*bl1(ix,l,6) !hr06
+        t(i,ll)=(bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll))+dpr(i)*bl1(ix,l,6) !hr06
+          end do
+        end do
 
-        do 180 l=1,2
+        do l=1,2
           ll=2*l
           if(abs(t(ll,ll-1)).gt.pieni) then
             dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
@@ -39155,7 +39194,8 @@ c$$$            endif
             dphi=-one*phibf(l)                                           !hr06
           endif
           if(-one*dphi.gt.pieni) dphi=dphi+pi                            !hr06
-  180   phi(l)=phi(l)+dphi/pie
+          phi(l)=phi(l)+dphi/pie
+        end do
 
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
@@ -39173,13 +39213,15 @@ c$$$            endif
 !--REVERSE RUN THROUGH BLOCKS (ix.le.0)
   190   ix=-ix
         etl=etl+elbe(ix)
-        do 200 l=1,2
+        do l=1,2
           ll=2*l
+
           if(abs(t(ll,ll-1)).gt.pieni) then
             phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
           else
             phibf(l)=zero
           endif
+
           puf=t(6,ll-1)
       t(6,ll-1)=(((((bl2eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,2)*(t&!hr06
      &(1,ll)+t(6,ll)*ded))+ bl2eg(ix,l,5)*dpp1*c1e3)- bl2(ix,l,1)*t     &!hr06
@@ -39187,21 +39229,27 @@ c$$$            endif
       t(6,ll)=(((((bl2eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,4)*(t  &!hr06
      &(1,ll)+t(6,ll)*ded))+ bl2eg(ix,l,6)*dpp1*c1e3)- bl2(ix,l,3)*t     &!hr06
      &(1,ll-1))-bl2(ix,l,4)*t(1,ll))- bl2(ix,l,6)*dpr(1))/ded            !hr06
-          do 200 i=1,ium-1
+
+          do i=1,ium-1
             puf=t(i,ll-1)
             t(i,ll-1)=(bl2(ix,l,1)*puf+bl2(ix,l,2)*t(i,ll))+dpr(i)*bl2  &!hr06
      &(ix,l,5)                                                           !hr06
-  200   t(i,ll)=(bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll))+dpr(i)*bl2(ix,l,6) !hr06
+        t(i,ll)=(bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll))+dpr(i)*bl2(ix,l,6) !hr06
+          end do
+        end do
 
-        do 210 l=1,2
+        do l=1,2
           ll=2*l
+
           if(abs(t(ll,ll-1)).gt.pieni) then
             dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
           else
             dphi=-phibf(l)
           endif
+
           if(-one*dphi.gt.pieni) dphi=dphi+pi                            !hr06
-  210   phi(l)=phi(l)+dphi/pie
+          phi(l)=phi(l)+dphi/pie
+        end do
 
         nr=nr+1
 +if .not.collimat.and..not.bnlelens
@@ -40557,7 +40605,7 @@ c$$$            endif
       k2=n + 1
       piv=zero
 
-      do 40 k=1,n
+      do k=1,n
         ipiv(k)=k
         h=zero                                                           !hr06
         g=zero                                                           !hr06
@@ -40575,7 +40623,9 @@ c$$$            endif
    30   piv = pivt
 
         kpiv=k
-   40 k2 = k2 + 1
+        k2 = k2 + 1
+   40   continue
+      end do
 
 ! --- boucle pour chaque iteration
 
@@ -40591,11 +40641,11 @@ c$$$            endif
         g = rho(k2)
         rho(k2) = rho(k3)
         rho(k3) = g
-        do 50 i=1,m
+        do i=1,m
           h=a(i,k)
           a(i,k)=a(i,kpiv)
           a(i,kpiv)=h
-   50   continue
+        end do
 
 ! --- calcul de beta,sigma et uk dans htul
    60   continue
@@ -40603,7 +40653,7 @@ c$$$            endif
 
 ! --- on garde SIGMA dans RHO(N+K)
         j=n+k
-        rho(j)=-1.0*sig                                                  !hr06
+        rho(j)=-one*sig                                                  !hr06
         ip=ipiv(kpiv)
         ipiv(kpiv)=ipiv(k)
         ipiv(k)=ip
@@ -40621,14 +40671,15 @@ c$$$            endif
 
         rho(k)=sqrt(piv)
         if(k.eq.n) goto 90
-        piv=0.0                                                          !hr06
+        piv=zero                                                          !hr06
         kpiv = k + 1
         j1 = kpiv
         k2=n + j1
-        do 80 j=j1,n
+
+        do j=j1,n
           h=rho(j)-(a(k,j))*(a(k,j))
 
-          if(h.lt.0.0000001) then
+          if(h.lt.c1m7) then
             write(lout,*)
             write(lout,*) 'CORRECTION PROCESS ABORTED.'
             write(lout,*) 'DIVISION BY ZERO EXPECTED.'
@@ -40645,7 +40696,9 @@ c$$$            endif
           if(pivt.lt.piv)goto 80
           kpiv=j
           piv=pivt
-   80   k2 = k2 + 1
+          k2 = k2 + 1
+   80     continue
+        end do
 
 ! --- calcul des X
    90   x(k)=b(k)/rho(n+k)
@@ -40664,7 +40717,7 @@ c$$$            endif
         do 130 iii= 1,m
   130   r(iii) = b(iii)
         do 140 iii= 1,k
-  140   x(iii) =-1.0*x(iii)                                              !hr06
+  140   x(iii) =-one*x(iii)                                              !hr06
 
 ! --- calcul du vecteur residuel dans HTRL
 !=========================================
@@ -40699,6 +40752,7 @@ c$$$            endif
       use floatPrecision
       use mathlib_bouncer
       implicit none
++ca parnum
       integer j,k,k1,m,n,nc,ncor1,nmon1
       real(kind=fPrec) a,beta,h
       parameter (nmon1 = 600)
@@ -40709,15 +40763,18 @@ c$$$            endif
 
       nc=n-k
 
-      do 20 j=1,nc
-        h=0.0                                                            !hr06
+      do j=1,nc
+        h=zero                                                          !hr06
 
-        do 10 k1=k,m
-   10   h=h+a(k1,k)*a(k1,k+j)
+        do k1=k,m
+          h=h+a(k1,k)*a(k1,k+j)
+        end do
 
         h=beta*h
-        do 20 k1=k,m
-   20 a(k1,k+j)=a(k1,k+j)-a(k1,k)*h
+        do k1=k,m
+          a(k1,k+j)=a(k1,k+j)-a(k1,k)*h
+        end do
+      end do
 
       end
       subroutine htbl(a,b,m,n,k,beta)
@@ -40777,18 +40834,18 @@ c$$$            endif
       save
 !-----------------------------------------------------------------------
 
-      do 10 i= 1,k,1
+      do i= 1,k,1
         b(i)= zero                                                       !hr06
-   10 continue
+      end do
 
-      do 20 kk=1,k
+      do kk=1,k
         lv=m-k+kk
         kn=n+k-kk+1
         kl=k-kk+1
 
         beta=-one/(rho(kn)*a(kl,kl))                                     !hr06
         call htbl(a,b,m,n,kl,beta)
-   20 continue
+      end do
 
       end
 
@@ -40813,9 +40870,9 @@ c$$$            endif
 !-----------------------------------------------------------------------
       sig=zero                                                          !hr06
 
-      do 10 i=k,m
+      do i=k,m
         sig=sig+a(i,k)* a(i,k)
-   10 continue
+      end do
 
       sig=sqrt(sig)
 !     on choisit le signe correct pour SIG:
@@ -40846,10 +40903,10 @@ c$$$            endif
       xave = zero
       xrms = zero
 
-      do 10 i=1,m
+      do i=1,m
         xave = xave + r(i)
         xrms = xrms + r(i)**2                                            !hr06
-   10 continue
+      end do
 
       ave = xave / real(m)
       rms = xrms / real(m)
@@ -40879,12 +40936,13 @@ c$$$            endif
       if (n.lt.1) return
       curent=a(1)
 
-      do 10 i=2,n
+      do i=2,n
         if ((m.eq.0).and.(a(i).ge.curent)) goto 10
         if ((m.eq.1).and.(a(i).le.curent)) goto 10
         curent=a(i)
         maxmin=i
-   10 continue
+   10   continue
+      end do
 
       return
       end
