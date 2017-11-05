@@ -7078,7 +7078,7 @@ cc2008
 +if boinc
       call boincrf('fort.2',filename)
 +if fio
-      open(2,file=filename,form='formatted',status='unknown',
+      open(2,file=filename,form='formatted',status='unknown',           &
      &round='nearest')
 +ei
 +if .not.fio
@@ -7087,7 +7087,7 @@ cc2008
 +ei !END of +if boinc
 +if .not.boinc
 +if fio
-      open(2,file='fort.2',form='formatted',status='unknown',
+      open(2,file='fort.2',form='formatted',status='unknown',           &
      &round='nearest')
 +ei
 +if .not.fio
@@ -7098,7 +7098,7 @@ cc2008
 +if boinc
       call boincrf('fort.3',filename)
 +if fio
-      open(3,file=filename,form='formatted',status='unknown',
+      open(3,file=filename,form='formatted',status='unknown',           &
      &round='nearest')
 +ei
 +if .not.fio
@@ -7107,7 +7107,7 @@ cc2008
 +ei !END of +if boinc
 +if .not.boinc
 +if fio
-      open(3,file='fort.3',form='formatted',status='unknown',
+      open(3,file='fort.3',form='formatted',status='unknown',           &
      &round='nearest')
 +ei
 +if .not.fio
@@ -7147,7 +7147,7 @@ cc2008
 +if boinc
       call boincrf('fort.8',filename)
 +if fio
-      open(8,file=filename,form='formatted',status='unknown',
+      open(8,file=filename,form='formatted',status='unknown',           &
      &round='nearest')
 +ei
 +if .not.fio
@@ -7156,7 +7156,7 @@ cc2008
 +ei !END of +if boinc
 +if .not.boinc
 +if fio
-      open(8,file='fort.8',form='formatted',status='unknown',
+      open(8,file='fort.8',form='formatted',status='unknown',           &
      &round='nearest')
 +ei
 +if .not.fio
@@ -7302,7 +7302,7 @@ cc2008
 +if boinc
       call boincrf('fort.16',filename)
 +if fio
-      open(16,file=filename,form='formatted',status='unknown',
+      open(16,file=filename,form='formatted',status='unknown',          &
      &round='nearest')
 +ei
 +if .not.fio
@@ -7311,7 +7311,7 @@ cc2008
 +ei !END of +if boinc
 +if .not.boinc
 +if fio
-      open(16,file='fort.16',form='formatted',status='unknown',
+      open(16,file='fort.16',form='formatted',status='unknown',         &
      &round='nearest')
 +ei
 +if .not.fio
@@ -15550,8 +15550,8 @@ cc2008
 !+if crlibm
 !         call disable_xp()
 !+ei
-        write(lout,*)
-     &       'ERROR in BEAM block (EXPERT mode): '//
+        write(lout,*)                                                   &
+     &       'ERROR in BEAM block (EXPERT mode): '//                    &
      &       'fortran IO currently not supported.'
         call prror(-1)
 +ei
