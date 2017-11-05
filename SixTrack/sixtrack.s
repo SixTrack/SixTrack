@@ -48482,7 +48482,7 @@ cc2008
           do ia=1,crnapxo/2,1
              do j=2,crbinrecs(ia)
                 if(ntwin.ne.2) then
-                   read(90,err=105,end=105,iostat=ierro)
+                   read(90,err=105,end=105,iostat=ierro)                &
      &                  (tbuff(k),k=1,17)
                    write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
                 else
@@ -48507,7 +48507,7 @@ cc2008
           do ia=1,crnapxo/2,1
              do j=2,crbinrecs(ia)
                 if(ntwin.ne.2) then
-                   read(94,err=105,end=105,iostat=ierro)
+                   read(94,err=105,end=105,iostat=ierro)                &
      &                  (tbuff(k),k=1,17)
                    write(90,err=105,iostat=ierro) (tbuff(k),k=1,17)
                 else
@@ -48579,7 +48579,7 @@ cc2008
       do ia=1,crnapxo/2,1
          do j=2,crbinrecs(ia)
             if(ntwin.ne.2) then !ntwin=1
-               read(90,err=102,end=102,iostat=ierro)
+               read(90,err=102,end=102,iostat=ierro)                    &
      &              (tbuff(k),k=1,17)
             else                !ntwin=2
                read(90,err=102,end=102,iostat=ierro) tbuff
