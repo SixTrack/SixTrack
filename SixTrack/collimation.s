@@ -7747,8 +7747,8 @@ c$$$     &           myalphay * cos(phiy))
 ! dE/E with unit [1] from the closed orbit is added 
 !For the 4D coordinates the closed orbit
 ! will be added by SixTrack itself later on.
-        myxp(j)  = myxp(j)*(1.d0+myp(j)+clop6v(3,1))
-        myyp(j)  = myyp(j)*(1.d0+myp(j)+clop6v(3,1))
+         myxp(j)  = myxp(j)*(1.d0+myp(j)+clop6v(3,1))
+         myyp(j)  = myyp(j)*(1.d0+myp(j)+clop6v(3,1))
 ! unit conversion for collimation [m] to [mm]
          mys(j)   = mys(j)*1000.d0
          myp(j)   = myenom*(1.d0+myp(j))
