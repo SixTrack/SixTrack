@@ -6409,13 +6409,13 @@ cc2008
 !     do the unit conversion + inversion of dumptas
 !     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
 
-               dumptas(ic(i)-nblo,1:5,6)=
+               dumptas(ic(i)-nblo,1:5,6)=                               &
      &                 dumptas(ic(i)-nblo,1:5,6)*c1e3
-               dumptas(ic(i)-nblo,6,1:5)=
+               dumptas(ic(i)-nblo,6,1:5)=                               &
      &              dumptas(ic(i)-nblo,6,1:5)*c1m3
                
 !     invert the tas matrix
-                call invert_tas(dumptasinv(ic(i)-nblo,:,:),
+                call invert_tas(dumptasinv(ic(i)-nblo,:,:),             &
      &               dumptas(ic(i)-nblo,:,:))
 !     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
                 
@@ -8496,7 +8496,7 @@ cc2008
                ! OutPipe
                inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
                if ( lopen ) then
-                  write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")
+                  write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")            &
      &                 "CLOSEUNITS"
                   close(iexpr_dynk(funcs_dynk(i,3))+1)
                endif
@@ -11011,15 +11011,15 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
-      use scatter, only : scatter_active, scatter_debug,
-     &     scatter_seed1,scatter_seed2,
-     &     scatter_dumpdata,
-     &     scatter_parseELEM, scatter_parseProfile,
-     &     scatter_parseGenerator, scatter_parseSEED,
+      use scatter, only : scatter_active, scatter_debug,                &
+     &     scatter_seed1,scatter_seed2,                                 &
+     &     scatter_dumpdata,                                            &
+     &     scatter_parseELEM, scatter_parseProfile,                     &
+     &     scatter_parseGenerator, scatter_parseSEED,                   &
      &     scatter_allocate
 
-      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
-     &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,
+      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
+     &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,                 &
      &     dynk_inputsanitycheck, dynk_allocate
       
       use physical_constants
@@ -13846,13 +13846,13 @@ cc2008
       ! bezr are character strings, should be OK
       read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
       if(idat.ne.next) then !Isn't this already checked for above?
-         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)     &
      &        write(lout,10360) idat
-         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)
+         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)     &
      &        write(lout,10390) idat,bezr(2,iorg)
-         if(idat.ne.mult)
+         if(idat.ne.mult)                                               &
      &        bezr(1,iorg)=idat
-         if(idat.eq.mult.and.
+         if(idat.eq.mult.and.                                           &
      &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
             write(lout,10400) bezr(2,iorg),bezr(3,iorg)
             im=im+1
@@ -13864,7 +13864,7 @@ cc2008
                if(bez(i).eq.bezr(3,iorg)) j0=i
             end do
 
-            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)          &
+            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)      &
      &              call prror(29)
 
             irm(j0)=im
@@ -13905,7 +13905,7 @@ cc2008
 +if crlibm
       call enable_xp()
 +ei
-      if(iclr.eq.1) read(ch1,*,round='nearest')                         
+      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
      & itco,dma,dmap
 +if crlibm
       call disable_xp()
@@ -13936,7 +13936,7 @@ cc2008
 +if crlibm
       call enable_xp()
 +ei
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         
+      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
      & itqv,dkq,dqq
 +if crlibm
       call disable_xp()
@@ -13965,7 +13965,7 @@ cc2008
 +ei
 +ei
 +if fio
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         
+      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
      & itcro,dsm0,dech
 +ei
 +if .not.fio
@@ -14055,7 +14055,7 @@ cc2008
         read(ch1,*) idat, loadunit, load_file
         inquire( file=load_file, exist=lexist )
         if ( .not. lexist ) then
-            write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",
+            write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
      &      "IN THE RUNNING FOLDER"
             call prror(-1)
         endif
@@ -14101,7 +14101,7 @@ cc2008
             endif
 
             if ( kape(ii) .ne. 0 ) then
-              write(lout,10330)
+              write(lout,10330)                                         &
      &           bez(ii), irel, ape(1,ii), ape(2,ii), ape(3,ii),        &
      &               ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
             endif
@@ -15025,7 +15025,7 @@ cc2008
             if(kz(j).ne.2) call prror(8)
           endif
           nskew(i)=j
-          doi2=1,6
+          do i2=1,6
             if(nskew(i2).ne.0.and.(nskew(i2).eq.nskew(i)) .and.(i2.ne.i)&
      &) call prror(63)
           end do
@@ -15463,7 +15463,7 @@ cc2008
       if(ch(:4).eq.next) goto 110
 
       if (nbeam.ge.1) then
-         write(lout,*)
+         write(lout,*)                                                  &
      &        "ERROR: There can only be one BEAM block in fort.3"
          call prror(-1)
       endif
@@ -15481,7 +15481,7 @@ cc2008
 +if crlibm
          call enable_xp()
 +ei
-         read(ch1,*,round='nearest')                                       &
+         read(ch1,*,round='nearest')                                    &
      &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +if crlibm
          call disable_xp()
@@ -15489,14 +15489,14 @@ cc2008
 +ei
 +if .not.fio
 +if .not.crlibm
-         read(ch1,*)
+         read(ch1,*)                                                    &
      &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
          if (nf.ne.9) then
             write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-            write(lout,'(a,I3)')
+            write(lout,'(a,I3)')                                        &
      &           "First line should have 9 fields, got", nf
             call prror(-1)
          endif
@@ -15581,8 +15581,8 @@ cc2008
             read(ch1,*) idat,i,xang,xplane,separx,separy
          else
             write(lout,'(a)') "ERROR when reading BEAM block:"
-            write(lout,'(a,i5,a,a16)')
-     &           "Expected number of slices >= 0; but got",
+            write(lout,'(a,i5,a,a16)')                                  &
+     &           "Expected number of slices >= 0; but got",             &
      &           i, " in element ",idat
             call prror(-1)
          endif
@@ -15592,8 +15592,8 @@ cc2008
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
          if (.not.(nf.eq.6 .or. nf.eq.7)) then
             write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-            write(lout,'(a,I3)')
-     &           "First line of an element definition should "//
+            write(lout,'(a,I3)')                                        &
+     &           "First line of an element definition should "//        &
      &           "have 6 or 7 fields, got", nf
             call prror(-1)
          endif
@@ -15603,8 +15603,8 @@ cc2008
          if (i.gt.0) then  !6D
             if (nf.ne.6) then
                write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')
-     &              "First line of a 6D element definition should "//
+               write(lout,'(a,I3)')                                     &
+     &              "First line of a 6D element definition should "//   &
      &              "have 6 fields, got", nf
                call prror(-1)
             endif
@@ -15625,8 +15625,8 @@ cc2008
 
             if (nf.ne.5) then
                write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')
-     &              "Second line of a 6D element definition should "//
+               write(lout,'(a,I3)')                                     &
+     &              "Second line of a 6D element definition should "//  &
      &              "have 5 fields, got", nf
                call prror(-1)
             endif
@@ -15646,8 +15646,8 @@ cc2008
 
             if (nf.ne.6) then
                write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')
-     &              "Third line of a 6D element definition should "//
+               write(lout,'(a,I3)')                                     &
+     &              "Third line of a 6D element definition should "//   &
      &              "have 5 fields, got", nf
                call prror(-1)
             endif
@@ -15662,8 +15662,8 @@ cc2008
          else if(i.eq.0) then ! 4D
             if (nf.ne.7) then
                write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')
-     &              "First line of a 6D element definition should "//
+               write(lout,'(a,I3)')                                     &
+     &              "First line of a 6D element definition should "//   &
      &              "have 7 fields, got", nf
                call prror(-1)
             endif
@@ -15677,8 +15677,8 @@ cc2008
          else
             read(fields(1),*) idat
             write(lout,'(a)') "ERROR when reading BEAM block:"
-            write(lout,'(a,i5,a,a16)')
-     &           "Expected number of slices >= 0; but got",
+            write(lout,'(a,i5,a,a16)')                                  &
+     &           "Expected number of slices >= 0; but got",             &
      &           i, " in element ",idat
             call prror(-1)
          endif
@@ -15689,21 +15689,21 @@ cc2008
             if(idat.eq.bez(j)) then
                if(kz(j).ne.20) then
                   write(lout,'(a)') "ERROR when reading BEAM block:"
-                  write(lout,'(a,a16,a,i5,a)')
-     &                 "Found element named ",bez(j),
+                  write(lout,'(a,a16,a,i5,a)')                          &
+     &                 "Found element named ",bez(j),                   &
      &                 " but type is",kz(j), ", expected type 20!"
                   call prror(-1)
                else
                   
-                  if(parbe(j,5).ne.zero .or. parbe(j,6).ne.zero
-     &                 .or. ptnfac(j).ne.zero
-     &                 .or. bbbx(j).ne.zero .or. bbby(j).ne.zero
+                  if(parbe(j,5).ne.zero .or. parbe(j,6).ne.zero         &
+     &                 .or. ptnfac(j).ne.zero                           &
+     &                 .or. bbbx(j).ne.zero .or. bbby(j).ne.zero        &
      &                 .or. bbbs(j).ne.zero ) then
                      !Note: Data moved from ed/ek/el to parbe/ptnfac in initialize_element
                      write(lout,'(a)') "ERROR when reading BEAM block:"
-                     write(lout,'(a,a16,a)')
-     &                    "Using EXPERT mode, but element ", bez(j),
-     &                    " does not have ed=ek=el=bbbx=bbby=bbbs=0.0"//
+                     write(lout,'(a,a16,a)')                            &
+     &                    "Using EXPERT mode, but element ", bez(j),    &
+     &                    " does not have ed=ek=el=bbbx=bbby=bbbs=0.0"//&
      &                    " in the SINGLE ELEMENTS list."
                      call prror(-1)
                   endif
@@ -15743,28 +15743,28 @@ cc2008
          
       else ! Old-style BEAM block
          write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
-         write (lout,'(a)') " Check the file 'beam_expert.txt'"//
+         write (lout,'(a)') " Check the file 'beam_expert.txt'"//       &
      &        " for conversion to the new 'EXPERT' format."
-         write (lout,'(a)') " To convert to the new format,"//
-     &        " copy-paste these lines into the BEAM"//
+         write (lout,'(a)') " To convert to the new format,"//          &
+     &        " copy-paste these lines into the BEAM"//                 &
      &        " block in fort.3, replacing line 2 onwards."
-         write (lout,'(a)') " Then write EXPERT on the first line"//
+         write (lout,'(a)') " Then write EXPERT on the first line"//    &
      &        " of the BEAM block, above the current first line."
-         write(lout,'(a)') " Finally, in the SINGLE ELEMENTS list"//
-     &        " (normally in fort.2) set the parameters of all"//
+         write(lout,'(a)') " Finally, in the SINGLE ELEMENTS list"//    &
+     &        " (normally in fort.2) set the parameters of all"//       &
      &        " beam-beam lenses (type 20) to 0.0."
          write(lout,'(a)') " "
-         write(lout,'(a)') " This procedure produces a new"//
-     &        " set of input files that should have bit-for-bit"//
+         write(lout,'(a)') " This procedure produces a new"//           &
+     &        " set of input files that should have bit-for-bit"//      &
      &        " identical results to this one."
-         write(lout,'(a)') " The easiest way to check this is"//
-     &        " to run both simulations side-by-side and compare"//
+         write(lout,'(a)') " The easiest way to check this is"//        &
+     &        " to run both simulations side-by-side and compare"//     &
      &        " the standard output in a text diff tool like meld."
-         write(lout,'(a)') " If the results are not identical,"//
+         write(lout,'(a)') " If the results are not identical,"//       &
      &        " this is a bug; please report it to the developers!"
 +if .not.crlibm
          write(lout,'(a)') " "
-         write(lout,'(a)') "NOTE: THIS SIXTRACK BINARY WAS"//
+         write(lout,'(a)') "NOTE: THIS SIXTRACK BINARY WAS"//           &
      &        " NOT COMPILED WITH CRLIBM, CONVERSION WILL NOT BE EXACT."
 +ei
          write(lout,'(a)') " "
@@ -15774,7 +15774,7 @@ cc2008
 +if crlibm
          call enable_xp()
 +ei
-         read(ch1,*,round='nearest')                                       &
+         read(ch1,*,round='nearest')                                    &
      &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +if crlibm
          call disable_xp()
@@ -15782,18 +15782,18 @@ cc2008
 +ei
 +if .not.fio
 +if .not.crlibm
-         read(ch1,*)
+         read(ch1,*)                                                    &
      &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
 +ei
 +if crlibm
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
          if (nf.ne.9) then
-            write(lout,'(a)')
+            write(lout,'(a)')                                           &
      &           "WARNING in DATEN reading BEAM (not EXPERT)"
-            write(lout,'(a,i4)') "First line should have 9 fields,"//
+            write(lout,'(a,i4)') "First line should have 9 fields,"//   &
      &           " got ", nf
             !Treating this as a warning, or else we would invalidate
-            !lots of working inpuit files
+            !lots of working input files
             !call prror(-1)
          endif
          
@@ -15863,7 +15863,7 @@ cc2008
          if(ch(:4).eq.next) goto 110  ! Done yet?
 
          !Check number of arguments gotten
-         call getfields_split( ch, getfields_fields, getfields_lfields,
+         call getfields_split( ch, getfields_fields, getfields_lfields, &
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(-1)
          beam_xstr = .false.
@@ -16221,21 +16221,21 @@ cc2008
         
         ! ldump(0)=.true. : DUMP all elements found
         if ( ldump(0) ) then
-           write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),
-     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),
+           write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),             &
+     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),       &
      &           dumpfmt(0), dumpfirst(0), dumplast(0)
         endif
         if ( ldump(-1) ) then
-           write(lout,10470) 'StartDUMP speci.', ndumpt(0),
-     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),
+           write(lout,10470) 'StartDUMP speci.', ndumpt(0),             &
+     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),       &
      &          dumpfmt(0), dumpfirst(0), dumplast(0)
         endif
 
         do ii=1,il
           if(ldump(ii)) then
-            write(lout,10470)
-     &            bez(ii), ndumpt(ii), dumpunit(ii),
-     &            trim(stringzerotrim(dump_fname(ii))),
+            write(lout,10470)                                           &
+     &            bez(ii), ndumpt(ii), dumpunit(ii),                    &
+     &            trim(stringzerotrim(dump_fname(ii))),                 &
      &            dumpfmt(ii), dumpfirst(ii), dumplast(ii)
       
 !           At which structure indices is this single element found? (Sanity check)
@@ -16243,19 +16243,19 @@ cc2008
             do jj=1,mper*mbloz      ! Loop over all structure elements
               if ( ic(jj)-nblo .eq. ii ) then
                 write (ch1,*) jj    ! internal write for left-adjusting
-                write (lout,10472)
-     &               " -> Found as structure element no. "
+                write (lout,10472)                                      &
+     &               " -> Found as structure element no. "              &
      &               // trim(adjustl(ch1))
                 kk = kk + 1
               end if
             end do
             if (kk .eq. 0) then
-               write (lout,10472) " !! Warning: No structure elements "
+               write (lout,10472) " !! Warning: No structure elements " &
      &              // "found for '" // bez(ii) // "'!"
-               write (lout,10472)
-     &              " !! This element is probably only found"
+               write (lout,10472)                                       &
+     &              " !! This element is probably only found"           &
      &              // " in a BLOC, or it is not used at all."
-               write (lout,10472) " !! Please fix your DUMP block"
+               write (lout,10472) " !! Please fix your DUMP block"      &
      &              // " in fort.3"
 
                call prror(-1)
@@ -16291,18 +16291,18 @@ cc2008
       endif
       
 !     requested element
-      call getfields_split( ch, getfields_fields, getfields_lfields,
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) call prror(-1)
       
-      if ( (getfields_nfields .lt. 4) .or. 
-     &     (getfields_nfields .gt. 7) .or.
+      if ( (getfields_nfields .lt. 4) .or.                              &
+     &     (getfields_nfields .gt. 7) .or.                              &
      &     (getfields_nfields .eq. 6)      ) then
          write(lout,*) "ERROR in DUMP:"
-         write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",
+         write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",    &
      &        getfields_nfields
-         write(lout,*)
-     &        ("'"//getfields_fields(kk)(1:getfields_lfields(kk))//"' ",
+         write(lout,*)                                                  &
+     &        ("'"//getfields_fields(kk)(1:getfields_lfields(kk))//"' ",&
      &        kk=1,getfields_nfields)
          call prror(-1)
       endif
@@ -16319,7 +16319,7 @@ cc2008
       if (getfields_nfields .eq. 4) then
          !Automatic fname
          write(ch1,"(a5,I0)") "fort.", i2
-      else if ( (getfields_nfields .eq. 5) .or. 
+      else if ( (getfields_nfields .eq. 5) .or.                         & 
      &          (getfields_nfields .eq. 7)     ) then
          !Given fname
          ch1 = getfields_fields(5)(1:getfields_lfields(5))
@@ -16335,14 +16335,14 @@ cc2008
 !     Check that first/last turn is sane
       if ( i5.ne.-1 ) then
          if ( i5 .lt. i4 ) then
-            write(lout,*)
-     &           "Error in DUMP: Expect last turn >= first turn, ",
+            write(lout,*)                                               &
+     &           "Error in DUMP: Expect last turn >= first turn, ",     &
      &           "unless last turn = -1 (infinity), got", i4,i5
            call prror(-1)
          endif
       endif
       if ( i4 .lt. 1 ) then
-         write(lout,*)
+         write(lout,*)                                                  &
      &        "Error in DUMP: Expect first turn >= 1, got", i4
          call prror(-1)
       endif
@@ -16352,7 +16352,7 @@ cc2008
          if(bez(j).eq.idat) then
             if (ldump(j)) then !Only enable once/element!
                write(lout,*) "Error in parsing DUMP block:"
-               write(lout,*) "Element '",idat, "' was specified",
+               write(lout,*) "Element '",idat, "' was specified",       &
      &              " more than once"
                call prror(-1)
             endif
@@ -16360,16 +16360,16 @@ cc2008
             !Element was found in SINGLE ELEMENTS list, now do some sanity checks
             if(trim(bez(j)).eq."ALL") then
                write(lout,*) "Error in parsing DUMP block:"
-               write(lout,*) "The element name 'ALL'"//
-     &                       " cannot be used in the SINGLE ELEMENTS"//
-     &                       " list when an 'ALL'"//
+               write(lout,*) "The element name 'ALL'"//                 &
+     &                       " cannot be used in the SINGLE ELEMENTS"// &
+     &                       " list when an 'ALL'"//                    &
      &                       " special DUMP is active."
                call prror(-1)
             elseif(trim(bez(j)).eq."StartDUMP") then
                write(lout,*) "Error in parsing DUMP block:"
-               write(lout,*) "The element name 'StartDUMP'"//
-     &                       " cannot be used in the SINGLE ELEMENTS"//
-     &                       " list when an 'StartDUMP'"//
+               write(lout,*) "The element name 'StartDUMP'"//           &
+     &                       " cannot be used in the SINGLE ELEMENTS"// &
+     &                       " list when an 'StartDUMP'"//              &
      &                       " special DUMP is active."
                call prror(-1)
             endif
@@ -16380,7 +16380,7 @@ cc2008
          j=0
          if (ldump(j)) then
             write(lout,*) "ERROR in parsing DUMP block:"
-            write(lout,*) "'Element' ALL was specified "//
+            write(lout,*) "'Element' ALL was specified "//              &
      &           "(at least) twice"
             call prror(-1)
          endif
@@ -16390,7 +16390,7 @@ cc2008
          j=-1
          if (ldump(j)) then
             write(lout,*) "ERROR in parsing DUMP block:"
-            write(lout,*) "'Element' StartDUMP was specified "//
+            write(lout,*) "'Element' StartDUMP was specified "//        &
      &           "(at least) twice"
             call prror(-1)
          endif
@@ -16446,56 +16446,53 @@ cc2008
 
       if (ch(:4).eq."DEBU") then
          ldynkdebug = .true.
-         write (lout,*)
-     &        "DYNK> DYNK block debugging is ON"
+         write (lout,*) "DYNK> DYNK block debugging is ON"
          goto 2201 !loop DYNK
          
       else if (ch(:6).eq."NOFILE") then
          ldynkfiledisable = .true.
-         write (lout,*)
-     &        "DYNK> Disabled writing dynksets.dat"
+         write (lout,*) "DYNK> Disabled writing dynksets.dat"
          goto 2201 !loop DYNK
          
       else if (ch(:3).eq."FUN") then
-         call getfields_split( ch, getfields_fields, getfields_lfields,
+         call getfields_split( ch, getfields_fields, getfields_lfields, &
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(51)
          if (ldynkdebug) then
-            write (lout,'(1x,A,I4,A)')
-     &           "DYNKDEBUG> Got a FUN block, len=",
+            write (lout,'(1x,A,I4,A)')                                  &
+     &           "DYNKDEBUG> Got a FUN block, len=",                    &
      &           len(ch), ": '"// trim(ch)// "'"
             do ii=1,getfields_nfields
-               write (lout,*)
-     &              "DYNKDEBUG> Field(",ii,") ='"//
+               write (lout,*)                                           &
+     &              "DYNKDEBUG> Field(",ii,") ='"//                     &
      &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
             enddo
          endif
-         call dynk_parseFUN(getfields_fields,
+         call dynk_parseFUN(getfields_fields,                           &
      &        getfields_lfields, getfields_nfields)
          goto 2201 !loop DYNK
 
       else if (ch(:3).eq."SET") then
-         call getfields_split( ch, getfields_fields, getfields_lfields,
+         call getfields_split( ch, getfields_fields, getfields_lfields, &
      &        getfields_nfields, getfields_lerr )
          if ( getfields_lerr ) call prror(51)
          if (ldynkdebug) then
-            write (lout,'(1x,A,I4,A)')
-     &           "DYNKDEBUG> Got a SET block, len=",
+            write (lout,'(1x,A,I4,A)')                                  &
+     &           "DYNKDEBUG> Got a SET block, len=",                    &
      &           len(ch), ": '"//trim(ch)//"'"
             do ii=1,getfields_nfields
-               write (lout,*)
-     &              "DYNKDEBUG> Field(",ii,") ='"//
+               write (lout,*)                                           &
+     &              "DYNKDEBUG> Field(",ii,") ='"//                     &
      &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
             enddo
          endif
-         call dynk_parseSET(getfields_fields,
+         call dynk_parseSET(getfields_fields,                           &
      &        getfields_lfields, getfields_nfields)
          goto 2201 !loop DYNK
 
       else if (ch(:4).eq.next) then
          if (ldynkdebug) then
-            write (lout,*)
-     &           "DYNKDEBUG> Finished parsing DYNK block"
+            write (lout,*) "DYNKDEBUG> Finished parsing DYNK block"
             call dynk_dumpdata
          endif
          
@@ -16508,7 +16505,7 @@ cc2008
          write (lout,*)
          write (lout,*) "*******************************************"
          write (lout,*) "ERROR while parsing DYNK block in fort.3"
-         write (lout,*)
+         write (lout,*)                                                 &
      &        "Expected keywords FUN, SET, DEBU, NOFILE or NEXT"
          write (lout,*) "Got ch:"
          write (lout,*) "'"//ch//"'"
@@ -16543,77 +16540,77 @@ cc2008
       endif
       
       if(fma_numfiles.ge.fma_max) then
-        write(lout,*)
+        write(lout,*)                                                   &
      &       'ERROR: you can only do ',fma_max,' number of FMAs'
         call prror(-1) 
       endif
       
       fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
 !     read in input parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-        write(lout,*)
+        write(lout,*)                                                   &
      &       'ERROR in FMA block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
-      if(getfields_nfields.eq.1 .or. getfields_nfields.eq.4 .or.
+      if(getfields_nfields.eq.1 .or. getfields_nfields.eq.4 .or.        &
      &getfields_nfields.ge.6) then
-        write(lout,*)
-     &       'ERROR in FMA block: wrong number of input ',
+        write(lout,*)                                                   &
+     &       'ERROR in FMA block: wrong number of input ',              &
      &       'parameters: ninput = ', getfields_nfields,' != 2 (3 or 5)'
         call prror(-1)
       endif
 
-      fma_fname(fma_numfiles)  =
+      fma_fname(fma_numfiles)  =                                        &
      &     getfields_fields(1)(1:getfields_lfields(1))
-      fma_method(fma_numfiles) =
+      fma_method(fma_numfiles) =                                        &
      &     getfields_fields(2)(1:getfields_lfields(2))
       if(getfields_nfields.eq.2) then
         fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
       else if(getfields_nfields.eq.3) then
-         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
+         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')     &
      &        fma_norm_flag(fma_numfiles)
       else if(getfields_nfields.eq.5) then
-         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')
+         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')     &
      &        fma_norm_flag(fma_numfiles)
-         read (getfields_fields(4)(1:getfields_lfields(4)),'(I10)')
+         read (getfields_fields(4)(1:getfields_lfields(4)),'(I10)')     &
      &        fma_first(fma_numfiles)
-         read (getfields_fields(5)(1:getfields_lfields(5)),'(I10)')
+         read (getfields_fields(5)(1:getfields_lfields(5)),'(I10)')     &
      &        fma_last(fma_numfiles)
       endif
 
       ! Input sanity checks
-      if (.not. (
-     &    trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNELASK"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFTI"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFT"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEAPA"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFIT"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1"
+      if (.not. (                                                       &
+     &    trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNELASK"  &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFTI"  &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFT"   &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEAPA"   &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFIT"   &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"  &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"  &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"   &
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1" &
 +if naff
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"
+     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"      &
 +ei
      &)) then
-         write(lout,*)
-     &        "ERROR in DATEN::FMA: The FMA method '"//
-     &        trim(stringzerotrim(fma_method(fma_numfiles)))
+         write(lout,*)                                                  &
+     &        "ERROR in DATEN::FMA: The FMA method '"//                 &
+     &        trim(stringzerotrim(fma_method(fma_numfiles)))            &
      &        //"' is unknown. FMA index = ", fma_numfiles
-         write(lout,*)
-     &       "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//
-     &       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT2, TUNEABT2. "//
+         write(lout,*)                                                  &
+     &       "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//        &
+     &       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT2, TUNEABT2. "//       &
      &       "Note that it is case-sensitive, so use uppercase only."
          call prror(-1)
       end if
 
-      if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or.
+      if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or.                  &
      &           fma_norm_flag(fma_numfiles).eq.1      )) then
-         write(lout,*)
-     &        "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0."//
-     &        "Got:", fma_norm_flag(fma_numfiles),
+         write(lout,*)                                                  &
+     &        "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0."//&
+     &        "Got:", fma_norm_flag(fma_numfiles),                      &
      &        "FMA index =",fma_numfiles
       end if
       
@@ -16635,9 +16632,9 @@ cc2008
         do j=1,nele
           if(kz(j).eq.29) then
             if(elens_type(j).eq.0) then
-              write(lout,*)
-     &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
-     &'not defined in fort.3. You must define every elens in the '//
+              write(lout,*)                                             &
+     &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '// &
+     &'not defined in fort.3. You must define every elens in the '//    &
      &'ELEN block in fort.3!'
                call prror(-1)
             endif
@@ -16648,17 +16645,17 @@ cc2008
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
-        write(lout,*)
-     &       'ERROR in ELEN block: fortran IO format currently not ',
+        write(lout,*)                                                   &
+     &       'ERROR in ELEN block: fortran IO format currently not ',   &
      &       'supported!'
         call prror(-1)
 +ei
 
 !     1) read in elens parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-        write(lout,*)
+        write(lout,*)                                                   &
      &       'ERROR in ELEN block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
@@ -16666,17 +16663,17 @@ cc2008
 !     Check number of arguments
 !     If a new type of elens is implemented, may need to modify this!
       if(getfields_nfields.ne.9) then
-        write(lout,*)
-     &       'ERROR in ELEN block: wrong number of input ',
+        write(lout,*)                                                   &
+     &       'ERROR in ELEN block: wrong number of input ',             &
      &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
       endif
 
 !     Find the element, and check that we're not double-defining
       if (getfields_lfields(1) .gt. 16) then
-         write(lout,*)
-     &        "ERROR in ELEN block: Element name max 16 characters;"//
-     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
+         write(lout,*)                                                  &
+     &        "ERROR in ELEN block: Element name max 16 characters;"//  &
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))&
      &        //"' is too long."
          call prror(-1)
       endif
@@ -16685,23 +16682,23 @@ cc2008
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_elens=29)
             if(kz(j).ne.29) then
-               write(lout,*)
-     &              'ERROR: element type mismatch for ELEN!'//
+               write(lout,*)                                            &
+     &              'ERROR: element type mismatch for ELEN!'//          &
      &              'Element type is kz(',j,') = ',kz(j),'!= 29'
                call prror(-1)
             endif
             if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
-               write(lout,*)
-     &'ERROR: length el(j) (elens is treated as thin element), '//
-     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
-     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
-     &')=',ek(j),'. Please check your input in the single element '//
-     &'definition of your ELEN. All values except for the type need '//
+               write(lout,*)                                            &
+     &'ERROR: length el(j) (elens is treated as thin element), '//      &
+     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//&
+     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,      &
+     &')=',ek(j),'. Please check your input in the single element '//   &
+     &'definition of your ELEN. All values except for the type need '// &
      &'to be zero.'
                call prror(-1)
             endif
             if (elens_type(j).ne.0) then
-               write(lout,*) "ERROR in ELEN block:"//
+               write(lout,*) "ERROR in ELEN block:"//                   &
      &              "The element '"//bez(j)//"' was defined twice!"
                call prror(-1)
             endif
@@ -16712,91 +16709,91 @@ cc2008
                ! Read in this case
                elens_type(j) = 1
 +if .not.crlibm
-               read (getfields_fields(3)(1:getfields_lfields(3)),*)
+               read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
      &              elens_theta_max(j)
-               read (getfields_fields(4)(1:getfields_lfields(4)),*)
+               read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
      &              elens_r2(j)
-               read (getfields_fields(5)(1:getfields_lfields(5)),*)
+               read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
      &              elens_r2ovr1(j)
-               read (getfields_fields(6)(1:getfields_lfields(6)),*)
+               read (getfields_fields(6)(1:getfields_lfields(6)),*)     &
      &              elens_offset_x(j)
-               read (getfields_fields(7)(1:getfields_lfields(7)),*)
+               read (getfields_fields(7)(1:getfields_lfields(7)),*)     &
      &              elens_offset_y(j)
 +ei
 +if crlibm
-               elens_theta_max(j)= round_near (
+               elens_theta_max(j)= round_near (                         &
      &              errno,getfields_lfields(3)+1, getfields_fields(3) )
-               if (errno.ne.0) call rounderr (
+               if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,3,elens_theta_max(j) )
-               elens_r2(j)       = round_near (
+               elens_r2(j)       = round_near (                         &
      &              errno,getfields_lfields(4)+1, getfields_fields(4) )
-               if (errno.ne.0) call rounderr (
+               if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,4,elens_r2(j) )
-               elens_r2ovr1(j)   = round_near (
+               elens_r2ovr1(j)   = round_near (                         &
      &              errno,getfields_lfields(5)+1, getfields_fields(5) )
-               if (errno.ne.0) call rounderr (
+               if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,5,elens_r2ovr1(j) )
-               elens_offset_x(j) = round_near (
+               elens_offset_x(j) = round_near (                         &
      &              errno,getfields_lfields(6)+1, getfields_fields(6) )
-               if (errno.ne.0) call rounderr (
+               if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,6,elens_offset_x(j) )
-               elens_offset_y(j) = round_near (
+               elens_offset_y(j) = round_near (                         &
      &              errno,getfields_lfields(7)+1, getfields_fields(7) )
-               if (errno.ne.0) call rounderr (
+               if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,7,elens_offset_y(j) )
 +ei
-               read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')
+               read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')&
      &              elens_bend_entrance(j)
-               read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')
+               read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')&
      &              elens_bend_exit(j)
                
                ! Make checks for this case
                if(elens_r2ovr1(j).le.1) then
-                  write(lout,*)
-     &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',
+                  write(lout,*)                                         &
+     &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',  &
      &elens_r2ovr1(j),'<1'
                  call prror(-1)
               end if
-              if(elens_bend_entrance(j).ne. 1 .and.
-     &           elens_bend_entrance(j).ne.-1 .and.
+              if(elens_bend_entrance(j).ne. 1 .and.                     &
+     &           elens_bend_entrance(j).ne.-1 .and.                     &
      &           elens_bend_entrance(j).ne. 0      ) then
-                 write(lout,*)
-     &'ERROR: ELEN flag for taking bends at entrance into account must'
-     &//' be -1,0,1, but elens_bend_entrance =',
+                 write(lout,*)                                          &
+     &'ERROR: ELEN flag for taking bends at entrance into account must' &
+     &//' be -1,0,1, but elens_bend_entrance =',                        &
      &elens_bend_entrance(j)
                  call prror(-1)
               end if
-              if(elens_bend_exit(j).ne. 1 .and.
-     &           elens_bend_exit(j).ne.-1 .and.
+              if(elens_bend_exit(j).ne. 1 .and.                         &
+     &           elens_bend_exit(j).ne.-1 .and.                         &
      &           elens_bend_exit(j).ne.0       ) then
-                 write(lout,*)
-     &'ERROR: ELEN flag for taking bends at exit into account must'
-     &//' be -1,0,1, but elens_bend_exit =',
+                 write(lout,*)                                          &
+     &'ERROR: ELEN flag for taking bends at exit into account must'     &
+     &//' be -1,0,1, but elens_bend_exit =',                            &
      &elens_bend_exit(j)
                  call prror(-1)
               end if
 
               ! print a summary of elens parameters
-              write(lout,
-     &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D10.3,A,/),(A,/),'
-     &//'2(A,I4,/))')
-     &'ELENS found in list of single elements with: ',
-     &'name     = ',bez(j),
-     &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),
-     &        ' = ',elens_type(j),
-     &'thetamax = ',elens_theta_max(j),' mrad',
-     &'r2       = ',elens_r2(j),' mm',
-     &'r2/r1    = ',elens_r2ovr1(j),'',
-     &'offset_x = ',elens_offset_x(j),' mm',
-     &'offset_y = ',elens_offset_y(j),' mm',
-     &'enable bends at:',
-     &'  entrance = ',elens_bend_entrance(j),
+              write(lout,                                               &
+     &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D10.3,A,/),(A,/),'           &
+     &//'2(A,I4,/))')                                                   &
+     &'ELENS found in list of single elements with: ',                  &
+     &'name     = ',bez(j),                                             &
+     &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),        &
+     &        ' = ',elens_type(j),                                      &
+     &'thetamax = ',elens_theta_max(j),' mrad',                         &
+     &'r2       = ',elens_r2(j),' mm',                                  &
+     &'r2/r1    = ',elens_r2ovr1(j),'',                                 &
+     &'offset_x = ',elens_offset_x(j),' mm',                            &
+     &'offset_y = ',elens_offset_y(j),' mm',                            &
+     &'enable bends at:',                                               &
+     &'  entrance = ',elens_bend_entrance(j),                           &
      &'  exit     = ',elens_bend_exit(j)
       
             case default
-               write(lout,*) "ERROR in ELEN: "//
-     &              "Elens type '"//
-     &              getfields_fields(2)(1:getfields_lfields(2))//
+               write(lout,*) "ERROR in ELEN: "//                        &
+     &              "Elens type '"//                                    &
+     &              getfields_fields(2)(1:getfields_lfields(2))//       &
      &              "' not recognized. Remember to use all UPPER CASE!"
                call prror(-1)
             end select
@@ -16807,8 +16804,8 @@ cc2008
       enddo
 
 !     Search for element failed!
-      write(lout,*) "ERROR in ELEN: "//
-     &     "Un-identified SINGLE ELEMENT '",
+      write(lout,*) "ERROR in ELEN: "//                                 &
+     &     "Un-identified SINGLE ELEMENT '",                            &
      &     getfields_fields(1)(1:getfields_lfields(1)), "'"
       call prror(-1)
       
@@ -16833,9 +16830,9 @@ cc2008
         do j=1,nele
           if(kz(j).eq.15) then
             if(wire_flagco(j).eq.0) then
-              write(lout,*)
-     &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//
-     &'not defined in fort.3. You must define every wire in the '//
+              write(lout,*)                                             &
+     &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//  &
+     &'not defined in fort.3. You must define every wire in the '//     &
      &'WIRE block in fort.3!'
                call prror(-1)
             endif
@@ -16846,34 +16843,34 @@ cc2008
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
-        write(lout,*)
-     &       'ERROR in WIRE block: fortran IO format currently not ',
+        write(lout,*)                                                   &
+     &       'ERROR in WIRE block: fortran IO format currently not ',   &
      &       'supported!'
         call prror(-1)
 +ei
 
 !     1) read in wire parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
      &        getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) then
-        write(lout,*)
+        write(lout,*)                                                   &
      &       'ERROR in WIRE block: getfields_lerr=', getfields_lerr
         call prror(-1)
       endif
 
 !     Check number of arguments
       if(getfields_nfields.ne.9) then
-        write(lout,*)
-     &       'ERROR in WIRE block: wrong number of input ',
+        write(lout,*)                                                   &
+     &       'ERROR in WIRE block: wrong number of input ',             &
      &       'parameters: ninput = ', getfields_nfields, ' != 9'
         call prror(-1)
       endif
 
 !     Find the element, and check that we're not double-defining
       if (getfields_lfields(1) .gt. 16) then
-         write(lout,*)
-     &        "ERROR in WIRE block: Element name max 16 characters;"//
-     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))
+         write(lout,*)                                                  &
+     &        "ERROR in WIRE block: Element name max 16 characters;"//  &
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))&
      &        //"' is too long."
          call prror(-1)
       endif
@@ -16882,128 +16879,128 @@ cc2008
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_wire=15)
             if(kz(j).ne.15) then
-               write(lout,*)
-     &              'ERROR: element type mismatch for WIRE! '//
+               write(lout,*)                                            &
+     &              'ERROR: element type mismatch for WIRE! '//         &
      &'Element type is kz(',j,') = ',kz(j),'!= +15'
                call prror(-1)
             endif
             if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
-               write(lout,*)
-     &'ERROR: length el(j) (wire is treated as thin element), '//
-     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//
-     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,
-     &')=',ek(j),'. Please check your input in the single element '//
-     &'definition of your WIRE. All values except for the type need '//
+               write(lout,*)                                            &
+     &'ERROR: length el(j) (wire is treated as thin element), '//       &
+     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//&
+     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,      &
+     &')=',ek(j),'. Please check your input in the single element '//   &
+     &'definition of your WIRE. All values except for the type need '// &
      &'to be zero.'
                call prror(-1)
             endif
             if (wire_flagco(j).ne.0) then
-               write(lout,*) "ERROR in WIRE block:"//
+               write(lout,*) "ERROR in WIRE block:"//                   &
      &              "The element '"//bez(j)//"' was defined twice!"
                call prror(-1)
             endif
 
             ! Parse the element
-            read(getfields_fields(2)(1:getfields_lfields(2)),'(I10)')
+            read(getfields_fields(2)(1:getfields_lfields(2)),'(I10)')   &
      &           wire_flagco(j)
 +if .not.crlibm
-            read (getfields_fields(3)(1:getfields_lfields(3)),*)
+            read (getfields_fields(3)(1:getfields_lfields(3)),*)        &
      &           wire_current(j)
-            read (getfields_fields(4)(1:getfields_lfields(4)),*)
+            read (getfields_fields(4)(1:getfields_lfields(4)),*)        &
      &           wire_lint(j)
-            read (getfields_fields(5)(1:getfields_lfields(5)),*)
+            read (getfields_fields(5)(1:getfields_lfields(5)),*)        &
      &           wire_lphys(j)
-            read (getfields_fields(6)(1:getfields_lfields(6)),*)
+            read (getfields_fields(6)(1:getfields_lfields(6)),*)        &
      &           wire_dispx(j)
-            read (getfields_fields(7)(1:getfields_lfields(7)),*)
+            read (getfields_fields(7)(1:getfields_lfields(7)),*)        &
      &           wire_dispy(j)
-            read (getfields_fields(8)(1:getfields_lfields(8)),*)
+            read (getfields_fields(8)(1:getfields_lfields(8)),*)        &
      &           wire_tiltx(j)
-            read (getfields_fields(9)(1:getfields_lfields(9)),*)
+            read (getfields_fields(9)(1:getfields_lfields(9)),*)        &
      &           wire_tilty(j)
 +ei
 +if crlibm
-            wire_current(j)= round_near (
+            wire_current(j)= round_near (                               &
      &           errno,getfields_lfields(3)+1, getfields_fields(3) )
-            if (errno.ne.0) call rounderr (
+            if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,3,wire_current(j) )
-            wire_lint(j)       = round_near (
+            wire_lint(j)       = round_near (                           &
      &           errno,getfields_lfields(4)+1, getfields_fields(4) )
-            if (errno.ne.0) call rounderr (
+            if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,4,wire_lint(j) )
-            wire_lphys(j)   = round_near (
+            wire_lphys(j)   = round_near (                              &
      &           errno,getfields_lfields(5)+1, getfields_fields(5) )
-            if (errno.ne.0) call rounderr (
+            if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,5,wire_lphys(j) )
-            wire_dispx(j) = round_near (
+            wire_dispx(j) = round_near (                                &
      &           errno,getfields_lfields(6)+1, getfields_fields(6) )
-            if (errno.ne.0) call rounderr (
+            if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,6,wire_dispx(j) )
-            wire_dispy(j) = round_near (
+            wire_dispy(j) = round_near (                                &
      &           errno,getfields_lfields(7)+1, getfields_fields(7) )
-            if (errno.ne.0) call rounderr (
+            if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,7,wire_dispy(j) )
-            wire_tiltx(j) = round_near (
+            wire_tiltx(j) = round_near (                                &
      &           errno,getfields_lfields(8)+1, getfields_fields(8) )
-            if (errno.ne.0) call rounderr (
+            if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,8,wire_tiltx(j) )
-            wire_tilty(j) = round_near (
+            wire_tilty(j) = round_near (                                &
      &           errno,getfields_lfields(9)+1, getfields_fields(9) )
-            if (errno.ne.0) call rounderr (
+            if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,9,wire_tilty(j) )
 +ei
             
             ! Make checks for the wire parameters
             if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
-               write(lout,*)
-     &"ERROR: WIRE flag for defining the wire separation "//
-     &"must be -1 (disp* = distance closed orbit and beam)"//
-     &"or 1 (disp* = distance from x=y=0 <-> beam), but "//
+               write(lout,*)                                            &
+     &"ERROR: WIRE flag for defining the wire separation "//            &
+     &"must be -1 (disp* = distance closed orbit and beam)"//           &
+     &"or 1 (disp* = distance from x=y=0 <-> beam), but "//             &
      &"wire_flagco = ",wire_flagco(j)
                call prror(-1)
             end if
             if((wire_lint(j).lt.0) .or. (wire_lphys(j).lt.0)) then
-              write(lout,*)
-     &'ERROR: WIRE integrated and physical length must larger than 0! '
+              write(lout,*)                                             &
+     &'ERROR: WIRE integrated and physical length must larger than 0! ' &
      &// 'wire_lint = ',wire_lint(j),', wire_lphys = ',wire_lphys(j)
               call prror(-1)
             end if
-            if((abs(wire_tiltx(j)) .ge. 90) .or. 
+            if((abs(wire_tiltx(j)) .ge. 90) .or.                        &
      &         (abs(wire_tilty(j)) .ge. 90)) then
-              write(lout,*)
-     &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '
+              write(lout,*)                                             &
+     &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '        &
      &//'wire_tiltx = ',wire_tiltx(j),', wire_tilty = ',wire_tilty(j)
               call prror(-1)
             end if
 
 ! print a summary of the wire parameters
-            write(lout,
-     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D10.3,A,/))')
-     &'WIRE found in list of single elements with: ',
-     &'name               = ',bez(j),
-     &'flagco             = ',wire_flagco(j),
-     &'current            = ',wire_current(j),' A',
-     &'integrated length  = ',wire_lint(j),' m',
-     &'physical length    = ',wire_lphys(j),' m',
-     &'hor. displacement  = ',wire_dispx(j),' mm',
-     &'vert. displacement = ',wire_dispy(j),' mm',
-     &'hor. tilt          = ',wire_tiltx(j),' degrees',
+            write(lout,                                                 &
+     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D10.3,A,/))')                    &
+     &'WIRE found in list of single elements with: ',                   &
+     &'name               = ',bez(j),                                   &
+     &'flagco             = ',wire_flagco(j),                           &
+     &'current            = ',wire_current(j),' A',                     &
+     &'integrated length  = ',wire_lint(j),' m',                        &
+     &'physical length    = ',wire_lphys(j),' m',                       &
+     &'hor. displacement  = ',wire_dispx(j),' mm',                      &
+     &'vert. displacement = ',wire_dispy(j),' mm',                      &
+     &'hor. tilt          = ',wire_tiltx(j),' degrees',                 &
      &'vert. tilt         = ',wire_tilty(j),' degrees'
 ! ignore wire if current, length or displacment are 0 or
 ! wire_flagco not set (case wire_flagco = 0)
 ! for displacement only ignore if wire_dispx = wire_dispy = 0
-            if( abs(wire_flagco(j)*(wire_current(j)*(wire_lint(j)
+            if( abs(wire_flagco(j)*(wire_current(j)*(wire_lint(j)       &
      &*(wire_lphys(j)*(wire_dispx(j)+wire_dispy(j)))))).le.pieni ) then
               kz(j) = 0 ! treat element as marker
 
-              write(lout,
-     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D10.3,/))')
-     &'WARNING: WIRE element ',bez(j),'ignored!',
-     &'Elements are ignored if current, displacment, integrated ',
-     &'or physical length are 0! ',
-     &'wire_dispx(',j,') = ',wire_dispx(j),
-     &'wire_dispy(',j,') = ',wire_dispy(j),
-     &'wire_lint(',j,') = ',wire_lint(j),
+              write(lout,                                               &
+     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D10.3,/))')                      &
+     &'WARNING: WIRE element ',bez(j),'ignored!',                       &
+     &'Elements are ignored if current, displacment, integrated ',      &
+     &'or physical length are 0! ',                                     &
+     &'wire_dispx(',j,') = ',wire_dispx(j),                             &
+     &'wire_dispy(',j,') = ',wire_dispy(j),                             &
+     &'wire_lint(',j,') = ',wire_lint(j),                               &
      &'wire_lphys(',j,') = ',wire_lphys(j)
             end if
 
@@ -17013,8 +17010,8 @@ cc2008
       enddo
 
 !     Search for element failed!
-      write(lout,*) "ERROR in WIRE: "//
-     &     "Un-identified SINGLE ELEMENT '",
+      write(lout,*) "ERROR in WIRE: "//                                 &
+     &     "Un-identified SINGLE ELEMENT '",                            &
      &     getfields_fields(1)(1:getfields_lfields(1)), "'"
       call prror(-1)
       
@@ -17037,13 +17034,13 @@ cc2008
       if (ch(:4).eq.next) then
          zipf_outfile(1:10) = "Sixout.zip" ! Output name fixed for now
             write(lout,'(a)')       "**** ZIPF ****"
-            write(lout,'(a,a,a)')   " Output file name = '",
+            write(lout,'(a,a,a)')   " Output file name = '",            &
      &           trim(stringzerotrim(zipf_outfile)),"'"
-            write(lout,'(a,1x,i5)') " Number of files to pack=",
+            write(lout,'(a,1x,i5)') " Number of files to pack=",        &
      &           zipf_numfiles
             write(lout,'(a)')       " Files:"
          do ii=1,zipf_numfiles
-            write(lout,'(1x,i5,a,1x,a)') ii,":",
+            write(lout,'(1x,i5,a,1x,a)') ii,":",                        &
      &            trim(stringzerotrim(zipf_filenames(ii)))
          end do
 
@@ -17057,7 +17054,7 @@ cc2008
 +if .not.libarchive
          write(lout,'(a)') "ERROR in ZIPF:"
          write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
-         write(lout,'(a)') " but this SixTrack was "//
+         write(lout,'(a)') " but this SixTrack was "//                  &
      &        "compiled without it."
          call prror(-1)
 +ei
@@ -17065,13 +17062,13 @@ cc2008
       endif
 
       !Read filenames
-      call getfields_split( ch, getfields_fields, getfields_lfields,
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
      &     getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) call prror(-1)
 
       if (getfields_nfields .ne. 1) then
          write(lout,'(a)')         "ERROR in ZIPF:"
-         write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got",
+         write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got", &
      &                              getfields_nfields, ", line=",ch
          call prror(-1)
       end if
@@ -17079,12 +17076,12 @@ cc2008
       zipf_numfiles = zipf_numfiles + 1
       if (zipf_numfiles .ge. zipf_maxfiles) then
          write(lout,'(a)')       "ERROR in ZIPF:"
-         write(lout,'(a,1x,i5)') " Too many files, max=",
+         write(lout,'(a,1x,i5)') " Too many files, max=",               &
      &         zipf_maxfiles
          call prror(-1)
       endif
       
-      zipf_filenames(zipf_numfiles)(1:getfields_lfields(1)) =
+      zipf_filenames(zipf_numfiles)(1:getfields_lfields(1)) =           &
      &     getfields_fields(1)(1:getfields_lfields(1))
       
       goto 2800                 !Read the next line of the ZIPF block
@@ -17129,16 +17126,16 @@ cc2008
          goto 2901
       endif
       
-      call getfields_split( ch, getfields_fields, getfields_lfields,
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
      &     getfields_nfields, getfields_lerr )
       if ( getfields_lerr ) call prror(51)
       if (scatter_debug) then
-         write (lout,'(A,I4,A)')
-     &        "SCATTER> Got a block, len=",
+         write (lout,'(A,I4,A)')                                        &
+     &        "SCATTER> Got a block, len=",                             &
      &        len(trim(ch)), ": '"// trim(ch)// "'"
          do ii=1,getfields_nfields
-            write (lout,'(a,I4,A)')
-     &           "SCATTER> Field(",ii,") ='"//
+            write (lout,'(a,I4,A)')                                     &
+     &           "SCATTER> Field(",ii,") ='"//                          &
      &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
          enddo
       endif
@@ -17212,9 +17209,9 @@ cc2008
       else
         do j=1,il
           if(parbe(j,2).gt.real(mbea,fPrec)) then
-             write(lout,'(a,i5,a,i5,a,a16,a,i5)')
-     &            'ERROR: Requested ',
-     &            int(parbe(j,2)), " slices for 6D beam-beam element"//
+             write(lout,'(a,i5,a,i5,a,a16,a,i5)')                       &
+     &            'ERROR: Requested ',                                  &
+     &            int(parbe(j,2)), " slices for 6D beam-beam element"// &
      &            ' #',j, " named ", bez(j), ", maximum is mbea =",mbea
             parbe(j,2)=real(mbea,fPrec)
             call prror(-1) !Treat this warning as an error
@@ -17286,7 +17283,7 @@ cc2008
       if(nbeam.ge.1) then !Write out with BB parameters
          if(beam_expflag .eq. 0) then  !The old BEAM format
             if(partnum.gt.zero) then !Beams have same charge
-               write(lout,
+               write(lout,                                              &
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17305,11 +17302,11 @@ cc2008
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")
-     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
      &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
             else !Beams have opposite charge
-               write(lout,
+               write(lout,                                              &
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17328,14 +17325,14 @@ cc2008
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")
-     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
      &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
             endif
             
          elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
             if(partnum.gt.zero) then !Beams have same charge
-               write(lout, ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+               write(lout,                                              & ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17353,11 +17350,11 @@ cc2008
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")
-     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
+     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
      &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
             else !Beams have opposite charge
-               write(lout,  ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+               write(lout,                                              & ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17375,8 +17372,8 @@ cc2008
      &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
      &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")
-     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,
+     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
+     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
      &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
             endif
          else
@@ -17395,19 +17392,19 @@ cc2008
       endif
       if(beam_expflag .eq. 0) then
          if(ibb6d.eq.1) then
-            write(lout,
+            write(lout,                                                 &
      &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
      &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
      &'     CROSSING_PLANE     COUPLING_ANGLE'/t10,85('-')/)")
             do j=1,il
-               if(parbe(j,2).gt.zero)
-     &              write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)")
+               if(parbe(j,2).gt.zero)                                   &
+     &              write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)")   &
      &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
             enddo
          endif
          
       elseif(beam_expflag .eq. 1) then
-         write(lout,
+         write(lout,                                                    &
      &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
      &t10,'ELEMENT           #_OF_SLICES    XING_ANGLE',                &
      &'  XING_PLANE   HOR_SEP     VER_SEP        S11        S12      ', &
@@ -17415,17 +17412,17 @@ cc2008
      &'S14         S23         S24'/t10,200('-')/)")
          do j=1,il
             if(kz(j).eq.20.and.parbe(j,17).eq.1)then
-               write(lout,
+               write(lout,                                              &
      &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,      &
      &2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,        &
-     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")
+     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")            &
      &bez(j),                                                           &
      &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),      &
      &parbe(j,7),parbe(j,8),parbe(j,9),parbe(j,10),parbe(j,11),         &
      &parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
             endif
          enddo
-         write(lout,
+         write(lout,                                                    &
      &"(//,t30,'4D BEAM-BEAM ELEMENTS'/t30,24('-')//                    &
      &t10,'ELEMENT           #_OF_SLICES        S11   ',                &
      &'     S22       HOR_SEP     VER_SEP'/t10,80('-')/)")
@@ -17560,8 +17557,8 @@ cc2008
 10430 format(/5x,'No cut on random distribution'//)
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
-     &'ELEMENT NAME',8x,'EVERY # TURNs',2x,
-     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,
+     &'ELEMENT NAME',8x,'EVERY # TURNs',2x,                             &
+     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,                     &
      &"FirstTurn",6x,"LastTurn") !DUMP/STAT/BMAT
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
@@ -17937,15 +17934,15 @@ cc2008
       elseif(kz(ix).eq.11) then
          
          !MULT support removed until we have a proper use case.
-c$$$         if (lfirst) then
-c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
-c$$$            dynk_elemdata(ix,2) = ed(ix) !Bending strenght
-c$$$            dynk_elemdata(ix,3) = ek(ix) !Radius
-c$$$         else
-c$$$            el(ix) = dynk_elemdata(ix,1)
-c$$$            dynk_elemdata(ii,2) = ed(ii) !Updated in dynk_setvalue
-c$$$            ek(ii) = dynk_elemdata(ix,3)
-c$$$         end if
+!c$$$         if (lfirst) then
+!c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
+!c$$$            dynk_elemdata(ix,2) = ed(ix) !Bending strenght
+!c$$$            dynk_elemdata(ix,3) = ek(ix) !Radius
+!c$$$         else
+!c$$$            el(ix) = dynk_elemdata(ix,1)
+!c$$$            dynk_elemdata(ii,2) = ed(ii) !Updated in dynk_setvalue
+!c$$$            ek(ii) = dynk_elemdata(ix,3)
+!c$$$         end if
          
          ! Moved from daten():
          if (abs(el(ix)+one).le.pieni) then
@@ -17964,74 +17961,74 @@ c$$$         end if
          !Otherwise, i.e. when el=0, dki(:,1) = dki(:,2) = dki(:,3) = 0.0
 
          !MULT support removed until we have a proper use case.
-c$$$         !All multipoles:
-c$$$         if(.not.lfirst) then
-c$$$            do i=1,iu
-c$$$               if ( ic(i)-nblo.eq.ix ) then
-c$$$                  if(ktrack(i).eq.31) goto 100 !ERROR
-c$$$                  !--Initialize smiv as usual
-c$$$                  sm(ix)=ed(ix)
-c$$$                  smiv(m,i)=sm(ix)+smizf(i)
-c$$$                  smi(i)=smiv(m,i)
-c$$$
-c$$$                  !--Using the right izu & setting aaiv, bbiv (see multini)
-c$$$                  izu = dynk_izuIndex(ix)
-c$$$+ca multini !Also in program maincr()
-c$$$ 150              continue ! needs to be after a multini block
-c$$$
-c$$$                  ! From trauthin()&trauthck() (they are identical)
-c$$$                  r0=ek(ix)
-c$$$                  nmz=nmu(ix)
-c$$$                  if(abs(r0).le.pieni.or.nmz.eq.0) then
-c$$$                     if(abs(dki(ix,1)).le.pieni .and.
-c$$$     &                    abs(dki(ix,2)).le.pieni) then
-c$$$C                       ktrack(i)=31
-c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
-c$$$     &                       abs(dki(ix,2)).le.pieni) then
-c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-c$$$C                          ktrack(i)=33
-c$$$+ca stra11
-c$$$                        else
-c$$$C                          ktrack(i)=35
-c$$$+ca stra12
-c$$$                        endif
-c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
-c$$$     &                       abs(dki(ix,2)).gt.pieni) then
-c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-c$$$C                           ktrack(i)=37
-c$$$+ca stra13
-c$$$                        else
-c$$$C                            ktrack(i)=39
-c$$$+ca stra14
-c$$$                        endif
-c$$$                     endif
-c$$$                  else
-c$$$                     if(abs(dki(ix,1)).le.pieni .and.
-c$$$     &                    abs(dki(ix,2)).le.pieni) then
-c$$$C                        ktrack(i)=32
-c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
-c$$$     &                       abs(dki(ix,2)).le.pieni) then
-c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-c$$$C                           ktrack(i)=34
-c$$$+ca stra11
-c$$$                        else
-c$$$C                           ktrack(i)=36
-c$$$+ca stra12
-c$$$                        endif
-c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
-c$$$     &                       abs(dki(ix,2)).gt.pieni) then
-c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-c$$$C                           ktrack(i)=38
-c$$$+ca stra13
-c$$$                        else
-c$$$C                           ktrack(i)=40
-c$$$+ca stra14
-c$$$                        endif
-c$$$                     endif
-c$$$                  endif
-c$$$               endif
-c$$$            enddo
-c$$$         endif
+!c$$$         !All multipoles:
+!c$$$         if(.not.lfirst) then
+!c$$$            do i=1,iu
+!c$$$               if ( ic(i)-nblo.eq.ix ) then
+!c$$$                  if(ktrack(i).eq.31) goto 100 !ERROR
+!c$$$                  !--Initialize smiv as usual
+!c$$$                  sm(ix)=ed(ix)
+!c$$$                  smiv(m,i)=sm(ix)+smizf(i)
+!c$$$                  smi(i)=smiv(m,i)
+!c$$$
+!c$$$                  !--Using the right izu & setting aaiv, bbiv (see multini)
+!c$$$                  izu = dynk_izuIndex(ix)
+!c$$$+ca multini !Also in program maincr()
+!c$$$ 150              continue ! needs to be after a multini block
+!c$$$
+!c$$$                  ! From trauthin()&trauthck() (they are identical)
+!c$$$                  r0=ek(ix)
+!c$$$                  nmz=nmu(ix)
+!c$$$                  if(abs(r0).le.pieni.or.nmz.eq.0) then
+!c$$$                     if(abs(dki(ix,1)).le.pieni .and.
+!c$$$     &                    abs(dki(ix,2)).le.pieni) then
+!c$$$C                       ktrack(i)=31
+!c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
+!c$$$     &                       abs(dki(ix,2)).le.pieni) then
+!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
+!c$$$C                          ktrack(i)=33
+!c$$$+ca stra11
+!c$$$                        else
+!c$$$C                          ktrack(i)=35
+!c$$$+ca stra12
+!c$$$                        endif
+!c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
+!c$$$     &                       abs(dki(ix,2)).gt.pieni) then
+!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
+!c$$$C                           ktrack(i)=37
+!c$$$+ca stra13
+!c$$$                        else
+!c$$$C                            ktrack(i)=39
+!c$$$+ca stra14
+!c$$$                        endif
+!c$$$                     endif
+!c$$$                  else
+!c$$$                     if(abs(dki(ix,1)).le.pieni .and.
+!c$$$     &                    abs(dki(ix,2)).le.pieni) then
+!c$$$C                        ktrack(i)=32
+!c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
+!c$$$     &                       abs(dki(ix,2)).le.pieni) then
+!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
+!c$$$C                           ktrack(i)=34
+!c$$$+ca stra11
+!c$$$                        else
+!c$$$C                           ktrack(i)=36
+!c$$$+ca stra12
+!c$$$                        endif
+!c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
+!c$$$     &                       abs(dki(ix,2)).gt.pieni) then
+!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
+!c$$$C                           ktrack(i)=38
+!c$$$+ca stra13
+!c$$$                        else
+!c$$$C                           ktrack(i)=40
+!c$$$+ca stra14
+!c$$$                        endif
+!c$$$                     endif
+!c$$$                  endif
+!c$$$               endif
+!c$$$            enddo
+!c$$$         endif
 
 !--Cavities (ktrack = 2 for thin)
       elseif(abs(kz(ix)).eq.12) then
@@ -18498,7 +18495,7 @@ c$$$         endif
       return
       end
 +dk stringhandling
-      subroutine getfields_split( tmpline, getfields_fields,
+      subroutine getfields_split( tmpline, getfields_fields,            &
      &         getfields_lfields, getfields_nfields, getfields_lerr)
 !
 !-----------------------------------------------------------------------
@@ -18526,15 +18523,15 @@ c$$$         endif
       character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
 
       intent(in) tmpline
-      intent(out) getfields_fields, getfields_lfields,
+      intent(out) getfields_fields, getfields_lfields,                  &
      &     getfields_nfields, getfields_lerr
       
-*     runtime variables
+!     runtime variables
       integer ii, jj
       logical lchar
       integer lenstr, istart
 
-*     initialise output variables
+!     initialise output variables
       getfields_lerr = .false.
       getfields_nfields=0
       do ii=1,getfields_n_max_fields
@@ -18544,24 +18541,24 @@ c$$$         endif
          getfields_lfields(ii)=0
       enddo
 
-*     parse the line
+!     parse the line
       lchar = .false.
       do ii=1, getfields_l_max_string-1 !For \0 termination
          if ( tmpline(ii:ii) .eq. ' ' ) then
-*           blank char
+!           blank char
             if ( lchar ) then
-*              end of a string: record it
+!              end of a string: record it
                getfields_lfields(getfields_nfields)          = lenstr
-               getfields_fields (getfields_nfields)
-     &              (1:getfields_lfields(getfields_nfields)) =
-     &              tmpline(istart:
+               getfields_fields (getfields_nfields)                     &
+     &              (1:getfields_lfields(getfields_nfields)) =          &
+     &              tmpline(istart:                                     &
      &               istart+getfields_lfields(getfields_nfields))
                lchar = .false.
             endif
          else
-*           non-blank char
+!           non-blank char
             if ( .not. lchar ) then
-*              a new what starts
+!              a new what starts
                getfields_nfields = getfields_nfields +1
                if ( getfields_nfields.gt.getfields_n_max_fields ) then
                   write (lout,*)'error! too many fields in line:'
@@ -24563,26 +24560,26 @@ c$$$         endif
 
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
-             write(lout,*)
+             write(lout,*)                                              &
      &            "Error when reading fort.13 [READ sigmv(ia+1)]"
              call prror(-1)
           endif
           sigmv(ia+1) = round_near(ierro,nchars,ch)
           if(ierro.gt.0) then
-             write(lout,*)
+             write(lout,*)                                              &
      &            "Error when reading fort.13 [CONV sigmv(ia+1)]"
              call prror(-1)
           endif
 
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
-             write(lout,*)
+             write(lout,*)                                              &
      &            "Error when reading fort.13 [READ dpsv(ia+1)]"
              call prror(-1)
           endif
           dpsv(ia+1) = round_near(ierro,nchars,ch)
           if(ierro.gt.0) then
-             write(lout,*)
+             write(lout,*)                                              &
      &            "Error when reading fort.13 [CONV dpsv(ia+1)]"
              call prror(-1)
           endif
@@ -24701,7 +24698,7 @@ c$$$         endif
           if (.not.restart) then
 +ei
 +if .not.stf
-            call writebin_header(ia,ia,91-ia2,ierro,
+            call writebin_header(ia,ia,91-ia2,ierro,                    &
      &        cdate,ctime,progrm)
 +if cr
             flush(91-ia2)
@@ -24710,7 +24707,7 @@ c$$$         endif
 +ei
 +ei ! END +if .not.stf
 +if stf
-            call writebin_header(ia,ia,90,ierro,
+            call writebin_header(ia,ia,90,ierro,                        &
      &        cdate,ctime,progrm)
 +if cr
             flush(90)
@@ -24734,7 +24731,7 @@ c$$$         endif
           if (.not.restart) then
 +ei
 +if .not.stf
-            call writebin_header(ia,ia+1,91-ia2,ierro,
+            call writebin_header(ia,ia+1,91-ia2,ierro,                  &
      &        cdate,ctime,progrm)
 +if cr
             flush(91-ia2)
@@ -24743,7 +24740,7 @@ c$$$         endif
 +ei
 +ei ! END +if .not.stf
 +if stf
-            call writebin_header(ia,ia+1,90,ierro,
+            call writebin_header(ia,ia+1,90,ierro,                      &
      &        cdate,ctime,progrm)
 +if cr
             flush(90)
@@ -24894,26 +24891,26 @@ c$$$         endif
       call cadcum
       if(idp.ne.0.and.ition.ne.0) then !6D tracking
          if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
-            write(lout,'(1x,a)')
+            write(lout,'(1x,a)')                                        &
      &           "WARNING: Problem with SYNC block detected"
-            write(lout,'(1x,a,f17.10)')
+            write(lout,'(1x,a,f17.10)')                                 &
      &           "TLEN in sync block =",tlen
-            write(lout,'(1x,a,f17.10)')
+            write(lout,'(1x,a,f17.10)')                                 &
      &           "Length from DCUM   =",dcum(iu+1)
-            write(lout,'(1x,a,f17.10)')
+            write(lout,'(1x,a,f17.10)')                                 &
      &           "Difference         =",dcum(iu+1)-tlen
-            write(lout,'(1x,a,e27.16,a)')
-     &           "Relative error     =",
+            write(lout,'(1x,a,e27.16,a)')                               &
+     &           "Relative error     =",                                &
      &           2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
-            write(lout,'(1x,a,f17.10,a)')
+            write(lout,'(1x,a,f17.10,a)')                               &
      &           "Tolerance eps_dcum =", eps_dcum, " [m]"
-            write(lout,'(1x,a)')
+            write(lout,'(1x,a)')                                        &
      &           "Please fix the TLEN parameter in your SYNC block"
-            write(lout,'(1x,a)')
-     &           "so that it matches the "//
+            write(lout,'(1x,a)')                                        &
+     &           "so that it matches the "//                            &
      &           " calculated machine length from DCUM."
-            write(lout,'(1x,a)')
-     &           "If incorrect, the RF frequency"//
+            write(lout,'(1x,a)')                                        &
+     &           "If incorrect, the RF frequency"//                     &
      &           " may be (slightly) wrong."
 
             !It's a warning not an error, and the consequences seem relatively small.
@@ -24934,8 +24931,8 @@ c$$$         endif
            ! Expect the file to be opened already, in crcheck
            inquire( unit=dumpunit(i), opened=lopen )
            if ( .not.lopen ) then
-              write(lout,*) "ERROR in DUMP: The unit",dumpunit,
-     &             "has dumpfilepos=", dumpfilepos(i), ".ge.0, ",
+              write(lout,*) "ERROR in DUMP: The unit",dumpunit,         &
+     &             "has dumpfilepos=", dumpfilepos(i), ".ge.0, ",       &
      &             "but the file is NOT open. This is probably a bug."
               call prror(-1)
            endif
@@ -24948,13 +24945,13 @@ c$$$         endif
           if ( .not.lopen ) then
              !Check that the filename is not already taken
              do j=-1,i-1
-                if (ldump(j) .and.
+                if (ldump(j) .and.                                      &
      &               (dump_fname(j).eq.dump_fname(i))) then
-                   write(lout,*)
-     &                  "ERROR in DUMP: Output filename unit",
-     &                  trim(stringzerotrim(dump_fname(i))),
-     &                  "is used by two DUMPS, "//
-     &                  "but output units differ:",
+                   write(lout,*)                                        &
+     &                  "ERROR in DUMP: Output filename unit",          &
+     &                  trim(stringzerotrim(dump_fname(i))),            &
+     &                  "is used by two DUMPS, "//                      &
+     &                  "but output units differ:",                     &
      &                  dumpunit(i), " vs ", dumpunit(j)
                    call prror(-1)
                 endif
@@ -24966,19 +24963,19 @@ c$$$         endif
      &                status='replace',form='unformatted')
 +ei
 +if .not.boinc
-                 open(dumpunit(i),
-     &                file=trim(stringzerotrim(dump_fname(i))),
+                 open(dumpunit(i),                                      &
+     &                file=trim(stringzerotrim(dump_fname(i))),         &
      &                status='replace',form='unformatted')
 +ei
              else !ASCII dump
 +if boinc
                  call boincrf(dump_fname(i),filename)
-                 open(dumpunit(i),file=filename,
+                 open(dumpunit(i),file=filename,                        &
      &                status='replace',form='formatted')
 +ei
 +if .not.boinc
-                 open(dumpunit(i),
-     &                file=trim(stringzerotrim(dump_fname(i))),
+                 open(dumpunit(i),                                      &
+     &                file=trim(stringzerotrim(dump_fname(i))),         &
      &                status='replace',form='formatted')
 +ei
              endif
@@ -25001,24 +24998,24 @@ c$$$         endif
                 if (ldump(j)) then
                    if (dumpunit(j).eq.dumpunit(i)) then
                       if (dumpfmt(j).ne.dumpfmt(i)) then
-                         write(lout,*)
-     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,",
+                         write(lout,*)                                  &
+     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,", &
      & " formats are not the same."
                          call prror(-1)
                       else if (j.eq.0) then
-                         write(lout,*)
-     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,",
+                         write(lout,*)                                  &
+     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,", &
      & " one of which is ALL"
                          call prror(-1)
                       else if (j.eq.-1) then
-                         write(lout,*)
-     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,",
+                         write(lout,*)                                  &
+     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,", &
      & " one of which is StartDUMP"
                          call prror(-1)
                       else if (dump_fname(j).ne.dump_fname(i)) then
-                         write(lout,*)
-     & "ERROR in DUMP: output unit",dumpunit(i)," used by two DUMPS,"//
-     & " but filenames differ:", trim(stringzerotrim(dump_fname(i))),
+                         write(lout,*)                                  &
+     & "ERROR in DUMP: output unit",dumpunit(i)," used by two DUMPS,"// &
+     & " but filenames differ:", trim(stringzerotrim(dump_fname(i))),   &
      & " vs ", trim(stringzerotrim(dump_fname(j)))
                          call prror(-1)
                       else
@@ -25035,10 +25032,10 @@ c$$$         endif
              ! LOPEN not set to true by sanity check in loop above
              ! => File was already open, but not by DUMP.
              if ( .not.lopen ) then
-                write (lout,*)
-     & "ERROR in DUMP: unit", dumpunit(i), " is already open, ",
-     & " but not by DUMP. Please pick another unit! ",
-     & " Note: This test is not watertight, as other parts of",
+                write (lout,*)                                          &
+     & "ERROR in DUMP: unit", dumpunit(i), " is already open, ",        &
+     & " but not by DUMP. Please pick another unit! ",                  &
+     & " Note: This test is not watertight, as other parts of",         &
      & " the program may later open the same file/unit..."
                 call prror(-1)
              endif
@@ -25046,7 +25043,7 @@ c$$$         endif
 
           ! Write format-specific headers
           if ( dumpfmt(i).eq.1 ) then
-             write(dumpunit(i),'(a)')
+             write(dumpunit(i),'(a)')                                   &
      &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
                 
              !Flush file
@@ -25055,119 +25052,119 @@ c$$$         endif
 +if cr
              dumpfilepos(i) = dumpfilepos(i) + 1
 +ei
-          else if ( dumpfmt(i).eq.2 .or.
-     &              dumpfmt(i).eq.4 .or.
-     &              dumpfmt(i).eq.5 .or.
-     &              dumpfmt(i).eq.6 .or.
-     &              dumpfmt(i).eq.7 .or.
+          else if ( dumpfmt(i).eq.2 .or.                                &
+     &              dumpfmt(i).eq.4 .or.                                &
+     &              dumpfmt(i).eq.5 .or.                                &
+     &              dumpfmt(i).eq.6 .or.                                &
+     &              dumpfmt(i).eq.7 .or.                                &
      &              dumpfmt(i).eq.9     ) then
 
              ! Write the general header
              if (i.eq.-1) then  !STARTdump
-                write(dumpunit(i),
-     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')
-     & '# DUMP format #',dumpfmt(i),', START=',bez(1),
-     & ', number of particles=',napx, ', dump period=',ndumpt(i),
-     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
+                write(dumpunit(i),                                      &
+     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')                   &
+     & '# DUMP format #',dumpfmt(i),', START=',bez(1),                  &
+     & ', number of particles=',napx, ', dump period=',ndumpt(i),       &
+     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),       &
      & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
              else if (i.eq.0) then !ALL
-                write(dumpunit(i),
-     &               '(a,i0,a,4(a,i12),2(a,L1))')
-     & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',
-     & ' number of particles=',napx, ', dump period=',ndumpt(i),
-     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),
+                write(dumpunit(i),                                      &
+     &               '(a,i0,a,4(a,i12),2(a,L1))')                       &
+     & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',                  &
+     & ' number of particles=',napx, ', dump period=',ndumpt(i),        &
+     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),       &
      & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
              else               !Normal element
-                write(dumpunit(i),
-     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')
-     & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),
-     & ', number of particles=',napx,', dump period=',ndumpt(i),
-     & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),
+                write(dumpunit(i),                                      &
+     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')                   &
+     & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),                  &
+     & ', number of particles=',napx,', dump period=',ndumpt(i),        &
+     & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),        &
      & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
              endif
              
              !Write the format-specific headers:
              if ( dumpfmt(i).eq.2 ) then ! FORMAT 2
-                write(dumpunit(i),'(a,a)')
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',
+                write(dumpunit(i),'(a,a)')                              &
+     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',  &
      &  'ktrack'
 
              else if ( dumpfmt(i).eq.4 ) then ! FORMAT 4
-                write(dumpunit(i),'(a)')
-     &               '# napx turn s[m] ' //
+                write(dumpunit(i),'(a)')                                &
+     &               '# napx turn s[m] ' //                             &
      &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
                 
              else if ( dumpfmt(i).eq.5 ) then ! FORMAT 5
-                write(dumpunit(i),'(a)')
-     &               '# napx turn s[m] ' //
-     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//
-     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//
-     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//
-     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//
-     &   '<yp^2> <yp*z> <yp*(dE/E)> '//
-     &   '<z^2> <z*(dE/E)> '//
+                write(dumpunit(i),'(a)')                                &
+     &               '# napx turn s[m] ' //                             &
+     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//   &
+     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//                &
+     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//                  &
+     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//                             &
+     &   '<yp^2> <yp*z> <yp*(dE/E)> '//                                 &
+     &   '<z^2> <z*(dE/E)> '//                                          &
      &   '<(dE/E)^2>'
                 
              else if ( dumpfmt(i).eq.6 ) then ! FORMAT 6
-                write(dumpunit(i),'(a)')
-     &               '# napx turn s[m] ' //
-     &   '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//
-     &   '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//
-     &   '<px^2> <px*y> <px*py> <px*sigma> <px*psigma> '//
-     &   '<y^2> <y*py> <y*sigma> <y*psigma> '//
-     &   '<py^2> <py*sigma> <py*psigma> '//
-     &   '<sigma^2> <sigma*psigma> '//
+                write(dumpunit(i),'(a)')                                &
+     &               '# napx turn s[m] ' //                             &
+     &   '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//      &
+     &   '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//            &
+     &   '<px^2> <px*y> <px*py> <px*sigma> <px*psigma> '//              &
+     &   '<y^2> <y*py> <y*sigma> <y*psigma> '//                         &
+     &   '<py^2> <py*sigma> <py*psigma> '//                             &
+     &   '<sigma^2> <sigma*psigma> '//                                  &
      &   '<psigma^2>'
              else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then !Normalized ASCII dump -> extra headers with matrices and closed orbit
                  if ( dumpfmt(i).eq.7 ) then ! FORMAT 7
-                     write(dumpunit(i),'(a)')
-     &  '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '//
-     &  'ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] '//
+                     write(dumpunit(i),'(a)')                           &
+     &  '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '//        &
+     &  'ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] '//   &
      &  'ndp/p[1.e-3 sqrt(m)] ktrack'
                  endif
                  if (dumpfmt(i).eq.9) then ! FORMAT 9
-                     write(dumpunit(i),'(a)') '# napx turn s[m] ' //
-     &  '<nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] '//
-     &  '<ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] '//
-     &  '<nsig>[1.e-3 sqrt(m)] <ndp/p>[1.e-3 sqrt(m)]'//
-     &  '<nx^2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> '//
-     &  '<npx^2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> '//
-     &  '<ny^2> <ny*npy> <ny*nsigma> <ny*npsigma> '//
-     &  '<npy^2> <npy*nsigma> <npy*npsigma> '//
-     &  '<nsigma^2> <nsigma*npsigma> '//
+                     write(dumpunit(i),'(a)') '# napx turn s[m] ' //    &
+     &  '<nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] '//                   &
+     &  '<ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] '//                   &
+     &  '<nsig>[1.e-3 sqrt(m)] <ndp/p>[1.e-3 sqrt(m)]'//                &
+     &  '<nx^2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> '//  &
+     &  '<npx^2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> '//      &
+     &  '<ny^2> <ny*npy> <ny*nsigma> <ny*npsigma> '//                   &
+     &  '<npy^2> <npy*nsigma> <npy*npsigma> '//                         &
+     &  '<nsigma^2> <nsigma*npsigma> '//                                &
      &  '<npsigma^2>'
                  endif
         ! closed orbit
         ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] 
         ! (note: units are already changed in linopt part)
-                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') 
-     &  '# closed orbit [mm,mrad,mm,mrad,1]',
-     &  dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),
+                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))')               &
+     &  '# closed orbit [mm,mrad,mm,mrad,1]',                           &
+     &  dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),                         &
      &  dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
-                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')
-     #  '# tamatrix [mm,mrad,mm,mrad,1]',
-     &  dumptas(i,1,1),dumptas(i,1,2),dumptas(i,1,3),dumptas(i,1,4),
-     &  dumptas(i,1,5),dumptas(i,1,6),dumptas(i,2,1),dumptas(i,2,2),
-     &  dumptas(i,2,3),dumptas(i,2,4),dumptas(i,2,5),dumptas(i,2,6),
-     &  dumptas(i,3,1),dumptas(i,3,2),dumptas(i,3,3),dumptas(i,3,4),
-     &  dumptas(i,3,5),dumptas(i,3,6),dumptas(i,4,1),dumptas(i,4,2),
-     &  dumptas(i,4,3),dumptas(i,4,4),dumptas(i,4,5),dumptas(i,4,6),
-     &  dumptas(i,5,1),dumptas(i,5,2),dumptas(i,5,3),dumptas(i,5,4),
-     &  dumptas(i,5,5),dumptas(i,5,6),dumptas(i,6,1),dumptas(i,6,2),
+                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')              &
+     &  '# tamatrix [mm,mrad,mm,mrad,1]',                               &
+     &  dumptas(i,1,1),dumptas(i,1,2),dumptas(i,1,3),dumptas(i,1,4),    &
+     &  dumptas(i,1,5),dumptas(i,1,6),dumptas(i,2,1),dumptas(i,2,2),    &
+     &  dumptas(i,2,3),dumptas(i,2,4),dumptas(i,2,5),dumptas(i,2,6),    &
+     &  dumptas(i,3,1),dumptas(i,3,2),dumptas(i,3,3),dumptas(i,3,4),    &
+     &  dumptas(i,3,5),dumptas(i,3,6),dumptas(i,4,1),dumptas(i,4,2),    &
+     &  dumptas(i,4,3),dumptas(i,4,4),dumptas(i,4,5),dumptas(i,4,6),    &
+     &  dumptas(i,5,1),dumptas(i,5,2),dumptas(i,5,3),dumptas(i,5,4),    &
+     &  dumptas(i,5,5),dumptas(i,5,6),dumptas(i,6,1),dumptas(i,6,2),    &
      &  dumptas(i,6,3),dumptas(i,6,4),dumptas(i,6,5),dumptas(i,6,6)
-                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')
-     &  '# inv(tamatrix)',
-     &  dumptasinv(i,1,1),dumptasinv(i,1,2),dumptasinv(i,1,3),
-     &  dumptasinv(i,1,4),dumptasinv(i,1,5),dumptasinv(i,1,6),
-     &  dumptasinv(i,2,1),dumptasinv(i,2,2),dumptasinv(i,2,3),
-     &  dumptasinv(i,2,4),dumptasinv(i,2,5),dumptasinv(i,2,6),
-     &  dumptasinv(i,3,1),dumptasinv(i,3,2),dumptasinv(i,3,3),
-     &  dumptasinv(i,3,4),dumptasinv(i,3,5),dumptasinv(i,3,6),
-     &  dumptasinv(i,4,1),dumptasinv(i,4,2),dumptasinv(i,4,3),
-     &  dumptasinv(i,4,4),dumptasinv(i,4,5),dumptasinv(i,4,6),
-     &  dumptasinv(i,5,1),dumptasinv(i,5,2),dumptasinv(i,5,3),
-     &  dumptasinv(i,5,4),dumptasinv(i,5,5),dumptasinv(i,5,6),
-     &  dumptasinv(i,6,1),dumptasinv(i,6,2),dumptasinv(i,6,3),
+                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')              &
+     &  '# inv(tamatrix)',                                              &
+     &  dumptasinv(i,1,1),dumptasinv(i,1,2),dumptasinv(i,1,3),          &
+     &  dumptasinv(i,1,4),dumptasinv(i,1,5),dumptasinv(i,1,6),          &
+     &  dumptasinv(i,2,1),dumptasinv(i,2,2),dumptasinv(i,2,3),          &
+     &  dumptasinv(i,2,4),dumptasinv(i,2,5),dumptasinv(i,2,6),          &
+     &  dumptasinv(i,3,1),dumptasinv(i,3,2),dumptasinv(i,3,3),          &
+     &  dumptasinv(i,3,4),dumptasinv(i,3,5),dumptasinv(i,3,6),          &
+     &  dumptasinv(i,4,1),dumptasinv(i,4,2),dumptasinv(i,4,3),          &
+     &  dumptasinv(i,4,4),dumptasinv(i,4,5),dumptasinv(i,4,6),          &
+     &  dumptasinv(i,5,1),dumptasinv(i,5,2),dumptasinv(i,5,3),          &
+     &  dumptasinv(i,5,4),dumptasinv(i,5,5),dumptasinv(i,5,6),          &
+     &  dumptasinv(i,6,1),dumptasinv(i,6,2),dumptasinv(i,6,3),          &
      &  dumptasinv(i,6,4),dumptasinv(i,6,5),dumptasinv(i,6,6)
              end if  !Format-specific headers
 
@@ -25184,15 +25181,15 @@ c$$$         endif
              
           end if !If format 2/4/5/6/7/9 -> General header
 
-          if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9) !Normalized DUMP
+          if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9)& !Normalized DUMP
      &         then
              ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
-             if ( dumptas(i,1,1).eq.zero .and.
-     &            dumptas(i,1,2).eq.zero .and.
-     &            dumptas(i,1,3).eq.zero .and.
+             if ( dumptas(i,1,1).eq.zero .and.                          &
+     &            dumptas(i,1,2).eq.zero .and.                          &
+     &            dumptas(i,1,3).eq.zero .and.                          &
      &            dumptas(i,1,4).eq.zero      ) then
                 write(lout,*) "ERROR in normalized DUMP:"
-                write(lout,*)
+                write(lout,*)                                           &
      &               "The normalization matrix appears to not be set?"
                 write(lout,*) "Did you forget to put a 6D LINE block?"
                 call prror(-1)
@@ -25347,7 +25344,7 @@ c$$$         endif
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
      &e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0)
+          if(ierro.ne.0)                                                &
      &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
      &         'corrupted output probably due to lost particle: ',ie
         endif
@@ -25365,8 +25362,8 @@ c$$$         endif
      &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0)
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+          if(ierro.ne.0)                                                &
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
      &         'corrupted output probably due to lost particle: ',ia
         endif
         if(.not.pstop(ia).and..not.pstop(ie)) then
@@ -25382,8 +25379,8 @@ c$$$         endif
      &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
      &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
      &e0,ejv(id),ejv(ig)
-          if(ierro.ne.0)
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',
+          if(ierro.ne.0)                                                &
+     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
      &         'corrupted output although particles stable'
           id=ig
         endif
@@ -34967,26 +34964,26 @@ c$$$         endif
 +if datamods
       use bigmats
 +ei
-      use scatter, only :
-     &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,
-     &scatter_PROFILE, scatter_GENERATOR,
-     &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,
-     &scatter_nidata, scatter_nfdata, scatter_ncdata,
-     &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,
-     &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,
+      use scatter, only :                                               &
++if cr
+     & scatter_filepos                                                  &
++ei
+     &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,            &
+     &scatter_PROFILE, scatter_GENERATOR,                               &
+     &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,              &
+     &scatter_nidata, scatter_nfdata, scatter_ncdata,                   &
+     &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,      &
+     &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,             &
      &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
-+if cr
-     &     , scatter_filepos
-+ei
 
-      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
-     &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,
-     &     maxfuncs_dynk,funcs_dynk,maxstrlen_dynk,nsets_dynk,
-     &     maxsets_dynk,sets_dynk,csets_dynk,csets_unique_dynk,
-     &     fsets_origvalue_dynk,dynk_izuIndex,dynk_elemdata
+      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
 +if cr
-     &     , dynkfilepos
+     & dynkfilepos                                                      &
 +ei
+     &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,             &
+     &     maxfuncs_dynk,funcs_dynk,maxstrlen_dynk,nsets_dynk,          &
+     &     maxsets_dynk,sets_dynk,csets_dynk,csets_unique_dynk,         &
+     &     fsets_origvalue_dynk,dynk_izuIndex,dynk_elemdata
 
       implicit none
       
@@ -35553,7 +35550,7 @@ c$$$         endif
           do i2=1,6
             rrtr(i,i1,i2)=zero
           end do
-        en ddo
+        end do
       end do
 
 !--Beam-Beam------------------------------------------------------------
@@ -36013,7 +36010,7 @@ c$$$         endif
       integer i,ii,iInsert
 
       if ( iu.gt.nblz-3) then
-         write(lout,*)'ERROR: not enough space for adding element '
+         write(lout,*)'ERROR: not enough space for adding element '     &
      &//'in lattice structure!'
          write(lout,*)'       please, increase nblz and recompile!'
          call prror(-1)
@@ -36078,7 +36075,7 @@ c$$$         endif
 
       il=il+1
       if ( il.gt.nele ) then
-         write(lout,*)'ERROR: not enough space for adding element '
+         write(lout,*)'ERROR: not enough space for adding element '     &
      &//'in list of SINGLE ELEMENTs!'
          write(lout,*)'       please, increase nele and recompile!'
          call prror(-1)
@@ -36091,7 +36088,6 @@ c$$$         endif
       INEESE=il
 
       end function INEESE
-
 
       integer function check_SE_unique( iEl, ixEl )
 !-----------------------------------------------------------------------
@@ -38343,16 +38339,16 @@ c$$$         endif
       errout_status = ier
       
       write(lout,10000)
-      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 , !1-10  
-     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 , !11-20 
-     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 , !21-30 
-     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 , !31-40 
-     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 , !41-50 
-     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 , !51-60 
-     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 , !61-70 
-     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 , !71-80 
-     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 , !81-90 
-     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000, !91-100
+      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 ,           &!1-10  
+     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 ,           &!11-20 
+     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 ,           &!21-30 
+     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 ,           &!31-40 
+     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 ,           &!41-50 
+     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 ,           &!51-60 
+     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 ,           &!61-70 
+     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 ,           &!71-80 
+     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 ,           &!81-90 
+     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000,           &!91-100
      &     1010,1020,1030,1040,1050),ier
       goto 1870
    10 write(lout,10010)
@@ -38575,7 +38571,7 @@ c$$$         endif
       call abend('                                                  ')
 +ei
 +if .not.cr
-      write(error_unit,'(a,i5)') "Stopping, errout_status=",
+      write(error_unit,'(a,i5)') "Stopping, errout_status=",            &
      &     errout_status
       stop 1
 +ei
@@ -38830,7 +38826,7 @@ c$$$         endif
         write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
         write(lout,*)     ''
       else                      ! Anyway print the total machine length
-         write(lout,'(1x,a,1x,f17.10,1x,a)')
+         write(lout,'(1x,a,1x,f17.10,1x,a)')                            &
      &        "Machine length was", dcum(iu+1),"[m]"
       endif
 
@@ -38851,7 +38847,7 @@ c$$$         endif
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,
+      integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,        &
      &nmz,nr,dj
       real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
      &ci,cikve,clo0,clop0,cr,crkve,crkveuk,di00,dip00,dphi,dpp,dpp1,    &
@@ -39035,20 +39031,20 @@ c$$$         endif
           if(ithick.eq.0.and.kz(jk).ne.0) then
             etl=etl+el(jk)
             
-c$$$            nr=nr+1
-c$$$+if .not.collimat.and..not.bnlelens
-c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
-c$$$+ei
-c$$$+if collimat.or.bnlelens
-c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-c$$$+ei
-c$$$            if(ntco.ne.0) then
-c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
-c$$$            endif
+!c$$$            nr=nr+1
+!c$$$+if .not.collimat.and..not.bnlelens
+!c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
+!c$$$+ei
+!c$$$+if collimat.or.bnlelens
+!c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
+!c$$$+ei
+!c$$$            if(ntco.ne.0) then
+!c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
+!c$$$            endif
             
             write(lout,*) "ERROR in LINOPT:"
-            write(lout,*) "In block ", bezb(ix),
-     &           "found a thick non-drift element",
+            write(lout,*) "In block ", bezb(ix),                        &
+     &           "found a thick non-drift element",                     &
      &           bez(jk), "while ithick=1. This should not be possible!"
             call prror(-1)
             goto 500
@@ -39322,9 +39318,9 @@ c$$$            endif
 +if collimat.or.bnlelens
 
         ! Marker, beam-beam, phase-trombone, crab cavity (incl. multipole), or wire
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22
-     &     .or.abs(kzz).eq.23.or.abs(kzz).eq.26
-     &     .or.abs(kzz).eq.27.or.abs(kzz).eq.28
+        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22                           &
+     &     .or.abs(kzz).eq.23.or.abs(kzz).eq.26                         &
+     &     .or.abs(kzz).eq.27.or.abs(kzz).eq.28                         &
      &     .or.abs(kzz).eq.15) then
           
           nr=nr+1
@@ -39341,7 +39337,7 @@ c$$$            endif
         ! Wire -> next element
         if(abs(kzz).eq.15) goto 500
         ! RF CC Multipoles -> next element
-        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.
+        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.                        &
      &      abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
 +ei
       
@@ -39357,9 +39353,9 @@ c$$$            endif
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
         if(kzz.lt.0) goto 370 !Skew
-        goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320, !1-10
-     &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500, !11-20
-     &       500, 500, 500, 325, 326, 500, 500, 500),kzz       !21-28
+        goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320,          &!1-10
+     &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500,          &!11-20
+     &       500, 500, 500, 325, 326, 500, 500, 500),kzz                 !21-28
 
         ! Un-recognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
         nr=nr+1
@@ -41040,13 +41036,13 @@ c$$$            endif
             do 60 j=1,il
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
      &               call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
      &               call prror(31)
                 jra(i,4)=kz(j)
               endif
@@ -41056,7 +41052,7 @@ c$$$            endif
             if(kzz1.ne.0.and.kzz2.eq.0) then
               jra(i,5)=nra1
               nra1=nra1+mran*3
-              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)
+              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)             &
      &             nra1=nra1+mran*2*mmul
               if(nra1.gt.nzfz) call prror(32)
             endif
@@ -50339,7 +50335,7 @@ c$$$         backspace (93,iostat=ierro)
          call print_lastlines_to_stderr(93,"fort.93")
          call print_lastlines_to_stderr(6,"fort.6")
 
-         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",         &
      &        errout_status
          stop 1
       else
@@ -50384,7 +50380,7 @@ c$$$         backspace (93,iostat=ierro)
          call print_lastlines_to_stderr(93,"fort.93")
          call print_lastlines_to_stderr(6,"fort.6")
          
-         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",         &
      &        errout_status
          stop 1
       else
@@ -50403,7 +50399,7 @@ c$$$         backspace (93,iostat=ierro)
 +ei
       ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
       if(errout_status.ne.0) then
-         write(error_unit,'(a,i5)') "Stopping, errout_status=",
+         write(error_unit,'(a,i5)') "Stopping, errout_status=",         &
      &        errout_status
          stop 1
       else
@@ -50446,18 +50442,18 @@ c$$$         backspace (93,iostat=ierro)
 !     Open the file
       inquire(unit=file_unit,opened=lopen)
       if (lopen) then
-         write(error_unit,'(a,1x,i5,1x,a)')
-     &        "Error when opening unit #",
+         write(error_unit,'(a,1x,i5,1x,a)')                             &
+     &        "Error when opening unit #",                              &
      &        file_unit, ": The file is already open."
          return
       end if
       
-      open(file_unit,file=file_name,form="formatted",
+      open(file_unit,file=file_name,form="formatted",                   &
      &     status="old",iostat=ierro)
       if (ierro .ne. 0) then
-         write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')
-     &        "Error when opening file '",
-     &        trim(file_name),
+         write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')                   &
+     &        "Error when opening file '",                              &
+     &        trim(file_name),                                          &
      &        "' on unit #", file_unit, ", iostat =",ierro
          return
       endif
@@ -50466,7 +50462,7 @@ c$$$         backspace (93,iostat=ierro)
       fileBuff_idx = 1
       j = 0
       
- 1    read(file_unit,'(a1024)',end=3,err=2,iostat=ierro)
+ 1    read(file_unit,'(a1024)',end=3,err=2,iostat=ierro)                &
      &     fileBuff(fileBuff_idx)
     ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
       fileBuff_idx = fileBuff_idx+1
@@ -50475,7 +50471,7 @@ c$$$         backspace (93,iostat=ierro)
       goto 1
       
  2    continue                  !An error occured
-      write(error_unit,'(a,1x,i5)')
+      write(error_unit,'(a,1x,i5)')                                     &
      &     "An error occured while reading the file, iostat=",ierro
 
       
@@ -50489,8 +50485,8 @@ c$$$         backspace (93,iostat=ierro)
       else
          printLines = nlines
       endif
-      write(error_unit,'(a,1x,i5,1x,a,a,a)')
-     &     "******* Last",printLines,"lines of file '",
+      write(error_unit,'(a,1x,i5,1x,a,a,a)')                            &
+     &     "******* Last",printLines,"lines of file '",                 &
      &     trim(file_name),"': *******"
       
       i = fileBuff_idx          !Position in buffer (we have already incremented i)
@@ -50502,9 +50498,9 @@ c$$$         backspace (93,iostat=ierro)
       j = j+1                   ! j just counts
       if (j.lt.printLines) goto 10
 
-      write(error_unit,'(a,a,a)')
-     &     "******* Done writing tail of file '",
-     &     trim(file_name),
+      write(error_unit,'(a,a,a)')                                       &
+     &     "******* Done writing tail of file '",                       &
+     &     trim(file_name),                                             &
      &     "' to stderr *******"
       
       end subroutine print_lastlines_to_stderr
