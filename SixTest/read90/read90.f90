@@ -120,10 +120,12 @@
             else if (cmdarg_arg .eq. "--SP") then
                if(.not.STF) then
                   write(*,*) "--SP flag only valid following a --STF flag."
+                  flush(stdout)
                   stop 2
                endif
                if(firstParticle.ne.-1 .or. lastParticle.ne.-1) then
                   write(*,*) "--SP and --PR flags are incompatible."
+                  flush(stdout)
                   stop 8
                endif
                
@@ -132,6 +134,7 @@
                call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
                if (len_trim(cmdarg_arg)==0) then
                   write(*,*) "No number found following --SP flag?"
+                  flush(stdout)
                   stop 3
                endif
 
@@ -139,19 +142,23 @@
                if (singleParticle.lt.1) then
                   write(*,*) "singleParticle=",singleParticle
                   write(*,*) "Did you specify an integer>0?"
+                  flush(stdout)
                   stop 4
                endif
                if (mod(singleParticle,2).ne.1) then
                   write(*,*) "singleParticle=",singleParticle, "; expected odd number."
+                  flush(stdout)
                   stop 5
                endif
             else if (cmdarg_arg .eq. "--PR") then
                if(.not.STF) then
                   write(*,*) "--PR flag only valid following a --STF flag."
+                  flush(stdout)
                   stop 9
                endif
                if(singleParticle.ne.-1) then
                   write(*,*) "--SP and --PR flags are incompatible."
+                  flush(stdout)
                   stop 10
                endif
 
@@ -160,6 +167,7 @@
                call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
                if (len_trim(cmdarg_arg)==0) then
                   write(*,*) "No number found following --PR flag?"
+                  flush(stdout)
                   stop 11
                endif
 
@@ -167,10 +175,12 @@
                if (firstParticle.lt.1) then
                   write(*,*) "firstParticle=",firstParticle
                   write(*,*) "Did you specify an integer>0?"
+                  flush(stdout)
                   stop 12
                endif
                if (mod(firstParticle,2).ne.1) then
                   write(*,*) "firstParticle=",firstParticle, "; expected odd number."
+                  flush(stdout)
                   stop 13
                endif
 
@@ -179,6 +189,7 @@
                call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
                if (len_trim(cmdarg_arg)==0) then
                   write(*,*) "No second number found following --PR flag?"
+                  flush(stdout)
                   stop 14
                endif
 
@@ -186,15 +197,18 @@
                if (lastParticle.lt.1) then
                   write(*,*) "lastParticle=",lastParticle
                   write(*,*) "Did you specify an integer>0?"
+                  flush(stdout)
                   stop 15
                endif
                if (mod(lastParticle,2).ne.1) then
                   write(*,*) "lastParticle=",lastParticle, "; expected odd number."
+                  flush(stdout)
                   stop 16
                endif
                if (.not. lastParticle .gt. firstParticle) then
                   write(*,*) "Expected lastParticle > firstParticle, got:"
                   write(*,*) "firstParticle=",firstParticle,"lastParticle=",lastParticle
+                  flush(stdout)
                   stop 17
                endif
                
@@ -204,11 +218,13 @@
                call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
                if (len_trim(cmdarg_arg)==0) then
                   write(*,*) "No filename found following --fname flag?"
+                  flush(stdout)
                   stop 6
                endif
 
                if(cmdarg_status.eq.-1) then
                   write(*,*) "Filename was truncated to '"//cmdarg_arg//"'"
+                  flush(stdout)
                   stop 7
                end if
 
@@ -220,11 +236,13 @@
                call get_command_argument(cmdarg_i, cmdarg_arg,cmdarg_length,cmdarg_status)
                if (len_trim(cmdarg_arg)==0) then
                   write(*,*) "No filename found following --ofname flag?"
+                  flush(stdout)
                   stop 6
                endif
 
                if(cmdarg_status.eq.-1) then
                   write(*,*) "Filename was truncated to '"//cmdarg_arg//"'"
+                  flush(stdout)
                   stop 7
                end if
 
@@ -245,6 +263,7 @@
                write(*,*) " If nothing is specified, it defaults to 'fort.190'."
                write(*,*) "The --ofname flag can be used to specify the name of the file to write to (max 100 characters)."
                write(*,*) " If nothing is specified, it defaults to stdout."
+               flush(stdout)
                stop 1
             end if
          end if
@@ -259,6 +278,7 @@
       INQUIRE(FILE=fname,EXIST=hasInputFile)
       if (.not. hasInputFile) then
          write(*,'(a,a,a)') "Error in read90 - file '"//trim(fname)//"' was not found"
+         flush(stdout)
          stop 19
       endif
       
@@ -448,6 +468,7 @@
       integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
+      use, intrinsic :: iso_fortran_env, only : stdout=>output_unit
       implicit none
       double precision x
       character*(*) results
@@ -464,6 +485,7 @@
 ! Always returns 17 or less characters as requested
       write (*,10000)
       write (*,*) 'Routine dtoa[f] returned string length ',ilen,'!!!'
+      flush(stdout)
       stop 18
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)

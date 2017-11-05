@@ -247,7 +247,8 @@
 !! \return The subroutine does not return anything
 !! \see thin6d, beamGasInit and rotateMatrix
 !< 
-      subroutine beamGas( myix, mysecondary, totals, myenom, ipart )
+      subroutine beamGas( myix, mysecondary, totals, myenom, ipart,     &
+     &     turn, ie )
 !BELOW YOU FIND NEW ADDITIONS:
       use beamgascommon
       use lorentzcommon
@@ -311,6 +312,8 @@
       
       integer i,j,k,i_tmp
       
+      integer turn, ie          ! KNS: turn and structure element idx
+      
       pressID=0
       j=1
       do while (pressID.eq.0.and.j.le.bgmaxx)
@@ -335,8 +338,9 @@
       endif
       do j = 2,napx
       choice=0
-      if ((mysecondary(j).eq.0).and.(part_abs(j).eq.0).and.               &
-     &      (bgParameters(1).le.totals)) then   
+      if ((secondary(j).eq.0) .and.
+     &     (part_abs_pos (j).eq.0 .and.part_abs_turn(j).eq.0).and.      &
+     &     (bgParameters(1).le.totals)) then
 +if debug
       write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1,          &
      & pressARRAY(2,pressID)*njobs*dpmjetevents
@@ -369,7 +373,9 @@
      &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),                       &
      &   bgid+njobthis*dpmjetevents,bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),&
      &   yv(2,j)
-         part_abs(j) = 1
+!         part_abs(j) = 1
+         part_abs_pos(j)  = ie
+         part_abs_turn(j) = turn
       goto 669
       endif
       if(bgid.eq.bgiddb(ibgloc)) then ! a proton was found for this scattering event

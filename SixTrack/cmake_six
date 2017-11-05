@@ -112,6 +112,8 @@ do
 	echo ""
 	echo "Specifying just a compiler for one language will cause cmake to use what it thinks is the default for your platform for the others."
 	exit
+    elif [[ $var == BUILD_TESTING ]]; then
+        testing=1
     fi
 done
 
@@ -292,7 +294,7 @@ fi
 #Run make
 #make -j  | tee make_log.txt # No pretty colors...
 #make -j # VERBOSE=1
-if [[ $(pwd) == /afs/* ]]; then
+if [[ $(pwd) == /afs/* && $testing == 1 ]]; then
     #Random crashes with parallel make on AFS.
     echo "Warning: Running make single-threaded to avoid random crashes on AFS"
     echo "This will be slower that running parallel make..."

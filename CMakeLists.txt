@@ -8,7 +8,7 @@
 
 #Set the cmake version required
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
-set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+#set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
 PROJECT(SixTrack)
@@ -242,10 +242,11 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 
 # Select which fortran files to generate and compile
 if(DA)
-	LIST(APPEND FORS_FIXFORM sixda sixsc sixscfox dabnew lielib dynk)
+	LIST(APPEND FORS_FIXFORM sixda sixsc sixscfox dabnew lielib)
+	LIST(APPEND FORS_FREEFORM scatter dynk)
 else()
-	LIST(APPEND FORS_FIXFORM track sixve sixvefox dabnews lielib plato_seq dynk)
-	LIST(APPEND FORS_FREEFORM beamgas scatter)
+	LIST(APPEND FORS_FIXFORM track sixve sixvefox dabnews lielib plato_seq)
+	LIST(APPEND FORS_FREEFORM beamgas scatter dynk)
 endif()
 
 if(NOT DA AND DATAMODS)
@@ -644,22 +645,12 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=32 ${CMAKE_Fortran_FLAGS_DEBUG}")
-		if(STATIC)
-			find_library(g2cLink NAMES libg2c.a PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 )
-		else()
-			find_library(g2cLink NAMES libg2c.so PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 )
-		endif()
 	endif(32BIT)
 
 	if(64BIT)
 		#See the nagfor man page for the different 64bit -abi options.
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=64t ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-abi=64t ${CMAKE_Fortran_FLAGS_DEBUG}")
-		if(STATIC)
-			find_library(g2cLink NAMES libg2c.a PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6 )
-		else()
-			find_library(g2cLink NAMES libg2c.so PATHS /usr/lib /usr/lib/gcc/x86_64-redhat-linux/3.4.6 )
-		endif()
 	endif(64BIT)
 
 	if(NATIVE)
@@ -886,13 +877,10 @@ SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" 
 ##build astuce
 add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
 SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
-if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	target_link_libraries(astuce_old ${g2cLink})
-endif()
 
 add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
 add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
-SET_TARGET_PROPERTIES(astuce PROPERTIES OUTPUT_NAME "astuce++")
+SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}" OUTPUT_NAME "astuce++")
 target_link_libraries(astuce astuce++)
 
 #build dafor
@@ -935,17 +923,14 @@ if(NAFF)
 		SET(FFTW_USE_STATIC_LIBS 1)
 	endif()
 	find_package(FFTW REQUIRED)
-	include_directories( ${FFTW3_INCLUDES} )
+	include_directories( ${FFTW_INCLUDES} )
 	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
 	
-	find_package(Boost REQUIRED)
-	message(STATUS "Include dirs of boost: " ${Boost_INCLUDE_DIRS} )
-	message(STATUS "Libs of boost: " ${Boost_LIBRARIES} )
 	
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
-	target_link_libraries(naff ${FFTW_LIBRARIES} ${Boost_LIBRARIES})
+	target_link_libraries(naff ${FFTW_LIBRARIES})
 	
 	#Enable c++11
 	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
@@ -1221,7 +1206,7 @@ endforeach()
 ###################################################################################################
 #linking
 ###################################################################################################
-set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/5.3.0/libquadmath.a")
+set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/6.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
 	target_link_libraries(astuce_old ${MSYS_QUADMATH})
@@ -1232,7 +1217,7 @@ endif()
 #same with OSX, using gfortran from homebrew
 if(STATIC)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/)
+		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/ /usr/local/opt/gcc/lib/gcc/7/ /usr/local/opt/gcc/lib/gcc/8/)
 		target_link_libraries(SixTrack ${lquadmath})
 	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(STATIC)
@@ -1304,21 +1289,41 @@ endif(G4COLLIMAT)
 if(NAGLIB)
 	if(64BIT)
 		if(STATIC)
+			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
 		else()
+			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
 		endif(STATIC)
 	endif(64BIT)
 
 	if(32BIT)
 		if(STATIC)
+			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
 		else()
+			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
+			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
 		endif(STATIC)
 	endif(32BIT)
 
-	target_link_libraries(SixTrack ${nglib})
+	target_link_libraries(SixTrack ${nglib} ${nglibifcoremt} ${nglibsvml} ${nglibirng} ${nglibimf} ${nglibirc} dl pthread )
 endif(NAGLIB)
 
 IF(COVERAGE)
@@ -1369,12 +1374,6 @@ IF(BUILD_TESTING)
 	SET_TARGET_PROPERTIES(checkf1014 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 	SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-
-	if(Fortran_COMPILER_NAME MATCHES "nagfor.*")
-		target_link_libraries(verify10 ${g2cLink})
-		target_link_libraries(checkf10 ${g2cLink})
-		target_link_libraries(compf10 ${g2cLink})
-	endif()
 
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
