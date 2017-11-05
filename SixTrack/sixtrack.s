@@ -24762,15 +24762,37 @@ C Should get me a NaN
 +ca dump3 !list of variables
       endif
   550 continue
+      
+      
+      if (idp.eq.0.or.ition.eq.0) then
+         !4D tracking
+         if (iclo6 .ne. 0) then
+            write(lout,*) "ERROR: Doing 4D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.eq.0. for 4D tracking."
+            call prror(-1)
+         endif
+      else
+         !6D tracking
+         if (iclo6 .eq. 0) then
+            write(lout,*) "ERROR: Doing 6D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.ne.0. for 6D tracking."
+            call prror(-1)
+         endif
+      endif
+      
+      
+!!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
 +ca dump2 !read(32)
 +ca dump3 !list of variables
         damp=((amp(1)-amp0)/dble(napx/2-1))/2d0                          !hr05
       endif
-      do 80 i=1,npart
-        pstop(i)=.false.
-        nnumxv(i)=numl
-   80 numxv(i)=numl
+      do i=1,npart
+         pstop(i)=.false.
+         nnumxv(i)=numl
+         numxv(i)=numl
+      end do
+      
       rat0=rat
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
