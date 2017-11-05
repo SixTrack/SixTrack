@@ -23216,12 +23216,12 @@ cc2008
 +if boinc
       call boincrf('fort.6',filename)
 +if fio
-      open(output_unit,
-     &file=filename,form='formatted',status='old',err=602,
+      open(output_unit,                                                 &
+     &file=filename,form='formatted',status='old',err=602,              &
      &round='nearest')
 +ei
 +if .not.fio
-      open(output_unit,
+      open(output_unit,                                                 &
      &file=filename,form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
@@ -23229,12 +23229,12 @@ cc2008
 +ei
 +if .not.boinc
 +if fio
-      open(output_unit,
-     &file='fort.6',form='formatted',status='old',err=602,
+      open(output_unit,                                                 &
+     &file='fort.6',form='formatted',status='old',err=602,              &
      &round='nearest')
 +ei
 +if .not.fio
-      open(output_unit,
+      open(output_unit,                                                 &
      &file='fort.6',form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
@@ -23265,12 +23265,12 @@ cc2008
         go to 611
       endif
 +if fio
-      open(output_unit,
-     &file=filename,form='formatted',status='unknown',
+      open(output_unit,                                                 &
+     &file=filename,form='formatted',status='unknown',                  &
      &round='nearest')
 +ei
 +if .not.fio
-      open(output_unit,
+      open(output_unit,                                                 &
      &file=filename,form='formatted',status='unknown')
 +ei
 !--   Set up start message depending on fort.6 or not
@@ -23278,12 +23278,12 @@ cc2008
 +ei
 +if .not.boinc
 +if fio
- 602  open(output_unit,
-     &file='fort.6',form='formatted',status='new',
+ 602  open(output_unit,                                                 &
+     &file='fort.6',form='formatted',status='new',                      &
      &round='nearest')
 +ei
 +if .not.fio
- 602  open(output_unit,
+ 602  open(output_unit,                                                 &
      &file='fort.6',form='formatted',status='new')
 +ei
 !--   Set up start message depending on fort.6 or not
@@ -28546,7 +28546,7 @@ cc2008
 +if .not.debug
          if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
-            write(93,*)
+            write(93,*)                                                 &
      &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
             write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
             flush(93)
@@ -34966,7 +34966,7 @@ cc2008
 +ei
       use scatter, only :                                               &
 +if cr
-     & scatter_filepos                                                  &
+     & scatter_filepos,                                                 &
 +ei
      &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,            &
      &scatter_PROFILE, scatter_GENERATOR,                               &
@@ -34978,7 +34978,7 @@ cc2008
 
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
 +if cr
-     & dynkfilepos                                                      &
+     & dynkfilepos,                                                     &
 +ei
      &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,             &
      &     maxfuncs_dynk,funcs_dynk,maxstrlen_dynk,nsets_dynk,          &
@@ -47882,10 +47882,10 @@ cc2008
 +if datamods
       use bigmats
 +ei
-      use dynk, only : ldynk, ldynkfiledisable,
+      use dynk, only : ldynk, ldynkfiledisable,                         &
      &dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
-      use scatter, only : scatter_active, scatter_crcheck_readdata,
+      use scatter, only : scatter_active, scatter_crcheck_readdata,     &
      &     scatter_crcheck_positionFiles
       
       use, intrinsic :: iso_fortran_env, only : int32
@@ -47927,7 +47927,7 @@ cc2008
 
       !For skipping through binary DUMP files (format 3&8)
       integer tmp_ID, tmp_nturn, tmp_ktrack
-      real(kind=fPrec) tmp_dcum, tmp_x,tmp_xp,
+      real(kind=fPrec) tmp_dcum, tmp_x,tmp_xp,                          &
      &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
 
 +if boinc
@@ -47969,13 +47969,13 @@ cc2008
         
         rewind 95
         
-        read(95,err=100,end=100)
+        read(95,err=100,end=100)                                        &
      &       cr_version,cr_moddate
-        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))
+        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))   &
      &       then
-           write(93,*) "SIXTRACR CRCHECK: fort.95 was written by "//
+           write(93,*) "SIXTRACR CRCHECK: fort.95 was written by "//    &
      &          "SixTrack version=", cr_version, "moddate=",cr_moddate
-           write(93,*) "This is SixTrack "//
+           write(93,*) "This is SixTrack "//                            &
      &          "version=",version,"moddate=",moddate
            write(93,*) "Version mismatch; giving up on this file."
 
@@ -48049,7 +48049,7 @@ cc2008
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
       flush(93)
-      read(95,err=100,end=100)
+      read(95,err=100,end=100)                                          &
      &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
@@ -48135,13 +48135,13 @@ cc2008
         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1 VERSION'
         flush(93)
 
-        read(96,err=101,end=101)
+        read(96,err=101,end=101)                                        &
      &       cr_version,cr_moddate
-        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))
+        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))   &
      &       then
-           write(93,*) "SIXTRACR CRCHECK: fort.96 was written by "//
+           write(93,*) "SIXTRACR CRCHECK: fort.96 was written by "//    &
      &          "SixTrack version=", cr_version, "moddate=",cr_moddate
-           write(93,*) "This is SixTrack "//
+           write(93,*) "This is SixTrack "//                            &
      &          "version=",version,"moddate=",moddate
            write(93,*) "Version mismatch; giving up on this file."
            
@@ -48214,7 +48214,7 @@ cc2008
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DUMP'
       flush(93)
-      read(96,err=100,end=100)
+      read(96,err=100,end=100)                                          &
      &     (dumpfilepos_cr(j),j=-1,nele)
 
       if (ldynk) then
@@ -48616,16 +48616,16 @@ cc2008
          if (ldump(i)) then
             write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
             if (i .gt. 0) then
-               write(93,*) "element=",bez(i), "unit=",dumpunit(i),
-     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//
+               write(93,*) "element=",bez(i), "unit=",dumpunit(i),      &
+     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//&
      &              "' format=",dumpfmt(i)
             else if (i.eq.0) then
-               write(93,*) "element=","ALL" , "unit=",dumpunit(i),
-     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//
+               write(93,*) "element=","ALL" , "unit=",dumpunit(i),      &
+     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//&
      &              "' format=",dumpfmt(i)
             else if(i .eq. -1) then
-               write(93,*) "element=","StartDump" , "unit=",dumpunit(i),
-     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//
+               write(93,*) "element=","StartDump" , "unit=",dumpunit(i),&
+     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//&
      &              "' format=",dumpfmt(i)
             else
                write(93,*) "Error - index=",i,"is unknown"
@@ -48642,15 +48642,15 @@ cc2008
      &                 form='formatted',action='readwrite')
 +ei
 +if .not.boinc
-                  open(dumpunit(i),file=dump_fname(i), status='old',
+                  open(dumpunit(i),file=dump_fname(i), status='old',    &
      &                 form='formatted',action='readwrite')
 +ei
                endif
 
                dumpfilepos(i) = 0
                do j=1,dumpfilepos_cr(i)
- 702              read(dumpunit(i),'(a1024)',
-     &                 end=111,err=111,iostat=ierro)
+ 702              read(dumpunit(i),'(a1024)',                           &
+     &                 end=111,err=111,iostat=ierro)                    &
      &                 arecord
                   dumpfilepos(i) = dumpfilepos(i) + 1
                end do
@@ -48663,15 +48663,15 @@ cc2008
      &                 form='unformatted',action='readwrite')
 +ei
 +if .not.boinc
-                  open(dumpunit(i),file=dump_fname(i),status='old',
+                  open(dumpunit(i),file=dump_fname(i),status='old',     &
      &                 form='unformatted',action='readwrite')
 +ei
                endif
                dumpfilepos(i) = 0
                do j=1,dumpfilepos_cr(i)
- 703              read(dumpunit(i),end=111,err=111,iostat=ierro)
-     &                 tmp_ID,tmp_nturn,tmp_dcum,
-     &                 tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,
+ 703              read(dumpunit(i),end=111,err=111,iostat=ierro)        &
+     &                 tmp_ID,tmp_nturn,tmp_dcum,                       &
+     &                 tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,     &
      &                 tmp_ktrack
                   dumpfilepos(i) = dumpfilepos(i) + 1
                end do
@@ -48691,21 +48691,21 @@ cc2008
             if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
 +if boinc
                call boincrf(dump_fname(i),filename)
-               open(dumpunit(i),file=filename, status='old',
+               open(dumpunit(i),file=filename, status='old',            &
      &             position='append', form='formatted',action='write')
 +ei
 +if .not.boinc
-               open(dumpunit(i),file=dump_fname(i), status='old',
+               open(dumpunit(i),file=dump_fname(i), status='old',       &
      &             position='append', form='formatted',action='write')
 +ei
             else                      ! Binary (format = 3)
 +if boinc
                call boincrf(dump_fname(i),filename)
-               open(dumpunit(i),file=filename, status='old',
+               open(dumpunit(i),file=filename, status='old',            &
      &             position='append', form='unformatted',action='write')
 +ei
 +if .not.boinc
-               open(dumpunit(i),file=dump_fname(i), status='old',
+               open(dumpunit(i),file=dump_fname(i), status='old',       &
      &             position='append', form='unformatted',action='write')
 +ei
             endif
@@ -48713,7 +48713,7 @@ cc2008
       end do
 
       if(scatter_active) then
-         write(93,*)
+         write(93,*)                                                    &
      &        "SIXTRACR CRCHECK REPOSITIONING scatter_log.txt"
          flush(93)
          
@@ -48753,10 +48753,10 @@ cc2008
 +ei
 +if stf
   102 write(lout,*)
-      write(lout,*)
-     &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS RE-READING ',
+      write(lout,*)                                                     &
+     &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS RE-READING ',           &
      &'singletrackfile.dat for ia=',ia,' IOSTAT=',ierro
-      write(lout,*)
+      write(lout,*)                                                     &
      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia)
       write(lout,*)'SIXTRACR CRCHECK failure positioning binary files'
       call prror(-1)
@@ -48867,7 +48867,7 @@ cc2008
 !GRD-042008
 +ei
  111  write(93,*)                                                       &
-     &'SIXTRACR CRCHECK *** ERROR ***'//
+     &'SIXTRACR CRCHECK *** ERROR ***'//                                &
      &' reading DUMP file#', dumpunit(i),' iostat=',ierro
       write(93,*)                                                       &
      &'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
@@ -48889,7 +48889,7 @@ cc2008
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
 
-      use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,
+      use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
      &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
 
       use scatter, only : scatter_active, scatter_crpoint
@@ -49008,20 +49008,20 @@ cc2008
          endif
 +ei
          do j=1,nsets_unique_dynk
-            fsets_dynk_cr(j) =
-     &           dynk_getvalue(csets_unique_dynk(j,1),
+            fsets_dynk_cr(j) =                                          &
+     &           dynk_getvalue(csets_unique_dynk(j,1),                  &
      &                         csets_unique_dynk(j,2))
          end do
 
-c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-c$$$     &        nsets_unique_dynk,")"
-c$$$         do j=1,nsets_unique_dynk
-c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-c$$$     &                  fsets_dynk_cr(j)
-c$$$         enddo
-c$$$         write(93,*) "DONE"
-c$$$         endfile (93,iostat=ierro)
-c$$$         backspace (93,iostat=ierro)
+!c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
+!c$$$     &        nsets_unique_dynk,")"
+!c$$$         do j=1,nsets_unique_dynk
+!c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
+!c$$$     &                  fsets_dynk_cr(j)
+!c$$$         enddo
+!c$$$         write(93,*) "DONE"
+!c$$$         endfile (93,iostat=ierro)
+!c$$$         backspace (93,iostat=ierro)
       end if
 
 +if .not.debug
@@ -49696,7 +49696,7 @@ c$$$         backspace (93,iostat=ierro)
      &' cril=',cril,' il=',il
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-          write(lout,*)
+          write(lout,*)                                                 &
      &         'SIXTRACR CRSTART Problem wih cril/il extended C/R'
           call prror(-1)
         endif
@@ -50282,7 +50282,7 @@ c$$$         backspace (93,iostat=ierro)
       close(96,err=7)
     7 continue
       if (lout.eq.92) then
-        write(93,*)
+        write(93,*)                                                     &
      &'SIXTRACR STOP/ABEND copying fort.92 to fort.6'
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
@@ -50297,14 +50297,14 @@ c$$$         backspace (93,iostat=ierro)
     2   write(6,'(a)',iostat=ierro) arecord(1:lstring)
         goto 3
       endif
-    1 write(6,*,iostat=ierro)
+    1 write(6,*,iostat=ierro)                                           &
      &'SIXTRACR stop '//cstring
       close(6,iostat=ierro)
 !     and get rid of fort.92
       rewind 92
       endfile (92,iostat=ierro)
       close(92)
-      write(93,*)
+      write(93,*)                                                       &
      &'SIXTRACR stop '//cstring
       write(93,*)
 +if debug
