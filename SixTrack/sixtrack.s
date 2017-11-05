@@ -5790,10 +5790,10 @@
                  pstop(nlostp(j))=.false.
                enddo
                do j = 1, napx
-                  xv(1,j)  = 1e3*myx(j)+torbx(1)
-                  yv(1,j)  = 1e3*myxp(j)+torbxp(1)
-                  xv(2,j)  = 1e3*myy(j)+torby(1)
-                  yv(2,j)  = 1e3*myyp(j)+torbyp(1)
+                  xv(1,j)  = c1e3*myx(j) +torbx(1)
+                  yv(1,j)  = c1e3*myxp(j)+torbxp(1)
+                  xv(2,j)  = c1e3*myy(j) +torby(1)
+                  yv(2,j)  = c1e3*myyp(j)+torbyp(1)
                   sigmv(j) = mys(j)
                   ejv(j)   = myp(j)
                   ejfv(j)=sqrt(ejv(j)**2-pma**2)                         !hr03
@@ -28953,8 +28953,8 @@ c$$$         endif
 !        no actual aperture profile is assigned to any SINGLE ELEMENT
 !        use the general check (set in the ITER block)
          do j=1,napx
-            pstop(j) = checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2) )
-     &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            pstop(j) = checkRE( xv(1,j), xv(2,j), aper(1), aper(2) )
+     &  .or.myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
          end do
       endif
 
@@ -28981,7 +28981,7 @@ c$$$         endif
            xlos(2,j) = xv(2,j)
            llos(j)   = pstop(j)
            slos(j)   = dcum(i)
-           step(j)   = 1.d0
+           step(j)   = one
 ! AM -> !          AMdebug
 ! AM ->            if ( pstop(j) ) then
 ! AM ->               write (*,*) 'ape loss:', turn, i, ix, bez(ix), dcum(i),
@@ -34999,6 +34999,8 @@ c$$$         endif
 +ei
 
 +ca parbeam_exp
+
++ca comApeInfo
       save
 !-----------------------------------------------------------------------
 !
@@ -35219,6 +35221,15 @@ c$$$         endif
       tlim=0.
       time0=0.
       time1=0.
++if backtrk
+!-----------------------------------------------------------------------
+!       A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!       last modified: 12-06-2014
+!       default precision for back-tracking, when computing locations of lost
+!          particles
+!       inserted in main code by the 'backtrk' compilation flag
+       bktpre=c1m1
++ei
 !-----------------------------------------------------------------------
       do 10 i=1,2
         nde(i)=0
@@ -35647,6 +35658,19 @@ c$$$         endif
           wire_clo(j,i)=zero
         end do
       end do
+
+!--APERTURE-------------------------------------------------------------
+!     P.G.Ortega, for the FLUKA Team
+!     last modified: 04-07-2014
+!     initialise common
+!     always in main code
+      ldmpaper      = .false.
+      aperunit      = 0
+      aper_filename = ' '
+      load_file     = ' '
+      limifound     = .false.
+!     flag to kill/let live particles at aperture check
+      apflag=.false.
 
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
