@@ -4560,9 +4560,9 @@
               crk=parbe(ix,5)
               cik=parbe(ix,6)
             else
-               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +                       &
      &             parbe(ix,6)*bbcu(imbb(i),12)
-               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -                       &
      &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             rho2b=crk**2+cik**2                                          !hr03
@@ -4669,9 +4669,9 @@
                crk=parbe(ix,5)
                cik=parbe(ix,6)
             else
-               crk=parbe(ix,5)*bbcu(imbb(i),11) +
+               crk=parbe(ix,5)*bbcu(imbb(i),11) +                       &
      &             parbe(ix,6)*bbcu(imbb(i),12)
-               cik=parbe(ix,6)*bbcu(imbb(i),11) -
+               cik=parbe(ix,6)*bbcu(imbb(i),11) -                       &
      &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             xrb=abs(crk)/rb
@@ -6431,7 +6431,7 @@ cc2008
           if(iwrite.eq.1) then
             iii=i
             if(typ(:8).eq.'START   ') iii=0
-            write(lout,10030) iii,typ(:8),tl,phi(1),b1(1),al1(1),g1(1),
+            write(lout,10030) iii,typ(:8),tl,phi(1),b1(1),al1(1),g1(1), &
      &d(1),dp(1),c(1),cp(1)
             if(ndimf.eq.3) then
               write(lout,10040) b2(1),al2(1),g2(1)
@@ -6447,8 +6447,7 @@ cc2008
               write(lout,10090) b3(2),al3(2),g3(2)
               write(lout,10060)
               write(lout,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),  &
-     &c(3),
-     &cp(3)
+     &c(3),cp(3)
               write(lout,10080) b2(3),al2(3),g2(3)
               write(lout,10040) b3(3),al3(3),g3(3)
             endif
@@ -6533,7 +6532,7 @@ cc2008
                     jj(j1)=0
                   enddo
                   if(ndimf.eq.3) then
-                    bbcu(ibb,ii) = two *
+                    bbcu(ibb,ii) = two *                                &
      &               ((emitx*angnoe(1)+emity*angnoe(2))+emitz*angnoe(3))
                   else
                     bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
@@ -6595,18 +6594,18 @@ cc2008
              endif
 +if boinc
              call boincrf("beam_expert.txt",filename)
-             open(600,file=filename,
+             open(600,file=filename,                                    &
      &            status='replace',action="write")
 +ei
 +if .not.boinc
-             open(600,file="beam_expert.txt",
+             open(600,file="beam_expert.txt",                           &
      &            status='replace',action="write")
 +ei
              beam_expfile_open = .true.
              !This line will be a comment if copy-pasted into fort.3
-             write(600,'(a,g13.6,a,g13.6,a,g13.6,a)')
-     &            "/ ******* USING emitx=",emitx,
-     &            ", emity=",emity,
+             write(600,'(a,g13.6,a,g13.6,a,g13.6,a)')                   &
+     &            "/ ******* USING emitx=",emitx,                       &
+     &            ", emity=",emity,                                     &
      &            ", emitz=",emitz," ******"
           endif
           
@@ -6614,8 +6613,8 @@ cc2008
              !Note: One should always use the CRLIBM version when converting,
              ! in order to guarantee the exact same results from the converted input file.
 +if .not.crlibm
-             write(600,"(a16,1x,a1,1x,5g30.20)")
-     &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),
+             write(600,"(a16,1x,a1,1x,5g30.20)")                        &
+     &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),                &
      &            parbe(ix,5), parbe(ix,6), ptnfac(ix)
 +ei
 +if crlibm
@@ -6647,15 +6646,15 @@ cc2008
 +ei
           else                      ! 6D
 +if .not.crlibm
-             write(600,"(a16,1x,i4,1x,4g30.20)")
-     &            bez(ix), int(parbe(ix,2)),
-     &            parbe(ix,1), parbe(ix,3),
+             write(600,"(a16,1x,i4,1x,4g30.20)")                        &
+     &            bez(ix), int(parbe(ix,2)),                            &
+     &            parbe(ix,1), parbe(ix,3),                             &
      &            parbe(ix,5), parbe(ix,6)
-             write(600,"(5g30.20)")
-     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),
+             write(600,"(5g30.20)")                                     &
+     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),                &
      &            bbcu(ibb,2), bbcu(ibb,9)
-             write(600,"(6g30.20)")
-     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),
+             write(600,"(6g30.20)")                                     &
+     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),               &
      &            bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
 +ei
 +if crlibm
@@ -11281,7 +11280,7 @@ cc2008
       iffw=0
       nprint=1
       ndafi=1
-      itco=50
+      itco=500
       dma=c1m12
       dmap=c1m15
       itcro=10
@@ -21093,7 +21092,7 @@ cc2008
 +ei
         if(abs(dare(x(1))).gt.aint(aper(1)).or.                         &
      &abs(dare(x(2))).gt.aint(aper(2))) then
-          write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,
+          write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,&
      &kz(ix),bez(ix)
           call prror(97)
         endif
@@ -21127,8 +21126,8 @@ cc2008
           wire_num_aux = wire_num_aux+1
 ! is the error number correct?
           if(wire_num_aux.gt.wire_max) then
-               write(lout,
-     &*) 'ERROR: maximum number of wires exceeded! Number of wires ='//
+               write(lout,                                              &
+     &*) 'ERROR: maximum number of wires exceeded! Number of wires ='// &
      &'wire_num_aux = ',wire_num_aux,' > ',wire_max,' = wire_max'
             call prror(-1)
           endif
@@ -22552,7 +22551,7 @@ cc2008
       use mathlib_bouncer
       implicit none
       integer idaa
-      real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2    &
+      real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
 +ca parpro
 +ca parnum
 +ca commondl
@@ -37521,7 +37520,7 @@ cc2008
       cor=zero
       do l=1,ndimf
         ll=2*l
-        write(lout,10070) chp(l),cloc(ll-1),cloc(ll),
+        write(lout,10070) chp(l),cloc(ll-1),cloc(ll),                   &
      &chd(l),dc(ll-1),dc(ll)
         cor=cor+dc(ll-1)**2                                              !hr06
       enddo
