@@ -2,8 +2,8 @@
       character(len=8) version  !Keep data type in sync with 'cr_version'
       character(len=10) moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.15'/
-      data moddate /'02.11.2017'/
+      data version /'4.7.16'/
+      data moddate /'06.11.2017'/
 +cd license
 !!SixTrack
 !!
@@ -24323,6 +24323,26 @@ cc2008
 +ca dump3 !list of variables
       endif
   550 continue
+      
+      
+      if (idp.eq.0.or.ition.eq.0) then
+         !4D tracking
+         if (iclo6 .ne. 0) then
+            write(lout,*) "ERROR: Doing 4D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.eq.0. for 4D tracking."
+            call prror(-1)
+         endif
+      else
+         !6D tracking
+         if (iclo6 .eq. 0) then
+            write(lout,*) "ERROR: Doing 6D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.ne.0. for 6D tracking."
+            call prror(-1)
+         endif
+      endif
+      
+      
+!!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
 +ca dump2 !read(32)
 +ca dump3 !list of variables
