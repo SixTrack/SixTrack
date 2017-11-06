@@ -49198,7 +49198,7 @@ cc2008
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
-            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
      & ' for DATAMODS to fort.95'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
@@ -49448,7 +49448,7 @@ cc2008
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
-            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
      & ' for DATAMODS to fort.96'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
