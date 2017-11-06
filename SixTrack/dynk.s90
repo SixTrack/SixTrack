@@ -218,8 +218,8 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 +if crlibm
 
     integer nchars
-    parameter (nchars=160) ! Same as in daten
-    character*(nchars) ch
+    parameter(nchars=160) ! Same as in daten
+    character(len=nchars) ch
 
     character filefields_fields(getfields_n_max_fields)*(getfields_l_max_string)
     integer filefields_nfields
@@ -794,7 +794,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ! Store pointers
         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
         funcs_dynk(nfuncs_dynk,2) = 6           !TYPE (RANDG)
-        funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), mcut, seed1(current), seed2(current) (in iexpr_dynk)
+        funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial),seed2(initial),mcut,seed1(current),seed2(current) (in iexpr_dynk)
         funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !mu, sigma (in fexpr_dynk)
         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
 
@@ -2710,8 +2710,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     ! String handling tempraries for PIPE, preformatting for round_near
     integer errno !for round_near
     integer nchars
-    parameter (nchars=160)
-    character*(nchars) ch
+    parameter(nchars=160)
+    character(len=nchars) ch
 +ei
 
 ! Usefull constants (pi and two)
