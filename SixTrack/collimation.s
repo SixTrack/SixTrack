@@ -146,6 +146,7 @@
       myalphay = talphay(1)
       mybetax  = tbetax(1)
       mybetay  = tbetay(1)
+
 !07-2006      myenom   = e0
 !      MYENOM   = 1.001*E0
 !
@@ -388,6 +389,13 @@
      &           myenom, mynex, mdex, myney, mdey,
      &           myx, myxp, myy, myyp, myp, mys,
      &           enerror, bunchlength )
+         elseif(do_thisdis.eq.6) then
+            call readdis_norm(filename_dis, 
+     &           mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx0_dist, myemity0_dist, myenom, 
+     &           myx, myxp, myy, myyp, myp, mys, 
+     &           enerror, bunchlength)
+
          else
             write(lout,*) 'INFO> review your distribution parameters !!'
             call prror(-1)
@@ -7602,6 +7610,164 @@ c$$$     &           myalphay * cos(phiy))
       call prror(-1)
       
       end
+
+!
+!========================================================================
+!
+      subroutine readdis_norm(filename_dis, 
+     &           mynp, myalphax, myalphay, mybetax, mybetay,
+     &           myemitx, myemity, myenom, 
+     &           myx, myxp, myy, myyp, myp, mys, enerror,
+     &           bunchlength)
+!     Format for the input file:
+!               x, y   -> [ sigma ]
+!               xp, yp -> [ sigma ]
+!               s      -> [ sigma ]
+!               DE     -> [ sigma ]
+!
+      implicit none
+
++ca crcoall
++if crlibm
++ca crlibco
++ei
++ca collpara
++ca dbmkdist
+
++ca parpro
++ca commonmn
++ca common
+
+      character*80   filename_dis
+      double precision enerror, bunchlength
+      
+      logical lopen
+      integer stat
+      
+      double precision normx, normy, normxp, normyp, normp, norms
+      double precision myemitz
+
+      write(lout,*) "Reading input bunch from file ", filename_dis
+
+      if (iclo6.eq.0) then
+         write(lout,*) "ERROR DETECTED: Incompatible flag           "
+         write(lout,*) "in line 2 of the TRACKING block             "
+         write(lout,*) "of fort.3 for calculating the closed orbit  "
+         write(lout,*) "(iclo6 must not be =0). When using an input "
+         write(lout,*) "distribution in normalized coordinates for  "
+         write(lout,*) "collimation the closed orbit is needed for a"
+         write(lout,*) "correct TAS matrix for coordinate transform."
+         call prror(-1)
+      endif
+
+      inquire( unit=53, opened=lopen )
+      if (lopen) then
+         write(lout,*) "ERROR in subroutine readdis: "//
+     &        "FORTRAN Unit 53 was already open!"
+         goto 20
+      endif
+      open(unit=53, file=filename_dis, iostat=stat,
+     &     status="OLD",action="read")
+      if (stat.ne.0)then
+         write(lout,*) "Error in subroutine readdis: "//
+     &        "Could not open the file."
+         write(lout,*) "Got iostat=",stat
+         goto 20
+      endif
+
+      do j=1,mynp
+         read(53,*,end=10,err=20) normx, normxp, normy,
+     &     normyp, norms, normp
+! A normalized distribution with x,xp,y,yp,z,zp is read and 
+! transformed with the TAS matrix T , which is the transformation matrix
+! from normalized to physical coordinates it is scaled with the geometric
+! emittances in diag matrix S. x = T*S*normx
+! units of TAS matrix # m,rad,m,rad,m,1
+! The collimation coordinates/units are
+! x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
+
+!         write(lout,*) " myenom [MeV]= ",myenom
+!         write(lout,*) " myemitx [m]= ",myemitx
+!         write(lout,*) " myemity [m]= ",myemity
+!         write(lout,*) " bunchlength [mm]= ",bunchlength
+!         write(lout,*) " enerror = ",enerror
+                  
+         !convert bunchlength from [mm] to [m]
+         ! enerror is the energy spread
+         myemitz  = bunchlength * 0.001d0 * enerror
+
+
+! scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)  ia=the particle for which the tas was written
+
+         myx(j)   = 
+     &     normx  * sqrt(myemitx)*tas(1,1,1) + 
+     &     normxp * sqrt(myemitx)*tas(1,1,2) +
+     &     normy  * sqrt(myemity)*tas(1,1,3) +
+     &     normyp * sqrt(myemity)*tas(1,1,4) +
+     &     norms  * sqrt(myemitz)*tas(1,1,5) +
+     &     normp  * sqrt(myemitz)*0.001d0*tas(1,1,6)
+         myxp(j)  = 
+     &     normx  * sqrt(myemitx)*tas(1,2,1) + 
+     &     normxp * sqrt(myemitx)*tas(1,2,2) +
+     &     normy  * sqrt(myemity)*tas(1,2,3) +
+     &     normyp * sqrt(myemity)*tas(1,2,4) +
+     &     norms  * sqrt(myemitz)*tas(1,2,5) +
+     &     normp  * sqrt(myemitz)*0.001d0*tas(1,2,6)
+         myy(j)   = 
+     &     normx  * sqrt(myemitx)*tas(1,3,1) + 
+     &     normxp * sqrt(myemitx)*tas(1,3,2) +
+     &     normy  * sqrt(myemity)*tas(1,3,3) +
+     &     normyp * sqrt(myemity)*tas(1,3,4) +
+     &     norms  * sqrt(myemitz)*tas(1,3,5) +
+     &     normp  * sqrt(myemitz)*0.001d0*tas(1,3,6)
+         myyp(j)  = 
+     &     normx  * sqrt(myemitx)*tas(1,4,1) + 
+     &     normxp * sqrt(myemitx)*tas(1,4,2) +
+     &     normy  * sqrt(myemity)*tas(1,4,3) +
+     &     normyp * sqrt(myemity)*tas(1,4,4) +
+     &     norms  * sqrt(myemitz)*tas(1,4,5) +
+     &     normp  * sqrt(myemitz)*0.001d0*tas(1,4,6)
+         mys(j)   = 
+     &     normx  * sqrt(myemitx)*tas(1,5,1) + 
+     &     normxp * sqrt(myemitx)*tas(1,5,2) +
+     &     normy  * sqrt(myemity)*tas(1,5,3) +
+     &     normyp * sqrt(myemity)*tas(1,5,4) +
+     &     norms  * sqrt(myemitz)*tas(1,5,5) +
+     &     normp  * sqrt(myemitz)*0.001d0*tas(1,5,6)
+         myp(j)   = 
+     &     normx  * sqrt(myemitx)*1000.d0*tas(1,6,1) + 
+     &     normxp * sqrt(myemitx)*1000.d0*tas(1,6,2) +
+     &     normy  * sqrt(myemity)*1000.d0*tas(1,6,3) +
+     &     normyp * sqrt(myemity)*1000.d0*tas(1,6,4) +
+     &     norms  * sqrt(myemitz)*1000.d0*tas(1,6,5) +
+     &     normp  * sqrt(myemitz)*tas(1,6,6)
+
+! add the momentum
+! convert to canonical variables
+! dE/E with unit [1] from the closed orbit is added 
+!For the 4D coordinates the closed orbit
+! will be added by SixTrack itself later on.
+         myxp(j)  = myxp(j)*(1.d0+myp(j)+clop6v(3,1))
+         myyp(j)  = myyp(j)*(1.d0+myp(j)+clop6v(3,1))
+! unit conversion for collimation [m] to [mm]
+         mys(j)   = mys(j)*1000.d0
+         myp(j)   = myenom*(1.d0+myp(j))
+
+      enddo
+      
+ 10   mynp = j - 1
+      write(lout,*) "Number of particles read from the file = ",mynp
+
+      close(53)
+
+      return
+      
+ 20   continue
+      write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
+      call prror(-1)
+      
+      end
+
 !
 !========================================================================
 !
