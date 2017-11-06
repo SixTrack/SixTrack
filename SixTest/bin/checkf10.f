@@ -17,7 +17,7 @@
       hasInputFile = .false.
       INQUIRE(file="fort.20",EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a)') "Error in checkf10 - file 'fort.20'"//
+         write(*,'(a,a)') "Error in checkf10 - file 'fort.20'"//        &
      &        " was not found"
          flush(output_unit)
          stop 1
@@ -25,7 +25,7 @@
       hasInputFile = .false.
       INQUIRE(file="fort.21",EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a)') "Error in checkf10 - file 'fort.21'"//
+         write(*,'(a,a)') "Error in checkf10 - file 'fort.21'"//        &
      &        " was not found"
          flush(output_unit)
          stop 2
@@ -91,7 +91,7 @@
         flush(output_unit)
         stop 1
       else
-        write (*,*)
+        write (*,*)                                                     &
      & "checkf10_checkf10_SAME after comparing ",line ,"lines"
         flush(output_unit)
         stop 0

@@ -20,7 +20,7 @@
       hasInputFile = .false.
       INQUIRE(file="fort.20",EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a)') "Error in checkf1014 - file 'fort.20'"//
+         write(*,'(a,a)') "Error in checkf1014 - file 'fort.20'"//      &
      &        " was not found"
          flush(output_unit)
          stop 1
@@ -28,7 +28,7 @@
       hasInputFile = .false.
       INQUIRE(file="fort.21",EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a)') "Error in checkf1014 - file 'fort.21'"//
+         write(*,'(a,a)') "Error in checkf1014 - file 'fort.21'"//      &
      &        " was not found"
          flush(output_unit)
          stop 2
@@ -80,7 +80,7 @@
       go to 1
  99   continue
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
-      write (*,*)
+      write (*,*)                                                       &
      & "checkf1014_DIFF I/O error, wrong no of lines!! line no ",line
       flush(output_unit)
       stop

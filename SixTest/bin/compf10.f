@@ -18,7 +18,7 @@
       hasInputFile = .false.
       INQUIRE(file="fort.20",EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a)') "Error in compf10 - file 'fort.20'"//
+         write(*,'(a,a)') "Error in compf10 - file 'fort.20'"//         &
      &        " was not found"
          flush(output_unit)
          stop 1
@@ -26,7 +26,7 @@
       hasInputFile = .false.
       INQUIRE(file="fort.21",EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a)') "Error in compf10 - file 'fort.21'"//
+         write(*,'(a,a)') "Error in compf10 - file 'fort.21'"//         &
      &        " was not found"
          flush(output_unit)
          stop 2
@@ -47,7 +47,7 @@
             write (*,*) "compf10_DIFF fort.10, line",line
             diffs=.true.
           endif
-          write (*,*) 
+          write (*,*)                                                   &
      & "compf10_DIFF",word,prob(word),prob1(word),eps(word)
           if (abs(eps(word)).ge.1d-14) then
             write (*,*) 'HUGE!',abs(eps(word))
@@ -63,7 +63,7 @@
             write (*,*) "compf10_DIFF fort.10, line",line
             diffs=.true.
           endif
-          write (*,*) 
+          write (*,*)                                                   & 
      & "compf10_DIFF",word,prob(word),prob1(word),eps(word)
           if (abs(eps(word)).ge.1d-14) then
             write (*,*) 'HUGE!',abs(eps(word))
@@ -75,7 +75,7 @@
       go to 1
  99   continue
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
-      write (*,*)
+      write (*,*)                                                       &
      & "compf10_DIFF I/O error, wrong no of lines!! line no ",line
       flush(output_unit)
       stop 2
