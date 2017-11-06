@@ -69,7 +69,7 @@
       go to 1
  99   continue
       write (*,*) "Comparing VERSION ",prob(52)," to ",prob1(52)
-      write (*,*)
+      write (*,*)                                                       &
      & "checkf10_DIFF I/O error, wrong no of lines!! line no ",line
       flush(output_unit)
       stop 2

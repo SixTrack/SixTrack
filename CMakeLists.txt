@@ -1474,11 +1474,11 @@ IF(BUILD_TESTING)
 	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
 
 	#need to build the testing tools
-	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f)
-	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf10.f)
-	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f)
-	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f)
-	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f)
+	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f90)
+	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf10.f90)
+	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f90)
+	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f90)
+	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f90)
 	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
 	add_executable(readDump3 ${CMAKE_SOURCE_DIR}/SixTest/readDump3/readDump3.f90)
 
