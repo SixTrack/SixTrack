@@ -16181,7 +16181,7 @@ cc2008
         fluka_type(i1) = FLUKA_ELEMENT
         fluka_geo_index(i1)  = ii
         fluka_synch_length(i1) = tmplen
-        write(fluka_log_unit,*)
+        write(fluka_log_unit,*)                                         &
      &'# Found         Fluka element as SING EL num',i1
       else
         fluka_type(i1) = FLUKA_ENTRY
@@ -16189,9 +16189,9 @@ cc2008
         fluka_type(i2) = FLUKA_EXIT
         fluka_geo_index(i2)  = ii
         fluka_synch_length(i2) = tmplen
-        write(fluka_log_unit,*)
+        write(fluka_log_unit,*)                                         &
      &'# Found entrance Fluka element as SING EL num',i1
-        write(fluka_log_unit,*)
+        write(fluka_log_unit,*)                                         &
      &'# Found exit     Fluka element as SING EL num',i2
       endif
 !     wait to find at least one FLUKA insertion before actually enabling
@@ -24842,9 +24842,9 @@ cc2008
         fluka_con = fluka_init_max_uid( napx )
 
         if (fluka_con .lt. 0) then
-           write(lout,*) '[Fluka] Error: failed to send napx to fluka ',
+           write(lout,*) '[Fluka] Error: failed to send napx to fluka ',&
      &  napx
-           write(fluka_log_unit, *) '# failed to send napx to fluka ',
+           write(fluka_log_unit, *) '# failed to send napx to fluka ',  &
      &  napx
            call prror(-1)
         end if
@@ -26442,7 +26442,7 @@ cc2008
             if(fluka_inside) then
               if(fluka_debug) then
                 write(lout,*) '[Fluka] Skipping lattice element at ', i
-                write(fluka_log_unit,*)
+                write(fluka_log_unit,*)                                 &
      &'# Skipping lattice element at ', i
               end if
               goto 630
@@ -27131,7 +27131,7 @@ cc2008
             if(fluka_inside) then
               if(fluka_debug) then
                 write(lout,*) '[Fluka] Skipping lattice element at ', i
-                write(fluka_log_unit,*)
+                write(fluka_log_unit,*)                                 &
      &'# Skipping lattice element at ', i
               end if
               goto 650
@@ -29141,7 +29141,7 @@ cc2008
                  if (plost(jj).ne.0) then
 +if fluka
                  if ( fluka_uid(j).eq.plost(jj).or.                     &
-     &                  fluka_gen(j).eq.plost(jj) )
+     &                  fluka_gen(j).eq.plost(jj) )                     &
 +ei
 +if collimat
                    if ( ipart(j)+100*samplenumber .eq. plost(jj) )      &
