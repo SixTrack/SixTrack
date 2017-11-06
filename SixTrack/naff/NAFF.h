@@ -2,12 +2,11 @@
 
 
 #include <fftw3.h>
-#include <boost/math/tools/minima.hpp>
-#include <boost/math/constants/constants.hpp>
 
 #include "signal.h"
 #include "windows.h"
 #include "spline_interpolation.h"
+#include "minima.hpp"
 
 typedef double Tfloat;
 const std::complex<double> z (0,1);
@@ -135,7 +134,7 @@ class NAFF {
     double min = fft_frequency - 1.0*step;
     double max = fft_frequency + 1.0*step;
     int bits = std::numeric_limits<double>::digits;
-    std::pair<double, double> r = boost::math::tools::brent_find_minima(y, min, max, bits);
+    std::pair<double, double> r = brent_minima(y, min, max, bits);
     Print_opt::Write(Print_opt::Debug,"Merit function: Maximize fourier integral");
     return r.first;   
   }
@@ -191,7 +190,7 @@ class NAFF {
     double min = fft_frequency - step;
     double max = fft_frequency + step;
     int bits = std::numeric_limits<double>::digits;
-    std::pair<double, double> r = boost::math::tools::brent_find_minima(y, min, max, bits);
+    std::pair<double, double> r = brent_minima(y, min, max, bits);
     Print_opt::Write(Print_opt::Debug,"Merit function: Time domain energy");
     return r.first;
   }
@@ -227,7 +226,7 @@ class NAFF {
     double min = fft_frequency - step;
     double max = fft_frequency + step;
     int bits = std::numeric_limits<double>::digits;
-    std::pair<double, double> r = boost::math::tools::brent_find_minima(y, min, max, bits);
+    std::pair<double, double> r = brent_minima(y, min, max, bits);
     Print_opt::Write(Print_opt::Debug,"Merit function: Fourier integral after subtraction");
     return r.first;
   }

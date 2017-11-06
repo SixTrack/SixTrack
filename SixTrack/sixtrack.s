@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.10'/
-      data moddate /'02.10.2017'/
+      data version /'4.7.16'/
+      data moddate /'06.11.2017'/
 +cd license
 !!SixTrack
 !!
@@ -899,7 +899,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
 !
-! THIS BLOCK IS COMMON TO BOTH THIN6D AND TRAUTHIN SUBROUTINES
+! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
 !
       integer ieff,ieffdpop
 !
@@ -945,14 +945,20 @@
 
 
       integer secondary(npart),tertiary(npart),other(npart),            &
-     &part_hit_before(npart)
+     &part_hit_before_pos(npart), part_hit_before_turn(npart)
       double precision part_indiv(npart),part_linteract(npart)
 
-      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed &
-     &,part_select(npart),nabs_type(npart)
+      integer part_hit_pos(npart),part_hit_turn(npart),                 &
+     &     part_abs_pos(npart),part_abs_turn(npart),                    &
+     &     n_tot_absorbed,n_absorbed,                                   &
+     &     part_select(npart),nabs_type(npart)
       double precision part_impact(npart)
-      common /stats/ part_impact,part_hit,part_abs,nabs_type,part_indiv,&
-     &part_linteract,secondary,tertiary,other
+      common /stats/ part_impact,                                       &
+     &     part_hit_pos,part_hit_turn,                                  &
+     &     part_hit_before_pos, part_hit_before_turn,                   &
+     &     part_abs_pos,part_abs_turn,                                  &
+     &     nabs_type,part_indiv,                                        &
+     &     part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
@@ -1034,9 +1040,10 @@
 
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-!MAY2005
-!      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
+      
+      integer lhit_pos(npart),lhit_turn(npart),                         &
+     &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
+     &     name(npart),nabs_type(npart)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -15612,6 +15619,20 @@ cc2008
 
 +if collimat
       has_coll = .true. !We have a collimation block.
+      if (ilin.ne.1) then
+         write(lout,*) "ERROR DETECTED:"
+         write(lout,*) "Incompatible flag with collimation version"
+         write(lout,*) "detected in the LINEAR OPTICS block."
+         write(lout,*) ""
+         write(lout,*) "You have not chosen ilin=1 (4D mode),"
+         write(lout,*) "which is required for the collimation version."
+         write(lout,*) ""
+         write(lout,*) "Note that the ilin=2 (6D mode) is not"
+         write(lout,*) "compatible with the collimation version."
+         write(lout,*) ""
+         write(lout,*) "Current setting ilin=",ilin
+         call prror(-1)
+      endif
 +ei
 
       if(ch(1:1).ne.'/') then
@@ -15644,20 +15665,6 @@ cc2008
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
-
-      if(do_coll .and. numl.ge.10000) then
-         write(lout,*) ""
-         write(lout,*) "Error when parsing COLL block in fort.3"
-         write(lout,*) "Collimation supports a maximum of 10000 turns;"
-         write(lout,*) " trying to use more than this "//
-     &        "corrupts the output files."
-         write(lout,*) "Sorry!"
-         write(lout,*) ""
-         
-         call prror(-1)
-      endif
-      
-
       
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
@@ -15677,6 +15684,18 @@ cc2008
          write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
          write(lout,*) "Please reduce the number of particles or loops"
          write(lout,*) ""
+         
+         call prror(-1)
+      endif
+
+      if(iclr.eq.2 .and. napx*2.ge.100 .and. nloop.gt.1) then
+         write(lout,*) ""
+         write(lout,*) "Error when parsing COLL block in fort.3"
+         write(lout,*) "If nloop > 1 then you must have napx*2 < 100"
+         write(lout,*) " or else the particle numbers in the"
+         write(lout,*) " output gets confused."
+         write(lout,*) "napx  = ", napx
+         write(lout,*) "nloop = ", nloop
          
          call prror(-1)
       endif
@@ -23894,6 +23913,7 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
+      double precision round_near
       data lineno /0/
 +ei
 +if debug
@@ -25030,15 +25050,37 @@ C Should get me a NaN
 +ca dump3 !list of variables
       endif
   550 continue
+      
+      
+      if (idp.eq.0.or.ition.eq.0) then
+         !4D tracking
+         if (iclo6 .ne. 0) then
+            write(lout,*) "ERROR: Doing 4D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.eq.0. for 4D tracking."
+            call prror(-1)
+         endif
+      else
+         !6D tracking
+         if (iclo6 .eq. 0) then
+            write(lout,*) "ERROR: Doing 6D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.ne.0. for 6D tracking."
+            call prror(-1)
+         endif
+      endif
+      
+      
+!!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
 +ca dump2 !read(32)
 +ca dump3 !list of variables
         damp=((amp(1)-amp0)/dble(napx/2-1))/2d0                          !hr05
       endif
-      do 80 i=1,npart
-        pstop(i)=.false.
-        nnumxv(i)=numl
-   80 numxv(i)=numl
+      do i=1,npart
+         pstop(i)=.false.
+         nnumxv(i)=numl
+         numxv(i)=numl
+      end do
+      
       rat0=rat
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
@@ -25149,9 +25191,182 @@ C Should get me a NaN
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
           write(lout,10020) ampv(ia),amp(2),epsa
         else
++if .not.crlibm
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
      &(2,ia+1), sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
++ei
++if crlibm
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(1,ia)]"
+             call prror(-1)
+          endif
+          xv(1,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(1,ia)]"
+             call prror(-1)
+          endif
+          yv(1,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(2,ia)]"
+             call prror(-1)
+          endif
+          xv(2,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(2,ia)]"
+             call prror(-1)
+          endif
+          yv(2,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ sigmv(ia)]"
+             call prror(-1)
+          endif
+          sigmv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV sigmv(ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ dpsv(ia)]"
+             call prror(-1)
+          endif
+          dpsv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV dpsv(ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(1,ia+1)]"
+             call prror(-1)
+          endif
+          xv(1,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia+1)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(1,ia+1)]"
+             call prror(-1)
+          endif
+          yv(1,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(2,ia+1)]"
+             call prror(-1)
+          endif
+          xv(2,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(2,ia+1)]"
+             call prror(-1)
+          endif
+          yv(2,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [READ sigmv(ia+1)]"
+             call prror(-1)
+          endif
+          sigmv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [CONV sigmv(ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [READ dpsv(ia+1)]"
+             call prror(-1)
+          endif
+          dpsv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [CONV dpsv(ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ e0]"
+             call prror(-1)
+          endif
+          e0 = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV e0]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ ejv(ia)]"
+             call prror(-1)
+          endif
+          ejv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV ejv(ia)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ ejv(ia+1)]"
+             call prror(-1)
+          endif
+          ejv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV ejv(ia+1)]"
+             call prror(-1)
+          endif
+
++ei
           if(ierro.ne.0) call prror(56)
           e0f=sqrt(e0**2-pma**2)                                         !hr05
           ejfv(ia)=sqrt(ejv(ia)**2-pma**2)                               !hr05
@@ -27587,7 +27802,7 @@ C Should get me a NaN
               gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
               gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
 
-              if (part_abs(j).eq.0) then
+              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
@@ -28072,7 +28287,7 @@ C Should get me a NaN
   640     continue
 !GRD UPGRADE JANUARY 2005
 +if collimat
-      call collimate_end_element(i)
+      call collimate_end_element
 +ei
 !GRD END OF UPGRADE
 
@@ -28088,7 +28303,7 @@ C Should get me a NaN
 
 
 +if collimat
-      call collimate_end_turn(n)
+      call collimate_end_turn
 +ei
 
 +if .not.collimat
@@ -33337,6 +33552,7 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
+      double precision round_near
       data lineno /0/
 +ei
 +ca version
@@ -45251,6 +45467,9 @@ c$$$            endif
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
 !     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
 !     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
+!     
+!     This is similar but not exactly the same as the subroutine invert_tas;
+!     the "tasum" is missing from there
       do 160 i=1,6
         do 160 j=1,6
   160 t(i,j)=ta(j,i)
@@ -47184,60 +47403,6 @@ c$$$            endif
       endif
       end subroutine
       
-      subroutine invert_tas(fma_tas_inv,fma_tas)
-!-----------------------------------------------------------------------*
-!  FMA                                                                  *
-!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
-!  last modified: 04-01-2016                                            *
-!  purpose: invert the matrix of eigenvecors tas                        *
-!           (code copied from postpr only that ta is here fma_tas)      *
-!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
-!           note: inversion method copied from subroutine postpr        *
-!-----------------------------------------------------------------------*
-      implicit none
-+ca parnum   !numbers (zero,one,two etc.)
-+ca commonta
-      integer :: i,j            !iterators
-      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-      integer ierro                   !error messages
-!     dummy variables
-      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-      integer, dimension(6) :: idummy !for matrix inversion
-!     units: [mm,mrad,mm,mrad,mm,1]
-!     invert matrix
-!     - set values close to 1 equal to 1
-      do 160 i=1,6
-        do 160 j=1,6
-  160 fma_tas_inv(i,j)=fma_tas(j,i)
-      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
-     &pieni) then
-        fma_tas_inv(1,1)=one
-        fma_tas_inv(2,2)=one
-      endif
-      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
-     &pieni) then
-        fma_tas_inv(3,3)=one
-        fma_tas_inv(4,4)=one
-      endif
-      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
-     &pieni) then
-        fma_tas_inv(5,5)=one
-        fma_tas_inv(6,6)=one
-      endif
-!     - invert: dinv returns the transposed matrix
-      call dinv(6,fma_tas_inv,6,idummy,ierro)
-      call fma_error(ierro,'matrix inversion failed!',                  &
-     &'invert_tas')
-!     - transpose fma_tas_inv
-      tdummy=fma_tas_inv
-      do i=1,6
-        do j=1,6
-          fma_tas_inv(i,j)=tdummy(j,i)
-        enddo
-      enddo
-      end subroutine invert_tas
-      
       subroutine fma_postpr
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
@@ -48559,6 +48724,73 @@ c$$$            endif
 10010 format(//10x,'** ERROR IN JOIN** ----- PROBLEMS WITH DATA ' ,     &
      &'FILE : ',i2,' ----- ERROR CODE : ',i10//)
       end
+
++dk utils ! Various utility functions
+
+      subroutine invert_tas(fma_tas_inv,fma_tas)
+!-----------------------------------------------------------------------*
+!  FMA                                                                  *
+!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
+!  last modified: 04-01-2016                                            *
+!  purpose: invert the matrix of eigenvecors tas                        *
+!           (code copied from postpr only that ta is here fma_tas)      *
+!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
+!           note: inversion method copied from subroutine postpr        *
+!-----------------------------------------------------------------------*
+      implicit none
++ca parnum   !numbers (zero,one,two etc.)
++ca commonta
++ca crcoall
+
+      integer :: i,j            !iterators
+      double precision, dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
+      double precision, dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
+      integer ierro                   !error messages
+!     dummy variables
+      double precision, dimension(6,6) :: tdummy !dummy variable for transposing the matrix
+      integer, dimension(6) :: idummy !for matrix inversion
+!     units: [mm,mrad,mm,mrad,mm,1]
+!     invert matrix
+!     - set values close to 1 equal to 1
+      do i=1,6
+         do j=1,6
+            fma_tas_inv(i,j)=fma_tas(j,i)
+         enddo
+      enddo
+      
+      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
+     &pieni) then
+        fma_tas_inv(1,1)=one
+        fma_tas_inv(2,2)=one
+      endif
+      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
+     &pieni) then
+        fma_tas_inv(3,3)=one
+        fma_tas_inv(4,4)=one
+      endif
+      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
+     &pieni) then
+        fma_tas_inv(5,5)=one
+        fma_tas_inv(6,6)=one
+      endif
+      
+!     - invert: dinv returns the transposed matrix
+      call dinv(6,fma_tas_inv,6,idummy,ierro)
+      if (ierro.ne.0) then
+         write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
+         write(lout,*) "Subroutine DINV returned ierro=",ierro
+         call prror(-1)
+      endif
+      
+!     - transpose fma_tas_inv
+      tdummy=fma_tas_inv
+      do i=1,6
+        do j=1,6
+          fma_tas_inv(i,j)=tdummy(j,i)
+        enddo
+      enddo
+      end subroutine invert_tas
+
 +dk sumpos
       subroutine sumpos
 !-----------------------------------------------------------------------
