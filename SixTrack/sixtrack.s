@@ -1388,7 +1388,9 @@
 ! Used in at least DYNK, FMA, ZIPF, DUMP, and SCATTER.
 ! K. Sjobak, BE-ABP/HSS
       integer stringzerotrim_maxlen
-      parameter (stringzerotrim_maxlen=getfields_l_max_string) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
+
+      !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
+      parameter (stringzerotrim_maxlen=getfields_l_max_string)
       
       character(stringzerotrim_maxlen) stringzerotrim ! Define the function
 !

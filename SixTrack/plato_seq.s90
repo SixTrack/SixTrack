@@ -98,7 +98,7 @@
       REAL(KIND=fPrec) X,XP, DUEPI, STEP, SUM, FTMAX, TUNEFOU, DELTAT, TUNE1, TUNE
       INTEGER MAXN, MFT, NPOINT, MAXN2, MF, NPMIN, NPMAX, NFTMAX, NFT
       COMPLEX(kind=fPrec) Z
-      COMPLEX(kind=fPrec), DIMENSION(MAXITER) :: ZSING ! Temp Z for CFFT, used to be SINGle precission
+      COMPLEX(kind=fPrec), DIMENSION(MAXITER) :: ZSING ! Temp Z for CFFT, used to be SINGLE precision
       
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
@@ -1060,7 +1060,8 @@
             ZC=(X(N)-(ZERO,ONE)*PX(N))*(ONE+COS_MB(STEP*(2*N-MAX1)))
             TMPR=REAL((-(ZERO,ONE)*OME)*N)
             TMPI=AIMAG((-(ZERO,ONE)*OME)*N)
-            Z(N)=ZC*(EXP_MB(TMPR)*CMPLX(COS_MB(TMPI),SIN_MB(TMPI),fPrec)) !exp_mb is only defined for real numbers -> decompose in real and imaginary part
+            !exp_mb is only defined for real numbers -> decompose in real and imaginary part
+            Z(N)=ZC*(EXP_MB(TMPR)*CMPLX(COS_MB(TMPI),SIN_MB(TMPI),fPrec))
 +ei
 +if .not.crlibm
             ZC=(X(N)-(ZERO,ONE)*PX(N))*(ONE+COS(STEP*(2*N-MAX1)))

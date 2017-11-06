@@ -2646,9 +2646,9 @@ subroutine dynk_apply(turn)
                 whichFUN(jj) = "N/A"
             end if
 
-            ! For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
-            ! Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
-            ! Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
+            !For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
+            !Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
+            !Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
             write(outstring_tmp1,'(A20)') stringzerotrim(csets_unique_dynk(jj,1))
             outstring_tmp1(len(outstring_tmp1)+1:) = ' ' ! Pad with trailing blanks
             write(outstring_tmp2,'(A20)') stringzerotrim(csets_unique_dynk(jj,2))
