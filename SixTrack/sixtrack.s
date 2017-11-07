@@ -15199,7 +15199,7 @@ cc2008
      & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if .not.fio
-      if(iclr.eq.9) read(ch1,*)
+      if(iclr.eq.9) read(ch1,*)                                         &
      & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
 +ei
 +if fio
@@ -27220,7 +27220,7 @@ cc2008
 ! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB 
 ! both namings before and after V6.503 can be used 
 !
-          if (do_coll .and.
+          if (do_coll .and.                                             &
      &         (bez(myix)(1:2).eq.'TC'                                  &
      &         .or. bez(myix)(1:2).eq.'tc'                              &
      &         .or. bez(myix)(1:2).eq.'TD'                              &
@@ -27278,13 +27278,11 @@ cc2008
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &two*talphax(ie)*xj*xpj +                                          &
-     &tbetax(ie)*xpj**2 )/myemitx0_collgap
-     &)
+     &tbetax(ie)*xpj**2 )/myemitx0_collgap)
                 nspy    = sqrt(                                         &
      &abs( gammay*(yj)**2 +                                             &
      &two*talphay(ie)*yj*ypj +                                          &
-     &tbetay(ie)*ypj**2 )/myemity0_collgap
-     &)
+     &tbetay(ie)*ypj**2 )/myemity0_collgap)
                 sum_ax(ie)   = sum_ax(ie) + nspx
                 sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
                 sum_ay(ie)   = sum_ay(ie) + nspy
