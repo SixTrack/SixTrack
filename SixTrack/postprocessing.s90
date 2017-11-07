@@ -2004,8 +2004,8 @@
       sumda(25)=tph6
 
 !--DISTANCE OF Q-VALUES (AVERAGED PHASEADVANCE) TO RESONANCES
-      do 370 i=1,21
-        do 370 j=1,21
+      do i=1,21
+        do j=1,21
           im1=i-1
           jm1=j-1
           if(im1.eq.0.and.jm1.eq.0) goto 370
@@ -2029,6 +2029,8 @@
           if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,jm1,dares,ares
           if(abs(ared).lt.dres.and.jm1.ne.0.and.im1.ne.0.and.nprint.eq.1) write(lout,10170) im1,-jm1,dared,ared
   370 continue
+        end do
+      end do
 
 
       if(armin.lt.armin0) then
@@ -2126,8 +2128,8 @@
         if(nprint.eq.1) write(lout,10210) ffx,ffz,qwc(1),ffx-qwc(1),qwc(2),ffz-qwc(2),dres,ires
 
 !--DISTANCE OF Q-VALUES (FFT) TO RESONANCES
-        do 410 i=1,21
-          do 410 j=1,21
+        do i=1,21
+          do j=1,21
             im1=i-1
             jm1=j-1
             if(im1.eq.0.and.jm1.eq.0) goto 410
@@ -2141,6 +2143,8 @@
             if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,jm1,dares,ares
             if(abs(ared).lt.dres.and.jm1.ne.0.and.im1.ne.0.and.nprint.eq.1) write(lout,10170) im1,-jm1,dared,ared
   410   continue
+          end do
+        end do
       endif
 
 !--PRINT 4-D INVARIANTS WITH LINEAR COUPLING
@@ -2975,7 +2979,7 @@
       nm1=n-1
       j=1
 
-      do 30 i=1,nm1
+      do i=1,nm1
         if(i.gt.j)goto 10
         tr=ar(j)
         ti=ai(j)
@@ -2988,7 +2992,9 @@
         j=j-k
         k=k/2
         goto 20
-   30 j=j+k
+        j=j+k
+   30   continue
+      end do
 
       pi=four*atan_mb(one)
 
