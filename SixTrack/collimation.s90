@@ -6001,7 +6001,7 @@ function CalcPlasmaEnergy(ElectronDensity)
   parameter (SpeedOfLight = 299792458)
   parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
 
-  parameter (FreeSpacePermeability = 16.0e-7*atan_mb(1.0)) ! Henry per meter
+  parameter (FreeSpacePermeability = 16.0d-7*atan(1.0d0)) ! Henry per meter
   parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
   parameter (FreeSpacePermittivity = 1.0/FSPC2)
   parameter (PartB = ElectronMass * FreeSpacePermittivity)
