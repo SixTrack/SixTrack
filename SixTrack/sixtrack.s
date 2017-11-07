@@ -702,8 +702,8 @@
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !SEPT2005,OCT2006 added offset
-     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
-     &xbeat,xbeatphase,ybeat,ybeatphase,
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
+     &xbeat,xbeatphase,ybeat,ybeatphase,                                &
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
@@ -724,8 +724,8 @@
      &smin_slices,smax_slices,recenter1,recenter2,                      &
      &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
      &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,
-     &xbeat,xbeatphase,ybeat,ybeatphase,
+     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
+     &xbeat,xbeatphase,ybeat,ybeatphase,                                &
      &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
      &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
      &c_sysoffset_sec,c_rmserror_gap,nr,                                &
@@ -785,9 +785,9 @@
 !      common /cut/ cut_input
 
       ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-      real(kind=fPrec) remitx_dist,remity_dist,
+      real(kind=fPrec) remitx_dist,remity_dist,                         &
      &     remitx_collgap,remity_collgap
-      common  /remit/ remitx_dist, remity_dist,
+      common  /remit/ remitx_dist, remity_dist,                         &
      &     remitx_collgap,remity_collgap
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -860,10 +860,10 @@
      &     y1_sl(100), y2_sl(100),                                      &
      &     angle1(100), angle2(100),                                    &
      &     max_tmp,                                                     &
-     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2, 
-     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,
-     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,
-     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,
+     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
+     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
+     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
+     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
      &     alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 
@@ -891,11 +891,11 @@
      &     y1_sl, y2_sl,                                                &
      &     angle1, angle2,                                              &
      &     max_tmp,                                                     &
-     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2, 
-     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,
-     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,
-     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,
-     &     alphax1, alphax2,alphay1,alphay2,minAmpl,
+     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
+     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
+     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
+     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
+     &     alphax1, alphax2,alphay1,alphay2,minAmpl,                    &
      &ios,num_surhit,numbin,ibin,                                       &
      &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
      &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
@@ -1083,7 +1083,7 @@
       real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
      &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
-     &indiv(npart),lint(npart),
+     &indiv(npart),lint(npart),                                         &
      &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
      &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
 !
