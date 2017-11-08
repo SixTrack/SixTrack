@@ -1,5 +1,5 @@
 +dk datamods
-      module bigmats
+module bigmats
       use floatPrecision
 !     Module defining some very large matrices, which doesn't fit in BSS with common blocks.
       
@@ -12,14 +12,13 @@
 
       contains !Here comes the subroutines!
 
-      subroutine allocate_thickarrays(npart,nele,nblo)
-      use floatPrecision
+subroutine allocate_thickarrays(npart,nele,nblo)
+      use numerical_constants, only : zero
       implicit none
       integer, intent(in) :: npart,nele,nblo
       integer stat
       integer i1,i2,i3,i4,i
 +ca crcoall
-+ca parnum
 
 +if .not.vvector
       write(lout,*) "ERROR: DATAMODS requires VVECTOR!"
@@ -64,7 +63,7 @@
       subroutine deallocate_thickarrays
       use floatPrecision
       !TODO
-      end subroutine
+end subroutine
       
-      end module
+end module
 
