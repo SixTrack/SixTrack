@@ -1,18 +1,18 @@
 +dk postpr
 +if .not.stf
 +if .not.cr
-      subroutine postpr(nfile)
+subroutine postpr(nfile)
 +ei
 +if cr
-      subroutine postpr(nfile,nnuml)
+subroutine postpr(nfile,nnuml)
 +ei
 +ei
 +if stf
 +if .not.cr
-      subroutine postpr(posi)
+subroutine postpr(posi)
 +ei
 +if cr
-      subroutine postpr(posi,nnuml)
+subroutine postpr(posi,nnuml)
 +ei
 +ei
 !-----------------------------------------------------------------------
@@ -25,10 +25,10 @@
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
 +ca parpro
-+ca parnum
 +ca common1
 +if vvector
 +ca common2
@@ -2902,10 +2902,11 @@
      &' SPACE (FILE : ',i2,') NOT POSSIBLE-----'//)
 10320 format(//10x,'** ERROR ** ----- INPUT DATA CORRUPTED' ,' (FILE : '&
      &,i2,') -----'//)
-      end
+
+end subroutine postpr
 
       
-      subroutine zipf
+subroutine zipf
 !-----------------------------------------------------------------------*
 !     ZIPF                                                              *
 !     COMPRESS SELECTED OUTPUT FILES INTO .ZIP FILE                     *
@@ -2951,9 +2952,9 @@
 
       write(lout,'(a)') "Done!"
 
-      end subroutine
+end subroutine zipf
       
-      subroutine fft(ar,ai,m,n)
+subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
 !      A(N) IS A COMPLEX ARRAY. THE INPUT IS A(N)=(X(N),0.0), WHERE
 !      X(N) IS THE SEQUENCE TO FOURIER ANALYSE.
@@ -2967,10 +2968,10 @@
 !---------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,ip,j,k,l,le,le1,m,n,nm1,nv2
       real(kind=fPrec) ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
-+ca parnum
       dimension ar(n),ai(n)
       save
 !-----------------------------------------------------------------------
@@ -3028,13 +3029,13 @@
       end do
 
       return
-      end
+end subroutine fft
 
-      subroutine caconv(a,b,c)
+subroutine caconv(a,b,c)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
       real(kind=fPrec) a,b,c
       save
 !---------------------------------------------------------------------
@@ -3044,16 +3045,16 @@
         a=zero
       endif
       return
-      end
+end subroutine caconv
 
-      subroutine cphase(k,a,b,c,d,i,j,ie)
+subroutine cphase(k,a,b,c,d,i,j,ie)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,ie,j,k
       real(kind=fPrec) a,b,c,d,f,phase,tpi,dani
 +ca parpro
-+ca parnum
 +ca commphin
       save
 !---------------------------------------------------------------------
@@ -3068,16 +3069,16 @@
         j=1
       endif
       return
-      end
+end subroutine cphase
 
-      subroutine cinvar(a,b,c,d,j,e,xinv,invx)
+subroutine cinvar(a,b,c,d,j,e,xinv,invx)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,invx,j
       real(kind=fPrec) a,b,c,d,phase,dani,e,xinv
 +ca parpro
-+ca parnum
 +ca commphin
       dimension xinv(ninv),invx(ninv)
       save
@@ -3097,14 +3098,14 @@
    10   continue
       endif
       return
-      end
+end subroutine cinvar
 
-      subroutine sinpro(a,b,c,d,e)
+subroutine sinpro(a,b,c,d,e)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       real(kind=fPrec) a,b,c,d,e
-+ca parnum
       save
 !---------------------------------------------------------------------
       if(abs(a).gt.pieni) then
@@ -3121,12 +3122,13 @@
         e=zero
       endif
       return
-      end
+end subroutine sinpro
 
 
-      subroutine join
+subroutine join
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer i,j,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
@@ -3134,7 +3136,6 @@
       character(len=80) sixtit,commen
       character(len=8) cdate,ctime,progrm
 +ca parpro
-+ca parnum
 +ca commonds
       dimension bet0(2),alf0(2),ta(6,6)
       dimension qwc(3),clo(3),clop(3)
@@ -3457,4 +3458,4 @@
       return
       
 10010 format(//10x,'** ERROR IN JOIN** ----- PROBLEMS WITH DATA FILE : ',i2,' ----- ERROR CODE : ',i10//)
-      end subroutine join
+end subroutine join
