@@ -4,7 +4,8 @@ module dynk
 
     use floatPrecision
     use mathlib_bouncer
-    
+      use numerical_constants, only : one, two, c1e3
+
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
@@ -147,7 +148,6 @@ subroutine dynk_allocate
     implicit none
 
 +ca crcoall
-+ca parnum
 
     integer stat
     integer i,j
@@ -1751,7 +1751,6 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
     intent(in) iblocks, fblocks, cblocks, quiet
 
 +ca crcoall
-+ca parnum
 
     integer,                   allocatable :: itemp_dynk(:)
     real(kind=fPrec),          allocatable :: ftemp_dynk(:)
@@ -2431,7 +2430,6 @@ subroutine dynk_apply(turn)
     implicit none
 
 +ca crcoall
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -2716,7 +2714,6 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
 ! Usefull constants (pi and two)
 +ca common
-+ca parnum
 
     if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
         write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
@@ -2993,7 +2990,6 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
     implicit none
 
-+ca parnum
 +ca common
 +ca commonmn
 +ca commonm1
@@ -3210,7 +3206,6 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
     implicit none
 
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr

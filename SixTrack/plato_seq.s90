@@ -1,8 +1,10 @@
 +dk plato_seq
 
-      module platoFMA
+module platoFMA
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants, only : zero, half, one, two, four, five, seven, eight, c1e1, c1m1, c1m10
+
       implicit none
 
       contains
@@ -16,7 +18,6 @@
 !*
       SUBROUTINE CFFT(A,MSIGN)
       IMPLICIT NONE
-+ca parnum
       COMPLEX(kind=fPrec) A(*),U,W,T
       INTEGER MSIGN, M, N, NV2, NM1, J, I, K, L, LE, LE1, IP
       real(kind=fPrec) C,S
@@ -103,7 +104,6 @@
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca parnum 
 +ca crcoall
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
@@ -170,7 +170,6 @@
       REAL(KIND=fPrec) X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
-+ca parnum
 +ca crcoall
 !C............................................................
       IF (MAX.LE.0) THEN
@@ -230,7 +229,6 @@
       INTEGER N,I
       REAL(KIND=fPrec) X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
       DIMENSION X(*),Y(*)
-+ca parnum
 +ca crcoall
 !C............................................................
       IF (N.LE.0) THEN
@@ -282,7 +280,6 @@
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER),ZSING(MAXITER)
 
-+ca parnum
 !C..................................ESTIMATION OF TUNE WITH FFT 
       PI=ATAN_MB(one)*four
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two)) 
@@ -348,7 +345,6 @@
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca parnum
 !C..................................ESTIMATION OF TUNE WITH FFT 
       PI=ATAN_MB(one)*four
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two)) 
@@ -422,7 +418,6 @@
 
       SUBROUTINE FFT_PLATO(CDATA,NN,ISIGN)
       IMPLICIT NONE
-+ca parnum
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL(kind=fPrec) WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
       COMPLEX(kind=fPrec) CDATA(NN)
@@ -500,7 +495,6 @@
 
       SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
       IMPLICIT NONE
-+ca parnum
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL(kind=fPrec) WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
       REAL(kind=fPrec) DATA(*)
@@ -575,7 +569,6 @@
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca parnum
 +ca crcoall
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
@@ -640,7 +633,6 @@
       COMPLEX(kind=fPrec) ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
 
-+ca parnum
 !C............................................................  
       DUEPI=ATAN_MB(one)*eight
       ERR=c1m10
@@ -753,7 +745,6 @@
       INTEGER N,I
       REAL(KIND=fPrec) X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,ADVSIG,ADVMIN,ADVMAX
       DIMENSION X(*),P(*)
-+ca parnum
 +ca crcoall
 !C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
@@ -824,7 +815,6 @@
       REAL(KIND=fPrec) SUM,AMAX
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec)  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
-+ca parnum
 +ca crcoall
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
@@ -899,7 +889,6 @@
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec) Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
-+ca parnum
 +ca crcoall
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
@@ -996,7 +985,6 @@
       COMPLEX(kind=fPrec) ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC,SD,SP
 
-+ca parnum
 +ca crcoall
       DUEPI=EIGHT*ATAN_MB(ONE)
 !C...............................CHECK OF THE ITERATION NUMBER
@@ -1097,4 +1085,4 @@
 !C............................................................
       END FUNCTION
 
-      end module platofma
+end module platofma

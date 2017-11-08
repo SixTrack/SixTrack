@@ -115,3 +115,60 @@
 
       end module physical_constants
 
+module numerical_constants
+  use floatPrecision
+
+  real(kind=fPrec) c180e0,c1e1,c1e12,c1e13,c1e15,c1e16,c1e2,c1e3,   &
+ &c1e4,c1e6,c1m1,c1m7,c1m10,c1m12,c1m13,c1m15,c1m18,c1m2,c1m21,     &
+ &c1m24,c1m3,c1m36,c1m38,c1m6,c1m9,c2e3,c4e3,four,half,             &
+ &one,pieni,three,two,zero,five,six,seven,eight,nine,c1e9,          &
+ &c1e10,c1e7,c1m8
+
+  parameter(pieni = 1e-38_fPrec)
+
+  parameter(zero = 0.0_fPrec)
+  parameter(half = 0.5_fPrec)
+  parameter(one = 1.0_fPrec)
+  parameter(two = 2.0_fPrec)
+  parameter(three = 3.0_fPrec)
+  parameter(four = 4.0_fPrec)
+  parameter(five = 5.0_fPrec)
+  parameter(six = 6.0_fPrec)
+  parameter(seven = 7.0_fPrec)
+  parameter(eight = 8.0_fPrec)
+  parameter(nine = 9.0_fPrec)
+
+  parameter(c1e1 = 1.0e1_fPrec)
+  parameter(c1e2 = 1.0e2_fPrec)
+  parameter(c1e3 = 1.0e3_fPrec)
+  parameter(c2e3 = 2.0e3_fPrec)
+  parameter(c4e3 = 4.0e3_fPrec)
+  parameter(c1e4 = 1.0e4_fPrec)
+  parameter(c1e6 = 1.0e6_fPrec)
+  parameter(c1e7 = 1.0e7_fPrec)
+  parameter(c1e9 = 1.0e9_fPrec)
+  parameter(c1e10 = 1.0e10_fPrec)
+  parameter(c1e12 = 1.0e12_fPrec)
+  parameter(c1e13 = 1.0e13_fPrec)
+  parameter(c1e15 = 1.0e15_fPrec)
+  parameter(c1e16 = 1.0e16_fPrec)
+  parameter(c180e0 = 180.0_fPrec)
+
+  parameter(c1m1 = 1.0e-1_fPrec)
+  parameter(c1m2 = 1.0e-2_fPrec)
+  parameter(c1m3 = 1.0e-3_fPrec)
+  parameter(c1m6 = 1.0e-6_fPrec)
+  parameter(c1m7 = 1.0e-7_fPrec)
+  parameter(c1m8 = 1.0e-8_fPrec)
+  parameter(c1m9 = 1.0e-9_fPrec)
+  parameter(c1m10 = 1.0e-10_fPrec)
+  parameter(c1m12 = 1.0e-12_fPrec)
+  parameter(c1m13 = 1.0e-13_fPrec)
+  parameter(c1m15 = 1.0e-15_fPrec)
+  parameter(c1m18 = 1.0e-18_fPrec)
+  parameter(c1m21 = 1.0e-21_fPrec)
+  parameter(c1m24 = 1.0e-24_fPrec)
+  parameter(c1m36 = 1.0e-36_fPrec)
+  parameter(c1m38 = 1.0e-38_fPrec)
+
+end module numerical_constants

@@ -38,6 +38,10 @@ contains
     use floatPrecision
     use mathlib_bouncer
     use platofma
+
+    !numbers (zero,one,two etc.)
+    use numerical_constants, only : zero, one, c1e3
+
     implicit none
 +ca comgetfields
 +ca stringzerotrim
@@ -47,7 +51,6 @@ contains
 +ca fma
 +ca commonta !normalisation matrix tasm -> remove later
 +ca common   !napx = number of particles 
-+ca parnum   !numbers (zero,one,two etc.)
 +ca commonc
 +ca crcoall
     integer :: i,j,k,l,m,n                    ! for do loops

@@ -137,9 +137,9 @@
 !
       use floatPrecision
       use mod_fluka
+      use numerical_constants, only : zero, one, c1e3
       implicit none
 
-+ca parnum
 +ca parpro
 +ca common
 +ca commonmn
@@ -217,9 +217,9 @@
 !
       use floatPrecision
       use mod_fluka
+      use numerical_constants, only : zero
       implicit none
 
-+ca parnum
 +ca parpro
 +ca common
 +ca commonmn
@@ -268,9 +268,9 @@
 !
       use floatPrecision
       use mod_fluka
+      use numerical_constants, only : zero, one, c1e3
       implicit none
 
-+ca parnum
 +ca parpro
 +ca common
 +ca commonmn

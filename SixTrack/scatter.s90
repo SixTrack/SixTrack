@@ -6,6 +6,8 @@ module scatter
     use floatPrecision
     use mathlib_bouncer
 
+    use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
+
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
@@ -775,8 +777,6 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 +ca comgetfields
 +ca stringzerotrim
 
-+ca parnum
-
     ! Temporary Variables
     integer ii, tmpIdx
 +if crlibm
@@ -955,7 +955,6 @@ subroutine scatter_thin(ix, turn)
 +ca stringzerotrim
 +ca common
 +ca commonmn
-+ca parnum
 
     ! Temp variables
     integer          ELEMidx, PROidx, GENidx
@@ -1054,7 +1053,6 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
 
     implicit none
 
-+ca parnum
 +ca common
 +ca crcoall
 +ca stringzerotrim
@@ -1098,7 +1096,6 @@ subroutine scatter_profile_getParticle(profileIdx, x, y, xp, yp, E)
     
     implicit none
 
-+ca parnum
  
     integer, intent(in) :: profileIdx
     real(kind=fPrec), intent(in)  :: x, y
@@ -1166,7 +1163,6 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
     implicit none
 
-+ca parnum
 +ca crcoall
 
     integer, intent(in) :: generatorIDX
@@ -1215,7 +1211,6 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
     implicit none
 
 +ca crcoall
-+ca parnum
 
     real(kind=fPrec), intent(in) :: a, b1, b2, phi, tmin
 
