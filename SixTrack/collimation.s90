@@ -3948,12 +3948,12 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !            pencil_rmsy defines spread parallel to jaw surface
  
       if(pencil_distr.eq.1 .and.(pencil_rmsx.ne.0.d0.or.pencil_rmsy.ne.0.d0 )) then
-        x    = pencil_dx(icoll) + pencil_rmsx*ran_gauss(2d0)
+        x  = pencil_dx(icoll) + pencil_rmsx*ran_gauss(2d0)
 ! all generated particles are on the jaw now
-        x    = sqrt(x**2)
-        xp   = 0.
-        z    = pencil_rmsy*ran_gauss(2d0)
-        zp   = 0.
+        x  = sqrt(x**2)
+        xp = 0.
+        z  = pencil_rmsy*ran_gauss(2d0)
+        zp = 0.
       end if
 
 !AUGUST2006: Gaussian (pencil-beam) sheet-beam with ------- TW
@@ -4040,10 +4040,10 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !++  The definition is that the collimator jaw is at x>=0.
 !
 !++  1) Check whether particle hits the collimator
-    hit   =  .false.
-    s     =  0.d0                                                !hr09
-    keeps =  0.d0                                                !hr09
-    zlm   =  -1d0 * length
+    hit   = .false.
+    s     = 0.d0                                                !hr09
+    keeps = 0.d0                                                !hr09
+    zlm   = -1d0 * length
 
     if(x.ge.0.d0) then                                            !hr09
 
@@ -4306,8 +4306,8 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
       s_in(j) = sp + (dble(j_slices)-1d0) * c_length               !hr09
 
     else
-      x_in(j)  = x
-      y_in(j)  = z
+      x_in(j) = x
+      y_in(j) = z
     end if !if(x.lt.99.0d-3) then
 
 ! output for comparing the particle in accelerator frame 
@@ -5440,8 +5440,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     z=z+s*zp
 
     if(dowrite_impact) then
-       ! write Coll_Scatter.dat for complete scattering histories
-       write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+      ! write Coll_Scatter.dat for complete scattering histories
+      write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
     end if
 
     return
