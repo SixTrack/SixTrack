@@ -25782,7 +25782,8 @@ cc2008
 10370 format(2(1X,I8),8(1X,1PE16.9))
 10380 format(10x,f47.33)
 +ei
-      end
+      end program maincr
+
 +dk tra_thin
 !>
 !!--------------------------------------------------------------------------
@@ -26274,7 +26275,7 @@ cc2008
       call collimate_exit()
 +ei
       return
-      end
+      end subroutine trauthin
 
 !>
 !!  TRACK THIN LENS 4D
@@ -26880,7 +26881,7 @@ cc2008
 
   640 continue
       return
-      end
+      end subroutine thin4d
 
 !>
 !!  TRACK THIN LENS 6D
@@ -28408,7 +28409,7 @@ cc2008
 +ei
   660 continue
       return
-      end
+      end subroutine thin6dua
 
       subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,    &
      &     cdate,ctime,progrm)
@@ -29567,6 +29568,7 @@ cc2008
 !-----------------------------------------------------------------------
 
       use floatPrecision
+      use numerical_constants
 
 +if fluka
 !     import mod_fluka
@@ -29577,7 +29579,6 @@ cc2008
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -29849,11 +29850,10 @@ cc2008
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
-
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -29973,10 +29973,10 @@ cc2008
 !-----------------------------------------------------------------------
 !
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -30075,10 +30075,10 @@ cc2008
 
       subroutine dumpMe
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -30142,10 +30142,10 @@ cc2008
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -30203,10 +30203,10 @@ cc2008
 !
       use floatPrecision
       use physical_constants
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commonm1
@@ -30339,11 +30339,11 @@ cc2008
 !
       use floatPrecision
       use physical_constants
+      use numerical_constants
 
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commonm1
@@ -30507,11 +30507,11 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -30577,11 +30577,11 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer ia,ia2,id,ie,ig,n
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -30687,6 +30687,7 @@ cc2008
 
       use floatPrecision
       use physical_constants
+      use numerical_constants
 
       implicit none
 
@@ -30697,7 +30698,6 @@ cc2008
       real(kind=fPrec) clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
       intent (in) nturn, i, ix, unit, fmt, lhighprec, tasinv, clo
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commonm1
@@ -31247,6 +31247,7 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
@@ -31254,7 +31255,6 @@ cc2008
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -31657,7 +31657,7 @@ cc2008
         endif
       endif
       return
-      end
+      end subroutine trauthck
 
       subroutine thck4d(nthinerr)
 !-----------------------------------------------------------------------
@@ -31670,6 +31670,7 @@ cc2008
       use floatPrecision
       use physical_constants
       use mathlib_bouncer
+      use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -31699,7 +31700,6 @@ cc2008
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -32224,7 +32224,8 @@ cc2008
 +ei
   490 continue
       return
-      end
+      end subroutine thck4d
+
       subroutine thck6d(nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -32236,6 +32237,7 @@ cc2008
       use floatPrecision
       use physical_constants
       use mathlib_bouncer
+      use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -32265,7 +32267,6 @@ cc2008
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -32941,7 +32942,8 @@ cc2008
 !===================================================================
 +ei
       return
-      end
+      end subroutine thck6d
+
       subroutine thck6dua(nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -32953,6 +32955,7 @@ cc2008
       use floatPrecision
       use physical_constants
       use mathlib_bouncer
+      use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -32982,7 +32985,6 @@ cc2008
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -33562,7 +33564,8 @@ cc2008
 +ei
   510 continue
       return
-      end
+      end subroutine thck6dua
+
       subroutine synuthck
 !-----------------------------------------------------------------------
 !
@@ -33578,11 +33581,11 @@ cc2008
 +if datamods
       use bigmats
 +ei
+      use numerical_constants
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -33986,7 +33989,8 @@ cc2008
   160 continue
 !---------------------------------------  END OF 'ENVARS' (2)
       return
-      end
+      end subroutine synuthck
+
 +dk envarsv
       subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 !-----------------------------------------------------------------------
