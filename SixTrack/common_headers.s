@@ -78,15 +78,20 @@
 +dk   physical_constants
 
       module physical_constants
+! Shared module for general physical constants.
+! See: http://pdg.lbl.gov/2017/reviews/rpp2016-rev-phys-constants.pdf
+! some values are not updated to ensure numerical compatability with older studies
 
       use floatPrecision
 
 +if .not.fluka
 !     proton mass (MeV)
-      real(kind=fPrec), parameter :: pmap = 938.271998_fPrec
+      real(kind=fPrec), parameter :: pmap = 938.271998_fPrec   !old
+!     real(kind=fPrec), parameter :: pmap = 938.2720813_fPrec  !2017
 
 !     electron mass (MeV) from PDG, 2002
-      real(kind=fPrec), parameter :: pmae = .510998902_fPrec
+      real(kind=fPrec), parameter :: pmae = 0.510998902_fPrec   !old
+!     real(kind=fPrec), parameter :: pmae = 0.5109989461_fPrec  !2017
 +ei
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -99,15 +104,26 @@
 +ei
 
 !     classical electron radius
-      real(kind=fPrec), parameter :: crade = 2.817940285e-15_fPrec
+      real(kind=fPrec), parameter :: crade = 2.817940285e-15_fPrec    !old
+!     real(kind=fPrec), parameter :: crade = 2.8179403227e-15_fPrec   !2017
 
 !     speed of light
-      real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec
+      real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec !exact
+
+!     Avogadro constant
+!     real(kind=fPrec), parameter :: fnavo=6.02214129e23_fPrec   !old
+      real(kind=fPrec), parameter :: fnavo=6.022140857e23_fPrec  !2017
+
+!     Planck constant
+      real(kind=fPrec), parameter :: planck=6.626070040e-34_fPrec
 
       end module physical_constants
 
 module numerical_constants
   use floatPrecision
+
+!  real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
+!  real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
 
   real(kind=fPrec), parameter :: pieni = 1e-38_fPrec
 
