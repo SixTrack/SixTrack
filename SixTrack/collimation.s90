@@ -1,4 +1,109 @@
 +dk nwrtcoll
+
+!>
+!! block data scdata
+!! Cross section inputs and material property database
+!! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
+!<
+block data scdata
+  use floatPrecision
+  use mathlib_bouncer
+  implicit none
++ca interac
+  integer i
+! Total number of materials are defined in nmat
+! Number of real materials are defined in nrmat
+! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
+
+! Reference data at pRef=450Gev
+  data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2',      &
+ & 'MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
+
+  data mname(nmat-1), mname(nmat)/'vacu','blac'/
+
+!GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
+  data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
+  data (anuc(i),i=6,7)/12.01d0,12.01d0/
+  data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
+
+  data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
+  data (zatom(i),i=6,7)/ 6d0, 6d0/
+  data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
+
+  data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
+  data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
+  data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
+
+  data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
+  data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
+  data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, &
+ & 0.00385d0/
+  data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
+
+!MAY06-GRD value for Tungsten (W) not stated
+  data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
+  data (emr(i),i=6,7)/  0.25d0, 0.25d0/
+  data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0,       &
+ & 0.578d0/
+
+  data tlcut / 0.0009982d0/
+  data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
+  data (hcut(i),i=6,7)/0.02d0, 0.02d0/
+  data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
+!
+
+  data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
+  data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
+
+!October 2013
+!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
+  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
+  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
+  data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
+ & 682.2e-9/
+
+! All cross-sections are in barns,nuclear values from RPP at 20geV
+! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
+
+! in Cs and CsRef,1st index: Cross-sections for processes
+! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
+! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
+
+! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
+  data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
+  data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
+  data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
+  data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
+  data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
+  data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
+  data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
+  data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
+  data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
+  data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
+  data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
+  data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
+
+! pp cross-sections and parameters for energy dependence
+  data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
+  data pptco,ppeco,freeco/0.05788d0,0.04792d0,1.618d0/
+
+! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
+!MAY06-GRD value for Tungsten (W) not stated
+  data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
+  data (bnref(i),i=6,7)/70.d0, 70.d0/
+  data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0,      &
+ & 392.1d0/
+!GRD LAST 2 ONES INTERPOLATED
+
+! Cprob to choose an interaction in iChoix
+  data (cprob(0,i),i=1,nmat)/nmat*0.0d0/
+  data (cprob(5,i),i=1,nmat)/nmat*1.0d0/
+end
+
+module collimation
+
+contains
+
 ! General routines:
 ! collimate_init()
 ! collimate_start_sample()
@@ -3674,7 +3779,6 @@ subroutine collimate_init_merlin()
   implicit none
 
   integer i
-  real(kind=fPrec) CalcElectronDensity,CalcPlasmaEnergy
 +ca interac
 
 ! compute the electron densnity and plasma energy for each material
@@ -5050,7 +5154,6 @@ function ichoix(ma)
 +ca interac
   integer ma,i,ichoix
   real(kind=fPrec) aran
-  real rndm4
   aran=dble(rndm4())
   i=1
 10  if( aran.gt.cprob(i,ma) ) then
@@ -5075,7 +5178,7 @@ function gettran(inter,xmat,p)
 +ca interac
   integer inter,length,xmat
   real(kind=fPrec) p,gettran,t,xm2,bsd
-  real rndm4,truth,xran(1)
+  real truth,xran(1)
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 +if .not.merlinscatter
@@ -5142,7 +5245,6 @@ subroutine tetat(t,p,tx,tz)
   implicit none
 
   real(kind=fPrec) t,p,tx,tz,va,vb,va2,vb2,r2,teta
-  real rndm4
   teta = sqrt(t)/p
 
 ! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
@@ -5173,105 +5275,6 @@ function ruth(t)
   ruth=(cnorm*exp_mb(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/dble(t))**2
 end function ruth
 
-!>
-!! block data scdata
-!! Cross section inputs and material property database
-!! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
-!<
-block data scdata
-  use floatPrecision
-  use mathlib_bouncer
-  implicit none
-+ca interac
-  integer i
-! Total number of materials are defined in nmat
-! Number of real materials are defined in nrmat
-! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
-
-! Reference data at pRef=450Gev
-  data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2',      &
- & 'MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
-
-  data mname(nmat-1), mname(nmat)/'vacu','blac'/
-
-!GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
-  data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
-  data (anuc(i),i=6,7)/12.01d0,12.01d0/
-  data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
-
-  data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
-  data (zatom(i),i=6,7)/ 6d0, 6d0/
-  data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
-
-  data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-  data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
-  data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
-
-  data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-  data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
-  data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, &
- & 0.00385d0/
-  data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
-
-!MAY06-GRD value for Tungsten (W) not stated
-  data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
-  data (emr(i),i=6,7)/  0.25d0, 0.25d0/
-  data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0,       &
- & 0.578d0/
-
-  data tlcut / 0.0009982d0/
-  data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
-  data (hcut(i),i=6,7)/0.02d0, 0.02d0/
-  data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
-!
-
-  data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
-  data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
-
-!October 2013
-!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
-  data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9,&
- & 682.2e-9/
-
-! All cross-sections are in barns,nuclear values from RPP at 20geV
-! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
-
-! in Cs and CsRef,1st index: Cross-sections for processes
-! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
-! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
-
-! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
-  data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
-  data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
-  data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
-  data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
-  data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
-  data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
-  data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
-  data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
-  data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
-  data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
-  data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
-  data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
-
-! pp cross-sections and parameters for energy dependence
-  data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
-  data pptco,ppeco,freeco/0.05788d0,0.04792d0,1.618d0/
-
-! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-!MAY06-GRD value for Tungsten (W) not stated
-  data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
-  data (bnref(i),i=6,7)/70.d0, 70.d0/
-  data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0,      &
- & 392.1d0/
-!GRD LAST 2 ONES INTERPOLATED
-
-! Cprob to choose an interaction in iChoix
-  data (cprob(0,i),i=1,nmat)/nmat*0.0d0/
-  data (cprob(5,i),i=1,nmat)/nmat*1.0d0/
-end
 
 !>
 !! scatin(plab)
@@ -5290,8 +5293,7 @@ subroutine scatin(plab)
 
   integer ma,i
   real(kind=fPrec) plab
-  real ruth,tlow,thigh
-  external ruth
+  real tlow,thigh
 
   ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
 +if .not.merlinscatter
@@ -5406,12 +5408,11 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
 +ca interac
 +ca flukavars
-  integer nabs,inter,ichoix,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
+  integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
   logical dowrite_impact
   real(kind=fPrec)  m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
-  real(kind=fPrec) p,rlen,s,t,gettran,dxp,dzp,p1,zpBef,xpBef,pBef
+  real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
   real get_dpodx
-  real rndm4
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
 
@@ -5627,9 +5628,8 @@ end subroutine jaw
       implicit none
 !
 +ca interac
-      integer nabs,inter,ichoix,icoll,iturn,ipart
-      real(kind=fPrec) p,rlen,s,t,gettran,dxp,dzp,p1
-      real rndm4
+      integer nabs,inter,icoll,iturn,ipart
+      real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
       p=p0/(1.d0-dpop)
@@ -5819,7 +5819,7 @@ subroutine scamcs(xx,xxp,s,radl_mat)
   implicit none
   real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
   real(kind=fPrec) radl_mat
-  real rndm4
+  
   x0=xx
   xp0=xxp
 
@@ -6041,7 +6041,6 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
   real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
   real(kind=fPrec) thl,Tt,cs_tail,prob_tail
   real(kind=fPrec) ranc
-  real(kind=real32) RNDM4
   real(kind=fPrec) anuc,zatom,rho,emr
 
   common/meanexen/exenergy(nmat)
@@ -6430,7 +6429,6 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 +ca dbmkdist
 
   real(kind=fPrec) pi
-  real(kind=fPrec) ran_gauss
   real(kind=fPrec) iix, iiy, phix, phiy
   real(kind=fPrec) enerror, bunchlength
   real(kind=fPrec) en_error, bunch_length
@@ -6925,7 +6923,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 !YIL march2010 edit: was missing enerror, bunchlength etc... 
 ! no common block for these parameters?
 
-  real(kind=fPrec) ran_gauss, gauss_rand
+  real(kind=fPrec) gauss_rand
   real(kind=fPrec) iix, iiy, phix, phiy
   real(kind=fPrec) enerror, bunchlength
   real(kind=fPrec) en_error, bunch_length
@@ -7064,7 +7062,7 @@ end function rndm4
       use floatPrecision
       implicit none
       integer len, inn, irnd
-      real rndm5, a
+      real rndm5,a
       save
       parameter ( len =  30000 )
       dimension a(len)
@@ -7103,7 +7101,6 @@ real(kind=fPrec) function myran_gauss(cut)
       implicit none
       
       logical flag
-      real rndm5
       real(kind=fPrec) x, u1, u2, twopi, r,cut
       save
       
@@ -7888,6 +7885,7 @@ end subroutine rgs56p
 !*********************************************************************
 !
 ! Define INTEGER function MCLOCK that can differ from system to system
+! For re-initializtion of random generator
 !
 !*********************************************************************
 integer function mclock_liar( )
@@ -7942,7 +7940,6 @@ real(kind=fPrec) function ran_gauss(cut)
 
   logical flag
   DATA flag/.TRUE./
-  real rndm4
   real(kind=fPrec) x, u1, u2, twopi, r,cut
 
   save
@@ -8083,3 +8080,4 @@ subroutine readcollimator
 
 end subroutine readcollimator
 
+end module collimation

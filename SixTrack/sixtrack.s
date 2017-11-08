@@ -750,8 +750,6 @@
 
       real(kind=fPrec) mygammax,mygammay
 !
-      real rndm4
-!
       character(len=80) dummy
 !
       ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
@@ -767,7 +765,6 @@
       logical flag
 !
       integer k,np0
-      integer   mclock_liar
 !
       character(len=160) cmd
       character(len=160) cmd2
@@ -828,8 +825,7 @@
 !     SR, 29-08-2005: add the required variable for slicing collimators
       integer jjj, ijk
 !
-      real(kind=fPrec)  ran_gauss, myran_gauss
-      real rndm5,zbv
+      real zbv
 !
       real(kind=fPrec) c_length    !length in m
       real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -900,7 +896,7 @@
      &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
      &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
      &jb,flukaname,                                                     &
-     &jjj,ijk,zbv,ran_gauss,c_length,c_rotation,                        &
+     &jjj,ijk,zbv,c_length,c_rotation,                                  &
      &c_aperture,c_offset,c_tilt,c_material
 
 ! myran_gauss,rndm5,
@@ -1016,9 +1012,6 @@
 !     INTEGER DB_NCOLL
       integer db_ncoll
 !
-! For re-initializtion of random generator (already decleared before)
-!      integer   mclock_liar
-!
       character(len=16) db_name1(max_ncoll),db_name2(max_ncoll)
       character(len=4) db_material(max_ncoll)
 !APRIL2005
@@ -1096,12 +1089,10 @@
 !
       character*(nc) filen,tit
 !
-      real   rndm4,xlow,xhigh,xplow,xphigh,dx,dxp
+      real   xlow,xhigh,xplow,xphigh,dx,dxp
 !
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
-!
-      real(kind=fPrec) ran_gauss
 !
       common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,  &
      &nev
@@ -1140,9 +1131,6 @@
      &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
      &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
      &xsigmax,ysigmay,myenom,nr,ndr
-!
-!
-      real      rndm4
 !
 !
       character(len=80)   dummy
@@ -25804,6 +25792,9 @@ cc2008
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
++if collimat
+      use collimation
++ei
 
       implicit none
 +ca crcoall
@@ -26909,6 +26900,10 @@ cc2008
 !     import mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
++ei
+
++if collimat
+      use collimation
 +ei
 
       implicit none
