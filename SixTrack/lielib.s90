@@ -3468,16 +3468,19 @@
         lie=ista(i)*j(2*i)+lie
       enddo
       mo=mod(lie,4)+1
-      goto(11,12,13,14),mo
- 11   rext = one
+
+      select case (mo)
+      case (1)
+         rext = one
+      case(2)
+         rext = -one
+      case(3)
+         rext = -one
+      case(4)
+         rext = one
+      end select
       return
- 12   rext = -one
-      return
- 13   rext = -one
-      return
- 14   rext = one
-      return
-      end
+      end function rext
 +dk cpart
       subroutine cpart(h,ch)
       use floatPrecision
