@@ -39467,7 +39467,12 @@ cc2008
      &     .or.abs(kzz).eq.15) then
           
           nr=nr+1
++if collimat.or.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
++ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
@@ -39510,7 +39515,6 @@ cc2008
            ekk=ekk*c1e3
 +ca kickl01h
 +ca kickq01h
-        goto 480
 !--NORMAL QUADRUPOLE
         case(2)
 +ca kicklxxh
@@ -39521,7 +39525,6 @@ cc2008
 +ca kickq03h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL OCTUPOLE
         case(4)
            ekk=ekk*c1m6
@@ -39529,7 +39532,6 @@ cc2008
 +ca kickq04h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL DECAPOLE
         case(5)
            ekk=ekk*c1m9
@@ -39538,7 +39540,6 @@ cc2008
 +ca kickq05h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL DODECAPOLE
         case(6)
            ekk=ekk*c1m12
@@ -39548,7 +39549,6 @@ cc2008
 +ca kickq06h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 14-POLE
         case(7)
            ekk=ekk*c1m15
@@ -39559,7 +39559,6 @@ cc2008
 +ca kickq07h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 16-POLE
         case(8)
            ekk=ekk*c1m18
@@ -39571,7 +39570,6 @@ cc2008
 +ca kickq08h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 18-POLE
         case(9)
            ekk=ekk*c1m21
@@ -39584,7 +39582,6 @@ cc2008
 +ca kickq09h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 20-POLE
         case(10)
            ekk=ekk*c1m24
@@ -39598,7 +39595,6 @@ cc2008
 +ca kickq10h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--Multipole block
         case(11)
         r0=ek(ix)
@@ -39664,7 +39660,6 @@ cc2008
 +ca multl07e
 +ei
         izu=izu+2*mmul-2*nmz
-        goto 480
 
 !--Skipped elements
         case(12,13,14,15,16,17,18,19,20,21,22,23)
@@ -39674,12 +39669,10 @@ cc2008
         case(24)
 +ca kickldpe
 +ca kickqdpe
-        goto 480
 !--solenoid
         case(25)
 +ca kicklso1
 +ca kickqso1
-        goto 480
 
 !--Skipped elements
         case(26,27,28)
@@ -39710,19 +39703,16 @@ cc2008
               ekk=ekk*c1e3
 +ca kickl01v
 +ca kickq01v
-              goto 480
 !--SKEW QUADRUPOLE
            case(2)
 +ca kicklxxv
 +ca kickq02v
-              goto 480
 !--SKEW SEXTUPOLE
            case(3)
               ekk=ekk*c1m3
 +ca kickq03v
 +ca kicksho
 +ca kicklxxv
-              goto 480
 !--SKEW OCTUPOLE
            case(4)
               ekk=ekk*c1m6
@@ -39730,7 +39720,6 @@ cc2008
 +ca kickq04v
 +ca kicksho
 +ca kicklxxv
-              goto 480
 !--SKEW DECAPOLE
            case(5)
               ekk=ekk*c1m9
@@ -39739,7 +39728,6 @@ cc2008
 +ca kickq05v
 +ca kicksho
 +ca kicklxxv
-              goto 480
 !--SKEW DODECAPOLE
            case(6)
               ekk=ekk*c1m12
@@ -39749,7 +39737,6 @@ cc2008
 +ca kickq06v
 +ca kicksho
 +ca kicklxxv
-              goto 480
 !--SKEW 14-POLE
            case(7)
               ekk=ekk*c1m15
@@ -39760,7 +39747,6 @@ cc2008
 +ca kickq07v
 +ca kicksho
 +ca kicklxxv
-              goto 480
 !--SKEW 16-POLE
            case(8)
               ekk=ekk*c1m18
@@ -39772,7 +39758,6 @@ cc2008
 +ca kickq08v
 +ca kicksho
 +ca kicklxxv
-              goto 480
 !--SKEW 18-POLE
            case(9)
               ekk=ekk*c1m21
@@ -39785,7 +39770,6 @@ cc2008
 +ca kickq09v
 +ca kicksho
 +ca kicklxxv
-              goto 480
 !--SKEW 20-POLE
            case(10)
               ekk=ekk*c1m24
@@ -39817,7 +39801,6 @@ cc2008
         endif
       
         !Done processing an element: go here!
-  480   continue
         t(6,2)=t(6,2)-dyy1/(one+dpp)
         t(6,4)=t(6,4)-dyy2/(one+dpp)
         t(1,2)=t(1,2)+dyy1
