@@ -15138,21 +15138,21 @@ cc2008
 !UPGRADE JANUARY 2005
 +if fio
 !      if(iclr.eq.4) read(ch1,*,round='nearest')                        &
-     & NSIG_PRIM,NSIG_SEC
+!     & NSIG_PRIM,NSIG_SEC
 +ei
 +if .not.fio
 !      if(iclr.eq.4) read(ch1,*) NSIG_PRIM,NSIG_SEC
 +ei
 +if fio
 !      if(iclr.eq.4) read(ch1,*,round='nearest')                        
-     & nsig_prim,nsig_sec,nsig_ter
+!     & nsig_prim,nsig_sec,nsig_ter
 +ei
 +if .not.fio
 !      if(iclr.eq.4) read(ch1,*) nsig_prim,nsig_sec,nsig_ter
 +ei
 +if fio
       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & do_nsig,                                &
+     & do_nsig,                                                         &
 +ei
 +if .not.fio
       if(iclr.eq.4) read(ch1,*) do_nsig,                                &
