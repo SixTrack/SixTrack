@@ -381,7 +381,7 @@
 !         inserted in main code by the 'backtrk' compilation flag
       common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
      &  plost(npart), yold(2,npart), apold(7), sold, bktpre, kapold,    &
-     &  limifound, aper_filename, aperunit, ldmpaper, apflag,           
+     &  limifound, aper_filename, aperunit, ldmpaper, apflag,           &
      &  load_file, loadunit
 +ei
 !     recognised aperture types:
@@ -28914,7 +28914,7 @@ cc2008
       integer niter       ! number of iterations
       integer kapert      ! temporal integer for aperture type
       logical llos(npart) ! temporal logic array for interpolation
-      real(kind=fPrec) xlos(2,npart), aprr(7), step(npart), length,
+      real(kind=fPrec) xlos(2,npart), aprr(7), step(npart), length,     &
      & slos(npart), apnew(7), xnew(2)
 +ei
       save
