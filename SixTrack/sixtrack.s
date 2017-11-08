@@ -46249,13 +46249,15 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
+
 +ca crcoall
       integer ibb,ibbc,ibtyp,ne,np,nsli
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,tphi,track,star,phi2,cphi2,sphi2,tphi2
 +ca parpro
-+ca parnum
       dimension track(6,npart)
       dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
@@ -46311,12 +46313,13 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
+
       integer i,np
       real(kind=fPrec) calpha,cphi,h,h1x,h1y,h1z,hd1,salpha,sphi,tphi,  &
      &track,x1,y1
 +ca parpro
-+ca parnum
       dimension track(6,npart)
       save
 !-----------------------------------------------------------------------
@@ -46356,13 +46359,14 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
+
       integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
       real(kind=fPrec) bbf0,bbfx,bbfy,bbgx,bbgy,bcu,costh,costhp,cphi,  &
      &dum,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,star,sx,       &
      &sy,track,cphi2
 +ca parpro
-+ca parnum
       dimension track(6,npart),bcu(nbb,12)
       dimension star(3,mbea),dum(13)
       save
@@ -46480,12 +46484,13 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
+
       integer i,np
       real(kind=fPrec) calpha,cphi,det,h1,h1d,h1x,h1y,h1z,salpha,sphi,  &
      &tphi,track,x1,y1,z1
 +ca parpro
-+ca parnum
       dimension track(6,npart)
       save
 !-----------------------------------------------------------------------
@@ -46533,13 +46538,14 @@ cc2008
 !**********************************************************************
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
+
       integer ibtyp
       real(kind=fPrec) arg1x,arg1y,arg2x,arg2y,bbfx,bbfy,bbgx,bbgy,     &
      &comfac,comfac2,const,expfac,fac,fac2,sepx,sepy,sigxx,sigxy,sigyy, &
      &sqrpi2,wx1,wx2,wy1,wy2,x,xxyy
 +ca parpro
-+ca parnum
       data sqrpi2/3.544907701811032_fPrec/
       save
 !-----------------------------------------------------------------------
@@ -46610,12 +46616,13 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,nsli
+
       real(kind=fPrec) bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,   &
      &salpha,sigz,sigzs,sphi,sphi2,star,yy
 +ca parpro
-+ca parnum
       dimension star(3,mbea)
 !-----------------------------------------------------------------------
       data border /eight/
@@ -46645,6 +46652,7 @@ cc2008
  101  continue
       return
       end
+
       function gauinv(p0)
 !GAUINV***********************************************
 !  INVERSE OF (INTEGRATED) NORMAL DISTRIBUTION FUNCTION
@@ -46659,8 +46667,8 @@ cc2008
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       real(kind=fPrec) a0,a1,a2,a3,b0,b1,b2,b3,b4,c0,c1,c2,c3,c4,d0,d1, &
      &d2,d3,d4,e0,e1,e2,e3,e4,f0,f1,f2,gauinv,p,p0,p1,p2,pp1,q,qq2,qq3, &
@@ -46945,8 +46953,9 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
+
       integer idim,ifail,jfail,k,kprnt,n
       integer ir
       real t1,t2,t3
@@ -46979,9 +46988,9 @@ cc2008
       c31=a(1,2)*a(2,3)-a(1,3)*a(2,2)
       c32=a(1,3)*a(2,1)-a(1,1)*a(2,3)
       c33=a(1,1)*a(2,2)-a(1,2)*a(2,1)
-      t1=abs(real(a(1,1)))                                               !hr07
-      t2=abs(real(a(2,1)))                                               !hr07
-      t3=abs(real(a(3,1)))                                               !hr07
+      t1=abs(a(1,1))                                               !hr07
+      t2=abs(a(2,1))                                               !hr07
+      t3=abs(a(3,1))                                               !hr07
 !
 !     (SET TEMP=PIVOT AND DET=PIVOT*DET.)
       if(t1.ge.t2) goto 1
@@ -47100,13 +47109,18 @@ cc2008
       subroutine rfact(n,a,idim,ir,ifail,det,jfail)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
-+ca parnum
-      integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
+
+      integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
-      real(kind=fPrec) a,det,g1,g2,p,pivotf,q,sizef,t,tf,x,y
-      real(kind=fPrec) s11,s12,dotf
+
+      real(kind=fPrec) a,det,g1,g2,p,q,t,tf,x,y
+      real(kind=fPrec) s11,s12
+
       character(len=6) hname
+
       dimension ir(*),a(idim,*)
 !      data      g1, g2              /  1.e-37,  1.e37  /
       data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
@@ -47115,10 +47129,7 @@ cc2008
       data      jrange, jover, junder  /  0, +1, -1  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s11)  =  real(x,fPrec)*real(y,fPrec) + s11
-      ipairf(j,k)  =  j*2**12 + k
-      pivotf(x)    =  abs(x)
-      sizef(x)     =  abs(x)
+
       if(idim .ge. n  .and.  n .gt. 0)  goto 110
          call tmprnt(hname,n,idim,0)
          return
@@ -47132,13 +47143,13 @@ cc2008
          if(j .eq. n)  goto 122
          jp1  =  j+1
          do 121    i  =  jp1, n
-            q  =  pivotf(a(i,j))
+            q = pivotf(a(i,j))
             if(q .le. p)  goto 121
                k  =  i
                p  =  q
  121        continue
          if(k .ne. j)  goto 123
- 122     if(p .gt. 0.)  goto 130
+ 122     if(p .gt. zero)  goto 130
             det    =  zero
             ifail  =  imposs
             jfail  =  jrange
@@ -47164,32 +47175,57 @@ cc2008
          jm1  =  j-1
          jp1  =  j+1
          do 143   k  =  jp1, n
-            s11  =  -one*real(a(j,k),fPrec)                                    !hr07
-            s12  =  -one*real(a(k,j+1),fPrec)                                  !hr07
+            s11  =  -one*a(j,k)                                          !hr07
+            s12  =  -one*a(k,j+1)                                        !hr07
             if(j .eq. 1)  goto 142
             do 141  i  =  1, jm1
                s11  =  dotf(a(i,k),a(j,i),s11)
                s12  =  dotf(a(i,j+1),a(k,i),s12)
  141           continue
- 142        a(j,k)    =  real((-one*s11) * dble(a(j,j)))                 !hr07
-            a(k,j+1)  =  real(-one*dotf(a(j,j+1),a(k,j),s12))            !hr07
+ 142        a(j,k)   =  (-one*s11) * a(j,j)                              !hr07
+            a(k,j+1) =   -one*dotf(a(j,j+1),a(k,j),s12)                  !hr07
  143        continue
  144     continue
  150  if(mod(nxch,2) .ne. 0)  det  =  -one*det
       if(jfail .ne. jrange)   det  =  zero
       ir(n)  =  nxch
       return
-      end
+
+      contains
+
+        real(kind=fPrec) function dotf(x,y,s11)
+          real(kind=fPrec), intent(in) :: x, y, s11
+          dotf = x * y + s11
+        end function dotf
+
+        integer function ipairf(j,k)
+          integer, intent(in) :: j, k
+          ipairf = j*2**12 + k
+        end function ipairf
+
+        real(kind=fPrec) function pivotf(x)
+          real(kind=fPrec), intent(in) :: x
+          pivotf = abs(x)
+        end function pivotf
+
+        real(kind=fPrec) function sizef(x)
+          real(kind=fPrec), intent(in) :: x
+          sizef = abs(x)
+        end function sizef
+
+      end subroutine rfact
 
       subroutine dfact(n,a,idim,ir,ifail,det,jfail)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
-+ca parnum
-      integer i,idim,ifail,imposs,ipairf,ir,j,jfail,jm1,jover,jp1,      &
+
+      integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,      &
      &jrange,junder,k,l,n,normal,nxch
-      real(kind=fPrec) g1,g2,p,pivotf,q,sizef,t
-      real(kind=fPrec) a,det,dotf,s11,s12,x,y,tf
+      real(kind=fPrec) g1,g2,p,q,t
+      real(kind=fPrec) a,det,s11,s12,x,y,tf
       character(len=6)         hname
       dimension ir(*),a(idim,*)
 
@@ -47200,10 +47236,6 @@ cc2008
       data      jrange, jover, junder  /  0, +1, -1  /
       save
 !-----------------------------------------------------------------------
-      ipairf(j,k)  =  j*2**12 + k
-      pivotf(x)    =  abs(real(x))                                       !hr07
-      sizef(x)     =  abs(real(x))                                       !hr07
-      dotf(x,y,s11)  =  x * y + s11
       if(idim .ge. n  .and.  n .gt. 0)  goto 110
       call tmprnt(hname,n,idim,0)
       return
@@ -47264,22 +47296,46 @@ cc2008
       if(jfail .ne. jrange)   det  =  zero
       ir(n)  =  nxch
       return
-      end
+
+      contains
+
+        real(kind=fPrec) function dotf(x,y,s11)
+          real(kind=fPrec), intent(in) :: x, y, s11
+          dotf = x * y + s11
+        end function dotf
+
+        integer function ipairf(j,k)
+          integer, intent(in) :: j, k
+          ipairf = j*2**12 + k
+        end function ipairf
+
+        real(kind=fPrec) function pivotf(x)
+          real(kind=fPrec), intent(in) :: x
+          pivotf = abs(x)
+        end function pivotf
+
+        real(kind=fPrec) function sizef(x)
+          real(kind=fPrec), intent(in) :: x
+          sizef = abs(x)
+        end function sizef
+
+      end subroutine dfact
 
       subroutine rfeqn(n,a,idim,ir,k,b)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
-+ca parnum
+
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
       real(kind=fPrec) a,b,te,x,y
-      real(kind=fPrec) dotf,s21,s22
+      real(kind=fPrec) s21,s22
       character(len=6) hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' RFEQN'  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s21)  =  real(x,fPrec)*real(y,fPrec) + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
       call tmprnt(hname,n,idim,k)
       return
@@ -47302,41 +47358,49 @@ cc2008
       do 243    l  =  1, k
          do 232   i  =  2, n
             im1  =  i-1
-            s21  =  -one* real(b(i,l),fPrec)                                   !hr07
+            s21  =  -one*b(i,l)                                          !hr07
             do 231   j  =  1, im1
                s21  =  dotf(a(i,j),b(j,l),s21)
  231           continue
-            b(i,l)  =  real((-one*real(a(i,i),fPrec))*s21)                     !hr07
+            b(i,l)  = (-one*a(i,i))*s21                                  !hr07
  232        continue
          nm1  =  n-1
          do 242   i  =  1, nm1
             nmi  =  n-i
-            s22  =  -one*real(b(nmi,l),fPrec)                                  !hr07
+            s22  =  -one*b(nmi,l)                                        !hr07
             do 241   j  =  1, i
                nmjp1  =  n - j+1
                s22    =  dotf(a(nmi,nmjp1),b(nmjp1,l),s22)
  241           continue
-            b(nmi,l)  =  real(-one*s22)
+            b(nmi,l) = -one*s22
  242        continue
  243     continue
  299  continue
       return
-      end
+
+      contains
+
+        real(kind=fPrec) function dotf(x,y,s21)
+          real(kind=fPrec), intent(in) :: x, y, s21
+          dotf = x * y + s21
+        end function dotf
+
+      end subroutine rfeqn
 
       subroutine dfeqn(n,a,idim,ir,k,b)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
+
       integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
       real(kind=fPrec) a,b,x,y,te
-      real(kind=fPrec) dotf,s21,s22
+      real(kind=fPrec) s21,s22
       character(len=6) hname
       dimension ir(*),a(idim,*),b(idim,*)
       data      hname               /  ' DFEQN'  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s21)  =  x*y + s21
       if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
       call tmprnt(hname,n,idim,k)
       return
@@ -47378,50 +47442,58 @@ cc2008
  243     continue
  299  continue
       return
-      end
+
+      contains
+
+        real(kind=fPrec) function dotf(x,y,s21)
+          real(kind=fPrec), intent(in) :: x, y, s21
+          dotf = x * y + s21
+        end function dotf
+
+      end subroutine dfeqn
 
       subroutine rfinv(n,a,idim,ir)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
-+ca parnum
+
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
       real(kind=fPrec) a,ti,x,y
-      real(kind=fPrec) dotf,s31,s32,s33,s34
+      real(kind=fPrec) s31,s32,s33,s34
       character(len=6) hname
       dimension ir(*),a(idim,*)
       data      hname               /  ' RFINV'  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s31)  =  real(x,fPrec)*real(y,fPrec) + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
          call tmprnt(hname,n,idim,0)
          return
  310  if(n .eq. 1)  return
-      a(2,1)  =  real((-one*real(a(2,2),fPrec)) *                       &
-     &dotf(a(1,1),a(2,1),zero))     !hr07
+      a(2,1)  = (-one*a(2,2)) * dotf(a(1,1),a(2,1),zero)     !hr07
       a(1,2)  =  -one*a(1,2)                                             !hr07
       if(n .eq. 2)  goto 330
       do 314    i  =  3, n
          im2  =  i-2
          do 312 j  =  1, im2
             s31  =  zero
-            s32  =  dble(a(j,i))                                         !hr07
+            s32  =  a(j,i)                                               !hr07
             do 311  k  =  j, im2
                s31  =  dotf(a(k,j),a(i,k),s31)
                s32  =  dotf(a(j,k+1),a(k+1,i),s32)
  311           continue
-      a(i,j)  =  real((-one*dble(a(i,i))) * dotf(a(i-1,j),a(i,i-1),s31)) !hr07
-            a(j,i)  =  real(-one*s32)                                    !hr07
+            a(i,j) = (-one*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)        !hr07
+            a(j,i) =  -one*s32                                            !hr07
  312        continue
-      a(i,i-1)=real((-one*dble(a(i,i)))*dotf(a(i-1,i-1),a(i,i-1),zero))  !hr07
-         a(i-1,i)  =  -one*a(i-1,i)                                      !hr07
+         a(i,i-1) = (-one*a(i,i))*dotf(a(i-1,i-1),a(i,i-1),zero)         !hr07
+         a(i-1,i) =  -one*a(i-1,i)                                       !hr07
  314     continue
  330  nm1  =  n-1
       do 335   i  =  1, nm1
          nmi  =  n-i
          do 332   j  =  1, i
-            s33  =  real(a(i,j),fPrec)                                         !hr07
+            s33  =  a(i,j)                                               !hr07
             do 331   k  =  1, nmi
                s33  =  dotf(a(i+k,j),a(i,i+k),s33)
  331           continue
@@ -47432,7 +47504,7 @@ cc2008
             do 333   k  =  j, nmi
                s34  =  dotf(a(i+k,i+j),a(i,i+k),s34)
  333           continue
-            a(i,i+j)  =  real(s34)                                       !hr07
+            a(i,i+j) = s34                                               !hr07
  334        continue
  335     continue
       nxch  =  ir(n)
@@ -47442,28 +47514,36 @@ cc2008
          ij  =  ir(k)
          i   =  ij / 4096
          j   =  mod(ij,4096)
-         do 341  k  =  1, n
-            ti      =  a(k,i)
-            a(k,i)  =  a(k,j)
-            a(k,j)  =  ti
+         do 341 k  = 1, n
+            ti     = a(k,i)
+            a(k,i) = a(k,j)
+            a(k,j) = ti
  341        continue
  342     continue
       return
-      end
+
+      contains
+
+        real(kind=fPrec) function dotf(x,y,s31)
+          real(kind=fPrec), intent(in) :: x, y, s31
+          dotf = x * y + s31
+        end function dotf
+
+      end subroutine rfinv
 
       subroutine dfinv(n,a,idim,ir)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
+
       integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
-      real(kind=fPrec) a,dotf,s31,s32,s33,s34,ti,x,y
+      real(kind=fPrec) a,s31,s32,s33,s34,ti,x,y
       character(len=6) hname
       dimension ir(*),a(idim,*)
       data      hname               /  ' DFINV'  /
       save
 !-----------------------------------------------------------------------
-      dotf(x,y,s31)  =  x*y + s31
       if(idim .ge. n  .and.  n .gt. 0)  goto 310
          call tmprnt(hname,n,idim,0)
          return
@@ -47518,7 +47598,15 @@ cc2008
  341        continue
  342     continue
       return
-      end
+
+      contains
+
+        real(kind=fPrec) function dotf(x,y,s31)
+          real(kind=fPrec), intent(in) :: x, y, s31
+          dotf = x * y + s31
+        end function dotf
+      end subroutine dfinv
+
       subroutine tmprnt(name,n,idim,k)
       use floatPrecision
       use mathlib_bouncer
