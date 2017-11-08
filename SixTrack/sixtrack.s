@@ -6797,17 +6797,17 @@ cc2008
             phi(l)=phi(l)+dphi/pie
           enddo
 
-          nr=nr+1
-+if .not.collimat.and..not.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-+ei
-+if collimat.or.bnlelens
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-+ei
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-          endif
-          goto 500
+!          nr=nr+1
+!+if .not.collimat.and..not.bnlelens
+!          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
+!+ei
+!+if collimat.or.bnlelens
+!          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
+!+ei
+!          if(ntco.ne.0) then
+!            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+!          endif
+!          goto 500
         endif
 +cd trom10
         if(kzz.eq.22) then
@@ -39142,7 +39142,8 @@ cc2008
 !--STRUCTURE ELEMENT LOOP
       if(nt.le.0.or.nt.gt.iu) nt=iu
       izu=0
-      do 500 k=1,nt
+      
+      STRUCTLOOP: do k=1,nt
         ix=ic(k)
         if(ix.gt.nblo) goto 220 !Not a BLOCK
         if(ithick.eq.1.and.iprint.eq.1) goto 160
@@ -39191,7 +39192,7 @@ cc2008
      &           "found a thick non-drift element",                     &
      &           bez(jk), "while ithick=1. This should not be possible!"
             call prror(-1)
-            goto 500
+            cycle STRUCTLOOP
           endif
 
 !--IN BLOCK: PURE DRIFTLENGTH (above: If ITHICK=1 and kz!=0, goto 120->MAGNETELEMENT)
@@ -39297,7 +39298,7 @@ cc2008
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
 
-        goto 500
+        cycle STRUCTLOOP
 
 !--BETACALCULATION FOR SERIES OF BLOCKS (ix.ge.nblo.and.ithick.eq.1.and.iprint.eq.1)
   160   continue !if ithick=1 and iprint=1:
@@ -39352,7 +39353,7 @@ cc2008
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
         
-        goto 500
+        cycle STRUCTLOOP
 
 !--REVERSE RUN THROUGH BLOCKS (ix.le.0)
   190   ix=-ix
@@ -39406,7 +39407,7 @@ cc2008
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
         
-        goto 500
+        cycle STRUCTLOOP
 
 !--NOT A BLOCK / Nonlinear insertion
   220   ix=ix-nblo
@@ -39435,7 +39436,7 @@ cc2008
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
 
-          goto 500
+          cycle STRUCTLOOP
         endif
         
         !Beam Beam element .and. fort.3 has BB block
@@ -39451,16 +39452,14 @@ cc2008
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
-          goto 500
-
+          cycle STRUCTLOOP
         endif
 
 +ca trom01 !if kzz==22, starts a do over l; Update t matrix
 +ca trom03
-+ca trom06 !endif, ends the do over l; increase nr, writelin and cpltwis
++ca trom06 !endif, ends the do over l; (commented out: increase nr, call writelin and cpltwis)
 
-+if collimat.or.bnlelens
-
+!+if collimat.or.bnlelens
         ! Marker, beam-beam, phase-trombone, crab cavity (incl. multipole), or wire
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22                           &
      &     .or.abs(kzz).eq.23.or.abs(kzz).eq.26                         &
@@ -39468,22 +39467,33 @@ cc2008
      &     .or.abs(kzz).eq.15) then
           
           nr=nr+1
++if collimat.or.bnlelens
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
++if .not.collimat.and..not.bnlelens
+          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
++ei
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
-          goto 500
+          cycle STRUCTLOOP
         endif
-+ei
-+if .not.collimat.and..not.bnlelens
-        ! Marker, beam-beam or phase-trombone -> next element
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 500
-        ! Wire -> next element
-        if(abs(kzz).eq.15) goto 500
-        ! RF CC Multipoles -> next element
-        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.                        &
-     &      abs(kzz).eq.27.or.abs(kzz).eq.28) goto 500
-+ei
+!+ei
+!+if .not.collimat.and..not.bnlelens
+!        ! Marker, beam-beam or phase-trombone -> next element
+!        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
+!           cycle STRUCTLOOP
+!        endif
+!        ! Wire -> next element
+!        if(abs(kzz).eq.15) then
+!           cycle STRUCTLOOP
+!        endif
+!        ! RF CC Multipoles -> next element
+!        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.                        &
+!     &       abs(kzz).eq.27.or.abs(kzz).eq.28) then
+!           cycle STRUCTLOOP
+!        endif
+!+ei
       
         ! Update the matrix etc. for supported blocks
         dyy1=zero
@@ -39496,66 +39506,52 @@ cc2008
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-        if(kzz.lt.0) goto 370 !Skew
-        goto(230, 240, 250, 260, 270, 280, 290, 300, 310, 320,          &!1-10
-     &       330, 500, 500, 500, 500, 500, 500, 500, 500, 500,          &!11-20
-     &       500, 500, 500, 325, 326, 500, 500, 500),kzz                 !21-28
 
-        ! Un-recognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
-        nr=nr+1
-+if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-+ei
-+if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-+ei
-        if(ntco.ne.0) then
-          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-        endif
-        goto 500
+      if (kzz .ge. 0) then
+        select case(kzz)
 
+        case (1)
 !--HORIZONTAL DIPOLE
-  230   ekk=ekk*c1e3
+           ekk=ekk*c1e3
 +ca kickl01h
 +ca kickq01h
-        goto 480
 !--NORMAL QUADRUPOLE
-  240   continue
+        case(2)
 +ca kicklxxh
 +ca kickq02h
-        goto 480
-!--NORMAL SEXTUPOLE
-  250   ekk=ekk*c1m3
+!--   NORMAL SEXTUPOLE
+        case(3)
+           ekk=ekk*c1m3
 +ca kickq03h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL OCTUPOLE
-  260   ekk=ekk*c1m6
+        case(4)
+           ekk=ekk*c1m6
 +ca kicksho
 +ca kickq04h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL DECAPOLE
-  270   ekk=ekk*c1m9
+        case(5)
+           ekk=ekk*c1m9
 +ca kicksho
 +ca kicksho
 +ca kickq05h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL DODECAPOLE
-  280   ekk=ekk*c1m12
+        case(6)
+           ekk=ekk*c1m12
 +ca kicksho
 +ca kicksho
 +ca kicksho
 +ca kickq06h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 14-POLE
-  290   ekk=ekk*c1m15
+        case(7)
+           ekk=ekk*c1m15
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39563,9 +39559,9 @@ cc2008
 +ca kickq07h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 16-POLE
-  300   ekk=ekk*c1m18
+        case(8)
+           ekk=ekk*c1m18
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39574,9 +39570,9 @@ cc2008
 +ca kickq08h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 18-POLE
-  310   ekk=ekk*c1m21
+        case(9)
+           ekk=ekk*c1m21
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39586,9 +39582,9 @@ cc2008
 +ca kickq09h
 +ca kicksho
 +ca kicklxxh
-        goto 480
 !--NORMAL 20-POLE
-  320   ekk=ekk*c1m24
+        case(10)
+           ekk=ekk*c1m24
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39599,19 +39595,9 @@ cc2008
 +ca kickq10h
 +ca kicksho
 +ca kicklxxh
-        goto 480
-!--DIPEDGE ELEMENT
- 325    continue
-+ca kickldpe
-+ca kickqdpe
-        goto 480
-!--solenoid
- 326    continue
-+ca kicklso1
-+ca kickqso1
-        goto 480
 !--Multipole block
-  330   r0=ek(ix)
+        case(11)
+        r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
 +ca multl01
@@ -39636,7 +39622,9 @@ cc2008
 +ca multl11
           endif
         endif
-        if(abs(r0).le.pieni) goto 500
+        if(abs(r0).le.pieni) then
+           cycle STRUCTLOOP
+        endif
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
@@ -39652,7 +39640,7 @@ cc2008
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
 
-          goto 500
+          cycle STRUCTLOOP
         endif
         im=irm(ix)
         r0a=one
@@ -39672,68 +39660,86 @@ cc2008
 +ca multl07e
 +ei
         izu=izu+2*mmul-2*nmz
-        goto 480
+
+!--Skipped elements
+        case(12,13,14,15,16,17,18,19,20,21,22,23)
+           cycle STRUCTLOOP
+        
+!--DIPEDGE ELEMENT
+        case(24)
++ca kickldpe
++ca kickqdpe
+!--solenoid
+        case(25)
++ca kicklso1
++ca kickqso1
+
+!--Skipped elements
+        case(26,27,28)
+           cycle STRUCTLOOP
+           
+!--Unrecognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
+        case default
+           nr=nr+1
++if .not.collimat.and..not.bnlelens
+           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
++ei
++if collimat.or.bnlelens
+           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
+           if(ntco.ne.0) then
+              if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+           endif
+           cycle STRUCTLOOP
+        end select
 
 
 !--SKEW ELEMENTS
-  370   kzz=-kzz
-        goto(380,390,400,410,420,430,440,450,460,470),kzz
-        
-        ! Unrecognized element in the above GOTO (incl. kzz=-12,kp.ne.6 for non-collimat/bnlelens)
-        nr=nr+1
-+if .not.collimat.and..not.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-+ei
-+if collimat.or.bnlelens
-        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-+ei
-        if(ntco.ne.0) then
-          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-        endif
-        goto 500
-
+        else if(kzz .lt. 0) then
+           kzz=-kzz             !Make it positive
+           select case(kzz)
+           case(1)
 !--VERTICAL DIPOLE
-  380   ekk=ekk*c1e3
+              ekk=ekk*c1e3
 +ca kickl01v
 +ca kickq01v
-        goto 480
 !--SKEW QUADRUPOLE
-  390   continue
+           case(2)
 +ca kicklxxv
 +ca kickq02v
-        goto 480
 !--SKEW SEXTUPOLE
-  400   ekk=ekk*c1m3
+           case(3)
+              ekk=ekk*c1m3
 +ca kickq03v
 +ca kicksho
 +ca kicklxxv
-        goto 480
 !--SKEW OCTUPOLE
-  410   ekk=ekk*c1m6
+           case(4)
+              ekk=ekk*c1m6
 +ca kicksho
 +ca kickq04v
 +ca kicksho
 +ca kicklxxv
-        goto 480
 !--SKEW DECAPOLE
-  420   ekk=ekk*c1m9
+           case(5)
+              ekk=ekk*c1m9
 +ca kicksho
 +ca kicksho
 +ca kickq05v
 +ca kicksho
 +ca kicklxxv
-        goto 480
 !--SKEW DODECAPOLE
-  430   ekk=ekk*c1m12
+           case(6)
+              ekk=ekk*c1m12
 +ca kicksho
 +ca kicksho
 +ca kicksho
 +ca kickq06v
 +ca kicksho
 +ca kicklxxv
-        goto 480
 !--SKEW 14-POLE
-  440   ekk=ekk*c1m15
+           case(7)
+              ekk=ekk*c1m15
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39741,9 +39747,9 @@ cc2008
 +ca kickq07v
 +ca kicksho
 +ca kicklxxv
-        goto 480
 !--SKEW 16-POLE
-  450   ekk=ekk*c1m18
+           case(8)
+              ekk=ekk*c1m18
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39752,9 +39758,9 @@ cc2008
 +ca kickq08v
 +ca kicksho
 +ca kicklxxv
-        goto 480
 !--SKEW 18-POLE
-  460   ekk=ekk*c1m21
+           case(9)
+              ekk=ekk*c1m21
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39764,9 +39770,9 @@ cc2008
 +ca kickq09v
 +ca kicksho
 +ca kicklxxv
-        goto 480
 !--SKEW 20-POLE
-  470   ekk=ekk*c1m24
+           case(10)
+              ekk=ekk*c1m24
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -39778,41 +39784,62 @@ cc2008
 +ca kicksho
 +ca kicklxxv
 
-!After processing an element: go here!
-  480   continue
+!     Unrecognized skew element (including kzz=-12,kp.ne.6 for non-collimat/bnlelens)
+           case default
+              nr=nr+1
++if .not.collimat.and..not.bnlelens
+              call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
++ei
++if collimat.or.bnlelens
+              call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
++ei
+              if(ntco.ne.0) then
+                 if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
+              endif
+              cycle STRUCTLOOP
+           end select
+        endif
+      
+        !Done processing an element: go here!
         t(6,2)=t(6,2)-dyy1/(one+dpp)
         t(6,4)=t(6,4)-dyy2/(one+dpp)
         t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
-        do 490 i=2,ium
+        do i=2,ium
           if(kzz.eq.24) then
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
+!Contains elseif statements
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
           else
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           endif
-  490   continue
+        end do
         bexi=t(2,1)**2+t(3,1)**2                                         !hr06
         bezii=t(4,3)**2+t(5,3)**2                                        !hr06
         if(ncorru.eq.0) then
-          if(kz(ix).eq.11) then
-            if(abs(aa(2)).gt.pieni.and.nmz.gt.1) write(34,10070) etl,   &
-     &bez(ix),-2,aa(2),bexi,bezii,phi
-            do iiii=3,nmz
-              if(abs(bb(iiii)).gt.pieni) write(34,10070) etl,bez(ix),   &
-     &iiii,bb(iiii),bexi,bezii,phi
-              if(abs(aa(iiii)).gt.pieni) write(34,10070) etl,bez(ix),   &
-     &-iiii,aa(iiii),bexi,bezii,phi
-            enddo
-          elseif(abs(ekk).gt.pieni.and.abs(kz(ix)).ge.3) then
-            write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
-          elseif(abs(ekk).gt.pieni.and.kz(ix).eq.-2) then
-            write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
-          endif
+           if(kz(ix).eq.11) then
+              if(abs(aa(2)).gt.pieni.and.nmz.gt.1) then
+                 write(34,10070) etl,bez(ix),-2,aa(2),bexi,bezii,phi
+              endif
+              do iiii=3,nmz
+                 if(abs(bb(iiii)).gt.pieni) then
+                    write(34,10070)                                      &
+     &                   etl,bez(ix),iiii,bb(iiii),bexi,bezii,phi
+                 endif
+                 if(abs(aa(iiii)).gt.pieni) then
+                    write(34,10070)                                      &
+     &                   etl,bez(ix),-iiii,aa(iiii),bexi,bezii,phi
+                 endif
+              enddo
+           elseif(abs(ekk).gt.pieni.and.abs(kz(ix)).ge.3) then
+              write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
+           elseif(abs(ekk).gt.pieni.and.kz(ix).eq.-2) then
+              write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
+           endif
         endif
         
         nr=nr+1
@@ -39826,7 +39853,7 @@ cc2008
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
         
-  500 continue ! END LOOP OVER ELEMENTS
+      end do STRUCTLOOP ! END LOOP OVER ELEMENTS
       
       call clorb(ded)
       do 510 l=1,2
