@@ -17581,7 +17581,7 @@ cc2008
 10890 format(1x,'--> function ',i2,' of combo # ',i4,' of element',a16, &
      &'does not exist!')
 10891 format(1x,'--> single element ',a16,' is a thick lens one!')
-      end
+      end subroutine daten
       
       subroutine write4
 !-----------------------------------------------------------------------
@@ -17589,6 +17589,7 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer ii,ikz
       real(kind=fPrec) rdum1,rdum2,rel1
@@ -17603,7 +17604,6 @@ cc2008
       data lineno30 /0/
       data lineno35 /0/ 
 +ca parpro
-+ca parnum
 +ca common
 +if bnlelens
 +ca rhicelens
@@ -17751,7 +17751,6 @@ cc2008
       end
       
       subroutine initialize_element(ix,lfirst)
-!
 !-----------------------------------------------------------------------
 !     K.Sjobak & A.Santamaria, BE-ABP/HSS
 !     last modified: 23-12-2016
@@ -17763,9 +17762,10 @@ cc2008
 !     If trying to initialize an element (not lfirst) which is disabled,
 !     print an error and exit.
 !-----------------------------------------------------------------------
-!
+
       use floatPrecision
       use dynk, only : dynk_elemdata
+      use numerical_constants
       implicit none
       
       integer, intent(in) :: ix
@@ -17774,7 +17774,6 @@ cc2008
       integer im, izu, k, m, nmz, r0, r0a !needed to use multini
 
 +ca parpro !needed for common
-+ca parnum !zero
 +ca common
 +ca commonmn
 +ca commontr
@@ -18097,7 +18096,7 @@ cc2008
       write (lout,*) "bez = ", bez(ix)
       call prror(-1)
 
-      end subroutine
+      end subroutine initialize_element
 
 +if crlibm
       
@@ -18186,8 +18185,8 @@ cc2008
         write(lout,*) 'splitfld:'//localstr//':'
       enddo
       call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
-      end
-      
+      end subroutine splitfld
+
       real(kind=fPrec) function fround(errno,fields,f)
       use floatPrecision
       implicit none
@@ -18207,7 +18206,7 @@ cc2008
         call rounderr(errno,fields,f,value)
       endif
       return
-      end
+      end function fround
       
       subroutine rounderr(errno,fields,f,value)
       use floatPrecision
@@ -18233,7 +18232,7 @@ cc2008
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
       return
-      end
+      end subroutine rounderr
       
       subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
       implicit none
@@ -18265,7 +18264,7 @@ cc2008
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
-      end
+      end subroutine spliterr
       
       integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
@@ -18355,7 +18354,7 @@ cc2008
       results=lstr(1:24)
       dtostr=24
       return
-      end
+      end function dtostr
       
 +ei ! END of crlibm-specific functions
       
@@ -18381,10 +18380,10 @@ cc2008
 !  *********************************************************************
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,j,k
       real(kind=fPrec) wi,wr,x,y
-+ca parnum
 +ca parpro
 +ca parbeam
       save
@@ -18402,13 +18401,13 @@ cc2008
             wtimag(k)=wi
  1       continue
  2    continue
-      end
+      end subroutine wzset
 
       subroutine mywwerf(x,y,wr,wi)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
       integer n
       real(kind=fPrec) c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
      &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
@@ -18564,7 +18563,7 @@ cc2008
          endif
       enddo
 
-      end subroutine
+      end subroutine getfields_split
 
       function stringzerotrim(instring)
 !----------------------------------------------------------------------------
@@ -18594,17 +18593,17 @@ cc2008
       end do
       stringzerotrim = trim(stringzerotrim)
 
-      end function
+      end function stringzerotrim
 
 
 +dk ranecu
       subroutine ranecu(rvec,len,mcut)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,is1,is2,iseed1,iseed2,iz,j,k,len,mcut
       real(kind=fPrec) rvec0,rvec,pi,r
-+ca parnum
       dimension rvec(*),r(2)
       data iseed1,iseed2 / 12345, 67890 /
       save
@@ -18656,6 +18655,7 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -18668,7 +18668,6 @@ cc2008
       integer jm,k,m,na,ne
 +ei
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -19370,11 +19369,11 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
 +ca parpro
-+ca parnum
 +ca common
 +ca commondl
 +ca commond1
@@ -19468,6 +19467,7 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
@@ -19481,7 +19481,6 @@ cc2008
      &crabpht4
       character(len=300) ch
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont2
@@ -20569,6 +20568,7 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use physical_constants
+      use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -20586,7 +20586,6 @@ cc2008
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=16) typ
 +ca parpro
-+ca parnum
 +ca commonex
 +ca common
 +ca commons
@@ -21995,13 +21994,13 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       use physical_constants
+      use numerical_constants
       implicit none
 +ca crcoall
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont2
@@ -22189,12 +22188,12 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer idaa
       real(kind=fPrec) betr0,dare,sigmdac
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont2
@@ -22291,10 +22290,10 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer ix,idaa
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -22344,12 +22343,12 @@ cc2008
 !----------------------------------------------------------------------*
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
 +ca parpro
-+ca parnum
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
@@ -22470,13 +22469,13 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer ibb,ibbc,ne,nsli,idaa
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
 +ca parpro
-+ca parnum
 +ca commondl
       dimension param(nele,18),bcu(nbb,12),star(3,mbea)
 +if bnlelens
@@ -22539,11 +22538,11 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
 +ca parpro
-+ca parnum
 +ca commondl
 +if bnlelens
 +ca rhicelens
@@ -22600,11 +22599,11 @@ cc2008
 !****************************************************************
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
 +ca parpro
-+ca parnum
 +ca commondl
       dimension star(3,mbea),bcu(nbb,12)
 +if bnlelens
@@ -22746,11 +22745,11 @@ cc2008
 ! BOOSTIF **************inverse boost ****************
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
 +ca parpro
-+ca parnum
 +ca commondl
 +if bnlelens
 +ca rhicelens
@@ -22816,11 +22815,11 @@ cc2008
 !**********************************************************************
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer idaa
       real(kind=fPrec) dare,hundred,sqrpi2
 +ca parpro
-+ca parnum
       parameter(sqrpi2 = 3.544907701811032_fPrec,hundred = c1e2)
 +ca commondl
 +if bnlelens
@@ -22930,6 +22929,8 @@ cc2008
       program maincr
       use floatPrecision
       use mathlib_bouncer
+      use physical_constants
+      use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -22940,8 +22941,6 @@ cc2008
       use fma, only : fma_postpr
       
       use, intrinsic :: iso_fortran_env, only : output_unit
-
-      use physical_constants
 
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -22972,6 +22971,14 @@ cc2008
 !
 !  G. ROBERT-DEMOLAIZE, S. REDAELLI
 !
+!  UPGRADED FOR COUPLING TO FLUKA, JULY 2013
+!
+!  A. MEREGHETTI, D. SINUELA PASTOR
+!
+!  FURTHER UPGRADE FOR COUPLING TO FLUKA, MAY-JUNE 2014
+!
+!  A. MEREGHETTI, P. GARCIA ORTEGA
+!
 !-----------------------------------------------------------------------
 !  SIXTRACR CHECKPOINT/RESTART and CRLIBM (ENS Lyon)
 !
@@ -22999,7 +23006,6 @@ cc2008
 +ei
 !-----------------------------------------------------------------------
 +ca parpro
-+ca parnum
 +ca common
 +ca commonex
 +ca common2
@@ -23740,6 +23746,16 @@ cc2008
           write(lout,10070)
         endif
         if(m.eq.1) call ord
+
+!       A.Mereghetti
+!       last modified: 16-12-2016
+!       initialise aperture of first and last elements of sequence
+!       always in main code
+        if (limifound) then
+           write(lout,*) ' check that beginning/end of lattice'//       &
+     &' structure is assigned aperture markers...'
+           call contour_aperture_markers( iu, 1, .false. )
+        end if
 
 +if fluka
 !       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -25564,7 +25580,8 @@ cc2008
         call igmeta(999,0)
         call hplend
       endif
-+ei
++ei !END +if .not.fluka
+
 +if fluka
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 28-05-2014
@@ -25770,7 +25787,8 @@ cc2008
 10370 format(2(1X,I8),8(1X,1PE16.9))
 10380 format(10x,f47.33)
 +ei
-      end
+      end program maincr
+
 +dk tra_thin
 !>
 !!--------------------------------------------------------------------------
@@ -26265,7 +26283,7 @@ cc2008
       call collimate_exit()
 +ei
       return
-      end
+      end subroutine trauthin
 
 !>
 !!  TRACK THIN LENS 4D
@@ -26351,6 +26369,18 @@ cc2008
 !GRDRHIC
 !GRD-042008
 +ei
+
++if backtrk
++ca backtrkinit
++ei
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     initialise napxto
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = 0
++ei
+
 +if cr
       if (restart) then
         call crstart
@@ -26381,8 +26411,10 @@ cc2008
 +ei
         numx=n-1
 
++if .not.fluka
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
++ei
 
 +if cr
 !  does not call CRPOINT if restart=.true.
@@ -26421,7 +26453,6 @@ cc2008
 +ei
 
 +if fluka
-
 !         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !         last modified: 17-07-2013
 !         is the current entry an instance of a FLUKA element?
@@ -26459,7 +26490,6 @@ cc2008
               goto 630
             end if
           endif
-
 +ei
 
           goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630,       &!1-10
@@ -26871,7 +26901,7 @@ cc2008
 
   640 continue
       return
-      end
+      end subroutine thin4d
 
 !>
 !!  TRACK THIN LENS 6D
@@ -26880,6 +26910,7 @@ cc2008
       subroutine thin6d(nthinerr)
       use floatPrecision
       use physical_constants
+      use numerical_constants
       use mathlib_bouncer
 
 +if datamods
@@ -26925,7 +26956,6 @@ cc2008
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -26969,7 +26999,7 @@ cc2008
       save
 !-----------------------------------------------------------------------
 +if fast
-      c5m4=5.0d-4
+      c5m4=5.0e-4_fPrec
 +ei
       nthinerr=0
 
@@ -27104,16 +27134,6 @@ cc2008
 +ca timefct
 +ei
 
-+if .not.collimat
-!---------count:44
-+if debug
-!         if (n.eq.1) then
-!           write (93,*) 'ktrack(i)=',ktrack(i)
-!           endfile (93,iostat=ierro)
-!           backspace (93,iostat=ierro)
-!         endif
-+ei
-
 +if fluka
 !         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !         last modified: 17-07-2013
@@ -27154,6 +27174,15 @@ cc2008
           endif
 +ei !END +if fluka
 
++if .not.collimat
+!---------count:44
++if debug
+!         if (n.eq.1) then
+!           write (93,*) 'ktrack(i)=',ktrack(i)
+!           endfile (93,iostat=ierro)
+!           backspace (93,iostat=ierro)
+!         endif
++ei
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
 !     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
@@ -27226,10 +27255,10 @@ cc2008
           call collimate_start_collimator(stracki)
 
 !++ For known collimators
-          if (found) then
+          if(found) then
             call collimate_do_collimator(stracki)
             call collimate_end_collimator()
-          endif ! end of check for 'found'
+          end if ! end of check for 'found'
 !------------------------------------------------------------------
 !++  Here leave the known collimator IF loop...
 !_______________________________________________________________________
@@ -27876,10 +27905,20 @@ cc2008
 +ca elenstracktmp
 +ca dbdcum
 +ca comApeInfo
+
++if fluka
+
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 12-01-2016
+!     temporary integer variable, for updating ref part
+!     inserted in main code by the 'fluka' compilation flag
+      integer mtemp
+
++ei
       save
 !-----------------------------------------------------------------------
 +if fast
-      c5m4=5.0d-4
+      c5m4=5.0e-4_fPrec
 +ei
 +if bnlelens
 !GRDRHIC
@@ -27890,6 +27929,19 @@ cc2008
 !GRD-042008
 +ei
       nthinerr=0
+
++if backtrk
++ca backtrkinit
++ei
++if fluka
+
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     initialise napxto
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = 0
++ei
+
 +if cr
       if (restart) then
         call crstart
@@ -27920,12 +27972,14 @@ cc2008
 +ei
         numx=n-1
 
++if .not.fluka
         if(n.le.nde(1)) nwri=nwr(1)
         if(n.gt.nde(1).and.n.le.nde(2)) nwri=nwr(2)
         if(n.gt.nde(2)) nwri=nwr(3)
         if(nwri.eq.0) nwri=numl+numlr+1
         if(mod(numx,nwri).eq.0) call writebin(nthinerr)
         if(nthinerr.ne.0) return
++ei
 
 +if cr
 !  does not call CRPOINT if restart=.true.
@@ -27963,6 +28017,46 @@ cc2008
 +if time
 +ca timefct
 +ei
+
++if fluka
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 17-07-2013
+!         is the current entry an instance of a FLUKA element?
+!         inserted in main code by the 'fluka' compilation flag
+          if (fluka_enable) then
+            if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
+                                    !      be SINGLE ELEMENTs
+              if(fluka_type(ix).ne.FLUKA_NONE) then
+                if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+                  call kernel_fluka_element( n, i, ix )
++if backtrk
++ca backtrksave
++ei
+                  goto 640
+                else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+                  fluka_inside = .true.
+                  call kernel_fluka_entrance( n, i, ix )
+                  goto 645
+                else if(fluka_type(ix).eq.FLUKA_EXIT) then
+                  fluka_inside = .false.
+                  call kernel_fluka_exit( n, i, ix )
++if backtrk
++ca backtrksave
++ei
+                  goto 640
+                end if
+              end if
+            end if
+            if(fluka_inside) then
+              if(fluka_debug) then
+                write(*,*) '[Fluka] Skipping lattice element at ', i
+                write(fluka_log_unit,*)
+     &'# Skipping lattice element at ', i
+              end if
+              goto 650
+            end if
+          endif
++ei
 !--------count44
           goto(10 ,30 ,740,650,650,650,650,650,650,650,                 &!1-10
      &         50 ,70 ,90 ,110,130,150,170,190,210,230,                 &!11-20
@@ -27982,10 +28076,38 @@ cc2008
           else
 +ca ex6Ddrift
           endif
+
++if backtrk
++ca backtrksave
++ei
+
           goto 650
    30     e0o=e0
           e0fo=e0f
           call adia(n,e0f)
+
++if fluka
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 18-01-2016
+!         update energy/momentum of reference particle in mod_fluka
+!            and synch magnetic rigidity with Fluka (for the time being,
+!            consider only protons);
+!         NB: adia(n,e0f) updates e0 first (contained in common 'syn')
+!             and then e0f
+!         inserted in main code by the 'fluka' compilation flag
+          if(fluka_enable) then
+            write(lout,*) '[Fluka] Updating ref particle'
+            write(fluka_log_unit,*) '# Updating ref particle'
+            mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+            if(mtemp .lt. 0) then
+            write(lout,*) '[Fluka] Error: failed to update ref particle'
+            write(fluka_log_unit, *) '# failed to update ref particle'
+              call prror(-1)
+            end if
+            write(lout,*) '[Fluka] Updating ref particle successful;'
+            write(fluka_log_unit,*)'# Updating ref particle successful;'
+          endif
++ei
 
           do j=1,napx
             ejf0v(j)=ejfv(j)
@@ -28383,6 +28505,8 @@ cc2008
 
 +ca lostpart
 
+  645     continue
+
       if (.not. ldumpfront) then
 +ca dumplines
       endif
@@ -28391,7 +28515,10 @@ cc2008
         !call lostpart(nthinerr)
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
++if .not.fluka
         if(mod(n,nwr(4)).eq.0) call write6(n)
++ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -28403,7 +28530,7 @@ cc2008
 +ei
   660 continue
       return
-      end
+      end subroutine thin6dua
 
       subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,    &
      &     cdate,ctime,progrm)
@@ -29562,6 +29689,7 @@ cc2008
 !-----------------------------------------------------------------------
 
       use floatPrecision
+      use numerical_constants
 
 +if fluka
 !     import mod_fluka
@@ -29572,7 +29700,6 @@ cc2008
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -29844,11 +29971,10 @@ cc2008
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
-
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -29968,10 +30094,10 @@ cc2008
 !-----------------------------------------------------------------------
 !
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -30070,10 +30196,10 @@ cc2008
 
       subroutine dumpMe
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -30137,10 +30263,10 @@ cc2008
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -30198,10 +30324,10 @@ cc2008
 !
       use floatPrecision
       use physical_constants
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commonm1
@@ -30334,11 +30460,11 @@ cc2008
 !
       use floatPrecision
       use physical_constants
+      use numerical_constants
 
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commonm1
@@ -30502,11 +30628,11 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -30572,11 +30698,11 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer ia,ia2,id,ie,ig,n
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -30682,6 +30808,7 @@ cc2008
 
       use floatPrecision
       use physical_constants
+      use numerical_constants
 
       implicit none
 
@@ -30692,7 +30819,6 @@ cc2008
       real(kind=fPrec) clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
       intent (in) nturn, i, ix, unit, fmt, lhighprec, tasinv, clo
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commonm1
@@ -31242,6 +31368,7 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
       implicit none
 +ca crcoall
@@ -31249,7 +31376,6 @@ cc2008
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -31652,7 +31778,7 @@ cc2008
         endif
       endif
       return
-      end
+      end subroutine trauthck
 
       subroutine thck4d(nthinerr)
 !-----------------------------------------------------------------------
@@ -31665,6 +31791,7 @@ cc2008
       use floatPrecision
       use physical_constants
       use mathlib_bouncer
+      use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -31694,7 +31821,6 @@ cc2008
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -32219,7 +32345,8 @@ cc2008
 +ei
   490 continue
       return
-      end
+      end subroutine thck4d
+
       subroutine thck6d(nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -32231,6 +32358,7 @@ cc2008
       use floatPrecision
       use physical_constants
       use mathlib_bouncer
+      use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -32260,7 +32388,6 @@ cc2008
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -32936,7 +33063,8 @@ cc2008
 !===================================================================
 +ei
       return
-      end
+      end subroutine thck6d
+
       subroutine thck6dua(nthinerr)
 !-----------------------------------------------------------------------
 !
@@ -32948,6 +33076,7 @@ cc2008
       use floatPrecision
       use physical_constants
       use mathlib_bouncer
+      use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -32977,7 +33106,6 @@ cc2008
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -33557,7 +33685,8 @@ cc2008
 +ei
   510 continue
       return
-      end
+      end subroutine thck6dua
+
       subroutine synuthck
 !-----------------------------------------------------------------------
 !
@@ -33573,11 +33702,11 @@ cc2008
 +if datamods
       use bigmats
 +ei
+      use numerical_constants
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -33981,7 +34110,8 @@ cc2008
   160 continue
 !---------------------------------------  END OF 'ENVARS' (2)
       return
-      end
+      end subroutine synuthck
+
 +dk envarsv
       subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 !-----------------------------------------------------------------------
