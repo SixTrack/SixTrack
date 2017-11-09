@@ -40368,10 +40368,10 @@ cc2008
 
 !-- HORIZONTAL PLANE FIRST
         do i=1,nhmoni
-          b(i)=real(bclorb(i,1))
+          b(i)=bclorb(i,1)
           do j=1,nhcorr
-      ar(i,j)=real(((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac&!hr06
-     &(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi)))                !hr06
+      ar(i,j)=((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac     &!hr06
+     &(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi))                 !hr06
           end do
         end do
 
@@ -40382,10 +40382,10 @@ cc2008
 
 !-- VERTICAL PLANE HERE
         do i=1,nvmoni
-          b(i)=real(bclorb(i,2))                                         !hr06
+          b(i)=bclorb(i,2)                                               !hr06
           do j=1,nvcorr
-      ar(i,j)=real(((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac&!hr06
-     &(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi)))                !hr06
+      ar(i,j)=((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac     &!hr06
+     &(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi))                 !hr06
           end do
         end do
 
@@ -40436,13 +40436,13 @@ cc2008
 
 !-- GET LAST VALUES AFTER CORRECTION
       do 120 i=1,nhmoni
-        b(i)=real(bclorb(i,1))                                           !hr06
+        b(i)=bclorb(i,1)                                                 !hr06
   120 continue
 
       call calrms(b,nhmoni,rmsx,ptpx)
 
       do 130 i=1,nvmoni
-        b(i)=real(bclorb(i,2))                                           !hr06
+        b(i)=bclorb(i,2)                                                 !hr06
   130 continue
 
       call calrms(b,nvmoni,rmsz,ptpz)
@@ -40457,8 +40457,8 @@ cc2008
       if(sigma0(1).gt.pieni.or.sigma0(2).gt.pieni) then
         do 180 ii=1,itco
           write(lout,10140)
-          hfac=sigma0(1)/real(rmsx,fPrec)                                      !hr06
-          vfac=sigma0(2)/real(rmsz,fPrec)                                      !hr06
+          hfac=sigma0(1)/rmsx                                            !hr06
+          vfac=sigma0(2)/rmsz                                            !hr06
           do 150 i=1,il
             kzz=kz(i)
             kpz=kp(i)
@@ -40481,13 +40481,13 @@ cc2008
           call linopt(zero)
 
           do 160 i=1,nhmoni
-            b(i)=real(bclorb(i,1))                                       !hr06
+            b(i)=bclorb(i,1)                                             !hr06
   160     continue
 
           call calrms(b,nhmoni,rmsx,ptpx)
 
           do 170 i=1,nvmoni
-            b(i)=real(bclorb(i,2))                                       !hr06
+            b(i)=bclorb(i,2)                                             !hr06
   170     continue
 
           call calrms(b,nvmoni,rmsz,ptpz)
@@ -41079,8 +41079,8 @@ cc2008
         xrms = xrms + r(i)**2                                            !hr06
       end do
 
-      ave = xave / real(m)
-      rms = xrms / real(m)
+      ave = xave / real(m,fPrec)
+      rms = xrms / real(m,fPrec)
 
       imax=maxmin(r(1),m,1)
       imin=maxmin(r(1),m,0)
