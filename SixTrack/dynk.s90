@@ -1603,9 +1603,9 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         derivI_te = A*(te-tinj)                 ! nostore
         I_te      = (A/2.0)*(te-tinj)**2 + Iinj ! nostore
         bexp      = derivI_te/I_te
-        aexp      = exp(-bexp*te)*I_te
-        t1        = log(R/(aexp*bexp))/bexp
-        I1        = aexp*exp(bexp*t1)
+        aexp      = exp_mb(-bexp*te)*I_te
+        t1        = log_mb(R/(aexp*bexp))/bexp
+        I1        = aexp*exp_mb(bexp*t1)
         td        = (Inom-I1)/R + (t1 - R/(2*D))
         tnom      = td + R/D
 
@@ -2948,7 +2948,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
             retval = ( fexpr_dynk(foff+6)*(turn-fexpr_dynk(foff))**2 ) / 2.0 + fexpr_dynk(foff+5)
         else if (turn .le. fexpr_dynk(foff+2)) then ! <= t1
             ! Exponential
-            retval = fexpr_dynk(foff+7)*exp( fexpr_dynk(foff+8)*turn ) !!!!!! WTF ????? EXP, should be EXP_MB !!!!!!!!!!!!!
+            retval = fexpr_dynk(foff+7)*exp_mb( fexpr_dynk(foff+8)*turn ) !!!!!! WTF ????? EXP, should be EXP_MB !!!!!!!!!!!!!
         else if (turn .le. fexpr_dynk(foff+3)) then ! <= td
             ! Linear (max ramp rate)
             retval = fexpr_dynk(foff+10)*(turn-fexpr_dynk(foff+2)) + fexpr_dynk(foff+9)
