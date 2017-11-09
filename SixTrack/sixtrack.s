@@ -28049,8 +28049,8 @@ cc2008
             end if
             if(fluka_inside) then
               if(fluka_debug) then
-                write(*,*) '[Fluka] Skipping lattice element at ', i
-                write(fluka_log_unit,*)
+                write(lout,*) '[Fluka] Skipping lattice element at ', i
+                write(fluka_log_unit,*)                                 &
      &'# Skipping lattice element at ', i
               end if
               goto 650
@@ -30447,7 +30447,7 @@ cc2008
 
  1981 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,14(1X,1PE25.18))
  1982 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,14(1X,1PE16.9))
-      end subroutine
+      end subroutine dump_statistics
 
       subroutine dump_beam_mtrix( nturn, ientry, ix, unit, lhighprec )
 !
@@ -30616,7 +30616,7 @@ cc2008
 
  1981 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,9(1X,1PE25.18))
  1982 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,9(1X,1PE16.9))
-      end subroutine
+      end subroutine dump_beam_mtrix
 
 
       subroutine dist1
@@ -30688,7 +30688,8 @@ cc2008
         endif
    20 continue
       return
-      end
+      end subroutine dist1
+
       subroutine write6(n)
 !-----------------------------------------------------------------------
 !
@@ -30787,7 +30788,7 @@ cc2008
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
-      end
+      end subroutine write6
 
       subroutine dump_beam_population( nturn, i, ix, unit, fmt,         &
      &  lhighprec, clo, tasinv )
@@ -31355,7 +31356,7 @@ cc2008
  1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5&6 / hiprec
  1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5&6 / not hiprec
       
-      end subroutine
+      end subroutine dump_beam_population
 
 +dk tra_thck
       subroutine trauthck(nthinerr)
@@ -31370,7 +31371,17 @@ cc2008
       use mathlib_bouncer
       use numerical_constants
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     import mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+      use mod_fluka
++ei
+
       implicit none
+
 +ca crcoall
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
@@ -31866,10 +31877,34 @@ cc2008
 !GRDRHIC
 !GRD-042008
       totals=zero
+
++if fluka
+
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     force re-computation of transport matrices of linear elements
+!     inserted in main code by the 'fluka' compilation flag
+      recompute_linear_matrices = .false.
++ei
+
 +ca bnlin
 !GRDRHIC
 !GRD-042008
 +ei
+
++if backtrk
++ca backtrkinit
++ei
+
++if fluka
+
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     initialise napxto
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = 0
++ei
+
 +if cr
       if (restart) then
         call crstart
@@ -31900,8 +31935,10 @@ cc2008
 +ei
           numx=n-1
 
++if .not.fluka
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
++ei
 
 +if cr
 !  does not call CRPOINT if restart=.true.
@@ -31945,6 +31982,53 @@ cc2008
 +ei
             endif
 
+
++if fluka
+!           A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!           last modified: 17-07-2013
+!           is the current entry an instance of a FLUKA element?
+!           inserted in main code by the 'fluka' compilation flag
+            if (fluka_enable) then
+              if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
+                                      !      be SINGLE ELEMENTs
+                if(fluka_type(ix).ne.FLUKA_NONE) then
+                  if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+                    call kernel_fluka_element( n, i, ix )
+!                   re-compute transport matrices of linear elements,
+!                      according to momentum of surviving/new particles
+                    recompute_linear_matrices = .true.
++if backtrk
++ca backtrksave
++ei
+                    goto 470
+                  else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+                    fluka_inside = .true.
+                    call kernel_fluka_entrance( n, i, ix )
+                    goto 475
+                  else if(fluka_type(ix).eq.FLUKA_EXIT) then
+                    fluka_inside = .false.
+                    call kernel_fluka_exit( n, i, ix )
+!                   re-compute transport matrices of linear elements,
+!                      according to momentum of surviving/new particles
+                    recompute_linear_matrices = .true.
++if backtrk
++ca backtrksave
++ei
+                    goto 470
+                  end if
+                end if
+              end if
+              if(fluka_inside) then
+                if(fluka_debug) then
+                  write(lout,*) '[Fluka] Skipping lattice element at ',i
+                  write(fluka_log_unit,*)                               &
+     &'# Skipping lattice element at ', i
+                end if
+                goto 480
+              end if
+            endif
++ei
+
 !----------count=43
             goto( 20,480,740,480,480,480,480,480,480,480,               &!1-10
      &            40, 60, 80,100,120,140,160,180,200,220,               &!11-20
@@ -31969,6 +32053,10 @@ cc2008
      &((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3                         !hr01
    30       continue
             goto 480
+
++if backtrk
++ca backtrksave
++ei
 
 !--HORIZONTAL DIPOLE
    40       do 50 j=1,napx
@@ -32325,6 +32413,29 @@ cc2008
 
 +ca lostpart
 
++if fluka
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 17-07-2013
+!         re-compute transport matrices of linear elements
+!         inserted in main code by the 'fluka' compilation flag
+          if ( recompute_linear_matrices ) then
+!           after a FLUKA element: additional particles may have
+!             been generated
+            call envarsv(dpsv,oidpsv,rvv,ekv)
+            recompute_linear_matrices = .false.
+          elseif ( llost ) then
+!           after any other element: no additional particles,
+!              thus update only momentum-dependent matrix elements
+            call synuthck
+          else
+            goto 475
+          endif
+!         recompute matrices of BLOCKs
+          call blocksv
++ei
+
+  475     continue
+
       if (.not. ldumpfront) then
 +ca dumplines
       endif
@@ -32333,7 +32444,10 @@ cc2008
           !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
++if .not.fluka
           if(mod(n,nwr(4)).eq.0) call write6(n)
++ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -32343,6 +32457,15 @@ cc2008
 !GRDRHIC
 !GRD-042008
 +ei
+
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     increase napxto, to get an estimation of particles*turns
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = napxto + napx
++ei
+
   490 continue
       return
       end subroutine thck4d
@@ -32438,6 +32561,15 @@ cc2008
       nthinerr=0
       idz1=idz(1)
       idz2=idz(2)
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     force re-computation of transport matrices of linear elements
+!     inserted in main code by the 'fluka' compilation flag
+      recompute_linear_matrices = .false.
++ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -32446,6 +32578,18 @@ cc2008
 !GRDRHIC
 !GRD-042008
 +ei
+
++if backtrk
++ca backtrkinit
++ei
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     initialise napxto
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = 0
++ei
+
 ! Now the outer loop over turns
 +if cr
       if (restart) then
@@ -32478,8 +32622,10 @@ cc2008
 +ei
           numx=n-1
 
++if .not.fluka
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
++ei
 
 +if cr
 !  does not call CRPOINT if restart=.true.
@@ -32520,6 +32666,8 @@ cc2008
               ix=ic(i)
             else
               ix=ic(i)-nblo
+            end if
+
 +if bpm
 +ca bpmdata
 +ei bpm
@@ -32535,7 +32683,53 @@ cc2008
 +if time
 +ca timefct
 +ei
+
++if fluka
+
+!           A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!           last modified: 17-07-2013
+!           is the current entry an instance of a FLUKA element?
+!           inserted in main code by the 'fluka' compilation flag
+            if (fluka_enable) then
+              if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
+                                      !      be SINGLE ELEMENTs
+                if(fluka_type(ix).ne.FLUKA_NONE) then
+                  if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+                    call kernel_fluka_element( n, i, ix )
+!                   re-compute transport matrices of linear elements,
+!                      according to momentum of surviving/new particles
+                    recompute_linear_matrices = .true.
++if backtrk
++ca backtrksave
++ei
+                    goto 490
+                  else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+                    fluka_inside = .true.
+                    call kernel_fluka_entrance( n, i, ix )
+                    goto 495
+                  else if(fluka_type(ix).eq.FLUKA_EXIT) then
+                    fluka_inside = .false.
+                    call kernel_fluka_exit( n, i, ix )
+!                   re-compute transport matrices of linear elements,
+!                      according to momentum of surviving/new particles
+                    recompute_linear_matrices = .true.
++if backtrk
++ca backtrksave
++ei
+                    goto 490
+                  end if
+                end if
+              end if
+              if(fluka_inside) then
+                if(fluka_debug) then
+                  write(lout,*) '[Fluka] Skipping lattice element at ',i
+                  write(fluka_log_unit,*)                               &
+     &'# Skipping lattice element at ', i
+                end if
+                goto 500
+              end if
             endif
++ei
 
 +if debug
 !     if (i.ge.673) then
@@ -32571,6 +32765,10 @@ cc2008
 +ca thcklin
               end do
             end do
+
++if backtrk
++ca backtrksave
++ei
             goto 500
 
    40       do j=1,napx
@@ -33013,6 +33211,24 @@ cc2008
   490     continue
 
 +ca lostpart
++if fluka
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 17-07-2013
+!         re-compute transport matrices of linear elements
+!         inserted in main code by the 'fluka' compilation flag
+          if ( recompute_linear_matrices ) then
+!           after a FLUKA element: additional particles may have
+!             been generated
+            call envarsv(dpsv,oidpsv,rvv,ekv)
+            recompute_linear_matrices = .false.
+          elseif ( llost ) then
+!           after any other element: no additional particles,
+!              thus update only momentum-dependent matrix elements
+            call synuthck
+          endif
++ei
+
+  495     continue
 
       if (.not. ldumpfront) then
 +ca dumplines
@@ -33043,7 +33259,10 @@ cc2008
           !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
++if .not.fluka
           if(mod(n,nwr(4)).eq.0) call write6(n)
++ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -33053,6 +33272,15 @@ cc2008
 !GRDRHIC
 !GRD-042008
 +ei
+
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     increase napxto, to get an estimation of particles*turns
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = napxto + napx
++ei
+
   510 continue
 +if debug
 ! end loop over turns
@@ -33153,6 +33381,15 @@ cc2008
       nthinerr=0
       idz1=idz(1)
       idz2=idz(2)
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     force re-computation of transport matrices of linear elements
+!     inserted in main code by the 'fluka' compilation flag
+      recompute_linear_matrices = .false.
++ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -33161,6 +33398,18 @@ cc2008
 !GRDRHIC
 !GRD-042008
 +ei
+
++if backtrk
++ca backtrkinit
++ei
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     initialise napxto
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = 0
++ei
+
 +if cr
       if (restart) then
         call crstart
@@ -33191,12 +33440,14 @@ cc2008
 +ei
           numx=n-1
 
++if .not.fluka
           if(n.le.nde(1)) nwri=nwr(1)
           if(n.gt.nde(1).and.n.le.nde(2)) nwri=nwr(2)
           if(n.gt.nde(2)) nwri=nwr(3)
           if(nwri.eq.0) nwri=numl+numlr+1
           if(mod(numx,nwri).eq.0) call writebin(nthinerr)
           if(nthinerr.ne.0) return
++ei
 
 +if cr
 !  does not call CRPOINT if restart=.true.
@@ -33239,6 +33490,54 @@ cc2008
 +ei
             endif
 
++if fluka
+
+!           A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!           last modified: 17-07-2013
+!           is the current entry an instance of a FLUKA element?
+!           inserted in main code by the 'fluka' compilation flag
+            if (fluka_enable) then
+              if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
+                                      !      be SINGLE ELEMENTs
+                if(fluka_type(ix).ne.FLUKA_NONE) then
+                  if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+                    call kernel_fluka_element( n, i, ix )
+!                   re-compute transport matrices of linear elements,
+!                      according to momentum of surviving/new particles
+                    recompute_linear_matrices = .true.
++if backtrk
++ca backtrksave
++ei
+                    goto 490
+                  else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+                    fluka_inside = .true.
+                    call kernel_fluka_entrance( n, i, ix )
+                    goto 495
+                  else if(fluka_type(ix).eq.FLUKA_EXIT) then
+                    fluka_inside = .false.
+                    call kernel_fluka_exit( n, i, ix )
+!                   re-compute transport matrices of linear elements,
+!                      according to momentum of surviving/new particles
+                    recompute_linear_matrices = .true.
++if backtrk
++ca backtrksave
++ei
+                    goto 490
+                  end if
+                end if
+              end if
+              if(fluka_inside) then
+                if(fluka_debug) then
+                  write(lout,*) '[Fluka] Skipping lattice element at ',i
+                  write(fluka_log_unit,*)                               &
+     &'# Skipping lattice element at ', i
+                end if
+                goto 500
+              end if
+            endif
+
++ei
+
 !----------count 56
             goto( 20, 40,740,500,500,500,500,500,500,500,               &!1-10
      &            60, 80,100,120,140,160,180,200,220,240,               &!11-20
@@ -33255,10 +33554,39 @@ cc2008
 +ca thcklin
               end do
             end do
+
++if backtrk
++ca backtrksave
++ei
+
             goto 500
    40       e0o=e0
             e0fo=e0f
             call adia(n,e0f)
+
++if fluka
+!           A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!           last modified: 18-01-2016
+!           update energy/momentum of reference particle in mod_fluka
+!              and synch magnetic rigidity with Fluka (for the time being,
+!              consider only protons);
+!           NB: adia(n,e0f) updates e0 first (contained in common 'syn')
+!                 and then e0f
+!           inserted in main code by the 'fluka' compilation flag
+            if(fluka_enable) then
+              write(*,*) '[Fluka] Updating ref particle'
+              write(fluka_log_unit,*) '# Updating ref particle'
+              mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+              if (mtemp .lt. 0) then
+                write(*,*)'[Fluka] Error: failed to update ref particle'
+                write(fluka_log_unit,*)'# failed to update ref particle'
+                call prror(-1)
+              end if
+              write(*,*) '[Fluka] Updating ref particle successful;'
+              write(fluka_log_unit,*)                                   &
+     & '# Updating ref particle successful;'
+            endif
++ei
 
             do j=1,napx
               ejf0v(j)=ejfv(j)
@@ -33665,6 +33993,26 @@ cc2008
 
 +ca lostpart
 
++if fluka
+
+!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!         last modified: 17-07-2013
+!         re-compute transport matrices of linear elements
+!         inserted in main code by the 'fluka' compilation flag
+          if ( recompute_linear_matrices ) then
+!           after a FLUKA element: additional particles may have
+!             been generated
+            call envarsv(dpsv,oidpsv,rvv,ekv)
+            recompute_linear_matrices = .false.
+          elseif ( llost ) then
+!           after any other element: no additional particles,
+!              thus update only momentum-dependent matrix elements
+            call synuthck
+          endif
++ei
+
+  495     continue
+
       if (.not. ldumpfront) then
 +ca dumplines
       endif
@@ -33673,7 +34021,10 @@ cc2008
           !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
++if .not.fluka
           if(mod(n,nwr(4)).eq.0) call write6(n)
++ei
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -33682,6 +34033,14 @@ cc2008
       endif
 !GRDRHIC
 !GRD-042008
++ei
+
++if fluka
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     increase napxto, to get an estimation of particles*turns
+!     inserted in main code by the 'fluka' compilation flag
+      napxto = napxto + napx
 +ei
   510 continue
       return
