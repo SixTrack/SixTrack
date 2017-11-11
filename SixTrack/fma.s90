@@ -1,6 +1,23 @@
 +dk fma
 
 module FMA
+  implicit none
+!For getfields_l_max_string
++ca comgetfields
+
+  integer, parameter :: fma_max       = 200              !max. number of FMAs
+  integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
+  integer fma_numfiles                                   !number of FMAs
+  logical fma_flag                                       !FMA input block exists
+  logical fma_writeNormDUMP                              !Writing out the normalized DUMP files
+  character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
+  character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
+  integer fma_first (fma_max), fma_last (fma_max)        !first and last turn used for FMA
+  integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
+
+  save fma_fname,fma_method,fma_numfiles, &
+       fma_norm_flag,fma_first,fma_last,  &
+       fma_flag,fma_writeNormDUMP
   
 contains
   
@@ -43,12 +60,10 @@ contains
     use numerical_constants, only : zero, one, c1e3
 
     implicit none
-+ca comgetfields
 +ca stringzerotrim
 +ca parpro
 +ca dbdump
 +ca dbdumpcr
-+ca fma
 +ca commonta !normalisation matrix tasm -> remove later
 +ca common   !napx = number of particles 
 +ca commonc

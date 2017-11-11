@@ -1319,24 +1319,6 @@
       real(kind=fPrec) RTWO !RTWO=x^2+y^2
       real(kind=fPrec) NNORM_, NNORM
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd fma
-!     M. Fitterer, for CERN BE-ABP/HSS and Fermilab
-!     Common block for the FMA analysis postprocessing
-      integer, parameter :: fma_max       = 200              !max. number of FMAs
-      integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
-      integer fma_numfiles                                   !number of FMAs
-      logical fma_flag                                       !FMA input block exists
-      logical fma_writeNormDUMP                              !Writing out the normalized DUMP files
-      character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
-      character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-      integer fma_first (fma_max), fma_last (fma_max)        !first and last turn used for FMA
-      integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT, otherwise normalize phase space coordinates
-      common /fma_var/ fma_fname,fma_method,fma_numfiles,               &
-     &     fma_norm_flag,fma_first,fma_last,                            &
-     &     fma_flag,fma_writeNormDUMP
 
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -11019,6 +11001,9 @@ cc2008
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
      &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,                 &
      &     dynk_inputsanitycheck, dynk_allocate
+
+      use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
+     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP
       
       use physical_constants
       use numerical_constants
@@ -11111,7 +11096,6 @@ cc2008
 +ca comgetfields
 +ca dbdump
 +ca stringzerotrim
-+ca fma
 +ca elensparam
 +ca wireparam
 +ca zipf
@@ -11138,9 +11122,6 @@ cc2008
 !     - dump beam population:
       character(len=16) dump
       data dump /'DUMP'/
-!     - fma
-      character(len=16) fma
-      data fma /'FMA'/
 !     - elens
       character(len=16) elens
       data elens /'ELEN'/
@@ -11397,7 +11378,7 @@ cc2008
 !     - dump beam population:
       if(idat.eq.dump) goto 2000
       if(idat.eq."DYNK")  goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
-      if(idat.eq.fma)   goto 2300
+      if(idat.eq."FMA")   goto 2300 !Hard-coded name, as variable name "dynk" conflicted with module name
       if(idat.eq.elens) goto 2400
       if(idat.eq.wire)  goto 2500
       !Reserved:
@@ -20626,8 +20607,8 @@ cc2008
 +ca comgetfields
 +ca dbdump
 +ca dbdumpcr
-+ca fma
-!     for FMA analysis
+!+ca fma
+! END for FMA analysis
 +ca wireparam
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
@@ -22951,7 +22932,7 @@ cc2008
 
       use dynk, only : dynk_izuIndex
 
-      use fma, only : fma_postpr
+      use fma, only : fma_postpr, fma_flag
       
       use, intrinsic :: iso_fortran_env, only : output_unit
 
@@ -23046,7 +23027,6 @@ cc2008
 +ca dbdumpcr
 +ei
 +ca stringzerotrim
-+ca fma
 +ca zipf
 +ca comApeInfo
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
@@ -35275,6 +35255,9 @@ cc2008
      &     maxsets_dynk,sets_dynk,csets_dynk,csets_unique_dynk,         &
      &     fsets_origvalue_dynk,dynk_izuIndex,dynk_elemdata
 
+      use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
+     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP
+      
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -35296,8 +35279,6 @@ cc2008
 +ca dbdcum
 
 +ca comgetfields !Contains parameters used in comdump and fma
-
-+ca fma
 
 +ca dbdump
 +if cr

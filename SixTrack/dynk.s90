@@ -4,7 +4,7 @@ module dynk
 
     use floatPrecision
     use mathlib_bouncer
-      use numerical_constants, only : one, two, c1e3
+    use numerical_constants, only : one, two, c1e3
 
     IMPLICIT NONE
 
