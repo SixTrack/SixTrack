@@ -29682,13 +29682,6 @@ C Should get me a NaN
      &                  nxyz_particle(4),nxyz_particle(5),
      &                  nxyz_particle(6),localKtrack
                endif
-
-               !Flush
-               endfile (unit,iostat=ierro)
-               backspace (unit,iostat=ierro)
-+if cr
-               dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
                
              else if (fmt .eq. 8) then
                  write(unit) nlostp(j)+(samplenumber-1)*npart,
@@ -29696,12 +29689,6 @@ C Should get me a NaN
      &                nxyz_particle(2),nxyz_particle(3),
      &                nxyz_particle(4),nxyz_particle(5),
      &                nxyz_particle(6),localKtrack
-                 !Flush
-                 endfile (unit,iostat=ierro)
-                 backspace (unit,iostat=ierro)
-+if cr
-                 dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
                  
              else if (fmt .eq. 9) then
                ! Average beam position
@@ -29743,9 +29730,23 @@ C Should get me a NaN
 
                xyz2(6,6) = xyz2(6,6) + nxyz_particle(6)*nxyz_particle(6)
              endif
-         enddo
+         enddo ! END loop over particles (j)
 
-         if (fmt .eq. 9) then
+         if (fmt .eq. 7) then
+            !Flush
+            endfile (unit,iostat=ierro)
+            backspace (unit,iostat=ierro)
++if cr
+            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+         else if (fmt .eq. 8) then
+            !Flush
+            endfile (unit,iostat=ierro)
+            backspace (unit,iostat=ierro)
++if cr
+            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+         else if (fmt .eq. 9) then
            !Normalize to get averages
            xyz = xyz/napx
 
@@ -29775,6 +29776,7 @@ C Should get me a NaN
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
            endif
+           
            !Flush
            endfile (unit,iostat=ierro)
            backspace (unit,iostat=ierro)
