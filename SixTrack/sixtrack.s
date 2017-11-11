@@ -11003,7 +11003,8 @@ cc2008
      &     dynk_inputsanitycheck, dynk_allocate
 
       use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
-     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP
+     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP,       &
+     &     fma_parseInputLine
       
       use physical_constants
       use numerical_constants
@@ -16517,87 +16518,8 @@ cc2008
          goto 110 ! loop to next BLOCK in fort.3
       endif
 
-      if (ch(:10).eq."NoNormDUMP") then
-         fma_writeNormDUMP = .false.
-         goto 2300
-      endif
+      call fma_parseInputLine(ch)
       
-      if(fma_numfiles.ge.fma_max) then
-        write(lout,*)                                                   &
-     &       'ERROR: you can only do ',fma_max,' number of FMAs'
-        call prror(-1) 
-      endif
-      
-      fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
-!     read in input parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) then
-        write(lout,*)                                                   &
-     &       'ERROR in FMA block: getfields_lerr=', getfields_lerr
-        call prror(-1)
-      endif
-      if(getfields_nfields.eq.1 .or. getfields_nfields.eq.4 .or.        &
-     &getfields_nfields.ge.6) then
-        write(lout,*)                                                   &
-     &       'ERROR in FMA block: wrong number of input ',              &
-     &       'parameters: ninput = ', getfields_nfields,' != 2 (3 or 5)'
-        call prror(-1)
-      endif
-
-      fma_fname(fma_numfiles)  =                                        &
-     &     getfields_fields(1)(1:getfields_lfields(1))
-      fma_method(fma_numfiles) =                                        &
-     &     getfields_fields(2)(1:getfields_lfields(2))
-      if(getfields_nfields.eq.2) then
-        fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
-      else if(getfields_nfields.eq.3) then
-         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')     &
-     &        fma_norm_flag(fma_numfiles)
-      else if(getfields_nfields.eq.5) then
-         read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)')     &
-     &        fma_norm_flag(fma_numfiles)
-         read (getfields_fields(4)(1:getfields_lfields(4)),'(I10)')     &
-     &        fma_first(fma_numfiles)
-         read (getfields_fields(5)(1:getfields_lfields(5)),'(I10)')     &
-     &        fma_last(fma_numfiles)
-      endif
-
-      ! Input sanity checks
-      if (.not. (                                                       &
-     &    trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNELASK"  &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFTI"  &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFT"   &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEAPA"   &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFIT"   &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"  &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"  &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"   &
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1" &
-+if naff
-     &.or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"      &
-+ei
-     &)) then
-         write(lout,*)                                                  &
-     &        "ERROR in DATEN::FMA: The FMA method '"//                 &
-     &        trim(stringzerotrim(fma_method(fma_numfiles)))            &
-     &        //"' is unknown. FMA index = ", fma_numfiles
-         write(lout,*)                                                  &
-     &       "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//        &
-     &       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT2, TUNEABT2. "//       &
-     &       "Note that it is case-sensitive, so use uppercase only."
-         call prror(-1)
-      end if
-
-      if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or.                  &
-     &           fma_norm_flag(fma_numfiles).eq.1      )) then
-         write(lout,*)                                                  &
-     &        "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0."//&
-     &        "Got:", fma_norm_flag(fma_numfiles),                      &
-     &        "FMA index =",fma_numfiles
-      end if
-      
-      fma_flag = .true.
       goto 2300
 !-----------------------------------------------------------------------
 !  Electron Lense, kz=29,ktrack=63
