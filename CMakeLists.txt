@@ -71,7 +71,7 @@ OPTION(HUGENBLZ "Allow up to 400'000 structure elements (normally 20'000 (15k fo
 OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, instead of 32 separate files fort.90 to fort.(90-32). Required for increased particle numbers" OFF)
 OPTION(BIGNPART "Allow tracking up to 2048 particles (normally 64)." OFF)
 OPTION(HUGENPART "Allow tracking up to 65536 particles (normally 64)" OFF)
-OPTION(DATAMODS "Allocate big matrices for thick tracking on the heap and only if required" OFF)
+OPTION(DATAMODS "Allocate big matrices for thick tracking on the heap and only if required" ON)
 OPTION(DEBUG "Debugging output" OFF)
 OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postprocessing with BeamLossPattern) there instead of writing it to ASCII." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
