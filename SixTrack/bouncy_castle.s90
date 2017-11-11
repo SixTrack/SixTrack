@@ -145,7 +145,7 @@ contains
     
 +if .not.crlibm
     !Input KIND = output KIND
-    cosh_mb=cos(arg)
+    cosh_mb=cosh(arg)
 +ei
 +if crlibm
     cosh_mb=cosh_rn(arg)
