@@ -392,9 +392,9 @@
 !     - 6: racetrack
 !     A.Mereghetti
 !     last modified: 01-12-2016
-      character(len=2) rect,elli,reel,ratr,octa,nana
-      data  rect, elli, reel, ratr, octa, nana                          &
-     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'NA' /
+      character(len=2) rect,elli,reel,ratr,octa,circ,nana
+      data  rect, elli, reel, ratr, octa, circ, nana                    &
+     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'CI', 'NA' /
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 24-11-2016
@@ -8515,10 +8515,10 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ifail,istate,iter,iuser,iwork,j,jaord,jbound,jcol,jcomp,&
      &jconf,jord,jpord,jrow,jsex,jvar,k,kcol,l,liwork,lwork,mcor,n,     &
@@ -9039,14 +9039,16 @@ cc2008
       return
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
       end
+
       subroutine hamilton1(ja,jp)
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
+
       integer j1,j2,j3,j4,j5,j6,ja,jcomp,jel,jord,jp,l,ncoef,kointer
       real(kind=fPrec) tham
       dimension tham(0:3)
@@ -9179,6 +9181,7 @@ cc2008
       return
 !-----------------------------------------------------------------------
       end
+
       subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
 !-----------------------------------------------------------------------
 !---- ROUTINE TO COMPUTE THE VALUE OF THE FUNCTION AND OF ITS
@@ -9186,14 +9189,15 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
+
       integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jvar,l,mode,n,nmax,&
      &nstate,kointer
       real user
       real(kind=fPrec) fder,fun,objf,objgrd,x
       dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
       save
-+ca parnum
 !-----------------------------------------------------------------------
       nmax=40
 !-----------------------------------------------------------------------
@@ -9430,9 +9434,10 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
+
 +ca crcoall
       integer i,ifail,istate,iter,itype,iuser,iwork,j,jbound,jcol,      &
      &jcomp,jconf,jord,jrow,jsex,jvar,kcol,l,liwork,lwork,mcor,n,nclin, &
@@ -9957,16 +9962,17 @@ cc2008
       return
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
       end
+
       subroutine hamilton2(jp)
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
       integer j,j1,j2,j3,j4,j5,j6,jel,jord,jp,l,kointer
       real(kind=fPrec) thama,thamp
-+ca parnum
 +ca commadha
 +ca commadh2
       dimension thamp(0:1),thama(0:4)
@@ -10222,12 +10228,14 @@ cc2008
       return
 !-----------------------------------------------------------------------
       end
+
       subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
 !-----------------------------------------------------------------------
 !---- ROUTINE TO COMPUTE THE VALUE OF THE FUNCTION AND OF ITS
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
       integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jp,jvar,kord,l,    &
@@ -10238,7 +10246,6 @@ cc2008
       dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
       dimension iuser(*),tunedx(10),tunedy(10)
       save
-+ca parnum
 !-----------------------------------------------------------------------
       do 30 jel=0,1
         do 20 jord=1,iuser(1)
@@ -10485,9 +10492,10 @@ cc2008
 !----------------------------------------------------------------------*
 !---- real(kind=fPrec) version.
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
+
       integer n,nc,nu
       real(kind=fPrec) cc,h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,        &
      &xh,xl,xlim,xx,y,yh,ylim,yy
@@ -10608,8 +10616,9 @@ cc2008
 !
 !  *********************************************************************
       use floatPrecision
+      use numerical_constants
       implicit none
-+ca parnum
+
       dimension vx(*),vy(*),vu(*),vv(*)
       integer i,j,k,n,vmu,vnu
       real(kind=fPrec) a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,             &
@@ -10847,6 +10856,7 @@ cc2008
 !
 !  *********************************************************************
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
       integer k,mu,nu
@@ -10856,7 +10866,6 @@ cc2008
      &xhrel,y,yh,yhrel
 +ca parpro
 +ca parbeam
-+ca parnum
       parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
       parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
       save
@@ -10943,12 +10952,12 @@ cc2008
 !  ADIABATIC ENERGY-INCREASE
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
       integer numx
       real(kind=fPrec) e0f
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -10974,11 +10983,11 @@ cc2008
 !  ADIABATIC ENERGY-DECREASE
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       implicit none
       real(kind=fPrec) e0f
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -11012,6 +11021,7 @@ cc2008
      &     dynk_inputsanitycheck, dynk_allocate
       
       use physical_constants
+      use numerical_constants
 
 +if fluka
 
@@ -11077,7 +11087,6 @@ cc2008
       data lineno30 /0/
       data lineno35 /0/
 +ca parpro
-+ca parnum
 +ca commonex
 +ca common
 +ca commons
@@ -14087,6 +14096,8 @@ cc2008
               irel=octa
             elseif ( kape(ii).eq.6 ) then
               irel=ratr
+            elseif ( kape(ii).eq.7 ) then
+              irel=circ
             endif
 
             if ( kape(ii) .ne. 0 ) then
@@ -14229,6 +14240,8 @@ cc2008
         kape(j)=5
       else if(irel.eq.ratr) then !Racetrack
         kape(j)=6
+      else if(irel.eq.circ) then !Circle
+        kape(j)=7
       else
         write(lout,*) 'Aperture profile not identified for element ',   &
      &idat
@@ -28541,6 +28554,7 @@ cc2008
 !     K. SJOBAK, October 2017
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
       implicit none
       
@@ -28549,7 +28563,6 @@ cc2008
       
       character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
                                           !DANGER: If the len changes, CRCHECK will break.
-+ca parnum
 +ca parpro
 +ca common
 +ca commonmn
@@ -28637,11 +28650,11 @@ cc2008
 !-------------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
       implicit none
 +ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -28881,7 +28894,7 @@ cc2008
       call prror(-1)
 +ei
       return
-      end subroutine
+      end subroutine writebin
 
       subroutine callcrp()
 !-----------------------------------------------------------------------
@@ -28892,10 +28905,10 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -29022,10 +29035,11 @@ cc2008
 +ca dbdcum
 +ca comApeInfo
 !     temporary variables
-      logical checkRE, checkEL, checkRL, checkOC, checkRT 
+      logical checkRE, checkEL, checkRL, checkOC, checkRT, checkCI
       logical lparID
       integer nthinerr
-      real(kind=fPrec) apxx, apyy, apxy, aps, apc
+      real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+      real(kind=fPrec) ap_oc_1, ap_oc_2, ap_oc_3
       real(kind=fPrec) xchk(2,npart)
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -29066,7 +29080,7 @@ cc2008
          if ( kape(ix).eq.2 ) then
 !           Rectangle
             do j=1,napx
-               pstop(j)=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix))&
+               pstop(nlostp(j))=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix))&
      &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.3 ) then
@@ -29075,7 +29089,7 @@ cc2008
             apyy = ape(4,ix)**2.
             apxy = apxx * apyy
             do j=1,napx
-               pstop(j)=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy )   &
+               pstop(nlostp(j))=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy )   &
      & .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.4 ) then
@@ -29084,19 +29098,26 @@ cc2008
             apyy = ape(4,ix)**2.
             apxy = apxx * apyy
             do j=1,napx
-               pstop(j)=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),&
+       pstop(nlostp(j))=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),&
      &                      apxx, apyy, apxy ) .or.                     &
      &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.5 ) then
 !           Octagon
-!           First parameter: outer radius of corners [mm]
-!           Second parameter: subtended angle between corners of the side
-!                           without cooling pipes (vertical sides)[rad]
-            aps = ape(1,ix)*sin_mb(ape(2,ix)/two)
-            apc = ape(1,ix)*cos_mb(ape(2,ix)/two)
+!           As in MAD-X:
+!            x.gt.ap1 .or. y.gt.ap2 .or.
+!           (ap2*tan_mb(pi/two-ap4)-ap1)*
+!           (y-ap1*tan_mb(ap3))-
+!           (ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
+
+!           Pre-calculate constants before the loop
+            ap_oc_1 = ape(2,ix)*tan_mb(pi/two-ape(4,ix))-ape(1,ix)
+            ap_oc_2 = ape(1,ix)*tan_mb(ape(3,ix))
+            ap_oc_3 = ape(2,ix)-ape(1,ix)*tan_mb(ape(3,ix))
+
             do j=1,napx
-               pstop(j)=checkOC( xchk(1,j), xchk(2,j), aps, apc ) .or.  &
+            pstop(nlostp(j))=checkOC(xchk(1,j), xchk(2,j), ape(1,ix),   &
+     &      ape(2,ix), ap_oc_1, ap_oc_2, ap_oc_3) .or.                  &
      &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else if( kape(ix).eq.6 ) then
@@ -29104,14 +29125,21 @@ cc2008
 !           NB: it follows the MadX definition
             apxy = ape(3,ix)**2.
             do j=1,napx
-               pstop(j)=checkRT( xchk(1,j), xchk(2,j),                  &
+               pstop(nlostp(j))=checkRT( xchk(1,j), xchk(2,j),          &
      &              ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or.        &
      &      myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+            end do
+         else if( kape(ix).eq.7 ) then
+!           Circle
+            radius2 = ape(1,ix)**2
+            do j=1,napx
+               pstop(nlostp(j))=checkCI( xchk(1,j),xchk(2,j),radius2 )   &
+     & .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else
 !           Unknown aperture type, general check (set in the ITER block)
             do j=1,napx
-               pstop(j)=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2))&
+        pstop(nlostp(j))=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2))&
      &  .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          endif
@@ -29119,18 +29147,18 @@ cc2008
 !        no actual aperture profile is assigned to any SINGLE ELEMENT
 !        use the general check (set in the ITER block)
          do j=1,napx
-            pstop(j) = checkRE( xv(1,j), xv(2,j), aper(1), aper(2) )    &
+           pstop(nlostp(j))=checkRE(xv(1,j), xv(2,j), aper(1), aper(2)) &
      &  .or.myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
          end do
-      endif
+      end if
 
 !     is there at least a particle lost?
       do j=1,napx
-         if ( pstop(j) ) then
-            llost=.true.
-            goto 10
-         endif
-      enddo
+        if(pstop(nlostp(j))) then
+          llost=.true.
+          goto 10
+        end if
+      end do
  10   continue
 
       if ( llost ) then
@@ -29223,7 +29251,18 @@ cc2008
                     xnew(1) = xlos(1,j)
                     xnew(2) = xlos(2,j)
                  end if
-                 if ( kapert.eq.4 ) then
+                 if ( kapert.eq.2 ) then
+!                    Rectangle
+              llos(j)=checkRE(xnew(1),xnew(2),aprr(1),aprr(2))          &
+     &  .or.myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+                 else if ( kapert.eq.3 ) then
+!                    Ellipse
+                     apxx = aprr(3)**2.
+                     apyy = aprr(4)**2.
+                     apxy = apxx * apyy
+              llos(j)=checkEL( xnew(1),xnew(2),apxx,apyy,apxy )         &
+     &  .or.myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+                 else if ( kapert.eq.4 ) then
 !                   RectEllipse
                     apxx = aprr(3)**2.
                     apyy = aprr(4)**2.
@@ -29234,13 +29273,12 @@ cc2008
      &                  myisnan(xnew(2),xnew(2))
                  else if ( kapert.eq.5 ) then
 !                   Octagon
-!                   First parameter: outer radius of corners [mm]
-!                   Second parameter: subtended angle between corners of
-!                                     the side without cooling pipes
-!                                     (vertical sides)[rad]
-                    aps = aprr(1)*sin_mb(aprr(2)/two)
-                    apc = aprr(1)*cos_mb(aprr(2)/two)
-                    llos(j) = checkOC( xnew(1), xnew(2), aps, apc ).or. &
+            ap_oc_1 = aprr(2)*tan_mb(pi/two-aprr(4))-aprr(1)
+            ap_oc_2 = aprr(1)*tan_mb(aprr(3))
+            ap_oc_3 = aprr(2)-aprr(1)*tan_mb(aprr(3))
+
+            llos(j)=checkOC(xnew(1), xnew(2), aprr(1),                  &
+     &      aprr(2), ap_oc_1, ap_oc_2, ap_oc_3) .or.                    &
      &                  myisnan(xnew(1),xnew(1)).or.                    &
      &                  myisnan(xnew(2),xnew(2))
                  else if ( kapert.eq.6 ) then
@@ -29248,6 +29286,12 @@ cc2008
 !                   NB: it follows the MadX definition
                     llos(j) = checkRT( xnew(1), xnew(2),                &
      &                     aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or.&
+     &                  myisnan(xnew(1),xnew(1)).or.                    &
+     &                  myisnan(xnew(2),xnew(2))
+                 else if ( kapert.eq.7 ) then
+!                   Circle
+                    radius2 = aprr(1)**2
+                    llos(j)=checkCI(xnew(1),xnew(2),radius2) .or.       &
      &                  myisnan(xnew(1),xnew(1)).or.                    &
      &                  myisnan(xnew(2),xnew(2))
                  end if
@@ -29269,7 +29313,7 @@ cc2008
 !        from a lost particles are considered lost as well
          if ( apflag ) then
            do j=1,napx
-             if(pstop(j)) then
+             if(pstop(nlostp(j))) then
                lparID = .false.
                jjx=1
 +if collimat
@@ -29295,7 +29339,7 @@ cc2008
                end do
                if (lparID) then
                  !old lost particle or secondary, don't print it
-                 pstop(j) = .false.
+                 pstop(nlostp(j)) = .false.
                else
                  !new lost particle, store ID and print it
 +if fluka
@@ -29315,7 +29359,7 @@ cc2008
 
          ! Print to 999
          do j=1,napx
-           if(pstop(j)) then
+           if(pstop(nlostp(j))) then
 +if backtrk
 !            A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
 !            last modified: 11-06-2014
@@ -29359,12 +29403,33 @@ cc2008
            endif
          end do
 
-!        Don't kill lost particle if apflag is activated
-         if ( apflag ) then
-           do j=1,napx
-             pstop(j) = .false.
-           end do
-         end if
+!flush loss particle file
+      flush(999)
+
+!     Don't kill lost particle if apflag is activated
+      if ( apflag ) then
+        do j=1,napx
+          pstop(nlostp(j)) = .false.
+         end do
+      end if
+
+! Record for postpr
+      do j=1,napx
+        if(pstop(nlostp(j))) then
+!          aperv(nlostp(j),1)=apx(ix)
+!          aperv(nlostp(j),2)=apz(ix)
+          ixv(nlostp(j))=ix
+          xvl(1,nlostp(j))=xv(1,j)
+          xvl(2,nlostp(j))=xv(2,j)
+          yvl(1,nlostp(j))=yv(1,j)
+          yvl(2,nlostp(j))=yv(2,j)
+          dpsvl(nlostp(j))=dpsv(j)
+          ejvl(nlostp(j))=ejv(j)
+          sigmvl(nlostp(j))=sigmv(j)
+          numxv(nlostp(j))=numx
+          nnumxv(nlostp(j))=numx
+        end if
+      end do
 
          ! Compact array
          lnapx=napx
@@ -29415,12 +29480,12 @@ cc2008
              lnapx=lnapx-1
            endif
          end do
-
-
          napx=lnapx
       endif
 
++if fluka
       napxo = napx
++ei
 
       if(napx.eq.0) then
         write(lout,*)
@@ -29431,7 +29496,14 @@ cc2008
         write(lout,*) '************************'
         write(lout,*)
         write(lout,*)
++if fluka
+!skip postpr
         nthinerr = 3000
++ei
++if .not.fluka
+        nthinerr = 3001
+        nnuml=numl
++ei
         return
       end if
 
@@ -29461,10 +29533,8 @@ cc2008
 !
       use floatPrecision
       use mathlib_bouncer
-
+      use numerical_constants
       implicit none
-
-+ca parnum
 
 !     parameters
       real(kind=fPrec) x, y, xnew, ynew, tlt, xoff, yoff
@@ -29480,7 +29550,7 @@ cc2008
       xnew = radio * cos_mb(ttmp)
       ynew = radio * sin_mb(ttmp)
       return
-      end subroutine
+      end subroutine roffpos
 
       logical function checkRE( x, y, apex, apey )
 !-----------------------------------------------------------------------
@@ -29506,15 +29576,15 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
 
 !     parameters
       real(kind=fPrec) x, y, apxx, apyy, apxy
 
       checkEL = x**two*apyy+y**two*apxx .gt. apxy
       return
-      end function
+      end function checkEL
 
       logical function checkRL( x, y, apex, apey, apxx, apyy, apxy )
 !-----------------------------------------------------------------------
@@ -29535,9 +29605,9 @@ cc2008
       checkRL = checkRE( x, y, apex, apey ) .or.                        &
      &          checkEL( x, y, apxx, apyy, apxy )
       return
-      end function
+      end function checkRL
 
-      logical function checkOC( x, y, apes, apec )
+      logical function checkOC( x, y, ap1, ap2, c1, c2, c3 )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
@@ -29545,18 +29615,24 @@ cc2008
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       implicit none
 
 !     parameters
-      real(kind=fPrec) x, y, apes, apec
+      real(kind=fPrec) x, y, ap1, ap2, c1, c2, c3
 
 !     temporary variables
       logical checkRE
 
-      checkOC = checkRE( x, y, apec, apec ) .or.                        &
-     &          ( ( abs(x)+abs(y) ).gt.( apes+apec ) )
+!     checkOC=x.gt.ap1 .or. y.gt.ap2 .or.(ap2*tan_mb(pi/two-ap4)-ap1)*(y-ap1*tan_mb(ap3))-(ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
+
+!     0:  x.gt.ap1 .or. y.gt.ap2 .or.
+!     c1: (ap2*tan_mb(pi/two-ap4)-ap1)*
+!     c2: (y-ap1*tan_mb(ap3))-
+!     c3: (ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
+      checkOC = x.gt.ap1 .or. y.gt.ap2 .or. (c1*(y-c2) - c3*(x-ap1)).lt.zero
       return
-      end function
+      end function checkOC
 
       logical function checkRT( x, y, apex, apey, r, r2 )
 !-----------------------------------------------------------------------
@@ -29577,7 +29653,22 @@ cc2008
       checkRT = checkRE( x, y, apex+r, apey+r ) .or.                    &
      &          ( ( (abs(x)-apex)**2.+(abs(y)-apey)**2.).gt.r2 )
       return
-      end function
+      end function checkRT
+
+      logical function checkCI( x, y, radius2 )
+!-----------------------------------------------------------------------
+!     check particle position against CIrcle aperture
+!     always in main code
+!-----------------------------------------------------------------------
+      use floatPrecision
+      implicit none
+
+!     parameters
+      real(kind=fPrec) x, y, radius2
+
+      checkCI = ((x*x) + (y*y)) .gt. radius2
+      return
+      end function checkCI
 
       subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
@@ -29586,10 +29677,10 @@ cc2008
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -30312,312 +30403,6 @@ cc2008
       return
  1984 format (a1,a16,1x,a6,1x,a11,7(1x,a15))
       end subroutine dump_aperture_header
-
-      subroutine dump_statistics( nturn, ientry, ix, unit, lhighprec )
-!
-!-----------------------------------------------------------------------
-!     by A.Mereghetti and D.Sinuela-Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     compute and dump some simple statistics about the beam population
-!     always in main code
-!-----------------------------------------------------------------------
-!
-      use floatPrecision
-      use physical_constants
-      use numerical_constants
-      implicit none
-
-+ca parpro
-+ca common
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca dbdcum
-+ca crcoall
-
-!     interface variables:
-      integer nturn, ientry, ix, unit
-      logical lhighprec
-
-!     statistical quantities (used only locally)
-      real(kind=fPrec) x_sum , y_sum , xpsum , ypsum
-      real(kind=fPrec) x_sum2, y_sum2, xpsum2, ypsum2
-      real(kind=fPrec) pcsum , dtsum , desum
-      real(kind=fPrec) pcsum2, dtsum2, desum2
-
-!     temporary variables
-      integer japx
-
-!     initialise statistical analysis
-      x_sum=zero
-      y_sum=zero
-      xpsum=zero
-      ypsum=zero
-      pcsum=zero
-      dtsum=zero
-      desum=zero
-      x_sum2=zero
-      y_sum2=zero
-      xpsum2=zero
-      ypsum2=zero
-      pcsum2=zero
-      dtsum2=zero
-      desum2=zero
-      
-      if ( napx.eq.0 ) then
-!       this case should never happen, as aperture check is always performed
-!         beforehand, and it closes the simulation in case no particle
-!         remains to be tracked; but still, keep it in, for security
-      write(lout,*)'error while computing the statistics of the current'
-      write(lout,*)'  revolution: empty beam population'
-      write(lout,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: "     &
-     & ,I8)') ientry, ix, bez(ix), dcum(ientry), nturn
-        call prror(-1)
-      elseif ( napx.eq.1 ) then
-        x_sum=xv(1,1)     ! [mm] 
-        y_sum=xv(2,1)     ! [mm] 
-        xpsum=yv(1,1)     ! [0.001]
-        ypsum=yv(2,1)     ! [0.001]
-        pcsum=ejfv(1)     ! [MeV/c]
-        dtsum=sigmv(1)    ! [mm] 
-        desum=(ejv(1)-e0) ! [MeV] 
-        x_sum2=zero
-        y_sum2=zero
-        xpsum2=zero
-        ypsum2=zero
-        pcsum2=zero
-        dtsum2=zero
-        desum2=zero
-      else
-!       perform analysis:
-!       - compute mean values:
-        do japx=1,napx
-           x_sum=x_sum+xv(1,japx)     ! [mm]   
-           y_sum=y_sum+xv(2,japx)     ! [mm]   
-           xpsum=xpsum+yv(1,japx)     ! [0.001]
-           ypsum=ypsum+yv(2,japx)     ! [0.001]
-           pcsum=pcsum+ejfv(japx)     ! [MeV/c]
-           dtsum=dtsum+sigmv(japx)    ! [mm]   
-           desum=desum+(ejv(japx)-e0) ! [MeV]  
-        enddo
-        x_sum=x_sum/real(napx,fPrec) ! [mm]   
-        y_sum=y_sum/real(napx,fPrec) ! [mm]   
-        xpsum=xpsum/real(napx,fPrec) ! [0.001]
-        ypsum=ypsum/real(napx,fPrec) ! [0.001]
-        pcsum=pcsum/real(napx,fPrec) ! [MeV/c]
-        dtsum=dtsum/real(napx,fPrec) ! [mm]   
-        desum=desum/real(napx,fPrec) ! [MeV]
-!       - compute standard deviations:
-        do japx=1,napx
-           x_sum2=x_sum2+(xv(1,japx)-x_sum)**2
-           y_sum2=y_sum2+(xv(2,japx)-y_sum)**2
-           xpsum2=xpsum2+(yv(1,japx)-xpsum)**2
-           ypsum2=ypsum2+(yv(2,japx)-ypsum)**2
-           pcsum2=pcsum2+(ejfv(japx)-pcsum)**2
-           dtsum2=dtsum2+(sigmv(japx)-dtsum)**2
-           desum2=desum2+((ejv(japx)-e0)-desum)**2
-        enddo
-!         ...use the unbiased formulation!
-        x_sum2=sqrt(x_sum2/real(napx-1,fPrec))
-        y_sum2=sqrt(y_sum2/real(napx-1,fPrec))
-        xpsum2=sqrt(xpsum2/real(napx-1,fPrec))
-        ypsum2=sqrt(ypsum2/real(napx-1,fPrec))
-        pcsum2=sqrt(pcsum2/real(napx-1,fPrec))
-        dtsum2=sqrt(dtsum2/real(napx-1,fPrec))
-        desum2=sqrt(desum2/real(napx-1,fPrec))
-      endif
-
-!     dump it:
-      if ( lhighprec ) then
-         write(unit,1981)                                               &
-     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           x_sum*c1m3 , y_sum*c1m3 , xpsum*c1m3 , ypsum*c1m3 ,    &
-     &           pcsum*c1m3 , -c1m3*(dtsum/clight)*(e0/e0f), desum*c1e6,&
-     &           x_sum2*c1m3, y_sum2*c1m3, xpsum2*c1m3, ypsum2*c1m3,    &
-     &           pcsum2*c1m3, c1m3*(dtsum2/clight)*(e0/e0f), desum2*c1e6
-      else
-         write(unit,1982)                                               &
-     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           x_sum*c1m3 , y_sum*c1m3 , xpsum*c1m3 , ypsum*c1m3 ,    &
-     &           pcsum*c1m3 , -c1m3*(dtsum/clight)*(e0/e0f), desum*c1e6,&
-     &           x_sum2*c1m3, y_sum2*c1m3, xpsum2*c1m3, ypsum2*c1m3,    &
-     &           pcsum2*c1m3, c1m3*(dtsum2/clight)*(e0/e0f), desum2*c1e6
-      endif
-      return
-
- 1981 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,14(1X,1PE25.18))
- 1982 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,14(1X,1PE16.9))
-      end subroutine dump_statistics
-
-      subroutine dump_beam_mtrix( nturn, ientry, ix, unit, lhighprec )
-!
-!-----------------------------------------------------------------------
-!     by A.Mereghetti, for the FLUKA Team
-!     last modified: 02-09-2014
-!     compute and dump the beam matrix
-!     always in main code
-!-----------------------------------------------------------------------
-!
-      use floatPrecision
-      use physical_constants
-      use numerical_constants
-
-      implicit none
-
-+ca parpro
-+ca common
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca dbdcum
-+ca crcoall
-
-!     interface variables:
-      integer nturn, ientry, ix, unit
-      logical lhighprec
-
-!     statistical quantities (used only locally)
-      real(kind=fPrec) x_sum2, y_sum2, xpsum2, ypsum2, xxpsum, yypsum
-      real(kind=fPrec) E_sum2, dtsum2, Edtsum
-      real(kind=fPrec) temix, temiy, tbetx, tbety, talfx, talfy
-      real(kind=fPrec) temil, tbetl, talfl
-
-!     temporary variables
-      integer japx
-      logical lerr
-      real(kind=fPrec) tmpE, tmpT
-
-      lerr=.false.
-
-!     initialise statistical analysis
-      x_sum2=zero
-      y_sum2=zero
-      xpsum2=zero
-      ypsum2=zero
-      xxpsum=zero
-      yypsum=zero
-      E_sum2=zero
-      dtsum2=zero
-      Edtsum=zero
-      temix=zero
-      temiy=zero
-      temil=zero
-      tbetx=zero
-      tbety=zero
-      tbetl=zero
-      talfx=zero
-      talfy=zero
-      talfl=zero
-      
-      if ( napx.eq.0 ) then
-!       this case should never happen, as aperture check is always performed
-!       beforehand, and it closes the simulation in case no particle
-!       remains to be tracked; but still, keep it in, for security
-        write(lout,*)'error while computing the beam matrix of the'
-        write(lout,*)'current revolution: empty beam population'
-        write(lout,'("element:",2(1X,I8),1X,A16,1X,F12.5," at turn: ",  &
-     &I8)') ientry, ix, bez(ix), dcum(ientry), nturn
-        call prror(-1)
-      else
-!       compute beam matrix
-!       - sum of squares
-        do japx=1,napx
-           tmpE=(ejv(japx)-e0)*c1m3              ! [GeV]
-           tmpT=-sigmv(japx)/clight*(e0/e0f)*c1e6! [ns]
-           x_sum2=x_sum2+(xv(1,japx))**2         ! [mm^2]
-           y_sum2=y_sum2+(xv(2,japx))**2         ! [mm^2]
-           E_sum2=E_sum2+tmpE**2                 ! [GeV^2]
-           xpsum2=xpsum2+(yv(1,japx))**2         ! [0.001^2]
-           ypsum2=ypsum2+(yv(2,japx))**2         ! [0.001^2]
-           dtsum2=dtsum2+tmpT**2                 ! [ns^2]
-           xxpsum=xxpsum+xv(1,japx)*yv(1,japx)   ! [mm*0.001]
-           yypsum=yypsum+xv(2,japx)*yv(2,japx)   ! [mm*0.001]
-           Edtsum=Edtsum+tmpE*tmpT               ! [eVs]
-        enddo
-!       - averages
-        x_sum2=x_sum2/real(napx,fPrec) ! [mm^2]
-        y_sum2=y_sum2/real(napx,fPrec) ! [mm^2]
-        E_sum2=E_sum2/real(napx,fPrec) ! [GeV^2]
-        xpsum2=xpsum2/real(napx,fPrec) ! [0.001^2]
-        ypsum2=ypsum2/real(napx,fPrec) ! [0.001^2]
-        dtsum2=dtsum2/real(napx,fPrec) ! [ns^2]
-        xxpsum=xxpsum/real(napx,fPrec) ! [mm*0.001]
-        yypsum=yypsum/real(napx,fPrec) ! [mm*0.001]
-        Edtsum=Edtsum/real(napx,fPrec) ! [eVs]
-!       - actual quantities
-!         . horizontal plane
-        temix=x_sum2*xpsum2-xxpsum**2
-
-        if ( temix .lt. zero ) then
-           temix=abs(temix)
-           write(lout,*) ''
-           write(lout,*) ' problems of precision when computing the hor'
-           write(lout,*) '   emittance (beam matrix analysis)'
-           write(lout,*) ' at element (ientry,ix,bez,dcum) ',           &
-     &                  ientry, ix, bez(ix), dcum(ientry)
-           write(lout,*) '   at turn ',nturn
-           write(lout,*) ''
-           lerr=.true.
-        endif
-
-        temix=sqrt(temix)         ! [mm 0.001]
-        talfx=-xxpsum/temix       ! []
-        tbetx=x_sum2/temix        ! [m]
-!         . vertical plane
-        temiy=y_sum2*ypsum2-yypsum**2
-        if ( temiy .lt. zero ) then
-           temiy=abs(temiy)
-           write(lout,*) ''
-           write(lout,*) ' problems of precision when computing the ver'
-           write(lout,*) '   emittance (beam matrix analysis)'
-           write(lout,*) ' at element (ientry,ix,bez,dcum) ',           &
-     &                  ientry, ix, bez(ix), dcum(ientry)
-           write(lout,*) '   at turn ',nturn
-           write(lout,*) ''
-           lerr=.true.
-        endif
-        temiy=sqrt(temiy)         ! [mm 0.001]
-        talfy=-yypsum/temiy       ! []
-        tbety=y_sum2/temiy        ! [m]
-!         . longitudinal plane
-        temil=E_sum2*dtsum2-Edtsum**2
-        if ( temil .lt. zero ) then
-           temil=abs(temil)
-           write(lout,*) ''
-           write(lout,*) ' problems of precision when computing the lon'
-           write(lout,*) '   emittance (beam matrix analysis)'
-           write(lout,*) ' at element (ientry,ix,bez,dcum) ',           &
-     &                  ientry, ix, bez(ix), dcum(ientry)
-           write(lout,*) '   at turn ',nturn
-           write(lout,*) ''
-           lerr=.true.
-        endif
-        temil=sqrt(temil)         ! [eVs]
-        talfl=-Edtsum/temil       ! []
-        tbetl=dtsum2/temil        ! [ns]
-      endif
-
-!     dump it:
-      if ( lhighprec ) then
-         write(unit,1981)                                               &
-     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           temix, tbetx, talfx, temiy, tbety, talfy,              &
-     &           temil, tbetl, talfl
-      else
-         write(unit,1982)                                               &
-     &           nturn, ientry, ix, bez(ix), dcum(ientry), napx,        &
-     &           temix, tbetx, talfx, temiy, tbety, talfy,              &
-     &           temil, tbetl, talfl
-      endif
-
-      if ( lerr ) call prror(-1)
-
-      return
-
- 1981 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,9(1X,1PE25.18))
- 1982 format (3(1X,I8),1X,A16,1X,F12.5,1X,I8,9(1X,1PE16.9))
-      end subroutine dump_beam_mtrix
-
 
       subroutine dist1
 !-----------------------------------------------------------------------
@@ -34057,6 +33842,7 @@ cc2008
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
@@ -34480,6 +34266,7 @@ cc2008
 !          A SPECIAL VERSION FOR VECTORIZATION - AUGUST   1994
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
@@ -34491,7 +34278,6 @@ cc2008
      &fok,fok1,fokm,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
      &rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -34882,6 +34668,7 @@ cc2008
 +dk mainda
       program mainda
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : output_unit
       implicit none
@@ -34922,7 +34709,6 @@ cc2008
 !  TRACKING DATA                            : UNIT  8
 !-----------------------------------------------------------------------
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -35463,6 +35249,7 @@ cc2008
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
@@ -35492,7 +35279,6 @@ cc2008
       
       integer i,i1,i2,i3,i4,j
 +ca parpro
-+ca parnum
 +ca commonex
 +ca common
 +ca commons
@@ -36335,10 +36121,10 @@ cc2008
 !     initialise a single element to empty
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca   parpro
-+ca   parnum
 +ca   common
 +ca   commons
 +ca   comApeInfo
@@ -36436,10 +36222,10 @@ cc2008
 !     initialise an element in lattice structure to empty
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       implicit none
       
 +ca parpro
-+ca parnum
 +ca common
 +ca commonxz
 +ca commonmn
@@ -36496,10 +36282,10 @@ cc2008
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -42803,6 +42589,7 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
       integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
       real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,   &
@@ -42811,7 +42598,6 @@ cc2008
       real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -46431,8 +46217,8 @@ cc2008
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
       use floatPrecision
+      use numerical_constants
       implicit none
-+ca parnum   !numbers (zero,one,two etc.)
 +ca commonta
 +ca crcoall
 
@@ -46492,12 +46278,12 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
 +ca crcoall
       integer i,ierro,j
       real(kind=fPrec) d,dlost
       character(len=4) ch
-+ca parnum
 +ca parpro
       dimension d(60)
 +if crlibm
