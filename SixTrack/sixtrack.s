@@ -29434,7 +29434,7 @@ cc2008
          ! Compact array
          lnapx=napx
          do j=napx,1,-1
-           if(pstop(j)) then
+           if(pstop(nlostp(j))) then
              if(j.ne.lnapx) then
                do jj=j,lnapx-1
                  jj1=jj+1
