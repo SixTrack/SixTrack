@@ -38,7 +38,7 @@ module scatter
     ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
     integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
     
-    double precision scatter_ELEM_scale(scatter_maxELEM)
+    real(kind=fPrec) scatter_ELEM_scale(scatter_maxELEM)
     
     ! Configuration for PROFILE
     integer scatter_maxPROFILE
@@ -63,7 +63,7 @@ module scatter
                scatter_maxstrlen = stringzerotrim_maxlen )
     
     integer,                       allocatable :: scatter_idata (:)
-    double precision,              allocatable :: scatter_fdata (:)
+    real(kind=fPrec),              allocatable :: scatter_fdata (:)
     character (scatter_maxstrlen), allocatable :: scatter_cdata (:)
     
     ! Number of currently used positions in arrays
@@ -84,7 +84,7 @@ module scatter
 +if cr
     integer :: scatter_filepos,scatter_filepos_cr
     integer,                      allocatable :: scatter_idata_cr (:)
-    double precision,             allocatable :: scatter_fdata_cr (:)
+    real(kind=fPrec),             allocatable :: scatter_fdata_cr (:)
     character(scatter_maxstrlen), allocatable :: scatter_cdata_cr (:)
     integer :: scatter_nidata_cr, scatter_nfdata_cr, scatter_ncdata_cr
     integer :: scatter_seed1_cr, scatter_seed2_cr
