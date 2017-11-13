@@ -279,7 +279,7 @@ if(DA)
 	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle lielib dabnew physical_constants)
 else()
 	LIST(APPEND FORS_FIXFORM sixvefox )
-	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve)
+	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve dump)
 endif()
 
 if(NOT DA AND DATAMODS)
