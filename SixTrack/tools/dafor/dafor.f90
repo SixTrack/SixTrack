@@ -296,7 +296,7 @@
          INAM = 0
          ITEX = 0
       ELSEIF(CID.EQ.'ED') THEN
-         WRITE(2,'(A)')      '*FOX{'
+         WRITE(2,'(A)')      '!FOX{'
 
          DO 30 I=1,INAM
          IF(NPAR(I,1).NE.1) GOTO 30
@@ -326,15 +326,15 @@
 
 !frs         READ(1,'(A6,i1,1X,A64)',END=60) PREC,INITIAL,IDAT
          READ(1,'(A6,i1,1X,A64)',END=600) PREC,INITIAL,IDAT
-         IF(PREC(1:4).ne.'*FOX'.and.(INITIAL.ne.0.or.INITIAL.ne.1)) then
+         IF(PREC(1:4).ne.'!FOX'.and.(INITIAL.ne.0.or.INITIAL.ne.1)) then
            WRITE(ERROR_UNIT,*) 'Sorry, you are not using the format introduced ',&
            'by F.Schmidt'//' which ',                                   &
            'requires an additional line right after the line: ',        &
-           '*FOX  E D; for a properly allocation'//                     &
+           '!FOX  E D; for a properly allocation'//                     &
            ' and also deallocation of variables. '//                    &
-           'Please insert a line: *FOX 0 or ',                          &
-           'e.g.: *FOX 1 if(ierr.eq.0.or.ierr.eq.2) then '//            &
-           'This is very handy when variables have to be reinitialise'
+           'Please insert a line: !FOX 0 or ',                          &
+           'e.g.: !FOX 1 if(ierr.eq.0.or.ierr.eq.2) then '//            &
+           'This is very handy when variables have to be reinitialised'
            STOP 4
          endif
          icount=0
@@ -387,7 +387,7 @@
          WRITE(2,'(A)') '      ENDIF'
          WRITE(2,'(A)') '      IDAA = IDAO'
          IF(IDN.NE.0) WRITE(2,'(A)') '      '//DNAM//' = LFOX1'
-         WRITE(2,'(A)') '*FOX}'
+         WRITE(2,'(A)') '!FOX}'
          IDN = 0
       ELSEIF(CID.EQ.'DV') THEN
          INAM = INAM + 1
@@ -569,7 +569,7 @@
 !        CHECKING IF LINE CONTAINS DA VARIABLE
 !        *************************************
 
-         IF((PREC(1:1).NE.'*'.AND.PREC(1:1).NE.'C').OR.PREC(1:4).EQ.'*FOX'.OR.PREC(1:3).EQ.'*DA') THEN
+         IF((PREC(1:1).NE.'*'.AND.PREC(1:1).NE.'C').OR.PREC(1:4).EQ.'!FOX'.OR.PREC(1:3).EQ.'!DA') THEN
             DO 30 I=1,INAM
             ICN = ILAST(CNAM(I),1,8)
             IF(NPAR(I,2).NE.4) GOTO 30
@@ -584,7 +584,7 @@
             IF(IPOS+ICN-1.NE.IAMAX+67) THEN
                IF(INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890', ALIN(IPOS+ICN-1:IPOS+ICN-1)).NE.0) GOTO 25
             ENDIF
-            REST = '*FOX'
+            REST = '!FOX'
             GOTO 35
    30       CONTINUE
    35       CONTINUE
@@ -607,7 +607,7 @@
          ELSE
             WRITE(2,'(A6,A)') PREC,ALIN(IAMAX+2:IAMAX+ILL)
          ENDIF
-         IF(PREC(1:4).EQ.'*FOX'.OR.PREC(1:3).EQ.'*DA') IAMAX = IAMAX + ILL
+         IF(PREC(1:4).EQ.'!FOX'.OR.PREC(1:3).EQ.'!DA') IAMAX = IAMAX + ILL
 
 !     DIRECT COMPILE MODE
 !     *******************
@@ -1958,12 +1958,12 @@
 !     ****************************
 
       ILIN = ILAST(A,1,800) / 66
-      WRITE(2,'(A)') '      '//A(1:66), ('     *'//A(J*66+1:(J+1)*66),J=1,ILIN)
+      WRITE(2,'(A)') '      '//A(1:66), ('     !'//A(J*66+1:(J+1)*66),J=1,ILIN)
 ! Eric Moved the ILIN = ....
 !     ILIN = ILAST(AC,1,800) / 66
       IF(ICON.NE.0) THEN
         ILIN = ILAST(AC,1,800) / 66
-         WRITE(2,'(A)') '      '//AC(1:66), ('     *'//AC(J*66+1:(J+1)*66),J=1,ILIN)
+         WRITE(2,'(A)') '      '//AC(1:66), ('     !'//AC(J*66+1:(J+1)*66),J=1,ILIN)
          ICON = 0
       ELSEIF(ISOUT.NE.0) THEN
          WRITE(2,'(6X,A,I5)') 'IDAO = IDAA - ',ISOFF
