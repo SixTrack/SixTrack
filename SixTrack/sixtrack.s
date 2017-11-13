@@ -4538,7 +4538,7 @@
      &             parbe(ix,5)*bbcu(imbb(i),12)
             endif
             rho2b=crk**2+cik**2                                          !hr03
-            if(rho2b.gt.pieni)
+            if(rho2b.gt.pieni) &
 +cd beamr2f
       if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
 !FOX  TKBF=RHO2BF/(TWO*SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I))) ;
@@ -19840,7 +19840,7 @@ cc2008
           if(kzz.eq.20.and.parbe(ix,2).eq.zero) then                      !hr08
             if(nbeam.ge.1) then
               if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
-                if(ibeco.eq.1) then                                     &
+                if(ibeco.eq.1) then
 +ca beamr1of
      &then
 +ca beamr2of
@@ -21109,7 +21109,7 @@ cc2008
               endif
             endif
             if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
-              if(ibeco.eq.1) then                                       &
+              if(ibeco.eq.1) then
 +ca beamr1of
      &then
 +ca beamr2of
