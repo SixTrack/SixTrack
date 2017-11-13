@@ -557,7 +557,7 @@
          STOP 7
       ELSEIF(CMOD.EQ.'PRECOM') THEN
          ALIN(IAMAX+1:IAMAX+1) = ' '
-         READ(1,'(A6,A125,A8)',END=60) PREC,ALIN(IAMAX+2:IAMAX+126),REST
+         READ(1,'(A6,A122,A8)',END=60) PREC,ALIN(IAMAX+2:IAMAX+123),REST
          if(alin(IAMAX+2:IAMAX+6).eq.'DADAL') then
            if(icount.gt.0) then
              do 70 i=icount,1,-1
@@ -575,13 +575,13 @@
             IF(NPAR(I,2).NE.4) GOTO 30
             IPOS = IAMAX+2
    25       CONTINUE
-            INDI = INDEX(ALIN(IPOS:IAMAX+126),CNAM(I)(1:ICN))
+            INDI = INDEX(ALIN(IPOS:IAMAX+123),CNAM(I)(1:ICN))
             IF(INDI.EQ.0) GOTO 30
             IPOS = IPOS + INDI
             IF(IPOS.NE.IAMAX+3) THEN
                IF(INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890', ALIN(IPOS-2:IPOS-2)).NE.0) GOTO 25
             ENDIF
-            IF(IPOS+ICN-1.NE.IAMAX+126) THEN
+            IF(IPOS+ICN-1.NE.IAMAX+123) THEN
                IF(INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890', ALIN(IPOS+ICN-1:IPOS+ICN-1)).NE.0) GOTO 25
             ENDIF
             REST = '!FOX'
@@ -593,7 +593,7 @@
 !        CHECKING IF LINE IS END STATEMENT
 !        *********************************
 
-         CALL POSFRA(ALIN,IAMAX+1,IAMAX+126,' ',MA,200,IA)
+         CALL POSFRA(ALIN,IAMAX+1,IAMAX+123,' ',MA,200,IA)
          IF(IA.EQ.1) THEN
             IF(ALIN(MA(1):MA(1)+3).EQ.'END ') INAM = 0
          ENDIF
@@ -601,9 +601,9 @@
 !        WRITING LINE TO OUTPUT
 !        **********************
 
-         ILL = ILAST(ALIN(IAMAX+1:IAMAX+126),2,126)
+         ILL = ILAST(ALIN(IAMAX+1:IAMAX+123),2,123)
          IF(REST.NE.'        ') THEN
-            WRITE(2,'(A6,A125,A)') PREC,ALIN(IAMAX+2:IAMAX+126), REST(1:ILAST(REST,1,8))
+            WRITE(2,'(A6,A122,A)') PREC,ALIN(IAMAX+2:IAMAX+123), REST(1:ILAST(REST,1,8))
          ELSE
             WRITE(2,'(A6,A)') PREC,ALIN(IAMAX+2:IAMAX+ILL)
          ENDIF
@@ -1957,13 +1957,13 @@
 !     OUTPUTTING FORTRAN STATEMENT
 !     ****************************
 
-      ILIN = ILAST(A,1,800) / 125
-      WRITE(2,'(A)') '      '//A(1:125), ('     !'//A(J*125+1:(J+1)*125),J=1,ILIN)
+      ILIN = ILAST(A,1,800) / 122
+      WRITE(2,'(A)') '      '//A(1:122), ('     !'//A(J*122+1:(J+1)*122),J=1,ILIN)
 ! Eric Moved the ILIN = ....
 !     ILIN = ILAST(AC,1,800) / 66
       IF(ICON.NE.0) THEN
-        ILIN = ILAST(AC,1,800) / 125
-         WRITE(2,'(A)') '      '//AC(1:125), ('     !'//AC(J*125+1:(J+1)*125),J=1,ILIN)
+        ILIN = ILAST(AC,1,800) / 122
+         WRITE(2,'(A)') '      '//AC(1:122), ('     !'//AC(J*122+1:(J+1)*122),J=1,ILIN)
          ICON = 0
       ELSEIF(ISOUT.NE.0) THEN
          WRITE(2,'(6X,A,I5)') 'IDAO = IDAA - ',ISOFF
