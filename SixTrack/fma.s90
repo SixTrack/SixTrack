@@ -383,7 +383,8 @@ contains
                    if(ch1(1:1).ne.'#')  exit
                    if(counter>500) then
                       call fma_error(ierro, &
-                           "Something is wrong with your dumpfile '"//trim(stringzerotrim(dump_fname(j)))//"'; found more than 500 header lines",&
+                           "Something is wrong with your dumpfile '"//trim(stringzerotrim(dump_fname(j)))//&
+			   "'; found more than 500 header lines",&
                            'fma_postpr')
                    endif
                    counter=counter+1
@@ -512,7 +513,8 @@ contains
                            id,thisturn,pos,xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),xyzvdummy(6),kt
                       if(ierro.gt.0) then
                          write(ch,'(a,1x,I5,1x,a)') &
-                              "while reading  particles from file '"//trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=",dumpfmt(j),')'
+                              "while reading  particles from file '"//trim(stringzerotrim(dump_fname(j)))// &
+                              "' (dumpfmt=",dumpfmt(j),')'
                          call fma_error(ierro,ch,'fma_postpr') !read error
                       endif
 +ei
@@ -561,7 +563,8 @@ contains
                            id,thisturn,pos,xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),xyzvdummy(6),kt
                       if(ierro.gt.0) then
                          write(ch,'(a,1x,I5,1x,a)') &
-                              "while reading particles from file '"// trim(stringzerotrim(dump_fname(j))) //"' (dumpfmt=",dumpfmt(j),')'
+                              "while reading particles from file '"// trim(stringzerotrim(dump_fname(j))) // &
+                              "' (dumpfmt=",dumpfmt(j),')'
                          call fma_error(ierro,ch,'fma_postpr') !read error
                       endif
                    endif
