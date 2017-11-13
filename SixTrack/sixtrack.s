@@ -31062,7 +31062,7 @@ cc2008
       end subroutine dump_beam_population
 
 +dk tra_thck
-      subroutine trauthck(nthinerr)
+subroutine trauthck(nthinerr)
 !-----------------------------------------------------------------------
 !
 !  TRACK THICK LENS PART
@@ -31492,9 +31492,9 @@ cc2008
         endif
       endif
       return
-      end subroutine trauthck
+end subroutine trauthck
 
-      subroutine thck4d(nthinerr)
+subroutine thck4d(nthinerr)
 !-----------------------------------------------------------------------
 !
 !  TRACK THICK LENS 4D
@@ -32136,6 +32136,11 @@ cc2008
 !         recompute matrices of BLOCKs
           call blocksv
 +ei
++if .not.fluka
+  if(llost) then
+    call synuthck
+  end if
++ei
 
   475     continue
 
@@ -32171,9 +32176,9 @@ cc2008
 
   490 continue
       return
-      end subroutine thck4d
+end subroutine thck4d
 
-      subroutine thck6d(nthinerr)
+subroutine thck6d(nthinerr)
 !-----------------------------------------------------------------------
 !
 !  TRACK THICK LENS 6D
@@ -32930,6 +32935,11 @@ cc2008
             call synuthck
           endif
 +ei
++if .not.fluka
+  if(llost) then
+    call synuthck
+  end if
++ei
 
   495     continue
 
@@ -32994,9 +33004,9 @@ cc2008
 !===================================================================
 +ei
       return
-      end subroutine thck6d
+end subroutine thck6d
 
-      subroutine thck6dua(nthinerr)
+subroutine thck6dua(nthinerr)
 !-----------------------------------------------------------------------
 !
 !  TRACK THICK LENS  6D WITH ACCELERATION
@@ -33713,6 +33723,11 @@ cc2008
             call synuthck
           endif
 +ei
++if .not.fluka
+  if(llost) then
+    call synuthck
+  end if
++ei
 
   495     continue
 
@@ -33747,9 +33762,9 @@ cc2008
 +ei
   510 continue
       return
-      end subroutine thck6dua
+end subroutine thck6dua
 
-      subroutine synuthck
+subroutine synuthck
 !-----------------------------------------------------------------------
 !
 !  TRACK THICK LENS PART
