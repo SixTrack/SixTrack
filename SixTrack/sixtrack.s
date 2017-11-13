@@ -24715,6 +24715,7 @@ cc2008
 
 !!! Really only neccessary for thick 4d tracking !!!
 !!! In FLUKA version, this is moved to new subroutine "blocksv" (in a new deck)
++if .not.fluka
 !-------------------------------------  START OF 'BLOCK'
       if (ithick.eq.1) then
 
@@ -24728,8 +24729,9 @@ cc2008
               dpoff=dpsv(ia)*c1e3
               if(abs(dpoff).le.pieni) dpoff=one
               hv(mkk,lkk,ia,1)=al(mkk,lkk,ia,ikk)
-            if(mkk.eq.5.or.mkk.eq.6) hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)  &
-     &/dpoff
+            if(mkk.eq.5.or.mkk.eq.6) then
+              hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)/dpoff
+              end if
             end do
           end do
         end do
@@ -24769,6 +24771,18 @@ cc2008
 
       end if
 !---------------------------------------END OF 'BLOCK'
++ei
+
++if fluka
+  if(ithick.eq.1) then
+!------ Compute matrices for linear tracking
+    call envarsv(dpsv,oidpsv,rvv,ekv)
+    if(idp.eq.0 .or. ition.eq.0) then
+! ------- Only in case of thck4d
+      call blocksv
+    end if
+  end if
++ei
 
 +if fluka
 !     P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
@@ -36942,7 +36956,106 @@ cc2008
   160 ierro=1
       return
       end
++dk blocksv
+subroutine blocksv
+  use floatPrecision
+  use numerical_constants
 
++if datamods
+  use bigmats
++ei
+
+  implicit none
+
++ca parpro
++ca common
++ca common2
++ca commons
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonl
++ca commonmn
++ca commonm1
++ca commonc
+      integer n, ia, ikk, j, jm, k, lkk, mkk
+      real(kind=fPrec) dpoff
+!     integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
+!    &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
+!    &jm,k,kpz,kzz,l,lkk,ll,m,mkk,napxto,ncorruo,ncrr,nd,nd2,ndafi2,    &
+!    &nerror,nlino,nlinoo,nmz,nthinerr
+!     double precision alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
+!    &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
+!    &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
+!    &gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
+!    &rdev,rmean,rsqsum,rsum,sic,tasia56,tasiar16,tasiar26,tasiar36,    &
+!    &tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
+!    &taus,x11,x13
+
+  save
+
++if fluka
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 11-06-2014
+!     entirely re-initialise to 0.0 hv(...) and bl1v(...) arrays
+!     inserted in main code by the 'fluka' compilation flag
+      do 40 ia=1,npart
+        do 40 k=1,nblo
+          do 40 lkk=1,2
+            do 40 mkk=1,6
+              hv(mkk,lkk,ia,k)=zero
+              bl1v(mkk,lkk,ia,k)=zero
+ 40   continue
++ei
+      do 440 k=1,mblo
+        jm=mel(k)
+        ikk=mtyp(k,1)
+        do lkk=1,2
+          do mkk=1,6
+            do ia=1,napx
+              dpoff=dpsv(ia)*c1e3
+              if(abs(dpoff).le.pieni) dpoff=one
+              hv(mkk,lkk,ia,1)=al(mkk,lkk,ia,ikk)
+              if(mkk.eq.5.or.mkk.eq.6) then
+                hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)/dpoff
+              end if
+            end do
+          end do
+        end do
+        if(jm.eq.1) goto 410
+        do 400 j=2,jm
+          ikk=mtyp(k,j)
+          do 390 lkk=1,2
+            do 380 ia=1,napx
+              dpoff=dpsv(ia)*c1e3
+              if(abs(dpoff).le.pieni) dpoff=one
+              hv(1,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(3,   &
+     &lkk,ia,j-1)*al(2,lkk,ia,ikk)
+              hv(2,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(4,   &
+     &lkk,ia,j-1)*al(2,lkk,ia,ikk)
+              hv(3,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(3,   &
+     &lkk,ia,j-1)*al(4,lkk,ia,ikk)
+              hv(4,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(4,   &
+     &lkk,ia,j-1)*al(4,lkk,ia,ikk)
+!hr05         hv(5,lkk,ia,j)=hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,   &
+!hr05&lkk,ia,j-1)*al(2,lkk,ia,ikk)+al(5,lkk,ia,ikk)/dpoff
+              hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,  &!hr05
+     &lkk,ia,j-1)*al(2,lkk,ia,ikk))+al(5,lkk,ia,ikk)/dpoff               !hr05
+!hr05         hv(6,lkk,ia,j)=hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,   &
+!hr05&lkk,ia,j-1)*al(4,lkk,ia,ikk)+al(6,lkk,ia,ikk)/dpoff
+              hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
+     &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
+  380       continue
+  390     continue
+  400   continue
+  410   do 430 lkk=1,2
+          do 430 mkk=1,6
+            do 420 ia=1,napx
+  420       bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
+  430   continue
+  440 continue
+      end
 +dk block
       subroutine block
 !-----------------------------------------------------------------------
