@@ -394,7 +394,7 @@
 !     last modified: 01-12-2016
       character(len=2) rect,elli,reel,ratr,octa,circ,nana
       data  rect, elli, reel, ratr, octa, circ, nana                    &
-     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'CI', 'NA' /
+     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'CR', 'NA' /
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 24-11-2016
@@ -13947,19 +13947,19 @@ cc2008
           write(lout,10320)
 !         dump all elements found:
           do ii=1,il
-            if ( kape(ii).eq.2 ) then
-              irel=rect
-            elseif ( kape(ii).eq.3 ) then
-              irel=elli
-            elseif ( kape(ii).eq.4 ) then
-              irel=reel
-            elseif ( kape(ii).eq.5 ) then
-              irel=octa
-            elseif ( kape(ii).eq.6 ) then
-              irel=ratr
-            elseif ( kape(ii).eq.7 ) then
+            if( kape(ii).eq.1 ) then
               irel=circ
-            endif
+            else if( kape(ii).eq.2 ) then
+              irel=rect
+            else if( kape(ii).eq.3 ) then
+              irel=elli
+            else if( kape(ii).eq.4 ) then
+              irel=reel
+            else if( kape(ii).eq.5 ) then
+              irel=octa
+            else if( kape(ii).eq.6 ) then
+              irel=ratr
+            end if
 
             if ( kape(ii) .ne. 0 ) then
               write(lout,10330)                                         &
@@ -14085,12 +14085,14 @@ cc2008
       ape(5,j)=apang
       ape(6,j)=ofxx
       ape(7,j)=ofzz
-      if(irel.eq.rect) then !Rectangle
+      if(irel.eq.circ) then !Circle
+        kape(j)=1
+      else if(irel.eq.rect) then !Rectangle
         kape(j)=2
 !       get ready for a RL-equinvalent description
         ape(3,j)=sqrt(two)*ape(1,j)
         ape(4,j)=sqrt(two)*ape(2,j)
-      elseif(irel.eq.elli) then !Ellipse
+      else if(irel.eq.elli) then !Ellipse
         kape(j)=3
 !       get ready for a RL-equinvalent description
         ape(3,j)=ape(1,j)
@@ -14101,8 +14103,6 @@ cc2008
         kape(j)=5
       else if(irel.eq.ratr) then !Racetrack
         kape(j)=6
-      else if(irel.eq.circ) then !Circle
-        kape(j)=7
       else
         write(lout,*) 'Aperture profile not identified for element ',   &
      &idat
@@ -28209,7 +28209,7 @@ cc2008
       return
       end subroutine writebin
 
-      subroutine callcrp()
+subroutine callcrp()
 !-----------------------------------------------------------------------
 !
 !  F. SCHMIDT
@@ -28292,9 +28292,9 @@ cc2008
       call prror(-1)
 +ei
       return
-      end
+end subroutine callcrp
 
-      subroutine lostpart(turn, i, ix, llost, nthinerr)
+subroutine lostpart(turn, i, ix, llost, nthinerr)
 !-----------------------------------------------------------------------
 !
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -28347,13 +28347,15 @@ cc2008
 +ei
 +ca dbdcum
 +ca comApeInfo
+
 !     temporary variables
-      logical checkRE, checkEL, checkRL, checkOC, checkRT, checkCI
+      logical checkRE, checkEL, checkRL, checkOC, checkRT, checkCR
       logical lparID
       integer nthinerr
       real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
       real(kind=fPrec) ap_oc_1, ap_oc_2, ap_oc_3
       real(kind=fPrec) xchk(2,npart)
+
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 12-06-2014
@@ -28446,7 +28448,7 @@ cc2008
 !           Circle
             radius2 = ape(1,ix)**2
             do j=1,napx
-               pstop(nlostp(j))=checkCI( xchk(1,j),xchk(2,j),radius2 )   &
+               pstop(nlostp(j))=checkCR( xchk(1,j),xchk(2,j),radius2 )   &
      & .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
             end do
          else
@@ -28604,7 +28606,7 @@ cc2008
                  else if ( kapert.eq.7 ) then
 !                   Circle
                     radius2 = aprr(1)**2
-                    llos(j)=checkCI(xnew(1),xnew(2),radius2) .or.       &
+                    llos(j)=checkCR(xnew(1),xnew(2),radius2) .or.       &
      &                  myisnan(xnew(1),xnew(1)).or.                    &
      &                  myisnan(xnew(2),xnew(2))
                  end if
@@ -28820,10 +28822,9 @@ cc2008
         return
       end if
 
-      end subroutine lostpart
+end subroutine lostpart
 
-      subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
-!
+subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
@@ -28863,9 +28864,9 @@ cc2008
       xnew = radio * cos_mb(ttmp)
       ynew = radio * sin_mb(ttmp)
       return
-      end subroutine roffpos
+end subroutine roffpos
 
-      logical function checkRE( x, y, apex, apey )
+logical function checkRE( x, y, apex, apey )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
@@ -28878,9 +28879,9 @@ cc2008
       real(kind=fPrec) x, y, apex, apey
       checkRE = ( abs(x).gt.apex ).or.( abs(y).gt.apey )
       return
-      end function
+end function
 
-      logical function checkEL( x, y, apxx, apyy, apxy )
+logical function checkEL( x, y, apxx, apyy, apxy )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
@@ -28897,9 +28898,9 @@ cc2008
 
       checkEL = x**two*apyy+y**two*apxx .gt. apxy
       return
-      end function checkEL
+end function checkEL
 
-      logical function checkRL( x, y, apex, apey, apxx, apyy, apxy )
+logical function checkRL( x, y, apex, apey, apxx, apyy, apxy )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
@@ -28918,9 +28919,9 @@ cc2008
       checkRL = checkRE( x, y, apex, apey ) .or.                        &
      &          checkEL( x, y, apxx, apyy, apxy )
       return
-      end function checkRL
+end function checkRL
 
-      logical function checkOC( x, y, ap1, ap2, c1, c2, c3 )
+logical function checkOC( x, y, ap1, ap2, c1, c2, c3 )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
@@ -28934,20 +28935,17 @@ cc2008
 !     parameters
       real(kind=fPrec) x, y, ap1, ap2, c1, c2, c3
 
-!     temporary variables
-      logical checkRE
-
 !     checkOC=x.gt.ap1 .or. y.gt.ap2 .or.(ap2*tan_mb(pi/two-ap4)-ap1)*(y-ap1*tan_mb(ap3))-(ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
 
 !     0:  x.gt.ap1 .or. y.gt.ap2 .or.
 !     c1: (ap2*tan_mb(pi/two-ap4)-ap1)*
 !     c2: (y-ap1*tan_mb(ap3))-
 !     c3: (ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
-      checkOC = x.gt.ap1 .or. y.gt.ap2 .or. (c1*(y-c2) - c3*(x-ap1)).lt.zero
+      checkOC = abs(x).gt.ap1 .or. abs(y).gt.ap2 .or. (c1*(y-c2) - c3*(x-ap1)).lt.zero
       return
-      end function checkOC
+end function checkOC
 
-      logical function checkRT( x, y, apex, apey, r, r2 )
+logical function checkRT( x, y, apex, apey, r, r2 )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 19-05-2014
@@ -28966,11 +28964,11 @@ cc2008
       checkRT = checkRE( x, y, apex+r, apey+r ) .or.                    &
      &          ( ( (abs(x)-apex)**2.+(abs(y)-apey)**2.).gt.r2 )
       return
-      end function checkRT
+end function checkRT
 
-      logical function checkCI( x, y, radius2 )
+logical function checkCR( x, y, radius2 )
 !-----------------------------------------------------------------------
-!     check particle position against CIrcle aperture
+!     check particle position against CiRcle aperture
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
@@ -28979,11 +28977,11 @@ cc2008
 !     parameters
       real(kind=fPrec) x, y, radius2
 
-      checkCI = ((x*x) + (y*y)) .gt. radius2
+      checkCR = (x**2 + y**2) .gt. radius2
       return
-      end function checkCI
+end function checkCR
 
-      subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
+subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
 !     last modified: 20-12-2016
