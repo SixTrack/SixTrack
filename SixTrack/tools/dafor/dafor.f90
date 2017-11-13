@@ -110,8 +110,8 @@
 !-----MEMORY MANAGEMENT ----------------------------------------------------- ! 1
       PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                               ! 2
       CHARACTER(LEN=8), DIMENSION(LNAM) :: CNAM
-      CHARACTER(LEN=80), DIMENSION(LTEX) :: CTEX
-      CHARACTER(LEN=80) CBLA                                                  ! 3
+      CHARACTER(LEN=132), DIMENSION(LTEX) :: CTEX
+      CHARACTER(LEN=132) CBLA                                                  ! 3
       INTEGER NPAR(LNAM,17)                                                   ! 4
       DOUBLE PRECISION CC(LCC)                                                ! 5
       COMMON / CMEM / CNAM,CTEX,CBLA                                          ! 6
@@ -143,7 +143,7 @@
       COMMON / SYMBOL / OPER, FUNC                                           ! 4
 !----------------------------------------------------------------------------! 5
       integer i,j
-      character(len=80) blanks
+      character(len=132) blanks
       character(len=8) blank8
 
       PARAMETER(ZERO=0.0D0)
@@ -184,7 +184,7 @@
 
       DATA llINAM / 0 /
 
-      do i=1,80
+      do i=1,132
         blanks(i:i)=' '     
       enddo
 !      blank6='      '
@@ -252,8 +252,8 @@
 !     IT READS A FILE AND TRANSFORMS IT TO REGULAR FORTRAN.
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
-      PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)               ! 2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                              ! 2
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*132,CBLA*132                         ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
       COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
@@ -308,9 +308,9 @@
          ELSE
             WRITE(2,'(2A,44A1,5(/''     *   '',60A1))')                 &
                    '      INTEGER ',CNAM(I),'(',                        &
-            ( ( CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,80) ),',',   &
+            ( ( CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,132) ),',',   &
               J=1,ID-1 ),                                               &
-             ( CTEX(IT+ID+2)(K:K),K=1,ILAST(CTEX(IT+ID+2),1,80) ),')'
+             ( CTEX(IT+ID+2)(K:K),K=1,ILAST(CTEX(IT+ID+2),1,132) ),')'
          ENDIF
   30     CONTINUE
 
@@ -360,11 +360,11 @@
 !    *         '         '//CNAM(I)//'= 0'
                WRITE(2,'(A,38A1,5(/''     *   '',60A1))')               &
                '         CALL DAALL('//CNAM(I)//',1',                   &
-         ('*','(',(CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,80)),')', &
+         ('*','(',(CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,132)),')', &
                   J=1,ID),                                              &
              ',','''',(CNAM(I)(K:K),K=1,8),' ',' ','''',',',            &
-             (CTEX(IT+1)(K:K),K=1,ILAST(CTEX(IT+1),1,80)),              &
-             ',',(CTEX(IT+2)(K:K),K=1,ILAST(CTEX(IT+2),1,80)),')'
+             (CTEX(IT+1)(K:K),K=1,ILAST(CTEX(IT+1),1,132)),              &
+             ',',(CTEX(IT+2)(K:K),K=1,ILAST(CTEX(IT+2),1,132)),')'
            icount=icount+1
            if(icount.gt.mname) then
              write(2,*) 'C   Number of variables to be allocated and ' 
@@ -377,7 +377,7 @@
            endif
                write(NAMEDAL(icount),'(A,38A1,5(/''     *   '',60A1))') &
                '        CALL DADAL('//CNAM(I)//',1',                    &
-         ('*','(',(CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,80)),')', J=1,ID),')'
+         ('*','(',(CTEX(IT+J+2)(K:K),K=1,ILAST(CTEX(IT+J+2),1,132)),')', J=1,ID),')'
          endif
          IF(NPAR(I,6).EQ.3) THEN
             CNAM(I) = DNAM
@@ -524,7 +524,7 @@
 
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
       PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                              ! 2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*132,CBLA*132                         ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
       COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
@@ -551,17 +551,17 @@
          IF(INDEX(ALIN(1:IAMAX),';').NE.0) GOTO 40
       ENDIF
 
-      IF(IAMAX+80.GT.10000) THEN
+      IF(IAMAX+132.GT.10000) THEN
          WRITE(ERROR_UNIT,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          WRITE(2,'(1X,A)') '### ERROR, COMMAND TOO LONG'
          STOP 7
       ELSEIF(CMOD.EQ.'PRECOM') THEN
          ALIN(IAMAX+1:IAMAX+1) = ' '
-         READ(1,'(A6,A66,A8)',END=60) PREC,ALIN(IAMAX+2:IAMAX+67),REST
+         READ(1,'(A6,A125,A8)',END=60) PREC,ALIN(IAMAX+2:IAMAX+126),REST
          if(alin(IAMAX+2:IAMAX+6).eq.'DADAL') then
            if(icount.gt.0) then
              do 70 i=icount,1,-1
-               write(2,'(a80)') namedal(i)
+               write(2,'(a132)') namedal(i)
  70          continue
            endif
          endif
@@ -575,13 +575,13 @@
             IF(NPAR(I,2).NE.4) GOTO 30
             IPOS = IAMAX+2
    25       CONTINUE
-            INDI = INDEX(ALIN(IPOS:IAMAX+67),CNAM(I)(1:ICN))
+            INDI = INDEX(ALIN(IPOS:IAMAX+126),CNAM(I)(1:ICN))
             IF(INDI.EQ.0) GOTO 30
             IPOS = IPOS + INDI
             IF(IPOS.NE.IAMAX+3) THEN
                IF(INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890', ALIN(IPOS-2:IPOS-2)).NE.0) GOTO 25
             ENDIF
-            IF(IPOS+ICN-1.NE.IAMAX+67) THEN
+            IF(IPOS+ICN-1.NE.IAMAX+126) THEN
                IF(INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890', ALIN(IPOS+ICN-1:IPOS+ICN-1)).NE.0) GOTO 25
             ENDIF
             REST = '!FOX'
@@ -593,7 +593,7 @@
 !        CHECKING IF LINE IS END STATEMENT
 !        *********************************
 
-         CALL POSFRA(ALIN,IAMAX+1,IAMAX+67,' ',MA,200,IA)
+         CALL POSFRA(ALIN,IAMAX+1,IAMAX+126,' ',MA,200,IA)
          IF(IA.EQ.1) THEN
             IF(ALIN(MA(1):MA(1)+3).EQ.'END ') INAM = 0
          ENDIF
@@ -601,9 +601,9 @@
 !        WRITING LINE TO OUTPUT
 !        **********************
 
-         ILL = ILAST(ALIN(IAMAX+1:IAMAX+67),2,67)
+         ILL = ILAST(ALIN(IAMAX+1:IAMAX+126),2,126)
          IF(REST.NE.'        ') THEN
-            WRITE(2,'(A6,A66,A)') PREC,ALIN(IAMAX+2:IAMAX+67), REST(1:ILAST(REST,1,8))
+            WRITE(2,'(A6,A125,A)') PREC,ALIN(IAMAX+2:IAMAX+126), REST(1:ILAST(REST,1,8))
          ELSE
             WRITE(2,'(A6,A)') PREC,ALIN(IAMAX+2:IAMAX+ILL)
          ENDIF
@@ -613,8 +613,8 @@
 !     *******************
 
       ELSE
-         READ(1,'(A80)',END=60) PREC,ALIN(IAMAX+1:IAMAX+80)
-         IAMAX = IAMAX + ILAST(ALIN(IAMAX+1:IAMAX+80),1,80)
+         READ(1,'(A132)',END=60) PREC,ALIN(IAMAX+1:IAMAX+132)
+         IAMAX = IAMAX + ILAST(ALIN(IAMAX+1:IAMAX+132),1,132)
       ENDIF
       GOTO 20
 
@@ -811,7 +811,7 @@
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
       PARAMETER(LNAM=10000,LVAR=8,LTEX=4000,LCC=10000)                       ! 2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*132,CBLA*132                         ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
       COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
@@ -1059,7 +1059,7 @@
       IOLD = I
       I = I - 1
  121  I = I + 1
-      IF(I-IOLD.GE.80) THEN
+      IF(I-IOLD.GE.132) THEN
          AER = 'ERROR, TOO MANY DIGITS IN CONSTANT'
          GOTO 1000
       ELSEIF(INDEX(NUM,A(I:I)).NE.0) THEN
@@ -1125,7 +1125,7 @@
       ENDIF
       CC(ICC) = CVAL
       CTEX(ITEX)(1:I-IOLD) = A(IOLD:I-1)
-      DO J=I-IOLD+1,80
+      DO J=I-IOLD+1,132
         CTEX(ITEX)(J:J) = ' '
       END DO
       IANA = IANA + 1
@@ -1227,7 +1227,7 @@
          I = I + 1
          ITEX = ITEX + 1
          CTEX(ITEX)(1:4) = '-ONE'
-         DO J=5,80
+         DO J=5,132
            CTEX(ITEX)(J:J) = ' '
          END DO
          ICC = ICC + 1
@@ -1585,7 +1585,7 @@
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
       PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                              ! 2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*132,CBLA*132                         ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
       COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
@@ -1957,13 +1957,13 @@
 !     OUTPUTTING FORTRAN STATEMENT
 !     ****************************
 
-      ILIN = ILAST(A,1,800) / 66
-      WRITE(2,'(A)') '      '//A(1:66), ('     !'//A(J*66+1:(J+1)*66),J=1,ILIN)
+      ILIN = ILAST(A,1,800) / 125
+      WRITE(2,'(A)') '      '//A(1:125), ('     !'//A(J*125+1:(J+1)*125),J=1,ILIN)
 ! Eric Moved the ILIN = ....
 !     ILIN = ILAST(AC,1,800) / 66
       IF(ICON.NE.0) THEN
-        ILIN = ILAST(AC,1,800) / 66
-         WRITE(2,'(A)') '      '//AC(1:66), ('     !'//AC(J*66+1:(J+1)*66),J=1,ILIN)
+        ILIN = ILAST(AC,1,800) / 125
+         WRITE(2,'(A)') '      '//AC(1:125), ('     !'//AC(J*125+1:(J+1)*125),J=1,ILIN)
          ICON = 0
       ELSEIF(ISOUT.NE.0) THEN
          WRITE(2,'(6X,A,I5)') 'IDAO = IDAA - ',ISOFF
@@ -1998,7 +1998,7 @@
 !
 !-----MEMORY MANAGEMENT -----------------------------------------------------! 1
       PARAMETER(LNAM=10000,LTEX=4000,LCC=10000)                              ! 2
-      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*80,CBLA*80                           ! 3
+      CHARACTER CNAM(LNAM)*8,CTEX(LTEX)*132,CBLA*132                         ! 3
       INTEGER NPAR(LNAM,17)                                                  ! 4
       DOUBLE PRECISION CC(LCC)                                               ! 5
       COMMON / CMEM / CNAM,CTEX,CBLA                                         ! 6
@@ -2056,7 +2056,7 @@
          ND = NPAR(IA,4)
       ELSEIF(IA.GT.LNAM) THEN
          IA = IA - LNAM
-         LA = MAX(11,ILAST(CTEX(IA),1,80))
+         LA = MAX(11,ILAST(CTEX(IA),1,132))
          A = '('//CTEX(IA)(1:LA)//')'//CBLA
          LA = LA + 2
          IF(INDEX(A(1:LA),'.').EQ.0) THEN
@@ -2128,7 +2128,7 @@
          ITI = NPAR(II,2)
       ELSEIF(II.GT.LNAM) THEN
          II = II - LNAM
-         IL = ILAST(CTEX(II),1,80)
+         IL = ILAST(CTEX(II),1,132)
          IF(INDEX(CTEX(II)(1:IL),'.').EQ.0) THEN
             ITI = 2
          ELSE
