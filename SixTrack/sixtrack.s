@@ -1200,71 +1200,7 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd   dbdump
-!     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     K. Sjobak, BE-ABP/HSS
-!     last modified: 03-09-2015
-!     COMMON for dumping the beam population
-!     always in main code
 
-!     in case the DUMP input block is issued, the beam population is dumped
-!       at EACH occurence of the flagged SINGLE ELEMENT(s) in the accelerator
-!       structure
-!     important remarks:
-!     - the chosen SINGLE ELEMENT(s) must be outside a BLOC, and BLOCs cannot
-!       be chosen
-!     - the special name 'ALL' will trigger dump at all SINGLE ELEMENTs
-!       (settings of dump are stored in index 0 of all the usual arrays);
-!     - the beam population is ALWAYS dumped at the end of the entry,
-!       i.e. AFTER the proper transformation map is applied, and after the
-!       aperture check, i.e. AFTER the lost particles are filtered out
-!     - a negative or null value of the dump frequency is interpreted as dump
-!       at every turn
-!     - NO check is performed on the logical units, i.e. if the ones selected
-!       by the user are used in other places of the code...
-!     - the dump format can be changed to the one required by the LHC aperture check
-!       post-processing tools, activating the dumpfmt flag (0=off, by default);
-      logical ldumphighprec                   ! high precision printout required
-                                              !   at all flagged SINGLE ELEMENTs
-      logical ldumpfront                      ! dump at the beginning of each element,
-                                              !  not at the end.
-      logical :: ldump (-1:nele)              ! flag the SINGLE ELEMENT for
-                                              !   dumping
-
-      real(kind=fPrec) :: dumptas (-1:nblz,6,6) ! tas matrix used for FMA analysis
-                                                !  (nomalisation of phase space)
-                                                !  First index = -1 -> StartDUMP, filled differently;
-                                                !  First index = 0  -> Unused.
-      real(kind=fPrec) :: dumptasinv (-1:nblz,6,6) ! inverse matrix of dumptas
-      real(kind=fPrec) :: dumpclo (-1:nblz,6)   ! closed orbit used for FMA
-                                                 !  (normalisation of phase space)
-                                                 !  TODO: check units used in dumpclo (is x' or px used?)
-      
-      integer :: ndumpt (-1:nele)             ! dump every n turns at a flagged
-                                              !   SINGLE ELEMENT (dump frequency)
-      integer :: dumpfirst (-1:nele)          ! First turn for DUMP to be active
-      integer :: dumplast (-1:nele)           ! Last turn for this DUMP to be active (-1=all)
-      integer :: dumpunit (-1:nele)           ! fortran unit for dump at a
-                                              !   flagged SINGLE ELEMENT
-      integer :: dumpfmt (-1:nele)            ! flag the format of the dump
-
-      character dump_fname (-1:nele)*(getfields_l_max_string)
-      
-      common /dumpdb/ ldump, ndumpt, dumpunit,                          &
-     &                dumpfirst, dumplast,                              &
-     &                dumpfmt, ldumphighprec, ldumpfront,               &
-     &                dump_fname
-      common /dumpOptics/ dumptas,dumptasinv,dumpclo
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbdumpcr
-      !For resetting file positions
-      integer dumpfilepos, dumpfilepos_cr
-      common /dumpdbCR/ dumpfilepos(-1:nele), dumpfilepos_cr(-1:nele)
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd elensparam
 !     M. Fitterer, FNAL
 !     Common block for electron lens definition
@@ -6099,52 +6035,6 @@ cc2008
             sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)   &!hr03
      &**2)+yv(2,j)**2))                                                  !hr03
 +ei
-
-+cd dumplines
-!         A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 13-06-2014
-!         dump beam particles
-!         always in main code
-          if ( ldump(0) ) then
-!           dump at all SINGLE ELEMENTs
-            if ( ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1 ) then
-               if (   (n.ge.dumpfirst(0)) .and.                         &
-     &              ( (n.le.dumplast(0)) .or. (dumplast(0).eq.-1) )     &
-     &              ) then
-                  call dump_beam_population( n, i, ix, dumpunit(0),     &
-     &                 dumpfmt(0), ldumphighprec,                       &
-     &                 dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
-               endif
-            endif
-          endif
-          if ( ktrack(i) .ne. 1 ) then
-             ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
-             if ( ldump(ix) ) then
-                ! dump at this precise SINGLE ELEMENT
-                if ( ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1 ) then
-                   if (   (n.ge.dumpfirst(ix)) .and.                    &
-     &                 ( (n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1) )&
-     &                ) then
-                      call dump_beam_population( n, i, ix, dumpunit(ix),&
-     &                     dumpfmt(ix), ldumphighprec,                  &
-     &                     dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6) )
-                   endif
-                endif
-             endif
-          endif
-+cd dumplines_first
-!     StartDUMP - dump on the first element
-      if (ldump(-1)) then
-         if ( ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1 ) then
-            if (   (n.ge.dumpfirst(-1)) .and.                           &
-     &           ( (n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1) )      &
-     &           ) then
-               call dump_beam_population( n, 0, 0, dumpunit(-1),        &
-     &              dumpfmt(-1), ldumphighprec,                         &
-     &              dumpclo(-1,1:6),dumptasinv(-1,1:6,1:6) )
-            endif
-         endif
-      endif
       
 +cd lostpart
 !         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -8255,11 +8145,12 @@ cc2008
       use floatPrecision
       use scatter, only : scatter_closefiles
       use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
+
+      use dump, only : dump_closeUnits
       implicit none
 +ca parpro
 +ca common
 +ca comgetfields
-+ca dbdump
 +ca parbeam_exp
       integer i
       logical lopen
@@ -8437,17 +8328,8 @@ cc2008
       endif
  600  continue
 
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 01-09-2014
-!     close units for dumping particle population or statistics or beam matrix
-!     always in main code
-      do i=0,il
-        if ( ldump(i) ) then
-!         the same file could be used by more than one SINGLE ELEMENT
-          inquire( unit=dumpunit(i), opened=lopen )
-          if ( lopen ) close(dumpunit(i))
-        endif
-      enddo
+      call dump_closeUnits
+      
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 02-09-2014
 !     close units for logging dynks
@@ -11005,6 +10887,8 @@ cc2008
       use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
      &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP,       &
      &     fma_parseInputLine
+
+      use dump, only : dump_parseInputLine, dump_parseInputDone
       
       use physical_constants
       use numerical_constants
@@ -11095,7 +10979,6 @@ cc2008
 +ca rhicelens
 +ei
 +ca comgetfields
-+ca dbdump
 +ca stringzerotrim
 +ca elensparam
 +ca wireparam
@@ -11120,9 +11003,6 @@ cc2008
      &/'COMB','FREE','GEOM','CAV','BEAM','TROM'/
       data idum,kl,kr,orga,norm,corr/' ','(',')','ORGA','NORM','CORR'/
       data coll /'COLL'/
-!     - dump beam population:
-      character(len=16) dump
-      data dump /'DUMP'/
 !     - elens
       character(len=16) elens
       data elens /'ELEN'/
@@ -11376,10 +11256,9 @@ cc2008
 !     - coupling:
       if(idat.eq.fluk) goto 1800
 
-!     - dump beam population:
-      if(idat.eq.dump) goto 2000
-      if(idat.eq."DYNK")  goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
-      if(idat.eq."FMA")   goto 2300 !Hard-coded name, as variable name "dynk" conflicted with module name
+      if(idat.eq."DUMP") goto 2000 !Hard-coded name, as variable name "dump" conflicted with module name
+      if(idat.eq."DYNK") goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
+      if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
       if(idat.eq.elens) goto 2400
       if(idat.eq.wire)  goto 2500
       !Reserved:
@@ -16186,7 +16065,7 @@ cc2008
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
 !  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!  K.Sjobak, BE-ABP/HSS
+!  K.Sjobak, BE-ABP/HSS, BE-ABP/LAT
 !  last modified: 03-09-2015
 !  always in main code
 !-----------------------------------------------------------------------
@@ -16194,212 +16073,16 @@ cc2008
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1 ! Line number used for some crash output
       if(ch(1:1).eq.'/') goto 2000 !Skip comment line
-
+      
       !Done with DUMP, write out!
       if(ch(:4).eq.next) then
-        ! HEADER
-        write(lout,10460) dump
-        write(lout,*) ''
-        write(lout,*) '       The last column states the format'
-        write(lout,*) '            of the output file (see manual):'
-        
-        ! ldump(0)=.true. : DUMP all elements found
-        if ( ldump(0) ) then
-           write(lout,10470) 'ALL SING. ELEMS.', ndumpt(0),             &
-     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),       &
-     &           dumpfmt(0), dumpfirst(0), dumplast(0)
-        endif
-        if ( ldump(-1) ) then
-           write(lout,10470) 'StartDUMP speci.', ndumpt(0),             &
-     &          dumpunit(0), trim(stringzerotrim(dump_fname(0))),       &
-     &          dumpfmt(0), dumpfirst(0), dumplast(0)
-        endif
-
-        do ii=1,il
-          if(ldump(ii)) then
-            write(lout,10470)                                           &
-     &            bez(ii), ndumpt(ii), dumpunit(ii),                    &
-     &            trim(stringzerotrim(dump_fname(ii))),                 &
-     &            dumpfmt(ii), dumpfirst(ii), dumplast(ii)
-      
-!           At which structure indices is this single element found? (Sanity check)
-            kk = 0
-            do jj=1,mper*mbloz      ! Loop over all structure elements
-              if ( ic(jj)-nblo .eq. ii ) then
-                write (ch1,*) jj    ! internal write for left-adjusting
-                write (lout,10472)                                      &
-     &               " -> Found as structure element no. "              &
-     &               // trim(adjustl(ch1))
-                kk = kk + 1
-              end if
-            end do
-            if (kk .eq. 0) then
-               write (lout,10472) " !! Warning: No structure elements " &
-     &              // "found for '" // bez(ii) // "'!"
-               write (lout,10472)                                       &
-     &              " !! This element is probably only found"           &
-     &              // " in a BLOC, or it is not used at all."
-               write (lout,10472) " !! Please fix your DUMP block"      &
-     &              // " in fort.3"
-
-               call prror(-1)
-            endif
-          endif
-        enddo
-
-        if ( ldumphighprec ) then
-          write(lout,*) ''
-          write(lout,*) '        --> requested high precision dumping!'
-        endif
-        if ( ldumpfront ) then
-          write(lout,*) ''
-          write(lout,*) '        --> requested FRONT dumping!'
-        endif
-        goto 110
+         call dump_parseInputDone
+         goto 110
       endif !END writeout when finished reading
-
-!     initialise reading variables, to avoid storing non sense values
-      idat = ' ' ! Name
-      i1 = 0     ! frequency
-      i2 = 0     ! unit
-      i3 = 0     ! format
-      i4 = 1     ! first turn
-      i5 = -1    ! last turn
-
-      if(ch(:4).eq.'HIGH') then
-        ldumphighprec = .true.
-        goto 2000
-      else if(ch(:5).eq.'FRONT') then
-         ldumpfront = .true.
-         goto 2000
-      endif
       
-!     requested element
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(-1)
+      call dump_parseInputLine(ch)
       
-      if ( (getfields_nfields .lt. 4) .or.                              &
-     &     (getfields_nfields .gt. 7) .or.                              &
-     &     (getfields_nfields .eq. 6)      ) then
-         write(lout,*) "ERROR in DUMP:"
-         write(lout,*) "Expected 4 to 7 (but not 6) arguments, got",    &
-     &        getfields_nfields
-         write(lout,*)                                                  &
-     &        ("'"//getfields_fields(kk)(1:getfields_lfields(kk))//"' ",&
-     &        kk=1,getfields_nfields)
-         call prror(-1)
-      endif
-      if (getfields_lfields(1) > 16) then
-         write(lout,*) "ERROR in DUMP:"
-         write(lout,*) "element names are max. 16 characters"
-         call prror(-1)
-
-      endif
-      idat = getfields_fields(1)(1:getfields_lfields(1))
-      read(getfields_fields(2)(1:getfields_lfields(2)),*) i1
-      read(getfields_fields(3)(1:getfields_lfields(3)),*) i2
-      read(getfields_fields(4)(1:getfields_lfields(4)),*) i3
-      if (getfields_nfields .eq. 4) then
-         !Automatic fname
-         write(ch1,"(a5,I0)") "fort.", i2
-      else if ( (getfields_nfields .eq. 5) .or.                         & 
-     &          (getfields_nfields .eq. 7)     ) then
-         !Given fname
-         ch1 = getfields_fields(5)(1:getfields_lfields(5))
-      else
-         !ERROR
-         call prror(-1)
-      endif
-      if (getfields_nfields .eq. 7) then
-         read(getfields_fields(6)(1:getfields_lfields(6)),*) i4
-         read(getfields_fields(7)(1:getfields_lfields(7)),*) i5
-      endif
-      
-!     Check that first/last turn is sane
-      if ( i5.ne.-1 ) then
-         if ( i5 .lt. i4 ) then
-            write(lout,*)                                               &
-     &           "Error in DUMP: Expect last turn >= first turn, ",     &
-     &           "unless last turn = -1 (infinity), got", i4,i5
-           call prror(-1)
-         endif
-      endif
-      if ( i4 .lt. 1 ) then
-         write(lout,*)                                                  &
-     &        "Error in DUMP: Expect first turn >= 1, got", i4
-         call prror(-1)
-      endif
-
-!     find it in the list of SINGLE ELEMENTs:
-      do j=1,il
-         if(bez(j).eq.idat) then
-            if (ldump(j)) then !Only enable once/element!
-               write(lout,*) "Error in parsing DUMP block:"
-               write(lout,*) "Element '",idat, "' was specified",       &
-     &              " more than once"
-               call prror(-1)
-            endif
-            
-            !Element was found in SINGLE ELEMENTS list, now do some sanity checks
-            if(trim(bez(j)).eq."ALL") then
-               write(lout,*) "Error in parsing DUMP block:"
-               write(lout,*) "The element name 'ALL'"//                 &
-     &                       " cannot be used in the SINGLE ELEMENTS"// &
-     &                       " list when an 'ALL'"//                    &
-     &                       " special DUMP is active."
-               call prror(-1)
-            elseif(trim(bez(j)).eq."StartDUMP") then
-               write(lout,*) "Error in parsing DUMP block:"
-               write(lout,*) "The element name 'StartDUMP'"//           &
-     &                       " cannot be used in the SINGLE ELEMENTS"// &
-     &                       " list when an 'StartDUMP'"//              &
-     &                       " special DUMP is active."
-               call prror(-1)
-            endif
-            goto 2001 !Element found, store the data
-         endif
-      enddo
-      if ( idat(:3).eq.'ALL' ) then
-         j=0
-         if (ldump(j)) then
-            write(lout,*) "ERROR in parsing DUMP block:"
-            write(lout,*) "'Element' ALL was specified "//              &
-     &           "(at least) twice"
-            call prror(-1)
-         endif
-         goto 2001 !Element found, store the data
-      endif
-      if ( idat(:9).eq.'StartDUMP' ) then
-         j=-1
-         if (ldump(j)) then
-            write(lout,*) "ERROR in parsing DUMP block:"
-            write(lout,*) "'Element' StartDUMP was specified "//        &
-     &           "(at least) twice"
-            call prror(-1)
-         endif
-         goto 2001 !Element found, store the data
-      endif
-      
-!     search failed, fall-through to here:
-      write(lout,*) ''
-      write(lout,*) " Un-identified SINGLE ELEMENT '", idat, "'"
-      write(lout,*) '   in block ',dump, '(fort.3)'
-      write(lout,*) '   parsed line:'
-      write(lout,*) trim(ch)
-      write(lout,*) ''
-      call prror(-1)
-
-!     element found, store the data:
- 2001 ldump(j) = .true.
-      ndumpt(j) = i1
-      if (ndumpt(j).le.0) ndumpt(j)=1
-      dumpunit(j) = i2
-      dumpfmt(j)  = i3
-      dump_fname(j)(1:getfields_lfields(5))=ch1(1:getfields_lfields(5))
-      dumpfirst(j) = i4
-      dumplast(j) = i5
-!     go to next line
+      ! Go to next line
       goto 2000
 
 !-----------------------------------------------------------------------
@@ -17461,10 +17144,6 @@ cc2008
 !     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10430 format(/5x,'No cut on random distribution'//)
 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
-10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
-     &'ELEMENT NAME',8x,'EVERY # TURNs',2x,                             &
-     &'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x,                     &
-     &"FirstTurn",6x,"LastTurn") !DUMP/STAT/BMAT
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
@@ -17487,8 +17166,6 @@ cc2008
      &'   |    ',a16,'   |               |               |')
 10400 format(5x,'| ELEMENTS |                              |          ' &
      &,'     |               |    ',a16,'   |    ',a16,'   |')
-10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12) !BMAT/STAT/DUMP
-10472 format(t10,a)                           !BMAT/STAT/DUMP
 10490 format(t10,a16,4x,a40,2x,1pe16.9)
 10510 format(t10,a16,4x,i8,12x,i8,4x,1pe16.9)
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
@@ -20486,6 +20163,7 @@ cc2008
       use physical_constants
       use numerical_constants
       use mathlib_bouncer
+      use dump, only : dumpclo, dumptas, dumptasinv, ldump
       implicit none
 +ca crcoall
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
@@ -20527,8 +20205,6 @@ cc2008
 +ei
 !     for FMA analysis
 +ca comgetfields
-+ca dbdump
-+ca dbdumpcr
 !+ca fma
 ! END for FMA analysis
 +ca wireparam
@@ -22855,6 +22531,8 @@ cc2008
       use dynk, only : dynk_izuIndex
 
       use fma, only : fma_postpr, fma_flag
+
+      use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
       
       use, intrinsic :: iso_fortran_env, only : output_unit
 
@@ -22943,11 +22621,7 @@ cc2008
 +ca crco
 +ei
 +ca comgetfields
-+ca dbdump
 +ca dbdcum
-+if cr
-+ca dbdumpcr
-+ei
 +ca stringzerotrim
 +ca zipf
 +ca comApeInfo
@@ -24879,297 +24553,16 @@ cc2008
 !     last modified: 21/02-2016
 !     open units for dumping particle population or statistics
 !     always in main code
-      do i=-1,il
-+if cr
-        if (dumpfilepos(i).ge.0) then
-           ! Expect the file to be opened already, in crcheck
-           inquire( unit=dumpunit(i), opened=lopen )
-           if ( .not.lopen ) then
-              write(lout,*) "ERROR in DUMP: The unit",dumpunit,         &
-     &             "has dumpfilepos=", dumpfilepos(i), ".ge.0, ",       &
-     &             "but the file is NOT open. This is probably a bug."
-              call prror(-1)
-           endif
-           cycle !Everything OK, don't try to open the files again.
-        endif 
-+ei
-        if (ldump(i)) then
-!         the same file could be used by more than one SINGLE ELEMENT
-          inquire( unit=dumpunit(i), opened=lopen )
-          if ( .not.lopen ) then
-             !Check that the filename is not already taken
-             do j=-1,i-1
-                if (ldump(j) .and.                                      &
-     &               (dump_fname(j).eq.dump_fname(i))) then
-                   write(lout,*)                                        &
-     &                  "ERROR in DUMP: Output filename unit",          &
-     &                  trim(stringzerotrim(dump_fname(i))),            &
-     &                  "is used by two DUMPS, "//                      &
-     &                  "but output units differ:",                     &
-     &                  dumpunit(i), " vs ", dumpunit(j)
-                   call prror(-1)
-                endif
-             end do
-             if ( dumpfmt(i).eq.3 .or. dumpfmt(i).eq.8 ) then !Binary dump
-+if boinc
-                 call boincrf(dump_fname(i),filename)
-                 open(dumpunit(i),file=filename,
-     &                status='replace',form='unformatted')
-+ei
-+if .not.boinc
-                 open(dumpunit(i),                                      &
-     &                file=trim(stringzerotrim(dump_fname(i))),         &
-     &                status='replace',form='unformatted')
-+ei
-             else !ASCII dump
-+if boinc
-                 call boincrf(dump_fname(i),filename)
-                 open(dumpunit(i),file=filename,                        &
-     &                status='replace',form='formatted')
-+ei
-+if .not.boinc
-                 open(dumpunit(i),                                      &
-     &                file=trim(stringzerotrim(dump_fname(i))),         &
-     &                status='replace',form='formatted')
-+ei
-             endif
-+if cr
-             dumpfilepos(i) = 0
-+ei
-          else ! lopen was .TRUE.
 
-             !Sanity check: If file number i is already open,
-             ! it should be by another DUMP
-             ! (but we can't guarantee that files opened later are handled correctly)
-             ! Also, a file should not be shared with element 0 (all) or -1 (StartDUMP)
-             ! All dumps writing to the same file (unit) must have the same format and filename.
-             ! If everything is OK, add to the header.
-             
-             !reuse the lopen flag as a temp variable
-             lopen = .false.
-             do j=-1,i-1        !Search all possible DUMPs
-                                ! up to but not including the one we're looking at (number i)
-                if (ldump(j)) then
-                   if (dumpunit(j).eq.dumpunit(i)) then
-                      if (dumpfmt(j).ne.dumpfmt(i)) then
-                         write(lout,*)                                  &
-     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,", &
-     & " formats are not the same."
-                         call prror(-1)
-                      else if (j.eq.0) then
-                         write(lout,*)                                  &
-     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,", &
-     & " one of which is ALL"
-                         call prror(-1)
-                      else if (j.eq.-1) then
-                         write(lout,*)                                  &
-     & "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS,", &
-     & " one of which is StartDUMP"
-                         call prror(-1)
-                      else if (dump_fname(j).ne.dump_fname(i)) then
-                         write(lout,*)                                  &
-     & "ERROR in DUMP: output unit",dumpunit(i)," used by two DUMPS,"// &
-     & " but filenames differ:", trim(stringzerotrim(dump_fname(i))),   &
-     & " vs ", trim(stringzerotrim(dump_fname(j)))
-                         call prror(-1)
-                      else
-                         ! Everything is fine
-                         lopen = .true.
-+if cr
-                         !Dumpfilepos is separate for every element, even if they share files.
-                         dumpfilepos(i) = 0
-+ei
-                      endif
-                   endif !IF file unit matches
-                endif !IF ldump(j)
-             end do !DO loop over j
-             ! LOPEN not set to true by sanity check in loop above
-             ! => File was already open, but not by DUMP.
-             if ( .not.lopen ) then
-                write (lout,*)                                          &
-     & "ERROR in DUMP: unit", dumpunit(i), " is already open, ",        &
-     & " but not by DUMP. Please pick another unit! ",                  &
-     & " Note: This test is not watertight, as other parts of",         &
-     & " the program may later open the same file/unit..."
-                call prror(-1)
-             endif
-          endif
-
-          ! Write format-specific headers
-          if ( dumpfmt(i).eq.1 ) then
-             write(dumpunit(i),'(a)')                                   &
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
-                
-             !Flush file
-             endfile   (dumpunit(i))
-             backspace (dumpunit(i))
-+if cr
-             dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
-          else if ( dumpfmt(i).eq.2 .or.                                &
-     &              dumpfmt(i).eq.4 .or.                                &
-     &              dumpfmt(i).eq.5 .or.                                &
-     &              dumpfmt(i).eq.6 .or.                                &
-     &              dumpfmt(i).eq.7 .or.                                &
-     &              dumpfmt(i).eq.9     ) then
-
-             ! Write the general header
-             if (i.eq.-1) then  !STARTdump
-                write(dumpunit(i),                                      &
-     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')                   &
-     & '# DUMP format #',dumpfmt(i),', START=',bez(1),                  &
-     & ', number of particles=',napx, ', dump period=',ndumpt(i),       &
-     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),       &
-     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
-             else if (i.eq.0) then !ALL
-                write(dumpunit(i),                                      &
-     &               '(a,i0,a,4(a,i12),2(a,L1))')                       &
-     & '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,',                  &
-     & ' number of particles=',napx, ', dump period=',ndumpt(i),        &
-     & ', first turn=', dumpfirst(i), ', last turn=',dumplast(i),       &
-     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
-             else               !Normal element
-                write(dumpunit(i),                                      &
-     &               '(a,i0,a,a16,4(a,i12),2(a,L1))')                   &
-     & '# DUMP format #',dumpfmt(i), ', bez=', bez(i),                  &
-     & ', number of particles=',napx,', dump period=',ndumpt(i),        &
-     & ', first turn=',dumpfirst(i), ', last turn=',dumplast(i),        &
-     & ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
-             endif
-             
-             !Write the format-specific headers:
-             if ( dumpfmt(i).eq.2 ) then ! FORMAT 2
-                write(dumpunit(i),'(a,a)')                              &
-     &  '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ',  &
-     &  'ktrack'
-
-             else if ( dumpfmt(i).eq.4 ) then ! FORMAT 4
-                write(dumpunit(i),'(a)')                                &
-     &               '# napx turn s[m] ' //                             &
-     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
-                
-             else if ( dumpfmt(i).eq.5 ) then ! FORMAT 5
-                write(dumpunit(i),'(a)')                                &
-     &               '# napx turn s[m] ' //                             &
-     &   '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//   &
-     &   '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//                &
-     &   '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//                  &
-     &   '<y^2> <y*yp> <y*z> <y*(dE/E)> '//                             &
-     &   '<yp^2> <yp*z> <yp*(dE/E)> '//                                 &
-     &   '<z^2> <z*(dE/E)> '//                                          &
-     &   '<(dE/E)^2>'
-                
-             else if ( dumpfmt(i).eq.6 ) then ! FORMAT 6
-                write(dumpunit(i),'(a)')                                &
-     &               '# napx turn s[m] ' //                             &
-     &   '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//      &
-     &   '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//            &
-     &   '<px^2> <px*y> <px*py> <px*sigma> <px*psigma> '//              &
-     &   '<y^2> <y*py> <y*sigma> <y*psigma> '//                         &
-     &   '<py^2> <py*sigma> <py*psigma> '//                             &
-     &   '<sigma^2> <sigma*psigma> '//                                  &
-     &   '<psigma^2>'
-             else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then !Normalized ASCII dump -> extra headers with matrices and closed orbit
-                 if ( dumpfmt(i).eq.7 ) then ! FORMAT 7
-                     write(dumpunit(i),'(a)')                           &
-     &  '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '//        &
-     &  'ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] '//   &
-     &  'ndp/p[1.e-3 sqrt(m)] ktrack'
-                 endif
-                 if (dumpfmt(i).eq.9) then ! FORMAT 9
-                     write(dumpunit(i),'(a)') '# napx turn s[m] ' //    &
-     &  '<nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] '//                   &
-     &  '<ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] '//                   &
-     &  '<nsig>[1.e-3 sqrt(m)] <ndp/p>[1.e-3 sqrt(m)]'//                &
-     &  '<nx^2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> '//  &
-     &  '<npx^2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> '//      &
-     &  '<ny^2> <ny*npy> <ny*nsigma> <ny*npsigma> '//                   &
-     &  '<npy^2> <npy*nsigma> <npy*npsigma> '//                         &
-     &  '<nsigma^2> <nsigma*npsigma> '//                                &
-     &  '<npsigma^2>'
-                 endif
-        ! closed orbit
-        ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] 
-        ! (note: units are already changed in linopt part)
-                write(dumpunit(i),'(a,1x,6(1X,1PE16.9))')               &
-     &  '# closed orbit [mm,mrad,mm,mrad,1]',                           &
-     &  dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),                         &
-     &  dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
-                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')              &
-     &  '# tamatrix [mm,mrad,mm,mrad,1]',                               &
-     &  dumptas(i,1,1),dumptas(i,1,2),dumptas(i,1,3),dumptas(i,1,4),    &
-     &  dumptas(i,1,5),dumptas(i,1,6),dumptas(i,2,1),dumptas(i,2,2),    &
-     &  dumptas(i,2,3),dumptas(i,2,4),dumptas(i,2,5),dumptas(i,2,6),    &
-     &  dumptas(i,3,1),dumptas(i,3,2),dumptas(i,3,3),dumptas(i,3,4),    &
-     &  dumptas(i,3,5),dumptas(i,3,6),dumptas(i,4,1),dumptas(i,4,2),    &
-     &  dumptas(i,4,3),dumptas(i,4,4),dumptas(i,4,5),dumptas(i,4,6),    &
-     &  dumptas(i,5,1),dumptas(i,5,2),dumptas(i,5,3),dumptas(i,5,4),    &
-     &  dumptas(i,5,5),dumptas(i,5,6),dumptas(i,6,1),dumptas(i,6,2),    &
-     &  dumptas(i,6,3),dumptas(i,6,4),dumptas(i,6,5),dumptas(i,6,6)
-                write(dumpunit(i),'(a,1x,36(1X,1PE16.9))')              &
-     &  '# inv(tamatrix)',                                              &
-     &  dumptasinv(i,1,1),dumptasinv(i,1,2),dumptasinv(i,1,3),          &
-     &  dumptasinv(i,1,4),dumptasinv(i,1,5),dumptasinv(i,1,6),          &
-     &  dumptasinv(i,2,1),dumptasinv(i,2,2),dumptasinv(i,2,3),          &
-     &  dumptasinv(i,2,4),dumptasinv(i,2,5),dumptasinv(i,2,6),          &
-     &  dumptasinv(i,3,1),dumptasinv(i,3,2),dumptasinv(i,3,3),          &
-     &  dumptasinv(i,3,4),dumptasinv(i,3,5),dumptasinv(i,3,6),          &
-     &  dumptasinv(i,4,1),dumptasinv(i,4,2),dumptasinv(i,4,3),          &
-     &  dumptasinv(i,4,4),dumptasinv(i,4,5),dumptasinv(i,4,6),          &
-     &  dumptasinv(i,5,1),dumptasinv(i,5,2),dumptasinv(i,5,3),          &
-     &  dumptasinv(i,5,4),dumptasinv(i,5,5),dumptasinv(i,5,6),          &
-     &  dumptasinv(i,6,1),dumptasinv(i,6,2),dumptasinv(i,6,3),          &
-     &  dumptasinv(i,6,4),dumptasinv(i,6,5),dumptasinv(i,6,6)
-             end if  !Format-specific headers
-
-             ! Flush file
-             endfile   (dumpunit(i))
-             backspace (dumpunit(i))
-+if cr
-             dumpfilepos(i) = dumpfilepos(i) + 2
-             ! format 7 also writes clo, tas and tasinv
-             if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then 
-               dumpfilepos(i) = dumpfilepos(i) + 3
-             endif
-+ei
-             
-          end if !If format 2/4/5/6/7/9 -> General header
-
-          if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9)& !Normalized DUMP
-     &         then
-             ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
-             if ( dumptas(i,1,1).eq.zero .and.                          &
-     &            dumptas(i,1,2).eq.zero .and.                          &
-     &            dumptas(i,1,3).eq.zero .and.                          &
-     &            dumptas(i,1,4).eq.zero      ) then
-                write(lout,*) "ERROR in normalized DUMP:"
-                write(lout,*)                                           &
-     &               "The normalization matrix appears to not be set?"
-                write(lout,*) "Did you forget to put a 6D LINE block?"
-                call prror(-1)
-             endif
-             if(idp.eq.0 .or. ition.eq.0) then ! We're in the 4D case
-                if(imc.ne.1) then !Energy scan
-                   write(lout,*) "ERROR in normalized DUMP:"
-                   write(lout,*) "Energy scan (imc != 1) not supported!"
-                   call prror(-1)
-                endif
-                if(i.ne.-1) then !Not at StartDUMP
-                   write(lout,*) "ERROR in normalized DUMP:"
-                   write(lout,*) "4D only supported for StartDUMP!"
-                   call prror(-1)
-                endif
-             endif
-          endif ! END if normalized dump
-        endif !If ldump(i) -> Dump on this element
-      enddo !Loop over elements with index i
+      ! Initialize DUMP
+      call dump_initialize
 
       ! ! ! Initialize SCATTER ! ! !
       if (scatter_active) then
          call scatter_initialize
       endif
 
-      
+
 !                                !
 !     ****** TRACKING ******     !
 !                                !
@@ -26227,6 +25620,8 @@ cc2008
 +ei
       use dynk, only : ldynk, dynk_apply
 
+      use dump, only : dump_linesFirst, dump_lines, ldumpfront
+      
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -26280,7 +25675,6 @@ cc2008
 +ei
 
 +ca comgetfields
-+ca dbdump
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -26359,7 +25753,8 @@ cc2008
         if ( ldynk ) then
            call dynk_apply(n)
         endif
-+ca dumplines_first
+        
+        call dump_linesFirst(n)
 
         do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements/blocks
 +if bnlelens
@@ -26374,7 +25769,7 @@ cc2008
 +ei bpm
 
       if (ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
 
 +if time
@@ -26797,7 +26192,7 @@ cc2008
   625     continue
 
       if (.not. ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
 
   630   continue
@@ -26847,6 +26242,7 @@ cc2008
 +ei
       use scatter, only : scatter_thin, scatter_debug
       use dynk, only : ldynk, dynk_apply
+      use dump, only : dump_linesFirst, dump_lines, ldumpfront
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
@@ -26918,7 +26314,6 @@ cc2008
 +ei
 
 +ca comgetfields
-+ca dbdump
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -27025,7 +26420,7 @@ cc2008
            call dynk_apply(n)
         endif
 
-+ca dumplines_first
+        call dump_linesFirst(n)
 
 !! This is the loop over each element: label 650
         do 650 i=1,iu !Loop over elements
@@ -27056,7 +26451,7 @@ cc2008
 +ei bpm
       
       if (ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
       
 +if time
@@ -27713,7 +27108,7 @@ cc2008
   645     continue
 
       if (.not. ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
 
  650  continue !END loop over structure elements
@@ -27788,7 +27183,10 @@ cc2008
 +if datamods
       use bigmats
 +ei
+      
       use dynk, only : ldynk, dynk_apply
+      use dump, only : dump_linesFirst, dump_lines, ldumpfront
+      
       implicit none
 +ca exactvars
 +ca commonex
@@ -27828,7 +27226,6 @@ cc2008
 +ca bnlio
 +ei
 +ca comgetfields
-+ca dbdump
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -27925,8 +27322,8 @@ cc2008
            call dynk_apply(n)
         endif
 
-+ca dumplines_first
-
+        call dump_linesFirst(n)
+        
         do 650 i=1,iu
 +if bnlelens
 +ca bnltwiss
@@ -27940,7 +27337,7 @@ cc2008
 +ei bpm
       
       if (ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
       
 +if time
@@ -28437,7 +27834,7 @@ cc2008
   645     continue
 
       if (.not. ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
 
   650   continue
@@ -30491,575 +29888,6 @@ cc2008
 10010 format(10x,f47.33)
       end subroutine write6
 
-      subroutine dump_beam_population( nturn, i, ix, unit, fmt,         &
-     &  lhighprec, clo, tasinv )
-!-----------------------------------------------------------------------
-!     By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
-!     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 21-09-2015
-!     dump beam particles
-!     always in main code
-!
-!     nturn     : Current turn number
-!     i         : Current structure element (0 for StartDUMP)
-!     ix        : Corresponding single element (<0 for BLOC, only for ALL; 0 for StartDUMP)
-!     unit      : Unit to dump from
-!     fmt       : Dump output format (0/1/2/...)
-!     lhighprec : High precission output y/n
-!-----------------------------------------------------------------------
-
-      use floatPrecision
-      use physical_constants
-      use numerical_constants
-
-      implicit none
-
-!     interface variables:
-      integer nturn, i, ix, unit, fmt
-      logical lhighprec
-      real(kind=fPrec) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
-      real(kind=fPrec) clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
-      intent (in) nturn, i, ix, unit, fmt, lhighprec, tasinv, clo
-+ca parpro
-+ca common
-+ca commonmn
-+ca commonm1
-+ca commontr
-+ca dbdcum
-
-+if cr
-+ca comgetfields
-+ca dbdump
-+ca dbdumpcr
-+ei
-
-+ca crcoall
-
-+if collimat
-+ca collpara
-+ca dbcommon
-+ei
-+if .not.collimat
-      integer, parameter :: samplenumber = 1
-+ei
-
-
-!     temporary variables
-      integer j,k,l,m,n
-      character(len=16) localBez
-
-      real(kind=fPrec) localDcum
-      integer localKtrack
-
-      real(kind=fPrec) xyz_particle(6),nxyz_particle(6)
-      real(kind=fPrec) xyz(6)
-      real(kind=fPrec) xyz2(6,6)
-      
-+if cr      
-      !For accessing dumpfilepos
-      integer dumpIdx
-      if( unit .eq. dumpunit(0) ) then
-         ! ALL output must be on separate unit
-         dumpIdx = 0
-      elseif ( unit .eq. dumpunit(-1) ) then
-         ! ALL output must be on separate unit
-         dumpIdx = -1
-      else
-         dumpIdx = ix
-      endif
-+ei
-      ! General format
-      if ( fmt .eq. 0 ) then
-         if (i.eq.0 .and. ix.eq.0) then
-            localDcum = 0.0
-            localBez = "StartDUMP"
-         else
-            localDcum = dcum(i)
-            if ( ktrack(i) .ne. 1 ) then
-               localBez = bez(ix)
-            else                !BLOCs
-               localBez = bezb(ic(i))
-            endif
-         endif
-         if ( lhighprec ) then
-            do j=1,napx
-               write(unit,1981) nturn, i, ix, localBez, localDcum,      &
-     &xv(1,j)*c1m3, yv(1,j)*c1m3, xv(2,j)*c1m3, yv(2,j)*c1m3,           &
-     &ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, -c1m3*(sigmv(j)/clight)*(e0/e0f)
-            enddo
-         else
-            do j=1,napx
-               write(unit,1982) nturn, i, ix, localBez, localDcum,      &
-     &xv(1,j)*c1m3, yv(1,j)*c1m3, xv(2,j)*c1m3, yv(2,j)*c1m3,           &
-     &ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, -c1m3*(sigmv(j)/clight)*(e0/e0f)
-            enddo
-         endif
-         write(unit,*) ''
-         write(unit,*) ''
-         
-         !Flush
-         endfile (unit,iostat=ierro)
-         backspace (unit,iostat=ierro)
-+if cr
-         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx+2
-+ei
-      
-      ! Format for aperture check
-      else if (fmt .eq. 1) then
-         if (i.eq.0 .and. ix.eq.0) then
-            localDcum = 0.0
-            localKtrack = 0
-         else
-            localDcum = dcum(i)
-            localKtrack = ktrack(i)
-         endif
-         if ( lhighprec ) then
-            do j=1,napx
-               write(unit,1983) nlostp(j)+(samplenumber-1)*npart,       &
-     &              nturn, localDcum, xv(1,j),                          &
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,          &
-     &              localKtrack
-            enddo
-         else
-            do j=1,napx
-               write(unit,1984) nlostp(j)+(samplenumber-1)*npart,       &
-     &              nturn, localDcum, xv(1,j),                          &
-     &              yv(1,j), xv(2,j), yv(2,j), (ejv(j)-e0)/e0,          &
-     &              localKtrack
-            enddo
-         endif
-         
-         !Flush
-         endfile (unit,iostat=ierro)
-         backspace (unit,iostat=ierro)
-+if cr
-         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
-
-      ! Same as fmt 1, but also include z (for crab cavities etc.)
-      else if (fmt .eq. 2) then
-         if (i.eq.0 .and. ix.eq.0) then
-            localDcum = zero
-            localKtrack = 0
-         else
-            localDcum = dcum(i)
-            localKtrack = ktrack(i)
-         endif
-         if ( lhighprec ) then
-            do j=1,napx
-               write(unit,1985) nlostp(j)+(samplenumber-1)*npart,       &
-     &              nturn, localDcum, xv(1,j),                          &
-     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),                &
-     &              (ejv(j)-e0)/e0, localKtrack
-            enddo
-         else
-            do j=1,napx
-               write(unit,1986) nlostp(j)+(samplenumber-1)*npart,       &
-     &              nturn, localDcum, xv(1,j),                          &
-     &              yv(1,j), xv(2,j), yv(2,j), sigmv(j),                &
-     &              (ejv(j)-e0)/e0, localKtrack
-            enddo
-         endif
-
-         !Flush
-         endfile (unit,iostat=ierro)
-         backspace (unit,iostat=ierro)
-+if cr
-         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
-      !Same as fmt 2, but in Fortran binary
-      else if (fmt .eq. 3) then
-         if (i.eq.0 .and. ix.eq.0) then
-            localDcum = zero
-            localKtrack = 0
-         else
-            localDcum = dcum(i)
-            localKtrack = ktrack(i)
-         endif
-         do j=1,napx
-            write(unit) nlostp(j)+(samplenumber-1)*npart,               &
-     &           nturn, localDcum, xv(1,j),                             &
-     &           yv(1,j), xv(2,j), yv(2,j), sigmv(j),                   &
-     &           (ejv(j)-e0)/e0, localKtrack
-         enddo
-         
-         !Flush
-         endfile (unit,iostat=ierro)
-         backspace (unit,iostat=ierro)
-+if cr
-         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
-
-      !Average bunch position
-      else if (fmt .eq. 4) then
-         if (i.eq.0 .and. ix.eq.0) then
-            localDcum = zero
-         else
-            localDcum = dcum(i)
-         endif
-         
-         do l=1,6
-            xyz(l) = zero
-         end do
-         
-         do j=1,napx
-            xyz(1) = xyz(1) + xv(1,j)
-            xyz(2) = xyz(2) + yv(1,j)
-            xyz(3) = xyz(3) + xv(2,j)
-            xyz(4) = xyz(4) + yv(2,j)
-            xyz(5) = xyz(5) + sigmv(j)
-            xyz(6) = xyz(6) + (ejv(j)-e0)/e0
-         enddo
-
-         xyz = xyz/napx
-         if ( lhighprec ) then
-            write(unit,1989) napx, nturn, localDcum,                    &
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
-         else
-            write(unit,1990) napx, nturn, localDcum,                    &
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
-         endif
-
-         !Flush
-         endfile (unit,iostat=ierro)
-         backspace (unit,iostat=ierro)
-+if cr
-         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
-+ei
-      !Average beam positon + beam matrix
-      else if (fmt.eq.5 .or. fmt.eq.6) then
-         if (i.eq.0 .and. ix.eq.0) then
-            localDcum = zero
-         else
-            localDcum = dcum(i)
-         endif
-         
-         do l=1,6
-            xyz(l) = zero
-            do k=1,6
-               xyz2(l,k) = zero
-            end do
-         end do
-         
-         if(fmt.eq.5) then !Raw
-            do j=1,napx
-               xyz_particle(6)=(ejv(j)-e0)/e0
-
-               !Average beam position
-               xyz(1) = xyz(1) + xv(1,j)
-               xyz(2) = xyz(2) + yv(1,j)
-               xyz(3) = xyz(3) + xv(2,j)
-               xyz(4) = xyz(4) + yv(2,j)
-               xyz(5) = xyz(5) + sigmv(j)
-               xyz(6) = xyz(6) + xyz_particle(6)
-               
-               !Beam matrix (don't calulate identical elements twice (symmetry))
-               xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
-               xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
-               xyz2(3,1) = xyz2(3,1) + xv(1,j)*xv(2,j)
-               xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
-               xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
-               xyz2(6,1) = xyz2(6,1) + xv(1,j)*xyz_particle(6)
-               
-               xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
-               xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
-               xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
-               xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
-               xyz2(6,2) = xyz2(6,2) + yv(1,j)*xyz_particle(6)
-               
-               xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
-               xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
-               xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
-               xyz2(6,3) = xyz2(6,3) + xv(2,j)*xyz_particle(6)
-               
-               xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
-               xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
-               xyz2(6,4) = xyz2(6,4) + yv(2,j)*xyz_particle(6)
-               
-               xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
-               xyz2(6,5) = xyz2(6,5) + sigmv(j)*xyz_particle(6)
-               
-               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
-            enddo
-         else if (fmt.eq.6) then !Canonical
-            do j=1,napx
-               xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
-               xyz_particle(2) = (yv(1,j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
-               xyz_particle(3) = xv(2,j)*c1m3                 !y:      [mm]   -> [m]
-               xyz_particle(4) = (yv(2,j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
-               xyz_particle(5) = sigmv(j)*c1m3                !sigma:  [mm]   -> [m]
-               xyz_particle(6) = (((ejv(j)-e0)*e0)/e0f)/e0f   !psigma: [MeV]  -> [1]
-               
-               !Average beam position
-               xyz(1) = xyz(1) + xyz_particle(1)
-               xyz(2) = xyz(2) + xyz_particle(2)
-               xyz(3) = xyz(3) + xyz_particle(3)
-               xyz(4) = xyz(4) + xyz_particle(4)
-               xyz(5) = xyz(5) + xyz_particle(5)
-               xyz(6) = xyz(6) + xyz_particle(6)
-               
-               !Beam matrix (don't calulate identical elements twice (symmetry))
-               xyz2(1,1) = xyz2(1,1) + xyz_particle(1)*xyz_particle(1)
-               xyz2(2,1) = xyz2(2,1) + xyz_particle(1)*xyz_particle(2)
-               xyz2(3,1) = xyz2(3,1) + xyz_particle(1)*xyz_particle(3)
-               xyz2(4,1) = xyz2(4,1) + xyz_particle(1)*xyz_particle(4)
-               xyz2(5,1) = xyz2(5,1) + xyz_particle(1)*xyz_particle(5)
-               xyz2(6,1) = xyz2(6,1) + xyz_particle(1)*xyz_particle(6)
-               
-               xyz2(2,2) = xyz2(2,2) + xyz_particle(2)*xyz_particle(2)
-               xyz2(3,2) = xyz2(3,2) + xyz_particle(2)*xyz_particle(3)
-               xyz2(4,2) = xyz2(4,2) + xyz_particle(2)*xyz_particle(4)
-               xyz2(5,2) = xyz2(5,2) + xyz_particle(2)*xyz_particle(5)
-               xyz2(6,2) = xyz2(6,2) + xyz_particle(2)*xyz_particle(6)
-               
-               xyz2(3,3) = xyz2(3,3) + xyz_particle(3)*xyz_particle(3)
-               xyz2(4,3) = xyz2(4,3) + xyz_particle(3)*xyz_particle(4)
-               xyz2(5,3) = xyz2(5,3) + xyz_particle(3)*xyz_particle(5)
-               xyz2(6,3) = xyz2(6,3) + xyz_particle(3)*xyz_particle(6)
-               
-               xyz2(4,4) = xyz2(4,4) + xyz_particle(4)*xyz_particle(4)
-               xyz2(5,4) = xyz2(5,4) + xyz_particle(4)*xyz_particle(5)
-               xyz2(6,4) = xyz2(6,4) + xyz_particle(4)*xyz_particle(6)
-               
-               xyz2(5,5) = xyz2(5,5) + xyz_particle(5)*xyz_particle(5)
-               xyz2(6,5) = xyz2(6,5) + xyz_particle(5)*xyz_particle(6)
-               
-               xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
-            enddo
-         end if
-         
-         !Normalize to get averages
-         xyz = xyz/napx
-         
-         xyz2(:,1)  = xyz2(:,1) /napx
-         xyz2(2:,2) = xyz2(2:,2)/napx
-         xyz2(3:,3) = xyz2(3:,3)/napx
-         xyz2(4:,4) = xyz2(4:,4)/napx
-         xyz2(5:,5) = xyz2(5:,5)/napx
-         xyz2(6,6)  = xyz2(6,6) /napx
-         
-         if ( lhighprec ) then
-            write(unit,1991) napx, nturn, localDcum,                    &
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-     &                                              xyz2(5,5),xyz2(6,5),&
-     &                                                        xyz2(6,6)
-         else
-            write(unit,1992) napx, nturn, localDcum,                    &
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-     &                                              xyz2(5,5),xyz2(6,5),&
-     &                                                        xyz2(6,6)
-         endif
-
-         !Flush
-         endfile (unit,iostat=ierro)
-         backspace (unit,iostat=ierro)
-+if cr
-         dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
-+ei
-
-      ! fmt 7 same as fmt 2,   but in normalized coordinates
-      ! fmt 8 same as fmt 3,   but in normalized coordinates
-      ! fmt 9 same as fmt 5/6, but in normalized coordinates
-      else if (fmt .eq. 7 .or. fmt .eq. 8 .or. fmt .eq. 9) then
-         if (i.eq.0 .and. ix.eq.0) then
-            localDcum = zero
-            localKtrack = 0
-         else
-            localDcum = dcum(i)
-            localKtrack = ktrack(i)
-         endif
-
-         ! initialize parameters for writing of beam moments
-         do l=1,6
-            xyz(l) = zero
-            do k=1,6
-               xyz2(l,k) = zero
-            end do
-         end do
-
-         ! normalize particle coordinates
-         do j=1,napx
-             xyz_particle(1) = xv(1,j)
-             xyz_particle(2) = yv(1,j)
-             xyz_particle(3) = xv(2,j)
-             xyz_particle(4) = yv(2,j)
-             xyz_particle(5) = sigmv(j)
-             xyz_particle(6) = (ejv(j)-e0)/e0
-             ! remove closed orbit -> check units used in dumpclo (is x' or px used?)
-             do m=1,6
-                xyz_particle(m)=xyz_particle(m)-clo(m)
-             enddo
-             ! convert to canonical variables
-             xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+    &
-     &            clo(6))
-             xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+    &
-     &            clo(6))
-             ! normalize nxyz=fma_tas_inv*xyz
-             ! initialize nxyz
-             do m=1,6
-               nxyz_particle(m)=zero
-             enddo
-             do m=1,6
-                do n=1,6
-                   nxyz_particle(m)=nxyz_particle(m)+                   &
-     &                  tasinv(m,n)*xyz_particle(n)
-                enddo
-                ! a) convert nxyzv(6) to 1.e-3 sqrt(m)
-                ! unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
-                if(m.eq.6) then
-                   nxyz_particle(m)=nxyz_particle(m)*c1e3
-                endif
-             enddo
-
-             if (fmt .eq. 7) then
-               if ( lhighprec ) then
-                   write(unit,1985) nlostp(j)+(samplenumber-1)*npart,   &
-     &                  nturn, localDcum, nxyz_particle(1),             &
-     &                  nxyz_particle(2),nxyz_particle(3),              &
-     &                  nxyz_particle(4),nxyz_particle(5),              &
-     &                  nxyz_particle(6),localKtrack
-               else
-                   write(unit,1986) nlostp(j)+(samplenumber-1)*npart,   &
-     &                  nturn, localDcum, nxyz_particle(1),             &
-     &                  nxyz_particle(2),nxyz_particle(3),              &
-     &                  nxyz_particle(4),nxyz_particle(5),              &
-     &                  nxyz_particle(6),localKtrack
-               endif
-               
-             else if (fmt .eq. 8) then
-                 write(unit) nlostp(j)+(samplenumber-1)*npart,          &
-     &                nturn, localDcum, nxyz_particle(1),               &
-     &                nxyz_particle(2),nxyz_particle(3),                &
-     &                nxyz_particle(4),nxyz_particle(5),                &
-     &                nxyz_particle(6),localKtrack
-                 
-             else if (fmt .eq. 9) then
-               ! Average beam position
-               ! here we recycle xyz used also for fmt 5 and 6. These are
-               ! all normalized coordinates in units
-               ! nx,npx,ny,npy,nsig,ndelta [1.e-3 sqrt(m)]
-               xyz(1) = xyz(1) + nxyz_particle(1)
-               xyz(2) = xyz(2) + nxyz_particle(2)
-               xyz(3) = xyz(3) + nxyz_particle(3)
-               xyz(4) = xyz(4) + nxyz_particle(4)
-               xyz(5) = xyz(5) + nxyz_particle(5)
-               xyz(6) = xyz(6) + nxyz_particle(6)
-
-               !Beam matrix (don't calulate identical elements twice (symmetry))
-               xyz2(1,1) = xyz2(1,1) + nxyz_particle(1)*nxyz_particle(1)
-               xyz2(2,1) = xyz2(2,1) + nxyz_particle(1)*nxyz_particle(2)
-               xyz2(3,1) = xyz2(3,1) + nxyz_particle(1)*nxyz_particle(3)
-               xyz2(4,1) = xyz2(4,1) + nxyz_particle(1)*nxyz_particle(4)
-               xyz2(5,1) = xyz2(5,1) + nxyz_particle(1)*nxyz_particle(5)
-               xyz2(6,1) = xyz2(6,1) + nxyz_particle(1)*nxyz_particle(6)
-
-               xyz2(2,2) = xyz2(2,2) + nxyz_particle(2)*nxyz_particle(2)
-               xyz2(3,2) = xyz2(3,2) + nxyz_particle(2)*nxyz_particle(3)
-               xyz2(4,2) = xyz2(4,2) + nxyz_particle(2)*nxyz_particle(4)
-               xyz2(5,2) = xyz2(5,2) + nxyz_particle(2)*nxyz_particle(5)
-               xyz2(6,2) = xyz2(6,2) + nxyz_particle(2)*nxyz_particle(6)
-
-               xyz2(3,3) = xyz2(3,3) + nxyz_particle(3)*nxyz_particle(3)
-               xyz2(4,3) = xyz2(4,3) + nxyz_particle(3)*nxyz_particle(4)
-               xyz2(5,3) = xyz2(5,3) + nxyz_particle(3)*nxyz_particle(5)
-               xyz2(6,3) = xyz2(6,3) + nxyz_particle(3)*nxyz_particle(6)
-
-               xyz2(4,4) = xyz2(4,4) + nxyz_particle(4)*nxyz_particle(4)
-               xyz2(5,4) = xyz2(5,4) + nxyz_particle(4)*nxyz_particle(5)
-               xyz2(6,4) = xyz2(6,4) + nxyz_particle(4)*nxyz_particle(6)
-
-               xyz2(5,5) = xyz2(5,5) + nxyz_particle(5)*nxyz_particle(5)
-               xyz2(6,5) = xyz2(6,5) + nxyz_particle(5)*nxyz_particle(6)
-
-               xyz2(6,6) = xyz2(6,6) + nxyz_particle(6)*nxyz_particle(6)
-             endif
-         enddo ! END loop over particles (j)
-
-         if (fmt .eq. 7) then
-            !Flush
-            endfile (unit,iostat=ierro)
-            backspace (unit,iostat=ierro)
-+if cr
-            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
-         else if (fmt .eq. 8) then
-            !Flush
-            endfile (unit,iostat=ierro)
-            backspace (unit,iostat=ierro)
-+if cr
-            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
-         else if (fmt .eq. 9) then
-           !Normalize to get averages
-           xyz = xyz/napx
-
-           xyz2(:,1)  = xyz2(:,1) /napx
-           xyz2(2:,2) = xyz2(2:,2)/napx
-           xyz2(3:,3) = xyz2(3:,3)/napx
-           xyz2(4:,4) = xyz2(4:,4)/napx
-           xyz2(5:,5) = xyz2(5:,5)/napx
-           xyz2(6,6)  = xyz2(6,6) /napx
-
-           if ( lhighprec ) then
-            write(unit,1991) napx, nturn, localDcum,                    &
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-     &                                              xyz2(5,5),xyz2(6,5),&
-     &                                                        xyz2(6,6)
-           else
-            write(unit,1992) napx, nturn, localDcum,                    &
-     &           xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6),             &
-     &      xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-     &                xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-     &                          xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-     &                                    xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-     &                                              xyz2(5,5),xyz2(6,5),&
-     &                                                        xyz2(6,6)
-           endif
-           
-           !Flush
-           endfile (unit,iostat=ierro)
-           backspace (unit,iostat=ierro)
-+if cr
-           dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
-+ei
-         endif
-         
-      !Unrecognized format fmt
-      else
-         write (lout,*)                                                 &
-     & "DUMP> Format",fmt, "not understood for unit", unit
-         call prror(-1)
-      endif
-      return
-
- 1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
- 1982 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE16.9))  !fmt 0 / not hiprec
-
- 1983 format (2(1x,I8),1X,F12.5,5(1X,1PE25.18),1X,I8)  !fmt 1 / hiprec
- 1984 format (2(1x,I8),1X,F12.5,5(1X,1PE16.9),1X,I8)   !fmt 1 / not hiprec
-
- 1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2&7 / hiprec
- 1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2&7 / not hiprec
-
- 1989 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18))        !fmt 4 / hiprec
- 1990 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9))         !fmt 4 / not hiprec
-      
- 1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5&6 / hiprec
- 1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5&6 / not hiprec
-      
-      end subroutine dump_beam_population
 
 +dk tra_thck
 subroutine trauthck(nthinerr)
@@ -31510,7 +30338,8 @@ subroutine thck4d(nthinerr)
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
-
+      use dump, only : dump_linesFirst, dump_lines, ldumpfront
+      
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -31555,7 +30384,6 @@ subroutine thck4d(nthinerr)
 +ca bnlio
 +ei
 +ca comgetfields
-+ca dbdump
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -31658,7 +30486,7 @@ subroutine thck4d(nthinerr)
              call dynk_apply(n)
           endif
 
-+ca dumplines_first
+          call dump_linesFirst(n)
 
           do 480 i=1,iu
 +if bnlelens
@@ -32145,7 +30973,7 @@ subroutine thck4d(nthinerr)
   475     continue
 
       if (.not. ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
 
   480     continue
@@ -32194,7 +31022,9 @@ subroutine thck6d(nthinerr)
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
-
+      
+      use dump, only : dump_linesFirst, dump_lines, ldumpfront
+      
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -32243,7 +31073,6 @@ subroutine thck6d(nthinerr)
 !GRD-042008
 +ei
 +ca comgetfields
-+ca dbdump
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -32350,7 +31179,7 @@ subroutine thck6d(nthinerr)
              call dynk_apply(n)
           endif
 
-+ca dumplines_first
+          call dump_linesFirst(n)
 
 +if debug
 ! Now comes the loop over elements do 500/501
@@ -32944,7 +31773,7 @@ subroutine thck6d(nthinerr)
   495     continue
 
       if (.not. ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
 
 +if debug
@@ -33022,7 +31851,9 @@ subroutine thck6dua(nthinerr)
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
-
+      
+      use dump, only : dump_linesFirst, dump_lines, ldumpfront
+      
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -33067,7 +31898,6 @@ subroutine thck6dua(nthinerr)
 +ca bnlio
 +ei
 +ca comgetfields
-+ca dbdump
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
@@ -33177,7 +32007,7 @@ subroutine thck6dua(nthinerr)
              call dynk_apply(n)
           endif
 
-+ca dumplines_first
+          call dump_linesFirst(n)
 
           do 500 i=1,iu
 +if bnlelens
@@ -33732,7 +32562,7 @@ subroutine thck6dua(nthinerr)
   495     continue
 
       if (.not. ldumpfront) then
-+ca dumplines
+         call dump_lines(n,i,ix)
       endif
 
   500     continue
@@ -35210,6 +34040,8 @@ subroutine synuthck
 
       use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
      &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP
+
+      use dump, only : dump_comnul
       
       implicit none
       
@@ -35231,16 +34063,10 @@ subroutine synuthck
 
 +ca dbdcum
 
-+ca comgetfields !Contains parameters used in comdump and fma
-
-+ca dbdump
-+if cr
-+ca dbdumpcr
-+ei
-
 +ca elensparam
 +ca wireparam
 
++ca comgetfields
 +ca stringzerotrim
 +ca zipf
 
@@ -35827,32 +34653,6 @@ subroutine synuthck
 !     last modified: 03-09-2015
 !     initialise common
 !     always in main code
-      ldumphighprec = .false.
-      ldumpfront    = .false.
-
-      do i1=-1,nblz
-        do i2=1,6
-          dumpclo(i1,i2)=0
-          do i3=1,6
-            dumptas(i1,i2,i3)=0
-          end do
-        end do
-      end do
-
-      do i=-1,nele
-        ldump(i)    = .false.
-        ndumpt(i)   = 0
-        dumpfirst(i) = 0
-        dumplast(i)  = 0
-        dumpunit(i) = 0
-        dumpfmt(i)  = 0
-        do j=1,getfields_l_max_string
-           dump_fname(i)(j:j) = char(0)
-        end do
-+if cr
-        dumpfilepos(i) = -1
-+ei
-      end do
 
 !--FMA ANALYSIS---------------------------------------------------------
 !     M. Fitterer, FNAL
@@ -48165,6 +46965,8 @@ subroutine blocksv
       use dynk, only : ldynk, ldynkfiledisable,                         &
      &dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
+      use dump, only : dump_crcheck_readdata, dump_crcheck_positionFiles
+      
       use scatter, only : scatter_active, scatter_crcheck_readdata,     &
      &     scatter_crcheck_positionFiles
       
@@ -48192,8 +46994,6 @@ subroutine blocksv
 +ca crco
 +ca comgetfields
 +ca stringzerotrim      
-+ca dbdump
-+ca dbdumpcr
 +ca version
       integer i,j,k,l,m,ia
       integer lstring,myia,mybinrecs,binrecs94
@@ -48205,10 +47005,6 @@ subroutine blocksv
       
       logical lopen,lerror
 
-      !For skipping through binary DUMP files (format 3&8)
-      integer tmp_ID, tmp_nturn, tmp_ktrack
-      real(kind=fPrec) tmp_dcum, tmp_x,tmp_xp,                          &
-     &     tmp_y,tmp_yp,tmp_sigma,tmp_dEE
 
 +if boinc
       character(len=256) filename
@@ -48329,8 +47125,8 @@ subroutine blocksv
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
       flush(93)
-      read(95,err=100,end=100)                                          &
-     &     (dumpfilepos_cr(j),j=-1,nele)
+      call dump_crcheck_readdata(95,lerror)
+      if (lerror) goto 100
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
@@ -48494,8 +47290,8 @@ subroutine blocksv
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DUMP'
       flush(93)
-      read(96,err=100,end=100)                                          &
-     &     (dumpfilepos_cr(j),j=-1,nele)
+      call dump_crcheck_readdata(96,lerror)
+      if (lerror) goto 100
 
       if (ldynk) then
          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
@@ -48892,111 +47688,12 @@ subroutine blocksv
       !Reposition files for DUMP
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP files"
       flush(93)
-      do i=-1, il
-         if (ldump(i)) then
-            write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
-            if (i .gt. 0) then
-               write(93,*) "element=",bez(i), "unit=",dumpunit(i),      &
-     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//&
-     &              "' format=",dumpfmt(i)
-            else if (i.eq.0) then
-               write(93,*) "element=","ALL" , "unit=",dumpunit(i),      &
-     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//&
-     &              "' format=",dumpfmt(i)
-            else if(i .eq. -1) then
-               write(93,*) "element=","StartDump" , "unit=",dumpunit(i),&
-     &              " filename='"//trim(stringzerotrim(dump_fname(i)))//&
-     &              "' format=",dumpfmt(i)
-            else
-               write(93,*) "Error - index=",i,"is unknown"
-               goto 111
-            endif
-            flush(93)
-            
-            inquire( unit=dumpunit(i), opened=lopen )
-            if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
-               if ( .not. lopen ) then
-+if boinc
-                  call boincrf(dump_fname(i),filename)
-                  open(dumpunit(i),file=filename, status='old',
-     &                 form='formatted',action='readwrite')
-+ei
-+if .not.boinc
-                  open(dumpunit(i),file=dump_fname(i), status='old',    &
-     &                 form='formatted',action='readwrite')
-+ei
-               endif
-
-               dumpfilepos(i) = 0
-               do j=1,dumpfilepos_cr(i)
- 702              read(dumpunit(i),'(a1024)',                           &
-     &                 end=111,err=111,iostat=ierro)                    &
-     &                 arecord
-                  dumpfilepos(i) = dumpfilepos(i) + 1
-               end do
-
-            else                         ! BINARY (format = 3 & 8)
-               if ( .not. lopen ) then
-+if boinc
-                  call boincrf(dump_fname(i),filename)
-                  open(dumpunit(i),file=filename,status='old',
-     &                 form='unformatted',action='readwrite')
-+ei
-+if .not.boinc
-                  open(dumpunit(i),file=dump_fname(i),status='old',     &
-     &                 form='unformatted',action='readwrite')
-+ei
-               endif
-               dumpfilepos(i) = 0
-               do j=1,dumpfilepos_cr(i)
- 703              read(dumpunit(i),end=111,err=111,iostat=ierro)        &
-     &                 tmp_ID,tmp_nturn,tmp_dcum,                       &
-     &                 tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,     &
-     &                 tmp_ktrack
-                  dumpfilepos(i) = dumpfilepos(i) + 1
-               end do
-            endif
-
-         endif
-      end do
-      !Crop DUMP files (if used by multiple DUMPs,
-      ! the actual position is the sum of the dumpfileposes
-      do i=0, il
-         if (ldump(i)) then
-            !This is not a FLUSH!
-            endfile (dumpunit(i),iostat=ierro)
-            
-            ! Change from 'readwrite' to 'write'
-            close(dumpunit(i))
-            if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
-+if boinc
-               call boincrf(dump_fname(i),filename)
-               open(dumpunit(i),file=filename, status='old',            &
-     &             position='append', form='formatted',action='write')
-+ei
-+if .not.boinc
-               open(dumpunit(i),file=dump_fname(i), status='old',       &
-     &             position='append', form='formatted',action='write')
-+ei
-            else                      ! Binary (format = 3)
-+if boinc
-               call boincrf(dump_fname(i),filename)
-               open(dumpunit(i),file=filename, status='old',            &
-     &             position='append', form='unformatted',action='write')
-+ei
-+if .not.boinc
-               open(dumpunit(i),file=dump_fname(i), status='old',       &
-     &             position='append', form='unformatted',action='write')
-+ei
-            endif
-         endif
-      end do
-
+      call dump_crcheck_positionFiles
+      
       if(scatter_active) then
          write(93,*)                                                    &
      &        "SIXTRACR CRCHECK REPOSITIONING scatter_log.txt"
          flush(93)
-         
          call scatter_crcheck_positionFiles
          
       endif
@@ -49146,15 +47843,6 @@ subroutine blocksv
 !GRDRHIC
 !GRD-042008
 +ei
- 111  write(93,*)                                                       &
-     &'SIXTRACR CRCHECK *** ERROR ***'//                                &
-     &' reading DUMP file#', dumpunit(i),' iostat=',ierro
-      write(93,*)                                                       &
-     &'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
-      flush(93)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning DUMP file'
-      call prror(-1)
-
       end
 
       subroutine crpoint
@@ -49172,6 +47860,8 @@ subroutine blocksv
       use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
      &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
 
+      use dump, only : dump_crpoint
+      
       use scatter, only : scatter_active, scatter_crpoint
       
       implicit none
@@ -49191,7 +47881,6 @@ subroutine blocksv
 +ca commontr
 +ca commonc
 
-+ca dbdumpcr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -49394,8 +48083,10 @@ subroutine blocksv
 +if .not.debug
       endif
 +ei
-      write(95,err=100,iostat=ierro)                                    &
-     &     (dumpfilepos(j),j=-1,nele)
+      call dump_crpoint(95, lerror,ierro)
+      if (lerror) then
+         goto 100
+      endif
       
       if (ldynk) then
 +if .not.debug
@@ -49644,8 +48335,10 @@ subroutine blocksv
 +if .not.debug
       endif
 +ei
-      write(96,err=100,iostat=ierro)                                    &
-     &     (dumpfilepos(j),j=-1,nele)
+      call dump_crpoint(95, lerror,ierro)
+      if (lerror) then
+         goto 100
+      endif
 
       if (ldynk) then
 +if .not.debug

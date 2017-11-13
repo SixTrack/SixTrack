@@ -1,5 +1,5 @@
 fma.s90 sixtrack.s common_headers.s
 fman.f
-df naff,boinc,fio,crlibm,
+df naff,boinc,fio,crlibm,bignblz,hugenblz,bignpart,hugenpart
 e fma
 ex

@@ -145,14 +145,15 @@ contains
     use mathlib_bouncer
     use platofma
 
+    use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, &
+         dumptas, dumpclo, dumptasinv
+    
     !numbers (zero,one,two etc.)
     use numerical_constants, only : zero, one, c1e3
 
     implicit none
 +ca stringzerotrim
 +ca parpro
-+ca dbdump
-+ca dbdumpcr
 +ca commonta !normalisation matrix tasm -> remove later
 +ca common   !napx = number of particles 
 +ca commonc
