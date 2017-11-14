@@ -70,7 +70,7 @@
         INTEGER     ::   arank = 1      ! Attribure rank
         INTEGER(SIZE_T) :: attrlen      ! Length of the attribute string
 
-        CHARACTER*80 ::  attr_data      ! Attribute data
+        CHARACTER(80) ::  attr_data      ! Attribute data
         attr_data = "1=pid 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type"
         attrlen = 80
         h5dims=(/9,0/)

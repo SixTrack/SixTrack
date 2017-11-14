@@ -2919,7 +2919,7 @@ subroutine zipf
 +ca zipf
 +ca crcoall
 +if boinc
-      character*(stringzerotrim_maxlen) zipf_outfile_boinc
+      character(stringzerotrim_maxlen) zipf_outfile_boinc
       character(stringzerotrim_maxlen) zipf_filenames_boinc(zipf_maxfiles)
       integer ii
 +ei

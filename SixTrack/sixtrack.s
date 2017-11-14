@@ -1087,7 +1087,7 @@
       real(kind=fPrec) c_tilt(2)   !tilt in radian
       character(len=4) c_material  !material
 !
-      character*(nc) filen,tit
+      character(nc) filen,tit
 !
       real   xlow,xhigh,xplow,xphigh,dx,dxp
 !
@@ -1298,15 +1298,15 @@
       !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
       parameter (stringzerotrim_maxlen=getfields_l_max_string)
       
-      character(stringzerotrim_maxlen) stringzerotrim ! Define the function
+      character(len=stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd zipf
       integer zipf_maxfiles,zipf_numfiles
       parameter (zipf_maxfiles=256)
-      character(stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
-      character(stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
+      character(len=stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
+      character(len=stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
       
       common /zipfCom/ zipf_numfiles, zipf_outfile, zipf_filenames
 !
@@ -8670,13 +8670,13 @@ cc2008
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=20)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       data lineno /0/
@@ -9583,11 +9583,11 @@ cc2008
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       integer nofields
       parameter (nofields=20)
-      character*(nchars) fields(nofields)
+      character(len=nchars) fields(nofields)
       integer errno,nfields,nunit,lineno,maxf,nf
       real(kind=fPrec) fround
       data lineno /0/
@@ -10934,15 +10934,15 @@ cc2008
       character(len=60) ihead
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       logical beam_xstr
 +if crlibm
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,nf
       real(kind=fPrec) fround
 +ei
@@ -17283,8 +17283,8 @@ cc2008
       integer i,i0,i1,i2,i3,i4,iev,ii,j
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       save
 !-----------------------------------------------------------------------
 +if bnlelens
@@ -17698,8 +17698,8 @@ cc2008
       implicit none
 +ca crcoall
       integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
-      character*(*) chars
-      character*(*) fields(*)
+      character(len=*) chars
+      character(len=*) fields(*)
       character(len=999) localstr
 !     This routine splits the chars input into space separated
 !     fields, up to nfields maximum. It returns the no of
@@ -17788,7 +17788,7 @@ cc2008
       ! We maybe should use len(field(f)) here, like is done in splitfld...
       parameter (maxf=30)
       integer errno,f
-      character*(*) fields(*)
+      character(len=*) fields(*)
       real(kind=real64) round_near,value
       real(kind=real64) ftemp
       ftemp=round_near(errno,maxf,fields(f))
@@ -17807,7 +17807,7 @@ cc2008
 +ca crcoall
       integer nchars,nofields
       integer errno,nfields,f,l
-      character*(*) fields(*)
+      character(len=*) fields(*)
       character(len=999) localstr
       real(kind=fPrec) value
 
@@ -17831,7 +17831,7 @@ cc2008
       implicit none
 +ca crcoall
       integer errno,nunit,lineno,nfields,nf,lf,l
-      character* (*) chars
+      character(len=*) chars
       character(len=999) localstr
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
@@ -17866,7 +17866,7 @@ cc2008
       implicit none
 +ca crcoall
       real(kind=fPrec) x
-      character*(24) results
+      character(len=24) results
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e
@@ -18172,7 +18172,7 @@ cc2008
       implicit none
 +ca comgetfields
 +ca stringzerotrim
-      character(stringzerotrim_maxlen) instring
+      character(len=stringzerotrim_maxlen) instring
       intent(in) instring
       
       integer ii
@@ -22653,13 +22653,13 @@ cc2008
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       real(kind=fPrec) round_near
@@ -33496,13 +33496,13 @@ subroutine synuthck
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       real(kind=fPrec) round_near
@@ -45120,12 +45120,12 @@ subroutine blocksv
 +if crlibm
 !     integer nchars
 !     parameter (nchars=160)
-      character*(1601) ch1
+      character(len=1601) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=60)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       data lineno /0/
@@ -46068,7 +46068,7 @@ subroutine blocksv
 !     PRINT ROUTINE FOR PARAMETER ERRORS IN MATRIX SUBROUTINES $EQINV,
 !     $EQN, $INV (WHERE $ IS A LETTER SPECIFYING THE ARITHMETIC TYPE).
 !
-!     NAME         (CHARACTER*6) NAME OF THE CALLING ROUTINE.
+!     NAME         (CHARACTER(6)) NAME OF THE CALLING ROUTINE.
 !
 !     N,IDIM,K     PARAMETERS OF THE CALLING ROUTINE (WITH K=0 IF K IS
 !                  NOT TO BE PRINTED).
@@ -46807,15 +46807,15 @@ subroutine blocksv
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       integer errno,l1,l2
       integer dtostr
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
 !     integer errno,nfields,nunit,nf
       integer nfields,nunit,nf
       real(kind=fPrec) fround
@@ -46838,7 +46838,7 @@ subroutine blocksv
 +ei
 +if .not.fio
 +if .not.crlibm
-        read(54,*,end=10,err=20) myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j) !!! WTF?!? THIS IS GOING OVER THE END OF THE CHARACTER LIMIT !!!
+        read(54,*,end=10,err=20) myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j) !!! WTF?!? THIS IS GOING OVER THE END OF THE CHARACTER LIMIT !!! OH NOES !!!
 +ei
 +if crlibm
         read (54,'(A)',end=10) ch 
@@ -49103,7 +49103,7 @@ subroutine blocksv
 +ca version
 +ca errout
       integer i,lstring,j
-      character*(*) cstring
+      character(len=*) cstring
       character(len=256) filename
       real(kind=fPrec) sumda(60)
       logical fopen
@@ -49397,7 +49397,7 @@ subroutine blocksv
       integer nlines
       parameter (nlines=40)
       
-      character(1024) fileBuff (nlines)
+      character(len=1024) fileBuff (nlines)
       integer fileBuff_idx
       integer i,j
       integer printLines
@@ -49691,11 +49691,11 @@ subroutine blocksv
       subroutine warr(vname,value,i,j,k,l)
       use floatPrecision
       implicit none
-      character*(*) vname
+      character(len=*) vname
       real(kind=fPrec) value
       integer i,j,k,l
       integer ierro
-      character*(16) myname
+      character(len=16) myname
       myname=vname
       write(100) myname,value,i,j,k,l
       endfile (100,iostat=ierro)
@@ -49708,7 +49708,7 @@ subroutine blocksv
 +ca parpro
 +ca common
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,100) 'bl1 ',bl1
@@ -49724,7 +49724,7 @@ subroutine blocksv
 +ca common
       integer n,i
       integer j
-      character*(*) dumpname
+      character(len=*) dumpname
       character(len=10) mydump,myzfz
       save
       mydump=dumpname
@@ -49745,7 +49745,7 @@ subroutine blocksv
 +ca commonmn
 +ca commontr
       integer n,i,j,k
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
@@ -49774,7 +49774,7 @@ subroutine blocksv
 +ca rhicelens
 +ei
       integer n,i,j
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
@@ -49801,7 +49801,7 @@ subroutine blocksv
 +ca commons
 +ca commonmn
       integer n,i,j,l,m,k
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*) (aek(j),j=1,napxo)
@@ -49861,7 +49861,7 @@ subroutine blocksv
 +ca commontr
 +ca crco
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
@@ -50350,7 +50350,7 @@ subroutine blocksv
 +ca commontr
 +ca crco
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       character(len=10) mydump
       save
       mydump=dumpname
@@ -50842,7 +50842,7 @@ subroutine blocksv
 +ca commontr
 +ca crco
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables

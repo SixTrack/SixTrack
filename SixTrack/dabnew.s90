@@ -6959,8 +6959,8 @@
       integer i,lda,lea,lia,lno,lnv,lst
 +ca dabinc
       integer n
-      character*(*) dumpname
-      character(len=10) mydump
+      character(*) dumpname
+      character(10) mydump
       mydump=dumpname
       write(99) mydump,n,i
       write(99) cc
@@ -6973,10 +6973,10 @@
       integer i,lda,lea,lia,lno,lnv,lst
 +ca dabinc
       integer n
-      character*(*) vname
+      character(*) vname
       real(kind=fPrec) value
       integer j,k,l
-      character*(16) myname,ccname
+      character(16) myname,ccname
       myname=vname
       ccname='cc(50)'
       write(100) myname,value,i,j,k,l
