@@ -2079,8 +2079,24 @@
              enom_gev = myenom*1d-3
 
 !++  Allow primaries to be one-sided, if requested
-          if ((db_name1(icoll)(1:3).eq.'TCP' .or.                       &
-     &db_name1(icoll)(1:3).eq.'COL')                                    &
+!         A.Mereghetti, 2017-11-11
+!         generalise user interface for one-sided collimators
+             onesided=.false.
+             if (do_oneside) then
+                if (lDefSS) then
+                   if ((db_name1(icoll)(1:3).eq.'TCP' .or.              &
+     &                  db_name1(icoll)(1:3).eq.'COL')                                    &
+                   then
+                   onesided=.true.
+                else
+! get length of collimator name
+                   do i=1,24
+                      if (oneSidedCollName(i:i).eq.' ') exit
+                   enddo
+                   if(db_name1(icoll)(1:i).eq.oneSidedCollName(1:i))then&
+                   onesided=.true.
+                   endif
+             endif
      &.and. do_oneside) then
             onesided = .true.
           else
