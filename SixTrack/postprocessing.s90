@@ -2946,7 +2946,8 @@ subroutine zipf
 +ei
 
 +if .not.libarchive
-!     If not libarchive, the zipf subroutine shall just be a stub. And anyway daten should not accept the block, so this is somewhat redundant...
+      ! If not libarchive, the zipf subroutine shall just be a stub.
+      ! And anyway daten should not accept the block, so this is somewhat redundant.
       write(lout,'(a)') " *** No libArchive in this SixTrack *** "
 +ei
 

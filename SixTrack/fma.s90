@@ -175,7 +175,8 @@ contains
     integer, dimension(:),allocatable :: nturns ! Number of turns to analyze for this particle
     logical hasNormDumped(-1:nele)              ! Have we written a normDump file for this element before?
     integer fma_nturn (fma_max)                 ! Number of turns used for fft for this FMA
-    real(kind=fPrec), dimension(:,:,:),allocatable :: xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3], normalized phase space variables [sqrt(m) 1.e-3]
+    real(kind=fPrec), dimension(:,:,:),allocatable :: xyzv,nxyzv ! phase space (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3],
+                                                                 !   normalized phase space variables [sqrt(m) 1.e-3]
     real(kind=fPrec), dimension(:,:,:),allocatable :: epsnxyzv   ! normalized emittances
     integer :: dump_last_turn                                    ! auxiliary variable for loop over turns
 +if naff
@@ -385,7 +386,7 @@ contains
                    if(counter>500) then
                       call fma_error(ierro, &
                            "Something is wrong with your dumpfile '"//trim(stringzerotrim(dump_fname(j)))//&
-			   "'; found more than 500 header lines",&
+                           "'; found more than 500 header lines",&
                            'fma_postpr')
                    endif
                    counter=counter+1
@@ -523,7 +524,8 @@ contains
                       read(dumpunit(j),'(a)', iostat=ierro) ch
                       if(ierro.gt.0) then
                          call fma_error(ierro,'while reading  particles from file '//trim(stringzerotrim(dump_fname(j))) // &
-                              '. Check that tracked turns is larger than the number of turns used for FFT!', 'fma_postpr') !read error
+                              '. Check that tracked turns is larger than the number of turns used for FFT!', 'fma_postpr')
+                              ! read error
                       endif
                       call getfields_split(ch,filefields_fields,filefields_lfields,filefields_nfields,filefields_lerr)
                       ! error in getfields_split while reading
@@ -768,7 +770,9 @@ contains
                            ' not known! Note that the method name must be in capital letters!','fma_postpr')
                    end select
                    
-                   if(m.eq.3) q123(m)=one-q123(m) ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative, but define it as convention positive
+                   ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative,
+                   ! but define it as convention positive
+                   if(m.eq.3) q123(m)=one-q123(m)
                    
                    !Some general calculations
                    eps123_0(m)=epsnxyzv(l,1,m) ! initial amplitude
