@@ -1266,8 +1266,8 @@
       real(kind=fPrec) :: wire_dispx(nele),                             &
      &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
       real(kind=fPrec) :: wire_tiltx(nele),                             &
-     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition
-                                                ! as the DISP block
+     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90,
+                                                !  uses the same definition as the DISP block
       common /wireparamco/ wire_current,wire_lint,wire_lphys,           &
      &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
 +cd wiretracktmp
@@ -6224,8 +6224,9 @@ cc2008
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
             
-!    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common
-!    variables (dbdump) units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
+!     Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalization.
+!     Variable added to DUMP block module variables;
+!     units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
             if(ic(i)-nblo.gt.0) then !check if structure element is a block
               if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
                 dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
@@ -11350,9 +11351,10 @@ cc2008
       call enable_xp()
 +ei
       ! read fort.2 (or fort.3), idat -> bez = single element name,
-      ! kz = type of element, ed,ek,el = strength, random error on strenght,
-      ! length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam
-      ! parameters will be removed soon      read(ch1,*,round='nearest')                                       &
+      ! kz = type of element,
+      ! ed,ek,el = strength, random error on strenght, length (can be anything)
+      ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
+      read(ch1,*,round='nearest')                                       &
      & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +if crlibm
       call disable_xp()
@@ -11362,9 +11364,9 @@ cc2008
 +if .not.crlibm
 !     write (*,*) 'ERIC'
       ! read fort.2 (or fort.3), idat -> bez = single element name,
-      ! kz = type of element, ed,ek,el = strength, random error on strenght,
-      ! length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam
-      ! parameters will be removed soon
+      ! kz = type of element,
+      ! ed,ek,el = strength, random error on strenght, length (can be anything)
+      ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +ei
 +if crlibm
@@ -16980,8 +16982,8 @@ cc2008
             endif
             
          elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
-            ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
             if(partnum.gt.zero) then !Beams have same charge
+               ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
                write(lout,                                              &
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
