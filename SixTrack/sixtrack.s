@@ -35825,13 +35825,16 @@ subroutine blocksv
 !     last modified: 11-06-2014
 !     entirely re-initialise to 0.0 hv(...) and bl1v(...) arrays
 !     inserted in main code by the 'fluka' compilation flag
-      do 40 ia=1,npart
-        do 40 k=1,nblo
-          do 40 lkk=1,2
-            do 40 mkk=1,6
+      do ia=1,npart
+        do k=1,nblo
+          do lkk=1,2
+            do mkk=1,6
               hv(mkk,lkk,ia,k)=zero
               bl1v(mkk,lkk,ia,k)=zero
- 40   continue
+            end do
+          end do
+        end do
+      end do
 +ei
       do 440 k=1,mblo
         jm=mel(k)
@@ -35849,10 +35852,10 @@ subroutine blocksv
           end do
         end do
         if(jm.eq.1) goto 410
-        do 400 j=2,jm
+        do j=2,jm
           ikk=mtyp(k,j)
-          do 390 lkk=1,2
-            do 380 ia=1,napx
+          do lkk=1,2
+            do ia=1,napx
               dpoff=dpsv(ia)*c1e3
               if(abs(dpoff).le.pieni) dpoff=one
               hv(1,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(3,   &
@@ -35871,14 +35874,16 @@ subroutine blocksv
 !hr05&lkk,ia,j-1)*al(4,lkk,ia,ikk)+al(6,lkk,ia,ikk)/dpoff
               hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
-  380       continue
-  390     continue
-  400   continue
-  410   do 430 lkk=1,2
-          do 430 mkk=1,6
-            do 420 ia=1,napx
-  420       bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
-  430   continue
+            end do
+          end do
+        end do
+  410   do lkk=1,2
+          do mkk=1,6
+            do ia=1,napx
+              bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
+            end do
+          end do
+        end do
   440 continue
       end
 +dk block
@@ -39862,21 +39867,24 @@ subroutine blocksv
 ! --- calcul des X
    90   x(k)=b(k)/rho(n+k)
         if(k.eq.1)goto 120
-        do 110 i=2,k
+        do i=2,k
           kk=k-i+1
           x(kk)=b(kk)
           ki=kk+1
-          do 100 j=ki,k
-  100     x(kk)=x(kk)-a(kk,j)*x(j)
+          do j=ki,k
+            x(kk)=x(kk)-a(kk,j)*x(j)
+          end do
           x(kk)=x(kk)/rho(n+kk)
-  110   continue
+        end do
   120   continue
 
 ! --- save residual orbit and inverse sign of corrections (convention!)
-        do 130 iii= 1,m
-  130   r(iii) = b(iii)
-        do 140 iii= 1,k
-  140   x(iii) =-one*x(iii)                                              !hr06
+        do iii= 1,m
+          r(iii) = b(iii)
+        end do
+        do iii= 1,k
+          x(iii) =-one*x(iii)                                           !hr06
+        end do
 
 ! --- calcul du vecteur residuel dans HTRL
 !=========================================
