@@ -410,8 +410,7 @@
 +if vvector
 +if .not.datamods
       real(kind=fPrec) al,as,chi0,chid,dp1,dps,exz,sigm
-      common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),      &
-     &dps(mpa),idz(2)
+      common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),dps(mpa),idz(2)
 +ei
 +if datamods
       real(kind=fPrec) chi0,chid,dp1,dps,exz,sigm
@@ -421,8 +420,7 @@
 +ei
 +if .not.vvector
       real(kind=fPrec) a2,al,as,at,chi0,chid,dp1,dps,exz,sigm
-      common/syos/as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),         &
-     &al(6,2,2,nele),sigm(mpa),dps(mpa),idz(2)
+      common/syos/as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa),idz(2)
       common/anf/chi0,chid,exz(2,6),dp1,itra
 +ei
 +cd commont1
@@ -6103,8 +6101,8 @@ cc2008
       end do
       apold(1) = aper(1)
       apold(2) = aper(2)
-      apold(3) = sqrt(2.)*aper(1)
-      apold(4) = sqrt(2.)*aper(2)
+      apold(3) = sqrt(two)*aper(1)
+      apold(4) = sqrt(two)*aper(2)
       if ( ktrack(1).ne.1 ) then
          if ( kape(ic(1)-nblo).ne.0 ) then
 !        the first entry of the lattice sequence is a 
@@ -8634,8 +8632,7 @@ cc2008
 !-----------------------------------------------------------------------
           do 220 jcomp=0,jord
 !-----------------------------------------------------------------------
-            write(lout,10130)jcomp,jord-jcomp,hda(jcomp,jord,0,0),jcomp,
-     &jord-jcomp,ham(jcomp)
+            write(lout,10130)jcomp,jord-jcomp,hda(jcomp,jord,0,0),jcomp,jord-jcomp,ham(jcomp)
 !-----------------------------------------------------------------------
   220     continue
           write(lout,10140) jord-1,chib,jord-1,chia
@@ -9545,8 +9542,7 @@ cc2008
 !-----------------------------------------------------------------------
           do 190 jcomp=0,jord
 !-----------------------------------------------------------------------
-            write(lout,10130) jcomp,jord-jcomp,hda(jcomp,jord,0), jcomp,
-     &jord-jcomp,hama(jcomp)
+            write(lout,10130) jcomp, jord-jcomp, hda(jcomp,jord,0), jcomp, jord-jcomp, hama(jcomp)
 !-----------------------------------------------------------------------
   190     continue
           write(lout,10140) jord-1,chib,jord-1,chia
@@ -18253,7 +18249,7 @@ cc2008
 
 
 +dk ranecu
-      subroutine ranecu(rvec,len,mcut)
+subroutine ranecu(rvec,len,mcut)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -18302,9 +18298,10 @@ cc2008
       is1 = iseed1
       is2 = iseed2
       return
-      end
+end subroutine ranecu
+
 +dk envars
-      subroutine envars(j,dpp,rv)
+subroutine envars(j,dpp,rv)
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
@@ -18637,7 +18634,8 @@ cc2008
   220 continue
 +ei
       return
-      end
+end subroutine envars
+
 +dk envada
       subroutine envada
 !-----------------------------------------------------------------------
@@ -19115,7 +19113,7 @@ cc2008
       return
       end
 +dk runda
-      subroutine runda
+subroutine runda
 !-----------------------------------------------------------------------
 !  CENTRAL LOOP FOR NORMAL FORWARD-TRACKING
 !        SPECIALLY PREPARED FOR NEW D.A.
@@ -19124,6 +19122,7 @@ cc2008
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use physical_constants
       implicit none
 +ca crcoall
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
@@ -19449,10 +19448,8 @@ cc2008
           endif
           goto 480
    70     ix=ix-nblo
-          if(abs(dare(x(1))).gt.aint(aper(1)).or.                       &
-     &abs(dare(x(2))).gt.aint(aper(2))) then
-            write(lout,10000) j,numx,i,dare(x(1)),aper(1),dare(x(2)),
-     &aper(2),ix, kz(ix),bez(ix)
+          if(abs(dare(x(1))).gt.aint(aper(1)).or.abs(dare(x(2))).gt.aint(aper(2))) then
+            write(lout,10000) j,numx,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix, kz(ix),bez(ix)
             goto 520
           endif
           kpz=abs(kp(ix))
@@ -19472,8 +19469,7 @@ cc2008
             call dapri(sigmda,19)
             call dapri(dpda1,19)
             if(ncor.gt.0) then
-              write(lout,*) ' WARNING: in the 5*6 mode no extra ',
-     &'parameters allowed'
+              write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
             endif
             rewind 19
 !     DADAL AUTOMATIC INCLUSION
@@ -20215,7 +20211,7 @@ cc2008
      &,' of Computing Time')
 10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,      &
      &' second(s) of CPU Time'//131('-')//)
-      end
+end subroutine runda
 
 +dk umlau6
       subroutine umlauda
@@ -20734,10 +20730,8 @@ cc2008
 !     call abend('a50                                               ')
 !     endif
 +ei
-        if(abs(dare(x(1))).gt.aint(aper(1)).or.                         &
-     &abs(dare(x(2))).gt.aint(aper(2))) then
-          write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,&
-     &kz(ix),bez(ix)
+        if(abs(dare(x(1))).gt.aint(aper(1)).or. abs(dare(x(2))).gt.aint(aper(2))) then
+          write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,kz(ix),bez(ix)
           call prror(97)
         endif
         kpz=abs(kp(ix))
@@ -33950,13 +33944,13 @@ subroutine synuthck
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
       if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
         if(iclo6.eq.0) then
-          write(lout,10120) phag,
+          write(lout,10120) phag,                                       &
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
         else
-          write(lout,10130) phag,
+          write(lout,10130) phag,                                       &
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -33976,13 +33970,13 @@ subroutine synuthck
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
       if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
         if(iclo6.eq.0) then
-          write(lout,10180)
+          write(lout,10180)                                             &
      &qwc(1),clo(1),clop(1),                                            &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &qwc(2),clo(2),clop(2),                                            &
      &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
         else
-          write(lout,10190)
+          write(lout,10190)                                             &
      &qwc(1),clo6(1),clop6(1),                                          &
      &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
      &bet0x3,alf0x3,gam0x3,                                             &
@@ -34018,11 +34012,9 @@ subroutine synuthck
   100 continue
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       if(iclo6.eq.0) then
-        write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),
-     &iver, idfor,iclo6,ition
+        write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, idfor,iclo6,ition
       else
-        write(lout,10090) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),
-     &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
+        write(lout,10090) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
       endif
       if(idfor.eq.1.and.iclo6.ne.2) goto 110
       ejf(1)=e0f*(one+dps(1))
@@ -34032,8 +34024,7 @@ subroutine synuthck
       goto 120
   110 ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
       ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
-  120 write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x
-     &(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
+  120 write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
       write(lout,10010) amp,epsa
       write(lout,10170)
       if(e0.gt.pieni) then
@@ -34174,7 +34165,7 @@ subroutine synuthck
       end
 
 +dk comnul
-      subroutine comnul
+subroutine comnul
 !-----------------------------------------------------------------------
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
@@ -35014,9 +35005,9 @@ subroutine synuthck
 !
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine comnul
 
-      subroutine SELNUL( iel )
+subroutine SELNUL( iel )
 !-----------------------------------------------------------------------
 !     A.Mereghetti, 2016-03-14
 !     initialise a single element to empty
@@ -35115,9 +35106,9 @@ subroutine synuthck
       end do
       
       return
-      end subroutine
+end subroutine SELNUL
 
-      subroutine STRNUL( iel )
+subroutine STRNUL( iel )
 !-----------------------------------------------------------------------
 !     A.Mereghetti, 2016-03-14
 !     initialise an element in lattice structure to empty
@@ -35171,9 +35162,9 @@ subroutine synuthck
          enddo
       enddo
       return
-      end subroutine
+end subroutine STRNUL
 
-      integer function INEELS( iEl )
+integer function INEELS( iEl )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
 !     last modified: 01-12-2016
@@ -35200,8 +35191,7 @@ subroutine synuthck
       integer i,ii,iInsert
 
       if ( iu.gt.nblz-3) then
-         write(lout,*)'ERROR: not enough space for adding element '     &
-     &//'in lattice structure!'
+         write(lout,*)'ERROR: not enough space for adding element in lattice structure!'
          write(lout,*)'       please, increase nblz and recompile!'
          call prror(-1)
       end if
@@ -35243,9 +35233,9 @@ subroutine synuthck
       dcum(iInsert)=dcum(iInsert-1)
 !     return iu
       INEELS=iu
-      end function INEELS
+end function INEELS
 
-      integer function INEESE()
+integer function INEESE()
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
 !     last modified: 01-12-2016
@@ -35265,8 +35255,7 @@ subroutine synuthck
 
       il=il+1
       if ( il.gt.nele ) then
-         write(lout,*)'ERROR: not enough space for adding element '     &
-     &//'in list of SINGLE ELEMENTs!'
+         write(lout,*)'ERROR: not enough space for adding element in list of SINGLE ELEMENTs!'
          write(lout,*)'       please, increase nele and recompile!'
          call prror(-1)
       endif
@@ -35277,9 +35266,9 @@ subroutine synuthck
 !     returned variable
       INEESE=il
 
-      end function INEESE
+end function INEESE
 
-      integer function check_SE_unique( iEl, ixEl )
+integer function check_SE_unique( iEl, ixEl )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
 !     last modified: 01-12-2016
@@ -35319,10 +35308,10 @@ subroutine synuthck
 
       return
       
-      end function check_SE_unique
+end function check_SE_unique
 
 +dk umschr
-      subroutine umschr(iu1,iu2)
+subroutine umschr(iu1,iu2)
 !-----------------------------------------------------------------------
 !           UMSCHR    DIFFERENTIAL ALGEBRA 5 -> 6
 !                          AUGUST 1994
@@ -35371,12 +35360,10 @@ subroutine synuthck
           read(iu1,'(6X,2X,G20.14,I5)') c,ii
           if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
         else
-   20     read(iu1,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i  &
-     &=1,5)
+   20     read(iu1,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
           if(ii.eq.0) then
             if(j.eq.5.and.ioo.lt.2) then
-              write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') iio+1,one,1, &
-     &0,0,0,0,1,0
+              write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') iio+1,one,1, 0,0,0,0,1,0
               write(iu2,*) one
             endif
             goto 30
@@ -35386,12 +35373,10 @@ subroutine synuthck
           read(iu1,*) c1
           if(j.eq.5.and.(io.eq.2.or.jj(5).eq.1).and.iplus.eq.0) then
             iplus=1
-            write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,one,io,0,0, &
-     &0,0,1,0
+            write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,one,io,0,0,0,0,1,0
             write(iu2,*) one
           endif
-          write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj&
-     &(i),i=1,4),0,jj(5)
+          write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj(i),i=1,4),0,jj(5)
           write(iu2,*) c1
           goto 20
         endif
@@ -35400,16 +35385,15 @@ subroutine synuthck
       rewind iu1
       rewind iu2
       return
-      end
+end subroutine umschr
 
 +dk daliesix
-      subroutine daliesix
+subroutine daliesix
       use floatPrecision
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,&
-     &a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
+      integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
       real tlim,time0,time1,time
       real(kind=fPrec) angle,coe,rad,x2pi
 +ca parpro
@@ -35555,10 +35539,10 @@ subroutine synuthck
 10060 format(//131('-')//t10,20('O')/t10,2('O'),16x,2('O')/t10,         &
      &'OO  NORMAL FORMS  OO', /t10,2('O'),16x,2('O')/t10,20('O')//130(  &
      &'-')//)
-      end
+end subroutine daliesix
 
 +dk distance
-      subroutine distance(x,clo,di0,t,dam)
+subroutine distance(x,clo,di0,t,dam)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
@@ -35623,7 +35607,7 @@ subroutine synuthck
       dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi            !hr06
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine distance
 
 +dk anfb
       subroutine anfb(tas)
@@ -35705,9 +35689,7 @@ subroutine synuthck
         chi=chi+dchi
    50 continue
       write(lout,10000) itra,amp,chi0,chid
-      write(lout,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),     &
-     &x(2,1),
-     &y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
+      write(lout,10010) x(1,1), y(1,1), x(1,2), y(1,2), sigm(1), dps(1), x(2,1), y(2,1), x(2,2), y(2,2), sigm(2), dps(2)
       return
    60 itra=2
       do 80 i=1,itra
@@ -35720,9 +35702,7 @@ subroutine synuthck
    70   continue
    80 continue
       write(lout,10020)
-      write(lout,10010) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1),     &
-     &x(2,1),
-     &y(2,1),x(2,2),y(2,2),sigm(2),dps(2)
+      write(lout,10010) x(1,1), y(1,1), x(1,2), y(1,2), sigm(1), dps(1), x(2,1), y(2,1), x(2,2), y(2,2), sigm(2), dps(2)
 !-----------------------------------------------------------------------
       return
 10000 format(t5,'---- ENTRY ANFB ----/ITRA/',i3,' /AMP/ ',f8.3,2x,f8.3, &
