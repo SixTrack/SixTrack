@@ -1197,6 +1197,25 @@
       parameter ( eps_dcum = c1m6 )
 
       common /dcumdb/ dcum(0:nblz+1)
+
++cd   dbreaddis
+
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     COMMON for reading a beam distribution
+!     always in main code
+
+!     in case the DIST input block is issued, the beam distribution
+!       is read from a text file
+
+      logical dist_enable                    ! DIST input block given
+      logical dist_echo                      ! echo the read distribution?
+      character(len=16) dist_filename        !
+      integer dist_read_unit                 ! unit for reading the distribution
+      integer dist_echo_unit                 ! unit for echoing the distribution
+
+      common /readdisdb/ dist_filename, dist_echo, dist_enable,dist_read_unit, dist_echo_unit
+
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -10985,6 +11004,7 @@ cc2008
 +ca zipf
 +ca parbeam_exp
 +ca comApeInfo
++ca dbreaddis
 
       !Fluka related, might be best to lock to real64
       real(kind=fPrec) tmpamplfact, tmplen
@@ -11018,6 +11038,9 @@ cc2008
 !     - coupling:
       character(len=16) fluk
       data fluk /'FLUK'/
+!     - read particle distribution for FLUKA:
+      character(len=16) dist
+      data dist /'DIST'/
 
 +if crlibm
       real(kind=fPrec) round_near
@@ -16062,6 +16085,36 @@ cc2008
 
 +ei
       goto 1800
+
+!-----------------------------------------------------------------------
+!  READ INITIAL DISTRIBUTION
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!  last modified: 17-07-2013
+!  always in main code
+!-----------------------------------------------------------------------
+ 1900 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+
+      if(ch(1:1).eq.'/') goto 1900
+      if(ch(:4).eq.next) goto 110
+
+      lineno3=lineno3+1
+      ch1(:83)=ch(:80)//' / '
+
+!     keywords:
+      if(ch1(:4).eq.'ECHO') then
+        dist_echo = .true.
+      elseif(ch1(:4).eq.'RDUN') then
+        read(ch1,*) idat, dist_read_unit
+      elseif(ch1(:4).eq.'ECUN') then
+        read(ch1,*) idat, dist_echo_unit
+      elseif(ch1(:4).eq.'READ') then
+        read(ch1,*) idat, dist_filename
+        if(.not.dist_enable) dist_enable = .true.
+      endif
+
+      goto 1900
+
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
 !  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
@@ -22624,7 +22677,10 @@ cc2008
 +ca dbdcum
 +ca stringzerotrim
 +ca zipf
+
 +ca comApeInfo
++ca dbreaddis
+
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
      &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -23881,12 +23937,10 @@ cc2008
       if(fluka_enable) then
         fluka_con = fluka_is_running()
         if(fluka_con.eq.-1) then
-       write(lout,*) '[Fluka] Error: Fluka is expected to run but it is'
-       write(lout,*) '               NOT actually the case'
-          write(fluka_log_unit,*)                                       &
-     &                '# Fluka is expected to run but it is'
-          write(fluka_log_unit,*)                                       &
-     &                '               NOT actually the case'
+          write(lout,*) '[Fluka] Error: Fluka is expected to run but it is'
+           write(lout,*) '               NOT actually the case'
+          write(fluka_log_unit,*) '# Fluka is expected to run but it is'
+          write(fluka_log_unit,*) '               NOT actually the case'
           call prror(-1)
         endif
         write(lout,*) '[Fluka] Initializing FlukaIO interface...'
@@ -23898,8 +23952,7 @@ cc2008
           call prror(-1)
         endif
         write(lout,*) '[Fluka] Successfully connected to Fluka server'
-        write(fluka_log_unit,*)                                         &
-     &'# Successfully connected to Fluka server'
+        write(fluka_log_unit,*) '# Successfully connected to Fluka server'
         fluka_connected = .true.
       endif
 
@@ -23949,6 +24002,110 @@ cc2008
       end do
 
       rat0=rat
+
+
+!----- Initial distribution creation
+
+!     A.Mereghetti, for the FLUKA Team
+!     last modified: 14-06-2014
+!     acquisition of initial distribution moved out of loop
+!     always in main code
+
+      if ( idfor.eq.3 ) then
+!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!       last modified: 17-07-2013
+!       initialize particle distribution, read from file
+!       always in main code
+
+        if(.not. dist_enable) then
+          write(lout,*) 'idfor set to 3 but DIST block not present'
+          call prror(-1)
+        endif
+
+        e0f=sqrt(e0**2-pma**2)
+
+        call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) )
+
+!       finalise beam distribution creation
+        do j=1, napx
+!         values related to losses
+          nlostp(j) = j
+          pstop (j) = .false.
+
+!         values related to momentum
+          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
+          dpsv  (j) = (ejfv(j)-e0f)/e0f
+          oidpsv(j) = one/(one+dpsv(j))
+
+!         check existence of on-momentum particles in the distribution
+          if ( abs(dpsv(j)).lt.c1m15 .or.  abs( (ejv(j)-e0)/e0 ) .lt.c1m15 ) then
+
+!           warning with old infos:
+            write(lout,*)''
+            write(lout,'(5X,A22)') 'on-momentum particle!!'
+            write(lout,'(5X,10X,4(1X,A25))') "momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
+            write(lout,'(5X,"ORIGINAL: ",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+
+            ejfv(j)   = e0f
+            ejv(j)    = e0
+            dpsv(j)   = zero
+            oidpsv(j) = one
+
+!           warning with new infos:
+            write(lout,'(5X,"CORRECTED:",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+            write(lout,*)''
+          endif
+        end do
+
+!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!       last modified: 07-02-2014
+!       in principle there is no need to fill in the unused places:
+!       - nlostp(j) = j        with j=1,npart    filled in trauthin/trauthck
+!       - pstop (j) = .false.  with j=1,npart    filled in maincr
+!       - ejv   (j) = zero     with j=1,npart    filled in maincr
+!       - dpsv  (j) = zero     with j=1,npart    filled in maincr
+!       - oidpsv(j) = one      with j=1,npart    filled in maincr
+!       nevertheless, let's do it, to be fully sure:
+        do j=napx+1,npart
+!         values related to losses
+          nlostp(j) = j
+          pstop (j) = .true.
+!         values related to momentum
+          ejv   (j) = zero
+          dpsv  (j) = zero
+          oidpsv(j) = one
+        enddo
+
+!       add closed orbit
+        if(iclo6.eq.2) then
+          do j=1, napx
+            xv(1,j)=xv(1,j)+clo6v(1,j)
+            yv(1,j)=yv(1,j)+clop6v(1,j)
+            xv(2,j)=xv(2,j)+clo6v(2,j)
+            yv(2,j)=yv(2,j)+clop6v(2,j)
+            sigmv(j)=sigmv(j)+clo6v(3,j)
+            dpsv(j)=dpsv(j)+clop6v(3,j)
+            oidpsv(j)=one/(one+dpsv(j))
+          end do
+        end if
+
+!       echo
+        if ( dist_echo ) then
+           open(unit=dist_echo_unit)
+           rewind(dist_echo_unit)
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # total energy of synch part [MeV]: ", e0
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # momentum of synch part [MeV/c]: ", e0f
+           write(dist_echo_unit,*) '#'
+           write(dist_echo_unit,*) '# for every particle (j)'
+           write(dist_echo_unit,*) '# xv(1), yv(1), xv(2), yv(2), sigmv, ejfv'
+           do j = 1, napx
+             write(dist_echo_unit,'(6(1X,1PE25.18))') xv(1, j), yv(1, j), xv(2,j), yv(2,j), sigmv(j), ejfv(j)
+           end do
+           close(dist_echo_unit)
+        endif
+
+      endif
+
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
@@ -37867,6 +38024,162 @@ subroutine blocksv
 11050 format(t10,'THE INPUT ORDER OF MULTIPOLES IS LARGER THAN THE ',   &
      &'MAXIMUM ALLOWED ORDER MMUL: ',i4)
       end
+
++dk readdis
+subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 07-02-2014
+!     read a beam distribution
+!     always in main code
+!
+!     Format of the input file:
+!       id:         unique identifier of the particle (integer)
+!       gen:        parent ID (integer)
+!       weight:     statistical weight of the particle (double: >0.0)
+!       x,  y,  s:  particle position  [m]
+!       xp, yp, zp: particle direction (tangents) []
+!       aa, zz:     mass and atomic number
+!       m:          rest mass [GeV/c2]
+!       pc:         particle momentum [GeV/c]
+!       dt:         time delay with respect to the reference particle [s]
+!
+!     NOTA BENE:
+!     - id, gen and weight are assigned by the fluka_mod_init subroutine;
+!     - z and zp are actually useless (but we never know);
+!     - aa, zz and m are not stored at the moment (safer decision from the code
+!       point of view, until a decision about ion tracking is taken);
+!       the subroutine fluka_send is then responsible for using the corresponding
+!       values for protons through the interface, whereas the subroutine fluka_receive
+!       simply ignores the values passed through the FlukaIO interface;
+!
+!     variables in input to routine:
+!     - napx: number of protons to be tracked (from fort.3 file);
+!     - npart: max number of protons that can be tracked (array dimensioning);
+!     - enom: nominal total energy of the beam (ie of synch particle) [MeV];
+!     - pnom: nominal linear momentum of the beam (ie of synch particle) [MeV/c];
+!     - clight: speed of light [m/s];
+!     NB: in case the file contains less particle than napx, napx is
+!         re-assigned 
+!
+!     output variables:
+!       all other variables in the interface (6D tracking variables);
+!
+!-----------------------------------------------------------------------
+  use floatPrecision
+  use numerical_constants
+
+  implicit none
+
++ca crcoall
++ca dbreaddis
+
+! interface variables:
+  integer napx, npart
+  real(kind=fPrec) enom, pnom, clight
+  real(kind=fPrec) x, y, xp, yp, s, pc
+
+! temporary variables:
+  integer id, gen, aa, zz
+  real(kind=fPrec) weight, z, zp, m, dt
+  integer jj
+  character*240 tmp_line
+
+  character comment_char
+  parameter ( comment_char = '*' )
+
+  dimension x ( npart ), y ( npart )
+  dimension xp( npart ), yp( npart )
+  dimension s ( npart ), pc( npart )
+  dimension dt( npart )
+
+  write(lout,*) ''
+  write(lout,*) "Reading particles from ", dist_filename
+
+! initialise tracking variables:
+  do jj=1,npart
+    x (jj) = zero
+    y (jj) = zero
+    xp(jj) = zero
+    yp(jj) = zero
+    pc(jj) = zero
+    s (jj) = zero
+  end do
+
+! initialise particle counter
+  jj = 0
+
+  open( unit=dist_read_unit, file=dist_filename )
+
+! cycle on lines in file:
+1981 continue
+  read(dist_read_unit,'(A)',end=1983,err=1982) tmp_line
+  if( tmp_line(1:1).eq.comment_char ) goto 1981
+  jj = jj+1
+
+  if( jj.gt.npart ) then
+    write(lout,*) 'Error while reading particles'
+    write(lout,*) 'not enough memory for all particles in file'
+    write(lout,*) 'please increase the npart parameter and recompile'
+    write(lout,*) 'present value:', npart
+    jj = npart
+    goto 1984
+  else if( jj.gt.napx ) then
+    write(lout,*) ''
+    write(lout,*) 'Stopping reading file, as already ', napx
+    write(lout,*) ' particles have been read, as requested by the user'
+    write(lout,*) ' in fort.3 file'
+    write(lout,*) ''
+    jj = napx
+    goto 1983
+  end if
+
+  read( tmp_line, *, err=1982 ) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa, zz, m, pc(jj), dt(jj)
+  goto 1981
+
+! error while parsing file:
+1982 continue
+  write(lout,*) 'Error while reading particles at line:'
+  write(lout,*) tmp_line
+  goto 1984
+
+1983 continue
+  if( jj.eq.0 ) then
+    write(lout,*) 'Error while reading particles'
+    write(lout,*) 'no particles read from file'
+    goto 1984
+  end if
+
+  close(dist_read_unit)
+  write(lout,*) "Number of particles read = ", jj
+
+  if( jj.lt.napx ) then
+    write(lout,*) ''
+    write(lout,*) 'Warning: read a number of particles'
+    write(lout,*) '         LOWER than the one requested for tracking'
+    write(lout,*) '         requested:',napx
+    write(lout,*) ''
+    napx = jj
+  end if
+
+! fix units:
+  do jj=1,napx
+    x (jj) = x(jj)  * c1e3 ! [m]     -> [mm]
+    y (jj) = y(jj)  * c1e3 ! [m]     -> [mm]
+    xp(jj) = xp(jj) * c1e3 ! []      -> [1.0E-03]
+    yp(jj) = yp(jj) * c1e3 ! []      -> [1.0E-03]
+    pc(jj) = pc(jj) * c1e3 ! [GeV/c] -> [MeV/c]
+    s (jj) = -pnom/enom * dt(jj)*clight * c1e3
+  end do
+
+  return
+
+! exit with error
+1984 continue
+  close(dist_read_unit)
+  call prror(-1)
+  return
+end subroutine dist_readdis
 
 +dk cadcum
       subroutine cadcum
