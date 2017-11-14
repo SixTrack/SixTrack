@@ -8,8 +8,8 @@
       end
       subroutine boincrf(myname,filename)
       implicit none
-      character*(*) myname
-      character*256 filename 
+      character(*) myname
+      character(256) filename 
       filename=myname
       end
       subroutine boinc_finish(flag)
@@ -46,7 +46,7 @@
       subroutine boinc_zip(mode,zipfile,path,strl1,strl2)
       implicit none
       integer mode,strl1,strl2
-      character*(*) zipfile,path
+      character(*) zipfile,path
       end
       subroutine boinc_zipitall()
       implicit none

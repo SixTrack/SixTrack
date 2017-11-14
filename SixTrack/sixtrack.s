@@ -1087,7 +1087,7 @@
       real(kind=fPrec) c_tilt(2)   !tilt in radian
       character(len=4) c_material  !material
 !
-      character*(nc) filen,tit
+      character(nc) filen,tit
 !
       real   xlow,xhigh,xplow,xphigh,dx,dxp
 !
@@ -1266,7 +1266,8 @@
       real(kind=fPrec) :: wire_dispx(nele),                             &
      &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
       real(kind=fPrec) :: wire_tiltx(nele),                             &
-     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition as the DISP block
+     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90, uses the same definition
+                                                ! as the DISP block
       common /wireparamco/ wire_current,wire_lint,wire_lphys,           &
      &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
 +cd wiretracktmp
@@ -1317,15 +1318,15 @@
       !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
       parameter (stringzerotrim_maxlen=getfields_l_max_string)
       
-      character(stringzerotrim_maxlen) stringzerotrim ! Define the function
+      character(len=stringzerotrim_maxlen) stringzerotrim ! Define the function
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd zipf
       integer zipf_maxfiles,zipf_numfiles
       parameter (zipf_maxfiles=256)
-      character(stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
-      character(stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
+      character(len=stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
+      character(len=stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
       
       common /zipfCom/ zipf_numfiles, zipf_outfile, zipf_filenames
 !
@@ -6223,8 +6224,8 @@ cc2008
             call dapek(damap(ii),jj,au(i3,i3))
             jj(i3)=0
             
-!    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common variables (dbdump)
-!    units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
+!    store tas matrix (normalisation of phase space) and closed orbit for FMA analysis - variable added to DUMP block common
+!    variables (dbdump) units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
             if(ic(i)-nblo.gt.0) then !check if structure element is a block
               if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
                 dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
@@ -8689,13 +8690,13 @@ cc2008
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=20)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       data lineno /0/
@@ -9602,11 +9603,11 @@ cc2008
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       integer nofields
       parameter (nofields=20)
-      character*(nchars) fields(nofields)
+      character(len=nchars) fields(nofields)
       integer errno,nfields,nunit,lineno,maxf,nf
       real(kind=fPrec) fround
       data lineno /0/
@@ -10953,15 +10954,15 @@ cc2008
       character(len=60) ihead
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       logical beam_xstr
 +if crlibm
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,nf
       real(kind=fPrec) fround
 +ei
@@ -11348,8 +11349,11 @@ cc2008
 +if crlibm
       call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i) !read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
+      ! read fort.2 (or fort.3), idat -> bez = single element name,
+      ! kz = type of element, ed,ek,el = strength, random error on strenght,
+      ! length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam
+      ! parameters will be removed soon      read(ch1,*,round='nearest')                                       &
+     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +if crlibm
       call disable_xp()
 +ei
@@ -11357,7 +11361,11 @@ cc2008
 +if .not.fio
 +if .not.crlibm
 !     write (*,*) 'ERIC'
-      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)!read fort.2 (or fort.3), idat -> bez = single element name, kz = type of element, ed,ek,el = strength, random error on strenght,length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam parameters will be removed soon
+      ! read fort.2 (or fort.3), idat -> bez = single element name,
+      ! kz = type of element, ed,ek,el = strength, random error on strenght,
+      ! length (can be anything),bbbx,bbby,bbbs = beam-beam, beam-beam
+      ! parameters will be removed soon
+      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
 +ei
 +if crlibm
 !     write(*,*) 'eric'
@@ -16972,8 +16980,9 @@ cc2008
             endif
             
          elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
+            ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
             if(partnum.gt.zero) then !Beams have same charge
-               write(lout,                                              & ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+               write(lout,                                              &
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -16995,7 +17004,8 @@ cc2008
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
      &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
             else !Beams have opposite charge
-               write(lout,                                              & ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+               ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
+               write(lout,                                              &
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
      &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
      &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
@@ -17336,8 +17346,8 @@ cc2008
       integer i,i0,i1,i2,i3,i4,iev,ii,j
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       save
 !-----------------------------------------------------------------------
 +if bnlelens
@@ -17751,8 +17761,8 @@ cc2008
       implicit none
 +ca crcoall
       integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
-      character*(*) chars
-      character*(*) fields(*)
+      character(len=*) chars
+      character(len=*) fields(*)
       character(len=999) localstr
 !     This routine splits the chars input into space separated
 !     fields, up to nfields maximum. It returns the no of
@@ -17841,7 +17851,7 @@ cc2008
       ! We maybe should use len(field(f)) here, like is done in splitfld...
       parameter (maxf=30)
       integer errno,f
-      character*(*) fields(*)
+      character(len=*) fields(*)
       real(kind=real64) round_near,value
       real(kind=real64) ftemp
       ftemp=round_near(errno,maxf,fields(f))
@@ -17860,7 +17870,7 @@ cc2008
 +ca crcoall
       integer nchars,nofields
       integer errno,nfields,f,l
-      character*(*) fields(*)
+      character(len=*) fields(*)
       character(len=999) localstr
       real(kind=fPrec) value
 
@@ -17884,7 +17894,7 @@ cc2008
       implicit none
 +ca crcoall
       integer errno,nunit,lineno,nfields,nf,lf,l
-      character* (*) chars
+      character(len=*) chars
       character(len=999) localstr
       write (lout,10000)
       write (lout,*) 'Data Input Error (probably in subroutine daten)'
@@ -17919,7 +17929,7 @@ cc2008
       implicit none
 +ca crcoall
       real(kind=fPrec) x
-      character*(24) results
+      character(len=24) results
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e
@@ -18225,7 +18235,7 @@ cc2008
       implicit none
 +ca comgetfields
 +ca stringzerotrim
-      character(stringzerotrim_maxlen) instring
+      character(len=stringzerotrim_maxlen) instring
       intent(in) instring
       
       integer ii
@@ -22709,13 +22719,13 @@ cc2008
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       real(kind=fPrec) round_near
@@ -25912,8 +25922,10 @@ cc2008
         endif
         
         call dump_linesFirst(n)
-
-        do 630 i=1,iu !loop over structure elements, single element: name + type + parameter, structure element = order of single elements/blocks
+        
+        ! loop over structure elements, single element: name + type + parameter,
+        ! structure element = order of single elements/blocks
+        do 630 i=1,iu
 +if bnlelens
 +ca bnltwiss
 +ei
@@ -33653,13 +33665,13 @@ subroutine synuthck
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       real(kind=fPrec) round_near
@@ -35970,13 +35982,16 @@ subroutine blocksv
 !     last modified: 11-06-2014
 !     entirely re-initialise to 0.0 hv(...) and bl1v(...) arrays
 !     inserted in main code by the 'fluka' compilation flag
-      do 40 ia=1,npart
-        do 40 k=1,nblo
-          do 40 lkk=1,2
-            do 40 mkk=1,6
+      do ia=1,npart
+        do k=1,nblo
+          do lkk=1,2
+            do mkk=1,6
               hv(mkk,lkk,ia,k)=zero
               bl1v(mkk,lkk,ia,k)=zero
- 40   continue
+            end do
+          end do
+        end do
+      end do
 +ei
       do 440 k=1,mblo
         jm=mel(k)
@@ -35994,10 +36009,10 @@ subroutine blocksv
           end do
         end do
         if(jm.eq.1) goto 410
-        do 400 j=2,jm
+        do j=2,jm
           ikk=mtyp(k,j)
-          do 390 lkk=1,2
-            do 380 ia=1,napx
+          do lkk=1,2
+            do ia=1,napx
               dpoff=dpsv(ia)*c1e3
               if(abs(dpoff).le.pieni) dpoff=one
               hv(1,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(3,   &
@@ -36016,14 +36031,16 @@ subroutine blocksv
 !hr05&lkk,ia,j-1)*al(4,lkk,ia,ikk)+al(6,lkk,ia,ikk)/dpoff
               hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
      &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
-  380       continue
-  390     continue
-  400   continue
-  410   do 430 lkk=1,2
-          do 430 mkk=1,6
-            do 420 ia=1,napx
-  420       bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
-  430   continue
+            end do
+          end do
+        end do
+  410   do lkk=1,2
+          do mkk=1,6
+            do ia=1,napx
+              bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
+            end do
+          end do
+        end do
   440 continue
       end
 +dk block
@@ -40163,21 +40180,24 @@ end subroutine dist_readdis
 ! --- calcul des X
    90   x(k)=b(k)/rho(n+k)
         if(k.eq.1)goto 120
-        do 110 i=2,k
+        do i=2,k
           kk=k-i+1
           x(kk)=b(kk)
           ki=kk+1
-          do 100 j=ki,k
-  100     x(kk)=x(kk)-a(kk,j)*x(j)
+          do j=ki,k
+            x(kk)=x(kk)-a(kk,j)*x(j)
+          end do
           x(kk)=x(kk)/rho(n+kk)
-  110   continue
+        end do
   120   continue
 
 ! --- save residual orbit and inverse sign of corrections (convention!)
-        do 130 iii= 1,m
-  130   r(iii) = b(iii)
-        do 140 iii= 1,k
-  140   x(iii) =-one*x(iii)                                              !hr06
+        do iii= 1,m
+          r(iii) = b(iii)
+        end do
+        do iii= 1,k
+          x(iii) =-one*x(iii)                                           !hr06
+        end do
 
 ! --- calcul du vecteur residuel dans HTRL
 !=========================================
@@ -45433,12 +45453,12 @@ end subroutine dist_readdis
 +if crlibm
 !     integer nchars
 !     parameter (nchars=160)
-      character*(1601) ch1
+      character(len=1601) ch1
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=60)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       real(kind=fPrec) fround
       data lineno /0/
@@ -46381,7 +46401,7 @@ end subroutine dist_readdis
 !     PRINT ROUTINE FOR PARAMETER ERRORS IN MATRIX SUBROUTINES $EQINV,
 !     $EQN, $INV (WHERE $ IS A LETTER SPECIFYING THE ARITHMETIC TYPE).
 !
-!     NAME         (CHARACTER*6) NAME OF THE CALLING ROUTINE.
+!     NAME         (CHARACTER(6)) NAME OF THE CALLING ROUTINE.
 !
 !     N,IDIM,K     PARAMETERS OF THE CALLING ROUTINE (WITH K=0 IF K IS
 !                  NOT TO BE PRINTED).
@@ -47120,15 +47140,15 @@ end subroutine dist_readdis
 +if crlibm
       integer nchars
       parameter (nchars=160)
-      character*(nchars) ch
-      character*(nchars+nchars) ch1
+      character(len=nchars) ch
+      character(len=nchars+nchars) ch1
       integer errno,l1,l2
       integer dtostr
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
       parameter (maxf=30)
       parameter (nofields=41)
-      character*(maxf) fields(nofields)
+      character(len=maxf) fields(nofields)
 !     integer errno,nfields,nunit,nf
       integer nfields,nunit,nf
       real(kind=fPrec) fround
@@ -47151,7 +47171,8 @@ end subroutine dist_readdis
 +ei
 +if .not.fio
 +if .not.crlibm
-        read(54,*,end=10,err=20) myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j) !!! WTF?!? THIS IS GOING OVER THE END OF THE CHARACTER LIMIT !!!
+        read(54,*,end=10,err=20)                                        &
+       &myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j)
 +ei
 +if crlibm
         read (54,'(A)',end=10) ch 
@@ -49416,7 +49437,7 @@ end subroutine dist_readdis
 +ca version
 +ca errout
       integer i,lstring,j
-      character*(*) cstring
+      character(len=*) cstring
       character(len=256) filename
       real(kind=fPrec) sumda(60)
       logical fopen
@@ -49710,7 +49731,7 @@ end subroutine dist_readdis
       integer nlines
       parameter (nlines=40)
       
-      character(1024) fileBuff (nlines)
+      character(len=1024) fileBuff (nlines)
       integer fileBuff_idx
       integer i,j
       integer printLines
@@ -50004,11 +50025,11 @@ end subroutine dist_readdis
       subroutine warr(vname,value,i,j,k,l)
       use floatPrecision
       implicit none
-      character*(*) vname
+      character(len=*) vname
       real(kind=fPrec) value
       integer i,j,k,l
       integer ierro
-      character*(16) myname
+      character(len=16) myname
       myname=vname
       write(100) myname,value,i,j,k,l
       endfile (100,iostat=ierro)
@@ -50021,7 +50042,7 @@ end subroutine dist_readdis
 +ca parpro
 +ca common
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,100) 'bl1 ',bl1
@@ -50037,7 +50058,7 @@ end subroutine dist_readdis
 +ca common
       integer n,i
       integer j
-      character*(*) dumpname
+      character(len=*) dumpname
       character(len=10) mydump,myzfz
       save
       mydump=dumpname
@@ -50058,7 +50079,7 @@ end subroutine dist_readdis
 +ca commonmn
 +ca commontr
       integer n,i,j,k
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
@@ -50087,7 +50108,7 @@ end subroutine dist_readdis
 +ca rhicelens
 +ei
       integer n,i,j
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*)                                                       &
@@ -50114,7 +50135,7 @@ end subroutine dist_readdis
 +ca commons
 +ca commonmn
       integer n,i,j,l,m,k
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
       write(99,*) (aek(j),j=1,napxo)
@@ -50174,7 +50195,7 @@ end subroutine dist_readdis
 +ca commontr
 +ca crco
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables
@@ -50663,7 +50684,7 @@ end subroutine dist_readdis
 +ca commontr
 +ca crco
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       character(len=10) mydump
       save
       mydump=dumpname
@@ -51155,7 +51176,7 @@ end subroutine dist_readdis
 +ca commontr
 +ca crco
       integer n,i
-      character*(*) dumpname
+      character(len=*) dumpname
       save
       write(99,*) dumpname,'   Turn ',n,' Element ',i
 !     my cr variables

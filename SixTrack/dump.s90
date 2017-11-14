@@ -575,7 +575,8 @@ contains
      &   '<py^2> <py*sigma> <py*psigma> '//                             &
      &   '<sigma^2> <sigma*psigma> '//                                  &
      &   '<psigma^2>'
-             else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then !Normalized ASCII dump -> extra headers with matrices and closed orbit
+             else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then
+                 ! Normalized ASCII dump -> extra headers with matrices and closed orbit
                  if ( dumpfmt(i).eq.7 ) then ! FORMAT 7
                      write(dumpunit(i),'(a)')                           &
      &  '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '//        &

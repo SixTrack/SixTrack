@@ -835,7 +835,7 @@
       character sbcomm * (mline), sncomm * (mtab), sddeck * (mtab),
      +sudeck * (mtab)
 *---------*---------*---------*---------*---------*---------*---------*-
-      character*(mline)  sline
+      character(len=mline)  sline
  
       if(nlcomm.eq.mxlcom)  then
          call errms1(' ++++++ FATAL ERROR - execution terminated',sline)
