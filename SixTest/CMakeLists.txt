@@ -50,6 +50,7 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
+  collimation_k2_fcc_2017_h1_collision
   )
 
 if(NOT COLLIMAT)
@@ -150,6 +151,19 @@ if(NOT COLLIMAT)
         )
 
 endif(NOT COLLIMAT)
+
+#Collimation tests (needs backtrk)
+#use extra checks on fort.999 and other collimation loss files
+if(COLLIMAT AND BACKTRK)
+    if(BIGNBLZ OR HUGENBLZ)
+        if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+                SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+        endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+#        if(NOT FLUKA OR NOT G4COLLIMAT)
+#                SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+#        endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+    endif(BIGNBLZ OR HUGENBLZ)
+endif(COLLIMAT AND BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
@@ -342,6 +356,7 @@ SET(MEDIUM_TESTS
   bbe51
   bbe52
   javier_bignpart
+  collimation_k2_fcc_2017_h1_collision
   )
 
 #Slow is everything longer
