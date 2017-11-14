@@ -693,11 +693,6 @@
      &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
      &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
      &dowritetracks,cern,do_nsig,do_mingap
-!     A.Mereghetti, 2017-11-11
-!     generalise user interface for one-sided collimators
-      character*24 oneSidedCollName
-      logical lDefSS,lPosSS
-
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -15576,9 +15571,6 @@ cc2008
 +ei ! END +if .not.collimat
 
 +if collimat
-      do i=1,24
-         oneSidedCollName(i:i)=' '
-      enddo
 !APRIL2005
 +if fio
       if(iclr.eq.1) read(ch1,*,round='nearest')                         &
@@ -15705,45 +15697,8 @@ cc2008
 +if .not.fio
       if(iclr.eq.10) read(ch1,*) do_select,do_nominal,                  &
 +ei
-     &rnd_seed,dowrite_dist,name_sel,oneSidedCollName,                  &
+     &rnd_seed,dowrite_dist,name_sel,do_oneside,                        &
      &dowrite_impact,dowrite_secondary,dowrite_amplitude
-!     by default: no one-sided collimation      
-      do_oneside=.FALSE.
-      lDefSS=.TRUE.
-      lPosSS=.TRUE.
-      if (oneSidedCollName(1:6).eq.'.TRUE.') then
-         do_oneside=.TRUE.
-      elseif (oneSidedCollName(1:7).ne.'.FALSE.') then
-!        the user has input the name of a collimator
-         do_oneside=.TRUE.
-         lDefSS=.FALSE.
-         do i=1,21
-            if (oneSidedCollName(i:i+2).eq.'__P' ) then
-!              name of collimator + request of positive side
-               exit
-            elseif (oneSidedCollName(i:i+2).eq.'__N' ) then
-!              name of collimator + request of negative side
-               lPosSS=.FALSE.
-               exit
-            elseif (oneSidedCollName(i:i).eq.' ' ) then
-!              name of collimator + positive side by default
-               exit
-            endif
-            if (oneSidedCollName(i:i).ne.' '.and.
-     &          oneSidedCollName(i:i).ne.'_') then
-               write(lout,*) ""
-               write(lout,*) "Could not correctly parse trigger of"
-               write(lout,*) "   single-sided collimation in fort.3:"
-               write(lout,*) "   ",oneSidedCollName
-               write(lout,*) ""
-               call prror(-1)
-            else
-               do j=i,24
-                  oneSidedCollName(j:j)=' '
-               enddo
-            endif
-         enddo
-      endif
 +if fio
       if(iclr.eq.11) read(ch1,*,round='nearest')                        &
      & xbeat,xbeatphase,ybeat,                                          &
