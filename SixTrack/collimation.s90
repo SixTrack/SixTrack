@@ -5845,10 +5845,6 @@ subroutine soln3(a,b,dh,smax,s)
 
   implicit none
 
-+if crlibm
-+ca crlibco
-+ei
-
   real(kind=fPrec) b,a,s,smax,c,dh
   if(b.eq.0.d0) then
     s=a**0.6666666666666667d0
@@ -5897,9 +5893,6 @@ subroutine iterat(a,b,dh,s)
   use floatPrecision
   use mathlib_bouncer
   implicit none
-+if crlibm
-+ca crlibco
-+ei
   real(kind=fPrec) ds,s,a,b,dh
 
   ds=s
@@ -6615,9 +6608,6 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   implicit none
 
 +ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 +ca collpara
 +ca dbmkdist
 
