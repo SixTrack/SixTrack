@@ -28566,7 +28566,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
                     xnew(1) = xlos(1,j)
                     xnew(2) = xlos(2,j)
                  end if
-                 if ( kapert.eq.2 ) then
+                 if ( kapert.eq.1 ) then
+!                   Circle
+                    radius2 = aprr(1)**2
+                    llos(j)=checkCR(xnew(1),xnew(2),radius2) .or.       &
+     &                  myisnan(xnew(1),xnew(1)).or.                    &
+     &                  myisnan(xnew(2),xnew(2))
+                 else if ( kapert.eq.2 ) then
 !                    Rectangle
               llos(j)=checkRE(xnew(1),xnew(2),aprr(1),aprr(2))          &
      &  .or.myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
@@ -28601,12 +28607,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 !                   NB: it follows the MadX definition
                     llos(j) = checkRT( xnew(1), xnew(2),                &
      &                     aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or.&
-     &                  myisnan(xnew(1),xnew(1)).or.                    &
-     &                  myisnan(xnew(2),xnew(2))
-                 else if ( kapert.eq.7 ) then
-!                   Circle
-                    radius2 = aprr(1)**2
-                    llos(j)=checkCR(xnew(1),xnew(2),radius2) .or.       &
      &                  myisnan(xnew(1),xnew(1)).or.                    &
      &                  myisnan(xnew(2),xnew(2))
                  end if
