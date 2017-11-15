@@ -11276,6 +11276,9 @@ cc2008
 !     - coupling:
       if(idat.eq.fluk) goto 1800
 
+!     - read particle distribution:
+      if(idat.eq.dist) goto 1900
+
       if(idat.eq."DUMP") goto 2000 !Hard-coded name, as variable name "dump" conflicted with module name
       if(idat.eq."DYNK") goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
