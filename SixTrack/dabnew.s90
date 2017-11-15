@@ -221,14 +221,14 @@
 !
 !-----------------------------------------------------------------------------1
 !
-      subroutine daini(no,nv,iunit)
+subroutine daini(no,nv,iunit)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
-+ca parnum
 +ca crcoall
-      integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,     &
-     &jjjj,jl,js,k,lda,lea,lia,lno,lnv,lst,n,nn,no,nv
+      integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,lda,lea,lia,lno,lnv,lst,n,nn,no,nv
       integer iall(1)
 !     *****************************
 !
@@ -474,9 +474,10 @@
       end do
 
       return
-      end
+end subroutine daini
+
 +dk daexter
-      subroutine daexter
+subroutine daexter
       use floatPrecision
       implicit none
       integer i,lda,lea,lia,lno,lnv,lst
@@ -492,10 +493,10 @@
       end do
 
       return
-      end
+end subroutine daexter
 
 +dk dallsta
-      subroutine dallsta(ldanow)
+subroutine dallsta(ldanow)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -516,7 +517,7 @@
       write(lout,*) ' ALLOCATED ',ldanow
 
       return
-      end
+end subroutine dallsta
 
 !
 ! EXAMPLE: ARRAYS I1 THROUGH I20, IE1,IE2,IEO (NOMAX=3,NVMAX=4)
@@ -576,11 +577,11 @@
 !   12        10        34   NOMAX = 3,  NVMAX = 4, NMMAX = 35
 !
 +dk daallno
-      subroutine daallno(ic,l,ccc)
+subroutine daallno(ic,l,ccc)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
       real(kind=fPrec) x
@@ -682,13 +683,14 @@
       if(nda.gt.ndamaxi) ndamaxi=nda
 
       return
-      end
+end subroutine daallno
+
 +dk daall
-      subroutine daall(ic,l,ccc,no,nv)
+subroutine daall(ic,l,ccc,no,nv)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
       real(kind=fPrec) x
@@ -793,10 +795,10 @@
       if(nda.gt.ndamaxi) ndamaxi=nda
 
       return
-      end
+end subroutine daall
 
 +dk dadal
-      subroutine dadal(idal,l)
+subroutine dadal(idal,l)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -841,14 +843,14 @@
   10  continue
 
       return
-      end
+end subroutine dadal
 
 +dk davar
-      subroutine davar(ina,ckon,i)
+subroutine davar(ina,ckon,i)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ibase,ic1,ic2,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia, &
      &lno,lnv,lst
@@ -907,10 +909,10 @@
       endif
 
       return
-      end
+end subroutine davar
 
 +dk dacon
-      subroutine dacon(ina,ckon)
+subroutine dacon(ina,ckon)
       use floatPrecision
       implicit none
       integer illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
@@ -938,10 +940,10 @@
       if(abs(ckon).lt.eps) idall(ina) = 0
 
       return
-      end
+end subroutine dacon
 
 +dk danot
-      subroutine danot(not)
+subroutine danot(not)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -965,14 +967,14 @@
 +ei
 
       return
-      end
+end subroutine danot
 
 +dk getdanot
-      subroutine getdanot(not)
+subroutine getdanot(not)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer lda,lea,lia,lno,lnv,lst,not
 !     *********************
@@ -990,13 +992,13 @@
       not=nocut
 
       return
-      end
+end subroutine getdanot
 
 +dk daeps
-      subroutine daeps(deps)
+subroutine daeps(deps)
       use floatPrecision
+      use numerical_constants
       implicit none
-+ca parnum
       integer lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) deps
 !     **********************
@@ -1013,14 +1015,14 @@
       endif
 
       return
-      end
+end subroutine daeps
 
 +dk dapek
-      subroutine dapek(ina,jj,cjj)
+subroutine dapek(ina,jj,cjj)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ibase,ic,ic1,ic2,icu,icz,ii1,ikk,illa,ilma,ina,         &
      &inoa,inva,ipek,ipoa,iu,iz,jj,jj1,lda,lea,lia,lno,lnv,lst,mchk
@@ -1187,14 +1189,14 @@
  40   iz = i
       goto 10
 
-      end
+end subroutine dapek
 
 +dk dapok
-      subroutine dapok(ina,jj,cjj)
+subroutine dapok(ina,jj,cjj)
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ic,ic1,ic2,icu,icz,ii,illa,ilma,ina,inoa,inva,          &
      &ipoa,ipok,iu,iz,jj,jj1,lda,lea,lia,lno,lnv,lst,mchk
@@ -1388,13 +1390,13 @@
       endif
       return
 
-      end
+end subroutine dapok
 
 +dk daclr
-      subroutine daclr(inc)
+subroutine daclr(inc)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,illc,ilmc,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
 !     *********************
 !
@@ -1411,14 +1413,14 @@
       end do
 
       return
-      end
+end subroutine daclr
 
 +dk dacop
-      subroutine dacop(ina,inb)
+subroutine dacop(ina,inb)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer ia,ib,iif,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,&
      &ipoa,ipob,lda,lea,lia,lno,lnv,lst
@@ -1484,14 +1486,14 @@
       endif
 
       return
-      end
+end subroutine dacop
 
 +dk datrashn
-      subroutine datrashn(idif,ina,inbb)
+subroutine datrashn(idif,ina,inbb)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ia,idif,illa,ilma,ina,inbb,inoa,inva,ipoa,lda,lea,      &
      &lia,lno,lnv,lst
@@ -1542,13 +1544,13 @@
       endif
 
       return
-      end
-!
+end subroutine datrashn
+
 +dk daadd
-      subroutine daadd(ina,inb,inc)
+subroutine daadd(ina,inb,inc)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer idaadd(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
 !     *****************************
 !
@@ -1567,13 +1569,13 @@
       endif
 
       return
-      end
+end subroutine daadd
 
 +dk dasub
-      subroutine dasub(ina,inb,inc)
+subroutine dasub(ina,inb,inc)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer idasub(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
 !     *****************************
 !
@@ -1592,10 +1594,10 @@
       endif
 
       return
-      end
+end subroutine dasub
 
 +dk damulin
-      subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
+subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
       use floatPrecision
       implicit none
       integer ina,inb,inc,incc(1),ind,ine,inoc,invc,lda,lea,lia,lno,lnv,lst
@@ -1616,11 +1618,11 @@
       call dadal(incc(1),1)
 
       return
-      end
+end subroutine damulin
 
 ! ANFANG UNTERPROGRAMM
 +dk daexx
-      subroutine daexx(ina,inb,inc)
+subroutine daexx(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1650,11 +1652,11 @@
       endif
 
       return
-      end
+end subroutine daexx
 
 ! ANFANG UNTERPROGRAMM
 +dk daexxt
-      subroutine daexxt(ina,inb,inc)
+subroutine daexxt(ina,inb,inc)
       use floatPrecision
       implicit none
       integer idaexx(1),illa,illb,illc,ilma,ilmb,ilmc,ina,inb,inc,inoa, &
@@ -1678,11 +1680,11 @@
       call dadal(idaexx(1),1)
 
       return
-      end
+end subroutine daexxt
 
 ! ANFANG UNTERPROGRAMM
 +dk dacex
-      subroutine dacex(ina,ckon,inb)
+subroutine dacex(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1709,9 +1711,10 @@
       endif
 
       return
-      end
+end subroutine dacex
+
 +dk dacext
-      subroutine dacext(ina,ckon,inb)
+subroutine dacext(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1742,10 +1745,10 @@
       call dadal(idacex(1),1)
 
       return
-      end
+end subroutine dacext
 
 +dk daexc
-      subroutine daexc(ina,ckon,inb)
+subroutine daexc(ina,ckon,inb)
       use floatPrecision
       implicit none
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
@@ -1771,14 +1774,14 @@
       endif
 
       return
-      end
+end subroutine daexc
 
 +dk daexct
-      subroutine daexct(ina,ckon,inb)
+subroutine daexct(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +if cr
 +ca crcoall
 +ei
@@ -1819,10 +1822,10 @@
       call dadal(idaexc(1),1)
 
       return
-      end
+end subroutine daexct
 
 +dk damul
-      subroutine damul(ina,inb,inc)
+subroutine damul(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1854,14 +1857,14 @@
       endif
 
       return
-      end
+end subroutine damul
 
 +dk damult
-      subroutine damult(ina,inb,inc)
+subroutine damult(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +if cr
 +ca crcoall
 +ei
@@ -1957,10 +1960,10 @@
       call dapac(inc)
 
       return
-      end
+end subroutine damult
 
 +dk dadiv
-      subroutine dadiv(ina,inb,inc)
+subroutine dadiv(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1981,10 +1984,10 @@
       call dadal(idadiv(1),1)
 
       return
-      end
+end subroutine dadiv
 
 +dk dasqr
-      subroutine dasqr(ina,inc)
+subroutine dasqr(ina,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2011,13 +2014,14 @@
       endif
 
       return
-      end
+end subroutine dasqr
+
 +dk dasqrt
-      subroutine dasqrt(ina,inc)
+subroutine dasqrt(ina,inc)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,i1ia,i2ia,ia,ib,ib1,ic,illa,illc,ilma,ilmc,ina,inc,inoa,&
      &inoc,inva,invc,ioffa,ioffb,ipno,ipoa,ipoc,ipos,lda,lea,lia,lno,   &
@@ -2134,10 +2138,10 @@
       call dapac(inc)
 
       return
-      end
+end subroutine dasqrt
 
 +dk dacad
-      subroutine dacad(ina,ckon,inb)
+subroutine dacad(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2169,10 +2173,10 @@
       call dapok(inb,jj,const+ckon)
 
       return
-      end
+end subroutine dacad
 
 +dk dacsu
-      subroutine dacsu(ina,ckon,inb)
+subroutine dacsu(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2284,11 +2288,11 @@
       end
 
 +dk dasuc
-      subroutine dasuc(ina,ckon,inb)
+subroutine dasuc(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +if cr
 +ca crcoall
 +ei
@@ -2311,7 +2315,7 @@
       end
 
 +dk dacmu
-      subroutine dacmu(ina,ckon,inc)
+subroutine dacmu(ina,ckon,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2357,11 +2361,11 @@
       end
 
 +dk dacmut
-      subroutine dacmut(ina,ckon,inb)
+subroutine dacmut(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst,minv
       real(kind=fPrec) ckon
@@ -2440,11 +2444,11 @@
       end
 
 +dk dacdi
-      subroutine dacdi(ina,ckon,inb)
+subroutine dacdi(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon
@@ -2469,11 +2473,11 @@
       end
 
 +dk dadic
-      subroutine dadic(ina,ckon,inc)
+subroutine dadic(ina,ckon,inc)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer idadic(1),illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon
@@ -2508,11 +2512,11 @@
       end
 
 +dk dacma
-      subroutine dacma(ina,inb,bfac,inc)
+subroutine dacma(ina,inb,bfac,inc)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +if cr
 +ca crcoall
 +ei
@@ -2538,7 +2542,7 @@
       end
 
 +dk dalin
-      subroutine dalin(ina,afac,inb,bfac,inc)
+subroutine dalin(ina,afac,inb,bfac,inc)
       use floatPrecision
       implicit none
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
@@ -2566,11 +2570,11 @@
       end
 
 +dk dalint
-      subroutine dalint(ina,afac,inb,bfac,inc)
+subroutine dalint(ina,afac,inb,bfac,inc)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ia,iamax,ib,ibmax,ic,icmax,illa,illb,illc,ilma,ilmb,    &
      &ilmc,ina,inb,inc,inoa,inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,is, &
@@ -2734,7 +2738,7 @@
       end
 
 +dk dafun
-      subroutine dafun(cf,ina,inc)
+subroutine dafun(cf,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2787,9 +2791,10 @@
       end
 
 +dk dafunt
-      subroutine dafunt(cf,ina,inc)
+subroutine dafunt(cf,ina,inc)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
 +ca crcoall
       integer i,illa,illc,ilma,ilmc,ina,inc,ind,inoa,inoc,inon(1),inva, &
@@ -2807,7 +2812,6 @@
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-+ca parnum
 
       character(len=4) cf,cfh
       character(len=26) abcs,abcc
@@ -3323,10 +3327,10 @@
       end
 
 +dk daabs
-      subroutine daabs(ina,anorm)
+subroutine daabs(ina,anorm)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) anorm
 !     ***************************
@@ -3347,7 +3351,7 @@
       end
 
 +dk dacom
-      subroutine dacom(ina,inb,dnorm)
+subroutine dacom(ina,inb,dnorm)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -3372,7 +3376,7 @@
       end
 
 +dk dapos
-      subroutine dapos(ina,inb)
+subroutine dapos(ina,inb)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -3413,7 +3417,7 @@
       end
 
 +dk dacct
-      subroutine dacct(ma,ia,mb,ib,mc,ic)
+subroutine dacct(ma,ia,mb,ib,mc,ic)
       use floatPrecision
       implicit none
       integer i,ia,ib,ic,ij,illc,ilmc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
@@ -3451,11 +3455,11 @@
       end
 
 +dk dacctt
-      subroutine dacctt(mb,ib,mc,ic,ma,ia)
+subroutine dacctt(mb,ib,mc,ic,ma,ia)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ia,ib,ic,iia,iib,iic,illa,illb,illc,ilma,ilmb,ilmc,inoa,&
      &inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,iv,jl,jv,lda,lea,lia,lno, &
@@ -3540,11 +3544,11 @@
       end
 
 +dk mtree
-      subroutine mtree(mb,ib,mc,ic)
+subroutine mtree(mb,ib,mc,ic)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ib,ib1,ibi,ic,ic1,ic2,icc,ichk(1),ii,iib,iic,illb,illc, &
      &ilmb,ilmc,inob,inoc,invb,invc,ipob,ipoc,j,jl,jnon,lda,lea,lia,lno,&
@@ -3744,7 +3748,7 @@
       end
 
 +dk ppushpr
-      subroutine ppushpri(mc,ic,mf,jc,line)
+subroutine ppushpri(mc,ic,mf,jc,line)
       use floatPrecision
       implicit none
       integer i,ic,iv,jc,jl,jv,lda,lea,lia,lno,lnv,lst,mc,mf
@@ -3778,10 +3782,10 @@
       end
 
 +dk ppush
-      subroutine ppush(mc,ic,xi,xf)
+subroutine ppush(mc,ic,xi,xf)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ic,iv,jl,jv,lda,lea,lia,lno,lnv,lst,mc
       real(kind=fPrec) xf,xi,xm,xt,xx
 !     *****************************
@@ -3819,10 +3823,10 @@
       end
 
 +dk ppush1
-      subroutine ppush1(mc,xi,xf)
+subroutine ppush1(mc,xi,xf)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,jl,jv,lda,lea,lia,lno,lnv,lst,mc
       real(kind=fPrec) xf,xi,xm,xt,xx
 !     *****************************
@@ -3855,10 +3859,10 @@
       end
 
 +dk dainv
-      subroutine dainv(ma,ia,mb,ib)
+subroutine dainv(ma,ia,mb,ib)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) x
 !     *****************************
@@ -3910,11 +3914,11 @@
       end
 
 +dk dainvt
-      subroutine dainvt(ma,ia,mb,ib)
+subroutine dainvt(ma,ia,mb,ib)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ia,ib,ie,ier,illa,illb,ilma,ilmb,inoa,inob,inva,invb,   &
      &ipoa,ipob,j,k,lda,lea,lia,lno,lnv,lst,nocut0
@@ -4063,10 +4067,10 @@
       end
 
 +dk matinv
-      subroutine matinv(a,ai,n,nmx,ier)
+subroutine matinv(a,ai,n,nmx,ier)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ier,indx,j,n,nmax,nmx
       real(kind=fPrec) a,ai,aw,d
 !     *********************************
@@ -4101,10 +4105,10 @@
       end
 
 +dk ludcmp
-      subroutine ludcmp(a,n,np,indx,d,ier)
+subroutine ludcmp(a,n,np,indx,d,ier)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ier,imax,indx,j,k,n,nmax,np
       real(kind=fPrec) a,aamax,d,dum,sum,tiny,vv
 !     ************************************
@@ -4182,10 +4186,10 @@
       end
 
 +dk lubksb
-      subroutine lubksb(a,n,np,indx,b,nmx)
+subroutine lubksb(a,n,np,indx,b,nmx)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ii,indx,j,ll,n,nmx,np
       real(kind=fPrec) a,b,sum
 !     ************************************
@@ -4229,10 +4233,10 @@
       end
 
 +dk dapin
-      subroutine dapin(ma,ia,mb,ib,jx)
+subroutine dapin(ma,ia,mb,ib,jx)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) x
 !     *****************************
@@ -4288,10 +4292,10 @@
       end
 
 +dk dapint
-      subroutine dapint(ma,ia,mb,ib,jind)
+subroutine dapint(ma,ia,mb,ib,jind)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ia,ib,illa,ilma,inoa,inva,ipoa,k,lda,lea,lia,lno,lnv,lst
 !     **********************************
 !
@@ -4344,7 +4348,7 @@
       end
 
 +dk dader
-      subroutine dader(idif,ina,inc)
+subroutine dader(idif,ina,inc)
       use floatPrecision
       implicit none
       integer idif,illc,ilmc,ina,inc,incc(1),inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
@@ -4372,7 +4376,7 @@
       end
 
 +dk dadert
-      subroutine dadert(idif,ina,inc)
+subroutine dadert(idif,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -4470,7 +4474,7 @@
       end
 
 +dk dapoi
-      subroutine dapoi(ina,inb,inc,n)
+subroutine dapoi(ina,inb,inc,n)
       use floatPrecision
       implicit none
       integer i,ina,inb,inc,lda,lea,lia,lno,lnv,lst,n
@@ -4515,7 +4519,7 @@
       end
 !
 +dk dacfur
-      subroutine dacfur(ina,fun,inc)
+subroutine dacfur(ina,fun,inc)
       use floatPrecision
       implicit none
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
@@ -4548,7 +4552,7 @@
       return
       end
 +dk dacfurt
-      subroutine dacfurt(ina,fun,inc)
+subroutine dacfurt(ina,fun,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -4629,7 +4633,7 @@
       end
 !
 +dk dacfu
-      subroutine dacfu(ina,fun,inc)
+subroutine dacfu(ina,fun,inc)
       use floatPrecision
       implicit none
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
@@ -4662,7 +4666,7 @@
       return
       end
 +dk dacfui
-      subroutine dacfui(ina,fun,inc)
+subroutine dacfui(ina,fun,inc)
       use floatPrecision
       implicit none
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,&
@@ -4695,7 +4699,7 @@
       return
       end
 +dk dacfuit
-      subroutine dacfuit(ina,fun,inc)
+subroutine dacfuit(ina,fun,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -4776,7 +4780,7 @@
       end
 
 +dk dacfut
-      subroutine dacfut(ina,fun,inc)
+subroutine dacfut(ina,fun,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -4853,11 +4857,11 @@
       end
 
 +dk dapri
-      subroutine dapri(ina,iunit)
+subroutine dapri(ina,iunit)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,k,lda,lea,lia,lno,lnv,lst
 !     ***************************
@@ -4987,11 +4991,11 @@
       end
 
 +dk dapri77
-      subroutine dapri77(ina,iunit)
+subroutine dapri77(ina,iunit)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,lda,lea,lia,lno,lnv,lst
       character(len=10) c10,k10
@@ -5113,7 +5117,7 @@
       end
 
 +dk dashift
-      subroutine dashift(ina,inc,ishift)
+subroutine dashift(ina,inc,ishift)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5249,7 +5253,7 @@
       end
 
 +dk darea
-      subroutine darea(ina,iunit)
+subroutine darea(ina,iunit)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5407,7 +5411,7 @@
 !FF
 
 +dk darea77
-      subroutine darea77(ina,iunit)
+subroutine darea77(ina,iunit)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5491,7 +5495,7 @@
       end
 
 +dk dadeb
-      subroutine dadeb(iunit,c,istop)
+subroutine dadeb(iunit,c,istop)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5520,7 +5524,7 @@
       end
 
 +dk danum
-      subroutine danum(no,nv,numda)
+subroutine danum(no,nv,numda)
       use floatPrecision
       implicit none
       integer i,mm,no,numda,nv
@@ -5540,7 +5544,7 @@
       end
 
 +dk dainf
-      subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
+subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5570,7 +5574,7 @@
       end
 
 +dk dapac
-      subroutine dapac(inc)
+subroutine dapac(inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5611,7 +5615,7 @@
 !
 !
 +dk dachk
-      subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
+subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5668,7 +5672,7 @@
       end
 
 +dk damch
-      subroutine damch(iaa,ia)
+subroutine damch(iaa,ia)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5700,7 +5704,7 @@
       end
 
 +dk dadcd
-      subroutine dadcd(jj,ic1,ic2)
+subroutine dadcd(jj,ic1,ic2)
       use floatPrecision
       implicit none
       integer i,ibase,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst
@@ -5729,7 +5733,7 @@
       end
 
 +dk dancd
-      subroutine dancd(ic1,ic2,jj)
+subroutine dancd(ic1,ic2,jj)
       use floatPrecision
       implicit none
       integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst
@@ -5768,7 +5772,7 @@
 
 !ETIENNE
 +dk datra
-      subroutine datra(idif,ina,inc)
+subroutine datra(idif,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5855,7 +5859,7 @@
       end
 
 +dk etred
-      subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
+subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -5908,7 +5912,7 @@
       end
 
 +dk hash
-      subroutine hash(no1,nv1,jj,ic1,ic2)
+subroutine hash(no1,nv1,jj,ic1,ic2)
       use floatPrecision
       implicit none
       integer i,ibase,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,no1,nv1
@@ -5937,11 +5941,11 @@
       end
 
 +dk dehash
-      subroutine dehash(no1,nv1,ic1,ic2,jj)
+subroutine dehash(no1,nv1,ic1,ic2,jj)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,no1,nv1
       real(kind=fPrec) x
@@ -5976,7 +5980,7 @@
       end
 
 +dk daswap
-      subroutine daswap(j1,j2,inb)
+subroutine daswap(j1,j2,inb)
       use floatPrecision
       implicit none
       integer ia,ic,ic1,ic2,illb,ilmb,inb,inob,invb,ipob,j1,j2,jj,k1,k2,lda,lea,lia,lno,lnv,lst
@@ -6014,10 +6018,10 @@
       end
 
 +dk dagauss
-      subroutine dagauss(ina,inb,nd2,anorm)
+subroutine dagauss(ina,inb,nd2,anorm)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,ja,jb,lda,lea,lia,lno,lnv,lst,nd2
       real(kind=fPrec) anorm,gau
 !     ***************************
@@ -6050,11 +6054,11 @@
       end
 
 +dk daran
-      subroutine daran(ina,cm,xran)
+subroutine daran(ina,cm,xran)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) bran,cm,xran
@@ -6113,8 +6117,8 @@
       real(kind=fPrec) function bran(xran)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
       real(kind=fPrec) xran
 !     ************************************
 !
@@ -6129,7 +6133,7 @@
       end
 
 +dk danorm2
-      subroutine danorm2(ina,inc)
+subroutine danorm2(ina,inc)
       use floatPrecision
       implicit none
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
@@ -6160,7 +6164,7 @@
       end
 
 +dk danorm2t
-      subroutine danorm2t(ina,inb)
+subroutine danorm2t(ina,inb)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6205,7 +6209,7 @@
       end
 
 +dk danormr
-      subroutine danormr(ina,inc)
+subroutine danormr(ina,inc)
       use floatPrecision
       implicit none
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
@@ -6236,7 +6240,7 @@
       end
 
 +dk danormrt
-      subroutine danormrt(ina,inb)
+subroutine danormrt(ina,inb)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6280,7 +6284,7 @@
       return
       end
 +dk dakey
-      subroutine dakey(c)
+subroutine dakey(c)
       use floatPrecision
       implicit none
       character c*(*)
@@ -6291,7 +6295,7 @@
       end
 ! ANFANG UNTERPROGRAMM
 +dk dapri6
-      subroutine dapri6(ina,result,ien,i56)
+subroutine dapri6(ina,result,ien,i56)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6379,7 +6383,7 @@
 ! ANFANG UNTERPROGRAMM
 
 +dk darea6
-      subroutine darea6(ina,zfeld,i56)
+subroutine darea6(ina,zfeld,i56)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6467,8 +6471,8 @@
 +dk dare
       real(kind=fPrec) function dare(ina)
       use floatPrecision
+  use numerical_constants
       implicit none
-+ca parnum
       integer ii,illa,ilma,ina,inoa,inva,ioa,ipoa,j,jj,lda,lea,lia,lno, &
      &lnv,lst
 !     ***********************************
@@ -6517,7 +6521,7 @@
       end
 ! ANFANG UNTERPROGRAMM
 +dk daprimax
-      subroutine daprimax(ina,iunit)
+subroutine daprimax(ina,iunit)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6627,7 +6631,7 @@
 
 !  unknown stuff
 +dk damono
-      subroutine damono(ina,jd,cfac,istart,inc)
+subroutine damono(ina,jd,cfac,istart,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6688,11 +6692,11 @@
       end
 
 +dk dacycle
-      subroutine dacycle(ina,ipresent,value,j,illa)
+subroutine dacycle(ina,ipresent,value,j,illa)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent,j,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) value
@@ -6745,7 +6749,7 @@
 
       end
 +dk daorder
-      subroutine daorder(ina,iunit,jx,invo,nchop)
+subroutine daorder(ina,iunit,jx,invo,nchop)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6864,7 +6868,7 @@
 
 !ETIENNE
 +dk datrash
-      subroutine datrash(idif,ina,inc)
+subroutine datrash(idif,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -6953,7 +6957,7 @@
 +dk dumps
 +if debug
 !DUMPS
-      subroutine dumpda(dumpname,n,i)
+subroutine dumpda(dumpname,n,i)
       use floatPrecision
       implicit none
       integer i,lda,lea,lia,lno,lnv,lst
@@ -6967,7 +6971,7 @@
       endfile 99
       backspace 99
       end
-      subroutine wda(vname,value,i,j,k,l)
+subroutine wda(vname,value,i,j,k,l)
       use floatPrecision
       implicit none
       integer i,lda,lea,lia,lno,lnv,lst
