@@ -155,14 +155,14 @@ endif(NOT COLLIMAT)
 #Collimation tests (needs backtrk)
 #use extra checks on fort.999 and other collimation loss files
 if(COLLIMAT AND BACKTRK)
-    if(BIGNBLZ OR HUGENBLZ)
+    if(BIGNBLZ OR HUGENBLZ AND HUGENPART)
         if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
                 SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
         endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
 #        if(NOT FLUKA OR NOT G4COLLIMAT)
 #                SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
 #        endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-    endif(BIGNBLZ OR HUGENBLZ)
+    endif(BIGNBLZ OR HUGENBLZ AND HUGENPART)
 endif(COLLIMAT AND BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
