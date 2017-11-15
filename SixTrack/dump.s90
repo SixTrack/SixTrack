@@ -698,11 +698,10 @@ contains
       implicit none
 
 !     interface variables:
-      integer nturn, i, ix, unit, fmt
-      logical lhighprec
-      real(kind=fPrec) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
-      real(kind=fPrec) clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
-      intent (in) nturn, i, ix, unit, fmt, lhighprec, tasinv, clo
+      integer, intent(in) :: nturn, i, ix, unit, fmt
+      logical, intent(in) ::  lhighprec
+      real(kind=fPrec), intent(in) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
+      real(kind=fPrec), intent(in) :: clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
 +ca parpro
 +ca common
 +ca commonmn
