@@ -20735,8 +20735,8 @@ end subroutine runda
           call prror(97)
         endif
         kpz=abs(kp(ix))
-        if(kpz.eq.0) goto 80
-        goto(80,80,80,80,80,70),kpz
+        if(kpz.lt.6) goto 80
+        if(kpz.eq.6) goto 70
         goto 430
    70   continue
         if(ition.ne.0) then
