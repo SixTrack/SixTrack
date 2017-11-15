@@ -391,7 +391,7 @@ contains
            ! Expect the file to be opened already, in crcheck
            inquire( unit=dumpunit(i), opened=lopen )
            if ( .not.lopen ) then
-              write(lout,*) "ERROR in DUMP: The unit",dumpunit,         &
+              write(lout,*) "ERROR in DUMP: The unit",dumpunit(i),      &
      &             "has dumpfilepos=", dumpfilepos(i), ".ge.0, ",       &
      &             "but the file is NOT open. This is probably a bug."
               call prror(-1)
@@ -641,10 +641,11 @@ contains
              endif
 +ei
              
-          end if !If format 2/4/5/6/7/9 -> General header
+          end if !END if format 2/4/5/6/7/9 -> General header
 
-          if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9)& !Normalized DUMP
-     &         then
+          !Normalized DUMP
+          if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9) then
+             
              ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
              if ( dumptas(i,1,1).eq.zero .and.                          &
      &            dumptas(i,1,2).eq.zero .and.                          &

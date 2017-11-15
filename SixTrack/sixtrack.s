@@ -34813,7 +34813,8 @@ subroutine comnul
 !     last modified: 03-09-2015
 !     initialise common
 !     always in main code
-
+      call dump_comnul
+      
 !--FMA ANALYSIS---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
