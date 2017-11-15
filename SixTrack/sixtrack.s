@@ -20735,7 +20735,7 @@ end subroutine runda
           call prror(97)
         endif
         kpz=abs(kp(ix))
-        if(kpz.lt.6) goto 80
+        if(kpz.ge.0 .and. kpz.lt.6) goto 80
         if(kpz.eq.6) goto 70
         goto 430
    70   continue
@@ -37143,19 +37143,169 @@ subroutine blocksv
 +ei
       save
 !-----------------------------------------------------------------------
-      dpd=one+dpp
-      dpsq=sqrt(dpd)
-      do 200 i=1,il
+      dpd  = one+dpp
+      dpsq = sqrt(dpd)
+      do i=1,il
         do ll=1,6
           do l=1,2
             a(i,l,ll)=zero
-          enddo
-        enddo
-        if(abs(el(i)).le.pieni) goto 190
-        kz1=kz(i)+1
-        goto(10,30,90,50,70,80,120,170,180),kz1
-        goto 200
-
+          end do
+        end do
+        if (abs(el(i)).le.pieni) then ! NONLINEAR INSERTION
+            sm(i)=ed(i)
+            cycle
+        end if
+        
+        kz1 = kz(i)+1
+        select case(kz1)
+        case (1) ! DRIFTLENGTH
+            do l=1,2
+                a(i,l,1) = one
+                a(i,l,2) = el(i)
+                a(i,l,3) = zero
+                a(i,l,4) = one
+            end do
+            
+        case (2) ! RECTANGULAR MAGNET
+            fok = el(i)*ed(i)/dpsq
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    a(i,l,1) = one
+                    a(i,l,2) = el(i)
+                    a(i,l,3) = zero
+                    a(i,l,4) = one
+                end do
+                cycle
+            end if
+            ! HORIZONTAL
+            rho = (one/ed(i))*dpsq
+            si  = sin_mb(fok)
+            co  = cos_mb(fok)
+            a(i,1,1) = one
+            a(i,1,2) = rho*si
+            a(i,1,3) = zero
+            a(i,1,4) = one
+            a(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
+            a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+            ! VERTIKAL
+            g  = tan_mb(fok*half)/rho
+            gl = el(i)*g
+            a(i,2,1)=one-gl
+            a(i,2,2)=el(i)
+            a(i,2,3)=(-one*g)*(two-gl) ! hr06
+            a(i,2,4)=a(i,2,1)
+            
+        case (3) ! QUADRUPOLE
+            goto 90
+            
+        case (4) ! SEKTORMAGNET
+            fok = el(i)*ed(i)/dpsq
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    a(i,l,1) = one
+                    a(i,l,2) = el(i)
+                    a(i,l,3) = zero
+                    a(i,l,4) = one
+                end do
+                cycle
+            end if
+            ! HORIZONTAL
+            rho = (one/ed(i))*dpsq
+            si  = sin_mb(fok)
+            co  = cos_mb(fok)
+            a(i,1,1) = co
+            a(i,1,2) = rho*si
+            a(i,1,3) = (-one*si)/rho              ! hr06
+            a(i,1,4) = co
+            a(i,1,5) = ((-one*rho)*(one-co))/dpsq ! hr06
+            a(i,1,6) = (-one*si)/dpsq             ! hr06
+            ! VERTIKAL
+            a(i,2,1)=one
+            a(i,2,2)=el(i)
+            a(i,2,3)=zero
+            a(i,2,4)=one
+            
+        case (5) ! RECTANGULAR MAGNET VERTIKAL
+            fok=el(i)*ed(i)/dpsq
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    a(i,l,1)=one
+                    a(i,l,2)=el(i)
+                    a(i,l,3)=zero
+                    a(i,l,4)=one
+                end do
+                cycle
+            end if
+            ! HORIZONTAL
+            rho = (one/ed(i))*dpsq
+            si  = sin_mb(fok)
+            co  = cos_mb(fok)
+            a(i,2,1) = one
+            a(i,2,2) = rho*si
+            a(i,2,3) = zero
+            a(i,2,4) = one
+            a(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
+            a(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+            ! VERTIKAL
+            g  = tan_mb(fok*half)/rho
+            gl = el(i)*g
+            a(i,1,1) = one-gl
+            a(i,1,2) = el(i)
+            a(i,1,3) = (-one*g)*(two-gl) ! hr06
+            a(i,1,4) = a(i,1,1)
+            
+        case (6) ! SEKTORMAGNET VERTIKAL
+            fok = el(i)*ed(i)/dpsq
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    a(i,l,1) = one
+                    a(i,l,2) = el(i)
+                    a(i,l,3) = zero
+                    a(i,l,4) = one
+                end do
+                cycle
+            end if
+            ! HORIZONTAL
+            rho = (one/ed(i))*dpsq
+            si  = sin_mb(fok)
+            co  = cos_mb(fok)
+            a(i,2,1) = co
+            a(i,2,2) = rho*si
+            a(i,2,3) = (-one*si)/rho              ! hr06
+            a(i,2,4) = co
+            a(i,2,5) = ((-one*rho)*(one-co))/dpsq ! hr06
+            a(i,2,6) = (-one*si)/dpsq             ! hr06
+            ! VERTIKAL
+            a(i,1,1) = one
+            a(i,1,2) = el(i)
+            a(i,1,3) = zero
+            a(i,1,4) = one
+            
+        case (7) ! COMBINED FUNCTION MAGNET HORIZONTAL
+            ih   = 0
+            fokq = ek(i)
+            goto 130
+            
+        case (8) ! COMBINED FUNCTION MAGNET VERTICAL
+            ih   = 1
+            fokq = -one*ek(i) ! hr06
+            goto 130
+            
+        case (9) ! EDGE FOCUSSING
+            rhoi = ed(i)/dpsq
+            fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
+            a(i,1,1) = one
+            a(i,1,2) = zero
+            a(i,1,3) = fok
+            a(i,1,4) = one
+            a(i,2,1) = one
+            a(i,2,2) = zero
+            a(i,2,3) = -one*fok ! hr06
+            a(i,2,4) = one
+            
+        end select
+        cycle
+        
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
@@ -37165,68 +37315,8 @@ subroutine blocksv
           a(i,l,3)=zero
           a(i,l,4)=one
         end do
-        goto 200
+        cycle
 
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   30   ih=1
-   40   fok=el(i)*ed(i)/dpsq
-        if(abs(fok).le.pieni) goto 10
-        rho=(one/ed(i))*dpsq
-        si=sin_mb(fok)
-        co=cos_mb(fok)
-        a(i,ih,1)=one
-        a(i,ih,2)=rho*si
-        a(i,ih,3)=zero
-        a(i,ih,4)=one
-        a(i,ih,5)=((-one*rho)*(one-co))/dpsq                             !hr06
-        a(i,ih,6)=((-one*two)*tan_mb(fok*half))/dpsq                     !hr06
-!--VERTIKAL
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        g=tan_mb(fok*half)/rho
-        gl=el(i)*g
-        a(i,ih,1)=one-gl
-        a(i,ih,2)=el(i)
-        a(i,ih,3)=(-one*g)*(two-gl)                                      !hr06
-        a(i,ih,4)=a(i,ih,1)
-        goto 200
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   50   ih=1
-   60   fok=el(i)*ed(i)/dpsq
-        if(abs(fok).le.pieni) goto 10
-        rho=(one/ed(i))*dpsq
-        si=sin_mb(fok)
-        co=cos_mb(fok)
-        a(i,ih,1)=co
-        a(i,ih,2)=rho*si
-        a(i,ih,3)=(-one*si)/rho                                          !hr06
-        a(i,ih,4)=co
-        a(i,ih,5)=((-one*rho)*(one-co))/dpsq                             !hr06
-        a(i,ih,6)=(-one*si)/dpsq                                         !hr06
-!--VERTIKAL
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        a(i,ih,1)=one
-        a(i,ih,2)=el(i)
-        a(i,ih,3)=zero
-        a(i,ih,4)=one
-        goto 200
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   70   ih=2
-        goto 40
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   80   ih=2
-        goto 60
 !-----------------------------------------------------------------------
 !  QUADRUPOLE
 !  FOCUSSING
@@ -37243,7 +37333,7 @@ subroutine blocksv
         a(i,ih,2)=hi1/hi
         a(i,ih,3)=(-one*hi1)*hi                                          !hr06
         a(i,ih,4)=a(i,ih,1)
-        if(ih.eq.2) goto 200
+        if(ih.eq.2) cycle
 !--DEFOCUSSING
   110   ih=ih+1
         hp=exp_mb(fi)
@@ -37255,13 +37345,11 @@ subroutine blocksv
         a(i,ih,3)=hs*hi
         a(i,ih,4)=hc
         if(ih.eq.1) goto 100
-        goto 200
+        cycle
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET HORIZONTAL
 !  FOCUSSING
 !-----------------------------------------------------------------------
-  120   ih=0
-        fokq=ek(i)
   130   wf=ed(i)/dpsq
         fok=fokq/dpd-wf**2                                               !hr06
         if(abs(fok).le.pieni) goto 10
@@ -37292,7 +37380,7 @@ subroutine blocksv
         a(i,ih,2)=hs/hi
   150   a(i,ih,3)=hs*hi
         a(i,ih,4)=hc
-        goto 200
+        cycle
 !--DEFOCUSSING
   160   ih=ih+1
         hp=exp_mb(fi)
@@ -37315,35 +37403,10 @@ subroutine blocksv
         a(i,ih,2)=si/hi
         a(i,ih,3)=(-one*si)*hi                                           !hr06
         a(i,ih,4)=co
-        goto 200
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET VERTICAL
-!-----------------------------------------------------------------------
-  170   ih=1
-        fokq=-one*ek(i)                                                  !hr06
-        goto 130
-!-----------------------------------------------------------------------
-!  EDGE FOCUSSING
-!-----------------------------------------------------------------------
-  180   rhoi=ed(i)/dpsq
-        fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr06
-        a(i,1,1)=one
-        a(i,1,2)=zero
-        a(i,1,3)=fok
-        a(i,1,4)=one
-        a(i,2,1)=one
-        a(i,2,2)=zero
-        a(i,2,3)=-one*fok                                                !hr06
-        a(i,2,4)=one
-        goto 200
-!-----------------------------------------------------------------------
-!   NONLINEAR INSERTION
-!-----------------------------------------------------------------------
-  190   sm(i)=ed(i)
-  200 continue
+      end do
       call block
       return
-      end
+      end subroutine envar
 
 +dk envardis
       subroutine envardis(dpp,aeg,bl1eg,bl2eg)
