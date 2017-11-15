@@ -1148,12 +1148,12 @@
       real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
-     &pptco,ppeco,sdcoe,freeco,fnavo,zatom,exenergy
+     &pptco,ppeco,sdcoe,freeco,zatom,exenergy
 !electron density and plasma energy
       real(kind=fPrec) edens, pleng
-      parameter(fnavo=6.02214129e23_fPrec)
+!      parameter(fnavo=6.02214129e23_fPrec)
       real cgen
-      character * 4 mname(nmat)
+      character(4) mname(nmat)
       common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
       common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)

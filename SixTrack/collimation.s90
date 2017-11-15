@@ -228,7 +228,7 @@ subroutine collimate_init()
   write(lout,*) 'Emittance and energy obtained from Sixtrack input!'
   write(lout,*)
   write(lout,*)
-  
+
   write(lout,*) 'Info: Betax0   [m]    ', tbetax(1)
   write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
   write(lout,*) 'Info: Alphax0         ', talphax(1)
@@ -526,7 +526,7 @@ subroutine collimate_init()
   iturn = 1
   ie    = 1
   n_tot_absorbed = 0
-      
+
   if(int(mynp/napx00) .eq. 0) then
     write (lout,*) ""
     write (lout,*) "********************************************"
@@ -918,18 +918,18 @@ subroutine collimate_start_sample(nsample)
 !++  sample and throughout a all run.
 !         if (c_rmserror_gap.gt.0.) then
 !            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
-  do icoll = 1, db_ncoll 
+  do icoll = 1, db_ncoll
     gap_rms_error(icoll) = c_rmserror_gap * myran_gauss(three)
     write(outlun,*) 'INFO>  gap_rms_error: ', db_name1(icoll),gap_rms_error(icoll)
   end do
 
-!---- creating a file with beta-functions at TCP/TCS 
+!---- creating a file with beta-functions at TCP/TCS
   open(unit=10000, file='twisslike.out')
   open(unit=10001, file='sigmasettings.out')
   mingap = 20
 
   do j=1,iu
-! this transformation gives the right marker/name to the corresponding 
+! this transformation gives the right marker/name to the corresponding
 ! beta-dunctions or vice versa ;)
     if(ic(j).le.nblo) then
       do jb=1,mel(ic(j))
@@ -942,8 +942,8 @@ subroutine collimate_start_sample(nsample)
 ! Using same code-block as below to evalute the collimator opening
 ! for each collimator, this is needed to get the smallest collimator gap
 ! in principal only looking for primary and secondary should be enough
-! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB 
-! both namings before and after V6.503 can be used 
+! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
+! both namings before and after V6.503 can be used
     if ( bez(myix)(1:2).eq.'TC'.or. bez(myix)(1:2).eq.'tc'.or. bez(myix)(1:2).eq.'TD'.or. bez(myix)(1:2).eq.'td'&
  &  .or. bez(myix)(1:3).eq.'COL'.or. bez(myix)(1:3).eq.'col') then
       if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
@@ -1037,7 +1037,7 @@ subroutine collimate_start_sample(nsample)
       end if
 
       do i = 1, db_ncoll
-! start searching minimum gap 
+! start searching minimum gap
         if((db_name1(i)(1:11).eq.bez(myix)(1:11)).or.(db_name2(i)(1:11).eq.bez(myix)(1:11))) then
           if( db_length(i) .gt. zero ) then
             nsig_err = nsig + gap_rms_error(i)
@@ -1046,14 +1046,14 @@ subroutine collimate_start_sample(nsample)
             gap_h1 = nsig_err - sin_mb(db_tilt(i,1))*db_length(i)/2
             gap_h2 = nsig_err + sin_mb(db_tilt(i,1))*db_length(i)/2
 
-! jaw 2 on negative side of x-axis (see change of sign comapred 
+! jaw 2 on negative side of x-axis (see change of sign comapred
 ! to above code lines, alos have a look to setting of tilt angle)
             gap_h3 = nsig_err + sin_mb(db_tilt(i,2))*db_length(i)/2
             gap_h4 = nsig_err - sin_mb(db_tilt(i,2))*db_length(i)/2
 
 ! find minumum halfgap
 ! --- searching for smallest halfgap
-!! ---scaling for beta beat needed? 
+!! ---scaling for beta beat needed?
 !                        if (do_nominal) then
 !                           bx_dist = db_bx(icoll) * scale_bx / scale_bx0
 !                           by_dist = db_by(icoll) * scale_by / scale_by0
@@ -1107,7 +1107,7 @@ subroutine collimate_start_sample(nsample)
   write(10000,*) 'INFO> IPENCIL initial ', ipencil
 
 ! if pencil beam is used and on collimator with smallest gap the
-! distribution should be generated, set ipencil to coll_mingap_id    
+! distribution should be generated, set ipencil to coll_mingap_id
   if (ipencil.gt.0 .and. do_mingap) then
     ipencil = coll_mingap_id
   end if
@@ -1116,15 +1116,15 @@ subroutine collimate_start_sample(nsample)
   write(10001,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
 
 ! if pencil beam is used and on collimator with smallest gap the
-! distribution should be generated, set ipencil to coll_mingap_id    
+! distribution should be generated, set ipencil to coll_mingap_id
   write(10001,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
   write(10001,*) 'INFO> rnd_seed is (before reinit)',rnd_seed
 
   close(10000)
   close(10001)
 
-!****** re-intialize random generator with rnd_seed 
-!       reinit with initial value used in first call  
+!****** re-intialize random generator with rnd_seed
+!       reinit with initial value used in first call
   rnd_lux = 3
   rnd_k1  = 0
   rnd_k2  = 0
@@ -1391,7 +1391,7 @@ subroutine collimate_do_collimator(stracki)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-      
+
   implicit none
 
 +ca crcoall
@@ -1478,7 +1478,7 @@ subroutine collimate_do_collimator(stracki)
 !     &         .and. dowrite_dist) then
 ! --- get halo on each turn
 !     &.and. iturn.eq.1 .and. dowrite_dist) then
-! --- put open and close at the pso. where it is done for the 
+! --- put open and close at the pso. where it is done for the
 ! --- other files belonging to dowrite_impact flag !(may not a good loc.)
 !            open(unit=45, file='coll_ellipse.dat')
 !            write(45,'(a)')                                             &
@@ -1590,7 +1590,7 @@ subroutine collimate_do_collimator(stracki)
 !     &           .and. (j.le.(icoll)*nev/nprim))) then
 ! this is done for every bunch (64 particle bucket)
 ! important: Sixtrack calculates in "mm" and collimate2 in "m"
-! therefore 1E-3 is used to  
+! therefore 1E-3 is used to
 
 ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
     if((icoll.eq.ipencil).and.(iturn.eq.1).and. (pencil_distr.ne.3)) then
@@ -1598,17 +1598,17 @@ subroutine collimate_do_collimator(stracki)
 !!               write(*,*) " * INFO> seting tilt for pencil beam  * "
 !!               write(*,*) " ************************************** "
 
-!! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is 
+!! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is
 !! -systilt + rmstilt otherwise +systilt + rmstilt
 !!               if (systilt_antisymm) then
-!! to align the jaw/pencil to the beam always use the minus regardless which 
-!! orientation of the jaws was used (symmetric/antisymmetric) 
+!! to align the jaw/pencil to the beam always use the minus regardless which
+!! orientation of the jaws was used (symmetric/antisymmetric)
       c_tilt(1) = c_tilt(1) +    (xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
       c_tilt(2) = c_tilt(2) -one*(xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
       write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ", icoll, c_tilt(1)
       write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ", icoll, c_tilt(2)
     end if
-!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3) 
+!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3)
 
 !JUNE2005   HERE IS THE SPECIAL TREATMENT...
   else if(db_name1(icoll)(1:4).eq.'COLM') then
@@ -1694,14 +1694,14 @@ subroutine collimate_do_collimator(stracki)
 
 !     create distribution where the normalized distance between jaw and beam is the smallest - this is where particles will first impact:
 !     without imperfections, it is:
-!              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and 
+!              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and
 !              -- at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
 
 !     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance to each corner separately!
 
 !     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and downstream of present s-position)
 !     Assuming a purely vertical or horizontal halo - need to add more conditions for other cases!
-             
+
 !     Using standard twiss transfer matrix for a drift : ( new_halo_model_checks.nb )
 !     at start of collimator:
     ldrift = -c_length / two !Assign the drift length over which the optics functions are propagated
@@ -1720,7 +1720,7 @@ subroutine collimate_do_collimator(stracki)
     alphay2 = talphay(ie) - (ldrift*(1+talphay(ie)**2))/tbetay(ie)
 
 !   calculate beam size at start and end of collimator. account for collimation plane
-    if((mynex.gt.0).and.(myney.eq.zero)) then  ! horizontal halo 
+    if((mynex.gt.0).and.(myney.eq.zero)) then  ! horizontal halo
       beamsize1 = sqrt(betax1 * myemitx0_collgap)
       beamsize2 = sqrt(betax2 * myemitx0_collgap)
     else if((mynex.eq.0).and.(myney.gt.zero)) then   ! vertical halo
@@ -1730,7 +1730,7 @@ subroutine collimate_do_collimator(stracki)
       write(lout,*) "attempting to use a halo not purely in the horizontal or vertical plane with pencil_dist=3 - abort."
       call prror(-1)
     end if
-             
+
 !   calculate offset from tilt of positive and negative jaws, at start and end
 !   remember: tilt angle is defined such that one corner stays at nominal position, the other corner is more open
 
@@ -1752,7 +1752,7 @@ subroutine collimate_do_collimator(stracki)
       tiltOffsNeg2 = abs(sin_mb(c_tilt(2))) * c_length
     end if
 
-!   calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator, positive and neg jaws. 
+!   calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator, positive and neg jaws.
     Nap1pos=((c_aperture/two + c_offset) + tiltOffsPos1)/beamsize1
     Nap2pos=((c_aperture/two + c_offset) + tiltOffsPos2)/beamsize2
     Nap1neg=((c_aperture/two - c_offset) + tiltOffsNeg1)/beamsize1
@@ -1766,14 +1766,14 @@ subroutine collimate_do_collimator(stracki)
 !            write(7878,*) mynex * sqrt(tbetax(ie)/betax1)
 
 !   Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
-    minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg) 
+    minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
 
 !   Assign amplitudes in x and y for the halo generation function
-    if((mynex.gt.0).and.(myney.eq.zero)) then ! horizontal halo 
-       mynex2 = minAmpl 
+    if((mynex.gt.0).and.(myney.eq.zero)) then ! horizontal halo
+       mynex2 = minAmpl
     else if((mynex.eq.0).and.(myney.gt.zero)) then ! vertical halo
        myney2 = minAmpl
-    end if               ! other cases taken care of above - in these cases, program has already stopped            
+    end if               ! other cases taken care of above - in these cases, program has already stopped
 
 !   assign optics parameters to use for the generation of the starting halo - at start or end of collimator
     if((minAmpl.eq.Nap1pos).or.(minAmpl.eq.Nap1neg)) then ! min normalized distance occurs at start of collimator
@@ -1799,17 +1799,17 @@ subroutine collimate_do_collimator(stracki)
 !   This could possibly be improved in the future.
     call makedis_coll(napx,myalphax,myalphay, mybetax, mybetay, myemitx0_collgap, myemity0_collgap, &
  &                    myenom, mynex2, mdex, myney2, mdey, myx, myxp, myy, myyp, myp, mys)
-             
+
     do j = 1, napx
-      xv(1,j)  = c1e3*myx(j)  + torbx(ie) 
-      yv(1,j)  = c1e3*myxp(j) + torbxp(ie)             
-      xv(2,j)  = c1e3*myy(j)  + torby(ie)              
-      yv(2,j)  = c1e3*myyp(j) + torbyp(ie)             
+      xv(1,j)  = c1e3*myx(j)  + torbx(ie)
+      yv(1,j)  = c1e3*myxp(j) + torbxp(ie)
+      xv(2,j)  = c1e3*myy(j)  + torby(ie)
+      yv(2,j)  = c1e3*myyp(j) + torbyp(ie)
       sigmv(j) = mys(j)
       ejv(j)   = myp(j)
 
-!      as main routine will track particles back half a collimator length (to start of jaw), 
-!      track them now forward (if generated at face) or backward (if generated at end) 
+!      as main routine will track particles back half a collimator length (to start of jaw),
+!      track them now forward (if generated at face) or backward (if generated at end)
 !      1/2 collimator length to center of collimator (ldrift pos or neg)
        xv(1,j)  = xv(1,j) - ldrift*yv(1,j)
        xv(2,j)  = xv(2,j) - ldrift*yv(2,j)
@@ -1890,7 +1890,7 @@ subroutine collimate_do_collimator(stracki)
 !Force the treatment of the TCDQ equipment as a onsided collimator.
 !Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
 !              if(db_name1(icoll)(1:4).eq.'TCDQ' ) onesided = .true.
-! to treat all collimators onesided 
+! to treat all collimators onesided
 ! -> only for worst case TCDQ studies
       if(db_name1(icoll)(1:4).eq.'TCDQ') onesided = .true.
       if(db_name1(icoll)(1:5).eq.'TCXRP') onesided = .true.
@@ -1919,9 +1919,9 @@ subroutine collimate_do_collimator(stracki)
       if(n_slices.gt.1d0 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
  &      (db_name1(icoll)(1:4).eq.'TCSG' .or. db_name1(icoll)(1:3).eq.'TCP' .or. db_name1(icoll)(1:4).eq.'TCLA'.or. &
  &       db_name1(icoll)(1:3).eq.'TCT' .or. db_name1(icoll)(1:4).eq.'TCLI'.or. db_name1(icoll)(1:4).eq.'TCL.'.or.  &
-!     RB: added slicing of TCRYO as well    
+!     RB: added slicing of TCRYO as well
  &       db_name1(icoll)(1:5).eq.'TCRYO')) then
-                      
+
         if(firstrun) then
           write(lout,*) 'INFO> slice - Collimator ', db_name1(icoll), ' sliced in ',n_slices, ' pieces !'
         end if
@@ -1945,7 +1945,7 @@ subroutine collimate_do_collimator(stracki)
         do jjj=1,n_slices+1
           x_sl(jjj) = (jjj-1) * c_length / real(n_slices,fPrec)
 
-          y1_sl(jjj) = fit1_1 + fit1_2*x_sl(jjj) + fit1_3/c_length*(x_sl(jjj)**2) +           & 
+          y1_sl(jjj) = fit1_1 + fit1_2*x_sl(jjj) + fit1_3/c_length*(x_sl(jjj)**2) +           &
  &                           fit1_4*(x_sl(jjj)**3) + fit1_5*(x_sl(jjj)**4) + fit1_6*(x_sl(jjj)**5)
 
           y2_sl(jjj) = -one * (fit2_1 + fit2_2*x_sl(jjj) + fit2_3/c_length*(x_sl(jjj)**2) +   &
@@ -1953,13 +1953,13 @@ subroutine collimate_do_collimator(stracki)
         end do
 
 !       Apply the slicing scaling factors (ssf's):
-!     
+!
 !          do jjj=1,n_slices+1
 !             y1_sl(jjj) = ssf1 * y1_sl(jjj)
 !             y2_sl(jjj) = ssf2 * y2_sl(jjj)
 !          enddo
 
-!       CB:10-2007 coordinates rotated of the tilt 
+!       CB:10-2007 coordinates rotated of the tilt
         do jjj=1,n_slices+1
           y1_sl(jjj) = ssf1 * y1_sl(jjj)
           y2_sl(jjj) = ssf2 * y2_sl(jjj)
@@ -2092,12 +2092,12 @@ subroutine collimate_do_collimator(stracki)
 !     +                    a_tmp1 - a_tmp2,
 !     +                    0.5 * ( a_tmp1 + a_tmp2 ),
 ! -- TW SEP07 added compatility for tilt, gap and ofset errors to slicing
-! -- TW gaprms error is already included in the c_aperture used above  
-! -- TW tilt error is added to y1_sl and y2_sl therfore included in 
-! -- TW angle1 and angle2 no additinal changes needed 
+! -- TW gaprms error is already included in the c_aperture used above
+! -- TW tilt error is added to y1_sl and y2_sl therfore included in
+! -- TW angle1 and angle2 no additinal changes needed
 ! -- TW offset error directly added to call of collimate2
 
-! --- TW JUNE08 
+! --- TW JUNE08
           if (firstrun) then
             write(55,'(a,1x,i10,5(1x,e13.5),1x,a)')                     &
      &                       db_name1(icoll)(1:12),                     &
@@ -2106,10 +2106,10 @@ subroutine collimate_do_collimator(stracki)
      &                       half * (a_tmp1 + a_tmp2) + c_offset,       &
      &                       c_tilt(1),                                 &
      &                       c_tilt(2),                                 &
-     &                       c_length / real(n_slices,fPrec),           & 
+     &                       c_length / real(n_slices,fPrec),           &
      &                       db_material(icoll)
           end if
-! --- TW JUNE08 
+! --- TW JUNE08
                      call collimate2(c_material,                        &
      &                    c_length / real(n_slices,fPrec),              &
      &                    c_rotation,                                   &
@@ -2125,7 +2125,7 @@ subroutine collimate_do_collimator(stracki)
      &                    secondary,                                    &
      &                    jjj, nabs_type)
         end do !do jjj=1,n_slices
-      else !if(n_slices.gt.1d0 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
+      else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
 !     Treatment of non-sliced collimators
 
 +if g4collimat
@@ -2159,8 +2159,7 @@ subroutine collimate_do_collimator(stracki)
             call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
 
 !! Get the particle back + information
-!TODO - fixme, part_hit/part_abs!!
-            call g4_collimate_return(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), part_hit_flag, part_abs_flag, 
+            call g4_collimate_return(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), part_hit_flag, part_abs_flag, &
  &                                   part_impact(j), part_indiv(j), part_linteract(j))
 
 !! Rotate back into the accelerator frame
@@ -2173,16 +2172,20 @@ subroutine collimate_do_collimator(stracki)
             rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
             rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
 
-            if(part_hit_pos(j).ne.0 .and. part_hit_turn(j).ne.0 .and. part_hit_flag.ne.0) then
+!           If a particle hit
+            if(part_hit_flag.ne.0) then
               part_hit_pos(j) = ie
               part_hit_turn(j) = iturn
             end if
 
-            if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
+!           If a particle died (the checking if it is already dead is at the start of the loop)
+!           Geant just has a general inelastic process that single diffraction is part of
+!           Therefore we can not know if this interaction was SD or some other inelastic type
+            if(part_abs_flag.ne.0) then
               if(dowrite_impact) then
 !! FLUKA_impacts.dat
-                write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))')     &
-               &icoll,c_rotation,0.0, 0.0, 0.0, 0.0, 0.0, part_abs(j),flukaname(j),iturn  !!! TODO -  It should not be part_abs here.
+                write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
+ &                    icoll,c_rotation,zero,zero,zero,zero,zero,part_abs_flag,flukaname(j),iturn
               end if
 
               part_abs_pos(j)  = ie
@@ -2207,12 +2210,11 @@ subroutine collimate_do_collimator(stracki)
      &                 part_impact, part_indiv, part_linteract,         &
      &                 onesided, flukaname, secondary, 1, nabs_type)
 +ei
-      end if !if (n_slices.gt.1d0 .and.
+      end if !if (n_slices.gt.one .and.
     end if !if(db_name1(icoll)(1:4).eq.'COLM') then
   end if !if (found) then
 end subroutine collimate_do_collimator
 
-            
 !>
 !! collimate_end_collimator()
 !! This routine is called at the exit of a collimator
@@ -2333,15 +2335,15 @@ subroutine collimate_end_collimator()
       ejv(j)  = rcp0(j)  * c1e3
     end if
 !APRIL2005
-! 
+!
 !TW for roman pot checking
 !            if(icoll.eq.73) then
-!               do j = 1,napx 
+!               do j = 1,napx
 !                  write(9998,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
 !     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
 !               enddo
 !            elseif(icoll.eq.74) then
-!               do j = 1,napx 
+!               do j = 1,napx
 !                  write(9999,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
 !     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
 !               enddo
@@ -2420,7 +2422,7 @@ subroutine collimate_end_collimator()
       else if(part_abs_pos (j).eq.0 .and.  part_abs_turn(j).eq.0) then
         xkick = rcxp(j) - rcxp0(j)
         ykick = rcyp(j) - rcyp0(j)
-                 
+
         if(db_name1(icoll)(1:3).eq.'TCP'.or. db_name1(icoll)(1:4).eq.'COLM'.or. &
            db_name1(icoll)(1:5).eq.'COLH0'.or. db_name1(icoll)(1:5).eq.'COLV0') then
           secondary(j) = 1
@@ -2471,7 +2473,7 @@ subroutine collimate_end_collimator()
             hdfy  = xv(2,j) + half*c_length*yv(2,j)
             hdfyp = yv(2,j)
             call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
-     
+
 +ei
 +if .not.hdf5
             write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
@@ -2481,14 +2483,14 @@ subroutine collimate_end_collimator()
            &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
            &rcyp0(j)*c1e3+torbyp(ie),                                          &
            &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
-       
+
             write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
            &ipart(j)+100*samplenumber,iturn,sampl(ie)+half*c_length,           &
            &xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
            &xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
            &secondary(j)+tertiary(j)+other(j)
 +ei
-          end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99d0 .and. xv(2,j).lt.99d0) .and.
+          end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and.
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
       end if !if(dowritetracks) then
 
@@ -2514,7 +2516,7 @@ subroutine collimate_end_collimator()
           iturn_survive  = iturn_absorbed - iturn_last_hit
         end if
       end if
-           
+
 !++  End of check for hit this turn and element
     end if
   end do ! end do j = 1, napx
@@ -2550,7 +2552,7 @@ subroutine collimate_end_collimator()
 !++  - This is switched on with the DO_SELECT flag in the input file.
 !++  - Note that the part_select(j) flag defaults to 1 for all particles.
 
-! should name_sel(1:11) extended to allow longer names as done for 
+! should name_sel(1:11) extended to allow longer names as done for
 ! coll the coll_ellipse.dat file !!!!!!!!
   if(((db_name1(icoll).eq.name_sel(1:11)).or.(db_name2(icoll).eq.name_sel(1:11))) .and. iturn.eq.1  ) then
     num_selhit = 0
@@ -2559,7 +2561,7 @@ subroutine collimate_end_collimator()
 
     do j = 1, napx
       if( part_hit_pos (j).eq.ie .and. part_hit_turn(j).eq.iturn ) then
-       
+
       num_selhit = num_selhit+1
 
       if(part_abs_pos(j) .eq.0 .and. part_abs_turn(j).eq.0) then
@@ -2750,7 +2752,7 @@ subroutine collimate_end_sample(j)
   open(unit=1992, file='efficiency_dpop.dat')
 
   if(n_tot_absorbed.ne.0) then
-    write(1992,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart' 
+    write(1992,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
 
     do k=1,numeffdpop
       write(1992,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/dble(n_tot_absorbed), neffdpop(k), n_tot_absorbed, npartdpop(k)
@@ -2771,7 +2773,7 @@ subroutine collimate_end_sample(j)
 
   open(unit=1993, file='efficiency_2d.dat')
   if(n_tot_absorbed.ne.0) then
-    write(1993,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs' 
+    write(1993,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
     do i=1,numeff
       do k=1,numeffdpop
         write(1993,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/dble(n_tot_absorbed),neff2d(i,k), n_tot_absorbed
@@ -2894,7 +2896,7 @@ subroutine collimate_exit()
     end do
 
     write(51,*)'# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob'
- 
+
     do i=1,iu
       write(51,'(i4, (1x,a16), 9(1x,e15.7))') i, ename(i), sampl(i), torbx(i), torby(i), tdispx(i), tdispy(i), xbob(i), ybob(i), &
  &    xpbob(i), ypbob(i)
@@ -3106,7 +3108,7 @@ subroutine collimate_start_element(i)
      &(bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
 ! UPGRADE MAI 2006 -> TOTEM
      &(bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
-! TW 04/2008 adding TCRYO 
+! TW 04/2008 adding TCRYO
      &(bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') .or.         &
 !RHIC
      &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then
@@ -3179,13 +3181,13 @@ subroutine collimate_end_element
         yj  = (xv(2,j)-torby(ie)) /c1e3
         ypj = (yv(2,j)-torbyp(ie))/c1e3
         pj  = ejv(j)/c1e3
- 
+
         if(iturn.eq.1.and.j.eq.1) then
           sum_ax(ie) = zero
           sum_ay(ie) = zero
         endif
 
-        if(tbetax(ie).gt.0.) then
+        if(tbetax(ie).gt.zero) then
           gammax = (one + talphax(ie)**2)/tbetax(ie)
           gammay = (one + talphay(ie)**2)/tbetay(ie)
         else
@@ -3225,11 +3227,11 @@ subroutine collimate_end_element
       xpj    = (yv(1,j)-torbxp(ie))/c1e3
       yj     = (xv(2,j)-torby(ie)) /c1e3
       ypj    = (yv(2,j)-torbyp(ie))/c1e3
- 
+
       arcdx = 2.5_fPrec
       arcbetax = c180e0
 
-      if (xj.le.0.) then
+      if (xj.le.zero) then
         xdisp = xj + (pj-myenom)/myenom * arcdx* sqrt(tbetax(ie)/arcbetax)
       else
         xdisp = xj - (pj-myenom)/myenom * arcdx* sqrt(tbetax(ie)/arcbetax)
@@ -3441,7 +3443,7 @@ subroutine collimate_end_turn
 
 !++ 2D eff
             do ieffdpop = 1, numeffdpop
-              if(counted2d(j,ieff,ieffdpop).eq.0 .and.abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then     
+              if(counted2d(j,ieff,ieffdpop).eq.0 .and.abs((ejv(j)-myenom)/myenom).ge.dpopbins(ieffdpop)) then
                 neff2d(ieff,ieffdpop) = neff2d(ieff,ieffdpop)+one
                 counted2d(j,ieff,ieffdpop)=1
               end if
@@ -3665,7 +3667,7 @@ subroutine collimate_end_turn
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
         if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4).and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and. &
  &((((xv(1,j)*c1m3)**2/(tbetax(ie)*myemitx0_collgap)).ge.real(sigsecut2,fPrec)).or. &
- & (((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.real(sigsecut2,fPrec)).or. & 
+ & (((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.real(sigsecut2,fPrec)).or. &
  & (((xv(1,j)*c1m3)**2/(tbetax(ie)*myemitx0_collgap))+((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.sigsecut3)) ) then
            xj     = (xv(1,j)-torbx(ie))/c1e3
            xpj    = (yv(1,j)-torbxp(ie))/c1e3
@@ -3896,7 +3898,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !++  X jump to the next particle
 
 
-! RB: adding exception from goto if it's 
+! RB: adding exception from goto if it's
     if ((onesided .and. x.lt.zero).and. ((icoll.ne.ipencil) .or. (iturn.ne.1))) goto 777
 
 !++  Now mirror at the horizontal axis for negative X offset
@@ -3937,7 +3939,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !++  For selected collimator, first turn reset particle distribution
 !++  to simple pencil beam
 !
-! -- TW why did I set this to 0, seems to be needed for getting 
+! -- TW why did I set this to 0, seems to be needed for getting
 !       right amplitude => no "tilt" of jaw for the first turn !!!!
 !          c_tilt(1) = 0d0
 !          c_tilt(2) = 0d0
@@ -3948,7 +3950,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
  &    (j.ge.(icoll-1)*nev/nprim) .and. (j.le.(icoll)*nev/nprim))).and.(pencil_distr.ne.3)) then
 ! RB addition : don't go in this if-statement if pencil_distr=3. This distribution is generated in main loop instead
 
-! -- TW why did I set this to 0, seems to be needed for getting 
+! -- TW why did I set this to 0, seems to be needed for getting
 !       right amplitude => no "tilt" of jaw for the first turn !!!!
       c_tilt(1) = zero
       c_tilt(2) = zero
@@ -3965,7 +3967,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !            pencil_offset is the rectangulars center
 !            pencil_rmsx defines spread of impact parameter
 !            pencil_rmsy defines spread parallel to jaw surface
- 
+
       if(pencil_distr.eq.0 .and.(pencil_rmsx.ne.0..or.pencil_rmsy.ne.0.)) then
 ! how to assure that all generated particles are on the jaw ?!
         x  = pencil_dx(icoll)+pencil_rmsx*(real(rndm4(),fPrec)-half)
@@ -3978,7 +3980,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !            pencil_offset is the mean  gaussian distribution
 !            pencil_rmsx defines spread of impact parameter
 !            pencil_rmsy defines spread parallel to jaw surface
- 
+
       if(pencil_distr.eq.1 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then
         x  = pencil_dx(icoll) + pencil_rmsx*ran_gauss(two)
 ! all generated particles are on the jaw now
@@ -3993,9 +3995,9 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !            pencil_rmsx defines spread of impact parameter
 !                        here pencil_rmsx is not gaussian!!!
 !            pencil_rmsy defines spread parallel to jaw surface
- 
+
       if(pencil_distr.eq.2 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then   !hr09
-        x  = pencil_dx(icoll) + pencil_rmsx*(dble(rndm4())-half)                  !hr09
+        x  = pencil_dx(icoll) + pencil_rmsx*(real(rndm4(),fPrec)-half)                  !hr09
 ! all generated particles are on the jaw now
         x  = sqrt(x**2)
         xp = zero
@@ -4011,23 +4013,23 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
       else
 !     if(rndm4().lt.0.5) mirror = -1d0
 !     if(rndm4().ge.0.5) mirror = 1d0  => using two different random
-        if(rndm4().lt.half) then 
+        if(rndm4().lt.half) then
           mirror = -one
-        else 
+        else
           mirror = one
         end if
       end if
 
-! -- TW SEP07 if c_tilt is set to zero before entering pencil beam 
-!             section the assigning of the tilt will result in 
-!             assigning zeros 
+! -- TW SEP07 if c_tilt is set to zero before entering pencil beam
+!             section the assigning of the tilt will result in
+!             assigning zeros
       if(mirror.lt.zero) then                                     !hr09
-!!     tiltangle = -1d0*c_tilt(2)
+!!     tiltangle = -one*c_tilt(2)
         tiltangle = c_tilt(2)
-      else 
+      else
         tiltangle = c_tilt(1)
       end if
-!!!!--- commented this out since particle is tilted after leaving 
+!!!!--- commented this out since particle is tilted after leaving
 !!!!--- collimator -> remove this  code fragment in final verion
 !!             x  = mirror * x
 !!             xp = mirror * xp
@@ -4165,10 +4167,10 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !     &name(j),iturn,icoll,nabs,s_impact,s+sp,impact(j),x
 !            endif
 !JUNE2005
-            
+
       lhit_pos(j)  = ie
       lhit_turn(j) = iturn
-            
+
 !-- September2006  TW added from Ralphs code
 !--------------------------------------------------------------
 !++ Change tilt for pencil beam impact
@@ -4181,10 +4183,10 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !     &            (j.le.(icoll)*nev/nprim)                              &
 !     &           )  ) then
 !
-!               if (.not. changed_tilt1(icoll) .and. mirror.gt.0.) then 
+!               if (.not. changed_tilt1(icoll) .and. mirror.gt.0.) then
 ! ----- Maybe a warning would be nice that c_tilt is overwritten !!!!!
 ! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
-! this has to be solved if necassary and understood 
+! this has to be solved if necassary and understood
 !                 c_tilt(1) = xp_pencil0(icoll)*cos_mb(c_rotation)+         &
 !     &                       sin_mb(c_rotation)*yp_pencil0(icoll)
 !                 c_tilt(1) = xp_pencil0*cos_mb(c_rotation)+                &
@@ -4195,7 +4197,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !               elseif (.not. changed_tilt2(icoll)                       &
 !     &                                   .and. mirror.lt.0.) then
 ! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
-! this has to be solved if necassary and understood 
+! this has to be solved if necassary and understood
 !                 c_tilt(2) = -1.*(xp_pencil0(icoll)*cos_mb(c_rotation)+    &
 !     &                       sin_mb(c_rotation)*yp_pencil0(icoll))
 !                 c_tilt(2) = -1.*(xp_pencil0*cos_mb(c_rotation)+           &
@@ -4216,7 +4218,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !     RB: writeout should be done for both inelastic and single diffractive. doing all transformations in x_flk and making the set to 99.99 mm conditional for nabs=1
 !!! /* start RB fix */
 
-! transform back to lab system for writeout. 
+! transform back to lab system for writeout.
 ! keep x,y,xp,yp unchanged for continued tracking, store lab system variables in x_flk etc
 
       x_flk = xInt
@@ -4240,8 +4242,8 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
 ! write out all impacts to all_impacts.dat
       if(dowrite_impact) then
-        write(4801,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &  
-     &              icoll,c_rotation,                                   &  
+        write(4801,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
+     &              icoll,c_rotation,                                   &
      &              sInt + sp + (real(j_slices,fPrec)-one) * c_length,  &
      &              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,   &
      &              nabs,name(j),iturn
@@ -4342,7 +4344,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
       y_in(j) = z
     end if !if(x.lt.99.0d-3) then
 
-! output for comparing the particle in accelerator frame 
+! output for comparing the particle in accelerator frame
 !
 !c$$$          if(dowrite_impact) then
 !c$$$             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
@@ -4409,9 +4411,12 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
+
 +ca crcoall
-!
+
       real(kind=fPrec) sx, sz
 !
 +ca parpro
@@ -4477,14 +4482,14 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 ! xmin=x-, xmax=x+, etc. from the input file
 !
       nhit    = 0
-      fracab  = 0.d0                                                     !hr09
-      mirror  = 1.d0                                                     !hr09
+      fracab  = zero                                                     !hr09
+      mirror  = one                                                      !hr09
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       do j = 1, nev
 !
-        impact(j) = -1.d0                                                !hr09
-        lint(j)   = -1.d0                                                !hr09
-        indiv(j)  = -1.d0                                                !hr09
+        impact(j) = -one                                                !hr09
+        lint(j)   = -one                                                !hr09
+        indiv(j)  = -one                                                !hr09
 !
         x   = x_in(j)
         xp  = xp_in(j)
@@ -4492,7 +4497,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
         zp  = yp_in(j)
         p   = p_in(j)
 !        sp  = s_in(J)
-        sp   = 0.
+        sp   = zero
         dpop = (p - p0)/p0
 !
 !++  Transform particle coordinates to get into collimator coordinate
@@ -4501,7 +4506,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !++  First check whether particle was lost before
 !
 !        if (x.lt.99.0*1e-3 .and. z.lt.99.0*1e-3) then
-        if (x.lt.99.0*1d-3 .and. z.lt.99.0*1d-3) then
+        if (x.lt.99.0_fPrec*c1m3 .and. z.lt.99.0_fPrec*c1m3) then
 !
 !++  First do rotation into collimator frame
 !
@@ -4532,10 +4537,10 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !+if .not.crlibm
 !          zp = yp_in(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*xp_in(j)
 !+ei
-          x  = -1d0*x_in(j)
-          z  = -1d0*y_in(j)
-          xp = -1d0*xp_in(j)
-          zp = -1d0*yp_in(j)
+          x  = -one*x_in(j)
+          z  = -one*y_in(j)
+          xp = -one*xp_in(j)
+          zp = -one*yp_in(j)
 !JUNE2005
 !
 !++  For one-sided collimators consider only positive X. For negative
@@ -4543,7 +4548,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !GRD          IF (ONESIDED .AND. X.LT.0) GOTO 777
 !JUNE2005          if (onesided .and. x.lt.0d0 .or. z.gt.0d0) goto 777
-          if (onesided .and. (x.lt.0d0 .and. z.gt.0d0)) goto 777
+          if (onesided .and. (x.lt.zero .and. z.gt. zero)) goto 777
 !
 !++  Now mirror at the horizontal axis for negative X offset
 !
@@ -4564,7 +4569,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !++  Shift with opening and offset
 !
-          x  = (x - c_aperture/2d0) - mirror*c_offset                    !hr09
+          x  = (x - c_aperture/two) - mirror*c_offset                    !hr09
 !GRD
 !GRD SPECIAL FEATURE TO TAKE INTO ACCOUNT THE PARTICULAR SHAPE OF RHIC PRIMARY COLLIMATORS
 !GRD
@@ -4572,7 +4577,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !JUNE2005  OF THE PRIMARY COLLIMATOR OF RHIC
 !JUNE2005
 !          z  = z + c_aperture/2 + mirror*c_offset
-          z  = (z + n_aperture/2d0) + mirror*c_offset                    !hr09
+          z  = (z + n_aperture/two) + mirror*c_offset                    !hr09
 !JUNE2005
 !          if(iturn.eq.1)                                                &
 !     &write(*,*) 'check ',x,xp,z,zp,c_aperture,n_aperture
@@ -4580,9 +4585,9 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !++  Include collimator tilt
 !
-          if (tiltangle.gt.0.) then
+          if (tiltangle.gt.zero) then
             xp = xp - tiltangle
-          elseif (tiltangle.lt.0.) then
+          elseif (tiltangle.lt.zero) then
             x  = x + sin_mb(tiltangle) * c_length
             xp = xp - tiltangle
           endif
@@ -4599,12 +4604,12 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
      &(j.le.(icoll)*nev/nprim)                                          &
      &)  ) then
               x    = pencil_dx(icoll)
-              xp   = 0.d0                                                !hr09
-              z    = 0.d0                                                !hr09
-              zp   = 0.d0                                                !hr09
-              dpop = 0.d0                                                !hr09
-              if(rndm4().lt.0.5) mirror = -1d0*abs(mirror)               !hr09
-              if(rndm4().ge.0.5) mirror = abs(mirror)
+              xp   = zero                                                !hr09
+              z    = zero                                                !hr09
+              zp   = zero                                                !hr09
+              dpop = zero                                                !hr09
+              if(rndm4().lt.half) mirror = -one*abs(mirror)               !hr09
+              if(rndm4().ge.half) mirror = abs(mirror)
             endif
 !
 !++  particle passing above the jaw are discarded => take new event
@@ -4616,13 +4621,13 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !++  1) Check whether particle hits the collimator
 !
           hit     =  .false.
-          s       =  0.d0                                                !hr09
-          keeps   =  0.d0                                                !hr09
-          zlm     =  -1.0d0 * length
+          s       =  zero                                                !hr09
+          keeps   =  zero                                                !hr09
+          zlm     =  -one * length
 !
 !GRD
 !JUNE2005          if (x.ge.0d0 .and. z.le.0d0) then
-          if (x.ge.0d0 .and. z.le.0d0) then
+          if (x.ge.zero .and. z.le.zero) then
              goto 10
 !
 !++  Particle hits collimator and we assume interaction length ZLM equal
@@ -4631,7 +4636,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !JUNE2005
 !            zlm = length
-!            impact(j) = max(x,(-1d0*z))
+!            impact(j) = max(x,(-one*z))
 !            if(impact(j).eq.x) then
 !               indiv(j) = xp
 !            else
@@ -4641,8 +4646,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !JUNE2005
 !GRD
 !JUNE2005          if(x.lt.0d0.and.z.gt.0d0.and.xp.le.0d0.and.zp.ge.0d0) then
-          elseif(x.lt.0d0.and.z.gt.0d0.and.xp.le.0d0                    &
-     &.and.zp.ge.0d0) then
+          elseif(x.lt.zero.and.z.gt.zero.and.xp.le.zero.and.zp.ge.zero) then
              goto 20
 !GRD
 !JUNE2005          if(x.lt.0d0.and.z.gt.0d0.and.xp.le.0d0.and.zp.ge.0d0) then
@@ -4665,20 +4669,20 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !JUNE2005 POSSIBILITIES, THEN SEND VIA GOTO TO THE CORRECT
 !JUNE2005 TREATMENT
 !JUNE2005
-          elseif((x.lt.0d0).and.(z.le.0d0)) then
+          elseif((x.lt.zero).and.(z.le.zero)) then
              goto 100
-          elseif((x.ge.0d0).and.(z.gt.0d0)) then
+          elseif((x.ge.zero).and.(z.gt.zero)) then
              goto 200
-          elseif((x.lt.0d0).and.(xp.gt.0d0)) then
+          elseif((x.lt.zero).and.(xp.gt.zero)) then
              goto 300
-          elseif((z.gt.0d0).and.(zp.lt.0d0)) then
+          elseif((z.gt.zero).and.(zp.lt.zero)) then
              goto 400
           endif
 !GRD
  10         continue
             event = 10
             zlm = length
-            impact(j) = max(x,(-1d0*z))
+            impact(j) = max(x,(-one*z))
             if(impact(j).eq.x) then
                indiv(j) = xp
             else
@@ -4688,13 +4692,13 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !GRD
  20         continue
             event = 20
-            zlm = 0.d0                                                   !hr09
+            zlm = zero                                                   !hr09
             goto 999
 !GRD
  100        continue
             event = 100
             zlm = length
-            impact(j) = -1d0*z
+            impact(j) = -one*z
             indiv(j) = zp
             goto 999
 !GRD
@@ -4711,22 +4715,22 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !JUNE2005
  300        continue
             event = 300
-            if(z.gt.0d0.and.zp.lt.0d0) goto 500
+            if(z.gt.zero.and.zp.lt.zero) goto 500
 !
 !++  Calculate s-coordinate of interaction point
 !
-            s = (-1.0d0*x) / xp
-            if (s.le.0d0) then
+            s = (-one*x) / xp
+            if (s.le.zero) then
               write(lout,*) 'S.LE.0 -> This should not happen (1)'
               call prror(-1)
             endif
 !
             if (s .lt. length) then
               zlm = length - s
-              impact(j) = 0.d0                                           !hr09
+              impact(j) = zero                                           !hr09
               indiv(j) = xp
             else
-              zlm = 0.d0                                                 !hr09
+              zlm = zero                                                 !hr09
             endif
             goto 999
 !GRD
@@ -4736,18 +4740,18 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !++  Calculate s-coordinate of interaction point
 !
-            s = (-1.0d0*z) / zp
-            if (s.le.0) then
+            s = (-one*z) / zp
+            if (s.le.zero) then
               write(lout,*) 'S.LE.0 -> This should not happen (2)'
               call prror(-1)
             endif
 !
             if (s .lt. length) then
               zlm = length - s
-              impact(j) = 0.d0                                           !hr09
+              impact(j) = zero                                           !hr09
               indiv(j) = zp
             else
-              zlm = 0.d0                                                 !hr09
+              zlm = zero                                                 !hr09
             endif
 !JUNE2005          endif
 !GRD
@@ -4760,27 +4764,27 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !++  Calculate s-coordinate of interaction point
 !
-            sx = (-1.0d0*x) / xp
-            sz = (-1.0d0*z) / zp
+            sx = (-one*x) / xp
+            sz = (-one*z) / zp
 !
             if(sx.lt.sz) s=sx
             if(sx.ge.sz) s=sz
 !
-            if (s.le.0d0) then
+            if (s.le.zero) then
               write(lout,*) 'S.LE.0 -> This should not happen (3)'
               call prror(-1)
             endif
 !
             if (s .lt. length) then
               zlm = length - s
-              impact(j) = 0.d0                                           !hr09
+              impact(j) = zero                                           !hr09
               if(s.eq.sx) then
                 indiv(j) = xp
               else
                 indiv(j) = zp
               endif
             else
-              zlm = 0.d0                                                 !hr09
+              zlm = zero                                                 !hr09
             endif
 !
 !JUNE2005          endif
@@ -4801,7 +4805,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !++  First do the drift part
 !
           drift_length = length - zlm
-          if (drift_length.gt.0.d0) then                                 !hr09
+          if (drift_length.gt.zero) then                                 !hr09
             x  = x + xp* drift_length
             z  = z + zp * drift_length
             sp = sp + drift_length
@@ -4809,7 +4813,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !++  Now do the scattering part
 !
-          if (zlm.gt.0.d0) then                                          !hr09
+          if (zlm.gt.zero) then                                          !hr09
             nhit = nhit + 1
 !            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
 !DEBUG
@@ -4821,19 +4825,19 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !JUNE2005
             if(event.eq.100.or.event.eq.400) then
 !GRD first go back into normal frame...
-               x = (x + c_aperture/2d0) + mirror*c_offset                !hr09
-               z = (z - n_aperture/2d0) - mirror*c_offset                !hr09
-               x = -1d0*x
-               xp = -1d0*xp
-               z = -1d0*z
-               zp = -1d0*zp
+               x = (x + c_aperture/two) + mirror*c_offset                !hr09
+               z = (z - n_aperture/two) - mirror*c_offset                !hr09
+               x  = -one*x
+               xp = -one*xp
+               z  = -one*z
+               zp = -one*zp
 !GRD ...then do as for a vertical collimator
-               x = z
+               x  = z
                xp = zp
-               z = -1d0*x
-               zp = -1d0*x
-               x  = (x - n_aperture/2d0) - mirror*c_offset               !hr09
-               z  = (z + c_aperture/2d0) + mirror*c_offset               !hr09
+               z  = -one*x
+               zp = -one*x
+               x  = (x - n_aperture/two) - mirror*c_offset               !hr09
+               z  = (z + c_aperture/two) + mirror*c_offset               !hr09
             endif
 !JUNE2005
 !     RB: add new input arguments to jaw icoll,iturn,ipart for writeout
@@ -4847,19 +4851,19 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !JUNE2005 ROUTINES, SO AS TO AVOID RIDICULOUS VALUES FOR KICKS IN EITHER PLANE
             if(event.eq.100.or.event.eq.400) then
 !GRD first go back into normal frame...
-               x = (x + n_aperture/2d0) + mirror*c_offset                !hr09
-               z = (z - c_aperture/2d0) - mirror*c_offset                !hr09
-               x = -1d0*z
-               xp = -1d0*zp
+               x = (x + n_aperture/two) + mirror*c_offset                !hr09
+               z = (z - c_aperture/two) - mirror*c_offset                !hr09
+               x = -one*z
+               xp = -one*zp
                z = x
                zp = xp
 !GRD ...then go back to face the horizontal jaw at 180 degrees
-               x = -1d0*x
-               xp = -1d0*xp
-               z = -1d0*z
-               zp = -1d0*zp
-               x  = (x - c_aperture/2d0) - mirror*c_offset               !hr09
-               z  = (z + n_aperture/2d0) + mirror*c_offset               !hr09
+               x = -one*x
+               xp = -one*xp
+               z = -one*z
+               zp = -one*zp
+               x  = (x - c_aperture/two) - mirror*c_offset               !hr09
+               z  = (z + n_aperture/two) + mirror*c_offset               !hr09
             endif
 !JUNE2005
             lhit_pos(j)  = ie
@@ -4870,45 +4874,44 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
             if (nabs.eq.1) then
 !APRIL2005
 !TO WRITE FLUKA INPUT CORRECTLY, WE HAVE TO GO BACK IN THE MACHINE FRAME
-            if (tiltangle.gt.0.d0) then                                  !hr09
+            if (tiltangle.gt.zero) then                                  !hr09
               x  = x  + tiltangle*c_length
               xp = xp + tiltangle
-            elseif (tiltangle.lt.0.d0) then                              !hr09
+            elseif (tiltangle.lt.zero) then                              !hr09
               x  = x + tiltangle*c_length
               xp = xp + tiltangle
-!
               x  = x - sin_mb(tiltangle) * c_length
             endif
 !
 !++  Transform back to particle coordinates with opening and offset
 !
-            x = (x + c_aperture/2d0) + mirror*c_offset                   !hr09
+            x = (x + c_aperture/two) + mirror*c_offset                   !hr09
 !GRD
 !JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK
 !JUNE2005  TO  THE ACCELERATOR FRAME...
 !            z = z - c_aperture/2 - mirror*c_offset
-            z = (z - n_aperture/2d0) - mirror*c_offset                   !hr09
+            z = (z - n_aperture/two) - mirror*c_offset                   !hr09
 !JUNE2005
 !
 !++   Last do rotation into collimator frame
 !
-                  x_flk  = -1d0*x
-                  y_flk  = -1d0*z
-                  xp_flk = -1d0*xp
-                  yp_flk = -1d0*zp
+                  x_flk  = -one*x
+                  y_flk  = -one*z
+                  xp_flk = -one*xp
+                  yp_flk = -one*zp
 !NOW WE CAN WRITE THE COORDINATES OF THE LOST PARTICLES
               if(dowrite_impact) then
       write(48,'(i4,(2x,f5.3),(2x,f8.6),4(1x,e16.7),2x,i2,2x,i5)')      &
      &icoll,c_rotation,s+sp,                                            &
-     &x_flk*1d3, xp_flk*1d3, y_flk*1d3, yp_flk*1d3,                     &
+     &x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
      &nabs,name(j)
               endif
 !APRIL2005
               fracab = fracab + 1
 !              x = 99.99*1e-3
 !              z = 99.99*1e-3
-              x = 99.99*1.0d-3
-              z = 99.99*1.0d-3
+              x = 99.99_fPrec*c1m3
+              z = 99.99_fPrec*c1m3
               part_abs_pos_local(j) = ie
               part_abs_turn_local(j) = iturn
               lint(j) = zlm
@@ -4917,10 +4920,9 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
 !++  Do the rest drift, if particle left collimator early
 !
-          if (nabs.ne.1 .and. zlm.gt.0.d0) then                          !hr09
+          if (nabs.ne.1 .and. zlm.gt.zero) then                          !hr09
             drift_length = (length-(s+sp))
-!            if (drift_length.gt.1.e-15) then
-            if (drift_length.gt.1.0d-15) then
+            if (drift_length.gt.1.0e-15_fPrec) then
 !              WRITE(*,*) J, DRIFT_LENGTH
               x  = x + xp * drift_length
               z  = z + zp * drift_length
@@ -4932,14 +4934,14 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !++  Transform back to particle coordinates with opening and offset
 !
 !          if (x.lt.99.0*1e-3 .and. z.lt.99.0*1e-3) then
-          if (x.lt.99.0*1d-3 .and. z.lt.99.0*1d-3) then
+          if (x.lt.99.0_fPrec*c1m3 .and. z.lt.99.0_fPrec*c1m3) then
 !
 !++  Include collimator tilt
 !
-            if (tiltangle.gt.0.d0) then                                  !hr09
+            if (tiltangle.gt.zero) then                                  !hr09
               x  = x  + tiltangle*c_length
               xp = xp + tiltangle
-            elseif (tiltangle.lt.0.d0) then                              !hr09
+            elseif (tiltangle.lt.zero) then                              !hr09
               x  = x + tiltangle*c_length
               xp = xp + tiltangle
 !
@@ -4950,12 +4952,12 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
             z00 = z
             x00 = x + mirror*c_offset
-            x = (x + c_aperture/2d0) + mirror*c_offset                   !hr09
+            x = (x + c_aperture/two) + mirror*c_offset                   !hr09
 !GRD
 !JUNE2005  OF COURSE WE ADAPT ALSO THE PREVIOUS CHANGE WHEN SHIFTING BACK
 !JUNE2005  TO  THE ACCELERATOR FRAME...
 !            z = z - c_aperture/2 - mirror*c_offset
-            z = (z - n_aperture/2d0) - mirror*c_offset                   !hr09
+            z = (z - n_aperture/two) - mirror*c_offset                   !hr09
 !JUNE2005
 !
 !++  Now mirror at the horizontal axis for negative X offset
@@ -5014,10 +5016,10 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !+if .not.crlibm
 !     &xp *sin_mb(-1.*c_rotation)
 !+ei
-            x_in(j) = -1d0*x
-            y_in(j) = -1d0*z
-            xp_in(j) = -1d0*xp
-            yp_in(j) = -1d0*zp
+            x_in(j) = -one*x
+            y_in(j) = -one*z
+            xp_in(j) = -one*xp
+            yp_in(j) = -one*zp
 !JUNE2005
 !
             if ( (icoll.eq.ipencil                                      &
@@ -5029,20 +5031,20 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
      &)  ) then
 !
                x00  = mirror * x00
-               x_in(j)  = x00  *cos_mb(-1.d0*c_rotation) +                 &!hr09
-     &z00  *sin_mb(-1.d0*c_rotation)                                        !hr09
-               y_in(j)  = z00  *cos_mb(-1.d0*c_rotation) -                 &!hr09
-     &x00  *sin_mb(-1.d0*c_rotation)                                        !hr09
+               x_in(j)  = x00  *cos_mb(-one*c_rotation) +                 &!hr09
+     &z00  *sin_mb(-one*c_rotation)                                        !hr09
+               y_in(j)  = z00  *cos_mb(-one*c_rotation) -                 &!hr09
+     &x00  *sin_mb(-one*c_rotation)                                        !hr09
 
                xp_in(j) = xp_in(j) + mirror*xp_pencil0
                yp_in(j) = yp_in(j) + mirror*yp_pencil0
                x_in(j) = x_in(j) + mirror*x_pencil(icoll)
                y_in(j) = y_in(j) + mirror*y_pencil(icoll)
             endif
-!
-            p_in(j) = (1d0 + dpop) * p0                                  !hr09
+
+            p_in(j) = (one + dpop) * p0                                  !hr09
             s_in(j) = s_in(j) + sp
-!
+
           else
             x_in(j)  = x
             y_in(j)  = z
@@ -5082,7 +5084,7 @@ function ichoix(ma)
 +ca interac
   integer ma,i,ichoix
   real(kind=fPrec) aran
-  aran=dble(rndm4())
+  aran=real(rndm4(),fPrec)
   i=1
 10  if( aran.gt.cprob(i,ma) ) then
       i=i+1
@@ -5102,8 +5104,12 @@ end function ichoix
 function gettran(inter,xmat,p)
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+
   implicit none
+
 +ca interac
+
   integer inter,length,xmat
   real(kind=fPrec) p,gettran,t,xm2,bsd
   real truth,xran(1)
@@ -5111,35 +5117,35 @@ function gettran(inter,xmat,p)
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 +if .not.merlinscatter
   if( inter.eq.2 ) then
-    gettran = (-1d0*log_mb(dble(rndm4())))/bn(xmat)                  !hr09
+    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
 
   else if( inter .eq. 3 ) then
-    gettran = (-1d0*log_mb(dble(rndm4())))/bpp                       !hr09
+    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp                       !hr09
 
   else if( inter .eq. 4 ) then
-    xm2 = exp_mb( dble(rndm4()) * xln15s )
-    p = p  *(1.d0 - xm2/ecmsq)
-    if( xm2 .lt. 2.d0 ) then
-      bsd = 2.d0 * bpp
-    else if (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
-      bsd = ((106.d0-17.d0*xm2) *  bpp )/ 36.d0                !hr09
-    else if ( xm2 .gt. 5.d0 ) then
-      bsd = (7.d0 * bpp) / 12.d0                               !hr09
+    xm2 = exp_mb( real(rndm4(),fPrec) * xln15s )
+    p = p  * (one - xm2/ecmsq)
+    if( xm2 .lt. two ) then
+      bsd = two * bpp
+    else if (( xm2 .ge. two ).and. ( xm2 .le. five )) then
+      bsd = ((106.0_fPrec-17.0_fPrec*xm2) *  bpp )/ 36.0_fPrec             !hr09
+    else if ( xm2 .gt. five ) then
+      bsd = (seven * bpp) / 12.d0                                          !hr09
     end if
-      gettran = (-1d0*log_mb(dble(rndm4())))/bsd                       !hr09
+      gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd                     !hr09
 
   else if( inter.eq.5 ) then
     length=1
     call funlux( cgen(1,mat), xran, length)
     truth=xran(1)
-    t=dble(truth)                                                 !hr09
+    t=real(truth,fPrec)                                                    !hr09
     gettran = t
   end if
 +ei
 +if merlinscatter
 
   if( inter.eq.2 ) then
-    gettran = (-1d0*log_mb(dble(rndm4())))/bn(xmat)                  !hr09
+    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
 
   else if( inter .eq. 3 ) then
     call merlinscatter_get_elastic_t(gettran)
@@ -5147,15 +5153,15 @@ function gettran(inter,xmat,p)
   else if( inter .eq. 4 ) then
     call merlinscatter_get_sd_xi(xm2)
     call merlinscatter_get_sd_t(gettran)
-    p = p  * (1.d0 - (xm2/ecmsq))
+    p = p  * (one - (xm2/ecmsq))
 
   else if ( inter.eq.5 ) then
     length=1
     call funlux( cgen(1,mat) , xran, length)
     truth=xran(1)
-    t=dble(truth)                                                 !hr09
+    t=real(truth,fPrec)                                                 !hr09
     gettran = t
-  endif
+  end if
 
 +ei
   return
@@ -5176,8 +5182,8 @@ subroutine tetat(t,p,tx,tz)
   teta = sqrt(t)/p
 
 ! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-10 va  =(2d0*dble(rndm4()))-1d0                                       !hr09
-  vb = dble(rndm4())
+10 va  =(2d0*real(rndm4(),fPrec))-1d0                                       !hr09
+  vb = real(rndm4(),fPrec)
   va2 = va**2
   vb2 = vb**2
   r2 = va2 + vb2
@@ -5194,13 +5200,17 @@ end subroutine tetat
 function ruth(t)
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+
   implicit none
+
 +ca interac
+
   real ruth,t
   real(kind=fPrec) cnorm,cnform
-  parameter(cnorm=2.607d-5,cnform=0.8561d3) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
+  parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
 
-  ruth=(cnorm*exp_mb(((-1d0*dble(t))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/dble(t))**2
+  ruth=(cnorm*exp_mb(((-one*real(t,fPrec))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/real(t,fPrec))**2
 end function ruth
 
 
@@ -5212,7 +5222,11 @@ end function ruth
 subroutine scatin(plab)
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
+
   implicit none
+
 +if merlinscatter
 +ca database
 +ei
@@ -5223,18 +5237,18 @@ subroutine scatin(plab)
   real(kind=fPrec) plab
   real tlow,thigh
 
-  ecmsq = (2d0 * 0.93828d0) * plab                                   !hr09
+  ecmsq = (two * pmap) * plab                                   !hr09
 +if .not.merlinscatter
-  xln15s=log_mb(0.15d0*ecmsq)                                           !hr09
+  xln15s=log_mb(0.15_fPrec*ecmsq)                                           !hr09
 
 !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
-  pptot=0.041084d0-0.0023302d0*log_mb(ecmsq)+0.00031514d0*log_mb(ecmsq)**2
+  pptot=0.041084_fPrec-0.0023302_fPrec*log_mb(ecmsq)+0.00031514_fPrec*log_mb(ecmsq)**2
 
 !Claudia used the fit from TOTEM for ppel (in barn)
-  ppel=(11.7d0-1.59d0*log_mb(ecmsq)+0.134d0*log_mb(ecmsq)**2)/1000
+  ppel=(11.7_fPrec-1.59_fPrec*log_mb(ecmsq)+0.134_fPrec*log_mb(ecmsq)**2)/c1e3
 
 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-  ppsd=(4.3d0+0.3d0*log_mb(ecmsq))/1000
+  ppsd=(4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
 +ei !+if .not.merlinscatter
 
 +if merlinscatter !No crlibm...
@@ -5243,11 +5257,11 @@ subroutine scatin(plab)
 +ei
 
 !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-  bpp=7.156d0+1.439d0*log_mb(sqrt(ecmsq))
-  
+  bpp=7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
+
 ! unmeasured tungsten data,computed with lead data and power laws
-  bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(2d0/3d0)
-  emr(4) = emr(5) * (anuc(4)/anuc(5))**(1d0/3d0)
+  bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(two/three)
+  emr(4) = emr(5) * (anuc(4)/anuc(5))**(one/three)
 10 format(/' ppRef TOT El     ',4f12.6//)
 11 format(/' pp    TOT El Sd b',4f12.6//)
 
@@ -5262,7 +5276,7 @@ subroutine scatin(plab)
     call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
 
 ! freep: number of nucleons involved in single scattering
-    freep(ma) = freeco * anuc(ma)**(1d0/3d0)
+    freep(ma) = freeco * anuc(ma)**(one/three)
 
 ! compute pp and pn el+single diff contributions to cross-section
 ! (both added : quasi-elastic or qel later)
@@ -5282,7 +5296,7 @@ subroutine scatin(plab)
 ! Now add Coulomb
     cs(0,ma) = cs(0,ma) + cs(5,ma)
 ! Interaction length in meter
-  xintl(ma) = (0.01d0*anuc(ma))/(((fnavo * rho(ma))*cs(0,ma))*1d-24) !hr09
+  xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*cs(0,ma))*1d-24) !hr09
 
 20   format(/1x,a4,' Int.Len. ',f10.6,' CsTot',2f12.4/)
 
@@ -5298,10 +5312,10 @@ subroutine scatin(plab)
 100 continue
 
 ! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
-  cprob(1,nmat-1)=1d0
-  cprob(1,nmat)=1d0
-  xintl(nmat-1)=1d12
-  xintl(nmat)=0.0d0
+  cprob(1,nmat-1) = one
+  cprob(1,nmat)   = one
+  xintl(nmat-1)   = c1e12
+  xintl(nmat)     = zero
 120 format(/1x,a4,' Int.Len. ',e10.3/)
   return
 end subroutine scatin
@@ -5331,6 +5345,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
 
   implicit none
 
@@ -5347,7 +5362,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !++  Note that the input parameter is dpop. Here the momentum p is
 !++  constructed out of this input.
 
-  p=p0*(1.d0+dpop)
+  p=p0*(one+dpop)
   nabs=0
   nabs_tmp=nabs
 
@@ -5355,11 +5370,11 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !++  Collimator treated as black absorber
     nabs=1
     nabs_tmp=nabs
-    s=0d0
+    s=zero
 
     if(dowrite_impact) then
       ! write Coll_Scatter.dat for complete scattering histories
-      write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+      write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
     end if
     return
   else if(mat.eq.nmat-1) then
@@ -5370,7 +5385,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     if(dowrite_impact) then
       ! write Coll_Scatter.dat for complete scattering histories
-      write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+      write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
     end if
 
     return
@@ -5384,8 +5399,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !++  Get monte-carlo interaction length.
 
-10  zlm1=(-1d0*xintl(mat))*log_mb(dble(rndm4()))                          !hr09
-  nabs_tmp=0 !! type of interaction reset before following scattering process 
+10  zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))                          !hr09
+  nabs_tmp=0 !! type of interaction reset before following scattering process
   xpBef=xp ! save angles and momentum before scattering
   zpBef=zp
   pBef=p
@@ -5424,7 +5439,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !++  MCS. If yes, calculate output longitudinal position (s),
 !++  reduce momentum (output as dpop) and return.
 !++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
-  if(x.le.0d0) then
+  if(x.le.zero) then
     s=(zlm-rlen)+s                                                    !hr09
 
 +if .not.merlinscatter
@@ -5519,7 +5534,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   end if
 
   if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories. 
+! write Coll_Scatter.dat for complete scattering histories.
 ! Includes changes in angle from both
      write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
   end if
@@ -5550,24 +5565,26 @@ end subroutine jaw
 !!     nabs=1....absorption
 !!
 !<
-      subroutine jaw0(s,nabs)
+subroutine jaw0(s,nabs)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
-!
+
 +ca interac
       integer nabs,inter,icoll,iturn,ipart
       real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
-      p=p0/(1.d0-dpop)
+      p=p0/(one-dpop)
       nabs=0
       if(mat.eq.nmat) then
 !
 !++  Collimator treated as black absorber
 !
         nabs=1
-        s=0d0
+        s=zero
         return
       else if(mat.eq.nmat-1) then
 !
@@ -5586,7 +5603,7 @@ end subroutine jaw
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !++  Get monte-carlo interaction length.
-10    zlm1=(-1d0*xintl(mat))*log_mb(dble(rndm4()))
+10    zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))
 
       if(zlm1.gt.rlen) then
 
@@ -5598,7 +5615,7 @@ end subroutine jaw
        call mcs(s)
        s=(zlm-rlen)+s                                                    !hr09
        p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
+       dpop=one-p0/p
        return
       end if
 !
@@ -5631,7 +5648,7 @@ end subroutine jaw
        p=p-dpodx(mat)*s
        dpop=1.d0-p0/p
 ! write Coll_Scatter.dat for complete scattering histories
-       write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &  
+       write(3998,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &
      & icoll,iturn,ipart,nabs,-1.d0,0.d0,0.d0
        return
       end if
@@ -5678,8 +5695,8 @@ end subroutine jaw
 !
       rlen=rlen-zlm1
       goto 10
-!
-      end
+
+end subroutine jaw0
 
 !>
 !! mcs(s)
@@ -5744,24 +5761,27 @@ end subroutine mcs
 subroutine scamcs(xx,xxp,s,radl_mat)
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+
   implicit none
+
   real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
   real(kind=fPrec) radl_mat
-  
+
   x0=xx
   xp0=xxp
 
-5 v1=2d0*dble(rndm4())-1d0
-  v2=2d0*dble(rndm4())-1d0
+5 v1=2d0*real(rndm4(),fPrec)-1d0
+  v2=2d0*real(rndm4(),fPrec)-1d0
   r2=v1**2+v2**2                                                     !hr09
   if(r2.ge.1.d0) goto 5
 
   a=sqrt((-2.d0*log_mb(r2))/r2)                                         !hr09
   z1=v1*a
   z2=v2*a
-  ss=sqrt(s)    
-  xx=x0+s*(xp0+(.5d0*ss)*(1+0.038*log_mb(s))*(z2+z1*.577350269d0)) !Claudia: added logarithmic part in mcs formula                                                     !hr09
-  xxp=xp0+ss*z2*(1+0.038*log_mb(s))  
+  ss=sqrt(s)
+  xx=x0+s*(xp0+(half*ss)*(one+0.038_fPrec*log_mb(s))*(z2+z1*0.577350269_fPrec)) !Claudia: added logarithmic part in mcs formula
+  xxp=xp0+ss*z2*(one+0.038_fPrec*log_mb(s))
 end subroutine scamcs
 
 !>
@@ -5770,47 +5790,48 @@ end subroutine scamcs
 !<
 subroutine soln3(a,b,dh,smax,s)
   use floatPrecision
+  use numerical_constants
 
   implicit none
 
   real(kind=fPrec) b,a,s,smax,c,dh
-  if(b.eq.0.d0) then
-    s=a**0.6666666666666667d0
-!      s=a**(2.d0/3.d0)
+  if(b.eq.zero) then
+    s=a**0.6666666666666667_fPrec
+!      s=a**(two/three)
     if(s.gt.smax) s=smax
     return
   end if
 
-  if(a.eq.0.d0) then
-    if(b.gt.0.d0) then
+  if(a.eq.zero) then
+    if(b.gt.zero) then
       s=b**2
     else
-      s=0.d0
+      s=zero
     end if
     if(s.gt.smax) s=smax
     return
   end if
 
-  if(b.gt.0.d0) then
+  if(b.gt.zero) then
     if(smax**3.le.(a+b*smax)**2) then
       s=smax
       return
     else
-      s=smax*.5d0
+      s=smax*half
       call iterat(a,b,dh,s)
     end if
   else
-    c=(-1d0*a)/b
+    c=(-one*a)/b
     if(smax.lt.c) then
       if(smax**3.le.(a+b*smax)**2) then
         s=smax
         return
       else
-        s=smax*.5d0
+        s=smax*half
         call iterat(a,b,dh,s)
       end if
     else
-      s=c*.5d0
+      s=c*half
       call iterat(a,b,dh,s)
     end if
   end if
@@ -5820,11 +5841,14 @@ end subroutine soln3
 subroutine iterat(a,b,dh,s)
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+
   implicit none
+
   real(kind=fPrec) ds,s,a,b,dh
 
   ds=s
-10 ds=ds*.5d0
+10 ds=ds*half
 
   if(s**3.lt.(a+b*s)**2) then
     s=s+ds
@@ -5847,33 +5871,39 @@ end subroutine iterat
 function get_dpodx(p,mat_i)          !Claudia
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
+
   implicit none
+
   integer mat
 +ca collMatNum
   common/materia/mat
   real(kind=fPrec) anuc,zatom,rho,emr,exenergy
-  real(kind=fPrec) PE,me,mp,K,gamma_p
+  real(kind=fPrec) PE,K,gamma_p
+!  real(kind=fPrec) PE,me,mp,K,gamma_p
   common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
   common/meanexen/exenergy(nmat)
   real(kind=fPrec) beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,I_s,delta
-  parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
+  parameter(K=0.307075)
+!  parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
   real(kind=fPrec) p
   integer mat_i
-  real(kind=fPrec) dpodx,get_dpodx   
+  real(kind=fPrec) dpodx,get_dpodx
 
-  mp2=mp**2
-  me2=me**2
-  beta_p=1.
-  gamma_p=p/mp
-  beta_s=beta_p**2
-  gamma_s=gamma_p**2
-  T=(2*me*beta_s*gamma_s)/(1+(2*gamma_p*me/mp)+me2/mp2)
-  PE=sqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9
-  I_s=exenergy(mat_i)**2
-  part_1=K*zatom(mat_i)/(anuc(mat_i)*beta_s)
-  delta=log_mb(PE/exenergy(mat_i))+log_mb(beta_p*gamma_p)-0.5
-  part_2=0.5*log_mb((2*me*beta_s*gamma_s*T)/I_s)
-  get_dpodx = part_1*(part_2-beta_s-delta)*rho(mat_i)*1.e-1
+  mp2       = pmap**2
+  me2       = pmae**2
+  beta_p    = one
+  gamma_p   = p/pmap
+  beta_s    = beta_p**2
+  gamma_s   = gamma_p**2
+  T         = (2*pmae*beta_s*gamma_s)/(1+(2*gamma_p*pmae/pmap)+me2/mp2)
+  PE        = sqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9_fPrec
+  I_s       = exenergy(mat_i)**2
+  part_1    = K*zatom(mat_i)/(anuc(mat_i)*beta_s)
+  delta     = log_mb(PE/exenergy(mat_i))+log_mb(beta_p*gamma_p)-half
+  part_2    = half*log_mb((two*pmae*beta_s*gamma_s*T)/I_s)
+  get_dpodx = part_1*(part_2-beta_s-delta)*rho(mat_i)*c1m1
   return
 end function get_dpodx
 
@@ -5884,15 +5914,16 @@ end function get_dpodx
 !<
 function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
   use floatPrecision
+  use numerical_constants
   implicit none
   real(kind=fPrec) AtomicNumber, Density, AtomicMass
   real(kind=fPrec) Avogadro
   real(kind=fPrec) CalcElectronDensity
   real(kind=fPrec) PartA, PartB
-  parameter (Avogadro = 6.022140857e23)
+  parameter (Avogadro = 6.022140857e23_fPrec)
   PartA = AtomicNumber * Avogadro * Density
   !1e-6 factor converts to n/m^-3
-  PartB = AtomicMass * 1e-6
+  PartB = AtomicMass * c1m6
   CalcElectronDensity = PartA/PartB
   return
 end function CalcElectronDensity
@@ -5900,11 +5931,15 @@ end function CalcElectronDensity
 !>
 !! CalcPlasmaEnergy(ElectronDensity)
 !! Function to calculate the plasma energy in a material
-!! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
+!! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / &
+!!& (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
 !<
 function CalcPlasmaEnergy(ElectronDensity)
   use floatPrecision
+  use numerical_constants
+
   implicit none
+
   real(kind=fPrec) ElectronDensity
   real(kind=fPrec) CalcPlasmaEnergy
   real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
@@ -5915,22 +5950,22 @@ function CalcPlasmaEnergy(ElectronDensity)
   real(kind=fPrec) FreeSpacePermittivity,FreeSpacePermeability
   real(kind=fPrec) SpeedOfLight,SpeedOfLight2
 
-  parameter (PlanckConstantBar = 1.054571800e-34)
-  parameter (ElectronCharge = 1.6021766208e-19)
+  parameter (PlanckConstantBar = 1.054571800e-34_fPrec)
+  parameter (ElectronCharge = 1.6021766208e-19_fPrec)
   parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
-  parameter (ElectronMass = 9.10938356e-31)
-  parameter (SpeedOfLight = 299792458)
+  parameter (ElectronMass = 9.10938356e-31_fPrec)
+  parameter (SpeedOfLight = 299792458.0_fPrec)
   parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
 
-  parameter (FreeSpacePermeability = 16.0d-7*atan(1.0d0)) ! Henry per meter
+  parameter (FreeSpacePermeability = 16.0e-7_fPrec*atan(one)) ! Henry per meter
   parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
-  parameter (FreeSpacePermittivity = 1.0/FSPC2)
+  parameter (FreeSpacePermittivity = one/FSPC2)
   parameter (PartB = ElectronMass * FreeSpacePermittivity)
 
   PartA = ElectronDensity * ElectronCharge2
 
   sqrtAB = sqrt(PartA/PartB)
-  CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*1e-9
+  CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
   return
 end function CalcPlasmaEnergy
 
@@ -5949,15 +5984,18 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
 
   IMPLICIT none
-      
+
   integer IS
 
 +ca collMatNum
 
   real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
-  real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+  real(kind=fPrec) k !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+!  real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
   real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
   real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
   real(kind=fPrec) thl,Tt,cs_tail,prob_tail
@@ -5968,64 +6006,63 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 
   common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 
-  data k/0.307075/      !constant in front bethe-bloch [MeV g^-1 cm^2]
-  data re/2.818d-15/    !electron radius [m]
-  data me/0.510998910/  !electron mass [MeV/c^2]
-  data mp/938.272013/   !proton mass [MeV/c^2]
+  data k/0.307075_fPrec/      !constant in front bethe-bloch [MeV g^-1 cm^2]
+! The following values are now taken from physical_constants
+!  data re/2.818d-15/    !electron radius [m]
+!  data me/0.510998910/  !electron mass [MeV/c^2]
+!  data mp/938.272013/   !proton mass [MeV/c^2]
 
-  mom=PC*1.0d3              ! [GeV/c] -> [MeV/c]
-  enr=(mom*mom+mp*mp)**0.5  ! [MeV]
-  gammar=enr/mp
-  betar=mom/enr
-  bgr=betar*gammar
-      
+  mom    = PC*c1e3                    ! [GeV/c] -> [MeV/c]
+  enr    = (mom*mom+pmap*pmap)**half  ! [MeV]
+  gammar = enr/pmap
+  betar  = mom/enr
+  bgr    = betar*gammar
+
 ! mean excitation energy - convert to MeV
-  exEn=exenergy(IS)*1.0d3
+  exEn=exenergy(IS)*c1e3
 
 ! Tmax is max energy loss from kinematics
-  Tmax=(2.0d0*me*bgr**2)/(1.0d0+2*gammar*me/mp+(me/mp)**2) ![MeV]
+  Tmax=(two*pmae*bgr**2)/(one+two*gammar*pmae/pmap+(pmae/pmap)**2) ![MeV]
 
 ! plasma energy - see PDG 2010 table 27.1
-  plen=((rho(IS)*zatom(IS)/anuc(IS))**0.5)*28.816d-6 ![MeV]
-      
+  plen = ((rho(IS)*zatom(IS)/anuc(IS))**half)*28.816e-6_fPrec ![MeV]
+
 ! calculate threshold energy
 ! Above this threshold, the cross section for high energy loss is calculated and then
 ! a random number is generated to determine if tail energy loss should be applied, or only mean from Bethe-Bloch
 ! below threshold, only the standard bethe-bloch is used (all particles get average energy loss)
 
 ! thl is 2* width of landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
-  thl= 4.0d0*k*zatom(IS)*DZ*100.0d0*rho(IS)/(anuc(IS)*betar**2) ![MeV]
+  thl = four*k*zatom(IS)*DZ*c1e2*rho(IS)/(anuc(IS)*betar**2) ![MeV]
 !     write(3456,*) thl     ! should typically be >0.06MeV for approximations to be valid - check!
 
 ! Bethe Bloch mean energy loss
-  EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*(0.5*log_mb((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))-betar**2.0- &
-       log_mb(plen/exEn)-log_mb(bgr)+0.5)
+  EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two-&
+& log_mb(plen/exEn)-log_mb(bgr)+half)
 
-  EnLo=EnLo*rho(IS)*0.1*DZ  ![GeV]
+  EnLo = EnLo*rho(IS)*c1m1*DZ  ![GeV]
 
 ! threshold Tt is bethe bloch + 2*width of Landau distribution
-  Tt=EnLo*1000.0d0+thl      ![MeV]
+  Tt = EnLo*c1e3+thl      ![MeV]
 
 ! cross section - see Alfredo's presentation for derivation
-  cs_tail=((k*zatom(IS))/(anuc(IS)*betar**2))*((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-(log_mb(Tmax/Tt)*(betar**2) &
- &        /(2.0d0*Tmax))+((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
+  cs_tail = ((k*zatom(IS))/(anuc(IS)*betar**2))*((half*((one/Tt)-(one/Tmax)))-(log_mb(Tmax/Tt)*(betar**2) &
+ &        /(two*Tmax))+((Tmax-Tt)/(four*(gammar**2)*(pmap**2))))
 
 ! probability of being in tail: cross section * density * path length
-  prob_tail=cs_tail*rho(IS)*DZ*100.0d0;
+  prob_tail = cs_tail*rho(IS)*DZ*c1e2;
 
-  ranc=dble(rndm4())
+  ranc = real(rndm4(),fPrec)
 
 ! determine based on random number if tail energy loss occurs.
   if(ranc.lt.prob_tail)then
-    EnLo=((k*zatom(IS))/(anuc(IS)*betar**2))*(0.5*log_mb((2.0d0*me*bgr*bgr*Tmax)/(exEn*exEn))-betar**2.0- &
- &       log_mb(plen/exEn)-log_mb(bgr)+0.5+(TMax**2)/(8.0d0*(gammar**2)*(mp**2)))
+    EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two- &
+ &       log_mb(plen/exEn)-log_mb(bgr)+half+(TMax**2)/(eight*(gammar**2)*(pmap**2)))
 
-
-  EnLo=EnLo*rho(IS)*0.1 ![GeV/m]
-
-  else 
+    EnLo = EnLo*rho(IS)*c1m1 ![GeV/m]
+  else
     ! if tial energy loss does not occur, just use the standard Bethe Bloch
-    EnLo=EnLo/DZ  ![GeV/m]
+    EnLo = EnLo/DZ  ![GeV/m]
   endif
 
   RETURN
@@ -6040,9 +6077,10 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
 
   implicit none
-      
+
 +ca crcoall
 
 +ca collpara
@@ -6059,12 +6097,12 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 !
 !++  Calculate the gammas
 !
-  pi=4d0*atan_mb(1d0)
-  mygammax = (1d0+myalphax**2)/mybetax
-  mygammay = (1d0+myalphay**2)/mybetay
-!++TW 11/07 reset j, helps if subroutine is called twice 
+  pi=four*atan_mb(one)
+  mygammax = (one+myalphax**2)/mybetax
+  mygammay = (one+myalphay**2)/mybetay
+!++TW 11/07 reset j, helps if subroutine is called twice
 ! was done during try to reset distribution, still needed
-! will this subroutine ever called twice? 
+! will this subroutine ever called twice?
   j = 0
 !
 !++  Number of points and generate distribution
@@ -6101,31 +6139,32 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 
   do while (j.lt.mynp)
     j = j + 1
-    myemitx = myemitx0*(mynex + ((2d0*dble(rndm4()-0.5))*mdex) )**2
+    myemitx = myemitx0*(mynex + ((two*dble(rndm4()-half))*mdex) )**2
     xsigmax = sqrt(mybetax*myemitx)
-    myx(j)  = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))
-    if(rndm4().gt.0.5) then
+    myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
+    if(rndm4().gt.half) then
       myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
     else
-      myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+      myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
     end if
 
-    myemity = myemity0*(myney + ((2d0*dble(rndm4()-0.5))*mdey) )**2
+    myemity = myemity0*(myney + ((two*dble(rndm4()-half))*mdey) )**2
     ysigmay = sqrt(mybetay*myemity)
-    myy(j)  = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))
-    if(rndm4().gt.0.5) then
+    myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
+    if(rndm4().gt.half) then
       myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
     else
-      myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+      myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
     end if
 
-    myp(j)   = myenom
-    mys(j)   = 0d0
+    myp(j) = myenom
+    mys(j) = zero
 
 !++  Dangerous stuff, just for the moment
     if (cut_input) then
-      if((.not. (myy(j).lt.-0.008d-3 .and. myyp(j).lt. 0.1d-3 .and.myyp(j).gt.0d0) ) .and. &
-&        (.not. (myy(j).gt. 0.008d-3 .and. myyp(j).gt.-0.1d-3 .and.myyp(j).lt.0d0) ) ) then
+      !0.1d-3 -> c1m4
+      if((.not. (myy(j).lt.-0.008e-3_fPrec .and. myyp(j).lt. c1m4 .and.myyp(j).gt.zero) ) .and. &
+&        (.not. (myy(j).gt. 0.008e-3_fPrec .and. myyp(j).gt.-c1m4 .and.myyp(j).lt.zero) ) ) then
         j = j - 1
       end if
     end if
@@ -6147,10 +6186,14 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
 
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
+
   implicit none
+
 +ca crcoall
 +ca collpara
 +ca dbmkdist
+
   real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
   save
@@ -6162,73 +6205,78 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   write(lout,*) '  New routine to add the finite beam size in the'
   write(lout,*) '  other dimension (SR, 08-06-2005).'
 
-  pi=4d0*atan_mb(1d0)
-  mygammax = (1d0+myalphax**2)/mybetax
-  mygammay = (1d0+myalphay**2)/mybetay
+  pi=four*atan_mb(one)
+  mygammax = (one+myalphax**2)/mybetax
+  mygammay = (one+myalphay**2)/mybetay
   do j=1, mynp
-    if((mynex.gt.0d0).and.(myney.eq.0d0)) then
-      myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2
+    if((mynex.gt.zero).and.(myney.eq.zero)) then
+      myemitx = myemitx0*(mynex+((two*dble(rndm4()-half))*mdex))**2
       xsigmax = sqrt(mybetax*myemitx)
-      myx(j)  = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))
-      if (rndm4().gt.0.5) then
-        myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-      else
-       myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax                           
-      end if
-      phiy = (2d0*pi)*dble(rndm4())                               
-      iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )                
-      myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)                
-      myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))                                  
+      myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-    else if ( mynex.eq.0d0.and.myney.gt.0d0 ) then                  
-      myemity = myemity0*(myney+((2d0*dble(rndm4()-0.5))*mdey))**2
+      if (rndm4().gt.half) then
+        myxp(j) =     sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+      else
+       myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+      end if
+
+      phiy = (two*pi)*real(rndm4(),fPrec)
+      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+
+    else if ( mynex.eq.zero.and.myney.gt.zero ) then
+      myemity = myemity0*(myney+((two*dble(rndm4()-half))*mdey))**2
       ysigmay = sqrt(mybetay*myemity)
-      myy(j)  = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))            
-      if (rndm4().gt.0.5) then
-        myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay                           
-      else
-        myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay                      
-      end if
-      phix = (2d0*pi)*dble(rndm4())                          
-      iix = (-1d0* myemitx0) * log_mb( dble(rndm4()) )          
-      myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)           
-      myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))                             
+      myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-    else if( mynex.eq.0d0.and.myney.eq.0d0 ) then             
-      phix = (2d0*pi)*dble(rndm4())                          
-      iix = (-1d0*myemitx0) * log_mb( dble(rndm4()) )           
-      myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)           
-      myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))                             
-      phiy = (2d0*pi)*dble(rndm4())                          
-      iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )           
-      myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)           
-      myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+      if (rndm4().gt.half) then
+        myyp(j) =      sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+      else
+        myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+      end if
+
+      phix = (two*pi)*real(rndm4(),fPrec)
+      iix = (-one* myemitx0) * log_mb( real(rndm4(),fPrec) )
+      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))
+
+    else if( mynex.eq.zero.and.myney.eq.zero ) then
+      phix = (two*pi)*real(rndm4(),fPrec)
+      iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
+      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))
+      phiy = (two*pi)*real(rndm4(),fPrec)
+      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
     else
       write(lout,*) "Error - beam parameters not correctly set!"
     end if
-    myp(j)   = myenom
-    mys(j)   = 0d0
+    myp(j) = myenom
+    mys(j) = zero
   end do
   return
 end subroutine makedis_st
 
 !========================================================================
 !
-!     RB: new routine to sample part of matched phase ellipse which is outside 
+!     RB: new routine to sample part of matched phase ellipse which is outside
 !     the cut of the jaws
 !     Assuming cut of the jaw at mynex for hor plane.
 !     largest amplitude outside of jaw is mynex + mdex.  Analog for vertical plane.
 
 !     same routine as makedis_st, but rejection sampling to get
-!     only particles hitting the collimator on the same turn. 
+!     only particles hitting the collimator on the same turn.
 
-!     Treat as a pencil beam in main routine. 
+!     Treat as a pencil beam in main routine.
 
 subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity0, &
  &                        myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
- 
+
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
 
   implicit none
 
@@ -6237,88 +6285,76 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
 +ca dbmkdist
 
   real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
-      
+
       save
 !
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
 !++  Calculate the gammas
-!
+
   write(lout,*) '  RB 2013: new pencil beam routine'
-  pi=4d0*atan_mb(1d0)
+  pi=four*atan_mb(one)
 
-  mygammax = (1d0+myalphax**2)/mybetax
-   mygammay = (1d0+myalphay**2)/mybetay
+  mygammax = (one+myalphax**2)/mybetax
+  mygammay = (one+myalphay**2)/mybetay
 
-! calcualte cutoff in x or y from the collimator jaws. 
-  if((mynex.gt.0d0).and.(myney.eq.0d0)) then
+! calculate cutoff in x or y from the collimator jaws.
+  if((mynex.gt.zero).and.(myney.eq.zero)) then
     cutoff=mynex*sqrt(mybetax*myemitx0)
   else
     cutoff=myney*sqrt(mybetay*myemity0)
-  endif
+  end if
 
       do j=1, mynp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-         if ((mynex.gt.0d0).and.(myney.eq.0d0)) then  ! halo in x
+         if((mynex.gt.zero).and.(myney.eq.zero)) then  ! halo in x
  887        continue
-            myemitx = myemitx0*(mynex+(dble(rndm4())*mdex))**2  
+            myemitx = myemitx0*(mynex+(real(rndm4(),fPrec)*mdex))**2
             xsigmax = sqrt(mybetax*myemitx)
-            myx(j)  = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))       
-            if (abs(myx(j)).lt.cutoff) goto 887
+            myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
+            if(abs(myx(j)).lt.cutoff) goto 887
 
-            if (rndm4().gt.0.5) then
-              myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax                             
+            if(rndm4().gt.half) then
+              myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
             else
-              myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax                             
-            endif
+              myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+            end if
 
-            phiy = (2d0*pi)*dble(rndm4())                                 
-            iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )                  
-            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)                  
-            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy)) 
+            phiy = (two*pi)*real(rndm4(),fPrec)
+            iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+            myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+            myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-         elseif ( mynex.eq.0d0.and.myney.gt.0d0 ) then  ! halo in y
+         else if( mynex.eq.zero.and.myney.gt.zero ) then  ! halo in y
  886        continue
-            myemity = myemity0*(myney+(dble(rndm4())*mdey))**2
+            myemity = myemity0*(myney+(real(rndm4(),fPrec)*mdey))**2
             ysigmay = sqrt(mybetay*myemity)
-            myy(j)   = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))
-            if (abs(myy(j)).lt.cutoff) goto 886
+            myy(j)   = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
+            if(abs(myy(j)).lt.cutoff) goto 886
 
-            if (rndm4().gt.0.5) then
+            if(rndm4().gt.half) then
               myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
             else
-              myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-            endif
+              myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+            end if
 
-            phix = (2d0*pi)*dble(rndm4())
-            iix = (-1d0* myemitx0) * log_mb( dble(rndm4()) )
-            myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)
-            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
+            phix = (two*pi)*real(rndm4(),fPrec)
+            iix = (-one* myemitx0) * log_mb( real(rndm4(),fPrec) )
+            myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+            myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!       
-         elseif ( mynex.eq.0d0.and.myney.eq.0d0 ) then  ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
-            write(lout,*) "Stop in makedis_coll. attempting to use halo type 3 with Gaussian dist. "
-            call prror(-1)
-!c$$$            phix = (2d0*pi)*dble(rndm4())                                 
-!c$$$            iix = (-1d0*myemitx0) * log_mb( dble(rndm4()) )                  
-!c$$$            myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)                  
-!c$$$            myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) +     & 
-!c$$$     &           myalphax * cos_mb(phix))                                    
-!c$$$            phiy = (2d0*pi)*dble(rndm4())                                 
-!c$$$            iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )                  
-!c$$$
-!c$$$            myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)                  
-!c$$$
-!c$$$            myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) +     & 
-!c$$$     &           myalphay * cos_mb(phiy))                                    
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
+         else if( mynex.eq.zero.and.myney.eq.zero ) then
+           write(lout,*) "Stop in makedis_coll. attempting to use halo type 3 with Gaussian dist. "
+           call prror(-1)
          else
-            write(lout,*) "Error - beam parameters not correctly set!"
-         endif
+           write(lout,*) "Error - beam parameters not correctly set!"
+         end if
 
-         myp(j)   = myenom
-         mys(j)   = 0d0
+         myp(j) = myenom
+         mys(j) = zero
 
       end do
 
@@ -6342,6 +6378,7 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
 
   implicit none
 
@@ -6362,10 +6399,10 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 !++  Generate random distribution, assuming optical parameters at IP1
 !
 !++  Calculate the gammas
-  pi=4d0*atan_mb(1d0)
+  pi=four*atan_mb(one)
 
-  mygammax = (1d0+myalphax**2)/mybetax
-  mygammay = (1d0+myalphay**2)/mybetay
+  mygammax = (one+myalphax**2)/mybetax
+  mygammay = (one+myalphay**2)/mybetay
 
 !     Assign bunch length and dp/p depending on the energy
 !     Check if the units in metres are correct!
@@ -6378,7 +6415,7 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 !GRD      else
   en_error = enerror
   bunch_length = bunchlength
-  
+
 !GRD         write(lout,*)"Warning-Energy different from LHC inj or top!"
 !GRD         write(lout,*)"  => 7TeV values of dp/p and bunch length used!"
 !GRD      endif
@@ -6388,47 +6425,47 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   write(lout,*) "  RMS energy spread = ", en_error
 
   do j=1, mynp
-    if((mynex.gt.0d0).and.(myney.eq.0d0)) then
-      myemitx = myemitx0*(mynex+((2d0*dble(rndm4()-0.5))*mdex))**2
+    if((mynex.gt.zero).and.(myney.eq.zero)) then
+      myemitx = myemitx0*(mynex+((two*dble(rndm4()-half))*mdex))**2
       xsigmax = sqrt(mybetax*myemitx)
-      myx(j)  = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))
+      myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-      if (rndm4().gt.0.5) then
+      if (rndm4().gt.half) then
         myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
       else
-        myxp(j) = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+        myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
       end if
 
-      phiy = (2d0*pi)*dble(rndm4())
-      iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )
-      myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)
-      myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+      phiy = (two*pi)*real(rndm4(),fPrec)
+      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
 
-    else if( mynex.eq.0d0.and.myney.gt.0d0 ) then
-      myemity = myemity0*(myney+((2d0*dble(rndm4()-0.5))*mdey))**2
+    else if( mynex.eq.zero.and.myney.gt.zero ) then
+      myemity = myemity0*(myney+((two*dble(rndm4()-half))*mdey))**2
       ysigmay = sqrt(mybetay*myemity)
-      myy(j)   = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))
+      myy(j)   = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-      if(rndm4().gt.0.5) then
+      if(rndm4().gt.half) then
         myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
       else
-        myyp(j) = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+        myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
       end if
 
-      phix = (2d0*pi)*dble(rndm4())
-      iix = (-1d0*myemitx0) * log_mb( dble(rndm4()) )
-      myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)
-      myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
+      phix = (two*pi)*real(rndm4(),fPrec)
+      iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
+      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
 
-    else if( mynex.eq.0d0.and.myney.eq.0d0 ) then 
-      phix = (2d0*pi)*dble(rndm4())
-      iix = (-1d0*myemitx0) * log_mb( dble(rndm4()) )
-      myx(j) = sqrt((2d0*iix)*mybetax) * cos_mb(phix)
-      myxp(j) = (-1d0*sqrt((2d0*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
-      phiy = (2d0*pi)*dble(rndm4())
-      iiy = (-1d0*myemity0) * log_mb( dble(rndm4()) )
-      myy(j) = sqrt((2d0*iiy)*mybetay) * cos_mb(phiy)
-      myyp(j) = (-1d0*sqrt((2d0*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+    else if( mynex.eq.zero.and.myney.eq.zero ) then
+      phix = (two*pi)*real(rndm4(),fPrec)
+      iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
+      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
+      phiy = (two*pi)*real(rndm4(),fPrec)
+      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
     else
       write(lout,*) "Error - beam parameters not correctly set!"
     end if
@@ -6439,12 +6476,12 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   long_cut = 2
   j = 1
   do while (j.le.mynp)
-    a_st = ran_gauss(5d0)
-    b_st = ran_gauss(5d0)
+    a_st = ran_gauss(five)
+    b_st = ran_gauss(five)
 
     do while ((a_st**2+b_st**2).gt.long_cut**2)
-      a_st = ran_gauss(5d0)
-      b_st = ran_gauss(5d0)
+      a_st = ran_gauss(five)
+      b_st = ran_gauss(five)
     end do
 
     mys(j) = a_st
@@ -6454,7 +6491,7 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 
 !++   2nd: give the correct values
   do j=1,mynp
-    myp(j) = myenom * (1d0 + myp(j) * en_error)
+    myp(j) = myenom * (one + myp(j) * en_error)
     mys(j) = bunch_length * mys(j)
   end do
 
@@ -6532,6 +6569,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 !               DE     -> [ sigma ]
 
   use floatPrecision
+  use numerical_constants
 
   implicit none
 
@@ -6545,10 +6583,10 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
   character(len=80)   filename_dis
   real(kind=fPrec) enerror, bunchlength
-      
+
   logical lopen
   integer stat
-      
+
   real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
   real(kind=fPrec) myemitz
 
@@ -6579,7 +6617,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
   do j=1,mynp
     read(53,*,end=10,err=20) normx, normxp, normy, normyp, norms, normp
-! A normalized distribution with x,xp,y,yp,z,zp is read and 
+! A normalized distribution with x,xp,y,yp,z,zp is read and
 ! transformed with the TAS matrix T , which is the transformation matrix
 ! from normalized to physical coordinates it is scaled with the geometric
 ! emittances in diag matrix S. x = T*S*normx
@@ -6592,29 +6630,29 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 !         write(lout,*) " myemity [m]= ",myemity
 !         write(lout,*) " bunchlength [mm]= ",bunchlength
 !         write(lout,*) " enerror = ",enerror
-                  
+
          !convert bunchlength from [mm] to [m]
          ! enerror is the energy spread
-    myemitz  = bunchlength * 0.001d0 * enerror
+    myemitz  = bunchlength * c1m3 * enerror
 
 
 ! scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)  ia=the particle for which the tas was written
 
-    myx(j)   =                            & 
+    myx(j)   =                            &
      &     normx  * sqrt(myemitx)*tas(1,1,1) + &
      &     normxp * sqrt(myemitx)*tas(1,1,2) + &
      &     normy  * sqrt(myemity)*tas(1,1,3) + &
      &     normyp * sqrt(myemity)*tas(1,1,4) + &
      &     norms  * sqrt(myemitz)*tas(1,1,5) + &
-     &     normp  * sqrt(myemitz)*0.001d0*tas(1,1,6)
+     &     normp  * sqrt(myemitz)*c1m3*tas(1,1,6)
 
-    myxp(j)  =                            & 
+    myxp(j)  =                            &
      &     normx  * sqrt(myemitx)*tas(1,2,1) + &
      &     normxp * sqrt(myemitx)*tas(1,2,2) + &
      &     normy  * sqrt(myemity)*tas(1,2,3) + &
      &     normyp * sqrt(myemity)*tas(1,2,4) + &
      &     norms  * sqrt(myemitz)*tas(1,2,5) + &
-     &     normp  * sqrt(myemitz)*0.001d0*tas(1,2,6)
+     &     normp  * sqrt(myemitz)*c1m3*tas(1,2,6)
 
     myy(j)   =                            &
      &     normx  * sqrt(myemitx)*tas(1,3,1) + &
@@ -6622,7 +6660,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
      &     normy  * sqrt(myemity)*tas(1,3,3) + &
      &     normyp * sqrt(myemity)*tas(1,3,4) + &
      &     norms  * sqrt(myemitz)*tas(1,3,5) + &
-     &     normp  * sqrt(myemitz)*0.001d0*tas(1,3,6)
+     &     normp  * sqrt(myemitz)*c1m3*tas(1,3,6)
 
     myyp(j)  =                            &
      &     normx  * sqrt(myemitx)*tas(1,4,1) + &
@@ -6630,7 +6668,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
      &     normy  * sqrt(myemity)*tas(1,4,3) + &
      &     normyp * sqrt(myemity)*tas(1,4,4) + &
      &     norms  * sqrt(myemitz)*tas(1,4,5) + &
-     &     normp  * sqrt(myemitz)*0.001d0*tas(1,4,6)
+     &     normp  * sqrt(myemitz)*c1m3*tas(1,4,6)
 
     mys(j)   =                            &
      &     normx  * sqrt(myemitx)*tas(1,5,1) + &
@@ -6638,39 +6676,39 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
      &     normy  * sqrt(myemity)*tas(1,5,3) + &
      &     normyp * sqrt(myemity)*tas(1,5,4) + &
      &     norms  * sqrt(myemitz)*tas(1,5,5) + &
-     &     normp  * sqrt(myemitz)*0.001d0*tas(1,5,6)
+     &     normp  * sqrt(myemitz)*c1m3*tas(1,5,6)
 
     myp(j)   =                                    &
-     &     normx  * sqrt(myemitx)*1000.d0*tas(1,6,1) + & 
-     &     normxp * sqrt(myemitx)*1000.d0*tas(1,6,2) + &
-     &     normy  * sqrt(myemity)*1000.d0*tas(1,6,3) + &
-     &     normyp * sqrt(myemity)*1000.d0*tas(1,6,4) + &
-     &     norms  * sqrt(myemitz)*1000.d0*tas(1,6,5) + &
+     &     normx  * sqrt(myemitx)*c1e3*tas(1,6,1) + &
+     &     normxp * sqrt(myemitx)*c1e3*tas(1,6,2) + &
+     &     normy  * sqrt(myemity)*c1e3*tas(1,6,3) + &
+     &     normyp * sqrt(myemity)*c1e3*tas(1,6,4) + &
+     &     norms  * sqrt(myemitz)*c1e3*tas(1,6,5) + &
      &     normp  * sqrt(myemitz)*tas(1,6,6)
 
 ! add the momentum
 ! convert to canonical variables
-! dE/E with unit [1] from the closed orbit is added 
+! dE/E with unit [1] from the closed orbit is added
 !For the 4D coordinates the closed orbit
 ! will be added by SixTrack itself later on.
-     myxp(j)  = myxp(j)*(1.d0+myp(j)+clop6v(3,1))
-     myyp(j)  = myyp(j)*(1.d0+myp(j)+clop6v(3,1))
+     myxp(j)  = myxp(j)*(one+myp(j)+clop6v(3,1))
+     myyp(j)  = myyp(j)*(one+myp(j)+clop6v(3,1))
 ! unit conversion for collimation [m] to [mm]
-     mys(j)   = mys(j)*1000.d0
-     myp(j)   = myenom*(1.d0+myp(j))
+     mys(j)   = mys(j)*c1e3
+     myp(j)   = myenom*(one+myp(j))
 
   end do
-      
+
 10   mynp = j - 1
   write(lout,*) "Number of particles read from the file = ",mynp
 
   close(53)
   return
-      
+
 20 continue
    write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
    call prror(-1)
-      
+
 end subroutine readdis_norm
 
 
@@ -6681,6 +6719,7 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
 
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
 
   implicit none
 
@@ -6699,17 +6738,17 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
 !
 !++  Calculate the gammas
 
-  pi=4d0*atan_mb(1d0)
+  pi=four*atan_mb(one)
 
-  mygammax = (1d0+myalphax**2)/mybetax
-  mygammay = (1d0+myalphay**2)/mybetay
+  mygammax = (one+myalphax**2)/mybetax
+  mygammay = (one+myalphay**2)/mybetay
 
 !++  Number of points and generate distribution
 
-  mynex = nr/sqrt(2d0)
-  mdex = ndr/sqrt(2d0)
-  myney = nr/sqrt(2d0)
-  mdey = ndr/sqrt(2d0)
+  mynex = nr/sqrt(two)
+  mdex = ndr/sqrt(two)
+  myney = nr/sqrt(two)
+  mdey = ndr/sqrt(two)
 
   write(lout,*)
   write(lout,*) 'Generation of particle distribution Version 2'
@@ -6738,24 +6777,24 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   do while (j.lt.mynp)
 
     j = j + 1
-    myemitx = myemitx0*(mynex + ((2d0*dble(rndm4()-0.5))*mdex) )**2  !hr09
+    myemitx = myemitx0*(mynex + ((two*dble(rndm4()-half))*mdex) )**2  !hr09
     xsigmax = sqrt(mybetax*myemitx)
-    myx(j)   = xsigmax * sin_mb((2d0*pi)*dble(rndm4()))              !hr09
+    myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))              !hr09
 
-    if (rndm4().gt.0.5) then
-      myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax      !hr09
+    if (rndm4().gt.half) then
+      myxp(j) =      sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
     else
-      myxp(j)  = -1d0*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
+      myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
     endif
 
-    myemity = myemity0*(myney + ((2d0*dble(rndm4()-0.5))*mdey) )**2  !hr09
+    myemity = myemity0*(myney + ((two*dble(rndm4()-half))*mdey) )**2  !hr09
     ysigmay = sqrt(mybetay*myemity)
-    myy(j)   = ysigmay * sin_mb((2d0*pi)*dble(rndm4()))              !hr09
+    myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))          !hr09
 
-    if (rndm4().gt.0.5) then
+    if (rndm4().gt.half) then
       myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay      !hr09
     else
-      myyp(j)  = -1d0*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay !hr09
+      myyp(j)  = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay !hr09
     endif
 
 !APRIL2005
@@ -6767,7 +6806,7 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
 !          myp(j) = myp(1) + (j-1)*2d0*0.05*myenom/(mynp-1)
 !        endif
 !APRIL2005
-    mys(j)   = 0d0
+    mys(j)   = zero
 
 !++  Dangerous stuff, just for the moment
 !
@@ -6785,15 +6824,15 @@ end subroutine makedis_radial
 
 !>
 !! \brief The routine makes an initial Gaussian distribution
-!! 
+!!
 !!     Uses the old routine 'MAKEDIS' for the halo plane and adds the\n
 !!     transverse beam size in the other plane (matched distrubutions\n
 !!     are generated starting from the twiss functions).\n
 !!     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches\n
 !!     centred in the aperture centre are generated. (SR, 08-05-2005)
-!!     
+!!
 !!     YIL EDIT 2010: particle 0 is always on orbit...
-!! 
+!!
 !! @author Javier Barranco <jbarranc@cern.ch>
 !! @param mynp
 !! @param myalphax
@@ -6818,13 +6857,14 @@ end subroutine makedis_radial
 !!
 !! @date Last modified: 06. August 2009
 !! @see ran_gauss
-!! 
+!!
 !<
 subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey, &
  &  myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
 
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
 
   implicit none
 
@@ -6838,7 +6878,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 +ca commont1
 
   real(kind=fPrec) pi
-!YIL march2010 edit: was missing enerror, bunchlength etc... 
+!YIL march2010 edit: was missing enerror, bunchlength etc...
 ! no common block for these parameters?
 
   real(kind=fPrec) gauss_rand
@@ -6858,10 +6898,10 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 !++  Generate random distribution, assuming optical parameters at IP1
 !
 !++  Calculate the gammas
-  pi=4d0*atan_mb(1d0)
+  pi=four*atan_mb(one)
 
-  mygammax = (1d0+myalphax**2)/mybetax
-  mygammay = (1d0+myalphay**2)/mybetay
+  mygammax = (one+myalphax**2)/mybetax
+  mygammay = (one+myalphay**2)/mybetay
   en_error = enerror
   bunch_length = bunchlength
 
@@ -6875,12 +6915,12 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   write (lout,*) "   Beam generated with 5 sigma cut"
   write (lout,*)
   write (lout,*) "  Parameters used for Distribution Generation"
-  write (lout,*) "  BetaX =", mybetax    
+  write (lout,*) "  BetaX =", mybetax
   write (lout,*) "  BetaY =", mybetay
   write (lout,*) "  EmittanceX =", myemitx0
   write (lout,*) "  EmittanceY =", myemity0
   write (lout,*)
- 
+
   startpar=1
 
 +if beamgas
@@ -6889,26 +6929,26 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 !  yet applied at this point...
 !  so we can set all to 0.
   startpar=2
-  myx(1)  = 0.0d0     !hr13
-  myy(1)  = 0.0d0     !hr13
-  myxp(1) = 0.0d0     !hr13
-  myyp(1) = 0.0d0     !hr13
+  myx(1)  = zero     !hr13
+  myy(1)  = zero     !hr13
+  myxp(1) = zero     !hr13
+  myyp(1) = zero     !hr13
   myp(1)  = myenom
-  mys(1)  = 0d0
+  mys(1)  = zero
 !YIL end edit July 2010
 +ei
 
   do j=startpar, mynp
-! JBG July 2007    
+! JBG July 2007
 ! Option added for septum studies
 
-    myemitx=myemitx0
+    myemitx = myemitx0
     xsigmax = sqrt(mybetax*myemitx)
     myx(j)  = xsigmax * ran_gauss(mynex)
     myxp(j) = ran_gauss(mynex)*sqrt(myemitx/mybetax)-((myalphax*myx(j))/mybetax)  !hr13
-    myemity=myemity0
+    myemity = myemity0
     ysigmay = sqrt(mybetay*myemity)
-    myy(j)   = ysigmay * ran_gauss(myney)
+    myy(j)  = ysigmay * ran_gauss(myney)
     myyp(j) = ran_gauss(myney)*sqrt(myemity/mybetay)-((myalphay*myy(j))/mybetay)  !hr13
   end do
 
@@ -6919,12 +6959,12 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   j = startpar
 
   do while (j.le.mynp)
-    a_st = ran_gauss(5d0)
-    b_st = ran_gauss(5d0)
+    a_st = ran_gauss(five)
+    b_st = ran_gauss(five)
 
     do while ((a_st*a_st+b_st*b_st).gt.long_cut*long_cut)
-      a_st = ran_gauss(5d0)
-      b_st = ran_gauss(5d0)
+      a_st = ran_gauss(five)
+      b_st = ran_gauss(five)
     end do
 
     mys(j) = a_st
@@ -6934,7 +6974,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
 !++   2nd: give the correct values
   do j=startpar,mynp
-    myp(j) = myenom * (1d0 + myp(j) * en_error)
+    myp(j) = myenom * (one + myp(j) * en_error)
     mys(j) = bunch_length * mys(j)
   end do
 
@@ -6971,36 +7011,41 @@ end function rndm4
 
 !ccccccccccccccccccccccccccccccccccccccc
 !-TW-01/2007
-! function rndm5(irnd) , irnd = 1 will reset 
-! inn counter => enables reproducible set of 
+! function rndm5(irnd) , irnd = 1 will reset
+! inn counter => enables reproducible set of
 ! random unmbers
 !cccccccccccccccccccccccccccccccccc
 !
-      function rndm5(irnd)
-      use floatPrecision
-      implicit none
-      integer len, inn, irnd
-      real rndm5,a
-      save
-      parameter ( len =  30000 )
-      dimension a(len)
-      data inn/1/
+function rndm5(irnd)
+  use floatPrecision
+
+  implicit none
+
+  integer len, inn, irnd
+  real rndm5,a
+  save
+
+  parameter( len =  30000 )
+  dimension a(len)
+  data inn/1/
 !
 ! reset inn to 1 enable reproducible random numbers
-      if ( irnd .eq. 1) inn = 1
-      if ( inn.eq.1 ) then
-         call ranlux(a,len)
-         rndm5=a(1)
-         inn=2
-      else
-         rndm5=a(inn)
-         inn=inn+1
-         if(inn.eq.len+1)inn=1
-      endif
-      return
-      end
-!
-!ccccccccccccccccccccccccccccccccccccccc 
+  if( irnd .eq. 1) inn = 1
+
+  if( inn.eq.1 ) then
+    call ranlux(a,len)
+    rndm5=a(1)
+    inn=2
+  else
+    rndm5=a(inn)
+    inn=inn+1
+    if(inn.eq.len+1)inn=1
+  end if
+
+  return
+end function rndm5
+
+!ccccccccccccccccccccccccccccccccccccccc
 real(kind=fPrec) function myran_gauss(cut)
 !*********************************************************************
 !
@@ -7011,43 +7056,45 @@ real(kind=fPrec) function myran_gauss(cut)
 !     cut - real(kind=fPrec) - cut for distribution in units of sigma
 !     the cut must be greater than 0.5
 !
-!     changed rndm4 to rndm5(irnd) and defined flag as true 
-! 
+!     changed rndm4 to rndm5(irnd) and defined flag as true
+!
 !*********************************************************************
-      use floatPrecision
-      use mathlib_bouncer
-      implicit none
-      
-      logical flag
-      real(kind=fPrec) x, u1, u2, twopi, r,cut
-      save
-      
-      flag = .true. !Does this initialize only once, or is it executed every pass?
-                    !See ran_gauss(cut)
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
 
-      twopi=8d0*atan_mb(1d0)
- 1    if (flag) then
-         r = dble(rndm5(0))
-         r = max(r, 0.5d0**32)
-         r = min(r, 1d0-0.5d0**32)
-         u1 = sqrt(-2d0*log_mb( r ))
-         u2 = dble(rndm5(0))
-         x = u1 * cos_mb(twopi*u2)
-      else
-         x = u1 * sin_mb(twopi*u2)
-      endif
-      
-      flag = .not. flag
-      
+  implicit none
+
+  logical flag
+  real(kind=fPrec) x, u1, u2, twopi, r,cut
+  save
+
+  flag = .true. !Does this initialize only once, or is it executed every pass?
+                !See ran_gauss(cut)
+
+  twopi=eight*atan_mb(one)
+1 if (flag) then
+    r = dble(rndm5(0))
+    r = max(r, half**32)
+    r = min(r, one-half**32)
+    u1 = sqrt(-two*log_mb( r ))
+    u2 = real(rndm5(0),fPrec)
+    x = u1 * cos_mb(twopi*u2)
+  else
+     x = u1 * sin_mb(twopi*u2)
+  endif
+
+  flag = .not. flag
+
 !     cut the distribution if cut > 0.5
-      if (cut .gt. 0.5d0 .and. abs(x) .gt. cut) goto 1
-      
-      myran_gauss = x
-      return
+  if (cut .gt. half .and. abs(x) .gt. cut) goto 1
+
+  myran_gauss = x
+  return
 end function myran_gauss
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine ranlux(rvec,lenv)
+subroutine ranlux(rvec,lenv)
 !         Subtract-and-borrow random number generator proposed by
 !         Marsaglia and Zaman, implemented by F. James with the name
 !         RCARRY in 1991, and later improved by Martin Luescher
@@ -7207,9 +7254,10 @@ end function myran_gauss
       entry rluxin(isdext)
          notyet = .false.
          twom24 = 1.
-         do 195 i= 1, 24
-         next(i) = i-1
-  195    twom24 = twom24 * 0.5
+         do i= 1, 24
+           next(i) = i-1
+           twom24 = twom24 * 0.5
+         end do
          next(1) = 24
          twom12 = twom24 * 4096.
       write(lout,*) ' FULL INITIALIZATION OF RANLUX WITH 25 INTEGERS:'
@@ -7349,10 +7397,10 @@ end function myran_gauss
         endif
       endif
       return
-      end
+end subroutine ranlux
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine funlxp (func,xfcum,x2low,x2high)
+subroutine funlxp (func,xfcum,x2low,x2high)
 !         F. JAMES,   Sept, 1994
 !
 !         Prepares the user function FUNC for FUNLUX
@@ -7405,7 +7453,7 @@ end function myran_gauss
       return
   900 continue
       write(lout,*) ' Fatal error in FUNLXP. FUNLUX will not work.'
-      end
+end subroutine funlxp
 
 subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
 !        Array XFCUM is filled from NLO to NLO+NBINS, which makes
@@ -7853,6 +7901,7 @@ real(kind=fPrec) function ran_gauss(cut)
 !*********************************************************************
   use floatPrecision
   use mathlib_bouncer
+  use numerical_constants
 
   implicit none
 
@@ -7861,13 +7910,13 @@ real(kind=fPrec) function ran_gauss(cut)
   real(kind=fPrec) x, u1, u2, twopi, r,cut
 
   save
-      
-  twopi=8d0*atan_mb(1d0) !Why not 2*pi, where pi is in block "common"?
+
+  twopi=eight*atan_mb(one) !Why not 2*pi, where pi is in block "common"?
 1 if (flag) then
     r = dble(rndm4( ))
-    r = max(r, 0.5d0**32)
-    r = min(r, 1d0-0.5d0**32)
-    u1 = sqrt(-2d0*log_mb( r ))
+    r = max(r, half**32)
+    r = min(r, one-half**32)
+    u1 = sqrt(-two*log_mb( r ))
     u2 = dble(rndm4( ))
     x = u1 * cos_mb(twopi*u2)
   else
@@ -7877,7 +7926,7 @@ real(kind=fPrec) function ran_gauss(cut)
   flag = .not. flag
 
 !  cut the distribution if cut > 0.5
-  if (cut .gt. 0.5d0 .and. abs(x) .gt. cut) goto 1
+  if (cut .gt. half .and. abs(x) .gt. cut) goto 1
 
   ran_gauss = x
   return

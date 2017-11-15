@@ -59,10 +59,13 @@ end module lorentzcommon
 subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
   use floatPrecision
   use numerical_constants
+  use physical_constants
   use mathlib_bouncer
+
 !BELOW YOU FIND NEW ADDITIONS:
   use beamgascommon
   use lorentzcommon
+
   implicit none
 
 !YIL: parpro
@@ -137,7 +140,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
   doLorentz=0
   if((abs(yv(1,1)).gt.3e-3_fPrec).or.(abs(yv(2,1)).gt.3e-3_fPrec)) then ! do a Lorentz boost of DPMJET events
  !YIL warning: hardcoded mass of protons:
-    protonmass=938.3_fPrec
+    protonmass=pmap
     doLorentz=1
     tmpPX=yv(1,1) !don't think I can send array elements to functions??
     tmpPY=yv(2,1)
