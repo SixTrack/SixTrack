@@ -37401,7 +37401,99 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
         end do
         if(abs(el(i)).le.pieni) cycle
         kz1 = kz(i)+1
-        goto(10,30,90,50,70,80,120,170,180),kz1
+        select case (kz1)
+        case (1)
+            do l=1,2
+                aeg(i,l,1) = one
+                aeg(i,l,2) = el(i)
+                aeg(i,l,3) = zero
+                aeg(i,l,4) = one
+            end do
+            
+        case (2, 4, 5, 6)
+            ! 2: RECTANGULAR MAGNET
+            ! 4: SEKTORMAGNET
+            ! 5: RECTANGULAR MAGNET VERTICAL
+            ! 6: SEKTORMAGNET VERTICAL
+            fok = el(i)*ed(i)/dpsq
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    aeg(i,l,1) = one
+                    aeg(i,l,2) = el(i)
+                    aeg(i,l,3) = zero
+                    aeg(i,l,4) = one
+                end do
+            end if
+            rho = (one/ed(i))*dpsq
+            si  = sin_mb(fok)
+            co  = cos_mb(fok)
+            if (kz1.eq.2) then
+                    ! HORIZONTAL
+                aeg(i,1,1) = one
+                aeg(i,1,2) = rho*si
+                aeg(i,1,3) = zero
+                aeg(i,1,4) = one
+                aeg(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
+                aeg(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                ! VERTICAL
+                g  = tan_mb(fok*half)/rho
+                gl = el(i)*g
+                aeg(i,2,1) = one-gl
+                aeg(i,2,2) = el(i)
+                aeg(i,2,3) = (-one*g)*(two-gl)                  ! hr06
+                aeg(i,2,4) = aeg(i,2,1)
+            else if (kz1.eq.4) then
+                ! HORIZONTAL
+                aeg(i,1,1)=co
+                aeg(i,1,2)=rho*si
+                aeg(i,1,3)=(-one*si)/rho                        ! hr06
+                aeg(i,1,4)=co
+                aeg(i,1,5)=((-one*rho)*(one-co))/dpsq           ! hr06
+                aeg(i,1,6)=(-one*si)/dpsq                       ! hr06
+                ! VERTICAL
+                aeg(i,2,1)=one
+                aeg(i,2,2)=el(i)
+                aeg(i,2,3)=zero
+                aeg(i,2,4)=one
+            else if (kz1.eq.5) then
+                ! HORIZONTAL
+                aeg(i,2,1) = one
+                aeg(i,2,2) = rho*si
+                aeg(i,2,3) = zero
+                aeg(i,2,4) = one
+                aeg(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
+                aeg(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                ! VERTICAL
+                g  = tan_mb(fok*half)/rho
+                gl = el(i)*g
+                aeg(i,1,1) = one-gl
+                aeg(i,1,2) = el(i)
+                aeg(i,1,3) = (-one*g)*(two-gl)                  ! hr06
+                aeg(i,1,4) = aeg(i,1,1)
+            else if (kz1.eq.6) then
+                ! HORIZONTAL
+                aeg(i,2,1)=co
+                aeg(i,2,2)=rho*si
+                aeg(i,2,3)=(-one*si)/rho                        ! hr06
+                aeg(i,2,4)=co
+                aeg(i,2,5)=((-one*rho)*(one-co))/dpsq           ! hr06
+                aeg(i,2,6)=(-one*si)/dpsq                       ! hr06
+                ! VERTICAL
+                aeg(i,1,1)=one
+                aeg(i,1,2)=el(i)
+                aeg(i,1,3)=zero
+                aeg(i,1,4)=one
+            end if
+
+        case (3)
+            goto 90
+        case (7)
+            goto 120
+        case (8)
+            goto 170
+        case (9)
+            goto 180
+        end select
         cycle
 
 !-----------------------------------------------------------------------
@@ -37416,66 +37508,6 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
 
         cycle
 
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   30   ih=1
-   40   fok=el(i)*ed(i)/dpsq
-        if(abs(fok).le.pieni) goto 10
-        rho=(one/ed(i))*dpsq
-        si=sin_mb(fok)
-        co=cos_mb(fok)
-        aeg(i,ih,1)=one
-        aeg(i,ih,2)=rho*si
-        aeg(i,ih,3)=zero
-        aeg(i,ih,4)=one
-        aeg(i,ih,5)=((-one*rho)*(one-co))/dpsq                           !hr06
-        aeg(i,ih,6)=((-one*two)*tan_mb(fok*half))/dpsq                   !hr06
-!--VERTIKAL
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        g=tan_mb(fok*half)/rho
-        gl=el(i)*g
-        aeg(i,ih,1)=one-gl
-        aeg(i,ih,2)=el(i)
-        aeg(i,ih,3)=(-one*g)*(two-gl)                                    !hr06
-        aeg(i,ih,4)=aeg(i,ih,1)
-        cycle
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   50   ih=1
-   60   fok=el(i)*ed(i)/dpsq
-        if(abs(fok).le.pieni) goto 10
-        rho=(one/ed(i))*dpsq
-        si=sin_mb(fok)
-        co=cos_mb(fok)
-        aeg(i,ih,1)=co
-        aeg(i,ih,2)=rho*si
-        aeg(i,ih,3)=(-one*si)/rho                                        !hr06
-        aeg(i,ih,4)=co
-        aeg(i,ih,5)=((-one*rho)*(one-co))/dpsq                           !hr06
-        aeg(i,ih,6)=(-one*si)/dpsq                                       !hr06
-!--VERTIKAL
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        aeg(i,ih,1)=one
-        aeg(i,ih,2)=el(i)
-        aeg(i,ih,3)=zero
-        aeg(i,ih,4)=one
-        cycle
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   70   ih=2
-        goto 40
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   80   ih=2
-        goto 60
 !-----------------------------------------------------------------------
 !  QUADRUPOLE
 !  FOCUSSING
