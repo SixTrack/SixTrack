@@ -18648,11 +18648,11 @@ end subroutine envars
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       implicit none
       integer i,ien,ih,ip,kz1,l,idaa
       real(kind=fPrec) dare,result
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -25286,6 +25286,7 @@ end subroutine runda
       subroutine trauthin(nthinerr)
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       use scatter, only : scatter_elemPointer
       use dynk, only : ldynk, dynk_isused, dynk_pretrack
 
@@ -25307,7 +25308,6 @@ end subroutine runda
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -25778,6 +25778,7 @@ end subroutine runda
       subroutine thin4d(nthinerr)
       use floatPrecision
       use physical_constants
+  use numerical_constants
       use mathlib_bouncer
 +if datamods
       use bigmats
@@ -25814,7 +25815,6 @@ end subroutine runda
       real(kind=fPrec) expt
 +ei
 
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -27336,6 +27336,7 @@ end subroutine runda
 !-----------------------------------------------------------------------
       use floatPrecision
       use physical_constants
+  use numerical_constants
       use mathlib_bouncer
 
 +if fluka
@@ -27371,7 +27372,6 @@ end subroutine runda
 +if time
       real(kind=fPrec) expt
 +ei
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -28473,6 +28473,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
       use floatPrecision
       use mathlib_bouncer
+  use numerical_constants
       use physical_constants
 
 +if fluka
@@ -28491,7 +28492,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       logical myisnan
       integer ib2,ib3,ilostch,j,jj,jj1,jjx,lnapx
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -29620,10 +29620,10 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -35247,10 +35247,10 @@ integer function INEESE()
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -35282,11 +35282,11 @@ integer function check_SE_unique( iEl, ixEl )
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
 
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca commonmn
 +ca commontr
@@ -35320,9 +35320,9 @@ subroutine umschr(iu1,iu2)
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
 +ca crcoall
       integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
       real(kind=fPrec) c,c1
@@ -35393,6 +35393,7 @@ end subroutine umschr
 +dk daliesix
 subroutine daliesix
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -35400,7 +35401,6 @@ subroutine daliesix
       real tlim,time0,time1,time
       real(kind=fPrec) angle,coe,rad,x2pi
 +ca parpro
-+ca parnum
 +ca commondl
 +ca commonas
       dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
@@ -35550,12 +35550,12 @@ subroutine distance(x,clo,di0,t,dam)
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,ii,iq,j,jq
       real(kind=fPrec) clo,cx,dam,di0,phi,pi,sx,t,x,x1
 +ca parpro
-+ca parnum
 +ca commonds
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
       save
@@ -35618,6 +35618,7 @@ end subroutine distance
 !  CALCULATION OF INITIAL COORDINATES
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -35625,7 +35626,6 @@ end subroutine distance
       real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
      &tas,tas56,x1,x11,x13,x2
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -35728,6 +35728,7 @@ end subroutine distance
 !                   BETA-, ALFA-FUNCTIONS, Q-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,j
@@ -35735,7 +35736,6 @@ end subroutine distance
      &fak2,qw,rca1,rca2,rclam1,rclam2,rcw1(4),rcw2(4),rn1,rn2,spa,spd,  &
      &sqrn,yca1,yca2,yclam1,yclam2,ycw1(4),ycw2(4)
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -36032,12 +36032,12 @@ subroutine blocksv
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -36098,12 +36098,12 @@ subroutine blocksv
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX, USED FOR DISPERSION
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -36169,6 +36169,7 @@ subroutine blocksv
 !  CALCULATION OF CHROMATICITY FROM 5 ENERGIE-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -36176,7 +36177,6 @@ subroutine blocksv
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
      &sm0,su2,suxy,suzy,xi,zi
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -36302,13 +36302,13 @@ subroutine blocksv
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -36439,6 +36439,7 @@ subroutine blocksv
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -36446,7 +36447,6 @@ subroutine blocksv
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
      &dy,x0,x1,y0,y1
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -36529,13 +36529,13 @@ subroutine blocksv
 !  CALCULATION OF THE SIX-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
       real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -37011,13 +37011,13 @@ subroutine blocksv
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
      &x1,y0,y1
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -37085,11 +37085,11 @@ subroutine blocksv
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer ico,ico0,iql,j,m
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -37131,13 +37131,13 @@ subroutine blocksv
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,ih,kz1,l,ll
       real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1, &
      &hm,hp,hs,rho,rhoi,si,wf
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -37417,13 +37417,13 @@ subroutine blocksv
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,ih,kz1,l,ll
       real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,&
      &g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -37641,6 +37641,7 @@ subroutine blocksv
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : error_unit
 
@@ -37656,7 +37657,6 @@ subroutine blocksv
 +ca crcoall
       integer ier
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -38260,10 +38260,10 @@ end subroutine dist_readdis
 !-----------------------------------------------------------------------
 !
       use floatPrecision
+  use numerical_constants
       implicit none
 
 +ca parpro
-+ca parnum
 +ca common
 +ca dbdcum
 +ca crcoall
@@ -38340,6 +38340,7 @@ end subroutine dist_readdis
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -38354,7 +38355,6 @@ end subroutine dist_readdis
 +ei
       character(len=16) idum
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -39256,6 +39256,7 @@ end subroutine dist_readdis
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -39265,7 +39266,6 @@ end subroutine dist_readdis
       ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
       logical isBLOC
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -39367,6 +39367,7 @@ end subroutine dist_readdis
      &f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10030 format('|',6x,'|',a8,'|',12x,'|',102('-'))
       end
+
       subroutine cpltwis(typ,t,etl,phi)
 !-----------------------------------------------------------------------
 !  CALCULATES COUPLED TWISS PARAMETERS AROUND THE RING AND ALSO THE
@@ -39380,6 +39381,7 @@ end subroutine dist_readdis
 !  COUUANGL
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,iwrite
@@ -39388,7 +39390,6 @@ end subroutine dist_readdis
      &phzi,phzii,phzpi,phzpii,t
       character(len=16) typ
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -39472,13 +39473,13 @@ end subroutine dist_readdis
 !  VEC1 = VEC2 * RMAT , WITH VEC2 AS RESULT
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
       integer ik,indi,j,jk,jy,k,kk,kod,l,n,n1,dimtot,dimakt
       real(kind=fPrec) emax,eps,r,rmat,vec
 +ca parpro
-+ca parnum
       dimension rmat(dimtot,dimakt),vec(dimakt)
       data eps /1e-20_fPrec/
       save
@@ -39535,12 +39536,12 @@ end subroutine dist_readdis
 +dk matrix
       subroutine matrix(dpp,am)
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,ierr,l
       real(kind=fPrec) am,dpp
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -39588,6 +39589,7 @@ end subroutine dist_readdis
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -39599,7 +39601,6 @@ end subroutine dist_readdis
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
       real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
       character(len=16) bezlo(nele)
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -39923,6 +39924,7 @@ end subroutine dist_readdis
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 
@@ -39931,7 +39933,6 @@ end subroutine dist_readdis
 +ca parpro
       real(kind=fPrec) xinc(ncor1)
       real(kind=fPrec) ckicknew,ckickold,r0,r0a
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -40027,12 +40028,12 @@ end subroutine dist_readdis
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -40099,9 +40100,9 @@ end subroutine dist_readdis
 !     PTP  - PEAK TO PEAK VALUE TO CORRECT FOR                       *
 !*********************************************************************
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
 +ca crcoall
       integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1, &
      &nmon1
@@ -40276,9 +40277,9 @@ end subroutine dist_readdis
 !     Householder transform of matrix A
 !*********************************************************************
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
       integer j,k,k1,m,n,nc,ncor1,nmon1
       real(kind=fPrec) a,beta,h
       parameter (nmon1 = 600)
@@ -40312,11 +40313,10 @@ end subroutine dist_readdis
 !     Householder transform of vector B
 !*********************************************************************
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
 
       implicit none
-
-+ca parnum
 
       integer k,k1,m,n,ncor1,nmon1
       real(kind=fPrec) a,b,beta,h
@@ -40349,9 +40349,9 @@ end subroutine dist_readdis
 !     calculate residual orbit vector
 !*********************************************************************
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
       integer i,k,kk,kl,kn,lv,m,n,ncor1,nmon1
       real(kind=fPrec) a,b,beta,rho
       parameter (nmon1 = 600)
@@ -40384,9 +40384,9 @@ end subroutine dist_readdis
 !     calculate vector U
 !*********************************************************************
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
       integer i,k,m,n,ncor1,nmon1
       real(kind=fPrec) a,beta,h,sig
       parameter (nmon1 = 600)
@@ -40418,9 +40418,9 @@ end subroutine dist_readdis
 !     calculates rms and p.to.p value of R(1) .... R(M)
 !*********************************************************************
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
       integer i,imax,imin,m,maxmin
       real(kind=fPrec) ave,ptp,r,rms,xave,xrms
       dimension r(m)
@@ -40479,6 +40479,7 @@ end subroutine dist_readdis
 !  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -40486,7 +40487,6 @@ end subroutine dist_readdis
      &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
       real(kind=fPrec) extalig1,exterr1
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -40743,6 +40743,7 @@ end subroutine dist_readdis
 !  ADDITIONAL ADJUSTMENT OF THE X-PHASEADVANCE BETWEEN 2 POSITIONS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -40755,7 +40756,6 @@ end subroutine dist_readdis
       real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -41243,6 +41243,7 @@ end subroutine dist_readdis
 !  X-PHASEADVANCE BETWEEN 2 POSITIONS IN THE MACHINE
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -41250,7 +41251,6 @@ end subroutine dist_readdis
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -41500,13 +41500,13 @@ end subroutine dist_readdis
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -42214,6 +42214,7 @@ end subroutine dist_readdis
 !  USED FOR RMOD
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,    &
@@ -42229,7 +42230,6 @@ end subroutine dist_readdis
      &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -42992,6 +42992,7 @@ end subroutine dist_readdis
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -43000,7 +43001,6 @@ end subroutine dist_readdis
       real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,   &
      &se2,sen,sen15,sen16,sen17,sen18,sn,ss
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -43322,6 +43322,7 @@ end subroutine dist_readdis
 !  FINDING THE BEST POSITIONS FOR CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -43329,7 +43330,6 @@ end subroutine dist_readdis
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=16) ref
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -43409,6 +43409,7 @@ end subroutine dist_readdis
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -43428,7 +43429,6 @@ end subroutine dist_readdis
      &tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
 +ei
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -44414,6 +44414,7 @@ end subroutine dist_readdis
 !  USED FOR SUBRE - CALCULATES DETUNING
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
@@ -44421,7 +44422,6 @@ end subroutine dist_readdis
       real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,pi,vor,vtu1, &
      &vtu2
 +ca parpro
-+ca parnum
       dimension dfac(10),dtu(2,5),ep(2),beta(2),dtup(2,5,0:4,0:4)
       save
 !-----------------------------------------------------------------------
@@ -44478,6 +44478,7 @@ end subroutine dist_readdis
 !  USED FOR SEARCH
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,    &
@@ -44493,7 +44494,6 @@ end subroutine dist_readdis
      &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -45227,13 +45227,13 @@ end subroutine dist_readdis
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
 +ca crcoall
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
 +ca parpro
-+ca parnum
 +ca common
 +ca commons
 +ca commont1
@@ -46213,9 +46213,9 @@ end subroutine dist_readdis
 !     ******************************************************************
 !-----------------------------------------------------------------------
       use floatPrecision
+  use numerical_constants
       use mathlib_bouncer
       implicit none
-+ca parnum
       integer idim,ifail,ir,jfail,k,kprnt,n
       real(kind=fPrec) t1,t2,t3,a,det,temp,s,                           &
      &c11,c12,c13,c21,c22,c23,c31,c32,c33
@@ -47337,6 +47337,7 @@ end subroutine dist_readdis
 !     
 !     See also subroutines crpoint and crstart.
       use floatPrecision
+  use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -47353,7 +47354,6 @@ end subroutine dist_readdis
       implicit none
 +ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -48231,6 +48231,7 @@ end subroutine dist_readdis
 !     
 !     See also subroutine crcheck and crstart.
       use floatPrecision
+  use numerical_constants
 +if datamods
       use bigmats, only : as, al !Only take the variables from common, not from commonmn
 +ei
@@ -48245,7 +48246,6 @@ end subroutine dist_readdis
       implicit none
 +ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -48889,6 +48889,7 @@ end subroutine dist_readdis
 !     
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
+  use numerical_constants
 +if datamods
       use bigmats
 +ei
@@ -48899,7 +48900,6 @@ end subroutine dist_readdis
       implicit none
 +ca crcoall
 +ca parpro
-+ca parnum
 +ca common
 +ca common2
 +ca commons
@@ -49472,10 +49472,10 @@ end subroutine dist_readdis
       
       subroutine abend(cstring)
       use floatPrecision
+  use numerical_constants
       use, intrinsic :: iso_fortran_env, only : error_unit
       implicit none
 +ca parpro
-+ca parnum
 +ca common
 +ca crcoall
 +ca commonxz

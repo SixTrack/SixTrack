@@ -2973,16 +2973,19 @@
 
       return
       end
+
 +dk mapflol
-      subroutine mapflol(sa,sai,cr,cm,st)
+subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
       use mathlib_bouncer
+      use numerical_constants
+
       implicit none
-+ca parnum
+
 +ca crcoall
+
       integer i,ier,iunst,j,l,n,n1,ndim,ndim2
-      real(kind=fPrec) ap,ax,cm,cr,                                     &
-     &p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
+      real(kind=fPrec) ap,ax,cm,cr,p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
       parameter (ndim2=6)
       parameter (ndim=3)
 +ca ii
@@ -2992,9 +2995,9 @@
 +ca choice
 ! ---------------------
       dimension cr(ndim2,ndim2),xj(ndim2,ndim2),n(ndim),x(ndim)
-      dimension rr(ndim2),ri(ndim2),sa(ndim2,ndim2),xx(ndim)            &
-     &,sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
+      dimension rr(ndim2),ri(ndim2),sa(ndim2,ndim2),xx(ndim),sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
+  logical lopen
       x2pi=atan_mb(one)*eight
       n1=0
 !     frank/etienne
@@ -3035,7 +3038,18 @@
             xsu=xsu+abs(w(i,j))
           enddo
         enddo
-        write(lout,*)'deviation for symplecticity ', 100.0_fPrec*(xsu-nd2)/xsu,' %'
+        write(lout,*)'deviation for symplecticity ', c1e2*(xsu-nd2)/xsu,' %'
+
+        inquire( unit=1034, opened=lopen )
+        if( lopen ) then
+          write(lout,*) 'ERROR: unit 1034 is already open for symplecticity check writing in lielib.s90'
+          call prror(-1)
+        else
+!         Each time this is run we dump out the "deviation for symplecticity". This is re-written each time the check is run
+          open(1034,file="symplecticity_check.txt", status='replace')
+          write(1034,*) c1e2*(xsu-nd2)/xsu
+          close(1034)
+        end if
 +if debug
 !       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
 +ei
@@ -3147,7 +3161,8 @@
       call mulnd2(cm,cr)
 
       return
-      end
+end subroutine mapflol
+
 +dk mulnd2
       subroutine mulnd2(rt,r)
       use floatPrecision
