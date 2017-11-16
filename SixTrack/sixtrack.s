@@ -37428,7 +37428,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             si  = sin_mb(fok)
             co  = cos_mb(fok)
             if (kz1.eq.2) then
-                    ! HORIZONTAL
+                ! HORIZONTAL
                 aeg(i,1,1) = one
                 aeg(i,1,2) = rho*si
                 aeg(i,1,3) = zero
@@ -37484,142 +37484,126 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,1,3)=zero
                 aeg(i,1,4)=one
             end if
-
-        case (3)
-            goto 90
-        case (7)
-            goto 120
-        case (8)
-            goto 170
-        case (9)
-            goto 180
+            
+        case (3) ! QUADRUPOLE
+            ! FOCUSSING
+            fok = ek(i)/(one+dpp)
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    aeg(i,l,1) = one
+                    aeg(i,l,2) = el(i)
+                    aeg(i,l,3) = zero
+                    aeg(i,l,4) = one
+                end do
+                cycle
+            end if
+            ih = 0
+            hi = sqrt(abs(fok))
+            fi = el(i)*hi
+            if(fok.gt.zero) goto 110
+    100     ih = ih+1
+            aeg(i,ih,1) = cos_mb(fi)
+            hi1 = sin_mb(fi)
+            aeg(i,ih,2) = hi1/hi
+            aeg(i,ih,3) = (-one*hi1)*hi ! hr06
+            aeg(i,ih,4) = aeg(i,ih,1)
+            if(ih.eq.2) cycle
+            ! DEFOCUSSING
+    110     ih = ih+1
+            hp = exp_mb(fi)
+            hm = one/hp
+            hc = (hp+hm)*half
+            hs = (hp-hm)*half
+            aeg(i,ih,1) = hc
+            aeg(i,ih,2) = hs/hi
+            aeg(i,ih,3) = hs*hi
+            aeg(i,ih,4) = hc
+            if(ih.eq.1) goto 100
+            
+        case (7, 8)
+            ! 7: COMBINED FUNCTION MAGNET HORIZONTAL
+            ! 8: COMBINED FUNCTION MAGNET VERTICAL
+            if (kz1.eq.7) then
+                ih   = 0
+                fokq = ek(i)
+            else
+                ih   = 1
+                fokq = -one*ek(i)      ! hr06
+            end if
+            wf  = ed(i)/dpsq
+            fok = fokq/dpd-wf**2       ! hr06
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    aeg(i,l,1) = one
+                    aeg(i,l,2) = el(i)
+                    aeg(i,l,3) = zero
+                    aeg(i,l,4) = one
+                end do
+                cycle
+            end if
+            afok = abs(fok)
+            hi   = sqrt(afok)
+            fi   = hi*el(i)
+            if(fok.gt.zero) goto 160
+    140     ih = ih+1
+            si = sin_mb(fi)
+            co = cos_mb(fi)
+            aeg(i,ih,1) = co
+            aeg(i,ih,2) = si/hi
+            aeg(i,ih,3) = (-one*si)*hi                      ! hr06
+            aeg(i,ih,4) = co
+            aeg(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq  ! hr06
+            aeg(i,ih,6) = (((-one*wf)/hi)*si)/dpsq          ! hr06
+            ih = ih+1
+            if(ih.gt.2) ih=1
+            hi = sqrt(abs(ek(i)/dpd))
+            fi = hi*el(i)
+            hp = exp_mb(fi)
+            hm = one/hp
+            hc = (hp+hm)*half
+            hs = (hp-hm)*half
+            aeg(i,ih,1) = hc
+            aeg(i,ih,2) = el(i)
+            if(abs(hi).le.pieni) goto 150
+            aeg(i,ih,2) = hs/hi
+    150     aeg(i,ih,3) = hs*hi
+            aeg(i,ih,4) = hc
+            ! DEFOCUSSING
+    160     ih = ih+1
+            hp = exp_mb(fi)
+            hm = one/hp
+            hc = (hp+hm)*half
+            hs = (hp-hm)*half
+            aeg(i,ih,1) = hc
+            aeg(i,ih,2) = hs/hi
+            aeg(i,ih,3) = hs*hi
+            aeg(i,ih,4) = hc
+            aeg(i,ih,5) = ((wf/afok)*(one-hc))/dpsq ! hr06
+            aeg(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq  ! hr06
+            ih = ih+1
+            if(ih.gt.2) ih = 1
+            hi = sqrt(abs(ek(i)/dpd))
+            fi = hi*el(i)
+            si = sin_mb(fi)
+            co = cos_mb(fi)
+            aeg(i,ih,1) = co
+            aeg(i,ih,2) = si/hi
+            aeg(i,ih,3) = (-one*si)*hi              ! hr06
+            aeg(i,ih,4) = co
+            
+        case (9) ! EDGE FOCUSSING
+            rhoi = ed(i)/dpsq
+            fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
+            aeg(i,1,1) = one
+            aeg(i,1,2) = zero
+            aeg(i,1,3) = fok
+            aeg(i,1,4) = one
+            aeg(i,2,1) = one
+            aeg(i,2,2) = zero
+            aeg(i,2,3) = -one*fok
+            aeg(i,2,4) = one
+            
         end select
-        cycle
-
-!-----------------------------------------------------------------------
-!  DRIFTLENGTH
-!-----------------------------------------------------------------------
-   10   do l=1,2
-          aeg(i,l,1)=one
-          aeg(i,l,2)=el(i)
-          aeg(i,l,3)=zero
-          aeg(i,l,4)=one
-        end do
-
-        cycle
-
-!-----------------------------------------------------------------------
-!  QUADRUPOLE
-!  FOCUSSING
-!-----------------------------------------------------------------------
-   90   fok=ek(i)/(one+dpp)
-        if(abs(fok).le.pieni) goto 10
-        ih=0
-        hi=sqrt(abs(fok))
-        fi=el(i)*hi
-        if(fok.gt.zero) goto 110
-  100   ih=ih+1
-        aeg(i,ih,1)=cos_mb(fi)
-        hi1=sin_mb(fi)
-        aeg(i,ih,2)=hi1/hi
-        aeg(i,ih,3)=(-one*hi1)*hi                                        !hr06
-        aeg(i,ih,4)=aeg(i,ih,1)
-        if(ih.eq.2) cycle
-!--DEFOCUSSING
-  110   ih=ih+1
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        aeg(i,ih,1)=hc
-        aeg(i,ih,2)=hs/hi
-        aeg(i,ih,3)=hs*hi
-        aeg(i,ih,4)=hc
-        if(ih.eq.1) goto 100
-        cycle
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET HORIZONTAL
-!  FOCUSSING
-!-----------------------------------------------------------------------
-  120   ih=0
-        fokq=ek(i)
-  130   wf=ed(i)/dpsq
-        fok=fokq/dpd-wf**2                                               !hr06
-        if(abs(fok).le.pieni) goto 10
-        afok=abs(fok)
-        hi=sqrt(afok)
-        fi=hi*el(i)
-        if(fok.gt.zero) goto 160
-  140   ih=ih+1
-        si=sin_mb(fi)
-        co=cos_mb(fi)
-        aeg(i,ih,1)=co
-        aeg(i,ih,2)=si/hi
-        aeg(i,ih,3)=(-one*si)*hi                                         !hr06
-        aeg(i,ih,4)=co
-        aeg(i,ih,5)=(((-one*wf)/afok)*(one-co))/dpsq                     !hr06
-        aeg(i,ih,6)=(((-one*wf)/hi)*si)/dpsq                             !hr06
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        hi=sqrt(abs(ek(i)/dpd))
-        fi=hi*el(i)
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        aeg(i,ih,1)=hc
-        aeg(i,ih,2)=el(i)
-        if(abs(hi).le.pieni) goto 150
-        aeg(i,ih,2)=hs/hi
-  150   aeg(i,ih,3)=hs*hi
-        aeg(i,ih,4)=hc
-        cycle
-!--DEFOCUSSING
-  160   ih=ih+1
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        aeg(i,ih,1)=hc
-        aeg(i,ih,2)=hs/hi
-        aeg(i,ih,3)=hs*hi
-        aeg(i,ih,4)=hc
-        aeg(i,ih,5)= ((wf/afok)*(one-hc))/dpsq                           !hr06
-        aeg(i,ih,6)=(((-one*wf)/hi)*hs)/dpsq                             !hr06
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        hi=sqrt(abs(ek(i)/dpd))
-        fi=hi*el(i)
-        si=sin_mb(fi)
-        co=cos_mb(fi)
-        aeg(i,ih,1)=co
-        aeg(i,ih,2)=si/hi
-        aeg(i,ih,3)=(-one*si)*hi                                         !hr06
-        aeg(i,ih,4)=co
-        cycle
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET VERTICAL
-!-----------------------------------------------------------------------
-  170   ih=1
-        fokq=-one*ek(i)                                                  !hr06
-        goto 130
-!-----------------------------------------------------------------------
-!  EDGE FOCUSSING
-!-----------------------------------------------------------------------
-  180   rhoi=ed(i)/dpsq
-        fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr06
-        aeg(i,1,1)=one
-        aeg(i,1,2)=zero
-        aeg(i,1,3)=fok
-        aeg(i,1,4)=one
-        aeg(i,2,1)=one
-        aeg(i,2,2)=zero
-        aeg(i,2,3)=-one*fok
-        aeg(i,2,4)=one
-        cycle
-!-----------------------------------------------------------------------
-!   NONLINEAR INSERTION
-!-----------------------------------------------------------------------
     end do
     call blockdis(aeg,bl1eg,bl2eg)
     return
