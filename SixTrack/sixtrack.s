@@ -38105,7 +38105,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
   integer id, gen, aa, zz
   real(kind=fPrec) weight, z, zp, m, dt
   integer jj
-  character*240 tmp_line
+  character(240) tmp_line
 
   character comment_char
   parameter ( comment_char = '*' )
