@@ -37190,16 +37190,47 @@ subroutine blocksv
             a(i,1,4) = one
             a(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
             a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
-            ! VERTIKAL
+            ! VERTICAL
             g  = tan_mb(fok*half)/rho
             gl = el(i)*g
-            a(i,2,1)=one-gl
-            a(i,2,2)=el(i)
-            a(i,2,3)=(-one*g)*(two-gl) ! hr06
-            a(i,2,4)=a(i,2,1)
+            a(i,2,1) = one-gl
+            a(i,2,2) = el(i)
+            a(i,2,3) = (-one*g)*(two-gl) ! hr06
+            a(i,2,4) = a(i,2,1)
             
         case (3) ! QUADRUPOLE
-            goto 90
+            fok=ek(i)/(one+dpp)
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    a(i,l,1) = one
+                    a(i,l,2) = el(i)
+                    a(i,l,3) = zero
+                    a(i,l,4) = one
+                end do
+                cycle
+            end if
+            ih = 0
+            hi = sqrt(abs(fok))
+            fi = el(i)*hi
+            if(fok.gt.zero) goto 110
+    100     ih = ih+1
+            a(i,ih,1) = cos_mb(fi)
+            hi1 = sin_mb(fi)
+            a(i,ih,2) = hi1/hi
+            a(i,ih,3) = (-one*hi1)*hi  ! hr06
+            a(i,ih,4) = a(i,ih,1)
+            if(ih.eq.2) cycle
+            !--DEFOCUSSING
+    110     ih = ih+1
+            hp = exp_mb(fi)
+            hm = one/hp
+            hc = (hp+hm)*half
+            hs = (hp-hm)*half
+            a(i,ih,1) = hc
+            a(i,ih,2) = hs/hi
+            a(i,ih,3) = hs*hi
+            a(i,ih,4) = hc
+            if(ih.eq.1) goto 100
             
         case (4) ! SEKTORMAGNET
             fok = el(i)*ed(i)/dpsq
@@ -37222,11 +37253,11 @@ subroutine blocksv
             a(i,1,4) = co
             a(i,1,5) = ((-one*rho)*(one-co))/dpsq ! hr06
             a(i,1,6) = (-one*si)/dpsq             ! hr06
-            ! VERTIKAL
-            a(i,2,1)=one
-            a(i,2,2)=el(i)
-            a(i,2,3)=zero
-            a(i,2,4)=one
+            ! VERTICAL
+            a(i,2,1) = one
+            a(i,2,2) = el(i)
+            a(i,2,3) = zero
+            a(i,2,4) = one
             
         case (5) ! RECTANGULAR MAGNET VERTIKAL
             fok=el(i)*ed(i)/dpsq
@@ -37284,15 +37315,75 @@ subroutine blocksv
             a(i,1,3) = zero
             a(i,1,4) = one
             
-        case (7) ! COMBINED FUNCTION MAGNET HORIZONTAL
-            ih   = 0
-            fokq = ek(i)
-            goto 130
-            
-        case (8) ! COMBINED FUNCTION MAGNET VERTICAL
-            ih   = 1
-            fokq = -one*ek(i) ! hr06
-            goto 130
+        case (7, 8) ! COMBINED FUNCTION MAGNET HORIZONTAL / VERTICAL
+            if (kz1.eq.7) then
+                ih   = 0
+                fokq = ek(i)
+            else
+                ih   = 1
+                fokq = -one*ek(i) ! hr06
+            end if
+            wf  = ed(i)/dpsq
+            fok = fokq/dpd-wf**2  ! hr06
+            if(abs(fok).le.pieni) then
+                do l=1,2
+                    a(i,l,1) = one
+                    a(i,l,2) = el(i)
+                    a(i,l,3) = zero
+                    a(i,l,4) = one
+                end do
+                cycle
+            end if
+            afok = abs(fok)
+            hi   = sqrt(afok)
+            fi   = hi*el(i)
+            if(fok.gt.zero) goto 160
+    140     ih = ih+1
+            si = sin_mb(fi)
+            co = cos_mb(fi)
+            a(i,ih,1) = co
+            a(i,ih,2) = si/hi
+            a(i,ih,3) = (-one*si)*hi                     ! hr06
+            a(i,ih,4) = co
+            a(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq ! hr06
+            a(i,ih,6) = (((-one*wf)/hi)*si)/dpsq         ! hr06
+            ih = ih+1
+            if(ih.gt.2) ih = 1
+            hi = sqrt(abs(ek(i)/dpd))
+            fi = hi*el(i)
+            hp = exp_mb(fi)
+            hm = one/hp
+            hc = (hp+hm)*half
+            hs = (hp-hm)*half
+            a(i,ih,1) = hc
+            a(i,ih,2) = el(i)
+            if(abs(hi).le.pieni) goto 150
+            a(i,ih,2) = hs/hi
+    150     a(i,ih,3) = hs*hi
+            a(i,ih,4) = hc
+            cycle
+            !--DEFOCUSSING
+    160     ih = ih+1
+            hp = exp_mb(fi)
+            hm = one/hp
+            hc = (hp+hm)*half
+            hs = (hp-hm)*half
+            a(i,ih,1) = hc
+            a(i,ih,2) = hs/hi
+            a(i,ih,3) = hs*hi
+            a(i,ih,4) = hc
+            a(i,ih,5) = ((wf/afok)*(one-hc))/dpsq ! hr06
+            a(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq  ! hr06
+            ih = ih+1
+            if(ih.gt.2) ih = 1
+            hi = sqrt(abs(ek(i)/dpd))
+            fi = hi*el(i)
+            si = sin_mb(fi)
+            co = cos_mb(fi)
+            a(i,ih,1) = co
+            a(i,ih,2) = si/hi
+            a(i,ih,3) = (-one*si)*hi ! hr06
+            a(i,ih,4) = co
             
         case (9) ! EDGE FOCUSSING
             rhoi = ed(i)/dpsq
@@ -37307,105 +37398,6 @@ subroutine blocksv
             a(i,2,4) = one
             
         end select
-        cycle
-        
-!-----------------------------------------------------------------------
-!  DRIFTLENGTH
-!-----------------------------------------------------------------------
-   10   do l=1,2
-          a(i,l,1)=one
-          a(i,l,2)=el(i)
-          a(i,l,3)=zero
-          a(i,l,4)=one
-        end do
-        cycle
-
-!-----------------------------------------------------------------------
-!  QUADRUPOLE
-!  FOCUSSING
-!-----------------------------------------------------------------------
-   90   fok=ek(i)/(one+dpp)
-        if(abs(fok).le.pieni) goto 10
-        ih=0
-        hi=sqrt(abs(fok))
-        fi=el(i)*hi
-        if(fok.gt.zero) goto 110
-  100   ih=ih+1
-        a(i,ih,1)=cos_mb(fi)
-        hi1=sin_mb(fi)
-        a(i,ih,2)=hi1/hi
-        a(i,ih,3)=(-one*hi1)*hi                                          !hr06
-        a(i,ih,4)=a(i,ih,1)
-        if(ih.eq.2) cycle
-!--DEFOCUSSING
-  110   ih=ih+1
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        a(i,ih,1)=hc
-        a(i,ih,2)=hs/hi
-        a(i,ih,3)=hs*hi
-        a(i,ih,4)=hc
-        if(ih.eq.1) goto 100
-        cycle
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET HORIZONTAL
-!  FOCUSSING
-!-----------------------------------------------------------------------
-  130   wf=ed(i)/dpsq
-        fok=fokq/dpd-wf**2                                               !hr06
-        if(abs(fok).le.pieni) goto 10
-        afok=abs(fok)
-        hi=sqrt(afok)
-        fi=hi*el(i)
-        if(fok.gt.zero) goto 160
-  140   ih=ih+1
-        si=sin_mb(fi)
-        co=cos_mb(fi)
-        a(i,ih,1)=co
-        a(i,ih,2)=si/hi
-        a(i,ih,3)=(-one*si)*hi                                           !hr06
-        a(i,ih,4)=co
-        a(i,ih,5)=(((-one*wf)/afok)*(one-co))/dpsq                       !hr06
-        a(i,ih,6)=(((-one*wf)/hi)*si)/dpsq                               !hr06
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        hi=sqrt(abs(ek(i)/dpd))
-        fi=hi*el(i)
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        a(i,ih,1)=hc
-        a(i,ih,2)=el(i)
-        if(abs(hi).le.pieni) goto 150
-        a(i,ih,2)=hs/hi
-  150   a(i,ih,3)=hs*hi
-        a(i,ih,4)=hc
-        cycle
-!--DEFOCUSSING
-  160   ih=ih+1
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        a(i,ih,1)=hc
-        a(i,ih,2)=hs/hi
-        a(i,ih,3)=hs*hi
-        a(i,ih,4)=hc
-        a(i,ih,5)= ((wf/afok)*(one-hc))/dpsq                             !hr06
-        a(i,ih,6)=(((-one*wf)/hi)*hs)/dpsq                               !hr06
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        hi=sqrt(abs(ek(i)/dpd))
-        fi=hi*el(i)
-        si=sin_mb(fi)
-        co=cos_mb(fi)
-        a(i,ih,1)=co
-        a(i,ih,2)=si/hi
-        a(i,ih,3)=(-one*si)*hi                                           !hr06
-        a(i,ih,4)=co
       end do
       call block
       return
