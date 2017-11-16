@@ -37126,17 +37126,18 @@ subroutine blocksv
       end
 
 +dk envar
-      subroutine envar(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
-      use floatPrecision
-  use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer i,ih,kz1,l,ll
-      real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1, &
-     &hm,hp,hs,rho,rhoi,si,wf
+subroutine envar(dpp)
+    use floatPrecision
+    use numerical_constants
+    use mathlib_bouncer
+    
+    implicit none
+    integer i,ih,kz1,l,ll
+    real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
+    
 +ca parpro
 +ca common
 +ca commons
@@ -37144,15 +37145,15 @@ subroutine blocksv
 +if bnlelens
 +ca rhicelens
 +ei
-      save
-!-----------------------------------------------------------------------
-      dpd  = one+dpp
-      dpsq = sqrt(dpd)
-      do i=1,il
+    save
+    
+    dpd  = one+dpp
+    dpsq = sqrt(dpd)
+    do i=1,il
         do ll=1,6
-          do l=1,2
-            a(i,l,ll)=zero
-          end do
+            do l=1,2
+                a(i,l,ll)=zero
+            end do
         end do
         if (abs(el(i)).le.pieni) then ! NONLINEAR INSERTION
             sm(i)=ed(i)
@@ -37169,7 +37170,11 @@ subroutine blocksv
                 a(i,l,4) = one
             end do
             
-        case (2) ! RECTANGULAR MAGNET
+        case (2, 4, 5, 6)
+            ! 2: RECTANGULAR MAGNET 
+            ! 4: SEKTORMAGNET
+            ! 5: RECTANGULAR MAGNET VERTICAL
+            ! 6: SEKTORMAGNET VERTICAL
             fok = el(i)*ed(i)/dpsq
             if(abs(fok).le.pieni) then
                 do l=1,2
@@ -37180,23 +37185,64 @@ subroutine blocksv
                 end do
                 cycle
             end if
-            ! HORIZONTAL
             rho = (one/ed(i))*dpsq
             si  = sin_mb(fok)
             co  = cos_mb(fok)
-            a(i,1,1) = one
-            a(i,1,2) = rho*si
-            a(i,1,3) = zero
-            a(i,1,4) = one
-            a(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-            a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
-            ! VERTICAL
-            g  = tan_mb(fok*half)/rho
-            gl = el(i)*g
-            a(i,2,1) = one-gl
-            a(i,2,2) = el(i)
-            a(i,2,3) = (-one*g)*(two-gl) ! hr06
-            a(i,2,4) = a(i,2,1)
+            g   = tan_mb(fok*half)/rho
+            gl  = el(i)*g
+            if (kz1.eq.2) then
+                ! HORIZONTAL
+                a(i,1,1) = one
+                a(i,1,2) = rho*si
+                a(i,1,3) = zero
+                a(i,1,4) = one
+                a(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
+                a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                ! VERTICAL
+                a(i,2,1) = one-gl
+                a(i,2,2) = el(i)
+                a(i,2,3) = (-one*g)*(two-gl) ! hr06
+                a(i,2,4) = a(i,2,1)
+            else if (kz1.eq.4) then
+                ! HORIZONTAL
+                a(i,1,1) = co
+                a(i,1,2) = rho*si
+                a(i,1,3) = (-one*si)/rho              ! hr06
+                a(i,1,4) = co
+                a(i,1,5) = ((-one*rho)*(one-co))/dpsq ! hr06
+                a(i,1,6) = (-one*si)/dpsq             ! hr06
+                ! VERTICAL
+                a(i,2,1) = one
+                a(i,2,2) = el(i)
+                a(i,2,3) = zero
+                a(i,2,4) = one
+            else if (kz1.eq.5) then
+                ! HORIZONTAL
+                a(i,2,1) = one
+                a(i,2,2) = rho*si
+                a(i,2,3) = zero
+                a(i,2,4) = one
+                a(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
+                a(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                ! VERTIKAL
+                a(i,1,1) = one-gl
+                a(i,1,2) = el(i)
+                a(i,1,3) = (-one*g)*(two-gl) ! hr06
+                a(i,1,4) = a(i,1,1)
+            else if (kz1.eq.6) then
+                ! HORIZONTAL
+                a(i,2,1) = co
+                a(i,2,2) = rho*si
+                a(i,2,3) = (-one*si)/rho              ! hr06
+                a(i,2,4) = co
+                a(i,2,5) = ((-one*rho)*(one-co))/dpsq ! hr06
+                a(i,2,6) = (-one*si)/dpsq             ! hr06
+                ! VERTIKAL
+                a(i,1,1) = one
+                a(i,1,2) = el(i)
+                a(i,1,3) = zero
+                a(i,1,4) = one
+            end if
             
         case (3) ! QUADRUPOLE
             fok=ek(i)/(one+dpp)
@@ -37231,89 +37277,6 @@ subroutine blocksv
             a(i,ih,3) = hs*hi
             a(i,ih,4) = hc
             if(ih.eq.1) goto 100
-            
-        case (4) ! SEKTORMAGNET
-            fok = el(i)*ed(i)/dpsq
-            if(abs(fok).le.pieni) then
-                do l=1,2
-                    a(i,l,1) = one
-                    a(i,l,2) = el(i)
-                    a(i,l,3) = zero
-                    a(i,l,4) = one
-                end do
-                cycle
-            end if
-            ! HORIZONTAL
-            rho = (one/ed(i))*dpsq
-            si  = sin_mb(fok)
-            co  = cos_mb(fok)
-            a(i,1,1) = co
-            a(i,1,2) = rho*si
-            a(i,1,3) = (-one*si)/rho              ! hr06
-            a(i,1,4) = co
-            a(i,1,5) = ((-one*rho)*(one-co))/dpsq ! hr06
-            a(i,1,6) = (-one*si)/dpsq             ! hr06
-            ! VERTICAL
-            a(i,2,1) = one
-            a(i,2,2) = el(i)
-            a(i,2,3) = zero
-            a(i,2,4) = one
-            
-        case (5) ! RECTANGULAR MAGNET VERTIKAL
-            fok=el(i)*ed(i)/dpsq
-            if(abs(fok).le.pieni) then
-                do l=1,2
-                    a(i,l,1)=one
-                    a(i,l,2)=el(i)
-                    a(i,l,3)=zero
-                    a(i,l,4)=one
-                end do
-                cycle
-            end if
-            ! HORIZONTAL
-            rho = (one/ed(i))*dpsq
-            si  = sin_mb(fok)
-            co  = cos_mb(fok)
-            a(i,2,1) = one
-            a(i,2,2) = rho*si
-            a(i,2,3) = zero
-            a(i,2,4) = one
-            a(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-            a(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
-            ! VERTIKAL
-            g  = tan_mb(fok*half)/rho
-            gl = el(i)*g
-            a(i,1,1) = one-gl
-            a(i,1,2) = el(i)
-            a(i,1,3) = (-one*g)*(two-gl) ! hr06
-            a(i,1,4) = a(i,1,1)
-            
-        case (6) ! SEKTORMAGNET VERTIKAL
-            fok = el(i)*ed(i)/dpsq
-            if(abs(fok).le.pieni) then
-                do l=1,2
-                    a(i,l,1) = one
-                    a(i,l,2) = el(i)
-                    a(i,l,3) = zero
-                    a(i,l,4) = one
-                end do
-                cycle
-            end if
-            ! HORIZONTAL
-            rho = (one/ed(i))*dpsq
-            si  = sin_mb(fok)
-            co  = cos_mb(fok)
-            a(i,2,1) = co
-            a(i,2,2) = rho*si
-            a(i,2,3) = (-one*si)/rho              ! hr06
-            a(i,2,4) = co
-            a(i,2,5) = ((-one*rho)*(one-co))/dpsq ! hr06
-            a(i,2,6) = (-one*si)/dpsq             ! hr06
-            ! VERTIKAL
-            a(i,1,1) = one
-            a(i,1,2) = el(i)
-            a(i,1,3) = zero
-            a(i,1,4) = one
             
         case (7, 8) ! COMBINED FUNCTION MAGNET HORIZONTAL / VERTICAL
             if (kz1.eq.7) then
@@ -37398,10 +37361,11 @@ subroutine blocksv
             a(i,2,4) = one
             
         end select
-      end do
-      call block
-      return
-      end subroutine envar
+    end do
+    call block
+    return
+    
+end subroutine envar
 
 +dk envardis
       subroutine envardis(dpp,aeg,bl1eg,bl2eg)
