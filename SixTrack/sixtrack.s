@@ -37130,6 +37130,7 @@ subroutine blocksv
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
 subroutine envar(dpp)
+    
     use floatPrecision
     use numerical_constants
     use mathlib_bouncer
@@ -37368,39 +37369,40 @@ subroutine envar(dpp)
 end subroutine envar
 
 +dk envardis
-      subroutine envardis(dpp,aeg,bl1eg,bl2eg)
 !-----------------------------------------------------------------------
 !  CALCULATION OF ELEMENT MATRICES
 !-----------------------------------------------------------------------
-      use floatPrecision
-  use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer i,ih,kz1,l,ll
-      real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,&
-     &g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
+subroutine envardis(dpp,aeg,bl1eg,bl2eg)
+    
+    use floatPrecision
+    use numerical_constants
+    use mathlib_bouncer
+    
+    implicit none
+    integer i,ih,kz1,l,ll
+    real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
 +ca parpro
 +ca common
 +ca commons
 +ca commont1
-      dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+    dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
 +if bnlelens
 +ca rhicelens
 +ei
-      save
-!-----------------------------------------------------------------------
-      dpd=one+dpp
-      dpsq=sqrt(dpd)
-      do 190 i=1,il
+    save
+    
+    dpd  = one+dpp
+    dpsq = sqrt(dpd)
+    do i=1,il
         do ll=1,6
-          do l=1,2
-            aeg(i,l,ll)=zero
-          enddo
-        enddo
-        if(abs(el(i)).le.pieni) goto 190
-        kz1=kz(i)+1
+            do l=1,2
+              aeg(i,l,ll) = zero
+            end do
+        end do
+        if(abs(el(i)).le.pieni) cycle
+        kz1 = kz(i)+1
         goto(10,30,90,50,70,80,120,170,180),kz1
-        goto 190
+        cycle
 
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
@@ -37412,7 +37414,7 @@ end subroutine envar
           aeg(i,l,4)=one
         end do
 
-        goto 190
+        cycle
 
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET
@@ -37439,7 +37441,7 @@ end subroutine envar
         aeg(i,ih,2)=el(i)
         aeg(i,ih,3)=(-one*g)*(two-gl)                                    !hr06
         aeg(i,ih,4)=aeg(i,ih,1)
-        goto 190
+        cycle
 !-----------------------------------------------------------------------
 !  SEKTORMAGNET
 !  HORIZONTAL
@@ -37463,7 +37465,7 @@ end subroutine envar
         aeg(i,ih,2)=el(i)
         aeg(i,ih,3)=zero
         aeg(i,ih,4)=one
-        goto 190
+        cycle
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET VERTIKAL
 !-----------------------------------------------------------------------
@@ -37490,7 +37492,7 @@ end subroutine envar
         aeg(i,ih,2)=hi1/hi
         aeg(i,ih,3)=(-one*hi1)*hi                                        !hr06
         aeg(i,ih,4)=aeg(i,ih,1)
-        if(ih.eq.2) goto 190
+        if(ih.eq.2) cycle
 !--DEFOCUSSING
   110   ih=ih+1
         hp=exp_mb(fi)
@@ -37502,7 +37504,7 @@ end subroutine envar
         aeg(i,ih,3)=hs*hi
         aeg(i,ih,4)=hc
         if(ih.eq.1) goto 100
-        goto 190
+        cycle
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET HORIZONTAL
 !  FOCUSSING
@@ -37539,7 +37541,7 @@ end subroutine envar
         aeg(i,ih,2)=hs/hi
   150   aeg(i,ih,3)=hs*hi
         aeg(i,ih,4)=hc
-        goto 190
+        cycle
 !--DEFOCUSSING
   160   ih=ih+1
         hp=exp_mb(fi)
@@ -37562,7 +37564,7 @@ end subroutine envar
         aeg(i,ih,2)=si/hi
         aeg(i,ih,3)=(-one*si)*hi                                         !hr06
         aeg(i,ih,4)=co
-        goto 190
+        cycle
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET VERTICAL
 !-----------------------------------------------------------------------
@@ -37582,14 +37584,15 @@ end subroutine envar
         aeg(i,2,2)=zero
         aeg(i,2,3)=-one*fok
         aeg(i,2,4)=one
-        goto 190
+        cycle
 !-----------------------------------------------------------------------
 !   NONLINEAR INSERTION
 !-----------------------------------------------------------------------
-  190 continue
-      call blockdis(aeg,bl1eg,bl2eg)
-      return
-      end
+    end do
+    call blockdis(aeg,bl1eg,bl2eg)
+    return
+    
+end subroutine envardis
 
 +dk error
       subroutine prror(ier)
