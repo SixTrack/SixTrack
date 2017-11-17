@@ -37617,26 +37617,27 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
 end subroutine envardis
 
 +dk error
-      subroutine prror(ier)
 !-----------------------------------------------------------------------
 !  ERROR OUTPUT
 !-----------------------------------------------------------------------
-      use floatPrecision
-  use numerical_constants
-      use mathlib_bouncer
-      use, intrinsic :: iso_fortran_env, only : error_unit
+subroutine prror(ier)
+    
+    use floatPrecision
+    use numerical_constants
+    use mathlib_bouncer
+    use, intrinsic :: iso_fortran_env, only : error_unit
 
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+    ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+    ! last modified: 17-07-2013
+    ! import mod_fluka
+    ! inserted in main code by the 'fluka' compilation flag
+    use mod_fluka
 +ei
 
-      implicit none
+    implicit none
 +ca crcoall
-      integer ier
+    integer ier
 +ca parpro
 +ca common
 +ca commons
@@ -37646,243 +37647,230 @@ end subroutine envardis
 +ei
 
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     status of connection
-!     inserted in main code by the 'fluka' compilation flag
-      integer fluka_con
+    ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+    ! last modified: 17-07-2013
+    ! status of connection
+    ! inserted in main code by the 'fluka' compilation flag
+    integer fluka_con
 +ei
 
 +ca errout
-      save
-!-----------------------------------------------------------------------
+    save
 
-      errout_status = ier
-      
-      write(lout,10000)
-      goto(10  ,20  ,30  ,40  ,50  ,60  ,70  ,80  ,90  ,100 ,           &!1-10  
-     &     110 ,120 ,130 ,140 ,150 ,160 ,170 ,180 ,190 ,200 ,           &!11-20 
-     &     210 ,220 ,230 ,240 ,250 ,260 ,270 ,280 ,290 ,300 ,           &!21-30 
-     &     310 ,320 ,330 ,340 ,350 ,360 ,370 ,380 ,390 ,400 ,           &!31-40 
-     &     410 ,420 ,430 ,440 ,450 ,460 ,470 ,480 ,490 ,500 ,           &!41-50 
-     &     510 ,520 ,530 ,540 ,550 ,560 ,570 ,580 ,590 ,600 ,           &!51-60 
-     &     610 ,620 ,630 ,640 ,650 ,660 ,670 ,680 ,690 ,700 ,           &!61-70 
-     &     710 ,720 ,730 ,740 ,750 ,760 ,770 ,780 ,790 ,800 ,           &!71-80 
-     &     810 ,820 ,830 ,840 ,850 ,860 ,870 ,880 ,890 ,900 ,           &!81-90 
-     &     910 ,920 ,930 ,940 ,950 ,960 ,970 ,980 ,990 ,1000,           &!91-100
-     &     1010,1020,1030,1040,1050),ier
-      goto 1870
-   10 write(lout,10010)
-      goto 1870
-   20 write(lout,10020) nele
-      goto 1870
-   30 write(lout,10030)
-      goto 1870
-   40 write(lout,10040)
-      goto 1870
-   50 write(lout,10050)
-      goto 1870
-   60 write(lout,10060)
-      goto 1870
-   70 write(lout,10070)
-      goto 1870
-   80 write(lout,10080)
-      goto 1870
-   90 write(lout,10090)
-      goto 1870
-  100 write(lout,10100)
-      goto 1870
-  110 write(lout,10110)
-      goto 1870
-  120 write(lout,10120)
-      goto 1870
-  130 write(lout,10130)
-      goto 1870
-  140 write(lout,10140)
-      goto 1870
-  150 write(lout,10150)
-      goto 1870
-  160 write(lout,10160) nele
-      goto 1870
-  170 write(lout,10170) nper
-      goto 1870
-  180 write(lout,10180) nblo
-      goto 1870
-  190 write(lout,10190) erbez
-      goto 1870
-  200 write(lout,10200) erbez
-      goto 1870
-  210 write(lout,10210)
-      goto 1870
-  220 write(lout,10220)
-      goto 1870
-  230 write(lout,10230)
-      goto 1870
-  240 write(lout,10240)
-      goto 1870
-  250 write(lout,10250)
-      goto 1870
-  260 write(lout,10260) nelb
-      goto 1870
-  270 write(lout,10270)
-      goto 1870
-  280 write(lout,10280)
-      goto 1870
-  290 write(lout,10290)
-      goto 1870
-  300 write(lout,10300) nran
-      goto 1870
-  310 write(lout,10310)
-      goto 1870
-  320 write(lout,10320)
-      goto 1870
-  330 write(lout,10330)
-      goto 1870
-  340 write(lout,10340) mran
-      goto 1870
-  350 write(lout,10350)
-      goto 1870
-  360 write(lout,10360)
-      goto 1870
-  370 write(lout,10370)
-      goto 1870
-  380 write(lout,10380)
-      goto 1870
-  390 write(lout,10390)
-      goto 1870
-  400 write(lout,10400)
-      goto 1870
-  410 write(lout,10410)
-      goto 1870
-  420 write(lout,10420)
-      goto 1870
-  430 write(lout,10430) nzfz
-      goto 1870
-  440 write(lout,10440)
-      goto 1870
-  450 write(lout,10450)
-      goto 1870
-  460 write(lout,10460) nrco
-      goto 1870
-  470 write(lout,10470)
-      goto 1870
-  480 write(lout,10480)
-      goto 1870
-  490 write(lout,10490)
-      goto 1870
-  500 write(lout,10500)
-      goto 1870
-  510 write(lout,10510)
-      goto 1870
-  520 write(lout,10520) nema
-      goto 1870
-  530 write(lout,10530)
-      goto 1870
-  540 write(lout,10540) npart
-      goto 1870
-  550 write(lout,10550) nmac
-      goto 1870
-  560 write(lout,10560) ierro
-      goto 1870
-  570 write(lout,10570) ierro
-      goto 1870
-  580 write(lout,10580) ierro
-      goto 1870
-  590 write(lout,10590) ierro
-      goto 1870
-  600 write(lout,10600) ierro
-      goto 1870
-  610 write(lout,10610) ierro
-      goto 1870
-  620 write(lout,10620)
-      goto 1870
-  630 write(lout,10630)
-      goto 1870
-  640 write(lout,10640)
-      goto 1870
-  650 write(lout,10650) mcor
-      goto 1870
-  660 write(lout,10660)
-      goto 1870
-  670 write(lout,10670)
-      goto 1870
-  680 write(lout,10680)
-      goto 1870
-  690 write(lout,10690)
-      goto 1870
-  700 write(lout,10700)
-      goto 1870
-  710 write(lout,10710)
-      goto 1870
-  720 write(lout,10720)
-      goto 1870
-  730 write(lout,10730)
-      goto 1870
-  740 write(lout,10740)
-      goto 1870
-  750 write(lout,10750)
-      goto 1870
-  760 write(lout,10760)
-      goto 1870
-  770 write(lout,10770)
-      goto 1870
-  780 write(lout,10780)
-      goto 1870
-  790 write(lout,10790)
-      goto 1870
-  800 write(lout,10800)
-      goto 1870
-  810 write(lout,10810)
-      goto 1870
-  820 write(lout,10820)
-      goto 1870
-  830 write(lout,10830)
-      goto 1870
-  840 write(lout,10840)
-      goto 1870
-  850 write(lout,10850) mmul
-      goto 1870
-  860 write(lout,10860)
-      goto 1870
-  870 write(lout,10870)
-      goto 1870
-  880 write(lout,10880)
-      goto 1870
-  890 write(lout,10890)
-      goto 1870
-  900 write(lout,10900)
-      goto 1870
-  910 write(lout,10910)
-      goto 1870
-  920 write(lout,10920)
-      goto 1870
-  930 write(lout,10930)
-      goto 1870
-  940 write(lout,10940)
-      goto 1870
-  950 write(lout,10950)
-      goto 1870
-  960 write(lout,10960)
-      goto 1870
-  970 write(lout,10970)
-      goto 1870
-  980 write(lout,10980)
-      goto 1870
-  990 write(lout,10990)
-      goto 1870
- 1000 write(lout,11000) ntr
-      goto 1870
- 1010 write(lout,11010)
-      goto 1870
- 1020 write(lout,11020) nbb
-      goto 1870
- 1030 write(lout,11030)
-      goto 1870
- 1040 write(lout,11040)
-      goto 1870
- 1050 write(lout,11050) mmul
-
- 1870 continue
+    errout_status = ier
+    write(lout,10000)
+    select case (ier)
+    case (1)
+        write(lout,10010)
+    case (2)
+        write(lout,10020) nele
+    case (3)
+        write(lout,10030)
+    case (4)
+        write(lout,10040)
+    case (5)
+        write(lout,10050)
+    case (6)
+        write(lout,10060)
+    case (7)
+        write(lout,10070)
+    case (8)
+        write(lout,10080)
+    case (9)
+        write(lout,10090)
+    case (10)
+        write(lout,10100)
+    case (11)
+        write(lout,10110)
+    case (12)
+        write(lout,10120)
+    case (13)
+        write(lout,10130)
+    case (14)
+        write(lout,10140)
+    case (15)
+        write(lout,10150)
+    case (16)
+        write(lout,10160) nele
+    case (17)
+        write(lout,10170) nper
+    case (18)
+        write(lout,10180) nblo
+    case (19)
+        write(lout,10190) erbez
+    case (20)
+        write(lout,10200) erbez
+    case (21)
+        write(lout,10210)
+    case (22)
+        write(lout,10220)
+    case (23)
+        write(lout,10230)
+    case (24)
+        write(lout,10240)
+    case (25)
+        write(lout,10250)
+    case (26)
+        write(lout,10260) nelb
+    case (27)
+        write(lout,10270)
+    case (28)
+        write(lout,10280)
+    case (29)
+        write(lout,10290)
+    case (30)
+        write(lout,10300) nran
+    case (31)
+        write(lout,10310)
+    case (32)
+        write(lout,10320)
+    case (33)
+        write(lout,10330)
+    case (34)
+        write(lout,10340) mran
+    case (35)
+        write(lout,10350)
+    case (36)
+        write(lout,10360)
+    case (37)
+        write(lout,10370)
+    case (38)
+        write(lout,10380)
+    case (39)
+        write(lout,10390)
+    case (40)
+        write(lout,10400)
+    case (41)
+        write(lout,10410)
+    case (42)
+        write(lout,10420)
+    case (43)
+        write(lout,10430) nzfz
+    case (44)
+        write(lout,10440)
+    case (45)
+        write(lout,10450)
+    case (46)
+        write(lout,10460) nrco
+    case (47)
+        write(lout,10470)
+    case (48)
+        write(lout,10480)
+    case (49)
+        write(lout,10490)
+    case (50)
+        write(lout,10500)
+    case (51)
+        write(lout,10510)
+    case (52)
+        write(lout,10520) nema
+    case (53)
+        write(lout,10530)
+    case (54)
+        write(lout,10540) npart
+    case (55)
+        write(lout,10550) nmac
+    case (56)
+        write(lout,10560) ierro
+    case (57)
+        write(lout,10570) ierro
+    case (58)
+        write(lout,10580) ierro
+    case (59)
+        write(lout,10590) ierro
+    case (60)
+        write(lout,10600) ierro
+    case (61)
+        write(lout,10610) ierro
+    case (62)
+        write(lout,10620)
+    case (63)
+        write(lout,10630)
+    case (64)
+        write(lout,10640)
+    case (65)
+        write(lout,10650) mcor
+    case (66)
+        write(lout,10660)
+    case (67)
+        write(lout,10670)
+    case (68)
+        write(lout,10680)
+    case (69)
+        write(lout,10690)
+    case (70)
+        write(lout,10700)
+    case (71)
+        write(lout,10710)
+    case (72)
+        write(lout,10720)
+    case (73)
+        write(lout,10730)
+    case (74)
+        write(lout,10740)
+    case (75)
+        write(lout,10750)
+    case (76)
+        write(lout,10760)
+    case (77)
+        write(lout,10770)
+    case (78)
+        write(lout,10780)
+    case (79)
+        write(lout,10790)
+    case (80)
+        write(lout,10800)
+    case (81)
+        write(lout,10810)
+    case (82)
+        write(lout,10820)
+    case (83)
+        write(lout,10830)
+    case (84)
+        write(lout,10840)
+    case (85)
+        write(lout,10850) mmul
+    case (86)
+        write(lout,10860)
+    case (87)
+        write(lout,10870)
+    case (88)
+        write(lout,10880)
+    case (89)
+        write(lout,10890)
+    case (90)
+        write(lout,10900)
+    case (91)
+        write(lout,10910)
+    case (92)
+        write(lout,10920)
+    case (93)
+        write(lout,10930)
+    case (94)
+        write(lout,10940)
+    case (95)
+        write(lout,10950)
+    case (96)
+        write(lout,10960)
+    case (97)
+        write(lout,10970)
+    case (98)
+        write(lout,10980)
+    case (99)
+        write(lout,10990)
+    case (100)
+        write(lout,11000) ntr
+    case (101)
+        write(lout,11010)
+    case (102)
+        write(lout,11020) nbb
+    case (103)
+        write(lout,11030)
+    case (104)
+        write(lout,11040)
+    case (105)
+        write(lout,11050) mmul
+    end select
 !-----------------------------------------------------------------------
 +if fluka
 +ca flukaclose
