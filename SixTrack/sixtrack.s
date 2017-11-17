@@ -37128,6 +37128,7 @@ subroutine blocksv
 +dk envar
 !-----------------------------------------------------------------------
 !  CALCULATION OF ELEMENT MATRICES
+!  Rewritten from computed goto to select case 16/11/2017, VKBO
 !-----------------------------------------------------------------------
 subroutine envar(dpp)
     
@@ -37191,7 +37192,8 @@ subroutine envar(dpp)
             co  = cos_mb(fok)
             g   = tan_mb(fok*half)/rho
             gl  = el(i)*g
-            if (kz1.eq.2) then
+            select case (kz1)
+            case (2)
                 ! HORIZONTAL
                 a(i,1,1) = one
                 a(i,1,2) = rho*si
@@ -37204,7 +37206,7 @@ subroutine envar(dpp)
                 a(i,2,2) = el(i)
                 a(i,2,3) = (-one*g)*(two-gl) ! hr06
                 a(i,2,4) = a(i,2,1)
-            else if (kz1.eq.4) then
+            case (4)
                 ! HORIZONTAL
                 a(i,1,1) = co
                 a(i,1,2) = rho*si
@@ -37217,7 +37219,7 @@ subroutine envar(dpp)
                 a(i,2,2) = el(i)
                 a(i,2,3) = zero
                 a(i,2,4) = one
-            else if (kz1.eq.5) then
+            case (5)
                 ! HORIZONTAL
                 a(i,2,1) = one
                 a(i,2,2) = rho*si
@@ -37230,7 +37232,7 @@ subroutine envar(dpp)
                 a(i,1,2) = el(i)
                 a(i,1,3) = (-one*g)*(two-gl) ! hr06
                 a(i,1,4) = a(i,1,1)
-            else if (kz1.eq.6) then
+            case (6)
                 ! HORIZONTAL
                 a(i,2,1) = co
                 a(i,2,2) = rho*si
@@ -37243,7 +37245,7 @@ subroutine envar(dpp)
                 a(i,1,2) = el(i)
                 a(i,1,3) = zero
                 a(i,1,4) = one
-            end if
+            end select
             
         case (3) ! QUADRUPOLE
             fok=ek(i)/(one+dpp)
@@ -37279,7 +37281,9 @@ subroutine envar(dpp)
             a(i,ih,4) = hc
             if(ih.eq.1) goto 100
             
-        case (7, 8) ! COMBINED FUNCTION MAGNET HORIZONTAL / VERTICAL
+        case (7, 8)
+            ! 7: COMBINED FUNCTION MAGNET HORIZONTAL
+            ! 8: COMBINED FUNCTION MAGNET VERTICAL
             if (kz1.eq.7) then
                 ih   = 0
                 fokq = ek(i)
@@ -37326,7 +37330,7 @@ subroutine envar(dpp)
     150     a(i,ih,3) = hs*hi
             a(i,ih,4) = hc
             cycle
-            !--DEFOCUSSING
+            ! DEFOCUSSING
     160     ih = ih+1
             hp = exp_mb(fi)
             hm = one/hp
@@ -37371,6 +37375,7 @@ end subroutine envar
 +dk envardis
 !-----------------------------------------------------------------------
 !  CALCULATION OF ELEMENT MATRICES
+!  Rewritten from computed goto to select case 16/11/2017, VKBO
 !-----------------------------------------------------------------------
 subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     
@@ -37427,7 +37432,8 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             rho = (one/ed(i))*dpsq
             si  = sin_mb(fok)
             co  = cos_mb(fok)
-            if (kz1.eq.2) then
+            select case (kz1)
+            case (2)
                 ! HORIZONTAL
                 aeg(i,1,1) = one
                 aeg(i,1,2) = rho*si
@@ -37442,7 +37448,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,2,2) = el(i)
                 aeg(i,2,3) = (-one*g)*(two-gl)                  ! hr06
                 aeg(i,2,4) = aeg(i,2,1)
-            else if (kz1.eq.4) then
+            case (4)
                 ! HORIZONTAL
                 aeg(i,1,1)=co
                 aeg(i,1,2)=rho*si
@@ -37455,7 +37461,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,2,2)=el(i)
                 aeg(i,2,3)=zero
                 aeg(i,2,4)=one
-            else if (kz1.eq.5) then
+            case (5)
                 ! HORIZONTAL
                 aeg(i,2,1) = one
                 aeg(i,2,2) = rho*si
@@ -37470,7 +37476,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,1,2) = el(i)
                 aeg(i,1,3) = (-one*g)*(two-gl)                  ! hr06
                 aeg(i,1,4) = aeg(i,1,1)
-            else if (kz1.eq.6) then
+            case (6)
                 ! HORIZONTAL
                 aeg(i,2,1)=co
                 aeg(i,2,2)=rho*si
@@ -37483,7 +37489,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,1,2)=el(i)
                 aeg(i,1,3)=zero
                 aeg(i,1,4)=one
-            end if
+            end select
             
         case (3) ! QUADRUPOLE
             ! FOCUSSING
