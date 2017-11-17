@@ -3891,7 +3891,6 @@
 
          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
      & +  crabph(ix)                                                     !hr03 
-         
 +if .not.tilt
 +if crlibm
        yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*                          &!hr03
@@ -3955,7 +3954,8 @@
 !          write(*,*) '-------------------'
         do j=1,napx
          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03 
+     & +  crabph2(ix)                                                     !hr03
+         print *, "ThisPhaseMulti2", crabph2(ix)    
 +ca alignva
 +if .not.tilt
 +if crlibm
@@ -4019,7 +4019,7 @@
           crabfreq=ek(ix)*c1e3
           do j=1,napx
          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03 
+     & +  crabph2(ix)                                                     !hr03 
 +ca alignva
 +if .not.tilt
 +if crlibm
@@ -4074,6 +4074,7 @@
                 enddo
 +cd ccmul3
 ! JBG RF CC Multipoles
+          print *, "test"
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4082,6 +4083,7 @@
 +ei
           crabamp3 = ed(ix)
           crabfreq=ek(ix)*c1e3
+
 !          write(*,*) ''
 !          write(*,*) '-------------------'
 !          write(*,*) 'CRAB AMP 3', crabamp3
@@ -4089,55 +4091,53 @@
 !          write(*,*) 'PHASE', crabph3(ix)
 !          write(*,*) '-------------------'
           do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03 
+         kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(2d0*pi)           &!hr03
+     &+  crabph3(ix)                                                      !hr03
+	 print *, "ThisPhase", crabph3(ix)  
+
 +ca alignva
 +if .not.tilt
 +if crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
-     &cos_rn(kcrab)                     
-      yv(2,j)=yv(2,j)-                                                  &!hr13
-     &((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*                &!hr13
+     &cos_rn(kcrab)
+      yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos_rn(kcrab)
       ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
-     &*(sin(kcrab)*e0f)
+     &sin_rn(kcrab))*e0f
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
-     &cos(kcrab)                     
-      yv(2,j)=yv(2,j)-                                                  &!hr13
-     &((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*                &!hr13
+     &cos(kcrab)
+      yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos(kcrab)
       ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
-     &*(sin(kcrab)*e0f)
+     &sin(kcrab))*e0f
 +ei
 +ei
 +if tilt
 +if crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
-     &cos_rn(kcrab)                     
-      yv(2,j)=yv(2,j)-                                                  &!hr13
-     &((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*                &!hr13
+     &cos_rn(kcrab)
+      yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos_rn(kcrab)
       ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
-     &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
-     &*(sin(kcrab)*e0f)
+     &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight)*c1m6)*        &!hr13
+     &sin_rn(kcrab))*e0f
 +ei
 +if .not.crlibm
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
-     &cos(kcrab)                     
-      yv(2,j)=yv(2,j)-                                                  &!hr13
-     &((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*                &!hr13
+     &cos(kcrab)
+      yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos(kcrab)
       ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
      &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
-     &*(sin(kcrab)*e0f)
+     &sin(kcrab))*e0f
 +ei
 +ei
       ejf0v(j)=ejfv(j)
@@ -4148,6 +4148,7 @@
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
                 enddo
 +cd ccmul3s
@@ -4162,7 +4163,7 @@
           crabfreq=ek(ix)*c1e3
           do j=1,napx
          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03
+     & +  crabph3(ix)                                                    !hr03
 +ca alignva
 +if .not.tilt
 +if crlibm
@@ -4171,7 +4172,7 @@
      &cos_rn(kcrab)
         yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
      &c1m3)*cos_rn(kcrab)
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-              &
+      ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
      &(sin_rn(kcrab)*e0f)
 +ei
@@ -4181,7 +4182,7 @@
      &cos(kcrab)
         yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
      &c1m3)*cos(kcrab)
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-              &
+      ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
      &(sin_rn(kcrab)*e0f)
 +ei
@@ -4193,7 +4194,7 @@
      &cos_rn(kcrab)
         yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
      &c1m3)*cos_rn(kcrab)
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-              &
+      ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
      &(sin_rn(kcrab)*e0f)
 +ei
@@ -4203,7 +4204,7 @@
      &cos(kcrab)
         yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
      &c1m3)*cos(kcrab)
-      dpsv(j)=dpsv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-              &
+      ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     & 
      &(sin_rn(kcrab)*e0f)
 +ei
@@ -4237,7 +4238,7 @@
 !          write(*,*) '-------------------'
           do j=1,napx
          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03
+     & +  crabph4(ix)                                                     !hr03
 +ca alignva
 +if .not.tilt
 +if crlibm
@@ -4314,7 +4315,7 @@
           ! Sixtrack uses mm and mrad, input m^{-n+1}
           do j=1,napx
          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03
+     & +  crabph4(ix)                                                     !hr03
 +ca alignva
 +if .not.tilt
 +if crlibm
