@@ -8922,147 +8922,128 @@ cc2008
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
       end
 
-      subroutine hamilton1(ja,jp)
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      implicit none
+subroutine hamilton1(ja,jp)
+  
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  implicit none
 
-      integer j1,j2,j3,j4,j5,j6,ja,jcomp,jel,jord,jp,l,ncoef,kointer
-      real(kind=fPrec) tham
-      dimension tham(0:3)
+  integer j1,j2,j3,j4,j5,j6,ja,jcomp,jel,jord,jp,l,ncoef,kointer
+  real(kind=fPrec) tham
+  dimension tham(0:3)
 +ca commadha
 +ca commadh1
-      save
-!-----------------------------------------------------------------------
-      do 10 jcomp=0,3
-        tham(jcomp)=zero
-   10 continue
-!-----------------------------------------------------------------------
-      if(jp.eq.0) then
-        ncoef=ja
-      else
-        ncoef=1
-      end if
-!-----------------------------------------------------------------------
-      goto(20,50,90,140,200,270) jeltot
-      goto 350
-!-----------------------------------------------------------------------
-   20 do 40 jord=0,2
+  save
+
+  do jcomp=0,3
+    tham(jcomp)=zero
+  end do
+
+  if(jp.eq.0) then
+    ncoef=ja
+  else
+    ncoef=1
+  end if
+
+  select case (jeltot)
+    case (1)
+      do jord=0,2
         j1=jord
-!-----------------------------------------------------------------------
         kointer=j1
-!-----------------------------------------------------------------------
-        do 30 l=0,ncoef
+        do l=0,ncoef
           tham(l)=tham(l)+hda(l,ja,jp,kointer)*(x(1)**j1)
-   30   continue
-   40 continue
-!-----------------------------------------------------------------------
-      goto 350
-!-----------------------------------------------------------------------
-   50 do 80 jord=0,2
-        do 70 j1=0,jord
+        end do
+      end do
+    
+    case (2)
+      do jord=0,2
+        do j1=0,jord
           j2=jord-j1
-!-----------------------------------------------------------------------
           kointer=j1+j2*3
-!-----------------------------------------------------------------------
-          do 60 l=0,ncoef
+          do l=0,ncoef
             tham(l)=tham(l)+(hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2) !hr04
-   60     continue
-   70   continue
-   80 continue
-!-----------------------------------------------------------------------
-      goto 350
-!-----------------------------------------------------------------------
-   90 do 130 jord=0,2
-        do 120 j1=0,jord
-          do 110 j2=0,jord-j1
+          end do
+        end do
+      end do
+      
+    case (3)
+      do jord=0,2
+        do j1=0,jord
+          do j2=0,jord-j1
             j3=jord-j1-j2
-!-----------------------------------------------------------------------
-            kointer=(j1+j2*3)+j3*3**2                                    !hr04
-!-----------------------------------------------------------------------
-            do 100 l=0,ncoef
-              tham(l)=tham(l)+((hda(l,ja,jp,kointer)*(x(1)**j1))        &!hr04
-     &*(x(2)**j2))*(x(3)**j3)                                            !hr04
-  100       continue
-  110     continue
-  120   continue
-  130 continue
-!-----------------------------------------------------------------------
-      goto 350
-!-----------------------------------------------------------------------
-  140 do 190 jord=0,2
-        do 180 j1=0,jord
-          do 170 j2=0,jord-j1
-            do 160 j3=0,jord-j1-j2
+            kointer=(j1+j2*3)+j3*3**2 ! hr04
+            do l=0,ncoef
+              tham(l)=tham(l)+((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3) ! hr04
+            end do
+          end do
+        end do
+      end do
+      
+    case (4)
+      do jord=0,2
+        do j1=0,jord
+          do j2=0,jord-j1
+            do j3=0,jord-j1-j2
               j4=jord-j1-j2-j3
-!-----------------------------------------------------------------------
-              kointer=((j1+j2*3)+j3*3**2)+j4*3**3                        !hr04
-!-----------------------------------------------------------------------
-              do 150 l=0,ncoef
-                tham(l)=tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))     &!hr04
-     &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)                                !hr04
-  150         continue
-  160       continue
-  170     continue
-  180   continue
-  190 continue
-!-----------------------------------------------------------------------
-      goto 350
-!-----------------------------------------------------------------------
-  200 do 260 jord=0,2
-        do 250 j1=0,jord
-          do 240 j2=0,jord-j1
-            do 230 j3=0,jord-j1-j2
-              do 220 j4=0,jord-j1-j2-j3
+              kointer=((j1+j2*3)+j3*3**2)+j4*3**3 ! hr04
+              do l=0,ncoef
+                  tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
+              end do
+            end do
+          end do
+        end do
+      end do
+      
+    case (5)
+      do jord=0,2
+        do j1=0,jord
+          do j2=0,jord-j1
+            do j3=0,jord-j1-j2
+              do j4=0,jord-j1-j2-j3
                 j5=jord-j1-j2-j3-j4
-!-----------------------------------------------------------------------
-                kointer=(((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4            !hr04
-!-----------------------------------------------------------------------
-                do 210 l=0,ncoef
-                  tham(l)=tham(l)+((((hda(l,ja,jp,kointer)*(x(1)**j1))  &!hr04
-     &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)                    !hr04
-  210           continue
-  220         continue
-  230       continue
-  240     continue
-  250   continue
-  260 continue
-!-----------------------------------------------------------------------
-      goto 350
-!-----------------------------------------------------------------------
-  270 do 340 jord=0,2
-        do 330 j1=0,jord
-          do 320 j2=0,jord-j1
-            do 310 j3=0,jord-j1-j2
-              do 300 j4=0,jord-j1-j2-j3
-                do 290 j5=0,jord-j1-j2-j3-j4
+                kointer=(((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4 ! hr04
+                do l=0,ncoef
+                  tham(l)=tham(l)+((((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5) ! hr04
+                end do
+              end do
+            end do
+          end do
+        end do
+      end do
+      
+    case (6)
+      do jord=0,2
+        do j1=0,jord
+          do j2=0,jord-j1
+            do j3=0,jord-j1-j2
+              do j4=0,jord-j1-j2-j3
+                do j5=0,jord-j1-j2-j3-j4
                   j6=jord-j1-j2-j3-j4-j5
-!-----------------------------------------------------------------------
-                 kointer=((((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4)+j6*3**5 !hr04
-!-----------------------------------------------------------------------
-                  do 280 l=0,ncoef
-                 tham(l)=tham(l)+(((((hda(l,ja,jp,kointer) *(x(1)**j1)) &!hr04
-     &*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))                  &!hr04
-     &*(x(6)**j6)                                                        !hr04
-  280             continue
-  290           continue
-  300         continue
-  310       continue
-  320     continue
-  330   continue
-  340 continue
-!-----------------------------------------------------------------------
-  350 do 360 jel=0,ncoef
-        ham(jel)=tham(jel)
-  360 continue
-!-----------------------------------------------------------------------
-      return
-!-----------------------------------------------------------------------
-      end
+                  kointer=((((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4)+j6*3**5 ! hr04
+                  do l=0,ncoef
+                    tham(l)=tham(l)+(((((hda(l,ja,jp,kointer)*&
+                            (x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))*(x(6)**j6) ! hr04
+                  end do
+                end do
+              end do
+            end do
+          end do
+        end do
+      end do
+    
+  end select
+    
+  do jel=0,ncoef
+    ham(jel)=tham(jel)
+  end do
+    
+  return
+    
+end subroutine hamilton1
 
       subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
 !-----------------------------------------------------------------------
