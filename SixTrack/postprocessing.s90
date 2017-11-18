@@ -31,8 +31,8 @@ subroutine postpr(posi,nnuml)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
 +ca parpro
 +ca common1
 +if vvector
@@ -3085,8 +3085,8 @@ subroutine join
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,j,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
       real(kind=fPrec) alf0,bet0,clo,clop,di0,dip0,dps,dummy,e0,qwc,sigm,ta,x,y
       character(len=80) sixtit,commen
@@ -3524,8 +3524,8 @@ end subroutine join
       use mathlib_bouncer
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
+      use crcoall
       implicit none
-+ca crcoall
 +ca parpro
 +ca common
 +ca commons

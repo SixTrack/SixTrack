@@ -13,12 +13,12 @@
 
       use floatPrecision
       use mod_fluka
+      use crcoall
       implicit none
 
 +ca parpro
 +ca common
 +ca commontr
-+ca crcoall
 
 !     temporary variables
       integer i1 , i2
@@ -138,6 +138,7 @@
       use floatPrecision
       use mod_fluka
       use numerical_constants, only : zero, one, c1e3
+      use crcoall
       implicit none
 
 +ca parpro
@@ -145,7 +146,6 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca crcoall
 
 !     interface variables:
       integer nturn, i, ix
@@ -218,12 +218,12 @@
       use floatPrecision
       use mod_fluka
       use numerical_constants, only : zero
+      use crcoall
       implicit none
 
 +ca parpro
 +ca common
 +ca commonmn
-+ca crcoall
 
 !     interface variables:
       integer nturn, i, ix
@@ -269,6 +269,7 @@
       use floatPrecision
       use mod_fluka
       use numerical_constants, only : zero, one, c1e3
+      use crcoall
       implicit none
 
 +ca parpro
@@ -276,7 +277,6 @@
 +ca commonmn
 +ca commonm1
 +ca commontr
-+ca crcoall
 
 !     interface variables:
       integer nturn, i, ix

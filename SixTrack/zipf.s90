@@ -17,9 +17,9 @@ module zipf
 contains
 
   subroutine zipf_parseInputline(ch)
+      use crcoall
     implicit none
 
-+ca crcoall
 
     character(len=*), intent(in) :: ch
 
@@ -48,9 +48,9 @@ contains
   end subroutine zipf_parseInputline
   
   subroutine zipf_parseInputDone
+      use crcoall
     implicit none
 
-+ca crcoall
 
 +ca comgetfields
 +ca stringzerotrim
@@ -110,11 +110,11 @@ contains
 !     AT THE END OF THE SIMULATION                                      *
 !     K.SJOBAK, 7/02/2016                                               *
 !-----------------------------------------------------------------------*
+      use crcoall
     implicit none
 +ca comgetfields
 +ca stringzerotrim
 
-+ca crcoall
 +if boinc
     character(stringzerotrim_maxlen) zipf_outfile_boinc
     character(stringzerotrim_maxlen) zipf_filenames_boinc(zipf_maxfiles)
