@@ -8047,4 +8047,29 @@ subroutine readcollimator
 
 end subroutine readcollimator
 
+subroutine collimation_comnul
+  use floatPrecision
+  use numerical_constants, only : zero
+  implicit none
++ca parpro
+
++ca collpara
++ca database
++ca dbcommon
+
+  do_coll = .false.
+  
+  ! From common /grd/
+  emitnx0_dist = zero
+  emitny0_dist = zero
+  emitnx0_collgap = zero
+  emitny0_collgap = zero
+  
+  ! From common /ralph/
+  myemitx0_dist = zero
+  myemity0_dist = zero
+  myemitx0_collgap = zero
+  myemity0_collgap = zero
+end subroutine collimation_comnul
+
 end module collimation

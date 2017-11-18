@@ -34195,7 +34195,9 @@ subroutine comnul
       use dynk, only : dynk_comnul
       use fma,  only : fma_comnul
       use dump, only : dump_comnul
-      
++if collimat
+      use collimation, only : collimation_comnul
++ei
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -34222,12 +34224,6 @@ subroutine comnul
 +ca comgetfields
 +ca stringzerotrim
 +ca zipf
-
-+if collimat
-+ca collpara
-+ca database
-+ca dbcommon
-+ei
 
 +ca parbeam_exp
 
@@ -34929,19 +34925,7 @@ subroutine comnul
 +ei
 !--COLLIMATION----------------------------------------------------------
 +if collimat
-      do_coll = .false.
-      
-      ! From common /grd/
-      emitnx0_dist = zero
-      emitny0_dist = zero
-      emitnx0_collgap = zero
-      emitny0_collgap = zero
-
-      ! From common /ralph/
-      myemitx0_dist = zero
-      myemity0_dist = zero
-      myemitx0_collgap = zero
-      myemity0_collgap = zero
+      call collimation_comnul
 +ei
 !
 !-----------------------------------------------------------------------
