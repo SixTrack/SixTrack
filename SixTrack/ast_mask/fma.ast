@@ -1,4 +1,4 @@
-fma.s90 sixtrack.s common_headers.s
+fma.s90 sixtrack.s
 fman.f
 df naff,boinc,fio,crlibm,bignblz,hugenblz,bignpart,hugenpart
 e fma

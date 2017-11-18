@@ -1,4 +1,4 @@
-dabnew.s90 common_headers.s
+dabnew.s90
 dabnewsn.f
 df small,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
 e daini
