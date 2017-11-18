@@ -205,6 +205,59 @@ subroutine scatter_closefiles
 end subroutine scatter_closefiles
 
 ! =================================================================================================
+!  K. Sjobak, BE-ABP-LAT and V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 11-2017
+!  Called from COMNUL; initializes the arrays used by SCATTER.
+! =================================================================================================
+subroutine scatter_comnul
+    implicit none
+    
+    integer i,j
+    
+    scatter_debug = .false.
+    scatter_nidata = 0
+    scatter_nfdata = 0
+    scatter_ncdata = 0
+    scatter_nELEM  = 0
+    scatter_nPROFILE = 0
+    scatter_nGENERATOR  = 0
+    
+    do i=1,nele
+        scatter_elemPointer(i) = 0
+    end do
+    
+    do i=1,scatter_maxELEM
+        do j=1,scatter_maxGenELEM
+            scatter_ELEM(i,j) = 0
+        end do
+        scatter_ELEM_scale(i) = zero
+    end do
+    
+    do i=1,scatter_maxPROFILE
+        scatter_PROFILE(i,1)=0
+        scatter_PROFILE(i,2)=0
+        scatter_PROFILE(i,3)=0
+        scatter_PROFILE(i,4)=0
+        scatter_PROFILE(i,5)=0
+    end do
+    
+    do i=1,scatter_maxGENERATOR
+        scatter_GENERATOR(i,1)=0
+        scatter_GENERATOR(i,2)=0
+        scatter_GENERATOR(i,3)=0
+        scatter_GENERATOR(i,4)=0
+        scatter_GENERATOR(i,5)=0
+    end do
+
+    scatter_seed1 = -1
+    scatter_seed2 = -1
+
++if cr
+    scatter_filepos = -1
++ei
+end subroutine scatter_comnul
+
+! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 !  Called from CRCHECK; reads the _cr arrays for scatter from file-

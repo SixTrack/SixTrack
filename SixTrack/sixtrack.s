@@ -34180,18 +34180,7 @@ subroutine comnul
 +if datamods
       use bigmats
 +ei
-      use scatter, only :                                               &
-+if cr
-     & scatter_filepos,                                                 &
-+ei
-     &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,            &
-     &scatter_PROFILE, scatter_GENERATOR,                               &
-     &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,              &
-     &scatter_nidata, scatter_nfdata, scatter_ncdata,                   &
-     &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,      &
-     &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,             &
-     &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
-
+      use scatter, only : scatter_comnul
       use dynk, only : dynk_comnul
       use fma,  only : fma_comnul
       use dump, only : dump_comnul
@@ -34882,47 +34871,7 @@ subroutine comnul
       enddo
       
 !--SCATTER-------------------------------------------------------------
-      scatter_debug = .false.
-      scatter_nidata = 0
-      scatter_nfdata = 0
-      scatter_ncdata = 0
-      scatter_nELEM  = 0
-      scatter_nPROFILE = 0
-      scatter_nGENERATOR  = 0
-
-      do i=1,nele
-         scatter_elemPointer(i) = 0
-      end do
-
-      do i=1,scatter_maxELEM
-         do j=1,scatter_maxGenELEM
-            scatter_ELEM(i,j) = 0
-         end do
-         scatter_ELEM_scale(i) = zero
-      end do
-      
-      do i=1,scatter_maxPROFILE
-         scatter_PROFILE(i,1)=0
-         scatter_PROFILE(i,2)=0
-         scatter_PROFILE(i,3)=0
-         scatter_PROFILE(i,4)=0
-         scatter_PROFILE(i,5)=0
-      end do
-      
-      do i=1,scatter_maxGENERATOR
-         scatter_GENERATOR(i,1)=0
-         scatter_GENERATOR(i,2)=0
-         scatter_GENERATOR(i,3)=0
-         scatter_GENERATOR(i,4)=0
-         scatter_GENERATOR(i,5)=0
-      end do
-
-      scatter_seed1 = -1
-      scatter_seed2 = -1
-
-+if cr
-      scatter_filepos = -1
-+ei
+      call scatter_comnul
 !--COLLIMATION----------------------------------------------------------
 +if collimat
       call collimation_comnul
