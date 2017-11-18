@@ -121,8 +121,7 @@ contains
     integer ii
 +ei
 
-+if libarchive
-
+!+if libarchive
 ! Having an actual explicit interface would be nice - this is 90% there,
 ! however some logic should probably be changed (here, in libArchive_Fwrapper.c,
 ! and in the test program). For now, if it passes CTEST, we think it works...
@@ -140,7 +139,7 @@ contains
 !         integer(kind=c_int), intent(in), VALUE :: filenames_len
 !       end subroutine f_write_archive
 !    end interface
-+ei
+!+ei
 
 
     write(lout,'(a,a,a)') "ZIPF: Compressing file '", trim(stringzerotrim(zipf_outfile)),"'..."
