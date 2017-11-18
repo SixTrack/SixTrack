@@ -22548,7 +22548,9 @@ end subroutine runda
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      
+      use postprocessing, only : postpr, writebin_header, writebin
+      
       implicit none
 +ca crcoall
 +ca errout
@@ -25738,7 +25740,7 @@ end subroutine runda
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
       implicit none
 +ca exactvars
 +ca commonex
@@ -26371,7 +26373,7 @@ end subroutine runda
 +if collimat
       use collimation
 +ei
-
+      use postprocessing, only : writebin
       implicit none
 +ca exactvars
 +ca commonex
@@ -27297,7 +27299,7 @@ end subroutine runda
       
       use dynk, only : ldynk, dynk_apply
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
-      
+      use postprocessing, only : writebin
       implicit none
 +ca exactvars
 +ca commonex
@@ -30104,7 +30106,7 @@ subroutine thck4d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
       implicit none
 +ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
@@ -30789,7 +30791,7 @@ subroutine thck6d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
       implicit none
 +ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -31618,7 +31620,7 @@ subroutine thck6dua(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
       implicit none
 +ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr

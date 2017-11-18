@@ -1,4 +1,9 @@
 +dk postpr
+
+module postprocessing
+
+contains
+  
 +if .not.stf
 +if .not.cr
 subroutine postpr(nfile)
@@ -3762,3 +3767,5 @@ end subroutine join
 +ei
       return
       end subroutine writebin
+
+    end module postprocessing
