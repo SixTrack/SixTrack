@@ -8927,6 +8927,7 @@ cc2008
 !-----------------------------------------------------------------------
 subroutine hamilton1(ja,jp)
   
+  ! Updated to Fortran 2015 by V.K.B. Olsen, 19/11/2017
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
@@ -25178,37 +25179,35 @@ end subroutine runda
       end program maincr
 
 +dk tra_thin
-!>
 !!--------------------------------------------------------------------------
 !!  TRACK THIN LENS PART
 !!  F. SCHMIDT
 !!  CHANGES FOR COLLIMATION MADE BY G. ROBERT-DEMOLAIZE, October 29th, 2004
 !!--------------------------------------------------------------------------
-!<
-      subroutine trauthin(nthinerr)
-      use floatPrecision
-      use mathlib_bouncer
+subroutine trauthin(nthinerr)
+  ! Updated to Fortran 2015 by V.K.B. Olsen, 19/11/2017
+  use floatPrecision
+  use mathlib_bouncer
   use numerical_constants
-      use scatter, only : scatter_elemPointer
-      use dynk, only : ldynk, dynk_isused, dynk_pretrack
+  use scatter, only : scatter_elemPointer
+  use dynk, only : ldynk, dynk_isused, dynk_pretrack
 
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     import mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+  use mod_fluka
 +ei
 +if collimat
-      use collimation
+  use collimation
 +ei
 
-      implicit none
+  implicit none
 +ca crcoall
-      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
-     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-      logical lopen
+  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+  logical lopen
 +ca parpro
 +ca common
 +ca commons
@@ -25220,7 +25219,7 @@ end subroutine runda
 +ca commonm1
 +ca commontr
 +ca beamdim
-      dimension nbeaux(nbb)
+  dimension nbeaux(nbb)
 +if collimat
 +ca collpara
 +ca dbtrthin
@@ -25235,17 +25234,17 @@ end subroutine runda
 +ca rhicelens
 +ei
 +ca parbeam_exp
-      save
-!-----------------------------------------------------------------------
-      do 5 i=1,npart
-        nlostp(i)=i
-   5  continue
-      do 10 i=1,nblz
-        ktrack(i)=0
-        strack(i)=zero
-        strackc(i)=zero
-        stracks(i)=zero
-   10 continue
+  save
+
+  do i=1,npart
+    nlostp(i)=i
+  end do
+  do i=1,nblz
+    ktrack(i)=0
+    strack(i)=zero
+    strackc(i)=zero
+    stracks(i)=zero
+  end do
 +ca beams1
 
       do 290 i=1,iu
@@ -25327,262 +25326,251 @@ end subroutine runda
 +ca scatter
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
-          write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),   &
-     &extalign(i,2),extalign(i,3)
-        endif
-        if(kzz.lt.0) goto 180
-        goto(50,60,70,80,90,100,110,120,130,140,150,290,290,290,        &
-     &       290,290,290,290,290,290,290,290,290,145,146),kzz
-        ktrack(i)=31
-        goto 290
-   50   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=11
-+ca stra01
-        goto 290
-   60   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=12
-+ca stra02
-        goto 290
-   70   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=13
-+ca stra03
-        goto 290
-   80   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=14
-+ca stra04
-        goto 290
-   90   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=15
-+ca stra05
-        goto 290
-  100   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=16
-+ca stra06
-        goto 290
-  110   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=17
-+ca stra07
-        goto 290
-  120   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=18
-+ca stra08
-        goto 290
-  130   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=19
-+ca stra09
-        goto 290
-  140   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=20
-+ca stra10
-        goto 290
-!--DIPEDGE ELEMENT
-  145   continue 
-+ca stra2dpe
-        ktrack(i)=55
-        goto 290
-!--solenoid
-  146   continue
-+ca solenoid
-        ktrack(i)=56
-        goto 290
-!--Multipole block (also in initialize_element)
-  150   r0=ek(ix)
-        nmz=nmu(ix)
-        if(abs(r0).le.pieni.or.nmz.eq.0) then
-          if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
-            if ( dynk_isused(i) ) then
-              write(lout,*)                                             &
-     &        "ERROR: Element of type 11 (bez=",bez(ix),                &
-     &        ") is off in fort.2, but on in DYNK. Not implemented."
-              call prror(-1)
-            endif
-            ktrack(i)=31
-          else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni)  &
-     &then
-            if(abs(dki(ix,3)).gt.pieni) then
-              ktrack(i)=33
-+ca stra11
-            else
-              ktrack(i)=35
-+ca stra12
-            endif
-          else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni)  &
-     &then
-            if(abs(dki(ix,3)).gt.pieni) then
-              ktrack(i)=37
-+ca stra13
-            else
-              ktrack(i)=39
-+ca stra14
-            endif
-          endif
-        else
-          if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
-            ktrack(i)=32
-          else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni)  &
-     &then
-            if(abs(dki(ix,3)).gt.pieni) then
-              ktrack(i)=34
-+ca stra11
-            else
-              ktrack(i)=36
-+ca stra12
-            endif
-          else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni)  &
-     &then
-            if(abs(dki(ix,3)).gt.pieni) then
-              ktrack(i)=38
-+ca stra13
-            else
-              ktrack(i)=40
-+ca stra14
-            endif
-          endif
-        endif
-        if(abs(r0).le.pieni.or.nmz.eq.0) goto 290
-        if(mout2.eq.1) then
-          benkcc=ed(ix)*benkc(irm(ix))
-          r0a=one
-          r000=r0*r00(irm(ix))
-
-          do j=1,mmul
-            fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
-            fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
-            r0a=r0a*r000
-          end do
-
-          write(9,'(a16)') bez(ix)
-          write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
-          write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
-          write(9,'(1p,3d23.15)') (fake(1,j), j=7,9)
-          write(9,'(1p,3d23.15)') (fake(1,j), j=10,12)
-          write(9,'(1p,3d23.15)') (fake(1,j), j=13,15)
-          write(9,'(1p,3d23.15)') (fake(1,j), j=16,18)
-          write(9,'(1p,2d23.15)') (fake(1,j), j=19,20)
-          write(9,'(1p,3d23.15)') (fake(2,j), j=1,3)
-          write(9,'(1p,3d23.15)') (fake(2,j), j=4,6)
-          write(9,'(1p,3d23.15)') (fake(2,j), j=7,9)
-          write(9,'(1p,3d23.15)') (fake(2,j), j=10,12)
-          write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
-          write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
-          write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-
-          do j=1,20
-            fake(1,j)=zero
-            fake(2,j)=zero
-          end do
-
-        endif
-        goto 290
+          write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
+        end if
         
-        !Negative KZZ
-  180   kzz=-kzz
-        goto(190,200,210,220,230,240,250,260,270,280),kzz
-        ktrack(i)=31
-        goto 290
-  190   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=21
+        select case (kzz)
+        case (1)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 11
 +ca stra01
-        goto 290
-  200   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=22
+          end if
+        case (2)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i)=12
 +ca stra02
-        goto 290
-  210   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=23
+          end if
+        case (3)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 13
 +ca stra03
-        goto 290
-  220   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=24
+          end if
+        case (4)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 14
 +ca stra04
-        goto 290
-  230   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=25
+          end if
+        case (5)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 15
 +ca stra05
-        goto 290
-  240   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=26
+          end if
+        case (6)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 16
 +ca stra06
-        goto 290
-  250   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=27
+          end if
+        case (7)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 17
 +ca stra07
-        goto 290
-  260   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=28
+          end if
+        case (8)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 18
 +ca stra08
-        goto 290
-  270   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=29
+          end if
+        case (9)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 19
 +ca stra09
-        goto 290
-  280   if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-          ktrack(i)=31
-          goto 290
-        endif
-        ktrack(i)=30
+          end if
+        case (10)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 20
 +ca stra10
+          end if
+        case (11) ! Multipole block (also in initialize_element)
+          r0  = ek(ix)
+          nmz = nmu(ix)
+          if(abs(r0).le.pieni.or.nmz.eq.0) then
+            if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
+              if ( dynk_isused(i) ) then
+                write(lout,*) "ERROR: Element of type 11 (bez=",bez(ix),") is off in fort.2, but on in DYNK. Not implemented."
+                call prror(-1)
+              end if
+              ktrack(i) = 31
+            else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
+              if(abs(dki(ix,3)).gt.pieni) then
+                ktrack(i) = 33
++ca stra11
+              else
+                ktrack(i) = 35
++ca stra12
+              end if
+            else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
+              if(abs(dki(ix,3)).gt.pieni) then
+                ktrack(i) = 37
++ca stra13
+              else
+                ktrack(i) = 39
++ca stra14
+              end if
+            end if
+          else
+            if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
+              ktrack(i) = 32
+            else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
+              if(abs(dki(ix,3)).gt.pieni) then
+                ktrack(i) = 34
++ca stra11
+              else
+                ktrack(i) = 36
++ca stra12
+              end if
+            else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
+              if(abs(dki(ix,3)).gt.pieni) then
+                ktrack(i) = 38
++ca stra13
+              else
+                ktrack(i) = 40
++ca stra14
+              end if
+            end if
+          end if
+          if(abs(r0).le.pieni.or.nmz.eq.0) goto 290
+          if(mout2.eq.1) then
+            benkcc = ed(ix)*benkc(irm(ix))
+            r0a    = one
+            r000   = r0*r00(irm(ix))
+            
+            do j=1,mmul
+              fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
+              fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
+              r0a=r0a*r000
+            end do
+            
+            write(9,'(a16)') bez(ix)
+            write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
+            write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
+            write(9,'(1p,3d23.15)') (fake(1,j), j=7,9)
+            write(9,'(1p,3d23.15)') (fake(1,j), j=10,12)
+            write(9,'(1p,3d23.15)') (fake(1,j), j=13,15)
+            write(9,'(1p,3d23.15)') (fake(1,j), j=16,18)
+            write(9,'(1p,2d23.15)') (fake(1,j), j=19,20)
+            write(9,'(1p,3d23.15)') (fake(2,j), j=1,3)
+            write(9,'(1p,3d23.15)') (fake(2,j), j=4,6)
+            write(9,'(1p,3d23.15)') (fake(2,j), j=7,9)
+            write(9,'(1p,3d23.15)') (fake(2,j), j=10,12)
+            write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
+            write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
+            write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
+            
+            do j=1,20
+              fake(1,j)=zero
+              fake(2,j)=zero
+            end do
+          end if
+        case (12,13,14,15,16,17,18,19,20,21,22,23)
+          goto 290
+        case (24) ! DIPEDGE ELEMENT
++ca stra2dpe
+          ktrack(i) = 55
+        case (25) ! Solenoid
++ca solenoid
+          ktrack(i) = 56
+          
+        !----------------
+        !--Negative KZZ--
+        !----------------
+        case (-1)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 21
++ca stra01
+          end if
+        case (-2)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 22
++ca stra02
+          end if
+        case (-3)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 23
++ca stra03
+          end if
+        case (-4)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 24
++ca stra04
+          end if
+        case (-5)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 25
++ca stra05
+          end if
+        case (-6)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 26
++ca stra06
+          end if
+        case (-7)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 27
++ca stra07
+          end if
+        case (-8)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 28
++ca stra08
+          end if
+        case (-9)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 29
++ca stra09
+          end if
+        case (-10)
+          if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+            ktrack(i) = 31
+          else
+            ktrack(i) = 30
++ca stra10
+          end if
+        case default
+          ktrack(i)=31
+        end select
+        
   290 continue
-      do 300 j=1,napx
+      do j=1,napx
         dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
-  300 continue
+      end do
       nwri=nwr(3)
       if(nwri.eq.0) nwri=(numl+numlr)+1                                  !hr01
 
@@ -25670,8 +25658,9 @@ end subroutine runda
 +if collimat
       call collimate_exit()
 +ei
-      return
-      end subroutine trauthin
+  return
+      
+end subroutine trauthin
 
 !>
 !!  TRACK THIN LENS 4D
