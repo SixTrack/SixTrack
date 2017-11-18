@@ -21089,51 +21089,36 @@ end subroutine runda
         xs=xsi(i)
         zs=zsi(i)
 +ca alignf
-        if(kzz.lt.0) goto 320
-        goto(90,100,110,120,130,140,150,160,170,180,190,440,440,440,    &
-     &       440,440,440,440,440,440,440,440,440,185,186),kzz
-        goto 440
-!--HORIZONTAL DIPOLE
-   90   continue
+        
+        select case (kzz)
+        case (1)  ! HORIZONTAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
 +ca kickf01h
-        goto 440
-!--NORMAL QUADRUPOLE
-  100   continue
+        case (2)  ! NORMAL QUADRUPOLE
 +ca kickfxxh
-        goto 440
-!---NORMAL SEXTUPOLE
-  110   continue
+        case (3)  ! NORMAL SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!--NORMAL OCTUPOLE
-  120   continue
+        case (4)  ! NORMAL OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!--NORMAL DECAPOLE
-  130   continue
+        case (5)  ! NORMAL DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!---NORMAL DODECAPOL
-  140   continue
+        case (6)  ! NORMAL DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!---NORMAL 14-POL
-  150   continue
+        case (7)  ! NORMAL 14-POL
 !FOX  EKK=EKK*C1M15 ;
 +ca kickfho
 +ca kickfho
@@ -21141,9 +21126,7 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!---NORMAL 16-POL
-  160   continue
+        case (8)  ! NORMAL 16-POL
 !FOX  EKK=EKK*C1M18 ;
 +ca kickfho
 +ca kickfho
@@ -21152,9 +21135,7 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!---NORMAL 18-POL
-  170   continue
+        case (9)  ! NORMAL 18-POL
 !FOX  EKK=EKK*C1M21 ;
 +ca kickfho
 +ca kickfho
@@ -21164,9 +21145,7 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!---NORMAL 20-POL
-  180   continue
+        case (10) ! NORMAL 20-POL
 !FOX  EKK=EKK*C1M24 ;
 +ca kickfho
 +ca kickfho
@@ -21177,74 +21156,58 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-        goto 440
-!--DIPEDGE ELEMENT
-  185   continue 
-+ca kickfdpe
-        goto 440
-!--solenoid
-  186   continue 
-+ca kickfso1
-        goto 440
-  190   r0=ek(ix)
-        nmz=nmu(ix)
+        case (11)
+          r0  = ek(ix)
+          nmz = nmu(ix)
 +ca multf01
-        if(abs(r0).le.pieni.or.nmz.eq.0) goto 440
-        if(nmz.ge.2) then
+          if(abs(r0).le.pieni.or.nmz.eq.0) goto 440
+          if(nmz.ge.2) then
 +ca multf02
-          do 200 k=3,nmz
+            do k=3,nmz
 +ca multf03
-  200     continue
+            end do
 +ca multf04
-        else
+          else
 +ca multf05
-        endif
-        goto 440
-!--SKEW ELEMENTS
-  320   kzz=-kzz
-        goto(330,340,350,360,370,380,390,400,410,420),kzz
-        goto 440
-!---VERTICAL DIPOLE
-  330   continue
+          end if
+        case (12,13,14,15,16,17,18,19,20,21,22,23)
+          goto 440
+        case (24) ! DIPEDGE ELEMENT
++ca kickfdpe
+        case (25) ! Solenoid
++ca kickfso1
+
+        !-----------------
+        !--SKEW ELEMENTS--
+        !-----------------
+        case (-1)  ! VERTICAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
 +ca kickf01v
-        goto 440
-!---SKEW QUADRUPOLE
-  340   continue
+        case (-2)  ! SKEW QUADRUPOLE
 +ca kickfxxv
-        goto 440
-!---SKEW SEXTUPOLE
-  350   continue
+        case (-3)  ! SKEW SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
 +ca kickfho
 +ca kickfxxv
-        goto 440
-!---SKEW OCTUPOLE
-  360   continue
+        case (-4)  ! SKEW OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-        goto 440
-!---SKEW DECAPOLE
-  370   continue
+        case (-5)  ! SKEW DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-        goto 440
-!---SKEW DODECAPOL
-  380   continue
+        case (-6)  ! SKEW DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-        goto 440
-!---SKEW 14-POL
-  390   continue
+        case (-7)  ! SKEW 14-POL
 !FOX  EKK=EKK*C1M15 ;
 +ca kickfho
 +ca kickfho
@@ -21252,9 +21215,7 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-        goto 440
-!---SKEW 16-POL
-  400   continue
+        case (-8)  ! SKEW 16-POL
 !FOX  EKK=EKK*C1M18 ;
 +ca kickfho
 +ca kickfho
@@ -21263,9 +21224,7 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-        goto 440
-!---SKEW 18-POL
-  410   continue
+        case (-9)  ! SKEW 18-POL
 !FOX  EKK=EKK*C1M21 ;
 +ca kickfho
 +ca kickfho
@@ -21275,9 +21234,7 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-        goto 440
-!---SKEW 20-POL
-  420   continue
+        case (-10) ! SKEW 20-POL
 !FOX  EKK=EKK*C1M24 ;
 +ca kickfho
 +ca kickfho
@@ -21288,6 +21245,8 @@ end subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
+        end select
+        
  440  continue
 +if debug
 !     if (umcalls.eq.8) then
