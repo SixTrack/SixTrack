@@ -2904,56 +2904,6 @@ subroutine postpr(posi,nnuml)
      &,i2,') -----'//)
 
 end subroutine postpr
-
-      
-subroutine zipf
-!-----------------------------------------------------------------------*
-!     ZIPF                                                              *
-!     COMPRESS SELECTED OUTPUT FILES INTO .ZIP FILE                     *
-!     AT THE END OF THE SIMULATION                                      *
-!     K.SJOBAK, 7/02/2016                                               *
-!-----------------------------------------------------------------------*
-      implicit none
-+ca comgetfields
-+ca stringzerotrim
-+ca zipf
-+ca crcoall
-+if boinc
-      character(stringzerotrim_maxlen) zipf_outfile_boinc
-      character(stringzerotrim_maxlen) zipf_filenames_boinc(zipf_maxfiles)
-      integer ii
-+ei
-
-      write(lout,'(a,a,a)') "ZIPF: Compressing file '", trim(stringzerotrim(zipf_outfile)),"'..."
-
-+if libarchive
-+if boinc
-      !For BOINC, we may need to translate the filenames.
-      call boincrf(trim(stringzerotrim(zipf_outfile)), zipf_outfile_boinc )
-      
-      do ii=1,zipf_numfiles
-         call boincrf(trim(stringzerotrim(zipf_filenames(ii))), zipf_filenames_boinc(ii) )
-         zipf_filenames_boinc(ii) = trim(zipf_filenames_boinc(ii))
-      end do
-
-      !The f_write_archive function will handle the conversion from Fortran to C-style strings
-      call f_write_archive(trim(zipf_outfile_boinc),zipf_filenames_boinc,zipf_numfiles)
-+ei
-
-+if .not.boinc
-      call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
-+ei
-+ei
-
-+if .not.libarchive
-      ! If not libarchive, the zipf subroutine shall just be a stub.
-      ! And anyway daten should not accept the block, so this is somewhat redundant.
-      write(lout,'(a)') " *** No libArchive in this SixTrack *** "
-+ei
-
-      write(lout,'(a)') "Done!"
-
-end subroutine zipf
       
 subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------

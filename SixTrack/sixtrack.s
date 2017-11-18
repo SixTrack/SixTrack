@@ -1320,16 +1320,6 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd zipf
-      integer zipf_maxfiles,zipf_numfiles
-      parameter (zipf_maxfiles=256)
-      character(len=stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
-      character(len=stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
-      
-      common /zipfCom/ zipf_numfiles, zipf_outfile, zipf_filenames
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd timefct
           expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
 +cd dainicom
@@ -10906,6 +10896,8 @@ cc2008
      &     fma_parseInputLine
 
       use dump, only : dump_parseInputLine, dump_parseInputDone
+
+      use zipf, only : zipf_parseInputDone, zipf_parseInputline
       
       use physical_constants
       use numerical_constants
@@ -10999,7 +10991,6 @@ cc2008
 +ca stringzerotrim
 +ca elensparam
 +ca wireparam
-+ca zipf
 +ca parbeam_exp
 +ca comApeInfo
 +ca dbreaddis
@@ -11027,9 +11018,6 @@ cc2008
 !     - wire
       character(len=16) wire
       data wire /'WIRE'/
-!     - zipf
-      character(len=16) zipf
-      data zipf /'ZIPF'/
 !     - scatter
       character(len=16) scat
       data scat /'SCAT'/
@@ -11288,7 +11276,7 @@ cc2008
       !Reserved:
       !DIST = 2600
       !HION = 2700
-      if(idat.eq.zipf) goto 2800
+      if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
       
       if(idat.eq.next) goto 110
@@ -16682,59 +16670,12 @@ cc2008
       if(ch(1:1).eq.'/') goto 2800 ! skip comment line
       
       if (ch(:4).eq.next) then
-         zipf_outfile(1:10) = "Sixout.zip" ! Output name fixed for now
-            write(lout,'(a)')       "**** ZIPF ****"
-            write(lout,'(a,a,a)')   " Output file name = '",            &
-     &           trim(stringzerotrim(zipf_outfile)),"'"
-            write(lout,'(a,1x,i5)') " Number of files to pack=",        &
-     &           zipf_numfiles
-            write(lout,'(a)')       " Files:"
-         do ii=1,zipf_numfiles
-            write(lout,'(1x,i5,a,1x,a)') ii,":",                        &
-     &            trim(stringzerotrim(zipf_filenames(ii)))
-         end do
-
-         if (.not.(zipf_numfiles.gt.0)) then
-            write(lout,'(a)') "ERROR in ZIPF:"
-            write(lout,'(a)') " ZIPF block was empty;"
-            write(lout,'(a)') " no files specified!"
-            call prror(-1)
-         endif
-
-+if .not.libarchive
-         write(lout,'(a)') "ERROR in ZIPF:"
-         write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
-         write(lout,'(a)') " but this SixTrack was "//                  &
-     &        "compiled without it."
-         call prror(-1)
-+ei
+         call zipf_parseInputDone
          goto 110                  !Read next block or ENDE
       endif
-
-      !Read filenames
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &     getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(-1)
-
-      if (getfields_nfields .ne. 1) then
-         write(lout,'(a)')         "ERROR in ZIPF:"
-         write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got", &
-     &                              getfields_nfields, ", line=",ch
-         call prror(-1)
-      end if
-
-      zipf_numfiles = zipf_numfiles + 1
-      if (zipf_numfiles .ge. zipf_maxfiles) then
-         write(lout,'(a)')       "ERROR in ZIPF:"
-         write(lout,'(a,1x,i5)') " Too many files, max=",               &
-     &         zipf_maxfiles
-         call prror(-1)
-      endif
       
-      zipf_filenames(zipf_numfiles)(1:getfields_lfields(1)) =           &
-     &     getfields_fields(1)(1:getfields_lfields(1))
-      
-      goto 2800                 !Read the next line of the ZIPF block
+      call zipf_parseInputline(ch)
+      goto 2800                    !Read the next line of the ZIPF block
 
 !-----------------------------------------------------------------------
 !  SCATTER
@@ -22595,6 +22536,8 @@ end subroutine runda
       use fma, only : fma_postpr, fma_flag
 
       use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
+
+      use zipf, only : zipf_numfiles, zipf_dozip
       
       use, intrinsic :: iso_fortran_env, only : output_unit
 
@@ -22685,7 +22628,6 @@ end subroutine runda
 +ca comgetfields
 +ca dbdcum
 +ca stringzerotrim
-+ca zipf
 
 +ca comApeInfo
 +ca dbreaddis
@@ -25124,7 +25066,7 @@ end subroutine runda
       call closeUnits
 
       if (zipf_numfiles.gt.0) then
-         call zipf
+         call zipf_dozip
       endif
 
 !     We're done in maincr, no error :)
@@ -34184,6 +34126,7 @@ subroutine comnul
       use dynk, only : dynk_comnul
       use fma,  only : fma_comnul
       use dump, only : dump_comnul
+      use zipf, only : zipf_comnul
 +if collimat
       use collimation, only : collimation_comnul
 +ei
@@ -34209,10 +34152,6 @@ subroutine comnul
 
 +ca elensparam
 +ca wireparam
-
-+ca comgetfields
-+ca stringzerotrim
-+ca zipf
 
 +ca parbeam_exp
 
@@ -34858,25 +34797,13 @@ subroutine comnul
 !     - general-purpose variables
       call dynk_comnul
 !--ZIPF----------------------------------------------------------------
-      zipf_numfiles = 0
-      
-      do j=1, stringzerotrim_maxlen
-         zipf_outfile(j:j)=char(0)
-      enddo
-      
-      do i=1, zipf_maxfiles
-         do j=1, stringzerotrim_maxlen
-            zipf_filenames(i)(j:j)=char(0)
-         enddo
-      enddo
-      
+      call zipf_comnul
 !--SCATTER-------------------------------------------------------------
       call scatter_comnul
 !--COLLIMATION----------------------------------------------------------
 +if collimat
       call collimation_comnul
 +ei
-!
 !-----------------------------------------------------------------------
       return
 end subroutine comnul
