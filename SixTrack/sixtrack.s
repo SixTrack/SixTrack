@@ -34193,10 +34193,7 @@ subroutine comnul
      &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
 
       use dynk, only : dynk_comnul
-
-      use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
-     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP
-
+      use fma,  only : fma_comnul
       use dump, only : dump_comnul
       
       implicit none
@@ -34814,21 +34811,8 @@ subroutine comnul
 !--FMA ANALYSIS---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
-      fma_flag = .false.
-      fma_writeNormDUMP = .true.
-      fma_numfiles = 0
-
-      do i=1,fma_max
-        fma_first(i) = 0
-        fma_last(i)  = 0
-        fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
-
-        do j=1,getfields_l_max_string
-          fma_fname(i)(j:j) = char(0)
-          fma_method(i)(j:j) = char(0)
-        end do
-      end do
-
+      call fma_comnul
+      
 !combine multiple elments in one loope
 !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !2) --WIRE - WIRE ELEMENT---------------------------------------------------------
