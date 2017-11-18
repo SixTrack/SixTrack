@@ -34192,14 +34192,7 @@ subroutine comnul
      &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,             &
      &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
 
-      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
-+if cr
-     & dynkfilepos,                                                     &
-+ei
-     &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,             &
-     &     maxfuncs_dynk,funcs_dynk,maxstrlen_dynk,nsets_dynk,          &
-     &     maxsets_dynk,sets_dynk,csets_dynk,csets_unique_dynk,         &
-     &     fsets_origvalue_dynk,dynk_izuIndex,dynk_elemdata
+      use dynk, only : dynk_comnul
 
       use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
      &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP
@@ -34894,49 +34887,7 @@ subroutine comnul
 !     initialise common
 !     always in main code
 !     - general-purpose variables
-      ldynk = .false.
-      ldynkdebug = .false.
-      ldynkfiledisable = .false.
-      
-      nfuncs_dynk = 0
-      niexpr_dynk = 0
-      nfexpr_dynk = 0
-      ncexpr_dynk = 0
-
-      do i=1,maxfuncs_dynk
-         funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
-         funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
-         funcs_dynk(i,3)= 0
-         funcs_dynk(i,4)= 0
-         funcs_dynk(i,5)= 0
-      enddo
-            
-      nsets_dynk = 0
-
-      do i=1, maxsets_dynk
-         sets_dynk(i,1) = 0 !FUN idx ( index in funcs_dynk; 0 is invalid )
-         sets_dynk(i,2) = 0
-         sets_dynk(i,3) = 0
-         sets_dynk(i,4) = 0
-         
-         do j=1, maxstrlen_dynk
-            csets_dynk(i,1)(j:j) = char(0)
-            csets_dynk(i,2)(j:j) = char(0)
-            csets_unique_dynk(i,1)(j:j) = char(0)
-            csets_unique_dynk(i,2)(j:j) = char(0)
-         enddo
-         fsets_origvalue_dynk(i) = zero
-      enddo
-      
-      do i=1,nele
-         dynk_izuIndex(i) = 0
-         dynk_elemdata(i,1) = 0
-         dynk_elemdata(i,2) = 0
-         dynk_elemdata(i,3) = 0
-      end do
-+if cr
-      dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
-+ei
+      call dynk_comnul
 !--ZIPF----------------------------------------------------------------
       zipf_numfiles = 0
       

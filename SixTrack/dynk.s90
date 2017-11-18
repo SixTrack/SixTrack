@@ -3501,6 +3501,62 @@ logical function dynk_isused(i)
 
 end function dynk_isused
 
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 18-11-2017
+!  Initialize the memory for DYNK
+! =================================================================================================
+subroutine dynk_comnul
+    use numerical_constants, only : zero
+    implicit none
+    
+    integer i,j
+    
+    ldynk = .false.
+    ldynkdebug = .false.
+    ldynkfiledisable = .false.
+    
+    nfuncs_dynk = 0
+    niexpr_dynk = 0
+    nfexpr_dynk = 0
+    ncexpr_dynk = 0
+    
+    do i=1,maxfuncs_dynk
+        funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
+        funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
+        funcs_dynk(i,3)= 0
+        funcs_dynk(i,4)= 0
+        funcs_dynk(i,5)= 0
+    enddo
+    
+    nsets_dynk = 0
+    
+    do i=1, maxsets_dynk
+        sets_dynk(i,1) = 0 !FUN idx ( index in funcs_dynk; 0 is invalid )
+        sets_dynk(i,2) = 0
+        sets_dynk(i,3) = 0
+        sets_dynk(i,4) = 0
+        
+        do j=1, maxstrlen_dynk
+            csets_dynk(i,1)(j:j) = char(0)
+            csets_dynk(i,2)(j:j) = char(0)
+            csets_unique_dynk(i,1)(j:j) = char(0)
+            csets_unique_dynk(i,2)(j:j) = char(0)
+        enddo
+        fsets_origvalue_dynk(i) = zero
+    enddo
+    
+    do i=1,nele
+        dynk_izuIndex(i) = 0
+        dynk_elemdata(i,1) = 0
+        dynk_elemdata(i,2) = 0
+        dynk_elemdata(i,3) = 0
+    end do
++if cr
+    dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
++ei
+end subroutine dynk_comnul
+
 ! ================================================================================================ !
 !  BEGIN Checkpoint Restart
 ! ================================================================================================ !
