@@ -19098,6 +19098,7 @@ end subroutine envars
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+      
 +dk runda
 subroutine runda
 !-----------------------------------------------------------------------
@@ -19842,66 +19843,51 @@ subroutine runda
           endif
           ipch=0
           if(ncor.gt.0) then
-            do 130 i11=1,ncor
-  130       if(ipar(i11).eq.ix) ipch=i11
-          endif
+            do i11=1,ncor
+              if(ipar(i11).eq.ix) ipch=i11
+            end do
+          end if
           if(ipch.ne.0) then
 !FOX  EKK=(SMIDA(IPCH)+SMIZF(I))/(ONE+DPDA) ;
           else
 !FOX  EKK=SMI(I)/(ONE+DPDA) ;
-          endif
+          end if
           xs=xsi(i)
           zs=zsi(i)
           if(mout2.eq.1.and.n.eq.1.and.icextal(i).ne.0) then
             write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),               &
      &extalign(i,1),extalign(i,2),extalign(i,3)
-          endif
+          end if
 +ca alignf
-          if(kzz.lt.0) goto 370
-          goto(140,150,160,170,180,190,200,210,220,230,240,480,480,480, &
-     &         480,480,480,480,480,480,480,480,480,235,236),kzz
-          goto 480
-!--HORIZONTAL DIPOLE
-  140     continue
+          select case (kzz)
+          case (1)  ! HORIZONTAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
 +ca kickf01h
-          goto 480
-!--NORMAL QUADRUPOLE
-  150     continue
+          case (2)  ! NORMAL QUADRUPOLE
 +ca kickfxxh
-          goto 480
-!---NORMAL SEXTUPOLE
-  160     continue
+          case (3)  ! NORMAL SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!--NORMAL OCTUPOLE
-  170     continue
+          case (4)  ! NORMAL OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!--NORMAL DECAPOLE
-  180     continue
+          case (5)  ! NORMAL DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!---NORMAL DODECAPOL
-  190     continue
+          case (6)  ! NORMAL DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!---NORMAL 14-POL
-  200     continue
+          case (7)  ! NORMAL 14-POL
 !FOX  EKK=EKK*C1M15 ;
 +ca kickfho
 +ca kickfho
@@ -19909,9 +19895,7 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!---NORMAL 16-POL
-  210     continue
+          case (8)  ! NORMAL 16-POL
 !FOX  EKK=EKK*C1M18 ;
 +ca kickfho
 +ca kickfho
@@ -19920,9 +19904,7 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!---NORMAL 18-POL
-  220     continue
+          case (9)  ! NORMAL 18-POL
 !FOX  EKK=EKK*C1M21 ;
 +ca kickfho
 +ca kickfho
@@ -19932,9 +19914,7 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!---NORMAL 20-POL
-  230     continue
+          case (10) ! NORMAL 20-POL
 !FOX  EKK=EKK*C1M24 ;
 +ca kickfho
 +ca kickfho
@@ -19945,105 +19925,89 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxh
-          goto 480
-!--DIPEDGE ELEMENT
-  235     continue
-+ca kickfdpe
-          goto 480
-!--solenoid
-  236     continue
-+ca kickfso1
-          goto 480
-  240     r0=ek(ix)
-          nmz=nmu(ix)
+          case (11)
+            r0  = ek(ix)
+            nmz = nmu(ix)
 +ca multf01
-          if(abs(r0).le.pieni.or.nmz.eq.0) goto 480
-          if(mout2.eq.1.and.n.eq.1) then
-            benkcc=ed(ix)*benkc(irm(ix))
-            r0a=one
-            r000=r0*r00(irm(ix))
-
-            do j=1,mmul
-              fake(1,j)=(bbi(i,j)*r0a)/benkcc                            !hr08
-              fake(2,j)=(aai(i,j)*r0a)/benkcc                            !hr08
-              r0a=r0a*r000
-            end do
-
-            write(9,'(a16)') bez(ix)
-            write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
-            write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
-            write(9,'(1p,3d23.15)') (fake(1,j), j=7,9)
-            write(9,'(1p,3d23.15)') (fake(1,j), j=10,12)
-            write(9,'(1p,3d23.15)') (fake(1,j), j=13,15)
-            write(9,'(1p,3d23.15)') (fake(1,j), j=16,18)
-            write(9,'(1p,2d23.15)') (fake(1,j), j=19,20)
-            write(9,'(1p,3d23.15)') (fake(2,j), j=1,3)
-            write(9,'(1p,3d23.15)') (fake(2,j), j=4,6)
-            write(9,'(1p,3d23.15)') (fake(2,j), j=7,9)
-            write(9,'(1p,3d23.15)') (fake(2,j), j=10,12)
-            write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
-            write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
-            write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-            do 246 j=1,20
-              fake(1,j)=zero
-              fake(2,j)=zero
-  246       continue
-          endif
-          if(nmz.ge.2) then
+            if (abs(r0).le.pieni.or.nmz.eq.0) goto 480
+            if(mout2.eq.1.and.n.eq.1) then
+              benkcc = ed(ix)*benkc(irm(ix))
+              r0a    = one
+              r000   = r0*r00(irm(ix))
+              do j=1,mmul
+                fake(1,j)=(bbi(i,j)*r0a)/benkcc                            !hr08
+                fake(2,j)=(aai(i,j)*r0a)/benkcc                            !hr08
+                r0a=r0a*r000
+              end do
+              
+              write(9,'(a16)') bez(ix)
+              write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
+              write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
+              write(9,'(1p,3d23.15)') (fake(1,j), j=7,9)
+              write(9,'(1p,3d23.15)') (fake(1,j), j=10,12)
+              write(9,'(1p,3d23.15)') (fake(1,j), j=13,15)
+              write(9,'(1p,3d23.15)') (fake(1,j), j=16,18)
+              write(9,'(1p,2d23.15)') (fake(1,j), j=19,20)
+              write(9,'(1p,3d23.15)') (fake(2,j), j=1,3)
+              write(9,'(1p,3d23.15)') (fake(2,j), j=4,6)
+              write(9,'(1p,3d23.15)') (fake(2,j), j=7,9)
+              write(9,'(1p,3d23.15)') (fake(2,j), j=10,12)
+              write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
+              write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
+              write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
+              
+              do j=1,20
+                fake(1,j)=zero
+                fake(2,j)=zero
+              end do
+            end if
+            if(nmz.ge.2) then
 +ca multf02
-              do 250 k=3,nmz
+              do k=3,nmz
 +ca multf03
-  250         continue
+              end do
 +ca multf04
-          else
+            else
 +ca multf05
-          endif
-          goto 480
-!--SKEW ELEMENTS
-  370     kzz=-kzz
-          goto(380,390,400,410,420,430,440,450,460,470),kzz
-          goto 480
-!---VERTICAL DIPOLE
-  380     continue
+            end if
+          case (12,13,14,15,16,17,18,19,20,21,22,23)
+            goto 480
+          case (24) ! DIPEDGE ELEMENT
++ca kickfdpe
+          case (25) ! Solenoid
++ca kickfso1
+          
+          !-----------------
+          !--SKEW ELEMENTS--
+          !-----------------
+          case (-1)  ! VERTICAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
 +ca kickf01v
-          goto 480
-!---SKEW QUADRUPOLE
-  390     continue
+          case (-2)  ! SKEW QUADRUPOLE
 +ca kickfxxv
-          goto 480
-!---SKEW SEXTUPOLE
-  400     continue
+          case (-3)  ! SKEW SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
 +ca kickfho
 +ca kickfxxv
-          goto 480
-!---SKEW OCTUPOLE
-  410     continue
+          case (-4)  ! SKEW OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-          goto 480
-!---SKEW DECAPOLE
-  420     continue
+          case (-5)  ! SKEW DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-          goto 480
-!---SKEW DODECAPOL
-  430     continue
+          case (-6)  ! SKEW DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-          goto 480
-!---SKEW 14-POL
-  440     continue
+          case (-7)  ! SKEW 14-POL
 !FOX  EKK=EKK*C1M15 ;
 +ca kickfho
 +ca kickfho
@@ -20051,9 +20015,7 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-          goto 480
-!---SKEW 16-POL
-  450     continue
+          case (-8)  ! SKEW 16-POL
 !FOX  EKK=EKK*C1M18 ;
 +ca kickfho
 +ca kickfho
@@ -20062,9 +20024,7 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-          goto 480
-!---SKEW 18-POL
-  460     continue
+          case (-9)  ! SKEW 18-POL
 !FOX  EKK=EKK*C1M21 ;
 +ca kickfho
 +ca kickfho
@@ -20074,9 +20034,7 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
-          goto 480
-!---SKEW 20-POL
-  470     continue
+          case (-10) ! SKEW 20-POL
 !FOX  EKK=EKK*C1M24 ;
 +ca kickfho
 +ca kickfho
@@ -20087,6 +20045,8 @@ subroutine runda
 +ca kickfho
 +ca kickfho
 +ca kickfxxv
+          end select
+          
   480   continue
         if(mout2.eq.1) then
           if(ic(iu).le.nblo) then
