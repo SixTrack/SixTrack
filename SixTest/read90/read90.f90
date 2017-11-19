@@ -19,7 +19,7 @@
       interface
          integer function dtostr(x,results)
            double precision, intent(in) :: x
-           character*(*), intent(out) :: results
+           character(*), intent(out) :: results
          end function dtostr
       end interface
       
@@ -258,7 +258,7 @@
       ! ifipa=0
       write(ounit,'(2x,a,a)')   "Title           : ", sixtit
       write(ounit,'(2x,a,a)')   "Comment         : ", commen
-!      write(ounit,'(2x,a,a)')   "cdate           : ", cdate !Skip the date and time; these won't match between different runs when we do a diff..
+!      write(ounit,'(2x,a,a)')   "cdate           : ", cdate !Skip the date and time; won't match between different runs when diff
 !      write(ounit,'(2x,a,a)')   "ctime           : ", ctime
       write(ounit,'(2x,a,a)')   "Program         : ", progrm
       write(ounit,'(2x,a,i10)') "Total particles : ", itopa
@@ -410,7 +410,7 @@
       use, intrinsic :: iso_fortran_env, only : stdout=>output_unit
       implicit none
       double precision, intent(in) :: x
-      character*(*), intent(out) :: results
+      character(*), intent(out) :: results
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e

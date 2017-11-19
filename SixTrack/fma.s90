@@ -175,7 +175,8 @@ contains
     integer, dimension(:),allocatable :: nturns ! Number of turns to analyze for this particle
     logical hasNormDumped(-1:nele)              ! Have we written a normDump file for this element before?
     integer fma_nturn (fma_max)                 ! Number of turns used for fft for this FMA
-    real(kind=fPrec), dimension(:,:,:),allocatable :: xyzv,nxyzv ! phase space variables (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3],
+    real(kind=fPrec), dimension(:,:,:),allocatable :: xyzv,nxyzv ! phase space variables (x,x',y,y',z,dE/E)
+                                                                 ! [mm,mrad,mm,mrad,mm,1.e-3],
                                                                  ! normalized phase space variables [sqrt(m) 1.e-3]
     real(kind=fPrec), dimension(:,:,:),allocatable :: epsnxyzv   ! normalized emittances
     integer :: dump_last_turn                                    ! auxiliary variable for loop over turns
