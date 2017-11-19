@@ -66,6 +66,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
   use beamgascommon
   use lorentzcommon
 
+      use crcoall
   implicit none
 
 !YIL: parpro
@@ -95,7 +96,6 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
 !YIL: commontr
 +ca commontr
 
-+ca crcoall
 
 !YIL: This is leftovers that does not have a cd-block
 
@@ -310,9 +310,9 @@ subroutine beamGasInit(myenom)
   use floatPrecision
   use numerical_constants
   use beamgascommon
+      use crcoall
   IMPLICIT NONE
 
-+ca crcoall
 
   integer check,j,i
   real(kind=fPrec) myenom,minenergy

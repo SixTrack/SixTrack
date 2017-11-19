@@ -145,9 +145,9 @@ contains
 ! =================================================================================================
 subroutine dynk_allocate
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     integer stat
     integer i,j
@@ -197,11 +197,11 @@ end subroutine dynk_allocate
 ! =================================================================================================
 subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
+      use crcoall
     implicit none
 
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 
     intent(in) getfields_fields, getfields_lfields, getfields_nfields
 
@@ -1717,9 +1717,9 @@ end subroutine dynk_parseFUN
 
 subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
 
+      use crcoall
     implicit none
 
-+ca crcoall
     integer nfields, nfields_expected
     character(*) funsyntax
     intent(in) nfields, nfields_expected, funsyntax
@@ -1743,6 +1743,7 @@ end subroutine dynk_checkargs
 ! ================================================================================================ !
 subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
+      use crcoall
     implicit none
 
     integer iblocks, fblocks, cblocks
@@ -1750,7 +1751,6 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
     intent(in) iblocks, fblocks, cblocks, quiet
 
-+ca crcoall
 
     integer,                   allocatable :: itemp_dynk(:)
     real(kind=fPrec),          allocatable :: ftemp_dynk(:)
@@ -1914,12 +1914,12 @@ end subroutine dynk_checkspace
 ! ================================================================================================ !
 subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
 +ca comgetfields
 +ca stringzerotrim
 
-+ca crcoall
 
     integer ii
 
@@ -2024,9 +2024,9 @@ end subroutine dynk_parseSET
 ! ================================================================================================ !
 integer function dynk_findFUNindex(funName_input, startfrom)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     character(*) funName_input
     character(maxstrlen_dynk) funName
@@ -2113,9 +2113,9 @@ end function dynk_findSETindex
 ! ================================================================================================ !
 subroutine dynk_inputsanitycheck
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     integer ii, jj
     integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
@@ -2214,11 +2214,11 @@ end subroutine dynk_inputsanitycheck
 ! ================================================================================================ !
 subroutine dynk_dumpdata
 
+      use crcoall
     implicit none
 
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 
     integer ii
     write (lout,*) "**************** DYNK parser knows: ****************"
@@ -2272,12 +2272,12 @@ end subroutine dynk_dumpdata
 ! ================================================================================================ !
 subroutine dynk_pretrack
 
+      use crcoall
     implicit none
 
 +ca common
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 +ca commondl
 
     ! Temp variables
@@ -2427,9 +2427,9 @@ end subroutine dynk_pretrack
 ! ================================================================================================ !
 subroutine dynk_apply(turn)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca common
 +ca commonmn
 +ca commontr
@@ -2677,6 +2677,7 @@ end subroutine dynk_apply
 ! ================================================================================================ !
 recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
+      use crcoall
     implicit none
 
 +ca comgetfields
@@ -2691,7 +2692,6 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 +ei
 
 
-+ca crcoall
 
     ! Temporaries for FILELIN
     integer filelin_start, filelin_xypoints
@@ -2988,6 +2988,7 @@ end function dynk_computeFUN
 subroutine dynk_setvalue(element_name, att_name, newValue)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+      use crcoall
     implicit none
 
 +ca common
@@ -2997,7 +2998,6 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 +ca comgetfields
 +ca stringzerotrim
 +ca elensparam
-+ca crcoall
 
     character(maxstrlen_dynk) element_name, att_name
     real(kind=fPrec) newValue
@@ -3204,6 +3204,7 @@ end subroutine dynk_setvalue
 real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+      use crcoall
     implicit none
 
 +ca common
@@ -3213,7 +3214,6 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 +ca stringzerotrim
 
 +ca elensparam
-+ca crcoall
 
     character(maxstrlen_dynk) element_name, att_name
     intent(in) element_name, att_name
@@ -3396,9 +3396,9 @@ end function dynk_getvalue
 ! ================================================================================================ !
 real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     real(kind=fPrec) x, xvals(*),yvals(*)
     integer datalen
@@ -3458,12 +3458,12 @@ end function dynk_lininterp
 ! ================================================================================================ !
 logical function dynk_isused(i)
 
+      use crcoall
     implicit none
 
 +ca common
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 
     integer, intent(in) :: i
     integer ix,k
@@ -3501,6 +3501,62 @@ logical function dynk_isused(i)
 
 end function dynk_isused
 
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 18-11-2017
+!  Initialize the memory for DYNK
+! =================================================================================================
+subroutine dynk_comnul
+    use numerical_constants, only : zero
+    implicit none
+    
+    integer i,j
+    
+    ldynk = .false.
+    ldynkdebug = .false.
+    ldynkfiledisable = .false.
+    
+    nfuncs_dynk = 0
+    niexpr_dynk = 0
+    nfexpr_dynk = 0
+    ncexpr_dynk = 0
+    
+    do i=1,maxfuncs_dynk
+        funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
+        funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
+        funcs_dynk(i,3)= 0
+        funcs_dynk(i,4)= 0
+        funcs_dynk(i,5)= 0
+    enddo
+    
+    nsets_dynk = 0
+    
+    do i=1, maxsets_dynk
+        sets_dynk(i,1) = 0 !FUN idx ( index in funcs_dynk; 0 is invalid )
+        sets_dynk(i,2) = 0
+        sets_dynk(i,3) = 0
+        sets_dynk(i,4) = 0
+        
+        do j=1, maxstrlen_dynk
+            csets_dynk(i,1)(j:j) = char(0)
+            csets_dynk(i,2)(j:j) = char(0)
+            csets_unique_dynk(i,1)(j:j) = char(0)
+            csets_unique_dynk(i,2)(j:j) = char(0)
+        enddo
+        fsets_origvalue_dynk(i) = zero
+    enddo
+    
+    do i=1,nele
+        dynk_izuIndex(i) = 0
+        dynk_elemdata(i,1) = 0
+        dynk_elemdata(i,2) = 0
+        dynk_elemdata(i,3) = 0
+    end do
++if cr
+    dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
++ei
+end subroutine dynk_comnul
+
 ! ================================================================================================ !
 !  BEGIN Checkpoint Restart
 ! ================================================================================================ !
@@ -3514,12 +3570,12 @@ end function dynk_isused
 ! ================================================================================================ !
 subroutine dynk_crcheck_readdata(fileunit,readerr)
 
+      use crcoall
     implicit none
 
     integer, intent(in)  :: fileunit
     logical, intent(out) :: readerr
 
-+ca crcoall
 
     integer j, stat
 
@@ -3559,9 +3615,9 @@ end subroutine dynk_crcheck_readdata
 ! ================================================================================================ !
 subroutine dynk_crcheck_positionFiles
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     logical lopen
     integer ierro
@@ -3638,9 +3694,9 @@ end subroutine dynk_crcheck_positionFiles
 ! ================================================================================================ !
 subroutine dynk_crpoint(fileunit,fileerror,ierro)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     integer, intent(in)    :: fileunit
     logical, intent(out)   :: fileerror

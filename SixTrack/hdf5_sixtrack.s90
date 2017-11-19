@@ -8,6 +8,8 @@
       use floatPrecision
       USE HDF5
       
+      use crcoall
+      use crcoall
       IMPLICIT NONE
 
         CHARACTER(LEN=20), PARAMETER :: HFNAME = "tracks2.h5"
@@ -27,7 +29,6 @@
       SUBROUTINE WRITETOFILE
           use floatPrecision
 +if debug
-+ca crcoall
 +ei
           CALL h5dextend_f(h5set_id, h5dims, h5error)
           CALL h5dget_space_f(h5set_id, h5space_id, h5error)
@@ -122,7 +123,6 @@
        INTEGER turn,pid,typ
        real(kind=fPrec) x,xp,y,yp,dee,s
 +if debug
-+ca crcoall
 +ei
 
 +if debug

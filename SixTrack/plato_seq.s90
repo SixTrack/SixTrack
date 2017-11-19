@@ -93,6 +93,7 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT1(X,XP,MAXN)
+      use crcoall
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -104,7 +105,6 @@ module platoFMA
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca crcoall
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
          WRITE(lout,'(a)') '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
@@ -163,6 +163,7 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNEFIT(X,XP,MAX)
+      use crcoall
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -170,7 +171,6 @@ module platoFMA
       REAL(KIND=fPrec) X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
 
-+ca crcoall
 !C............................................................
       IF (MAX.LE.0) THEN
          WRITE(lout,'(a)') '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
@@ -225,11 +225,11 @@ module platoFMA
 !C
 
       SUBROUTINE FIT(X,Y,N,A,B)
+      use crcoall
       IMPLICIT NONE
       INTEGER N,I
       REAL(KIND=fPrec) X2M,XM,YM,XYM,ERR,DELTA,A,B,X,Y
       DIMENSION X(*),Y(*)
-+ca crcoall
 !C............................................................
       IF (N.LE.0) THEN
         WRITE(lout,'(a)') '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
@@ -559,6 +559,7 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT(X,XP,MAXN)
+      use crcoall
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -569,7 +570,6 @@ module platoFMA
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-+ca crcoall
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
         WRITE(lout,'(a)') '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
@@ -741,11 +741,11 @@ module platoFMA
  
       REAL(KIND=fPrec) FUNCTION TUNEAPA(X,P,N)
 !C............................................................
+      use crcoall
       IMPLICIT NONE
       INTEGER N,I
       REAL(KIND=fPrec) X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,ADVSIG,ADVMIN,ADVMAX
       DIMENSION X(*),P(*)
-+ca crcoall
 !C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
 !C............................................................
@@ -808,6 +808,7 @@ module platoFMA
  
       REAL(KIND=fPrec) FUNCTION TUNEFFT(X,P,N)
 !C............................................................
+      use crcoall
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -815,7 +816,6 @@ module platoFMA
       REAL(KIND=fPrec) SUM,AMAX
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec)  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
-+ca crcoall
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         write(lout,'(a)') '***ERROR(TUNEFFT): TOO MANY ITERATES'
@@ -881,6 +881,7 @@ module platoFMA
  
       REAL(KIND=fPrec) FUNCTION TUNEFFTI(X,P,N)
 !C............................................................
+      use crcoall
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -889,7 +890,6 @@ module platoFMA
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec) Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
-+ca crcoall
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         write(lout,'(a)') '***ERROR(TUNEFFTI): TOO MANY ITERATES'
@@ -976,6 +976,7 @@ module platoFMA
 
       REAL(KIND=fPrec) FUNCTION TUNELASK(X,PX,MAX)
 !C............................................................
+      use crcoall
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -985,7 +986,6 @@ module platoFMA
       COMPLEX(kind=fPrec) ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC,SD,SP
 
-+ca crcoall
       DUEPI=EIGHT*ATAN_MB(ONE)
 !C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN

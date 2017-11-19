@@ -1,13 +1,15 @@
 !     This file contains variables that are shared between all
 !     parts of the code, such as lout and crlibm functions
 
-+cd crcoall
-!     Standard output unit
-!     For CR version, this is the "buffer file" fort.92;
-!     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
-      integer lout
-      common /crflags/lout
-
++dk crcoall
+module crcoall
+  !     Standard output unit
+  !     For CR version, this is the "buffer file" fort.92;
+  !     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
+  integer lout
+  save lout
+end module crcoall
+    
 +dk fPrec
       module floatPrecision
       use, intrinsic :: iso_fortran_env, only : real32, real64, real128

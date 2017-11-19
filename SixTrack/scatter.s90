@@ -106,9 +106,9 @@ contains
 ! =================================================================================================
 subroutine scatter_allocate
     
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca parpro
 
     integer stat
@@ -151,9 +151,9 @@ end subroutine scatter_allocate
 !  Last modified: 09-2017
 ! =================================================================================================
 subroutine scatter_initialize
+      use crcoall
     implicit none
     integer ierro
-+ca crcoall
 +ca parpro
 
     logical lopen
@@ -205,6 +205,59 @@ subroutine scatter_closefiles
 end subroutine scatter_closefiles
 
 ! =================================================================================================
+!  K. Sjobak, BE-ABP-LAT and V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 11-2017
+!  Called from COMNUL; initializes the arrays used by SCATTER.
+! =================================================================================================
+subroutine scatter_comnul
+    implicit none
+    
+    integer i,j
+    
+    scatter_debug = .false.
+    scatter_nidata = 0
+    scatter_nfdata = 0
+    scatter_ncdata = 0
+    scatter_nELEM  = 0
+    scatter_nPROFILE = 0
+    scatter_nGENERATOR  = 0
+    
+    do i=1,nele
+        scatter_elemPointer(i) = 0
+    end do
+    
+    do i=1,scatter_maxELEM
+        do j=1,scatter_maxGenELEM
+            scatter_ELEM(i,j) = 0
+        end do
+        scatter_ELEM_scale(i) = zero
+    end do
+    
+    do i=1,scatter_maxPROFILE
+        scatter_PROFILE(i,1)=0
+        scatter_PROFILE(i,2)=0
+        scatter_PROFILE(i,3)=0
+        scatter_PROFILE(i,4)=0
+        scatter_PROFILE(i,5)=0
+    end do
+    
+    do i=1,scatter_maxGENERATOR
+        scatter_GENERATOR(i,1)=0
+        scatter_GENERATOR(i,2)=0
+        scatter_GENERATOR(i,3)=0
+        scatter_GENERATOR(i,4)=0
+        scatter_GENERATOR(i,5)=0
+    end do
+
+    scatter_seed1 = -1
+    scatter_seed2 = -1
+
++if cr
+    scatter_filepos = -1
++ei
+end subroutine scatter_comnul
+
+! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 !  Called from CRCHECK; reads the _cr arrays for scatter from file-
@@ -213,11 +266,11 @@ end subroutine scatter_closefiles
 +if cr
 subroutine scatter_crcheck_readdata(fileunit,readerr)
     
+      use crcoall
     implicit none
     integer, intent(in)  :: fileunit
     logical, intent(out) :: readerr
 
-+ca crcoall
     
     integer j
     
@@ -246,9 +299,9 @@ end subroutine scatter_crcheck_readdata
 ! =================================================================================================
 subroutine scatter_crcheck_positionFiles
     
+      use crcoall
     implicit none
 
-+ca crcoall
 
     logical lopen
     integer ierro
@@ -329,8 +382,8 @@ end subroutine scatter_crcheck_positionFiles
 ! =================================================================================================
 subroutine scatter_crpoint(fileunit,writeerr,ierro)
     
+      use crcoall
     implicit none
-+ca crcoall
     integer, intent(in)    :: fileunit
     logical, intent(out)   :: writeerr
     integer, intent(inout) :: ierro    !Operate dummy in "passthrough" mode if no error -> inout
@@ -385,9 +438,9 @@ end subroutine scatter_crstart
 ! =================================================================================================
 subroutine scatter_dumpdata
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca stringzerotrim
 
     integer ii,jj
@@ -450,9 +503,9 @@ end subroutine scatter_dumpdata
 ! =================================================================================================
 subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca comgetfields
 +ca stringzerotrim
 
@@ -608,9 +661,9 @@ end subroutine scatter_parseElem
 ! =================================================================================================
 subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca comgetfields
 +ca stringzerotrim
 
@@ -771,9 +824,9 @@ end subroutine scatter_parseProfile
 ! =================================================================================================
 subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca comgetfields
 +ca stringzerotrim
 
@@ -921,9 +974,9 @@ end subroutine scatter_parseGenerator
 ! =================================================================================================
 subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca comgetfields
 
     ! Check the number of arguments
@@ -948,9 +1001,9 @@ end subroutine scatter_parseSeed
 ! =================================================================================================
 subroutine scatter_thin(ix, turn)
     
+      use crcoall
     implicit none
     
-+ca crcoall
 
 +ca stringzerotrim
 +ca common
@@ -1051,10 +1104,10 @@ end subroutine scatter_thin
 ! =================================================================================================
 real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
 
+      use crcoall
     implicit none
 
 +ca common
-+ca crcoall
 +ca stringzerotrim
     
     integer, intent(in) :: profileIdx
@@ -1115,9 +1168,9 @@ end subroutine scatter_profile_getParticle
 ! =================================================================================================
 real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca stringzerotrim
 
     integer, intent(in) :: profileIDX, generatorIDX
@@ -1161,9 +1214,9 @@ end function scatter_generator_getCrossSection
 ! =================================================================================================
 subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     integer, intent(in) :: generatorIDX
     real(kind=fPrec), intent(out) :: t, xi
@@ -1208,9 +1261,9 @@ end subroutine scatter_generator_getTandXi
 ! =================================================================================================
 real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     real(kind=fPrec), intent(in) :: a, b1, b2, phi, tmin
 

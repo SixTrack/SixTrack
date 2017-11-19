@@ -19,46 +19,55 @@ module mathlib_bouncer
      
      real(kind=c_double) function exp_rn(arg) bind(C,name="exp_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function exp_rn
 
      real(kind=c_double) function log_rn(arg) bind(C,name="log_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function log_rn
 
      real(kind=c_double) function log10_rn(arg) bind(C,name="log10_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function log10_rn
 
      real(kind=c_double) function atan_rn(arg) bind(C,name="atan_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function atan_rn
      
      real(kind=c_double) function tan_rn(arg) bind(C,name="tan_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function tan_rn
 
      real(kind=c_double) function sin_rn(arg) bind(C,name="sin_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function sin_rn
 
      real(kind=c_double) function cos_rn(arg) bind(C,name="cos_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function cos_rn
 
      real(kind=c_double) function sinh_rn(arg) bind(C,name="sinh_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function sinh_rn
 
      real(kind=c_double) function cosh_rn(arg) bind(C,name="cosh_rn")
        use, intrinsic :: iso_c_binding, only : c_double
+       implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function cosh_rn
      

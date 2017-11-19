@@ -1320,16 +1320,6 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd zipf
-      integer zipf_maxfiles,zipf_numfiles
-      parameter (zipf_maxfiles=256)
-      character(len=stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
-      character(len=stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
-      
-      common /zipfCom/ zipf_numfiles, zipf_outfile, zipf_filenames
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd timefct
           expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
 +cd dainicom
@@ -8401,8 +8391,8 @@ cc2008
       use numerical_constants
       use mathlib_bouncer
       
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ifail,istate,iter,iuser,iwork,j,jaord,jbound,jcol,jcomp,&
      &jconf,jord,jpord,jrow,jsex,jvar,k,kcol,l,liwork,lwork,mcor,n,     &
      &nclin,ncnln,nconf,ndim2,nout,nrel,nrowa,nrowj,nrowr
@@ -8676,8 +8666,8 @@ cc2008
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer icont,ind,j,j1,j2,j3,j4,j5,j6,jaord,jcomp,jel,jord,jpord, &
      &maxcomp,njx,njx1,njz,njz1,nmax,np,ncoef,nord,point,kointer
       real user
@@ -9300,9 +9290,9 @@ end subroutine hamilton1
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
 
-+ca crcoall
       integer i,ifail,istate,iter,itype,iuser,iwork,j,jbound,jcol,      &
      &jcomp,jconf,jord,jrow,jsex,jvar,kcol,l,liwork,lwork,mcor,n,nclin, &
      &ncnln,ndim2,nout,nrowa,nrowj,nrowr
@@ -9570,8 +9560,8 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer icont,ind,j,j1,j2,j3,j4,j5,j6,jcomp,jel,jord,jp,ncoef,njx,&
      &njx1,njz,njz1,nor,np,point,kointer
       real user
@@ -10888,6 +10878,8 @@ end subroutine hamilton1
      &     fma_parseInputLine
 
       use dump, only : dump_parseInputLine, dump_parseInputDone
+
+      use zipf, only : zipf_parseInputDone, zipf_parseInputline
       
       use physical_constants
       use numerical_constants
@@ -10902,8 +10894,8 @@ end subroutine hamilton1
 
 +ei
 
+      use crcoall
       implicit none
-+ca crcoall
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
      &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
@@ -10981,7 +10973,6 @@ end subroutine hamilton1
 +ca stringzerotrim
 +ca elensparam
 +ca wireparam
-+ca zipf
 +ca parbeam_exp
 +ca comApeInfo
 +ca dbreaddis
@@ -11009,9 +11000,6 @@ end subroutine hamilton1
 !     - wire
       character(len=16) wire
       data wire /'WIRE'/
-!     - zipf
-      character(len=16) zipf
-      data zipf /'ZIPF'/
 !     - scatter
       character(len=16) scat
       data scat /'SCAT'/
@@ -11270,7 +11258,7 @@ end subroutine hamilton1
       !Reserved:
       !DIST = 2600
       !HION = 2700
-      if(idat.eq.zipf) goto 2800
+      if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
       
       if(idat.eq.next) goto 110
@@ -16664,59 +16652,12 @@ end subroutine hamilton1
       if(ch(1:1).eq.'/') goto 2800 ! skip comment line
       
       if (ch(:4).eq.next) then
-         zipf_outfile(1:10) = "Sixout.zip" ! Output name fixed for now
-            write(lout,'(a)')       "**** ZIPF ****"
-            write(lout,'(a,a,a)')   " Output file name = '",            &
-     &           trim(stringzerotrim(zipf_outfile)),"'"
-            write(lout,'(a,1x,i5)') " Number of files to pack=",        &
-     &           zipf_numfiles
-            write(lout,'(a)')       " Files:"
-         do ii=1,zipf_numfiles
-            write(lout,'(1x,i5,a,1x,a)') ii,":",                        &
-     &            trim(stringzerotrim(zipf_filenames(ii)))
-         end do
-
-         if (.not.(zipf_numfiles.gt.0)) then
-            write(lout,'(a)') "ERROR in ZIPF:"
-            write(lout,'(a)') " ZIPF block was empty;"
-            write(lout,'(a)') " no files specified!"
-            call prror(-1)
-         endif
-
-+if .not.libarchive
-         write(lout,'(a)') "ERROR in ZIPF:"
-         write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
-         write(lout,'(a)') " but this SixTrack was "//                  &
-     &        "compiled without it."
-         call prror(-1)
-+ei
+         call zipf_parseInputDone
          goto 110                  !Read next block or ENDE
       endif
-
-      !Read filenames
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &     getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(-1)
-
-      if (getfields_nfields .ne. 1) then
-         write(lout,'(a)')         "ERROR in ZIPF:"
-         write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got", &
-     &                              getfields_nfields, ", line=",ch
-         call prror(-1)
-      end if
-
-      zipf_numfiles = zipf_numfiles + 1
-      if (zipf_numfiles .ge. zipf_maxfiles) then
-         write(lout,'(a)')       "ERROR in ZIPF:"
-         write(lout,'(a,1x,i5)') " Too many files, max=",               &
-     &         zipf_maxfiles
-         call prror(-1)
-      endif
       
-      zipf_filenames(zipf_numfiles)(1:getfields_lfields(1)) =           &
-     &     getfields_fields(1)(1:getfields_lfields(1))
-      
-      goto 2800                 !Read the next line of the ZIPF block
+      call zipf_parseInputline(ch)
+      goto 2800                    !Read the next line of the ZIPF block
 
 !-----------------------------------------------------------------------
 !  SCATTER
@@ -17405,6 +17346,7 @@ end subroutine hamilton1
       use floatPrecision
       use dynk, only : dynk_elemdata
       use numerical_constants
+      use crcoall
       implicit none
       
       integer, intent(in) :: ix
@@ -17421,7 +17363,6 @@ end subroutine hamilton1
 +ca stringzerotrim
 +ca elensparam
 +ca wireparam
-+ca crcoall
 
       !Temp variables
       integer i
@@ -17741,8 +17682,8 @@ end subroutine hamilton1
       
       subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
       use floatPrecision
+      use crcoall
       implicit none
-+ca crcoall
       integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
       character(len=*) chars
       character(len=*) fields(*)
@@ -17849,8 +17790,8 @@ end subroutine hamilton1
       
       subroutine rounderr(errno,fields,f,value)
       use floatPrecision
+      use crcoall
       implicit none
-+ca crcoall
       integer nchars,nofields
       integer errno,nfields,f,l
       character(len=*) fields(*)
@@ -17874,8 +17815,8 @@ end subroutine hamilton1
       end subroutine rounderr
       
       subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+      use crcoall
       implicit none
-+ca crcoall
       integer errno,nunit,lineno,nfields,nf,lf,l
       character(len=*) chars
       character(len=999) localstr
@@ -17909,8 +17850,8 @@ end subroutine hamilton1
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
       use floatPrecision
+      use crcoall
       implicit none
-+ca crcoall
       real(kind=fPrec) x
       character(len=24) results
       integer dtoaf 
@@ -18143,9 +18084,9 @@ end subroutine hamilton1
 !   getfields_lerr:       (logical)
 !-----------------------------------------------------------------------
 !
+      use crcoall
       implicit none
 +ca comgetfields
-+ca crcoall
       
       character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
 
@@ -19111,8 +19052,8 @@ subroutine runda
       use mathlib_bouncer
       use numerical_constants
       use physical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
      &nsta,nsto,idaa
@@ -20170,8 +20111,8 @@ end subroutine runda
       use numerical_constants
       use mathlib_bouncer
       use dump, only : dumpclo, dumptas, dumptasinv, ldump
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
@@ -21550,8 +21491,8 @@ end subroutine runda
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
@@ -21744,8 +21685,8 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer idaa
       real(kind=fPrec) betr0,dare,sigmdac
 +ca parpro
@@ -21899,8 +21840,8 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
 +ca parpro
@@ -22025,8 +21966,8 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer ibb,ibbc,ne,nsli,idaa
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
@@ -22496,6 +22437,8 @@ end subroutine runda
       use fma, only : fma_postpr, fma_flag
 
       use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
+
+      use zipf, only : zipf_numfiles, zipf_dozip
       
       use, intrinsic :: iso_fortran_env, only : output_unit
 
@@ -22506,9 +22449,11 @@ end subroutine runda
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      
+      use postprocessing, only : postpr, writebin_header, writebin
+      
+      use crcoall
       implicit none
-+ca crcoall
 +ca errout
 !-----------------------------------------------------------------------
 !
@@ -22586,7 +22531,6 @@ end subroutine runda
 +ca comgetfields
 +ca dbdcum
 +ca stringzerotrim
-+ca zipf
 
 +ca comApeInfo
 +ca dbreaddis
@@ -25025,7 +24969,7 @@ end subroutine runda
       call closeUnits
 
       if (zipf_numfiles.gt.0) then
-         call zipf
+         call zipf_dozip
       endif
 
 !     We're done in maincr, no error :)
@@ -25203,11 +25147,20 @@ subroutine trauthin(nthinerr)
   use collimation
 +ei
 
+<<<<<<< HEAD
   implicit none
 +ca crcoall
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
+=======
+      use crcoall
+      implicit none
+      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+      logical lopen
+>>>>>>> 7b74d7db858fd146f55b9218cab7ba3ff4a07833
 +ca parpro
 +ca common
 +ca commons
@@ -25685,11 +25638,11 @@ end subroutine trauthin
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
+      use crcoall
       implicit none
 +ca exactvars
 +ca commonex
-+ca crcoall
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb, &
@@ -26318,11 +26271,11 @@ end subroutine trauthin
 +if collimat
       use collimation
 +ei
-
+      use postprocessing, only : writebin
+      use crcoall
       implicit none
 +ca exactvars
 +ca commonex
-+ca crcoall
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,  &
@@ -27244,11 +27197,11 @@ end subroutine trauthin
       
       use dynk, only : ldynk, dynk_apply
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
-      
+      use postprocessing, only : writebin
+      use crcoall
       implicit none
 +ca exactvars
 +ca commonex
-+ca crcoall
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,e0fo,e0o,r0,r2b,rb,rho2b,rkb,stracki, &
@@ -27915,357 +27868,6 @@ end subroutine trauthin
       return
       end subroutine thin6dua
 
-      subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,    &
-     &     cdate,ctime,progrm)
-!-------------------------------------------------------------------------
-!     Subroutine for writing the header of the binary files (fort.90 etc.)
-!     Always converting to real64 before writing to disk
-!-----------------------------------------------------------------------
-!     K. SJOBAK, October 2017
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use, intrinsic :: iso_fortran_env, only : real64
-      implicit none
-      
-      integer, intent(in) :: ia_p1, ia_p2, fileunit_in
-      integer, intent(inout) :: ierro_wbh
-      
-      character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
-                                          !DANGER: If the len changes, CRCHECK will break.
-+ca parpro
-+ca common
-+ca commonmn
-
-      integer i,j
-      
-      real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
-      real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
-      real(kind=real64) tas_tmp(6,6)
-      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,            &
-     &     sigcor_tmp,dpscor_tmp
-      
-      real(kind=real64) zero64,one64
-      parameter(zero64 = 0.0_real64)
-      parameter(one64  = 1.0_real64)
-      
-      !Convert from whatever precission is used internally to real64,
-      ! which is what should go in the output file
-      do i=1,3
-         qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
-         clo6v_tmp (i) = real(clo6v (i,ia_p1), real64)
-         clop6v_tmp(i) = real(clop6v(i,ia_p1), real64)
-      enddo
-
-      di0xs_tmp  = real(di0xs (ia_p1), real64)
-      dip0xs_tmp = real(dip0xs(ia_p1), real64)
-      di0zs_tmp  = real(di0zs (ia_p1), real64)
-      dip0zs_tmp = real(dip0zs(ia_p1), real64)
-      
-      do i=1,6
-         do j=1,6
-            tas_tmp(j,i) = real(tas(ia_p1,j,i), real64)
-         enddo
-      enddo
-      
-      mmac_tmp   = real(mmac,       real64)
-      nms_tmp    = real(nms(ia_p1), real64)
-      izu0_tmp   = real(izu0,       real64)
-      numlr_tmp  = real(numlr,      real64)
-      sigcor_tmp = real(sigcor,     real64)
-      dpscor_tmp = real(dpscor,     real64)
-      
-      ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-      ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-      ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-      
-      write(fileunit_in,iostat=ierro_wbh)                               &
-     &     sixtit,commen,cdate,ctime,progrm,                            &
-     &     ia_p1,ia_p2, napx, icode,numl,                               &
-     &     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
-     &     clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),       &
-     &     clo6v_tmp(3),clop6v_tmp(3),                                  &
-     &     di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                   &
-     &     zero64,one64,                                                &
-     &     tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                      &
-     &     tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                      &
-     &     tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                      &
-     &     tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                      &
-     &     tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                      &
-     &     tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                      &
-     &     tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                      &
-     &     tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                      &
-     &     tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                      &
-     &     tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                      &
-     &     tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                      &
-     &     tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                      &
-     &     mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,                         &
-     &     sigcor_tmp,dpscor_tmp,                                       &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64
-      
-      end subroutine writebin_header
-      
-      subroutine writebin(nthinerr)
-!-------------------------------------------------------------------------
-!     Subroutine for writing the the binary files (fort.90 etc.)
-!     Always converting to real64 before writing to disk
-!-------------------------------------------------------------------------
-!     F. SCHMIDT, 3 February 1999
-!     K. SJOBAK,    October  2017
-!-------------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      use, intrinsic :: iso_fortran_env, only : real64
-      implicit none
-+ca crcoall
-+ca parpro
-+ca common
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonmn
-+ca commonm1
-+ca commontr
-+if cr
-+ca crco
-+ei
-      integer ia,ia2,ie,nthinerr
-+if cr
-      integer ncalls
-+ei
-+if boinc
-      integer timech
-+ei
-+if bnlelens
-+ca rhicelens
-+ei
-+if cr
-      data ncalls /0/
-+ei
-
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
-     &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
-      
-      save
-!-----------------------------------------------------------------------
-+if cr
-      ncalls=ncalls+1 
-      write(91,*,iostat=ierro,err=11) numx,numl
-      rewind 91
-      if (restart) then
-         write(93,*) 'WRITEBIN bailing out on restart'
-         write(93,*) 'numl, nnuml, numx, numlcr '
-         write(93,*)  numl,nnuml,numx,numlcr
-         flush(93)
-         return
-      else
-+if .not.debug
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-+ei
-            write(93,*)                                                 &
-     &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
-            write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
-            flush(93)
-+if .not.debug
-         endif
-+ei
-      endif
-+ei
-+if cr
-+if .not.debug
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then      
-+ei
-+if bnlelens
-         if (lhc.ne.9) then
-            write(93,*) 'WRITEBIN writing binrec ',binrec+1
-            flush(93)
-         else
-            write(93,*) 'WRITEBIN skipping write for bnlelens',binrec+1
-            flush(93)
-         endif
-+ei
-+if .not.bnlelens
-         write(93,*) 'WRITEBIN writing binrec ',binrec+1
-         flush(93)
-+ei
-+if .not.debug
-      endif
-+ei
-+ei
-+if bnlelens
-!GRDRHIC
-!GRD-042008
-      if (lhc.ne.9) then
-!GRDRHIC
-!GRD-042008
-+ei
-         do ia=1,napx-1
-!GRD
-!     PSTOP=true -> particle lost,
-!     nlostp(ia)=particle ID that is not changing
-!     (the particle arrays are compressed to remove lost particles)
-!     In the case of no lost particles, all nlostp(i)=i for 1..npart
-            if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and. &
-     &           (mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
-              
-               ia2=(nlostp(ia)+1)/2 !File ID for non-STF & binrecs
-               ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
-              
-               if(ntwin.ne.2) then !Write particle nlostp(ia) only
-                  dam_tmp      = real(dam(ia),   real64)
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
-                  sigmv_tmp(1) = real(sigmv(ia), real64)
-                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
-                  e0_tmp       = real(e0,        real64)
-                  
-                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-                  
-+if .not.stf
-                  write(91-ia2,iostat=ierro)                            &
-+ei
-+if stf
-                  write(90,iostat=ierro)                                &
-+ei
-     &               numx,nlostp(ia),dam_tmp,                           &
-     &               xv_tmp(1,1),yv_tmp(1,1),                           &
-     &               xv_tmp(2,1),yv_tmp(2,1),                           &
-     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
-+if .not.stf
-                  flush(91-ia2)
-+ei
-+if stf
-                  flush(90)
-+ei                 
-+if cr
-                  binrecs(ia2)=binrecs(ia2)+1
-+ei
-              
-               else !Write both particles nlostp(ia) and nlostp(ia)+1
-                    ! Note that dam(ia) (distance in angular phase space)
-                    ! is written twice.
-                  dam_tmp      = real(dam(ia),   real64)
-
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
-                  sigmv_tmp(1) = real(sigmv(ia), real64)
-                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
-                  
-                  xv_tmp(1,2)  = real(xv(1,ie),  real64)
-                  yv_tmp(1,2)  = real(yv(1,ie),  real64)
-                  xv_tmp(2,2)  = real(xv(2,ie),  real64)
-                  yv_tmp(2,2)  = real(yv(2,ie),  real64)
-                  sigmv_tmp(2) = real(sigmv(ie), real64)
-                  dpsv_tmp(2)  = real(dpsv(ie),  real64)
-                  
-                  e0_tmp       = real(e0,        real64)
-                  
-                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-+if .not.stf
-                  write(91-ia2,iostat=ierro)                            &
-+ei
-+if stf
-                  write(90,iostat=ierro)                                &
-+ei
-     &               numx,nlostp(ia),dam_tmp,                           &
-     &               xv_tmp(1,1),yv_tmp(1,1),                           &
-     &               xv_tmp(2,1),yv_tmp(2,1),                           &
-     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-     &               nlostp(ia)+1,dam_tmp,                              &
-     &               xv_tmp(1,2),yv_tmp(1,2),                           &
-     &               xv_tmp(2,2),yv_tmp(2,2),                           &
-     &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp
-+if .not.stf
-                  flush(91-ia2)
-+ei
-+if stf
-                  flush(90)
-+ei                 
-
-+if cr
-                  binrecs(ia2)=binrecs(ia2)+1
-+ei
-               endif
-               if(ierro.ne.0) then
-                  write(lout,*)
-                  write(lout,*)                                         &
-     &                 '*** ERROR ***,PROBLEM WRITING TO FILE# : ',     &
-     &                 91-ia2
-                  write(lout,*) 'ERROR CODE : ',ierro
-                  write(lout,*)
-+if cr
-                  flush(lout)
-+ei
-+if .not.cr
-                  flush(12)
-+ei
-                  nthinerr=3000
-                  return
-               endif
-            endif
-         end do !END "do 10 ia=1,napx-1"
-+if bnlelens
-!GRDRHIC
-!GRD-042008
-      endif ! END "if (lhc.ne.9)"
-!GRDRHIC
-!GRD-042008
-+ei
-+if cr
-+if .not.bnlelens
-      binrec=binrec+1
-+if .not.debug
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then
-+ei
-         write(93,*) 'WRITEBIN written binrec ',binrec
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
-+if .not.debug
-      endif
-+ei
-+ei
-+if bnlelens
-!GRDRHIC
-!GRD-042008
-      if (lhc.ne.9) then
-         binrec=binrec+1
-+if .not.debug
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-+ei
-            write(93,*) 'WRITEBIN written binrec ',binrec
-            flush(93)
-+if .not.debug
-         endif
-+ei
-      endif
-!GRDRHIC
-!GRD-042008
-+ei
-      return
-   11 write(lout,*)                                                     &
-     &'*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-      write(lout,*) 'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-      call prror(-1)
-+ei
-      return
-      end subroutine writebin
-
 subroutine callcrp()
 !-----------------------------------------------------------------------
 !
@@ -28276,8 +27878,8 @@ subroutine callcrp()
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
 +ca parpro
 +ca common
 +ca commons
@@ -28370,6 +27972,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +if fluka
       use mod_fluka
 +ei
+      use crcoall
       implicit none
 !     parameters
       integer turn  ! turn number
@@ -28377,7 +27980,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       integer ix    ! single element type index
       logical llost ! at least one particle was lost
 
-+ca crcoall
 
 !      logical isnan
       logical myisnan
@@ -29046,6 +28648,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
       use floatPrecision
       use numerical_constants
+      use crcoall
       implicit none
 
 +ca parpro
@@ -29053,7 +28656,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 +ca commonmn
 +ca commontr
 +ca comApeInfo
-+ca crcoall
 
 !     interface variables
       integer itElUp,itElDw
@@ -29156,6 +28758,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use mod_fluka
 
 +ei
+      use crcoall
       implicit none
 
 +ca parpro
@@ -29164,7 +28767,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
-+ca crcoall
 !     interface variables
       integer iEl
       logical lInsUp
@@ -29554,6 +29156,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !
       use floatPrecision
       use numerical_constants
+      use crcoall
       implicit none
 
 +ca parpro
@@ -29562,7 +29165,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 +ca commontr
 +ca comApeInfo
 +ca dbdcum
-+ca crcoall
 
 !     temporary variables
       integer i, ix
@@ -29656,6 +29258,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       subroutine dumpMe
       use floatPrecision
       use numerical_constants
+      use crcoall
       implicit none
 
 +ca parpro
@@ -29664,7 +29267,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 +ca commontr
 +ca comApeInfo
 +ca dbdcum
-+ca crcoall
 
 !     temporary variables
       integer i, ix
@@ -29690,9 +29292,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use crcoall
       implicit none
 
-+ca crcoall
 
 !     interface variables
       integer iunit
@@ -29752,8 +29354,8 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use crcoall
       implicit none
-+ca crcoall
 
 !     temporary variables
       integer iunit
@@ -29853,8 +29455,8 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer ia,ia2,id,ie,ig,n
 +ca parpro
 +ca common
@@ -29966,9 +29568,9 @@ subroutine trauthck(nthinerr)
       use mod_fluka
 +ei
 
+      use crcoall
       implicit none
 
-+ca crcoall
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -30402,9 +30004,9 @@ subroutine thck4d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
+      use crcoall
       implicit none
-+ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,puxve,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj, &
@@ -31087,9 +30689,9 @@ subroutine thck6d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
+      use crcoall
       implicit none
-+ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,  &
@@ -31916,9 +31518,9 @@ subroutine thck6dua(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-
+      use postprocessing, only : writebin
+      use crcoall
       implicit none
-+ca crcoall
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,e0fo,e0o,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,  &
@@ -33489,8 +33091,8 @@ subroutine synuthck
       use numerical_constants
       use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : output_unit
+      use crcoall
       implicit none
-+ca crcoall
       integer i,iation,itiono,idate,im,imonth,itime,ix,izu,j,jj,k,kpz,  &
      &kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
       real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
@@ -34069,32 +33671,14 @@ subroutine comnul
 +if datamods
       use bigmats
 +ei
-      use scatter, only :                                               &
-+if cr
-     & scatter_filepos,                                                 &
-+ei
-     &scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,            &
-     &scatter_PROFILE, scatter_GENERATOR,                               &
-     &scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,              &
-     &scatter_nidata, scatter_nfdata, scatter_ncdata,                   &
-     &scatter_debug, scatter_active, scatter_seed1, scatter_seed2,      &
-     &scatter_maxdata, scatter_maxELEM, scatter_maxGenELEM,             &
-     &scatter_maxGENERATOR, scatter_maxPROFILE, scatter_maxstrlen
-
-      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
-+if cr
-     & dynkfilepos,                                                     &
-+ei
-     &     nfuncs_dynk,niexpr_dynk,nfexpr_dynk,ncexpr_dynk,             &
-     &     maxfuncs_dynk,funcs_dynk,maxstrlen_dynk,nsets_dynk,          &
-     &     maxsets_dynk,sets_dynk,csets_dynk,csets_unique_dynk,         &
-     &     fsets_origvalue_dynk,dynk_izuIndex,dynk_elemdata
-
-      use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
-     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP
-
+      use scatter, only : scatter_comnul
+      use dynk, only : dynk_comnul
+      use fma,  only : fma_comnul
       use dump, only : dump_comnul
-      
+      use zipf, only : zipf_comnul
++if collimat
+      use collimation, only : collimation_comnul
++ei
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -34117,16 +33701,6 @@ subroutine comnul
 
 +ca elensparam
 +ca wireparam
-
-+ca comgetfields
-+ca stringzerotrim
-+ca zipf
-
-+if collimat
-+ca collpara
-+ca database
-+ca dbcommon
-+ei
 
 +ca parbeam_exp
 
@@ -34710,21 +34284,8 @@ subroutine comnul
 !--FMA ANALYSIS---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
-      fma_flag = .false.
-      fma_writeNormDUMP = .true.
-      fma_numfiles = 0
-
-      do i=1,fma_max
-        fma_first(i) = 0
-        fma_last(i)  = 0
-        fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
-
-        do j=1,getfields_l_max_string
-          fma_fname(i)(j:j) = char(0)
-          fma_method(i)(j:j) = char(0)
-        end do
-      end do
-
+      call fma_comnul
+      
 !combine multiple elments in one loope
 !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !2) --WIRE - WIRE ELEMENT---------------------------------------------------------
@@ -34783,121 +34344,15 @@ subroutine comnul
 !     initialise common
 !     always in main code
 !     - general-purpose variables
-      ldynk = .false.
-      ldynkdebug = .false.
-      ldynkfiledisable = .false.
-      
-      nfuncs_dynk = 0
-      niexpr_dynk = 0
-      nfexpr_dynk = 0
-      ncexpr_dynk = 0
-
-      do i=1,maxfuncs_dynk
-         funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
-         funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
-         funcs_dynk(i,3)= 0
-         funcs_dynk(i,4)= 0
-         funcs_dynk(i,5)= 0
-      enddo
-            
-      nsets_dynk = 0
-
-      do i=1, maxsets_dynk
-         sets_dynk(i,1) = 0 !FUN idx ( index in funcs_dynk; 0 is invalid )
-         sets_dynk(i,2) = 0
-         sets_dynk(i,3) = 0
-         sets_dynk(i,4) = 0
-         
-         do j=1, maxstrlen_dynk
-            csets_dynk(i,1)(j:j) = char(0)
-            csets_dynk(i,2)(j:j) = char(0)
-            csets_unique_dynk(i,1)(j:j) = char(0)
-            csets_unique_dynk(i,2)(j:j) = char(0)
-         enddo
-         fsets_origvalue_dynk(i) = zero
-      enddo
-      
-      do i=1,nele
-         dynk_izuIndex(i) = 0
-         dynk_elemdata(i,1) = 0
-         dynk_elemdata(i,2) = 0
-         dynk_elemdata(i,3) = 0
-      end do
-+if cr
-      dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
-+ei
+      call dynk_comnul
 !--ZIPF----------------------------------------------------------------
-      zipf_numfiles = 0
-      
-      do j=1, stringzerotrim_maxlen
-         zipf_outfile(j:j)=char(0)
-      enddo
-      
-      do i=1, zipf_maxfiles
-         do j=1, stringzerotrim_maxlen
-            zipf_filenames(i)(j:j)=char(0)
-         enddo
-      enddo
-      
+      call zipf_comnul
 !--SCATTER-------------------------------------------------------------
-      scatter_debug = .false.
-      scatter_nidata = 0
-      scatter_nfdata = 0
-      scatter_ncdata = 0
-      scatter_nELEM  = 0
-      scatter_nPROFILE = 0
-      scatter_nGENERATOR  = 0
-
-      do i=1,nele
-         scatter_elemPointer(i) = 0
-      end do
-
-      do i=1,scatter_maxELEM
-         do j=1,scatter_maxGenELEM
-            scatter_ELEM(i,j) = 0
-         end do
-         scatter_ELEM_scale(i) = zero
-      end do
-      
-      do i=1,scatter_maxPROFILE
-         scatter_PROFILE(i,1)=0
-         scatter_PROFILE(i,2)=0
-         scatter_PROFILE(i,3)=0
-         scatter_PROFILE(i,4)=0
-         scatter_PROFILE(i,5)=0
-      end do
-      
-      do i=1,scatter_maxGENERATOR
-         scatter_GENERATOR(i,1)=0
-         scatter_GENERATOR(i,2)=0
-         scatter_GENERATOR(i,3)=0
-         scatter_GENERATOR(i,4)=0
-         scatter_GENERATOR(i,5)=0
-      end do
-
-      scatter_seed1 = -1
-      scatter_seed2 = -1
-
-+if cr
-      scatter_filepos = -1
-+ei
+      call scatter_comnul
 !--COLLIMATION----------------------------------------------------------
 +if collimat
-      do_coll = .false.
-      
-      ! From common /grd/
-      emitnx0_dist = zero
-      emitny0_dist = zero
-      emitnx0_collgap = zero
-      emitny0_collgap = zero
-
-      ! From common /ralph/
-      myemitx0_dist = zero
-      myemity0_dist = zero
-      myemitx0_collgap = zero
-      myemity0_collgap = zero
+      call collimation_comnul
 +ei
-!
 !-----------------------------------------------------------------------
       return
 end subroutine comnul
@@ -35070,6 +34525,7 @@ integer function INEELS( iEl )
 !-----------------------------------------------------------------------
       use floatPrecision
       use numerical_constants
+      use crcoall
       implicit none
 
 +ca parpro
@@ -35077,7 +34533,6 @@ integer function INEELS( iEl )
 +ca commonmn
 +ca commontr
 +ca dbdcum
-+ca crcoall
 
 !     interface variables
       integer iEl
@@ -35140,13 +34595,13 @@ integer function INEESE()
 !-----------------------------------------------------------------------
       use floatPrecision
   use numerical_constants
+      use crcoall
       implicit none
 
 +ca parpro
 +ca common
 +ca commonmn
 +ca commontr
-+ca crcoall
 
       il=il+1
       if ( il.gt.nele ) then
@@ -35214,8 +34669,8 @@ subroutine umschr(iu1,iu2)
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
       real(kind=fPrec) c,c1
       character(len=80) aaa
@@ -35287,8 +34742,8 @@ subroutine daliesix
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
       real tlim,time0,time1,time
       real(kind=fPrec) angle,coe,rad,x2pi
@@ -35512,8 +34967,8 @@ end subroutine distance
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ii,jj,l,ll
       real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
      &tas,tas56,x1,x11,x13,x2
@@ -36063,8 +35518,8 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ii,isl,j,jj,l,n
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
      &sm0,su2,suxy,suzy,xi,zi
@@ -36196,8 +35651,8 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
 +ca parpro
@@ -36333,8 +35788,8 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
      &dy,x0,x1,y0,y1
@@ -36423,8 +35878,8 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
       real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
 +ca parpro
@@ -36755,8 +36210,8 @@ subroutine blocksv
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
@@ -36836,8 +36291,8 @@ subroutine blocksv
 !-----------------------------------------------------------------------
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
@@ -37527,9 +36982,15 @@ subroutine prror(ier)
     use mod_fluka
 +ei
 
+<<<<<<< HEAD
     implicit none
 +ca crcoall
     integer ier
+=======
+      use crcoall
+      implicit none
+      integer ier
+>>>>>>> 7b74d7db858fd146f55b9218cab7ba3ff4a07833
 +ca parpro
 +ca common
 +ca commons
@@ -37940,9 +37401,9 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
   use floatPrecision
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 +ca dbreaddis
 
 ! interface variables:
@@ -38069,12 +37530,12 @@ end subroutine dist_readdis
 !
       use floatPrecision
   use numerical_constants
+      use crcoall
       implicit none
 
 +ca parpro
 +ca common
 +ca dbdcum
-+ca crcoall
       save
 
 !     temporary variables
@@ -38150,8 +37611,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,        &
      &nmz,nr,dj
       real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
@@ -39066,8 +38527,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,iwrite,ixwl,l,ll,nr
       real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character(len=16) typ
@@ -39283,8 +38744,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer ik,indi,j,jk,jy,k,kk,kod,l,n,n1,dimtot,dimakt
       real(kind=fPrec) emax,eps,r,rmat,vec
 +ca parpro
@@ -39399,8 +38860,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
      &nlino,ntcoo,nto,nx
 +ca parpro
@@ -39734,9 +39195,9 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
 
-+ca crcoall
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
 +ca parpro
       real(kind=fPrec) xinc(ncor1)
@@ -39910,8 +39371,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1, &
      &nmon1
       real(kind=fPrec) a,b,piv,pivt,ptop,r,rho,rmss,x,xiter,xptp,xrms
@@ -40289,8 +39750,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
      &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
       real(kind=fPrec) extalig1,exterr1
@@ -40553,8 +40014,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,&
      &dj
       real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk, &
@@ -41053,8 +40514,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
@@ -41310,8 +40771,8 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
 +ca parpro
@@ -42772,10 +42233,18 @@ end subroutine resex
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
+<<<<<<< HEAD
 +ca crcoall
       integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
       real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
+=======
+      integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,   &
+     &nteo
+      real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,   &
+     &se2,sen,sen15,sen16,sen17,sen18,sn,ss
+>>>>>>> 7b74d7db858fd146f55b9218cab7ba3ff4a07833
 +ca parpro
 +ca common
 +ca commons
@@ -43100,8 +42569,8 @@ end subroutine resex
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=16) ref
@@ -43187,8 +42656,8 @@ end subroutine resex
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,    &
      &k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,mis,mm,mpe,mx,n2,n22,n2e,nf1,&
      &nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,nv2, &
@@ -44192,8 +43661,8 @@ end subroutine resex
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer iv,iv2,iv3,iv4,iv5,iv6
       real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,pi,vor,vtu1, &
      &vtu2
@@ -45005,8 +44474,8 @@ end subroutine resex
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
 +ca parpro
@@ -45204,9 +44673,9 @@ end subroutine resex
 !-----------------------------------------------------------------------*
       use floatPrecision
       use numerical_constants
+      use crcoall
       implicit none
 +ca commonta
-+ca crcoall
 
       integer :: i,j            !iterators
       real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
@@ -45265,8 +44734,8 @@ end subroutine resex
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ierro,j
       real(kind=fPrec) d,dlost
       character(len=4) ch
@@ -45409,9 +44878,9 @@ end subroutine resex
       use mathlib_bouncer
       use numerical_constants
 
+      use crcoall
       implicit none
 
-+ca crcoall
       integer ibb,ibbc,ibtyp,ne,np,nsli
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,tphi,track,star,phi2,cphi2,sphi2,tphi2
@@ -45826,8 +45295,8 @@ end subroutine resex
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       real(kind=fPrec) a0,a1,a2,a3,b0,b1,b2,b3,b4,c0,c1,c2,c3,c4,d0,d1, &
      &d2,d3,d4,e0,e1,e2,e3,e4,f0,f1,f2,gauinv,p,p0,p1,p2,pp1,q,qq2,qq3, &
      &qq4,qq5,t
@@ -45885,8 +45354,8 @@ end subroutine resex
       subroutine kerset(ercode,lgfile,limitm,limitr)
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,kounte,l,lgfile,limitm,limitr,log,logf
       parameter(kounte = 27)
       character(len=6)    ercode,   code(kounte)
@@ -46233,8 +45702,8 @@ end subroutine resex
 !     ******************************************************************
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer idim,k,kprnt,lgfile,n
       character(len=6) name
       logical mflag,rflag
@@ -46768,8 +46237,8 @@ end subroutine resex
       subroutine tmprnt(name,n,idim,k)
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer idim,k,lgfile,n
       character(len=6) name
       logical mflag,rflag
@@ -46947,12 +46416,12 @@ end subroutine resex
 !               DE     -> [ MeV ]
 !
       use floatPrecision
+      use crcoall
       implicit none
 +ca parpro
 !ERIC
 +ca common
 +ca crco
-+ca crcoall
 +ca rhicelens
       integer ngrd
 !
@@ -47127,8 +46596,8 @@ end subroutine resex
       
       use, intrinsic :: iso_fortran_env, only : int32
 
+      use crcoall
       implicit none
-+ca crcoall
 +ca parpro
 +ca common
 +ca common2
@@ -48019,8 +47488,8 @@ end subroutine resex
       
       use scatter, only : scatter_active, scatter_crpoint
       
+      use crcoall
       implicit none
-+ca crcoall
 +ca parpro
 +ca common
 +ca common2
@@ -48673,8 +48142,8 @@ end subroutine resex
 
       use scatter, only: scatter_active, scatter_crstart
       
+      use crcoall
       implicit none
-+ca crcoall
 +ca parpro
 +ca common
 +ca common2
@@ -49250,10 +48719,10 @@ end subroutine resex
       use floatPrecision
   use numerical_constants
       use, intrinsic :: iso_fortran_env, only : error_unit
+      use crcoall
       implicit none
 +ca parpro
 +ca common
-+ca crcoall
 +ca commonxz
 +ca crco
 +ca version

@@ -14,11 +14,11 @@ module bigmats
 
 subroutine allocate_thickarrays(npart,nele,nblo)
       use numerical_constants, only : zero
+      use crcoall
       implicit none
       integer, intent(in) :: npart,nele,nblo
       integer stat
       integer i1,i2,i3,i4,i
-+ca crcoall
 
 +if .not.vvector
       write(lout,*) "ERROR: DATAMODS requires VVECTOR!"

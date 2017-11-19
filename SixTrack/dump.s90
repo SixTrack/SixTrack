@@ -135,11 +135,11 @@ contains
 
   end subroutine dump_closeUnits
   subroutine dump_parseInputLine(ch)
+      use crcoall
     implicit none
 
     character(len=*), intent(in) :: ch
 
-+ca crcoall !lout
 +ca common !il
 
     !Temp variables
@@ -295,8 +295,8 @@ contains
     end subroutine dump_parseInputLine
     
     subroutine dump_parseInputDone
+      use crcoall
       implicit none
-+ca crcoall !lout
 +ca common !mper,mbloz,il
 
 +ca stringzerotrim
@@ -376,8 +376,8 @@ contains
     
     subroutine dump_initialize
       use numerical_constants, only : zero
+      use crcoall
       implicit none
-+ca crcoall
 +ca common !il, idp
 
 +ca stringzerotrim
@@ -696,6 +696,7 @@ contains
       use physical_constants
       use numerical_constants
 
+      use crcoall
       implicit none
 
 !     interface variables:
@@ -710,7 +711,6 @@ contains
 +ca commontr
 +ca dbdcum
 
-+ca crcoall
 
 +if collimat
 +ca collpara
@@ -1293,9 +1293,9 @@ contains
     end subroutine dump_crcheck_readdata
 
     subroutine dump_crcheck_positionFiles
+      use crcoall
       implicit none
 
-+ca crcoall
       
 +ca crco !arecord
 +ca common !il,ierro    

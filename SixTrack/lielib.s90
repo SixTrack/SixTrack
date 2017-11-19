@@ -50,8 +50,8 @@
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer i,iref1,nd1,ndc1,ndim,ndpt1,nis,no1,nv1
       real(kind=fPrec) ang,ra,st
 !! Lieinit initializes AD Package and Lielib
@@ -1277,8 +1277,8 @@
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ndim,ndim2,nrmax,ntt
       real(kind=fPrec) coe,eps,r,rbefore
 ! DOES EXP( \VEC{H} ) X = Y
@@ -1610,8 +1610,8 @@
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,k,kk,ndim,ndim2,nrmax,ntt
       real(kind=fPrec) eps,epsone,r,xn,xnbefore,xnorm,xnorm1,xx
 ! GENERAL ONE EXPONENT FACTORIZATION
@@ -1839,8 +1839,8 @@
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer ij,isi,ndim,ndim2,nord,ntt
       real(kind=fPrec) angle,p,rad,st,x2pi,x2pii
       parameter (ndim=3)
@@ -2037,8 +2037,8 @@
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer k,ndim,ndim2,ntt
       real(kind=fPrec) ang,ra
 !-   NONLINEAR NORMALIZATION PIECE OF MAPNORMF
@@ -2980,9 +2980,9 @@ subroutine mapflol(sa,sai,cr,cm,st)
       use mathlib_bouncer
       use numerical_constants
 
+      use crcoall
       implicit none
 
-+ca crcoall
 
       integer i,ier,iunst,j,l,n,n1,ndim,ndim2
       real(kind=fPrec) ap,ax,cm,cr,p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
@@ -3202,8 +3202,8 @@ end subroutine mapflol
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ic,j,ndim,ndim2
       real(kind=fPrec) rt,rto,s,xr,xrold,xy,xyz,xz,xzy,yz
       parameter (ndim2=6)
@@ -3382,8 +3382,8 @@ end subroutine mapflol
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ndim,ndim2,nn,nreso
       real(kind=fPrec) ang,ra,st
 !   X-RATED
@@ -3648,8 +3648,8 @@ end subroutine mapflol
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer jet,ndim2
 !**************************************************************************
 
@@ -4563,8 +4563,8 @@ end subroutine mapflol
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use crcoall
       implicit none
-+ca crcoall
       integer i,ndim,ndim2,no1,nord,ntt
       real(kind=fPrec) crazy,tpi
 !  map1 ascript a1 not there

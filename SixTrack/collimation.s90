@@ -133,9 +133,9 @@ subroutine collimate_init()
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -578,9 +578,9 @@ subroutine collimate_start_sample(nsample)
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -1177,9 +1177,9 @@ subroutine collimate_start_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -1392,9 +1392,9 @@ subroutine collimate_do_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -2224,9 +2224,9 @@ subroutine collimate_end_collimator()
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -2635,9 +2635,9 @@ subroutine collimate_end_sample(j)
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -2812,9 +2812,9 @@ subroutine collimate_exit()
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -2976,9 +2976,9 @@ subroutine collimate_start_turn(n)
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
@@ -3019,9 +3019,9 @@ subroutine collimate_start_element(i)
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
@@ -3129,9 +3129,9 @@ subroutine collimate_end_element
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -3287,9 +3287,9 @@ subroutine collimate_end_turn
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
@@ -3770,9 +3770,9 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
 +ca commonex
 +ca parpro
@@ -4413,9 +4413,9 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
       use mathlib_bouncer
       use numerical_constants
 
+      use crcoall
       implicit none
 
-+ca crcoall
 
       real(kind=fPrec) sx, sz
 !
@@ -6079,9 +6079,9 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
 +ca collpara
 +ca dbmkdist
@@ -6188,9 +6188,9 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 +ca collpara
 +ca dbmkdist
 
@@ -6278,9 +6278,9 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 +ca collpara
 +ca dbmkdist
 
@@ -6380,9 +6380,9 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 +ca collpara
 +ca dbmkdist
 
@@ -6512,9 +6512,9 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   use floatPrecision
   use mathlib_bouncer
 
+      use crcoall
   implicit none
 
-+ca crcoall
 +ca collpara
 +ca dbmkdist
 
@@ -6571,9 +6571,9 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use floatPrecision
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 +ca collpara
 +ca dbmkdist
 
@@ -6721,9 +6721,9 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 +ca collpara
 +ca dbmkdist
 
@@ -6866,9 +6866,9 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
 +ca collpara
 +ca dbmkdist
@@ -7140,8 +7140,8 @@ subroutine ranlux(rvec,lenv)
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       integer lenv,isdext,iseeds,maxlev,ndskip,itwo24,next,j24,i24,     &
      &inseed,mkount,kount,in24,nskip,lxdflt,jsdflt,jseed,lp,i,k,icons,  &
      &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout2,ins,lux,ilx,&
@@ -7414,8 +7414,8 @@ subroutine funlxp (func,xfcum,x2low,x2high)
 !
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       external func
       integer ifunc,ierr
       real x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
@@ -7460,8 +7460,8 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
 !        the number of values NBINS+1, or the number of bins NBINS
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       external func
       integer ierr,nbins,nlo,ifunc,nz,ibin,maxz,iz,nitmax,ihome
       real tftot,xhigh,xlow,func,xfcum,rteps,tpctil,tz,tzmax,x,f,tcum,  &
@@ -7646,8 +7646,8 @@ subroutine funlz(func,x2low,x2high,xlow,xhigh)
 !         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
       use floatPrecision
       use mathlib_bouncer
+      use crcoall
       implicit none
-+ca crcoall
       external func
       integer logn,nslice,i,k
       real xhigh,xlow,x2high,x2low,func,xmid,xh,xl,xnew
@@ -7859,9 +7859,9 @@ integer function mclock_liar( )
   use floatPrecision
   use mathlib_bouncer
 
+      use crcoall
   implicit none
 
-+ca crcoall
 
   save
 
@@ -7903,6 +7903,7 @@ real(kind=fPrec) function ran_gauss(cut)
   use mathlib_bouncer
   use numerical_constants
 
+      use crcoall
   implicit none
 
   logical flag
@@ -7941,7 +7942,6 @@ subroutine readcollimator
   use floatPrecision
 
   integer I,J,K
-+ca crcoall
 +ca parpro
 +ca collpara
 +ca database
@@ -8046,5 +8046,30 @@ subroutine readcollimator
   close(53)
 
 end subroutine readcollimator
+
+subroutine collimation_comnul
+  use floatPrecision
+  use numerical_constants, only : zero
+  implicit none
++ca parpro
+
++ca collpara
++ca database
++ca dbcommon
+
+  do_coll = .false.
+  
+  ! From common /grd/
+  emitnx0_dist = zero
+  emitny0_dist = zero
+  emitnx0_collgap = zero
+  emitny0_collgap = zero
+  
+  ! From common /ralph/
+  myemitx0_dist = zero
+  myemity0_dist = zero
+  myemitx0_collgap = zero
+  myemity0_collgap = zero
+end subroutine collimation_comnul
 
 end module collimation
