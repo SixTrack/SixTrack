@@ -42016,45 +42016,45 @@ end subroutine dist_readdis
       end
 
 +dk resex
-      subroutine resex(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DRIVINGTERMS OF RESONANCES INCLUDING SUBRESONANCE
 !  USED FOR RMOD
 !-----------------------------------------------------------------------
-      use floatPrecision
+subroutine resex(dpp)
+  ! Modified for Fortran 2015 by V.K.B. Olsen on 19/11/2017
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,    &
-     &kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,  &
-     &nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
-      real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,   &
-     &chy,ci,cikve,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dphi,dpp,  &
-     &dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,phy,pie, &
-     &puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,    &
-     &vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
+  use mathlib_bouncer
+  
+  implicit none
+  integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,&
+          mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
+  real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,chy,ci,cikve,cr,crkve,cxzi,cxzr,&
+          cxzyi,cxzyr,cxzyrr,del,dphi,dpp,dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,&
+          phy,pie,puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,vdt1,vdt2,vdt3,xl,&
+          xs,zl,zs,quz,qvz
 +if tilt
-      real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
-     &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
+  real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,&
+          tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
 +ca parpro
 +ca common
 +ca commons
 +ca commont1
-      dimension t(5,4)
-      dimension beta(2),alfa(2),phi(2),phibf(2)
-      dimension qw(2)
-      dimension aa(mmul),bb(mmul),dpr(5)
-      dimension nnf(10),ep(2)
-      dimension ab1(10),ab2(10),re(10,18),ip(10,18)
-      dimension b(10,10),nz2(9),e(10,10)
-      dimension chy(9,18),shy(9,18),min(5)
-      dimension cr(mmul),ci(mmul)
+  dimension t(5,4)
+  dimension beta(2),alfa(2),phi(2),phibf(2)
+  dimension qw(2)
+  dimension aa(mmul),bb(mmul),dpr(5)
+  dimension nnf(10),ep(2)
+  dimension ab1(10),ab2(10),re(10,18),ip(10,18)
+  dimension b(10,10),nz2(9),e(10,10)
+  dimension chy(9,18),shy(9,18),min(5)
+  dimension cr(mmul),ci(mmul)
 +if bnlelens
 +ca rhicelens
 +ei
       save
-!-----------------------------------------------------------------------
+      
       ium=5
       do i=1,ium
         dpr(i)=zero
@@ -42090,25 +42090,25 @@ end subroutine dist_readdis
         ci(i)=zero
       end do
 
-      do 100 i=1,9
+      do i=1,9
         nz2(i)=0
-        do 90 j=1,18
+        do j=1,18
           chy(i,j)=zero
           shy(i,j)=zero
-          do 80 k=1,10
-            do 60 ii=1,10
+          do k=1,10
+            do ii=1,10
               e(k,ii)=zero
               b(k,ii)=zero
-   60       continue
-            do 70 l=1,5
+            end do
+            do l=1,5
               rtc(i,j,k,l)=zero
               rts(i,j,k,l)=zero
               min(l)=0
-   70       continue
-   80     continue
-   90   continue
-  100 continue
-
+            end do
+          end do
+        end do
+      end do
+      
       btc=zero
       bts=zero
       phy=zero
@@ -42256,160 +42256,138 @@ end subroutine dist_readdis
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-        if(kzz.lt.0) goto 370
-        goto(220,230,240,250,260,270,280,290,300,310,320,480,480,480,   &
-     &      480,480,480,480,480,480,480,480,480,315,316,480,480,480),kzz
-        goto 770
-!--HORIZONTAL DIPOLE
-  220   ekk=ekk*c1e3
+        
+        select case (kzz)
+        case (1)  ! HORIZONTAL DIPOLE
+          ekk=ekk*c1e3
 +ca kicka01h
-        goto 480
-!--NORMAL QUADRUPOLE
-  230   continue
+        case (2)  ! NORMAL QUADRUPOLE
 +ca kicka02h
-        goto 480
-!--NORMAL SEXTUPOLE
-  240   ekk=ekk*c1m3
+        case (3)  ! NORMAL SEXTUPOLE
+          ekk=ekk*c1m3
 +ca kicka03h
-        goto 480
-!--NORMAL OCTUPOLE
-  250   ekk=ekk*c1m6
+        case (4)  ! NORMAL OCTUPOLE
+          ekk=ekk*c1m6
 +ca kicka04h
-        goto 480
-!--NORMAL DECAPOLE
-  260   ekk=ekk*c1m9
+        case (5)  ! NORMAL DECAPOLE
+          ekk=ekk*c1m9
 +ca kicka05h
-        goto 480
-!--NORMAL DODECAPOLE
-  270   ekk=ekk*c1m12
+        case (6)  ! NORMAL DODECAPOLE
+          ekk=ekk*c1m12
 +ca kicka06h
-        goto 480
-!--NORMAL 14-POLE
-  280   ekk=ekk*c1m15
+        case (7)  ! NORMAL 14-POLE
+          ekk=ekk*c1m15
 +ca kicka07h
-        goto 480
-!--NORMAL 16-POLE
-  290   ekk=ekk*c1m18
+        case (8)  ! NORMAL 16-POLE
+          ekk=ekk*c1m18
 +ca kicka08h
-        goto 480
-!--NORMAL 18-POLE
-  300   ekk=ekk*c1m21
+        case (9)  ! NORMAL 18-POLE
+          ekk=ekk*c1m21
 +ca kicka09h
-        goto 480
-!--NORMAL 20-POLE
-  310   ekk=ekk*c1m24
+        case (10) ! NORMAL 20-POLE
+          ekk=ekk*c1m24
 +ca kicka10h
-        goto 480
-!--DIPEDGE ELEMENT
-  315   continue
-+ca kickadpe
-        goto 480
-!--solenoid
-  316   continue
-+ca kickaso1
-        goto 480
-  320   r0=ek(ix)
-        if(abs(dki(ix,1)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
+        case (11)
+          r0 = ek(ix)
+          if(abs(dki(ix,1)).gt.pieni) then
+            if(abs(dki(ix,3)).gt.pieni) then
 +ca multl01
-            do 330 i=2,ium
+              do i=2,ium
 +ca multl02
-  330       continue
-          else
+              end do
+            else
 +ca multl03
-          endif
-        endif
-        if(abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
+            end if
+          end if
+          if(abs(dki(ix,2)).gt.pieni) then
+            if(abs(dki(ix,3)).gt.pieni) then
 +ca multl04
-            do 340 i=2,ium
+              do i=2,ium
 +ca multl05
-  340       continue
-          else
+              end do
+            else
 +ca multl06
-          endif
-        endif
-        mpe=9
-        mx=0
-        if(abs(r0).le.pieni) goto 770
-        nmz=nmu(ix)
-        if(nmz.eq.0) then
-          izu=izu+2*mmul
-          goto 770
-        endif
-        im=irm(ix)
-        r0a=one
-        benkr=ed(ix)/(one+dpp)
-        cr(1)=one
-        cr(2)=xl
-        ci(2)=zl
-        cxzyr=xl
-        cxzyi=zl
-        cxzr=cxzyr
-        cxzi=cxzyi
-        dyy1=zero
-        dyy2=zero
-        qu=zero
-        qv=zero
-        lmin=3
-        if(nmz.eq.1) lmin=2
-
-        do l=lmin,mmul
-          cr(l)=zero
-          ci(l)=zero
-        end do
-
-        do 360 l=1,nmz
+            end if
+          end if
+          mpe = 9
+          mx  = 0
+          if(abs(r0).le.pieni) goto 770
+          nmz = nmu(ix)
+          if(nmz.eq.0) then
+            izu = izu+2*mmul
+            goto 770
+          end if
+          im    = irm(ix)
+          r0a   = one
+          benkr = ed(ix)/(one+dpp)
+          cr(1) = one
+          cr(2) = xl
+          ci(2) = zl
+          cxzyr = xl
+          cxzyi = zl
+          cxzr  = cxzyr
+          cxzi  = cxzyi
+          dyy1  = zero
+          dyy2  = zero
+          qu    = zero
+          qv    = zero
+          lmin  = 3
+          if(nmz.eq.1) lmin=2
+          do l=lmin,mmul
+            cr(l)=zero
+            ci(l)=zero
+          end do
+          do l=1,nmz
 +ca multl13
-  360   continue
+          end do
 +if tilt
 +ca multl07e
 +ei
-        izu=izu+2*mmul-2*nmz
-        goto 480
-!--SKEW ELEMENTS
-  370   kzz=-kzz
-        goto(380,390,400,410,420,430,440,450,460,470),kzz
-        goto 770
-!--VERTICAL DIPOLE
-  380   ekk=ekk*c1e3
+          izu = izu+2*mmul-2*nmz
+          goto 480
+        case (12,13,14,15,16,17,18,19,20,21,22,23)
+          goto 480
+        case (24) ! DIPEDGE ELEMENT
++ca kickadpe
+        case (25) ! Solenoid
++ca kickaso1
+        case (26,27,28)
+          goto 480
+        
+        !-----------------
+        !--SKEW ELEMENTS--
+        !-----------------
+        case (-1)  ! VERTICAL DIPOLE
+          ekk=ekk*c1e3
 +ca kicka01v
-        goto 480
-!--SKEW QUADRUPOLE
-  390   continue
+        case (-2)  ! SKEW QUADRUPOLE
 +ca kicka02v
-        goto 480
-!--SKEW SEXTUPOLE
-  400   ekk=ekk*c1m3
+        case (-3)  ! SKEW SEXTUPOLE
+          ekk=ekk*c1m3
 +ca kicka03v
-        goto 480
-!--SKEW OCTUPOLE
-  410   ekk=ekk*c1m6
+        case (-4)  ! SKEW OCTUPOLE
+          ekk=ekk*c1m6
 +ca kicka04v
-        goto 480
-!--SKEW DECAPOLE
-  420   ekk=ekk*c1m9
+        case (-5)  ! SKEW DECAPOLE
+          ekk=ekk*c1m9
 +ca kicka05v
-        goto 480
-!--SKEW DODECAPOLE
-  430   ekk=ekk*c1m12
+        case (-6)  ! SKEW DODECAPOLE
+          ekk=ekk*c1m12
 +ca kicka06v
-        goto 480
-!--SKEW 14-POLE
-  440   ekk=ekk*c1m15
+        case (-7)  ! SKEW 14-POLE
+          ekk=ekk*c1m15
 +ca kicka07v
-        goto 480
-!--SKEW 16-POLE
-  450   ekk=ekk*c1m18
+        case (-8)  ! SKEW 16-POLE
+          ekk=ekk*c1m18
 +ca kicka08v
-        goto 480
-!--SKEW 18-POLE
-  460   ekk=ekk*c1m21
+        case (-9)  ! SKEW 18-POLE
+          ekk=ekk*c1m21
 +ca kicka09v
-        goto 480
-!--SKEW 20-POLE
-  470   ekk=ekk*c1m24
+        case (-10) ! SKEW 20-POLE
+          ekk=ekk*c1m24
 +ca kicka10v
+        end select
+        goto 770
   480   continue
         t(1,2)=t(1,2)+dyy1
         t(1,4)=t(1,4)+dyy2
@@ -42425,16 +42403,15 @@ end subroutine dist_readdis
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
           endif
   490   continue
-        do 500 l=1,2
+        do l=1,2
           ll=2*l
           alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))     !hr06
-  500   continue
+        end do
         if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 770
         if(mpe.lt.nta) goto 770
         if(mpe.gt.nte) mpe=nte
         if(nta.gt.2) goto 520
-        if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx  &
-     &.eq.5.or.mx.eq.6.or.mx.eq.7) goto 520
+        if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 520
 
 !-----------------------------------------------------------------------
 !  SKEW-QUADRUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -42453,8 +42430,7 @@ end subroutine dist_readdis
         b(2,2)=sb1*sb2
         if(nta.gt.3) goto 540
         if(mpe.eq.2.or.(mpe.eq.9.and.nmz.le.2)) goto 670
-        if(mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq&
-     &.6.or.mx.eq.7) goto 540
+        if(mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 540
 
 !-----------------------------------------------------------------------
 !  REGULAR-SEXTUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -42473,8 +42449,7 @@ end subroutine dist_readdis
         b(2,3)=b2*sb1
         if(nta.gt.4) goto 560
         if(mpe.eq.3.or.(mpe.eq.9.and.nmz.le.3)) goto 670
-        if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq&
-     &.7) goto 560
+        if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 560
 
 !-----------------------------------------------------------------------
 !  REGULAR-OCTUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -42494,8 +42469,7 @@ end subroutine dist_readdis
         b(3,3)=b1*b2
         if(nta.gt.5) goto 580
         if(mpe.eq.4.or.(mpe.eq.9.and.nmz.le.4)) goto 670
-        if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7)        &
-     &goto 580
+        if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 580
 
 !-----------------------------------------------------------------------
 !  REGULAR-DEKAPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -42624,10 +42598,8 @@ end subroutine dist_readdis
 !--RE=DISTANCE FROM THE RESONANCE
             re(np,nv)=re1-real(ip(np,nv),fPrec)                          !hr06
             res=re(np,nv)/radi
-           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
-     &phi(2))-res*etl) !hr06
-           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
-     &phi(2))-res*etl) !hr06
+           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl) !hr06
+           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl) !hr06
   690     continue
   700   continue
         do 760 np=nta,mpe
@@ -42752,11 +42724,9 @@ end subroutine dist_readdis
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-      vdt2=(vdt1*e(nv1,nv2))/                                           &
-     &real(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4),fPrec) !hr06
+      vdt2=(vdt1*e(nv1,nv2))/real(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4),fPrec) !hr06
             vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                         !hr06
-            if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+                    &
-     &real(nn1*nv11,fPrec)*eb          !hr06
+            if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+real(nn1*nv11,fPrec)*eb    !hr06
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
             rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
   790     continue
@@ -42791,8 +42761,8 @@ end subroutine dist_readdis
      &(npp,n,m4,3)))+min(3)*(((rts(npp,n,m6,2)-rts(npp,n,m6,1))-rts     &!hr06
      &(npp,n,m6,3))+rts(npp,n,m6,4))                                     !hr06
   850 continue
-      return
-      end
+  return
+end subroutine resex
 
 +dk rmod
       subroutine rmod(dppr)
@@ -42804,10 +42774,8 @@ end subroutine dist_readdis
       use mathlib_bouncer
       implicit none
 +ca crcoall
-      integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,   &
-     &nteo
-      real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,   &
-     &se2,sen,sen15,sen16,sen17,sen18,sn,ss
+      integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
+      real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
 +ca parpro
 +ca common
 +ca commons
