@@ -25147,20 +25147,12 @@ subroutine trauthin(nthinerr)
   use collimation
 +ei
 
-<<<<<<< HEAD
-  implicit none
-+ca crcoall
-  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-=======
       use crcoall
       implicit none
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
->>>>>>> 7b74d7db858fd146f55b9218cab7ba3ff4a07833
 +ca parpro
 +ca common
 +ca commons
@@ -36982,15 +36974,9 @@ subroutine prror(ier)
     use mod_fluka
 +ei
 
-<<<<<<< HEAD
-    implicit none
-+ca crcoall
-    integer ier
-=======
       use crcoall
       implicit none
       integer ier
->>>>>>> 7b74d7db858fd146f55b9218cab7ba3ff4a07833
 +ca parpro
 +ca common
 +ca commons
@@ -42230,21 +42216,13 @@ end subroutine resex
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
-      use floatPrecision
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      implicit none
-<<<<<<< HEAD
-+ca crcoall
-      integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
-      real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
-=======
-      integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,   &
-     &nteo
-      real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,   &
-     &se2,sen,sen15,sen16,sen17,sen18,sn,ss
->>>>>>> 7b74d7db858fd146f55b9218cab7ba3ff4a07833
+  use mathlib_bouncer
+  use crcoall
+  implicit none
+  integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
+  real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
 +ca parpro
 +ca common
 +ca commons
