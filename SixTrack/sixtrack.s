@@ -40005,32 +40005,31 @@ end subroutine dist_readdis
       end
 
 +dk phasad
-      subroutine phasad(dpp,qwc)
 !-----------------------------------------------------------------------
 !  ADDITIONAL ADJUSTMENT OF THE X-PHASEADVANCE BETWEEN 2 POSITIONS
 !-----------------------------------------------------------------------
-      use floatPrecision
+subroutine phasad(dpp,qwc)
+  ! Rewritten to remove computed gotos by V.K.B.Olsen on 20/11/2017
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      implicit none
-      integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,&
-     &dj
-      real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk, &
-     &dphi,dpp,dppi,dpr,dyy1,dyy2,ekk,phi,phibf,pie,puf,qu,qv,qw,qwc,   &
-     &qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
+  use mathlib_bouncer
+  use crcoall
+  implicit none
+  integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
+  real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
+                   dyy1,dyy2,ekk,phi,phibf,pie,puf,qu,qv,qw,qwc,qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
 +if tilt
-      real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
+  real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
 +ca parpro
 +ca common
 +ca commons
 +ca commont1
-      dimension t(5,4)
-      dimension beta(2),alfa(2),phi(2),phibf(2)
-      dimension qw(2),qwc(3)
-      dimension aa(mmul),bb(mmul),dpr(5)
-      dimension cr(mmul),ci(mmul)
+  dimension t(5,4)
+  dimension beta(2),alfa(2),phi(2),phibf(2)
+  dimension qw(2),qwc(3)
+  dimension aa(mmul),bb(mmul),dpr(5)
+  dimension cr(mmul),ci(mmul)
 +if bnlelens
 +ca rhicelens
 +ei
@@ -40217,7 +40216,6 @@ end subroutine dist_readdis
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-        if(kzz.lt.0) goto 310
 +if debug
 !     call warr('qw',qw(1),1,0,0,0)
 !     call warr('qw',qw(2),2,0,0,0)
@@ -40228,42 +40226,39 @@ end subroutine dist_readdis
 !     call dumpbin('bkzz      ',77 777)
 !     call abend('bkzz                                              ')
 +ei
-        goto(170,180,190,200,210,220,230,240,250,260,270,450,450,450,   &
-     &      450,450,450,450,450,450,450,450,450,265,266,450,450,450),kzz
-        goto 450
-!--HORIZONTAL DIPOLE
-  170   ekk=ekk*c1e3
+      select case (kzz)
+      case (1) ! HORIZONTAL DIPOLE
+        ekk=ekk*c1e3
 +ca kickl01h
 +ca kickq01h
         goto 420
-!--NORMAL QUADRUPOLE
-  180   continue
+      case (2) ! NORMAL QUADRUPOLE
 +ca kicklxxh
 +ca kickq02h
         goto 420
-!--NORMAL SEXTUPOLE
-  190   ekk=ekk*c1m3
+      case (3) ! NORMAL SEXTUPOLE
+        ekk=ekk*c1m3
 +ca kickq03h
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--NORMAL OCTUPOLE
-  200   ekk=ekk*c1m6
+      case (4) ! NORMAL OCTUPOLE
+        ekk=ekk*c1m6
 +ca kicksho
 +ca kickq04h
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--NORMAL DECAPOLE
-  210   ekk=ekk*c1m9
+      case (5) ! NORMAL DECAPOLE
+        ekk=ekk*c1m9
 +ca kicksho
 +ca kicksho
 +ca kickq05h
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--NORMAL DODECAPOLE
-  220   ekk=ekk*c1m12
+      case (6) ! NORMAL DODECAPOLE
+        ekk=ekk*c1m12
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40271,8 +40266,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--NORMAL 14-POLE
-  230   ekk=ekk*c1m15
+      case (7) ! NORMAL 14-POLE
+        ekk=ekk*c1m15
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40281,8 +40276,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--NORMAL 16-POLE
-  240   ekk=ekk*c1m18
+      case (8) ! NORMAL 16-POLE
+        ekk=ekk*c1m18
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40292,8 +40287,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--NORMAL 18-POLE
-  250   ekk=ekk*c1m21
+      case (9) ! NORMAL 18-POLE
+        ekk=ekk*c1m21
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40304,8 +40299,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--NORMAL 20-POLE
-  260   ekk=ekk*c1m24
+      case (10) ! NORMAL 20-POLE
+        ekk=ekk*c1m24
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40317,99 +40312,101 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxh
         goto 420
-!--DIPEDGE ELEMENT
-  265   continue    
-+ca kickldpe
-+ca kickqdpe
-        goto 420
-!--solenoid
-  266   continue    
-+ca kicklso1
-+ca kickqso1
-        goto 420
-  270   r0=ek(ix)
+      case (11)
+        r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
 +ca multl01
-            do 280 i=2,ium
+            do i=2,ium
 +ca multl02
-  280       continue
+            end do
           else
 +ca multl03
-          endif
-        endif
+          end if
+        end if
         if(abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
 +ca multl04
-            do 290 i=2,ium
+            do i=2,ium
 +ca multl05
-  290       continue
+            end do
           else
 +ca multl06
-          endif
-        endif
+          end if
+        end if
         if(abs(r0).le.pieni) goto 450
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
           goto 450
-        endif
+        end if
         im=irm(ix)
         r0a=one
         benkr=ed(ix)/(one+dpp)
-        do 300 l=1,nmz
+        do l=1,nmz
 +ca multl07a
-  300   continue
+        end do
         if(nmz.ge.2) then
 +ca multl07b
-          do 305 l=3,nmz
+          do l=3,nmz
 +ca multl07c
-  305     continue
+          end do
         else
-+ca multl07d
-        endif
++ca multl07dsubroutine phasad
+        end if
 +if tilt
 +ca multl07e
 +ei
         izu=izu+2*mmul-2*nmz
         goto 420
-!--SKEW ELEMENTS
-  310   kzz=-kzz
-        goto(320,330,340,350,360,370,380,390,400,410),kzz
+      case (12,13,14,15,16,17,18,19,20,21,22,23)
         goto 450
-!--VERTICAL DIPOLE
-  320   ekk=ekk*c1e3
+      case (24) ! DIPEDGE ELEMENT
++ca kickldpe
++ca kickqdpe
+        goto 420
+      case (25) ! Solenoid
++ca kicklso1
++ca kickqso1
+        goto 420
+      case (26,27,28)
+        goto 450
+        
+      !-----------------
+      !--SKEW ELEMENTS--
+      !------------------
+      case (-1)  ! VERTICAL DIPOLE
+        ekk=ekk*c1e3
 +ca kickl01v
 +ca kickq01v
         goto 420
-!--SKEW QUADRUPOLE
-  330   continue
+      case (-2)  ! SKEW QUADRUPOLE
 +ca kicklxxv
 +ca kickq02v
         goto 420
-!--SKEW SEXTUPOLE
-  340   ekk=ekk*c1m3
+      case (-3)  ! SKEW SEXTUPOLE
+        ekk=ekk*c1m3
 +ca kickq03v
 +ca kicksho
 +ca kicklxxv
         goto 420
-!--SKEW OCTUPOLE
-  350   ekk=ekk*c1m6
+      case (-4)  ! SKEW OCTUPOLE
+        ekk=ekk*c1m6
 +ca kicksho
 +ca kickq04v
 +ca kicksho
 +ca kicklxxv
         goto 420
-!--SKEW DECAPOLE
-  360   ekk=ekk*c1m9
+      case (-5)  ! SKEW DECAPOLE
+        ekk=ekk*c1m9
 +ca kicksho
 +ca kicksho
 +ca kickq05v
 +ca kicksho
 +ca kicklxxv
         goto 420
-!--SKEW DODECAPOLE
-  370   ekk=ekk*c1m12
+      case (-6)  ! SKEW DODECAPOLE
+        ekk=ekk*c1m12
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40417,8 +40414,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxv
         goto 420
-!--SKEW 14-POLE
-  380   ekk=ekk*c1m15
+      case (-7)  ! SKEW 14-POLE
+        ekk=ekk*c1m15
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40427,8 +40424,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxv
         goto 420
-!--SKEW 16-POLE
-  390   ekk=ekk*c1m18
+      case (-8)  ! SKEW 16-POLE
+        ekk=ekk*c1m18
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40438,8 +40435,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxv
         goto 420
-!--SKEW 18-POLE
-  400   ekk=ekk*c1m21
+      case (-9)  ! SKEW 18-POLE
+        ekk=ekk*c1m21
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40450,8 +40447,8 @@ end subroutine dist_readdis
 +ca kicksho
 +ca kicklxxv
         goto 420
-!--SKEW 20-POLE
-  410   ekk=ekk*c1m24
+      case (-10) ! SKEW 20-POLE
+        ekk=ekk*c1m24
 +ca kicksho
 +ca kicksho
 +ca kicksho
@@ -40462,26 +40459,31 @@ end subroutine dist_readdis
 +ca kickq10v
 +ca kicksho
 +ca kicklxxv
-  420   continue
-        t(1,2)=t(1,2)+dyy1
-        t(1,4)=t(1,4)+dyy2
-        do 430 i=2,ium
-          if(kzz.eq.24) then
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
+      case default
+        goto 450
+      end select
+      goto 450
+    
+  420 continue
+      t(1,2)=t(1,2)+dyy1
+      t(1,4)=t(1,4)+dyy2
+      do i=2,ium
+        if(kzz.eq.24) then
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
+          t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
-          else
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
-          endif
-  430   continue
-
-        do l=1,2
-          ll=2*l
-          alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))       !hr06
-        end do
+        else
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
+          t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+        end if
+      end do
+      
+      do l=1,2
+        ll=2*l
+        alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))       !hr06
+      end do
 
   450 continue
       qwc(1)=phi(1)
@@ -40501,8 +40503,9 @@ end subroutine dist_readdis
 !     call abend('aphasad                                           ')
 +ei
 !-----------------------------------------------------------------------
-      return
-      end
+  return
+end subroutine phasad
+
 +dk qmod
       subroutine qmod0
 !-----------------------------------------------------------------------
