@@ -1510,7 +1510,7 @@ IF(BUILD_TESTING)
 	if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 		target_link_libraries(SixTestWrapper stdc++)
 	endif()
-	#set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
+	set_property(TARGET SixTestWrapper PROPERTY CXX_STANDARD 11)
 
 	#just a work around to build on MSYS2 for now
 	if(MSYS AND STATIC)
