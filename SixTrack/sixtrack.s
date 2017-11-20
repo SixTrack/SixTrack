@@ -19403,8 +19403,8 @@ subroutine runda
             goto 520
           endif
           kpz=abs(kp(ix))
-          if(kpz.eq.0) goto 110
-          goto(110,110,110,110,110,90),kpz
+          if (kpz.ge.0.and.kpz.le.5) goto 110
+          if (kpz.eq.6) goto 90
           goto 480
    90     if(nvar2.le.4.or.(nvar2.eq.5.and.nsix.ne.2)) goto 480
           ixcav=ix
