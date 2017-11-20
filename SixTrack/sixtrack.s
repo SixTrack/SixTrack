@@ -34107,6 +34107,11 @@ subroutine comnul
         enddo
       end do
 
+!     From the FLUKA version
+      do i=1,nele
+         call SELNUL(i)
+      end do
+
 !--NUMBER OF BLOCKS-----------------------------------------------------
       do i=1,nblo
         mel(i)=0
@@ -34585,28 +34590,29 @@ integer function INEESE()
 !     for the moment, it only appends the new single element
 !     always in main code
 !-----------------------------------------------------------------------
-      use floatPrecision
+  use floatPrecision
   use numerical_constants
-      use crcoall
-      implicit none
+  use crcoall
+
+  implicit none
 
 +ca parpro
 +ca common
 +ca commonmn
 +ca commontr
 
-      il=il+1
-      if ( il.gt.nele ) then
-         write(lout,*)'ERROR: not enough space for adding element in list of SINGLE ELEMENTs!'
-         write(lout,*)'       please, increase nele and recompile!'
-         call prror(-1)
-      endif
+  il=il+1
+  if( il.gt.nele ) then
+    write(lout,*)'ERROR: not enough space for adding element in list of SINGLE ELEMENTs!'
+    write(lout,*)'       please, increase nele and recompile!'
+    call prror(-1)
+  end if
 
-!     initialise element to empty
-      call SELNUL(il)
+! initialise element to empty
+  call SELNUL(il)
 
-!     returned variable
-      INEESE=il
+! returned variable
+  INEESE=il
 
 end function INEESE
 
@@ -34620,10 +34626,10 @@ integer function check_SE_unique( iEl, ixEl )
 !     - ixEl: index in array of SINGLE ELEMENTs of the element to be checked
 !     always in main code
 !-----------------------------------------------------------------------
-      use floatPrecision
+  use floatPrecision
   use numerical_constants
 
-      implicit none
+  implicit none
 
 +ca parpro
 +ca common
@@ -34631,24 +34637,26 @@ integer function check_SE_unique( iEl, ixEl )
 +ca commontr
 +ca dbdcum
 
-!     interface variables
-      integer iEl, ixEl
-!     temporary variables
-      integer i,ix
+! interface variables
+  integer iEl, ixEl
 
-      check_SE_unique=-1
-      do i=1,iu
-         ix=ic(i)-nblo
-         if(ix.gt.0) then
+! temporary variables
+  integer i,ix
+
+  check_SE_unique=-1
+
+  do i=1,iu
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
 !     SINGLE ELEMENT 
-            if ( i.ne.iEl .and. ix.eq.ixEl ) then
-               check_SE_unique=i
-               exit
-            endif
-         endif
-      enddo
+      if( i.ne.iEl .and. ix.eq.ixEl ) then
+        check_SE_unique=i
+        exit
+      end if
+    end if
+  end do
 
-      return
+  return
       
 end function check_SE_unique
 
