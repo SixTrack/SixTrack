@@ -8982,7 +8982,7 @@ subroutine hamilton1(ja,jp)
               j4=jord-j1-j2-j3
               kointer=((j1+j2*3)+j3*3**2)+j4*3**3 ! hr04
               do l=0,ncoef
-                  tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
+                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
               end do
             end do
           end do
@@ -18229,24 +18229,24 @@ subroutine ranecu(rvec,len,mcut)
 end subroutine ranecu
 
 +dk envars
-subroutine envars(j,dpp,rv)
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
+subroutine envars(j,dpp,rv)
+  
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
 +if datamods
-      use bigmats, only : as, al !Only take the variables from common, not from commonmn
+  use bigmats, only : as, al ! Only take the variables from common, not from commonmn
 +ei
-      implicit none
-      integer i,ih,j,kz1,l,ll
-      real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,&
-     &fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,rv,si,siq,sm1,         &
-     &sm12,sm2,sm23,sm3,sm5,sm6,wf,wfa,wfhi
+  implicit none
+  integer i,ih,j,kz1,l,ll
+  real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
+                   hp,hs,rho,rhoc,rhoi,rv,si,siq,sm1,sm12,sm2,sm23,sm3,sm5,sm6,wf,wfa,wfhi
 +if .not.vvector
-      integer jm,k,m,na,ne
+  integer jm,k,m,na,ne
 +ei
 +ca parpro
 +ca common
@@ -18256,312 +18256,333 @@ subroutine envars(j,dpp,rv)
 +if bnlelens
 +ca rhicelens
 +ei
-      save
-!-----------------------------------------------------------------------
-      dpd=one+dpp
-      dpsq=sqrt(dpd)
-      do 190 i=1,il
-        do ll=1,6
-          do l=1,2
-            al(ll,l,j,i)=zero
-            as(ll,l,j,i)=zero
+  save
+  
+  dpd  = one+dpp
+  dpsq = sqrt(dpd)
+  do i=1,il
+    do ll=1,6
+      do l=1,2
+        al(ll,l,j,i) = zero
+        as(ll,l,j,i) = zero
 +if .not.vvector
-            at(ll,l,j,i)=zero
-            a2(ll,l,j,i)=zero
+        at(ll,l,j,i) = zero
+        a2(ll,l,j,i) = zero
 +ei
-          enddo
-        enddo
-        if(abs(el(i)).le.pieni) goto 190
-        kz1=kz(i)+1
-        goto(10,30,90,50,70,80,120,170,180),kz1
-        goto 190
-
-!-----------------------------------------------------------------------
-!  DRIFTLENGTH
-!-----------------------------------------------------------------------
-   10   do l=1,2
-          al(1,l,j,i)=one
-          al(2,l,j,i)=el(i)
-          al(3,l,j,i)=zero
-          al(4,l,j,i)=one
-          as(6,l,j,i)=((-one*rv)*al(2,l,j,i))/c2e3                         !hr05
+      end do
+    end do
+    
+    if(abs(el(i)).le.pieni) cycle
+    kz1 = kz(i)+1
+    select case (kz1)
+    case (1) ! DRIFTLENGTH
+      do l=1,2
+        al(1,l,j,i) = one
+        al(2,l,j,i) = el(i)
+        al(3,l,j,i) = zero
+        al(4,l,j,i) = one
+        as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+      end do
+      as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+      
+    case (2,5)
+      ! 2: RECTANGULAR MAGNET HORIZONTAL
+      ! 5: RECTANGULAR MAGNET VERTICAL
+      if (kz1.eq.2) then
+        ih = 1
+      else
+        ih = 2
+      end if
+      fok=(el(i)*ed(i))/dpsq                                           !hr05
+      if(abs(fok).le.pieni) then
+        do l=1,2
+          al(1,l,j,i) = one
+          al(2,l,j,i) = el(i)
+          al(3,l,j,i) = zero
+          al(4,l,j,i) = one
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
         end do
-
-        as(1,1,j,i)=(el(i)*(one-rv))*c1e3                                !hr05
-        goto 190
-
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   30   ih=1
-   40   fok=(el(i)*ed(i))/dpsq                                           !hr05
-        if(abs(fok).le.pieni) goto 10
-        rho=(one/ed(i))*dpsq
-        fok1=(tan_mb(fok*half))/rho
-        si=sin_mb(fok)
-        co=cos_mb(fok)
-        al(1,ih,j,i)=one
-        al(2,ih,j,i)=rho*si
-        al(3,ih,j,i)=zero
-        al(4,ih,j,i)=one
-        al(5,ih,j,i)=((-one*dpp)*((rho*(one-co))/dpsq))*c1e3             !hr05
-        al(6,ih,j,i)=((-one*dpp)*((two*tan_mb(fok*half))/dpsq))*c1e3     !hr05
-        sm1=cos_mb(fok)
-        sm2=sin_mb(fok)*rho
-        sm3=(-one*sin_mb(fok))/rho                                       !hr05
-        sm5=((-one*rho)*dpsq)*(one-sm1)                                  !hr05
-        sm6=((-one*sm2)*dpsq)/rho                                        !hr05
-        sm12=el(i)-sm1*sm2
-        sm23=sm2*sm3
-        as3=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23+sm5)                  !hr05
-        as4=((-one*rv)*sm23)/c2e3                                        !hr05
-        as6=((-one*rv)*(el(i)+sm1*sm2))/c4e3                             !hr05
-        as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+      &!hr05
-     &dpp*(el(i)-sm2)))*c1e3                                             !hr05
-        as(2,ih,j,i)=fok1*as3-rv*((dpp/((two*rho)*dpsq))*sm12+sm6)       !hr05
-        as(3,ih,j,i)=as3
-        as(4,ih,j,i)=as4+(two*as6)*fok1                                  !hr05
-        as(5,ih,j,i)=(as6*fok1*2+fok1*as4)-(rv*sm12)/(c4e3*rho**2)       !hr05
-        as(6,ih,j,i)=as6
-!--VERTIKAL
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        g=tan_mb(fok*half)/rho
-        gl=el(i)*g
-        al(1,ih,j,i)=one-gl
-        al(2,ih,j,i)=el(i)
-        al(3,ih,j,i)=(-one*g)*(two-gl)                                   !hr05
-        al(4,ih,j,i)=al(1,ih,j,i)
-        as6=((-one*rv)*al(2,ih,j,i))/c2e3                                !hr05
-        as(4,ih,j,i)=((-one*two)*as6)*fok1                               !hr05
-        as(5,ih,j,i)=as6*fok1**2                                         !hr05
-        as(6,ih,j,i)=as6
-        goto 190
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   50   ih=1
-   60   fok=(el(i)*ed(i))/dpsq                                           !hr05
-        if(abs(fok).le.pieni) goto 10
-        rho=(one/ed(i))*dpsq
-        si=sin_mb(fok)
-        co=cos_mb(fok)
-        rhoc=(rho*(one-co))/dpsq                                         !hr05
-        siq=si/dpsq
-        al(1,ih,j,i)=co
-        al(2,ih,j,i)=rho*si
-        al(3,ih,j,i)=(-one*si)/rho                                       !hr05
-        al(4,ih,j,i)=co
-        al(5,ih,j,i)=((-one*dpp)*rhoc)*c1e3                              !hr05
-        al(6,ih,j,i)=((-one*dpp)*siq)*c1e3                               !hr05
-        sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
-        sm23=al(2,ih,j,i)*al(3,ih,j,i)
-        as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12 +     &!hr05
-     &dpp*(el(i)-al(2,ih,j,i))))*c1e3                                    !hr05
-        as(2,ih,j,i)=(-one*rv)*((dpp/((two*rho)*dpsq))*sm12-dpd*siq)     !hr05
-        as(3,ih,j,i)=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23-dpd*rhoc)    !hr05
-        as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
-        as(5,ih,j,i)=((-one*rv)*sm12)/(c4e3*rho**2)                      !hr05
-        as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-!--VERTIKAL
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        al(1,ih,j,i)=one
-        al(2,ih,j,i)=el(i)
-        al(3,ih,j,i)=zero
-        al(4,ih,j,i)=one
-        as(6,ih,j,i)=((-one*rv)*al(2,ih,j,i))/c2e3                       !hr05
-        goto 190
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   70   ih=2
-        goto 40
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   80   ih=2
-        goto 60
-!-----------------------------------------------------------------------
-!  QUADRUPOLE
-!  FOCUSSING
-!-----------------------------------------------------------------------
-   90   fok=ek(i)/(one+dpp)
-        aek=abs(fok)
-        if(abs(fok).le.pieni) goto 10
-        ih=0
-        hi=sqrt(aek)
-        fi=el(i)*hi
-        if(fok.gt.zero) goto 110
-  100   ih=ih+1
-        al(1,ih,j,i)=cos_mb(fi)
-        hi1=sin_mb(fi)
-        al(2,ih,j,i)=hi1/hi
-        al(3,ih,j,i)=(-one*hi1)*hi                                       !hr05
-        al(4,ih,j,i)=al(1,ih,j,i)
-        as(1,ih,j,i)=(el(i)*(one-rv))*c1e3                               !hr05
-        as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/ &!hr05
-     &c4e3                                                               !hr05
-        as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-        if(ih.eq.2) goto 190
-!--DEFOCUSSING
-  110   ih=ih+1
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        al(1,ih,j,i)=hc
-        al(2,ih,j,i)=hs/hi
-        al(3,ih,j,i)=hs*hi
-        al(4,ih,j,i)=hc
-        as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-        as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
-        as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-        if(ih.eq.1) goto 100
-        goto 190
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET HORIZONTAL
-!  FOCUSSING
-!-----------------------------------------------------------------------
-  120   ih=0
-        fokq=ek(i)
-  130   wf=ed(i)/dpsq
-        fok=fokq/(dpd)-wf**2                                             !hr05
-        if(abs(fok).le.pieni) goto 10
-        afok=abs(fok)
-        hi=sqrt(afok)
-        fi=hi*el(i)
-        if(fok.gt.zero) goto 160
-  140   ih=ih+1
-        si=sin_mb(fi)
-        co=cos_mb(fi)
-        wfa=((wf/afok)*(one-co))/dpsq                                    !hr05
-        wfhi=((wf/hi)*si)/dpsq                                           !hr05
-        al(1,ih,j,i)=co
-        al(2,ih,j,i)=si/hi
-        al(3,ih,j,i)=(-one*si)*hi                                        !hr05
-        al(4,ih,j,i)=co
-        al(5,ih,j,i)=((-one*wfa)*dpp)*c1e3                               !hr05
-        al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3                              !hr05
-        sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
-        sm23=al(2,ih,j,i)*al(3,ih,j,i)
-        as(1,ih,j,i)=(el(i)*(one-rv)-((rv*((dpp**2/(four*dpd))*sm12+    &!hr05
-     &dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2)*c1e3                       !hr05
-        as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
-        as(3,ih,j,i)=(-one*rv)*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-   &!hr05
-     &dpd*wfa)                                                           !hr05
-        as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
-        as(5,ih,j,i)=(((-one*rv)*sm12)*afok)/c4e3                        !hr05
-        as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        aek=abs(ek(i)/dpd)
-        hi=sqrt(aek)
-        fi=hi*el(i)
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        al(1,ih,j,i)=hc
-        al(2,ih,j,i)=el(i)
-        if(abs(hi).le.pieni) goto 150
-        al(2,ih,j,i)=hs/hi
-  150   al(3,ih,j,i)=hs*hi
-        al(4,ih,j,i)=hc
-        as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-        as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
-        as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-        goto 190
-!--DEFOCUSSING
-  160   ih=ih+1
-        hp=exp_mb(fi)
-        hm=one/hp
-        hc=(hp+hm)*half
-        hs=(hp-hm)*half
-        al(1,ih,j,i)=hc
-        al(2,ih,j,i)=hs/hi
-        al(3,ih,j,i)=hs*hi
-        al(4,ih,j,i)=hc
-        wfa=((wf/afok)*(one-hc))/dpsq                                    !hr05
-        wfhi=((wf/hi)*hs)/dpsq                                           !hr05
-        al(5,ih,j,i)= (wfa*dpp)*c1e3                                     !hr05
-        al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3                              !hr05
-        sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
-        sm23=al(2,ih,j,i)*al(3,ih,j,i)
-        as(1,ih,j,i)=(((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-        &!hr05
-     &al(2,ih,j,i))))/afok)*wf**2+el(i)*(one-rv))*c1e3                   !hr05
-        as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
-        as(3,ih,j,i)=rv*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa)   !hr05
-        as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
-        as(5,ih,j,i)=((rv*sm12)*afok)/c4e3                               !hr05
-        as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-        ih=ih+1
-        if(ih.gt.2) ih=1
-        aek=abs(ek(i)/dpd)
-        hi=sqrt(aek)
-        fi=hi*el(i)
-        si=sin_mb(fi)
-        co=cos_mb(fi)
-        al(1,ih,j,i)=co
-        al(2,ih,j,i)=si/hi
-        al(3,ih,j,i)=(-one*si)*hi                                        !hr05
-        al(4,ih,j,i)=co
-        as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/ &!hr05
-     &c4e3                                                               !hr05
-        as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-        goto 190
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET VERTICAL
-!-----------------------------------------------------------------------
-  170   ih=1
-        fokq=-one*ek(i)                                                  !hr05
-        goto 130
-!-----------------------------------------------------------------------
-!  EDGE FOCUSSING
-!-----------------------------------------------------------------------
-  180   rhoi=ed(i)/dpsq
-        fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr05
-        al(1,1,j,i)=one
-        al(2,1,j,i)=zero
-        al(3,1,j,i)=fok
-        al(4,1,j,i)=one
-        al(1,2,j,i)=one
-        al(2,2,j,i)=zero
-        al(3,2,j,i)=-one*fok                                             !hr05
-        al(4,2,j,i)=one
-        goto 190
-!-----------------------------------------------------------------------
-!   NONLINEAR INSERTION
-!-----------------------------------------------------------------------
-  190 continue
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        cycle
+      end if
+      rho=(one/ed(i))*dpsq
+      fok1=(tan_mb(fok*half))/rho
+      si=sin_mb(fok)
+      co=cos_mb(fok)
+      al(1,ih,j,i)=one
+      al(2,ih,j,i)=rho*si
+      al(3,ih,j,i)=zero
+      al(4,ih,j,i)=one
+      al(5,ih,j,i)=((-one*dpp)*((rho*(one-co))/dpsq))*c1e3             !hr05
+      al(6,ih,j,i)=((-one*dpp)*((two*tan_mb(fok*half))/dpsq))*c1e3     !hr05
+      sm1=cos_mb(fok)
+      sm2=sin_mb(fok)*rho
+      sm3=(-one*sin_mb(fok))/rho                                       !hr05
+      sm5=((-one*rho)*dpsq)*(one-sm1)                                  !hr05
+      sm6=((-one*sm2)*dpsq)/rho                                        !hr05
+      sm12=el(i)-sm1*sm2
+      sm23=sm2*sm3
+      as3=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23+sm5)                  !hr05
+      as4=((-one*rv)*sm23)/c2e3                                        !hr05
+      as6=((-one*rv)*(el(i)+sm1*sm2))/c4e3                             !hr05
+      as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-sm2)))*c1e3 !hr05
+      as(2,ih,j,i)=fok1*as3-rv*((dpp/((two*rho)*dpsq))*sm12+sm6)       !hr05
+      as(3,ih,j,i)=as3
+      as(4,ih,j,i)=as4+(two*as6)*fok1                                  !hr05
+      as(5,ih,j,i)=(as6*fok1*2+fok1*as4)-(rv*sm12)/(c4e3*rho**2)       !hr05
+      as(6,ih,j,i)=as6
+      ! VERTIKAL
+      ih=ih+1
+      if(ih.gt.2) ih=1
+      g=tan_mb(fok*half)/rho
+      gl=el(i)*g
+      al(1,ih,j,i)=one-gl
+      al(2,ih,j,i)=el(i)
+      al(3,ih,j,i)=(-one*g)*(two-gl)                                   !hr05
+      al(4,ih,j,i)=al(1,ih,j,i)
+      as6=((-one*rv)*al(2,ih,j,i))/c2e3                                !hr05
+      as(4,ih,j,i)=((-one*two)*as6)*fok1                               !hr05
+      as(5,ih,j,i)=as6*fok1**2                                         !hr05
+      as(6,ih,j,i)=as6
+      
+    case (3)
+      ! QUADRUPOLE
+      ! FOCUSSING
+      fok=ek(i)/(one+dpp)
+      aek=abs(fok)
+      if(abs(fok).le.pieni) then
+        do l=1,2
+          al(1,l,j,i) = one
+          al(2,l,j,i) = el(i)
+          al(3,l,j,i) = zero
+          al(4,l,j,i) = one
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+        end do
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        cycle
+      end if
+      ih=0
+      hi=sqrt(aek)
+      fi=el(i)*hi
+      if(fok.gt.zero) goto 110
+100   ih=ih+1
+      al(1,ih,j,i)=cos_mb(fi)
+      hi1=sin_mb(fi)
+      al(2,ih,j,i)=hi1/hi
+      al(3,ih,j,i)=(-one*hi1)*hi                                       !hr05
+      al(4,ih,j,i)=al(1,ih,j,i)
+      as(1,ih,j,i)=(el(i)*(one-rv))*c1e3                               !hr05
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
+      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3 !hr05
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      if(ih.eq.2) cycle
+      !--DEFOCUSSING
+110   ih=ih+1
+      hp=exp_mb(fi)
+      hm=one/hp
+      hc=(hp+hm)*half
+      hs=(hp-hm)*half
+      al(1,ih,j,i)=hc
+      al(2,ih,j,i)=hs/hi
+      al(3,ih,j,i)=hs*hi
+      al(4,ih,j,i)=hc
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
+      as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      if(ih.eq.1) goto 100
+    
+    case (4)
+      ! 4: SEKTORMAGNET HORIZONTAL
+      ! 6: SEKTORMAGNET VERTICAL
+      if (kz1.eq.4) then
+        ih = 1
+      else
+        ih = 2
+      end if
+      fok=(el(i)*ed(i))/dpsq                                           !hr05
+      if(abs(fok).le.pieni) then
+        do l=1,2
+          al(1,l,j,i) = one
+          al(2,l,j,i) = el(i)
+          al(3,l,j,i) = zero
+          al(4,l,j,i) = one
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+        end do
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        cycle
+      end if
+      rho=(one/ed(i))*dpsq
+      si=sin_mb(fok)
+      co=cos_mb(fok)
+      rhoc=(rho*(one-co))/dpsq                                         !hr05
+      siq=si/dpsq
+      al(1,ih,j,i)=co
+      al(2,ih,j,i)=rho*si
+      al(3,ih,j,i)=(-one*si)/rho                                       !hr05
+      al(4,ih,j,i)=co
+      al(5,ih,j,i)=((-one*dpp)*rhoc)*c1e3                              !hr05
+      al(6,ih,j,i)=((-one*dpp)*siq)*c1e3                               !hr05
+      sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
+      sm23=al(2,ih,j,i)*al(3,ih,j,i)
+      as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))*c1e3 !hr05
+      as(2,ih,j,i)=(-one*rv)*((dpp/((two*rho)*dpsq))*sm12-dpd*siq)     !hr05
+      as(3,ih,j,i)=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23-dpd*rhoc)    !hr05
+      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
+      as(5,ih,j,i)=((-one*rv)*sm12)/(c4e3*rho**2)                      !hr05
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      ! VERTIKAL
+      ih=ih+1
+      if(ih.gt.2) ih=1
+      al(1,ih,j,i)=one
+      al(2,ih,j,i)=el(i)
+      al(3,ih,j,i)=zero
+      al(4,ih,j,i)=one
+      as(6,ih,j,i)=((-one*rv)*al(2,ih,j,i))/c2e3                       !hr05
+      
+    case (7,8)
+      ! 7: COMBINED FUNCTION MAGNET HORIZONTAL
+      ! 8: COMBINED FUNCTION MAGNET VERTICAL
+      if (kz1.eq.7) then
+        ih   = 0
+        fokq = ek(i)
+      else
+        ih   = 1
+        fokq = -one*ek(i) ! hr05
+      end if
+      ! FOCUSSING
+      wf=ed(i)/dpsq
+      fok=fokq/(dpd)-wf**2                                             !hr05
+      if(abs(fok).le.pieni) then
+        do l=1,2
+          al(1,l,j,i) = one
+          al(2,l,j,i) = el(i)
+          al(3,l,j,i) = zero
+          al(4,l,j,i) = one
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+        end do
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        cycle
+      end if
+      afok=abs(fok)
+      hi=sqrt(afok)
+      fi=hi*el(i)
+      if(fok.gt.zero) goto 160
+140   ih=ih+1
+      si=sin_mb(fi)
+      co=cos_mb(fi)
+      wfa=((wf/afok)*(one-co))/dpsq                                    !hr05
+      wfhi=((wf/hi)*si)/dpsq                                           !hr05
+      al(1,ih,j,i)=co
+      al(2,ih,j,i)=si/hi
+      al(3,ih,j,i)=(-one*si)*hi                                        !hr05
+      al(4,ih,j,i)=co
+      al(5,ih,j,i)=((-one*wfa)*dpp)*c1e3                               !hr05
+      al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3                              !hr05
+      sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
+      sm23=al(2,ih,j,i)*al(3,ih,j,i)
+      as(1,ih,j,i)=(el(i)*(one-rv)-((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2)*c1e3 !hr05
+      as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
+      as(3,ih,j,i)=(-one*rv)*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa) !hr05
+      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
+      as(5,ih,j,i)=(((-one*rv)*sm12)*afok)/c4e3                        !hr05
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      ih=ih+1
+      if(ih.gt.2) ih=1
+      aek=abs(ek(i)/dpd)
+      hi=sqrt(aek)
+      fi=hi*el(i)
+      hp=exp_mb(fi)
+      hm=one/hp
+      hc=(hp+hm)*half
+      hs=(hp-hm)*half
+      al(1,ih,j,i)=hc
+      al(2,ih,j,i)=el(i)
+      if(abs(hi).le.pieni) goto 150
+      al(2,ih,j,i)=hs/hi
+150   al(3,ih,j,i)=hs*hi
+      al(4,ih,j,i)=hc
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
+      as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      cycle
+      ! DEFOCUSSING
+160   ih=ih+1
+      hp=exp_mb(fi)
+      hm=one/hp
+      hc=(hp+hm)*half
+      hs=(hp-hm)*half
+      al(1,ih,j,i)=hc
+      al(2,ih,j,i)=hs/hi
+      al(3,ih,j,i)=hs*hi
+      al(4,ih,j,i)=hc
+      wfa=((wf/afok)*(one-hc))/dpsq                                    !hr05
+      wfhi=((wf/hi)*hs)/dpsq                                           !hr05
+      al(5,ih,j,i)= (wfa*dpp)*c1e3                                     !hr05
+      al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3                              !hr05
+      sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
+      sm23=al(2,ih,j,i)*al(3,ih,j,i)
+      as(1,ih,j,i)=(((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2+el(i)*(one-rv))*c1e3 !hr05
+      as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
+      as(3,ih,j,i)=rv*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa)   !hr05
+      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
+      as(5,ih,j,i)=((rv*sm12)*afok)/c4e3                               !hr05
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      ih=ih+1
+      if(ih.gt.2) ih=1
+      aek=abs(ek(i)/dpd)
+      hi=sqrt(aek)
+      fi=hi*el(i)
+      si=sin_mb(fi)
+      co=cos_mb(fi)
+      al(1,ih,j,i)=co
+      al(2,ih,j,i)=si/hi
+      al(3,ih,j,i)=(-one*si)*hi                                        !hr05
+      al(4,ih,j,i)=co
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
+      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3 !hr05
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      
+    case (9)
+      ! EDGE FOCUSSING
+      rhoi=ed(i)/dpsq
+      fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr05
+      al(1,1,j,i)=one
+      al(2,1,j,i)=zero
+      al(3,1,j,i)=fok
+      al(4,1,j,i)=one
+      al(1,2,j,i)=one
+      al(2,2,j,i)=zero
+      al(3,2,j,i)=-one*fok                                             !hr05
+      al(4,2,j,i)=one
+      
+    end select
+  end do
+  
 +if .not.vvector
-      do 220 k=1,mblo
-        jm=mel(k)
-        do 210 m=1,jm
-          na=mtyp(k,m)
-          ne=mtyp(k,jm-m+1)
-          do 200 l=1,2
-            at(1,l,j,na)=as(1,l,j,ne)
-            at(2,l,j,na)=as(2,l,j,ne)
-            at(3,l,j,na)=as(3,l,j,ne)
-            at(4,l,j,na)=as(4,l,j,ne)
-            at(5,l,j,na)=as(5,l,j,ne)
-            at(6,l,j,na)=as(6,l,j,ne)
-            a2(1,l,j,na)=al(1,l,j,ne)
-            a2(2,l,j,na)=al(2,l,j,ne)
-            a2(3,l,j,na)=al(3,l,j,ne)
-            a2(4,l,j,na)=al(4,l,j,ne)
-            a2(5,l,j,na)=al(5,l,j,ne)
-            a2(6,l,j,na)=al(6,l,j,ne)
-  200     continue
-  210   continue
-  220 continue
+  do k=1,mblo
+    jm=mel(k)
+    do m=1,jm
+      na=mtyp(k,m)
+      ne=mtyp(k,jm-m+1)
+      do l=1,2
+        at(1,l,j,na)=as(1,l,j,ne)
+        at(2,l,j,na)=as(2,l,j,ne)
+        at(3,l,j,na)=as(3,l,j,ne)
+        at(4,l,j,na)=as(4,l,j,ne)
+        at(5,l,j,na)=as(5,l,j,ne)
+        at(6,l,j,na)=as(6,l,j,ne)
+        a2(1,l,j,na)=al(1,l,j,ne)
+        a2(2,l,j,na)=al(2,l,j,ne)
+        a2(3,l,j,na)=al(3,l,j,ne)
+        a2(4,l,j,na)=al(4,l,j,ne)
+        a2(5,l,j,na)=al(5,l,j,ne)
+        a2(6,l,j,na)=al(6,l,j,ne)
+      end do
+    end do
+  end do
 +ei
-      return
+  return
+  
 end subroutine envars
 
 +dk envada
