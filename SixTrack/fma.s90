@@ -185,8 +185,8 @@ contains
        REAL(C_DOUBLE) function tunenaff (x,xp,maxn,plane_idx,norm_flag) BIND(C)
          use, intrinsic :: ISO_C_BINDING
          IMPLICIT NONE
-         REAL(C_DOUBLE), dimension(:) :: x,xp
-         INTEGER(C_INT) :: maxn, plane_idx, norm_flag
+         REAL(C_DOUBLE), DIMENSION(1) :: x,xp
+         INTEGER(C_INT), INTENT(in), VALUE :: maxn, plane_idx, norm_flag
        end function tunenaff
     end interface
     
