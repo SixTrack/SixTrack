@@ -29622,7 +29622,7 @@ subroutine trauthck(nthinerr)
     stracks(i)=zero
   end do
 +ca beams1
-  do i=1,iu
+  do 290 i=1,iu
     if(mout2.eq.1.and.i.eq.1) call write4
     ix=ic(i)
     if(ix.le.nblo) then
@@ -29634,23 +29634,23 @@ subroutine trauthck(nthinerr)
       end do
       if(abs(strack(i)).le.pieni) ktrack(i)=31
       !Non-linear/NOT BLOC
-      cycle
+      goto 290
     end if
     ix=ix-nblo
     kpz=abs(kp(ix))
     if(kpz.eq.6) then
       ktrack(i)=2
-      cycle
+      goto 290
     end if
     kzz=kz(ix)
     if(kzz.eq.0) then
       ktrack(i)=31
-      cycle
+      goto 290
     else if(kzz.eq.12) then
       ! Disabled cavity; enabled cavities have kp=6 and are handled above
       ! Note: kz=-12 is transformed into +12 in daten after reading ENDE.
       ktrack(i)=31
-      cycle
+      goto 290
     end if
 +ca beams21
 +ca beamcoo
@@ -29822,7 +29822,7 @@ subroutine trauthck(nthinerr)
           end if
         end if
       end if
-      if(abs(r0).le.pieni.or.nmz.eq.0) cycle
+      if(abs(r0).le.pieni.or.nmz.eq.0) goto 290
       if(mout2.eq.1) then
         benkcc=ed(ix)*benkc(irm(ix))
         r0a=one
@@ -29855,7 +29855,7 @@ subroutine trauthck(nthinerr)
         end do
       end if
     case (12,13,14,15,16,17,18,19,20,21,22,23)
-      cycle
+      goto 290
     case (24) ! DIPEDGE ELEMENT
 +ca stra2dpe
       ktrack(i) = 55
@@ -29940,8 +29940,6 @@ subroutine trauthck(nthinerr)
     case default
       ktrack(i) = 31
     end select
-  end do
-  
 290 continue ! Label is still needed as it is referenced in some of the ca blocks
   
   do j=1,napx
