@@ -43675,26 +43675,23 @@ end subroutine subre
       end
 
 +dk subsea
-      subroutine subsea(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DRIVINGTERMS OF RESONANCES INCLUDING SUBRESONANCE
 !  USED FOR SEARCH
 !-----------------------------------------------------------------------
-      use floatPrecision
+subroutine subsea(dpp)
+  
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,    &
-     &l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,   &
-     &np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
-      real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,   &
-     &chy,ci,cikve,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dphi,dpp,  &
-     &dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,phy,pie, &
-     &puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,    &
-     &vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
+  use mathlib_bouncer
+  implicit none
+  integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,&
+          nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
+  real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,chy,ci,cikve,cr,crkve,cxzi,cxzr,&
+          cxzyi,cxzyr,cxzyrr,del,dphi,dpp,dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,&
+          phy,pie,puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
 +if tilt
-      real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
-     &tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
+  real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
 +ca parpro
 +ca common
@@ -43915,79 +43912,59 @@ end subroutine subre
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-        if(kzz.lt.0) goto 350
-        goto(220,230,240,250,260,270,280,290,300,310,320,740,740,740,   &
-     &      740,740,740,740,740,740,740,740,740,315,316,740,740,740),kzz
-        goto 740
-!--HORIZONTAL DIPOLE
-  220   ekk=ekk*c1e3
+      
+      select case (kzz)
+      case (1) ! HORIZONTAL DIPOLE
+        ekk=ekk*c1e3
 +ca kicka01h
-        goto 460
-!--NORMAL QUADRUPOLE
-  230   continue
+      case (2) ! NORMAL QUADRUPOLE
 +ca kicka02h
-        goto 460
-!--NORMAL SEXTUPOLE
-  240   ekk=ekk*c1m3
+      case (3) ! NORMAL SEXTUPOLE
+        ekk=ekk*c1m3
 +ca kicka03h
-        goto 460
-!--NORMAL OCTUPOLE
-  250   ekk=ekk*c1m6
+      case (4) ! NORMAL OCTUPOLE
+        ekk=ekk*c1m6
 +ca kicka04h
-        goto 460
-!--NORMAL DECAPOLE
-  260   ekk=ekk*c1m9
+      case (5) ! NORMAL DECAPOLE
+        ekk=ekk*c1m9
 +ca kicka05h
-        goto 460
-!--NORMAL DODECAPOLE
-  270   ekk=ekk*c1m12
+      case (6) ! NORMAL DODECAPOLE
+        ekk=ekk*c1m12
 +ca kicka06h
-        goto 460
-!--NORMAL 14-POLE
-  280   ekk=ekk*c1m15
+      case (7) ! NORMAL 14-POLE
+        ekk=ekk*c1m15
 +ca kicka07h
-        goto 460
-!--NORMAL 16-POLE
-  290   ekk=ekk*c1m18
+      case (8) ! NORMAL 16-POLE
+        ekk=ekk*c1m18
 +ca kicka08h
-        goto 460
-!--NORMAL 18-POLE
-  300   ekk=ekk*c1m21
+      case (9) ! NORMAL 18-POLE
+        ekk=ekk*c1m21
 +ca kicka09h
-        goto 460
-!--NORMAL 20-POLE
-  310   ekk=ekk*c1m24
+      case (10) ! NORMAL 20-POLE
+        ekk=ekk*c1m24
 +ca kicka10h
-        goto 460
-!--DIPEDGE ELEMENT
-  315   continue  
-+ca kickadpe
-        goto 460
-!--solenoid
-  316   continue  
-+ca kickaso1
-        goto 460
-  320   r0=ek(ix)
+      case (11)
+        r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
 +ca multl01
-            do 323 i=2,ium
+            do i=2,ium
 +ca multl02
-  323       continue
+            end do
           else
 +ca multl03
-          endif
-        endif
+          end if
+        end if
         if(abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
 +ca multl04
-            do 326 i=2,ium
+            do i=2,ium
 +ca multl05
-  326       continue
+            end do
           else
 +ca multl06
-          endif
-        endif
+          end if
+        end if
         mpe=9
         mx=0
         if(abs(r0).le.pieni) goto 740
@@ -43995,7 +43972,7 @@ end subroutine subre
         if(nmz.eq.0) then
           izu=izu+2*mmul
           goto 740
-        endif
+        end if
         im=irm(ix)
         r0a=one
         benkr=ed(ix)/(one+dpp)
@@ -44012,88 +43989,88 @@ end subroutine subre
         qv=zero
         lmin=3
         if(nmz.eq.1) lmin=2
-
+        
         do l=lmin,mmul
           cr(l)=zero
           ci(l)=zero
         end do
-
-        do 340 l=1,nmz
+        
+        do l=1,nmz
 +ca multl13
-  340   continue
+        end do
 +if tilt
 +ca multl07e
 +ei
         izu=(izu+2*mmul)-2*nmz                                           !hr06
-        goto 460
-!--SKEW ELEMENTS
-  350   kzz=-kzz
-        goto(360,370,380,390,400,410,420,430,440,450),kzz
+      case (12,13,14,15,16,17,18,19,20,21,22,23)
         goto 740
-!--VERTICAL DIPOLE
-  360   ekk=ekk*c1e3
+      case (24) ! DIPEDGE ELEMENT
++ca kickadpe
+      case (25) ! Solenoid
++ca kickaso1
+      case (26,27,28)
+        goto 740
+        
+        !-----------------
+        !--SKEW ELEMENTS--
+        !------------------
+      case (-1) ! VERTICAL DIPOLE
+        ekk=ekk*c1e3
 +ca kicka01v
-        goto 460
-!--SKEW QUADRUPOLE
-  370   continue
+      case (-2) ! SKEW QUADRUPOLE
 +ca kicka02v
-        goto 460
-!--SKEW SEXTUPOLE
-  380   ekk=ekk*c1m3
+      case (-3) ! SKEW SEXTUPOLE
+        ekk=ekk*c1m3
 +ca kicka03v
-        goto 460
-!--SKEW OCTUPOLE
-  390   ekk=ekk*c1m6
+      case (-4) ! SKEW OCTUPOLE
+        ekk=ekk*c1m6
 +ca kicka04v
-        goto 460
-!--SKEW DECAPOLE
-  400   ekk=ekk*c1m9
+      case (-5) ! SKEW DECAPOLE
+        ekk=ekk*c1m9
 +ca kicka05v
-        goto 460
-!--SKEW DODECAPOLE
-  410   ekk=ekk*c1m12
+      case (-6) ! SKEW DODECAPOLE
+        ekk=ekk*c1m12
 +ca kicka06v
-        goto 460
-!--SKEW 14-POLE
-  420   ekk=ekk*c1m15
+      case (-7) ! SKEW 14-POLE
+        ekk=ekk*c1m15
 +ca kicka07v
-        goto 460
-!--SKEW 16-POLE
-  430   ekk=ekk*c1m18
+      case (-8) ! SKEW 16-POLE
+        ekk=ekk*c1m18
 +ca kicka08v
-        goto 460
-!--SKEW 18-POLE
-  440   ekk=ekk*c1m21
+      case (-9) ! SKEW 18-POLE
+        ekk=ekk*c1m21
 +ca kicka09v
-        goto 460
-!--SKEW 20-POLE
-  450   ekk=ekk*c1m24
+      case (-10) ! SKEW 20-POLE
+        ekk=ekk*c1m24
 +ca kicka10v
-  460   continue
-        t(1,2)=t(1,2)+dyy1
-        t(1,4)=t(1,4)+dyy2
-        do 470 i=2,ium
-          if(kzz.eq.24) then
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
+        
+      case default
+        goto 740
+      end select
+      
+      t(1,2)=t(1,2)+dyy1
+      t(1,4)=t(1,4)+dyy2
+      do i=2,ium
+        if(kzz.eq.24) then
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
+          t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
-          else
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
-          endif
-  470   continue
-        do 480 l=1,2
-          ll=2*l
-          alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))     !hr06
-  480   continue
-        if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 740
-        if(mpe.lt.nta) goto 740
-        if(mpe.gt.nte) mpe=nte
-        if(nta.gt.2) goto 500
-        if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx  &
-     &.eq.5.or.mx.eq.6.or.mx.eq.7) goto 500
+        else
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
+          t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+        end if
+      end do
+      do l=1,2
+        ll=2*l
+        alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))     !hr06
+      end do
+      if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 740
+      if(mpe.lt.nta) goto 740
+      if(mpe.gt.nte) mpe=nte
+      if(nta.gt.2) goto 500
+      if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 500
 
 !-----------------------------------------------------------------------
 !  SKEW-QUADRUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -44420,8 +44397,10 @@ end subroutine subre
         np2=np2-2
         if(np2.ge.1) goto 750
   780 continue
-      return
-      end
+  
+  return
+
+end subroutine subsea
 
 +dk decoup
       subroutine decoup
