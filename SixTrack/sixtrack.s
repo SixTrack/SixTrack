@@ -42648,29 +42648,27 @@ end subroutine resex
       end
 
 +dk subre
-      subroutine subre(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
 !-----------------------------------------------------------------------
-      use floatPrecision
+subroutine subre(dpp)
+  
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      implicit none
-      integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,    &
-     &k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,mis,mm,mpe,mx,n2,n22,n2e,nf1,&
-     &nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,nv2, &
-     &nv21,nz2,dj
-      real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc,&
-     &chy,ci,cikve,clo0,clop0,cr,crkve,cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,&
-     &dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,ekk,    &
-     &ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,&
-     &r0a,radi,rc,re,re1,res,rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,&
-     &vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
+  use mathlib_bouncer
+  use crcoall
+  implicit none
+  
+  integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
+          mis,mm,mpe,mx,n2,n22,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,&
+          nv2,nv21,nz2,dj
+  real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc,chy,ci,cikve,clo0,clop0,cr,crkve,&
+          cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,&
+          ekk,ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,r0a,radi,rc,re,re1,res,&
+          rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
 +if tilt
-      real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,&
-     &tiltck5,tiltck6,tiltck8,tiltck10,tiltckuk,tiltsk,tiltsk1,tiltsk2, &
-     &tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
+  real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltck6,tiltck8,tiltck10,&
+          tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
 +ei
 +ca parpro
 +ca common
@@ -42843,9 +42841,8 @@ end subroutine resex
         write(lout,10030)
         write(lout,10040)
         write(lout,10030)
-        write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),     &
-     &phi(l),                                                           &
-     &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
+        write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l),&
+                          di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
 
 !--EP=EMITTANCE IN PI*MM*MRAD
         ep(1)=tam1**2/beta(1)                                            !hr06
@@ -42924,9 +42921,8 @@ end subroutine resex
               endif
               do i=1,ium
                 puf=t(i,ll-1)
-                t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a    &!hr06
-     &(jk,l,5)
-              t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6) !hr06
+                t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5)
+                t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6) !hr06
               enddo
             enddo
             do l=1,2
@@ -42977,93 +42973,72 @@ end subroutine resex
           izu=izu+1
           zs=zpl(ix)+zfz(izu)*zrms(ix)
 +ca alignl
-          if(kzz.lt.0) goto 400
-          goto(260,270,280,290,300,310,320,330,340,350,360,790,790,790, &
-     &      790,790,790,790,790,790,790,790,790,355,356,790,790,790),kzz
-          goto 790
 
-!--HORIZONTAL DIPOLE
-  260     ekk=ekk*c1e3
+        select case (kzz)
+        case (1) ! HORIZONTAL DIPOLE
+          ekk=ekk*c1e3
 +ca kicka01h
-          goto 510
-!--NORMAL QUADRUPOLE
-  270     continue
+        case (2) ! NORMAL QUADRUPOLE
 +ca kicka02h
-          goto 510
-!--NORMAL SEXTUPOLE
-  280     ekk=ekk*c1m3
+        case (3) ! NORMAL SEXTUPOLE
+          ekk=ekk*c1m3
 +ca kicka03h
-          goto 510
-!--NORMAL OCTUPOLE
-  290     ekk=ekk*c1m6
+        case (4) ! NORMAL OCTUPOLE
+          ekk=ekk*c1m6
 +ca kicka04h
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
-          goto 510
-!--NORMAL DECAPOLE
-  300     ekk=ekk*c1m9
+        case (5) ! NORMAL DECAPOLE
+          ekk=ekk*c1m9
 +ca kicka05h
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--NORMAL DODECAPOLE
-  310     ekk=ekk*c1m12
+        case (6) ! NORMAL DODECAPOLE
+          ekk=ekk*c1m12
 +ca kicka06h
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
-          goto 510
-!--NORMAL 14-POLE
-  320     ekk=ekk*c1m15
+        case (7) ! NORMAL 14-POLE
+          ekk=ekk*c1m15
 +ca kicka07h
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--NORMAL 16-POLE
-  330     ekk=ekk*c1m18
+        case (8) ! NORMAL 16-POLE
+          ekk=ekk*c1m18
 +ca kicka08h
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
-          goto 510
-!--NORMAL 18-POLE
-  340     ekk=ekk*c1m21
+        case (9) ! NORMAL 18-POLE
+          ekk=ekk*c1m21
 +ca kicka09h
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
           call detune(4,ab1(8),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--NORMAL 20-POLE
-  350     ekk=ekk*c1m24
+        case (10) ! NORMAL 20-POLE
+          ekk=ekk*c1m24
 +ca kicka10h
 +ca kispa10h
-          goto 510
-!--DIPEDGE ELEMENT
-  355     continue
-+ca kickadpe
-          goto 510
-!--solenoid
-  356     continue
-+ca kickaso1
-          goto 510
-  360     r0=ek(ix)
+        case (11)
+          r0=ek(ix)
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
 +ca multl01
-            do 363 i=2,ium
+              do i=2,ium
 +ca multl02
-  363       continue
+              end do
             else
 +ca multl03
-            endif
-          endif
+            end if
+          end if
           if(abs(dki(ix,2)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
 +ca multl04
-            do 366 i=2,ium
+              do i=2,ium
 +ca multl05
-  366       continue
+              end do
             else
 +ca multl06
-            endif
-          endif
+            end if
+          end if
           mpe=9
           mx=0
           if(abs(r0).le.pieni) goto 790
@@ -43071,7 +43046,7 @@ end subroutine resex
           if(nmz.eq.0) then
             izu=izu+2*mmul
             goto 790
-          endif
+          end if
           im=irm(ix)
           r0a=one
           benkr=ed(ix)/(one+dpp)
@@ -43088,106 +43063,103 @@ end subroutine resex
           qv=zero
           lmin=3
           if(nmz.eq.1) lmin=2
-
           do l=lmin,mmul
             aa(l)=zero
             bb(l)=zero
             cr(l)=zero
             ci(l)=zero
           end do
-
-          do 380 l=1,nmz
+          do l=1,nmz
 +ca multl13
-  380     continue
+          end do
 +if tilt
 +ca multl07e
 +ei
           izu=izu+2*mmul-2*nmz
-          do 390 iv=2,5
+          do iv=2,5
 +ca multl12
-  390     continue
-          goto 510
-!--SKEW ELEMENTS
-  400     kzz=-kzz
-          goto(410,420,430,440,450,460,470,480,490,500),kzz
+          end do
+        case (12,13,14,15,16,17,18,19,20,21,22,23)
           goto 790
-!--VERTICAL DIPOLE
-  410     ekk=ekk*c1e3
+        case (24) ! DIPEDGE ELEMENT
++ca kickadpe
+        case (25) ! Solenoid
++ca kickaso1
+        case (26,27,28)
+          goto 790
+        
+        !-----------------
+        !--SKEW ELEMENTS--
+        !-----------------
+        case (-1) ! VERTICAL DIPOLE
+          ekk=ekk*c1e3
 +ca kicka01v
-          goto 510
-!--SKEW QUADRUPOLE
-  420     continue
+        case (-2) ! SKEW QUADRUPOLE
 +ca kicka02v
-          goto 510
-!--SKEW SEXTUPOLE
-  430     ekk=ekk*c1m3
+        case (-3) ! SKEW SEXTUPOLE
+          ekk=ekk*c1m3
 +ca kicka03v
-          goto 510
-!--SKEW OCTUPOLE
-  440     ekk=ekk*c1m6
+        case (-4) ! SKEW OCTUPOLE
+          ekk=ekk*c1m6
 +ca kicka04v
-          goto 510
-!--SKEW DECAPOLE
-  450     ekk=ekk*c1m9
+        case (-5) ! SKEW DECAPOLE
+          ekk=ekk*c1m9
 +ca kicka05v
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--SKEW DODECAPOLE
-  460     ekk=ekk*c1m12
+        case (-6) ! SKEW DODECAPOLE
+          ekk=ekk*c1m12
 +ca kicka06v
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--SKEW 14-POLE
-  470     ekk=ekk*c1m15
+        case (-7) ! SKEW 14-POLE
+          ekk=ekk*c1m15
 +ca kicka07v
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--SKEW 16-POLE
-  480     ekk=ekk*c1m18
+        case (-8) ! SKEW 16-POLE
+          ekk=ekk*c1m18
 +ca kicka08v
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--SKEW 18-POLE
-  490     ekk=ekk*c1m21
+        case (-9) ! SKEW 18-POLE
+          ekk=ekk*c1m21
 +ca kicka09v
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
           call detune(4,ab1(8),ep,beta,dtu,dtup,dfac)
-          goto 510
-!--SKEW 20-POLE
-  500     ekk=ekk*c1m24
+        case (-10) ! SKEW 20-POLE
+          ekk=ekk*c1m24
 +ca kicka10v
 +ca kispa10v
-  510     continue
+        case default
+          goto 790
+        end select
+
           t(1,2)=t(1,2)+dyy1
           t(1,4)=t(1,4)+dyy2
-          do 520 i=2,ium
-          if(kzz.eq.24) then
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
+          do i=2,ium
+            if(kzz.eq.24) then
+              t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
+              t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 +ca phas1so1
 +ca phas2so1
 +ca phas3so1
-          else
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
-          endif
-  520     continue
+            else
+              t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
+              t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+            end if
+          end do
 
           do l=1,2
             ll=2*l
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             clop0(l)=t(1,ll)
           end do
-
+          
           if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 790
           if(mpe.lt.nta) goto 790
           if(mpe.gt.nte) mpe=nte
           if(nta.gt.2) goto 550
-          if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.  &
-     &mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 550
+          if(mx.eq.-1.or.mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or. mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 550
 
 !-----------------------------------------------------------------------
 !  SKEW-QUADRUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -43206,8 +43178,7 @@ end subroutine resex
           b(2,2)=sb1*sb2
           if(nta.gt.3) goto 570
           if(mpe.eq.2.or.(mpe.eq.9.and.nmz.le.2)) goto 700
-          if(mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx &
-     &.eq.6.or.mx.eq.7) goto 570
+          if(mx.eq.1.or.mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx .eq.6.or.mx.eq.7) goto 570
 
 !-----------------------------------------------------------------------
 !  REGULAR-SEXTUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -43226,8 +43197,7 @@ end subroutine resex
           b(2,3)=b2*sb1
           if(nta.gt.4) goto 590
           if(mpe.eq.3.or.(mpe.eq.9.and.nmz.le.3)) goto 700
-          if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx &
-     &.eq.7) goto 590
+          if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx .eq.7) goto 590
 
 !-----------------------------------------------------------------------
 !  REGULAR-OCTUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -43247,8 +43217,7 @@ end subroutine resex
           b(3,3)=b1*b2
           if(nta.gt.5) goto 610
           if(mpe.eq.4.or.(mpe.eq.9.and.nmz.le.4)) goto 700
-          if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7)      &
-     &goto 610
+          if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 610
 
 !-----------------------------------------------------------------------
 !  REGULAR-DEKAPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -43373,10 +43342,8 @@ end subroutine resex
 !--RE=DISTANCE FROM THE RESONANCE
               re(np,nv)=re1-real(ip(np,nv),fPrec)
               res=re(np,nv)/radi
-          chy(np,nv)=cos_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)* &
-     &pie*phi(2))-res*etl)                                                           !hr06
-          shy(np,nv)=sin_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)* &
-     &pie*phi(2))-res*etl)                                                           !hr06
+          chy(np,nv)=cos_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)*pie*phi(2))-res*etl) !hr06
+          shy(np,nv)=sin_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)*pie*phi(2))-res*etl) !hr06
   710       continue
   720     continue
           do 780 np=nta,mpe
@@ -43486,8 +43453,7 @@ end subroutine resex
         e(5,6)=e(5,5)*seb
         write(lout,10000)
         write(lout,10030)
-        write(lout,10010)nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),&
-     &di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
+        write(lout,10010)nr,'END     ',etl,zero,(beta(l),alfa(l),phi(l),di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
         write(lout,10030)
         write(lout,10110) etl,qwc(1),qwc(2)
         write(lout,10030)
@@ -43495,17 +43461,14 @@ end subroutine resex
           gtu1=gtu1+dtu(1,iv)
           gtu2=gtu2+dtu(2,iv)
   800   continue
-        write(lout,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu &
-     &(2,2),dtu(2,3),dtu(2,4),dtu(2,5),gtu2
+        write(lout,10150) dtu(1,2),dtu(1,3),dtu(1,4),dtu(1,5),gtu1, dtu (2,2),dtu(2,3),dtu(2,4),dtu(2,5),gtu2
 
         do i=1,2
           do j=1,5
             do l=0,4
               do k=0,4
-                if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write       &
-     &(lout,10160)
-                if(abs(dtup(i,j,k,l)).gt.pieni) write(lout,             &
-     &'(10X,G17.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
+                if(i.eq.2.and.j.eq.1.and.k.eq.1.and.l.eq.1) write (lout,10160)
+                if(abs(dtup(i,j,k,l)).gt.pieni) write(lout,'(10X,G17.10,3X,I2,2X,I2)') dtup(i,j,k,l),k,l
               end do
             end do
           end do
@@ -43536,12 +43499,10 @@ end subroutine resex
               nf1=nn1+i
               nf3=nkk-i+1
               nf4=nf3+nn2
-          vdt2=vdt1*e(nv1,nv2)/                                         &
-     &         real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec)             !hr06
+              vdt2=vdt1*e(nv1,nv2)/real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec) !hr06
               vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                 !hr06
               vdt4=vdt3
-              if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+                  &
-     &                         real(nn1*nv11,fPrec)*eb                   !hr06
+              if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea + real(nn1*nv11,fPrec)*eb  !hr06
               rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
               rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
   840       continue
@@ -43574,10 +43535,8 @@ end subroutine resex
             min1=-1
   890       min2=min1
             do 900 i=1,nkk
-             rtc(np,nv,np,1)=rtc(np,nv,np,1)+real(min2,fPrec)*          &
-     &rtc(np,nv,nph,i) !hr06
-             rts(np,nv,np,1)=rts(np,nv,np,1)+real(min2,fPrec)*          &
-     &rts(np,nv,nph,i) !hr06
+             rtc(np,nv,np,1)=rtc(np,nv,np,1)+real(min2,fPrec)*rtc(np,nv,nph,i) !hr06
+             rts(np,nv,np,1)=rts(np,nv,np,1)+real(min2,fPrec)*rts(np,nv,nph,i) !hr06
               min2=-min2
   900       continue
             nph=nph+2
@@ -43651,7 +43610,7 @@ end subroutine resex
 10010 format(1x,i4,1x,a8,1x,f8.2,1x,f7.3,1x, f7.2,1x,f6.2,1x,f6.2,1x,f6.&
      &2,1x,f6.3,1x,f6.2,1x,f6.3,1x, f7.2,1x,f6.2,1x,f6.2,1x,f6.2,1x,f6. &
      &3,1x,f6.2,1x,f6.3)
-      end
+end subroutine subre 
 
       subroutine detune(iv,ekk,ep,beta,dtu,dtup,dfac)
 !-----------------------------------------------------------------------
