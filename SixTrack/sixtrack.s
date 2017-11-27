@@ -18586,18 +18586,19 @@ subroutine envars(j,dpp,rv)
 end subroutine envars
 
 +dk envada
-      subroutine envada
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !      SPECIALLY PREPARED FOR NEW D.A. (SIX-DIMENSIONAL VERSION)
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
+subroutine envada
+  ! Replaced computed goto with select case, VKBO 27/11/2017
+  use floatPrecision
+  use mathlib_bouncer
   use numerical_constants
-      implicit none
-      integer i,ien,ih,ip,kz1,l,idaa
-      real(kind=fPrec) dare,result
+  implicit none
+  integer i,ien,ih,ip,kz1,l,idaa
+  real(kind=fPrec) dare,result
 +ca parpro
 +ca common
 +ca commons
@@ -18608,8 +18609,7 @@ end subroutine envars
 +if bnlelens
 +ca rhicelens
 +ei
-      save
-!-----------------------------------------------------------------------
+  save
 !FOX  B D ;
 +ca dainicom
 !FOX  D V DA INT FOKQ NORD NVAR ; D V DA INT WFHI NORD NVAR ;
@@ -18643,45 +18643,31 @@ end subroutine envars
 !-----------------------------------------------------------------------
 !FOX  DPD=ONE+DPDA ;
 !FOX  DPSQ=SQRT(DPD) ;
-      do 220 i=1,il
-        do ih=1,2
-          do ip=1,6
+  do i=1,il
+    do ih=1,2
+      do ip=1,6
 !FOX  ALDA(IH,IP)=ZERO ;
 !FOX  ASDA(IH,IP)=ZERO ;
-          end do
-        end do
-        if(abs(el(i)).le.pieni) goto 190
-        kz1=kz(i)+1
-!       goto(20,40,100,60,80,90,130,170,180),kz1
-        if (kz1.eq.1) goto 20
-        if (kz1.eq.2) goto 40
-        if (kz1.eq.3) goto 100
-        if (kz1.eq.4) goto 60
-        if (kz1.eq.5) goto 80
-        if (kz1.eq.6) goto 90
-        if (kz1.eq.7) goto 130
-        if (kz1.eq.8) goto 170
-        if (kz1.eq.9) goto 180
-        goto 220
-!-----------------------------------------------------------------------
-!  DRIFTLENGTH
-!-----------------------------------------------------------------------
-   20   do 30 l=1,2
-!FOX  ALDA(L,1)=ONE  ;
-!FOX  ALDA(L,2)=EL(I) ;
-!FOX  ALDA(L,3)=ZERO ;
-!FOX  ALDA(L,4)=ONE ;
-!FOX  ASDA(L,6)=-RV*ALDA(L,2)/C2E3 ;
-   30   continue
-!FOX  ASDA(1,1)=EL(I)*(ONE-RV)*C1E3 ;
-        goto 190
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET
-!  HORIZONTAL
-!-----------------------------------------------------------------------
-   40   ih=1
-   50   continue
-        if(abs(ed(i)).le.pieni) goto 20
+      end do
+    end do
+    
+    !-----------------------------------------------------------------------
+    if(abs(el(i)).le.pieni) goto 190
+    select case (kz(i))
+    case (0)
+      goto 20
+      
+    !-----------------------------------------------------------------------
+    !  RECTANGULAR MAGNET
+    !-----------------------------------------------------------------------
+    case (1,4)
+      if (kz(i) == 1) then
+        ih = 1
+      else
+        ih = 2
+      end if
+      ! HORIZONTAL
+      if(abs(ed(i)).le.pieni) goto 20
 !FOX  FOK=EL(I)*ED(I)/DPSQ ;
 !FOX  RHO=ONE/ED(I)*DPSQ ;
 !FOX  FOK1=SIN(FOK*HALF)/COS(FOK*HALF)/RHO ;
@@ -18710,9 +18696,9 @@ end subroutine envars
 !FOX  ASDA(IH,4)=AS4+TWO*AS6*FOK1 ;
 !FOX  ASDA(IH,5)=-RV*SM12/(C4E3*RHO*RHO)+AS6*FOK1*FOK1+FOK1*AS4  ;
 !FOX  ASDA(IH,6)=AS6 ;
-!--VERTIKAL
-        ih=ih+1
-        if(ih.gt.2) ih=1
+      ! VERTIKAL
+      ih=ih+1
+      if(ih.gt.2) ih=1
 !FOX  G=SIN(FOK*HALF)/COS(FOK*HALF)/RHO ;
 !FOX  GL=EL(I)*G ;
 !FOX  ALDA(IH,1)=ONE-GL ;
@@ -18723,12 +18709,166 @@ end subroutine envars
 !FOX  ASDA(IH,4)=-TWO*AS6*FOK1 ;
 !FOX  ASDA(IH,5)=AS6*FOK1*FOK1 ;
 !FOX  ASDA(IH,6)=AS6 ;
+      goto 190
+    case (2)
+      goto 100
+      
+    !-----------------------------------------------------------------------
+    !  SEKTORMAGNET
+    !-----------------------------------------------------------------------
+    case (3,5)
+      if (kz(i) == 3) then
+        ih = 1
+      else
+        ih = 2
+      end if
+      goto 70
+      
+    !-----------------------------------------------------------------------
+    !  COMBINED FUNCTION MAGNET
+    !-----------------------------------------------------------------------
+    case (6,7)
+      if (kz(i) == 6) then
+        ih = 0
+!FOX  FOKQ=EK(I) ;
+      else
+        ih=1
+!FOX  FOKQ=-EK(I) ;
+      end if
+      if(abs(ek(i)).le.pieni) then
+        ih=2
+        goto 70
+      end if
+      if(abs(ed(i)).le.pieni) goto 100
+      if(abs(ek(i)-ed(i)**2).le.pieni) goto 20                         !hr08
+!FOX  WF=ED(I)/DPSQ ;
+!FOX  FOK=FOKQ/DPD-WF*WF ;
+!FOX  AFOK=FOK ;
+    if(dare(afok).lt.zero) then
+!FOX  AFOK=-AFOK ;
+    end if
+!FOX  HI=SQRT(AFOK) ;
+!FOX  FI=HI*EL(I) ;
+    if(dare(fok).gt.zero) then
+      ! DEFOCUSSING
+      ih=ih+1
+!FOX  HP=EXP(FI) ;
+!FOX  HM=ONE/HP ;
+!FOX  HC=(HP+HM)*HALF ;
+!FOX  HS=(HP-HM)*HALF ;
+!FOX  ALDA(IH,1)=HC ;
+!FOX  ALDA(IH,2)=HS/HI ;
+!FOX  ALDA(IH,3)=HS*HI ;
+!FOX  ALDA(IH,4)=HC ;
+!FOX  WFA=WF/AFOK*(ONE-HC)/DPSQ ;
+!FOX  WFHI=WF/HI*HS/DPSQ ;
+!FOX  ALDA(IH,5)= WFA*DPDA*C1E3 ;
+!FOX  ALDA(IH,6)=-WFHI*DPDA*C1E3 ;
+!FOX  SM12=EL(I)-ALDA(IH,1)*ALDA(IH,2) ;
+!FOX  SM23=ALDA(IH,2)*ALDA(IH,3) ;
+!FOX  ASDA(IH,1)=(RV*(DPDA*DPDA/(FOUR*DPD)*SM12
+!FOX  +DPDA*(EL(I)-ALDA(IH,2)))/AFOK*WF*WF+EL(I)*(ONE-RV))*C1E3 ;
+!FOX  ASDA(IH,2)=-RV*(DPDA*WF/(TWO*DPSQ)*SM12-DPD*WFHI) ;
+!FOX  ASDA(IH,3)=RV*(DPDA*HALF/AFOK/DPD*ED(I)*SM23-DPD*WFA) ;
+!FOX  ASDA(IH,4)=-RV*SM23/C2E3 ;
+!FOX  ASDA(IH,5)=+RV*SM12*AFOK/C4E3 ;
+!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
+        ih=ih+1
+        if(ih.gt.2) ih=1
+!FOX  AEK=EK(I)/DPD ;
+        if(dare(aek).lt.zero) then
+!FOX  AEK=-AEK ;
+        end if
+!FOX  HI=SQRT(AEK) ;
+!FOX  FI=HI*EL(I) ;
+!FOX  SI=SIN(FI) ;
+!FOX  CO=COS(FI) ;
+!FOX  ALDA(IH,1)=CO ;
+!FOX  ALDA(IH,2)=SI/HI ;
+!FOX  ALDA(IH,3)=-SI*HI ;
+!FOX  ALDA(IH,4)=CO ;
+!FOX  ASDA(IH,4)=-RV*ALDA(IH,2)*ALDA(IH,3)/C2E3 ;
+!FOX  ASDA(IH,5)=-RV*(EL(I)-ALDA(IH,1)*ALDA(IH,2))*AEK/C4E3 ;
+!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
+      else
+        ih=ih+1
+!FOX  SI=SIN(FI) ;
+!FOX  CO=COS(FI) ;
+!FOX  WFA=WF/AFOK*(ONE-CO)/DPSQ ;
+!FOX  WFHI=WF/HI*SI/DPSQ ;
+!FOX  ALDA(IH,1)=CO ;
+!FOX  ALDA(IH,2)=SI/HI ;
+!FOX  ALDA(IH,3)=-SI*HI ;
+!FOX  ALDA(IH,4)=CO ;
+!FOX  ALDA(IH,5)=-WFA*DPDA*C1E3 ;
+!FOX  ALDA(IH,6)=-WFHI*DPDA*C1E3 ;
+!FOX  SM12=EL(I)-ALDA(IH,1)*ALDA(IH,2) ;
+!FOX  SM23=ALDA(IH,2)*ALDA(IH,3) ;
+!FOX  ASDA(IH,1)=(-RV*(DPDA*DPDA/(FOUR*DPD)*SM12+DPDA
+!FOX  *(EL(I)-ALDA(IH,2)))/AFOK*WF*WF+EL(I)*(ONE-RV))*C1E3 ;
+!FOX  ASDA(IH,2)=-RV*(DPDA*WF/(TWO*DPSQ)*SM12-DPD*WFHI) ;
+!FOX  ASDA(IH,3)=-RV*(DPDA*HALF/AFOK/DPD*ED(I)*SM23-DPD*WFA) ;
+!FOX  ASDA(IH,4)=-RV*SM23/C2E3 ;
+!FOX  ASDA(IH,5)=-RV*SM12*AFOK/C4E3 ;
+!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
+        ih=ih+1
+        if(ih.gt.2) ih=1
+!FOX  AEK=EK(I)/DPD ;
+        if(dare(aek).lt.zero) then
+!FOX  AEK=-AEK ;
+        end if
+!FOX  HI=SQRT(AEK) ;
+!FOX  FI=HI*EL(I) ;
+!FOX  HP=EXP(FI) ;
+!FOX  HM=ONE/HP ;
+!FOX  HC=(HP+HM)*HALF ;
+!FOX  HS=(HP-HM)*HALF ;
+!FOX  ALDA(IH,1)=HC ;
+!FOX  ALDA(IH,2)=EL(I) ;
+!FOX  ALDA(IH,2)=HS/HI ;
+!FOX  ALDA(IH,3)=HS*HI ;
+!FOX  ALDA(IH,4)=HC ;
+!FOX  ASDA(IH,4)=-RV*ALDA(IH,2)*ALDA(IH,3)/C2E3 ;
+!FOX  ASDA(IH,5)=+RV*(EL(I)-ALDA(IH,1)*ALDA(IH,2))*AEK/C4E3 ;
+!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
+      end if
+      goto 190
+      
+    !-----------------------------------------------------------------------
+    !  EDGE FOCUSSING
+    !-----------------------------------------------------------------------
+    case (8)
+!FOX  RHOI=ED(I)/DPSQ ;
+!FOX  FOK=RHOI*SIN(EL(I)*RHOI*HALF)/COS(EL(I)*RHOI*HALF) ;
+!FOX  ALDA(1,1)=ONE ;
+!FOX  ALDA(1,2)=ZERO ;
+!FOX  ALDA(1,3)=FOK ;
+!FOX  ALDA(1,4)=ONE ;
+!FOX  ALDA(2,1)=ONE ;
+!FOX  ALDA(2,2)=ZERO ;
+!FOX  ALDA(2,3)=-FOK ;
+!FOX  ALDA(2,4)=ONE ;
+      goto 190
+    end select
+    !-----------------------------------------------------------------------
+    cycle
+    
+!-----------------------------------------------------------------------
+!  DRIFTLENGTH
+!-----------------------------------------------------------------------
+   20   do 30 l=1,2
+!FOX  ALDA(L,1)=ONE  ;
+!FOX  ALDA(L,2)=EL(I) ;
+!FOX  ALDA(L,3)=ZERO ;
+!FOX  ALDA(L,4)=ONE ;
+!FOX  ASDA(L,6)=-RV*ALDA(L,2)/C2E3 ;
+   30   continue
+!FOX  ASDA(1,1)=EL(I)*(ONE-RV)*C1E3 ;
         goto 190
 !-----------------------------------------------------------------------
 !  SEKTORMAGNET
 !  HORIZONTAL
 !-----------------------------------------------------------------------
-   60   ih=1
    70   continue
         if(abs(ed(i)).le.pieni) goto 20
 !FOX  FOK=EL(I)*ED(I)/DPSQ ;
@@ -18761,16 +18901,6 @@ end subroutine envars
 !FOX  ALDA(IH,4)=ONE ;
 !FOX  ASDA(IH,6)=-RV*ALDA(IH,2)/C2E3 ;
         goto 190
-!-----------------------------------------------------------------------
-!  RECTANGULAR MAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   80   ih=2
-        goto 50
-!-----------------------------------------------------------------------
-!  SEKTORMAGNET VERTIKAL
-!-----------------------------------------------------------------------
-   90   ih=2
-        goto 70
 !-----------------------------------------------------------------------
 !  QUADRUPOLE
 !  FOCUSSING
@@ -18813,157 +18943,38 @@ end subroutine envars
         if(ih.eq.1) goto 110
         goto 190
 !-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET HORIZONTAL
-!  FOCUSSING
-!-----------------------------------------------------------------------
-  130   ih=0
-!FOX  FOKQ=EK(I) ;
-  140   continue
-        if(abs(ek(i)).le.pieni) goto 60
-        if(abs(ed(i)).le.pieni) goto 100
-        if(abs(ek(i)-ed(i)**2).le.pieni) goto 20                         !hr08
-!FOX  WF=ED(I)/DPSQ ;
-!FOX  FOK=FOKQ/DPD-WF*WF ;
-!FOX  AFOK=FOK ;
-      if(dare(afok).lt.zero) then
-!FOX  AFOK=-AFOK ;
-      endif
-!FOX  HI=SQRT(AFOK) ;
-!FOX  FI=HI*EL(I) ;
-        if(dare(fok).gt.zero) goto 160
-  150   ih=ih+1
-!FOX  SI=SIN(FI) ;
-!FOX  CO=COS(FI) ;
-!FOX  WFA=WF/AFOK*(ONE-CO)/DPSQ ;
-!FOX  WFHI=WF/HI*SI/DPSQ ;
-!FOX  ALDA(IH,1)=CO ;
-!FOX  ALDA(IH,2)=SI/HI ;
-!FOX  ALDA(IH,3)=-SI*HI ;
-!FOX  ALDA(IH,4)=CO ;
-!FOX  ALDA(IH,5)=-WFA*DPDA*C1E3 ;
-!FOX  ALDA(IH,6)=-WFHI*DPDA*C1E3 ;
-!FOX  SM12=EL(I)-ALDA(IH,1)*ALDA(IH,2) ;
-!FOX  SM23=ALDA(IH,2)*ALDA(IH,3) ;
-!FOX  ASDA(IH,1)=(-RV*(DPDA*DPDA/(FOUR*DPD)*SM12+DPDA
-!FOX  *(EL(I)-ALDA(IH,2)))/AFOK*WF*WF+EL(I)*(ONE-RV))*C1E3 ;
-!FOX  ASDA(IH,2)=-RV*(DPDA*WF/(TWO*DPSQ)*SM12-DPD*WFHI) ;
-!FOX  ASDA(IH,3)=-RV*(DPDA*HALF/AFOK/DPD*ED(I)*SM23-DPD*WFA) ;
-!FOX  ASDA(IH,4)=-RV*SM23/C2E3 ;
-!FOX  ASDA(IH,5)=-RV*SM12*AFOK/C4E3 ;
-!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
-        ih=ih+1
-        if(ih.gt.2) ih=1
-!FOX  AEK=EK(I)/DPD ;
-      if(dare(aek).lt.zero) then
-!FOX  AEK=-AEK ;
-      endif
-!FOX  HI=SQRT(AEK) ;
-!FOX  FI=HI*EL(I) ;
-!FOX  HP=EXP(FI) ;
-!FOX  HM=ONE/HP ;
-!FOX  HC=(HP+HM)*HALF ;
-!FOX  HS=(HP-HM)*HALF ;
-!FOX  ALDA(IH,1)=HC ;
-!FOX  ALDA(IH,2)=EL(I) ;
-!FOX  ALDA(IH,2)=HS/HI ;
-!FOX  ALDA(IH,3)=HS*HI ;
-!FOX  ALDA(IH,4)=HC ;
-!FOX  ASDA(IH,4)=-RV*ALDA(IH,2)*ALDA(IH,3)/C2E3 ;
-!FOX  ASDA(IH,5)=+RV*(EL(I)-ALDA(IH,1)*ALDA(IH,2))*AEK/C4E3 ;
-!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
-        goto 190
-!--DEFOCUSSING
-  160   ih=ih+1
-!FOX  HP=EXP(FI) ;
-!FOX  HM=ONE/HP ;
-!FOX  HC=(HP+HM)*HALF ;
-!FOX  HS=(HP-HM)*HALF ;
-!FOX  ALDA(IH,1)=HC ;
-!FOX  ALDA(IH,2)=HS/HI ;
-!FOX  ALDA(IH,3)=HS*HI ;
-!FOX  ALDA(IH,4)=HC ;
-!FOX  WFA=WF/AFOK*(ONE-HC)/DPSQ ;
-!FOX  WFHI=WF/HI*HS/DPSQ ;
-!FOX  ALDA(IH,5)= WFA*DPDA*C1E3 ;
-!FOX  ALDA(IH,6)=-WFHI*DPDA*C1E3 ;
-!FOX  SM12=EL(I)-ALDA(IH,1)*ALDA(IH,2) ;
-!FOX  SM23=ALDA(IH,2)*ALDA(IH,3) ;
-!FOX  ASDA(IH,1)=(RV*(DPDA*DPDA/(FOUR*DPD)*SM12
-!FOX  +DPDA*(EL(I)-ALDA(IH,2)))/AFOK*WF*WF+EL(I)*(ONE-RV))*C1E3 ;
-!FOX  ASDA(IH,2)=-RV*(DPDA*WF/(TWO*DPSQ)*SM12-DPD*WFHI) ;
-!FOX  ASDA(IH,3)=RV*(DPDA*HALF/AFOK/DPD*ED(I)*SM23-DPD*WFA) ;
-!FOX  ASDA(IH,4)=-RV*SM23/C2E3 ;
-!FOX  ASDA(IH,5)=+RV*SM12*AFOK/C4E3 ;
-!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
-        ih=ih+1
-        if(ih.gt.2) ih=1
-!FOX  AEK=EK(I)/DPD ;
-      if(dare(aek).lt.zero) then
-!FOX  AEK=-AEK ;
-      endif
-!FOX  HI=SQRT(AEK) ;
-!FOX  FI=HI*EL(I) ;
-!FOX  SI=SIN(FI) ;
-!FOX  CO=COS(FI) ;
-!FOX  ALDA(IH,1)=CO ;
-!FOX  ALDA(IH,2)=SI/HI ;
-!FOX  ALDA(IH,3)=-SI*HI ;
-!FOX  ALDA(IH,4)=CO ;
-!FOX  ASDA(IH,4)=-RV*ALDA(IH,2)*ALDA(IH,3)/C2E3 ;
-!FOX  ASDA(IH,5)=-RV*(EL(I)-ALDA(IH,1)*ALDA(IH,2))*AEK/C4E3 ;
-!FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
-        goto 190
-!-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET VERTICAL
-!-----------------------------------------------------------------------
-  170   ih=1
-!FOX  FOKQ=-EK(I) ;
-        goto 140
-!-----------------------------------------------------------------------
-!  EDGE FOCUSSING
-!-----------------------------------------------------------------------
-  180   continue
-!FOX  RHOI=ED(I)/DPSQ ;
-!FOX  FOK=RHOI*SIN(EL(I)*RHOI*HALF)/COS(EL(I)*RHOI*HALF) ;
-!FOX  ALDA(1,1)=ONE ;
-!FOX  ALDA(1,2)=ZERO ;
-!FOX  ALDA(1,3)=FOK ;
-!FOX  ALDA(1,4)=ONE ;
-!FOX  ALDA(2,1)=ONE ;
-!FOX  ALDA(2,2)=ZERO ;
-!FOX  ALDA(2,3)=-FOK ;
-!FOX  ALDA(2,4)=ONE ;
-        goto 190
-!-----------------------------------------------------------------------
 !   NONLINEAR INSERTION
 !-----------------------------------------------------------------------
-  190   continue
-        do ih=1,2
-          do ip=1,6
-            do ien=1,nord+1
-              if (nvar2.eq.5) then
-                call dapri6(alda(ih,ip),result,ien,5)
-                ald6(i,ih,ip,ien) = result
-                call dapri6(asda(ih,ip),result,ien,5)
-                asd6(i,ih,ip,ien) = result
-              else if (nvar2.eq.6) then
-                call dapri6(alda(ih,ip),result,ien,6)
-                ald6(i,ih,ip,ien) = result
-                call dapri6(asda(ih,ip),result,ien,6)
-                asd6(i,ih,ip,ien) = result
-              else if (nvar2.eq.4) then
-                call dapri6(alda(ih,ip),result,ien,4)
-                ald6(i,ih,ip,ien) = result
-                call dapri6(asda(ih,ip),result,ien,4)
-                asd6(i,ih,ip,ien) = result
-              endif
-            end do
+  190 continue
+      do ih=1,2
+        do ip=1,6
+          do ien=1,nord+1
+            if (nvar2.eq.5) then
+              call dapri6(alda(ih,ip),result,ien,5)
+              ald6(i,ih,ip,ien) = result
+              call dapri6(asda(ih,ip),result,ien,5)
+              asd6(i,ih,ip,ien) = result
+            else if (nvar2.eq.6) then
+              call dapri6(alda(ih,ip),result,ien,6)
+              ald6(i,ih,ip,ien) = result
+              call dapri6(asda(ih,ip),result,ien,6)
+              asd6(i,ih,ip,ien) = result
+            else if (nvar2.eq.4) then
+              call dapri6(alda(ih,ip),result,ien,4)
+              ald6(i,ih,ip,ien) = result
+              call dapri6(asda(ih,ip),result,ien,4)
+              asd6(i,ih,ip,ien) = result
+            endif
           end do
         end do
-  220 continue
-!     DADAL AUTOMATIC INCLUSION
-      return
-      end
+      end do
+    end do
+    ! DADAL AUTOMATIC INCLUSION
+    
+  return
+  
+end subroutine envada
+
       subroutine envquad(i,ipch)
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
