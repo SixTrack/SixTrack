@@ -51,6 +51,7 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
   collimation_k2_fcc_2017_h1_collision
+  dump_all_highprec
   )
 
 if(NOT COLLIMAT)
@@ -147,6 +148,7 @@ if(NOT COLLIMAT)
           rfMultipoles_4thOrder
           last_amp
           scatter_bbelastic
+          dump_all_highprec
           ${SIXTRACK_TESTS}
         )
 
