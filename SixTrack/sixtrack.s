@@ -25643,44 +25643,42 @@ end subroutine trauthin
 !!  TRACK THIN LENS 4D
 !!  F. SCHMIDT
 !<
-      subroutine thin4d(nthinerr)
-      use floatPrecision
-      use physical_constants
+subroutine thin4d(nthinerr)
+  ! Replaced computed goto with select case. VKBO 27/11/2017
+  use floatPrecision
+  use physical_constants
   use numerical_constants
-      use mathlib_bouncer
+  use mathlib_bouncer
 +if datamods
-      use bigmats
+  use bigmats
 +ei
-      use dynk, only : ldynk, dynk_apply
-
-      use dump, only : dump_linesFirst, dump_lines, ldumpfront
-      
+  use dynk, only : ldynk, dynk_apply
+  use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! import mod_fluka
+  ! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
 +ei
-      use postprocessing, only : writebin
-      use crcoall
-      implicit none
+  use postprocessing, only : writebin
+  use crcoall
+  implicit none
 +ca exactvars
 +ca commonex
-      integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
-      real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
-     &crxb,crzb,dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb, &
-     &yv1j,yv2j,zbb,zlvj,zrb
+  integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
+  real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,&
+          r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
-      integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      real(kind=fPrec) e0fo,e0o,xv1j,xv2j
-      real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,                &
-     &acdipamp1, crabamp, crabfreq
+  integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
+  real(kind=fPrec) e0fo,e0o,xv1j,xv2j
+  real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1, crabamp, crabfreq
 +ca wiretracktmp
-      logical llost
-
+  logical llost
+  
 +if time
-      real(kind=fPrec) expt
+  real(kind=fPrec) expt
 +ei
 
 +ca common
@@ -25699,7 +25697,7 @@ end subroutine trauthin
 +ca crco
 +ei
 
-      dimension dpsv3(npart)
+  dimension dpsv3(npart)
 
 +if bnlelens
 +ca rhicelens
@@ -25713,13 +25711,13 @@ end subroutine trauthin
 +ca dbdcum
 +ca comApeInfo
 
-      save
-!-----------------------------------------------------------------------
-      nthinerr=0
+  save
+
+  nthinerr=0
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      totals=zero
+  totals=zero
 +ca bnlin
 !GRDRHIC
 !GRD-042008
@@ -25729,218 +25727,202 @@ end subroutine trauthin
 +ca backtrkinit
 +ei
 +if fluka
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     initialise napxto
-!     inserted in main code by the 'fluka' compilation flag
-      napxto = 0
+  ! A.Mereghetti, for the FLUKA Team
+  ! last modified: 14-06-2014
+  ! initialise napxto
+  ! inserted in main code by the 'fluka' compilation flag
+  napxto = 0
 +ei
 
 +if cr
-      if (restart) then
-        call crstart
-        write(93,*)                                                     &
-     &'THIN4D SIXTRACR restart numlcr',numlcr,'numl',numl
-      endif
+  if (restart) then
+    call crstart
+    write(93,*) 'THIN4D SIXTRACR restart numlcr',numlcr,'numl',numl
+  end if
 ! and now reset numl to do only numlmax turns
-      nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
+  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
-      if (nnuml.ne.numl) then
-        do j=1,napx
-          if (numxv(j).eq.numl) numxv(j)=nnuml
-          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-        enddo
-      endif
-      do 640, n=numlcr,nnuml
+  if (nnuml.ne.numl) then
+    do j=1,napx
+      if (numxv(j).eq.numl) numxv(j)=nnuml
+      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+    end do
+  end if
+  do 640, n=numlcr,nnuml
 +ei
 +if .not.cr
-      do 640 n=1,numl !loop over turns
+  do 640 n=1,numl !loop over turns
 +ei
 +if boinc
-!        call boinc_sixtrack_progress(n,numl)
-        call boinc_fraction_done(dble(n)/dble(numl))
-        continue
-!       call graphic_progress(n,numl)
+    ! call boinc_sixtrack_progress(n,numl)
+    call boinc_fraction_done(dble(n)/dble(numl))
+    continue
+    ! call graphic_progress(n,numl)
 +ei
-        numx=n-1
+    numx=n-1
 
 +if .not.fluka
-        if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-        if(nthinerr.ne.0) return
+    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
+    if(nthinerr.ne.0) return
 +ei
 
 +if cr
-!  does not call CRPOINT if restart=.true.
-!  (and note that writebin does nothing if restart=.true.
-          if(mod(numx,numlcp).eq.0) call callcrp()
-          restart=.false.
+    ! does not call CRPOINT if restart=.true.
+    ! (and note that writebin does nothing if restart=.true.
+    if(mod(numx,numlcp).eq.0) call callcrp()
+    restart=.false.
 +ei
 
-!       A.Mereghetti, for the FLUKA Team
-!       last modified: 03-09-2014
-!       apply dynamic kicks
-!       always in main code
-        if ( ldynk ) then
-           call dynk_apply(n)
-        endif
+    ! A.Mereghetti, for the FLUKA Team
+    ! last modified: 03-09-2014
+    ! apply dynamic kicks
+    ! always in main code
+    if ( ldynk ) then
+      call dynk_apply(n)
+    end if
+    call dump_linesFirst(n)
         
-        call dump_linesFirst(n)
-        
-        ! loop over structure elements, single element: name + type + parameter,
-        ! structure element = order of single elements/blocks
-        do 630 i=1,iu
+    ! loop over structure elements, single element: name + type + parameter,
+    ! structure element = order of single elements/blocks
+    do 630 i=1,iu
 +if bnlelens
 +ca bnltwiss
 +ei
-          ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
-          ! as no dependency on ix in this case.
-          ix=ic(i)-nblo ! ix = index of single element
+      ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
+      ! as no dependency on ix in this case.
+      ix=ic(i)-nblo ! ix = index of single element
 !Should this be inside "if ktrack .ne. 1"? (time/bpm)
 +if bpm
 +ca bpmdata
 +ei bpm
 
       if (ldumpfront) then
-         call dump_lines(n,i,ix)
-      endif
+        call dump_lines(n,i,ix)
+      end if
 
 +if time
 +ca timefct
 +ei
 
 +if fluka
-!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!         last modified: 17-07-2013
-!         is the current entry an instance of a FLUKA element?
-!         inserted in main code by the 'fluka' compilation flag
-          if (fluka_enable) then
-            if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
-                                    !      be SINGLE ELEMENTs
-              if(fluka_type(ix).ne.FLUKA_NONE) then
-                if(fluka_type(ix).eq.FLUKA_ELEMENT) then
-                  call kernel_fluka_element( n, i, ix )
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! is the current entry an instance of a FLUKA element?
+      ! inserted in main code by the 'fluka' compilation flag
+      if (fluka_enable) then
+        if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
+                                !      be SINGLE ELEMENTs
+          if(fluka_type(ix).ne.FLUKA_NONE) then
+            if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+              call kernel_fluka_element( n, i, ix )
 +if backtrk
 +ca backtrksave
 +ei
-                  goto 620
-                else if(fluka_type(ix).eq.FLUKA_ENTRY) then
-                  fluka_inside = .true.
-                  call kernel_fluka_entrance( n, i, ix )
-                  goto 625
-                else if(fluka_type(ix).eq.FLUKA_EXIT) then
-                  fluka_inside = .false.
-                  call kernel_fluka_exit( n, i, ix )
+              goto 620
+            else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+              fluka_inside = .true.
+              call kernel_fluka_entrance( n, i, ix )
+              goto 625
+            else if(fluka_type(ix).eq.FLUKA_EXIT) then
+              fluka_inside = .false.
+              call kernel_fluka_exit( n, i, ix )
 +if backtrk
 +ca backtrksave
 +ei
-                  goto 620
-                end if
-              end if
+              goto 620
             end if
-            if(fluka_inside) then
-              if(fluka_debug) then
-                write(lout,*) '[Fluka] Skipping lattice element at ', i
-                write(fluka_log_unit,*)                                 &
-     &'# Skipping lattice element at ', i
-              end if
-              goto 630
-            end if
-          endif
-+ei
-
-          goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630,       &!1-10
-     &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210,       &!11-20
-     &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600,       &!21-30
-     &         620, 390, 230,  250, 270, 290, 310, 330, 350, 370,       &!31-40
-     &         680, 700, 720,  630, 748, 630, 630, 630, 630, 630,       &!41-50
-     &         745, 746, 751,  752, 753, 754, 630, 630, 630, 630,       &!51-60
-     &         630, 630, 761),ktrack(i) ! 630 = skip element
+          end if
+        end if
+        if(fluka_inside) then
+          if(fluka_debug) then
+            write(lout,*) '[Fluka] Skipping lattice element at ', i
+            write(fluka_log_unit,*) '# Skipping lattice element at ', i
+          end if
           goto 630
-   10     stracki=strack(i) 
-          if(iexact.eq.0) then ! exact drift?
-            do j=1,napx
-              xv(1,j)=xv(1,j)+stracki*yv(1,j)
-              xv(2,j)=xv(2,j)+stracki*yv(2,j)
-            enddo
-          else
+        end if
+      end if
++ei
+      select case (ktrack(i))
+      case (1)
+        stracki=strack(i) 
+        if(iexact.eq.0) then ! exact drift?
+          do j=1,napx
+            xv(1,j)=xv(1,j)+stracki*yv(1,j)
+            xv(2,j)=xv(2,j)+stracki*yv(2,j)
+          end do
+        else
 +ca ex4Ddrift
-          endif
+        end if
 +if backtrk
 +ca backtrksave
 +ei
-          goto 630
-!--HORIZONTAL DIPOLE
-   30     do 40 j=1,napx
+        goto 630
+      case (3)
++ca trom40
++ca trom42
+        goto 620
+      case (2,4,5,6,7,8,9,10)
+        goto 630
+      case (11) ! HORIZONTAL DIPOLE
+        do j=1,napx
 +ca kickv01h ! astuce block with kick for element
-   40     continue
-          goto 620
-!--NORMAL QUADRUPOLE
-   50     do 60 j=1,napx
+        end do
+        goto 620
+      case (12) ! NORMAL QUADRUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvxxh
-   60     continue
-          goto 620
-!--NORMAL SEXTUPOLE
-   70     do 80 j=1,napx
+        end do
+        goto 620
+      case (13) ! NORMAL SEXTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvxxh
-   80     continue
-          goto 620
-!--NORMAL OCTUPOLE
-   90     do 100 j=1,napx
-+ca alignva
-+ca kickvho
-+ca kickvho
-+ca kickvxxh
-  100     continue
-          goto 620
-!--NORMAL DECAPOLE
-  110     do 120 j=1,napx
+        end do
+        goto 620
+      case (14) ! NORMAL OCTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  120     continue
-          goto 620
-!--NORMAL DODECAPOLE
-  130     do 140 j=1,napx
+        end do
+        goto 620
+      case (15) ! NORMAL DECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  140     continue
-          goto 620
-!--NORMAL 14-POLE
-  150     do 160 j=1,napx
+        end do
+        goto 620
+      case (16) ! NORMAL DODECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  160     continue
-          goto 620
-!--NORMAL 16-POLE
-  170     do 180 j=1,napx
+        end do
+        goto 620
+      case (17) ! NORMAL 14-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  180     continue
-          goto 620
-!--NORMAL 18-POLE
-  190     do 200 j=1,napx
+        end do
+        goto 620
+      case (18) ! NORMAL 16-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -25948,12 +25930,11 @@ end subroutine trauthin
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  200     continue
-          goto 620
-!--NORMAL 20-POLE
-  210     do 220 j=1,napx
+        end do
+        goto 620
+      case (19) ! NORMAL 18-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -25962,141 +25943,81 @@ end subroutine trauthin
 +ca kickvho
 +ca kickvho
 +ca kickvho
++ca kickvxxh
+        end do
+        goto 620
+      case (20) ! NORMAL 20-POLE
+        do j=1,napx
++ca alignva
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
 +ca kickvho
 +ca kickvxxh
-  220     continue
-          goto 620
-  230     continue
-          do 240 j=1,napx
-+ca alignvb
-+ca mul4v01
-  240     continue
-          goto 620
-  250     continue
-          do 260 j=1,napx
-+ca alignvb
-+ca mul4v01
-  260     continue
-          goto 390
-  270     continue
-          do 280 j=1,napx
-+ca mul4v02
-  280     continue
-          goto 620
-  290     continue
-          do 300 j=1,napx
-+ca mul4v02
-  300     continue
-          goto 390
-  310     continue
-          do 320 j=1,napx
-+ca alignvb
-+ca mul4v03
-  320     continue
-          goto 620
-  330     continue
-          do 340 j=1,napx
-+ca alignvb
-+ca mul4v03
-  340     continue
-          goto 390
-  350     continue
-          do 360 j=1,napx
-+ca mul4v04
-  360     continue
-          goto 620
-  370     continue
-          do 380 j=1,napx
-+ca mul4v04
-  380     continue
-  390     r0=ek(ix)
-          nmz=nmu(ix)
-          if(nmz.ge.2) then
-            do 410 j=1,napx
-+ca alignvb
-+ca mul4v05
-                do 400 k=3,nmz
-+ca mul4v06
-  400           continue
-+ca mul4v07
-  410       continue
-          else
-            do 415 j=1,napx
-+ca mul4v08
-  415       continue
-          endif
-          goto 620
-!--SKEW ELEMENTS
-!--VERTICAL DIPOLE
-  420     do 430 j=1,napx
+        end do
+        goto 620
+      case (21) ! VERTICAL DIPOLE
+        do j=1,napx
 +ca kickv01v
-  430     continue
-          goto 620
-!--SKEW QUADRUPOLE
-  440     do 450 j=1,napx
+        end do
+        goto 620
+      case (22) ! SKEW QUADRUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvxxv
-  450     continue
-          goto 620
-!--SKEW SEXTUPOLE
-  460     do 470 j=1,napx
+        end do
+        goto 620
+      case (23) ! SKEW SEXTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvxxv
-  470     continue
-          goto 620
-!--SKEW OCTUPOLE
-  480     do 490 j=1,napx
-+ca alignva
-+ca kickvho
-+ca kickvho
-+ca kickvxxv
-  490     continue
-          goto 620
-!--SKEW DECAPOLE
-  500     do 510 j=1,napx
+        end do
+        goto 620
+      case (24) ! SKEW OCTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  510     continue
-          goto 620
-!--SKEW DODECAPOLE
-  520     do 530 j=1,napx
+        end do
+        goto 620
+      case (25) ! SKEW DECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  530     continue
-          goto 620
-!--SKEW 14-POLE
-  540     do 550 j=1,napx
+        end do
+        goto 620
+      case (26) ! SKEW DODECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  550     continue
-          goto 620
-!--SKEW 16-POLE
-  560     do 570 j=1,napx
+        end do
+        goto 620
+      case (27) ! SKEW 14-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  570     continue
-          goto 620
-!--SKEW 18-POLE
-  580     do 590 j=1,napx
+        end do
+        goto 620
+      case (28) ! SKEW 16-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -26104,12 +26025,11 @@ end subroutine trauthin
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  590     continue
-          goto 620
-!--SKEW 20-POLE
-  600     do 610 j=1,napx
+        end do
+        goto 620
+      case (29) ! SKEW 18-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -26118,21 +26038,75 @@ end subroutine trauthin
 +ca kickvho
 +ca kickvho
 +ca kickvho
++ca kickvxxv
+        end do
+        goto 620
+      case (30) ! SKEW 20-POLE
+        do j=1,napx
++ca alignva
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
 +ca kickvho
 +ca kickvxxv
-  610     continue
-          goto 620
-  680     continue
-          do 690 j=1,napx
-+ca beamco
-+ca beamr1
-     &goto 690
-+ca beamr2
-+ca beamr3
-  690     continue
-          goto 620
-  700     continue
-          if(ibtyp.eq.0) then
+        end do
+        goto 620
+      case (31)
+        goto 620
+      case (32)
+        goto 390
+      case (33)
+        do j=1,napx
++ca alignvb
++ca mul4v01
+        end do
+        goto 620
+      case (34)
+        do j=1,napx
++ca alignvb
++ca mul4v01
+        end do
+        goto 390
+      case (35)
+        do j=1,napx
++ca mul4v02
+        end do
+        goto 620
+      case (36)
+        do j=1,napx
++ca mul4v02
+        end do
+        goto 390
+      case (37)
+        do j=1,napx
++ca alignvb
++ca mul4v03
+        end do
+        goto 620
+      case (38)
+        do j=1,napx
++ca alignvb
++ca mul4v03
+        end do
+        goto 390
+      case (39)
+        do j=1,napx
++ca mul4v04
+        end do
+        goto 620
+      case (40)
+        do j=1,napx
++ca mul4v04
+        end do
+        goto 390
+      case (41)
+        goto 680
+      case (42)
+        if(ibtyp.eq.0) then
 +ca beam11
 +ca beama1
 +ca beamco
@@ -26141,7 +26115,7 @@ end subroutine trauthin
 +ca beama3
 +ca beam13
 +ca beama4
-          else if(ibtyp.eq.1) then
+        else if(ibtyp.eq.1) then
 +ca beam11
 +ca beama1
 +ca beamco
@@ -26149,10 +26123,10 @@ end subroutine trauthin
 +ca beama3
 +ca beamwzf1
 +ca beama4
-          endif
-          goto 620
-  720     continue
-          if(ibtyp.eq.0) then
+        end if
+        goto 620
+      case (43)
+        if(ibtyp.eq.0) then
 +ca beam21
 +ca beama1
 +ca beamco
@@ -26161,7 +26135,7 @@ end subroutine trauthin
 +ca beama3
 +ca beam23
 +ca beama4
-          else if(ibtyp.eq.1) then
+        else if(ibtyp.eq.1) then
 +ca beam21
 +ca beama1
 +ca beamco
@@ -26169,97 +26143,118 @@ end subroutine trauthin
 +ca beama3
 +ca beamwzf2
 +ca beama4
-          endif
-          goto 620
-  740     continue
-+ca trom40
-+ca trom42
-          goto 620
-  745     continue
-          xory=1
+        end if
+        goto 620
+      case (44,46,47,48,49,50,57,58,59,60,61,62)
+        goto 630
+      case (45) ! Wire
++ca wirekick
+        goto 620
+      case (51)
+        xory=1
 +ca acdipkick
-          goto 620
-  746     continue
-          xory=2
+        goto 620
+      case (52)
+        xory=2
 +ca acdipkick
-          goto 620
-  751     continue
-          xory=1
+        goto 620
+      case (53)
+        xory=1
 +ca crabkick
-          goto 620
-  752     continue
-          xory=2
+        goto 620
+      case (54)
+        xory=2
 +ca crabkick
-          goto 620
-!--DIPEDGE ELEMENT
-  753      continue
-         do j=1,napx
+        goto 620
+      case (55) ! DIPEDGE ELEMENT
+        do j=1,napx
 +ca alignva
 +ca kickvdpe
-         enddo
-          goto 620
-!--solenoid
-  754      continue
-         do j=1,napx
+        end do
+        goto 620
+      case (56) ! Solenoid
+        do j=1,napx
 +ca kickvso1
-         enddo
-          goto 620
-!--elens
-  761      continue
-         do j=1,napx
+        end do
+        goto 620
+      case (63) ! Elens
+        do j=1,napx
 +ca kickelens
-         enddo
-          goto 620
-!--Wire
+        end do
+        goto 620
+      end select
+      goto 630
 
-  748     continue
-+ca wirekick
-  750     continue
-          goto 620
+390   r0=ek(ix)
+      nmz=nmu(ix)
+      if(nmz.ge.2) then
+        do j=1,napx
++ca alignvb
++ca mul4v05
+          do k=3,nmz
++ca mul4v06
+          end do
++ca mul4v07
+        end do
+      else
+        do j=1,napx
++ca mul4v08
+        end do
+      end if
+      goto 620
 
+680   continue
+      do 690 j=1,napx
++ca beamco
++ca beamr1
+     &goto 690
++ca beamr2
++ca beamr3
+690   continue
+      goto 620
+        
 !----------------------------
-
-  620     continue
-
+620 continue
 +ca lostpart
 
-  625     continue
+625 continue
+    if (.not. ldumpfront) then
+      call dump_lines(n,i,ix)
+    end if
 
-      if (.not. ldumpfront) then
-         call dump_lines(n,i,ix)
-      endif
-
-  630   continue
+630 continue
 
 !        call lostpart(nthinerr)
 !        if(nthinerr.ne.0) return
 
-        if(ntwin.ne.2) call dist1
+    if(ntwin.ne.2) call dist1
 +if .not.fluka
-        if(mod(n,nwr(4)).eq.0) call write6(n)
+    if(mod(n,nwr(4)).eq.0) call write6(n)
 +ei
 
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-        if (lhc.eq.9) then
+    if (lhc.eq.9) then
 +ca bnlout
-        endif
+    end if
 !GRDRHIC
 !GRD-042008
 +ei
 
 +if fluka
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     increase napxto, to get an estimation of particles*turns
-!     inserted in main code by the 'fluka' compilation flag
-      napxto = napxto + napx
+  ! A.Mereghetti, for the FLUKA Team
+  ! last modified: 14-06-2014
+  ! increase napxto, to get an estimation of particles*turns
+  ! inserted in main code by the 'fluka' compilation flag
+  napxto = napxto + napx
 +ei
 
   640 continue
-      return
-      end subroutine thin4d
+  
+  return
+  
+end subroutine thin4d
 
 !>
 !!  TRACK THIN LENS 6D
