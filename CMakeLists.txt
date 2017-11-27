@@ -114,7 +114,7 @@ OPTION(ROUND_UP "Always round up after floating point operations" OFF)
 OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
 OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
 
-#OPTION(ROOT "Link to the root libraries" OFF)
+OPTION(ROOT "Link to the root libraries" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
@@ -228,10 +228,10 @@ if(LIBARCHIVE)
 	SET(SIXTRACK_FEATURES "libarchive_${SIXTRACK_FEATURES}")
 endif()
 
-#if(ROOT)
-#	SET(SIXTRACK_FEATURES "root_${SIXTRACK_FEATURES}")
-#endif()
-#
+if(ROOT)
+	SET(SIXTRACK_FEATURES "root_${SIXTRACK_FEATURES}")
+endif(ROOT)
+
 #if(OPENMP)
 #	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_openmp")
 #endif()
@@ -422,16 +422,16 @@ endif(G4COLLIMAT)
 #endif(CUDA)
 #
 ##Possible check for Root
-#if(ROOT)
-#	#/usr/share/root/cmake/FindROOT.cmake
-#	SET(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
-#	find_package(ROOT REQUIRED)
-#	include_directories(${ROOT_INCLUDE_DIR})
-#
-#	if(NOT ROOT_FOUND)
-#		MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
-#	endif()
-#endif(ROOT)
+if(ROOT)
+	#/usr/share/root/cmake/FindROOT.cmake
+	SET(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
+	find_package(ROOT REQUIRED)
+	include_directories(${ROOT_INCLUDE_DIR})
+
+	if(NOT ROOT_FOUND)
+		MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
+	endif(NOT ROOT_FOUND)
+endif(ROOT)
 
 ###################################################################################################
 # Checking if requested options are compatible
@@ -630,6 +630,8 @@ endif()
 
 #FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
+
+set(COVERAGE_COMMAND "gcov-7")
 
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
@@ -1389,9 +1391,9 @@ endif(NAFF)
 
 
 #if we are using root, link to all the root libraries
-#if(ROOT)
-#	target_link_libraries(SixTrack ${ROOT_LIBRARIES})
-#endif(ROOT)
+if(ROOT)
+	target_link_libraries(SixTrack ${ROOT_LIBRARIES})
+endif(ROOT)
 
 if(HDF5)
 	target_link_libraries(SixTrack ${HDF5_LIBRARIES})
