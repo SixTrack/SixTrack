@@ -1,4 +1,4 @@
-sixtrack.s common_headers.s
+sixtrack.s
 sixdan.f
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods
 e mainda
@@ -7,4 +7,5 @@ e COR_ORD,COR_GLO,DALIESIX
 e beam6df,MYDAINF
 e dumps
 e close
+e plotdumy
 ex
