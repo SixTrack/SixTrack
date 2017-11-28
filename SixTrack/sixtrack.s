@@ -30599,48 +30599,45 @@ subroutine thck4d(nthinerr)
 
 end subroutine thck4d
 
-subroutine thck6d(nthinerr)
 !-----------------------------------------------------------------------
 !
 !  TRACK THICK LENS 6D
 !
-!
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use physical_constants
-      use mathlib_bouncer
-      use numerical_constants
+subroutine thck6d(nthinerr)
+  ! Replaced computed goto with select case, VKBO 28/11/2017
+  use floatPrecision
+  use physical_constants
+  use mathlib_bouncer
+  use numerical_constants
 +if datamods
-      use bigmats
+  use bigmats
 +ei
-      use dynk, only : ldynk, dynk_apply
-      
-      use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use dynk, only : ldynk, dynk_apply
+  use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     import mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+  use mod_fluka
 +ei
-      use postprocessing, only : writebin
-      use crcoall
-      implicit none
-      integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
-      real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
-     &crxb,crzb,dpsv3,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,  &
-     &rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+  use postprocessing, only : writebin
+  use crcoall
+  implicit none
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
+  real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
+          pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
 +ca parpro
-      integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-      real(kind=fPrec) e0fo,e0o,xv1j,xv2j
-      real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,                 &
-     &acdipamp1, crabamp, crabfreq
+  integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
+  real(kind=fPrec) e0fo,e0o,xv1j,xv2j
+  real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq
 +ca wiretracktmp
-      logical llost
+  logical llost
 +if time
-      real(kind=fPrec) expt
+  real(kind=fPrec) expt
 +ei
 +ca common
 +ca common2
@@ -30656,7 +30653,7 @@ subroutine thck6d(nthinerr)
 +if cr
 +ca crco
 +ei
-      dimension dpsv3(npart)
+  dimension dpsv3(npart)
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -30675,35 +30672,35 @@ subroutine thck6d(nthinerr)
 !     last modified: 17-07-2013
 !     force re-computation of transport matrices of linear elements
 !     inserted in main code by the 'fluka' compilation flag
-      logical recompute_linear_matrices
+  logical recompute_linear_matrices
 +ei
 
 +ca dbdcum
 +ca comApeInfo
 
-      save
+  save
 +if debug
 !-----------------------------------------------------------------------
 !===================================================================
 ! Eric beginthck6dstart
 !===================================================================
 +ei
-      nthinerr=0
-      idz1=idz(1)
-      idz2=idz(2)
+  nthinerr=0
+  idz1=idz(1)
+  idz2=idz(2)
 
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     force re-computation of transport matrices of linear elements
 !     inserted in main code by the 'fluka' compilation flag
-      recompute_linear_matrices = .false.
+  recompute_linear_matrices = .false.
 +ei
 
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      totals=zero
+  totals=zero
 +ca bnlin
 !GRDRHIC
 !GRD-042008
@@ -30717,69 +30714,67 @@ subroutine thck6d(nthinerr)
 !     last modified: 14-06-2014
 !     initialise napxto
 !     inserted in main code by the 'fluka' compilation flag
-      napxto = 0
+  napxto = 0
 +ei
 
 ! Now the outer loop over turns
 +if cr
-      if (restart) then
-        call crstart
-        write(93,*)                                                     &
-     &'THCK6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+  if (restart) then
+    call crstart
+    write(93,*) 'THCK6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
 ! and now reset numl to do only numlmax turns
-      endif
-      nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-      write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  end if
+  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
+  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
-      if (nnuml.ne.numl) then
-        do j=1,napx
-          if (numxv(j).eq.numl) numxv(j)=nnuml
-          if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-        enddo
-      endif
-      do 510 n=numlcr,nnuml
+  if (nnuml.ne.numl) then
+    do j=1,napx
+      if (numxv(j).eq.numl) numxv(j)=nnuml
+      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
+    end do
+  end if
+  do 510 n=numlcr,nnuml
 +ei
 +if .not.cr
-      do 510 n=1,numl
+  do 510 n=1,numl
 +ei
 ! To do a dump and abend
 +if boinc
-!       call boinc_sixtrack_progress(n,numl)
-        call boinc_fraction_done(dble(n)/dble(numl))
-        continue
-!       call graphic_progress(n,numl)
+!   call boinc_sixtrack_progress(n,numl)
+    call boinc_fraction_done(dble(n)/dble(numl))
+    continue
+!   call graphic_progress(n,numl)
 +ei
-          numx=n-1
+    numx=n-1
 
 +if .not.fluka
-          if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-          if(nthinerr.ne.0) return
+    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
+    if(nthinerr.ne.0) return
 +ei
 
 +if cr
 !  does not call CRPOINT if restart=.true.
 !  (and note that writebin does nothing if restart=.true.
-          if(mod(numx,numlcp).eq.0) call callcrp()
-          restart=.false.
+    if(mod(numx,numlcp).eq.0) call callcrp()
+    restart=.false.
 +ei
 
 !       A.Mereghetti, for the FLUKA Team
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-          if ( ldynk ) then
-             call dynk_apply(n)
-          endif
-
-          call dump_linesFirst(n)
+    if ( ldynk ) then
+      call dynk_apply(n)
+    end if
+    call dump_linesFirst(n)
 
 +if debug
 ! Now comes the loop over elements do 500/501
-          do 501 i=1,iu
+    do 501 i=1,iu
 +ei
 +if .not.debug
-          do 500 i=1,iu
+    do 500 i=1,iu
 +ei
 +if bnlelens
 +ca bnltwiss
@@ -30792,23 +30787,22 @@ subroutine thck6d(nthinerr)
 !===================================================================
 !===================================================================
 +ei
-            if(ktrack(i).eq.1) then
-              ix=ic(i)
-            else
-              ix=ic(i)-nblo
-            end if
+      if(ktrack(i).eq.1) then
+        ix=ic(i)
+      else
+        ix=ic(i)-nblo
+      end if
 
 +if bpm
 +ca bpmdata
 +ei bpm
 
       if (ldumpfront) then
-         write (lout,*)                                                 &
-     & "DUMP/FRONT not yet supported on thick elements "//              &
-     & "due to lack of test cases. Please contact developers!"
-         call prror(-1)
+        write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
+                       "due to lack of test cases. Please contact developers!"
+        call prror(-1)
 !+ca dumplines
-      endif
+      end if
 
 +if time
 +ca timefct
@@ -30820,45 +30814,41 @@ subroutine thck6d(nthinerr)
 !           last modified: 17-07-2013
 !           is the current entry an instance of a FLUKA element?
 !           inserted in main code by the 'fluka' compilation flag
-            if (fluka_enable) then
-              if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
-                                      !      be SINGLE ELEMENTs
-                if(fluka_type(ix).ne.FLUKA_NONE) then
-                  if(fluka_type(ix).eq.FLUKA_ELEMENT) then
-                    call kernel_fluka_element( n, i, ix )
-!                   re-compute transport matrices of linear elements,
-!                      according to momentum of surviving/new particles
-                    recompute_linear_matrices = .true.
+      if (fluka_enable) then
+        if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must be SINGLE ELEMENTs
+          if(fluka_type(ix).ne.FLUKA_NONE) then
+            if(fluka_type(ix).eq.FLUKA_ELEMENT) then
+              call kernel_fluka_element( n, i, ix )
+              ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
+              recompute_linear_matrices = .true.
 +if backtrk
 +ca backtrksave
 +ei
-                    goto 490
-                  else if(fluka_type(ix).eq.FLUKA_ENTRY) then
-                    fluka_inside = .true.
-                    call kernel_fluka_entrance( n, i, ix )
-                    goto 495
-                  else if(fluka_type(ix).eq.FLUKA_EXIT) then
-                    fluka_inside = .false.
-                    call kernel_fluka_exit( n, i, ix )
-!                   re-compute transport matrices of linear elements,
-!                      according to momentum of surviving/new particles
-                    recompute_linear_matrices = .true.
+              goto 490
+            else if(fluka_type(ix).eq.FLUKA_ENTRY) then
+              fluka_inside = .true.
+              call kernel_fluka_entrance( n, i, ix )
+              goto 495
+            else if(fluka_type(ix).eq.FLUKA_EXIT) then
+              fluka_inside = .false.
+              call kernel_fluka_exit( n, i, ix )
+              ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
+              recompute_linear_matrices = .true.
 +if backtrk
 +ca backtrksave
 +ei
-                    goto 490
-                  end if
-                end if
-              end if
-              if(fluka_inside) then
-                if(fluka_debug) then
-                  write(lout,*) '[Fluka] Skipping lattice element at ',i
-                  write(fluka_log_unit,*)                               &
-     &'# Skipping lattice element at ', i
-                end if
-                goto 500
-              end if
-            endif
+              goto 490
+            end if
+          end if
+        end if
+        if(fluka_inside) then
+          if(fluka_debug) then
+            write(lout,*) '[Fluka] Skipping lattice element at ',i
+            write(fluka_log_unit,*) '# Skipping lattice element at ', i
+          end if
+          goto 500
+        end if
+      end if
 +ei
 
 +if debug
@@ -30869,155 +30859,137 @@ subroutine thck6d(nthinerr)
 +ei
 !----------count 44
 !----------count 54! Eric
-            goto( 20, 40,740,500,500,500,500,500,500,500,               &!1-10
-     &            60, 80,100,120,140,160,180,200,220,240,               &!11-20
-     &           290,310,330,350,370,390,410,430,450,470,               &!21-30
-     &           490,260,520,540,560,580,600,620,640,660,               &!31-40
-     &           680,700,720,730,748,500,500,500,500,500,               &!41-50
-     &           745,746,751,752,753,754,500,500,500,500,               &!51-60
-     &           500,500,761),ktrack(i)
-            goto 500
-   20       jmel=mel(ix)
+      select case (ktrack(i))
+      case (1)
+        jmel=mel(ix)
 +if bnlelens
 +if debug
-!     if (n.eq.991) then
-!     write(99,*) 'element statement 20 j=1 991 before ',               &
-!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
-!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-!     endif
+        ! if (n.eq.991) then
+        !   write(99,*) 'element statement 20 j=1 991 before ', &
+        !   xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+        !   endfile (99,iostat=ierro)
+        !   backspace (99,iostat=ierro)
+        ! end if
 +ei
 +ei
-            do jb=1,jmel
-              jx=mtyp(ix,jb)
-              do j=1,napx
+        do jb=1,jmel
+          jx=mtyp(ix,jb)
+          do j=1,napx
 +ca thcklin
-              end do
-            end do
-
+          end do
+        end do
 +if backtrk
 +ca backtrksave
 +ei
-            goto 500
-
-   40       do j=1,napx
-              ejf0v(j)=ejfv(j)
-              if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
-              if(kz(ix).eq.12) then
-                ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
-              else
-                ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
-              endif
-              ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
-              rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-              dpsv(j)=(ejfv(j)-e0f)/e0f
-              oidpsv(j)=one/(one+dpsv(j))
-              dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
-              yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
-              yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
-            end do
-
-            if(n.eq.1) write(98,'(1p,6(2x,e25.18))')                    &
-     &(xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),                &
-     &j=1,napx)
+        goto 500
+      case (2)
+        do j=1,napx
+          ejf0v(j)=ejfv(j)
+          if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
+          if(kz(ix).eq.12) then
+            ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
+          else
+            ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
+          end if
+          ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
+          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
+        end do
+        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),j=1,napx)
 +if bnlelens
 +if debug
-!     if (n.eq.991) then
-!     write(99,*) 'element statement 40 j=1 991 after  ',               &
-!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
-!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-!     endif
+        ! if (n.eq.991) then
+        !   write(99,*) 'element statement 40 j=1 991 after  ', &
+        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+        ! end if
 +ei
 +ei
 +if cr
-!       write(93,*) 'ERIC loop at 40 calling synuthck!!!'
-!       endfile (93,iostat=ierro)
-!       backspace (93,iostat=ierro)
+        ! write(93,*) 'ERIC loop at 40 calling synuthck!!!'
+        ! endfile (93,iostat=ierro)
+        ! backspace (93,iostat=ierro)
 +ei
-            call synuthck
+        call synuthck
 +if bnlelens
 +if debug
-!     if (n.eq.991) then
-!     write(99,*) 'element statement 40 j=1 991 after synuthck ',       &
-!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
-!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-!     endif
+        ! if (n.eq.991) then
+        !   write(99,*) 'element statement 40 j=1 991 after synuthck ', &
+        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+        !   endfile (99,iostat=ierro)
+        !   backspace (99,iostat=ierro)
+        ! end if
 +ei
 +ei
-            goto 490
-!--HORIZONTAL DIPOLE
-   60       do 70 j=1,napx
+        goto 490
+      case (3)
++ca trom40
++ca trom41
++ca trom42
+        goto 490
+      case (4,5,6,7,8,9,10)
+        goto 500
+      case (11) ! HORIZONTAL DIPOLE
+        do j=1,napx
 +ca kickv01h
-   70       continue
-            goto 490
-!--NORMAL QUADRUPOLE
-   80       do 90 j=1,napx
+        end do
+        goto 490
+      case (12) ! NORMAL QUADRUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvxxh
-   90       continue
-            goto 490
-!--NORMAL SEXTUPOLE
-  100       do 110 j=1,napx
+        end do
+        goto 490
+      case (13) ! NORMAL SEXTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvxxh
-  110       continue
-            goto 490
-!--NORMAL OCTUPOLE
-  120       do 130 j=1,napx
-+ca alignva
-+ca kickvho
-+ca kickvho
-+ca kickvxxh
-  130       continue
-            goto 490
-!--NORMAL DECAPOLE
-  140       do 150 j=1,napx
+        end do
+        goto 490
+      case (14) ! NORMAL OCTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  150       continue
-            goto 490
-!--NORMAL DODECAPOLE
-  160       do 170 j=1,napx
+        end do
+        goto 490
+      case (15) ! NORMAL DECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  170       continue
-            goto 490
-!--NORMAL 14-POLE
-  180       do 190 j=1,napx
+        end do
+        goto 490
+      case (16) ! NORMAL DODECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  190       continue
-            goto 490
-!--NORMAL 16-POLE
-  200       do 210 j=1,napx
+        end do
+        goto 490
+      case (17) ! NORMAL 14-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  210       continue
-            goto 490
-!--NORMAL 18-POLE
-  220       do 230 j=1,napx
+        end do
+        goto 490
+      case (18) ! NORMAL 16-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -31025,12 +30997,11 @@ subroutine thck6d(nthinerr)
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxh
-  230       continue
-            goto 490
-!--NORMAL 20-POLE
-  240       do 250 j=1,napx
+        end do
+        goto 490
+      case (19) ! NORMAL 18-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -31039,153 +31010,81 @@ subroutine thck6d(nthinerr)
 +ca kickvho
 +ca kickvho
 +ca kickvho
++ca kickvxxh
+        end do
+        goto 490
+      case (20) ! NORMAL 20-POLE
+        do j=1,napx
++ca alignva
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
 +ca kickvho
 +ca kickvxxh
-  250       continue
-            goto 490
-  520       continue
-            do 530 j=1,napx
-+ca alignvb
-+ca mul4v01
-+ca mul6v01
-  530       continue
-            goto 490
-  540       continue
-            do 550 j=1,napx
-+ca alignvb
-+ca mul4v01
-+ca mul6v01
-  550       continue
-            goto 260
-  560       continue
-            do 570 j=1,napx
-+ca alignvb
-+ca mul4v02
-+ca mul6v01
-  570       continue
-            goto 490
-  580       continue
-            do 590 j=1,napx
-+ca alignvb
-+ca mul4v02
-+ca mul6v01
-  590       continue
-            goto 260
-  600       continue
-            do 610 j=1,napx
-+ca alignvb
-+ca mul4v03
-+ca mul6v02
-  610       continue
-            goto 490
-  620       continue
-            do 630 j=1,napx
-+ca alignvb
-+ca mul4v03
-+ca mul6v02
-  630       continue
-            goto 260
-  640       continue
-            do 650 j=1,napx
-+ca alignvb
-+ca mul4v04
-+ca mul6v02
-  650       continue
-            goto 490
-  660       continue
-            do 670 j=1,napx
-+ca alignvb
-+ca mul4v04
-+ca mul6v02
-  670       continue
-  260       r0=ek(ix)
-            nmz=nmu(ix)
-          if(nmz.ge.2) then
-            do 280 j=1,napx
-+ca alignvb
-+ca mul4v05
-                do 270 k=3,nmz
-+ca mul4v06
-  270           continue
-+ca mul4v07
-  280       continue
-          else
-            do 275 j=1,napx
-+ca mul4v08
-  275       continue
-          endif
-            goto 490
-!--SKEW ELEMENTS
-!--VERTICAL DIPOLE
-  290       do 300 j=1,napx
+        end do
+        goto 490
+      case (21) ! VERTICAL DIPOLE
+        do j=1,napx
 +ca kickv01v
-  300       continue
-            goto 490
-!--SKEW QUADRUPOLE
-  310       do 320 j=1,napx
+        end do
+        goto 490
+      case (22) ! SKEW QUADRUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvxxv
-  320       continue
-            goto 490
-!--SKEW SEXTUPOLE
-  330       do 340 j=1,napx
+        end do
+        goto 490
+      case (23) ! SKEW SEXTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvxxv
-  340       continue
-            goto 490
-!--SKEW OCTUPOLE
-  350       do 360 j=1,napx
-+ca alignva
-+ca kickvho
-+ca kickvho
-+ca kickvxxv
-  360       continue
-            goto 490
-!--SKEW DECAPOLE
-  370       do 380 j=1,napx
+        end do
+        goto 490
+      case (24) ! SKEW OCTUPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  380       continue
-            goto 490
-!--SKEW DODECAPOLE
-  390       do 400 j=1,napx
+        end do
+        goto 490
+      case (25) ! SKEW DECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  400       continue
-            goto 490
-!--SKEW 14-POLE
-  410       do 420 j=1,napx
+        end do
+        goto 490
+      case (26) ! SKEW DODECAPOLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  420       continue
-            goto 490
-!--SKEW 16-POLE
-  430       do 440 j=1,napx
+        end do
+        goto 490
+      case (27) ! SKEW 14-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  440       continue
-            goto 490
-!--SKEW 18-POLE
-  450       do 460 j=1,napx
+        end do
+        goto 490
+      case (28) ! SKEW 16-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -31193,12 +31092,11 @@ subroutine thck6d(nthinerr)
 +ca kickvho
 +ca kickvho
 +ca kickvho
-+ca kickvho
 +ca kickvxxv
-  460       continue
-            goto 490
-!--SKEW 20-POLE
-  470       do 480 j=1,napx
+        end do
+        goto 490
+      case (29) ! SKEW 18-POLE
+        do j=1,napx
 +ca alignva
 +ca kickvho
 +ca kickvho
@@ -31207,21 +31105,94 @@ subroutine thck6d(nthinerr)
 +ca kickvho
 +ca kickvho
 +ca kickvho
++ca kickvxxv
+        end do
+        goto 490
+      case (30) ! SKEW 20-POLE
+        do j=1,napx
++ca alignva
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
++ca kickvho
 +ca kickvho
 +ca kickvxxv
-  480       continue
-          goto 490
-  680     continue
-          do 690 j=1,napx
+        end do
+        goto 490
+      case (31)
+        goto 490
+      case (32)
+        goto 260
+      case (33)
+        do j=1,napx
++ca alignvb
++ca mul4v01
++ca mul6v01
+        end do
+        goto 490
+      case (34)
+        do j=1,napx
++ca alignvb
++ca mul4v01
++ca mul6v01
+        end do
+        goto 260
+      case (35)
+        do j=1,napx
++ca alignvb
++ca mul4v02
++ca mul6v01
+        end do
+        goto 490
+      case (36)
+        do j=1,napx
++ca alignvb
++ca mul4v02
++ca mul6v01
+        end do
+        goto 260
+      case (37)
+        do j=1,napx
++ca alignvb
++ca mul4v03
++ca mul6v02
+        end do
+        goto 490
+      case (38)
+        do j=1,napx
++ca alignvb
++ca mul4v03
++ca mul6v02
+        end do
+        goto 260
+      case (39)
+        do j=1,napx
++ca alignvb
++ca mul4v04
++ca mul6v02
+        end do
+        goto 490
+      case (40)
+        do j=1,napx
++ca alignvb
++ca mul4v04
++ca mul6v02
+        end do
+        goto 260
+      case (41)
+        do 690 j=1,napx
 +ca beamco
 +ca beamr1
      &goto 690
 +ca beamr2
 +ca beamr3
-  690     continue
-          goto 490
-  700     continue
-          if(ibtyp.eq.0) then
+690     continue
+        goto 490
+      case (42)
+        if(ibtyp.eq.0) then
 +ca beam11
 +ca beama1
 +ca beamco
@@ -31230,7 +31201,7 @@ subroutine thck6d(nthinerr)
 +ca beama3
 +ca beam13
 +ca beama4
-          else if(ibtyp.eq.1) then
+        else if(ibtyp.eq.1) then
 +ca beam11
 +ca beama1
 +ca beamco
@@ -31238,21 +31209,20 @@ subroutine thck6d(nthinerr)
 +ca beama3
 +ca beamwzf1
 +ca beama4
-          endif
-          goto 490
-  720     continue
+        end if
+        goto 490
+      case (43)
 +if bnlelens
 +if debug
-!     if (n.eq.991) then
-!     write(99,*) 'element statement 720 j=1 991 before ',              &
-!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
-!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-!     endif
+        ! if (n.eq.991) then
+        !   write(99,*) 'element statement 720 j=1 991 before ', &
+        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+        !   endfile (99,iostat=ierro)
+        !   backspace (99,iostat=ierro)
+        ! end if
 +ei
 +ei
-          if(ibtyp.eq.0) then
+        if(ibtyp.eq.0) then
 +ca beam21
 +ca beama1
 +ca beamco
@@ -31261,7 +31231,7 @@ subroutine thck6d(nthinerr)
 +ca beama3
 +ca beam23
 +ca beama4
-          else if(ibtyp.eq.1) then
+        else if(ibtyp.eq.1) then
 +ca beam21
 +ca beama1
 +ca beamco
@@ -31269,163 +31239,165 @@ subroutine thck6d(nthinerr)
 +ca beama3
 +ca beamwzf2
 +ca beama4
-          endif
+        end if
 +if bnlelens
 +if debug
-!     if (n.eq.991) then
-!     write(99,*) 'element statement 720 j=1 991 after  ',              &
-!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
-!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-!     endif
+        ! if (n.eq.991) then
+        !   write(99,*) 'element statement 720 j=1 991 after  ', &
+        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+        !   endfile (99,iostat=ierro)
+        !   backspace (99,iostat=ierro)
+        ! end if
 +ei
 +ei
-          goto 490
-  730     continue
+        goto 490
+      case (44)
 +ca beam6d
-          goto 490
-  740     continue
-+ca trom40
-+ca trom41
-+ca trom42
-          goto 490
-  745     continue
-          xory=1
+        goto 490
+      case (45) ! Wire
++ca wirekick
+        goto 490
+      case (46,47,48,49,50,57,58,59,60,61,62)
+        goto 500
+      case (51)
+        xory=1
 +ca acdipkick
-          goto 490
-  746     continue
-          xory=2
+        goto 490
+      case (52)
+        xory=2
 +ca acdipkick
-          goto 490
-  751     continue
-          xory=1
+        goto 490
+      case (53)
+        xory=1
 +ca crabkick
-          goto 490
-  752     continue
-          xory=2
+        goto 490
+      case (54)
+        xory=2
 +ca crabkick
-          goto 490
-!--DIPEDGE ELEMENT
-  753     continue
-          do j=1,napx
+        goto 490
+      case (55) ! DIPEDGE ELEMENT
+        do j=1,napx
 +ca alignva
 +ca kickvdpe
-          enddo
-          goto 490
-!--solenoid
-  754     continue
-          do j=1,napx
+        end do
+        goto 490
+      case (56) ! Solenoid
+        do j=1,napx
 +ca kickvso1
 +ca kickvso2
-          enddo
-          goto 490
-!--elens
-  761      continue
-         do j=1,napx
+        end do
+        goto 490
+      case (63) ! Elens
+        do j=1,napx
 +ca kickelens
-         enddo
-         goto 490
+        end do
+        goto 490
+      end select
+      goto 500
 
-!----------------------------
+260   r0=ek(ix)
+      nmz=nmu(ix)
+      if(nmz.ge.2) then
+        do j=1,napx
++ca alignvb
++ca mul4v05
+          do k=3,nmz
++ca mul4v06
+          end do
++ca mul4v07
+        end do
+      else
+        do j=1,napx
++ca mul4v08
+        end do
+      end if
+      goto 490
 
-! Wire.
-
-  748     continue
-+ca wirekick
-  750     continue
-          goto 490
-
-!----------------------------
-
-  490     continue
+490   continue
 
 +ca lostpart
 +if fluka
-!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!         last modified: 17-07-2013
-!         re-compute transport matrices of linear elements
-!         inserted in main code by the 'fluka' compilation flag
-          if ( recompute_linear_matrices ) then
-!           after a FLUKA element: additional particles may have
-!             been generated
-            call envarsv(dpsv,oidpsv,rvv,ekv)
-            recompute_linear_matrices = .false.
-          elseif ( llost ) then
-!           after any other element: no additional particles,
-!              thus update only momentum-dependent matrix elements
-            call synuthck
-          endif
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! re-compute transport matrices of linear elements
+      ! inserted in main code by the 'fluka' compilation flag
+      if ( recompute_linear_matrices ) then
+        ! after a FLUKA element: additional particles may have been generated
+        call envarsv(dpsv,oidpsv,rvv,ekv)
+        recompute_linear_matrices = .false.
+      else if ( llost ) then
+        ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
+        call synuthck
+      end if
 +ei
 +if .not.fluka
-  if(llost) then
-    call synuthck
-  end if
+      if(llost) then
+        call synuthck
+      end if
 +ei
 
-  495     continue
+495   continue
 
       if (.not. ldumpfront) then
-         call dump_lines(n,i,ix)
-      endif
+        call dump_lines(n,i,ix)
+      end if
 
 +if debug
-  500 continue
-!     if (n.ge.990) then
-!     write(99,*) 'after element i, ktrack ',i,ktrack(i),               &
-!    &xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),          &
-!    &rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-!     endif
-  501     continue
+500 continue
+    ! if (n.ge.990) then
+    !   write(99,*) 'after element i, ktrack ',i,ktrack(i), xv(1,1),xv(2,1),yv(1,1),yv(2,1),&
+    !     sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
+    !   endfile (99,iostat=ierro)
+    !   backspace (99,iostat=ierro)
+    ! end if
+501 continue
 +ei
 +if .not.debug
-  500     continue
+500 continue
 +ei
-+if debug
 ! End of loop over elements
+
 !===================================================================
 !===================================================================
 ! Eric beginthck6dend
 !===================================================================
 !===================================================================
-+ei
-          !call lostpart(nthinerr)
-          if(nthinerr.ne.0) return
-          if(ntwin.ne.2) call dist1
+
+    !call lostpart(nthinerr)
+    if(nthinerr.ne.0) return
+    if(ntwin.ne.2) call dist1
 +if .not.fluka
-          if(mod(n,nwr(4)).eq.0) call write6(n)
+    if(mod(n,nwr(4)).eq.0) call write6(n)
 +ei
 
 +if bnlelens
 !GRDRHIC
 !GRD-042008
-      if (lhc.eq.9) then
+    if (lhc.eq.9) then
 +ca bnlout
-      endif
+    end if
 !GRDRHIC
 !GRD-042008
 +ei
 
 +if fluka
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     increase napxto, to get an estimation of particles*turns
-!     inserted in main code by the 'fluka' compilation flag
-      napxto = napxto + napx
+    ! A.Mereghetti, for the FLUKA Team
+    ! last modified: 14-06-2014
+    ! increase napxto, to get an estimation of particles*turns
+    ! inserted in main code by the 'fluka' compilation flag
+    napxto = napxto + napx
 +ei
 
-  510 continue
-+if debug
+510 continue
 ! end loop over turns
+
 !===================================================================
 !===================================================================
 ! Eric endthck6dend
 !===================================================================
 !===================================================================
-+ei
-      return
+  return
+
 end subroutine thck6d
 
 subroutine thck6dua(nthinerr)
