@@ -341,6 +341,7 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  dump_all_highprec
   )
 
 #Medium tests take < 30 mins to run
