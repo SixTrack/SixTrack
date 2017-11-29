@@ -1,0 +1,493 @@
++dk fffileread
++if ffield
+!! ---------------------------------------------------------------------------
+!!      Read config file
+!! ---------------------------------------------------------------------------
+subroutine ReadconfigFile
+   implicit none
+
+   
+   ! Initialisation de l'espace commun
+   ! -------------------------------------------------------------------------
++ca parpro
+
++ca ffieldcommon
+
++ca ffieldcommon1
+
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   logical :: conti = .true.
+   integer :: istat                                       ! Verif. accecibilite du fichier
+   integer :: i, id
+   character(len=40) :: word 
+   character(len=150) :: path
+   
+
+   ! Find the file path
+   ! -------------------------------------------------------------------------
+   call getenv('FFConfigPath', path)
+   
+   if (path == " ") then
+      write(*, *) "FringeField WARNING: Couldn't read the environment variable 'FFConfigPath'"
+!      path ='/afs/cern.ch/user/d/dalena/hllhc/'
+      write(*, *) "                     we look for 'configFringeField.txt' in ", TRIM(ADJUSTL(path))
+   endif
+
+
+   ! Open the file
+   ! -------------------------------------------------------------------------
+   istat=0
+   ffNLn=0
+   ffNLFile=0
+   open(1789,file=TRIM(ADJUSTL(path))//'configFringeField.txt',form='formatted',status='old',iostat=istat)
+   if (istat/=0) then
+      write(*,*) "FringeField ERROR: Couldn't find the configuration file configFringeField.txt" 
+   else
+      ! Counting the line in the first part of the file
+      ! -------------------------------------------------------------------------
+      read(1789,*,iostat=istat) word           !skip the first line
+      if ((word == "NEXT").or.(word == "END")) then
+         write(*,*) 'FringeField ERROR: Wrong format config file'
+         return
+      endif
+
+      read(1789,*,iostat=istat) word           !skip the second line
+      if ((word == "NEXT").or.(word == "END")) then
+         write(*,*) 'FringeField ERROR: Wrong format config file'
+         return
+      endif
+
+      do while((istat==0).and.(conti))    !start reading   
+         read(1789,*,iostat=istat) word
+         if (word=="NEXT") then
+            conti=.false.
+         else
+            ffNLn=ffNLn+1
+         endif
+      end do
+      
+!write(*,*) " FF1 ffNLn ",ffNLn
+
+      ! Counting the line in the second part of the file
+      ! -------------------------------------------------------------------------
+      conti = .true.
+
+      read(1789,*,iostat=istat) word           !skip the first line
+      if ((word == "NEXT").or.(word == "END")) then
+         write(*,*) 'FringeField ERROR: Wrong format config file'
+         return
+      endif
+
+      do while((istat==0).and.(conti))    !start reading       
+         read(1789,*,iostat=istat) word
+         if (word=="END") then
+            conti=.false.
+         endif
+         ffNLFile=ffNLFile+1 
+      end do
+
+!write(*,*) " FF1 ffNLFile ",ffNLFile
+
+      close(1789)
+      if ((ffNLn < 1).or.(ffNLFile < 1)) then
+         write(*,*) "FringeField ERROR: The configuration file configFringeField.txt has only ",ffNLn," and ", ffNLFile,"lines" 
+      else
+         allocate(ffQNames(1:ffNLn), ffFNames(1:ffNLFile), ffParam(1:ffNLFile,1:6), ffQ2File(1:ffNLn, 1:2))
+         ffQNames = " "
+         ffFNames = " "
+         ffParam  = 0.0d0
+         ffQ2File  = 0
+         open(1789,file=TRIM(ADJUSTL(path))//'configFringeField.txt',form='formatted',status='old',iostat=istat)
+         
+         !Read the first part
+         read(1789,*,iostat=istat)
+         read(1789,*,iostat=istat)
+
+         do i=1,ffNLn
+            !                         Quad name   ,File in       ,File out
+            read(1789,*,iostat=istat) ffQNames(i), ffQ2File(i,1), ffQ2File(i,2)
+         enddo
+         
+         !Read the second part
+         read(1789,*,iostat=istat)
+         read(1789,*,iostat=istat)
+
+         do i=1,ffNLFile
+            !                         Filename   ,K0          ,LinQ        ,Corr. x     ,Corr. y     ,Corr. K     ,Length File
+            read(1789,*,iostat=istat) ffFNames(i),ffParam(i,1),ffParam(i,2),ffParam(i,3),ffParam(i,4),ffParam(i,5),ffParam(i,6)
+         enddo
+
+         !check inputs
+         do i = 1,ffNLn
+            do id = 1,2
+               if ((ffQ2File(i,id) > ffNLFile).or.(ffQ2File(i,id) < 1)) then
+                  write(*,*) "FringeField ERROR: In the configuration file file name reference is bad"
+                  return
+               endif
+            enddo
+         enddo
+
+         write(*,*) "SUCCESS!!!!!!!!!"
+         ffReady = .true.
+         close(1789)
+      endif
+   endif
+end subroutine
+
+
+
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de creation des tableaux pour le calcul de Az
+!! ---------------------------------------------------------------------------
+subroutine CreateVectCoef(FileName,n,m,s,dz,Lgth,linex,ij_TAx,TAx,liney,ij_TAy,TAy,linez,ij_TAz,TAz,norm,OKRead)
+
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   character(len=*) :: FileName                                               ! Adresse du fichier de lecture
+   logical :: OKRead                                                          ! Retour de l'erreur
+   integer :: n,m,s                                                           ! Exposant maximum pour x et y, Nombre de point en z
+   integer :: linex,liney,linez                                               ! 
+   integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx,ij_TAy,ij_TAz ! Tableau des indices ij de Ax, Ay et Az
+   double precision :: dz, norm,Lgth                                               ! Taille du pas en z et normalisation
+   double precision,dimension(:,:),allocatable :: TAx,TAy,TAz           ! Nouveau tableau des coefficients de Ax, Ay et Az
+
+   interface
+      subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth,linex,ij_TAx,TAx,liney,ij_TAy,TAy,linez,ij_TAz,TAz,norm,OKRead)
+         character(len=*) :: FileName
+         logical :: OKRead
+         integer :: n,m,s
+         integer :: linex,liney,linez
+         integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx, ij_TAy, ij_TAz
+         double precision :: dz, norm,Lgth
+         double precision,dimension(:,:),allocatable :: TAx, TAy, TAz
+      end subroutine
+   end interface
+
+
+   ! Recuperation des maximum des exposants de x et y et du nombre de point en z
+   ! -------------------------------------------------------------------------
+   call ReadExpMax(FileName, n, m, s, OKRead)
+
+   if (.not.OKRead) then
+      stop
+   endif
+
+
+   ! Construction des tableaux
+   ! -------------------------------------------------------------------------
+   call ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_TAy,TAy, linez,ij_TAz,TAz, norm,OKRead)
+end subroutine
+
+
+
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de recupperation des max des expo. de x et y ainsi que du nb de pas en z
+!! ---------------------------------------------------------------------------
+subroutine ReadExpMax(FileName, n, m, s, OKRead)
+
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   !character(*), PARAMETER :: fileplace = "/afs/cern.ch/user/d/dalena/hllhc/" 
+   character(len=*) :: FileName                                               ! Adresse du fichier de lecture
+   logical :: OKRead                                                          ! Retour de l'erreur
+   integer :: istat                                                           ! Verif. accecibilite du fichier
+   integer :: line                                                            ! Comptage nb de ligne (Pas reutiliser)
+   integer :: n,m,s                                                           ! Exposant maximum pour x et y, Nombre de point en z
+   integer :: expx,expy,expz                                                  ! Expo. de x, y et z
+   integer, parameter :: lun=10                                               ! Adresse fenetre de lecture de fichier
+   double precision :: st, sm1                                                ! Paramettre pour detection de pas en z
+
+
+   ! Verification que le fichier existe
+   ! -------------------------------------------------------------------------
+   istat=0
+   open(unit=lun,iostat=istat,file=TRIM(ADJUSTL(FileName)),STATUS='OLD')
+   if (istat/=0) then
+      write(*,*) "Opening Error ", FileName
+      stop
+   endif
+
+
+   ! Attribution des premières valeurs aux parametres
+   ! -------------------------------------------------------------------------
+   istat=0
+   n=0
+   m=0
+   st=0.
+   sm1=1e12
+   line=1
+   s=0
+   
+
+   ! Lecture du fichier
+   ! -------------------------------------------------------------------------
+!   read(lun,*)                                      ! Sauter la premiere ligne
+   do while(istat==0)
+      read(lun,*,iostat=istat) st, expx, expy, expz ! Lecture de la ligne
+      if (st>sm1+1e-12) then                        ! Detection de pas en z
+         s = s + 1                                  ! Comptage de pas en z
+      endif
+      if (expx>n) n=expx                            ! Verification du maximum des expo. en x
+      if (expy>m) m=expy                            ! Verification du maximum des expo. en y
+      sm1=st
+      line=line+1                                   ! Calcul de la taille du fichier
+   end do
+
+
+   ! Fermeture du fichier et fin de la subroutine
+   ! -------------------------------------------------------------------------
+   close(lun)
+   OKRead=.True.
+   return
+end subroutine
+
+
+
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de construction des tableaux pour le calcul de Az
+!! ---------------------------------------------------------------------------
+subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_TAy,TAy, linez,ij_TAz,TAz, norm,OKRead)
+
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   !character(*), PARAMETER :: fileplace = "/afs/cern.ch/user/d/dalena/hllhc/" 
+   character(len=*) :: FileName                                             ! Adresse du fichier de lecture
+   logical :: CoefSave                                                      ! 
+   logical :: OKRead                                                        ! Retour de l'erreur
+   integer :: istat                                                         ! Verif. accecibilite du fichier
+   integer :: k,l                                                           ! Ligne du tableau pour x, y et z
+   integer :: n,m,s                                                         ! Exposant maximum pour x et y, Nombre de point en z
+   integer :: expx,expy,expz                                                ! Expo. de x, y et z
+   integer :: sline                                                         ! Ligne en z
+   integer :: ind,alloc_stat
+   integer :: linex,liney,linez,tlinex,tliney,tlinez                        ! 
+   integer, parameter :: lun=10                                             ! Adresse fenetre de lecture de fichier
+   integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx, ij_TAy, ij_TAz   ! Tableau des indices ij de Ax, Ay et Az
+   integer(kind=2),dimension(:,:,:),allocatable :: tpij_Ax, tpij_Ay, tpij_Az! Tableau temporaire des indices ij de Ax, Ay et Az
+   double precision :: ax, ay, az                                           ! Valeur des coef.
+   double precision :: st, sm1                                              ! Paramettre pour detection de pas en z
+   double precision :: dz, norm                                             ! Taille du pas en z et normalisation
+   double precision :: zin, Lgth
+   double precision,dimension(:,:),allocatable :: TAx, TAy, TAz             ! Nouveau tableau des coefficients de Ax, Ay et Az
+   double precision,dimension(:,:),allocatable :: tpTAx, tpTAy, tpTAz       ! Tableau temporaire des coeff. de Ax, Ay et Az
+
+
+   ! Allocation de la memoire des tableaux
+   ! -------------------------------------------------------------------------
+   ind= n*m/2
+   ALLOCATE(tpTAx(0:ind,0:s),tpTAy(0:ind,0:s),tpTAz(0:ind,0:s), stat = alloc_stat)
+   if (alloc_stat/=0) then
+      write(*,*) "Error allocate Tab FileRead"
+      return
+   endif                                            ! (line,z)
+   ALLOCATE(tpij_Ax(0:1,0:ind,0:s),tpij_Ay(0:1,0:ind,0:s),tpij_Az(0:1,0:ind,0:s), stat = alloc_stat)
+   if (alloc_stat/=0) then
+      write(*,*) "Error allocate Tab FileRead"
+      return
+   endif                                            ! (0 pour i et 1 pour j,line,z)
+   
+
+   linex=0;liney=0;linez=0
+   do k=0,s
+      ! Allocation de la memoire des tableaux
+      ! -------------------------------------------------------------------------
+      do l=0,ind
+            tpTAx(l,k)=0.0d0
+            tpTAy(l,k)=0.0d0
+            tpTAz(l,k)=0.0d0
+            tpij_Ax(0,l,k)=0 ;tpij_Ax(1,l,k)=0 
+            tpij_Ay(0,l,k)=0 ;tpij_Ay(1,l,k)=0 
+            tpij_Az(0,l,k)=0 ;tpij_Az(1,l,k)=0 
+      enddo
+   enddo
+
+   ! Verification que le fichier existe
+   ! -------------------------------------------------------------------------
+   istat=0
+   open(unit=lun,iostat=istat,file=TRIM(ADJUSTL(FileName)),STATUS='OLD')
+   if (istat/=0) then                                                        !                                 (Relativement inutile)
+      write(6,*) "Opening Error ", FileName
+      OKRead=.False.
+      stop
+   endif
+
+   ! Attribution des premières valeurs aux parametres
+   ! -------------------------------------------------------------------------
+   st=0.
+   sm1=1e+12
+   istat=0
+   sline=0
+   dz=0
+
+
+   ! Attribution des premières valeurs aux parametres
+   ! -------------------------------------------------------------------------
+
+!write(*,*) " "
+!write(*,*) FileName
+
+!   read(lun,*) !skip the first line
+   tlinex=0; tliney=0; tlinez=0
+   do while(istat==0)
+      st=0.0d0; expx=0; expy=0; expz=0; ax=0.0d0; ay=0.0d0; az=0.0d0; 
+      read(lun,*,iostat=istat) st, expx, expy, expz, ax, ay, az              ! Lecture de la ligne
+
+!write(*,*) st, expx, expy, expz, ax, ay, az              ! Lecture de la ligne
+
+
+      if (st>sm1+1e-12) then                                                 ! Detection de pas en z
+         dz=dz+st-sm1                                                        ! MAJ de la longue de calcul en z (Relativement inutile)
+         sline = sline + 1                                                   ! MAJ du nombre de point en z
+         tlinex=0; tliney=0; tlinez=0
+      endif
+      if (sline == 0) zin = st
+      
+      ! --------------- Detection de coef non nulle pour Ax ---------------
+      if (ax/=0.) then
+         CoefSave=.False.
+
+         if (tlinex/=0) then
+            do l=0,tlinex               ! Recherche de coef deja enregister
+               if ((tpij_Ax(0,l,sline)==INT2(expx)).AND.(tpij_Ax(1,l,sline)==INT2(expy))) then
+                  tpTAx(l,sline)=tpTAx(l,sline) + ax
+                  CoefSave=.True.
+               endif
+            enddo
+         endif
+
+         if (CoefSave.eqv..False.) then ! Creation de nouveau coef
+
+            tpij_Ax(0,tlinex,sline)=INT2(expx)
+            tpij_Ax(1,tlinex,sline)=INT2(expy)
+            tpTAx(tlinex,sline)=tpTAx(tlinex,sline) + ax
+            tlinex=tlinex+1
+            CoefSave=.True.
+         endif
+      endif
+
+      ! --------------- Detection de coef non nulle pour Ay ---------------
+      if (ay/=0.) then
+         CoefSave=.False.
+
+         if (tliney/=0) then
+            do l=0,tliney               ! Recherche de coef deja enregister
+               if ((tpij_Ay(0,l,sline)==INT2(expx)).AND.(tpij_Ay(1,l,sline)==INT2(expy))) then
+                  tpTAy(l,sline)=tpTAy(l,sline) + ay
+                  CoefSave=.True.
+               endif
+            enddo
+         endif
+
+         if (CoefSave.eqv..False.) then ! Creation de nouveau coef
+            tpij_Ay(0,tliney,sline)=INT2(expx)
+            tpij_Ay(1,tliney,sline)=INT2(expy)
+            tpTAy(tliney,sline)=tpTAy(tliney,sline) + ay
+            tliney=tliney+1
+            CoefSave=.True.
+         endif
+      endif
+
+      ! --------------- Detection de coef non nulle pour Az ---------------
+      if (az/=0.) then
+         CoefSave=.False.
+
+         if (tlinez/=0) then
+            do l=0,tlinez               ! Recherche de coef deja enregister
+               if ((tpij_Az(0,l,sline)==INT2(expx)).AND.(tpij_Az(1,l,sline)==INT2(expy))) then
+                  tpTAz(l,sline)=tpTAz(l,sline) + az
+                  CoefSave=.True.
+               endif
+            enddo
+         endif
+
+         if (CoefSave.eqv..False.) then ! Creation de nouveau coef
+            tpij_Az(0,tlinez,sline)=INT2(expx)
+            tpij_Az(1,tlinez,sline)=INT2(expy)
+            tpTAz(tlinez,sline)=tpTAz(tlinez,sline) + az
+            tlinez=tlinez+1
+            CoefSave=.True.
+         endif
+      endif
+
+
+      ! Mise a jour de la taille des tableaux
+      ! -------------------------------------------------------------------------
+      if (linex<tlinex-1) then
+         linex=tlinex-1
+      endif
+      if (liney<tliney-1) then
+         liney=tliney-1
+      endif
+      if (linez<tlinez-1) then
+         linez=tlinez-1
+      endif
+
+      if (istat==0) then
+         sm1=st
+      endif
+      if (sline>s) then                                                      ! Detection d'erreur en z         (Relativement inutile)
+         OKRead=.False.
+         stop
+      endif
+   enddo
+   !Lgth = st - zin
+   Lgth = sm1 - zin
+
+
+   ! Normalisation des coefficients
+   ! -------------------------------------------------------------------------
+   do k=0,s
+      do l=0,linex
+         tpTAx(l,k)=tpTAx(l,k)*norm
+      enddo
+   enddo
+   do k=0,s
+      do l=0,liney
+         tpTAy(l,k)=tpTAy(l,k)*norm
+      enddo
+   enddo
+   do k=0,s
+      do l=0,linez
+         tpTAz(l,k)=tpTAz(l,k)*norm
+      enddo
+   enddo
+   dz=dz/dble(sline)
+   Lgth = Lgth + dz   
+
+   ! Redimentionnement des tableaux
+   ! -------------------------------------------------------------------------
+   ALLOCATE(TAx(0:linex,0:s),TAy(0:liney,0:s),TAz(0:linez,0:s))                     ! (z,line)
+   ALLOCATE(ij_TAx(0:1,0:linex,0:s),ij_TAy(0:1,0:liney,0:s),ij_TAz(0:1,0:linez,0:s))! (z,line,0 pour i et 1 pour j)
+   
+   TAx(0:linex,0:s)=tpTAx(0:linex,0:s); ij_TAx(:,0:linex,0:s)=tpij_Ax(:,0:linex,0:s)
+   TAy(0:liney,0:s)=tpTAy(0:liney,0:s); ij_TAy(:,0:liney,0:s)=tpij_Ay(:,0:liney,0:s)
+   TAz(0:linez,0:s)=tpTAz(0:linez,0:s); ij_TAz(:,0:linez,0:s)=tpij_Az(:,0:linez,0:s)
+
+   DEALLOCATE(tpTAx,tpTAy,tpTAz)
+   DEALLOCATE(tpij_Ax,tpij_Ay,tpij_Az)
+   
+
+   ! Detection d'erreur de lecture 
+   ! -------------------------------------------------------------------------
+   if (istat>0) then                                                        !                                 (Relativement inutile)
+      write(6,*) "Reading Error Line ",line
+      OKRead=.False.
+      stop
+   endif
+   
+
+   ! Fermeture du fichier
+   ! -------------------------------------------------------------------------
+   close(10)
+   OKRead=.True.
+   return
+end subroutine
++ei

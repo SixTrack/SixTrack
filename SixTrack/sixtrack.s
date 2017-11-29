@@ -11837,6 +11837,11 @@ cc2008
       data lineno35 /0/
 +ca parpro
 +ca parnum
++if ffield
++ca ffieldcommon
+      integer :: ffi
+      logical :: notfound
++ei
 +ca commonex
 +ca common
 +ca commons
@@ -11904,6 +11909,11 @@ cc2008
 +ei
       save
 !-----------------------------------------------------------------------
++if ffield
+! FringeField ASIMONA, BDALENA, TPUGNAT
+      call ffInterface(0, [0, 0],1,1,1)
+! end FringeField ASIMONA, BDALENA, TPUGNAT
++ei
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
       iss(1)=' '
@@ -12207,6 +12217,25 @@ cc2008
       endif
       if (nf.gt.0) then
         read(fields(1),*) idat
++if ffield
+! FringeField ASIMONA, BDALENA, TPUGNAT
+        ffi=1
+        notfound=.true.
+        do while ((ffi <= ffNLn).and.(notfound))
+          if (idat.eq.ffQNames(ffi)) then
+            blabla(i) = ffi
+            call ffInterface(1,[blabla(i),1],1,1,1)
+            call ffInterface(1,[blabla(i),2],1,1,1)
+            notfound=.false.
+            write(*,*) "Found ", ffi, " at ", i
+          endif
+          ffi=ffi+1
+        enddo
+        if (notfound) then
+          blabla(i)=0
+        endif
+! end FringeField ASIMONA, BDALENA, TPUGNAT
++ei
         nf=nf-1
       endif
       if (nf.gt.0) then
@@ -12993,6 +13022,11 @@ cc2008
       if(iclr.eq.1) then
         read(ch1,*)                                                     &
      &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
++if ffield
+! FringeField ASIMONA, BDALENA, TPUGNAT
+      call ffInterface(3, [1, 1],1,1,1)
+! end FringeField ASIMONA, BDALENA, TPUGNAT
++ei
       endif
 +ei
 +if crlibm
@@ -13000,6 +13034,11 @@ cc2008
         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
         if (nf.gt.0) then
           read(fields(1),*) numl
++if ffield
+! FringeField ASIMONA, BDALENA, TPUGNAT
+      call ffInterface(3, [1, 1],1,1,1)
+! end FringeField ASIMONA, BDALENA, TPUGNAT
++ei
         nf=nf-1
         endif
         if (nf.gt.0) then
@@ -26039,6 +26078,12 @@ C Should get me a NaN
 +ei
       call closeUnits
 
++if ffield
+! FringeField ASIMONA, BDALENA, TPUGNAT
+      call ffInterface(6, [1, 2],1,1,1)
+! end FringeField ASIMONA, BDALENA, TPUGNAT
++ei
+
       if (zipf_numfiles.gt.0) then
          call zipf
       endif
@@ -27230,6 +27275,12 @@ C Should get me a NaN
       double precision expt
 +ei
 +ca parnum
++if ffield
++ca ffieldcommon
+      integer :: ffcontIN = 0
+      integer :: ffcontOUT = 0
+      integer :: ffcontTOT = 0
++ei
 +ca common
 +ca common2
 +ca commons
@@ -27379,6 +27430,11 @@ C Should get me a NaN
 !           endfile (93,iostat=ierro)
 !           backspace (93,iostat=ierro)
 !         endif
++ei
++if ffield
+!                FringeField ASIMONA, BDALENA, TPUGNAT
+          call ffInterface(12,[1,1],i,j,n)
+!                FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
@@ -27573,8 +27629,79 @@ C Should get me a NaN
           goto 640
 !--NORMAL QUADRUPOLE
    70     do 80 j=1,napx
++if ffield
+!                FringeField ASIMONA, BDALENA, TPUGNAT
+            if (blabla(ic(i)-nblo) /= 0) then
+              if (blabla(ic(i)-nblo) /= blabla(ic(i-2)-nblo)) then
+!                if (j==1) then
+!                  write(*,*) "Before  (in Track) : x = ",xv(1,j)," y= ",&
+!     &xv(2,j), i, j
+!                endif
+                call ffInterface(2,[blabla(ic(i)-nblo),1],i,j,n)
+                if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
+                  ffcontIN = ffcontIN + 1
+                endif
+!                if (j==1) then
+!                  write(*,*) "FringeField : The in  part has been",      &
+!     &" computed! -> elm: ",blabla(ic(i)-nblo),"  Tr=",n
+!                endif
+              endif
+            endif
+
+!            if ((blabla(ic(i)-nblo) /= blabla(ic(i-2)-nblo)).and.(      &
+!     &blablaic(i)-nblo) /= 0)) then
+!            if (j==1) then
+!            write(*,*) "Before  (in Track) : x = ", xv(1,j), " y= ",    &
+!     &xv(2,j), i, j
+!            endif
+!             call ffInterface(2,[blabla(ic(i)-nblo),1],i,j,n)
+!              if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
+!                ffcontIN = ffcontIN + 1
+!              endif
+!              if (j==1) then
+!                write(*,*) "FringeField : The in  part has been",        &
+!     &" computed!",blabla(ic(i)-nblo)
+!              endif
+!            endif
+!                end FringeField ASIMONA, BDALENA, TPUGNAT
++ei
 +ca alignva
 +ca kickvxxh
++if ffield
+!                FringeField ASIMONA, BDALENA, TPUGNAT
+
+            if (blabla(ic(i)-nblo) /= 0) then
+              if (blabla(ic(i)-nblo) /= blabla(ic(i+2)-nblo)) then
+                call ffInterface(2,[blabla(ic(i)-nblo),2],i,j,n)
+!                if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
+!                  ffcontOUT = ffcontOUT + 1
+!                endif
+!                if (j==1) then
+!                  write(*,*) "FringeField : The out part has been",     &
+!     &" computed! -> elm: ",blabla(ic(i)-nblo),"  Tr=",n
+!                endif
+              endif
+            endif
+
+!            if ((blabla(ic(i)-nblo) /= blabla(ic(i+2)-nblo)).and.(      &
+!     &blabla(ic(i)-nblo) /= 0)) then
+!              call ffInterface(2,[blabla(ic(i)-nblo),2],i,j,n)
+!              if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
+!                ffcontOUT = ffcontOUT + 1
+!              endif
+!              if (j==1) then
+!                write(*,*) "FringeField : The out part has been",        &
+!     &" computed!",blabla(ic(i)-nblo)
+!              endif
+!            endif
+
+!            if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
+!              write(*,*) "IN =  ",ffcontIN
+!              write(*,*) "tot = ",ffcontTOT
+!              write(*,*) "out = ",ffcontOUT
+!            endif
+!                end FringeField ASIMONA, BDALENA, TPUGNAT                !hr02
++ei
    80     continue
           goto 640
   755     continue
