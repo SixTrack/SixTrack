@@ -1,31 +1,29 @@
 +dk dump
+
+! A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
+! K. Sjobak, BE-ABP/HSS, BE-ABP/LAT
+!
+! In case the DUMP input block is issued, the beam population is dumped
+!   at EACH occurence of the flagged SINGLE ELEMENT(s) in the accelerator structure
+! Important remarks:
+!   - The chosen SINGLE ELEMENT(s) must be outside a BLOC, and BLOCs cannot be chosen
+!   - The special name 'ALL' will trigger dump at all SINGLE ELEMENTs (settings of dump 
+!     are stored in index 0 of all the usual arrays);
+!   - The beam population is ALWAYS dumped at the end of the entry, i.e. AFTER the proper
+!     transformation map is applied, and after the aperture check, i.e. AFTER the lost
+!     particles are filtered out
+!   - A negative or null value of the dump frequency is interpreted as dump at every turn
+!   - No check is performed on the logical units, i.e. if the ones selected by the user
+!     are used in other places of the code...
+!   - The dump format can be changed to the one required by the LHC aperture check
+!     post-processing tools, activating the dumpfmt flag (0=off, by default);
+
 module dump
   
   use floatPrecision
   implicit none
   
-!     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     K. Sjobak, BE-ABP/HSS, BE-ABP/LAT
-
-!     in case the DUMP input block is issued, the beam population is dumped
-!       at EACH occurence of the flagged SINGLE ELEMENT(s) in the accelerator
-!       structure
-!     important remarks:
-!     - the chosen SINGLE ELEMENT(s) must be outside a BLOC, and BLOCs cannot
-!       be chosen
-!     - the special name 'ALL' will trigger dump at all SINGLE ELEMENTs
-!       (settings of dump are stored in index 0 of all the usual arrays);
-!     - the beam population is ALWAYS dumped at the end of the entry,
-!       i.e. AFTER the proper transformation map is applied, and after the
-!       aperture check, i.e. AFTER the lost particles are filtered out
-!     - a negative or null value of the dump frequency is interpreted as dump
-!       at every turn
-!     - NO check is performed on the logical units, i.e. if the ones selected
-!       by the user are used in other places of the code...
-!     - the dump format can be changed to the one required by the LHC aperture check
-!       post-processing tools, activating the dumpfmt flag (0=off, by default);
-
-+ca parpro !for nele
++ca parpro ! for nele
 +ca comgetfields ! for getfields_l_max_string
 
   logical, save :: ldumphighprec          ! high precision printout required at all flagged SINGLE ELEMENTs
@@ -36,13 +34,14 @@ module dump
   integer, save :: dumpfirst (-1:nele)    ! First turn for DUMP to be active
   integer, save :: dumplast (-1:nele)     ! Last turn for this DUMP to be active (-1=all)
   integer, save :: dumpunit (-1:nele)     ! fortran unit for dump at a flagged SINGLE ELEMENT
-  integer,save :: dumpfmt (-1:nele)       ! flag the format of the dump
+  integer, save :: dumpfmt (-1:nele)      ! flag the format of the dump
   
   character(len=getfields_l_max_string), save :: dump_fname (-1:nele)
   
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
-  real(kind=fPrec), save :: dumptas (-1:nblz,6,6) 
+  real(kind=fPrec), save :: dumptas (-1:nblz,6,6)
+  
   real(kind=fPrec), save :: dumptasinv (-1:nblz,6,6) ! inverse matrix of dumptas
   real(kind=fPrec), save :: dumpclo (-1:nblz,6)      ! closed orbit used for normalisation of phase space
                                                      ! TODO: check units used in dumpclo; is x' or px used?
@@ -102,6 +101,10 @@ subroutine dump_linesFirst(n)
 end subroutine dump_linesFirst
 
 ! ================================================================================================================================ !
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!  Last modified: 01-09-2014
+!  Close units for dumping particle population
+! ================================================================================================================================ !
 subroutine dump_closeUnits
   
   implicit none
@@ -109,9 +112,6 @@ subroutine dump_closeUnits
   logical lopen
   integer i
   
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 01-09-2014
-  ! close units for dumping particle population
   do i=0,il
     if (ldump(i)) then
       ! The same file could be used by more than one SINGLE ELEMENT
@@ -337,7 +337,9 @@ subroutine dump_initialize
   
   use numerical_constants, only : zero
   use crcoall
+  
   implicit none
+  
 +ca common !il, idp
 +ca stringzerotrim
   integer i,j
@@ -494,7 +496,7 @@ subroutine dump_initialize
             write(dumpunit(i),'(a)') '# napx turn s[m] ' //                   &
               '<nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] '//                   &
               '<ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] '//                   &
-              '<nsig>[1.e-3 sqrt(m)] <ndp/p>[1.e-3 sqrt(m)]'//                &
+              '<nsig>[1.e-3 sqrt(m)] <ndp/p>[1.e-3 sqrt(m)]'//                & ! There should be a space at the end of the string
               '<nx^2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> '//  &
               '<npx^2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> '//      &
               '<ny^2> <ny*npy> <ny*nsigma> <ny*npsigma> '//                   &
@@ -582,8 +584,8 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
   use floatPrecision
   use physical_constants
   use numerical_constants
-  
   use crcoall
+  
   implicit none
   
   ! interface variables:
@@ -689,7 +691,7 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
 +if cr
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 +ei
-    
+  
   ! Same as fmt 1, but also include z (for crab cavities etc.)
   else if (fmt .eq. 2) then
     if (i.eq.0 .and. ix.eq.0) then
@@ -784,7 +786,7 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
       end do
     end do
     
-    if(fmt.eq.5) then !Raw
+    if(fmt.eq.5) then ! Raw
       do j=1,napx
         xyz_particle(6)=(ejv(j)-e0)/e0
         
