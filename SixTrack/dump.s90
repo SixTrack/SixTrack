@@ -50,8 +50,12 @@ module dump
   integer,save :: dumpfilepos(-1:nele), dumpfilepos_cr(-1:nele) ! For resetting file positions
 +ei
 
+! ================================================================================================================================ !
+!  THE SUBROUTINES
+! ================================================================================================================================ !
 contains
 
+! ================================================================================================================================ !
 subroutine dump_lines (n,i,ix)
 
   implicit none
@@ -80,6 +84,7 @@ subroutine dump_lines (n,i,ix)
 
 end subroutine dump_lines
 
+! ================================================================================================================================ !
 subroutine dump_linesFirst(n)
 
   implicit none
@@ -96,6 +101,7 @@ subroutine dump_linesFirst(n)
   
 end subroutine dump_linesFirst
 
+! ================================================================================================================================ !
 subroutine dump_closeUnits
   
   implicit none
@@ -116,6 +122,7 @@ subroutine dump_closeUnits
   
 end subroutine dump_closeUnits
 
+! ================================================================================================================================ !
 subroutine dump_parseInputLine(ch)
   
   use crcoall
@@ -259,6 +266,7 @@ subroutine dump_parseInputLine(ch)
   
 end subroutine dump_parseInputLine
 
+! ================================================================================================================================ !
 subroutine dump_parseInputDone
   
   use crcoall
@@ -324,6 +332,7 @@ subroutine dump_parseInputDone
 
 end subroutine dump_parseInputDone
 
+! ================================================================================================================================ !
 subroutine dump_initialize
   
   use numerical_constants, only : zero
@@ -554,20 +563,20 @@ subroutine dump_initialize
   
 end subroutine dump_initialize
 
-!-----------------------------------------------------------------------
-!     By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
-!     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 21-09-2015
-!     dump beam particles
-!     always in main code
+! ================================================================================================================================ !
+!  By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
+!  K.Sjobak and A.Santamaria, BE-ABP-HSS
+!  Last modified: 21-09-2015
+!  dump beam particles
+!  always in main code
 !
-!     nturn     : Current turn number
-!     i         : Current structure element (0 for StartDUMP)
-!     ix        : Corresponding single element (<0 for BLOC, only for ALL; 0 for StartDUMP)
-!     unit      : Unit to dump from
-!     fmt       : Dump output format (0/1/2/...)
-!     lhighprec : High precission output y/n
-!-----------------------------------------------------------------------
+!  nturn     : Current turn number
+!  i         : Current structure element (0 for StartDUMP)
+!  ix        : Corresponding single element (<0 for BLOC, only for ALL; 0 for StartDUMP)
+!  unit      : Unit to dump from
+!  fmt       : Dump output format (0/1/2/...)
+!  lhighprec : High precission output y/n
+! ================================================================================================================================ !
 subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, tasinv )
   
   use floatPrecision
@@ -1078,6 +1087,7 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
   
 end subroutine dump_beam_population
 
+! ================================================================================================================================ !
 subroutine dump_comnul
   
   implicit none
@@ -1113,7 +1123,12 @@ subroutine dump_comnul
   
 end subroutine dump_comnul
 
+! ================================================================================================================================ !
+!  Begin Checkpoint Restart
+! ================================================================================================================================ !
 +if cr
+
+! ================================================================================================================================ !
 subroutine dump_crcheck_readdata(fileunit, readerr)
   
   implicit none
@@ -1133,6 +1148,7 @@ subroutine dump_crcheck_readdata(fileunit, readerr)
   
 end subroutine dump_crcheck_readdata
 
+! ================================================================================================================================ !
 subroutine dump_crcheck_positionFiles
   
   use crcoall
@@ -1245,6 +1261,7 @@ subroutine dump_crcheck_positionFiles
   
 end subroutine dump_crcheck_positionFiles
 
+! ================================================================================================================================ !
 subroutine dump_crpoint(fileunit,lerror,ierro)
   
   implicit none
@@ -1263,5 +1280,10 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
   return
   
 end subroutine dump_crpoint
+! ================================================================================================================================ !
+
 +ei
+! ================================================================================================================================ !
+!  End Checkpoint Restart
+! ================================================================================================================================ !
 end module dump
