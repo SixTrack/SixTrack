@@ -246,7 +246,7 @@ if(DA)
 	LIST(APPEND FORS_FREEFORM scatter dynk)
 else()
 	LIST(APPEND FORS_FIXFORM track sixve sixvefox dabnews lielib plato_seq)
-	LIST(APPEND FORS_FREEFORM beamgas scatter dynk)
+	LIST(APPEND FORS_FREEFORM beamgas scatter dynk bdex)
 endif()
 
 if(NOT DA AND DATAMODS)
