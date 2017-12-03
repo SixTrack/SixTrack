@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.16'/
-      data moddate /'06.11.2017'/
+      data version /'4.7.17'/
+      data moddate /'07.11.2017'/
 +cd license
 !!SixTrack
 !!
@@ -21354,12 +21354,12 @@ C Should get me a NaN
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
       
-      write(12,*) dare(x(1))
-      write(12,*) dare(y(1))
-      write(12,*) dare(x(2))
-      write(12,*) dare(y(2))
-      write(12,*) dare(sigmda)
-      write(12,*) dare(dpda)
+      write(12,'(E22.15)') dare(x(1))
+      write(12,'(E22.15)') dare(y(1))
+      write(12,'(E22.15)') dare(x(2))
+      write(12,'(E22.15)') dare(y(2))
+      write(12,'(E22.15)') dare(sigmda)
+      write(12,'(E22.15)') dare(dpda)
 
       write(lout,10010)
       
@@ -23085,12 +23085,12 @@ C Should get me a NaN
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
       
-      write(12,*) dare(x(1))
-      write(12,*) dare(y(1))
-      write(12,*) dare(x(2))
-      write(12,*) dare(y(2))
-      write(12,*) dare(sigmda)
-      write(12,*) dare(dpda)
+      write(12,'(E22.15)') dare(x(1))
+      write(12,'(E22.15)') dare(y(1))
+      write(12,'(E22.15)') dare(x(2))
+      write(12,'(E22.15)') dare(y(2))
+      write(12,'(E22.15)') dare(sigmda)
+      write(12,'(E22.15)') dare(dpda)
       
       write(lout,10010)
 !-----------------------------------------------------------------------
@@ -29998,13 +29998,6 @@ C Should get me a NaN
      &                  nxyz_particle(4),nxyz_particle(5),
      &                  nxyz_particle(6),localKtrack
                endif
-
-               !Flush
-               endfile (unit,iostat=ierro)
-               backspace (unit,iostat=ierro)
-+if cr
-               dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
                
              else if (fmt .eq. 8) then
                  write(unit) nlostp(j)+(samplenumber-1)*npart,
@@ -30012,12 +30005,6 @@ C Should get me a NaN
      &                nxyz_particle(2),nxyz_particle(3),
      &                nxyz_particle(4),nxyz_particle(5),
      &                nxyz_particle(6),localKtrack
-                 !Flush
-                 endfile (unit,iostat=ierro)
-                 backspace (unit,iostat=ierro)
-+if cr
-                 dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
                  
              else if (fmt .eq. 9) then
                ! Average beam position
@@ -30059,9 +30046,23 @@ C Should get me a NaN
 
                xyz2(6,6) = xyz2(6,6) + nxyz_particle(6)*nxyz_particle(6)
              endif
-         enddo
+         enddo ! END loop over particles (j)
 
-         if (fmt .eq. 9) then
+         if (fmt .eq. 7) then
+            !Flush
+            endfile (unit,iostat=ierro)
+            backspace (unit,iostat=ierro)
++if cr
+            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+         else if (fmt .eq. 8) then
+            !Flush
+            endfile (unit,iostat=ierro)
+            backspace (unit,iostat=ierro)
++if cr
+            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+         else if (fmt .eq. 9) then
            !Normalize to get averages
            xyz = xyz/napx
 
@@ -30091,6 +30092,7 @@ C Should get me a NaN
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
            endif
+           
            !Flush
            endfile (unit,iostat=ierro)
            backspace (unit,iostat=ierro)
