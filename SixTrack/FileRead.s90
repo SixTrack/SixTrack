@@ -460,7 +460,7 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
       enddo
    enddo
    dz=dz/dble(sline)
-   Lgth = Lgth + dz   
+!   Lgth = Lgth + dz   
 
    ! Redimentionnement des tableaux
    ! -------------------------------------------------------------------------

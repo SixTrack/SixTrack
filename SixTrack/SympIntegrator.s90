@@ -213,10 +213,16 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper)
 !      c =        - (K - CoK)*Lin_tp
 !      d =  1.0d0 + (K - CoK)*Lin_tp*Corx_tp*0.5d0
 
-      a =  1.0d0 - (K - CoK)*Lin_tp *(Lin_tp+Corx_tp*0.5d0)
-      b = (1.0d0 + (K - CoK)*Corx_tp*(Lin_tp+Corx_tp*0.5d0)*0.5d0)*Lin_tp
-      c =        - (K - CoK)*Lin_tp
-      d =  1.0d0 + (K - CoK)*Lin_tp*Corx_tp*0.5d0
+!      a =  1.0d0 - (K - CoK)*Lin_tp *(Lin_tp+Corx_tp*0.5d0)
+!      b = (1.0d0 + (K - CoK)*Corx_tp*(Lin_tp+Corx_tp*0.5d0)*0.5d0)*Lin_tp
+!      c =        - (K - CoK)*Lin_tp
+!      d =  1.0d0 + (K - CoK)*Lin_tp*Corx_tp*0.5d0
+
+
+      a =  1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)* Lin_tp*0.5d0
+      b = (1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)*(Lin_tp-Corx_tp)*0.25d0)*Lin_tp
+      c =        - (K - CoK)* Lin_tp
+      d =  1.0d0 - (K - CoK)*(Lin_tp-Corx_tp)* Lin_tp*0.5d0
       bcmad = a*d - b*c
       
       do i = 1,NbDivQad 
@@ -233,10 +239,16 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper)
 !      c =          (K + CoK)*Lin_tp
 !      d =  1.0d0 - (K + CoK)*Lin_tp*Cory_tp*0.5d0
 
-      a =  1.0d0 + (K + CoK)*Lin_tp *(Lin_tp+Cory_tp*0.5d0)
-      b = (1.0d0 - (K + CoK)*Cory_tp*(Lin_tp+Cory_tp*0.5d0)*0.5d0)*Lin_tp
-      c =          (K + CoK)*Lin_tp
-      d =  1.0d0 - (K + CoK)*Lin_tp*Cory_tp*0.5d0
+!      a =  1.0d0 + (K + CoK)*Lin_tp *(Lin_tp+Cory_tp*0.5d0)
+!      b = (1.0d0 - (K + CoK)*Cory_tp*(Lin_tp+Cory_tp*0.5d0)*0.5d0)*Lin_tp
+!      c =          (K + CoK)*Lin_tp
+!      d =  1.0d0 - (K + CoK)*Lin_tp*Cory_tp*0.5d0
+
+
+      a =  1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp*0.5d0
+      b = (1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)*(Lin_tp-Cory_tp)*0.25d0)*Lin_tp
+      c =          (K + CoK)* Lin_tp
+      d =  1.0d0 + (K + CoK)*(Lin_tp-Cory_tp)* Lin_tp*0.5d0
       bcmad = a*d-b*c
 
       do i = 1,NbDivQad 

@@ -339,7 +339,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                                          ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                                                          ffParam(dataindex,2),ffParam(dataindex,3),    &
                                                          ffParam(dataindex,4),ffParam(dataindex,5),'Q')
-
+           call AntiDriftAntiQuad(x,px,y,py,0,dz*0.5d0,0,0,0,0,'D')
 
 ! <<<< to be clean
 !open(88,file="temp6.log")
@@ -374,6 +374,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !write(*,*) "FField 4 -> ffj=",ffj," ffi=",ffi
 
   	   !   - Repositionnement Final
+           call AntiDriftAntiQuad(x,px,y,py,0,dz*0.5d0,0,0,0,0,'D')
  	   if ((inex=="IN").or.(inex=="OUT_O"))  call AntiDriftAntiQuad(x,px,y,py,                    &
                                                          ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                                                          ffParam(dataindex,2),ffParam(dataindex,3),    &
