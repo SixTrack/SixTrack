@@ -2635,7 +2635,12 @@ subroutine collimate_end_sample(j)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+
++if root
+  use root_output
++ei
+
   implicit none
 
 
@@ -2800,6 +2805,16 @@ subroutine collimate_end_sample(j)
   end do
 
   close(50)
+
++if root
+  do icoll = 1, db_ncoll
+    if(db_length(icoll).gt.zero) then
+      call CollimatorLossRootWrite(icoll, db_name1(icoll), len(db_name1(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
+& caverage(icoll), csigma(icoll), db_length(icoll))
+    end if
+  end do
++ei
+
 end subroutine collimate_end_sample
 
 !>
@@ -3287,7 +3302,12 @@ subroutine collimate_end_turn
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+
++if root
+  use root_output
++ei
+
   implicit none
 
 
@@ -3379,6 +3399,9 @@ subroutine collimate_end_turn
     end do
 
     write(44,'(2i7)') iturn, nsurvive
++if root
+    call SurvivalRootWrite(iturn, nsurvive)
++ei
     if (iturn.eq.numl) then
       nsurvive_end = nsurvive_end + nsurvive
     end if
@@ -7940,8 +7963,16 @@ end function ran_gauss
 !<
 subroutine readcollimator
   use floatPrecision
+  use crcoall
 
-  integer I,J,K
++if root
+  use iso_c_binding
+  use root_output
++ei
+
+  implicit none
+
+  integer I,J,K,ios
 +ca parpro
 +ca collpara
 +ca database
@@ -7949,6 +7980,11 @@ subroutine readcollimator
 
   logical lopen
 
++if root
+! Temp variables to avoid fotran array -> C nightmares
+  character(len=17) :: this_name = C_NULL_CHAR
+  character(len=5) :: this_material = C_NULL_CHAR
++ei
   save
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -8041,6 +8077,14 @@ subroutine readcollimator
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
+
++if root
+    this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
+    this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
+    call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
+&   db_length(j), db_rotation(j), db_offset(j))
++ei
+
   end do
 
   close(53)

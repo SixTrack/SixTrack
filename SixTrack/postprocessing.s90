@@ -2349,7 +2349,10 @@ subroutine postpr(posi,nnuml)
      &(i1).and.pmin(i2).ne.pmax(i2))) then
 
 !--HBOOK FRAME
+!using http://cds.cern.ch/record/118642
+! defines "general title"
           call htitle(title(i))
+! hbook 2 (2d hist) id, title, nx, xmin, xmax, ny, ymin, ymax, data_min - "bit precision" ?
           call hbook2(i,' ',2,real(pmin(i1)),real(pmax(i1)), 2,real(pmin(i2)),real(pmax(i2)),0.)
           call hplot(i,' ',' ',0)
           call hplax(chxtit(i),chytit(i))
