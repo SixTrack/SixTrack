@@ -10,6 +10,7 @@
 #include "Collimation_root.h"
 #include "AcceleratorOutput_root.h"
 #include "Optics_root.h"
+#include "RunTime_root.h"
 
 TFile *RootFile;
 
@@ -50,6 +51,9 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
 
     //Dumps the optics to the root tree
     OpticsRootInit();
+
+    //Stats on the run time
+    RunTimeRootInit();
 
     //Dumps particles lost in aperture
     if(ApertureCheck)

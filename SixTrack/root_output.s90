@@ -117,6 +117,15 @@ db_rotation_in, db_offset_in) bind(C,name="CollimatorDatabaseRootWrite")
   real(kind=C_DOUBLE), intent(in), value :: db_offset_in
 end subroutine
 
+!extern "C" void RunTimeRootWrite(Float_t pretime_in, Float_t trtime_in, Float_t, posttime_in);
+subroutine  RunTimeRootWrite(pretime_in, trtime_in, posttime_in) bind(C,name="RunTimeRootWrite")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  real(kind=C_FLOAT), intent(in), value :: pretime_in
+  real(kind=C_FLOAT), intent(in), value :: trtime_in
+  real(kind=C_FLOAT), intent(in), value :: posttime_in
+end subroutine
+
 subroutine SixTrackRootWrite() bind(C,name="SixTrackRootWrite")
   implicit none
 end subroutine

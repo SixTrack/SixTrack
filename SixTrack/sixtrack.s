@@ -24648,7 +24648,7 @@ program maincr
 
 +if root
 ! flush the root file
-  call SixTrackRootWrite()
+!  call SixTrackRootWrite()
 +ei
 
 !                                !
@@ -25050,6 +25050,7 @@ program maincr
       endif
 
 +if root
+      call RunTimeRootWrite(pretime, trtime, posttime)
       call SixTrackRootExit()
 +ei
 
@@ -28402,7 +28403,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
 +if root
 ! flush the root file
-  call SixTrackRootWrite()
+!  call SixTrackRootWrite()
 +ei
 
 !     Don't kill lost particle if apflag is activated
