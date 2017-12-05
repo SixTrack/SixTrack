@@ -71,6 +71,8 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
 
     //FMA
 
+    //Write the root file to flush the headers to storage.
+    SixTrackRootWrite();
 }
 
 /**

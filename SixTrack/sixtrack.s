@@ -24646,6 +24646,10 @@ program maincr
          call scatter_initialize
       endif
 
++if root
+! flush the root file
+  call SixTrackRootWrite()
++ei
 
 !                                !
 !     ****** TRACKING ******     !
@@ -28395,6 +28399,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
 !flush loss particle file
       flush(999)
+
++if root
+! flush the root file
+  call SixTrackRootWrite()
++ei
 
 !     Don't kill lost particle if apflag is activated
       if ( apflag ) then

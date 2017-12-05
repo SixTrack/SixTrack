@@ -117,6 +117,10 @@ db_rotation_in, db_offset_in) bind(C,name="CollimatorDatabaseRootWrite")
   real(kind=C_DOUBLE), intent(in), value :: db_offset_in
 end subroutine
 
+subroutine SixTrackRootWrite() bind(C,name="SixTrackRootWrite")
+  implicit none
+end subroutine
+
 end interface
 
 contains

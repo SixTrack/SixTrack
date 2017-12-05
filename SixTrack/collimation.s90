@@ -2815,6 +2815,10 @@ subroutine collimate_end_sample(j)
   end do
 +ei
 
++if root
+! flush the root file
+  call SixTrackRootWrite()
++ei
 end subroutine collimate_end_sample
 
 !>
@@ -8089,6 +8093,10 @@ subroutine readcollimator
 
   close(53)
 
++if root
+! flush the root file
+  call SixTrackRootWrite()
++ei
 end subroutine readcollimator
 
 subroutine collimation_comnul
