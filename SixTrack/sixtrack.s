@@ -3955,7 +3955,7 @@
         do j=1,napx
          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
      & +  crabph2(ix)                                                     !hr03
-         print *, "ThisPhaseMulti2", crabph2(ix)    
+            
 +ca alignva
 +if .not.tilt
 +if crlibm
@@ -4074,7 +4074,7 @@
                 enddo
 +cd ccmul3
 ! JBG RF CC Multipoles
-          print *, "test"
+          
 +if crlibm
           pi=4d0*atan_rn(1d0)
 +ei
@@ -4093,8 +4093,7 @@
           do j=1,napx
          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(2d0*pi)           &!hr03
      &+  crabph3(ix)                                                      !hr03
-	 print *, "ThisPhase", crabph3(ix)  
-
+	  
 +ca alignva
 +if .not.tilt
 +if crlibm
