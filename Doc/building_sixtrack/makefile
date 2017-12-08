@@ -4,8 +4,8 @@ manName=building_sixtrack
 all: $(manName).pdf
 
 clean:
-	rm -f $(manName).toc $(manName).out $(manName).aux $(manName).log
+	rm -f $(manName).toc $(manName).out $(manName).aux $(manName).log $(manName).pdf
 
-manual: $(manName).tex
+$(manName).pdf: $(manName).tex
 	pdflatex $(manName).tex
 	pdflatex $(manName).tex
