@@ -6,10 +6,12 @@
 #include <complex>
 #include <numeric>
 #include <cmath>
+#include <algorithm>
+#include <functional>
+#include <iomanip>
 
 #include "consts.h"
 #include "spline_interpolation.h"
-#include <boost/numeric/odeint.hpp>
 
 class Component {
   public:

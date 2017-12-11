@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.12'/
-      data moddate /'26.10.2017'/
+      data version /'4.7.17'/
+      data moddate /'07.11.2017'/
 +cd license
 !!SixTrack
 !!
@@ -889,7 +889,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
 !
-! THIS BLOCK IS COMMON TO BOTH THIN6D AND TRAUTHIN SUBROUTINES
+! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
 !
       integer ieff,ieffdpop
 !
@@ -935,14 +935,20 @@
 
 
       integer secondary(npart),tertiary(npart),other(npart),            &
-     &part_hit_before(npart)
+     &part_hit_before_pos(npart), part_hit_before_turn(npart)
       double precision part_indiv(npart),part_linteract(npart)
 
-      integer part_hit(npart),part_abs(npart),n_tot_absorbed,n_absorbed &
-     &,part_select(npart),nabs_type(npart)
+      integer part_hit_pos(npart),part_hit_turn(npart),                 &
+     &     part_abs_pos(npart),part_abs_turn(npart),                    &
+     &     n_tot_absorbed,n_absorbed,                                   &
+     &     part_select(npart),nabs_type(npart)
       double precision part_impact(npart)
-      common /stats/ part_impact,part_hit,part_abs,nabs_type,part_indiv,&
-     &part_linteract,secondary,tertiary,other
+      common /stats/ part_impact,                                       &
+     &     part_hit_pos,part_hit_turn,                                  &
+     &     part_hit_before_pos, part_hit_before_turn,                   &
+     &     part_abs_pos,part_abs_turn,                                  &
+     &     nabs_type,part_indiv,                                        &
+     &     part_linteract,secondary,tertiary,other
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
@@ -1024,9 +1030,10 @@
 
       logical onesided,hit
       integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-!MAY2005
-!      integer lhit(npart),part_abs(npart)
-      integer lhit(npart),part_abs(npart),name(npart),nabs_type(npart)
+      
+      integer lhit_pos(npart),lhit_turn(npart),                         &
+     &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
+     &     name(npart),nabs_type(npart)
 !MAY2005
       double precision p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
      &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
@@ -15597,20 +15604,6 @@ cc2008
 +if .not.fio
       if(iclr.eq.1) read(ch1,*) do_coll
 +ei
-
-      if(do_coll .and. numl.ge.10000) then
-         write(lout,*) ""
-         write(lout,*) "Error when parsing COLL block in fort.3"
-         write(lout,*) "Collimation supports a maximum of 10000 turns;"
-         write(lout,*) " trying to use more than this "//
-     &        "corrupts the output files."
-         write(lout,*) "Sorry!"
-         write(lout,*) ""
-         
-         call prror(-1)
-      endif
-      
-
       
 +if fio
       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
@@ -15630,6 +15623,18 @@ cc2008
          write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
          write(lout,*) "Please reduce the number of particles or loops"
          write(lout,*) ""
+         
+         call prror(-1)
+      endif
+
+      if(iclr.eq.2 .and. napx*2.ge.100 .and. nloop.gt.1) then
+         write(lout,*) ""
+         write(lout,*) "Error when parsing COLL block in fort.3"
+         write(lout,*) "If nloop > 1 then you must have napx*2 < 100"
+         write(lout,*) " or else the particle numbers in the"
+         write(lout,*) " output gets confused."
+         write(lout,*) "napx  = ", napx
+         write(lout,*) "nloop = ", nloop
          
          call prror(-1)
       endif
@@ -21128,12 +21133,12 @@ C Should get me a NaN
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
       
-      write(12,*) dare(x(1))
-      write(12,*) dare(y(1))
-      write(12,*) dare(x(2))
-      write(12,*) dare(y(2))
-      write(12,*) dare(sigmda)
-      write(12,*) dare(dpda)
+      write(12,'(E22.15)') dare(x(1))
+      write(12,'(E22.15)') dare(y(1))
+      write(12,'(E22.15)') dare(x(2))
+      write(12,'(E22.15)') dare(y(2))
+      write(12,'(E22.15)') dare(sigmda)
+      write(12,'(E22.15)') dare(dpda)
 
       write(lout,10010)
       
@@ -22914,12 +22919,12 @@ C Should get me a NaN
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
       
-      write(12,*) dare(x(1))
-      write(12,*) dare(y(1))
-      write(12,*) dare(x(2))
-      write(12,*) dare(y(2))
-      write(12,*) dare(sigmda)
-      write(12,*) dare(dpda)
+      write(12,'(E22.15)') dare(x(1))
+      write(12,'(E22.15)') dare(y(1))
+      write(12,'(E22.15)') dare(x(2))
+      write(12,'(E22.15)') dare(y(2))
+      write(12,'(E22.15)') dare(sigmda)
+      write(12,'(E22.15)') dare(dpda)
       
       write(lout,10010)
 !-----------------------------------------------------------------------
@@ -23742,6 +23747,7 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
+      double precision round_near
       data lineno /0/
 +ei
 +if debug
@@ -24878,15 +24884,37 @@ C Should get me a NaN
 +ca dump3 !list of variables
       endif
   550 continue
+      
+      
+      if (idp.eq.0.or.ition.eq.0) then
+         !4D tracking
+         if (iclo6 .ne. 0) then
+            write(lout,*) "ERROR: Doing 4D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.eq.0. for 4D tracking."
+            call prror(-1)
+         endif
+      else
+         !6D tracking
+         if (iclo6 .eq. 0) then
+            write(lout,*) "ERROR: Doing 6D tracking but iclo6=",iclo6
+            write(lout,*) "Expected iclo6.ne.0. for 6D tracking."
+            call prror(-1)
+         endif
+      endif
+      
+      
+!!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
 +ca dump2 !read(32)
 +ca dump3 !list of variables
         damp=((amp(1)-amp0)/dble(napx/2-1))/2d0                          !hr05
       endif
-      do 80 i=1,npart
-        pstop(i)=.false.
-        nnumxv(i)=numl
-   80 numxv(i)=numl
+      do i=1,npart
+         pstop(i)=.false.
+         nnumxv(i)=numl
+         numxv(i)=numl
+      end do
+      
       rat0=rat
       do 340 ia=1,napx,2
         if(idfor.ne.2) then
@@ -24997,9 +25025,182 @@ C Should get me a NaN
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
           write(lout,10020) ampv(ia),amp(2),epsa
         else
++if .not.crlibm
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
      &(2,ia+1), sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
++ei
++if crlibm
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(1,ia)]"
+             call prror(-1)
+          endif
+          xv(1,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(1,ia)]"
+             call prror(-1)
+          endif
+          yv(1,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(2,ia)]"
+             call prror(-1)
+          endif
+          xv(2,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(2,ia)]"
+             call prror(-1)
+          endif
+          yv(2,ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ sigmv(ia)]"
+             call prror(-1)
+          endif
+          sigmv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV sigmv(ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ dpsv(ia)]"
+             call prror(-1)
+          endif
+          dpsv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV dpsv(ia)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(1,ia+1)]"
+             call prror(-1)
+          endif
+          xv(1,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia+1)]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(1,ia+1)]"
+             call prror(-1)
+          endif
+          yv(1,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ xv(2,ia+1)]"
+             call prror(-1)
+          endif
+          xv(2,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ yv(2,ia+1)]"
+             call prror(-1)
+          endif
+          yv(2,ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [READ sigmv(ia+1)]"
+             call prror(-1)
+          endif
+          sigmv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [CONV sigmv(ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [READ dpsv(ia+1)]"
+             call prror(-1)
+          endif
+          dpsv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)
+     &            "Error when reading fort.13 [CONV dpsv(ia+1)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ e0]"
+             call prror(-1)
+          endif
+          e0 = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV e0]"
+             call prror(-1)
+          endif
+          
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ ejv(ia)]"
+             call prror(-1)
+          endif
+          ejv(ia) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV ejv(ia)]"
+             call prror(-1)
+          endif
+
+          read(13,'(a)', iostat=ierro) ch
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [READ ejv(ia+1)]"
+             call prror(-1)
+          endif
+          ejv(ia+1) = round_near(ierro,nchars,ch)
+          if(ierro.gt.0) then
+             write(lout,*)"Error when reading fort.13 [CONV ejv(ia+1)]"
+             call prror(-1)
+          endif
+
++ei
           if(ierro.ne.0) call prror(56)
           e0f=sqrt(e0**2-pma**2)                                         !hr05
           ejfv(ia)=sqrt(ejv(ia)**2-pma**2)                               !hr05
@@ -27416,7 +27617,7 @@ C Should get me a NaN
               gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
               gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
 
-              if (part_abs(j).eq.0) then
+              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           nspx    = sqrt(                                               &
      &abs( gammax*(xj)**2 +                                             &
      &2d0*talphax(ie)*xj*xpj +                                          &
@@ -27901,7 +28102,7 @@ C Should get me a NaN
   640     continue
 !GRD UPGRADE JANUARY 2005
 +if collimat
-      call collimate_end_element(i)
+      call collimate_end_element
 +ei
 !GRD END OF UPGRADE
 
@@ -27917,7 +28118,7 @@ C Should get me a NaN
 
 
 +if collimat
-      call collimate_end_turn(n)
+      call collimate_end_turn
 +ei
 
 +if .not.collimat
@@ -29603,13 +29804,6 @@ C Should get me a NaN
      &                  nxyz_particle(4),nxyz_particle(5),
      &                  nxyz_particle(6),localKtrack
                endif
-
-               !Flush
-               endfile (unit,iostat=ierro)
-               backspace (unit,iostat=ierro)
-+if cr
-               dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
                
              else if (fmt .eq. 8) then
                  write(unit) nlostp(j)+(samplenumber-1)*npart,
@@ -29617,12 +29811,6 @@ C Should get me a NaN
      &                nxyz_particle(2),nxyz_particle(3),
      &                nxyz_particle(4),nxyz_particle(5),
      &                nxyz_particle(6),localKtrack
-                 !Flush
-                 endfile (unit,iostat=ierro)
-                 backspace (unit,iostat=ierro)
-+if cr
-                 dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
                  
              else if (fmt .eq. 9) then
                ! Average beam position
@@ -29664,9 +29852,23 @@ C Should get me a NaN
 
                xyz2(6,6) = xyz2(6,6) + nxyz_particle(6)*nxyz_particle(6)
              endif
-         enddo
+         enddo ! END loop over particles (j)
 
-         if (fmt .eq. 9) then
+         if (fmt .eq. 7) then
+            !Flush
+            endfile (unit,iostat=ierro)
+            backspace (unit,iostat=ierro)
++if cr
+            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+         else if (fmt .eq. 8) then
+            !Flush
+            endfile (unit,iostat=ierro)
+            backspace (unit,iostat=ierro)
++if cr
+            dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
++ei
+         else if (fmt .eq. 9) then
            !Normalize to get averages
            xyz = xyz/napx
 
@@ -29696,6 +29898,7 @@ C Should get me a NaN
      &                                              xyz2(5,5),xyz2(6,5),
      &                                                        xyz2(6,6)
            endif
+           
            !Flush
            endfile (unit,iostat=ierro)
            backspace (unit,iostat=ierro)
@@ -33134,6 +33337,7 @@ C Should get me a NaN
       character*(maxf) fields(nofields)
       integer errno,nfields,nunit,lineno,nf
       double precision fround
+      double precision round_near
       data lineno /0/
 +ei
 +ca version

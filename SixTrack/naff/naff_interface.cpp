@@ -60,7 +60,7 @@ extern "C" double tunenaff(double** x,  double** xp, int* maxn, int* plane_idx, 
   // END debugging of argument passing
   
   // Input sanity checks
-  if (maxn <= 0) {
+  if (*maxn <= 0) {
     fprintf(stderr, "CRITICAL ERROR in double tunenaff_(...): maxn = %d <= 0", *maxn);
     exit(EXIT_FAILURE);
   }

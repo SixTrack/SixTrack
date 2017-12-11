@@ -48,11 +48,11 @@
 \vspace*{2mm}
 \begin{flushright}
   CERN/SL/94--56  (AP) \\
-  Update September 2017
+  Update November 2017
 \end{flushright}
 \begin{center}\LARGE
   {\bf SixTrack} \\
-  Version 4.7.10 \\
+  Version 4.7.16 \\
   {Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner} \\
   \vspace*{2mm} {\bf User's Reference Manual}
 \end{center}
@@ -1979,11 +1979,11 @@ This statement defines a profile, that is a density profile and general properti
 Several different types are available:
 \begin{description}
 \item[PROfile type \texttt{FLAT}:]\emph{PRO name FLAT density[targets/cm$^2$] mass[MeV/c$^2$] momentum[MeV/c]}
-\item[PROfile type \texttt{GAUSS1}:]\emph{PRO name GAUSS1 beamtot[particles] sigmaX[mm] sigmaY[mm]}
+\item[PROfile type \texttt{GAUSS1}:]\emph{PRO name GAUSS1 beamtot[particles] sigmaX[mm] sigmaY[mm] offsetX[mm] offsetY[mm]}
 \begin{align}
     \rho(x,y) = \frac{N_{\mathrm{tot}}}{2\pi\sigma_x\sigma_y}
-                \exp\left(-\frac{x^2}{2\sigma_x^2}\right)
-                \exp\left(-\frac{y^2}{2\sigma_y^2}\right)
+                \exp\left(-\frac{(x-\mu_x)^2}{2\sigma_x^2}\right)
+                \exp\left(-\frac{(y-\mu_y)^2}{2\sigma_y^2}\right)
 \end{align}
 \end{description}
 
@@ -2917,10 +2917,9 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
   coordinates. This can be turned off using {\em idfor}\/, for
   instance when a run is to be prolonged.
  \begin{itemize}
- \item {\em idfor} \/= 0 : closed orbit added
- \item {\em idfor} \/= 1 : initial coordinates unchanged
- \item {\em idfor} \/= 2 : prolongation of a run, taken the initial
-   coordinates from unit \# 13
+ \item {\em idfor} \/= 0 : closed orbit added.
+ \item {\em idfor} \/= 1 : initial coordinates unchanged.
+ \item {\em idfor} \/= 2 : prolongation of a run, taken the initial coordinates from unit \# 13.
  \end{itemize}
 \item [irew] To reduce the amount of tracking data after each
   amplitude and relative momentum deviation iteration \mbox{$
@@ -2933,34 +2932,30 @@ synchrotron oscillation are given in block (~\ref{SynOsc})
  \item {\em irew} \/= 0 : unit 90 (and lower) rewound
  \item {\em irew} \/= 1 : all data on unit 90 (and lower)
  \end{itemize}
-\item [iclo6] This switch allows to calculate the 6D closed orbit
-  using the differential algebra package. It is ignored in the regular
-  tracking versions. It is active in all versions that link to the
-  Differential Algebra package. This 6D closed orbit can be calculated
-  from any longitudinal position contrary to earlier versions.
-
+\item [iclo6]
+  This switch allows to calculate the 6D closed orbit and optical functions at the starting point, using the differential algebra package.
+  % It is ignored in the regular tracking versions.
+  It is active in all versions that link to the Differential Algebra package.
+  % This 6D closed orbit can be calculated from any longitudinal position contrary to earlier versions.
+  Note that iclo6 > 0 is mandatory for 6D simulations, and that iclo6 == 0 is mandatory for 4D simulations.
  \begin{itemize}
  \item {\em iclo6} \/= 0 : switched off
  \item {\em iclo6} \/= 1 : calculated
- \item {\em iclo6} \/= 2 : calculated and added to the initial
-   coordinates (~\ref{IniCoo}).
- \item {\em iclo6} \/= 5 or =6: like for {\em 1} \/and {\em 2} \/but
-   in addition a guess closed orbit is read (in free format) from file
-   unit \# 33.
+ \item {\em iclo6} \/= 2 : calculated and added to the initial coordinates (~\ref{IniCoo}).
+ \item {\em iclo6} \/= 5 or = 6: like for {\em 1} \/and {\em 2} \/ but in addition a guess closed orbit is read (in free format) from fileunit \# 33.
  \end{itemize}
-\item [nde(1)] Number of turns at flat bottom, useful for energy
-  ramping.
-\item [nde(2)] Number of turns for the energy ramping.  {\em
-    numl}\/--{\em nde(2)} \/ gives the number of turns on the flat
-  top. For constant energy with \mbox{$ nde(1) = nde(2) = 0 $} the
-  particles are considered to be on the flat top.
-\item [nwr(1)] Every {\em nwr(1)}\/'th turn the coordinates will be
-  written on unit 90 (and lower) in the flat bottom part of the
-  tracking.
-\item [nwr(2)] Every {\em nwr(2)}\/'th turn the coordinates in the
-  ramping region will be written on unit 90 (and lower).
-\item [nwr(3)] Every {\em nwr(3)}\/'th turn at the flat top a write
-  out of the coordinates on unit 90 (and lower) will occur.  For
+\item [nde(1)]
+  Number of turns at flat bottom, useful for energy ramping.
+\item [nde(2)]
+  Number of turns for the energy ramping.  {\em numl}\/--{\em nde(2)} \/ gives the number of turns on the flat top.
+  For constant energy with \mbox{$ nde(1) = nde(2) = 0 $} the particles are considered to be on the flat top.
+\item [nwr(1)]
+  Every {\em nwr(1)}\/'th turn the coordinates will be written on unit 90 (and lower) in the flat bottom part of the tracking.
+\item [nwr(2)]
+  Every {\em nwr(2)}\/'th turn the coordinates in the ramping region will be written on unit 90 (and lower).
+\item [nwr(3)]
+  Every {\em nwr(3)}\/'th turn at the flat top a write out of the coordinates on unit 90 (and lower) will occur.
+  For
   constant energy this number controls the amount of data on unit 90
   (and lower), as the particles are considered on the flat top.
 \item [nwr(4)] In cases of very long runs it is sometimes useful to
@@ -3062,6 +3057,10 @@ space. Note that results may differ from those of older versions.
 \item The amplitude scan is performed from \emph{amp(1)} to \emph{amp0} in steps of $\emph{delta} = (\emph{amp0} - \emph{amp(1)}) / (napx-1)$.
 For the intermediate amplitudes, \emph{delta} is added up for each step, however the last amplitude is guaranteed to be fixed to the given value.
 This enables ``control calculations'' by setting the first amplitude of one simulation equal to the last amplitude of another simulation, and unless there are calculation errors, they shall produce exactly the same results.
+
+\item Note that if \emph{iclo6} = 2 and \emph{idfor} = 0 in the input file, then \emph{idfor} is internally set to 1, as is seen in some outputs.
+This does not mean that the closed orbit is not added; the setting of \emph{iclo6} = 2 simply takes precedence.
+
 \end{enumerate}
 
 \subsection{Initial Coordinates} \label{IniCoo}
