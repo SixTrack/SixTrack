@@ -24425,69 +24425,8 @@ end subroutine runda
         call prror(79)
       endif
 
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+!-----/ End of initial distribution
 
-!!! Really only neccessary for thick 4d tracking !!!
-!!! In FLUKA version, this is moved to new subroutine "blocksv" (in a new deck)
-+if .not.fluka
-!-------------------------------------  START OF 'BLOCK'
-      if (ithick.eq.1) then
-
-      do 440 k=1,mblo
-        jm=mel(k)
-        ikk=mtyp(k,1)
-
-        do lkk=1,2
-          do mkk=1,6
-            do ia=1,napx
-              dpoff=dpsv(ia)*c1e3
-              if(abs(dpoff).le.pieni) dpoff=one
-              hv(mkk,lkk,ia,1)=al(mkk,lkk,ia,ikk)
-            if(mkk.eq.5.or.mkk.eq.6) then
-              hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)/dpoff
-              end if
-            end do
-          end do
-        end do
-
-        if(jm.eq.1) goto 410
-        do 400 j=2,jm
-          ikk=mtyp(k,j)
-          do 390 lkk=1,2
-            do 380 ia=1,napx
-              dpoff=dpsv(ia)*c1e3
-              if(abs(dpoff).le.pieni) dpoff=one
-              hv(1,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(3,   &
-     &lkk,ia,j-1)*al(2,lkk,ia,ikk)
-              hv(2,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(4,   &
-     &lkk,ia,j-1)*al(2,lkk,ia,ikk)
-              hv(3,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(3,   &
-     &lkk,ia,j-1)*al(4,lkk,ia,ikk)
-              hv(4,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(4,   &
-     &lkk,ia,j-1)*al(4,lkk,ia,ikk)
-              hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,  &!hr05
-     &lkk,ia,j-1)*al(2,lkk,ia,ikk))+al(5,lkk,ia,ikk)/dpoff               !hr05
-              hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
-     &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
-  380       continue
-  390     continue
-  400   continue
-
-  410   do lkk=1,2
-          do mkk=1,6
-            do ia=1,napx
-              bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
-            end do
-          end do
-        end do
-
-  440 continue
-
-      end if
-!---------------------------------------END OF 'BLOCK'
-+ei
-
-+if fluka
   if(ithick.eq.1) then
 !------ Compute matrices for linear tracking
     call envarsv(dpsv,oidpsv,rvv,ekv)
@@ -24496,7 +24435,6 @@ end subroutine runda
       call blocksv
     end if
   end if
-+ei
 
 +if fluka
 !     P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
