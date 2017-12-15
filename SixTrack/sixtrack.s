@@ -170,15 +170,15 @@
 ! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
+      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=200000,       &
      &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,        &
+      parameter(nele=6000,nblo=2500,nper=16,nelb=280,nblz=400000,       &
      &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
-      parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
+      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=20000,        &
      &nzfz = 300000,mmul = 20) !up to 6'000 multipoles
 +ei
 +ei ! / not collimat
@@ -189,15 +189,15 @@
 +ei ! / beamgas
 +if .not.beamgas
 +if bignblz
-      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
+      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=200000,       &
      &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / bignblz
 +if hugenblz
-      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
+      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=400000,       &
      &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
 +ei ! / hugenblz
 +if .not.bignblz.and..not.hugenblz
-      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
+      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=15000,        &
      &nzfz = 144000,mmul = 11) !up to 4500 multipoles
 +ei ! / not bignblz
 +ei ! / not beamgas
