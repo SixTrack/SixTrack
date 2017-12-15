@@ -49,9 +49,9 @@ end module crcoall
 !     last modified: 08-12-2014
 !     synch masses of proton and electron to values used by FLUKA
 !     inserted in main code by the 'fluka' compilation flag
-!     proton and electron mass from PDG, 2014
-      real(kind=fPrec), parameter :: pmap = 0.938272046e3_fPrec
-      real(kind=fPrec), parameter :: pmae = 0.510998928_fPrec
+!     real(kind=fPrec), parameter :: pmap = 0.938272046e3_fPrec ! PDG 2014, Fluka-2011-dev
+      real(kind=fPrec), parameter :: pmap = 0.938272310e3_fPrec ! PDG 20xx, Fluka-2011-pro
+      real(kind=fPrec), parameter :: pmae = 0.510998928_fPrec   ! PDG 2014, Fluka-2011-dev
 +ei
 
 !     classical electron radius
