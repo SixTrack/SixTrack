@@ -23989,7 +23989,7 @@ end subroutine runda
       endif
 
       do 340 ia=1,napx,2
-        if(idfor.ne.2) then
+        if(idfor.ne.2.and.idfor.ne.3) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
           write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
@@ -24068,8 +24068,7 @@ end subroutine runda
             dpsv(ia+1)=dpsv(ia+1)+clop6v(3,ia)
             oidpsv(ia)=one/(one+dpsv(ia))
             oidpsv(ia+1)=one/(one+dpsv(ia+1))
-          endif
-          if(iclo6.ne.2) then
+          else
             xv(1,ia)=xv(1,ia)+(clov(1,ia)*real(idz(1),fPrec))*          &
      &real(1-idfor,fPrec)    !hr05
             yv(1,ia)=yv(1,ia)+(clopv(1,ia)*real(idz(1),fPrec))*         &
@@ -24094,7 +24093,7 @@ end subroutine runda
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
           write(lout,10020) ampv(ia),amp(2),epsa
-        else
+        else if(idfor.eq.2) then
 +if .not.crlibm
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
@@ -24278,9 +24277,11 @@ end subroutine runda
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
         endif
+        if ( idfor.ne.3 ) then
         write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
      &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
      &(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+        endif
         idam=3
         icode=0
         if(abs(xv(1,ia)).le.pieni.and.abs(yv(1,ia)).le.pieni) then
