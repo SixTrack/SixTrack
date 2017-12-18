@@ -9,6 +9,7 @@
 #include "ApertureCheck_root.h"
 #include "Collimation_root.h"
 #include "AcceleratorOutput_root.h"
+#include "ConfigurationOutput_root.h"
 #include "Optics_root.h"
 #include "RunTime_root.h"
 
@@ -20,9 +21,11 @@ TFile *RootFile;
 * i.e. opening files on EOS
 * Catch errors?
 */
-extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, char* root_path, char* root_prefix, int ApertureCheck, int Collimation)
+extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, char* root_path, char* root_prefix, int Accelerator, int Optics, int ApertureCheck, int Collimation, int CollimationDB)
 {
     std::cout << "Root output initialization" << std::endl;
+    std::cout << "Accelerator is enabled: " << Accelerator << std::endl;
+    std::cout << "Optics are enabled: " << Optics << std::endl;
     std::cout << "ApertureCheck is enabled: " << ApertureCheck << std::endl;
     std::cout << "Collimation is enabled: " << Collimation << std::endl;
     std::string fname;
@@ -44,16 +47,22 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
     RootFile->SetCompressionLevel(99);
 
     //Dumps the configuration of this simulation to the root tree
-    //ConfigurationRootInit();
-
-    //Dumps the accelerator to the root tree
-    AcceleratorOutputRootInit();
-
-    //Dumps the optics to the root tree
-    OpticsRootInit();
+    ConfigurationOutputRootInit();
 
     //Stats on the run time
     RunTimeRootInit();
+
+    //Dumps the accelerator to the root tree
+    if(Accelerator)
+    {
+        AcceleratorOutputRootInit();
+    }
+
+    //Dumps the optics to the root tree
+    if(Optics)
+    {
+        OpticsRootInit();
+    }
 
     //Dumps particles lost in aperture
     if(ApertureCheck)
@@ -69,6 +78,11 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
         CollimationRootInit();
     }
 
+    if(CollimationDB)
+    {
+        CollimationDBRootInit();
+    }
+
     //Dump
 
     //Tracking
@@ -76,7 +90,7 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
     //FMA
 
     //Write the root file to flush the headers to storage.
-    SixTrackRootWrite();
+    //SixTrackRootWrite();
 }
 
 /**

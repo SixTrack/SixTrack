@@ -2807,12 +2807,14 @@ subroutine collimate_end_sample(j)
   close(50)
 
 +if root
-  do icoll = 1, db_ncoll
-    if(db_length(icoll).gt.zero) then
-      call CollimatorLossRootWrite(icoll, db_name1(icoll), len(db_name1(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
-& caverage(icoll), csigma(icoll), db_length(icoll))
-    end if
-  end do
+  if(root_flag .and. root_Collimation.eq.1) then
+    do icoll = 1, db_ncoll
+      if(db_length(icoll).gt.zero) then
+        call CollimatorLossRootWrite(icoll, db_name1(icoll), len(db_name1(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
+&       caverage(icoll), csigma(icoll), db_length(icoll))
+      end if
+    end do
+  end if
 +ei
 
 +if root
@@ -3404,7 +3406,9 @@ subroutine collimate_end_turn
 
     write(44,'(2i7)') iturn, nsurvive
 +if root
-    call SurvivalRootWrite(iturn, nsurvive)
+    if(root_flag .and. root_Collimation.eq.1) then
+      call SurvivalRootWrite(iturn, nsurvive)
+    end if
 +ei
     if (iturn.eq.numl) then
       nsurvive_end = nsurvive_end + nsurvive
@@ -8083,10 +8087,12 @@ subroutine readcollimator
     end if
 
 +if root
-    this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
-    this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
-    call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
-&   db_length(j), db_rotation(j), db_offset(j))
+    if(root_flag .and. root_CollimationDB.eq.1) then
+      this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
+      this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
+      call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
+&     db_length(j), db_rotation(j), db_offset(j))
+    end if
 +ei
 
   end do

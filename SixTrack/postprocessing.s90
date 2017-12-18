@@ -32,7 +32,11 @@ subroutine postpr(posi,nnuml)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
++if root
+      use root_output
++ei
       implicit none
+
 +ca parpro
 +ca common1
 +if vvector

@@ -1,5 +1,7 @@
 #include "Collimation_root.h"
+
 #include "TTree.h"
+#include "TROOT.h"
 
 #include <string>
 #include <iostream>
@@ -50,6 +52,10 @@ extern "C" void CollimationRootInit()
     CollimationSurvivalTree->Branch("nturn",&nturn,"nturn/I");
     CollimationSurvivalTree->Branch("npart",&npart,"npart/I");
 
+}
+
+extern "C" void CollimationDBRootInit()
+{
     CollimatorDatabaseTree = new TTree("CollimatorDatabase","CollimatorDatabaseTree");
     CollimatorDatabaseTree->Branch("icoll",&icoll,"icoll/I");
     CollimatorDatabaseTree->Branch("db_nsig",&db_nsig,"db_nsig/D");

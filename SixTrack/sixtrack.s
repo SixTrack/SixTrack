@@ -23343,10 +23343,13 @@ program maincr
         endif
 
         call clorb(ded)
+
 +if root
         call SixTrackRootInit()
+        call ConfigurationOutputRootSet_npart(napx)
+        call ConfigurationOutputRootSet_nturns(nnuml)
+        call ConfigurationRootWrite()
 +ei
-
 +if debug
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
@@ -27984,6 +27987,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ei
 
 +if root
+      use iso_c_binding
       use root_output
 +ei
 
@@ -28031,6 +28035,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
       real(kind=fPrec) ap_oc_1, ap_oc_2, ap_oc_3
       real(kind=fPrec) xchk(2,npart)
+
++if root
+      character(len=17) this_name
++ei
 
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -28392,8 +28400,12 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)-e0)*c1e6,             &
      &         -c1m3 * (sigmv(j)/clight) * (e0/e0f)
 +if root
-               call ApertureCheckWriteLossParticle(turn, i, ix, bez(ix), slos(j), ipart(j)+100*samplenumber, xlos(1,j)*c1m3, &
-     &         yv(1,j)*c1m3, xlos(2,j)*c1m3, yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, -c1m3 * (sigmv(j)/clight) * (e0/e0f))
+             if(root_flag .and. root_ApertureCheck.eq.1) then
+               this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
+               call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos(j), ipart(j)+100*samplenumber,&
+     &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3, yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
+     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f))
+             end if
 +ei
            endif
          end do
@@ -38562,9 +38574,9 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
         end do
 
 +if root
-!        if(.not.isBLOC) then
+      if(root_flag .and. root_Optics.eq.1) then
       call OpticsRootWrite(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),b1(1),b1(2),al1(1),al1(2),d(1),d(2),dp(1),dp(2))
-!        endif
+      end if
 +ei
 
 +if collimat.or.bnlelens
