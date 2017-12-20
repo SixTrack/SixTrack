@@ -3933,15 +3933,17 @@
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     
+      
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
  
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+      
       enddo
 +cd ccmul2
 ! JBG RF CC Multipoles
@@ -4005,15 +4007,18 @@
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     
+      
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+      
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-                enddo
+      
+      enddo
 +cd ccmul2s
 ! JBG RF CC Multipoles 2
 +if crlibm
@@ -4069,16 +4074,18 @@
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     
+      
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-
+      
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-                enddo
+      
+      enddo
 +cd ccmul3
 ! JBG RF CC Multipoles
           
@@ -4147,16 +4154,18 @@
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     !hr03
+      
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-
+      
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-                enddo
+      
+      enddo
 +cd ccmul3s
 ! JBG RF CC Multipoles 2
 +if crlibm
@@ -4216,15 +4225,18 @@
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     !hr03
+      
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+      
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-                enddo
+      
+      enddo
 +cd ccmul4
 ! JBG RF CC Multipoles
 +if crlibm
@@ -4299,15 +4311,18 @@
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     !hr03
+      
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+      
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-                enddo
+      
+      enddo
 +cd ccmul4s
 ! JBG RF CC Multipoles
 +if crlibm
@@ -4376,15 +4391,18 @@
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)                                     
+      
+      ejfv(j)=sqrt(ejv(j)**2-pma**2)
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)      
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+      
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-                enddo
+      
+      enddo
 +cd acdipkick
           nfree=nturn1(ix)
          if(n.gt.nfree) then
