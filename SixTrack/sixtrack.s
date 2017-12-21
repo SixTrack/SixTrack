@@ -3,7 +3,7 @@
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
       data version /'4.7.18'/
-      data moddate /'11.12.2017'/
+      data moddate /'21.12.2017'/
 +cd license
 !!SixTrack
 !!
