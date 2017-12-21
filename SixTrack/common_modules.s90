@@ -1,81 +1,91 @@
-!     This file contains variables that are shared between all
-!     parts of the code, such as lout and crlibm functions
+!     This file contains modules with variables that are used in all
+!     parts of the code, such as lout and crlibm functions, accelerator structure,
+!     particle arrays etc.
 
 +dk crcoall
 module crcoall
   !     Standard output unit
   !     For CR version, this is the "buffer file" fort.92;
   !     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
+  implicit none
+  
   integer lout
   save lout
 end module crcoall
     
 +dk fPrec
-      module floatPrecision
-      use, intrinsic :: iso_fortran_env, only : real32, real64, real128
-
+module floatPrecision
+  use, intrinsic :: iso_fortran_env, only : real32, real64, real128
+  
+  implicit none
+  
 +if 32bitm
-      integer, parameter :: fPrec = real32
+  integer, parameter :: fPrec = real32
 +ei
 +if 64bitm
-      integer, parameter :: fPrec = real64
+  integer, parameter :: fPrec = real64
 +ei
 +if 128bitm
-      integer, parameter :: fPrec = real128
+  integer, parameter :: fPrec = real128
 +ei
 
-      end module floatPrecision
+end module floatPrecision
 
 +dk   physical_constants
 
-      module physical_constants
+module physical_constants
 ! Shared module for general physical constants.
 ! See: http://pdg.lbl.gov/2017/reviews/rpp2016-rev-phys-constants.pdf
 ! some values are not updated to ensure numerical compatability with older studies
 
-      use floatPrecision
-
+  use floatPrecision
+  
+  implicit none
+  
 +if .not.fluka
-!     proton mass (MeV)
-      real(kind=fPrec), parameter :: pmap = 938.271998_fPrec   !old
-!     real(kind=fPrec), parameter :: pmap = 938.2720813_fPrec  !2017
+  ! proton mass (MeV)
+  real(kind=fPrec), parameter :: pmap = 938.271998_fPrec   !old
+  ! real(kind=fPrec), parameter :: pmap = 938.2720813_fPrec  !2017
 
-!     electron mass (MeV) from PDG, 2002
-      real(kind=fPrec), parameter :: pmae = 0.510998902_fPrec   !old
-!     real(kind=fPrec), parameter :: pmae = 0.5109989461_fPrec  !2017
+  ! electron mass (MeV) from PDG, 2002
+  real(kind=fPrec), parameter :: pmae = 0.510998902_fPrec   !old
+  ! real(kind=fPrec), parameter :: pmae = 0.5109989461_fPrec  !2017
 +ei
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 08-12-2014
-!     synch masses of proton and electron to values used by FLUKA
-!     inserted in main code by the 'fluka' compilation flag
-!     proton and electron mass from PDG, 2014
-      real(kind=fPrec), parameter :: pmap = 0.938272046e3_fPrec
-      real(kind=fPrec), parameter :: pmae = 0.510998928_fPrec
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 08-12-2014
+  !
+  ! synch masses of proton and electron to values used by FLUKA
+  ! inserted in main code by the 'fluka' compilation flag
+  ! proton and electron mass from PDG, 2014
+  real(kind=fPrec), parameter :: pmap = 0.938272046e3_fPrec
+  real(kind=fPrec), parameter :: pmae = 0.510998928_fPrec
 +ei
 
-!     classical electron radius
-      real(kind=fPrec), parameter :: crade = 2.817940285e-15_fPrec    !old
-!     real(kind=fPrec), parameter :: crade = 2.8179403227e-15_fPrec   !2017
+  ! classical electron radius
+  real(kind=fPrec), parameter :: crade = 2.817940285e-15_fPrec    !old
+  ! real(kind=fPrec), parameter :: crade = 2.8179403227e-15_fPrec   !2017
+  
+  ! speed of light
+  real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec !exact
 
-!     speed of light
-      real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec !exact
+  ! Avogadro constant
+  ! real(kind=fPrec), parameter :: fnavo=6.02214129e23_fPrec   !old
+  real(kind=fPrec), parameter :: fnavo=6.022140857e23_fPrec  !2017
 
-!     Avogadro constant
-!     real(kind=fPrec), parameter :: fnavo=6.02214129e23_fPrec   !old
-      real(kind=fPrec), parameter :: fnavo=6.022140857e23_fPrec  !2017
-
-!     Planck constant
-      real(kind=fPrec), parameter :: planck=6.626070040e-34_fPrec
-
-      end module physical_constants
+  ! Planck constant
+  real(kind=fPrec), parameter :: planck=6.626070040e-34_fPrec
+  
+end module physical_constants
 
 module numerical_constants
   use floatPrecision
-
-!  real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
-!  real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
-
+  
+  implicit none
+  
+  ! real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
+  ! real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
+  
   real(kind=fPrec), parameter :: pieni = 1e-38_fPrec
 
   real(kind=fPrec), parameter :: zero  = 0.0_fPrec
