@@ -135,6 +135,7 @@ subroutine collimate_init()
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -142,7 +143,6 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -580,6 +580,7 @@ subroutine collimate_start_sample(nsample)
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -587,7 +588,6 @@ subroutine collimate_start_sample(nsample)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -1179,6 +1179,7 @@ subroutine collimate_start_collimator(stracki)
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -1186,7 +1187,6 @@ subroutine collimate_start_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -1394,6 +1394,7 @@ subroutine collimate_do_collimator(stracki)
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -1401,7 +1402,6 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -2226,6 +2226,7 @@ subroutine collimate_end_collimator()
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -2233,7 +2234,6 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -2637,6 +2637,7 @@ subroutine collimate_end_sample(j)
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -2644,7 +2645,6 @@ subroutine collimate_end_sample(j)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -2814,6 +2814,7 @@ subroutine collimate_exit()
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -2821,7 +2822,6 @@ subroutine collimate_exit()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -2978,12 +2978,12 @@ subroutine collimate_start_turn(n)
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -3021,13 +3021,13 @@ subroutine collimate_start_element(i)
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -3131,6 +3131,7 @@ subroutine collimate_end_element
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -3138,7 +3139,6 @@ subroutine collimate_end_element
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -3289,6 +3289,7 @@ subroutine collimate_end_turn
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 
@@ -3296,7 +3297,6 @@ subroutine collimate_end_turn
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca common
 +ca commons
 +ca commont1
 +ca commondl
@@ -6573,13 +6573,13 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
       use crcoall
   use parpro
+  use mod_common
   implicit none
 
 +ca collpara
 +ca dbmkdist
 
 +ca commonmn
-+ca common
 
   character(len=80)   filename_dis
   real(kind=fPrec) enerror, bunchlength

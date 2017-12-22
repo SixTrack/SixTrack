@@ -2271,9 +2271,9 @@ end subroutine dynk_dumpdata
 subroutine dynk_pretrack
 
       use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca comgetfields
 +ca stringzerotrim
 +ca commondl
@@ -2426,9 +2426,9 @@ end subroutine dynk_pretrack
 subroutine dynk_apply(turn)
 
       use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca commonmn
 +ca commontr
 +ca comgetfields
@@ -2676,6 +2676,7 @@ end subroutine dynk_apply
 recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
       use crcoall
+    use mod_common
     implicit none
 
 +ca comgetfields
@@ -2711,7 +2712,6 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 +ei
 
 ! Usefull constants (pi and two)
-+ca common
 
     if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
         write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
@@ -2987,9 +2987,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca commonmn
 +ca commonm1
 +ca commontr
@@ -3203,9 +3203,9 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca commonmn
 +ca commontr
 +ca comgetfields
@@ -3457,9 +3457,9 @@ end function dynk_lininterp
 logical function dynk_isused(i)
 
       use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca comgetfields
 +ca stringzerotrim
 

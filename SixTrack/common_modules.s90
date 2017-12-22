@@ -235,3 +235,205 @@ module parpro
 +ei
 
 end module parpro
+
++dk mod_common
+module mod_common
+  use parpro
+  use floatPrecision
+  
+  implicit none
+
+        integer iav,ibb6d,ibbc,ibeco,ibidu,ibtyp,ic,icext,icextal,iclo,   &
+     &iclo6,iclo6r,icode,icoe,icomb,icomb0,iconv,icow,icr,idam,idfor,   &
+     &idis,idp,ierro,iffw,ifh,iicav,il,ilin,imad,imbb,                  &
+     &imc,imtr,iorg,iout,                                               &
+     &ipos,ipr,iprint,ipt,iq,iqmod,iqmod6,iratioe,ird,ire,ires,         &
+     &irew,irm,irmod2,ise,ise1,ise2,ise3,isea,iskew,iskip,istw,         &
+     &isub,itco,itcro,itf,ithick,ition,itionc,itqv,its6d,iu,iver,ivox,  &
+     &ivoz,iwg,ixcav,izu0,kanf,kp,kpa,kwtype,kz,lhc,m21,m22,m23,mblo,   &
+     &mbloz,mcut,mel,mesa,mmac,mout2,mp,mper,mstr,msym,mtyp,mzu,napx,   &
+     &napxo,nbeam,nch,ncororb,ncorrep,ncorru,ncy,ndafi,nde,nhcorr,      &
+     &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrr,nskew,                 &
+     &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
+     &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml
+  
+!  integer iav,ibb6d,ibbc,ibeco,ibtyp,icext,icextal,iclo,        &
+!       icoe,icomb,icomb0,iconv,icow,icr,   &
+!       idis,iffw,ifh,ilin,imad,imbb,                  &
+!       imtr,iout,                                               &
+!       ipos,ipr,iprint,ipt,iq,iqmod,iqmod6,iratioe,ire,ires,         &
+!       irmod2,ise,ise1,ise2,ise3,isea,iskew,iskip,istw,         &
+!       isub,itco,itcro,itf,ithick,itqv,ivox,  &
+!       ivoz,iwg,kpa,kwtype,lhc,m21,m22,m23,   &
+!       mesa,mout2,mp,   &
+!       nbeam,nch,ncororb,ncorrep,ncorru,ndafi,nhcorr,      &
+!       nhmoni,nlin,npp,nprint,nqc,nre,nrr,nskew,                 &
+!       nstart,nstop,nt,nta,ntco,nte,nu,nur,nvcorr,      &
+!       nvmoni,nturn1, nturn2, nturn3, nturn4
+
+        real(kind=fPrec) a,ak0,aka,alfx,alfz,amp0,aper,bbcu,              &
+     &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
+     &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
+     &di0,dip0,dki,dkq,dma,dmap,dphix,dphiz,dppoff,dpscor,dqq,dres,dsi, &
+     &dsm0,dtr,e0,ed,ej,ejf,ek,el,elbe,emitx,emity,emitz,extalign,      &
+     &exterr,eui,euii,gammar,hsy,hsyc,pac,pam,parbe,parbe14,partnum,    &
+     &phas,phas0,phasc,pi,pi2,pisqrt,pma,ptnfac,qs,qw0,qwsk,qx0,qxt,qz0,&
+     &qzt,r00,rad,rat,ratio,ratioe,rrtr,rtc,rts,rvf,                    &
+     &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
+     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,         &
+     &acdipph, crabph, bbbx, bbby, bbbs,                                &
+     &crabph2, crabph3, crabph4
+
+  
+!  real(kind=fPrec) alfx,alfz,amp0,aper,bbcu,                   &
+!       bclorb,beamoff,betac,betam,betx,betz, &
+!       clo6,clobeam,clop6,cma1,cma2,cotr,de0,dech,ded,dfft,         &
+!       di0,dip0,dki,dkq,dma,dmap,dphix,dphiz,dqq,dres,dsi, &
+!       dsm0,dtr,elbe,emitx,emity,emitz,extalign,      &
+!       exterr,eui,euii,gammar,pac,pam,parbe,parbe14,partnum,    &
+!       ptnfac,qw0,qwsk,qx0,qxt,qz0,&
+!       qzt,ratio,ratioe,rrtr,rtc,rts,                    &
+!       sige,sigma0,sigman,sigman2,sigmanq,sigz,ta,tam1,&
+!       tam2,tiltc,tilts,totl,track6d, &
+!       acdipph, crabph, &
+!       crabph2, crabph3, crabph4
+
++if time
+  real(kind=fPrec) tcnst35,exterr35,zfz35
+  integer icext35
++ei
+      real hmal
+      character(len=16) bez,bezb,bezr,erbez,bezl
+      character(len=80) toptit,sixtit,commen !DANGER: If the len changes, CRCHECK will break.
+
+!  real hmal
+!  character(len=16) bez,bezb,bezl
+!  character(len=80) toptit,sixtit,commen !DANGER: If the len changes, CRCHECK will break.
+
+            common/erro/ierro,erbez
+      common/kons/pi,pi2,pisqrt,rad
+      common/str /il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
+      common/ell /ed(nele),el(nele),ek(nele),sm(nele),kz(nele),kp(nele)
+      common/bbb /bbbx(nele), bbby(nele), bbbs(nele)
+      common/pla /xpl(nele),xrms(nele),zpl(nele),zrms(nele)
+      common/str2 /mel(nblo),mtyp(nblo,nelb),mstr(nblo)
+      common/mat/a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
+      common/syos2/rvf(mpa)
+      common/tra1/rat,idfor,napx,napxo,numl,niu(2),numlr,nde(2),nwr(4), &
+     &ird,imc,irew,ntwin,iclo6,iclo6r,iver,ibidu,numlcp,numlmax,nnuml
+      common/syn/qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3),          &
+     &crad,hsyc(nele),phasc(nele),dppoff,sigmoff(nblz),tlen,            &
+     &iicav,itionc(nele),ition,idp,ncy,ixcav
+      common/corcom/dpscor,sigcor,icode,idam,its6d
+      common/multi/bk0(nele,mmul),ak0(nele,mmul),                       &
+     &bka(nele,mmul),aka(nele,mmul)
+      common/mult1/benki,benkc(nele),r00(nele),irm(nele),nmu(nele)
+      common/rand0/zfz(nzfz),iorg,mzu(nblz),bezr(3,nele),izu0,mmac,mcut
+
+      
+  ! common/erro/
+!  integer, save :: ierro
+!  character(len=16), save :: erbez
+  
+  ! common/kons/
+!  real(kind=fPrec), save :: pi,pi2,pisqrt,rad
+  
+  ! common/str/
+!  integer, save :: il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
+  
+  ! common/ell /
+!  real(kind=fPrec), save :: ed(nele),el(nele),ek(nele),sm(nele)
+!  integer, save :: kz(nele),kp(nele)
+  
+  ! common/bbb /
+!  real(kind=fPrec), save :: bbbx(nele), bbby(nele), bbbs(nele)
+  
+  ! common/pla /
+!  real(kind=fPrec), save :: xpl(nele),xrms(nele),zpl(nele),zrms(nele)
+  
+  !common/str2 /
+!  integer, save :: mel(nblo),mtyp(nblo,nelb),mstr(nblo)
+
+  ! common/mat/
+!  real(kind=fPrec), save :: a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
+  
+  ! common/syos2/
+!  real(kind=fPrec), save :: rvf(mpa)
+  
+  ! common/tra1/
+!  real(kind=fPrec), save :: rat
+!  integer, save :: idfor, napx, napxo, numl, niu(2), numlr, nde(2), nwr(4), &
+!       ird, imc, irew, ntwin, iclo6, iclo6r, iver, ibidu, numlcp, numlmax, nnuml
+  
+  ! common/syn/
+!  real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
+!       crad,hsyc(nele),phasc(nele),dppoff,sigmoff(nblz),tlen
+!  integer, save :: iicav,itionc(nele),ition,idp,ncy,ixcav
+  
+  ! common/corcom/
+!  real(kind=fPrec), save :: dpscor,sigcor
+!  integer, save :: icode,idam,its6d
+
+  ! common/multi/
+!  real(kind=fPrec), save :: bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul)
+
+  ! common/mult1/
+!  real(kind=fPrec), save :: benki,benkc(nele),r00(nele)
+!  integer, save :: irm(nele),nmu(nele)
+  
+  ! common/rand0/zfz(nzfz),iorg,mzu(nblz),bezr(3,nele),izu0,mmac,mcut
+!  real(kind=fPrec), save :: zfz(nzfz)
+!  integer, save :: iorg,mzu(nblz), izu0, mmac, mcut
+!  character(len=16) bezr(3,nele)
+  
+  common/rand1/exterr(nblz,40),extalign(nblz,3),tiltc(nblz),        &
+       tilts(nblz),mout2,icext(nblz),icextal(nblz)
++if time
+  common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
+       tcnst35(nblz)
++ei
+  common/beo /aper(2),di0(2),dip0(2),ta(6,6)
+  common/clo/dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0,itco,itcro,itqv,&
+       iout
+  common/qmodi/qw0(3),amp0,iq(3),iqmod,kpa(nele),iqmod6
+  common/linop/bez(nele),elbe(nblo),bezb(nblo),ilin,nt,iprint,      &
+       ntco,eui,euii,nlin,bezl(nele)
+  common/cororb/betam(nmon1,2),pam(nmon1,2),betac(ncor1,2),         &
+       pac(ncor1,2),bclorb(nmon1,2),nhmoni,nhcorr,nvmoni,nvcorr,         &
+       ncororb(nele)
+  common/clos/sigma0(2),iclo,ncorru,ncorrep
+  common/combin/icomb0(20),icomb(ncom,20),ratio(ncom,20),           &
+       ratioe(nele),iratioe(nele),icoe
+  common/seacom/ise,mesa,mp,m21,m22,m23,ise1,ise2,ise3,isea(nele)
+  common/subres/qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl
+  common/secom/rtc(9,18,10,5),rts(9,18,10,5),ire(12),ipr(5),irmod2
+  common/secom1/dtr(10),nre,nur,nch,nqc,npp,nrr(5),nu(5)
+  common/postr/dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,             &
+       nstart,nstop,iskip,iconv,imad
+  common/posti1/ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit(5)
+  common/posti2/kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi
+  common/skew/qwsk(2),betx(2),betz(2),alfx(2),alfz(2),iskew,nskew(6)
+  common/pawc/hmal(nplo)
+  common/tit/sixtit,commen,ithick
+  common/co6d/clo6(3),clop6(3)
+  common/dkic/dki(nele,3)
+  common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
+       clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
+       ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
+       nbeam,ibbc,ibeco,ibtyp,lhc
+  common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
+  common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
+  common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
+       nturn3(nele), nturn4(nele)
+  common/crabco/ crabph(nele),crabph2(nele),                        &
+       crabph3(nele),crabph4(nele)
+
+  ! wire parameters for closed orbit calculation (FOX part)
+  ! for FOX length of variable names must be smaller 8
+  integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
+  real(kind=fPrec) wire_clo            ! closed orbit at wire
+  real(kind=fPrec) wireclo0         ! initial coordinates for closed orbit
+  integer wire_num_aux              ! auxiliary variable to count number of wires
+  integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
+  common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
+end module mod_common
