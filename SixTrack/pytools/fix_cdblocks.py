@@ -13,6 +13,7 @@ lines_in = open(filename,'r').readlines()
 
 i = 0
 num_replaced = 0
+numspaces = 6 # default value
 while True:
     line = lines_in[i]
     #print line
@@ -30,8 +31,9 @@ while True:
                 exit(1)
             line = lines_in[i]
             if "implicit none" in line or "IMPLICIT NONE" in line:
+                numspaces = len(line)-len(line.lstrip())
                 break
-        lines_in.insert(i,"      use "+to_replace + "\n")
+        lines_in.insert(i,numspaces*" " + "use "+to_replace + "\n")
         num_replaced += 1
     i = i+1
     if i >= len(lines_in):
