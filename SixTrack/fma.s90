@@ -152,9 +152,9 @@ contains
     use numerical_constants, only : zero, one, c1e3
 
       use crcoall
+    use parpro
     implicit none
 +ca stringzerotrim
-+ca parpro
 +ca commonta !normalisation matrix tasm -> remove later
 +ca common   !napx = number of particles 
 +ca commonc

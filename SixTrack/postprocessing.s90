@@ -32,8 +32,8 @@ subroutine postpr(posi,nnuml)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
       implicit none
-+ca parpro
 +ca common1
 +if vvector
 +ca common2
@@ -3007,10 +3007,10 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer i,ie,j,k
       real(kind=fPrec) a,b,c,d,f,phase,tpi,dani
-+ca parpro
 +ca commphin
       save
 !---------------------------------------------------------------------
@@ -3031,10 +3031,10 @@ subroutine cinvar(a,b,c,d,j,e,xinv,invx)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer i,invx,j
       real(kind=fPrec) a,b,c,d,phase,dani,e,xinv
-+ca parpro
 +ca commphin
       dimension xinv(ninv),invx(ninv)
       save
@@ -3086,12 +3086,12 @@ subroutine join
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
       implicit none
       integer i,j,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
       real(kind=fPrec) alf0,bet0,clo,clop,di0,dip0,dps,dummy,e0,qwc,sigm,ta,x,y
       character(len=80) sixtit,commen
       character(len=8) cdate,ctime,progrm
-+ca parpro
 +ca commonds
       dimension bet0(2),alf0(2),ta(6,6)
       dimension qwc(3),clo(3),clop(3)
@@ -3428,6 +3428,7 @@ end subroutine join
       use floatPrecision
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
+      use parpro
       implicit none
       
       integer, intent(in) :: ia_p1, ia_p2, fileunit_in
@@ -3435,7 +3436,6 @@ end subroutine join
       
       character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
                                           !DANGER: If the len changes, CRCHECK will break.
-+ca parpro
 +ca common
 +ca commonmn
 
@@ -3525,8 +3525,8 @@ end subroutine join
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
       use crcoall
+      use parpro
       implicit none
-+ca parpro
 +ca common
 +ca commons
 +ca commont1

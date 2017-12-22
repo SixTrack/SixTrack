@@ -31,7 +31,7 @@ module floatPrecision
 
 end module floatPrecision
 
-+dk   physical_constants
++dk physical_constants
 
 module physical_constants
  ! Shared module for general physical constants.
@@ -145,7 +145,7 @@ module numerical_constants
 
 end module numerical_constants
 
-+dk mainarrays
++dk parpro
 module parpro
   ! Shared module defining the sizes of key arrays
   ! This is (will be) the "access point" for resizing

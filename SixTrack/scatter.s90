@@ -8,13 +8,14 @@ module scatter
 
     use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
 
+    use parpro ! For nele
+    
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
     ! Therefore, we always need to import the SCATTER module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-+ca parpro ! for nele
 
 ! For the string length stuff
 +ca comgetfields
@@ -107,9 +108,9 @@ contains
 subroutine scatter_allocate
     
       use crcoall
+    use parpro
     implicit none
 
-+ca parpro
 
     integer stat
     integer i,j
@@ -152,9 +153,9 @@ end subroutine scatter_allocate
 ! =================================================================================================
 subroutine scatter_initialize
       use crcoall
+    use parpro
     implicit none
     integer ierro
-+ca parpro
 
     logical lopen
 

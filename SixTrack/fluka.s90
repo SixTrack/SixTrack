@@ -14,9 +14,9 @@
       use floatPrecision
       use mod_fluka
       use crcoall
+      use parpro
       implicit none
 
-+ca parpro
 +ca common
 +ca commontr
 
@@ -139,9 +139,9 @@
       use mod_fluka
       use numerical_constants, only : zero, one, c1e3
       use crcoall
+      use parpro
       implicit none
 
-+ca parpro
 +ca common
 +ca commonmn
 +ca commonm1
@@ -219,9 +219,9 @@
       use mod_fluka
       use numerical_constants, only : zero
       use crcoall
+      use parpro
       implicit none
 
-+ca parpro
 +ca common
 +ca commonmn
 
@@ -270,9 +270,9 @@
       use mod_fluka
       use numerical_constants, only : zero, one, c1e3
       use crcoall
+      use parpro
       implicit none
 
-+ca parpro
 +ca common
 +ca commonmn
 +ca commonm1

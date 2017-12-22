@@ -6,15 +6,13 @@ module dynk
     use mathlib_bouncer
     use numerical_constants, only : one, two, c1e3
 
+    use parpro !For nele
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
     ! Therefore, we always need to import the DYNK module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-
-!For nele
-+ca parpro
 
 !For the string length stuff
 +ca comgetfields
