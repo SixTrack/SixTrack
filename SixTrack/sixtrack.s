@@ -337,10 +337,6 @@
       real(kind=fPrec) hda,hdp
       common/ad2/hda(0:4,5,0:8000),hdp(0:1,5,0:8000),jeltot,nordp,nordm,&
      &norda
-+cd commonds
-      integer icode,idam,its6d
-      real(kind=fPrec) dpscor,sigcor
-      common/corcom/dpscor,sigcor,icode,idam,its6d
 +cd commonmn
 +if time
       real(kind=fPrec) aaiv35,bbiv35
@@ -34636,13 +34632,13 @@ subroutine distance(x,clo,di0,t,dam)
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
+      use mod_common, only : dpscor,sigcor,icode,idam,its6d
       implicit none
       integer i,ii,iq,j,jq
       real(kind=fPrec) clo,cx,dam,di0,phi,pi,sx,t,x,x1
-+ca commonds
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
       save
 !-----------------------------------------------------------------------
