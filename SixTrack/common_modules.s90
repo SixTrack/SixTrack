@@ -245,29 +245,24 @@ module mod_common
 
         integer ibb6d,ibbc,ibeco,ibtyp,   &
      &imbb,                  &
-     &imtr, &
-     &iskew,         &
      &lhc,   &
-     &nbeam,      &
-     &nskew,                 &
-     & nturn1, nturn2, nturn3, nturn4
+     &nbeam
 
-        real(kind=fPrec) alfx,alfz,bbcu,              &
-     &beamoff,betx,betz, &
-     &clo6,clobeam,clop6,cotr,         &
-     &dki, &
+        real(kind=fPrec) bbcu,              &
+     &beamoff, &
+     &clobeam,         &
      &emitx,emity,emitz,      &
      &gammar,parbe,parbe14,partnum,    &
-     &ptnfac,qwsk,&
-     &rrtr,                    &
+     &ptnfac,&
      &sige,sigman,sigman2,sigmanq,sigz,&
-     &track6d, &
-     &acdipph, crabph, &
-     &crabph2, crabph3, crabph4
+     &track6d
 
-+if time
++if time        
+  !To be deleted
   real(kind=fPrec) tcnst35,exterr35,zfz35
   integer icext35
+  common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
+       tcnst35(nblz)
 +ei
       
   ! common /erro/
@@ -329,11 +324,6 @@ module mod_common
   real(kind=fPrec), save :: exterr(nblz,40),extalign(nblz,3),tiltc(nblz),tilts(nblz)
   integer, save :: mout2,icext(nblz),icextal(nblz)
   
-+if time
-  common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
-       tcnst35(nblz)
-+ei
-
   ! common /beo/
   real(kind=fPrec), save :: aper(2),di0(2),dip0(2),ta(6,6)
   
@@ -389,8 +379,10 @@ module mod_common
   ! common /posti2/
   integer, save :: kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi
   
-  common/skew/qwsk(2),betx(2),betz(2),alfx(2),alfz(2),iskew,nskew(6)
-
+  ! common /skew/
+  real(kind=fPrec), save :: qwsk(2),betx(2),betz(2),alfx(2),alfz(2)
+  integer, save :: iskew,nskew(6)
+  
   ! common /pawc/
   real, save :: hmal(nplo)
   
@@ -398,18 +390,29 @@ module mod_common
   character (len=80), save :: sixtit,commen !DANGER: If the len changes, CRCHECK will break.
   integer, save :: ithick
   
-  common/co6d/clo6(3),clop6(3)
-  common/dkic/dki(nele,3)
+  ! common/co6d/
+  real(kind=fPrec), save :: clo6(3),clop6(3)
+  
+  ! common /dkic/
+  real(kind=fPrec), save :: dki(nele,3)
+
   common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
        clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
        ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
        nbeam,ibbc,ibeco,ibtyp,lhc
-  common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
+  
+  ! common/trom/
+  real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6)
+  integer, save ::  imtr(nele)
+  
   common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
-  common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
-       nturn3(nele), nturn4(nele)
-  common/crabco/ crabph(nele),crabph2(nele),                        &
-       crabph3(nele),crabph4(nele)
+  
+  ! common /acdipco/
+  real(kind=fPrec), save :: acdipph(nele)
+  integer, save :: nturn1(nele), nturn2(nele), nturn3(nele), nturn4(nele)
+  
+  ! common /crabco/
+  real(kind=fPrec), save :: crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele)
 
   ! wire parameters for closed orbit calculation (FOX part)
   ! for FOX length of variable names must be smaller 8
