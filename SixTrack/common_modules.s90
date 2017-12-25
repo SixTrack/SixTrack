@@ -245,25 +245,25 @@ module mod_common
 
         integer iav,ibb6d,ibbc,ibeco,ibtyp,iclo,   &
      &icoe,icomb,icomb0,iconv,icow,icr,   &
-     &idis,iffw,ifh,ilin,imad,imbb,                  &
+     &idis,iffw,ifh,imad,imbb,                  &
      &imtr, &
-     &ipos,ipr,iprint,ipt,iq,iqmod,iqmod6,iratioe,ire,ires,         &
+     &ipos,ipr,ipt,iratioe,ire,ires,         &
      &irmod2,ise,ise1,ise2,ise3,isea,iskew,iskip,istw,         &
      &isub,itf,ithick,ivox,  &
-     &ivoz,iwg,kpa,kwtype,lhc,m21,m22,m23,   &
+     &ivoz,iwg,kwtype,lhc,m21,m22,m23,   &
      &mesa,mp,   &
      &nbeam,nch,ncororb,ncorrep,ncorru,ndafi,nhcorr,      &
-     &nhmoni,nlin,npp,nprint,nqc,nre,nrr,nskew,                 &
-     &nstart,nstop,nt,nta,ntco,nte,nu,nur,nvcorr,      &
+     &nhmoni,npp,nprint,nqc,nre,nrr,nskew,                 &
+     &nstart,nstop,nta,nte,nu,nur,nvcorr,      &
      &nvmoni, nturn1, nturn2, nturn3, nturn4
 
-        real(kind=fPrec) alfx,alfz,amp0,bbcu,              &
+        real(kind=fPrec) alfx,alfz,bbcu,              &
      &bclorb,beamoff,betac,betam,betx,betz, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,dfft,         &
      &dki,dphix,dphiz,dres, &
-     &dtr,elbe,emitx,emity,emitz,      &
-     &eui,euii,gammar,pac,pam,parbe,parbe14,partnum,    &
-     &ptnfac,qw0,qwsk,qx0,qxt,qz0,&
+     &dtr,emitx,emity,emitz,      &
+     &gammar,pac,pam,parbe,parbe14,partnum,    &
+     &ptnfac,qwsk,qx0,qxt,qz0,&
      &qzt,ratio,ratioe,rrtr,rtc,rts,                    &
      &sige,sigma0,sigman,sigman2,sigmanq,sigz,tam1,&
      &tam2,totl,track6d, &
@@ -275,7 +275,6 @@ module mod_common
   integer icext35
 +ei
       real hmal
-      character(len=16) bez,bezb,bezl
       character(len=80) toptit,sixtit,commen !DANGER: If the len changes, CRCHECK will break.
       
   ! common /erro/
@@ -349,9 +348,15 @@ module mod_common
   real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
   integer, save :: itco,itcro,itqv,iout
   
-  common/qmodi/qw0(3),amp0,iq(3),iqmod,kpa(nele),iqmod6
-  common/linop/bez(nele),elbe(nblo),bezb(nblo),ilin,nt,iprint,      &
-       ntco,eui,euii,nlin,bezl(nele)
+  ! common /qmodi/
+  real(kind=fPrec), save :: qw0(3),amp0
+  integer, save :: iq(3),iqmod,kpa(nele),iqmod6
+  
+  ! common /linop/
+  character(len=16), save :: bez(nele), bezb(nblo), bezl(nele)
+  real(kind=fPrec),  save :: elbe(nblo),eui,euii
+  integer, save :: ilin,nt,iprint,ntco,nlin
+  
   common/cororb/betam(nmon1,2),pam(nmon1,2),betac(ncor1,2),         &
        pac(ncor1,2),bclorb(nmon1,2),nhmoni,nhcorr,nvmoni,nvcorr,         &
        ncororb(nele)
