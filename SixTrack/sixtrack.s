@@ -257,17 +257,6 @@
       common/tra/xxtr(mpa,2),yytr(mpa,2),amp(2),                        &
      &bet0(2),alf0(2),clo(2),clop(2)
       common/chrom/cro(2),issss(2),ichrom
-+cd common1
-      integer iav,iconv,icow,icr,idis,iffw,ifh,imad,ipos,ires,iskip,    &
-     &istw,itf,ivox,ivoz,iwg,kwtype,ndafi,nprint,nstart,nstop
-      real(kind=fPrec) cma1,cma2,dfft,dphix,dphiz,dres,qx0,qz0
-      real hmal
-      character(len=80) toptit,sixtit,commen
-      common/postr/dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,             &
-     &nstart,nstop,iskip,iconv,imad
-      common/posti1/ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit(5)
-      common/posti2/kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi
-      common/pawc/hmal(nplo)
 +cd common2
       integer nnumxv
       common/postr2/nnumxv(npart)

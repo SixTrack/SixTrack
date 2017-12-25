@@ -33,9 +33,12 @@ subroutine postpr(posi,nnuml)
       use numerical_constants
       use crcoall
       use parpro
-      use mod_common, only : dpscor,sigcor,icode,idam,its6d
+      use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
+           dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
+           ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
+           kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi, &
+           hmal
       implicit none
-+ca common1
 +if vvector
 +ca common2
 +ei
@@ -85,8 +88,10 @@ subroutine postpr(posi,nnuml)
       real(kind=real64) c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
       
       character(len=80) title(20),chxtit(20),chytit(20)
-      character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
-                                          !DANGER: If the len changes, CRCHECK will break.
+      character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr
+      character(len=80) sixtit,commen     ! Note: Keep in sync with mod_common
+                                          ! DANGER: If the len changes, CRCHECK will break.
+      
       character(len=11) hvs
       character(len=8192) ch
 +if crlibm
@@ -3092,8 +3097,9 @@ subroutine join
       
       integer i,j,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
       real(kind=fPrec) alf0,bet0,clo,clop,di0,dip0,dps,dummy,e0,qwc,sigm,ta,x,y
-      character(len=80) sixtit,commen
-      character(len=8) cdate,ctime,progrm
+      character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr
+      character(len=80) sixtit,commen     ! Note: Keep in sync with mod_common
+                                          ! DANGER: If the len changes, CRCHECK will break.
       dimension bet0(2),alf0(2),ta(6,6)
       dimension qwc(3),clo(3),clop(3)
       dimension x(mpa,2),y(mpa,2),sigm(mpa),dps(mpa)
