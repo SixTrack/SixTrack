@@ -243,29 +243,29 @@ module mod_common
   
   implicit none
 
-        integer iav,ibb6d,ibbc,ibeco,ibtyp,iclo,   &
-     &icoe,icomb,icomb0,iconv,icow,icr,   &
+        integer iav,ibb6d,ibbc,ibeco,ibtyp,   &
+     &iconv,icow,icr,   &
      &idis,iffw,ifh,imad,imbb,                  &
      &imtr, &
-     &ipos,ipr,ipt,iratioe,ire,ires,         &
+     &ipos,ipr,ipt,ire,ires,         &
      &irmod2,ise,ise1,ise2,ise3,isea,iskew,iskip,istw,         &
      &isub,itf,ithick,ivox,  &
      &ivoz,iwg,kwtype,lhc,m21,m22,m23,   &
      &mesa,mp,   &
-     &nbeam,nch,ncororb,ncorrep,ncorru,ndafi,nhcorr,      &
-     &nhmoni,npp,nprint,nqc,nre,nrr,nskew,                 &
-     &nstart,nstop,nta,nte,nu,nur,nvcorr,      &
-     &nvmoni, nturn1, nturn2, nturn3, nturn4
+     &nbeam,nch,ndafi,      &
+     &npp,nprint,nqc,nre,nrr,nskew,                 &
+     &nstart,nstop,nta,nte,nu,nur,      &
+     & nturn1, nturn2, nturn3, nturn4
 
         real(kind=fPrec) alfx,alfz,bbcu,              &
-     &bclorb,beamoff,betac,betam,betx,betz, &
+     &beamoff,betx,betz, &
      &clo6,clobeam,clop6,cma1,cma2,cotr,dfft,         &
      &dki,dphix,dphiz,dres, &
      &dtr,emitx,emity,emitz,      &
-     &gammar,pac,pam,parbe,parbe14,partnum,    &
+     &gammar,parbe,parbe14,partnum,    &
      &ptnfac,qwsk,qx0,qxt,qz0,&
-     &qzt,ratio,ratioe,rrtr,rtc,rts,                    &
-     &sige,sigma0,sigman,sigman2,sigmanq,sigz,tam1,&
+     &qzt,rrtr,rtc,rts,                    &
+     &sige,sigman,sigman2,sigmanq,sigz,tam1,&
      &tam2,totl,track6d, &
      &acdipph, crabph, &
      &crabph2, crabph3, crabph4
@@ -357,12 +357,20 @@ module mod_common
   real(kind=fPrec),  save :: elbe(nblo),eui,euii
   integer, save :: ilin,nt,iprint,ntco,nlin
   
-  common/cororb/betam(nmon1,2),pam(nmon1,2),betac(ncor1,2),         &
-       pac(ncor1,2),bclorb(nmon1,2),nhmoni,nhcorr,nvmoni,nvcorr,         &
-       ncororb(nele)
-  common/clos/sigma0(2),iclo,ncorru,ncorrep
-  common/combin/icomb0(20),icomb(ncom,20),ratio(ncom,20),           &
-       ratioe(nele),iratioe(nele),icoe
+  ! common /cororb/
+  real(kind=fPrec), save :: betam(nmon1,2),pam(nmon1,2),betac(ncor1,2), &
+       pac(ncor1,2),bclorb(nmon1,2)
+  integer, save :: nhmoni,nhcorr,nvmoni,nvcorr,ncororb(nele)
+  
+  ! common /clos/
+  real(kind=fPrec), save :: sigma0(2)
+  integer, save :: iclo, ncorru,ncorrep
+  
+  !common /combin/
+  real(kind=fPrec), save :: ratio(ncom,20),ratioe(nele)
+  integer, save :: icomb0(20),icomb(ncom,20),iratioe(nele),icoe
+  
+  
   common/seacom/ise,mesa,mp,m21,m22,m23,ise1,ise2,ise3,isea(nele)
   common/subres/qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl
   common/secom/rtc(9,18,10,5),rts(9,18,10,5),ire(12),ipr(5),irmod2
