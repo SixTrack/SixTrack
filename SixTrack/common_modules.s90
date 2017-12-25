@@ -243,30 +243,30 @@ module mod_common
   
   implicit none
 
-        integer iav,ibb6d,ibbc,ibeco,ibtyp,icext,icextal,iclo,   &
+        integer iav,ibb6d,ibbc,ibeco,ibtyp,iclo,   &
      &icoe,icomb,icomb0,iconv,icow,icr,   &
      &idis,iffw,ifh,ilin,imad,imbb,                  &
-     &imtr,iout,                                               &
+     &imtr, &
      &ipos,ipr,iprint,ipt,iq,iqmod,iqmod6,iratioe,ire,ires,         &
      &irmod2,ise,ise1,ise2,ise3,isea,iskew,iskip,istw,         &
-     &isub,itco,itcro,itf,ithick,itqv,ivox,  &
+     &isub,itf,ithick,ivox,  &
      &ivoz,iwg,kpa,kwtype,lhc,m21,m22,m23,   &
-     &mesa,mout2,mp,   &
+     &mesa,mp,   &
      &nbeam,nch,ncororb,ncorrep,ncorru,ndafi,nhcorr,      &
      &nhmoni,nlin,npp,nprint,nqc,nre,nrr,nskew,                 &
      &nstart,nstop,nt,nta,ntco,nte,nu,nur,nvcorr,      &
      &nvmoni, nturn1, nturn2, nturn3, nturn4
 
-        real(kind=fPrec) alfx,alfz,amp0,aper,bbcu,              &
+        real(kind=fPrec) alfx,alfz,amp0,bbcu,              &
      &bclorb,beamoff,betac,betam,betx,betz, &
-     &clo6,clobeam,clop6,cma1,cma2,cotr,de0,dech,ded,dfft,         &
-     &di0,dip0,dki,dkq,dma,dmap,dphix,dphiz,dqq,dres,dsi, &
-     &dsm0,dtr,elbe,emitx,emity,emitz,extalign,      &
-     &exterr,eui,euii,gammar,pac,pam,parbe,parbe14,partnum,    &
+     &clo6,clobeam,clop6,cma1,cma2,cotr,dfft,         &
+     &dki,dphix,dphiz,dres, &
+     &dtr,elbe,emitx,emity,emitz,      &
+     &eui,euii,gammar,pac,pam,parbe,parbe14,partnum,    &
      &ptnfac,qw0,qwsk,qx0,qxt,qz0,&
      &qzt,ratio,ratioe,rrtr,rtc,rts,                    &
-     &sige,sigma0,sigman,sigman2,sigmanq,sigz,ta,tam1,&
-     &tam2,tiltc,tilts,totl,track6d, &
+     &sige,sigma0,sigman,sigman2,sigmanq,sigz,tam1,&
+     &tam2,totl,track6d, &
      &acdipph, crabph, &
      &crabph2, crabph3, crabph4
 
@@ -278,70 +278,77 @@ module mod_common
       character(len=16) bez,bezb,bezl
       character(len=80) toptit,sixtit,commen !DANGER: If the len changes, CRCHECK will break.
       
-  ! common/erro/
+  ! common /erro/
   integer, save :: ierro
   character(len=16), save :: erbez
   
-  ! common/kons/
+  ! common /kons/
   real(kind=fPrec), save :: pi,pi2,pisqrt,rad
   
-  ! common/str/
+  ! common /str/
   integer, save :: il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
   
-  ! common/ell /
+  ! common /ell/
   real(kind=fPrec), save :: ed(nele),el(nele),ek(nele),sm(nele)
   integer, save :: kz(nele),kp(nele)
   
-  ! common/bbb /
+  ! common /bbb/
   real(kind=fPrec), save :: bbbx(nele), bbby(nele), bbbs(nele)
   
-  ! common/pla /
+  ! common /pla/
   real(kind=fPrec), save :: xpl(nele),xrms(nele),zpl(nele),zrms(nele)
   
-  !common/str2 /
+  !common /str2/
   integer, save :: mel(nblo),mtyp(nblo,nelb),mstr(nblo)
 
-  ! common/mat/
+  ! common /mat/
   real(kind=fPrec), save :: a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
   
-  ! common/syos2/
+  ! common /syos2/
   real(kind=fPrec), save :: rvf(mpa)
   
-  ! common/tra1/
+  ! common /tra1/
   real(kind=fPrec), save :: rat
   integer, save :: idfor, napx, napxo, numl, niu(2), numlr, nde(2), nwr(4), &
        ird, imc, irew, ntwin, iclo6, iclo6r, iver, ibidu, numlcp, numlmax, nnuml
   
-  ! common/syn/
+  ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
        crad,hsyc(nele),phasc(nele),dppoff,sigmoff(nblz),tlen
   integer, save :: iicav,itionc(nele),ition,idp,ncy,ixcav
   
-  ! common/corcom/
+  ! common /corcom/
   real(kind=fPrec), save :: dpscor,sigcor
   integer, save :: icode,idam,its6d
 
-  ! common/multi/
+  ! common /multi/
   real(kind=fPrec), save :: bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul)
 
-  ! common/mult1/
+  ! common /mult1/
   real(kind=fPrec), save :: benki,benkc(nele),r00(nele)
   integer, save :: irm(nele),nmu(nele)
   
-  ! common/rand0/
+  ! common /rand0/
   real(kind=fPrec), save :: zfz(nzfz)
   integer, save :: iorg,mzu(nblz),izu0,mmac,mcut
   character(len=16) bezr(3,nele)
   
-  common/rand1/exterr(nblz,40),extalign(nblz,3),tiltc(nblz),        &
-       tilts(nblz),mout2,icext(nblz),icextal(nblz)
+  ! common /rand1/
+  real(kind=fPrec), save :: exterr(nblz,40),extalign(nblz,3),tiltc(nblz),tilts(nblz)
+  integer, save :: mout2,icext(nblz),icextal(nblz)
+  
 +if time
   common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
        tcnst35(nblz)
 +ei
-  common/beo /aper(2),di0(2),dip0(2),ta(6,6)
-  common/clo/dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0,itco,itcro,itqv,&
-       iout
+
+  ! common /beo/
+  real(kind=fPrec), save :: aper(2),di0(2),dip0(2),ta(6,6)
+  
+  ! common /clo/
+  real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
+  integer, save :: itco,itcro,itqv,iout
+  
   common/qmodi/qw0(3),amp0,iq(3),iqmod,kpa(nele),iqmod6
   common/linop/bez(nele),elbe(nblo),bezb(nblo),ilin,nt,iprint,      &
        ntco,eui,euii,nlin,bezl(nele)
