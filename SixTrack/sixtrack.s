@@ -1076,6 +1076,16 @@
                                                 !  uses the same definition as the DISP block
       common /wireparamco/ wire_current,wire_lint,wire_lphys,           &
      &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
+
+      ! wire parameters for closed orbit calculation (FOX part)
+      ! for FOX length of variable names must be smaller 8
+      integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
+      real(kind=fPrec) wire_clo ! closed orbit at wire
+      real(kind=fPrec) wireclo0 ! initial coordinates for closed orbit
+      integer wire_num_aux      ! auxiliary variable to count number of wires
+      integer wire_num          ! wire number for each structure element (default = 0 if no wire)
+      common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
+
 +cd wiretracktmp
 ! temporary variables
       real(kind=fPrec) RTWO !RTWO=x^2+y^2
@@ -22367,6 +22377,8 @@ end subroutine runda
 +ca comgetfields
 +ca dbdcum
 +ca stringzerotrim
+
++ca wireparam !For dump3
 
 +ca comApeInfo
 +ca dbreaddis

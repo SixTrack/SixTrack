@@ -403,12 +403,4 @@ module mod_common
   ! common /crabco/
   real(kind=fPrec), save :: crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele)
 
-  ! wire parameters for closed orbit calculation (FOX part)
-  ! for FOX length of variable names must be smaller 8
-  integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
-  real(kind=fPrec) wire_clo            ! closed orbit at wire
-  real(kind=fPrec) wireclo0         ! initial coordinates for closed orbit
-  integer wire_num_aux              ! auxiliary variable to count number of wires
-  integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
-  common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
 end module mod_common
