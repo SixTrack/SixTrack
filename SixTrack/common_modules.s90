@@ -243,20 +243,6 @@ module mod_common
   
   implicit none
 
-        integer ibb6d,ibbc,ibeco,ibtyp,   &
-     &imbb,                  &
-     &lhc,   &
-     &nbeam
-
-        real(kind=fPrec) bbcu,              &
-     &beamoff, &
-     &clobeam,         &
-     &emitx,emity,emitz,      &
-     &gammar,parbe,parbe14,partnum,    &
-     &ptnfac,&
-     &sige,sigman,sigman2,sigmanq,sigz,&
-     &track6d
-
 +if time        
   !To be deleted
   real(kind=fPrec) tcnst35,exterr35,zfz35
@@ -396,16 +382,19 @@ module mod_common
   ! common /dkic/
   real(kind=fPrec), save :: dki(nele,3)
 
-  common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
+  ! common /beam/
+  real(kind=fPrec), save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb), &
        clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
-       ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
-       nbeam,ibbc,ibeco,ibtyp,lhc
+       ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
+  integer, save :: nbeam,ibbc,ibeco,ibtyp,lhc
   
   ! common/trom/
   real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6)
   integer, save ::  imtr(nele)
   
-  common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
+  ! common /bb6d/
+  real(kind=fPrec), save :: bbcu(nbb,12)
+  integer, save :: ibb6d,imbb(nblz)
   
   ! common /acdipco/
   real(kind=fPrec), save :: acdipph(nele)
