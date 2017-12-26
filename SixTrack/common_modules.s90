@@ -404,3 +404,75 @@ module mod_common
   real(kind=fPrec), save :: crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele)
 
 end module mod_common
+
++dk mod_commonmn
+module mod_commonmn
+  use parpro
+  use floatPrecision
+  
+  implicit none
+  
++if time
+      real(kind=fPrec) aaiv35,bbiv35
+      common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
++ei
+      integer iv,ixv,nlostp,nms,numxv
++if .not.datamods
+      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
+     &bet0v,bl1v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam, &
+     &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
+     &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,ekv,eps,epsa,fake,fi,fok,fok1,fokqv, &
+     &g,gl,hc,hi,hi1,hm,hp,hs,hv,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,  &
++ei
++if datamods
+      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
+     &bet0v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam,      &
+     &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
+     &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,eps,epsa,fake,fi,fok,fok1,fokqv,     &
+     &g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,     &
++ei
++if rvet
+     &rvet,                                                             &
++ei
+     &si,sigmv,sigmv6,sigmvl,siq,sm1,sm12,sm2,sm23,sm3,smiv,tas,        &
+     &tasau,tau,wf,wfa,wfhi,wx,x1,x2,xau,xlv,xsiv,xsv,xv,xvl,yv,yvl,zlv,&
+     &zsiv,zsv
+      logical pstop
+      common/main1/                                                     &
++if .not.datamods
+     &ekv(npart,nele),fokqv(npart),aaiv(mmul,nmac,nblz),                &
++ei
++if datamods
+     &fokqv(npart),aaiv(mmul,nmac,nblz),                                &
++ei
+     &bbiv(mmul,nmac,nblz),smiv(nmac,nblz),zsiv(nmac,nblz),             &
+     &xsiv(nmac,nblz),xsv(npart),zsv(npart),qw(2),qwc(3),clo0(2),       &
+     &clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
+     &yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
+     &dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
+     &xlv(npart),zlv(npart),pstop(npart),rvv(npart),                    &
++if rvet
+     &rvet(npart),                                                      &
++ei
+     &ejf0v(npart),numxv(npart),nms(npart),nlostp(npart)
+      common/main2/ dpd(npart),dpsq(npart),fok(npart),rho(npart),       &
+     &fok1(npart),si(npart),co(npart),g(npart),gl(npart),sm1(npart),    &
+     &sm2(npart),sm3(npart),sm12(npart),as3(npart),as4(npart),          &
+     &as6(npart),sm23(npart),rhoc(npart),siq(npart),aek(npart),         &
+     &afok(npart),hp(npart),hm(npart),hc(npart),hs(npart),wf(npart),    &
+     &wfa(npart),wfhi(npart),rhoi(npart),hi(npart),fi(npart),hi1(npart),&
+     &xvl(2,npart),yvl(2,npart),ejvl(npart),dpsvl(npart),oidpsv(npart), &
+     &sigmvl(npart),iv(npart),aperv(npart,2),ixv(npart),clov(2,npart),  &
+     &clopv(2,npart),alf0v(npart,2),bet0v(npart,2),ampv(npart)
++if .not.datamods
+      common/main3/ clo6v(3,npart),clop6v(3,npart),hv(6,2,npart,nblo),  &
+     &bl1v(6,2,npart,nblo),tas(npart,6,6),qwcs(npart,3),di0xs(npart),   &
++ei
++if datamods
+      common/main3/ clo6v(3,npart),clop6v(3,npart),                     &
+     &tas(npart,6,6),qwcs(npart,3),di0xs(npart),                        &
++ei
+     &di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
+     &di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
+
+end module mod_commonmn

@@ -3437,6 +3437,7 @@ end subroutine join
       use, intrinsic :: iso_fortran_env, only : real64
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       
       integer, intent(in) :: ia_p1, ia_p2, fileunit_in
@@ -3444,7 +3445,6 @@ end subroutine join
       
       character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
                                           !DANGER: If the len changes, CRCHECK will break.
-+ca commonmn
 
       integer i,j
       
@@ -3534,13 +3534,13 @@ end subroutine join
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if cr

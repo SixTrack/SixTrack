@@ -136,6 +136,7 @@ subroutine collimate_init()
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -148,7 +149,6 @@ subroutine collimate_init()
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -581,6 +581,7 @@ subroutine collimate_start_sample(nsample)
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -593,7 +594,6 @@ subroutine collimate_start_sample(nsample)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1180,6 +1180,7 @@ subroutine collimate_start_collimator(stracki)
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -1192,7 +1193,6 @@ subroutine collimate_start_collimator(stracki)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1395,6 +1395,7 @@ subroutine collimate_do_collimator(stracki)
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -1407,7 +1408,6 @@ subroutine collimate_do_collimator(stracki)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2227,6 +2227,7 @@ subroutine collimate_end_collimator()
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -2239,7 +2240,6 @@ subroutine collimate_end_collimator()
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2638,6 +2638,7 @@ subroutine collimate_end_sample(j)
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -2650,7 +2651,6 @@ subroutine collimate_end_sample(j)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2815,6 +2815,7 @@ subroutine collimate_exit()
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -2827,7 +2828,6 @@ subroutine collimate_exit()
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2979,6 +2979,7 @@ subroutine collimate_start_turn(n)
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -2989,7 +2990,6 @@ subroutine collimate_start_turn(n)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3022,6 +3022,7 @@ subroutine collimate_start_element(i)
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -3033,7 +3034,6 @@ subroutine collimate_start_element(i)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3132,6 +3132,7 @@ subroutine collimate_end_element
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -3144,7 +3145,6 @@ subroutine collimate_end_element
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3290,6 +3290,7 @@ subroutine collimate_end_turn
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 
@@ -3302,7 +3303,6 @@ subroutine collimate_end_turn
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -6574,12 +6574,12 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
       use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 +ca collpara
 +ca dbmkdist
 
-+ca commonmn
 
   character(len=80)   filename_dis
   real(kind=fPrec) enerror, bunchlength

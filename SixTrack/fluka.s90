@@ -141,9 +141,9 @@
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commonm1
 +ca commontr
 
@@ -221,9 +221,9 @@
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 
 !     interface variables:
       integer nturn, i, ix
@@ -272,9 +272,9 @@
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commonm1
 +ca commontr
 

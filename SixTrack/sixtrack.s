@@ -326,69 +326,6 @@
       real(kind=fPrec) hda,hdp
       common/ad2/hda(0:4,5,0:8000),hdp(0:1,5,0:8000),jeltot,nordp,nordm,&
      &norda
-+cd commonmn
-+if time
-      real(kind=fPrec) aaiv35,bbiv35
-      common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
-+ei
-      integer iv,ixv,nlostp,nms,numxv
-+if .not.datamods
-      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
-     &bet0v,bl1v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam, &
-     &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
-     &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,ekv,eps,epsa,fake,fi,fok,fok1,fokqv, &
-     &g,gl,hc,hi,hi1,hm,hp,hs,hv,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,  &
-+ei
-+if datamods
-      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
-     &bet0v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam,      &
-     &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
-     &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,eps,epsa,fake,fi,fok,fok1,fokqv,     &
-     &g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,     &
-+ei
-+if rvet
-     &rvet,                                                             &
-+ei
-     &si,sigmv,sigmv6,sigmvl,siq,sm1,sm12,sm2,sm23,sm3,smiv,tas,        &
-     &tasau,tau,wf,wfa,wfhi,wx,x1,x2,xau,xlv,xsiv,xsv,xv,xvl,yv,yvl,zlv,&
-     &zsiv,zsv
-      logical pstop
-      common/main1/                                                     &
-+if .not.datamods
-     &ekv(npart,nele),fokqv(npart),aaiv(mmul,nmac,nblz),                &
-+ei
-+if datamods
-     &fokqv(npart),aaiv(mmul,nmac,nblz),                                &
-+ei
-     &bbiv(mmul,nmac,nblz),smiv(nmac,nblz),zsiv(nmac,nblz),             &
-     &xsiv(nmac,nblz),xsv(npart),zsv(npart),qw(2),qwc(3),clo0(2),       &
-     &clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
-     &yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
-     &dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
-     &xlv(npart),zlv(npart),pstop(npart),rvv(npart),                    &
-+if rvet
-     &rvet(npart),                                                      &
-+ei
-     &ejf0v(npart),numxv(npart),nms(npart),nlostp(npart)
-      common/main2/ dpd(npart),dpsq(npart),fok(npart),rho(npart),       &
-     &fok1(npart),si(npart),co(npart),g(npart),gl(npart),sm1(npart),    &
-     &sm2(npart),sm3(npart),sm12(npart),as3(npart),as4(npart),          &
-     &as6(npart),sm23(npart),rhoc(npart),siq(npart),aek(npart),         &
-     &afok(npart),hp(npart),hm(npart),hc(npart),hs(npart),wf(npart),    &
-     &wfa(npart),wfhi(npart),rhoi(npart),hi(npart),fi(npart),hi1(npart),&
-     &xvl(2,npart),yvl(2,npart),ejvl(npart),dpsvl(npart),oidpsv(npart), &
-     &sigmvl(npart),iv(npart),aperv(npart,2),ixv(npart),clov(2,npart),  &
-     &clopv(2,npart),alf0v(npart,2),bet0v(npart,2),ampv(npart)
-+if .not.datamods
-      common/main3/ clo6v(3,npart),clop6v(3,npart),hv(6,2,npart,nblo),  &
-     &bl1v(6,2,npart,nblo),tas(npart,6,6),qwcs(npart,3),di0xs(npart),   &
-+ei
-+if datamods
-      common/main3/ clo6v(3,npart),clop6v(3,npart),                     &
-     &tas(npart,6,6),qwcs(npart,3),di0xs(npart),                        &
-+ei
-     &di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
-     &di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
 +cd commonm1
       integer numx
       real(kind=fPrec) e0f
@@ -17167,6 +17104,7 @@ end subroutine hamilton1
       use crcoall
       use parpro !Needed for common
       use mod_common
+      use mod_commonmn
       implicit none
       
       integer, intent(in) :: ix
@@ -17174,7 +17112,6 @@ end subroutine hamilton1
 
       integer im, izu, k, m, nmz, r0, r0a !needed to use multini
 
-+ca commonmn
 +ca commontr
 +ca commonxz
 +ca comgetfields
@@ -22301,6 +22238,7 @@ end subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca errout
 !-----------------------------------------------------------------------
@@ -22363,7 +22301,6 @@ end subroutine runda
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 ! Eric needs nwri (clean up new variables and common blocks!)
 +ca commontr
@@ -24998,6 +24935,7 @@ subroutine trauthin(nthinerr)
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
@@ -25008,7 +24946,6 @@ subroutine trauthin(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -25482,6 +25419,7 @@ subroutine thin4d(nthinerr)
   use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 +ca exactvars
 +ca commonex
@@ -25504,7 +25442,6 @@ subroutine thin4d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -26111,6 +26048,7 @@ subroutine thin6d(nthinerr)
   use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 +ca exactvars
 +ca commonex
@@ -26131,7 +26069,6 @@ subroutine thin6d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -26977,6 +26914,7 @@ end subroutine thin6d
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca exactvars
 +ca commonex
@@ -26999,7 +26937,6 @@ end subroutine thin6d
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -27657,13 +27594,13 @@ subroutine callcrp()
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if cr
@@ -27751,6 +27688,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 !     parameters
       integer turn  ! turn number
@@ -27768,7 +27706,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -28427,9 +28364,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca comApeInfo
 
@@ -28537,9 +28474,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -28811,9 +28748,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -28892,9 +28829,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -28935,9 +28872,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca comApeInfo
 +ca dbdcum
@@ -29037,9 +28974,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca comApeInfo
 +ca dbdcum
@@ -29103,9 +29040,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -29162,6 +29099,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
@@ -29170,7 +29108,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -29234,6 +29171,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       integer ia,ia2,id,ie,ig,n
 +ca common2
@@ -29242,7 +29180,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -29347,6 +29284,7 @@ subroutine trauthck(nthinerr)
   use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -29356,7 +29294,6 @@ subroutine trauthck(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -29773,6 +29710,7 @@ subroutine thck4d(nthinerr)
   use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
   integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
@@ -29791,7 +29729,6 @@ subroutine thck4d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -30448,6 +30385,7 @@ subroutine thck6d(nthinerr)
   use crcoall
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
@@ -30466,7 +30404,6 @@ subroutine thck6d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -31250,6 +31187,7 @@ subroutine thck6dua(nthinerr)
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
@@ -31270,7 +31208,6 @@ subroutine thck6dua(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -31998,6 +31935,7 @@ subroutine synuthck
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
@@ -32006,7 +31944,6 @@ subroutine synuthck
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -33409,6 +33346,7 @@ subroutine comnul
 +ei
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -33419,7 +33357,6 @@ subroutine comnul
 +ca commd1da
 +ca commonc
 +ca commonxz
-+ca commonmn
 
 +if bnlelens
 +ca rhicelens
@@ -34200,10 +34137,10 @@ subroutine STRNUL( iel )
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
       
 +ca commonxz
-+ca commonmn
 
 !     local variables
       integer iel, i1, i2, i3, j
@@ -34261,9 +34198,9 @@ integer function INEELS( iEl )
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 
-+ca commonmn
 +ca commontr
 +ca dbdcum
 
@@ -34332,9 +34269,9 @@ integer function INEESE()
 
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
-+ca commonmn
 +ca commontr
 
   il=il+1
@@ -34367,9 +34304,9 @@ integer function check_SE_unique( iEl, ixEl )
 
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
-+ca commonmn
 +ca commontr
 +ca dbdcum
 
@@ -35015,6 +34952,7 @@ subroutine blocksv
 
   use parpro
   use mod_common
+  use mod_commonmn
   implicit none
 
 +ca common2
@@ -35024,7 +34962,6 @@ subroutine blocksv
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commonc
       integer n, ia, ikk, j, jm, k, lkk, mkk
@@ -46263,6 +46200,7 @@ end subroutine subsea
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca common2
 +ca commons
@@ -46271,7 +46209,6 @@ end subroutine subsea
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca commonc
@@ -47155,6 +47092,7 @@ end subroutine subsea
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca common2
 +ca commons
@@ -47163,7 +47101,6 @@ end subroutine subsea
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca commonc
@@ -47809,6 +47746,7 @@ end subroutine subsea
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca common2
 +ca commons
@@ -47817,7 +47755,6 @@ end subroutine subsea
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca commonc
@@ -49030,8 +48967,8 @@ end subroutine subsea
       use floatPrecision
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
-+ca commonmn
 +ca commontr
       integer n,i,j,k
       character(len=*) dumpname
@@ -49086,9 +49023,9 @@ end subroutine subsea
       use floatPrecision
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca commons
-+ca commonmn
       integer n,i,j,l,m,k
       character(len=*) dumpname
       save
@@ -49138,6 +49075,7 @@ end subroutine subsea
       use floatPrecision
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca common2
 +ca commons
@@ -49145,7 +49083,6 @@ end subroutine subsea
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca crco
@@ -49627,6 +49564,7 @@ end subroutine subsea
       use floatPrecision
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca common2
 +ca commons
@@ -49634,7 +49572,6 @@ end subroutine subsea
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca crco
@@ -50119,6 +50056,7 @@ end subroutine subsea
       use floatPrecision
       use parpro
       use mod_common
+      use mod_commonmn
       implicit none
 +ca common2
 +ca commons
@@ -50126,7 +50064,6 @@ end subroutine subsea
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca crco
