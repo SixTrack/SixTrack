@@ -459,21 +459,23 @@ module mod_commons
   use parpro
   implicit none
   
-  integer idz,itra
 +if vvector
-+if .not.datamods
-  real(kind=fPrec) al,as,chi0,chid,dp1,dps,exz,sigm
-  common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),dps(mpa),idz(2)
-+ei
-+if datamods
-  real(kind=fPrec) chi0,chid,dp1,dps,exz,sigm
-  common/syos/sigm(mpa),dps(mpa),idz(2)
-+ei
-  common/anf/chi0,chid,exz(2,6),dp1,itra
+  ! common /syos/
+  real(kind=fPrec), save :: as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),dps(mpa)
+  integer, save :: idz(2)
+  
+  ! common /anf/
+  real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1
+  integer, save :: itra
 +ei
 +if .not.vvector
-  real(kind=fPrec) a2,al,as,at,chi0,chid,dp1,dps,exz,sigm
-  common/syos/as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa),idz(2)
-  common/anf/chi0,chid,exz(2,6),dp1,itra
+  ! common /syos/
+  real(kind=fPrec), save :: as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa)
+  integer, save :: idz(2)
+  
+  ! common /anf/
+  real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1
+  integer, save :: itra
 +ei
+
 end module mod_commons
