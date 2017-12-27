@@ -452,3 +452,28 @@ module mod_commonmn
        di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
 
 end module mod_commonmn
+
++dk mod_commons
+module mod_commons
+  use floatPrecision
+  use parpro
+  implicit none
+  
+  integer idz,itra
++if vvector
++if .not.datamods
+  real(kind=fPrec) al,as,chi0,chid,dp1,dps,exz,sigm
+  common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),dps(mpa),idz(2)
++ei
++if datamods
+  real(kind=fPrec) chi0,chid,dp1,dps,exz,sigm
+  common/syos/sigm(mpa),dps(mpa),idz(2)
++ei
+  common/anf/chi0,chid,exz(2,6),dp1,itra
++ei
++if .not.vvector
+  real(kind=fPrec) a2,al,as,at,chi0,chid,dp1,dps,exz,sigm
+  common/syos/as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa),idz(2)
+  common/anf/chi0,chid,exz(2,6),dp1,itra
++ei
+end module mod_commons

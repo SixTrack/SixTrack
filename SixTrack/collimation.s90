@@ -137,6 +137,7 @@ subroutine collimate_init()
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -144,7 +145,6 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -582,6 +582,7 @@ subroutine collimate_start_sample(nsample)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -589,7 +590,6 @@ subroutine collimate_start_sample(nsample)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -1181,6 +1181,7 @@ subroutine collimate_start_collimator(stracki)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1188,7 +1189,6 @@ subroutine collimate_start_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -1396,6 +1396,7 @@ subroutine collimate_do_collimator(stracki)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1403,7 +1404,6 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -2228,6 +2228,7 @@ subroutine collimate_end_collimator()
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2235,7 +2236,6 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -2639,6 +2639,7 @@ subroutine collimate_end_sample(j)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2646,7 +2647,6 @@ subroutine collimate_end_sample(j)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -2816,6 +2816,7 @@ subroutine collimate_exit()
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2823,7 +2824,6 @@ subroutine collimate_exit()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -2980,12 +2980,12 @@ subroutine collimate_start_turn(n)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -3023,13 +3023,13 @@ subroutine collimate_start_element(i)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -3133,6 +3133,7 @@ subroutine collimate_end_element
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -3140,7 +3141,6 @@ subroutine collimate_end_element
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -3291,6 +3291,7 @@ subroutine collimate_end_turn
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -3298,7 +3299,6 @@ subroutine collimate_end_turn
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz

@@ -3535,8 +3535,8 @@ end subroutine join
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz

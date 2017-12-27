@@ -228,24 +228,6 @@
       real(kind=fPrec) yold,sold,apold,bktpre
 +ei
 
-+cd commons
-      integer idz,itra
-+if vvector
-+if .not.datamods
-      real(kind=fPrec) al,as,chi0,chid,dp1,dps,exz,sigm
-      common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),dps(mpa),idz(2)
-+ei
-+if datamods
-      real(kind=fPrec) chi0,chid,dp1,dps,exz,sigm
-      common/syos/sigm(mpa),dps(mpa),idz(2)
-+ei
-      common/anf/chi0,chid,exz(2,6),dp1,itra
-+ei
-+if .not.vvector
-      real(kind=fPrec) a2,al,as,at,chi0,chid,dp1,dps,exz,sigm
-      common/syos/as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa),idz(2)
-      common/anf/chi0,chid,exz(2,6),dp1,itra
-+ei
 +cd commont1
       integer ichrom,is
       real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,x,y
@@ -10564,10 +10546,10 @@ end subroutine hamilton1
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer numx
       real(kind=fPrec) e0f
-+ca commons
 +ca commont1
 +ca commondl
 +if bnlelens
@@ -10595,9 +10577,9 @@ end subroutine hamilton1
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       real(kind=fPrec) e0f
-+ca commons
 +ca commont1
 +ca commondl
 +if bnlelens
@@ -10652,6 +10634,7 @@ end subroutine hamilton1
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
@@ -10705,7 +10688,6 @@ end subroutine hamilton1
       data lineno30 /0/
       data lineno35 /0/
 +ca commonex
-+ca commons
 +ca commont1
 +ca commondl
 !
@@ -17998,6 +17980,7 @@ subroutine envars(j,dpp,rv)
 +ei
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
@@ -18005,7 +17988,6 @@ subroutine envars(j,dpp,rv)
 +if .not.vvector
   integer jm,k,m,na,ne
 +ei
-+ca commons
 +ca commont1
 +ca commondl
 +if bnlelens
@@ -18353,10 +18335,10 @@ subroutine envada
   use numerical_constants
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
-+ca commons
 +ca commont1
 +ca commondl
 +ca commond1
@@ -18842,6 +18824,7 @@ subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
@@ -18853,7 +18836,6 @@ subroutine runda
      &zfeld1,zfeld2,zrb,zs, crabfreq, crabpht, crabpht2, crabpht3,      &
      &crabpht4
       character(len=300) ch
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonxz
@@ -19899,6 +19881,7 @@ end subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
@@ -19914,7 +19897,6 @@ end subroutine runda
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=16) typ
 +ca commonex
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonl
@@ -21279,11 +21261,11 @@ end subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
-+ca commons
 +ca commont2
 +ca commond1
 +ca commondl
@@ -21473,10 +21455,10 @@ end subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer idaa
       real(kind=fPrec) betr0,dare,sigmdac
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonxz
@@ -21572,9 +21554,9 @@ end subroutine runda
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer ix,idaa
-+ca commons
 +ca commont1
 +ca commondl
 +ca commond1
@@ -21626,13 +21608,13 @@ end subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonl
@@ -22239,6 +22221,7 @@ end subroutine runda
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca errout
 !-----------------------------------------------------------------------
@@ -22295,7 +22278,6 @@ end subroutine runda
 !-----------------------------------------------------------------------
 +ca commonex
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -24936,12 +24918,12 @@ subroutine trauthin(nthinerr)
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -25420,6 +25402,7 @@ subroutine thin4d(nthinerr)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 +ca exactvars
 +ca commonex
@@ -25437,7 +25420,6 @@ subroutine thin4d(nthinerr)
 +ei
 
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -26049,6 +26031,7 @@ subroutine thin6d(nthinerr)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 +ca exactvars
 +ca commonex
@@ -26064,7 +26047,6 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) expt
 +ei
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -26915,6 +26897,7 @@ end subroutine thin6d
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca exactvars
 +ca commonex
@@ -26932,7 +26915,6 @@ end subroutine thin6d
       real(kind=fPrec) expt
 +ei
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -27595,8 +27577,8 @@ subroutine callcrp()
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -27689,6 +27671,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 !     parameters
       integer turn  ! turn number
@@ -27701,7 +27684,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       logical myisnan
       integer ib2,ib3,ilostch,j,jj,jj1,jjx,lnapx
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -29100,10 +29082,10 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -29172,10 +29154,10 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
       integer ia,ia2,id,ie,ig,n
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -29285,11 +29267,11 @@ subroutine trauthck(nthinerr)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -29711,6 +29693,7 @@ subroutine thck4d(nthinerr)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
   integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
@@ -29724,7 +29707,6 @@ subroutine thck4d(nthinerr)
   real(kind=fPrec) expt
 +ei
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -30386,6 +30368,7 @@ subroutine thck6d(nthinerr)
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
@@ -30399,7 +30382,6 @@ subroutine thck6d(nthinerr)
   real(kind=fPrec) expt
 +ei
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -31188,6 +31170,7 @@ subroutine thck6dua(nthinerr)
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
@@ -31203,7 +31186,6 @@ subroutine thck6dua(nthinerr)
       real(kind=fPrec) expt
 +ei
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -31936,10 +31918,10 @@ subroutine synuthck
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -32359,12 +32341,12 @@ subroutine synuthck
 
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer ih1,ih2,j,kz1,l,l1,l2
       real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,ekv,fi,    &
      &fok,fok1,fokm,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
      &rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -32759,6 +32741,7 @@ subroutine synuthck
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,iation,itiono,idate,im,imonth,itime,ix,izu,j,jj,k,kpz,  &
      &kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
@@ -32795,7 +32778,6 @@ subroutine synuthck
 !  NORMAL PRINTOUT                          : UNIT  6
 !  TRACKING DATA                            : UNIT  8
 !-----------------------------------------------------------------------
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -33347,11 +33329,11 @@ subroutine comnul
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
       
       integer i,i1,i2,i3,i4,j
 +ca commonex
-+ca commons
 +ca commont1
 +ca commondl
 +ca commd1da
@@ -34036,9 +34018,9 @@ subroutine SELNUL( iel )
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commons
       implicit none
 
-+ca commons
 +ca comApeInfo
 
 !     local variables
@@ -34643,11 +34625,11 @@ end subroutine distance
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,ii,jj,l,ll
       real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
      &tas,tas56,x1,x11,x13,x2
-+ca commons
 +ca commont1
       dimension tas(6,6),x1(6),x2(6)
       save
@@ -34752,12 +34734,12 @@ end subroutine distance
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
      &fak2,qw,rca1,rca2,rclam1,rclam2,rcw1(4),rcw2(4),rn1,rn2,spa,spd,  &
      &sqrn,yca1,yca2,yclam1,yclam2,ycw1(4),ycw2(4)
-+ca commons
 +ca commont1
       dimension am(4,4)
       dimension qw(2)
@@ -34953,10 +34935,10 @@ subroutine blocksv
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_commons
   implicit none
 
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -35056,10 +35038,10 @@ subroutine blocksv
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
-+ca commons
 +ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
 +if bnlelens
@@ -35122,10 +35104,10 @@ subroutine blocksv
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
-+ca commons
 +ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
@@ -35194,11 +35176,11 @@ subroutine blocksv
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,ii,isl,j,jj,l,n
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
      &sm0,su2,suxy,suzy,xi,zi
-+ca commons
 +ca commont1
 +ca commonc
       dimension dsm(2,4),sens(2,4),xi(2),zi(2),dm(2),sm0(2)
@@ -35327,10 +35309,10 @@ subroutine blocksv
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
-+ca commons
 +ca commont1
 +ca commonl
 +ca commonxz
@@ -35464,11 +35446,11 @@ subroutine blocksv
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
      &dy,x0,x1,y0,y1
-+ca commons
 +ca commont1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
@@ -35554,10 +35536,10 @@ subroutine blocksv
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
       real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
-+ca commons
 +ca commont1
 +ca commonl
 +ca commondl
@@ -36035,11 +36017,11 @@ subroutine blocksv
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
      &x1,y0,y1
-+ca commons
 +ca commont1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
@@ -36109,9 +36091,9 @@ subroutine blocksv
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer ico,ico0,iql,j,m
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -36158,11 +36140,11 @@ subroutine envar(dpp)
     
     use parpro
     use mod_common
+    use mod_commons
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -36405,10 +36387,10 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     
     use parpro
     use mod_common
+    use mod_commons
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
-+ca commons
 +ca commont1
     dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
 +if bnlelens
@@ -36658,9 +36640,9 @@ subroutine prror(ier)
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer ier
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -37281,6 +37263,7 @@ end subroutine dist_readdis
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,        &
      &nmz,nr,dj
@@ -37292,7 +37275,6 @@ end subroutine dist_readdis
       real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
       character(len=16) idum
-+ca commons
 +ca commont1
 !
 +if collimat
@@ -38197,13 +38179,13 @@ end subroutine dist_readdis
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,iwrite,ixwl,l,ll,nr
       real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character(len=16) typ
       ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
       logical isBLOC
-+ca commons
 +ca commont1
       dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
       dimension d(2),dp(2),c(2),cp(2)
@@ -38321,13 +38303,13 @@ end subroutine dist_readdis
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,iwrite
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
       character(len=16) typ
-+ca commons
 +ca commont1
       dimension t(6,4),phi(2)
 +if bnlelens
@@ -38476,10 +38458,10 @@ end subroutine dist_readdis
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,ierr,l
       real(kind=fPrec) am,dpp
-+ca commons
 +ca commont1
       dimension am(4,4)
 +if bnlelens
@@ -38530,6 +38512,7 @@ end subroutine dist_readdis
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
      &nlino,ntcoo,nto,nx
@@ -38538,7 +38521,6 @@ end subroutine dist_readdis
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
       real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
       character(len=16) bezlo(nele)
-+ca commons
 +ca commont1
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
@@ -38865,12 +38847,12 @@ end subroutine dist_readdis
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
 
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
       real(kind=fPrec) xinc(ncor1)
       real(kind=fPrec) ckicknew,ckickold,r0,r0a
-+ca commons
 +ca commont1
       dimension nx(ncor1)
 +if bnlelens
@@ -38968,10 +38950,10 @@ end subroutine dist_readdis
       use mathlib_bouncer
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -39420,11 +39402,11 @@ end subroutine dist_readdis
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
      &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
       real(kind=fPrec) extalig1,exterr1
-+ca commons
 +ca commont1
       dimension ilf(nblz),ilfr(nblz),jra(nele,5),iran(nele),inz(nele)
       dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
@@ -39685,6 +39667,7 @@ subroutine phasad(dpp,qwc)
   use crcoall
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
@@ -39692,7 +39675,6 @@ subroutine phasad(dpp,qwc)
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-+ca commons
 +ca commont1
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -40187,11 +40169,11 @@ end subroutine phasad
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
-+ca commons
 +ca commont1
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
@@ -40444,10 +40426,10 @@ end subroutine phasad
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
-+ca commons
 +ca commont1
 +ca commonl
 +ca commonxz
@@ -40742,13 +40724,13 @@ subroutine umlauf(dpp,ium,ierr)
   use numerical_constants
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
   real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-+ca commons
 +ca commont1
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
@@ -41160,6 +41142,7 @@ subroutine resex(dpp)
   
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,&
           mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -41171,7 +41154,6 @@ subroutine resex(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,&
           tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
-+ca commons
 +ca commont1
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -41907,10 +41889,10 @@ end subroutine resex
   use crcoall
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
-+ca commons
 +ca commont1
       dimension aa(10,10),bb(10),dsm(10),sn(10),sen(10),ss(10)
       dimension qwc(3),d1(10),irr(12)
@@ -42235,11 +42217,11 @@ end subroutine resex
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=16) ref
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -42323,6 +42305,7 @@ subroutine subre(dpp)
   use crcoall
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
@@ -42336,7 +42319,6 @@ subroutine subre(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltck6,tiltck8,tiltck10,&
           tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
 +ei
-+ca commons
 +ca commont1
       dimension t(6,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -43350,6 +43332,7 @@ subroutine subsea(dpp)
   use mathlib_bouncer
   use parpro
   use mod_common
+  use mod_commons
   implicit none
   integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,&
           nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -43359,7 +43342,6 @@ subroutine subsea(dpp)
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
-+ca commons
 +ca commont1
       dimension t(5,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -44078,10 +44060,10 @@ end subroutine subsea
       use crcoall
       use parpro
       use mod_common
+      use mod_commons
       implicit none
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
-+ca commons
 +ca commont1
       dimension aa(6,6),bb(6),dsm(6),sn(6),sen(6),ss(6)
       dimension qwc(3),qw(2),d1(6)
@@ -46201,9 +46183,9 @@ end subroutine subsea
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -47093,9 +47075,9 @@ end subroutine subsea
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -47747,9 +47729,9 @@ end subroutine subsea
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -49024,8 +49006,8 @@ end subroutine subsea
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
-+ca commons
       integer n,i,j,l,m,k
       character(len=*) dumpname
       save
@@ -49076,9 +49058,9 @@ end subroutine subsea
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -49565,9 +49547,9 @@ end subroutine subsea
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -50057,9 +50039,9 @@ end subroutine subsea
       use parpro
       use mod_common
       use mod_commonmn
+      use mod_commons
       implicit none
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
