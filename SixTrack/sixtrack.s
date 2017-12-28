@@ -17975,9 +17975,6 @@ subroutine envars(j,dpp,rv)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-+if datamods
-  use bigmats, only : as, al ! Only take the variables from common, not from commonmn
-+ei
   use parpro
   use mod_common
   use mod_commons
@@ -22192,9 +22189,7 @@ end subroutine runda
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
-+if datamods
-      use bigmats
-+ei
+
       use scatter, only : scatter_active, scatter_initialize
 
       use dynk, only : dynk_izuIndex
@@ -22219,6 +22214,7 @@ end subroutine runda
       
       use crcoall
       use parpro
+      use parpro_scale
       use mod_common
       use mod_commonmn
       use mod_commons
@@ -22803,16 +22799,6 @@ end subroutine runda
         bet0v(i,1)=zero
         bet0v(i,2)=zero
         ampv(i)=zero
-+if .not.datamods !This code moved to bigmats.allocate_thickarrays
-        do i1=1,nblo
-          do i2=1,2
-            do i3=1,6
-              hv(i3,i2,i,i1)=zero
-              bl1v(i3,i2,i,i1)=zero
-            end do
-          end do
-        end do
-+ei
         do i1=1,6
           do i2=1,6
             tas(i,i1,i2)=zero
@@ -22845,9 +22831,10 @@ end subroutine runda
 +ei
 
       call daten
-+if datamods
-      if (ithick.eq.1) call allocate_thickarrays(npart,nele,nblo)
++if vvector
+      if (ithick.eq.1) call allocate_thickarrays
 +ei
+      
 +if debug
 !     call dumpbin('adaten',999,9999)
 !     call abend('after  daten                                      ')
@@ -25384,9 +25371,6 @@ subroutine thin4d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
-+if datamods
-  use bigmats
-+ei
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   
@@ -26002,9 +25986,6 @@ subroutine thin6d(nthinerr)
   use numerical_constants
   use mathlib_bouncer
 
-+if datamods
-  use bigmats
-+ei
   use scatter, only : scatter_thin, scatter_debug
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
@@ -26886,9 +26867,6 @@ end subroutine thin6d
       use mod_fluka
 +ei
 
-+if datamods
-      use bigmats
-+ei
       
       use dynk, only : ldynk, dynk_apply
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
@@ -29675,9 +29653,6 @@ subroutine thck4d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
-+if datamods
-  use bigmats
-+ei
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
@@ -30350,9 +30325,6 @@ subroutine thck6d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
-+if datamods
-  use bigmats
-+ei
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
@@ -31151,9 +31123,6 @@ subroutine thck6dua(nthinerr)
       use physical_constants
       use mathlib_bouncer
       use numerical_constants
-+if datamods
-      use bigmats
-+ei
       use dynk, only : ldynk, dynk_apply
       
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
@@ -31911,9 +31880,6 @@ subroutine synuthck
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
-+if datamods
-      use bigmats
-+ei
       use numerical_constants
       use parpro
       use mod_common
@@ -32335,9 +32301,6 @@ subroutine synuthck
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
-+if datamods
-      use bigmats, only : as, al !Only take the variables from common, not from commonmn
-+ei
 
       use parpro
       use mod_common
@@ -33315,9 +33278,6 @@ subroutine comnul
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
-+if datamods
-      use bigmats
-+ei
       use scatter, only : scatter_comnul
       use dynk, only : dynk_comnul
       use fma,  only : fma_comnul
@@ -33734,10 +33694,6 @@ subroutine comnul
 +if vvector
             do i1=1,npart
 +ei
-+if .not.datamods
-                al(i4,i3,i1,i)=zero
-                as(i4,i3,i1,i)=zero
-+ei
 +if .not.vvector
                 at(i4,i3,i1,i)=zero
                 a2(i4,i3,i1,i)=zero
@@ -34078,10 +34034,6 @@ subroutine SELNUL( iel )
 +ei
 +if vvector
           do i1=1,npart
-+ei
-+if .not.datamods
-            al(i4,i3,i1,iel)=zero
-            as(i4,i3,i1,iel)=zero
 +ei
 +if .not.vvector
             at(i4,i3,i1,iel)=zero
@@ -34927,10 +34879,6 @@ end subroutine distance
 subroutine blocksv
   use floatPrecision
   use numerical_constants
-
-+if datamods
-  use bigmats
-+ei
 
   use parpro
   use mod_common
@@ -46165,12 +46113,9 @@ end subroutine subsea
 !     
 !     See also subroutines crpoint and crstart.
       use floatPrecision
-  use numerical_constants
-+if datamods
-      use bigmats
-+ei
+      use numerical_constants
       use dynk, only : ldynk, ldynkfiledisable,                         &
-     &dynk_crcheck_readdata, dynk_crcheck_positionFiles
+           dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
       use dump, only : dump_crcheck_readdata, dump_crcheck_positionFiles
       
@@ -47059,10 +47004,7 @@ end subroutine subsea
 !     
 !     See also subroutine crcheck and crstart.
       use floatPrecision
-  use numerical_constants
-+if datamods
-      use bigmats, only : as, al !Only take the variables from common, not from commonmn
-+ei
+      use numerical_constants
 
       use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
      &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
@@ -47333,51 +47275,12 @@ end subroutine subsea
 +if .not.debug
         endif
 +ei
-+if .not.datamods
-        write(95,err=100,iostat=ierro)                                  &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if datamods
         if(ithick.eq.1) then
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
             write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-     & ' for DATAMODS to fort.95'
+     & ' for THICK to fort.95'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
@@ -47424,7 +47327,7 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
+        
         endfile (95,iostat=ierro)
         backspace (95,iostat=ierro)
       endif
@@ -47585,51 +47488,12 @@ end subroutine subsea
 +if .not.debug
         endif
 +ei
-+if .not.datamods
-        write(96,err=100,iostat=ierro)                                  &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if datamods
         if (ithick.eq.1) then
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
             write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-     & ' for DATAMODS to fort.96'
+     & ' for THICK to fort.96'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
@@ -47676,7 +47540,7 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
+
       endif
       endfile (96,iostat=ierro)
       backspace (96,iostat=ierro)
@@ -47718,9 +47582,6 @@ end subroutine subsea
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
   use numerical_constants
-+if datamods
-      use bigmats
-+ei
       use dynk, only : ldynk, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
@@ -47999,45 +47860,6 @@ end subroutine subsea
 !       endif
 +ei
         if (read95) then
-+if .not.datamods
-          read(95,end=100,err=100,iostat=ierro)                         &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if .not.datamods
           if (ithick.eq.1) then
             read(95,end=100,err=100,iostat=ierro)                       &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -48078,52 +47900,12 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
           write(93,*) 'CRSTART read fort.95 EXTENDED OK'
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
           go to 102
         endif
         if (read96) then
-+if .not.datamods
-          read(96,end=101,err=101,iostat=ierro)                         &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if datamods
           if (ithick.eq.1) then
             read(96,end=101,err=101,iostat=ierro)                       &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -48163,7 +47945,7 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
+
       write(93,*) 'CRSTART read fort.96 EXTENDED OK'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)

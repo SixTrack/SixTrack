@@ -236,6 +236,28 @@ module parpro
 
 end module parpro
 
++dk parpro_scale
+module parpro_scale
+  ! Module for scaling array sizes defined in parpro
+  ! by telling various other module to rescale their arrays;
+  ! It is split off from parpro as a separate module
+  ! in order to avoid circular dependencies.
+  implicit none
+contains
++if vvector
+  subroutine allocate_thickarrays
+    ! Kicks off the allocation of the thick tracking arrays
+    use mod_commonmn
+    use mod_commons
+    implicit none
+    
+    call mod_commonmn_allocate_thickarrays
+    call mod_commons_allocate_thickarrays
+    
+  end subroutine allocate_thickarrays
++ei
+end module parpro_scale
+
 +dk mod_common
 module mod_common
   use parpro
@@ -419,7 +441,8 @@ module mod_commonmn
 +ei
 
   ! common /main1/
-  real(kind=fPrec), save :: ekv(npart,nele),fokqv(npart),aaiv(mmul,nmac,nblz), &
+  real(kind=fPrec), allocatable, save :: ekv(:,:) !(npart,nele)
+  real(kind=fPrec), save :: fokqv(npart),aaiv(mmul,nmac,nblz),           &
        bbiv(mmul,nmac,nblz),smiv(nmac,nblz),zsiv(nmac,nblz),             &
        xsiv(nmac,nblz),xsv(npart),zsv(npart),qw(2),qwc(3),clo0(2),       &
        clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
@@ -446,11 +469,44 @@ module mod_commonmn
   integer, save :: iv(npart),ixv(npart)
   
   !common /main3/
-  real(kind=fPrec), save :: clo6v(3,npart),clop6v(3,npart),hv(6,2,npart,nblo),  &
-       bl1v(6,2,npart,nblo),tas(npart,6,6),qwcs(npart,3),di0xs(npart),   &
+  real(kind=fPrec), save :: clo6v(3,npart),clop6v(3,npart),              &
+       tas(npart,6,6),qwcs(npart,3),di0xs(npart),                        &
        di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
        di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
-
+  real(kind=fPrec), allocatable, save :: hv(:,:,:,:),bl1v(:,:,:,:) !(6,2,npart,nblo)
+  
++if vvector
+contains
+  subroutine mod_commonmn_allocate_thickarrays
+    use numerical_constants, only : zero
+    use crcoall
+    implicit none
+    
+    integer i1,i2,i3,i
+    integer stat
+    
+    write(lout,*) "MOD_COMMONMN_ALLOCATE_THICKARRAYS: npart/nele/nblo=", npart, nele, nblo
+    
+    allocate(ekv(npart,nele), hv(6,2,npart,nblo), bl1v(6,2,npart,nblo), STAT = stat)
+    if (stat.ne.0) then
+       write(lout,*) "ERROR in mod_commonmn_allocate_thickarrays(); stat=",stat
+       call prror(-1)
+    endif
+    
+    !ZERO the newly allocated arrays
+    do i=1,npart
+       do i1=1,nblo
+          do i2=1,2
+             do i3=1,6
+                hv(i3,i2,i,i1)=zero
+                bl1v(i3,i2,i,i1)=zero
+             end do
+          end do
+       end do
+    end do
+    
+  end subroutine mod_commonmn_allocate_thickarrays
++ei
 end module mod_commonmn
 
 +dk mod_commons
@@ -461,7 +517,8 @@ module mod_commons
   
 +if vvector
   ! common /syos/
-  real(kind=fPrec), save :: as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),dps(mpa)
+  real(kind=fPrec), allocatable, save :: as(:,:,:,:),al(:,:,:,:) !(6,2,npart,nele)
+  real(kind=fPrec), save :: sigm(mpa),dps(mpa)
   integer, save :: idz(2)
   
   ! common /anf/
@@ -478,4 +535,38 @@ module mod_commons
   integer, save :: itra
 +ei
 
++if vvector
+contains
+  
+  subroutine mod_commons_allocate_thickarrays
+    !Subroutine for initial allocation of the big thick tracking arrays 'al' and 'as'
+    use numerical_constants, only : zero
+    use crcoall
+    implicit none
+    
+    integer stat
+    integer i1,i3,i4,i
+    
+    write(lout,*) "MOD_COMMONS_ALLOCATE_THICKARRAYS: npart/nele=", npart, nele
+    
+    allocate(al(6,2,npart,nele), as(6,2,npart,nele), STAT = stat)
+    if (stat.ne.0) then
+       write(lout,*) "ERROR in mod_commons_allocate_thickarrays(); stat=",stat
+       call prror(-1)
+    endif
+    
+    !ZERO the newly allocated arrays
+    do i=1,nele
+       do i3=1,2
+          do i4=1,6
+             do i1=1,npart
+                al(i4,i3,i1,i)=zero
+                as(i4,i3,i1,i)=zero
+             end do
+          end do
+       end do
+    end do
+    
+  end subroutine mod_commons_allocate_thickarrays
++ei
 end module mod_commons
