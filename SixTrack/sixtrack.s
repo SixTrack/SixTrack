@@ -228,12 +228,12 @@
       real(kind=fPrec) yold,sold,apold,bktpre
 +ei
 
-+cd commont1
++cd commont1 !Note: Same variables as commont2 but different names
       integer ichrom,is
       real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,x,y
       common/tra/x(mpa,2),y(mpa,2),amp(2),bet0(2),alf0(2),clo(2),clop(2)
       common/chrom/cro(2),is(2),ichrom
-+cd commont2
++cd commont2 !Note: Same variables as commont1 but different names
       integer ichrom,issss
       real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,xxtr,yytr
       common/tra/xxtr(mpa,2),yytr(mpa,2),amp(2),                        &
@@ -32307,18 +32307,12 @@ subroutine synuthck
       use mod_commons
       implicit none
       integer ih1,ih2,j,kz1,l,l1,l2
+
+      !Local version of variables normally found in mod_commonmn
       real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,ekv,fi,    &
-     &fok,fok1,fokm,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
-     &rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
-+ca commont1
-+ca commondl
-+ca commonxz
-+if bnlelens
-+ca rhicelens
-+ei
-!-----------------------------------------------------------------------
-      save
-!-----------------------------------------------------------------------
+           fok,fok1,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
+           rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
+      
       dimension ekv(npart,nele),fokqv(npart),dpsv(npart)
       dimension rvv(npart),oidpsv(npart)
       dimension dpd(npart),dpsq(npart),fok(npart),rho(npart)
@@ -32329,6 +32323,19 @@ subroutine synuthck
       dimension hp(npart),hm(npart),hc(npart),hs(npart),wf(npart)
       dimension wfa(npart),wfhi(npart),rhoi(npart)
       dimension hi(npart),fi(npart),hi1(npart)
+      
+      real(kind=fPrec) fokm
+      
++ca commont1
++ca commondl
++ca commonxz
++if bnlelens
++ca rhicelens
++ei
+!-----------------------------------------------------------------------
+      save
+!-----------------------------------------------------------------------
+      
       do 10 j=1,napx
         dpd(j)=one+dpsv(j)
         dpsq(j)=sqrt(dpd(j))
