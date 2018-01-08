@@ -1345,7 +1345,7 @@
       integer stringzerotrim_maxlen
       parameter (stringzerotrim_maxlen=getfields_l_max_string) !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
       
-      character(stringzerotrim_maxlen) stringzerotrim ! Define the function
+      character(stringzerotrim_maxlen) stringzerotrim ! Define the function      
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -9059,6 +9059,7 @@ cc2008
       subroutine closeUnits
       use scatter, only : scatter_closefiles
       use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
+      use bdex, only : bdex_closefiles
       implicit none
 +ca parpro
 +ca common
@@ -9278,7 +9279,9 @@ cc2008
             endif
          end do
       end if
-
+      
+      call bdex_closefiles
+      
       call scatter_closefiles
       
       return
@@ -11823,6 +11826,8 @@ cc2008
      &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,
      &     dynk_inputsanitycheck, dynk_allocate
       
+      use bdex, only : bdex_debug, bdex_parseElem, bdex_parseChan,      &
+     &     bdex_parseInputDone
       implicit none
 +ca crcoall
 +if crlibm
@@ -12159,6 +12164,7 @@ cc2008
 !     - dump beam population:
       if(idat.eq.dump) goto 2000
       if(idat.eq."DYNK")  goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
+      if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq.fma)   goto 2300
       if(idat.eq.elens) goto 2400
       if(idat.eq.wire)  goto 2500
@@ -16899,6 +16905,68 @@ cc2008
       write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
       write (lout,*) "*****************************"
       call prror(51)
+
+!-----------------------------------------------------------------------
+!  BDEX = Beam Distribution EXchange
+!  K.Sjobak, BE/ABP-HSS 2016
+!  Based on FLUKA coupling version by
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
+!-----------------------------------------------------------------------
+ 2250 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(51)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2250 ! skip comment line
+
++if cr
+      write(lout,*) "BDEX not supported in CR version."
+      write(lout,*) "Sorry :("
+      call prror(-1)
++ei
+!+if collimat
+!      write(*,*) "BDEX not supported in COLLIMAT version."
+!      write(*,*) "Sorry :("
+!      call prror(-1)
+!+ei
+
+      ! Which type of block? Look at start of string (no leading blanks allowed)
+      if (ch(:4).eq."DEBU") then
+         bdex_debug = .true.
+         write (lout,*)
+     &        "BDEX> BDEX block debugging is ON"
+         goto 2250 !loop BDEX
+
+      else if (ch(:4).eq."ELEM") then
+         call bdex_parseElem(ch)
+         goto 2250 !loop BDEX
+         
+      else if (ch(:4).eq."CHAN") then
+         call bdex_parseChan(ch)
+         goto 2250 !Loop BDEX
+         
+      else if (ch(:4).eq.next) then
+         call bdex_parseInputDone
+         goto 110 ! loop BLOCK
+         
+      else
+         write (lout,*)
+         write (lout,*) "*******************************************"
+         write (lout,*) "ERROR while parsing BDEX block in fort.3"
+         write (lout,*)
+     &        "Expected keywords DEBU, NEXT, ELEM, or CHAN"
+         write (lout,*) "Got ch:"
+         write (lout,*) "'"//ch//"'"
+         write (lout,*) "*******************************************"
+         call prror(-1)
+         
+      endif
+
+      ! Should never arrive here
+      write (lout,*) "*****************************"
+      write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
+      write (lout,*) "*****************************"
+      call prror(-1)
+      
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !  FMA
@@ -26807,6 +26875,7 @@ C Should get me a NaN
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+      use bdex, only : bdex_enable
       implicit none
 +ca exactvars
 +ca commonex
@@ -26853,7 +26922,7 @@ C Should get me a NaN
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
-      save
+      save      
 !-----------------------------------------------------------------------
       nthinerr=0
 +if bnlelens
@@ -26932,6 +27001,12 @@ C Should get me a NaN
 +if time
 +ca timefct
 +ei
+
+          if (bdex_enable) then
+             write(lout,*) "BDEX> BDEX only available for thin6d"
+             call prror(-1)
+          endif
+
           goto(10,  630,  740, 630, 630, 630, 630, 630, 630, 630, !1-10
      &         30,  50,   70,   90, 110, 130, 150, 170, 190, 210, !11-20
      &         420, 440, 460,  480, 500, 520, 540, 560, 580, 600, !21-30
@@ -27340,6 +27415,7 @@ C Should get me a NaN
 !   'press' or 'PRESS' (only for first turn)
 ! - YIL: Added call to beamGasInit just after readcollimator
 +ei
+      use bdex, only : bdex_elementAction, bdex_track, bdex_enable
       implicit none
 +ca exactvars
 +ca commonex
@@ -27519,6 +27595,12 @@ C Should get me a NaN
 !           backspace (93,iostat=ierro)
 !         endif
 +ei
+
+          if ( bdex_enable .and. kz(ix).eq.0 .and.
+     &         bdex_elementAction(ix).ne.0 ) then
+             call bdex_track(i,ix,n)
+          endif
+
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
 !     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
@@ -28182,6 +28264,7 @@ C Should get me a NaN
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+      use bdex, only : bdex_enable
       implicit none
 +ca exactvars
 +ca commonex
@@ -28315,6 +28398,13 @@ C Should get me a NaN
 +if time
 +ca timefct
 +ei
+
+          if (bdex_enable) then
+             !TODO - if you have a test case, please contact developers!
+             write(lout,*) "BDEX> BDEX only available for thin6d"
+             call prror(-1)
+          endif
+
 !--------count44
           goto(10 ,30 ,740,650,650,650,650,650,650,650,!1-10
      &         50 ,70 ,90 ,110,130,150,170,190,210,230,!11-20
@@ -30376,6 +30466,7 @@ C Should get me a NaN
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+      use bdex, only : bdex_enable
       implicit none
 +ca crcoall
 +if crlibm
@@ -30506,6 +30597,12 @@ C Should get me a NaN
 +if time
 +ca timefct
 +ei
+            endif
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
             endif
 
 !----------count=43
@@ -30920,6 +31017,7 @@ C Should get me a NaN
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+      use bdex, only : bdex_enable
       implicit none
 +ca crcoall
 +if crlibm
@@ -30968,7 +31066,7 @@ C Should get me a NaN
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
-      save
+      save      
 +if debug
 !-----------------------------------------------------------------------
 !===================================================================
@@ -31083,6 +31181,13 @@ C Should get me a NaN
 !     endif
 !     if (i.eq.676) stop
 +ei
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
+
 !----------count 44
 !----------count 54! Eric
             goto( 20, 40,740,500,500,500,500,500,500,500,!1-10
@@ -31622,6 +31727,7 @@ C Should get me a NaN
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
+      use bdex, only : bdex_enable
       implicit none
 +ca crcoall
 +if crlibm
@@ -31756,7 +31862,12 @@ C Should get me a NaN
 +ca timefct
 +ei
             endif
-
+            
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
 !----------count 56
             goto( 20, 40,740,500,500,500,500,500,500,500,!1-10
      &            60, 80,100,120,140,160,180,200,220,240,!11-20
@@ -33876,7 +33987,7 @@ C Should get me a NaN
 +if cr
      &     , dynkfilepos
 +ei
-
+      use bdex, only : bdex_comnul
       implicit none
       
 +if crlibm
@@ -34568,6 +34679,10 @@ C Should get me a NaN
 +if cr
       dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
 +ei
+
+!--BDEX-----------------------------------------------------------------
+      call bdex_comnul
+      
 !--ZIPF----------------------------------------------------------------
       zipf_numfiles = 0
       
@@ -37360,7 +37475,7 @@ C Should get me a NaN
 11050 format(t10,'THE INPUT ORDER OF MULTIPOLES IS LARGER THAN THE ',   &
      &'MAXIMUM ALLOWED ORDER MMUL: ',i4)
       end
-
+      
 +dk cadcum
       subroutine cadcum
 !
