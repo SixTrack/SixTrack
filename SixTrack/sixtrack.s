@@ -37605,6 +37605,10 @@ subroutine linopt(dpp)
       use mathlib_bouncer
       use crcoall
 
++if root
+      use root_output
++ei
+
       implicit none
 
       integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,        &
@@ -37753,6 +37757,11 @@ subroutine linopt(dpp)
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
 
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWrite()
+      end if
++ei
 
 !--STRUCTURE ELEMENT LOOP
       if(nt.le.0.or.nt.gt.iu) nt=iu
@@ -37846,7 +37855,12 @@ subroutine linopt(dpp)
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
-          
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWrite()
+      end if
++ei
+
           goto 150
 
 !--IN BLOCK: MAGNETELEMENT
@@ -37899,6 +37913,11 @@ subroutine linopt(dpp)
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           
   150   continue !End of loop over elements inside block
 
@@ -37912,6 +37931,11 @@ subroutine linopt(dpp)
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
 
         cycle STRUCTLOOP
 
@@ -37967,6 +37991,11 @@ subroutine linopt(dpp)
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
         cycle STRUCTLOOP
 
@@ -38021,6 +38050,11 @@ subroutine linopt(dpp)
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
         cycle STRUCTLOOP
 
@@ -38050,6 +38084,11 @@ subroutine linopt(dpp)
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
 
           cycle STRUCTLOOP
         endif
@@ -38067,6 +38106,11 @@ subroutine linopt(dpp)
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           cycle STRUCTLOOP
         endif
 
@@ -38091,6 +38135,11 @@ subroutine linopt(dpp)
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           cycle STRUCTLOOP
         endif
 !+ei
@@ -38254,6 +38303,11 @@ subroutine linopt(dpp)
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
 
           cycle STRUCTLOOP
         endif
@@ -38305,6 +38359,11 @@ subroutine linopt(dpp)
            if(ntco.ne.0) then
               if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
            endif
++if root
+           if(root_flag .and. root_Optics.eq.1) then
+             call OpticsRootWrite()
+           end if
++ei
            cycle STRUCTLOOP
         end select
 
@@ -38411,6 +38470,11 @@ subroutine linopt(dpp)
               if(ntco.ne.0) then
                  if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
               endif
++if root
+              if(root_flag .and. root_Optics.eq.1) then
+                call OpticsRootWrite()
+              end if
++ei
               cycle STRUCTLOOP
            end select
         endif
@@ -38467,6 +38531,11 @@ subroutine linopt(dpp)
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
       end do STRUCTLOOP ! END LOOP OVER ELEMENTS
       
@@ -38575,7 +38644,8 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 
 +if root
       if(root_flag .and. root_Optics.eq.1) then
-      call OpticsRootWrite(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),b1(1),b1(2),al1(1),al1(2),d(1),d(2),dp(1),dp(2))
+        call OpticsRootWriteLin(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),b1(1),b1(2),al1(1),al1(2),d(1),d(2), &
+&       dp(1), dp(2))
       end if
 +ei
 
@@ -38656,7 +38726,10 @@ subroutine cpltwis(typ,t,etl,phi)
 !  COUUANGL
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
++if root
+      use root_output
++ei
+      use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,iwrite
@@ -38736,6 +38809,19 @@ subroutine cpltwis(typ,t,etl,phi)
      &alzii, gaxi,gaxii,gazi,gazii,phxi,phxii,phzi,phzii, phxpi,        &
      &phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
      &t(1,2),t(1,3),t(1,4)
+
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWriteCpl(phi(1), phi(2),bexi,bexii,bezi,bezii,       &
+ &                                  alxi,alxii,alzi,alzii,       &
+ &                                  gaxi,gaxii,gazi,gazii,       &
+ &                                  phxi,phxii,phzi,phzii,       &
+ &                                  phxpi,phxpii,phzpi,phzpii,   &
+ &                                  couuang,                     &
+ &                                  t(6,1),t(6,2),t(6,3),t(6,4), &
+ &                                  t(1,1),t(1,2),t(1,3),t(1,4))
+      end if
++ei
 
       endif
       return

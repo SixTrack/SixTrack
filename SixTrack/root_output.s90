@@ -85,8 +85,8 @@ subroutine SurvivalRootWrite(nturn_in, npart_in) bind(C,name="SurvivalRootWrite"
   integer(kind=C_INT), intent(in), value :: npart_in
 end subroutine SurvivalRootWrite
 
-subroutine  OpticsRootWrite(i_in, name_in, c_len, s_in, x_in, xp_in, y_in, yp_in, beta_x_in, beta_y_in, alpha_x_in, alpha_y_in, &
-& dispersion_x_in, dispersion_y_in, dispersion_xp_in, dispersion_yp_in) bind(C,name="OpticsRootWrite")
+subroutine OpticsRootWriteLin(i_in, name_in, c_len, s_in, x_in, xp_in, y_in, yp_in, beta_x_in, beta_y_in, alpha_x_in, alpha_y_in, &
+& dispersion_x_in, dispersion_y_in, dispersion_xp_in, dispersion_yp_in) bind(C,name="OpticsRootWriteLin")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: i_in
@@ -105,6 +105,62 @@ subroutine  OpticsRootWrite(i_in, name_in, c_len, s_in, x_in, xp_in, y_in, yp_in
   real(kind=C_DOUBLE), intent(in), value :: dispersion_y_in
   real(kind=C_DOUBLE), intent(in), value :: dispersion_xp_in
   real(kind=C_DOUBLE), intent(in), value :: dispersion_yp_in
+end subroutine
+
+subroutine OpticsRootWriteCpl(phi1,phi2,bexi,bexii,bezi,bezii,   &
+ &                                  alxi,alxii,alzi,alzii,       &
+ &                                  gaxi,gaxii,gazi,gazii,       &
+ &                                  phxi,phxii,phzi,phzii,       &
+ &                                  phxpi,phxpii,phzpi,phzpii,   &
+ &                                  couuang,                     &
+ &                                  t61,t62,t63,t64, &
+ &                                  t11,t12,t13,t14) bind(C,name="OpticsRootWriteCpl")
+  use, intrinsic :: iso_c_binding
+
+  implicit none
+
+  real(kind=C_DOUBLE), intent(in), value :: phi1
+  real(kind=C_DOUBLE), intent(in), value :: phi2
+
+  real(kind=C_DOUBLE), intent(in), value :: bexi
+  real(kind=C_DOUBLE), intent(in), value :: bexii
+  real(kind=C_DOUBLE), intent(in), value :: bezi
+  real(kind=C_DOUBLE), intent(in), value :: bezii
+
+  real(kind=C_DOUBLE), intent(in), value :: alxi
+  real(kind=C_DOUBLE), intent(in), value :: alxii
+  real(kind=C_DOUBLE), intent(in), value :: alzi
+  real(kind=C_DOUBLE), intent(in), value :: alzii
+
+  real(kind=C_DOUBLE), intent(in), value :: gaxi
+  real(kind=C_DOUBLE), intent(in), value :: gaxii
+  real(kind=C_DOUBLE), intent(in), value :: gazi
+  real(kind=C_DOUBLE), intent(in), value :: gazii
+
+  real(kind=C_DOUBLE), intent(in), value :: phxi
+  real(kind=C_DOUBLE), intent(in), value :: phxii
+  real(kind=C_DOUBLE), intent(in), value :: phzi
+  real(kind=C_DOUBLE), intent(in), value :: phzii
+
+  real(kind=C_DOUBLE), intent(in), value :: phxpi
+  real(kind=C_DOUBLE), intent(in), value :: phxpii
+  real(kind=C_DOUBLE), intent(in), value :: phzpi
+  real(kind=C_DOUBLE), intent(in), value :: phzpii
+
+  real(kind=C_DOUBLE), intent(in), value :: couuang
+
+  real(kind=C_DOUBLE), intent(in), value :: t61
+  real(kind=C_DOUBLE), intent(in), value :: t62
+  real(kind=C_DOUBLE), intent(in), value :: t63
+  real(kind=C_DOUBLE), intent(in), value :: t64
+  real(kind=C_DOUBLE), intent(in), value :: t11
+  real(kind=C_DOUBLE), intent(in), value :: t12
+  real(kind=C_DOUBLE), intent(in), value :: t13
+  real(kind=C_DOUBLE), intent(in), value :: t14
+end subroutine
+
+subroutine  OpticsRootWrite() bind(C,name="OpticsRootWrite")
+  use, intrinsic :: iso_c_binding
 end subroutine
 
 !extern "C" void CollimatorDatabaseRootWrite(int j, char* db_name_in, int db_name_len, char* db_material_in, int db_material_len, double db_nsig_in, double db_length_in, double db_rotation_in, double db_offset_in)
