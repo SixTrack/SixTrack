@@ -23239,7 +23239,7 @@ program maincr
 +ei ! END +if .not.nagfor
 
 +if .not.stf
-      do 70 i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
+      do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 +if .not.cr
          call postpr(91-i)
 +ei
@@ -23249,14 +23249,14 @@ program maincr
          backspace (93,iostat=ierro)
          call postpr(91-i,nnuml)
 +ei
- 70      continue
+      end do
 +ei ! END +if .not.stf
 +if stf
 !--   ndafi normally set in fort.3 to be "number of files to postprocess"
 !--   Inside the postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
 !--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
-      do 70 i=1,(2*ndafi),2
+      do i=1,(2*ndafi),2
 +if .not.cr
          call postpr(i)
 +ei
@@ -23266,7 +23266,7 @@ program maincr
          backspace (93,iostat=ierro)
          call postpr(i,nnuml)
 +ei
- 70      continue
+      end do
 +ei ! END +if stf
 
       call sumpos
@@ -23349,6 +23349,26 @@ program maincr
         call ConfigurationOutputRootSet_npart(napx)
         call ConfigurationOutputRootSet_nturns(nnuml)
         call ConfigurationRootWrite()
+
+!Dump the accelerator lattice
+! read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+        if(root_flag .and. root_Accelerator.eq.1) then
+!!     loop all over the entries in the accelerator structure
+          do i=1,iu
+            ix=ic(i)
+            if(ix.gt.nblo) then
+              ix=ix-nblo
+              call AcceleratorRootWrite(trim(adjustl(bez(ix))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(ix))) // C_NULL_CHAR), &
+&                                       kz(ix), ed(ix), ek(ix), el(ix))
+            else
+              do j=1,mel(ix)
+               k=mtyp(ix,j)
+                call AcceleratorRootWrite(trim(adjustl(bez(k))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(k))) // C_NULL_CHAR), &
+&                                         kz(k), ed(k), ek(k), el(k))
+              end do
+            end if
+          end do
+        end if
 +ei
 +if debug
 !     call dumpbin('aclorb',1,1)

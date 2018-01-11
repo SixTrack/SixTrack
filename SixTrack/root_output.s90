@@ -192,6 +192,19 @@ subroutine SixTrackRootWrite() bind(C,name="SixTrackRootWrite")
   implicit none
 end subroutine
 
+!extern "C" void AcceleratorRootWrite(char* name_in, int name_len, int ktrack_in, double value_in, double extra_in, double length_in);
+subroutine  AcceleratorRootWrite(name_in, name_len, ktrack_in, value_in, extra_in, length_in) bind(C,name="AcceleratorRootWrite")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  character(kind=C_CHAR,len=1), intent(in) :: name_in
+  integer(kind=C_INT), intent(in), value :: name_len
+  integer(kind=C_INT), intent(in), value :: ktrack_in
+  real(kind=C_DOUBLE), intent(in), value :: value_in
+  real(kind=C_DOUBLE), intent(in), value :: extra_in
+  real(kind=C_DOUBLE), intent(in), value :: length_in
+end subroutine
+
+
 subroutine  ConfigurationOutputRootSet_npart(napx_in) bind(C,name="ConfigurationOutputRootSet_npart")
   use, intrinsic :: iso_c_binding
   implicit none
