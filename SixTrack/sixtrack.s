@@ -8154,8 +8154,8 @@ cc2008
       use floatPrecision
       use scatter, only : scatter_closefiles
       use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
-
       use dump, only : dump_closeUnits
+      use bdex, only : bdex_closefiles
       implicit none
 +ca parpro
 +ca common
@@ -8365,7 +8365,9 @@ cc2008
             endif
          end do
       end if
-
+      
+      call bdex_closefiles
+      
       call scatter_closefiles
 
 !     A.Mereghetti, D.Sinuela Pastor and P.G.Ortega, for the FLUKA Team
@@ -10891,11 +10893,14 @@ end subroutine hamilton1
 !     import mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
-
 +ei
+
+      use bdex, only : bdex_debug, bdex_parseElem, bdex_parseChan,      &
+     &     bdex_parseInputDone
 
       use crcoall
       implicit none
+
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
      &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
@@ -11252,6 +11257,7 @@ end subroutine hamilton1
 
       if(idat.eq."DUMP") goto 2000 !Hard-coded name, as variable name "dump" conflicted with module name
       if(idat.eq."DYNK") goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
+      if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
       if(idat.eq.elens) goto 2400
       if(idat.eq.wire)  goto 2500
@@ -16216,6 +16222,68 @@ end subroutine hamilton1
       write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
       write (lout,*) "*****************************"
       call prror(51)
+
+!-----------------------------------------------------------------------
+!  BDEX = Beam Distribution EXchange
+!  K.Sjobak, BE/ABP-HSS 2016
+!  Based on FLUKA coupling version by
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
+!-----------------------------------------------------------------------
+ 2250 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(51)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2250 ! skip comment line
+
++if cr
+      write(lout,*) "BDEX not supported in CR version."
+      write(lout,*) "Sorry :("
+      call prror(-1)
++ei
+!+if collimat
+!      write(*,*) "BDEX not supported in COLLIMAT version."
+!      write(*,*) "Sorry :("
+!      call prror(-1)
+!+ei
+
+      ! Which type of block? Look at start of string (no leading blanks allowed)
+      if (ch(:4).eq."DEBU") then
+         bdex_debug = .true.
+         write (lout,*)
+     &        "BDEX> BDEX block debugging is ON"
+         goto 2250 !loop BDEX
+
+      else if (ch(:4).eq."ELEM") then
+         call bdex_parseElem(ch)
+         goto 2250 !loop BDEX
+         
+      else if (ch(:4).eq."CHAN") then
+         call bdex_parseChan(ch)
+         goto 2250 !Loop BDEX
+         
+      else if (ch(:4).eq.next) then
+         call bdex_parseInputDone
+         goto 110 ! loop BLOCK
+         
+      else
+         write (lout,*)
+         write (lout,*) "*******************************************"
+         write (lout,*) "ERROR while parsing BDEX block in fort.3"
+         write (lout,*)
+     &        "Expected keywords DEBU, NEXT, ELEM, or CHAN"
+         write (lout,*) "Got ch:"
+         write (lout,*) "'"//ch//"'"
+         write (lout,*) "*******************************************"
+         call prror(-1)
+         
+      endif
+
+      ! Should never arrive here
+      write (lout,*) "*****************************"
+      write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
+      write (lout,*) "*****************************"
+      call prror(-1)
+      
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !  FMA
@@ -25648,6 +25716,7 @@ subroutine thin4d(nthinerr)
 +if datamods
   use bigmats
 +ei
+
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   
@@ -25658,9 +25727,12 @@ subroutine thin4d(nthinerr)
   ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 +ei
+
   use postprocessing, only : writebin
   use crcoall
+  use bdex, only : bdex_enable
   implicit none
+
 +ca exactvars
 +ca commonex
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
@@ -25708,8 +25780,9 @@ subroutine thin4d(nthinerr)
 +ca comApeInfo
 
   save
-
+!-----------------------------------------------------------------------
   nthinerr=0
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -25840,6 +25913,12 @@ subroutine thin4d(nthinerr)
         end if
       end if
 +ei
+
+          if (bdex_enable) then
+             write(lout,*) "BDEX> BDEX only available for thin6d"
+             call prror(-1)
+          endif
+
       select case (ktrack(i))
       case (1)
         stracki=strack(i) 
@@ -26266,9 +26345,12 @@ subroutine thin6d(nthinerr)
 +if datamods
   use bigmats
 +ei
+
+  use bdex, only : bdex_elementAction, bdex_track, bdex_enable
   use scatter, only : scatter_thin, scatter_debug
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
@@ -26287,9 +26369,11 @@ subroutine thin6d(nthinerr)
 +if collimat
   use collimation
 +ei
+
   use postprocessing, only : writebin
   use crcoall
   implicit none
+
 +ca exactvars
 +ca commonex
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr,dotrack
@@ -26525,6 +26609,17 @@ subroutine thin6d(nthinerr)
       ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
       !     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
       dotrack = ktrack(i)
++if debug
+!         if (n.eq.1) then
+!           write (93,*) 'ktrack(i)=',ktrack(i)
+!           endfile (93,iostat=ierro)
+!           backspace (93,iostat=ierro)
+!         endif
++ei
+
+          if( bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) then
+             call bdex_track(i,ix,n)
+          end if
 +ei
 +if collimat
       dotrack = myktrack
@@ -27155,7 +27250,9 @@ end subroutine thin6d
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
       use postprocessing, only : writebin
       use crcoall
+      use bdex, only : bdex_enable
       implicit none
+
 +ca exactvars
 +ca commonex
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
@@ -27349,6 +27446,12 @@ end subroutine thin6d
             end if
           endif
 +ei
+          if (bdex_enable) then
+             !TODO - if you have a test case, please contact developers!
+             write(lout,*) "BDEX> BDEX only available for thin6d"
+             call prror(-1)
+          endif
+
 !--------count44
           goto(10 ,30 ,740,650,650,650,650,650,650,650,                 &!1-10
      &         50 ,70 ,90 ,110,130,150,170,190,210,230,                 &!11-20
@@ -29939,6 +30042,8 @@ subroutine thck4d(nthinerr)
 +if datamods
   use bigmats
 +ei
+
+  use bdex, only : bdex_enable
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
@@ -29952,6 +30057,7 @@ subroutine thck4d(nthinerr)
   use postprocessing, only : writebin
   use crcoall
   implicit none
+
   integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
           puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
@@ -30155,6 +30261,12 @@ subroutine thck4d(nthinerr)
         end if
       end if
 +ei
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
 
 !----------count=43
       select case (ktrack(i))
@@ -30614,6 +30726,7 @@ subroutine thck6d(nthinerr)
 +if datamods
   use bigmats
 +ei
+  use bdex, only : bdex_enable
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
@@ -30624,9 +30737,11 @@ subroutine thck6d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 +ei
+
   use postprocessing, only : writebin
   use crcoall
   implicit none
+
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
           pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
@@ -30857,6 +30972,13 @@ subroutine thck6d(nthinerr)
 !     endif
 !     if (i.eq.676) stop
 +ei
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
+
 !----------count 44
 !----------count 54! Eric
       select case (ktrack(i))
@@ -31416,7 +31538,6 @@ subroutine thck6dua(nthinerr)
       use bigmats
 +ei
       use dynk, only : ldynk, dynk_apply
-      
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
 +if fluka
@@ -31426,9 +31547,12 @@ subroutine thck6dua(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
+      use bdex, only : bdex_enable
       use postprocessing, only : writebin
       use crcoall
+
       implicit none
+
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,e0fo,e0o,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,  &
@@ -31646,6 +31770,11 @@ subroutine thck6dua(nthinerr)
 
 +ei
 
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
 !----------count 56
             goto( 20, 40,740,500,500,500,500,500,500,500,               &!1-10
      &            60, 80,100,120,140,160,180,200,220,240,               &!11-20
@@ -33587,6 +33716,7 @@ subroutine comnul
 +if collimat
       use collimation, only : collimation_comnul
 +ei
+      use bdex, only : bdex_comnul
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -34266,6 +34396,8 @@ subroutine comnul
 +if collimat
       call collimation_comnul
 +ei
+!--BDEX-----------------------------------------------------------------
+      call bdex_comnul
 !-----------------------------------------------------------------------
       return
 end subroutine comnul
