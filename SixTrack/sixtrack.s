@@ -189,7 +189,7 @@
 +ei ! / beamgas
 +if .not.beamgas
 +if bignblz
-      parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
+      parameter(nele=5000,nblo=10000,nper=16,nelb=140,nblz=200000,        &
      &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / bignblz
 +if hugenblz
@@ -10895,10 +10895,15 @@ end subroutine hamilton1
       use mod_fluka
 +ei
 
++if root
+      use root_output
++ei
+
       use bdex, only : bdex_debug, bdex_parseElem, bdex_parseChan,      &
      &     bdex_parseInputDone
 
       use crcoall
+
       implicit none
 
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -11000,20 +11005,23 @@ end subroutine hamilton1
       data idum,kl,kr,orga,norm,corr/' ','(',')','ORGA','NORM','CORR'/
       data coll /'COLL'/
 !     - elens
-      character(len=16) elens
+      character(len=4) elens
       data elens /'ELEN'/
 !     - wire
-      character(len=16) wire
+      character(len=4) wire
       data wire /'WIRE'/
 !     - scatter
-      character(len=16) scat
+      character(len=4) scat
       data scat /'SCAT'/
 !     - coupling:
-      character(len=16) fluk
+      character(len=4) fluk
       data fluk /'FLUK'/
 !     - read particle distribution for FLUKA:
-      character(len=16) dist
+      character(len=4) dist
       data dist /'DIST'/
+!     - root output:
+      character(len=4) root
+      data root /'ROOT'/
 
 +if crlibm
       real(kind=fPrec) round_near
@@ -11266,7 +11274,8 @@ end subroutine hamilton1
       !HION = 2700
       if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
-      
+      if(idat.eq.root) goto 3000
+
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
       write(lout,*) "idat = '"//idat//"'"
@@ -16802,7 +16811,31 @@ end subroutine hamilton1
       endif
       
       goto 2901                 !Read the next line of the SCATTER block
+
+!----------------------------------------------------------------------------
+!     root output
+!----------------------------------------------------------------------------
++if .not.root
+ 3000 write(lout,*) "ERROR: ROOT output requested in fort.3"
+      write(lout,*) "but this exe does not have ROOT support compiled in"
+      call prror(-1)
++ei
++if root
+ 3000 read(3,10020, end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 3000 ! skip comment line
       
+      if (ch(:4).eq.next) then
+         call root_parseInputDone
+         goto 110                  !Read next block or ENDE
+      endif
+      
+      call daten_root(ch)
+
+      goto 3000                    !Read the next line of the ROOT block
++ei
 !----------------------------------------------------------------------------
 !     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
 !-----------------------------------------------------------------------------
@@ -17200,7 +17233,7 @@ end subroutine hamilton1
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
-10070 format(1x,i3,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
+10070 format(1x,i5,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
      &1x,d13.6,1x,d14.7,1x,d13.6)
 10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
      &'MULTIPOLE                    ',a16/t10,'RADIUS IN MM            '&
@@ -22515,8 +22548,9 @@ end subroutine runda
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+
 +dk maincr
-      program maincr
+program maincr
       use floatPrecision
       use mathlib_bouncer
       use physical_constants
@@ -22543,11 +22577,17 @@ end subroutine runda
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-      
+
       use postprocessing, only : postpr, writebin_header, writebin
       
++if root
+      use root_output
++ei
+
       use crcoall
+
       implicit none
+
 +ca errout
 !-----------------------------------------------------------------------
 !
@@ -23170,7 +23210,9 @@ end subroutine runda
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
 +ei
-
++if root
+      call SixTrackRootFortranInit
++ei
       call daten
 +if datamods
       if (ithick.eq.1) call allocate_thickarrays(npart,nele,nblo)
@@ -23263,7 +23305,7 @@ end subroutine runda
 +ei ! END +if .not.nagfor
 
 +if .not.stf
-      do 70 i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
+      do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 +if .not.cr
          call postpr(91-i)
 +ei
@@ -23273,14 +23315,14 @@ end subroutine runda
          backspace (93,iostat=ierro)
          call postpr(91-i,nnuml)
 +ei
- 70      continue
+      end do
 +ei ! END +if .not.stf
 +if stf
 !--   ndafi normally set in fort.3 to be "number of files to postprocess"
 !--   Inside the postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
 !--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
-      do 70 i=1,(2*ndafi),2
+      do i=1,(2*ndafi),2
 +if .not.cr
          call postpr(i)
 +ei
@@ -23290,7 +23332,7 @@ end subroutine runda
          backspace (93,iostat=ierro)
          call postpr(i,nnuml)
 +ei
- 70      continue
+      end do
 +ei ! END +if stf
 
       call sumpos
@@ -23368,6 +23410,32 @@ end subroutine runda
 
         call clorb(ded)
 
++if root
+        call SixTrackRootInit()
+        call ConfigurationOutputRootSet_npart(napx)
+        call ConfigurationOutputRootSet_nturns(nnuml)
+        call ConfigurationRootWrite()
+
+!Dump the accelerator lattice
+! read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+        if(root_flag .and. root_Accelerator.eq.1) then
+!!     loop all over the entries in the accelerator structure
+          do i=1,iu
+            ix=ic(i)
+            if(ix.gt.nblo) then
+              ix=ix-nblo
+              call AcceleratorRootWrite(trim(adjustl(bez(ix))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(ix))) // C_NULL_CHAR), &
+&                                       kz(ix), ed(ix), ek(ix), el(ix))
+            else
+              do j=1,mel(ix)
+               k=mtyp(ix,j)
+                call AcceleratorRootWrite(trim(adjustl(bez(k))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(k))) // C_NULL_CHAR), &
+&                                         kz(k), ed(k), ek(k), el(k))
+              end do
+            end if
+          end do
+        end if
++ei
 +if debug
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
@@ -24667,6 +24735,10 @@ end subroutine runda
          call scatter_initialize
       endif
 
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 
 !                                !
 !     ****** TRACKING ******     !
@@ -25065,6 +25137,11 @@ end subroutine runda
       if (zipf_numfiles.gt.0) then
          call zipf_dozip
       endif
+
++if root
+      call RunTimeRootWrite(pretime, trtime, posttime)
+      call SixTrackRootExit()
++ei
 
 !     We're done in maincr, no error :)
 +if cr
@@ -28029,8 +28106,16 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +if fluka
       use mod_fluka
 +ei
+
++if root
+      use iso_c_binding
+      use root_output
++ei
+
       use crcoall
+
       implicit none
+
 !     parameters
       integer turn  ! turn number
       integer i     ! element entry in the lattice
@@ -28071,6 +28156,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
       real(kind=fPrec) ap_oc_1, ap_oc_2, ap_oc_3
       real(kind=fPrec) xchk(2,npart)
+
++if root
+      character(len=17) this_name
++ei
 
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -28431,11 +28520,24 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ei
      &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)-e0)*c1e6,             &
      &         -c1m3 * (sigmv(j)/clight) * (e0/e0f)
++if root
+             if(root_flag .and. root_ApertureCheck.eq.1) then
+               this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
+               call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos(j), ipart(j)+100*samplenumber,&
+     &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3, yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
+     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f))
+             end if
++ei
            endif
          end do
 
 !flush loss particle file
       flush(999)
+
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 
 !     Don't kill lost particle if apflag is activated
       if ( apflag ) then
@@ -37644,15 +37746,21 @@ end subroutine dist_readdis
       end subroutine
 !
 +dk linopt
-      subroutine linopt(dpp)
+subroutine linopt(dpp)
 !-----------------------------------------------------------------------
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
+
++if root
+      use root_output
++ei
+
       implicit none
+
       integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,        &
      &nmz,nr,dj
       real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
@@ -37799,6 +37907,11 @@ end subroutine dist_readdis
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
 
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWrite()
+      end if
++ei
 
 !--STRUCTURE ELEMENT LOOP
       if(nt.le.0.or.nt.gt.iu) nt=iu
@@ -37892,7 +38005,12 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
-          
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWrite()
+      end if
++ei
+
           goto 150
 
 !--IN BLOCK: MAGNETELEMENT
@@ -37945,6 +38063,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           
   150   continue !End of loop over elements inside block
 
@@ -37958,6 +38081,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
 
         cycle STRUCTLOOP
 
@@ -38013,6 +38141,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
         cycle STRUCTLOOP
 
@@ -38067,6 +38200,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
         cycle STRUCTLOOP
 
@@ -38096,6 +38234,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
 
           cycle STRUCTLOOP
         endif
@@ -38113,6 +38256,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           cycle STRUCTLOOP
         endif
 
@@ -38137,6 +38285,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           cycle STRUCTLOOP
         endif
 !+ei
@@ -38300,6 +38453,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
 
           cycle STRUCTLOOP
         endif
@@ -38351,6 +38509,11 @@ end subroutine dist_readdis
            if(ntco.ne.0) then
               if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
            endif
++if root
+           if(root_flag .and. root_Optics.eq.1) then
+             call OpticsRootWrite()
+           end if
++ei
            cycle STRUCTLOOP
         end select
 
@@ -38457,6 +38620,11 @@ end subroutine dist_readdis
               if(ntco.ne.0) then
                  if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
               endif
++if root
+              if(root_flag .and. root_Optics.eq.1) then
+                call OpticsRootWrite()
+              end if
++ei
               cycle STRUCTLOOP
            end select
         endif
@@ -38513,6 +38681,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
       end do STRUCTLOOP ! END LOOP OVER ELEMENTS
       
@@ -38554,21 +38727,27 @@ end subroutine dist_readdis
      &t6,'      X  ',2(f20.12,6x)/t10,'  Y  ',2(f20.12,6x)/)
 10060 format(//131('-')//)
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
-      end
+end subroutine linopt
+
 +if collimat.or.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
+subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ei
 +if .not.collimat.and..not.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
+subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
 !-----------------------------------------------------------------------
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
++if root
+      use iso_c_binding, only: C_NULL_CHAR
+      use root_output
++ei
       implicit none
+
       integer i,iwrite,ixwl,l,ll,nr
       real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character(len=16) typ
@@ -38594,12 +38773,12 @@ end subroutine dist_readdis
       if(nlin.eq.0) then
         iwrite=1
       else
-        do 10 i=1,nlin
+        do i=1,nlin
           if(typ.eq.bezl(i)) iwrite=1
-   10   continue
+        end do
       endif
       if(iwrite.eq.1) then
-        do 20 l=1,2
+        do l=1,2
           ll=2*l
           b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
           b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
@@ -38611,7 +38790,14 @@ end subroutine dist_readdis
           dp(l)=t(6,ll)*c1m3
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
-   20   continue
+        end do
+
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWriteLin(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),b1(1),b1(2),al1(1),al1(2),d(1),d(2), &
+&       dp(1), dp(2))
+      end if
++ei
 
 +if collimat.or.bnlelens
 +if .not.collimat.and.bnlelens
@@ -38675,9 +38861,9 @@ end subroutine dist_readdis
 10000 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',   &
      &f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10030 format('|',6x,'|',a8,'|',12x,'|',102('-'))
-      end
+end subroutine writelin
 
-      subroutine cpltwis(typ,t,etl,phi)
+subroutine cpltwis(typ,t,etl,phi)
 !-----------------------------------------------------------------------
 !  CALCULATES COUPLED TWISS PARAMETERS AROUND THE RING AND ALSO THE
 !  ANGLE OF THE MAJOR AXIS OF A ELLIPSE IN THE X-Y PROJECTION WITH
@@ -38690,7 +38876,10 @@ end subroutine dist_readdis
 !  COUUANGL
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
++if root
+      use root_output
++ei
+      use numerical_constants
       use mathlib_bouncer
       implicit none
       integer i,iwrite
@@ -38771,18 +38960,31 @@ end subroutine dist_readdis
      &phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
      &t(1,2),t(1,3),t(1,4)
 
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWriteCpl(phi(1), phi(2),bexi,bexii,bezi,bezii,       &
+ &                                  alxi,alxii,alzi,alzii,       &
+ &                                  gaxi,gaxii,gazi,gazii,       &
+ &                                  phxi,phxii,phzi,phzii,       &
+ &                                  phxpi,phxpii,phzpi,phzpii,   &
+ &                                  couuang,                     &
+ &                                  t(6,1),t(6,2),t(6,3),t(6,4), &
+ &                                  t(1,1),t(1,2),t(1,3),t(1,4))
+      end if
++ei
+
       endif
       return
-      end
+end subroutine cpltwis
 
 +dk loesd
-      subroutine loesd (rmat, vec,dimakt,dimtot,kod)
+subroutine loesd (rmat, vec,dimakt,dimtot,kod)
 !-----------------------------------------------------------------------
 !  SOLUTION OF A SYSTEM OF LINEAR EQUATIONS
 !  VEC1 = VEC2 * RMAT , WITH VEC2 AS RESULT
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -38840,10 +39042,10 @@ end subroutine dist_readdis
 
       kod = 0
       return
-      end
+end subroutine loesd
 
 +dk matrix
-      subroutine matrix(dpp,am)
+subroutine matrix(dpp,am)
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
@@ -38888,7 +39090,7 @@ end subroutine dist_readdis
       end do
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine matrix
 
 +dk orbit
       subroutine corrorb

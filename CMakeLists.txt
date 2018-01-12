@@ -305,6 +305,10 @@ if(FLUKA)
 	LIST(APPEND FORS_FREEFORM fluka)
 endif(FLUKA)
 
+if(ROOT)
+	LIST(APPEND FORS_FREEFORM root_output)
+endif(ROOT)
+
 foreach(loop IN LISTS FORS_FIXFORM)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
 endforeach()
@@ -425,12 +429,16 @@ endif(G4COLLIMAT)
 if(ROOT)
 	#/usr/share/root/cmake/FindROOT.cmake
 	SET(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
+    if(STATIC)
+	find_package(ROOT REQUIRED static)
+    else()
 	find_package(ROOT REQUIRED)
-	include_directories(${ROOT_INCLUDE_DIR})
+    endif(STATIC)
 
 	if(NOT ROOT_FOUND)
 		MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
 	endif(NOT ROOT_FOUND)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/root_output)
 endif(ROOT)
 
 ###################################################################################################
@@ -630,8 +638,6 @@ endif()
 
 #FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
-
-set(COVERAGE_COMMAND "gcov-7")
 
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
@@ -1264,6 +1270,10 @@ foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
 		ast_masks_flag(128bitm ${loop})
 	endif(NOT 128BITM)
 
+	if(NOT ROOT)
+		ast_masks_flag(root ${loop})
+	endif(NOT ROOT)
+
 	#Clean up the astuce decks for only what is enabled
 	if(NOT COLLIMAT)
 		ast_masks_deck(nwrtcoll ${loop})
@@ -1389,10 +1399,9 @@ if(NAFF)
 	target_link_libraries(SixTrack naff)
 endif(NAFF)
 
-
 #if we are using root, link to all the root libraries
 if(ROOT)
-	target_link_libraries(SixTrack ${ROOT_LIBRARIES})
+	target_link_libraries(SixTrack root_output)
 endif(ROOT)
 
 if(HDF5)
