@@ -8,6 +8,10 @@ module bdex
   !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
   !     
 
+  use floatPrecision
+  use crcoall
+  use numerical_constants
+
   implicit none
 
 !For the string length stuff
@@ -74,9 +78,7 @@ contains
     
     character(len=*) ch
 
-+ca crcoall
 +ca common
-+ca parnum
 
     integer ii,jj
 
@@ -146,7 +148,6 @@ contains
     
     character(len=*) ch
 
-+ca crcoall
 +ca stringzerotrim
 
 +ca common
@@ -195,7 +196,6 @@ contains
   subroutine bdex_parseInputDone
     implicit none
     
-+ca crcoall
 +ca stringzerotrim
 
 +ca common
@@ -287,7 +287,6 @@ contains
 
 +ca stringzerotrim
 
-+ca crcoall
     !Temp variables
     ! For checking files before opening:
     logical lopen
@@ -388,7 +387,6 @@ contains
   
   subroutine bdex_initializeTCPIP( getfields_fields,getfields_lfields,getfields_nfields )
     implicit none
-+ca crcoall
 +ca parpro
 
 +ca comgetfields
@@ -414,7 +412,6 @@ contains
     integer i, ix,n
     intent(in) i, ix, n
       
-+ca crcoall
 
 +ca parpro
 +ca common
@@ -425,7 +422,7 @@ contains
 
 +if crlibm
     !Needed for string conversions for BDEX
-    character*8192 ch
+    character(len=8192) ch
     integer dtostr
 +ei
     !Temp variables

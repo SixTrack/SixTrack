@@ -16249,8 +16249,7 @@ end subroutine hamilton1
       ! Which type of block? Look at start of string (no leading blanks allowed)
       if (ch(:4).eq."DEBU") then
          bdex_debug = .true.
-         write (lout,*)
-     &        "BDEX> BDEX block debugging is ON"
+         write (lout,*) "BDEX> BDEX block debugging is ON"
          goto 2250 !loop BDEX
 
       else if (ch(:4).eq."ELEM") then
@@ -16269,8 +16268,7 @@ end subroutine hamilton1
          write (lout,*)
          write (lout,*) "*******************************************"
          write (lout,*) "ERROR while parsing BDEX block in fort.3"
-         write (lout,*)
-     &        "Expected keywords DEBU, NEXT, ELEM, or CHAN"
+         write (lout,*) "Expected keywords DEBU, NEXT, ELEM, or CHAN"
          write (lout,*) "Got ch:"
          write (lout,*) "'"//ch//"'"
          write (lout,*) "*******************************************"
