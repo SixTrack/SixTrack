@@ -1855,6 +1855,69 @@ converter from MAD8 to SixTrack this is guaranteed to be the case. Note
 also that the crossterms between the transverse plains are not
 considered for the time being.
 
+\subsection{Beam Distribution EXchange (BDEX)}
+\label{sec:BDEX}
+
+\paragraph{Description}
+
+The Beam Distribution EXchange allows an external program to read and modify the beam distribution in SixTrack.
+This can be used for tracking part of the machine in an external program, for example for including physics processes that are normally not available in SixTrack.
+Another possible use is for multi-bunch tracking, i.e.\ with an external program ``swapping'' the bunch at a some point in the ring.
+This would be useful for studying (for example) beam loading, where the external program would read the position of a bunch in the cavity, use that to compute an update of the cavity voltage (which can be sent to SixTrack using DYNK FUN PIPE), swap the bunch with another one and track that to the cavity (still at ``physics turn'' 1, but ``SixTrack turn'' 2) etc.
+
+Please note that BDEX is currently not supported in the checkpoint/restart version or in the collimation version.
+Including BDEX in one of these versions results in a run-time error.
+
+\paragraph{Keyword} BDEX
+
+\paragraph{Number of data lines} variable
+
+\paragraph{Format}
+There are three types of statements possible in a BDEX block, listed below.
+Additionally, lines starting with ``/'' are treated as comments and are ignored.
+
+\subparagraph{ELEM} \emph{ELEM chanName elemName action}\\
+This associates a given element with an already existing channel and an action.
+The element must appear in the SINGLE ELEMENT block, and be of type 0 (marker).
+The action indicates what should be done with the particle distribution when it reaches this element.
+Currently, the only allowed action is ``1'', which means ``particle exchange'', i.e.\ output the beam distribution and read back another one at the same point.
+
+\subparagraph{CHAN} \emph{CHAN chanName chanType \ldots}\\
+This creates a new channel through which the BDEX can communicate.
+Currently, the only implemented chanType is PIPE, however TCPIP is also foreseen.
+
+For the PIPE type, the statement including arguments is \emph{CHAN PIPE inPipeName outPipeName format fileUnit}.
+This uses a pair of UNIX FIFOs, through which SixTrack can comunicate with an external program.
+When the channel is used, it sends a message on the outpipe, then waits for a reply with the new distribution over the inPipe.
+The format is an integer used to indicate the output/input format, and is currently unused.
+The fileUnit is the Fortran unit number that should be used to open the inPipe.
+The outPipe is opened on the next unit, so both units fileUnit and fileUnit+1 must be free.
+
+\subparagraph{DEBU}
+This statement switches on extra ``debugging'' output from BDEX.
+This can be useful if debugging the code or if debugging the input.
+
+\paragraph{Communication protocols}
+The communication protocols used by the different channel types are listed below:
+\subparagraph{PIPE communication protocol}
+When a pair of pipes are first initialized, a header ``\texttt{BDEX-PIPE !******************!}'' is written to the output pipe.
+Then, when the tracking reaches an element which is marked as active for this channel, it writes another header like ``\texttt{BDEX TURN= 1 BEZ=ip1 I= 1 NAPX= 64}'', where \texttt{TURN} is the number of the current SixTrack turn, \texttt{BEZ} the name of the SINGLE ELEMENT, \texttt{I} the index of the STRUCTURE ELEMENT, and \texttt{NAPX} the number of particles to be written out.
+After this follows \texttt{NAPX} lines with the particle information (one per particle), each line of the format \texttt{xv(1,j) yv(1,j) xv(2,j) yv(2,j) sigmv(j) ejv(j) ejfv(j) rvv(j) dpsv(j) oidpsv(j) dpsv1(j),nlostp(j)} where all but the last floating point numbers, the last being an integer.
+Finally, it writes ``\texttt{BDEX WAITING...}'' to the output pipe, and waits for data on the input pipe.
+
+The first line expected on the input pipe should be an integer containing the number of particles to write back.
+If this integer is -1, the current particle distribution is kept.
+Otherwise, a number of lines of the same format as with the output is expected.
+After reading in the expected number of particles, the string ``\texttt{BDEX TRACKING...}'' is written to the output pipe and tracking is resumed.
+
+\subparagraph{TCPIP communication protocol}
+TCPIP is not yet implemented, as it would require an external library.
+The FLUKA version implements this, we should make sure that we are compatible with their requirements and ideally their protocol.
+
+\paragraph{Example}~\\
+
+\todo[inline]{Example BDEX block, example manual usage, example minimal Python program (location or listing).}
+
 \subsection{Electron lens} \label{sec:elen}
 
 \paragraph{Description} The electron lens module serves for reading in the input parameters for different types of electron lenses. Each e-lens also needs to be added as single element in the list of single elements. Currently only the ideal hollow electron lens is implemented.
