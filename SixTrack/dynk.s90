@@ -6,15 +6,13 @@ module dynk
     use mathlib_bouncer
     use numerical_constants, only : one, two, c1e3
 
+    use parpro !For nele
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
     ! Therefore, we always need to import the DYNK module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-
-!For nele
-+ca parpro
 
 !For the string length stuff
 +ca comgetfields
@@ -2273,9 +2271,9 @@ end subroutine dynk_dumpdata
 subroutine dynk_pretrack
 
       use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca comgetfields
 +ca stringzerotrim
 +ca commondl
@@ -2428,10 +2426,10 @@ end subroutine dynk_pretrack
 subroutine dynk_apply(turn)
 
       use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
 
-+ca common
-+ca commonmn
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
@@ -2678,6 +2676,7 @@ end subroutine dynk_apply
 recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
       use crcoall
+    use mod_common
     implicit none
 
 +ca comgetfields
@@ -2713,7 +2712,6 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 +ei
 
 ! Usefull constants (pi and two)
-+ca common
 
     if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
         write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
@@ -2989,10 +2987,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
 
-+ca common
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca comgetfields
@@ -3205,10 +3203,10 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
       use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
 
-+ca common
-+ca commonmn
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
@@ -3459,9 +3457,9 @@ end function dynk_lininterp
 logical function dynk_isused(i)
 
       use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca comgetfields
 +ca stringzerotrim
 

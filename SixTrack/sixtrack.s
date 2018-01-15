@@ -146,80 +146,6 @@
 !GRD-042008
 +ei
 
-+cd parpro
-      integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
-     &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
-     &nrco,ntr,nzfz
-+if .not.bignpart.and..not.hugenpart
-      parameter(npart = 64,nmac = 1)
-+ei
-+if bignpart.and..not.hugenpart
-!See also:
-! - subroutine wzsubv
-      parameter(npart = 2048,nmac = 1)
-+ei
-+if hugenpart.and..not.bignpart
-!See also:
-! - subroutine wzsubv
-      parameter(npart = 65536,nmac = 1)
-+ei
-
-!Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
-! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
-! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
-! 6000/20000 -> 30% multipoles
-+if .not.collimat
-+if bignblz
-      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=200000,       &
-     &nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
-+ei
-+if hugenblz
-      parameter(nele=6000,nblo=2500,nper=16,nelb=280,nblz=400000,       &
-     &nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
-+ei
-+if .not.bignblz.and..not.hugenblz
-      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=20000,        &
-     &nzfz = 300000,mmul = 20) !up to 6'000 multipoles
-+ei
-+ei ! / not collimat
-+if collimat
-+if beamgas
-      parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
-     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
-+ei ! / beamgas
-+if .not.beamgas
-+if bignblz
-      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=200000,       &
-     &nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
-+ei ! / bignblz
-+if hugenblz
-      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=400000,       &
-     &nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
-+ei ! / hugenblz
-+if .not.bignblz.and..not.hugenblz
-      parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=15000,        &
-     &nzfz = 144000,mmul = 11) !up to 4500 multipoles
-+ei ! / not bignblz
-+ei ! / not beamgas
-+ei ! / collimat
-
-+if collimat
-      parameter(nran = 280000,ncom = 100,mran = 500,mpa = 6,nrco = 5,   &
-+ei
-+if .not.collimat
-      parameter(nran = 2000000,ncom = 100,mran = 500,mpa = 6,nrco = 5,  &
-+ei
-     &nema = 15)
-      parameter(mcor = 10,mcop = mcor+6, mbea = 99)
-      parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
-      parameter(nmon1 = 600,ncor1 = 600)
-      parameter(ntr = 20)
-+if .not.bignblz.and..not.hugenblz
-      parameter(nbb = 350)
-+ei
-+if bignblz.or.hugenblz
-      parameter(nbb = 500)
-+ei
 +cd parbeam
       integer idim,kstep,nx,ny
       real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
@@ -242,109 +168,6 @@
      &r2b(npart),rb(npart),rkb(npart),                                  &
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
      &crzb(npart),cbxb(npart),cbzb(npart)
-+cd common
-      integer iav,ibb6d,ibbc,ibeco,ibidu,ibtyp,ic,icext,icextal,iclo,   &
-     &iclo6,iclo6r,icode,icoe,icomb,icomb0,iconv,icow,icr,idam,idfor,   &
-     &idis,idp,ierro,iffw,ifh,iicav,il,ilin,imad,imbb,                  &
-     &imc,imtr,iorg,iout,                                               &
-     &ipos,ipr,iprint,ipt,iq,iqmod,iqmod6,iratioe,ird,ire,ires,         &
-     &irew,irm,irmod2,ise,ise1,ise2,ise3,isea,iskew,iskip,istw,         &
-     &isub,itco,itcro,itf,ithick,ition,itionc,itqv,its6d,iu,iver,ivox,  &
-     &ivoz,iwg,ixcav,izu0,kanf,kp,kpa,kwtype,kz,lhc,m21,m22,m23,mblo,   &
-     &mbloz,mcut,mel,mesa,mmac,mout2,mp,mper,mstr,msym,mtyp,mzu,napx,   &
-     &napxo,nbeam,nch,ncororb,ncorrep,ncorru,ncy,ndafi,nde,nhcorr,      &
-     &nhmoni,niu,nlin,nmu,npp,nprint,nqc,nre,nrr,nskew,                 &
-     &nstart,nstop,nt,nta,ntco,nte,ntwin,nu,numl,numlr,nur,nvcorr,      &
-     &nvmoni,nwr, nturn1, nturn2, nturn3, nturn4,numlcp,numlmax,nnuml
-      
-      real(kind=fPrec) a,ak0,aka,alfx,alfz,amp0,aper,bbcu,              &
-     &bclorb,beamoff,benkc,benki,betac,betam,betx,betz,bk0,bka,bl1,bl2, &
-     &clo6,clobeam,clop6,cma1,cma2,cotr,crad,de0,dech,ded,dfft,         &
-     &di0,dip0,dki,dkq,dma,dmap,dphix,dphiz,dppoff,dpscor,dqq,dres,dsi, &
-     &dsm0,dtr,e0,ed,ej,ejf,ek,el,elbe,emitx,emity,emitz,extalign,      &
-     &exterr,eui,euii,gammar,hsy,hsyc,pac,pam,parbe,parbe14,partnum,    &
-     &phas,phas0,phasc,pi,pi2,pisqrt,pma,ptnfac,qs,qw0,qwsk,qx0,qxt,qz0,&
-     &qzt,r00,rad,rat,ratio,ratioe,rrtr,rtc,rts,rvf,                    &
-     &sigcor,sige,sigma0,sigman,sigman2,sigmanq,sigmoff,sigz,sm,ta,tam1,&
-     &tam2,tiltc,tilts,tlen,totl,track6d,xpl,xrms,zfz,zpl,zrms,         &
-     &acdipph, crabph, bbbx, bbby, bbbs,                                &
-     &crabph2, crabph3, crabph4
-
-+if time
-      real(kind=fPrec) tcnst35,exterr35,zfz35
-      integer icext35
-+ei
-      real hmal
-      character(len=16) bez,bezb,bezr,erbez,bezl
-      character(len=80) toptit,sixtit,commen !DANGER: If the len changes, CRCHECK will break.
-      common/erro/ierro,erbez
-      common/kons/pi,pi2,pisqrt,rad
-      common/str /il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
-      common/ell /ed(nele),el(nele),ek(nele),sm(nele),kz(nele),kp(nele)
-      common/bbb /bbbx(nele), bbby(nele), bbbs(nele)
-      common/pla /xpl(nele),xrms(nele),zpl(nele),zrms(nele)
-      common/str2 /mel(nblo),mtyp(nblo,nelb),mstr(nblo)
-      common/mat/a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
-      common/syos2/rvf(mpa)
-      common/tra1/rat,idfor,napx,napxo,numl,niu(2),numlr,nde(2),nwr(4), &
-     &ird,imc,irew,ntwin,iclo6,iclo6r,iver,ibidu,numlcp,numlmax,nnuml
-      common/syn/qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3),          &
-     &crad,hsyc(nele),phasc(nele),dppoff,sigmoff(nblz),tlen,            &
-     &iicav,itionc(nele),ition,idp,ncy,ixcav
-      common/corcom/dpscor,sigcor,icode,idam,its6d
-      common/multi/bk0(nele,mmul),ak0(nele,mmul),                       &
-     &bka(nele,mmul),aka(nele,mmul)
-      common/mult1/benki,benkc(nele),r00(nele),irm(nele),nmu(nele)
-      common/rand0/zfz(nzfz),iorg,mzu(nblz),bezr(3,nele),izu0,mmac,mcut
-      common/rand1/exterr(nblz,40),extalign(nblz,3),tiltc(nblz),        &
-     &tilts(nblz),mout2,icext(nblz),icextal(nblz)
-+if time
-      common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
-     &tcnst35(nblz)
-+ei
-      common/beo /aper(2),di0(2),dip0(2),ta(6,6)
-      common/clo/dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0,itco,itcro,itqv,&
-     &iout
-      common/qmodi/qw0(3),amp0,iq(3),iqmod,kpa(nele),iqmod6
-      common/linop/bez(nele),elbe(nblo),bezb(nblo),ilin,nt,iprint,      &
-     &ntco,eui,euii,nlin,bezl(nele)
-      common/cororb/betam(nmon1,2),pam(nmon1,2),betac(ncor1,2),         &
-     &pac(ncor1,2),bclorb(nmon1,2),nhmoni,nhcorr,nvmoni,nvcorr,         &
-     &ncororb(nele)
-      common/clos/sigma0(2),iclo,ncorru,ncorrep
-      common/combin/icomb0(20),icomb(ncom,20),ratio(ncom,20),           &
-     &ratioe(nele),iratioe(nele),icoe
-      common/seacom/ise,mesa,mp,m21,m22,m23,ise1,ise2,ise3,isea(nele)
-      common/subres/qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl
-      common/secom/rtc(9,18,10,5),rts(9,18,10,5),ire(12),ipr(5),irmod2
-      common/secom1/dtr(10),nre,nur,nch,nqc,npp,nrr(5),nu(5)
-      common/postr/dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,             &
-     &nstart,nstop,iskip,iconv,imad
-      common/posti1/ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit(5)
-      common/posti2/kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi
-      common/skew/qwsk(2),betx(2),betz(2),alfx(2),alfz(2),iskew,nskew(6)
-      common/pawc/hmal(nplo)
-      common/tit/sixtit,commen,ithick
-      common/co6d/clo6(3),clop6(3)
-      common/dkic/dki(nele,3)
-      common/beam/sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb),          &
-     &clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
-     &ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,  &
-     &nbeam,ibbc,ibeco,ibtyp,lhc
-      common/trom/ cotr(ntr,6),rrtr(ntr,6,6),imtr(nele)
-      common/bb6d/ bbcu(nbb,12),ibb6d,imbb(nblz)
-      common/acdipco/ acdipph(nele), nturn1(nele), nturn2(nele),        &
-     &nturn3(nele), nturn4(nele)
-      common/crabco/ crabph(nele),crabph2(nele),                        &
-     &crabph3(nele),crabph4(nele)
-! wire parameters for closed orbit calculation (FOX part)
-! for FOX length of variable names must be smaller 8
-      integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
-      real(kind=fPrec) wire_clo            ! closed orbit at wire
-      real(kind=fPrec) wireclo0         ! initial coordinates for closed orbit
-      integer wire_num_aux              ! auxiliary variable to count number of wires
-      integer wire_num                  ! wire number for each structure element (default = 0 if no wire)
-      common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
 +cd comApeInfo
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 28-11-2016
@@ -405,46 +228,17 @@
       real(kind=fPrec) yold,sold,apold,bktpre
 +ei
 
-+cd commons
-      integer idz,itra
-+if vvector
-+if .not.datamods
-      real(kind=fPrec) al,as,chi0,chid,dp1,dps,exz,sigm
-      common/syos/as(6,2,npart,nele),al(6,2,npart,nele),sigm(mpa),dps(mpa),idz(2)
-+ei
-+if datamods
-      real(kind=fPrec) chi0,chid,dp1,dps,exz,sigm
-      common/syos/sigm(mpa),dps(mpa),idz(2)
-+ei
-      common/anf/chi0,chid,exz(2,6),dp1,itra
-+ei
-+if .not.vvector
-      real(kind=fPrec) a2,al,as,at,chi0,chid,dp1,dps,exz,sigm
-      common/syos/as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa),idz(2)
-      common/anf/chi0,chid,exz(2,6),dp1,itra
-+ei
-+cd commont1
++cd commont1 !Note: Same variables as commont2 but different names
       integer ichrom,is
       real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,x,y
       common/tra/x(mpa,2),y(mpa,2),amp(2),bet0(2),alf0(2),clo(2),clop(2)
       common/chrom/cro(2),is(2),ichrom
-+cd commont2
++cd commont2 !Note: Same variables as commont1 but different names
       integer ichrom,issss
       real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,xxtr,yytr
       common/tra/xxtr(mpa,2),yytr(mpa,2),amp(2),                        &
      &bet0(2),alf0(2),clo(2),clop(2)
       common/chrom/cro(2),issss(2),ichrom
-+cd common1
-      integer iav,iconv,icow,icr,idis,iffw,ifh,imad,ipos,ires,iskip,    &
-     &istw,itf,ivox,ivoz,iwg,kwtype,ndafi,nprint,nstart,nstop
-      real(kind=fPrec) cma1,cma2,dfft,dphix,dphiz,dres,qx0,qz0
-      real hmal
-      character(len=80) toptit,sixtit,commen
-      common/postr/dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,             &
-     &nstart,nstop,iskip,iconv,imad
-      common/posti1/ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit(5)
-      common/posti2/kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi
-      common/pawc/hmal(nplo)
 +cd common2
       integer nnumxv
       common/postr2/nnumxv(npart)
@@ -514,73 +308,6 @@
       real(kind=fPrec) hda,hdp
       common/ad2/hda(0:4,5,0:8000),hdp(0:1,5,0:8000),jeltot,nordp,nordm,&
      &norda
-+cd commonds
-      integer icode,idam,its6d
-      real(kind=fPrec) dpscor,sigcor
-      common/corcom/dpscor,sigcor,icode,idam,its6d
-+cd commonmn
-+if time
-      real(kind=fPrec) aaiv35,bbiv35
-      common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
-+ei
-      integer iv,ixv,nlostp,nms,numxv
-+if .not.datamods
-      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
-     &bet0v,bl1v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam, &
-     &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
-     &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,ekv,eps,epsa,fake,fi,fok,fok1,fokqv, &
-     &g,gl,hc,hi,hi1,hm,hp,hs,hv,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,  &
-+ei
-+if datamods
-      real(kind=fPrec) aaiv,aek,afok,alf0v,ampv,aperv,as3,as4,as6,bbiv, &
-     &bet0v,ci,clo0,clo6v,cloau,clop0,clop6v,clopv,clov,co,cr,dam,      &
-     &di0au,di0xs,di0zs,dip0xs,dip0zs,dp0v,dpd,dpsq,dpsv,dpsv6,dpsvl,   &
-     &ejf0v,ejfv,ejv,ejvl,ekk,ekkv,eps,epsa,fake,fi,fok,fok1,fokqv,     &
-     &g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,qw,qwc,qwcs,rho,rhoc,rhoi,rvv,     &
-+ei
-+if rvet
-     &rvet,                                                             &
-+ei
-     &si,sigmv,sigmv6,sigmvl,siq,sm1,sm12,sm2,sm23,sm3,smiv,tas,        &
-     &tasau,tau,wf,wfa,wfhi,wx,x1,x2,xau,xlv,xsiv,xsv,xv,xvl,yv,yvl,zlv,&
-     &zsiv,zsv
-      logical pstop
-      common/main1/                                                     &
-+if .not.datamods
-     &ekv(npart,nele),fokqv(npart),aaiv(mmul,nmac,nblz),                &
-+ei
-+if datamods
-     &fokqv(npart),aaiv(mmul,nmac,nblz),                                &
-+ei
-     &bbiv(mmul,nmac,nblz),smiv(nmac,nblz),zsiv(nmac,nblz),             &
-     &xsiv(nmac,nblz),xsv(npart),zsv(npart),qw(2),qwc(3),clo0(2),       &
-     &clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
-     &yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
-     &dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
-     &xlv(npart),zlv(npart),pstop(npart),rvv(npart),                    &
-+if rvet
-     &rvet(npart),                                                      &
-+ei
-     &ejf0v(npart),numxv(npart),nms(npart),nlostp(npart)
-      common/main2/ dpd(npart),dpsq(npart),fok(npart),rho(npart),       &
-     &fok1(npart),si(npart),co(npart),g(npart),gl(npart),sm1(npart),    &
-     &sm2(npart),sm3(npart),sm12(npart),as3(npart),as4(npart),          &
-     &as6(npart),sm23(npart),rhoc(npart),siq(npart),aek(npart),         &
-     &afok(npart),hp(npart),hm(npart),hc(npart),hs(npart),wf(npart),    &
-     &wfa(npart),wfhi(npart),rhoi(npart),hi(npart),fi(npart),hi1(npart),&
-     &xvl(2,npart),yvl(2,npart),ejvl(npart),dpsvl(npart),oidpsv(npart), &
-     &sigmvl(npart),iv(npart),aperv(npart,2),ixv(npart),clov(2,npart),  &
-     &clopv(2,npart),alf0v(npart,2),bet0v(npart,2),ampv(npart)
-+if .not.datamods
-      common/main3/ clo6v(3,npart),clop6v(3,npart),hv(6,2,npart,nblo),  &
-     &bl1v(6,2,npart,nblo),tas(npart,6,6),qwcs(npart,3),di0xs(npart),   &
-+ei
-+if datamods
-      common/main3/ clo6v(3,npart),clop6v(3,npart),                     &
-     &tas(npart,6,6),qwcs(npart,3),di0xs(npart),                        &
-+ei
-     &di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
-     &di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
 +cd commonm1
       integer numx
       real(kind=fPrec) e0f
@@ -1268,6 +995,16 @@
                                                 !  uses the same definition as the DISP block
       common /wireparamco/ wire_current,wire_lint,wire_lphys,           &
      &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
+
+      ! wire parameters for closed orbit calculation (FOX part)
+      ! for FOX length of variable names must be smaller 8
+      integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
+      real(kind=fPrec) wire_clo ! closed orbit at wire
+      real(kind=fPrec) wireclo0 ! initial coordinates for closed orbit
+      integer wire_num_aux      ! auxiliary variable to count number of wires
+      integer wire_num          ! wire number for each structure element (default = 0 if no wire)
+      common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
+
 +cd wiretracktmp
 ! temporary variables
       real(kind=fPrec) RTWO !RTWO=x^2+y^2
@@ -8154,11 +7891,12 @@ cc2008
       use floatPrecision
       use scatter, only : scatter_closefiles
       use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
-
       use dump, only : dump_closeUnits
+      use parpro
+      use mod_common
+      use bdex, only : bdex_closefiles
       implicit none
-+ca parpro
-+ca common
+
 +ca comgetfields
 +ca parbeam_exp
       integer i
@@ -8365,7 +8103,9 @@ cc2008
             endif
          end do
       end if
-
+      
+      call bdex_closefiles
+      
       call scatter_closefiles
 
 !     A.Mereghetti, D.Sinuela Pastor and P.G.Ortega, for the FLUKA Team
@@ -10484,11 +10224,11 @@ end subroutine hamilton1
       parameter(npart = 64)
 +ei
 +if bignpart.and..not.hugenpart
-! See also +cd parpro
+! See also module parpro
       parameter(npart = 2048)
 +ei
 +if hugenpart.and..not.bignpart
-! See also +cd parpro
+! See also module parpro
       parameter(npart = 65536)
 +ei
       integer idim,kstep,nx,ny
@@ -10711,13 +10451,13 @@ end subroutine hamilton1
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
+      use parpro
       implicit none
       integer k,mu,nu
       real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,     &
      &q,qsq,r,simag,sreal,t,tdd13i,tdd13r,tdd24i,tdd24r,tdddi,tdddr,ti, &
      &tr,u,usum,usum3,v,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,x,xh,&
      &xhrel,y,yh,yhrel
-+ca parpro
 +ca parbeam
       parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
       parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
@@ -10807,12 +10547,12 @@ end subroutine hamilton1
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer numx
       real(kind=fPrec) e0f
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +if bnlelens
@@ -10838,11 +10578,11 @@ end subroutine hamilton1
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       real(kind=fPrec) e0f
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +if bnlelens
@@ -10891,11 +10631,22 @@ end subroutine hamilton1
 !     import mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
-
 +ei
 
++if root
+      use root_output
++ei
+
+      use bdex, only : bdex_debug, bdex_parseElem, bdex_parseChan,      &
+     &     bdex_parseInputDone
+
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
+
       implicit none
+
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
      &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
      &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
@@ -10947,10 +10698,7 @@ end subroutine hamilton1
       data lineno16 /0/
       data lineno30 /0/
       data lineno35 /0/
-+ca parpro
 +ca commonex
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 !
@@ -10995,20 +10743,23 @@ end subroutine hamilton1
       data idum,kl,kr,orga,norm,corr/' ','(',')','ORGA','NORM','CORR'/
       data coll /'COLL'/
 !     - elens
-      character(len=16) elens
+      character(len=4) elens
       data elens /'ELEN'/
 !     - wire
-      character(len=16) wire
+      character(len=4) wire
       data wire /'WIRE'/
 !     - scatter
-      character(len=16) scat
+      character(len=4) scat
       data scat /'SCAT'/
 !     - coupling:
-      character(len=16) fluk
+      character(len=4) fluk
       data fluk /'FLUK'/
 !     - read particle distribution for FLUKA:
-      character(len=16) dist
+      character(len=4) dist
       data dist /'DIST'/
+!     - root output:
+      character(len=4) root
+      data root /'ROOT'/
 
 +if crlibm
       real(kind=fPrec) round_near
@@ -11252,6 +11003,7 @@ end subroutine hamilton1
 
       if(idat.eq."DUMP") goto 2000 !Hard-coded name, as variable name "dump" conflicted with module name
       if(idat.eq."DYNK") goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
+      if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
       if(idat.eq.elens) goto 2400
       if(idat.eq.wire)  goto 2500
@@ -11260,7 +11012,8 @@ end subroutine hamilton1
       !HION = 2700
       if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
-      
+      if(idat.eq.root) goto 3000
+
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
       write(lout,*) "idat = '"//idat//"'"
@@ -16216,6 +15969,66 @@ end subroutine hamilton1
       write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
       write (lout,*) "*****************************"
       call prror(51)
+
+!-----------------------------------------------------------------------
+!  BDEX = Beam Distribution EXchange
+!  K.Sjobak, BE/ABP-HSS 2016
+!  Based on FLUKA coupling version by
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
+!-----------------------------------------------------------------------
+ 2250 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(51)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2250 ! skip comment line
+
++if cr
+      write(lout,*) "BDEX not supported in CR version."
+      write(lout,*) "Sorry :("
+      call prror(-1)
++ei
+!+if collimat
+!      write(*,*) "BDEX not supported in COLLIMAT version."
+!      write(*,*) "Sorry :("
+!      call prror(-1)
+!+ei
+
+      ! Which type of block? Look at start of string (no leading blanks allowed)
+      if (ch(:4).eq."DEBU") then
+         bdex_debug = .true.
+         write (lout,*) "BDEX> BDEX block debugging is ON"
+         goto 2250 !loop BDEX
+
+      else if (ch(:4).eq."ELEM") then
+         call bdex_parseElem(ch)
+         goto 2250 !loop BDEX
+         
+      else if (ch(:4).eq."CHAN") then
+         call bdex_parseChan(ch)
+         goto 2250 !Loop BDEX
+         
+      else if (ch(:4).eq.next) then
+         call bdex_parseInputDone
+         goto 110 ! loop BLOCK
+         
+      else
+         write (lout,*)
+         write (lout,*) "*******************************************"
+         write (lout,*) "ERROR while parsing BDEX block in fort.3"
+         write (lout,*) "Expected keywords DEBU, NEXT, ELEM, or CHAN"
+         write (lout,*) "Got ch:"
+         write (lout,*) "'"//ch//"'"
+         write (lout,*) "*******************************************"
+         call prror(-1)
+         
+      endif
+
+      ! Should never arrive here
+      write (lout,*) "*****************************"
+      write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
+      write (lout,*) "*****************************"
+      call prror(-1)
+      
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !  FMA
@@ -16736,7 +16549,31 @@ end subroutine hamilton1
       endif
       
       goto 2901                 !Read the next line of the SCATTER block
+
+!----------------------------------------------------------------------------
+!     root output
+!----------------------------------------------------------------------------
++if .not.root
+ 3000 write(lout,*) "ERROR: ROOT output requested in fort.3"
+      write(lout,*) "but this exe does not have ROOT support compiled in"
+      call prror(-1)
++ei
++if root
+ 3000 read(3,10020, end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 3000 ! skip comment line
       
+      if (ch(:4).eq.next) then
+         call root_parseInputDone
+         goto 110                  !Read next block or ENDE
+      endif
+      
+      call daten_root(ch)
+
+      goto 3000                    !Read the next line of the ROOT block
++ei
 !----------------------------------------------------------------------------
 !     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
 !-----------------------------------------------------------------------------
@@ -17134,7 +16971,7 @@ end subroutine hamilton1
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
-10070 format(1x,i3,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
+10070 format(1x,i5,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
      &1x,d13.6,1x,d14.7,1x,d13.6)
 10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
      &'MULTIPOLE                    ',a16/t10,'RADIUS IN MM            '&
@@ -17170,6 +17007,8 @@ end subroutine hamilton1
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
+      use mod_common
       implicit none
       integer ii,ikz
       real(kind=fPrec) rdum1,rdum2,rel1
@@ -17183,8 +17022,6 @@ end subroutine hamilton1
       data lineno16 /0/
       data lineno30 /0/
       data lineno35 /0/ 
-+ca parpro
-+ca common
 +if bnlelens
 +ca rhicelens
 +ei
@@ -17347,6 +17184,9 @@ end subroutine hamilton1
       use dynk, only : dynk_elemdata
       use numerical_constants
       use crcoall
+      use parpro !Needed for common
+      use mod_common
+      use mod_commonmn
       implicit none
       
       integer, intent(in) :: ix
@@ -17354,9 +17194,6 @@ end subroutine hamilton1
 
       integer im, izu, k, m, nmz, r0, r0a !needed to use multini
 
-+ca parpro !needed for common
-+ca common
-+ca commonmn
 +ca commontr
 +ca commonxz
 +ca comgetfields
@@ -17961,10 +17798,10 @@ end subroutine hamilton1
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer i,j,k
       real(kind=fPrec) wi,wr,x,y
-+ca parpro
 +ca parbeam
       save
 !-----------------------------------------------------------------------
@@ -18238,9 +18075,9 @@ subroutine envars(j,dpp,rv)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-+if datamods
-  use bigmats, only : as, al ! Only take the variables from common, not from commonmn
-+ei
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
@@ -18248,9 +18085,6 @@ subroutine envars(j,dpp,rv)
 +if .not.vvector
   integer jm,k,m,na,ne
 +ei
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +if bnlelens
@@ -18596,12 +18430,12 @@ subroutine envada
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commond1
@@ -18984,11 +18818,11 @@ end subroutine envada
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
+      use mod_common
       implicit none
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
-+ca parpro
-+ca common
 +ca commondl
 +ca commond1
 +if bnlelens
@@ -19085,6 +18919,9 @@ subroutine runda
       use numerical_constants
       use physical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
@@ -19096,9 +18933,6 @@ subroutine runda
      &zfeld1,zfeld2,zrb,zs, crabfreq, crabpht, crabpht2, crabpht3,      &
      &crabpht4
       character(len=300) ch
-+ca parpro
-+ca common
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonxz
@@ -20142,6 +19976,9 @@ end subroutine runda
       use mathlib_bouncer
       use dump, only : dumpclo, dumptas, dumptasinv, ldump
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
@@ -20156,10 +19993,7 @@ end subroutine runda
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=16) typ
-+ca parpro
 +ca commonex
-+ca common
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonl
@@ -21522,13 +21356,13 @@ end subroutine runda
       use physical_constants
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
-+ca parpro
-+ca common
-+ca commons
 +ca commont2
 +ca commond1
 +ca commondl
@@ -21716,12 +21550,12 @@ end subroutine runda
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer idaa
       real(kind=fPrec) betr0,dare,sigmdac
-+ca parpro
-+ca common
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonxz
@@ -21815,11 +21649,11 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer ix,idaa
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commond1
@@ -21869,15 +21703,15 @@ end subroutine runda
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
-+ca parpro
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
-+ca common
-+ca commons
 +ca commont2
 +ca commondl
 +ca commonl
@@ -21995,11 +21829,11 @@ end subroutine runda
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
       implicit none
       integer ibb,ibbc,ne,nsli,idaa
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
-+ca parpro
 +ca commondl
       dimension param(nele,18),bcu(nbb,12),star(3,mbea)
 +if bnlelens
@@ -22063,10 +21897,10 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
-+ca parpro
 +ca commondl
 +if bnlelens
 +ca rhicelens
@@ -22124,10 +21958,10 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
-+ca parpro
 +ca commondl
       dimension star(3,mbea),bcu(nbb,12)
 +if bnlelens
@@ -22270,10 +22104,10 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
-+ca parpro
 +ca commondl
 +if bnlelens
 +ca rhicelens
@@ -22340,10 +22174,10 @@ end subroutine runda
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer idaa
       real(kind=fPrec) dare,hundred,sqrpi2
-+ca parpro
       parameter(sqrpi2 = 3.544907701811032_fPrec,hundred = c1e2)
 +ca commondl
 +if bnlelens
@@ -22449,15 +22283,14 @@ end subroutine runda
 !     DADAL AUTOMATIC INCLUSION
       return
       end
+
 +dk maincr
-      program maincr
+program maincr
       use floatPrecision
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
-+if datamods
-      use bigmats
-+ei
+
       use scatter, only : scatter_active, scatter_initialize
 
       use dynk, only : dynk_izuIndex
@@ -22477,11 +22310,22 @@ end subroutine runda
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
-      
+
       use postprocessing, only : postpr, writebin_header, writebin
       
++if root
+      use root_output
++ei
+
       use crcoall
+      use parpro
+      use parpro_scale
+      use mod_common
+      use mod_commonmn
+      use mod_commons
+
       implicit none
+
 +ca errout
 !-----------------------------------------------------------------------
 !
@@ -22535,17 +22379,13 @@ end subroutine runda
 !  TEMPORARY SCRATCH FILE for C/R           : UNIT 94
 +ei
 !-----------------------------------------------------------------------
-+ca parpro
-+ca common
 +ca commonex
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 ! Eric needs nwri (clean up new variables and common blocks!)
 +ca commontr
@@ -22559,6 +22399,8 @@ end subroutine runda
 +ca comgetfields
 +ca dbdcum
 +ca stringzerotrim
+
++ca wireparam !For dump3
 
 +ca comApeInfo
 +ca dbreaddis
@@ -23064,16 +22906,6 @@ end subroutine runda
         bet0v(i,1)=zero
         bet0v(i,2)=zero
         ampv(i)=zero
-+if .not.datamods !This code moved to bigmats.allocate_thickarrays
-        do i1=1,nblo
-          do i2=1,2
-            do i3=1,6
-              hv(i3,i2,i,i1)=zero
-              bl1v(i3,i2,i,i1)=zero
-            end do
-          end do
-        end do
-+ei
         do i1=1,6
           do i2=1,6
             tas(i,i1,i2)=zero
@@ -23104,11 +22936,14 @@ end subroutine runda
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
 +ei
-
-      call daten
-+if datamods
-      if (ithick.eq.1) call allocate_thickarrays(npart,nele,nblo)
++if root
+      call SixTrackRootFortranInit
 +ei
+      call daten
++if vvector
+      if (ithick.eq.1) call allocate_thickarrays
++ei
+      
 +if debug
 !     call dumpbin('adaten',999,9999)
 !     call abend('after  daten                                      ')
@@ -23197,7 +23032,7 @@ end subroutine runda
 +ei ! END +if .not.nagfor
 
 +if .not.stf
-      do 70 i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
+      do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 +if .not.cr
          call postpr(91-i)
 +ei
@@ -23207,14 +23042,14 @@ end subroutine runda
          backspace (93,iostat=ierro)
          call postpr(91-i,nnuml)
 +ei
- 70      continue
+      end do
 +ei ! END +if .not.stf
 +if stf
 !--   ndafi normally set in fort.3 to be "number of files to postprocess"
 !--   Inside the postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
 !--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
-      do 70 i=1,(2*ndafi),2
+      do i=1,(2*ndafi),2
 +if .not.cr
          call postpr(i)
 +ei
@@ -23224,7 +23059,7 @@ end subroutine runda
          backspace (93,iostat=ierro)
          call postpr(i,nnuml)
 +ei
- 70      continue
+      end do
 +ei ! END +if stf
 
       call sumpos
@@ -23302,6 +23137,32 @@ end subroutine runda
 
         call clorb(ded)
 
++if root
+        call SixTrackRootInit()
+        call ConfigurationOutputRootSet_npart(napx)
+        call ConfigurationOutputRootSet_nturns(nnuml)
+        call ConfigurationRootWrite()
+
+!Dump the accelerator lattice
+! read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+        if(root_flag .and. root_Accelerator.eq.1) then
+!!     loop all over the entries in the accelerator structure
+          do i=1,iu
+            ix=ic(i)
+            if(ix.gt.nblo) then
+              ix=ix-nblo
+              call AcceleratorRootWrite(trim(adjustl(bez(ix))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(ix))) // C_NULL_CHAR), &
+&                                       kz(ix), ed(ix), ek(ix), el(ix))
+            else
+              do j=1,mel(ix)
+               k=mtyp(ix,j)
+                call AcceleratorRootWrite(trim(adjustl(bez(k))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(k))) // C_NULL_CHAR), &
+&                                         kz(k), ed(k), ek(k), el(k))
+              end do
+            end if
+          end do
+        end if
++ei
 +if debug
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
@@ -24540,6 +24401,10 @@ end subroutine runda
          call scatter_initialize
       endif
 
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 
 !                                !
 !     ****** TRACKING ******     !
@@ -24939,6 +24804,11 @@ end subroutine runda
          call zipf_dozip
       endif
 
++if root
+      call RunTimeRootWrite(pretime, trtime, posttime)
+      call SixTrackRootExit()
++ei
+
 !     We're done in maincr, no error :)
 +if cr
       call abend('                                                  ')
@@ -25115,19 +24985,19 @@ subroutine trauthin(nthinerr)
 +ei
 
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
       integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
       real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
      &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
       logical lopen
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -25584,9 +25454,6 @@ subroutine thin4d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
-+if datamods
-  use bigmats
-+ei
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   
@@ -25597,15 +25464,21 @@ subroutine thin4d(nthinerr)
   ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 +ei
+
   use postprocessing, only : writebin
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use bdex, only : bdex_enable
   implicit none
+
 +ca exactvars
 +ca commonex
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,&
           r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-+ca parpro
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1, crabamp, crabfreq
@@ -25616,14 +25489,11 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) expt
 +ei
 
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -25647,8 +25517,9 @@ subroutine thin4d(nthinerr)
 +ca comApeInfo
 
   save
-
+!-----------------------------------------------------------------------
   nthinerr=0
+
 +if bnlelens
 !GRDRHIC
 !GRD-042008
@@ -25779,6 +25650,12 @@ subroutine thin4d(nthinerr)
         end if
       end if
 +ei
+
+          if (bdex_enable) then
+             write(lout,*) "BDEX> BDEX only available for thin6d"
+             call prror(-1)
+          endif
+
       select case (ktrack(i))
       case (1)
         stracki=strack(i) 
@@ -26202,12 +26079,11 @@ subroutine thin6d(nthinerr)
   use numerical_constants
   use mathlib_bouncer
 
-+if datamods
-  use bigmats
-+ei
+  use bdex, only : bdex_elementAction, bdex_track, bdex_enable
   use scatter, only : scatter_thin, scatter_debug
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+
 +if beamgas
 ! <b>Additions/modifications:</b>
 ! - YIL: Added call to beamGas subroutine if element name starts with 
@@ -26226,15 +26102,20 @@ subroutine thin6d(nthinerr)
 +if collimat
   use collimation
 +ei
+
   use postprocessing, only : writebin
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
+
 +ca exactvars
 +ca commonex
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr,dotrack
   real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,&
           dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-+ca parpro
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4
@@ -26243,14 +26124,11 @@ subroutine thin6d(nthinerr)
 +if time
   real(kind=fPrec) expt
 +ei
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -26464,6 +26342,17 @@ subroutine thin6d(nthinerr)
       ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
       !     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
       dotrack = ktrack(i)
++if debug
+!         if (n.eq.1) then
+!           write (93,*) 'ktrack(i)=',ktrack(i)
+!           endfile (93,iostat=ierro)
+!           backspace (93,iostat=ierro)
+!         endif
++ei
+
+          if( bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) then
+             call bdex_track(i,ix,n)
+          end if
 +ei
 +if collimat
       dotrack = myktrack
@@ -27086,22 +26975,24 @@ end subroutine thin6d
       use mod_fluka
 +ei
 
-+if datamods
-      use bigmats
-+ei
       
       use dynk, only : ldynk, dynk_apply
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
       use postprocessing, only : writebin
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
+      use bdex, only : bdex_enable
       implicit none
+
 +ca exactvars
 +ca commonex
       integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,   &
      &crkveuk,crxb,crzb,dpsv3,pux,e0fo,e0o,r0,r2b,rb,rho2b,rkb,stracki, &
      &tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-+ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       real(kind=fPrec) xv1j,xv2j
       real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,                 &
@@ -27111,14 +27002,11 @@ end subroutine thin6d
 +if time
       real(kind=fPrec) expt
 +ei
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -27288,6 +27176,12 @@ end subroutine thin6d
             end if
           endif
 +ei
+          if (bdex_enable) then
+             !TODO - if you have a test case, please contact developers!
+             write(lout,*) "BDEX> BDEX only available for thin6d"
+             call prror(-1)
+          endif
+
 !--------count44
           goto(10 ,30 ,740,650,650,650,650,650,650,650,                 &!1-10
      &         50 ,70 ,90 ,110,130,150,170,190,210,230,                 &!11-20
@@ -27774,15 +27668,15 @@ subroutine callcrp()
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if cr
@@ -27867,8 +27761,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +if fluka
       use mod_fluka
 +ei
+
++if root
+      use iso_c_binding
+      use root_output
++ei
+
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
+
       implicit none
+
 !     parameters
       integer turn  ! turn number
       integer i     ! element entry in the lattice
@@ -27879,15 +27785,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 !      logical isnan
       logical myisnan
       integer ib2,ib3,ilostch,j,jj,jj1,jjx,lnapx
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -27909,6 +27811,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
       real(kind=fPrec) ap_oc_1, ap_oc_2, ap_oc_3
       real(kind=fPrec) xchk(2,npart)
+
++if root
+      character(len=17) this_name
++ei
 
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -28269,11 +28175,24 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ei
      &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)-e0)*c1e6,             &
      &         -c1m3 * (sigmv(j)/clight) * (e0/e0f)
++if root
+             if(root_flag .and. root_ApertureCheck.eq.1) then
+               this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
+               call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos(j), ipart(j)+100*samplenumber,&
+     &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3, yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
+     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f))
+             end if
++ei
            endif
          end do
 
 !flush loss particle file
       flush(999)
+
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 
 !     Don't kill lost particle if apflag is activated
       if ( apflag ) then
@@ -28544,11 +28463,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use floatPrecision
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca comApeInfo
 
@@ -28654,11 +28573,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 
 +ei
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -28928,11 +28847,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
       use floatPrecision
       use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -28980,8 +28899,8 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use parpro
       implicit none
-+ca parpro
 +ca comApeInfo
 !     interface variables
       integer tkape
@@ -29009,11 +28928,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
       use floatPrecision
   use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -29052,11 +28971,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use floatPrecision
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca comApeInfo
 +ca dbdcum
@@ -29154,11 +29073,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use floatPrecision
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca comApeInfo
 +ca dbdcum
@@ -29220,11 +29139,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
       use floatPrecision
       use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca dbdcum
 +ca comApeInfo
@@ -29279,17 +29198,17 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -29351,17 +29270,17 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
       integer ia,ia2,id,ie,ig,n
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -29464,18 +29383,18 @@ subroutine trauthck(nthinerr)
 +ei
 
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -29875,9 +29794,8 @@ subroutine thck4d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
-+if datamods
-  use bigmats
-+ei
+
+  use bdex, only : bdex_enable
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
@@ -29890,11 +29808,15 @@ subroutine thck4d(nthinerr)
 +ei
   use postprocessing, only : writebin
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
+
   integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
           puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-+ca parpro
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq
@@ -29903,14 +29825,11 @@ subroutine thck4d(nthinerr)
 +if time
   real(kind=fPrec) expt
 +ei
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -30094,6 +30013,12 @@ subroutine thck4d(nthinerr)
         end if
       end if
 +ei
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
 
 !----------count=43
       select case (ktrack(i))
@@ -30550,9 +30475,7 @@ subroutine thck6d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
-+if datamods
-  use bigmats
-+ei
+  use bdex, only : bdex_enable
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
@@ -30563,13 +30486,18 @@ subroutine thck6d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 +ei
+
   use postprocessing, only : writebin
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
+
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
           pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-+ca parpro
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq
@@ -30578,14 +30506,11 @@ subroutine thck6d(nthinerr)
 +if time
   real(kind=fPrec) expt
 +ei
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -30796,6 +30721,13 @@ subroutine thck6d(nthinerr)
 !     endif
 !     if (i.eq.676) stop
 +ei
+
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
+
 !----------count 44
 !----------count 54! Eric
       select case (ktrack(i))
@@ -31351,11 +31283,7 @@ subroutine thck6dua(nthinerr)
       use physical_constants
       use mathlib_bouncer
       use numerical_constants
-+if datamods
-      use bigmats
-+ei
       use dynk, only : ldynk, dynk_apply
-      
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
       
 +if fluka
@@ -31365,14 +31293,19 @@ subroutine thck6dua(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
+      use bdex, only : bdex_enable
       use postprocessing, only : writebin
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
+
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
       real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,&
      &crxb,crzb,dpsv3,e0fo,e0o,pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,  &
      &rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-+ca parpro
       integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
       real(kind=fPrec) xv1j,xv2j
       real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,                 &
@@ -31382,14 +31315,11 @@ subroutine thck6dua(nthinerr)
 +if time
       real(kind=fPrec) expt
 +ei
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -31585,6 +31515,11 @@ subroutine thck6dua(nthinerr)
 
 +ei
 
+            if (bdex_enable) then
+               !TODO - if you have a test case, please contact developers!
+               write(lout,*) "BDEX> BDEX only available for thin6d"
+               call prror(-1)
+            endif
 !----------count 56
             goto( 20, 40,740,500,500,500,500,500,500,500,               &!1-10
      &            60, 80,100,120,140,160,180,200,220,240,               &!11-20
@@ -32111,21 +32046,18 @@ subroutine synuthck
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
-+if datamods
-      use bigmats
-+ei
       use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +if bnlelens
@@ -32535,27 +32467,18 @@ subroutine synuthck
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
-+if datamods
-      use bigmats, only : as, al !Only take the variables from common, not from commonmn
-+ei
 
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer ih1,ih2,j,kz1,l,l1,l2
+
+      !Local version of variables normally found in mod_commonmn
       real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,ekv,fi,    &
-     &fok,fok1,fokm,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
-     &rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
-+ca parpro
-+ca common
-+ca commons
-+ca commont1
-+ca commondl
-+ca commonxz
-+if bnlelens
-+ca rhicelens
-+ei
-!-----------------------------------------------------------------------
-      save
-!-----------------------------------------------------------------------
+           fok,fok1,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
+           rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
+      
       dimension ekv(npart,nele),fokqv(npart),dpsv(npart)
       dimension rvv(npart),oidpsv(npart)
       dimension dpd(npart),dpsq(npart),fok(npart),rho(npart)
@@ -32566,6 +32489,19 @@ subroutine synuthck
       dimension hp(npart),hm(npart),hc(npart),hs(npart),wf(npart)
       dimension wfa(npart),wfhi(npart),rhoi(npart)
       dimension hi(npart),fi(npart),hi1(npart)
+      
+      real(kind=fPrec) fokm
+      
++ca commont1
++ca commondl
++ca commonxz
++if bnlelens
++ca rhicelens
++ei
+!-----------------------------------------------------------------------
+      save
+!-----------------------------------------------------------------------
+      
       do 10 j=1,napx
         dpd(j)=one+dpsv(j)
         dpsq(j)=sqrt(dpd(j))
@@ -32939,6 +32875,9 @@ subroutine synuthck
       use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : output_unit
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,iation,itiono,idate,im,imonth,itime,ix,izu,j,jj,k,kpz,  &
      &kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
@@ -32975,9 +32914,6 @@ subroutine synuthck
 !  NORMAL PRINTOUT                          : UNIT  6
 !  TRACKING DATA                            : UNIT  8
 !-----------------------------------------------------------------------
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -33515,9 +33451,6 @@ subroutine comnul
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
-+if datamods
-      use bigmats
-+ei
       use scatter, only : scatter_comnul
       use dynk, only : dynk_comnul
       use fma,  only : fma_comnul
@@ -33526,19 +33459,20 @@ subroutine comnul
 +if collimat
       use collimation, only : collimation_comnul
 +ei
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
+      use bdex, only : bdex_comnul
       implicit none
       
       integer i,i1,i2,i3,i4,j
-+ca parpro
 +ca commonex
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commd1da
 +ca commonc
 +ca commonxz
-+ca commonmn
 
 +if bnlelens
 +ca rhicelens
@@ -33934,10 +33868,6 @@ subroutine comnul
 +if vvector
             do i1=1,npart
 +ei
-+if .not.datamods
-                al(i4,i3,i1,i)=zero
-                as(i4,i3,i1,i)=zero
-+ei
 +if .not.vvector
                 at(i4,i3,i1,i)=zero
                 a2(i4,i3,i1,i)=zero
@@ -34205,6 +34135,8 @@ subroutine comnul
 +if collimat
       call collimation_comnul
 +ei
+!--BDEX-----------------------------------------------------------------
+      call bdex_comnul
 !-----------------------------------------------------------------------
       return
 end subroutine comnul
@@ -34216,12 +34148,12 @@ subroutine SELNUL( iel )
 !-----------------------------------------------------------------------
       use floatPrecision
       use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
 
-+ca   parpro
-+ca   common
-+ca   commons
-+ca   comApeInfo
++ca comApeInfo
 
 !     local variables
       integer iel, i1, i3, i4
@@ -34279,10 +34211,6 @@ subroutine SELNUL( iel )
 +if vvector
           do i1=1,npart
 +ei
-+if .not.datamods
-            al(i4,i3,i1,iel)=zero
-            as(i4,i3,i1,iel)=zero
-+ei
 +if .not.vvector
             at(i4,i3,i1,iel)=zero
             a2(i4,i3,i1,iel)=zero
@@ -34317,12 +34245,12 @@ subroutine STRNUL( iel )
 !-----------------------------------------------------------------------
       use floatPrecision
       use numerical_constants
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
       
-+ca parpro
-+ca common
 +ca commonxz
-+ca commonmn
 
 !     local variables
       integer iel, i1, i2, i3, j
@@ -34378,11 +34306,11 @@ integer function INEELS( iEl )
       use floatPrecision
       use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca dbdcum
 
@@ -34449,11 +34377,11 @@ integer function INEESE()
   use numerical_constants
   use crcoall
 
+  use parpro
+  use mod_common
+  use mod_commonmn
   implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 
   il=il+1
@@ -34484,11 +34412,11 @@ integer function check_SE_unique( iEl, ixEl )
   use floatPrecision
   use numerical_constants
 
+  use parpro
+  use mod_common
+  use mod_commonmn
   implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 +ca dbdcum
 
@@ -34598,11 +34526,11 @@ subroutine daliesix
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
       implicit none
       integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
       real tlim,time0,time1,time
       real(kind=fPrec) angle,coe,rad,x2pi
-+ca parpro
 +ca commondl
 +ca commonas
       dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
@@ -34752,13 +34680,13 @@ subroutine distance(x,clo,di0,t,dam)
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common, only : dpscor,sigcor,icode,idam,its6d
       implicit none
       integer i,ii,iq,j,jq
       real(kind=fPrec) clo,cx,dam,di0,phi,pi,sx,t,x,x1
-+ca parpro
-+ca commonds
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
       save
 !-----------------------------------------------------------------------
@@ -34823,13 +34751,13 @@ end subroutine distance
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,ii,jj,l,ll
       real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
      &tas,tas56,x1,x11,x13,x2
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension tas(6,6),x1(6),x2(6)
       save
@@ -34932,14 +34860,14 @@ end subroutine distance
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
      &fak2,qw,rca1,rca2,rclam1,rclam2,rcw1(4),rcw2(4),rn1,rn2,spa,spd,  &
      &sqrn,yca1,yca2,yclam1,yclam2,ycw1(4),ycw2(4)
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension am(4,4)
       dimension qw(2)
@@ -35128,22 +35056,18 @@ subroutine blocksv
   use floatPrecision
   use numerical_constants
 
-+if datamods
-  use bigmats
-+ei
-
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commonc
       integer n, ia, ikk, j, jm, k, lkk, mkk
@@ -35236,12 +35160,12 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
 +if bnlelens
@@ -35302,12 +35226,12 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
@@ -35374,13 +35298,13 @@ subroutine blocksv
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,ii,isl,j,jj,l,n
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
      &sm0,su2,suxy,suzy,xi,zi
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commonc
       dimension dsm(2,4),sens(2,4),xi(2),zi(2),dm(2),sm0(2)
@@ -35507,12 +35431,12 @@ subroutine blocksv
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commonl
 +ca commonxz
@@ -35644,13 +35568,13 @@ subroutine blocksv
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
      &dy,x0,x1,y0,y1
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
@@ -35734,12 +35658,12 @@ subroutine blocksv
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
       real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commonl
 +ca commondl
@@ -36066,11 +35990,11 @@ subroutine blocksv
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use parpro
       implicit none
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
-+ca parpro
 +ca commondl
 +ca commonas
 +ca commonc
@@ -36147,11 +36071,11 @@ subroutine blocksv
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use parpro
       implicit none
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
      &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
-+ca parpro
 +ca commondl
 +ca commonas
 +ca commonc
@@ -36215,13 +36139,13 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
      &x1,y0,y1
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
@@ -36289,11 +36213,11 @@ subroutine blocksv
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer ico,ico0,iql,j,m
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -36338,13 +36262,13 @@ subroutine envar(dpp)
     use numerical_constants
     use mathlib_bouncer
     
+    use parpro
+    use mod_common
+    use mod_commons
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -36585,12 +36509,12 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     use numerical_constants
     use mathlib_bouncer
     
+    use parpro
+    use mod_common
+    use mod_commons
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
     dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
 +if bnlelens
@@ -36838,11 +36762,11 @@ subroutine prror(ier)
 +ei
 
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer ier
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -37380,10 +37304,10 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use crcoall
+      use parpro
+      use mod_common
       implicit none
 
-+ca parpro
-+ca common
 +ca dbdcum
       save
 
@@ -37453,15 +37377,24 @@ end subroutine dist_readdis
       end subroutine
 !
 +dk linopt
-      subroutine linopt(dpp)
+subroutine linopt(dpp)
 !-----------------------------------------------------------------------
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
+
++if root
+      use root_output
++ei
+
       implicit none
+
       integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,        &
      &nmz,nr,dj
       real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
@@ -37472,9 +37405,6 @@ end subroutine dist_readdis
       real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
       character(len=16) idum
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 !
 +if collimat
@@ -37608,6 +37538,11 @@ end subroutine dist_readdis
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
 
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWrite()
+      end if
++ei
 
 !--STRUCTURE ELEMENT LOOP
       if(nt.le.0.or.nt.gt.iu) nt=iu
@@ -37701,7 +37636,12 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
-          
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWrite()
+      end if
++ei
+
           goto 150
 
 !--IN BLOCK: MAGNETELEMENT
@@ -37754,6 +37694,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           
   150   continue !End of loop over elements inside block
 
@@ -37767,6 +37712,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
 
         cycle STRUCTLOOP
 
@@ -37822,6 +37772,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
         cycle STRUCTLOOP
 
@@ -37876,6 +37831,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
         cycle STRUCTLOOP
 
@@ -37905,6 +37865,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
 
           cycle STRUCTLOOP
         endif
@@ -37922,6 +37887,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           cycle STRUCTLOOP
         endif
 
@@ -37946,6 +37916,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
           cycle STRUCTLOOP
         endif
 !+ei
@@ -38109,6 +38084,11 @@ end subroutine dist_readdis
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
++if root
+          if(root_flag .and. root_Optics.eq.1) then
+            call OpticsRootWrite()
+          end if
++ei
 
           cycle STRUCTLOOP
         endif
@@ -38160,6 +38140,11 @@ end subroutine dist_readdis
            if(ntco.ne.0) then
               if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
            endif
++if root
+           if(root_flag .and. root_Optics.eq.1) then
+             call OpticsRootWrite()
+           end if
++ei
            cycle STRUCTLOOP
         end select
 
@@ -38266,6 +38251,11 @@ end subroutine dist_readdis
               if(ntco.ne.0) then
                  if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
               endif
++if root
+              if(root_flag .and. root_Optics.eq.1) then
+                call OpticsRootWrite()
+              end if
++ei
               cycle STRUCTLOOP
            end select
         endif
@@ -38322,6 +38312,11 @@ end subroutine dist_readdis
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
++if root
+        if(root_flag .and. root_Optics.eq.1) then
+          call OpticsRootWrite()
+        end if
++ei
         
       end do STRUCTLOOP ! END LOOP OVER ELEMENTS
       
@@ -38363,29 +38358,35 @@ end subroutine dist_readdis
      &t6,'      X  ',2(f20.12,6x)/t10,'  Y  ',2(f20.12,6x)/)
 10060 format(//131('-')//)
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
-      end
+end subroutine linopt
+
 +if collimat.or.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
+subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ei
 +if .not.collimat.and..not.bnlelens
-      subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
+subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
 !-----------------------------------------------------------------------
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
++if root
+      use iso_c_binding, only: C_NULL_CHAR
+      use root_output
++ei
       implicit none
+
       integer i,iwrite,ixwl,l,ll,nr
       real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
       character(len=16) typ
       ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
       logical isBLOC
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
       dimension d(2),dp(2),c(2),cp(2)
@@ -38403,12 +38404,12 @@ end subroutine dist_readdis
       if(nlin.eq.0) then
         iwrite=1
       else
-        do 10 i=1,nlin
+        do i=1,nlin
           if(typ.eq.bezl(i)) iwrite=1
-   10   continue
+        end do
       endif
       if(iwrite.eq.1) then
-        do 20 l=1,2
+        do l=1,2
           ll=2*l
           b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
           b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
@@ -38420,7 +38421,14 @@ end subroutine dist_readdis
           dp(l)=t(6,ll)*c1m3
           c(l)=t(1,ll-1)
           cp(l)=t(1,ll)
-   20   continue
+        end do
+
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWriteLin(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),b1(1),b1(2),al1(1),al1(2),d(1),d(2), &
+&       dp(1), dp(2))
+      end if
++ei
 
 +if collimat.or.bnlelens
 +if .not.collimat.and.bnlelens
@@ -38484,9 +38492,9 @@ end subroutine dist_readdis
 10000 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',   &
      &f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10030 format('|',6x,'|',a8,'|',12x,'|',102('-'))
-      end
+end subroutine writelin
 
-      subroutine cpltwis(typ,t,etl,phi)
+subroutine cpltwis(typ,t,etl,phi)
 !-----------------------------------------------------------------------
 !  CALCULATES COUPLED TWISS PARAMETERS AROUND THE RING AND ALSO THE
 !  ANGLE OF THE MAJOR AXIS OF A ELLIPSE IN THE X-Y PROJECTION WITH
@@ -38499,17 +38507,20 @@ end subroutine dist_readdis
 !  COUUANGL
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
++if root
+      use root_output
++ei
+      use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,iwrite
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
       character(len=16) typ
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension t(6,4),phi(2)
 +if bnlelens
@@ -38580,24 +38591,37 @@ end subroutine dist_readdis
      &phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
      &t(1,2),t(1,3),t(1,4)
 
++if root
+      if(root_flag .and. root_Optics.eq.1) then
+        call OpticsRootWriteCpl(phi(1), phi(2),bexi,bexii,bezi,bezii,       &
+ &                                  alxi,alxii,alzi,alzii,       &
+ &                                  gaxi,gaxii,gazi,gazii,       &
+ &                                  phxi,phxii,phzi,phzii,       &
+ &                                  phxpi,phxpii,phzpi,phzpii,   &
+ &                                  couuang,                     &
+ &                                  t(6,1),t(6,2),t(6,3),t(6,4), &
+ &                                  t(1,1),t(1,2),t(1,3),t(1,4))
+      end if
++ei
+
       endif
       return
-      end
+end subroutine cpltwis
 
 +dk loesd
-      subroutine loesd (rmat, vec,dimakt,dimtot,kod)
+subroutine loesd (rmat, vec,dimakt,dimtot,kod)
 !-----------------------------------------------------------------------
 !  SOLUTION OF A SYSTEM OF LINEAR EQUATIONS
 !  VEC1 = VEC2 * RMAT , WITH VEC2 AS RESULT
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
       implicit none
       integer ik,indi,j,jk,jy,k,kk,kod,l,n,n1,dimtot,dimakt
       real(kind=fPrec) emax,eps,r,rmat,vec
-+ca parpro
       dimension rmat(dimtot,dimakt),vec(dimakt)
       data eps /1e-20_fPrec/
       save
@@ -38649,19 +38673,19 @@ end subroutine dist_readdis
 
       kod = 0
       return
-      end
+end subroutine loesd
 
 +dk matrix
-      subroutine matrix(dpp,am)
+subroutine matrix(dpp,am)
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,ierr,l
       real(kind=fPrec) am,dpp
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension am(4,4)
 +if bnlelens
@@ -38697,7 +38721,7 @@ end subroutine dist_readdis
       end do
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine matrix
 
 +dk orbit
       subroutine corrorb
@@ -38710,17 +38734,17 @@ end subroutine dist_readdis
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
      &nlino,ntcoo,nto,nx
-+ca parpro
       real(kind=fPrec) ar(nmon1,ncor1)
       real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
       real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
       character(len=16) bezlo(nele)
-+ca common
-+ca commons
 +ca commont1
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
@@ -39045,14 +39069,14 @@ end subroutine dist_readdis
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
 
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
-+ca parpro
       real(kind=fPrec) xinc(ncor1)
       real(kind=fPrec) ckicknew,ckickold,r0,r0a
-+ca common
-+ca commons
 +ca commont1
       dimension nx(ncor1)
 +if bnlelens
@@ -39148,12 +39172,12 @@ end subroutine dist_readdis
       use floatPrecision
   use numerical_constants
       use mathlib_bouncer
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -39600,13 +39624,13 @@ end subroutine dist_readdis
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
      &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
       real(kind=fPrec) extalig1,exterr1
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension ilf(nblz),ilfr(nblz),jra(nele,5),iran(nele),inz(nele)
       dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
@@ -39865,6 +39889,9 @@ subroutine phasad(dpp,qwc)
   use numerical_constants
   use mathlib_bouncer
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
@@ -39872,9 +39899,6 @@ subroutine phasad(dpp,qwc)
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -40367,13 +40391,13 @@ end subroutine phasad
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
@@ -40624,12 +40648,12 @@ end subroutine phasad
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commonl
 +ca commonxz
@@ -40922,15 +40946,15 @@ subroutine umlauf(dpp,ium,ierr)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
   real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
@@ -41340,6 +41364,9 @@ subroutine resex(dpp)
   use numerical_constants
   use mathlib_bouncer
   
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,&
           mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -41351,9 +41378,6 @@ subroutine resex(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,&
           tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -42087,12 +42111,12 @@ end subroutine resex
   use numerical_constants
   use mathlib_bouncer
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension aa(10,10),bb(10),dsm(10),sn(10),sen(10),ss(10)
       dimension qwc(3),d1(10),irr(12)
@@ -42415,13 +42439,13 @@ end subroutine resex
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=16) ref
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -42503,6 +42527,9 @@ subroutine subre(dpp)
   use numerical_constants
   use mathlib_bouncer
   use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
@@ -42516,9 +42543,6 @@ subroutine subre(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltck6,tiltck8,tiltck10,&
           tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
 +ei
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension t(6,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -43466,11 +43490,11 @@ end subroutine subre
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
       implicit none
       integer iv,iv2,iv3,iv4,iv5,iv6
       real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,pi,vor,vtu1, &
      &vtu2
-+ca parpro
       dimension dfac(10),dtu(2,5),ep(2),beta(2),dtup(2,5,0:4,0:4)
       save
 !-----------------------------------------------------------------------
@@ -43530,6 +43554,9 @@ subroutine subsea(dpp)
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
+  use parpro
+  use mod_common
+  use mod_commons
   implicit none
   integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,&
           nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -43539,9 +43566,6 @@ subroutine subsea(dpp)
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension t(5,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
@@ -44258,12 +44282,12 @@ end subroutine subsea
   use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
       implicit none
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
       dimension aa(6,6),bb(6),dsm(6),sn(6),sen(6),ss(6)
       dimension qwc(3),qw(2),d1(6)
@@ -44518,11 +44542,11 @@ end subroutine subsea
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use parpro
       implicit none
       integer i,ierro,j
       real(kind=fPrec) d,dlost
       character(len=4) ch
-+ca parpro
       dimension d(60)
 +if crlibm
 !     integer nchars
@@ -44662,12 +44686,12 @@ end subroutine subsea
       use numerical_constants
 
       use crcoall
+      use parpro
       implicit none
 
       integer ibb,ibbc,ibtyp,ne,np,nsli
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,tphi,track,star,phi2,cphi2,sphi2,tphi2
-+ca parpro
       dimension track(6,npart)
       dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
@@ -44724,12 +44748,12 @@ end subroutine subsea
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
 
       integer i,np
       real(kind=fPrec) calpha,cphi,h,h1x,h1y,h1z,hd1,salpha,sphi,tphi,  &
      &track,x1,y1
-+ca parpro
       dimension track(6,npart)
       save
 !-----------------------------------------------------------------------
@@ -44770,13 +44794,13 @@ end subroutine subsea
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
 
       integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
       real(kind=fPrec) bbf0,bbfx,bbfy,bbgx,bbgy,bcu,costh,costhp,cphi,  &
      &dum,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,star,sx,       &
      &sy,track,cphi2
-+ca parpro
       dimension track(6,npart),bcu(nbb,12)
       dimension star(3,mbea),dum(13)
       save
@@ -44895,12 +44919,12 @@ end subroutine subsea
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
 
       integer i,np
       real(kind=fPrec) calpha,cphi,det,h1,h1d,h1x,h1y,h1z,salpha,sphi,  &
      &tphi,track,x1,y1,z1
-+ca parpro
       dimension track(6,npart)
       save
 !-----------------------------------------------------------------------
@@ -44949,13 +44973,13 @@ end subroutine subsea
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
 
       integer ibtyp
       real(kind=fPrec) arg1x,arg1y,arg2x,arg2y,bbfx,bbfy,bbgx,bbgy,     &
      &comfac,comfac2,const,expfac,fac,fac2,sepx,sepy,sigxx,sigxy,sigyy, &
      &sqrpi2,wx1,wx2,wy1,wy2,x,xxyy
-+ca parpro
       data sqrpi2/3.544907701811032_fPrec/
       save
 !-----------------------------------------------------------------------
@@ -45027,12 +45051,12 @@ end subroutine subsea
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use parpro
       implicit none
       integer i,nsli
 
       real(kind=fPrec) bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,   &
      &salpha,sigz,sigzs,sphi,sphi2,star,yy
-+ca parpro
       dimension star(3,mbea)
 !-----------------------------------------------------------------------
       data border /eight/
@@ -46200,10 +46224,10 @@ end subroutine subsea
 !
       use floatPrecision
       use crcoall
+      use parpro
+      use mod_common
       implicit none
-+ca parpro
 !ERIC
-+ca common
 +ca crco
 +ca rhicelens
       integer ngrd
@@ -46365,12 +46389,9 @@ end subroutine subsea
 !     
 !     See also subroutines crpoint and crstart.
       use floatPrecision
-  use numerical_constants
-+if datamods
-      use bigmats
-+ei
+      use numerical_constants
       use dynk, only : ldynk, ldynkfiledisable,                         &
-     &dynk_crcheck_readdata, dynk_crcheck_positionFiles
+           dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
       use dump, only : dump_crcheck_readdata, dump_crcheck_positionFiles
       
@@ -46380,17 +46401,17 @@ end subroutine subsea
       use, intrinsic :: iso_fortran_env, only : int32
 
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca commonc
@@ -47259,10 +47280,7 @@ end subroutine subsea
 !     
 !     See also subroutine crcheck and crstart.
       use floatPrecision
-  use numerical_constants
-+if datamods
-      use bigmats, only : as, al !Only take the variables from common, not from commonmn
-+ei
+      use numerical_constants
 
       use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
      &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
@@ -47272,17 +47290,17 @@ end subroutine subsea
       use scatter, only : scatter_active, scatter_crpoint
       
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca commonc
@@ -47533,51 +47551,12 @@ end subroutine subsea
 +if .not.debug
         endif
 +ei
-+if .not.datamods
-        write(95,err=100,iostat=ierro)                                  &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if datamods
         if(ithick.eq.1) then
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
             write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-     & ' for DATAMODS to fort.95'
+     & ' for THICK to fort.95'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
@@ -47624,7 +47603,7 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
+        
         endfile (95,iostat=ierro)
         backspace (95,iostat=ierro)
       endif
@@ -47785,51 +47764,12 @@ end subroutine subsea
 +if .not.debug
         endif
 +ei
-+if .not.datamods
-        write(96,err=100,iostat=ierro)                                  &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if datamods
         if (ithick.eq.1) then
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
             write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-     & ' for DATAMODS to fort.96'
+     & ' for THICK to fort.96'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
@@ -47876,7 +47816,7 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
+
       endif
       endfile (96,iostat=ierro)
       backspace (96,iostat=ierro)
@@ -47918,25 +47858,22 @@ end subroutine subsea
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
   use numerical_constants
-+if datamods
-      use bigmats
-+ei
       use dynk, only : ldynk, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
       
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
 +ca commonl
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca commonc
@@ -48199,45 +48136,6 @@ end subroutine subsea
 !       endif
 +ei
         if (read95) then
-+if .not.datamods
-          read(95,end=100,err=100,iostat=ierro)                         &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if .not.datamods
           if (ithick.eq.1) then
             read(95,end=100,err=100,iostat=ierro)                       &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -48278,52 +48176,12 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
           write(93,*) 'CRSTART read fort.95 EXTENDED OK'
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
           go to 102
         endif
         if (read96) then
-+if .not.datamods
-          read(96,end=101,err=101,iostat=ierro)                         &
-     &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-     &(aek(j),j=1,napxo),                                               &
-     &(afok(j),j=1,napxo),                                              &
-     &(as3(j),j=1,napxo),                                               &
-     &(as4(j),j=1,napxo),                                               &
-     &(as6(j),j=1,napxo),                                               &
-     &(co(j),j=1,napxo),                                                &
-     &(dpd(j),j=1,napxo),                                               &
-     &(dpsq(j),j=1,napxo),                                              &
-     &(fi(j),j=1,napxo),                                                &
-     &(fok(j),j=1,napxo),                                               &
-     &(fok1(j),j=1,napxo),                                              &
-     &(fokqv(j),j=1,napxo),                                             &
-     &(g(j),j=1,napxo),                                                 &
-     &(gl(j),j=1,napxo),                                                &
-     &(hc(j),j=1,napxo),                                                &
-     &(hi(j),j=1,napxo),                                                &
-     &(hi1(j),j=1,napxo),                                               &
-     &(hm(j),j=1,napxo),                                                &
-     &(hp(j),j=1,napxo),                                                &
-     &(hs(j),j=1,napxo),                                                &
-     &(rho(j),j=1,napxo),                                               &
-     &(rhoc(j),j=1,napxo),                                              &
-     &(rhoi(j),j=1,napxo),                                              &
-     &(si(j),j=1,napxo),                                                &
-     &(siq(j),j=1,napxo),                                               &
-     &(sm1(j),j=1,napxo),                                               &
-     &(sm12(j),j=1,napxo),                                              &
-     &(sm2(j),j=1,napxo),                                               &
-     &(sm23(j),j=1,napxo),                                              &
-     &(sm3(j),j=1,napxo),                                               &
-     &(wf(j),j=1,napxo),                                                &
-     &(wfa(j),j=1,napxo),                                               &
-     &(wfhi(j),j=1,napxo)
-+ei
-+if datamods
           if (ithick.eq.1) then
             read(96,end=101,err=101,iostat=ierro)                       &
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
@@ -48363,7 +48221,7 @@ end subroutine subsea
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-+ei
+
       write(93,*) 'CRSTART read fort.96 EXTENDED OK'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
@@ -48503,9 +48361,9 @@ end subroutine subsea
   use numerical_constants
       use, intrinsic :: iso_fortran_env, only : error_unit
       use crcoall
+      use parpro
+      use mod_common
       implicit none
-+ca parpro
-+ca common
 +ca commonxz
 +ca crco
 +ca version
@@ -49112,9 +48970,9 @@ end subroutine subsea
       end
       subroutine dumpbl1(dumpname,n,i)
       use floatPrecision
+      use parpro
+      use mod_common
       implicit none
-+ca parpro
-+ca common
       integer n,i
       character(len=*) dumpname
       save
@@ -49127,9 +48985,9 @@ end subroutine subsea
       end
       subroutine dumpzfz(dumpname,n,i)
       use floatPrecision
+      use parpro
+      use mod_common
       implicit none
-+ca parpro
-+ca common
       integer n,i
       integer j
       character(len=*) dumpname
@@ -49147,10 +49005,10 @@ end subroutine subsea
       end
       subroutine dumpxy(dumpname,n,i,k)
       use floatPrecision
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
       integer n,i,j,k
       character(len=*) dumpname
@@ -49176,8 +49034,8 @@ end subroutine subsea
 !GRD-042008
       subroutine dumpbnl(dumpname,n,i)
       use floatPrecision
+      use parpro
       implicit none
-+ca parpro
 +if bnlelens
 +ca rhicelens
 +ei
@@ -49203,11 +49061,11 @@ end subroutine subsea
 +ei
       subroutine dumpsynu(dumpname,n,i)
       use floatPrecision
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
-+ca commons
-+ca commonmn
       integer n,i,j,l,m,k
       character(len=*) dumpname
       save
@@ -49255,16 +49113,16 @@ end subroutine subsea
 
       subroutine dump(dumpname,n,i)
       use floatPrecision
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca crco
@@ -49744,16 +49602,16 @@ end subroutine subsea
       end
       subroutine dumpbin(dumpname,n,i)
       use floatPrecision
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca crco
@@ -50236,16 +50094,16 @@ end subroutine subsea
       end
       subroutine dumphex(dumpname,n,i)
       use floatPrecision
+      use parpro
+      use mod_common
+      use mod_commonmn
+      use mod_commons
       implicit none
-+ca parpro
-+ca common
 +ca common2
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca crco

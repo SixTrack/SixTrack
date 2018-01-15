@@ -67,10 +67,12 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
   use lorentzcommon
 
       use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
   implicit none
 
 !YIL: parpro
-+ca parpro
 
 !YIL: parbeam
 +ca parbeam
@@ -79,10 +81,8 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
 +ca collpara
 
 !YIL: COMMON
-+ca common
 
 !YIL: COMMONMN
-+ca commonmn
 
 !~: commonm1
 +ca commonm1

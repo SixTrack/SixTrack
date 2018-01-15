@@ -152,11 +152,11 @@ contains
     use numerical_constants, only : zero, one, c1e3
 
       use crcoall
+    use parpro
+    use mod_common
     implicit none
 +ca stringzerotrim
-+ca parpro
 +ca commonta !normalisation matrix tasm -> remove later
-+ca common   !napx = number of particles 
 +ca commonc
     integer :: i,j,k,l,m,n                    ! for do loops
     integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.

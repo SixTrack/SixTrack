@@ -133,7 +133,11 @@ subroutine collimate_init()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -141,14 +145,10 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -578,7 +578,11 @@ subroutine collimate_start_sample(nsample)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -586,14 +590,10 @@ subroutine collimate_start_sample(nsample)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1177,7 +1177,11 @@ subroutine collimate_start_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1185,14 +1189,10 @@ subroutine collimate_start_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1392,7 +1392,11 @@ subroutine collimate_do_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1400,14 +1404,10 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2224,7 +2224,11 @@ subroutine collimate_end_collimator()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2232,14 +2236,10 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2635,7 +2635,16 @@ subroutine collimate_end_sample(j)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use crcoall
+
++if root
+  use root_output
++ei
+
   implicit none
 
 
@@ -2643,14 +2652,10 @@ subroutine collimate_end_sample(j)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2800,6 +2805,22 @@ subroutine collimate_end_sample(j)
   end do
 
   close(50)
+
++if root
+  if(root_flag .and. root_Collimation.eq.1) then
+    do icoll = 1, db_ncoll
+      if(db_length(icoll).gt.zero) then
+        call CollimatorLossRootWrite(icoll, db_name1(icoll), len(db_name1(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
+&       caverage(icoll), csigma(icoll), db_length(icoll))
+      end if
+    end do
+  end if
++ei
+
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 end subroutine collimate_end_sample
 
 !>
@@ -2812,7 +2833,11 @@ subroutine collimate_exit()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2820,14 +2845,10 @@ subroutine collimate_exit()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2976,20 +2997,20 @@ subroutine collimate_start_turn(n)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3019,21 +3040,21 @@ subroutine collimate_start_element(i)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3129,7 +3150,11 @@ subroutine collimate_end_element
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -3137,14 +3162,10 @@ subroutine collimate_end_element
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3287,7 +3308,16 @@ subroutine collimate_end_turn
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use crcoall
+
++if root
+  use root_output
++ei
+
   implicit none
 
 
@@ -3295,14 +3325,10 @@ subroutine collimate_end_turn
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3379,6 +3405,11 @@ subroutine collimate_end_turn
     end do
 
     write(44,'(2i7)') iturn, nsurvive
++if root
+    if(root_flag .and. root_Collimation.eq.1) then
+      call SurvivalRootWrite(iturn, nsurvive)
+    end if
++ei
     if (iturn.eq.numl) then
       nsurvive_end = nsurvive_end + nsurvive
     end if
@@ -3770,12 +3801,12 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
 
 +ca commonex
-+ca parpro
 +ca collpara
 +ca dbpencil
 +ca info
@@ -4414,12 +4445,12 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
       use numerical_constants
 
       use crcoall
+      use parpro
       implicit none
 
 
       real(kind=fPrec) sx, sz
 !
-+ca parpro
 +ca collpara
 +ca dbpencil
 +ca info
@@ -6571,15 +6602,15 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use floatPrecision
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
   implicit none
 
 +ca collpara
 +ca dbmkdist
 
-+ca parpro
-+ca commonmn
-+ca common
 
   character(len=80)   filename_dis
   real(kind=fPrec) enerror, bunchlength
@@ -6866,7 +6897,8 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
 
@@ -6874,7 +6906,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 +ca dbmkdist
 
 ! !YIL debug july 2010
-+ca parpro
 +ca commont1
 
   real(kind=fPrec) pi
@@ -7903,7 +7934,8 @@ real(kind=fPrec) function ran_gauss(cut)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
   logical flag
@@ -7940,15 +7972,29 @@ end function ran_gauss
 !<
 subroutine readcollimator
   use floatPrecision
+  use crcoall
+  use parpro
 
-  integer I,J,K
-+ca parpro
++if root
+  use iso_c_binding
+  use root_output
++ei
+
+  implicit none
+
+  integer I,J,K,ios
+
 +ca collpara
 +ca database
 +ca dbcommon
 
   logical lopen
 
++if root
+! Temp variables to avoid fotran array -> C nightmares
+  character(len=17) :: this_name = C_NULL_CHAR
+  character(len=5) :: this_material = C_NULL_CHAR
++ei
   save
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -8041,17 +8087,31 @@ subroutine readcollimator
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
+
++if root
+    if(root_flag .and. root_CollimationDB.eq.1) then
+      this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
+      this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
+      call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
+&     db_length(j), db_rotation(j), db_offset(j))
+    end if
++ei
+
   end do
 
   close(53)
 
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 end subroutine readcollimator
 
 subroutine collimation_comnul
   use floatPrecision
   use numerical_constants, only : zero
+  use parpro
   implicit none
-+ca parpro
 
 +ca collpara
 +ca database

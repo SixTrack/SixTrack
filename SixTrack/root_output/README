@@ -1,0 +1,58 @@
+This folder contains files for writing out directly to root files on EOS. No afs required.
+
+Currently supported sections of the code:
+
+Online aperture check
+Collimation
+Optical functions
+
+TODO:
+Particle coordinates as per fort.90
+FMA
+DUMP
+Element listing (magnetic fields etc)
+
+The user must provide a new ROOT input block.
+This should specify the part of the code where root output is requested, compression etc, file names.
+
+Sample post-processing scripts are provided.
+
+Input settings:
+ROOT
+-----------------------------
+EOS <eos server>
+e.g.
+EOS eosuser.cern.ch
+only one eos server should be specified
+needs a kerberos ticket via "kinit"
+entering this block will write via xrootd to eos directly, otherwise PATH is taken to be a local file
+-----------------------------
+PATH <file path>
+e.g.
+PATH /eos/user/u/username/lossmap
+PATH /home/username/lossmap
+only one path should be specified - no trailing '/' needed
+-----------------------------
+PREFIX <file prefix>
+PREFIX sixtrack_
+only one prefix should be specified
+-----------------------------
+ENABLE <blocks>
+e.g.
+ENABLE ALL
+ENABLE COLL
+ENABLE APER
+multiple may be specified - usually just enable ALL, which will turn on all output
+-----------------------------
+RUN <run number>
+e.g.
+RUN 1234
+only one run number should be specified
+-----------------------------
+NEXT
+
+File output is to:
+${PATH}/${PREFIX{${RUN}.root
+
+e.g.
+/eos/user/u/username/lossmap/sixtrack_1.root
