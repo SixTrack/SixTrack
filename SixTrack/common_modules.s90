@@ -1,81 +1,96 @@
-!     This file contains variables that are shared between all
-!     parts of the code, such as lout and crlibm functions
+!     This file contains modules with variables that are used in all
+!     parts of the code, such as lout and crlibm functions, accelerator structure,
+!     particle arrays etc.
 
 +dk crcoall
 module crcoall
   !     Standard output unit
   !     For CR version, this is the "buffer file" fort.92;
   !     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
+  implicit none
+  
   integer lout
   save lout
 end module crcoall
     
 +dk fPrec
-      module floatPrecision
-      use, intrinsic :: iso_fortran_env, only : real32, real64, real128
-
+module floatPrecision
+  use, intrinsic :: iso_fortran_env, only : real32, real64, real128
+  
+  implicit none
+  
 +if 32bitm
-      integer, parameter :: fPrec = real32
+  integer, parameter :: fPrec = real32
 +ei
 +if 64bitm
-      integer, parameter :: fPrec = real64
+  integer, parameter :: fPrec = real64
 +ei
 +if 128bitm
-      integer, parameter :: fPrec = real128
+  integer, parameter :: fPrec = real128
 +ei
 
-      end module floatPrecision
+end module floatPrecision
 
-+dk   physical_constants
++dk physical_constants
 
-      module physical_constants
-! Shared module for general physical constants.
-! See: http://pdg.lbl.gov/2017/reviews/rpp2016-rev-phys-constants.pdf
-! some values are not updated to ensure numerical compatability with older studies
+module physical_constants
+ ! Shared module for general physical constants.
+ ! See: http://pdg.lbl.gov/2017/reviews/rpp2016-rev-phys-constants.pdf
+ ! some values are not updated to ensure numerical compatability with older studies
 
-      use floatPrecision
-
+  use floatPrecision
+  
+  implicit none
+  
 +if .not.fluka
-!     proton mass (MeV)
-      real(kind=fPrec), parameter :: pmap = 938.271998_fPrec   !old
-!     real(kind=fPrec), parameter :: pmap = 938.2720813_fPrec  !2017
+  ! proton mass (MeV)
+  real(kind=fPrec), parameter :: pmap = 938.271998_fPrec   !old
+  ! real(kind=fPrec), parameter :: pmap = 938.2720813_fPrec  !2017
 
-!     electron mass (MeV) from PDG, 2002
-      real(kind=fPrec), parameter :: pmae = 0.510998902_fPrec   !old
-!     real(kind=fPrec), parameter :: pmae = 0.5109989461_fPrec  !2017
+  ! electron mass (MeV) from PDG, 2002
+  real(kind=fPrec), parameter :: pmae = 0.510998902_fPrec   !old
+  ! real(kind=fPrec), parameter :: pmae = 0.5109989461_fPrec  !2017
 +ei
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 08-12-2014
-!     synch masses of proton and electron to values used by FLUKA
-!     inserted in main code by the 'fluka' compilation flag
-!     proton and electron mass from PDG, 2014
-      real(kind=fPrec), parameter :: pmap = 0.938272046e3_fPrec
-      real(kind=fPrec), parameter :: pmae = 0.510998928_fPrec
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 08-12-2014
+  !
+  ! synch masses of proton and electron to values used by FLUKA
+  ! inserted in main code by the 'fluka' compilation flag
+  ! proton and electron mass from PDG, 2014
+  real(kind=fPrec), parameter :: pmap = 0.938272046e3_fPrec
+  real(kind=fPrec), parameter :: pmae = 0.510998928_fPrec
 +ei
 
-!     classical electron radius
-      real(kind=fPrec), parameter :: crade = 2.817940285e-15_fPrec    !old
-!     real(kind=fPrec), parameter :: crade = 2.8179403227e-15_fPrec   !2017
+  ! classical electron radius
+  real(kind=fPrec), parameter :: crade = 2.817940285e-15_fPrec    !old
+  ! real(kind=fPrec), parameter :: crade = 2.8179403227e-15_fPrec   !2017
+  
+  ! speed of light
+  real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec !exact
 
-!     speed of light
-      real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec !exact
+  ! Avogadro constant
+  ! real(kind=fPrec), parameter :: fnavo=6.02214129e23_fPrec   !old
+  real(kind=fPrec), parameter :: fnavo=6.022140857e23_fPrec  !2017
 
-!     Avogadro constant
-!     real(kind=fPrec), parameter :: fnavo=6.02214129e23_fPrec   !old
-      real(kind=fPrec), parameter :: fnavo=6.022140857e23_fPrec  !2017
+  ! Planck constant
+  real(kind=fPrec), parameter :: planck=6.626070040e-34_fPrec
+  
+end module physical_constants
 
-!     Planck constant
-      real(kind=fPrec), parameter :: planck=6.626070040e-34_fPrec
-
-      end module physical_constants
-
++dk numerical_constants
 module numerical_constants
+  ! Shared module for numerical constants,
+  ! to ensure that the same values (including round-off)
+  ! is used throughout the program.
+  
   use floatPrecision
-
-!  real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
-!  real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
-
+  
+  implicit none
+  
+  ! real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
+  ! real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
+  
   real(kind=fPrec), parameter :: pieni = 1e-38_fPrec
 
   real(kind=fPrec), parameter :: zero  = 0.0_fPrec
@@ -129,3 +144,429 @@ module numerical_constants
   real(kind=fPrec), parameter :: c1m38 = 1.0e-38_fPrec
 
 end module numerical_constants
+
++dk parpro
+module parpro
+  ! Shared module defining the sizes of key arrays
+  ! This is (will be) the "access point" for resizing
+  ! the size of the accelerator, the number of particles, etc.
+  
+  implicit none
+  
+  integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1, &
+       nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran, &
+       nrco,ntr,nzfz
+
+  !Max number of particles
++if .not.bignpart.and..not.hugenpart
+  parameter(npart = 64,nmac = 1)
++ei
++if bignpart.and..not.hugenpart
+  !See also:
+  ! - subroutine wzsubv
+  parameter(npart = 2048,nmac = 1)
++ei
++if hugenpart.and..not.bignpart
+  !See also:
+  ! - subroutine wzsubv
+  parameter(npart = 65536,nmac = 1)
++ei
+
+
+
+!Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
+! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
+! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
+! 6000/20000 -> 30% multipoles
++if .not.collimat
++if bignblz
+  parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=200000,        &
+       nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
++ei
++if hugenblz
+  parameter(nele=1200,nblo=600,nper=16,nelb=280,nblz=400000,        &
+       nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
++ei
++if .not.bignblz.and..not.hugenblz
+  parameter(nele=1200,nblo=600,nper=16,nelb=140,nblz=20000,         &
+       nzfz = 300000,mmul = 20) !up to 6'000 multipoles
++ei
++ei ! / not collimat
++if collimat
++if beamgas
+  parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
+       nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
++ei ! / beamgas
++if .not.beamgas
++if bignblz
+  parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=200000,        &
+       nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
++ei ! / bignblz
++if hugenblz
+  parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=400000,        &
+       nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
++ei ! / hugenblz
++if .not.bignblz.and..not.hugenblz
+  parameter(nele=5000,nblo=400,nper=16,nelb=140,nblz=15000,         &
+       nzfz = 144000,mmul = 11) !up to 4500 multipoles
++ei ! / not bignblz
++ei ! / not beamgas
++ei ! / collimat
+
+
++if collimat
+  parameter(nran = 280000, ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
++ei
++if .not.collimat
+  parameter(nran = 2000000,ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
++ei
+  
+  parameter(mcor = 10,mcop = mcor+6, mbea = 99)
+  parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
+  parameter(nmon1 = 600,ncor1 = 600)
+  parameter(ntr = 20)
+  
+  ! Beam-beam lenses
++if .not.bignblz.and..not.hugenblz
+  parameter(nbb = 350)
++ei
++if bignblz.or.hugenblz
+  parameter(nbb = 500)
++ei
+
+end module parpro
+
++dk parpro_scale
+module parpro_scale
+  ! Module for scaling array sizes defined in parpro
+  ! by telling various other module to rescale their arrays;
+  ! It is split off from parpro as a separate module
+  ! in order to avoid circular dependencies.
+  implicit none
+contains
++if vvector
+  subroutine allocate_thickarrays
+    ! Kicks off the allocation of the thick tracking arrays
+    use mod_commonmn
+    use mod_commons
+    implicit none
+    
+    call mod_commonmn_allocate_thickarrays
+    call mod_commons_allocate_thickarrays
+    
+  end subroutine allocate_thickarrays
++ei
+end module parpro_scale
+
++dk mod_common
+module mod_common
+  use parpro
+  use floatPrecision
+  
+  implicit none
+
++if time        
+  !To be deleted
+  real(kind=fPrec) tcnst35,exterr35,zfz35
+  integer icext35
+  common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
+       tcnst35(nblz)
++ei
+      
+  ! common /erro/
+  integer, save :: ierro
+  character(len=16), save :: erbez
+  
+  ! common /kons/
+  real(kind=fPrec), save :: pi,pi2,pisqrt,rad
+  
+  ! common /str/
+  integer, save :: il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
+  
+  ! common /ell/
+  real(kind=fPrec), save :: ed(nele),el(nele),ek(nele),sm(nele)
+  integer, save :: kz(nele),kp(nele)
+  
+  ! common /bbb/
+  real(kind=fPrec), save :: bbbx(nele), bbby(nele), bbbs(nele)
+  
+  ! common /pla/
+  real(kind=fPrec), save :: xpl(nele),xrms(nele),zpl(nele),zrms(nele)
+  
+  !common /str2/
+  integer, save :: mel(nblo),mtyp(nblo,nelb),mstr(nblo)
+
+  ! common /mat/
+  real(kind=fPrec), save :: a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
+  
+  ! common /syos2/
+  real(kind=fPrec), save :: rvf(mpa)
+  
+  ! common /tra1/
+  real(kind=fPrec), save :: rat
+  integer, save :: idfor, napx, napxo, numl, niu(2), numlr, nde(2), nwr(4), &
+       ird, imc, irew, ntwin, iclo6, iclo6r, iver, ibidu, numlcp, numlmax, nnuml
+  
+  ! common /syn/
+  real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
+       crad,hsyc(nele),phasc(nele),dppoff,sigmoff(nblz),tlen
+  integer, save :: iicav,itionc(nele),ition,idp,ncy,ixcav
+  
+  ! common /corcom/
+  real(kind=fPrec), save :: dpscor,sigcor
+  integer, save :: icode,idam,its6d
+
+  ! common /multi/
+  real(kind=fPrec), save :: bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul)
+
+  ! common /mult1/
+  real(kind=fPrec), save :: benki,benkc(nele),r00(nele)
+  integer, save :: irm(nele),nmu(nele)
+  
+  ! common /rand0/
+  real(kind=fPrec), save :: zfz(nzfz)
+  integer, save :: iorg,mzu(nblz),izu0,mmac,mcut
+  character(len=16) bezr(3,nele)
+  
+  ! common /rand1/
+  real(kind=fPrec), save :: exterr(nblz,40),extalign(nblz,3),tiltc(nblz),tilts(nblz)
+  integer, save :: mout2,icext(nblz),icextal(nblz)
+  
+  ! common /beo/
+  real(kind=fPrec), save :: aper(2),di0(2),dip0(2),ta(6,6)
+  
+  ! common /clo/
+  real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
+  integer, save :: itco,itcro,itqv,iout
+  
+  ! common /qmodi/
+  real(kind=fPrec), save :: qw0(3),amp0
+  integer, save :: iq(3),iqmod,kpa(nele),iqmod6
+  
+  ! common /linop/
+  character(len=16), save :: bez(nele), bezb(nblo), bezl(nele)
+  real(kind=fPrec),  save :: elbe(nblo),eui,euii
+  integer, save :: ilin,nt,iprint,ntco,nlin
+  
+  ! common /cororb/
+  real(kind=fPrec), save :: betam(nmon1,2),pam(nmon1,2),betac(ncor1,2), &
+       pac(ncor1,2),bclorb(nmon1,2)
+  integer, save :: nhmoni,nhcorr,nvmoni,nvcorr,ncororb(nele)
+  
+  ! common /clos/
+  real(kind=fPrec), save :: sigma0(2)
+  integer, save :: iclo, ncorru,ncorrep
+  
+  ! common /combin/
+  real(kind=fPrec), save :: ratio(ncom,20),ratioe(nele)
+  integer, save :: icomb0(20),icomb(ncom,20),iratioe(nele),icoe
+  
+  ! common/seacom/m21,m22,m23
+  integer, save :: ise,ise1,ise2,ise3,isea(nele),mesa,mp,m21,m22,m23
+  
+  ! common /subres/
+  real(kind=fPrec), save :: qxt,qzt,tam1,tam2,totl
+  integer, save :: isub,nta,nte,ipt
+  
+  ! common /secom/
+  real(kind=fPrec), save :: rtc(9,18,10,5),rts(9,18,10,5)
+  integer, save :: ire(12),ipr(5),irmod2
+  
+  ! common /secom1/
+  real(kind=fPrec), save :: dtr(10)
+  integer, save :: nre,nur,nch,nqc,npp,nrr(5),nu(5)
+  
+  ! common /postr/
+  real(kind=fPrec), save :: dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2
+  integer, save :: nstart,nstop,iskip,iconv,imad
+  
+  ! common /posti1/
+  integer, save :: ipos,iav,iwg,ivox,ivoz,ires,ifh
+  character(len=80), save :: toptit(5) !DANGER: If the len changes, CRCHECK will break.
+  
+  ! common /posti2/
+  integer, save :: kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi
+  
+  ! common /skew/
+  real(kind=fPrec), save :: qwsk(2),betx(2),betz(2),alfx(2),alfz(2)
+  integer, save :: iskew,nskew(6)
+  
+  ! common /pawc/
+  real, save :: hmal(nplo)
+  
+  ! common /tit/
+  character (len=80), save :: sixtit,commen !DANGER: If the len changes, CRCHECK will break.
+  integer, save :: ithick
+  
+  ! common/co6d/
+  real(kind=fPrec), save :: clo6(3),clop6(3)
+  
+  ! common /dkic/
+  real(kind=fPrec), save :: dki(nele,3)
+
+  ! common /beam/
+  real(kind=fPrec), save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb), &
+       clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
+       ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
+  integer, save :: nbeam,ibbc,ibeco,ibtyp,lhc
+  
+  ! common/trom/
+  real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6)
+  integer, save ::  imtr(nele)
+  
+  ! common /bb6d/
+  real(kind=fPrec), save :: bbcu(nbb,12)
+  integer, save :: ibb6d,imbb(nblz)
+  
+  ! common /acdipco/
+  real(kind=fPrec), save :: acdipph(nele)
+  integer, save :: nturn1(nele), nturn2(nele), nturn3(nele), nturn4(nele)
+  
+  ! common /crabco/
+  real(kind=fPrec), save :: crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele)
+
+end module mod_common
+
++dk mod_commonmn
+module mod_commonmn
+  use parpro
+  use floatPrecision
+  
+  implicit none
+  
++if time
+  !To be deleted
+  real(kind=fPrec) aaiv35,bbiv35
+  common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
++ei
+
+  ! common /main1/
+  real(kind=fPrec), allocatable, save :: ekv(:,:) !(npart,nele)
+  real(kind=fPrec), save :: fokqv(npart),aaiv(mmul,nmac,nblz),           &
+       bbiv(mmul,nmac,nblz),smiv(nmac,nblz),zsiv(nmac,nblz),             &
+       xsiv(nmac,nblz),xsv(npart),zsv(npart),qw(2),qwc(3),clo0(2),       &
+       clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
+       yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
+       dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
+       xlv(npart),zlv(npart),rvv(npart),                                 &
++if rvet
+       rvet(npart),                                                      &
++ei
+       ejf0v(npart)
+  integer, save :: numxv(npart),nms(npart),nlostp(npart)
+  logical, save :: pstop(npart)
+  
+  ! common /main2/
+  real(kind=fPrec), save :: dpd(npart),dpsq(npart),fok(npart),rho(npart),&
+       fok1(npart),si(npart),co(npart),g(npart),gl(npart),sm1(npart),    &
+       sm2(npart),sm3(npart),sm12(npart),as3(npart),as4(npart),          &
+       as6(npart),sm23(npart),rhoc(npart),siq(npart),aek(npart),         &
+       afok(npart),hp(npart),hm(npart),hc(npart),hs(npart),wf(npart),    &
+       wfa(npart),wfhi(npart),rhoi(npart),hi(npart),fi(npart),hi1(npart),&
+       xvl(2,npart),yvl(2,npart),ejvl(npart),dpsvl(npart),oidpsv(npart), &
+       sigmvl(npart),aperv(npart,2),clov(2,npart),                       &
+       clopv(2,npart),alf0v(npart,2),bet0v(npart,2),ampv(npart)
+  integer, save :: iv(npart),ixv(npart)
+  
+  !common /main3/
+  real(kind=fPrec), save :: clo6v(3,npart),clop6v(3,npart),              &
+       tas(npart,6,6),qwcs(npart,3),di0xs(npart),                        &
+       di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
+       di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
+  real(kind=fPrec), allocatable, save :: hv(:,:,:,:),bl1v(:,:,:,:) !(6,2,npart,nblo)
+  
++if vvector
+contains
+  subroutine mod_commonmn_allocate_thickarrays
+    use numerical_constants, only : zero
+    use crcoall
+    implicit none
+    
+    integer i1,i2,i3,i
+    integer stat
+    
+    write(lout,*) "MOD_COMMONMN_ALLOCATE_THICKARRAYS: npart/nele/nblo=", npart, nele, nblo
+    
+    allocate(ekv(npart,nele), hv(6,2,npart,nblo), bl1v(6,2,npart,nblo), STAT = stat)
+    if (stat.ne.0) then
+       write(lout,*) "ERROR in mod_commonmn_allocate_thickarrays(); stat=",stat
+       call prror(-1)
+    endif
+    
+    !ZERO the newly allocated arrays
+    do i=1,npart
+       do i1=1,nblo
+          do i2=1,2
+             do i3=1,6
+                hv(i3,i2,i,i1)=zero
+                bl1v(i3,i2,i,i1)=zero
+             end do
+          end do
+       end do
+    end do
+    
+  end subroutine mod_commonmn_allocate_thickarrays
++ei
+end module mod_commonmn
+
++dk mod_commons
+module mod_commons
+  use floatPrecision
+  use parpro
+  implicit none
+  
++if vvector
+  ! common /syos/
+  real(kind=fPrec), allocatable, save :: as(:,:,:,:),al(:,:,:,:) !(6,2,npart,nele)
+  real(kind=fPrec), save :: sigm(mpa),dps(mpa)
+  integer, save :: idz(2)
+  
+  ! common /anf/
+  real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1
+  integer, save :: itra
++ei
++if .not.vvector
+  ! common /syos/
+  real(kind=fPrec), save :: as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa)
+  integer, save :: idz(2)
+  
+  ! common /anf/
+  real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1
+  integer, save :: itra
++ei
+
++if vvector
+contains
+  
+  subroutine mod_commons_allocate_thickarrays
+    !Subroutine for initial allocation of the big thick tracking arrays 'al' and 'as'
+    use numerical_constants, only : zero
+    use crcoall
+    implicit none
+    
+    integer stat
+    integer i1,i3,i4,i
+    
+    write(lout,*) "MOD_COMMONS_ALLOCATE_THICKARRAYS: npart/nele=", npart, nele
+    
+    allocate(al(6,2,npart,nele), as(6,2,npart,nele), STAT = stat)
+    if (stat.ne.0) then
+       write(lout,*) "ERROR in mod_commons_allocate_thickarrays(); stat=",stat
+       call prror(-1)
+    endif
+    
+    !ZERO the newly allocated arrays
+    do i=1,nele
+       do i3=1,2
+          do i4=1,6
+             do i1=1,npart
+                al(i4,i3,i1,i)=zero
+                as(i4,i3,i1,i)=zero
+             end do
+          end do
+       end do
+    end do
+    
+  end subroutine mod_commons_allocate_thickarrays
++ei
+end module mod_commons

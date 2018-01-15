@@ -11,13 +11,13 @@ module bdex
   use floatPrecision
   use crcoall
   use numerical_constants
+!For nele
+  use parpro
 
   implicit none
 
 !For the string length stuff
 +ca comgetfields
-!For nele
-+ca parpro
 
   logical bdex_enable               ! Is BDEX in use?
   logical bdex_debug                ! Debug mode?
@@ -74,11 +74,11 @@ contains
   end subroutine bdex_closefiles
 
   subroutine bdex_parseElem(ch)
+    use mod_common
     implicit none
     
     character(len=*) ch
 
-+ca common
 
     integer ii,jj
 
@@ -144,13 +144,13 @@ contains
   end subroutine bdex_parseElem
   
   subroutine bdex_parseChan(ch)
+    use mod_common
     implicit none
     
     character(len=*) ch
 
 +ca stringzerotrim
 
-+ca common
 
     integer ii,jj
 
@@ -194,11 +194,11 @@ contains
   end subroutine bdex_parseChan
 
   subroutine bdex_parseInputDone
+    use mod_common
     implicit none
     
 +ca stringzerotrim
 
-+ca common
     
     integer ii
     
@@ -279,8 +279,8 @@ contains
   ! Deck with the initialization etc. routines for BDEX
   
   subroutine bdex_initializePipe( getfields_fields, getfields_lfields,getfields_nfields )
+    use parpro
     implicit none
-+ca parpro
 
 +ca comgetfields
     intent(in) getfields_fields, getfields_lfields, getfields_nfields
@@ -386,8 +386,8 @@ contains
   end subroutine bdex_initializePipe
   
   subroutine bdex_initializeTCPIP( getfields_fields,getfields_lfields,getfields_nfields )
+    use parpro
     implicit none
-+ca parpro
 
 +ca comgetfields
     intent(in) getfields_fields, getfields_lfields, getfields_nfields      
@@ -404,6 +404,9 @@ contains
   ! Deck with the routines used by BDEX during tracking
   
   subroutine bdex_track(i,ix,n)
+    use parpro
+    use mod_common
+    use mod_commonmn
     implicit none
     ! i  : current structure element
     ! ix : current single element
@@ -411,11 +414,7 @@ contains
     
     integer i, ix,n
     intent(in) i, ix, n
-      
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commontr
 
 +ca comgetfields

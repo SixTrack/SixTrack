@@ -44,7 +44,6 @@ if [ -x "$(command -v gawk)" ]; then
     astuce_linter beamgas.s90
     astuce_linter bouncy_castle.s90
     astuce_linter collimation.s90
-    astuce_linter datamods.s90
     astuce_linter dynk.s90
     astuce_linter fluka.s90
     astuce_linter fma.s90
@@ -52,6 +51,7 @@ if [ -x "$(command -v gawk)" ]; then
     astuce_linter postprocessing.s90
     astuce_linter scatter.s90
     astuce_linter dump.s90
+    astuce_linter common_modules.s90
 else
     echo
     echo "WARNING: You have not installed gawk (GNU AWK)."

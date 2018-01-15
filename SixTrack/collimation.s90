@@ -133,7 +133,11 @@ subroutine collimate_init()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -141,14 +145,10 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -578,7 +578,11 @@ subroutine collimate_start_sample(nsample)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -586,14 +590,10 @@ subroutine collimate_start_sample(nsample)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1177,7 +1177,11 @@ subroutine collimate_start_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1185,14 +1189,10 @@ subroutine collimate_start_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1392,7 +1392,11 @@ subroutine collimate_do_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1400,14 +1404,10 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2224,7 +2224,11 @@ subroutine collimate_end_collimator()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2232,14 +2236,10 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2635,6 +2635,10 @@ subroutine collimate_end_sample(j)
   use mathlib_bouncer
   use numerical_constants
 
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   use crcoall
 
 +if root
@@ -2648,14 +2652,10 @@ subroutine collimate_end_sample(j)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2833,7 +2833,11 @@ subroutine collimate_exit()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2841,14 +2845,10 @@ subroutine collimate_exit()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2997,20 +2997,20 @@ subroutine collimate_start_turn(n)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3040,21 +3040,21 @@ subroutine collimate_start_element(i)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3150,7 +3150,11 @@ subroutine collimate_end_element
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -3158,14 +3162,10 @@ subroutine collimate_end_element
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3308,6 +3308,10 @@ subroutine collimate_end_turn
   use mathlib_bouncer
   use numerical_constants
 
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   use crcoall
 
 +if root
@@ -3321,14 +3325,10 @@ subroutine collimate_end_turn
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3801,12 +3801,12 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
 
 +ca commonex
-+ca parpro
 +ca collpara
 +ca dbpencil
 +ca info
@@ -4445,12 +4445,12 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
       use numerical_constants
 
       use crcoall
+      use parpro
       implicit none
 
 
       real(kind=fPrec) sx, sz
 !
-+ca parpro
 +ca collpara
 +ca dbpencil
 +ca info
@@ -6602,15 +6602,15 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use floatPrecision
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
   implicit none
 
 +ca collpara
 +ca dbmkdist
 
-+ca parpro
-+ca commonmn
-+ca common
 
   character(len=80)   filename_dis
   real(kind=fPrec) enerror, bunchlength
@@ -6897,7 +6897,8 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
 
@@ -6905,7 +6906,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 +ca dbmkdist
 
 ! !YIL debug july 2010
-+ca parpro
 +ca commont1
 
   real(kind=fPrec) pi
@@ -7934,7 +7934,8 @@ real(kind=fPrec) function ran_gauss(cut)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
   logical flag
@@ -7972,6 +7973,7 @@ end function ran_gauss
 subroutine readcollimator
   use floatPrecision
   use crcoall
+  use parpro
 
 +if root
   use iso_c_binding
@@ -7981,7 +7983,7 @@ subroutine readcollimator
   implicit none
 
   integer I,J,K,ios
-+ca parpro
+
 +ca collpara
 +ca database
 +ca dbcommon
@@ -8108,8 +8110,8 @@ end subroutine readcollimator
 subroutine collimation_comnul
   use floatPrecision
   use numerical_constants, only : zero
+  use parpro
   implicit none
-+ca parpro
 
 +ca collpara
 +ca database
