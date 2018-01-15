@@ -23850,7 +23850,7 @@ program maincr
       endif
 
       do 340 ia=1,napx,2
-        if(idfor.ne.2) then
+        if(idfor.ne.2.and.idfor.ne.3) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
           write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
@@ -23929,8 +23929,7 @@ program maincr
             dpsv(ia+1)=dpsv(ia+1)+clop6v(3,ia)
             oidpsv(ia)=one/(one+dpsv(ia))
             oidpsv(ia+1)=one/(one+dpsv(ia+1))
-          endif
-          if(iclo6.ne.2) then
+          else
             xv(1,ia)=xv(1,ia)+(clov(1,ia)*real(idz(1),fPrec))*          &
      &real(1-idfor,fPrec)    !hr05
             yv(1,ia)=yv(1,ia)+(clopv(1,ia)*real(idz(1),fPrec))*         &
@@ -23955,7 +23954,7 @@ program maincr
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
           write(lout,10020) ampv(ia),amp(2),epsa
-        else
+        else if(idfor.eq.2) then
 +if .not.crlibm
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
@@ -24139,9 +24138,11 @@ program maincr
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
         endif
+        if ( idfor.ne.3 ) then
         write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
      &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
      &(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+        endif
         idam=3
         icode=0
         if(abs(xv(1,ia)).le.pieni.and.abs(yv(1,ia)).le.pieni) then
@@ -24285,69 +24286,8 @@ program maincr
         call prror(79)
       endif
 
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+!-----/ End of initial distribution
 
-!!! Really only neccessary for thick 4d tracking !!!
-!!! In FLUKA version, this is moved to new subroutine "blocksv" (in a new deck)
-+if .not.fluka
-!-------------------------------------  START OF 'BLOCK'
-      if (ithick.eq.1) then
-
-      do 440 k=1,mblo
-        jm=mel(k)
-        ikk=mtyp(k,1)
-
-        do lkk=1,2
-          do mkk=1,6
-            do ia=1,napx
-              dpoff=dpsv(ia)*c1e3
-              if(abs(dpoff).le.pieni) dpoff=one
-              hv(mkk,lkk,ia,1)=al(mkk,lkk,ia,ikk)
-            if(mkk.eq.5.or.mkk.eq.6) then
-              hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)/dpoff
-              end if
-            end do
-          end do
-        end do
-
-        if(jm.eq.1) goto 410
-        do 400 j=2,jm
-          ikk=mtyp(k,j)
-          do 390 lkk=1,2
-            do 380 ia=1,napx
-              dpoff=dpsv(ia)*c1e3
-              if(abs(dpoff).le.pieni) dpoff=one
-              hv(1,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(3,   &
-     &lkk,ia,j-1)*al(2,lkk,ia,ikk)
-              hv(2,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(4,   &
-     &lkk,ia,j-1)*al(2,lkk,ia,ikk)
-              hv(3,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(3,   &
-     &lkk,ia,j-1)*al(4,lkk,ia,ikk)
-              hv(4,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(4,   &
-     &lkk,ia,j-1)*al(4,lkk,ia,ikk)
-              hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,  &!hr05
-     &lkk,ia,j-1)*al(2,lkk,ia,ikk))+al(5,lkk,ia,ikk)/dpoff               !hr05
-              hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,  &!hr05
-     &lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff               !hr05
-  380       continue
-  390     continue
-  400   continue
-
-  410   do lkk=1,2
-          do mkk=1,6
-            do ia=1,napx
-              bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
-            end do
-          end do
-        end do
-
-  440 continue
-
-      end if
-!---------------------------------------END OF 'BLOCK'
-+ei
-
-+if fluka
   if(ithick.eq.1) then
 !------ Compute matrices for linear tracking
     call envarsv(dpsv,oidpsv,rvv,ekv)
@@ -24356,7 +24296,6 @@ program maincr
       call blocksv
     end if
   end if
-+ei
 
 +if fluka
 !     P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
