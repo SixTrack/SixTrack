@@ -37,7 +37,7 @@ if [ -x "$(command -v gawk)" ]; then
 	    echo "--> check_astuce_ifs.awk completed without errors."
 	fi
     }
-    astuce_linter sixtrack.s
+    astuce_linter sixtrack.s90
     astuce_linter plato_seq.s90
     astuce_linter lielib.s90
     astuce_linter dabnew.s90

@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 PROJECT(SixTrack)
 ENABLE_LANGUAGE(Fortran)
 
-file(READ ${CMAKE_SOURCE_DIR}/SixTrack/sixtrack.s IFILE)
+file(READ ${CMAKE_SOURCE_DIR}/SixTrack/sixtrack.s90 IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]([0-9]+)'/" VERSION_STRING ${IFILE} )
 set(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}")
 MESSAGE(STATUS "Sixtrack version: ${VERSION_STRING}")
