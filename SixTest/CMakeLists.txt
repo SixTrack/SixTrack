@@ -88,7 +88,6 @@ if(NOT COLLIMAT)
           bbe571ib0
           bb
           bb_ntwin1
-          crabamp
           dipedge
           distance
           dynk_globalvars
@@ -286,7 +285,6 @@ endforeach()
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 SET(FAST_TESTS
-  crabamp
   thick4
   thick6dblocks
   thick6ddynk
