@@ -569,3 +569,27 @@ contains
   end subroutine mod_commons_allocate_thickarrays
 +ei
 end module mod_commons
+
++dk mod_hions
+module mod_hions
+  use floatPrecision
+  use parpro
+  implicit none
+! P. Hermes for Heavy Ion SixTrack (hiSix)
+! initialize the variables for ion tracking
+! ien0,ien1: ion energy entering/leaving the collimator
+  real(kind=fPrec), save :: nucm0, brhono, ien0, ien1
+  real(kind=fPrec), save :: nucm(npart)
+  real(kind=fPrec), save :: moidpsv(npart)
+  real(kind=fPrec), save :: omoidpsv(npart)
+  real(kind=fPrec), save :: mtc(npart)
+
+  integer, save :: aa0,zz0,nnuc0,nnuc1
+  integer, save :: naa(npart)
+  integer, save :: nzz(npart)
+  integer, save :: pids(npart)
+
+!  common/hions/zz0,aa0,nucm0,naa(npart),nzz(npart),nucm(npart),moidpsv(npart),omoidpsv(npart),mtc(npart),nnuc0,nnuc1,brhono,ien0,&
+! &ien1,pids(npart)
+end module mod_hions
+
