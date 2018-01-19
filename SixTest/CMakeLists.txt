@@ -52,6 +52,7 @@ SET(TESTS_NOFORT10
   scatter_bbelastic
   collimation_k2_fcc_2017_h1_collision
   dump_all_highprec
+  dump_2_all_ele_highprec
   )
 
 if(NOT COLLIMAT)
@@ -148,6 +149,7 @@ if(NOT COLLIMAT)
           last_amp
           scatter_bbelastic
           dump_all_highprec
+          dump_2_all_ele_highprec
           ${SIXTRACK_TESTS}
         )
 
@@ -340,6 +342,7 @@ SET(FAST_TESTS
   last_amp
   scatter_bbelastic
   dump_all_highprec
+  dump_2_all_ele_highprec
   )
 
 #Medium tests take < 30 mins to run
