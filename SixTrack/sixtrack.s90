@@ -4914,10 +4914,11 @@
             yv(1,j)=yv(1,j)-((strack(i)*xlvj)*moidpsv(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1)
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)-((((strack(i)*xlvj)*moidpsv(j))+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tiltc(i))     & 
-     &+(((c1e3*dki(ix,1))*moidpsv(j))*(one-tiltc(i)))         ! hisix
-            yv(2,j)=(yv(2,j)-((((strack(i)*xlvj)*oidpsv(j))*mtc(j)+omoidpsv(j)+dpsv1(j))*dki(ix,1))*tilts(i)) &
-     &+(((c1e3*dki(ix,1))*oidpsv(j))*tilts(i))*mtc(j)         ! hisix
+            write(lout,*) omoidpsv(j), moidpsv(j),mtc(j)
+            yv(1,j)=(yv(1,j)-((((strack(i)*xlvj)*moidpsv(j))*mtc(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tiltc(i))  !& 
+ &                          +(((c1e3*dki(ix,1)) *moidpsv(j))x*(one-tiltc(i)))*mtc(j)         ! hisix
+            yv(2,j)=(yv(2,j)-((((strack(i)*xlvj)*moidpsv(j))*mtc(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tilts(i))  &
+     &+(((c1e3*dki(ix,1))*moidpsv(j))*tilts(i))*mtc(j)         ! hisix
 +ei
 +cd mul4v02
 +if .not.tilt
@@ -10865,12 +10866,18 @@ end subroutine hamilton1
       ise=0
       iskew=0
       preda=c1m38
+!hion
+      zz0 = 1
+      aa0 = 1
+      nucm0 = pmap
 +if .not.collimat
       do_coll = .false.
 +ei
 +if collimat
       has_coll = .false.
 +ei
+      has_hion = .false.
+
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -12476,6 +12483,7 @@ end subroutine hamilton1
         write(lout,*)
       endif
       if(pma.lt.pieni) call prror(27)
+      nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
       if(ncy2.eq.0) then
@@ -16413,6 +16421,7 @@ end subroutine hamilton1
       ch1(:nchars+3)=ch(:nchars)//' / '
       read(ch1,*) aa0, zz0, nucm0
       nucm0 = nucm0  * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+      has_hion = .true.
       goto 110
 !-----------------------------------------------------------------------
 
@@ -16567,6 +16576,14 @@ end subroutine hamilton1
          call prror(-1)
       endif
 +ei
+! If we don't have the HION block, we need to set some variables - default to the proton values
+      if(has_hion .eqv. .false.) then
+        zz0 = 1
+        aa0 = 1
+        nucm0 = pma
+        write(lout,*) 'No HION block found, will default to the proton values: [Z,A,M]', zz0, aa0, nucm0
+      end if
+
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il   ! converting 6D lenses to 4D
           if (beam_expflag .eq. 1) then
@@ -22903,6 +22920,14 @@ program maincr
         xlv(i)=zero
         zlv(i)=zero
         rvv(i)=one
+!Heavy ion variables
+! P. HERMES for hiSix
+        mtc(i) = one
+        naa(i) = 1
+        nzz(i) = 1
+        nucm(i)= pmap
+        moidpsv(i) = one
+        omoidpsv(i) = zero
 +if rvet
         rvet(i)=zero
 +ei

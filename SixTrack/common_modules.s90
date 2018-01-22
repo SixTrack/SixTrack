@@ -574,19 +574,49 @@ end module mod_commons
 module mod_hions
   use floatPrecision
   use parpro
+
   implicit none
+
 ! P. Hermes for Heavy Ion SixTrack (hiSix)
 ! initialize the variables for ion tracking
+
+! Checking for the HION block
+  logical, save :: has_hion
+
+! Rest mass of the reference ion species
+  real(kind=fPrec), save :: nucm0
+
+  real(kind=fPrec), save :: brhono
+
 ! ien0,ien1: ion energy entering/leaving the collimator
-  real(kind=fPrec), save :: nucm0, brhono, ien0, ien1
+  real(kind=fPrec), save :: ien0, ien1
+
+! Rest mass of the tracked ion
   real(kind=fPrec), save :: nucm(npart)
+
+! Relative rigidity offset
   real(kind=fPrec), save :: moidpsv(npart)
   real(kind=fPrec), save :: omoidpsv(npart)
+
+! Relative mass to charge ratio
   real(kind=fPrec), save :: mtc(npart)
 
-  integer, save :: aa0,zz0,nnuc0,nnuc1
+! Nucleon number of the reference ion species
+  integer, save :: aa0
+
+! Charge multiplicity of the reference ion species
+  integer, save :: zz0
+
+  integer, save :: nnuc0
+  integer, save :: nnuc1
+
+! Nucleon number of the tracked ion
   integer, save :: naa(npart)
+
+! Charge multiplicity of the tracked ion
   integer, save :: nzz(npart)
+
+! SixTrack particle IDs
   integer, save :: pids(npart)
 
 !  common/hions/zz0,aa0,nucm0,naa(npart),nzz(npart),nucm(npart),moidpsv(npart),omoidpsv(npart),mtc(npart),nnuc0,nnuc1,brhono,ien0,&

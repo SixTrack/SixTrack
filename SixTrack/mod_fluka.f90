@@ -27,7 +27,7 @@ module mod_fluka
   public :: fluka_set_synch_part
   public :: fluka_init_max_uid
   public :: fluka_is_running
-
+  public :: fluka_init_brhono
 
   ! FlukaIO Connection parameters
   character(len = 255), public  :: fluka_host
@@ -68,18 +68,21 @@ module mod_fluka
   ! connection ID
   integer :: fluka_cid
 
-
   ! FLUK input block
-  logical, public :: fluka_enable    = .false.                     ! enable coupling
-  logical, public :: fluka_connected = .false.                     ! fluka is connected
-  logical, public :: fluka_debug     = .false.                     ! write debug messages
-  integer, public :: fluka_log_unit  = 888                         ! logical unit for log messages
+  logical, public :: fluka_enable     = .false.                     ! enable coupling
+  logical, public :: fluka_connected  = .false.                     ! fluka is connected
+  logical, public :: fluka_debug      = .false.                     ! write debug messages
+  integer, public :: fluka_log_unit   = 888                         ! logical unit for log messages
+  ! hisix: write isotope info
+  integer, public :: isotope_log_unit = 822                         ! logical unit for isotope-id output
+
   ! fluka insertions
-  logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
-  integer, public, allocatable :: fluka_type(:)                    ! type of insertion (one per SINGLE ELEMENT)
-  integer, public, allocatable :: fluka_geo_index(:)               ! index of insertion (one per SINGLE ELEMENT)
-  real(kind=fPrec), public, allocatable :: fluka_synch_length(:)   ! length of insertion [m] (one per SINGLE ELEMENT)
-  ! recognised insertion types
+  logical, public :: fluka_inside = .false.                         ! Are we in a fluka insertion?
+  integer, public, allocatable :: fluka_type(:)                     ! type of insertion (one per SINGLE ELEMENT)
+  integer, public, allocatable :: fluka_geo_index(:)                ! index of insertion (one per SINGLE ELEMENT)
+  real(kind=fPrec), public, allocatable :: fluka_synch_length(:)    ! length of insertion [m] (one per SINGLE ELEMENT)
+ 
+ ! recognised insertion types
   integer, parameter, public :: FLUKA_NONE    = 0, & ! no insertion
                                 FLUKA_ELEMENT = 1, & ! insertion covers only the present SINGLE ELEMENT
                                 FLUKA_ENTRY   = 2, & ! SINGLE ELEMENT marking the start of the insertion
@@ -102,6 +105,8 @@ module mod_fluka
   real(kind=fPrec), public :: fluka_mass0  ! [GeV/c2]
   real(kind=fPrec), public :: fluka_brho0  ! [Tm]
   integer,          public :: fluka_chrg0  ! []
+  integer,          public :: fluka_a0     ! nucelon number (hisix)
+  integer,          public :: fluka_z0     ! charge multiplicity (hisix)
 
   ! hack for Li-7
   !real(kind=fPrec), parameter :: MLI = 6.5338351903884577D0
@@ -142,6 +147,7 @@ module mod_fluka
     fluka_synch_length = 0.0D+00
 
     open(fluka_log_unit)
+    open(isotope_log_unit)
 
   end subroutine fluka_mod_init
 
@@ -237,7 +243,7 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! send and receive particles from Fluka
-  integer function fluka_send_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot)
+  integer function fluka_send_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
     implicit none
 
     ! Parameters
@@ -246,16 +252,18 @@ module mod_fluka
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
+    integer           :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
+    real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
 
-    fluka_send_receive = fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot)
+    fluka_send_receive = fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
     if(fluka_send_receive.eq.-1) return
 
-    fluka_send_receive = fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot)
+    fluka_send_receive = fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
   end function fluka_send_receive
 
   !----------------------------------------------------------------------------
   ! just send particles to Fluka
-  integer function fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot)
+  integer function fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
     implicit none
 
     ! Interface variables
@@ -264,6 +272,8 @@ module mod_fluka
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
+    integer           :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
+    real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
 
     ! Fluka I/O parameters
     integer(kind=int32)         :: flid, flgen
@@ -292,11 +302,11 @@ module mod_fluka
     mtype = 0
 
 !   atomic number:
-    flzz = 1
+!    flzz = 1
 !   mass number:
-    flaa = 1
+!    flaa = 1
 !   particle mass [GeV/c2]:
-    flm  = fluka_mass0
+!    flm  = fluka_mass0
 
     do j=1, npart
 
@@ -323,9 +333,15 @@ module mod_fluka
       ! longitudinal phase:
       flt   = -s(j) * 1.0D-03 / ( (fluka_pc0/fluka_e0)*fluka_clight ) ! from [mm] to [s]
 
+
+      ! Ion properties (PH for hiSix)
+      flm   = mass(j) * 1.0D-03      ! unit is [GeV]
+      flaa  = aa(j)
+      flzz  = zz(j)
+
       if(fluka_debug) then
-        write(fluka_log_unit, '(">",2I8,7(1X,1PE25.18))') flid, flgen, &
-             flx, fly, flxp, flyp, flm, flet, flt
+        write(fluka_log_unit, '(">",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
+             flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz             !PH: added flaa,flzz
       end if
 
 ! Hack for lithium-7
@@ -366,7 +382,7 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! just receive particles from Fluka
-  integer function fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot)
+  integer function fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
     implicit none
 
     ! Interface variables
@@ -375,6 +391,8 @@ module mod_fluka
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
+    integer           :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
+    real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
 
     ! Fluka I/O parameters
     integer(kind=int32)         :: flid, flgen
@@ -403,6 +421,10 @@ module mod_fluka
       yp  (j) = 0.0D+00
       etot(j) = 0.0D+00
       s   (j) = 0.0D+00
+! hisix: we should also parse m0,A0,Z0
+      aa  (j) = 1
+      zz  (j) = 1
+      mass(j) = zero
     end do
 
     ! Wait until end of turn (Synchronize)
@@ -436,8 +458,8 @@ module mod_fluka
          else
 
             if(fluka_debug) then
-               write(fluka_log_unit, '("<",2I8,7(1X,1PE25.18))') flid, flgen, &
-                    flx, fly, flxp, flyp, flm, flet, flt
+               write(fluka_log_unit, '("<",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
+                    flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz ! PH for hiSix
             end if
 
             fluka_uid(fluka_nrecv)    = flid
@@ -447,7 +469,13 @@ module mod_fluka
 ! AM ->                ! generate a new uid
 ! AM ->                fluka_max_uid = fluka_max_uid + 1
 ! AM ->                fluka_uid(fluka_nrecv) = fluka_max_uid
+!
+! PH for hisix: write the particle species and their initial conditions to fort.822
+!
+               write(isotope_log_unit,*), fluka_uid(fluka_nrecv),flgen, ipt, flaa, flzz, flet * 1.0D+03
+
             end if
+
             fluka_weight(fluka_nrecv) = flwgt
             x(fluka_nrecv)            = flx * 1.0D+01   ! from [cm]  to [mm]
             y(fluka_nrecv)            = fly * 1.0D+01   ! from [cm]  to [mm]
@@ -455,7 +483,9 @@ module mod_fluka
             yp(fluka_nrecv)           = flyp / flzp * 1.0D+03 ! from director cosine to x' [1.0E-03]
             etot(fluka_nrecv)         = flet * 1.0D+03  ! from [GeV] to [MeV]
             s(fluka_nrecv)            = ( el - (fluka_pc0/fluka_e0)*(flt*fluka_clight) ) * 1.0D+03 ! from [s] to [mm]
-
+            aa(fluka_nrecv)           = flaa          !PH for hiSix
+            zz(fluka_nrecv)           = flzz          !PH for hiSix
+            mass(fluka_nrecv)         = flm  * 1.0D+03  ! from [GeV] to [MeV]         !PH for hiSix
          end if
       end if
 
@@ -552,6 +582,27 @@ module mod_fluka
     end if
 
   end function fluka_init_max_uid
+
+
+  !----------------------------------------------------------------------------
+  ! set Brho nominal
+  integer function fluka_init_brhono( brhono )
+    implicit none
+
+    ! interface variables
+    double precision :: brhono
+
+    ! Auxiliary variables
+    integer :: n
+
+    n = ntsendbrhono(fluka_cid, brhono)
+    if (n .lt. 0) then
+      fluka_init_brhono = -1
+      return
+    end if
+
+  end function fluka_init_brhono
+
 
   !----------------------------------------------------------------------------
   ! check if fluka is running, ie if it created the 
