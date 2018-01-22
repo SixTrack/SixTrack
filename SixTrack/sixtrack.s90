@@ -23743,7 +23743,6 @@ program maincr
             oidpsv(ib2)=one/(one+dp1)
 ! Heavy ion variable
             moidpsv(ib2)=mtc(ib2)/(one+dp1)
-            write(lout,*) 'ib2: ', ib2, oidpsv(ib2), moidpsv(ib2), mtc(ib2)
             nms(ib2)=m
 
             if(ithick.eq.1) then
