@@ -23837,39 +23837,26 @@ C Should get me a NaN
 !--   Very first get rid of any previous partial output
 +if boinc
       call boincrf('fort.92',filename)
-      open(lout,file=filename,form='formatted',status='unknown')
-+ei
-+if .not.boinc
-      open(lout,file='fort.92',form='formatted',status='unknown')
-+ei
-      rewind lout
-      endfile (lout,iostat=ierro)
-      close(lout)
-+if boinc
-      call boincrf('fort.92',filename)
 +if fio
-      open(lout,file=filename,form='formatted',status='unknown',        &
-     &round='nearest')
+      open(lout,file=filename,form='formatted',status='replace',round='nearest')
 +ei
 +if .not.fio
-      open(lout,file=filename,form='formatted',status='unknown')
+      open(lout,file=filename,form='formatted',status='replace')
 +ei
 +ei
 +if .not.boinc
 +if fio
-      open(lout,file='fort.92',form='formatted',status='unknown',       &
-     &round='nearest')
+      open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
 +ei
 +if .not.fio
-      open(lout,file='fort.92',form='formatted',status='unknown')
+      open(lout,file='fort.92',form='formatted',status='replace')
 +ei
 +ei
 !--   Now position the checkpoint/restart logfile=93
 +if boinc
       call boincrf('fort.93',filename)
 +if fio
-      open(93,file=filename,form='formatted',status='unknown',          &
-     &round='nearest')
+      open(93,file=filename,form='formatted',status='unknown', round='nearest')
 +ei
 +if .not.fio
       open(93,file=filename,form='formatted',status='unknown')
@@ -23877,8 +23864,7 @@ C Should get me a NaN
 +ei
 +if .not.boinc
 +if fio
-      open(93,file='fort.93',form='formatted',status='unknown',         &
-     &round='nearest')
+      open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
 +ei
 +if .not.fio
       open(93,file='fort.93',form='formatted',status='unknown')
