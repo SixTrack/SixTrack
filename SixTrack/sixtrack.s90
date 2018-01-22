@@ -4914,11 +4914,14 @@
             yv(1,j)=yv(1,j)-((strack(i)*xlvj)*moidpsv(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1)
 +ei
 +if tilt
-            write(lout,*) omoidpsv(j), moidpsv(j),mtc(j)
-            yv(1,j)=(yv(1,j)-((((strack(i)*xlvj)*moidpsv(j))*mtc(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tiltc(i))  !& 
- &                          +(((c1e3*dki(ix,1)) *moidpsv(j))x*(one-tiltc(i)))*mtc(j)         ! hisix
-            yv(2,j)=(yv(2,j)-((((strack(i)*xlvj)*moidpsv(j))*mtc(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tilts(i))  &
-     &+(((c1e3*dki(ix,1))*moidpsv(j))*tilts(i))*mtc(j)         ! hisix
+            yv(1,j)=(yv(1,j)-((((strack(i)*xlvj)*moidpsv(j))            &
+     &+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tiltc(i))                     &
+     &+(((c1e3*dki(ix,1))*moidpsv(j))*(one-tiltc(i)))         ! hisix
+
+            yv(2,j)=(yv(2,j)-((((strack(i)*xlvj)*oidpsv(j))*mtc(j)      &
+     &+omoidpsv(j)+dpsv1(j))*dki(ix,1))*tilts(i))                       &
+     &+(((c1e3*dki(ix,1))*oidpsv(j))*tilts(i))*mtc(j)         ! hisix
+
 +ei
 +cd mul4v02
 +if .not.tilt
@@ -5383,7 +5386,8 @@
                   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
                   dpsv(j)=(ejfv(j)-e0f)/e0f
                   oidpsv(j)=one/(one+dpsv(j))
-                  dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                      !hr03
+                  moidpsv(j)=mtc(j)/(one+dpsv(j))
+                  dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)*mtc(j)                      !hr03
 cc2008
                   namepart(j) = samplenumber*100 + j
 cc2008
@@ -23715,7 +23719,8 @@ program maincr
             write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
           endif
-          do 240 ib1=1,napx
+
+          do ib1=1,napx
             !Loop over all particles (not pairs) with the same
             ! ib (momentum variation, 1..imc ) and
             !  m (seed,               1..mmac).
@@ -23730,21 +23735,29 @@ program maincr
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
             ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
-            if (ib1.eq.napx-1 .and. ib1.ne.1) then
-               !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
-               ! This is helpfull when doing DA studies and checking the "overlap"
-               ampv(ib2)=amp0
-            endif
+
+            if(ib1.eq.napx-1 .and. ib1.ne.1) then
+              !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
+              ! This is helpfull when doing DA studies and checking the "overlap"
+              ampv(ib2)=amp0
+            end if
+
             dp0v(ib2)=dp10
             dpsv(ib2)=dp10
             oidpsv(ib2)=one/(one+dp1)
+! Heavy ion variable
+            moidpsv(ib2)=mtc(ib2)/(one+dp1)
+            write(lout,*) 'ib2: ', ib2, oidpsv(ib2), moidpsv(ib2), mtc(ib2)
             nms(ib2)=m
-            if (ithick.eq.1) then
-               do 230 i=1,nele
-                  ekv(ib2,i)=ek(i)
- 230           continue
-            endif
-  240     continue
+
+            if(ithick.eq.1) then
+              do i=1,nele
+                ekv(ib2,i)=ek(i)
+              end do
+            end if
+
+          end do
+
           ib0=ib0+napx
   250   continue
   260 continue
@@ -23863,9 +23876,11 @@ program maincr
           pstop (j) = .false.
 
 !         values related to momentum
+!         old proton only terms:
 !          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
 !          dpsv  (j) = (ejfv(j)-e0f)/e0f
 !          oidpsv(j) = one/(one+dpsv(j))
+
           ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)              ! hiSix
           dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hiSix
           oidpsv(j)   = one/(one+dpsv(j))
@@ -23943,6 +23958,7 @@ program maincr
             sigmv(j)=sigmv(j)+clo6v(3,j)
             dpsv(j)=dpsv(j)+clop6v(3,j)
             oidpsv(j)=one/(one+dpsv(j))
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
           end do
         end if
 
@@ -24067,6 +24083,11 @@ program maincr
           ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
+          ! TODO update the rest of the new variables
+          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
+          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
+          nucm(ia)=nucm0
+          nucm(ia+1)=nucm0
           write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 +if .not.crlibm
@@ -26475,6 +26496,11 @@ subroutine thin6d(nthinerr)
 +if collimat
       dotrack = myktrack
 +ei
+
+      do j=1,napx
+        write(lout,*) 'DEBUG:', bez(ix), j, moidpsv(j), oidpsv(j), mtc(j)
+      end do
+
       select case(dotrack)
       case (1)
         stracki=strack(i)
@@ -26598,9 +26624,11 @@ subroutine thin6d(nthinerr)
           endif
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                               !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)-e0f)/e0f
+          dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+!          dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)                           !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
         end do
@@ -27367,6 +27395,7 @@ end subroutine thin6d
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
             dpsv(j)=(ejfv(j)-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
             dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
             if(sigmv(j).gt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
@@ -30896,6 +30925,7 @@ subroutine thck6d(nthinerr)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
           dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
@@ -31715,6 +31745,7 @@ subroutine thck6dua(nthinerr)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
               dpsv(j)=(ejfv(j)-e0f)/e0f
               oidpsv(j)=one/(one+dpsv(j))
+              moidpsv(j)=mtc(j)/(one+dpsv(j))
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
             if(sigmv(j).gt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
 
@@ -48066,8 +48097,9 @@ end subroutine subsea
         dpsv(j)=crdpsv(j)
         dpsv1(j)=crdpsv1(j)
 ! TEMPORARY? fix for crabamp/multipole problem
-!       oidpsv(j)=croidpsv(j)
+!       mtc(j)oidpsv(j)=croidpsv(j)
         oidpsv(j)=one/(one+dpsv(j))
+        moidpsv(j)=mtc(j)/(one+dpsv(j))
         ejv(j)=crejv(j)
         ejfv(j)=crejfv(j)
         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
