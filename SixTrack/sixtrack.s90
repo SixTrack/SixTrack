@@ -3514,32 +3514,28 @@
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
 !---------CrabFreq input in MHz (ek)
 !---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
-          pi=four*atan_mb(one)
-        crabfreq=ek(ix)*c1e3
-        crabamp=ed(ix)
+      pi=four*atan_mb(one)
+      crabfreq=ek(ix)*c1e3
         
-        do j=1,napx ! loop over particles
+      do j=1,napx ! loop over particles
+        crabamp=ed(ix)*nzz(j)
+        kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi+crabph(ix)
+        yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*sin_mb(kcrab)*(oidpsv(j)/e0f)
+        ejv(j)=ejv(j)-(((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*cos_mb(kcrab)
+        ejf0v(j)=ejfv(j)
+      
+        ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+        dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+        oidpsv(j)=one/(one+dpsv(j))
+        moidpsv(j)=mtc(j)/(one+dpsv(j))
+        dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+        yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+        yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
 
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03
-       yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*                          &!hr03
-     &sin_mb(kcrab)*(oidpsv(j)/e0f)                                      !hr03
-      ejv(j)=ejv(j) -                                                   &!hr03
-     &(((((crabamp*crabfreq)*2d0)*pi)/clight)                           &!hr03
-     &*xv(xory,j))*cos_mb(kcrab)                                         !hr03
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+
+      end do
 +cd ccmul2
 ! JBG RF CC Multipoles
           pi=four*atan_mb(one)
@@ -26496,10 +26492,6 @@ subroutine thin6d(nthinerr)
 +if collimat
       dotrack = myktrack
 +ei
-
-      do j=1,napx
-        write(lout,*) 'DEBUG:', bez(ix), j, moidpsv(j), oidpsv(j), mtc(j)
-      end do
 
       select case(dotrack)
       case (1)
