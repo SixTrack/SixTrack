@@ -1,5 +1,5 @@
 +dk aperture
-  
+
 module aperture
 
   use floatPrecision
