@@ -3539,37 +3539,35 @@
 +cd ccmul2
 ! JBG RF CC Multipoles
           pi=four*atan_mb(one)
-          crabamp2 = ed(ix)
           crabfreq=ek(ix)*c1e3
 !          write(*,*) ''
 !          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 2', crabamp2
+!          write(*,*) 'CRAB AMP 2', ed(ix)
 !          write(*,*) 'FREQ',  crabfreq
 !          write(*,*) 'PHASE', crabph2(ix)
 !          write(*,*) '-------------------'
         do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph2(ix)                                                     !hr03
+          crabamp2 = ed(ix)*nzz(j)
+          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
          
 +ca alignva
-        yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*cos_mb(kcrab)
-        yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((0.5d0*(crabamp2))*(crkve**2-                  &!hr13
-     &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &(sin_mb(kcrab)*e0f)                                                !hr13
-      ejf0v(j)=ejfv(j)
+          yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*cos_mb(kcrab)
+          yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*cos_mb(kcrab)
+          ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+          ejf0v(j)=ejfv(j)
       
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+          if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
       
-      enddo
+        end do
 +cd ccmul2s
 ! JBG RF CC Multipoles 2
           pi=four*atan_mb(one)
@@ -23954,6 +23952,7 @@ program maincr
             dpsv(j)=dpsv(j)+clop6v(3,j)
             oidpsv(j)=one/(one+dpsv(j))
             moidpsv(j)=mtc(j)/(one+dpsv(j))
+            omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
           end do
         end if
 
@@ -24078,11 +24077,14 @@ program maincr
           ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
-          ! TODO update the rest of the new variables
+
           moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
           moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
+          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
+          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
           nucm(ia)=nucm0
           nucm(ia+1)=nucm0
+
           write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 +if .not.crlibm
@@ -26619,6 +26621,7 @@ subroutine thin6d(nthinerr)
 !          dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)                           !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
@@ -27387,6 +27390,7 @@ end subroutine thin6d
             dpsv(j)=(ejfv(j)-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
             moidpsv(j)=mtc(j)/(one+dpsv(j))
+            omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
             dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
             if(sigmv(j).gt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
@@ -30917,6 +30921,7 @@ subroutine thck6d(nthinerr)
           dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
@@ -31737,6 +31742,7 @@ subroutine thck6dua(nthinerr)
               dpsv(j)=(ejfv(j)-e0f)/e0f
               oidpsv(j)=one/(one+dpsv(j))
               moidpsv(j)=mtc(j)/(one+dpsv(j))
+              omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
             if(sigmv(j).gt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
 
@@ -48088,9 +48094,10 @@ end subroutine subsea
         dpsv(j)=crdpsv(j)
         dpsv1(j)=crdpsv1(j)
 ! TEMPORARY? fix for crabamp/multipole problem
-!       mtc(j)oidpsv(j)=croidpsv(j)
+!       oidpsv(j)=croidpsv(j)
         oidpsv(j)=one/(one+dpsv(j))
         moidpsv(j)=mtc(j)/(one+dpsv(j))
+        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
         ejv(j)=crejv(j)
         ejfv(j)=crejfv(j)
         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
