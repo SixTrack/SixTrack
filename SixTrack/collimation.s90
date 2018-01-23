@@ -761,6 +761,8 @@ subroutine collimate_start_sample(nsample)
     rvv(i)    = (ejv(i)*e0f)/(e0*ejfv(i))
     dpsv(i)   = (ejfv(i)-e0f)/e0f
     oidpsv(i) = one/(one+dpsv(i))
+    moidpsv(i)= mtc(i)/(one+dpsv(i))
+    omoidpsv(i)=c1e3*((one-mtc(i))*oidpsv(i))
     dpsv1(i)  = (dpsv(i)*c1e3)*oidpsv(i)                          !hr08
 
     nlostp(i)=i
@@ -2318,10 +2320,12 @@ subroutine collimate_end_collimator()
       ejv(j)  = rcp(j)  * c1e3
 
 !++  Energy update, as recommended by Frank
-      ejfv(j)   = sqrt(ejv(j)*ejv(j)-pma*pma)
+      ejfv(j)   = sqrt(ejv(j)*ejv(j)-nucm(j)*nucm(j))
       rvv(j)    = (ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)   = (ejfv(j)-e0f)/e0f
       oidpsv(j) = one/(one+dpsv(j))
+      moidpsv(j) = mtc(j)/(one+dpsv(j))
+      omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
       dpsv1(j)  = dpsv(j)*c1e3*oidpsv(j)
       yv(1,j)   = ejf0v(j)/ejfv(j)*yv(1,j)
       yv(2,j)   = ejf0v(j)/ejfv(j)*yv(2,j)
