@@ -26504,6 +26504,9 @@ subroutine thin6d(nthinerr)
               ename(ie)    = bez(myix)(1:16)
             end do
           endif
++if backtrk
++ca backtrksave
++ei
           goto 650
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 +ei
