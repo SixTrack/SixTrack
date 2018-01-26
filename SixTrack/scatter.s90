@@ -9,6 +9,8 @@ module scatter
     use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
 
     use parpro ! For nele
+
+    use mod_ranecu
     
     IMPLICIT NONE
 
@@ -1005,6 +1007,7 @@ subroutine scatter_thin(ix, turn)
       use crcoall
     use mod_common
     use mod_commonmn
+    
     implicit none
     
 

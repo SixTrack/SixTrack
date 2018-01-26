@@ -2675,8 +2675,9 @@ end subroutine dynk_apply
 ! ================================================================================================ !
 recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
-      use crcoall
+    use crcoall
     use mod_common
+    use mod_ranecu
     implicit none
 
 +ca comgetfields
