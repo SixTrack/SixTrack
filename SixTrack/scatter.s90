@@ -3,13 +3,19 @@
 
 module scatter
 
+    use floatPrecision
+    use mathlib_bouncer
+
+    use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
+
+    use parpro ! For nele
+    
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
     ! Therefore, we always need to import the SCATTER module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-+ca parpro ! for nele
 
 ! For the string length stuff
 +ca comgetfields
@@ -33,7 +39,7 @@ module scatter
     ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
     integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
     
-    double precision scatter_ELEM_scale(scatter_maxELEM)
+    real(kind=fPrec) scatter_ELEM_scale(scatter_maxELEM)
     
     ! Configuration for PROFILE
     integer scatter_maxPROFILE
@@ -58,7 +64,7 @@ module scatter
                scatter_maxstrlen = stringzerotrim_maxlen )
     
     integer,                       allocatable :: scatter_idata (:)
-    double precision,              allocatable :: scatter_fdata (:)
+    real(kind=fPrec),              allocatable :: scatter_fdata (:)
     character (scatter_maxstrlen), allocatable :: scatter_cdata (:)
     
     ! Number of currently used positions in arrays
@@ -79,7 +85,7 @@ module scatter
 +if cr
     integer :: scatter_filepos,scatter_filepos_cr
     integer,                      allocatable :: scatter_idata_cr (:)
-    double precision,             allocatable :: scatter_fdata_cr (:)
+    real(kind=fPrec),             allocatable :: scatter_fdata_cr (:)
     character(scatter_maxstrlen), allocatable :: scatter_cdata_cr (:)
     integer :: scatter_nidata_cr, scatter_nfdata_cr, scatter_ncdata_cr
     integer :: scatter_seed1_cr, scatter_seed2_cr
@@ -101,10 +107,10 @@ contains
 ! =================================================================================================
 subroutine scatter_allocate
     
+      use crcoall
+    use parpro
     implicit none
 
-+ca crcoall
-+ca parpro
 
     integer stat
     integer i,j
@@ -146,10 +152,10 @@ end subroutine scatter_allocate
 !  Last modified: 09-2017
 ! =================================================================================================
 subroutine scatter_initialize
+      use crcoall
+    use parpro
     implicit none
     integer ierro
-+ca crcoall
-+ca parpro
 
     logical lopen
 
@@ -200,6 +206,59 @@ subroutine scatter_closefiles
 end subroutine scatter_closefiles
 
 ! =================================================================================================
+!  K. Sjobak, BE-ABP-LAT and V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 11-2017
+!  Called from COMNUL; initializes the arrays used by SCATTER.
+! =================================================================================================
+subroutine scatter_comnul
+    implicit none
+    
+    integer i,j
+    
+    scatter_debug = .false.
+    scatter_nidata = 0
+    scatter_nfdata = 0
+    scatter_ncdata = 0
+    scatter_nELEM  = 0
+    scatter_nPROFILE = 0
+    scatter_nGENERATOR  = 0
+    
+    do i=1,nele
+        scatter_elemPointer(i) = 0
+    end do
+    
+    do i=1,scatter_maxELEM
+        do j=1,scatter_maxGenELEM
+            scatter_ELEM(i,j) = 0
+        end do
+        scatter_ELEM_scale(i) = zero
+    end do
+    
+    do i=1,scatter_maxPROFILE
+        scatter_PROFILE(i,1)=0
+        scatter_PROFILE(i,2)=0
+        scatter_PROFILE(i,3)=0
+        scatter_PROFILE(i,4)=0
+        scatter_PROFILE(i,5)=0
+    end do
+    
+    do i=1,scatter_maxGENERATOR
+        scatter_GENERATOR(i,1)=0
+        scatter_GENERATOR(i,2)=0
+        scatter_GENERATOR(i,3)=0
+        scatter_GENERATOR(i,4)=0
+        scatter_GENERATOR(i,5)=0
+    end do
+
+    scatter_seed1 = -1
+    scatter_seed2 = -1
+
++if cr
+    scatter_filepos = -1
++ei
+end subroutine scatter_comnul
+
+! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 !  Called from CRCHECK; reads the _cr arrays for scatter from file-
@@ -208,11 +267,11 @@ end subroutine scatter_closefiles
 +if cr
 subroutine scatter_crcheck_readdata(fileunit,readerr)
     
+      use crcoall
     implicit none
     integer, intent(in)  :: fileunit
     logical, intent(out) :: readerr
 
-+ca crcoall
     
     integer j
     
@@ -241,17 +300,17 @@ end subroutine scatter_crcheck_readdata
 ! =================================================================================================
 subroutine scatter_crcheck_positionFiles
     
+      use crcoall
     implicit none
 
-+ca crcoall
 
     logical lopen
     integer ierro
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
     integer j
-    character*1024 arecord
+    character(len=1024) arecord
     
     inquire( unit=667, opened=lopen )
     if(lopen) then
@@ -324,8 +383,8 @@ end subroutine scatter_crcheck_positionFiles
 ! =================================================================================================
 subroutine scatter_crpoint(fileunit,writeerr,ierro)
     
+      use crcoall
     implicit none
-+ca crcoall
     integer, intent(in)    :: fileunit
     logical, intent(out)   :: writeerr
     integer, intent(inout) :: ierro    !Operate dummy in "passthrough" mode if no error -> inout
@@ -380,9 +439,9 @@ end subroutine scatter_crstart
 ! =================================================================================================
 subroutine scatter_dumpdata
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca stringzerotrim
 
     integer ii,jj
@@ -445,20 +504,20 @@ end subroutine scatter_dumpdata
 ! =================================================================================================
 subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
 
-+ca crcoall
 +ca comgetfields
 +ca stringzerotrim
 
-+ca common
-+ca commonmn
 
     ! Temporary Variables
     integer ii, j
 +if crlibm
     integer errno
-    double precision round_near
+    real(kind=fPrec) round_near
 +ei
 
     ! Check number of arguments
@@ -603,9 +662,9 @@ end subroutine scatter_parseElem
 ! =================================================================================================
 subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca comgetfields
 +ca stringzerotrim
 
@@ -613,7 +672,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
     integer ii, tmpIdx
 +if crlibm
     integer errno
-    double precision round_near
+    real(kind=fPrec) round_near
 +ei
 
     ! Check number of arguments
@@ -766,19 +825,17 @@ end subroutine scatter_parseProfile
 ! =================================================================================================
 subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca comgetfields
 +ca stringzerotrim
-
-+ca parnum
 
     ! Temporary Variables
     integer ii, tmpIdx
 +if crlibm
     integer errno
-    double precision round_near
+    real(kind=fPrec) round_near
 +ei
 
     ! Check number of arguments
@@ -918,9 +975,9 @@ end subroutine scatter_parseGenerator
 ! =================================================================================================
 subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca comgetfields
 
     ! Check the number of arguments
@@ -945,26 +1002,22 @@ end subroutine scatter_parseSeed
 ! =================================================================================================
 subroutine scatter_thin(ix, turn)
     
+      use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
     
-+ca crcoall
-+if crlibm
-+ca crlibco
-+ei
 
 +ca stringzerotrim
-+ca common
-+ca commonmn
-+ca parnum
 
     ! Temp variables
     integer          ELEMidx, PROidx, GENidx
     integer          i, j
     integer          tmpSeed1, tmpSeed2
-    double precision s, t, xi, theta
-    double precision crossSection, N, P
-    double precision rndPhi(npart), rndP(npart)
-    double precision scaling
+    real(kind=fPrec) s, t, xi, theta
+    real(kind=fPrec) crossSection, N, P
+    real(kind=fPrec) rndPhi(npart), rndP(npart)
+    real(kind=fPrec) scaling
 
     integer, intent(in) :: ix, turn
 
@@ -997,7 +1050,7 @@ subroutine scatter_thin(ix, turn)
         call ranecu(rndPhi, napx, -1)
         call ranecu(rndP,   napx, -1)
         rndPhi = rndPhi*(two*pi)
-        
+
         do j=1, napx
             ! Compute the cross section at this s
             ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
@@ -1022,14 +1075,8 @@ subroutine scatter_thin(ix, turn)
             ! Use generator t and xi to update particle j;
             ! remember to update ALL the energy arrays
             theta   = c1e3*sqrt(t)/ejfv(j)                  ! Scale to mrad
-+if crlibm
-            yv(1,j) = theta*cos_rn(rndPhi(j)) + yv(1,j)
-            yv(2,j) = theta*sin_rn(rndPhi(j)) + yv(2,j)
-+ei
-+if .not.crlibm
-            yv(1,j) = theta*cos(rndPhi(j)) + yv(1,j)
-            yv(2,j) = theta*sin(rndPhi(j)) + yv(2,j)
-+ei
+            yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
+            yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
             
             ! Output to file
             write(667,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
@@ -1056,23 +1103,18 @@ end subroutine scatter_thin
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-double precision function scatter_profile_getDensity(profileIdx, x, y) result(retval)
-    
-    use, intrinsic :: iso_fortran_env, only : real32, real64, real128
+real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
+
+      use crcoall
+    use mod_common
     implicit none
-    
-+ca common
-+ca crcoall
-+if crlibm
-+ca crlibco
-+ei
+
 +ca stringzerotrim
-+ca parnum
     
     integer, intent(in) :: profileIdx
-    real(kind=real64), intent(in) :: x, y
+    real(kind=fPrec), intent(in) :: x, y
     
-    real(kind=real64) beamtot, sigmaX, sigmaY, offsetX, offsetY
+    real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY
     integer tmpIdx
     
     tmpIdx = scatter_PROFILE(profileIdx,3)
@@ -1086,16 +1128,9 @@ double precision function scatter_profile_getDensity(profileIdx, x, y) result(re
         sigmaY  = scatter_fdata(tmpIdx + 2)
         offsetX = scatter_fdata(tmpIdx + 3)
         offsetY = scatter_fdata(tmpIdx + 4)
-+if crlibm
         retval  = beamtot/(two*(pi*(sigmaX*sigmaY)))    &
-                * exp_rn(-half*((x-offsetX)/sigmaX)**2) &
-                * exp_rn(-half*((y-offsetY)/sigmaY)**2)
-+ei
-+if .not.crlibm
-        retval  = beamtot/(two*(pi*(sigmaX*sigmaY))) &
-                * exp(-half*((x-offsetX)/sigmaX)**2) &
-                * exp(-half*((y-offsetY)/sigmaY)**2)
-+ei
+                * exp_mb(-half*((x-offsetX)/sigmaX)**2) &
+                * exp_mb(-half*((y-offsetY)/sigmaY)**2)
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
@@ -1114,16 +1149,17 @@ end function scatter_profile_getDensity
 subroutine scatter_profile_getParticle(profileIdx, x, y, xp, yp, E)
     
     implicit none
-    
+
+ 
     integer, intent(in) :: profileIdx
-    double precision, intent(in)  :: x, y
-    double precision, intent(out) :: xp, yp, E
-    
+    real(kind=fPrec), intent(in)  :: x, y
+    real(kind=fPrec), intent(out) :: xp, yp, E
+
     ! Return a particle to collide with
     ! Add dummy variables for now, which stops ifort from complaining
-    xp = 0d0
-    yp = 0d0
-    E  = 0d0
+    xp = zero
+    yp = zero
+    E  = zero
     
 end subroutine scatter_profile_getParticle
 
@@ -1131,19 +1167,19 @@ end subroutine scatter_profile_getParticle
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-double precision function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
+real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 +ca stringzerotrim
 
     integer, intent(in) :: profileIDX, generatorIDX
-    double precision, intent(in) :: x, y, xp, yp, E
+    real(kind=fPrec), intent(in) :: x, y, xp, yp, E
 
     ! Temporary variables
     integer          tmpIdx
-    double precision xp_target, yp_target, E_target
+    real(kind=fPrec) xp_target, yp_target, E_target
 
     ! Calculate S
     call scatter_profile_getParticle(profileIDX, x,y, xp_target,yp_target,E_target)
@@ -1178,17 +1214,17 @@ end function scatter_generator_getCrossSection
 !  Last modified: 02-11-2017
 ! =================================================================================================
 subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
+
+      use crcoall
     implicit none
 
-+ca crcoall
-+ca parnum
 
     integer, intent(in) :: generatorIDX
-    double precision, intent(out) :: t, xi
+    real(kind=fPrec), intent(out) :: t, xi
 
     ! Temporary variables
     integer          tmpIdx
-    double precision a, b1, b2, phi, tmin
+    real(kind=fPrec) a, b1, b2, phi, tmin
 
     ! Could be affected by S as well?
 
@@ -1224,30 +1260,21 @@ end subroutine scatter_generator_getTandXi
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
 !  https://indico.cern.ch/event/625576/
 ! =================================================================================================
-double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
+real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
+      use crcoall
     implicit none
-+if crlibm
-+ca crlibco
-+ei
-+ca crcoall
-+ca parnum
 
-    double precision, intent(in) :: a, b1, b2, phi, tmin
+
+    real(kind=fPrec), intent(in) :: a, b1, b2, phi, tmin
 
     ! Temp Variables
     integer          nItt, maxItt
-    double precision g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
+    real(kind=fPrec) g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
 
     ! Approximate distribution
-+if crlibm
-    g1    =           exp_rn(-b1*tmin)/b1  ! Soft scatter term
-    g3    = (a**2) * (exp_rn(-b2*tmin)/b2) ! Hard scatter term
-+ei
-+if .not.crlibm
-    g1    =        exp(-b1*tmin)/b1 ! Soft scatter term
-    g3    = a**2 * exp(-b2*tmin)/b2 ! Hard scatter term
-+ei
+    g1    =           exp_mb(-b1*tmin)/b1  ! Soft scatter term
+    g3    = (a**2) * (exp_mb(-b2*tmin)/b2) ! Hard scatter term
     prob3 = g3/(g1+g3)              ! Probability of g3
     
     ! Pre-calculate inverses
@@ -1261,34 +1288,17 @@ double precision function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
         call ranecu(rndArr, 3, -1)
 
         ! Randomly switch between g1 and g3 according to probability
-+if crlibm
         if(rndArr(1) .gt. prob3) then
-            t = tmin - invB1*log_rn(rndArr(2))
+            t = tmin - invB1*log_mb(rndArr(2))
         else
-            t = tmin - invB2*log_rn(rndArr(2))
+            t = tmin - invB2*log_mb(rndArr(2))
         end if
-+ei
-+if .not.crlibm
-        if(rndArr(1) .gt. prob3) then
-            t = tmin - invB1*log(rndArr(2))
-        else
-            t = tmin - invB2*log(rndArr(2))
-        end if
-+ei
         
         ! Exact distribution
-+if crlibm
-        g1 =             exp_rn(-b1*t)                              ! Soft scatter term
-        g2 =  ((two*a) * exp_rn(((-half)*(b1+b2))*t)) * cos_rn(phi) ! Interference
-        g3 =    (a**2) * exp_rn(-b2*t)                              ! Hard scatter term
+        g1 =             exp_mb(-b1*t)                              ! Soft scatter term
+        g2 =  ((two*a) * exp_mb(((-half)*(b1+b2))*t)) * cos_mb(phi) ! Interference
+        g3 =    (a**2) * exp_mb(-b2*t)                              ! Hard scatter term
         gg = ((g1+g2)+g3)/(g1+g3)
-+ei
-+if .not.crlibm
-        g1 =          exp(-b1*t)                      ! Soft scatter term
-        g2 =  two*a * exp(-half*(b1+b2)*t) * cos(phi) ! Interference
-        g3 =   a**2 * exp(-b2*t)                      ! Hard scatter term
-        gg = (g1+g2+g3)/(g1+g3)
-+ei
         
         ! Check hit/miss on exact distribution
         ! if miss, get new t value

@@ -1,0 +1,5 @@
+zipf.s90 sixtrack.s90
+zipfn.f
+df cr,boinc,collimat,datamods,bignblz,hugenblz,bignpart,hugenpart,libarchive
+e zipf
+ex

@@ -734,7 +734,8 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 				else
 				{
 					std::cerr << "ERROR processing \"" << InputFileName << "\"" << std::endl;
-					std::cerr << "Searched for \"" << CallName << "\" and it was not defined anywhere!" << std::endl;
+					std::cerr << "Problematic line: \"" << Lines_itr->Text << "\"" << std::endl;
+					std::cerr << "Searched for \"+cd " << CallName << "\" and it was not defined anywhere!" << std::endl;
 					std::cerr << "The following +cd blocks exist:" << std::endl;
 					CallStorage_itr = CallStorage.begin();
 					while(CallStorage_itr != CallStorage.end())

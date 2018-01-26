@@ -2,15 +2,17 @@
 
 module dynk
 
+    use floatPrecision
+    use mathlib_bouncer
+    use numerical_constants, only : one, two, c1e3
+
+    use parpro !For nele
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
     ! Therefore, we always need to import the DYNK module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-
-!For nele
-+ca parpro
 
 !For the string length stuff
 +ca comgetfields
@@ -51,7 +53,7 @@ module dynk
 
     ! Data for DYNK FUNs
     integer,                   allocatable :: iexpr_dynk (:)
-    double precision,          allocatable :: fexpr_dynk (:)
+    real(kind=fPrec),          allocatable :: fexpr_dynk (:)
     character(maxstrlen_dynk), allocatable :: cexpr_dynk (:)
 
     !Number of used positions in arrays
@@ -83,7 +85,7 @@ module dynk
     character(maxstrlen_dynk) csets_unique_dynk (maxsets_dynk,2) 
 
     ! Store original value from dynk
-    double precision fsets_origvalue_dynk(maxsets_dynk)
+    real(kind=fPrec) fsets_origvalue_dynk(maxsets_dynk)
 
     ! Number of used positions in arrays
     integer nsets_unique_dynk 
@@ -93,7 +95,7 @@ module dynk
     ! Also used by setvalue and getvalue
     integer dynk_izuIndex
     dimension dynk_izuIndex(nele)
-    double precision dynk_elemdata(nele,3)
+    real(kind=fPrec) dynk_elemdata(nele,3)
 
 ! ================================================================================================ !
     
@@ -115,14 +117,14 @@ module dynk
 
     ! Data for DYNK FUNs
     integer,                   allocatable :: iexpr_dynk_cr (:)
-    double precision,          allocatable :: fexpr_dynk_cr (:)
+    real(kind=fPrec),          allocatable :: fexpr_dynk_cr (:)
     character(maxstrlen_dynk), allocatable :: cexpr_dynk_cr (:)
 
     ! Number of used positions in arrays
     integer niexpr_dynk_cr, nfexpr_dynk_cr, ncexpr_dynk_cr
 
     ! Store current settings from dynk
-    double precision fsets_dynk_cr(maxsets_dynk)
+    real(kind=fPrec) fsets_dynk_cr(maxsets_dynk)
 
     save dynkfilepos, dynkfilepos_cr
     save iexpr_dynk_cr, fexpr_dynk_cr, cexpr_dynk_cr
@@ -141,10 +143,9 @@ contains
 ! =================================================================================================
 subroutine dynk_allocate
 
+      use crcoall
     implicit none
 
-+ca crcoall
-+ca parnum
 
     integer stat
     integer i,j
@@ -194,20 +195,20 @@ end subroutine dynk_allocate
 ! =================================================================================================
 subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
+      use crcoall
     implicit none
 
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 
     intent(in) getfields_fields, getfields_lfields, getfields_nfields
 
     ! Temp variables
     integer ii, stat, t, nlines
-    double precision x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
-    double precision x1,x2,y1,y2,deriv                        ! LINSEG, QUADSEG,
-    double precision tinj,Iinj,Inom,A,D,R,te                  ! PELP (input)
-    double precision derivI_te,I_te,bexp,aexp, t1,I1, td,tnom ! PELP (calc)
+    real(kind=fPrec) x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
+    real(kind=fPrec) x1,x2,y1,y2,deriv                        ! LINSEG, QUADSEG,
+    real(kind=fPrec) tinj,Iinj,Inom,A,D,R,te                  ! PELP (input)
+    real(kind=fPrec) derivI_te,I_te,bexp,aexp, t1,I1, td,tnom ! PELP (calc)
 
     logical isFIR ! FIR/IIR
     logical lopen
@@ -215,20 +216,20 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 +if crlibm
 
     integer nchars
-    parameter (nchars=160) ! Same as in daten
-    character*(nchars) ch
+    parameter(nchars=160) ! Same as in daten
+    character(len=nchars) ch
 
     character filefields_fields(getfields_n_max_fields)*(getfields_l_max_string)
     integer filefields_nfields
     integer filefields_lfields(getfields_n_max_fields)
     logical filefields_lerr
 
-    double precision round_near
+    real(kind=fPrec) round_near
     integer errno
 +ei
 
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
 
 +if fio
@@ -791,7 +792,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ! Store pointers
         funcs_dynk(nfuncs_dynk,1) = ncexpr_dynk !NAME (in cexpr_dynk)
         funcs_dynk(nfuncs_dynk,2) = 6           !TYPE (RANDG)
-        funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial), seed2(initial), mcut, seed1(current), seed2(current) (in iexpr_dynk)
+        funcs_dynk(nfuncs_dynk,3) = niexpr_dynk !seed1(initial),seed2(initial),mcut,seed1(current),seed2(current) (in iexpr_dynk)
         funcs_dynk(nfuncs_dynk,4) = nfexpr_dynk !mu, sigma (in fexpr_dynk)
         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
 
@@ -1600,9 +1601,9 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         derivI_te = A*(te-tinj)                 ! nostore
         I_te      = (A/2.0)*(te-tinj)**2 + Iinj ! nostore
         bexp      = derivI_te/I_te
-        aexp      = exp(-bexp*te)*I_te
-        t1        = log(R/(aexp*bexp))/bexp
-        I1        = aexp*exp(bexp*t1)
+        aexp      = exp_mb(-bexp*te)*I_te
+        t1        = log_mb(R/(aexp*bexp))/bexp
+        I1        = aexp*exp_mb(bexp*t1)
         td        = (Inom-I1)/R + (t1 - R/(2*D))
         tnom      = td + R/D
 
@@ -1714,9 +1715,9 @@ end subroutine dynk_parseFUN
 
 subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
 
+      use crcoall
     implicit none
 
-+ca crcoall
     integer nfields, nfields_expected
     character(*) funsyntax
     intent(in) nfields, nfields_expected, funsyntax
@@ -1740,6 +1741,7 @@ end subroutine dynk_checkargs
 ! ================================================================================================ !
 subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
+      use crcoall
     implicit none
 
     integer iblocks, fblocks, cblocks
@@ -1747,11 +1749,9 @@ subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
     intent(in) iblocks, fblocks, cblocks, quiet
 
-+ca crcoall
-+ca parnum
 
     integer,                   allocatable :: itemp_dynk(:)
-    double precision,          allocatable :: ftemp_dynk(:)
+    real(kind=fPrec),          allocatable :: ftemp_dynk(:)
     character(maxstrlen_dynk), allocatable :: ctemp_dynk(:)
 
     integer newidata, newfdata, newcdata
@@ -1912,12 +1912,12 @@ end subroutine dynk_checkspace
 ! ================================================================================================ !
 subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
 
+      use crcoall
     implicit none
 
 +ca comgetfields
 +ca stringzerotrim
 
-+ca crcoall
 
     integer ii
 
@@ -2022,9 +2022,9 @@ end subroutine dynk_parseSET
 ! ================================================================================================ !
 integer function dynk_findFUNindex(funName_input, startfrom)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     character(*) funName_input
     character(maxstrlen_dynk) funName
@@ -2111,9 +2111,9 @@ end function dynk_findSETindex
 ! ================================================================================================ !
 subroutine dynk_inputsanitycheck
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     integer ii, jj
     integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
@@ -2212,11 +2212,11 @@ end subroutine dynk_inputsanitycheck
 ! ================================================================================================ !
 subroutine dynk_dumpdata
 
+      use crcoall
     implicit none
 
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 
     integer ii
     write (lout,*) "**************** DYNK parser knows: ****************"
@@ -2270,12 +2270,12 @@ end subroutine dynk_dumpdata
 ! ================================================================================================ !
 subroutine dynk_pretrack
 
+      use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 +ca commondl
 
     ! Temp variables
@@ -2425,17 +2425,16 @@ end subroutine dynk_pretrack
 ! ================================================================================================ !
 subroutine dynk_apply(turn)
 
+      use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
 
-+ca crcoall
-+ca parnum
-+ca common
-+ca commonmn
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
 
 +if collimat
@@ -2450,7 +2449,7 @@ subroutine dynk_apply(turn)
     ! temporary variables
     integer ii, jj, shiftedTurn
     logical lopen
-    double precision getvaldata, newValue
+    real(kind=fPrec) getvaldata, newValue
 
     character(maxstrlen_dynk) whichFUN(maxsets_dynk) ! Which function was used to set a given elem/attr?
     integer whichSET(maxsets_dynk)                   ! Which SET was used for a given elem/attr?
@@ -2643,9 +2642,9 @@ subroutine dynk_apply(turn)
                 whichFUN(jj) = "N/A"
             end if
 
-            ! For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
-            ! Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
-            ! Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
+            !For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
+            !Previously, the csets_unique_dynk etc. strings could maximally be 20 long each.
+            !Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
             write(outstring_tmp1,'(A20)') stringzerotrim(csets_unique_dynk(jj,1))
             outstring_tmp1(len(outstring_tmp1)+1:) = ' ' ! Pad with trailing blanks
             write(outstring_tmp2,'(A20)') stringzerotrim(csets_unique_dynk(jj,2))
@@ -2674,8 +2673,10 @@ end subroutine dynk_apply
 !  Last modified: 17-10-2014
 !  - Compute the value of a given DYNK function (funNum) for the given turn
 ! ================================================================================================ !
-recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
+recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
+      use crcoall
+    use mod_common
     implicit none
 
 +ca comgetfields
@@ -2686,21 +2687,17 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
 
     ! Functions to call
 +if crlibm
-    double precision round_near
+    real(kind=fPrec) round_near
 +ei
 
-+if crlibm
-+ca crlibco
-+ei
 
-+ca crcoall
 
     ! Temporaries for FILELIN
     integer filelin_start, filelin_xypoints
 
     ! Temporaries for random generator functions
     integer tmpseed1, tmpseed2
-    double precision ranecu_rvec(1)
+    real(kind=fPrec) ranecu_rvec(1)
 
     ! General temporaries
     integer foff  ! Base offset into fexpr array
@@ -2710,13 +2707,11 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
     ! String handling tempraries for PIPE, preformatting for round_near
     integer errno !for round_near
     integer nchars
-    parameter (nchars=160)
-    character*(nchars) ch
+    parameter(nchars=160)
+    character(len=nchars) ch
 +ei
 
 ! Usefull constants (pi and two)
-+ca common
-+ca parnum
 
     if (funNum .lt. 1 .or. funNum .gt. nfuncs_dynk) then
         write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
@@ -2752,7 +2747,7 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
         filelin_start    = funcs_dynk(funNum,4)
         filelin_xypoints = funcs_dynk(funNum,5)
         ! Pass the correct array views/sections to dynk_lininterp
-        retval = dynk_lininterp( dble(turn), &
+        retval = dynk_lininterp( real(turn,fPrec), &
                  fexpr_dynk(filelin_start:filelin_start+filelin_xypoints-1), &
                  fexpr_dynk(filelin_start +  filelin_xypoints: &
                             filelin_start +2*filelin_xypoints-1), &
@@ -2884,52 +2879,22 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
         retval = (-1)*dynk_computeFUN(funcs_dynk(funNum,3),turn)
 
     case (31)                                                         ! SQRT
-!+if crlibm
-!      retval = sqrt_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-!+ei
-!+if .not.crlibm      
         retval = sqrt(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-!+ei
 
     case (32)                                                         ! SIN
-+if crlibm
-        retval = sin_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = sin(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
+        retval = sin_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 
     case (33)                                                         ! COS
-+if crlibm
-        retval = cos_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = cos(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
+        retval = cos_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 
     case (34)                                                         ! LOG
-+if crlibm
-        retval = log_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = log(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
+        retval = log_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 
     case (35)                                                         ! LOG10
-+if crlibm
-        retval = log10_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = log10(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
+        retval = log10_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 
     case (36)                                                         ! EXP
-+if crlibm
-        retval = exp_rn(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
-+if .not.crlibm
-        retval = exp(dynk_computeFUN(funcs_dynk(funNum,3),turn))
-+ei
+        retval = exp_mb(dynk_computeFUN(funcs_dynk(funNum,3),turn))
 
     case (40)                                                         ! CONST
         retval = fexpr_dynk(funcs_dynk(funNum,3))
@@ -2945,7 +2910,7 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
         filelin_start    = funcs_dynk(funNum,3)
         filelin_xypoints = 2
         ! Pass the correct array views/sections to dynk_lininterp
-        retval = dynk_lininterp( dble(turn), &
+        retval = dynk_lininterp( real(turn,fPrec), &
                  fexpr_dynk(filelin_start:filelin_start+1), &
                  fexpr_dynk(filelin_start+2:filelin_xypoints+3), &
                  filelin_xypoints )
@@ -2956,42 +2921,20 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
                            fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
       case (60)                                                         ! SINF
-+if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * SIN_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+               * SIN_MB( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
 
-+ei
-+if .not.crlibm
-        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * SIN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-                    + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
 
     case (61)                                                         ! COSF
-+if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * COS_RN( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
+               * COS_MB( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-
-+ei
-+if .not.crlibm
-        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * COS( fexpr_dynk(funcs_dynk(funNum,3)+1) * turn  &
-                    + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
 
     case (62)                                                         ! COSF_RIPP
-+if crlibm
         retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               * COS_RN( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
+               * COS_MB( (two*pi)*real(turn-1,fPrec)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
                        + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
-+if .not.crlibm
-        retval = fexpr_dynk(funcs_dynk(funNum,3)) &
-               *COS   ( (two*pi)*dble(turn-1)/fexpr_dynk(funcs_dynk(funNum,3)+1) &
-                       + fexpr_dynk(funcs_dynk(funNum,3)+2) )
-+ei
 
     case (80)                                                         ! PELP
         foff = funcs_dynk(funNum,3)
@@ -3003,7 +2946,7 @@ recursive double precision function dynk_computeFUN(funNum, turn) result(retval)
             retval = ( fexpr_dynk(foff+6)*(turn-fexpr_dynk(foff))**2 ) / 2.0 + fexpr_dynk(foff+5)
         else if (turn .le. fexpr_dynk(foff+2)) then ! <= t1
             ! Exponential
-            retval = fexpr_dynk(foff+7)*exp( fexpr_dynk(foff+8)*turn )
+            retval = fexpr_dynk(foff+7)*exp_mb( fexpr_dynk(foff+8)*turn ) !!!!!! WTF ????? EXP, should be EXP_MB !!!!!!!!!!!!!
         else if (turn .le. fexpr_dynk(foff+3)) then ! <= td
             ! Linear (max ramp rate)
             retval = fexpr_dynk(foff+10)*(turn-fexpr_dynk(foff+2)) + fexpr_dynk(foff+9)
@@ -3043,20 +2986,19 @@ end function dynk_computeFUN
 subroutine dynk_setvalue(element_name, att_name, newValue)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+      use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
 
-+ca parnum
-+ca common
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
 +ca elensparam
-+ca crcoall
 
     character(maxstrlen_dynk) element_name, att_name
-    double precision newValue
+    real(kind=fPrec) newValue
     intent (in) element_name, att_name, newValue
 
     ! Temp variables
@@ -3257,20 +3199,19 @@ end subroutine dynk_setvalue
 !  Note: Expects that arguments element_name and att_name are zero-terminated strings of
 !        length maxstrlen_dynk!
 ! ================================================================================================ !
-double precision function dynk_getvalue(element_name, att_name)
+real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+      use crcoall
+    use mod_common
+    use mod_commonmn
     implicit none
 
-+ca parnum
-+ca common
-+ca commonmn
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
 
 +ca elensparam
-+ca crcoall
 
     character(maxstrlen_dynk) element_name, att_name
     intent(in) element_name, att_name
@@ -3451,18 +3392,18 @@ end function dynk_getvalue
 !  - If x < min(xvals) or x>max(xvals), program is aborted.
 !  - If datalen <= 0, program is aborted. 
 ! ================================================================================================ !
-double precision function dynk_lininterp(x,xvals,yvals,datalen)
+real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
-    double precision x, xvals(*),yvals(*)
+    real(kind=fPrec) x, xvals(*),yvals(*)
     integer datalen
     intent(in) x,xvals,yvals,datalen
 
     integer ii
-    double precision dydx, y0
+    real(kind=fPrec) dydx, y0
 
     ! Sanity checks
     if (datalen .le. 0) then
@@ -3515,12 +3456,12 @@ end function dynk_lininterp
 ! ================================================================================================ !
 logical function dynk_isused(i)
 
+      use crcoall
+    use mod_common
     implicit none
 
-+ca common
 +ca comgetfields
 +ca stringzerotrim
-+ca crcoall
 
     integer, intent(in) :: i
     integer ix,k
@@ -3558,6 +3499,62 @@ logical function dynk_isused(i)
 
 end function dynk_isused
 
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 18-11-2017
+!  Initialize the memory for DYNK
+! =================================================================================================
+subroutine dynk_comnul
+    use numerical_constants, only : zero
+    implicit none
+    
+    integer i,j
+    
+    ldynk = .false.
+    ldynkdebug = .false.
+    ldynkfiledisable = .false.
+    
+    nfuncs_dynk = 0
+    niexpr_dynk = 0
+    nfexpr_dynk = 0
+    ncexpr_dynk = 0
+    
+    do i=1,maxfuncs_dynk
+        funcs_dynk(i,1)= 0 !FUN name ( index in cexpr_dynk; 0 is invalid )
+        funcs_dynk(i,2)=-1 !FUN type (-1 is invalid)
+        funcs_dynk(i,3)= 0
+        funcs_dynk(i,4)= 0
+        funcs_dynk(i,5)= 0
+    enddo
+    
+    nsets_dynk = 0
+    
+    do i=1, maxsets_dynk
+        sets_dynk(i,1) = 0 !FUN idx ( index in funcs_dynk; 0 is invalid )
+        sets_dynk(i,2) = 0
+        sets_dynk(i,3) = 0
+        sets_dynk(i,4) = 0
+        
+        do j=1, maxstrlen_dynk
+            csets_dynk(i,1)(j:j) = char(0)
+            csets_dynk(i,2)(j:j) = char(0)
+            csets_unique_dynk(i,1)(j:j) = char(0)
+            csets_unique_dynk(i,2)(j:j) = char(0)
+        enddo
+        fsets_origvalue_dynk(i) = zero
+    enddo
+    
+    do i=1,nele
+        dynk_izuIndex(i) = 0
+        dynk_elemdata(i,1) = 0
+        dynk_elemdata(i,2) = 0
+        dynk_elemdata(i,3) = 0
+    end do
++if cr
+    dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
++ei
+end subroutine dynk_comnul
+
 ! ================================================================================================ !
 !  BEGIN Checkpoint Restart
 ! ================================================================================================ !
@@ -3571,12 +3568,12 @@ end function dynk_isused
 ! ================================================================================================ !
 subroutine dynk_crcheck_readdata(fileunit,readerr)
 
+      use crcoall
     implicit none
 
     integer, intent(in)  :: fileunit
     logical, intent(out) :: readerr
 
-+ca crcoall
 
     integer j, stat
 
@@ -3616,17 +3613,17 @@ end subroutine dynk_crcheck_readdata
 ! ================================================================================================ !
 subroutine dynk_crcheck_positionFiles
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     logical lopen
     integer ierro
 +if boinc
-    character*256 filename
+    character(len=256) filename
 +ei
     integer j
-    character*1024 arecord
+    character(len=1024) arecord
 
     inquire(unit=665, opened=lopen)
     if (lopen) then
@@ -3695,9 +3692,9 @@ end subroutine dynk_crcheck_positionFiles
 ! ================================================================================================ !
 subroutine dynk_crpoint(fileunit,fileerror,ierro)
 
+      use crcoall
     implicit none
 
-+ca crcoall
 
     integer, intent(in)    :: fileunit
     logical, intent(out)   :: fileerror

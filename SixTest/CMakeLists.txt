@@ -15,7 +15,7 @@ ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
 set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf1014 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
-set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\n.*19")
+set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found; try --help?\n.*19")
 
 ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
@@ -50,6 +50,9 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
+  collimation_k2_fcc_2017_h1_collision
+  dump_all_highprec
+  dump_2_all_ele_highprec
   )
 
 if(NOT COLLIMAT)
@@ -86,7 +89,6 @@ if(NOT COLLIMAT)
           bbe571ib0
           bb
           bb_ntwin1
-          crabamp
           dipedge
           distance
           dynk_globalvars
@@ -146,10 +148,25 @@ if(NOT COLLIMAT)
           rfMultipoles_4thOrder
           last_amp
           scatter_bbelastic
+          dump_all_highprec
+          dump_2_all_ele_highprec
           ${SIXTRACK_TESTS}
         )
 
 endif(NOT COLLIMAT)
+
+#Collimation tests (needs backtrk)
+#use extra checks on fort.999 and other collimation loss files
+if(COLLIMAT AND BACKTRK)
+    if(BIGNBLZ OR HUGENBLZ AND HUGENPART)
+        if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+                SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+        endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+#        if(NOT FLUKA OR NOT G4COLLIMAT)
+#                SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+#        endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+    endif(BIGNBLZ OR HUGENBLZ AND HUGENPART)
+endif(COLLIMAT AND BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
@@ -270,7 +287,6 @@ endforeach()
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 SET(FAST_TESTS
-  crabamp
   thick4
   thick6dblocks
   thick6ddynk
@@ -325,6 +341,8 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  dump_all_highprec
+  dump_2_all_ele_highprec
   )
 
 #Medium tests take < 30 mins to run
@@ -342,6 +360,7 @@ SET(MEDIUM_TESTS
   bbe51
   bbe52
   javier_bignpart
+  collimation_k2_fcc_2017_h1_collision
   )
 
 #Slow is everything longer

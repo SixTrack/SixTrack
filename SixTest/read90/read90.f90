@@ -4,90 +4,25 @@
 !  Read a fort.90 and print with correct binary/decimal conversion
 !-----------------------------------------------------------------------
       implicit none
-      integer errno,dtostr
-      double precision sin_rn,cos_rn,tan_rn,sinh_rn,cosh_rn,asin_rn,    &
-     &acos_rn,atan_rn,atan2_rn,exp_rn,log_rn,log10_rn
-      integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1,    &
-     &nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran,    &
-     &nrco,ntr,nzfz
-      parameter(npart = 64,nmac = 1)
-      parameter(nele=1200,nblo=400,nper=16,nelb=140,nblz=20000,         &
-     &nzfz = 300000,mmul = 20)
-      parameter(nran = 2000000,ncom = 100,mran = 500,mpa = 6,nrco = 5,  &
-     &nema = 15)
-      parameter(mcor = 10,mcop = mcor+6, mbea = 15)
-      parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
-      parameter(nmon1 = 600,ncor1 = 600)
-      parameter(ntr = 20,nbb = 350)
-      double precision c180e0,c1e1,c1e12,c1e13,c1e15,c1e16,c1e2,c1e3,   &
-     &c1e4,c1e6,c1m1,c1m7,c1m10,c1m12,c1m13,c1m15,c1m18,c1m2,c1m21,     &
-     &c1m24,c1m3,c1m36,c1m38,c1m6,c1m9,c2e3,c4e3,crade,clight,four,half,&
-     &one,pieni,pmae,pmap,three,two,zero
-      parameter(pieni = 1d-38)
-      parameter(zero = 0.0d0,half = 0.5d0,one = 1.0d0)
-      parameter(two = 2.0d0,three = 3.0d0,four = 4.0d0)
-      parameter(c1e1 = 1.0d1,c1e2 = 1.0d2,c1m2 = 1.0d-2)
-      parameter(c1e3 = 1.0d3,c2e3 = 2.0d3,c4e3 = 4.0d3,c1e4 = 1.0d4)
-      parameter(c1e12 = 1.0d12,c1e13 = 1.0d13,c1e15 = 1.0d15,c1e16 =    &
-     &1.0d16)
-      parameter(c180e0 = 180.0d0,c1e6 = 1.0d6)
-      parameter(c1m1 = 1.0d-1,c1m3 = 1.0d-3,c1m6 = 1.0d-6,c1m7 = 1.0d-7)
-      parameter(c1m9 = 1.0d-9,c1m10 = 1.0d-10,c1m12 = 1.0d-12)
-      parameter(c1m13 = 1.0d-13,c1m15 = 1.0d-15)
-      parameter(c1m18 = 1.0d-18,c1m21 = 1.0d-21,c1m24 = 1.0d-24)
-      parameter(c1m36 = 1.0d-36,c1m38 = 1.0d-38)
-      parameter(pmap = 938.271998d0,pmae = .510998902d0)
-      parameter(crade = 2.817940285d-15, clight = 2.99792458d8)
-      integer iav,iconv,icow,icr,idis,iffw,ifh,imad,ipos,ires,iskip,    &
-     &istw,itf,ivox,ivoz,iwg,kwtype,ndafi,nprint,nstart,nstop
-      double precision cma1,cma2,dfft,dphix,dphiz,dres,qx0,qz0
-      real hmal
-      character*80 toptit,sixtit,commen
-      integer icode,idam,its6d
+      integer errno
+      character(len=80) sixtit,commen
+      integer icode
       double precision dpscor,sigcor
-      integer ichromc,ilinc,iqmodc
-      double precision clon,chromc,corr,wxys
-      integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
-     &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
-     &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
-     &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
-     &numl,n
-      real const,dle,fxs,fzs,slope,tim1,tim2,tle,tlim,varlea,wgh
-      double precision alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
-     &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
-     &bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold,c, &
-     &c0,c1,c6,clo,cloau,clop,cx,cz,d,d0,d1,dani,dared,dares,di0,di0au, &
-     &di11,dife,dip0,dizu0,dle1,dle1c,dmmac,dnms,dnumlr,dp1,dph6,dphx,  &
-     &dphz,dpx,dpxp,dpz,dpzp,dummy,e,e0,e1,emag,emat,emax,emaz,emi,emig,&
-     &emii,emiii,emit,emix,emiz,emt,emta,emts,emx,emx0,emxa,emxs,emz,   &
-     &emz0,emza,emzs,evt,evt1,evtm,evtma,evtmi,evx,evx1,evx2,evxm,evxma,&
-     &evxmi,evz,evz1,evz2,evzm,evzma,evzmi,f,f0,f1,ffx,ffz,finv,g,g0,g1,&
-     &gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,h, &
-     &h0,h1,p,p1,pcha,phase,pieni2,pinx,pinz,pixr,pizr,pmax,pmin,prec,  &
-     &qs0,qwc,ratemx,ratemz,rbeta,s6,sdp6,sdpx,sdpz,sevt,sevx,sevz,     &
-     &slopem,sumda,sx,sz,t,ta,ta16,ta26,ta36,ta46,ta56,ta61,ta62,ta63,  &
-     &ta64,ta65,tasum,tidnt,tle1,tlo,tph6,tphx,tphz,tpi,txyz,txyz2,x,   &
-     &xing,xinv,xp,xp0,xxaux,xxmax,xxmin,xxi,xxr,xyzv,xyzv2,zing,zinv,  &
-     &zp,zp0,zzaux,zzmax,zzmin,zzi,zzr
-      character*80 title(20),chxtit(20),chytit(20)
-      character*8 cdate,ctime,progrm
-      character*11 hvs
-      character*8192 ch
-      character*25 ch1
-      dimension tle(nlya),dle(nlya)
-      dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
-      dimension xinv(ninv),invx(ninv),zinv(ninv),invz(ninv)
-      dimension xxr(npos),xxi(npos),zzr(npos),zzi(npos),fxs(npos),      &
-     &fzs(npos)
-      dimension bet0(3),alf0(3),t(6,6)
-      dimension bet04(2),alf04(2)
-      dimension pmin(30),pmax(30)
-      dimension idummy(6)
-      dimension sumda(60)
-      dimension x(2,6),cloau(6),di0au(4)
+      integer i,ia,ia0,ifipa,ilapa,itopa,j,nfile,ntwin,numl,n
+      double precision b,c,c1,clo,clop,d,d1,di0,dip0,dizu0,dmmac,dnms,dnumlr,  &
+           dummy,e,e1,f,f1,g,g1,h,h1,p,p1,qwc,ta
+      character(len=8) cdate,ctime,progrm
+      character(len=25) ch1
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
-      dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
-
+      dimension ta(6,6)
+      
+      interface
+         integer function dtostr(x,results)
+           double precision, intent(in) :: x
+           character(*), intent(out) :: results
+         end function dtostr
+      end interface
+      
       integer :: stat
       
       INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status
@@ -277,7 +212,7 @@
       
       INQUIRE(FILE=fname,EXIST=hasInputFile)
       if (.not. hasInputFile) then
-         write(*,'(a,a,a)') "Error in read90 - file '"//trim(fname)//"' was not found"
+         write(*,'(a,a,a)') "Error in read90 - file '"//trim(fname)//"' was not found; try --help?"
          flush(stdout)
          stop 19
       endif
@@ -314,59 +249,65 @@
          endif
       endif
       
-      write (ounit,*) 'Read header, record=', n
+      write (ounit,'(1x,a,i10,a)') 'Read record = ', n, " (header)"
       ntwin=1
       if(ilapa.ne.ifipa) ntwin=2
-      write (ounit,*) 'Header ntwin ',ntwin,ifipa,ilapa
-      ! ifipa=0
       n=n+1 !Increase record number
-      write(ounit,*) sixtit
-      write(ounit,*) commen
-      write (ounit,*) progrm,itopa,icode,numl
+      
+      write (ounit,'(2x,a,i1,1x,i10,1x,i10)') 'ntwin, first_particle, last_particle : ',ntwin,ifipa,ilapa
+      ! ifipa=0
+      write(ounit,'(2x,a,a)')   "Title           : ", sixtit
+      write(ounit,'(2x,a,a)')   "Comment         : ", commen
+!      write(ounit,'(2x,a,a)')   "cdate           : ", cdate !Skip the date and time; won't match between different runs when diff
+!      write(ounit,'(2x,a,a)')   "ctime           : ", ctime
+      write(ounit,'(2x,a,a)')   "Program         : ", progrm
+      write(ounit,'(2x,a,i10)') "Total particles : ", itopa
+      write(ounit,'(2x,a,i10)') "icode           : ", icode
+      write(ounit,'(2x,a,i10)') "numl            : ", numl
       errno=dtostr(qwc(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Qx:      ",ch1
       errno=dtostr(qwc(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Qy:      ",ch1
       errno=dtostr(qwc(3),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Qz:      ",ch1
       errno=dtostr(clo(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x_clo:   ", ch1
       errno=dtostr(clop(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x'_clo:  ",ch1
       errno=dtostr(clo(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y_clo:   ", ch1
       errno=dtostr(clop(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y'_clo:  ", ch1
       errno=dtostr(clo(3),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "clo(3):  ", ch1
       errno=dtostr(clop(3),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "clop(3): ", ch1
       errno=dtostr(di0(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "di0(1):  ", ch1
       errno=dtostr(dip0(1),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dip0(1): ", ch1
       errno=dtostr(di0(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "di0(2):  ", ch1
       errno=dtostr(dip0(2),ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dip0(2): ",ch1
       do i=1,6
         do j=1,6
           errno=dtostr(ta(i,j),ch1)
-          write (ounit,*) ch1
+          write (ounit,'(2x, A, I1, A, I1, A, A)') 'tas(',i,',',j,'): ',ch1
         enddo
       enddo
       errno=dtostr(dmmac,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dmmac:   ', ch1
       errno=dtostr(dnms,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dnms:    ', ch1
       errno=dtostr(dizu0,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dizu0:   ', ch1
       errno=dtostr(dnumlr,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dnumlr:  ', ch1
       errno=dtostr(sigcor,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'sigcor:  ', ch1
       errno=dtostr(dpscor,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') 'dpscor:  ', ch1
 
       if (STF) then
          if (ifipa .lt. itopa-1) goto 100 !Read more headers
@@ -407,43 +348,42 @@
       n=n+1
       
   212 continue
-! Do conversion and print, add text later?
-      write (ounit,*) 'Read record ',n
-      write (ounit,*) 'Turn ',ia,'   Particle ',ifipa
+      write (ounit,'(1x,a,i10,a)') 'Read record = ', n, " (particle(s))"
+      write (ounit,'(2x,a,i10,a,i10,a)') 'Turn ',ia,'   Particle ',ifipa, " (1st)"
       errno=dtostr(b,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dam:     ", ch1
       errno=dtostr(c,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x mm:    ", ch1
       errno=dtostr(d,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "x' mrad: ", ch1
       errno=dtostr(e,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y mm:    ", ch1
       errno=dtostr(f,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "y' mrad: ", ch1
       errno=dtostr(g,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "ds mm    ", ch1
       errno=dtostr(h,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "dp/p0:   ", ch1
       errno=dtostr(p,ch1)
-      write(ounit,*) ch1
+      write(ounit,'(2x,a,a)') "Energy:  ", ch1
       if(ntwin.eq.2) then
-        write (ounit,*) 'Turn ',ia,'   Particle ',ilapa
-        errno=dtostr(b,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(c1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(d1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(e1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(f1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(g1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(h1,ch1)
-        write(ounit,*) ch1
-        errno=dtostr(p1,ch1)
-        write(ounit,*) ch1
+         write (ounit,'(2x,a,i10,a,i10,a)') 'Turn ',ia,'   Particle ',ilapa, " (2nd)"
+         errno=dtostr(b,ch1)
+         write(ounit,'(2x,a,a)') "dam:     ", ch1
+         errno=dtostr(c1,ch1)
+         write(ounit,'(2x,a,a)') "x mm:    ", ch1
+         errno=dtostr(d1,ch1)
+         write(ounit,'(2x,a,a)') "x' mrad: ", ch1
+         errno=dtostr(e1,ch1)
+         write(ounit,'(2x,a,a)') "y mm:    ", ch1
+         errno=dtostr(f1,ch1)
+         write(ounit,'(2x,a,a)') "y' mrad: ", ch1
+         errno=dtostr(g1,ch1)
+         write(ounit,'(2x,a,a)') "ds mm    ", ch1
+         errno=dtostr(h1,ch1)
+         write(ounit,'(2x,a,a)') "dp/p0:   ", ch1
+         errno=dtostr(p1,ch1)
+         write(ounit,'(2x,a,a)') "Energy:  ", ch1
       endif
       goto 211
   510 continue
@@ -466,18 +406,17 @@
 !----------------------------------------------------------------------
       end
       integer function dtostr(x,results)
-! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
-! crlibm
+! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface copied from roundctl
       use, intrinsic :: iso_fortran_env, only : stdout=>output_unit
       implicit none
-      double precision x
-      character*(*) results
+      double precision, intent(in) :: x
+      character(*), intent(out) :: results
       integer dtoaf 
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e
-      character*1 str(999)
-      character*24 lstr
-      character*3 e3
+      character(len=1) str(999)
+      character(len=24) lstr
+      character(len=3) e3
       mode=2
       ndigits=17
       ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1))
