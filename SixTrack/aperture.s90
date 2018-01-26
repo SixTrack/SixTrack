@@ -116,7 +116,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     end if
 
 !   go through all possible types
-    if( kape(ix).eq.2 ) then
+    if( kape(ix).eq.1 ) then
+!   Circle
+      radius2 = ape(1,ix)**2
+      do j=1,napx
+        pstop(nlostp(j))=checkCR( xchk(1,j),xchk(2,j),radius2 ) .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    else if( kape(ix).eq.2 ) then
 !   Rectangle
       do j=1,napx
         pstop(nlostp(j))=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix)) &
@@ -165,12 +171,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         pstop(nlostp(j))=checkRT( xchk(1,j), xchk(2,j), ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or. &
  &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
       end do
-    else if( kape(ix).eq.7 ) then
-!   Circle
-      radius2 = ape(1,ix)**2
-      do j=1,napx
-        pstop(nlostp(j))=checkCR( xchk(1,j),xchk(2,j),radius2 ) .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
-      end do
     else
 !   Unknown aperture type, general check (set in the ITER block)
       do j=1,napx
@@ -207,7 +207,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     do j=1,napx
       xlos(1,j) = xv(1,j)
       xlos(2,j) = xv(2,j)
-      llos(j)   = pstop(j)
+      llos(j)   = pstop(nlostp(j))
       slos(j)   = dcum(i)
       step(j)   = one
     end do
@@ -247,7 +247,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       ! only for already lost particles
       do jj=1,niter
         do j=1,napx
-          if(pstop(j)) then
+          if(pstop(nlostp(j))) then
             ! Update parameter
             if( llos(j) ) then
               step(j) = step(j) - one / (two**(jj))
@@ -257,7 +257,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
             ! step discretized, to compare with BeamLossPattern
             if(jj.eq.niter) then
-              slos(j) = int((sold+length*step(j))/bktpre+1.)*bktpre
+              slos(j) = int((sold+length*step(j))/bktpre+one)*bktpre
               step(j) = (slos(j)-sold)/length
             end if
            
@@ -285,7 +285,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               llos(j)=checkCR(xnew(1),xnew(2),radius2) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
             else if( kapert.eq.2 ) then
 !           Rectangle
-                llos(j)=checkRE(xnew(1),xnew(2),aprr(1),aprr(2)) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+              llos(j)=checkRE(xnew(1),xnew(2),aprr(1),aprr(2)) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
             else if( kapert.eq.3 ) then
 !           Ellipse
               apxx = aprr(3)**2.

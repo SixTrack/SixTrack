@@ -3617,6 +3617,7 @@ subroutine collimate_end_turn
       end if
     end do
      write(lout,*) 'INFO>  Compacted the particle distributions: ', napx, ' -->  ', imov, ", turn =",iturn
+     flush(lout)
     napx = imov
   endif
 

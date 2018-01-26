@@ -13797,14 +13797,17 @@ end subroutine hamilton1
       ape(7,j)=ofzz
       if(irel.eq.circ) then !Circle
         kape(j)=1
+        ape(2,j)=ape(1,j)
+        ape(3,j)=ape(1,j)
+        ape(4,j)=ape(1,j)
       else if(irel.eq.rect) then !Rectangle
         kape(j)=2
-!       get ready for a RL-equinvalent description
+!       get ready for a RL-equivalent description
         ape(3,j)=sqrt(two)*ape(1,j)
         ape(4,j)=sqrt(two)*ape(2,j)
       else if(irel.eq.elli) then !Ellipse
         kape(j)=3
-!       get ready for a RL-equinvalent description
+!       get ready for a RL-equivalent description
         ape(3,j)=ape(1,j)
         ape(4,j)=ape(2,j)
       else if(irel.eq.reel) then !Rectellipse
@@ -26455,6 +26458,9 @@ subroutine thin6d(nthinerr)
               ename(ie)    = bez(myix)(1:16)
             end do
           endif
++if backtrk
++ca backtrksave
++ei
           goto 650
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 +ei
