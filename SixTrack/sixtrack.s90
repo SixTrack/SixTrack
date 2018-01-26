@@ -642,7 +642,7 @@
       common /cut/ cut_input
 
       real(kind=fPrec) xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),   &
-     &xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
+           xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
 
       common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
      &ypineff
@@ -699,8 +699,8 @@
       common /efficiency/ neffx,neffy
 
 
-      integer secondary(npart),tertiary(npart),other(npart),            &
-     &part_hit_before_pos(npart), part_hit_before_turn(npart)
+      integer secondary(npart),tertiary(npart),other(npart),scatterhit(npart), &
+           part_hit_before_pos(npart), part_hit_before_turn(npart)
       real(kind=fPrec) part_indiv(npart),part_linteract(npart)
 
       integer part_hit_pos(npart),part_hit_turn(npart),                 &
@@ -713,7 +713,7 @@
      &     part_hit_before_pos, part_hit_before_turn,                   &
      &     part_abs_pos,part_abs_turn,                                  &
      &     nabs_type,part_indiv,                                        &
-     &     part_linteract,secondary,tertiary,other
+     &     part_linteract,secondary,tertiary,other,scatterhit
       common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
       common /part_select/ part_select
 !
@@ -1821,7 +1821,7 @@
 +cd scat_thi
       !Thin scattering
       ! It is already checked that scatter_elemPointer != 0
-      call scatter_thin(ix,n)
+      call scatter_thin(i, ix,n)
       
 +cd kickv01v
 +if .not.tilt

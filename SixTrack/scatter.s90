@@ -1000,15 +1000,20 @@ end subroutine scatter_parseSeed
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_thin(ix, turn)
+subroutine scatter_thin(i_elem, ix, turn)
     
-      use crcoall
+    use crcoall
     use mod_common
     use mod_commonmn
     implicit none
     
 
 +ca stringzerotrim
+
++if collimat
++ca collpara ! Needed to define array sizes
++ca dbcommon ! Get the arrays that we need to set to mark the particle as "dirty" for collimation
++ei
 
     ! Temp variables
     integer          ELEMidx, PROidx, GENidx
@@ -1019,7 +1024,7 @@ subroutine scatter_thin(ix, turn)
     real(kind=fPrec) rndPhi(npart), rndP(npart)
     real(kind=fPrec) scaling
 
-    integer, intent(in) :: ix, turn
+    integer, intent(in) :: i_elem, ix, turn
 
     ELEMidx = scatter_elemPointer(ix)
     PROidx  = scatter_ELEM(ELEMidx,2)
@@ -1085,7 +1090,13 @@ subroutine scatter_thin(ix, turn)
 +if cr
             scatter_filepos = scatter_filepos+1
 +ei
-        end do
+
++if collimat
+            scatterhit(j) = 8
+            part_hit_pos = i_elem
+            part_hit_turn = turn
++ei
+        end do ! END loop over particles (j)
     end do
 
 +if cr
