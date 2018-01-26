@@ -10593,6 +10593,8 @@ end subroutine hamilton1
 
       use aperture
 
+      use mod_ranecu
+      
       use crcoall
       use parpro
       use mod_common
@@ -17965,59 +17967,6 @@ end subroutine hamilton1
 
       end function stringzerotrim
 
-
-+dk ranecu
-subroutine ranecu(rvec,len,mcut)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      implicit none
-      integer i,is1,is2,iseed1,iseed2,iz,j,k,len,mcut
-      real(kind=fPrec) rvec0,rvec,pi,r
-      dimension rvec(*),r(2)
-      data iseed1,iseed2 / 12345, 67890 /
-      save
-!-----------------------------------------------------------------------
-      pi = four*atan_mb(one)
-!     DO 100 I = 1,LEN
-      i=1
-   10 do 20 j = 1,2
-        k = iseed1/53668
-        iseed1 = 40014*(iseed1-k*53668) - k*12211
-        if (iseed1.lt.0) iseed1 = iseed1+2147483563
-        k = iseed2/52774
-        iseed2 = 40692*(iseed2-k*52774) - k*3791
-        if (iseed2.lt.0) iseed2 = iseed2+2147483399
-        iz = iseed1-iseed2
-        if (iz.lt.1) iz = iz+2147483562
-        r(j) = real(iz,fPrec)*4.656613e-10_fPrec                                     !hr05
-   20 continue
-
-      if (mcut.ge.0) then !mcut = -1 => Generate uniform numbers!
-!     Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
-         rvec0 = sqrt(((-one*two)*log_mb(r(1))))*cos_mb((two*pi)*r(2))      !hr05
-      else if (mcut.eq.-1) then
-         rvec0 = r(1)
-      end if
-      
-      if(abs(rvec0).le.real(mcut,fPrec).or.mcut.eq.0.or.mcut.eq.-1) then
-        rvec(i) = rvec0
-        i=i+1
-      endif
-      if(i.le.len) goto 10
-!     RVEC(I) = ((-TWO*LOG(R(1)))**HALF)*COS(TWO*PI*R(2))
-! 100 CONTINUE
-      return
-      entry recuin(is1,is2)
-      iseed1 = is1
-      iseed2 = is2
-      return
-      entry recuut(is1,is2)
-      is1 = iseed1
-      is2 = iseed2
-      return
-end subroutine ranecu
-
 +dk envars
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
@@ -22223,6 +22172,9 @@ end subroutine runda
       use mathlib_bouncer
       use numerical_constants
       use parpro
+
+      use mod_ranecu
+
       implicit none
       integer idaa
       real(kind=fPrec) dare,hundred,sqrpi2
@@ -22353,6 +22305,8 @@ program maincr
 
       use aperture
 
+      use mod_ranecu
+      
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
