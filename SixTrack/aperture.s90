@@ -207,7 +207,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     do j=1,napx
       xlos(1,j) = xv(1,j)
       xlos(2,j) = xv(2,j)
-      llos(j)   = pstop(j)
+      llos(j)   = pstop(nlostp(j))
       slos(j)   = dcum(i)
       step(j)   = one
     end do
@@ -247,7 +247,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       ! only for already lost particles
       do jj=1,niter
         do j=1,napx
-          if(pstop(j)) then
+          if(pstop(nlostp(j))) then
             ! Update parameter
             if( llos(j) ) then
               step(j) = step(j) - one / (two**(jj))
