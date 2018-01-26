@@ -32,12 +32,14 @@ contains
       use mathlib_bouncer
       use numerical_constants
       implicit none
+
+      real(kind=fPrec), intent(out), dimension(*) :: rvec
+      integer, intent(in) :: len, mcut
       
-      integer i,iz,j,k,len,mcut
-      real(kind=fPrec) rvec0,rvec,pi,r
-      dimension rvec(*),r(2)
+      integer i,iz,j,k
+      real(kind=fPrec) rvec0, pi
+      real(kind=fPrec), dimension(2) :: r
       
-      save
 !-----------------------------------------------------------------------
       pi = four*atan_mb(one)
 !     DO 100 I = 1,LEN
