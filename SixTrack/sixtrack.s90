@@ -3505,18 +3505,6 @@
         dyy1=ekk*(tiltc(k)*cxzyi-tilts(k)*cxzyr)
         dyy2=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
 +ei
-+cd bpmdata
-!---------Collect BPM data
-          if(ix.gt.0.and.bez(ix)(1:3).eq.'BPM'.and.n.lt.100001) then
-          if(n.eq.1) then
-            open(ix+100,file=bez(ix),status='unknown')
-            endif
-            write(ix+100,'(7e18.10,1x)') xv(1,1),yv(1,1),xv(2,1),       &
-     &yv(2,1), sigmv(1), dpsv(1),ejfv(1)
-          if(n.eq.100000) then
-            close(ix+100)
-            endif
-          endif
 +cd crabkick
 !---------CrabAmp input in MV
 !---------ejfv(j) should be in MeV/c --> CrabAmp/c/ejfv(j) is in rad
@@ -25650,10 +25638,7 @@ subroutine thin4d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo ! ix = index of single element
-!Should this be inside "if ktrack .ne. 1"? (time/bpm)
-+if bpm
-+ca bpmdata
-+ei bpm
+!Should this be inside "if ktrack .ne. 1"? (time)
 
       if (ldumpfront) then
         call dump_lines(n,i,ix)
@@ -26336,10 +26321,7 @@ subroutine thin6d(nthinerr)
       end if
 +ei beamgas
 
-!Should this be inside "if ktrack .ne. 1"? (time/bpm)
-+if bpm
-+ca bpmdata
-+ei bpm
+!Should this be inside "if ktrack .ne. 1"? (time)
       
       if (ldumpfront) then
         call dump_lines(n,i,ix)
@@ -27176,10 +27158,7 @@ end subroutine thin6d
           ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
           ! as no dependency on ix in this case.
           ix=ic(i)-nblo
-!Should this be inside "if ktrack .ne. 1"? (time/bpm)
-+if bpm
-+ca bpmdata
-+ei bpm
+!Should this be inside "if ktrack .ne. 1"? (time)
       
       if (ldumpfront) then
          call dump_lines(n,i,ix)
@@ -28561,9 +28540,6 @@ subroutine thck4d(nthinerr)
         ix=ic(i)
       else
         ix=ic(i)-nblo
-+if bpm
-+ca bpmdata
-+ei bpm
       
         if (ldumpfront) then
           write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
@@ -29265,10 +29241,6 @@ subroutine thck6d(nthinerr)
       else
         ix=ic(i)-nblo
       end if
-
-+if bpm
-+ca bpmdata
-+ei bpm
 
       if (ldumpfront) then
         write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
@@ -30061,9 +30033,6 @@ subroutine thck6dua(nthinerr)
               ix=ic(i)
             else
               ix=ic(i)-nblo
-+if bpm
-+ca bpmdata
-+ei bpm
 
       if (ldumpfront) then
          write (lout,*)                                                 &
