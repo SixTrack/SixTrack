@@ -344,6 +344,7 @@ subroutine dump_initialize
 +ca stringzerotrim
   integer i,j
   logical lopen
+  character(len=256) filename
   
   do i=-1,il
 +if cr
@@ -1166,6 +1167,7 @@ subroutine dump_crcheck_positionFiles
   
   integer i,j
   logical lerror,lopen
+  character(len=256) filename
   
   do i=-1, il
     if (ldump(i)) then
