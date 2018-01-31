@@ -275,7 +275,6 @@ if(DA)
 else()
 	LIST(APPEND FORS_FIXFORM )
 	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu hions)
->>>>>>> devel
 endif()
 
 if(COLLIMAT)
