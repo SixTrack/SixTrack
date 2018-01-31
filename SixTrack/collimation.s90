@@ -1361,7 +1361,7 @@ subroutine collimate_start_collimator(stracki)
         end if
 
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:16)
+          ename(ie)    = bez(myix)(1:max_name_len)
       end do !do j = 1, napx
     end if !if(rselect.gt.0 .and. rselect.lt.65) then
   end if !if( firstrun ) then
@@ -3253,7 +3253,7 @@ subroutine collimate_end_element
         end if
 
         sampl(ie) = totals
-        ename(ie) = bez(myix)(1:16)
+        ename(ie) = bez(myix)(1:max_name_len)
       end do
     end if
   end if
@@ -3690,7 +3690,7 @@ subroutine collimate_end_turn
           sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
           nampl(ie)    = nampl(ie) + 1
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:16)
+          ename(ie)    = bez(myix)(1:max_name_len)
         else
           nspx = zero
           nspy = zero
@@ -8025,7 +8025,7 @@ subroutine readcollimator
 
 +if root
 ! Temp variables to avoid fotran array -> C nightmares
-  character(len=17) :: this_name = C_NULL_CHAR
+  character(len=max_name_len+1) :: this_name = C_NULL_CHAR
   character(len=5) :: this_material = C_NULL_CHAR
 +ei
   save
