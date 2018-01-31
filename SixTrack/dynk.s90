@@ -279,11 +279,11 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
 
         ! Sanity checks, length of BEZ elements
-        if (getfields_lfields(4) .gt. 16 .or. getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
+        if (getfields_lfields(4) .gt. max_name_len .or. getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN GET got an element name with     "
-            write (lout,*) "length =", getfields_lfields(4), "> 16"
+            write (lout,*) "length =", getfields_lfields(4), "> ", max_name_len
             write (lout,*) "or > ",maxstrlen_dynk-1
             write (lout,*) "The name was: '",getfields_fields(4)(1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
@@ -1952,10 +1952,10 @@ subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
     read(getfields_fields(7)(1:getfields_lfields(7)),*) sets_dynk(nsets_dynk,4) ! turnShift
 
     ! Sanity check on string lengths
-    if (getfields_lfields(2).gt.16 .or. getfields_lfields(2).gt.maxstrlen_dynk-1) then
+    if (getfields_lfields(2).gt.max_name_len .or. getfields_lfields(2).gt.maxstrlen_dynk-1) then
         write (lout,*) "*************************************"
         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-        write (lout,*) "SET got an element name with length =",getfields_lfields(2),"> 16 or > maxstrlen_dynk-1."
+        write (lout,*) "SET got an element name with length =",getfields_lfields(2),"> ", max_name_len, " or > maxstrlen_dynk-1."
         write (lout,*) "The name was: '",getfields_fields(2)(1:getfields_lfields(2)),"'"
         write (lout,*) "*************************************"
         call prror(51)
@@ -2676,8 +2676,9 @@ end subroutine dynk_apply
 ! ================================================================================================ !
 recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
-      use crcoall
+    use crcoall
     use mod_common
+    use mod_ranecu
     implicit none
 
 +ca comgetfields

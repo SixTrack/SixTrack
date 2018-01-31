@@ -131,7 +131,7 @@ subroutine dump_parseInputLine(ch)
   
   character(len=*), intent(in) :: ch
   ! Temp variables
-  character(len=16) idat ! Synchronized with daten
+  character(len=max_name_len) idat ! Synchronized with daten
   integer i1,i2,i3,i4,i5,kk,j
   
   character(len=getfields_l_max_string) ch1
@@ -163,9 +163,9 @@ subroutine dump_parseInputLine(ch)
     call prror(-1)
   end if
   
-  if (getfields_lfields(1) > 16) then
+  if (getfields_lfields(1) > max_name_len) then
     write(lout,*) "ERROR in DUMP:"
-    write(lout,*) "element names are max. 16 characters"
+    write(lout,*) "element names are max. ', max_name_len, ' characters"
     call prror(-1)
   end if
   
@@ -344,6 +344,7 @@ subroutine dump_initialize
 +ca stringzerotrim
   integer i,j
   logical lopen
+  character(len=256) filename
   
   do i=-1,il
 +if cr
@@ -610,7 +611,7 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
   
   ! Temporary variables
   integer j,k,l,m,n
-  character(len=16) localBez
+  character(len=max_name_len) localBez
   
   real(kind=fPrec) localDcum
   integer localKtrack
@@ -1166,6 +1167,7 @@ subroutine dump_crcheck_positionFiles
   
   integer i,j
   logical lerror,lopen
+  character(len=256) filename
   
   do i=-1, il
     if (ldump(i)) then

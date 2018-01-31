@@ -1,0 +1,1356 @@
++dk aperture
+
+module aperture
+
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+
+  use parpro !For nele
+
+  !contains pstop(npart) etc
+  use mod_commonmn
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+
+  implicit none
+
+contains
+
+
+subroutine lostpart(turn, i, ix, llost, nthinerr)
+!-----------------------------------------------------------------------
+!
+!     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified:  8-12-2014
+!     aperture check and dump lost particles
+!     always in main code
+!-----------------------------------------------------------------------
+!     7 April 2014
+!-----------------------------------------------------------------------
+
+  use physical_constants
+
++if fluka
+  use mod_fluka
++ei
+
++if root
+  use iso_c_binding
+  use root_output
++ei
+
+  implicit none
+
+! parameters
+  integer turn  ! turn number
+  integer i     ! element entry in the lattice
+  integer ix    ! single element type index
+  logical llost ! at least one particle was lost
+
+
+! logical isnan
+  logical myisnan
+  integer ib2,ib3,ilostch,j,jj,jj1,jjx,lnapx
++ca common2
++ca commont1
++ca commondl
++ca commonxz
++ca commonta
++ca commonm1
++ca commontr
++if bnlelens
++ca rhicelens
++ei
++if collimat
+! Module to access ipart array
++ca collpara
++ca dbthin6d
++ca dbcommon
++ei
++ca dbdcum
++ca comApeInfo
+
+! temporary variables
+  logical lparID
+  integer nthinerr
+  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) ap_oc_1, ap_oc_2, ap_oc_3
+  real(kind=fPrec) xchk(2,npart)
+
++if root
+  character(len=max_name_len+1) this_name
++ei
+
++if backtrk
+! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+! last modified: 12-06-2014
+! additional variables for back-tracking, when computing locations of
+! lost particles
+! inserted in main code by the 'backtrk' compilation flag
+  integer niter       ! number of iterations
+  integer kapert      ! temporal integer for aperture type
+  logical llos(npart) ! temporal logic array for interpolation
+  real(kind=fPrec) xlos(2,npart), aprr(7), step(npart), length, slos(npart), apnew(7), xnew(2)
++ei
+  save
+!-----------------------------------------------------------------------
+  llost=.false.
+
+! Set pstop for each particle
+
+  if( limifound ) then
+    if( lapeofftlt(ix) ) then
+!     Include offset and angle rotation
+      do j=1,napx
+        call roffpos( xv(1,j), xv(2,j), xchk(1,j), xchk(2,j), ape(5,ix), ape(6,ix), ape(7,ix) )
+      end do
+    else
+!   use original coordinates
+      do j=1,napx
+        xchk(1,j)=xv(1,j)
+        xchk(2,j)=xv(2,j)
+      end do
+    end if
+
+!   go through all possible types
+    if( kape(ix).eq.1 ) then
+!   Circle
+      radius2 = ape(1,ix)**2
+      do j=1,napx
+        pstop(nlostp(j))=checkCR( xchk(1,j),xchk(2,j),radius2 ) .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    else if( kape(ix).eq.2 ) then
+!   Rectangle
+      do j=1,napx
+        pstop(nlostp(j))=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix)) &
+ &                       .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    else if( kape(ix).eq.3 ) then
+!   Ellipse
+      apxx = ape(3,ix)**2.
+      apyy = ape(4,ix)**2.
+      apxy = apxx * apyy
+      do j=1,napx
+        pstop(nlostp(j))=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy ).or.myisnan(xchk(1,j),xchk(1,j)) &
+ &                       .or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    else if( kape(ix).eq.4 ) then
+!   RectEllipse
+      apxx = ape(3,ix)**2.
+      apyy = ape(4,ix)**2.
+      apxy = apxx * apyy
+      do j=1,napx
+        pstop(nlostp(j))=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),apxx, apyy, apxy ) .or. &
+ &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    else if( kape(ix).eq.5 ) then
+!   Octagon
+!   As in MAD-X:
+!   x.gt.ap1 .or. y.gt.ap2 .or.
+!   (ap2*tan_mb(pi/two-ap4)-ap1)*
+!   (y-ap1*tan_mb(ap3))-
+!   (ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
+
+!   Pre-calculate constants before the loop
+      ap_oc_1 = ape(2,ix)*tan_mb(pi/two-ape(4,ix))-ape(1,ix)
+      ap_oc_2 = ape(1,ix)*tan_mb(ape(3,ix))
+      ap_oc_3 = ape(2,ix)-ape(1,ix)*tan_mb(ape(3,ix))
+
+      do j=1,napx
+        pstop(nlostp(j))=checkOC(xchk(1,j), xchk(2,j), ape(1,ix), ape(2,ix), ap_oc_1, ap_oc_2, ap_oc_3) .or. &
+ &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    else if( kape(ix).eq.6 ) then
+!   Racetrack
+!   NB: it follows the MadX definition
+      apxy = ape(3,ix)**2.
+      do j=1,napx
+        pstop(nlostp(j))=checkRT( xchk(1,j), xchk(2,j), ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or. &
+ &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    else
+!   Unknown aperture type, general check (set in the ITER block)
+      do j=1,napx
+        pstop(nlostp(j))=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2)).or. &
+ &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
+      end do
+    endif
+  else !if( limifound )
+! no actual aperture profile is assigned to any SINGLE ELEMENT
+! use the general check (set in the ITER block)
+    do j=1,napx
+      pstop(nlostp(j))=checkRE(xv(1,j), xv(2,j), aper(1), aper(2)) .or.myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+    end do
+  end if
+
+!   is there at least a particle lost?
+    do j=1,napx
+      if(pstop(nlostp(j))) then
+        llost=.true.
+        goto 10
+      end if
+    end do
+10  continue
+
+
+  if( llost ) then
++if backtrk
+! A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
+! last modified: 24-11-2016
+! back-track particles, in order to better estimate actual loss point
+! inserted in main code by the 'backtrk' compilation flag
+
+! Initialise arrays
+    do j=1,napx
+      xlos(1,j) = xv(1,j)
+      xlos(2,j) = xv(2,j)
+      llos(j)   = pstop(nlostp(j))
+      slos(j)   = dcum(i)
+      step(j)   = one
+    end do
+
+    if( kape(ix) .ne. 0 ) then
+      ! initialize temporary aperture profile;
+      ! it can be either a constant aperture or a changing one (only RL allowed, for the moment!)
+      kapert = kape(ix)
+      do jj=1,7
+        apnew(jj) = ape(jj,ix)
+      end do
+
+      if( kape(ix) .ge. 5 .or. kapold .ge. 5 ) then
+      ! force constant Racetrack or Octagon profile
+        do jj=1,7
+          apold(jj) = apnew(jj)
+        end do
+      else
+        ! a possible RL-equivalent transition
+        kapert = 4
+      end if
+
+      ! Length between elements
+      length = dcum(i)-sold
+      if( length .lt. zero ) then
+        ! pay attention to overflow:
+        ! length = dcum(i)+(dcum(iu+1)-sold)
+        length = length+dcum(iu+1)
+      end if
+
+      if( length .le. bktpre ) goto 11
+
+      ! Number of iterations (ln(2x/precision)/ln(2)+1)
+      niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
+
+      ! Interpolation of the lost particles position down to bktpre
+      ! only for already lost particles
+      do jj=1,niter
+        do j=1,napx
+          if(pstop(nlostp(j))) then
+            ! Update parameter
+            if( llos(j) ) then
+              step(j) = step(j) - one / (two**(jj))
+            else
+              step(j) = step(j) + one / (two**(jj))
+            end if
+
+            ! step discretized, to compare with BeamLossPattern
+            if(jj.eq.niter) then
+              slos(j) = int((sold+length*step(j))/bktpre+one)*bktpre
+              step(j) = (slos(j)-sold)/length
+            end if
+           
+            ! Update position
+            xlos(1,j) = xv(1,j) -yold(1,j)*(one-step(j))*length
+            xlos(2,j) = xv(2,j) -yold(2,j)*(one-step(j))*length
+            slos(j)   = sold    +length*step(j)
+           
+            ! Update apertures
+            do jj1=1,7
+              aprr(jj1)=apold(jj1)+(apnew(jj1)-apold(jj1))*step(j)
+            end do
+           
+            ! Check aperture
+            if( lapeofftlt(ix) ) then
+              call roffpos( xlos(1,j), xlos(2,j), xnew(1),xnew(2), aprr(5), aprr(6), aprr(7) )
+            else
+              xnew(1) = xlos(1,j)
+              xnew(2) = xlos(2,j)
+            end if
+
+            if( kapert.eq.1 ) then
+!           Circle
+              radius2 = aprr(1)**2
+              llos(j)=checkCR(xnew(1),xnew(2),radius2) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+            else if( kapert.eq.2 ) then
+!           Rectangle
+              llos(j)=checkRE(xnew(1),xnew(2),aprr(1),aprr(2)) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+            else if( kapert.eq.3 ) then
+!           Ellipse
+              apxx = aprr(3)**2.
+              apyy = aprr(4)**2.
+              apxy = apxx * apyy
+              llos(j)=checkEL( xnew(1),xnew(2),apxx,apyy,apxy )  .or.myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+            else if( kapert.eq.4 ) then
+!           RectEllipse
+              apxx = aprr(3)**2.
+              apyy = aprr(4)**2.
+              apxy = apxx * apyy
+              llos(j) = checkRL( xnew(1),xnew(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. & 
+ &                      myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+            else if( kapert.eq.5 ) then
+!           Octagon
+              ap_oc_1 = aprr(2)*tan_mb(pi/two-aprr(4))-aprr(1)
+              ap_oc_2 = aprr(1)*tan_mb(aprr(3))
+              ap_oc_3 = aprr(2)-aprr(1)*tan_mb(aprr(3))
+
+              llos(j)=checkOC(xnew(1), xnew(2), aprr(1), aprr(2), ap_oc_1, ap_oc_2, ap_oc_3) .or. &
+ &                    myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+            else if( kapert.eq.6 ) then
+!           Racetrack
+!           NB: it follows the MadX definition
+              llos(j)=checkRT( xnew(1), xnew(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
+ &                    myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+            end if !if( kapert.eq.1 ) then
+          end if !if(pstop(j)) then
+        end do !do j=1,napx
+      end do !do jj=1,niter
+           
+11    continue
+        
+    end if !if( kape(ix) .ne. 0 ) then
++ei !+if backtrk
+
+! If lost particles aren't killed, the lost info is dumped only
+! the first time they hit the aperture. Their secondaries generated
+! from a lost particles are considered lost as well
+    if( apflag ) then
+      do j=1,napx
+        if(pstop(nlostp(j))) then
+          lparID = .false.
+          jjx=1
++if collimat
+          do jj=1,npart
++ei
++if .not.collimat
+          do jj=1,napx
++ei
+            if(plost(jj).ne.0) then
++if fluka
+              if( fluka_uid(j).eq.plost(jj).or. fluka_gen(j).eq.plost(jj) ) then
++ei
++if collimat
+              if( ipart(j)+100*samplenumber .eq. plost(jj) ) then
++ei
++if .not.collimat.and..not.fluka
+              if ( j .eq. plost(jj) ) then
++ei
+                lparID=.true.
+              end if
+
+              jjx=jj+1 !points to the last zero 
+            end if
+          end do
+
+          if(lparID) then
+          !old lost particle or secondary, don't print it
+            pstop(nlostp(j)) = .false.
+          else
+          !new lost particle, store ID and print it
++if fluka
+            plost(jjx) = fluka_uid(j)
++ei
++if collimat
+            plost(jjx) = ipart(j)+100*samplenumber
++ei
++if .not.collimat.and..not.fluka
+            plost(jjx) = j
++ei
+          end if !if(lparID) then
+        end if !if(pstop(nlostp(j))) then
+      end do !do j=1,napx
+    end if !if( apflag ) then
+
+
+!   Print to unit 999 (fort.999)
+    do j=1,napx
+      if(pstop(nlostp(j))) then
++if backtrk
+!     A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
+!     last modified: 11-06-2014
+!     back-track particles, in order to better estimate actual loss point
+!     inserted in main code by the 'backtrk' compilation flag
+        if ( slos(j).gt.dcum(iu+1) ) then
+        ! pay attention to overflow:
+          slos(j)=slos(j)-dcum(iu+1)
+        end if
++ei
+
++if fluka
+        write(999,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7))')  &
++ei
++if .not.fluka
+        write(999,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7))')     &
++ei
+
++if .not.backtrk
+     &         turn, i, ix, bez(ix), dcum(i),                           &
++ei
++if backtrk
+     &         turn, i, ix, bez(ix), slos(j),                           &
++ei
+
++if fluka
+     &         fluka_uid(j), fluka_gen(j), fluka_weight(j),             &
++ei
++if collimat
+     &         ipart(j)+100*samplenumber,                               &
++ei
++if .not.fluka.and..not.collimat
+     &         j,                                                       &
++ei
+
++if .not.backtrk
+     &         xv(1,j)*c1m3, yv(1,j)*c1m3, xv(2,j)*c1m3,                &
++ei
++if backtrk
+     &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3,            &
++ei
+     &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)-e0)*c1e6,             &
+     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f)
+
+
++if root
+! root output
+        if(root_flag .and. root_ApertureCheck.eq.1) then
+          this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
+          call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos(j), ipart(j)+100*samplenumber,&
+       &  xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3, yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
+       &  -c1m3 * (sigmv(j)/clight) * (e0/e0f))
+        end if
++ei
+      end if
+    end do
+
+!flush loss particle file
+    flush(999)
+
+! Don't kill lost particle if apflag is activated
+    if( apflag ) then
+      do j=1,napx
+        pstop(nlostp(j)) = .false.
+      end do
+    end if
+
+! Record for postpr
+    do j=1,napx
+      if(pstop(nlostp(j))) then
+!       aperv(nlostp(j),1)=apx(ix)
+!       aperv(nlostp(j),2)=apz(ix)
+        ixv(nlostp(j))    = ix
+        xvl(1,nlostp(j))  = xv(1,j)
+        xvl(2,nlostp(j))  = xv(2,j)
+        yvl(1,nlostp(j))  = yv(1,j)
+        yvl(2,nlostp(j))  = yv(2,j)
+        dpsvl(nlostp(j))  = dpsv(j)
+        ejvl(nlostp(j))   = ejv(j)
+        sigmvl(nlostp(j)) = sigmv(j)
+        numxv(nlostp(j))  = numx
+        nnumxv(nlostp(j)) = numx
+      end if
+    end do
+  
+    ! Compact array
+    lnapx=napx
+    do j=napx,1,-1
+      if(pstop(nlostp(j))) then
+        if(j.ne.lnapx) then
+          do jj=j,lnapx-1
+            jj1=jj+1
+            nlostp(jj)=nlostp(jj1)
+            xv(1,jj)=xv(1,jj1)
+            xv(2,jj)=xv(2,jj1)
+            yv(1,jj)=yv(1,jj1)
+            yv(2,jj)=yv(2,jj1)
++if bnlelens
+            namepart(jj)=namepart(jj1)
++ei
+            dpsv(jj)=dpsv(jj1)
+            sigmv(jj)=sigmv(jj1)
+            ejfv(jj)=ejfv(jj1)
+            ejv(jj)=ejv(jj1)
+            rvv(jj)=rvv(jj1)
++if rvet
+            rvet(jj)=rvet(jj1)
++ei
+            oidpsv(jj)=oidpsv(jj1)
+            dpsv1(jj)=dpsv1(jj1)
+            clo6v(1,jj)=clo6v(1,jj1)
+            clo6v(2,jj)=clo6v(2,jj1)
+            clo6v(3,jj)=clo6v(3,jj1)
+            clop6v(1,jj)=clop6v(1,jj1)
+            clop6v(2,jj)=clop6v(2,jj1)
+            clop6v(3,jj)=clop6v(3,jj1)
+
+            !--beam-beam element
+            di0xs(jj)=di0xs(jj1)
+            dip0xs(jj)=dip0xs(jj1)
+            di0zs(jj)=di0zs(jj1)
+            dip0zs(jj)=dip0zs(jj1)
+            do ib2=1,6
+              do ib3=1,6
+                tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+              end do
+            end do
+          end do !do jj=j,lnapx-1
++if fluka
+          if (fluka_enable) then
+            call fluka_lostpart(lnapx, j) ! Inform fluka
+          end if
++ei
+        end if !if(j.ne.lnapx) then
+        lnapx=lnapx-1
+      end if !if(pstop(nlostp(j))) then
+    end do !do j=napx,1,-1
+    napx=lnapx
+  end if !if( llost ) then
+
++if fluka
+  napxo = napx
++ei
+
+  if(napx.eq.0) then
+    write(lout,*)
+    write(lout,*)
+    write(lout,*) '************************'
+    write(lout,*) '** ALL PARTICLES LOST **'
+    write(lout,*) '**   PROGRAM STOPS    **'
+    write(lout,*) '************************'
+    write(lout,*)
+    write(lout,*)
++if fluka
+!skip postpr
+    nthinerr = 3000
++ei
++if .not.fluka
+    nthinerr = 3001
+  nnuml=numl
++ei
+    return
+  end if
+
+end subroutine lostpart
+
+logical function checkRE( x, y, apex, apey )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against REctangle aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+! parameters
+  real(kind=fPrec) x, y, apex, apey
+  checkRE = ( abs(x).gt.apex ).or.( abs(y).gt.apey )
+  return
+end function
+
+logical function checkEL( x, y, apxx, apyy, apxy )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against ELlipse aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, apxx, apyy, apxy
+
+  checkEL = x**two*apyy+y**two*apxx .gt. apxy
+  return
+end function checkEL
+
+logical function checkRL( x, y, apex, apey, apxx, apyy, apxy )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against Rect-Ellipse aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, apex, apey, apxx, apyy, apxy
+
+  checkRL = checkRE( x, y, apex, apey ) .or. checkEL( x, y, apxx, apyy, apxy )
+  return
+end function checkRL
+
+logical function checkOC( x, y, ap1, ap2, c1, c2, c3 )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     check particle position against OCtagon aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, ap1, ap2, c1, c2, c3
+
+! checkOC=x.gt.ap1 .or. y.gt.ap2 .or.(ap2*tan_mb(pi/two-ap4)-ap1)*(y-ap1*tan_mb(ap3))-(ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
+
+! 0:  x.gt.ap1 .or. y.gt.ap2 .or.
+! c1: (ap2*tan_mb(pi/two-ap4)-ap1)*
+! c2: (y-ap1*tan_mb(ap3))-
+! c3: (ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
+  checkOC = abs(x).gt.ap1 .or. abs(y).gt.ap2 .or. (c1*(y-c2) - c3*(x-ap1)).lt.zero
+  return
+end function checkOC
+
+logical function checkRT( x, y, apex, apey, r, r2 )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 19-05-2014
+!     check particle position against RaceTrack aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, apex, apey, r, r2
+
+  checkRT = checkRE( x, y, apex+r, apey+r ) .or. ( ( (abs(x)-apex)**2.+(abs(y)-apey)**2.).gt.r2 )
+  return
+end function checkRT
+
+logical function checkCR( x, y, radius2 )
+!-----------------------------------------------------------------------
+!     check particle position against CiRcle aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, radius2
+
+  checkCR = (x**2 + y**2) .gt. radius2
+  return
+end function checkCR
+
+subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
+!-----------------------------------------------------------------------
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 16-05-2014
+!     centre/rotate position of particles in case of offcentered/tilted 
+!        aperture types
+!     always in main code
+!  
+!     input parameters:
+!        x : horizontal particle position [mm]
+!        y : vertical   particle position [mm]
+!        tlt:  tilt angle of the aperture profile [rad]
+!        xoff: horizontal aperture offset [mm]
+!        yoff: vertical   aperture offset [mm]
+!
+!     output parameters:
+!        xnew : offcentered/tilted horizontal particle position [mm]
+!        ynew : offcentered/tilted vertical   particle position [mm]
+!
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, xnew, ynew, tlt, xoff, yoff
+
+! temporary variables
+  real(kind=fPrec) theta, radio, xtmp, ytmp, ttmp
+
+  xtmp = x+xoff
+  ytmp = y+yoff
+  theta = atan2_mb(ytmp, xtmp)
+  radio = sqrt(xtmp**two + ytmp**two)
+  ttmp = theta-tlt
+  xnew = radio * cos_mb(ttmp)
+  ynew = radio * sin_mb(ttmp)
+  return
+end subroutine roffpos
+
+subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 20-12-2016
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
++ca commontr
++ca comApeInfo
+
+! interface variables
+  integer itElUp,itElDw
+  logical lInsUp
+! run time variables
+  integer iElUp, iElDw, ixApeUp, ixApeDw, jj, iuold
+  logical lExtremes, lsame
+  real(kind=fPrec) aPrec
+! precision on aperture parameters to be identical
+  data aPrec / c1m6 / 
+
+! do not overwrite interface variables
+  iElUp=itElUp
+  iElDw=itElDw
+! handling extremes of lattice structure?
+  lExtremes=iElUp.eq.iu.and.iElDw.eq.1
+
+! upstream marker 
+  iuold=iu
+  call contour_aperture_marker( iElUp, lInsUp  )
+
+! the addition of the upstream aperture marker may have
+!    shifted by one the downstream entries
+! NB: if lExtremes, the upstream marker is the last entry
+!     in the lattice structure! Hence, no other entry is shifted!
+  if( .not.lExtremes ) then
+    if( iu-iuold.ne.0 ) then
+      iElDw=iElDw+(iu-iuold)
+      write(lout,*) '...inserted upstream marker - downstream  entries shifted by',iu-iuold
+    else
+      write(lout,*) '...no need to insert an upstream marker'
+    end if
+  end if
+
+! downstream marker 
+  iuold=iu
+  call contour_aperture_marker( iElDw, .false. )
+! the addition of the downstream aperture marker may have shifted by one the downstream entries
+  if( iu-iuold.ne.0 ) then
+! NB: if lExtremes, the downstream entry is the first entry
+! in the lattice structure! Hence, if a new entry has been inserted,
+! the upstream entry (at the end of the lattice structure) is
+! shifted by 1
+    if( lExtremes ) then
+      iElUp=iElUp+(iu-iuold)
+    end if
+    write(lout,*) '...inserted downstream marker - downstream entries shifted by',iu-iuold
+  else
+    write(lout,*) '...no need to insert a downstream marker'
+  end if
+
+  if( lExtremes ) then
+! check that the aperture markers at the extremities of accelerator
+! lattice structure are the same
+    ixApeUp=ic(iElUp)-nblo
+    ixApeDw=ic(iElDw)-nblo
+    lsame = ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
+    if( lsame ) then
+      do jj=1,7
+        lsame = lsame .and. abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
+        if ( .not. lsame ) exit
+      end do
+    end if
+    if( .not.lsame ) then
+      write(lout,*)' ERROR - different aperture markers at extremeties of accelerator lattice strucure'
+      call dump_aperture_header( -1 )
+      call dump_aperture_marker( -1, ixApeUp, iElUp )
+      call dump_aperture_marker( -1, ixApeDw, iElDw )
+      call prror(-1)
+    end if 
+  end if
+
+end subroutine contour_aperture_markers
+
+subroutine contour_aperture_marker( iEl, lInsUp )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 20-12-2016
+!     put an aperture marker at iEl
+!     NB: it can be either a brand new entry in lattice sequence or
+!         updating an existing one
+!     interface variables:
+!     - iEl: entry in lattice sequence to be checked
+!     - lInsUp: if true, the new aperture marker is inserted upstream of
+!       iEl
+!     always in main code
+!-----------------------------------------------------------------------
++if fluka
+! import mod_fluka
+! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
++ei
+
+  implicit none
+
++ca commontr
++ca dbdcum
++ca comApeInfo
+! interface variables
+  integer iEl
+  logical lInsUp
+! temporary variables
+  integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,ixEl
+  real(kind=fPrec) tmpape(7), ddcum, sPrec, aPrec
+  logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
+
+! precision on s-coordinates to be identical
+  data sPrec / c1m7 / 
+! precision on aperture parameters to be identical
+  data aPrec / c1m6 / 
+
+! echo of input parameters
+  write(lout,*) ''
+  write(lout,*)' CALL TO CONTOUR_APERTURE_MARKER...'
+
+! check upstream element
+  ixEl=ic(iEl)-nblo
+  if( iEl.eq.iu ) then
+! end of lattice sequence: a marker might be needed
+    if( ixEl.le.0 ) then
+      ix=INEESE()
+      iu=INEELS( 0 )
+      ic(iu)=ix+nblo
+      iEl=iu
+      ixEl=ix
+      bez(ixEl)='e.latt.aper'
+      write(lout,*) ' -> inserted empty marker at end of lattice'
+    end if
+  else if( iEl.eq.1 ) then
+! beginning of lattice sequence: a marker might be needed
+    if( ixEl.le.0 ) then
+      ix=INEESE()
+      iu=INEELS( 1 )
+      ic(1)=ix+nblo
+      iEl=1
+      ixEl=ix
+      bez(ixEl)='s.latt.aper'
+      write(lout,*)' -> inserted empty marker at start of lattice'
++if fluka
+    else if( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
+! A.Mereghetti
+! last modified: 18-01-2017
+! force aperture marker upstream of FLUKA_ENTRY
+! inserted in main code by the 'fluka' compilation flag
+      ix=INEESE()
+      iu=INEELS( 1 )
+      ic(1)=ix+nblo
+      iEl=1
+      ixEl=ix
+      bez(ixEl)='s.latt.aper'
+      write(lout,*) ' -> inserted empty marker at start of lattice since first entry is a FLUKA element'
++ei
+    end if
+  else if( ixEl.le.0 ) then
+    write(lout,*) 'ERROR - lattice element at: i=',iEl
+    write(lout,*) 'is NOT a SINGLE ELEMENT!'
+    call prror(-1)
+  end if
+
+! echo
+  write(lout,*)' look for aperture markers closest to:'
+  write(lout,*)' i=',iEl,' - ix=',ixEl, ' - name: ',bez(ixEl), ' - s=',dcum(iEl)
+
+! candidate aperture marker
+  if( lInsUp ) then
+    iNew=iEl-1
+  else
+    iNew=iEl
+  end if
+
+  ixNew=ic(iNew)-nblo
+  if( iEl.eq.iu ) then
+!   end of lattice sequence
+    iSrcUp=iNew
+    iSrcDw=1
+  else if ( iEl.eq.1 ) then
+!   beginning of lattice sequence:
+    iSrcUp=iu
+    iSrcDw=iEl
+  else
+    iSrcUp=iNew
+    iSrcDw=iEl
+  end if
+
+! - get closest upstream aperture marker
+! NB: no risk of overflow, as first/last element in lattice
+! sequence should be aperture markers (and the first
+! call of this function is meant to verify this assumption)
+  iApeUp=-1
+  ixApeUp=-1
+  lApeUp=.false.
+  do i=iSrcUp,1,-1
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
+!   SINGLE ELEMENT 
++if fluka
+!     inserted in main code by the 'fluka' compilation flag
+!     aperture markers should not coincide with a FLUKA element
+      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
++ei
++if .not.fluka
+      if( kape(ix).ne.0 ) then
++ei
+        iApeUp=i
+        ixApeUp=ix
+        exit
+      end if
+    end if
+  end do
+
+  if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
+    write(lout,*)' ERROR - could not find upstream marker'
+    call prror(-1)
+  end if
+
+
+! - get closest downstream aperture marker
+! NB: no risk of overflow, as first/last element in lattice
+! sequence should be aperture markers (and the first
+! call of this function is meant to verify this assumption)
+  iApeDw=-1
+  ixApeDw=-1
+  lApeDw=.false.
+  do i=iSrcDw,iu
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
+!   SINGLE ELEMENT 
++if fluka
+!     inserted in main code by the 'fluka' compilation flag
+!     aperture markers should not coincide with a FLUKA element
+      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
++ei
++if .not.fluka
+      if( kape(ix).ne.0 ) then
++ei
+        iApeDw=i
+        ixApeDw=ix
+        exit
+      end if
+    end if
+  end do
+  if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
+    write(lout,*)' ERROR - could not find downstream marker'
+    call prror(-1)
+  end if
+
+
+! - echo found apertures
+  call dump_aperture_header( -1 )
+  call dump_aperture_marker( -1, ixApeUp, iApeUp )
+  call dump_aperture_marker( -1, ixApeDw, iApeDw )
+
+! - checks:
+! . iNew is iApeUp
+  lApeUp=iApeUp.eq.iNew.and.ixApeUp.eq.ixNew
+
+! . iNew is at the same s as iApeUp (inlcuding ring overvlow)
+  lAupDcum=abs(dcum(iNew)-dcum(iApeUp)).lt.sPrec.or.abs(dcum(iNew)-dcum(iApeUp)-tlen).lt.sPrec
+
+! . iNew is iApeDw
+  lApeDw=iApeDw.eq.iNew.and.ixApeDw.eq.ixNew
+
+! . iNew is at the same s as ApeDw (inlcuding ring overvlow)
+  lAdwDcum=abs(dcum(iNew)-dcum(iApeDw)).lt.sPrec.or.abs(dcum(iNew)-dcum(iApeDw)-tlen).lt.sPrec
+
+! . constant aperture?
+  lconst = ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
+  if( lconst ) then
+    do jj=1,7
+      lconst = lconst .and.abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
+      if ( .not. lconst ) exit
+    end do
+  end if
+
+! . can iNew be assigned an aperture marker?
+! ie is it a single element and is it used anywhere else?
+  lApe=lApeUp.or.lApeDw
+  lAss=ixNew.gt.0.and.check_SE_unique(iNew,ixNew).eq.-1
+
+! some action is needed
+  if( .not.lApe ) then
+! . iNew must be assigned an aperture
+    ixApeNewFrom=-1
+    lfit=.false.
+    itmpape=0
+    do jj=1,7
+      tmpape(jj)=c1e3
+    end do
+
+!   . aperture profile
+    if( lconst.or.lAupDcum ) then
+!   constant aperture or upstream aperture marker at the same s-location 
+!   -> it is wise to use the upstream aperture
+      ixApeNewFrom=ixApeUp
+    else if( lAdwDcum ) then
+!   same s-location as the closest downstream aperture marker
+!   -> it is wise to use it!
+      ixApeNewFrom=ixApeDw
+    else
+!   varying aperture -> we need to interpolate
+      call interp_aperture( iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape, tmpape, dcum(iNew) )
+      lfit=.true.
+    end if
+
+!   . aperture entry
+    if( .not.lAss ) then
+!     ixNew cannot be assigned an aperture marker: we have to insert
+!     a new entry in the lattice sequence
+      if( lfit ) then
+        ixNew=INEESE()
+        bez(ixNew)=CrtApeName()
+      end if
+      iNew=iNew+1
+      iu=INEELS( iNew )
+    end if
+
+!   . assign aperture profile
+    if( lAss.or.lfit ) then
+!     aperture model must be copied
+      call copy_aperture( ixNew,ixApeNewFrom,itmpape,tmpape )
+      ic(iNew)=ixNew+nblo
+    else if( ixApeNewFrom.gt.-1 ) then
+!     an existing aperture model can be assigned
+      ic(iNew)=ixApeNewFrom+nblo
+    else
+!     this should never happen
+      write(lout,*)' ERROR in aperture auto assignment.'
+      call prror(-1)
+    end if
+  end if
+
+! echo for checking
+  write(lout,*) ' ...echo results of assignment:'
+  call dump_aperture_header( -1 )
+  call dump_aperture_marker( -1, ic(iNew)-nblo, iNew )
+
+! go home, man
+  iEl=iNew
+  return
+
+ 1982 format (a16,2(1x,a2),8(1x,f15.5))
+end subroutine contour_aperture_marker
+
+character(len=max_name_len) function CrtApeName()
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 01-12-2016
+!     Create Aperture Name
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+  integer iApe, ii
+  data iApe / 0 /
+  save iApe
+
+  iApe=iApe+1
+  write(CrtApeName, "(A10,I6)") "auto.aper.", iApe
+
+  do ii=11,16
+    if( CrtApeName(ii:ii) .eq. ' ' ) CrtApeName(ii:ii)='0'
+  end do
+end function CrtApeName
+
+subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 30-11-2016
+!     interpolate aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
++ca commontr
++ca dbdcum
++ca comApeInfo
+
+! interface variables
+  integer iUp, ixUp, iDw, ixDw, oKApe
+  real(kind=fPrec) oApe(7), spos
+! temporary variables
+  real(kind=fPrec) ddcum, mdcum
+  integer jj
+
+  if( kape(ixDw).gt.4 ) then
+! force constant Racetrack or Octagon profile
+    oKApe = kape(ixDw)
+    do jj=1,7
+      oApe(jj) = ape(jj,ixDw)
+    end do
+  else if( kape(ixUp).gt.4 ) then
+! force constant Racetrack or Octagon profile
+    oKApe = kape(ixUp)
+    do jj=1,7
+      oApe(jj) = ape(jj,ixUp)
+    end do
+  else
+! force rectellipse aperture and interpolate
+    oKApe = 4
+    ddcum = spos-dcum(iUp)
+    if( ddcum.lt.zero ) ddcum=tlen+ddcum
+      mdcum = dcum(iDw)-dcum(iUp)
+    if( mdcum.lt.zero ) mdcum=tlen+mdcum
+
+    do jj=1,7
+      oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum+ape(jj,ixUp)
+    end do
+  end if
+end subroutine interp_aperture
+
+character(len=2) function get_ape_type( tkape )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 08-12-2016
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
++ca comApeInfo
+
+! interface variables
+  integer tkape
+
+  if(tkape.eq.2) then
+    get_ape_type=rect
+  else if(tkape.eq.3) then
+    get_ape_type=elli
+  else if(tkape.eq.4) then
+    get_ape_type=reel
+  else if(tkape.eq.5) then
+    get_ape_type=octa
+  else if(tkape.eq.6) then
+    get_ape_type=ratr
+  end if
+
+  return
+end function get_ape_type
+
+subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 02-12-2016
+!     copy aperture, either from an existing one or from the one
+!       received on the fly
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
++ca commontr
++ca dbdcum
++ca comApeInfo
+
+! interface variables
+  integer ixApeTo, ixApeFrom, nKApe
+  real(kind=fPrec) nApe(7)
+! temporary variables
+  integer jj
+
+  if( ixApeFrom.gt.0 ) then
+! copy aperture marker from existing SINGLE ELEMENT
+    kape(ixApeTo)=kape(ixApeFrom)
+    do jj=1,7
+      ape(jj,ixApeTo)=ape(jj,ixApeFrom)
+    end do
+  else
+! copy aperture marker from temporary one
+    kape(ixApeTo)=nKApe
+    do jj=1,7
+      ape(jj,ixApeTo)=nApe(jj)
+    end do
+  end if
+      
+end subroutine copy_aperture
+
+subroutine dump_aperture_model
+!-----------------------------------------------------------------------
+!     by P.Garcia Ortega, for the FLUKA Team, and A.Mereghetti
+!     last modified: 08-12-2016
+!     dump apertures 
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
++ca commontr
++ca comApeInfo
++ca dbdcum
+
+! temporary variables
+  integer i, ix
+  logical lopen
+
++if backtrk
+  integer iOld, ixOld, niter, oKApe,jj
+  real(kind=fPrec) aprr,slos,step
+  dimension aprr(7)
+  character(len=2) aptype
++ei
+
+  write(lout,*)''
+  write(lout,10340)
+  write(lout,*)''
+  write(lout,*)' DUMP OF APERTURE MODEL'
+  write(lout,*)''
+
+  inquire( unit=aperunit, opened=lopen )
+  if( .not.lopen ) then
+    if( aperunit.ne.0 ) then
+      if( aper_filename.eq.' ' ) then
+        open( aperunit, form='formatted' )
+        write(lout,*) 'DUMPED IN UNIT: ',aperunit
+      else
+        open( aperunit, file=aper_filename, form='formatted' )
+        write(lout,*) 'DUMPED IN FILE: ',aper_filename
+      end if
+    end if
+  end if
+
+! Header
+  call dump_aperture_header( aperunit )
+
++if backtrk
+  iOld=1
+  ixOld=ic(iOld)-nblo
+  if( kape(ixOld).eq.0 ) then
+    write(lout,*) ' ERROR - first element of lattice structure is not assigned any aperture type'
+    call prror(-1)
+  else
+    call dump_aperture_marker( aperunit, ixOld, iOld )
+  end if
++ei
+
+  do i=2,iu
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
+!   SINGLE ELEMENT 
+      if( kape(ix) .ne. 0 ) then
++if .not.backtrk
+        call dump_aperture_marker( aperunit, ix, i )
++ei
++if backtrk
+  !Number of iterations 
+        if( (dcum(i)-dcum(iOld)).gt.zero) then
+          niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
+          do jj=1,niter
+            slos = int(dcum(iOld)/bktpre+jj)*bktpre
+            step = (slos-dcum(iOld))/(dcum(i)-dcum(iOld))
+            if ( step.lt.zero .or. step.gt.one ) exit
+            call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
+            aptype=get_ape_type( oKApe )
+            call dump_aperture( aperunit, bez(ix), aptype, slos, aprr )
+          end do
+        end if
+        iOld=i
+        ixOld=ix
++ei
+      end if
+    end if
+  end do
+
+ 1984 format (a16,1x,a2,8(1x,f15.5))
+10340 format(131('-'))
+
+end subroutine dump_aperture_model
+
+subroutine dumpMe
+  implicit none
+
++ca commontr
++ca comApeInfo
++ca dbdcum
+
+! temporary variables
+  integer i, ix
+
+  write(lout,*) 'dumpMe - start'
+  do i=1,iu
+    ix=ic(i)-nblo
+    if( ix.gt.0 ) then
+      write(lout,*) i,bez(ix),dcum(i),kape(ix)
+    else
+      write(lout,*) i,bezb(ic(i)),dcum(i)
+    end if
+  end do
+
+  write(lout,*) 'dumpMe - end'
+
+end subroutine dumpMe
+
+subroutine dump_aperture( iunit, name, aptype, spos, ape )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 08-12-2016
+!     dump single aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
+! interface variables
+  integer iunit
+  character(len=2) aptype
+  character(len=max_name_len) name
+  real(kind=fPrec) ape(7)
+  real(kind=fPrec) spos
+
+! dump info
+  if( iunit.lt.0 ) then
+    write(lout,1984) name, aptype, spos, ape(1), ape(2),ape(3), ape(4), ape(5), ape(6), ape(7)
+  else
+    write(iunit,1984) name, aptype, spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7)
+  endif
+
+  return
+ 1984 format (1x,a16,1x,a2,8(1x,f15.5))
+end subroutine dump_aperture
+
+subroutine dump_aperture_marker( iunit, ixEl, iEl )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 08-12-2016
+!     dump single aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
++ca commontr
++ca dbdcum
++ca comApeInfo
+
+! interface variables
+  integer iunit, iEl, ixEl
+
+! temporary variables
+  character(len=2) aptype
+
+  aptype=get_ape_type( kape(ixEl) )
+  call dump_aperture( iunit, bez(ixEl), aptype, dcum(iEl),ape(1:7,ixEl) )
+
+  return
+end subroutine dump_aperture_marker
+
+subroutine dump_aperture_header( iunit )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 30-11-2016
+!     dump single aperture
+!     always in main code
+!-----------------------------------------------------------------------
+  implicit none
+
+! temporary variables
+  integer iunit
+
+! Header of dumped aperture markers
+  if( iunit .lt. 0 ) then
+    write(lout,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]', &
+ &                   'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]', 'yoff[mm]'
+  else
+    write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]', &
+ &                    'aper2[mm]', 'aper3[mm]', 'aper4[mm]', 'angle[rad]', 'xoff[mm]', 'yoff[mm]'
+  end if
+
+  return
+
+ 1984 format (a1,a16,1x,a6,1x,a11,7(1x,a15))
+end subroutine dump_aperture_header
+
+end module aperture
+

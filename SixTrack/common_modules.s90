@@ -156,6 +156,9 @@ module parpro
        nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran, &
        nrco,ntr,nzfz
 
+  !Maximum length of element names
+  integer, parameter :: max_name_len = 48
+
   !Max number of particles
 +if .not.bignpart.and..not.hugenpart
   parameter(npart = 64,nmac = 1)
@@ -274,7 +277,7 @@ module mod_common
       
   ! common /erro/
   integer, save :: ierro
-  character(len=16), save :: erbez
+  character(len=max_name_len), save :: erbez
   
   ! common /kons/
   real(kind=fPrec), save :: pi,pi2,pisqrt,rad
@@ -325,7 +328,7 @@ module mod_common
   ! common /rand0/
   real(kind=fPrec), save :: zfz(nzfz)
   integer, save :: iorg,mzu(nblz),izu0,mmac,mcut
-  character(len=16) bezr(3,nele)
+  character(len=max_name_len) bezr(3,nele)
   
   ! common /rand1/
   real(kind=fPrec), save :: exterr(nblz,40),extalign(nblz,3),tiltc(nblz),tilts(nblz)
@@ -343,7 +346,7 @@ module mod_common
   integer, save :: iq(3),iqmod,kpa(nele),iqmod6
   
   ! common /linop/
-  character(len=16), save :: bez(nele), bezb(nblo), bezl(nele)
+  character(len=max_name_len), save :: bez(nele), bezb(nblo), bezl(nele)
   real(kind=fPrec),  save :: elbe(nblo),eui,euii
   integer, save :: ilin,nt,iprint,ntco,nlin
   

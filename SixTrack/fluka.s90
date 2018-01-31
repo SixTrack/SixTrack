@@ -16,6 +16,7 @@
       use crcoall
       use parpro
       use mod_common
+      use aperture
       implicit none
 
 +ca commontr

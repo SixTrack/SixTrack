@@ -1,5 +1,6 @@
 #include "AcceleratorOutput_root.h"
 #include "TTree.h"
+#include <algorithm>
 
 char ElementName[17];
 Int_t type;
