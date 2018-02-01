@@ -2,8 +2,8 @@
       character*8 version  !Keep data type in sync with 'cr_version'
       character*10 moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.18'/
-      data moddate /'21.12.2017'/
+      data version /'4.7.19'/
+      data moddate /'01.02.2018'/
 +cd license
 !!SixTrack
 !!
@@ -3912,7 +3912,7 @@
      &sin(kcrab)*(oidpsv(j)/e0f)                                         !hr03
       ejv(j)=ejv(j) -                                                   &!hr03
      &(((((crabamp*crabfreq)*2d0)*pi)/clight)                           &!hr03
-     &*xv(xory,j))*cos_rn(kcrab)                                         !hr03
+     &*xv(xory,j))*cos(kcrab)                                            !hr03
 +ei
 +ei
 +if tilt
@@ -3929,7 +3929,7 @@
      &sin(kcrab)*(oidpsv(j)/e0f)                                         !hr03
       ejv(j)=ejv(j) -                                                   &!hr03
      &(((((crabamp*crabfreq)*2d0)*pi)/clight)                           &!hr03
-     &*xv(xory,j))*cos_rn(kcrab)                                         !hr03
+     &*xv(xory,j))*cos(kcrab)                                            !hr03
 +ei
 +ei
       ejf0v(j)=ejfv(j)
@@ -3983,7 +3983,7 @@
      &cos(kcrab)
       ejv(j)=ejv(j) - ((((0.5d0*(crabamp2))*(crkve**2-                  &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &(sin_rn(kcrab)*e0f)                                                !hr13
+     &(sin(kcrab)*e0f)                                                   !hr13
 +ei
 +ei
 +if tilt
@@ -4003,7 +4003,7 @@
      &cos(kcrab)
       ejv(j)=ejv(j) - ((((0.5d0*(crabamp2))*(crkve**2-                  &!hr13
      &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &(sin_rn(kcrab)*e0f)                                                !hr13
+     &(sin(kcrab)*e0f)                                                   !hr13
 +ei
 +ei
       ejf0v(j)=ejfv(j)
@@ -4047,7 +4047,7 @@
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
      &cos(kcrab)
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
-     &cos_rn(kcrab)
+     &cos(kcrab)
       ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))                      &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             &
      &(sin(kcrab)*e0f)                                                  &
@@ -4067,7 +4067,7 @@
         yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*                 &
      &cos(kcrab)
         yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*                 &
-     &cos_rn(kcrab)
+     &cos(kcrab)
       ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))                      &
      &*(((crabfreq*2d0)*pi)/clight))*c1m3)*                             &
      &(sin(kcrab)*e0f)                                                  &
@@ -4107,7 +4107,7 @@
           do j=1,napx
          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(2d0*pi)           &!hr03
      &+  crabph3(ix)                                                      !hr03
-	  
+
 +ca alignva
 +if .not.tilt
 +if crlibm
@@ -4149,12 +4149,12 @@
       yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
      &cos(kcrab)
       ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
-     &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight))*c1m6)*       &!hr13
+     &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight)*c1m6)*        &!hr13
      &sin(kcrab))*e0f
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      
+
       ejfv(j)=sqrt(ejv(j)**2-pma**2)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
@@ -4162,9 +4162,9 @@
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
+
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
+
       enddo
 +cd ccmul3s
 ! JBG RF CC Multipoles 2
@@ -4199,7 +4199,7 @@
      &c1m3)*cos(kcrab)
       ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     &
-     &(sin_rn(kcrab)*e0f)
+     &(sin(kcrab)*e0f)
 +ei
 +ei
 +if tilt
@@ -4221,11 +4221,11 @@
      &c1m3)*cos(kcrab)
       ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
      &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     &
-     &(sin_rn(kcrab)*e0f)
+     &(sin(kcrab)*e0f)
 +ei
 +ei
       ejf0v(j)=ejfv(j)
-      
+
       ejfv(j)=sqrt(ejv(j)**2-pma**2)
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)-e0f)/e0f
@@ -4233,9 +4233,9 @@
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
       yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
       yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
+
       if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
+
       enddo
 +cd ccmul4
 ! JBG RF CC Multipoles
@@ -23837,39 +23837,26 @@ C Should get me a NaN
 !--   Very first get rid of any previous partial output
 +if boinc
       call boincrf('fort.92',filename)
-      open(lout,file=filename,form='formatted',status='unknown')
-+ei
-+if .not.boinc
-      open(lout,file='fort.92',form='formatted',status='unknown')
-+ei
-      rewind lout
-      endfile (lout,iostat=ierro)
-      close(lout)
-+if boinc
-      call boincrf('fort.92',filename)
 +if fio
-      open(lout,file=filename,form='formatted',status='unknown',        &
-     &round='nearest')
+      open(lout,file=filename,form='formatted',status='replace',round='nearest')
 +ei
 +if .not.fio
-      open(lout,file=filename,form='formatted',status='unknown')
+      open(lout,file=filename,form='formatted',status='replace')
 +ei
 +ei
 +if .not.boinc
 +if fio
-      open(lout,file='fort.92',form='formatted',status='unknown',       &
-     &round='nearest')
+      open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
 +ei
 +if .not.fio
-      open(lout,file='fort.92',form='formatted',status='unknown')
+      open(lout,file='fort.92',form='formatted',status='replace')
 +ei
 +ei
 !--   Now position the checkpoint/restart logfile=93
 +if boinc
       call boincrf('fort.93',filename)
 +if fio
-      open(93,file=filename,form='formatted',status='unknown',          &
-     &round='nearest')
+      open(93,file=filename,form='formatted',status='unknown', round='nearest')
 +ei
 +if .not.fio
       open(93,file=filename,form='formatted',status='unknown')
@@ -23877,8 +23864,7 @@ C Should get me a NaN
 +ei
 +if .not.boinc
 +if fio
-      open(93,file='fort.93',form='formatted',status='unknown',         &
-     &round='nearest')
+      open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
 +ei
 +if .not.fio
       open(93,file='fort.93',form='formatted',status='unknown')
