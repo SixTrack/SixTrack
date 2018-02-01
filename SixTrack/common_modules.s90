@@ -216,13 +216,7 @@ module parpro
 +ei ! / collimat
 
 
-+if collimat
-  parameter(nran = 280000, ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
-+ei
-+if .not.collimat
   parameter(nran = 2000000,ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
-+ei
-  
   parameter(mcor = 10,mcop = mcor+6, mbea = 99)
   parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
   parameter(nmon1 = 600,ncor1 = 600)
