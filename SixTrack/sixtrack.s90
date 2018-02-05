@@ -20443,7 +20443,6 @@ end subroutine runda
             sigmdac=dare(sigmda)
             sigmoff(i)=sigmdac
 !FOX  SIGMDA=SIGMDA-SIGMDAC ;
-!FOX  DELTAS=SIGMDA/RV ;
           endif
           call synoda
 !FOX  DPDA=DPDA1*C1M3 ;
