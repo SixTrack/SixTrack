@@ -945,23 +945,33 @@
 !
 
 +cd elensparam
-!     M. Fitterer, FNAL
+!     M. Fitterer, FNAL, A. Mereghtti, CERN
+!     last modified: 09-02-2018
 !     Common block for electron lens definition
+
+      ! size of table with elens data
+      integer          :: nelens
+      parameter (nelens=100)
+      ! last elens read
+      integer          :: melens
+
+      ! index of elens:
+      integer          :: ielens(nele)
       
       ! variables to save elens parameters for tracking etc.
-      integer          :: elens_type(nele)      ! integer for elens type
-                                                ! 0 : Un-initialized.
-                                                ! 1 : Hollow annular elens, uniform profile
-      real(kind=fPrec) :: elens_theta_max(nele) ! maximum kick strength [mrad]
-      real(kind=fPrec) :: elens_r2(nele)        ! outer radius R2 [mm]
-      real(kind=fPrec) :: elens_r2ovr1(nele)    ! R2/R1 where R1 is the inner radius
-      real(kind=fPrec) :: elens_offset_x(nele),                         &
-     &                    elens_offset_y(nele)  ! hor./vert. offset of elens [mm]
-      integer          :: elens_bend_entrance(nele),                    &
-     &                    elens_bend_exit(nele) ! switch for elens bends
+      integer          :: elens_type(nelens)      ! integer for elens type
+                                                  ! 0 : Un-initialized.
+                                                  ! 1 : Hollow annular elens, uniform profile
+      real(kind=fPrec) :: elens_theta_max(nelens) ! maximum kick strength [mrad]
+      real(kind=fPrec) :: elens_r2(nelens)        ! outer radius R2 [mm]
+      real(kind=fPrec) :: elens_r2ovr1(nelens)    ! R2/R1 where R1 is the inner radius
+      real(kind=fPrec) :: elens_offset_x(nelens),                       &
+     &                    elens_offset_y(nelens)  ! hor./vert. offset of elens [mm]
+      integer          :: elens_bend_entrance(nelens),                  &
+     &                    elens_bend_exit(nelens) ! switch for elens bends
       common /elensco/ elens_type,elens_theta_max,elens_r2,             &
      &elens_r2ovr1,elens_offset_x,elens_offset_y,elens_bend_entrance,   &
-     &     elens_bend_exit
+     &     elens_bend_exit, melens
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
@@ -1761,7 +1771,7 @@
       sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))* &!hr02
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickelens
-            select case (elens_type(ix))
+            select case (elens_type(ielens(ix)))
               case (1)
 ! ANNULAR: hollow elens with uniform annular profile for collimation
 ! Space charge density is:
@@ -1785,29 +1795,29 @@
 
 ! kick from ideal annular profile
 ! 1) apply offset of e-lens
-                xelens=xv(1,j)+elens_offset_x(ix)
-                yelens=xv(2,j)+elens_offset_y(ix)
+                xelens=xv(1,j)+elens_offset_x(ielens(ix))
+                yelens=xv(2,j)+elens_offset_y(ielens(ix))
 ! 2) calculate radius
                 rrelens=sqrt((xelens)**2+(yelens**2)) ! radius of particle in p-beam relative to center of elens beam
-                r1elens=elens_r2(ix)/elens_r2ovr1(ix) ! inner radius elens
+                r1elens=elens_r2(ielens(ix))/elens_r2ovr1(ielens(ix)) ! inner radius elens
 ! 3) calculate kick
                 if (rrelens.gt.r1elens) then ! rrelens <= r1 -> no kick from elens
-                  if (rrelens.lt.elens_r2(ix)) then ! r1 <= rrelens < r2
-                    frrelens = (elens_r2(ix)/(rrelens**2))*             &
-     &((((rrelens**2)/(r1elens**2))-1)/(elens_r2ovr1(ix)**2 - 1))
+                  if (rrelens.lt.elens_r2(ielens(ix))) then ! r1 <= rrelens < r2
+                    frrelens = (elens_r2(ielens(ix))/(rrelens**2))*             &
+     &((((rrelens**2)/(r1elens**2))-1)/(elens_r2ovr1(ielens(ix))**2 - 1))
                   endif
-                  if (rrelens.ge.elens_r2(ix)) then ! r1 < r2 <= rrelens
-                    frrelens = elens_r2(ix)/(rrelens**2)
+                  if (rrelens.ge.elens_r2(ielens(ix))) then ! r1 < r2 <= rrelens
+                    frrelens = elens_r2(ielens(ix))/(rrelens**2)
                   endif
-                  yv(1,j)=yv(1,j)-elens_theta_max(ix)*frrelens*xelens   &
+                  yv(1,j)=yv(1,j)-elens_theta_max(ielens(ix))*frrelens*xelens   &
      &                 * oidpsv(j)
-                  yv(2,j)=yv(2,j)-elens_theta_max(ix)*frrelens*yelens   &
+                  yv(2,j)=yv(2,j)-elens_theta_max(ielens(ix))*frrelens*yelens   &
      &                 * oidpsv(j)
                 endif
 ! include bends at entrance and exit of elens
               case default
                write(lout,*) 'ERROR in deck kickelens: elens_type='     &
-     &,elens_type(ix),' not recognized. Possible values for type are: ',&
+     &,elens_type(ielens(ix)),' not recognized. Possible values for type are: ',&
      &'1.'
                 call prror(-1) 
               end select
@@ -16007,19 +16017,22 @@ end subroutine hamilton1
       if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
 
       if (ch(:4).eq.next) then
+         if(melens.ne.0) then
+!          loop only if at least an elens has been read
 !       4) loop over single elements to check that they have been defined in the fort.3 block
-        do j=1,nele
-          if(kz(j).eq.29) then
-            if(elens_type(j).eq.0) then
-              write(lout,*)                                             &
+            do j=1,nele
+               if(kz(j).eq.29) then
+                  if(elens_type(ielens(j)).eq.0) then
+                     write(lout,*)                                      &
      &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '// &
      &'not defined in fort.3. You must define every elens in the '//    &
      &'ELEN block in fort.3!'
-               call prror(-1)
-            endif
-          endif
-        enddo
-        goto 110 ! go to next BLOCK in fort.3 - we're done here!
+                     call prror(-1)
+                  endif
+               endif
+            enddo
+         endif
+         goto 110 ! go to next BLOCK in fort.3 - we're done here!
       endif
 
       ! We don't support FIO, since it's not supported by any compilers...
@@ -16076,7 +16089,10 @@ end subroutine hamilton1
      &'to be zero.'
                call prror(-1)
             endif
-            if (elens_type(j).ne.0) then
+!           acquire new elens
+            melens=melens+1
+            ielens(j)=melens
+            if (elens_type(ielens(j)).ne.0) then
                write(lout,*) "ERROR in ELEN block:"//                   &
      &              "The element '"//bez(j)//"' was defined twice!"
                call prror(-1)
@@ -16086,69 +16102,69 @@ end subroutine hamilton1
             select case ( getfields_fields(2)(1:getfields_lfields(2)) )
             case ("ANNULAR")
                ! Read in this case
-               elens_type(j) = 1
+               elens_type(ielens(j)) = 1
 +if .not.crlibm
                read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
-     &              elens_theta_max(j)
+     &              elens_theta_max(ielens(j))
                read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
-     &              elens_r2(j)
+     &              elens_r2(ielens(j))
                read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
-     &              elens_r2ovr1(j)
+     &              elens_r2ovr1(ielens(j))
                read (getfields_fields(6)(1:getfields_lfields(6)),*)     &
-     &              elens_offset_x(j)
+     &              elens_offset_x(ielens(j))
                read (getfields_fields(7)(1:getfields_lfields(7)),*)     &
-     &              elens_offset_y(j)
+     &              elens_offset_y(ielens(j))
 +ei
 +if crlibm
-               elens_theta_max(j)= round_near (                         &
+               elens_theta_max(ielens(j))= round_near (                 &
      &              errno,getfields_lfields(3)+1, getfields_fields(3) )
                if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,3,elens_theta_max(j) )
-               elens_r2(j)       = round_near (                         &
+     &              errno,getfields_fields,3,elens_theta_max(ielens(j)) )
+               elens_r2(ielens(j))       = round_near (                 &
      &              errno,getfields_lfields(4)+1, getfields_fields(4) )
                if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,4,elens_r2(j) )
-               elens_r2ovr1(j)   = round_near (                         &
+     &              errno,getfields_fields,4,elens_r2(ielens(j)) )
+               elens_r2ovr1(ielens(j))   = round_near (                 &
      &              errno,getfields_lfields(5)+1, getfields_fields(5) )
                if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,5,elens_r2ovr1(j) )
-               elens_offset_x(j) = round_near (                         &
+     &              errno,getfields_fields,5,elens_r2ovr1(ielens(j)) )
+               elens_offset_x(ielens(j)) = round_near (                 &
      &              errno,getfields_lfields(6)+1, getfields_fields(6) )
                if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,6,elens_offset_x(j) )
-               elens_offset_y(j) = round_near (                         &
+     &              errno,getfields_fields,6,elens_offset_x(ielens(j)) )
+               elens_offset_y(ielens(j)) = round_near (                 &
      &              errno,getfields_lfields(7)+1, getfields_fields(7) )
                if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,7,elens_offset_y(j) )
+     &              errno,getfields_fields,7,elens_offset_y(ielens(j)) )
 +ei
                read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')&
-     &              elens_bend_entrance(j)
+     &              elens_bend_entrance(ielens(j))
                read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')&
-     &              elens_bend_exit(j)
+     &              elens_bend_exit(ielens(j))
                
                ! Make checks for this case
-               if(elens_r2ovr1(j).le.1) then
+               if(elens_r2ovr1(ielens(j)).le.1) then
                   write(lout,*)                                         &
      &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',  &
-     &elens_r2ovr1(j),'<1'
+     &elens_r2ovr1(ielens(j)),'<1'
                  call prror(-1)
               end if
-              if(elens_bend_entrance(j).ne. 1 .and.                     &
-     &           elens_bend_entrance(j).ne.-1 .and.                     &
-     &           elens_bend_entrance(j).ne. 0      ) then
+              if(elens_bend_entrance(ielens(j)).ne. 1 .and.             &
+     &           elens_bend_entrance(ielens(j)).ne.-1 .and.             &
+     &           elens_bend_entrance(ielens(j)).ne. 0      ) then
                  write(lout,*)                                          &
      &'ERROR: ELEN flag for taking bends at entrance into account must' &
      &//' be -1,0,1, but elens_bend_entrance =',                        &
-     &elens_bend_entrance(j)
+     &elens_bend_entrance(ielens(j))
                  call prror(-1)
               end if
-              if(elens_bend_exit(j).ne. 1 .and.                         &
-     &           elens_bend_exit(j).ne.-1 .and.                         &
-     &           elens_bend_exit(j).ne.0       ) then
+              if(elens_bend_exit(ielens(j)).ne. 1 .and.                 &
+     &           elens_bend_exit(ielens(j)).ne.-1 .and.                 &
+     &           elens_bend_exit(ielens(j)).ne.0       ) then
                  write(lout,*)                                          &
      &'ERROR: ELEN flag for taking bends at exit into account must'     &
      &//' be -1,0,1, but elens_bend_exit =',                            &
-     &elens_bend_exit(j)
+     &elens_bend_exit(ielens(j))
                  call prror(-1)
               end if
 
@@ -16159,15 +16175,15 @@ end subroutine hamilton1
      &'ELENS found in list of single elements with: ',                  &
      &'name     = ',bez(j),                                             &
      &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),        &
-     &        ' = ',elens_type(j),                                      &
-     &'thetamax = ',elens_theta_max(j),' mrad',                         &
-     &'r2       = ',elens_r2(j),' mm',                                  &
-     &'r2/r1    = ',elens_r2ovr1(j),'',                                 &
-     &'offset_x = ',elens_offset_x(j),' mm',                            &
-     &'offset_y = ',elens_offset_y(j),' mm',                            &
+     &        ' = ',elens_type(ielens(j)),                              &
+     &'thetamax = ',elens_theta_max(ielens(j)),' mrad',                 &
+     &'r2       = ',elens_r2(ielens(j)),' mm',                          &
+     &'r2/r1    = ',elens_r2ovr1(ielens(j)),'',                         &
+     &'offset_x = ',elens_offset_x(ielens(j)),' mm',                    &
+     &'offset_y = ',elens_offset_y(ielens(j)),' mm',                    &
      &'enable bends at:',                                               &
-     &'  entrance = ',elens_bend_entrance(j),                           &
-     &'  exit     = ',elens_bend_exit(j)
+     &'  entrance = ',elens_bend_entrance(ielens(j)),                   &
+     &'  exit     = ',elens_bend_exit(ielens(j))
       
             case default
                write(lout,*) "ERROR in ELEN: "//                        &
@@ -32607,14 +32623,16 @@ subroutine comnul
 !     last modified: 2016
       call fma_comnul
       
-!combine multiple elments in one loope
 !1) --ELEN - ELECTRON LENS---------------------------------------------------------
-!2) --WIRE - WIRE ELEMENT---------------------------------------------------------
-!     M. Fitterer (FNAL), A. Patapenka (NIU)
-!     last modified: 22-12-2016
-! 1) single elements
-      do i=1,nele
+!     M. Fitterer (FNAL), A. Mereghetti
+!     last modified: 09-02-2018
+!     always in main code
 !     elensparam - used for tracking (parameters of single element)
+      do i=1,nele
+         ielens(i) = 0
+      end do
+      melens=0
+      do i=1,nelens
         elens_type(i)          = 0
         elens_theta_max(i)     = 0
         elens_r2(i)            = 0
@@ -32623,7 +32641,13 @@ subroutine comnul
         elens_offset_y(i)      = 0
         elens_bend_entrance(i) = 0
         elens_bend_exit(i)     = 0
+      end do
+
+!2) --WIRE - WIRE ELEMENT---------------------------------------------------------
+!     M. Fitterer (FNAL), A. Patapenka (NIU)
+!     last modified: 22-12-2016
 !     wireparam - used for tracking (parameters of single element)
+      do i=1,nele
         wire_flagco(i)  = 0
         wire_current(i) = 0
         wire_lint(i)    = 0
