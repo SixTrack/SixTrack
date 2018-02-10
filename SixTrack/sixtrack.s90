@@ -16121,7 +16121,7 @@ end subroutine hamilton1
             read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
      &              elens_r2(ielens(j))
             read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
-     &              tmpflt
+     &              elens_r1(ielens(j))
             read (getfields_fields(6)(1:getfields_lfields(6)),*)     &
      &              elens_offset_x(ielens(j))
             read (getfields_fields(7)(1:getfields_lfields(7)),*)     &
@@ -16136,10 +16136,10 @@ end subroutine hamilton1
      &              errno,getfields_lfields(4)+1, getfields_fields(4) )
             if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,4,elens_r2(ielens(j)) )
-            tmpflt   = round_near (                                  &
+            elens_r1(ielens(j)) = round_near (                       &
      &              errno,getfields_lfields(5)+1, getfields_fields(5) )
             if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,5,tmpflt )
+     &              errno,getfields_fields,5,elens_r1(ielens(j)) )
             elens_offset_x(ielens(j)) = round_near (                 &
      &              errno,getfields_lfields(6)+1, getfields_fields(6) )
             if (errno.ne.0) call rounderr (                          &
@@ -16155,18 +16155,13 @@ end subroutine hamilton1
      &              elens_bend_exit(ielens(j))
                
             ! Make checks for this case
-            if (tmpflt.eq.0) then
-               write(lout,*)                                         &
-     &'ERROR: ELEN radius ratio r2/r1 must be different from 0, but is ',  &
-     &tmpflt
-               call prror(-1)
-            else
-               elens_r1(ielens(j))=elens_r2(ielens(j))/tmpflt
-            end if
-            if(elens_r2(ielens(j))/elens_r1(ielens(j)).le.1) then
-               write(lout,*)                                         &
-     &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',  &
-     &elens_r2(ielens(j))/elens_r1(ielens(j)),'<1'
+            if( elens_r2(ielens(j)).lt.elens_r1(ielens(j)) ) then
+               write(lout,*) 'WARNING: R2<R1 -> inverting'
+               tmpflt=elens_r2(ielens(j))
+               elens_r2(ielens(j))=elens_r1(ielens(j))
+               elens_r1(ielens(j))=tmpflt
+            elseif ( elens_r2(ielens(j)).eq.elens_r1(ielens(j)) ) then
+               write(lout,*) 'ERROR: R2=R1 -> elens does not exist'
                call prror(-1)
             end if
             if(elens_bend_entrance(ielens(j)).ne. 1 .and.               &
@@ -16197,8 +16192,8 @@ end subroutine hamilton1
      &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),        &
      &        ' = ',elens_type(ielens(j)),                              &
      &'thetamax = ',elens_theta_max(ielens(j)),' mrad',                 &
+     &'r1       = ',elens_r1(ielens(j)),' mm',                          &
      &'r2       = ',elens_r2(ielens(j)),' mm',                          &
-     &'r2/r1    = ',elens_r2(ielens(j))/elens_r1(ielens(j)),'',         &
      &'offset_x = ',elens_offset_x(ielens(j)),' mm',                    &
      &'offset_y = ',elens_offset_y(ielens(j)),' mm',                    &
      &'enable bends at:',                                               &
