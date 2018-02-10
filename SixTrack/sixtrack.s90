@@ -969,7 +969,7 @@
      &                    elens_offset_y(nelens)  ! hor./vert. offset of elens [mm]
       integer          :: elens_bend_entrance(nelens),                  &
      &                    elens_bend_exit(nelens) ! switch for elens bends
-      common /elensco/ elens_type,elens_theta_max,elens_r2,             &
+      common /elensco/ ielens, elens_type,elens_theta_max,elens_r2,     &
      &     elens_r1,elens_offset_x,elens_offset_y,elens_bend_entrance,  &
      &     elens_bend_exit, melens
 +cd elenstracktmp
@@ -16107,81 +16107,89 @@ end subroutine hamilton1
             case ("ANNULAR")
                ! Read in this case
                elens_type(ielens(j)) = 1
+            case default
+               write(lout,*) "ERROR in ELEN: "//                        &
+     &              "Elens type '"//                                    &
+     &              getfields_fields(2)(1:getfields_lfields(2))//       &
+     &              "' not recognized. Remember to use all UPPER CASE!"
+               call prror(-1)
+            end select
+            
 +if .not.crlibm
-               read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
+            read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
      &              elens_theta_max(ielens(j))
-               read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
+            read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
      &              elens_r2(ielens(j))
-               read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
+            read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
      &              tmpflt
-               read (getfields_fields(6)(1:getfields_lfields(6)),*)     &
+            read (getfields_fields(6)(1:getfields_lfields(6)),*)     &
      &              elens_offset_x(ielens(j))
-               read (getfields_fields(7)(1:getfields_lfields(7)),*)     &
+            read (getfields_fields(7)(1:getfields_lfields(7)),*)     &
      &              elens_offset_y(ielens(j))
 +ei
 +if crlibm
-               elens_theta_max(ielens(j))= round_near (                 &
+            elens_theta_max(ielens(j))= round_near (                 &
      &              errno,getfields_lfields(3)+1, getfields_fields(3) )
-               if (errno.ne.0) call rounderr (                          &
+            if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,3,elens_theta_max(ielens(j)) )
-               elens_r2(ielens(j))       = round_near (                 &
+            elens_r2(ielens(j))       = round_near (                 &
      &              errno,getfields_lfields(4)+1, getfields_fields(4) )
-               if (errno.ne.0) call rounderr (                          &
+            if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,4,elens_r2(ielens(j)) )
-               tmpflt   = round_near (                                  &
+            tmpflt   = round_near (                                  &
      &              errno,getfields_lfields(5)+1, getfields_fields(5) )
-               if (errno.ne.0) call rounderr (                          &
+            if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,5,tmpflt )
-               elens_offset_x(ielens(j)) = round_near (                 &
+            elens_offset_x(ielens(j)) = round_near (                 &
      &              errno,getfields_lfields(6)+1, getfields_fields(6) )
-               if (errno.ne.0) call rounderr (                          &
+            if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,6,elens_offset_x(ielens(j)) )
-               elens_offset_y(ielens(j)) = round_near (                 &
+            elens_offset_y(ielens(j)) = round_near (                 &
      &              errno,getfields_lfields(7)+1, getfields_fields(7) )
-               if (errno.ne.0) call rounderr (                          &
+            if (errno.ne.0) call rounderr (                          &
      &              errno,getfields_fields,7,elens_offset_y(ielens(j)) )
 +ei
-               read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')&
+            read(getfields_fields(8)(1:getfields_lfields(8)),'(I10)')&
      &              elens_bend_entrance(ielens(j))
-               read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')&
+            read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')&
      &              elens_bend_exit(ielens(j))
                
-               ! Make checks for this case
-               if (tmpflt.eq.0) then
-                  write(lout,*)                                         &
+            ! Make checks for this case
+            if (tmpflt.eq.0) then
+               write(lout,*)                                         &
      &'ERROR: ELEN radius ratio r2/r1 must be different from 0, but is ',  &
      &tmpflt
-                 call prror(-1)
-               else
-                  elens_r1(ielens(j))=elens_r2(ielens(j)/tmpflt
-               end if
-               if(elens_r2(ielens(j))/elens_r1(ielens(j)).le.1) then
-                  write(lout,*)                                         &
+               call prror(-1)
+            else
+               elens_r1(ielens(j))=elens_r2(ielens(j))/tmpflt
+            end if
+            if(elens_r2(ielens(j))/elens_r1(ielens(j)).le.1) then
+               write(lout,*)                                         &
      &'ERROR: ELEN radius ratio r2/r1 must be larger than 1, but is ',  &
      &elens_r2(ielens(j))/elens_r1(ielens(j)),'<1'
-                 call prror(-1)
-              end if
-              if(elens_bend_entrance(ielens(j)).ne. 1 .and.             &
-     &           elens_bend_entrance(ielens(j)).ne.-1 .and.             &
-     &           elens_bend_entrance(ielens(j)).ne. 0      ) then
-                 write(lout,*)                                          &
+               call prror(-1)
+            end if
+            if(elens_bend_entrance(ielens(j)).ne. 1 .and.               &
+     &         elens_bend_entrance(ielens(j)).ne.-1 .and.               &
+     &         elens_bend_entrance(ielens(j)).ne. 0      ) then
+               write(lout,*)                                            &
      &'ERROR: ELEN flag for taking bends at entrance into account must' &
      &//' be -1,0,1, but elens_bend_entrance =',                        &
      &elens_bend_entrance(ielens(j))
-                 call prror(-1)
-              end if
-              if(elens_bend_exit(ielens(j)).ne. 1 .and.                 &
-     &           elens_bend_exit(ielens(j)).ne.-1 .and.                 &
-     &           elens_bend_exit(ielens(j)).ne.0       ) then
-                 write(lout,*)                                          &
+               call prror(-1)
+            end if
+            if(elens_bend_exit(ielens(j)).ne. 1 .and.                   &
+     &         elens_bend_exit(ielens(j)).ne.-1 .and.                   &
+     &         elens_bend_exit(ielens(j)).ne.0       ) then
+               write(lout,*)                                            &
      &'ERROR: ELEN flag for taking bends at exit into account must'     &
      &//' be -1,0,1, but elens_bend_exit =',                            &
      &elens_bend_exit(ielens(j))
-                 call prror(-1)
-              end if
+               call prror(-1)
+            end if
 
-              ! print a summary of elens parameters
-              write(lout,                                               &
+            ! print a summary of elens parameters
+            write(lout,                                                 &
      &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D10.3,A,/),(A,/),'           &
      &//'2(A,I4,/))')                                                   &
      &'ELENS found in list of single elements with: ',                  &
@@ -16197,14 +16205,6 @@ end subroutine hamilton1
      &'  entrance = ',elens_bend_entrance(ielens(j)),                   &
      &'  exit     = ',elens_bend_exit(ielens(j))
       
-            case default
-               write(lout,*) "ERROR in ELEN: "//                        &
-     &              "Elens type '"//                                    &
-     &              getfields_fields(2)(1:getfields_lfields(2))//       &
-     &              "' not recognized. Remember to use all UPPER CASE!"
-               call prror(-1)
-            end select
-            
             goto 2401           !Search success :)
             
          endif
