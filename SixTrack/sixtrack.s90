@@ -967,11 +967,12 @@
       real(kind=fPrec) :: elens_r1(nelens)        ! inner radius R1 [mm]
       real(kind=fPrec) :: elens_offset_x(nelens),                       &
      &                    elens_offset_y(nelens)  ! hor./vert. offset of elens [mm]
+      real(kind=fPrec) :: elens_sig(nelens)       ! sig (Gaussian profile) [mm]
       integer          :: elens_bend_entrance(nelens),                  &
      &                    elens_bend_exit(nelens) ! switch for elens bends
       common /elensco/ ielens, elens_type,elens_theta_max,elens_r2,     &
-     &     elens_r1,elens_offset_x,elens_offset_y,elens_bend_entrance,  &
-     &     elens_bend_exit, melens
+     &     elens_r1,elens_offset_x,elens_offset_y,elens_sig,            &
+     &     elens_bend_entrance, elens_bend_exit, melens
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
@@ -1772,15 +1773,22 @@
      &rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)                       !hr02
 +cd kickelens
 ! 1) apply offset of e-lens
+!   elens_offset_x - x offset (elens position wrt machine axis)
+!   elens_offset_y - y offset (elens position wrt machine axis)
+!   -> internal parameters to calculate kick:
+!   xelens = x(proton) - elens_offset_x
+!   yelens = y(proton) - elens_offset_y
             xelens=xv(1,j)-elens_offset_x(ielens(ix))
             yelens=xv(2,j)-elens_offset_y(ielens(ix))
 ! 2) calculate radius
 !    radius of particle in p-beam relative to center of elens beam
+!    -> internal parameters to calculate kick:
+!    rrelens = sqrt(xelens**2+yelens**2)
             rrelens=sqrt((xelens)**2+(yelens**2))
             select case (elens_type(ielens(ix)))
               case (1)
-! ANNULAR: hollow elens with uniform annular profile for collimation
-! Space charge density is:
+! CONSTANT: eLens with uniform profile
+! Spatial charge density is:
 ! 0     if r < R1
 ! Const if R1 < r < R2
 ! 0     if r > R2
@@ -1788,18 +1796,12 @@
 !   elens_theta_max is the maximum kick in radians
 !   elens_r2 is R2 in mm
 !   elens_r1 is R1 in mm
-!   elens_offset_x - x offset (elens position wrt machine axis)
-!   elens_offset_y - y offset (elens position wrt machine axis)
 !   elens_bend_entrance - switch bends on at entrance
 !   elens_bend_exit - switch bends on at exit
 ! internal parameters to calculate kick:
-!   xelens = x(proton) - elens_offset_x
-!   yelens = y(proton) - elens_offset_y
-!   rrelens = sqrt(xelens**2+yelens**2)
-!   r1elens = radius R1 [mm]
 !   frrelens = shape function [1/mm]
 
-! kick from ideal annular profile
+! kick from ideal constant profile
 ! 3) calculate kick
                 if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
                   if (rrelens.lt.elens_r2(ielens(ix))) then ! r1 <= rrelens < r2
@@ -1816,6 +1818,39 @@
      &                 *yelens/rrelens * oidpsv(j)
                 endif
 ! include bends at entrance and exit of elens
+
+             case (2)
+! GAUSSIAN: eLens with Gaussian profile
+! Spatial charge density is:
+! 0     if r < R1
+! Gaussian if R1 < r < R2
+! 0     if r > R2
+! Parameters:
+!   elens_theta_max is the maximum kick in radians
+!   elens_r2 is R2 in mm
+!   elens_r1 is R1 in mm
+!   elens_sig is sigma of the e-beam in mm
+!   elens_bend_entrance - switch bends on at entrance
+!   elens_bend_exit - switch bends on at exit
+! internal parameters to calculate kick:
+!   frrelens = shape function [1/mm]
+
+! kick from ideal Gaussian profile
+! 3) calculate kick
+                if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
+                  if (rrelens.lt.elens_r2(ielens(ix))) then ! r1 <= rrelens < r2
+                    ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/pi
+                     frrelens=( exp_mb(-0.5*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))**2) &
+     &                         -exp_mb(-0.5*(rrelens/elens_sig(ielens(ix)))**2) )/pi
+                  else ! r1 < r2 <= rrelens
+                    frrelens = one
+                  endif
+                  frrelens = elens_r2(ielens(ix))/rrelens * frrelens
+                  yv(1,j)=yv(1,j)-elens_theta_max(ielens(ix))*frrelens          &
+     &                 *xelens/rrelens * oidpsv(j)
+                  yv(2,j)=yv(2,j)-elens_theta_max(ielens(ix))*frrelens          &
+     &                 *yelens/rrelens * oidpsv(j)
+                endif
               case default
                write(lout,*) 'ERROR in deck kickelens: elens_type='     &
      &,elens_type(ielens(ix)),' not recognized. Possible values for type are: ',&
@@ -16056,12 +16091,12 @@ end subroutine hamilton1
         call prror(-1)
       endif
 
-!     Check number of arguments
+!     Check (min) number of arguments
 !     If a new type of elens is implemented, may need to modify this!
-      if(getfields_nfields.ne.9) then
+      if(getfields_nfields.lt.9) then
         write(lout,*)                                                   &
      &       'ERROR in ELEN block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 9'
+     &       'parameters: ninput = ', getfields_nfields, ' != 9 (min)'
         call prror(-1)
       endif
 
@@ -16104,9 +16139,18 @@ end subroutine hamilton1
 
             ! Parse the element
             select case ( getfields_fields(2)(1:getfields_lfields(2)) )
-            case ("ANNULAR")
+            case ("CONSTANT")
                ! Read in this case
                elens_type(ielens(j)) = 1
+            case ("GAUSSIAN")
+               ! Read in this case
+               elens_type(ielens(j)) = 2
+               if(getfields_nfields.lt.10) then
+                  write(lout,*)                                         &
+     &       'ERROR in ELEN block: wrong number of input ',             &
+     &       'parameters: ninput = ', getfields_nfields, ' != 10 (GAUSSIAN)'
+                  call prror(-1)
+               endif
             case default
                write(lout,*) "ERROR in ELEN: "//                        &
      &              "Elens type '"//                                    &
@@ -16153,7 +16197,20 @@ end subroutine hamilton1
      &              elens_bend_entrance(ielens(j))
             read(getfields_fields(9)(1:getfields_lfields(9)),'(I10)')&
      &              elens_bend_exit(ielens(j))
-               
+
+            if ( elens_type(ielens(j)).eq.2 ) then
+!               GAUSSIAN profile of electros: need also sigma of e-beam
++if .not.crlibm
+                read (getfields_fields(10)(1:getfields_lfields(10)),*) &
+     &              elens_sig(ielens(j))
++ei
++if crlibm
+                elens_sig(ielens(j))= round_near (                   &
+     &              errno,getfields_lfields(10)+1, getfields_fields(10) )
+                if (errno.ne.0) call rounderr (                      &
+     &              errno,getfields_fields,10,elens_sig(ielens(j)) )
++ei
+            end if
             ! Make checks for this case
             if( elens_r2(ielens(j)).lt.elens_r1(ielens(j)) ) then
                write(lout,*) 'WARNING: R2<R1 -> inverting'
@@ -32641,11 +32698,12 @@ subroutine comnul
       melens=0
       do i=1,nelens
         elens_type(i)          = 0
-        elens_theta_max(i)     = 0
-        elens_r2(i)            = 0
-        elens_r1(i)            = 0
-        elens_offset_x(i)      = 0
-        elens_offset_y(i)      = 0
+        elens_theta_max(i)     = zero
+        elens_r2(i)            = zero
+        elens_r1(i)            = zero
+        elens_offset_x(i)      = zero
+        elens_offset_y(i)      = zero
+        elens_sig(i)           = zero
         elens_bend_entrance(i) = 0
         elens_bend_exit(i)     = 0
       end do
