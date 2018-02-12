@@ -16213,12 +16213,20 @@ end subroutine hamilton1
             end if
             ! Make checks for this case
             if( elens_r2(ielens(j)).lt.elens_r1(ielens(j)) ) then
-               write(lout,*) 'WARNING: R2<R1 -> inverting'
+               write(lout,*) 'WARNING: ELEN R2<R1 -> inverting'
                tmpflt=elens_r2(ielens(j))
                elens_r2(ielens(j))=elens_r1(ielens(j))
                elens_r1(ielens(j))=tmpflt
             elseif ( elens_r2(ielens(j)).eq.elens_r1(ielens(j)) ) then
-               write(lout,*) 'ERROR: R2=R1 -> elens does not exist'
+               write(lout,*) 'ERROR: ELEN R2=R1 -> ELEN does not exist'
+               call prror(-1)
+            end if
+            if( elens_r2(ielens(j)).lt.zero ) then
+               write(lout,*) 'WARNING: ELEN R2<0!!'
+               call prror(-1)
+            end if
+            if( elens_r1(ielens(j)).lt.zero ) then
+               write(lout,*) 'WARNING: ELEN R1<0!!'
                call prror(-1)
             end if
             if(elens_bend_entrance(ielens(j)).ne. 1 .and.               &
