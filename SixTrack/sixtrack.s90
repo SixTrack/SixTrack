@@ -962,17 +962,18 @@
       integer          :: elens_type(nelens)      ! integer for elens type
                                                   ! 0 : Un-initialized.
                                                   ! 1 : Hollow annular elens, uniform profile
-      real(kind=fPrec) :: elens_theta_max(nelens) ! maximum kick strength [mrad]
+      real(kind=fPrec) :: elens_theta_r2(nelens)  ! kick strength at R2 [mrad]
       real(kind=fPrec) :: elens_r2(nelens)        ! outer radius R2 [mm]
       real(kind=fPrec) :: elens_r1(nelens)        ! inner radius R1 [mm]
       real(kind=fPrec) :: elens_offset_x(nelens),                       &
      &                    elens_offset_y(nelens)  ! hor./vert. offset of elens [mm]
       real(kind=fPrec) :: elens_sig(nelens)       ! sig (Gaussian profile) [mm]
+      real(kind=fPrec) :: elens_geo_norm(nelens)  ! 
       integer          :: elens_bend_entrance(nelens),                  &
      &                    elens_bend_exit(nelens) ! switch for elens bends
-      common /elensco/ ielens, elens_type,elens_theta_max,elens_r2,     &
+      common /elensco/ ielens, elens_type,elens_theta_r2,elens_r2,     &
      &     elens_r1,elens_offset_x,elens_offset_y,elens_sig,            &
-     &     elens_bend_entrance, elens_bend_exit, melens
+     &     elens_geo_norm, elens_bend_entrance, elens_bend_exit, melens
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
@@ -1787,13 +1788,13 @@
             rrelens=sqrt((xelens)**2+(yelens**2))
             select case (elens_type(ielens(ix)))
               case (1)
-! CONSTANT: eLens with uniform profile
+! UNIFORM: eLens with uniform profile
 ! Spatial charge density is:
 ! 0     if r < R1
 ! Const if R1 < r < R2
 ! 0     if r > R2
 ! Parameters:
-!   elens_theta_max is the maximum kick in radians
+!   elens_theta_r2 is the kick at R2 in radians
 !   elens_r2 is R2 in mm
 !   elens_r1 is R1 in mm
 !   elens_bend_entrance - switch bends on at entrance
@@ -1804,17 +1805,16 @@
 ! kick from ideal constant profile
 ! 3) calculate kick
                 if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
-                  if (rrelens.lt.elens_r2(ielens(ix))) then ! r1 <= rrelens < r2
+                  if (rrelens.lt.elens_r2(ielens(ix))) then ! r1 < rrelens < r2
                     ! formula: (r^2-r1^2)/(r2^2-r1^2)
-                    frrelens=( (rrelens+elens_r1(ielens(ix)))*(rrelens-elens_r1(ielens(ix))) )/( &
-     & (elens_r2(ielens(ix))+elens_r1(ielens(ix)))*(elens_r2(ielens(ix))-elens_r1(ielens(ix))))
+                    frrelens=( (rrelens+elens_r1(ielens(ix)))*(rrelens-elens_r1(ielens(ix))) )/elens_geo_norm(ielens(ix))
                   else ! r1 < r2 <= rrelens
                     frrelens = one
                   endif
                   frrelens = elens_r2(ielens(ix))/rrelens * frrelens
-                  yv(1,j)=yv(1,j)-elens_theta_max(ielens(ix))*frrelens          &
+                  yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens          &
      &                 *xelens/rrelens * oidpsv(j)
-                  yv(2,j)=yv(2,j)-elens_theta_max(ielens(ix))*frrelens          &
+                  yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens          &
      &                 *yelens/rrelens * oidpsv(j)
                 endif
 ! include bends at entrance and exit of elens
@@ -1826,7 +1826,7 @@
 ! Gaussian if R1 < r < R2
 ! 0     if r > R2
 ! Parameters:
-!   elens_theta_max is the maximum kick in radians
+!   elens_theta_r2 is the kick at R2 in radians
 !   elens_r2 is R2 in mm
 !   elens_r1 is R1 in mm
 !   elens_sig is sigma of the e-beam in mm
@@ -1838,23 +1838,24 @@
 ! kick from ideal Gaussian profile
 ! 3) calculate kick
                 if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
-                  if (rrelens.lt.elens_r2(ielens(ix))) then ! r1 <= rrelens < r2
-                    ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/pi
-                     frrelens=( exp_mb(-0.5*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))**2) &
-     &                         -exp_mb(-0.5*(rrelens/elens_sig(ielens(ix)))**2) )/pi
+                  if (rrelens.lt.elens_r2(ielens(ix))) then ! r1 < rrelens < r2
+                    ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
+                     frrelens=( exp_mb(-0.5*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))**2)    &
+     &                         -exp_mb(-0.5*(rrelens             /elens_sig(ielens(ix)))**2) )/ &
+     &                          elens_geo_norm(ielens(ix))
                   else ! r1 < r2 <= rrelens
                     frrelens = one
                   endif
                   frrelens = elens_r2(ielens(ix))/rrelens * frrelens
-                  yv(1,j)=yv(1,j)-elens_theta_max(ielens(ix))*frrelens          &
+                  yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens          &
      &                 *xelens/rrelens * oidpsv(j)
-                  yv(2,j)=yv(2,j)-elens_theta_max(ielens(ix))*frrelens          &
+                  yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens          &
      &                 *yelens/rrelens * oidpsv(j)
                 endif
               case default
                write(lout,*) 'ERROR in deck kickelens: elens_type='     &
      &,elens_type(ielens(ix)),' not recognized. Possible values for type are: ',&
-     &'1.'
+     &'1. and 2.'
                 call prror(-1) 
               end select
 +cd scat_tck
@@ -16139,7 +16140,7 @@ end subroutine hamilton1
 
             ! Parse the element
             select case ( getfields_fields(2)(1:getfields_lfields(2)) )
-            case ("CONSTANT")
+            case ("UNIFORM")
                ! Read in this case
                elens_type(ielens(j)) = 1
             case ("GAUSSIAN")
@@ -16161,7 +16162,7 @@ end subroutine hamilton1
             
 +if .not.crlibm
             read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
-     &              elens_theta_max(ielens(j))
+     &              elens_theta_r2(ielens(j))
             read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
      &              elens_r2(ielens(j))
             read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
@@ -16172,10 +16173,10 @@ end subroutine hamilton1
      &              elens_offset_y(ielens(j))
 +ei
 +if crlibm
-            elens_theta_max(ielens(j))= round_near (                 &
+            elens_theta_r2(ielens(j))= round_near (                  &
      &              errno,getfields_lfields(3)+1, getfields_fields(3) )
             if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,3,elens_theta_max(ielens(j)) )
+     &              errno,getfields_fields,3,elens_theta_r2(ielens(j)) )
             elens_r2(ielens(j))       = round_near (                 &
      &              errno,getfields_lfields(4)+1, getfields_fields(4) )
             if (errno.ne.0) call rounderr (                          &
@@ -16247,16 +16248,26 @@ end subroutine hamilton1
      &elens_bend_exit(ielens(j))
                call prror(-1)
             end if
+            ! proper normalisation
+            if (elens_type(ielens(j)).eq.1) then
+!              uniform distribution
+               elens_geo_norm(ielens(j))=(elens_r2(ielens(j))+elens_r1(ielens(j)))* &
+     &                                   (elens_r2(ielens(j))-elens_r1(ielens(j)))
+            elseif (elens_type(ielens(j)).eq.2) then
+!              Gaussian distribution
+               elens_geo_norm(ielens(j))=exp_mb(-0.5*(elens_r1(ielens(j))/elens_sig(ielens(j)))**2) &
+     &                                  -exp_mb(-0.5*(elens_r2(ielens(j))/elens_sig(ielens(j)))**2)
+            end if
 
             ! print a summary of elens parameters
             write(lout,                                                 &
-     &fmt='((A,/),(A,A,/),(A,A,A,I4,/),5(A,D10.3,A,/),(A,/),'           &
-     &//'2(A,I4,/))')                                                   &
+     &fmt='((/,/,A),(/,A,A),(/,A,A,A,I4),5(/,A,1PE10.3,A),(/,A),'       &
+     &//'2(/,A,I4))')                                                   &
      &'ELENS found in list of single elements with: ',                  &
      &'name     = ',bez(j),                                             &
      &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),        &
      &        ' = ',elens_type(ielens(j)),                              &
-     &'thetamax = ',elens_theta_max(ielens(j)),' mrad',                 &
+     &'theta_r2 = ',elens_theta_r2(ielens(j)),' mrad',                  &
      &'r1       = ',elens_r1(ielens(j)),' mm',                          &
      &'r2       = ',elens_r2(ielens(j)),' mm',                          &
      &'offset_x = ',elens_offset_x(ielens(j)),' mm',                    &
@@ -16265,8 +16276,8 @@ end subroutine hamilton1
      &'  entrance = ',elens_bend_entrance(ielens(j)),                   &
      &'  exit     = ',elens_bend_exit(ielens(j))
 
-            if (elens_type(ielens(j)).eq.2) write(lout,*)'  sig      = ',&
-     &elens_sig(ielens(j))
+            if (elens_type(ielens(j)).eq.2) write(lout,fmt='(A,1PE10.3,A)') &
+     &'sig      = ',elens_sig(ielens(j)),' mm'
             goto 2401           !Search success :)
             
          endif
@@ -32708,12 +32719,13 @@ subroutine comnul
       melens=0
       do i=1,nelens
         elens_type(i)          = 0
-        elens_theta_max(i)     = zero
+        elens_theta_r2(i)      = zero
         elens_r2(i)            = zero
         elens_r1(i)            = zero
         elens_offset_x(i)      = zero
         elens_offset_y(i)      = zero
         elens_sig(i)           = zero
+        elens_geo_norm(i)      = zero
         elens_bend_entrance(i) = 0
         elens_bend_exit(i)     = 0
       end do

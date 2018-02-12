@@ -3147,8 +3147,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
             ! Electron lens
             else if (el_type.eq.29) then
-                if (att_name_stripped.eq."thetamax") then ! [mrad]
-                    elens_theta_max(ii) = newValue
+                if (att_name_stripped.eq."theta_r2") then ! [mrad]
+                    elens_theta_r2(ii) = newValue
                 else
                     goto 100 ! ERROR
                 end if
@@ -3347,8 +3347,8 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
             ! Electron lens
             else if (el_type.eq.29) then
-                if(att_name_s.eq."thetamax") then ! [mrad]
-                    dynk_getvalue = elens_theta_max(ii)
+                if(att_name_s.eq."theta_r2") then ! [mrad]
+                    dynk_getvalue = elens_theta_r2(ii)
                 else
                     goto 100 ! ERROR
                 end if
