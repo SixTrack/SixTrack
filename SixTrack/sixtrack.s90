@@ -16256,7 +16256,9 @@ end subroutine hamilton1
      &'enable bends at:',                                               &
      &'  entrance = ',elens_bend_entrance(ielens(j)),                   &
      &'  exit     = ',elens_bend_exit(ielens(j))
-      
+
+            if (elens_type(ielens(j)).eq.2) write(lout,*)'  sig      = ',&
+     &elens_sig(ielens(j))
             goto 2401           !Search success :)
             
          endif
