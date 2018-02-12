@@ -19017,7 +19017,7 @@ subroutine runda
 !FOX  X(2)=CORROLD(3)+DPDAV ;
               dpdav=dare(yp(2))
 !FOX  YP(2)=CORROLD(4)+DPDAV ;
-              dpdav=dare(sigmda)
+              dpdav=dare(deltas)
 !FOX  DELTAS=CORROLD(5)+DPDAV ;
               dpdav=dare(dpda1)
 !FOX  DPDA1=CORROLD(6)+DPDAV ;
@@ -19160,7 +19160,7 @@ subroutine runda
             call dapri(yp(1),19)
             call dapri(x(2),19)
             call dapri(yp(2),19)
-            call dapri(sigmda,19)
+            call dapri(deltas,19)
             call dapri(dpda1,19)
             if(ncor.gt.0) then
               write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
@@ -19340,7 +19340,7 @@ subroutine runda
                 if(nvar2.ge.3) call dapri(x(2),17)
                 if(nvar2.ge.4) call dapri(yp(2),17)
                 if(nvar2.eq.5.and.nsix.ne.2) call dapri(dpda1,17)
-                if(nvar2.eq.6.or.nsix.eq.2) call dapri(sigmda,17)
+                if(nvar2.eq.6.or.nsix.eq.2) call dapri(deltas,17)
                 if(nvar2.eq.6.or.nsix.eq.2) call dapri(dpda1,17)
               else
 !FOX  CORRAU1(1)=X(1) ;
@@ -19832,7 +19832,7 @@ subroutine runda
 !FOX  CORRAU1(2)=YP(1) ;
 !FOX  CORRAU1(3)=X(2) ;
 !FOX  CORRAU1(4)=YP(2) ;
-!FOX  CORRAU1(5)=SIGMDA ;
+!FOX  CORRAU1(5)=DELTAS ;
 !FOX  CORRAU1(6)=DPDA1 ;
         do 505 kkk=1,6
           dpdav2(kkk)=dare(corrau1(kkk))
@@ -19856,7 +19856,7 @@ subroutine runda
 !FOX  Y(1)=CORRAU1(2) ;
 !FOX  X(2)=CORRAU2(3) ;
 !FOX  Y(2)=CORRAU1(4) ;
-!FOX  SIGMDA=CORRAU2(5) ;
+!FOX  SIGMDA=CORRAU2(5)*RV ;
 !FOX  DPDA1=CORRAU2(6) ;
 !FOX  DPDA=DPDA1*C1M3 ;
         call dapri(corrau2(1),18)
@@ -20535,7 +20535,7 @@ end subroutine runda
               clobeam(4,imbb(i))=dare(y(1))*(one+dare(dpda))
               clobeam(5,imbb(i))=dare(y(2))*(one+dare(dpda))
               if(ndimf.eq.3) then
-                clobeam(3,imbb(i))=dare(deltas)
+                clobeam(3,imbb(i))=dare(sigmda)
                 clobeam(6,imbb(i))=dare(dpda)
               endif
             endif
@@ -20601,7 +20601,7 @@ end subroutine runda
             clobeam(4,imbb(i))=dare(y(1))*(one+dare(dpda))
             clobeam(5,imbb(i))=dare(y(2))*(one+dare(dpda))
             if(ndimf.eq.3)then
-              clobeam(3,imbb(i))=dare(deltas)
+              clobeam(3,imbb(i))=dare(sigmda)
               clobeam(6,imbb(i))=dare(dpda)
             endif
           endif
@@ -21142,7 +21142,7 @@ end subroutine runda
           yytr(1,1) = dare(y(1))
           xxtr(1,2) = dare(x(2))
           yytr(1,2) = dare(y(2))
-          sigm(1) = dare(deltas)
+          sigm(1) = dare(sigmda)
           dps(1) = dare(dpda)
         endif
       endif
@@ -21595,7 +21595,7 @@ end subroutine runda
         if(abs(dppoff).gt.pieni) then
           sigmdac=sigmoff(iicav)
 !FOX  SIGMDA=SIGMDA-SIGMDAC ;
-!FOX  DELTAS = SIGMDA
+!FOX  DELTAS = SIGMDA/RV ;
         endif
         call synoda
 !FOX  DPDA=DPDA1*C1M3 ;
