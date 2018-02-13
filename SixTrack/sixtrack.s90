@@ -21621,7 +21621,6 @@ end subroutine runda
 !FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)/(ONE+DPDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
-!FOX  DELTAS=SIGMDA/RV ;
 
       endif
       if(nvar2.ge.1) call dapri(x(1),18)
