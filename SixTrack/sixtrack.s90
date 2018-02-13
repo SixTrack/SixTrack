@@ -18912,8 +18912,13 @@ subroutine runda
       if(nvar2.eq.6) then
         call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
-!FOX  DELTAS=DELTAS+SIGM(1) ;
-!FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;
+!FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;        
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  EJF1=E0F*(ONE+DPDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DELTAS=DELTAS+SIGM(1)/RV ;
+
       else
 !FOX  DELTAS=SIGM(1) ;
       endif
@@ -19156,6 +19161,7 @@ subroutine runda
           if(nsix.eq.2) then
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  DELTAS=SIGMDA*RV ;
             call dapri(x(1),19)
             call dapri(yp(1),19)
             call dapri(x(2),19)
@@ -19197,6 +19203,7 @@ subroutine runda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
           endif
           if(nvar2.eq.6.and.nsix.ne.2) then
             iflag=1
@@ -20090,8 +20097,15 @@ end subroutine runda
         call davar(dpda1,dps11,5)
         ivar=ivar+1
       elseif(nvar2.eq.6) then
-        call davar(deltas,sigm1,5)
-        call davar(dpda1,dps11,6)
+        call davar(deltas,zero,5)
+        call davar(dpda1,zero,6)
+!FOX  DPDA1=DPDA1+DPS1*C1E3 ;        
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  EJF1=E0F*(ONE+DPDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DELTAS=DELTAS+SIGM1/RV ;
+!FOX  SIGMDA=DELTAS*RV ;
         ivar=ivar+2
       else
 !FOX  DELTAS=SIGM1 ;
@@ -20448,6 +20462,8 @@ end subroutine runda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+
           if(nvar2.eq.6.and.nsix.ne.2) then
             iflag=1
             iflag1=1
@@ -20515,6 +20531,7 @@ end subroutine runda
       endif
 
       call wireda(ix,i)
+
 
 !FOX  Y(1)=YY(1) ;
 !FOX  Y(2)=YY(2) ;
@@ -21148,7 +21165,7 @@ end subroutine runda
       endif
       call dacop(x(1),damap(1))
       call dacop(x(2),damap(3))
-      if(ndimf.eq.3) call dacop(deltas,damap(5))
+      if(ndimf.eq.3) call dacop(sigmda,damap(5))
       if(icoonly.eq.1.or.iqmodc.eq.3) then
         call dacop(y(1),damap(2))
         call dacop(y(2),damap(4))
@@ -21266,6 +21283,7 @@ end subroutine runda
 !     call abend('a470                                              ')
 !     endif
 +ei
+
       call dadal(damap,6)
       call dadal(damapi,6)
       call dadal(damap1,6)
@@ -21569,6 +21587,7 @@ end subroutine runda
 +ca daini
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
+
       betr0=sqrt(one-(pma/e0)**2)
       write(lout,*) ' REENTERING MAP '
       call davar(x(1),zero,1)
@@ -21594,14 +21613,15 @@ end subroutine runda
 !FOX  EJF0=EJF1 ;
         if(abs(dppoff).gt.pieni) then
           sigmdac=sigmoff(iicav)
-!FOX  SIGMDA=SIGMDA-SIGMDAC ;
-!FOX  DELTAS = SIGMDA/RV ;
+!FOX  DELTAS=DELTAS-SIGMDAC ;
+
         endif
         call synoda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)/(ONE+DPDA) ;
-!FOX  SIGMDA=DELTAS*RV ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DELTAS=SIGMDA/RV ;
 
       endif
       if(nvar2.ge.1) call dapri(x(1),18)
@@ -21689,6 +21709,7 @@ end subroutine runda
       endif
 !FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
+
       return
       end
 
@@ -26484,7 +26505,9 @@ subroutine thin6d(nthinerr)
       case (2)
         do j=1,napx
           ejf0v(j)=ejfv(j)
-          if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
+          if(abs(dppoff).gt.pieni) then 
+            sigmv(j)=sigmv(j)-sigmoff(i)
+          endif
           if(kz(ix).eq.12) then
             ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
           else
@@ -30129,7 +30152,9 @@ subroutine thck6dua(nthinerr)
 
             do j=1,napx
               ejf0v(j)=ejfv(j)
-              if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
+              if(abs(dppoff).gt.pieni) then 
+                sigmv(j)=sigmv(j)-sigmoff(i)
+              endif
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
               if(kz(ix).eq.12) then
                 ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+   &!hr01
