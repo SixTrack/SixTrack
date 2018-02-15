@@ -10526,6 +10526,7 @@ end subroutine hamilton1
       use mod_common
       use mod_commons
 
+      use aperture
       implicit none
 
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -10603,7 +10604,6 @@ end subroutine hamilton1
 +ca elensparam
 +ca wireparam
 +ca parbeam_exp
-+ca comApeInfo
 +ca dbreaddis
 
       !Fluka related, might be best to lock to real64
@@ -13584,17 +13584,17 @@ end subroutine hamilton1
 !         dump all elements found:
           do ii=1,il
             if( kape(ii).eq.1 ) then
-              irel='CR'
+              irel=circ
             else if( kape(ii).eq.2 ) then
-              irel='RE'
+              irel=rect
             else if( kape(ii).eq.3 ) then
-              irel='EL'
+              irel=elli
             else if( kape(ii).eq.4 ) then
-              irel='RL'
+              irel=reel
             else if( kape(ii).eq.5 ) then
-              irel='OC'
+              irel=octa
             else if( kape(ii).eq.6 ) then
-              irel='RT'
+              irel=ratr
             end if
 
             if ( kape(ii) .ne. 0 ) then
@@ -13721,26 +13721,26 @@ end subroutine hamilton1
       ape(5,j)=apang
       ape(6,j)=ofxx
       ape(7,j)=ofzz
-      if(irel.eq.'CR') then !Circle
+      if(irel.eq.circ) then !Circle
         kape(j)=1
         ape(2,j)=ape(1,j)
         ape(3,j)=ape(1,j)
         ape(4,j)=ape(1,j)
-      else if(irel.eq.'RE') then !Rectangle
+      else if(irel.eq.rect) then !Rectangle
         kape(j)=2
 !       get ready for a RL-equivalent description
         ape(3,j)=sqrt(two)*ape(1,j)
         ape(4,j)=sqrt(two)*ape(2,j)
-      else if(irel.eq.'EL') then !Ellipse
+      else if(irel.eq.elli) then !Ellipse
         kape(j)=3
 !       get ready for a RL-equivalent description
         ape(3,j)=ape(1,j)
         ape(4,j)=ape(2,j)
-      else if(irel.eq.'RL') then !Rectellipse
+      else if(irel.eq.reel) then !Rectellipse
         kape(j)=4
-      else if(irel.eq.'OC') then !Octagon
+      else if(irel.eq.octa) then !Octagon
         kape(j)=5
-      else if(irel.eq.'RT') then !Racetrack
+      else if(irel.eq.ratr) then !Racetrack
         kape(j)=6
       else
         write(lout,*) 'Aperture profile not identified for element ',   &
@@ -22255,6 +22255,7 @@ program maincr
       use mod_commonmn
       use mod_commons
 
+      use aperture
       implicit none
 
 +ca errout
@@ -22333,7 +22334,6 @@ program maincr
 
 +ca wireparam !For dump3
 
-+ca comApeInfo
 +ca dbreaddis
 
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
@@ -25404,6 +25404,7 @@ subroutine thin4d(nthinerr)
   use mod_commonmn
   use mod_commons
   use bdex, only : bdex_enable
+  use aperture
   implicit none
 
 +ca exactvars
@@ -25446,7 +25447,6 @@ subroutine thin4d(nthinerr)
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
-+ca comApeInfo
 
   save
 !-----------------------------------------------------------------------
@@ -26039,6 +26039,7 @@ subroutine thin6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use aperture
   implicit none
 
 +ca exactvars
@@ -26088,7 +26089,6 @@ subroutine thin6d(nthinerr)
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
-+ca comApeInfo
   real(kind=fPrec) dEpTur
   save
 
@@ -26915,6 +26915,7 @@ end subroutine thin6d
       use mod_commonmn
       use mod_commons
       use bdex, only : bdex_enable
+      use aperture
       implicit none
 
 +ca exactvars
@@ -26953,7 +26954,6 @@ end subroutine thin6d
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
-+ca comApeInfo
 
 +if fluka
 
@@ -28295,6 +28295,7 @@ subroutine thck4d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use aperture
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
@@ -28338,7 +28339,6 @@ subroutine thck4d(nthinerr)
 +ei
 
 +ca dbdcum
-+ca comApeInfo
 
   save
 
@@ -28974,6 +28974,7 @@ subroutine thck6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use aperture
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -29021,7 +29022,6 @@ subroutine thck6d(nthinerr)
 +ei
 
 +ca dbdcum
-+ca comApeInfo
 
   save
 +if debug
@@ -29778,6 +29778,7 @@ subroutine thck6dua(nthinerr)
       use mod_common
       use mod_commonmn
       use mod_commons
+      use aperture
       implicit none
 
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -29829,7 +29830,6 @@ subroutine thck6dua(nthinerr)
 +ei
 
 +ca dbdcum
-+ca comApeInfo
 
       save
 !-----------------------------------------------------------------------
@@ -31939,6 +31939,7 @@ subroutine comnul
       use mod_commonmn
       use mod_commons
       use bdex, only : bdex_comnul
+      use aperture
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -31960,7 +31961,6 @@ subroutine comnul
 
 +ca parbeam_exp
 
-+ca comApeInfo
       save
 !-----------------------------------------------------------------------
 !
@@ -32626,9 +32626,9 @@ subroutine SELNUL( iel )
       use parpro
       use mod_common
       use mod_commons
+      use aperture
       implicit none
 
-+ca comApeInfo
 
 !     local variables
       integer iel, i1, i3, i4

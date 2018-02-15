@@ -44,17 +44,15 @@ module aperture
   logical lexist
   real(kind=fPrec), save :: ape(7,nele)
   
-!     recognised aperture types:
-!     - 2: rectangle
-!     - 3: ellipse
-!     - 4: rectellipse
-!     - 5: octagon
-!     - 6: racetrack
-!     A.Mereghetti
-!     last modified: 01-12-2016
-!      character(len=2) rect,elli,reel,ratr,octa,circ,nana
-!      data  rect, elli, reel, ratr, octa, circ, nana                    &
-!     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'CR', 'NA' /
+  ! Recognised aperture types:
+  character(len=2), parameter :: circ = 'CR' ! kape = 1
+  character(len=2), parameter :: rect = 'RE' ! kape = 2
+  character(len=2), parameter :: elli = 'EL' ! kape = 3
+  character(len=2), parameter :: reel = 'RL' ! kape = 4
+  character(len=2), parameter :: octa = 'OC' ! kape = 5
+  character(len=2), parameter :: ratr = 'RT' ! kape = 6
+  character(len=2), parameter :: nana = 'NA' ! kape = UNDEFINED
+  
 +if backtrk
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 24-11-2016
@@ -121,7 +119,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca dbcommon
 +ei
 +ca dbdcum
-+ca comApeInfo
 
 ! temporary variables
   logical lparID
@@ -737,7 +734,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   implicit none
 
 +ca commontr
-+ca comApeInfo
 
 ! interface variables
   integer itElUp,itElDw
@@ -835,7 +831,6 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 ! interface variables
   integer iEl
   logical lInsUp
@@ -1112,7 +1107,6 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 
 ! interface variables
   integer iUp, ixUp, iDw, ixDw, oKApe
@@ -1154,7 +1148,6 @@ character(len=2) function get_ape_type( tkape )
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
-+ca comApeInfo
 
 ! interface variables
   integer tkape
@@ -1186,7 +1179,6 @@ subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 
 ! interface variables
   integer ixApeTo, ixApeFrom, nKApe
@@ -1220,7 +1212,6 @@ subroutine dump_aperture_model
   implicit none
 
 +ca commontr
-+ca comApeInfo
 +ca dbdcum
 
 ! temporary variables
@@ -1304,7 +1295,6 @@ subroutine dumpMe
   implicit none
 
 +ca commontr
-+ca comApeInfo
 +ca dbdcum
 
 ! temporary variables
@@ -1362,7 +1352,6 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 
 ! interface variables
   integer iunit, iEl, ixEl
