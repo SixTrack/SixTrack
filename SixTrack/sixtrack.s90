@@ -287,11 +287,10 @@
       integer icorr,idial,idptr,imod1,imod2,inorm,ipar,namp,ncor,nctype,&
      &ndimf,nmom,nmom1,nmom2,nord,nord1,nordf,nsix,nvar,nvar2,nvarf
       real(kind=fPrec) dpmax,preda,weig1,weig2
-      character(len=16) coel
+      character(len=max_name_len) coel
       common/dial/preda,idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
       common/norf/nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
-      common/tcorr/icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,&
-     &coel(10)
+      common/tcorr/icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel(10)
 +cd commadha
       integer iamp
       real x
@@ -529,7 +528,7 @@
 ! Variables for finding the collimator with the smallest gap
 ! and defining, stroring the gap rms error
 !
-      character(len=16) coll_mingap1, coll_mingap2
+      character(len=max_name_len) coll_mingap1, coll_mingap2
       real(kind=fPrec) gap_rms_error(max_ncoll), nsig_err, sig_offset
       real(kind=fPrec) mingap,gap_h1,gap_h2,gap_h3,gap_h4
       integer coll_mingap_id
@@ -689,11 +688,9 @@
       common  /rimpact/ sumimpact,sqsumimpact,nimpact
 !
       integer  nampl(nblz)
-      character(len=16)  ename(nblz)
-      real(kind=fPrec) sum_ax(nblz),sqsum_ax(nblz),sum_ay(nblz),        &
-     &sqsum_ay(nblz),sampl(nblz)
-      common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,   &
-     &nampl
+      character(len=max_name_len) ename(nblz)
+      real(kind=fPrec) sum_ax(nblz),sqsum_ax(nblz),sum_ay(nblz),sqsum_ay(nblz),sampl(nblz)
+      common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
 !
       real(kind=fPrec) neffx(numeff),neffy(numeff)
       common /efficiency/ neffx,neffy
@@ -736,7 +733,7 @@
 !     INTEGER DB_NCOLL
       integer db_ncoll
 !
-      character(len=16) db_name1(max_ncoll),db_name2(max_ncoll)
+      character(len=max_name_len) db_name1(max_ncoll),db_name2(max_ncoll)
       character(len=4) db_material(max_ncoll)
 !APRIL2005
       real(kind=fPrec) db_nsig(max_ncoll),db_length(max_ncoll),         &
@@ -10608,14 +10605,14 @@ end subroutine hamilton1
       real(kind=fPrec) separx,separy
       real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
       
-      character(len=16) sing,stru,prin,trac,diff,sync,ende,bloc,comm
-      character(len=16) fluc,chro,tune,iter,limi,orbi,deco
-      character(len=16) beze,bez0,go,comb,sear,subr
-      character(len=16) free,geom,cavi,disp,reso,bezext
-      character(len=16) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-      character(len=16) iss,iqq,iele,ilm,ilm0,idum,corr,norm
-      character(len=16) kl,kr,orga,post,ripp,beam,trom
-      character(len=16) coll
+      character(len=max_name_len) sing,stru,prin,trac,diff,sync,ende,bloc,comm
+      character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
+      character(len=max_name_len) beze,bez0,go,comb,sear,subr
+      character(len=max_name_len) free,geom,cavi,disp,reso,bezext
+      character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
+      character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
+      character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
+      character(len=max_name_len) coll
       character(len=60) ihead
       integer nchars
       parameter (nchars=160)
@@ -11000,7 +10997,7 @@ end subroutine hamilton1
           i2=i1
         elseif(i2.gt.0) then
           if(ch(i1:i1).eq." ") then
-            if(i1-i2.gt.16) then
+            if(i1-i2.gt.max_name_len) then
               call prror(104)
             else
               goto 165
@@ -14902,8 +14899,7 @@ end subroutine hamilton1
       icorr=1
       ch1(:nchars+3)=ch(:nchars)//' / '
 +if fio
-      read(ch1,*,round='nearest')                                       &
-     & nctype,ncor
+      read(ch1,*,round='nearest') nctype,ncor
 +ei
 +if .not.fio
       read(ch1,*) nctype,ncor
@@ -14919,8 +14915,7 @@ end subroutine hamilton1
 +if crlibm
       call enable_xp()
 +ei
-      read(ch1,*,round='nearest')                                       &
-     & (coel(i),i=1,ncor)
+      read(ch1,*,round='nearest') (coel(i),i=1,ncor)
 +if crlibm
       call disable_xp()
 +ei
@@ -16960,7 +16955,7 @@ end subroutine hamilton1
       real(kind=fPrec) rdum1,rdum2,rel1
       character(len=160)  ch
       character(len=320) ch1
-      character(len=16) idat
+      character(len=max_name_len) idat
       integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
       data lineno2 /0/
       data lineno3 /0/
@@ -17463,7 +17458,7 @@ end subroutine hamilton1
 
 +if crlibm
       
-      subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
+subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
       use floatPrecision
       use crcoall
       implicit none
@@ -17548,9 +17543,9 @@ end subroutine hamilton1
         write(lout,*) 'splitfld:'//localstr//':'
       enddo
       call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
-      end subroutine splitfld
+end subroutine splitfld
 
-      real(kind=fPrec) function fround(errno,fields,f)
+real(kind=fPrec) function fround(errno,fields,f)
       use floatPrecision
       implicit none
       integer maxf
@@ -17627,7 +17622,7 @@ end subroutine hamilton1
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
-      end subroutine spliterr
+end subroutine spliterr
       
       integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
@@ -19925,7 +19920,7 @@ end subroutine runda
      &scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,sigm1,       &
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
-      character(len=16) typ
+      character(len=max_name_len) typ
 +ca commonex
 +ca commont2
 +ca commondl
@@ -26437,7 +26432,7 @@ subroutine thin6d(nthinerr)
                 nspy = zero
               end if
               sampl(ie)    = totals
-              ename(ie)    = bez(myix)(1:16)
+              ename(ie)    = bez(myix)(1:max_name_len)
             end do
           endif
 +if backtrk
@@ -35532,7 +35527,7 @@ subroutine prror(ier)
     case (103)
         write(lout,11030)
     case (104)
-        write(lout,11040)
+        write(lout,11040) max_name_len
     case (105)
         write(lout,11050) mmul
     end select
@@ -35664,7 +35659,7 @@ subroutine prror(ier)
 11010 format(t10,'AMPLITUDES EXCEED THE MAXIMUM VALUES IN UMLAUF')
 11020 format(t10,'MAXIMUM ELEMENT NUMBER FOR BEAM_BEAM WITH COUPLING EXCEEDED:  NBB = ',i4)
 11030 format(t10,'6D BEAM-BEAM WITH TILT NOT POSSIBLE')
-11040 format(t10,'SINGLE ELEMENT NAME LONGER THAN 16 CHARACTERS')
+11040 format(t10,'SINGLE ELEMENT NAME LONGER THAN', i3, ' CHARACTERS')
 11050 format(t10,'THE INPUT ORDER OF MULTIPOLES IS LARGER THAN THE MAXIMUM ALLOWED ORDER MMUL: ',i4)
 
 end subroutine prror
@@ -35943,7 +35938,7 @@ subroutine linopt(dpp)
 +if tilt
       real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-      character(len=16) idum
+      character(len=max_name_len) idum
 +ca commont1
 !
 +if collimat
@@ -36923,7 +36918,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 
       integer i,iwrite,ixwl,l,ll,nr
       real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
-      character(len=16) typ
+      character(len=max_name_len) typ
       ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
       logical isBLOC
 +ca commont1
@@ -37059,7 +37054,7 @@ subroutine cpltwis(typ,t,etl,phi)
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
-      character(len=16) typ
+      character(len=max_name_len) typ
 +ca commont1
       dimension t(6,4),phi(2)
 +if bnlelens
@@ -37283,7 +37278,7 @@ end subroutine matrix
       real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
       real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
-      character(len=16) bezlo(nele)
+      character(len=max_name_len) bezlo(nele)
 +ca commont1
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
@@ -40984,7 +40979,7 @@ end subroutine resex
       implicit none
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
-      character(len=16) ref
+      character(len=max_name_len) ref
 +ca commont1
 +if bnlelens
 +ca rhicelens
@@ -47500,7 +47495,7 @@ end subroutine subsea
       real(kind=fPrec) value
       integer i,j,k,l
       integer ierro
-      character(len=16) myname
+      character(len=max_name_len) myname
       myname=vname
       write(100) myname,value,i,j,k,l
       endfile (100,iostat=ierro)
