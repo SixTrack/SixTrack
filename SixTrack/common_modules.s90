@@ -153,7 +153,7 @@ module parpro
   implicit none
   
   integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1, &
-       nelb,nele,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran, &
+       nelb,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran, &
        nrco,ntr,nzfz
 
   !Maximum length of element names
@@ -174,42 +174,43 @@ module parpro
   parameter(npart = 65536,nmac = 1)
 +ei
 
-
-
+  integer, parameter :: nele_initial = 6000 !Must be at least 1
+  integer :: nele = -1
+  
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
 ! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
 ! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
-  parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=200000,        &
+  parameter(nblo=2500,nper=16,nelb=140,nblz=200000,        &
        nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-  parameter(nele=6000,nblo=2500,nper=16,nelb=280,nblz=400000,        &
+  parameter(nblo=2500,nper=16,nelb=280,nblz=400000,        &
        nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
-  parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=20000,         &
+  parameter(nblo=2500,nper=16,nelb=140,nblz=20000,         &
        nzfz = 300000,mmul = 20) !up to 6'000 multipoles
 +ei
 +ei ! / not collimat
 +if collimat
 +if beamgas
-  parameter(nele=50000,nblo=10000,nper=16,nelb=140,nblz=200000,     &
+  parameter(nblo=10000,nper=16,nelb=140,nblz=200000,     &
        nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / beamgas
 +if .not.beamgas
 +if bignblz
-  parameter(nele=60000,nblo=2500,nper=16,nelb=140,nblz=200000,        &
+  parameter(nblo=2500,nper=16,nelb=140,nblz=200000,        &
        nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / bignblz
 +if hugenblz
-  parameter(nele=60000,nblo=2500,nper=16,nelb=140,nblz=400000,        &
+  parameter(nblo=2500,nper=16,nelb=140,nblz=400000,        &
        nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
 +ei ! / hugenblz
 +if .not.bignblz.and..not.hugenblz
-  parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=15000,         &
+  parameter(nblo=2500,nper=16,nelb=140,nblz=15000,         &
        nzfz = 144000,mmul = 11) !up to 4500 multipoles
 +ei ! / not bignblz
 +ei ! / not beamgas
@@ -240,18 +241,49 @@ module parpro_scale
   ! in order to avoid circular dependencies.
   implicit none
 contains
+
+  subroutine allocate_arrays
+    ! Allocate arrays scaling with the main memory parameters nele, npart, etc.
+    implicit none
+
+    !Call subroutines to actually allocate
+    call aperture_allocate_arrays
+
+    !Update nele etc.
+    nele = nele_initial
+
+  end subroutine allocate_arrays
+
+  subroutine expand_arrays(nele_request, npart_request, nblz_request)
+    ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
+    implicit none
+    integer, intent(in) :: nele_request, npart_request, nblz_request
+    integer             :: nele_new, npart_new, nblz_new
+
+    !Decide how much to actually expand -- set nele_new etc. based on some heuristic
+
+    !Call sub-subroutines to actually expand
+    call mod_commons_expand_arrays(nele_new)
+    call aperture_expand_arrays(nele_new)
+
+    !Update nele etc.
+    nele = nele_new
+
+  end subroutine expand_arrays
+
 +if vvector
   subroutine allocate_thickarrays
     ! Kicks off the allocation of the thick tracking arrays
     use mod_commonmn
     use mod_commons
     implicit none
-    
+
     call mod_commonmn_allocate_thickarrays
     call mod_commons_allocate_thickarrays
-    
+
   end subroutine allocate_thickarrays
 +ei
+
 end module parpro_scale
 
 +dk mod_common
@@ -261,14 +293,14 @@ module mod_common
   
   implicit none
 
-+if time        
++if time
   !To be deleted
   real(kind=fPrec) tcnst35,exterr35,zfz35
   integer icext35
   common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
        tcnst35(nblz)
 +ei
-      
+
   ! common /erro/
   integer, save :: ierro
   character(len=max_name_len), save :: erbez
@@ -280,20 +312,21 @@ module mod_common
   integer, save :: il,mper,mblo,mbloz,msym(nper),kanf,iu,ic(nblz)
   
   ! common /ell/
-  real(kind=fPrec), save :: ed(nele),el(nele),ek(nele),sm(nele)
-  integer, save :: kz(nele),kp(nele)
+  real(kind=fPrec), allocatable, save :: ed(:),el(:),ek(:),sm(:) ! (nele)
+  integer, allocatable, save :: kz(:),kp(:)  ! (nele)
   
   ! common /bbb/
-  real(kind=fPrec), save :: bbbx(nele), bbby(nele), bbbs(nele)
+  real(kind=fPrec), allocatable, save :: bbbx(:), bbby(:), bbbs(:) ! (nele)
   
   ! common /pla/
-  real(kind=fPrec), save :: xpl(nele),xrms(nele),zpl(nele),zrms(nele)
+  real(kind=fPrec), allocatable, save :: xpl(:),xrms(:),zpl(:),zrms(:) ! (nele)
   
   !common /str2/
   integer, save :: mel(nblo),mtyp(nblo,nelb),mstr(nblo)
 
   ! common /mat/
-  real(kind=fPrec), save :: a(nele,2,6),bl1(nblo,2,6),bl2(nblo,2,6)
+  real(kind=fPrec), allocatable, save :: a(:,:,:) !(nele,2,6)
+  real(kind=fPrec), save :: bl1(nblo,2,6),bl2(nblo,2,6)
   
   ! common /syos2/
   real(kind=fPrec), save :: rvf(mpa)
@@ -305,24 +338,27 @@ module mod_common
   
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
-       crad,hsyc(nele),phasc(nele),dppoff,sigmoff(nblz),tlen
-  integer, save :: iicav,itionc(nele),ition,idp,ncy,ixcav
+       crad,dppoff,sigmoff(nblz),tlen
+  real(kind=fPrec), allocatable, save ::  hsyc(:), phasc(:) !(nele)
+  integer, save :: iicav,ition,idp,ncy,ixcav
+  integer, allocatable, save :: itionc(:) !(nele)
   
   ! common /corcom/
   real(kind=fPrec), save :: dpscor,sigcor
   integer, save :: icode,idam,its6d
 
   ! common /multi/
-  real(kind=fPrec), save :: bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul)
+  real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:), bka(:,:),aka(:,:) !(nele,mmul)
 
   ! common /mult1/
-  real(kind=fPrec), save :: benki,benkc(nele),r00(nele)
-  integer, save :: irm(nele),nmu(nele)
+  real(kind=fPrec), save :: benki
+  real(kind=fPrec), allocatable, save :: benkc(:),r00(:) !(nele)
+  integer, allocatable, save :: irm(:),nmu(:) !(nele)
   
   ! common /rand0/
   real(kind=fPrec), save :: zfz(nzfz)
   integer, save :: iorg,mzu(nblz),izu0,mmac,mcut
-  character(len=max_name_len) bezr(3,nele)
+  character(len=max_name_len), allocatable, save :: bezr(:,:) !(3,nele)
   
   ! common /rand1/
   real(kind=fPrec), save :: exterr(nblz,40),extalign(nblz,3),tiltc(nblz),tilts(nblz)
@@ -337,7 +373,8 @@ module mod_common
   
   ! common /qmodi/
   real(kind=fPrec), save :: qw0(3),amp0
-  integer, save :: iq(3),iqmod,kpa(nele),iqmod6
+  integer, save :: iq(3),iqmod,iqmod6
+  integer, allocatable, save :: kpa(:) !(nele)
   
   ! common /linop/
   character(len=max_name_len), save :: bez(nele), bezb(nblo), bezl(nele)
@@ -415,12 +452,74 @@ module mod_common
   integer, save :: ibb6d,imbb(nblz)
   
   ! common /acdipco/
-  real(kind=fPrec), save :: acdipph(nele)
-  integer, save :: nturn1(nele), nturn2(nele), nturn3(nele), nturn4(nele)
+  real(kind=fPrec), allocatable, save :: acdipph(:) !(nele)
+  integer, allocatable, save :: nturn1(:), nturn2(:), nturn3(:), nturn4(:) !(nele)
   
   ! common /crabco/
-  real(kind=fPrec), save :: crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele)
+  real(kind=fPrec), allocatable, save :: crabph(:),crabph2(:),crabph3(:),crabph4(:) !(nele)
+contains
 
+  subroutine mod_common_allocate_arrays
+    use crcoall
+    implicit none
+    integer stat
+
+    allocate(ed(nele),el(nele),ek(nele),sm(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(kz(nele),kp(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(bbbx(nele),bbby(nele),bbbs(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(xpl(nele),xrms(nele),zpl(nele),zrms(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(a(nele,2,6), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(hsyc(nele),phasc(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(itionc(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(benkc(nele),r00(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(irm(nele),nmu(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(bezr(3,nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(kpa(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    !Und so weiter...
+
+    !TODO: Certain "COMNUL" functionality should probably be done here as well.
+
+42  continue
+    write(lout,'(A,I8,1x,A)') "ERROR in MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat, "(part 11)"
+    call prror(-1)
+
+  end subroutine mod_common_allocate_arrays
+
+  subroutine mod_common_expand_arrays(nele_new)
+    implicit none
+    integer, intent(in) :: nele_new
+    integer stat
+
+    !TODO: Do the thing. This will be long and fugly
+
+    !Note: One should probably here check the allocation status of the arrays, i.e. that they all actually are allocated...
+    
+  end subroutine mod_common_expand_arrays
 end module mod_common
 
 +dk mod_commonmn

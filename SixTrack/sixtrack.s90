@@ -22387,10 +22387,9 @@ program maincr
      &' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
-      
       errout_status = 0         ! Set to nonzero before calling abend in case of error.
                                 ! If prror is called, it will be set internally.
-      
+      call allocate_arrays      ! Initial allocation of memory
 +if crlibm
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
