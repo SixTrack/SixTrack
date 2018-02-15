@@ -168,65 +168,6 @@
      &r2b(npart),rb(npart),rkb(npart),                                  &
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
      &crzb(npart),cbxb(npart),cbzb(npart)
-+cd comApeInfo
-!     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 28-11-2016
-!     always in main code
-!     use a dedicated array to store the type of aperture of each SINGLE ELEMENT
-!        and if it is tilted / offcentered
-      integer kape
-      logical lapeofftlt
-!     keep in mind if any aperture profile is assigned to any
-!       SINGLE ELEMENT or not
-      logical limifound
-!     echoing / dumpint acquired infos
-      logical ldmpaper                       ! Flag for activating the dump
-      integer aperunit                       ! unit for the output file
-      character(len=16) aper_filename             ! name of the output file
-      integer loadunit                       ! unit for the external load file
-      character(len=16) load_file             ! name of the external load file
-!     array to keep track of lost particles if they are not killed
-!     for now, it stores the ID of the particle lost
-      integer plost
-!     flag for killing particles at the aperture check or let them live
-      logical apflag
-      logical lexist
-      real(kind=fPrec) ape
-+if .not.backtrk
-      common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
-     &  plost(npart), aper_filename, aperunit, ldmpaper, limifound,     &
-     &  apflag, load_file, loadunit
-+ei
-+if backtrk
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 24-11-2016
-!     NB: add also temporary variables for back-tracking
-!         inserted in main code by the 'backtrk' compilation flag
-      common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
-     &  plost(npart), yold(2,npart), apold(7), sold, bktpre, kapold,    &
-     &  limifound, aper_filename, aperunit, ldmpaper, apflag,           &
-     &  load_file, loadunit
-+ei
-!     recognised aperture types:
-!     - 2: rectangle
-!     - 3: ellipse
-!     - 4: rectellipse
-!     - 5: octagon
-!     - 6: racetrack
-!     A.Mereghetti
-!     last modified: 01-12-2016
-      character(len=2) rect,elli,reel,ratr,octa,circ,nana
-      data  rect, elli, reel, ratr, octa, circ, nana                    &
-     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'CR', 'NA' /
-+if backtrk
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 24-11-2016
-!     additional variables for back-tracking, when computing locations of
-!        lost particles
-!     inserted in main code by the 'backtrk' compilation flag
-      integer kapold
-      real(kind=fPrec) yold,sold,apold,bktpre
-+ei
 +cd commont1 !Note: Same variables as commont2 but different names
       integer ichrom,is
       real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,x,y
@@ -13643,17 +13584,17 @@ end subroutine hamilton1
 !         dump all elements found:
           do ii=1,il
             if( kape(ii).eq.1 ) then
-              irel=circ
+              irel='CR'
             else if( kape(ii).eq.2 ) then
-              irel=rect
+              irel='RE'
             else if( kape(ii).eq.3 ) then
-              irel=elli
+              irel='EL'
             else if( kape(ii).eq.4 ) then
-              irel=reel
+              irel='RL'
             else if( kape(ii).eq.5 ) then
-              irel=octa
+              irel='OC'
             else if( kape(ii).eq.6 ) then
-              irel=ratr
+              irel='RT'
             end if
 
             if ( kape(ii) .ne. 0 ) then
@@ -13780,26 +13721,26 @@ end subroutine hamilton1
       ape(5,j)=apang
       ape(6,j)=ofxx
       ape(7,j)=ofzz
-      if(irel.eq.circ) then !Circle
+      if(irel.eq.'CR') then !Circle
         kape(j)=1
         ape(2,j)=ape(1,j)
         ape(3,j)=ape(1,j)
         ape(4,j)=ape(1,j)
-      else if(irel.eq.rect) then !Rectangle
+      else if(irel.eq.'RE') then !Rectangle
         kape(j)=2
 !       get ready for a RL-equivalent description
         ape(3,j)=sqrt(two)*ape(1,j)
         ape(4,j)=sqrt(two)*ape(2,j)
-      else if(irel.eq.elli) then !Ellipse
+      else if(irel.eq.'EL') then !Ellipse
         kape(j)=3
 !       get ready for a RL-equivalent description
         ape(3,j)=ape(1,j)
         ape(4,j)=ape(2,j)
-      else if(irel.eq.reel) then !Rectellipse
+      else if(irel.eq.'RL') then !Rectellipse
         kape(j)=4
-      else if(irel.eq.octa) then !Octagon  
+      else if(irel.eq.'OC') then !Octagon
         kape(j)=5
-      else if(irel.eq.ratr) then !Racetrack
+      else if(irel.eq.'RT') then !Racetrack
         kape(j)=6
       else
         write(lout,*) 'Aperture profile not identified for element ',   &

@@ -1,6 +1,10 @@
 +dk aperture
 
 module aperture
+  ! Aperture check module
+  ! A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
+  ! J.Molson, BE/ABP-HSS
+  ! K.Sjobak, BE/ABP-LAT
 
   use floatPrecision
   use mathlib_bouncer
@@ -16,6 +20,52 @@ module aperture
   use mod_commons
 
   implicit none
+
+  ! use a dedicated array to store the type of aperture of each SINGLE ELEMENT
+  ! and if it is tilted / offcentered
+  integer, save :: kape(nele)
+  logical, save :: lapeofftlt(nele)
+  
+  ! keep in mind if any aperture profile is assigned to any
+  ! SINGLE ELEMENT or not (was a LIMI block found by DATEN?)
+  logical, save :: limifound
+  
+  ! echoing / dumping acquired infos
+  logical, save :: ldmpaper               ! Flag for activating the dump
+  integer, save :: aperunit                       ! unit for the output file
+  character(len=16), save ::  aper_filename             ! name of the output file
+  integer, save :: loadunit                       ! unit for the external load file
+  character(len=16), save :: load_file             ! name of the external load file
+  ! array to keep track of lost particles if they are not killed
+  ! for now, it stores the ID of the particle lost
+  integer, save :: plost(npart)
+  ! flag for killing particles at the aperture check or let them live
+  logical, save :: apflag
+  logical lexist
+  real(kind=fPrec), save :: ape(7,nele)
+  
+!     recognised aperture types:
+!     - 2: rectangle
+!     - 3: ellipse
+!     - 4: rectellipse
+!     - 5: octagon
+!     - 6: racetrack
+!     A.Mereghetti
+!     last modified: 01-12-2016
+!      character(len=2) rect,elli,reel,ratr,octa,circ,nana
+!      data  rect, elli, reel, ratr, octa, circ, nana                    &
+!     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'CR', 'NA' /
++if backtrk
+!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+!     last modified: 24-11-2016
+!     additional variables for back-tracking, when computing locations of
+!        lost particles
+!     inserted in main code by the 'backtrk' compilation flag
+      integer, save :: kapold
+      real(kind=fPrec), save :: yold(2,npart)
+      real(kind=fPrec), save :: apold(7)
+      real(kind=fPrec), save :: sold, bktpre
++ei
 
 contains
 
