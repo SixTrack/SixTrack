@@ -74,6 +74,9 @@ module physical_constants
 
   ! Planck constant
   real(kind=fPrec), parameter :: planck=6.626070040e-34_fPrec
+
+  ! Vacuum permittivity
+  real(kind=fPrec), parameter :: eps0=8.854187817e-12_fPrec
   
 end module physical_constants
 
