@@ -944,57 +944,6 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 
-+cd elensparam
-!     M. Fitterer, FNAL, A. Mereghtti, CERN
-!     last modified: 09-02-2018
-!     Common block for electron lens definition
-
-      ! size of table with elens data
-      integer          :: nelens
-      parameter (nelens=100)
-      ! last elens read
-      integer          :: melens
-
-      ! index of elens:
-      integer          :: ielens(nele)
-      
-      ! variables to save elens parameters for tracking etc.
-      integer          :: elens_type(nelens)      ! integer for elens type
-                                                  ! 0 : Un-initialized.
-                                                  ! 1 : Hollow annular elens, uniform profile
-      real(kind=fPrec) :: elens_theta_r2(nelens)  ! kick strength at R2 [mrad]
-      real(kind=fPrec) :: elens_r2(nelens)        ! outer radius R2 [mm]
-      real(kind=fPrec) :: elens_r1(nelens)        ! inner radius R1 [mm]
-      real(kind=fPrec) :: elens_offset_x(nelens),                       &
-     &                    elens_offset_y(nelens)  ! hor./vert. offset of elens [mm]
-      real(kind=fPrec) :: elens_sig(nelens)       ! sig (Gaussian profile) [mm]
-      real(kind=fPrec) :: elens_geo_norm(nelens)  ! normalisation of f(r)
-      real(kind=fPrec) :: elens_len(nelens)       ! length of eLens (e-beam region) [m]
-      real(kind=fPrec) :: elens_I(nelens)         ! current of e-beam [A]
-      real(kind=fPrec) :: elens_Ek(nelens)        ! kinetic energy of e-beam [keV]
-      logical          :: elens_lThetaR2(nelens)  ! flag for computing theta@R2
-      integer          :: elens_iCheby(nelens)    ! mapping to the table with chebyshev coeffs
-      real(kind=fPrec) :: elens_cheby_angle(nelens) ! angle for getting the real bends [deg]
-!     file with chebyshev coefficients
-      integer          :: nelens_cheby_tables     ! number of tables with chebyshev coefficients
-      parameter (nelens_cheby_tables=20)
-      integer          :: elens_cheby_unit        ! unit for reading the chebyshev coefficients
-      parameter (elens_cheby_unit=107)
-      integer          :: elens_cheby_order       ! max order of chebyshev polynomials
-      parameter (elens_cheby_order=18)
-      integer          :: melens_cheby_tables     ! tables available in memory
-      character(len=16):: elens_cheby_filename(nelens_cheby_tables) ! names
-      real(kind=fPrec) :: elens_cheby_coeffs(0:elens_cheby_order,0:elens_cheby_order,nelens_cheby_tables)
-      real(kind=fPrec) :: elens_cheby_refCurr(nelens_cheby_tables) ! reference current [A]
-      real(kind=fPrec) :: elens_cheby_refBeta(nelens_cheby_tables) ! reference e-beta []
-      real(kind=fPrec) :: elens_cheby_refRadius(nelens_cheby_tables) ! reference radius [mm]
-      common /elensco/ ielens, elens_type,elens_theta_r2,elens_r2,      &
-     &     elens_r1,elens_offset_x,elens_offset_y,elens_sig,            &
-     &     elens_geo_norm, elens_len, elens_I, elens_Ek, elens_iCheby,  &
-     &      elens_cheby_angle, melens, elens_lThetaR2
-      common /chebyTables/ elens_cheby_coeffs, elens_cheby_filename,    &
-     &     elens_cheby_refCurr, elens_cheby_refBeta, elens_cheby_refRadius, &
-     &     melens_cheby_tables
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
@@ -10614,6 +10563,7 @@ end subroutine hamilton1
       use mod_common
       use mod_commons
 
+      use elens
       implicit none
 
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -10688,7 +10638,6 @@ end subroutine hamilton1
 +ei
 +ca comgetfields
 +ca stringzerotrim
-+ca elensparam
 +ca wireparam
 +ca parbeam_exp
 +ca comApeInfo
@@ -10720,9 +10669,6 @@ end subroutine hamilton1
      &/'COMB','FREE','GEOM','CAV','BEAM','TROM'/
       data idum,kl,kr,orga,norm,corr/' ','(',')','ORGA','NORM','CORR'/
       data coll /'COLL'/
-!     - elens
-      character(len=4) elens
-      data elens /'ELEN'/
 !     - wire
       character(len=4) wire
       data wire /'WIRE'/
@@ -10983,7 +10929,7 @@ end subroutine hamilton1
       if(idat.eq."DYNK") goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
       if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
-      if(idat.eq.elens) goto 2400
+      if(idat.eq.'ELEN') goto 2400 !Hard-coded name, as variable name "elens" conflicted with module name
       if(idat.eq.wire)  goto 2500
       !Reserved:
       !DIST = 2600
@@ -17188,8 +17134,8 @@ end subroutine hamilton1
       use physical_constants
       use crcoall
       use mod_common
+      use elens
       implicit none
-+ca elensparam
 +ca comgetfields
       character(len=160) string
       integer ierr, ii, jj, ifile, errno
@@ -17488,6 +17434,7 @@ end subroutine hamilton1
       use parpro !Needed for common
       use mod_common
       use mod_commonmn
+      use elens
       implicit none
       
       integer, intent(in) :: ix
@@ -17499,7 +17446,6 @@ end subroutine hamilton1
 +ca commonxz
 +ca comgetfields
 +ca stringzerotrim
-+ca elensparam
 +ca wireparam
 
       !Temp variables
@@ -25823,6 +25769,7 @@ subroutine thin4d(nthinerr)
   use mod_commonmn
   use mod_commons
   use bdex, only : bdex_enable
+  use elens
   implicit none
 
 +ca exactvars
@@ -25861,7 +25808,6 @@ subroutine thin4d(nthinerr)
 +ei
 
 +ca comgetfields
-+ca elensparam
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
@@ -26458,6 +26404,7 @@ subroutine thin6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use elens
   implicit none
 
 +ca exactvars
@@ -26503,7 +26450,6 @@ subroutine thin6d(nthinerr)
 +ei
 
 +ca comgetfields
-+ca elensparam
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
@@ -27334,6 +27280,7 @@ end subroutine thin6d
       use mod_commonmn
       use mod_commons
       use bdex, only : bdex_enable
+      use elens
       implicit none
 
 +ca exactvars
@@ -27368,7 +27315,6 @@ end subroutine thin6d
 +ca bnlio
 +ei
 +ca comgetfields
-+ca elensparam
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
@@ -28714,6 +28660,7 @@ subroutine thck4d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use elens
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
@@ -28744,7 +28691,6 @@ subroutine thck4d(nthinerr)
 +ca bnlio
 +ei
 +ca comgetfields
-+ca elensparam
 +ca wireparam
 +ca elenstracktmp
 
@@ -29393,6 +29339,7 @@ subroutine thck6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use elens
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -29427,7 +29374,6 @@ subroutine thck6d(nthinerr)
 !GRD-042008
 +ei
 +ca comgetfields
-+ca elensparam
 +ca wireparam
 +ca elenstracktmp
 
@@ -30197,6 +30143,7 @@ subroutine thck6dua(nthinerr)
       use mod_common
       use mod_commonmn
       use mod_commons
+      use elens
       implicit none
 
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -30229,7 +30176,6 @@ subroutine thck6dua(nthinerr)
 +ca bnlio
 +ei
 +ca comgetfields
-+ca elensparam
 +ca wireparam
 +ca elenstracktmp
 
@@ -32358,6 +32304,7 @@ subroutine comnul
       use mod_commonmn
       use mod_commons
       use bdex, only : bdex_comnul
+      use elens
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -32374,7 +32321,6 @@ subroutine comnul
 
 +ca dbdcum
 
-+ca elensparam
 +ca wireparam
 
 +ca parbeam_exp
