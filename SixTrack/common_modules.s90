@@ -201,11 +201,11 @@ module parpro
 +ei ! / beamgas
 +if .not.beamgas
 +if bignblz
-  parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=200000,        &
+  parameter(nele=60000,nblo=2500,nper=16,nelb=140,nblz=200000,        &
        nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / bignblz
 +if hugenblz
-  parameter(nele=6000,nblo=2500,nper=16,nelb=140,nblz=400000,        &
+  parameter(nele=60000,nblo=2500,nper=16,nelb=140,nblz=400000,        &
        nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
 +ei ! / hugenblz
 +if .not.bignblz.and..not.hugenblz
@@ -216,13 +216,7 @@ module parpro
 +ei ! / collimat
 
 
-+if collimat
-  parameter(nran = 280000, ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
-+ei
-+if .not.collimat
   parameter(nran = 2000000,ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
-+ei
-  
   parameter(mcor = 10,mcop = mcor+6, mbea = 99)
   parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
   parameter(nmon1 = 600,ncor1 = 600)

@@ -1855,7 +1855,7 @@ subroutine collimate_do_collimator(stracki)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
       end if
     else
-      write(lout,*) "ERROR: Non-zero length collimator!"
+      write(lout,*) 'ERROR: Non-zero length collimator: ', db_name1(icoll), ' length = ', stracki
       call prror(-1)
     end if
 

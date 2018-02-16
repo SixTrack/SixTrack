@@ -2,7 +2,7 @@
 #include "TTree.h"
 #include <algorithm>
 
-char ElementName[17];
+char ElementName[49];
 Int_t type;
 Double_t value;
 Double_t extra;
@@ -23,7 +23,7 @@ extern "C" void AcceleratorOutputRootInit()
 {
     //Tree stuff
     AcceleratorTree = new TTree("Accelerator","AcceleratorTree");
-    AcceleratorTree->Branch("name",&ElementName,"name[17]/C");
+    AcceleratorTree->Branch("name",&ElementName,"name[49]/C");
     AcceleratorTree->Branch("type",&type,"type/I");
     AcceleratorTree->Branch("value",&value,"value/D");
     AcceleratorTree->Branch("extra",&extra,"extra/D");
@@ -36,7 +36,7 @@ extern "C" void AcceleratorRootWrite(char* name_in, int name_len, int ktrack_in,
 {
     std::string tmpname(name_in);
     std::transform(tmpname.begin(), tmpname.end(), tmpname.begin(), ::toupper);
-    strncpy(ElementName,tmpname.substr(0,name_len).c_str(),17);
+    strncpy(ElementName,tmpname.substr(0,name_len).c_str(),49);
 
     type = ktrack_in;
     value = value_in;
