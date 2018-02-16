@@ -1,6 +1,7 @@
 module mod_fluka
 
   use floatPrecision
+  use numerical_constants
 
   use, intrinsic :: ISO_FORTRAN_ENV, only : int8, int16, int32, int64
 
@@ -472,7 +473,7 @@ module mod_fluka
 !
 ! PH for hisix: write the particle species and their initial conditions to fort.822
 !
-               write(isotope_log_unit,*), fluka_uid(fluka_nrecv),flgen, ipt, flaa, flzz, flet * 1.0D+03
+               write(isotope_log_unit,*) fluka_uid(fluka_nrecv),flgen, ipt, flaa, flzz, flet * 1.0D+03
 
             end if
 
@@ -521,12 +522,12 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! set reference particle properties (mainly for longitudinal dynamics)
-  integer function fluka_set_synch_part( e0, pc0, mass0, chrg0 )
+  integer function fluka_set_synch_part( e0, pc0, mass0, a0, z0 )
     implicit none
 
     ! interface variables
     real(kind=fPrec) :: e0, pc0, mass0
-    integer          :: chrg0
+    integer          :: a0, z0
 
     ! Auxiliary variables
     integer :: n
@@ -536,16 +537,21 @@ module mod_fluka
     fluka_e0    = e0    *1.0D-03 ! from  [MeV]    to [GeV]   
     fluka_pc0   = pc0   *1.0D-03 ! from  [MeV/c]  to [GeV/c] 
     fluka_mass0 = mass0 *1.0D-03 ! from  [MeV/c2] to [GeV/c2]
-    fluka_chrg0 = chrg0
+!    fluka_chrg0 = chrg0
+    fluka_a0 = a0
+    fluka_z0 = z0
+
     write(fluka_log_unit,*) ' updated synch part:'
     write(fluka_log_unit,*) ' - total en    [GeV]:',fluka_e0
     write(fluka_log_unit,*) ' - momentum  [GeV/c]:',fluka_pc0
     write(fluka_log_unit,*) ' - mass     [GeV/c2]:',fluka_mass0
-    write(fluka_log_unit,*) ' - charge        [e]:',fluka_chrg0
+!    write(fluka_log_unit,*) ' - charge        [e]:',fluka_chrg0
+    write(fluka_log_unit,*) ' - mass        [amu]:',fluka_a0
+    write(fluka_log_unit,*) ' - charge        [e]:',fluka_z0
     flush(fluka_log_unit)
 
     ! update magnetic rigidity, unless division by clight and 10^-9
-    fluka_brho0 = fluka_pc0 / dble(fluka_chrg0)
+    fluka_brho0 = fluka_pc0 / dble(fluka_z0)
 
     ! inform Fluka about the new magnetic rigidity
     n = ntsendbrhono(fluka_cid, fluka_brho0)

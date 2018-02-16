@@ -24408,7 +24408,7 @@ program maincr
         flush(lout)
         flush(fluka_log_unit)
 
-        fluka_con = fluka_set_synch_part( e0, e0f, pma, 1 )
+        fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
 
         if (fluka_con .lt. 0) then
           write(lout, *) '[Fluka] Error: failed to update ref particle'
@@ -27303,7 +27303,7 @@ end subroutine thin6d
           if(fluka_enable) then
             write(lout,*) '[Fluka] Updating ref particle'
             write(fluka_log_unit,*) '# Updating ref particle'
-            mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+            mtemp = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
             if(mtemp .lt. 0) then
             write(lout,*) '[Fluka] Error: failed to update ref particle'
             write(fluka_log_unit, *) '# failed to update ref particle'
@@ -30193,7 +30193,7 @@ subroutine thck6dua(nthinerr)
             if(fluka_enable) then
               write(*,*) '[Fluka] Updating ref particle'
               write(fluka_log_unit,*) '# Updating ref particle'
-              mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+              mtemp = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
               if (mtemp .lt. 0) then
                 write(*,*)'[Fluka] Error: failed to update ref particle'
                 write(fluka_log_unit,*)'# failed to update ref particle'
