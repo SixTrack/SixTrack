@@ -46,16 +46,16 @@ module mod_fluka
            ntsendnpart, &
            ntsendbrhono
 
-  integer :: ntconnect,   &
-             ntsendp,     &
-             ntsendeob,   &
-             ntsendeoc,   &
-             ntsendipt,   &
-             ntrecv,      &
-             ntwait,      &
-             ntsendnpart, &
-             ntsendbrhono,&
-             ntend
+  integer(kind=int32) :: ntconnect,   &
+                         ntsendp,     &
+                         ntsendeob,   &
+                         ntsendeoc,   &
+                         ntsendipt,   &
+                         ntrecv,      &
+                         ntwait,      &
+                         ntsendnpart, &
+                         ntsendbrhono,&
+                         ntend
 
   ! FlukaIO Message types
   integer(kind=int8), parameter :: FLUKA_PART = 1, &
@@ -67,30 +67,29 @@ module mod_fluka
                                    FLUKA_NPART= 7, &
                                    FLUKA_BRHO = 8
   ! connection ID
-  integer :: fluka_cid
+  integer(kind=int32) :: fluka_cid
 
   ! FLUK input block
-  logical, public :: fluka_enable     = .false.                     ! enable coupling
-  logical, public :: fluka_connected  = .false.                     ! fluka is connected
-  logical, public :: fluka_debug      = .false.                     ! write debug messages
-  integer, public :: fluka_log_unit   = 888                         ! logical unit for log messages
+  logical, public :: fluka_enable    = .false.                     ! enable coupling
+  logical, public :: fluka_connected = .false.                     ! fluka is connected
+  logical, public :: fluka_debug     = .false.                     ! write debug messages
+  integer(kind=int32), public :: fluka_log_unit  = 888             ! logical unit for log messages
   ! hisix: write isotope info
-  integer, public :: isotope_log_unit = 822                         ! logical unit for isotope-id output
+  integer(kind=int32), public :: isotope_log_unit = 822            ! logical unit for isotope-id output
 
   ! fluka insertions
-  logical, public :: fluka_inside = .false.                         ! Are we in a fluka insertion?
-  integer, public, allocatable :: fluka_type(:)                     ! type of insertion (one per SINGLE ELEMENT)
-  integer, public, allocatable :: fluka_geo_index(:)                ! index of insertion (one per SINGLE ELEMENT)
-  real(kind=fPrec), public, allocatable :: fluka_synch_length(:)    ! length of insertion [m] (one per SINGLE ELEMENT)
- 
- ! recognised insertion types
-  integer, parameter, public :: FLUKA_NONE    = 0, & ! no insertion
-                                FLUKA_ELEMENT = 1, & ! insertion covers only the present SINGLE ELEMENT
-                                FLUKA_ENTRY   = 2, & ! SINGLE ELEMENT marking the start of the insertion
-                                FLUKA_EXIT    = 3    ! SINGLE ELEMENT marking the end   of the insertion
+  logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
+  integer(kind=int32), public, allocatable :: fluka_type(:)        ! type of insertion (one per SINGLE ELEMENT)
+  integer(kind=int32), public, allocatable :: fluka_geo_index(:)   ! index of insertion (one per SINGLE ELEMENT)
+  real(kind=fPrec), public, allocatable :: fluka_synch_length(:)   ! length of insertion [m] (one per SINGLE ELEMENT)
+  ! recognised insertion types
+  integer(kind=int32), parameter, public :: FLUKA_NONE    = 0, & ! no insertion
+                                            FLUKA_ELEMENT = 1, & ! insertion covers only the present SINGLE ELEMENT
+                                            FLUKA_ENTRY   = 2, & ! SINGLE ELEMENT marking the start of the insertion
+                                            FLUKA_EXIT    = 3    ! SINGLE ELEMENT marking the end   of the insertion
   ! ancillary tracking values
-  integer, public :: fluka_max_npart                          ! Maximum number of particles (array size)
-  integer, public :: fluka_max_uid                            ! Highest particle ID
+  integer(kind=int32), public :: fluka_max_npart                          ! Maximum number of particles (array size)
+  integer(kind=int32), public :: fluka_max_uid                            ! Highest particle ID
   integer(kind=int32), public, allocatable :: fluka_uid(:)    ! particle ID
   integer(kind=int32), public, allocatable :: fluka_gen(:)    ! ID of parent particle
   real(kind=fPrec), public, allocatable    :: fluka_weight(:) ! statistical weight (>0.0)
@@ -105,9 +104,9 @@ module mod_fluka
   real(kind=fPrec), public :: fluka_pc0    ! [GeV/c]
   real(kind=fPrec), public :: fluka_mass0  ! [GeV/c2]
   real(kind=fPrec), public :: fluka_brho0  ! [Tm]
-  integer,          public :: fluka_chrg0  ! []
-  integer,          public :: fluka_a0     ! nucelon number (hisix)
-  integer,          public :: fluka_z0     ! charge multiplicity (hisix)
+  integer(kind=int32),          public :: fluka_chrg0  ! []
+  integer(kind=int32),          public :: fluka_a0     ! nucelon number (hisix)
+  integer(kind=int32),          public :: fluka_z0     ! charge multiplicity (hisix)
 
   ! hack for Li-7
   !real(kind=fPrec), parameter :: MLI = 6.5338351903884577D0
@@ -203,7 +202,7 @@ module mod_fluka
     implicit none
 
     ! Finish connection
-    integer :: n
+    integer(kind=int32) :: n
 
     ! Fluka I/O parameters
     integer(kind=int32)         :: flid, flgen
@@ -284,7 +283,7 @@ module mod_fluka
 
     ! Auxiliary variables
     integer :: j
-    integer :: n
+    integer(kind=int32) :: n
 
     flush(fluka_log_unit)
 
@@ -343,6 +342,7 @@ module mod_fluka
       if(fluka_debug) then
         write(fluka_log_unit, '(">",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
              flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz             !PH: added flaa,flzz
+        flush(fluka_log_unit)
       end if
 
 ! Hack for lithium-7
@@ -402,7 +402,7 @@ module mod_fluka
     integer(kind=int8)          :: mtype
 
     ! Auxiliary variables
-    integer :: n, j
+    integer(kind=int32) :: n, j
 
     fluka_receive = 0
 
@@ -461,6 +461,7 @@ module mod_fluka
             if(fluka_debug) then
                write(fluka_log_unit, '("<",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
                     flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz ! PH for hiSix
+               flush(fluka_log_unit)
             end if
 
             fluka_uid(fluka_nrecv)    = flid
@@ -530,7 +531,7 @@ module mod_fluka
     integer          :: a0, z0
 
     ! Auxiliary variables
-    integer :: n
+    integer(kind=int32) :: n
 
     fluka_set_synch_part = 0
 
@@ -575,7 +576,7 @@ module mod_fluka
     integer :: npart
 
     ! Auxiliary variables
-    integer :: n
+    integer(kind=int32) :: n
 
     fluka_init_max_uid = 0
 
