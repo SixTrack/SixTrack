@@ -104,9 +104,9 @@ module mod_fluka
   real(kind=fPrec), public :: fluka_pc0    ! [GeV/c]
   real(kind=fPrec), public :: fluka_mass0  ! [GeV/c2]
   real(kind=fPrec), public :: fluka_brho0  ! [Tm]
-  integer(kind=int32),          public :: fluka_chrg0  ! []
-  integer(kind=int32),          public :: fluka_a0     ! nucelon number (hisix)
-  integer(kind=int32),          public :: fluka_z0     ! charge multiplicity (hisix)
+  integer(kind=int16),          public :: fluka_chrg0  ! []
+  integer(kind=int16),          public :: fluka_a0     ! nucelon number (hisix)
+  integer(kind=int16),          public :: fluka_z0     ! charge multiplicity (hisix)
 
   ! hack for Li-7
   !real(kind=fPrec), parameter :: MLI = 6.5338351903884577D0
@@ -252,7 +252,7 @@ module mod_fluka
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
-    integer           :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
+    integer(kind=int16) :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
     real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
 
     fluka_send_receive = fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
@@ -272,7 +272,7 @@ module mod_fluka
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
-    integer           :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
+    integer(kind=int16) :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
     real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
 
     ! Fluka I/O parameters
@@ -392,7 +392,7 @@ module mod_fluka
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
     real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
-    integer           :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
+    integer(kind=int16) :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
     real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
 
     ! Fluka I/O parameters
@@ -528,7 +528,7 @@ module mod_fluka
 
     ! interface variables
     real(kind=fPrec) :: e0, pc0, mass0
-    integer          :: a0, z0
+    integer(kind=int16)          :: a0, z0
 
     ! Auxiliary variables
     integer(kind=int32) :: n
@@ -552,7 +552,7 @@ module mod_fluka
     flush(fluka_log_unit)
 
     ! update magnetic rigidity, unless division by clight and 10^-9
-    fluka_brho0 = fluka_pc0 / dble(fluka_z0)
+    fluka_brho0 = fluka_pc0 / real(fluka_z0,real64)
 
     ! inform Fluka about the new magnetic rigidity
     n = ntsendbrhono(fluka_cid, fluka_brho0)
@@ -573,7 +573,7 @@ module mod_fluka
     implicit none
 
     ! interface variables
-    integer :: npart
+    integer(kind=int32) :: npart
 
     ! Auxiliary variables
     integer(kind=int32) :: n
@@ -597,7 +597,7 @@ module mod_fluka
     implicit none
 
     ! interface variables
-    double precision :: brhono
+    real(kind=real64) :: brhono
 
     ! Auxiliary variables
     integer :: n
