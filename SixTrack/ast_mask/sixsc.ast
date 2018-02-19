@@ -1,8 +1,8 @@
-sixtrack.s
+sixtrack.s90
 sixscn.f
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods,naff
 e ADIA,ADIB,DATEN,ENVARS,ERRF
-e COMNUL,RANECU
+e COMNUL
 e ANFB,BETALF,BLOCK,BLOCKDIS
 e CHROMA,CLORB,CLORB2
 e COMBEL,ENVAR,ENVARDIS

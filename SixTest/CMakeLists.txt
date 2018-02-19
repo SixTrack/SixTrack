@@ -51,6 +51,8 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
   collimation_k2_fcc_2017_h1_collision
+  dump_all_highprec
+  dump_2_all_ele_highprec
   )
 
 if(NOT COLLIMAT)
@@ -87,7 +89,6 @@ if(NOT COLLIMAT)
           bbe571ib0
           bb
           bb_ntwin1
-          crabamp
           dipedge
           distance
           dynk_globalvars
@@ -147,6 +148,8 @@ if(NOT COLLIMAT)
           rfMultipoles_4thOrder
           last_amp
           scatter_bbelastic
+          dump_all_highprec
+          dump_2_all_ele_highprec
           ${SIXTRACK_TESTS}
         )
 
@@ -284,7 +287,6 @@ endforeach()
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 SET(FAST_TESTS
-  crabamp
   thick4
   thick6dblocks
   thick6ddynk
@@ -339,6 +341,8 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  dump_all_highprec
+  dump_2_all_ele_highprec
   )
 
 #Medium tests take < 30 mins to run

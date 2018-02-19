@@ -133,7 +133,11 @@ subroutine collimate_init()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -141,14 +145,10 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -578,7 +578,11 @@ subroutine collimate_start_sample(nsample)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -586,14 +590,10 @@ subroutine collimate_start_sample(nsample)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -812,6 +812,7 @@ subroutine collimate_start_sample(nsample)
     tertiary(j)       = 0
     secondary(j)      = 0
     other(j)          = 0
+    scatterhit(j)     = 0
     nabs_type(j)      = 0
     ipart(j)          = j
     flukaname(j)      = 0
@@ -1131,12 +1132,13 @@ subroutine collimate_start_sample(nsample)
   call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
 ! TW - 01/2007
 
-!GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, ie THE ONE WE DON'T WANT
+!GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, I.E. THE ONE WE DON'T WANT
 !GRD TO KEEP OVER EACH LOOP
   do j=1,napx
     tertiary(j)=0
     secondary(j)=0
     other(j)=0
+    scatterhit(j)=0
     nabs_type(j) = 0
   end do
 
@@ -1177,7 +1179,11 @@ subroutine collimate_start_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1185,14 +1191,10 @@ subroutine collimate_start_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1359,7 +1361,7 @@ subroutine collimate_start_collimator(stracki)
         end if
 
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:16)
+          ename(ie)    = bez(myix)(1:max_name_len)
       end do !do j = 1, napx
     end if !if(rselect.gt.0 .and. rselect.lt.65) then
   end if !if( firstrun ) then
@@ -1392,7 +1394,11 @@ subroutine collimate_do_collimator(stracki)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -1400,14 +1406,10 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -1485,7 +1487,7 @@ subroutine collimate_do_collimator(stracki)
 !     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
     do j = 1, napx
       write(45,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j)+100*samplenumber,xv(1,j), xv(2,j), yv(1,j), yv(2,j),     &
-     &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j),nabs_type(j)
+     &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
 
@@ -1851,7 +1853,7 @@ subroutine collimate_do_collimator(stracki)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
       end if
     else
-      write(lout,*) "ERROR: Non-zero length collimator!"
+      write(lout,*) 'ERROR: Non-zero length collimator: ', db_name1(icoll), ' length = ', stracki
       call prror(-1)
     end if
 
@@ -2224,7 +2226,11 @@ subroutine collimate_end_collimator()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2232,14 +2238,10 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2405,7 +2407,7 @@ subroutine collimate_end_collimator()
         hdfy    = (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
         hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
         hdfdee  = (ejv(j)-myenom)/myenom
-        hdftyp  = secondary(j)+tertiary(j)+other(j)
+        hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
         CALL APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 +ei
 +if .not.hdf5
@@ -2415,7 +2417,7 @@ subroutine collimate_end_collimator()
        &rcxp0(j)*c1e3+torbxp(ie),                                          &
        &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
        &rcyp0(j)*c1e3+torbyp(ie),                                          &
-       &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
+       &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 +ei
 
       !Here we've found a newly hit particle
@@ -2423,14 +2425,22 @@ subroutine collimate_end_collimator()
         xkick = rcxp(j) - rcxp0(j)
         ykick = rcyp(j) - rcyp0(j)
 
-        if(db_name1(icoll)(1:3).eq.'TCP'.or. db_name1(icoll)(1:4).eq.'COLM'.or. &
-           db_name1(icoll)(1:5).eq.'COLH0'.or. db_name1(icoll)(1:5).eq.'COLV0') then
+        ! Indicate wether this is a secondary / tertiary / other particle;
+        !  note that 'scatterhit' (equals 8 when set) is set in SCATTER.
+        if(db_name1(icoll)(1:3).eq.'TCP'   .or. &
+           db_name1(icoll)(1:4).eq.'COLM'  .or. &
+           db_name1(icoll)(1:5).eq.'COLH0' .or. &
+           db_name1(icoll)(1:5).eq.'COLV0'       ) then
           secondary(j) = 1
-        else if(db_name1(icoll)(1:3).eq.'TCS'.or.&
- &              db_name1(icoll)(1:4).eq.'COLH1'.or. db_name1(icoll)(1:4).eq.'COLV1'.or.db_name1(icoll)(1:4).eq.'COLH2') then
+        else if(db_name1(icoll)(1:3).eq.'TCS'   .or. &
+                db_name1(icoll)(1:4).eq.'COLH1' .or. &
+                db_name1(icoll)(1:4).eq.'COLV1' .or. &
+                db_name1(icoll)(1:4).eq.'COLH2'       ) then
           tertiary(j)  = 2
-        else if((db_name1(icoll)(1:3).eq.'TCL').or.(db_name1(icoll)(1:3).eq.'TCT').or. &
- &              (db_name1(icoll)(1:3).eq.'TCD').or.(db_name1(icoll)(1:3).eq.'TDI')) then
+       else if((db_name1(icoll)(1:3).eq.'TCL') .or. &
+               (db_name1(icoll)(1:3).eq.'TCT') .or. &
+               (db_name1(icoll)(1:3).eq.'TCD') .or. &
+               (db_name1(icoll)(1:3).eq.'TDI')       ) then
           other(j)     = 4
         end if
       else
@@ -2443,11 +2453,17 @@ subroutine collimate_end_collimator()
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
       if(dowritetracks) then
         if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec).and.&
+          if((secondary(j) .eq. 1 .or. &
+              tertiary(j)  .eq. 2 .or. &
+              other(j)     .eq. 4 .or. &
+              scatterhit(j).eq.8         ) .and. &
+             (xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec).and.&
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
- &((((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)).ge.real(sigsecut2,fPrec)).or. &
- & (((xv(2,j)*c1m3)**2 / (tbetay(ie)*myemity0_collgap)).ge.real(sigsecut2,fPrec)).or. &
- & (((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap))+((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.sigsecut3)) ) then
+             ((((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
+             (((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
+             (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+             ((xv(2,j)*c1m3)**2   / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
+             then
 
             xj  = (xv(1,j)-torbx(ie))  /c1e3
             xpj = (yv(1,j)-torbxp(ie)) /c1e3
@@ -2464,7 +2480,7 @@ subroutine collimate_end_collimator()
             hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
             hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
             hdfdee  = (ejv(j)-myenom)/myenom
-            hdftyp  = secondary(j)+tertiary(j)+other(j)
+            hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
             call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 
             hdfs  = sampl(ie)+half*c_length
@@ -2482,13 +2498,13 @@ subroutine collimate_end_collimator()
            &rcxp0(j)*c1e3+torbxp(ie),                                          &
            &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
            &rcyp0(j)*c1e3+torbyp(ie),                                          &
-           &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
+           &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 
             write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
            &ipart(j)+100*samplenumber,iturn,sampl(ie)+half*c_length,           &
            &xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
            &xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
-           &secondary(j)+tertiary(j)+other(j)
+           &secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 +ei
           end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and.
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
@@ -2635,7 +2651,16 @@ subroutine collimate_end_sample(j)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use crcoall
+
++if root
+  use root_output
++ei
+
   implicit none
 
 
@@ -2643,14 +2668,10 @@ subroutine collimate_end_sample(j)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2800,6 +2821,22 @@ subroutine collimate_end_sample(j)
   end do
 
   close(50)
+
++if root
+  if(root_flag .and. root_Collimation.eq.1) then
+    do icoll = 1, db_ncoll
+      if(db_length(icoll).gt.zero) then
+        call CollimatorLossRootWrite(icoll, db_name1(icoll), len(db_name1(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
+&       caverage(icoll), csigma(icoll), db_length(icoll))
+      end if
+    end do
+  end if
++ei
+
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 end subroutine collimate_end_sample
 
 !>
@@ -2812,7 +2849,11 @@ subroutine collimate_exit()
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -2820,14 +2861,10 @@ subroutine collimate_exit()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -2976,20 +3013,20 @@ subroutine collimate_start_turn(n)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3019,21 +3056,21 @@ subroutine collimate_start_element(i)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3073,6 +3110,7 @@ subroutine collimate_start_element(i)
       secondary(j) = 0
       tertiary(j)  = 0
       other(j)     = 0
+      scatterhit(j)= 0
       nabs_type(j) = 0
     end if
   end do
@@ -3129,7 +3167,11 @@ subroutine collimate_end_element
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
   implicit none
 
 
@@ -3137,14 +3179,10 @@ subroutine collimate_end_element
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3215,7 +3253,7 @@ subroutine collimate_end_element
         end if
 
         sampl(ie) = totals
-        ename(ie) = bez(myix)(1:16)
+        ename(ie) = bez(myix)(1:max_name_len)
       end do
     end if
   end if
@@ -3246,10 +3284,17 @@ subroutine collimate_end_element
       if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-        if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and.&
- &((((xv(1,j)*c1m3)**2/(tbetax(ie)*myemitx0_collgap)).ge.real(sigsecut2,fPrec)).or. &
- & (((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.real(sigsecut2,fPrec)).or. &
- & (((xv(1,j)*c1m3)**2/(tbetax(ie)*myemitx0_collgap))+((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.sigsecut3)) ) then
+         if((secondary(j) .eq. 1 .or. &
+             tertiary(j)  .eq. 2 .or. &
+             other(j)     .eq. 4 .or. &
+             scatterhit(j).eq. 8       ) .and. &
+             (xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and. &
+             ((((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+             (((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+             (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+             ((xv(2,j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
+             then
+            
           xj  = (xv(1,j)-torbx(ie)) /c1e3
           xpj = (yv(1,j)-torbxp(ie))/c1e3
           yj  = (xv(2,j)-torby(ie)) /c1e3
@@ -3263,12 +3308,12 @@ subroutine collimate_end_element
           hdfy=xv(2,j)
           hdfyp=yv(2,j)
           hdfdee=(ejv(j)-myenom)/myenom
-          hdftyp=secondary(j)+tertiary(j)+other(j)
+          hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
           call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 +ei
 +if .not.hdf5
           write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber, iturn, sampl(ie), &
- &              xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)
+ &              xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 +ei
         end if
       end if
@@ -3287,7 +3332,16 @@ subroutine collimate_end_turn
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use crcoall
+
++if root
+  use root_output
++ei
+
   implicit none
 
 
@@ -3295,14 +3349,10 @@ subroutine collimate_end_turn
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca parpro
-+ca common
-+ca commons
 +ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
-+ca commonmn
 +ca commonm1
 +ca commontr
 +ca beamdim
@@ -3379,6 +3429,11 @@ subroutine collimate_end_turn
     end do
 
     write(44,'(2i7)') iturn, nsurvive
++if root
+    if(root_flag .and. root_Collimation.eq.1) then
+      call SurvivalRootWrite(iturn, nsurvive)
+    end if
++ei
     if (iturn.eq.numl) then
       nsurvive_end = nsurvive_end + nsurvive
     end if
@@ -3547,6 +3602,7 @@ subroutine collimate_end_turn
         secondary(imov) = secondary(j)
         tertiary(imov) = tertiary(j)
         other(imov) = other(j)
+        scatterhit(imov) = scatterhit(j)
         nabs_type(imov) = nabs_type(j)
 !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
         ipart(imov) = ipart(j)
@@ -3561,6 +3617,7 @@ subroutine collimate_end_turn
       end if
     end do
      write(lout,*) 'INFO>  Compacted the particle distributions: ', napx, ' -->  ', imov, ", turn =",iturn
+     flush(lout)
     napx = imov
   endif
 
@@ -3633,7 +3690,7 @@ subroutine collimate_end_turn
           sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
           nampl(ie)    = nampl(ie) + 1
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:16)
+          ename(ie)    = bez(myix)(1:max_name_len)
         else
           nspx = zero
           nspy = zero
@@ -3665,10 +3722,17 @@ subroutine collimate_end_turn
 
       if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-        if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4).and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and. &
- &((((xv(1,j)*c1m3)**2/(tbetax(ie)*myemitx0_collgap)).ge.real(sigsecut2,fPrec)).or. &
- & (((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.real(sigsecut2,fPrec)).or. &
- & (((xv(1,j)*c1m3)**2/(tbetax(ie)*myemitx0_collgap))+((xv(2,j)*c1m3)**2/(tbetay(ie)*myemity0_collgap)).ge.sigsecut3)) ) then
+        if((secondary(j) .eq. 1 .or. &
+            tertiary(j)  .eq. 2 .or. &
+            other(j)     .eq. 4 .or. &
+            scatterhit(j).eq. 8        ) .and. &
+            (xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and. &
+            ((((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+            (((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+            (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+            ((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
+            then
+           
            xj     = (xv(1,j)-torbx(ie))/c1e3
            xpj    = (yv(1,j)-torbxp(ie))/c1e3
            yj     = (xv(2,j)-torby(ie))/c1e3
@@ -3682,15 +3746,15 @@ subroutine collimate_end_turn
            hdfy=xv(2,j)
            hdfyp=yv(2,j)
            hdfdee=(ejv(j)-myenom)/myenom
-           hdftyp=secondary(j)+tertiary(j)+other(j)
+           hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
            call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 +ei
 
 +if .not.hdf5
            write(38,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber,iturn,sampl(ie), &
-&          xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
+&          xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 +ei
-        end if !if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j)
+        end if !if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4.or.scatterhit(j).eq.8
       end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
     end do ! do j = 1, napx
   end if !if(dowritetracks) then
@@ -3770,12 +3834,12 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
 
 +ca commonex
-+ca parpro
 +ca collpara
 +ca dbpencil
 +ca info
@@ -4414,12 +4478,12 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
       use numerical_constants
 
       use crcoall
+      use parpro
       implicit none
 
 
       real(kind=fPrec) sx, sz
 !
-+ca parpro
 +ca collpara
 +ca dbpencil
 +ca info
@@ -6571,15 +6635,15 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use floatPrecision
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
   implicit none
 
 +ca collpara
 +ca dbmkdist
 
-+ca parpro
-+ca commonmn
-+ca common
 
   character(len=80)   filename_dis
   real(kind=fPrec) enerror, bunchlength
@@ -6866,7 +6930,8 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
 
@@ -6874,7 +6939,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 +ca dbmkdist
 
 ! !YIL debug july 2010
-+ca parpro
 +ca commont1
 
   real(kind=fPrec) pi
@@ -7903,7 +7967,8 @@ real(kind=fPrec) function ran_gauss(cut)
   use mathlib_bouncer
   use numerical_constants
 
-      use crcoall
+  use crcoall
+  use parpro
   implicit none
 
   logical flag
@@ -7940,15 +8005,29 @@ end function ran_gauss
 !<
 subroutine readcollimator
   use floatPrecision
+  use crcoall
+  use parpro
 
-  integer I,J,K
-+ca parpro
++if root
+  use iso_c_binding
+  use root_output
++ei
+
+  implicit none
+
+  integer I,J,K,ios
+
 +ca collpara
 +ca database
 +ca dbcommon
 
   logical lopen
 
++if root
+! Temp variables to avoid fotran array -> C nightmares
+  character(len=max_name_len+1) :: this_name = C_NULL_CHAR
+  character(len=5) :: this_material = C_NULL_CHAR
++ei
   save
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -8041,17 +8120,31 @@ subroutine readcollimator
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
+
++if root
+    if(root_flag .and. root_CollimationDB.eq.1) then
+      this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
+      this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
+      call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
+&     db_length(j), db_rotation(j), db_offset(j))
+    end if
++ei
+
   end do
 
   close(53)
 
++if root
+! flush the root file
+!  call SixTrackRootWrite()
++ei
 end subroutine readcollimator
 
 subroutine collimation_comnul
   use floatPrecision
   use numerical_constants, only : zero
+  use parpro
   implicit none
-+ca parpro
 
 +ca collpara
 +ca database

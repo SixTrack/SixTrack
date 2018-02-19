@@ -14,10 +14,11 @@
       use floatPrecision
       use mod_fluka
       use crcoall
+      use parpro
+      use mod_common
+      use aperture
       implicit none
 
-+ca parpro
-+ca common
 +ca commontr
 
 !     temporary variables
@@ -139,11 +140,11 @@
       use mod_fluka
       use numerical_constants, only : zero, one, c1e3
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commonm1
 +ca commontr
 
@@ -219,11 +220,11 @@
       use mod_fluka
       use numerical_constants, only : zero
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 
 !     interface variables:
       integer nturn, i, ix
@@ -270,11 +271,11 @@
       use mod_fluka
       use numerical_constants, only : zero, one, c1e3
       use crcoall
+      use parpro
+      use mod_common
+      use mod_commonmn
       implicit none
 
-+ca parpro
-+ca common
-+ca commonmn
 +ca commonm1
 +ca commontr
 

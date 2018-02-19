@@ -1,4 +1,4 @@
-fma.s90 sixtrack.s
+fma.s90 sixtrack.s90
 fman.f
 df naff,boinc,fio,crlibm,bignblz,hugenblz,bignpart,hugenpart
 e fma

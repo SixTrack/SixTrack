@@ -56,7 +56,7 @@ end module lorentzcommon
 !! \return The subroutine does not return anything
 !! \see thin6d, beamGasInit and rotateMatrix
 !< 
-subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
+subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use floatPrecision
   use numerical_constants
   use physical_constants
@@ -66,11 +66,13 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
   use beamgascommon
   use lorentzcommon
 
-      use crcoall
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
   implicit none
 
 !YIL: parpro
-+ca parpro
 
 !YIL: parbeam
 +ca parbeam
@@ -79,10 +81,8 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
 +ca collpara
 
 !YIL: COMMON
-+ca common
 
 !YIL: COMMONMN
-+ca commonmn
 
 !~: commonm1
 +ca commonm1
@@ -122,7 +122,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
 
   integer i,j,k,i_tmp
 
-  integer turn, ie          ! KNS: turn and structure element idx
+  integer turn, el_idx          ! KNS: turn and structure element idx
 
   pressID=0
   j=1
@@ -178,7 +178,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, ie )
     write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
  &  bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),yv(2,j)
 !    part_abs(j) = 1
-    part_abs_pos(j)  = ie
+    part_abs_pos(j)  = el_idx
     part_abs_turn(j) = turn
   goto 669
   endif
@@ -310,7 +310,7 @@ subroutine beamGasInit(myenom)
   use floatPrecision
   use numerical_constants
   use beamgascommon
-      use crcoall
+  use crcoall
   IMPLICIT NONE
 
 
@@ -475,6 +475,7 @@ end subroutine beamGasInit
 subroutine rotateMatrix(ax,ay,matrix)
   use floatPrecision
   use numerical_constants
+  use mathlib_bouncer
   real(kind=fPrec) matrix(3,3)
   real(kind=fPrec) sinax, sinay, cosax, cosay
   real(kind=fPrec) ax,ay

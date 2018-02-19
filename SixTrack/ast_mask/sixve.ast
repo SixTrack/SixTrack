@@ -1,9 +1,9 @@
-sixtrack.s
+sixtrack.s90
 sixven.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,libarchive,g4collimat,naff,fluka,backtrk
+df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,libarchive,g4collimat,naff,fluka,backtrk,root
 e maincr,envarsv
 e ADIA,ADIB,DATEN,ENVARS,ERRF
-e COMNUL,RANECU
+e COMNUL
 e BETALF,BLOCK,BLOCKDIS
 e CHROMA,CLORB,CLORB2
 e COMBEL,ENVAR,ENVARDIS
