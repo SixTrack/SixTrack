@@ -19,7 +19,7 @@ endif
 ifeq ($(BUILD32), Y)
 	TARGET_SUFFIX = 32
 	CPPUTEST_CPPFLAGS += -m32
-	CPPUTEST_LDFLAGS += -m32 -O2
+	CPPUTEST_LDFLAGS += -m32
 	G77FLAGS += -m32
 endif
 
@@ -38,19 +38,19 @@ PROJECT_HOME_DIR = .
 CPP_PLATFORM = Gcc
 
 # in case of Ubuntu 16.04, comment out -Werror
-WARNINGFLAGS = -Wall -Wswitch-default -Wswitch-enum -Werror 
+WARNINGFLAGS = -Wall -Wswitch-default -Wswitch-enum # -Werror 
 #CPPUTEST_CFLAGS are set to override malloc and free to get memory leak detection in C programs
 #CPPUTEST_CFLAGS = -Dmalloc=cpputest_malloc -Dfree=cpputest_free
 #GCOVFLAGS = -fprofile-arcs -ftest-coverage
 
 CPPUTEST_CPPFLAGS += $(WARNINGFLAGS)
-CPPUTEST_CPPFLAGS += -g -O2
+CPPUTEST_CPPFLAGS += -g
 CPPUTEST_CPPFLAGS += -fpic
 #CPPUTEST_CPPFLAGS += -DFLUKAIO_NODELAY
 
 G77 = gfortran
 G77FLAGS += $(WARNINGFLAGS)
-G77FLAGS += -g -O2
+G77FLAGS += -g
 
 #SRC_DIRS is a list of source directories that make up the target library
 #If test files are in these directories, their IMPORT_TEST_GROUPs need
@@ -86,6 +86,8 @@ libs: $(TARGET_LIB) $(TARGET_SHARED_LIB)
 
 $(TARGET_SHARED_LIB): $(OBJ)
 	$(SILENCE)echo Building archive $@
+	$(SILENCE)$(CC) --version
+	$(SILENCE)echo command $(CC) $(LDFLAGS) -shared -o $@ $^
 	$(SILENCE)mkdir -p lib
 	$(SILENCE)$(CC) $(LDFLAGS) -shared -o $@ $^
 

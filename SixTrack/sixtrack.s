@@ -23975,8 +23975,8 @@ end subroutine runda
         if ( dist_echo ) then
            open(unit=dist_echo_unit)
            rewind(dist_echo_unit)
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # total energy of synch part [MeV]: ", e0
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # momentum of synch part [MeV/c]: ", e0f
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " total energy of synch part [MeV]: ", e0
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " momentum of synch part [MeV/c]: ", e0f
            write(dist_echo_unit,*) '#'
            write(dist_echo_unit,*) '# for every particle (j)'
            write(dist_echo_unit,*) '# xv(1), yv(1), xv(2), yv(2), sigmv, ejfv'
