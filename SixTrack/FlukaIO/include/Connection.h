@@ -14,8 +14,8 @@ extern "C" {
 #define OUT_BUFFER_LEN 10240
 
 // These two values are specified in seconds
-#define DEFAULT_READ_TIMEOUT 300
-#define DEFAULT_WRITE_TIMEOUT 300
+#define DEFAULT_READ_TIMEOUT 3000
+#define DEFAULT_WRITE_TIMEOUT 3000
 
 /** 
  * Connection information
