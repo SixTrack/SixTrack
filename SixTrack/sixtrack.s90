@@ -16118,19 +16118,9 @@ end subroutine hamilton1
                 elens_iCheby(ielens(j))=melens_cheby_tables
  1972           continue
                 elens_cheby_filename(elens_iCheby(ielens(j)))=tmpch
-+if .not.crlibm
-                read (getfields_fields(9)(1:getfields_lfields(9)),*) &
-     &              elens_cheby_angle(ielens(j))
-+ei
-+if crlibm
-                elens_cheby_angle(ielens(j))= round_near (           &
-     &              errno,getfields_lfields(9)+1, getfields_fields(9) )
-                if (errno.ne.0) call rounderr (                      &
-     &              errno,getfields_fields,9,elens_cheby_angle(ielens(j)) )
-+ei
             end if
-!           additional geometrical infos:
-!           depending on profile, the position of these parameters change            
+!           additional geometrical infos (L, I, ek):
+!           depending on profile, the position of these parameters change
             tmpi1=0
             tmpi2=0
             tmpi3=0
@@ -16138,19 +16128,16 @@ end subroutine hamilton1
                tmpi1=8
                tmpi2=9
                tmpi3=10
-               elens_lThetaR2(ielens(j)) = .true.
             elseif ( elens_type(ielens(j)).eq.2.and.getfields_nfields.ge.11 ) then
                tmpi1=9
                tmpi2=10
                tmpi3=11
-               elens_lThetaR2(ielens(j)) = .true.
             elseif ( elens_type(ielens(j)).eq.3.and.getfields_nfields.ge.12 ) then
                tmpi1=10
                tmpi2=11
                tmpi3=12
-               elens_lThetaR2(ielens(j)) = .true.
             end if
-            if ( elens_lThetaR2(ielens(j)) ) then
+            if ( tmpi1.ne.0 ) then
 +if .not.crlibm
                read (getfields_fields(tmpi1)(1:getfields_lfields(tmpi1)),*)  &
      &              elens_len(ielens(j))
@@ -16174,7 +16161,29 @@ end subroutine hamilton1
      &              errno,getfields_fields,tmpi3,elens_Ek(ielens(j)) )
 +ei
             end if
-            
+!           additional geometrical infos (rotation angle):
+!           depending on profile, the position of these parameters change
+            tmpi1=0
+            if ( elens_type(ielens(j)).eq.1.and.getfields_nfields.ge.11 ) then
+               tmpi1=11
+            elseif ( elens_type(ielens(j)).eq.2.and.getfields_nfields.ge.12 ) then
+               tmpi1=12
+            elseif ( elens_type(ielens(j)).eq.3.and.getfields_nfields.ge.13 ) then
+               tmpi1=13
+            end if
+            if ( tmpi1.ne.0 ) then
++if .not.crlibm
+                read (getfields_fields(tmpi1)(1:getfields_lfields(tmpi1)),*) &
+     &              elens_angle(ielens(j))
++ei
++if crlibm
+                elens_angle(ielens(j))= round_near (           &
+     &              errno,getfields_lfields(tmpi1)+1, getfields_fields(tmpi1) )
+                if (errno.ne.0) call rounderr (                      &
+     &              errno,getfields_fields,tmpi1,elens_angle(ielens(j)) )
++ei
+            end if
+
             ! Make checks for this case
             if( elens_r2(ielens(j)).lt.elens_r1(ielens(j)) ) then
                write(lout,*) 'WARNING: ELEN R2<R1 -> inverting'
@@ -16193,15 +16202,13 @@ end subroutine hamilton1
                write(lout,*) 'WARNING: ELEN R1<0!!'
                call prror(-1)
             end if
-            if ( elens_lThetaR2(j) ) then
-               if( elens_len(ielens(j)).lt.zero ) then
-                  write(lout,*) 'WARNING: ELEN L<0!!'
-                  call prror(-1)
-               end if
-               if( elens_Ek(ielens(j)).lt.zero ) then
-                  write(lout,*) 'WARNING: ELEN Ek<0!! (e-beam)'
-                  call prror(-1)
-               end if
+            if( elens_len(ielens(j)).lt.zero ) then
+               write(lout,*) 'WARNING: ELEN L<0!!'
+               call prror(-1)
+            end if
+            if( elens_Ek(ielens(j)).lt.zero ) then
+               write(lout,*) 'WARNING: ELEN Ek<0!! (e-beam)'
+               call prror(-1)
             end if
             ! proper normalisation
             if (elens_type(ielens(j)).eq.1) then
@@ -16229,17 +16236,19 @@ end subroutine hamilton1
 
             if (elens_type(ielens(j)).eq.2) write(lout,fmt='(A,1PE10.3,A)') &
      &'sig      = ',elens_sig(ielens(j)),' mm'
-            if (elens_type(ielens(j)).eq.3) then
-               write(lout,fmt='(A,A)')'Chebyshev coefficients from file: ',elens_cheby_filename(elens_iCheby(ielens(j)))
-               write(lout,fmt='(A,1PE10.3,A)')'rotation angle=',elens_cheby_angle(ielens(j))
-            end if
-            if (elens_lThetaR2(ielens(j))) then
+            if (elens_type(ielens(j)).eq.3) write(lout,fmt='(A,A)')     &
+      'Chebyshev coefficients from file: ',elens_cheby_filename(elens_iCheby(ielens(j)))
+            if (elens_len(ielens(j)).gt.zero.and. &
+                 elens_I(ielens(j)) .gt.zero.and. &
+                 elens_Ek(ielens(j)).gt.zero) then
                write(lout,fmt='((A),4(/,A,1PE10.3,A))')                 &
      &'ELENS theta_r2 will be recomputed after input parsing based on:',&
      &'  L  =',elens_len(ielens(j)),' m',                               &
      &'  I  =',elens_I(ielens(j)),' A',                                 &
      &'  Ek =',elens_Ek(ielens(j)),' keV'
             end if
+            if (elens_angle(ielens(j)).ne.zero) write(lout,fmt='(A,1PE10.3,A)')&
+      'rotation angle=',elens_angle(ielens(j)),' deg'
             goto 2401           !Search success :)
             
          endif
@@ -16892,8 +16901,10 @@ end subroutine hamilton1
 !     finalise set up of eLenses:
 !     - compute elens theta at R2, if requested by user
       do j=1,melens
-         if ( elens_lThetaR2(j) ) then
-            elens_theta_r2(j)=eLensTheta( elens_len(ielens(j)), elens_I(ielens(j)), &
+         if (elens_len(ielens(j)).gt.zero.and. &
+              elens_I(ielens(j)) .gt.zero.and. &
+              elens_Ek(ielens(j)).gt.zero) then
+            elens_theta_r2(j)=elens_theta( elens_len(ielens(j)), elens_I(ielens(j)), &
      &   elens_Ek(ielens(j)), e0, elens_r2(ielens(j)) )
             write(lout,fmt='((A),4(/,A,1PE10.3,A))')                    &
      &   'ELENS new theta at r2 for ',bez(j),':',elens_theta_r2(j)
@@ -16907,7 +16918,7 @@ end subroutine hamilton1
      &"coefficients for Chebyshev polynominals:",elens_cheby_filename(tmpi1)
             call prror(-1)
          endif
-         call parseChebyFile(tmpi1)
+         call elens_parseChebyFile(tmpi1)
       end do
       
       
