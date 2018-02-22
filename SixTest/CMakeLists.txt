@@ -34,6 +34,7 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 
 #List of tests that does not produce a valid fort.10
 SET(TESTS_NOFORT10
+  orbit6d-element-quadrupole
   exact
   thick6dblocks
   elensidealthck6d
@@ -105,6 +106,7 @@ if(NOT COLLIMAT)
           lostnumxv
           lostnotilt
           notilt
+          orbit6d-element-quadrupole
           prob1
           prob3
           s316
@@ -287,6 +289,7 @@ endforeach()
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 SET(FAST_TESTS
+  orbit6d-element-quadrupole
   thick4
   thick6dblocks
   thick6ddynk
