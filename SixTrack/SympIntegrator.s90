@@ -43,8 +43,8 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
    ! -------------------------------------------------------------------------
    ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Rajouter pour inverser la lecture des tableaux
    startp = 0
-!   endp = s-1
-   endp = s
+   endp = s-1
+!   endp = s
    sens = 1
 
 
