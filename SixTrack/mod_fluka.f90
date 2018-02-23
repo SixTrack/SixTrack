@@ -247,7 +247,8 @@ module mod_fluka
     implicit none
 
     ! Parameters
-    integer           :: turn, ipt, npart
+    integer(kind=int32) :: turn, ipt
+    integer           ::  npart
     real(kind=fPrec)  :: el
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
@@ -267,7 +268,8 @@ module mod_fluka
     implicit none
 
     ! Interface variables
-    integer           :: turn, ipt, npart
+    integer(kind=int32) :: turn, ipt
+    integer           :: npart
     real(kind=fPrec)  :: el
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
@@ -387,7 +389,8 @@ module mod_fluka
     implicit none
 
     ! Interface variables
-    integer           :: turn, ipt, npart
+    integer(kind=int32) :: turn, ipt
+    integer           :: npart
     real(kind=fPrec)  :: el
     real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
     real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
