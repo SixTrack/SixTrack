@@ -16904,8 +16904,8 @@ end subroutine hamilton1
          if (elens_len(ielens(j)).gt.zero.and. &
               elens_I(ielens(j)) .gt.zero.and. &
               elens_Ek(ielens(j)).gt.zero) then
-            elens_theta_r2(j)=elens_theta( elens_len(ielens(j)), elens_I(ielens(j)), &
-     &   elens_Ek(ielens(j)), e0, elens_r2(ielens(j)) )
+            elens_theta_r2(j)=elens_ctheta_r2( elens_len(ielens(j)), elens_I(ielens(j)), &
+     &   elens_Ek(ielens(j)), elens_r2(ielens(j)) )
             write(lout,fmt='((A),4(/,A,1PE10.3,A))')                    &
      &   'ELENS new theta at r2 for ',bez(j),':',elens_theta_r2(j)
          end if

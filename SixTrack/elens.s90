@@ -58,15 +58,24 @@ module elens
         use mod_commonmn
         use mathlib_bouncer
         use numerical_constants
+        use physical_constants
++ca commonm1
         
         real(kind=fPrec) :: xx, yy, rr, frr, dxp, dyp
-        real(kind=fPrec) :: theta, radio, angle_rad
+        real(kind=fPrec) :: theta, radio, angle_rad, beta_b, brho_b, gamma_e, beta_e
         integer          :: j, ielens
         logical          :: lrotate
         
         ! rotation angle
         lrotate=elens_angle(j).ne.zero
         if (lrotate) angle_rad=elens_angle(ielens)/c180e0*pi
+
+        ! beta and Brho of beam
+        beta_b=e0f*gammar/pma
+        brho_b=e0f/(clight*c1m6)
+        ! beta of electron beam
+        gamma_e=elens_Ek(ielens)*c1m3/pmae+1 ! from kinetic energy
+        beta_e=sqrt((gamma_e+one)*(gamma_e-one))/(gamma_e)
         
         do j=1,napx
            
@@ -113,7 +122,7 @@ module elens
                           elens_geo_norm(ielens)
                  case (3)
                     ! CHEBYSHEV polynomial
-                    call elens_applyChebyshev( xx, yy, dxp, dyp, elens_iCheby(ielens) )
+                    call elens_applyChebyshev( xx, yy, dxp, dyp, ielens, beta_b, brho_b, beta_e )
                  end select
               else ! r1 < r2 <= rr
                  select case (elens_type(ielens))
@@ -128,7 +137,7 @@ module elens
               endif
               if ( elens_type(ielens).ne.3 ) then
                  ! get actual kicks from frr
-                 frr = elens_r2(ielens)/rr *frr *elens_theta_r2(ielens) *oidpsv(j)
+                 frr = elens_r2(ielens)/rr *frr *elens_theta_r2(ielens)
                  dxp = frr*xx/rr
                  dyp = frr*yy/rr
               end if
@@ -141,6 +150,10 @@ module elens
                  dxp = radio * cos_mb(theta)
                  dyp = radio * sin_mb(theta)
               end if
+
+              ! take into account magnetic rigidity of particle being tracked:
+              dxp = dxp *oidpsv(j)
+              dyp = dyp *oidpsv(j)
 
               ! apply kicks
               yv(1,j)=yv(1,j)+dxp
@@ -203,7 +216,7 @@ module elens
       end subroutine elens_comnul
       
       
-      real(kind=fPrec) function elens_theta( len, Int, Ekin, Etot, r2 )
+      real(kind=fPrec) function elens_ctheta_r2( len, Int, Ekin, r2 )
         
         ! A.Mereghetti, BE-ABP-HSS
         ! last modified: 2018-02-21
@@ -214,30 +227,28 @@ module elens
         ! - length of eLens [m];
         ! - current intensity of e-beam [A]
         ! - kinetic energy of electrons [keV]
-        ! - total beam energy [MeV]
         ! - outer radius [mm]
         
         use mathlib_bouncer
         use physical_constants
-        use crcoall
         use mod_common
         use numerical_constants
++ca commonm1
         
-        real(kind=fPrec) gamma, beta_e, beta_b, brho, len, Int, Ekin, Etot, r2
+        real(kind=fPrec) gamma, beta_e, beta_b, brho, len, Int, Ekin, r2
         gamma=Ekin*c1m3/pmae+1 ! from kinetic energy
         beta_e=sqrt((gamma+one)*(gamma-one))/(gamma)
-        gamma=Etot/pma ! from total energy
-        beta_b=sqrt((gamma+one)*(gamma-one))/(gamma)
-        brho=Etot/(clight*c1m6)
+        beta_b=e0f*gammar/pma
+        brho=e0f/(clight*c1m6)
         ! r2: from mm to m
         ! theta: from rad to mrad
-        elens_theta=len*abs(Int)/(2*pi*eps0*brho*clight**2*r2*c1m3)*c1e3
+        elens_ctheta_r2=len*abs(Int)/(2*pi*eps0*brho*clight**2*r2*c1m3)*c1e3
         if ( Int.lt.zero ) then
-           elens_theta=elens_theta*(one/(beta_e*beta_b)+one)
+           elens_ctheta_r2=elens_ctheta_r2*(one/(beta_e*beta_b)+one)
         else
-           elens_theta=elens_theta*(one/(beta_e*beta_b)-one)
+           elens_ctheta_r2=elens_ctheta_r2*(one/(beta_e*beta_b)-one)
         end if
-      end function elens_theta
+      end function elens_ctheta_r2
       
       
       subroutine elens_parseChebyFile(ifile)
@@ -328,6 +339,10 @@ module elens
                  if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
 +ei
                  elens_cheby_refRadius(ifile)=tmpflt
+                 if (elens_cheby_refRadius(ifile).le.zero) then
+                    write(lout,*)'Elens: ERROR: reference radius of Chebyshev coefficients .le.zero'
+                    call prror(-1)
+                 end if
                  ! force R1 and R2 to be the extremes of the domain of Chebyshev polynomials:
                  do ii=1,melens
                     if (elens_iCheby(ii).eq.ifile) then
@@ -384,22 +399,80 @@ module elens
         
       end subroutine elens_parseChebyFile
 
-      subroutine elens_applyChebyshev( xx, yy, dxp, dyp, iCheby )
+      subroutine elens_applyChebyshev( xx, yy, dxp, dyp, ielens, beta_b, brho_b, beta_e )
 
         ! A. Mereghetti, CERN BE/ABP/HSS
         ! last modified: 21-02-2018
-        ! compute kicks from Chebyshev polinomials
+        ! compute kicks from Chebyshev polinomials - see FermiLAB-FN-0972-APC
         
         use mathlib_bouncer
+        use physical_constants
         use numerical_constants
-
-        real(kind=fPrec) :: xx, yy, dxp, dyp
-        integer          :: iCheby
-
-        dxp=zero
-        dyp=zero
         
+        ! interface vars
+        real(kind=fPrec) :: xx, yy, dxp, dyp, beta_b, brho_b, beta_e
+        integer          :: ielens
+        
+        ! temp vars
+        real(kind=fPrec) :: uu, vv, Tx (0:elens_cheby_order), Ty (0:elens_cheby_order), &
+                            kx, ky, Tpx(0:elens_cheby_order), Tpy(0:elens_cheby_order), &
+                            fu, fv
+        integer          :: iCheby, ii, jj
+
+        ! Chebyshev map to be used
+        iCheby=elens_iCheby(ielens)
+        ! normalised variables
+        uu=xx/elens_cheby_refRadius(iCheby)
+        vv=yy/elens_cheby_refRadius(iCheby)
+        ! normalisation factors of derivatives
+        fu=(one-uu)*(one+uu)
+        fv=(one-vv)*(one+vv)
+
+        ! polynomials:
+        Tx(0)=one
+        Ty(0)=one
+        Tx(1)=uu
+        Ty(1)=vv
+        do ii=2,elens_cheby_order
+           Tx(ii)=two*uu*Tx(ii-1)-Tx(ii-2)
+           Ty(ii)=two*vv*Ty(ii-1)-Ty(ii-2)
+        end do
+        ! derivatives:
+        Tpx(0)=zero
+        Tpy(0)=zero
+        do ii=1,elens_cheby_order
+           Tpx(ii)=real(ii,fPrec)*(Tx(ii-1)-uu*Tx(ii))/fu
+           Tpy(ii)=real(ii,fPrec)*(Ty(ii-1)-vv*Ty(ii))/fv
+        end do
+
+        ! get kicks
+        dxp=zero
+        dyp=zero 
+        do ii=0,elens_cheby_order
+           do jj=0,ii
+              dxp=dxp+elens_cheby_coeffs(jj,ii,iCheby)*Tpx(jj)*Ty (ii-jj)
+              dyp=dyp+elens_cheby_coeffs(jj,ii,iCheby)*Tx (jj)*Tpy(ii-jj)
+           end do
+        end do
+        dxp=-dxp/elens_cheby_refRadius(iCheby)
+        dyp=-dyp/elens_cheby_refRadius(iCheby)
+        
+        ! take into account Brho and beta
+        dxp=dxp/(brho_b*clight*beta_b)
+        dyp=dyp/(brho_b*clight*beta_b)
+
+        ! take into account different electron currents / energies
+        if ( elens_I(ielens).ne.zero.and.elens_I(ielens).ne.elens_cheby_refCurr(iCheby) ) then
+           dxp=dxp*elens_I(ielens)/elens_cheby_refCurr(iCheby)
+           dyp=dyp*elens_I(ielens)/elens_cheby_refCurr(iCheby)
+        end if
+        if ( beta_e.ne.zero.and.beta_e.ne.elens_cheby_refBeta(iCheby) ) then
+           dxp=dxp*elens_cheby_refBeta(iCheby)/beta_e
+           dyp=dyp*elens_cheby_refBeta(iCheby)/beta_e
+        end if
+       
       end subroutine elens_applyChebyshev
+
       
     end module elens
      
