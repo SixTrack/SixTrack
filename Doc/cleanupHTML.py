@@ -24,7 +24,7 @@ def wrapHTML(htmlDir, htmlFile, fileList):
     with open(path.join(htmlDir,htmlFile),encoding="utf-8") as inFile:
         for theLine in inFile:
             
-            theLine = theLine.strip()
+            theLine = theLine.rstrip()
             if theLine == "": continue
             
             if theLine[0:6] == "<head>":

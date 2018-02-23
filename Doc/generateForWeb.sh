@@ -36,6 +36,8 @@ cp $MUSER/six.pdf $CURR/html/user_manual.pdf
 latexml six.tex | latexmlpost --dest=$OUSERF/manual.html --format=$FORMAT --javascript=$MATHJAX -
 #latexml six.tex | latexmlpost --dest=$OUSERS/manual.html --format=$FORMAT --javascript=$MATHJAX --splitat=chapter -
 $CURR/cleanupHTML.py $OUSERF
+rm -v $OUSERF/*.html
+echo "<?php header('Location: manual.php'); ?>" > $OUSERF/index.php
 
 echo ""
 echo "**********************************"
@@ -48,6 +50,8 @@ make
 cp $MPHYS/sixphys.pdf $CURR/html/physics_manual.pdf
 latexml sixphys.tex | latexmlpost --dest=$OPHYS/manual.html --format=$FORMAT --javascript=$MATHJAX -
 $CURR/cleanupHTML.py $OPHYS
+rm -v $OPHYS/*.html
+echo "<?php header('Location: manual.php'); ?>" > $OPHYS/index.php
 
 echo ""
 echo "********************************"
@@ -60,6 +64,8 @@ make
 cp $MBUILD/building_sixtrack.pdf $CURR/html/building_sixtrack.pdf
 latexml building_sixtrack.tex | latexmlpost --dest=$OBUILD/manual.html --format=$FORMAT --javascript=$MATHJAX -
 $CURR/cleanupHTML.py $OBUILD
+rm -v $OBUILD/*.html
+echo "<?php header('Location: manual.php'); ?>" > $OBUILD/index.php
 
 echo ""
 echo "**********"
