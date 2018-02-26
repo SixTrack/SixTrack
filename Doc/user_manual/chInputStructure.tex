@@ -13,11 +13,11 @@ This system makes it easy to read input and allows easy change and addition of i
 
 The \textit{Program Version} input block determines if all of the input will be in the input file \# 3, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file \# 2.
 The latter option is useful if tracking parameters are changed, but the geometry part of the input is left as it is.
-The geometry part can be produced directly from a MAD input file (see~\ref{MADT}).
+The geometry part can be produced directly from a Mad-X input file (see~\ref{MADT}).
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & FREE or GEOM \\
+    \textbf{Keyword}    & \texttt{FREE} or \texttt{GEOM} \\
     \textbf{Data lines} & 0 \\
     \textbf{Format}     & \texttt{keyword comment title} \\
 \end{tabular}
@@ -26,7 +26,7 @@ The geometry part can be produced directly from a MAD input file (see~\ref{MADT}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{keyword} & The first four characters of the first line of the input file \# 3 are reserved for the keyword. FREE for free format input with all input in file \# 3,and GEOM if the geometry part is in file \# 2 \\
+    \texttt{keyword} & The first four characters of the first line of the input file \# 3 are reserved for the keyword. \texttt{FREE} for free format input with all input in file \# 3, and \texttt{GEOM} if the geometry part is in file \# 2 \\
     \texttt{comment} & Following the first four characters, 8 characters are reserved for comments \\
     \texttt{title}   & The next 60 characters are interpreted as the title of the output file \# 6
 \end{tabular}
@@ -39,7 +39,7 @@ It is advisable to always use this input block to have a complete protocol of th
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & PRIN \\
+    \textbf{Keyword}    & \texttt{PRIN} \\
     \textbf{Data lines} & 0
 \end{tabular}
 
@@ -51,7 +51,7 @@ It will be written to the binary data files (Appendix~\ref{Header}) and will app
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & COMM \\
+    \textbf{Keyword}    & \texttt{COMM} \\
     \textbf{Data lines} & 1 \\
     \textbf{Format}     & A string of up to 80 characters
 \end{tabular}
@@ -59,12 +59,12 @@ It will be written to the binary data files (Appendix~\ref{Header}) and will app
 % ================================================================================================================================ %
 \subsection{Iteration Errors} \label{IteErr}
 
-For the processing procedures, the number of iterations and the precision to which the processing is to be performed are chosen with the {\em Iteration Errors} input block.
+For the processing procedures, the number of iterations and the precision to which the processing is to be performed are chosen with the \textit{Iteration Errors} input block.
 If the input block is left out, default values will be used.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & ITER \\
+    \textbf{Keyword}    & \texttt{ITER} \\
     \textbf{Data lines} & 1 to 4 \\
     \textbf{Format}     & Each data line holds three values as in table~\ref{T-IteErr}, except for the fourth line where the horizontal and vertical aperture limits can be additionally specified. This has been added to avoid artificial crashes for special machines.
 \end{tabular}
@@ -77,57 +77,57 @@ If the input block is left out, default values will be used.
     \begin{tabular}{|l|l|l|p{0.2\linewidth}|p{0.2\linewidth}|p{0.2\linewidth}|}
         \hline
         \rowcolor{blue!30}
-        Integer & Double & Default value & Number of iterations for & Demanded precision of & Variations of \\
+        Variable & Type & Default Val. & Number of Iterations for & Demanded Precision of & Variations of \\
         \rowcolor{gray!15}
         \multicolumn{6}{|l|}{Data Line 1} \\
         \hline
-        ITCO & & \texttt{50} & Closed orbit calculation & & \\
-       \hline
-        & DMA & \texttt{1e-12} & & Closed orbit displacements & \\
+        \texttt{ITCO} & \texttt{int} & \texttt{50} & Closed orbit calculation & & \\
         \hline
-        & DMAP & \texttt{1e-15} & & Derivative of closed orbit displacements & \\
+        \texttt{DMA}  & \texttt{dbl}& \texttt{1e-12} & & Closed orbit displacements & \\
+        \hline
+        \texttt{DMAP} & \texttt{dbl} & \texttt{1e-15} & & Derivative of closed orbit displacements & \\
         \hline
         \rowcolor{gray!15}
         \multicolumn{6}{|l|}{Data Line 2} \\
         \hline
-        ITQV & & \texttt{10} & Q Adjustment & & \\
+        \texttt{ITQV} & \texttt{int} & \texttt{10} & Q Adjustment & & \\
         \hline
-        & DKQ & \texttt{1e-10} & & & Quadrupole strengths \\
+        \texttt{DKQ}  & \texttt{dbl} & \texttt{1e-10} & & & Quadrupole strengths \\
         \hline
-        & DQQ & \texttt{1e-10} & & Tunes & \\
+        \texttt{DQQ} & \texttt{dbl} & \texttt{1e-10} & & Tunes & \\
         \hline
         \rowcolor{gray!15}
         \multicolumn{6}{|l|}{Data Line 3} \\
         \hline
-        ITCRO & & \texttt{10} & Chromaticity correction & & \\
+        \texttt{ITCRO} & \texttt{int} & \texttt{10} & Chromaticity correction & & \\
         \hline
-        & DSM0 & \texttt{1e-10} & & & Sextupole strengths \\
+        \texttt{DSM0} & \texttt{dbl} & \texttt{1e-10} & & & Sextupole strengths \\
         \hline
-        & DECH & \texttt{1e-10} & & Chromaticity correction & \\
+        \texttt{DECH} & \texttt{dbl} & \texttt{1e-10} & & Chromaticity correction & \\
         \hline
         \rowcolor{gray!15}
         \multicolumn{6}{|l|}{Data Line 4} \\
         \hline
-        & DE0 & \texttt{1e-9} & & & Momentum spread for chromaticity calculation \\
+        \texttt{DE0} & \texttt{dbl} & \texttt{1e-9} & & & Momentum spread for chromaticity calculation \\
         \hline
-        & DED & \texttt{1e-9} & & & Momentum spread for evaluation of dispersion \\
+        \texttt{DED} & \texttt{dbl} & \texttt{1e-9} & & & Momentum spread for evaluation of dispersion \\
         \hline
-        & DSI & \texttt{1e-9} & & Desired orbit r.m.s. value; compensation of resonance width & \\
+        \texttt{DSI} & \texttt{dbl} & \texttt{1e-9} & & Desired orbit r.m.s. value; compensation of resonance width & \\
         \hline
-        & APER(1) & \texttt{1000 [mm]} & & Horizontal aperture limit & \\
+        \texttt{APER(1)} & \texttt{dbl} & \texttt{1000 [mm]} & & Horizontal aperture limit & \\
         \hline
-        & APER(2) & \texttt{1000 [mm]} & & Vertical aperture limit & \\
+        \texttt{APER(2)} & \texttt{dbl} & \texttt{1000 [mm]} & & Vertical aperture limit & \\
         \hline
     \end{tabular}
     \normalsize
 \end{table}
 
 % ================================================================================================================================ %
-\subsection{MAD -- SixTrack Conversion} \label{MADT}
+\subsection{Mad-X to SixTrack Conversion} \label{MADT}
 
-A converter has been developed~\cite{CONVERTOR} which is directly linked to MADX\@.
+A converter has been developed~\cite{CONVERTOR} which is directly linked to Max-X\@.
 It produces the geometry file \# 2; an appendix to the parameter file \# 3, which defines which of the multipole errors are switched on; the error file \# 16 and the file \# 8 which holds the transverse misalignments and the tilt of the nonlinear kick elements.
-It also produce a file \# 34 with linear lattice functions, phase advances and multipole strengths needed for resonance calculations for the program {\it SODD}~\cite{SODD}.
+It also produce a file \# 34 with linear lattice functions, phase advances and multipole strengths needed for resonance calculations for the program \textit{SODD}~\cite{SODD}.
 %A description of %how to use the converter can be found in Appendix\ref{MADSIXC}.
 
 % ================================================================================================================================ %
@@ -137,15 +137,15 @@ It also produce a file \# 34 with linear lattice functions, phase advances and m
 \subsection{Single Elements} \label{SinEle}
 
 The \textit{Single Elements} input block defines the name and type of linear and nonlinear elements, the inverse bending radius or multipole strength respectively, and the strength and length of the elements.
-Linear and nonlinear elements are distinguished by length -- linear elements have a nonzero length and nonlinear elements have zero length.
+Linear and nonlinear elements are distinguished by length -- linear elements have a non-zero length and non-linear elements have zero length.
 Both kinds of elements can appear in the input block in arbitrary order.
 The input line has a different format for linear and nonlinear elements.
-Moreover, the multipoles, being a set of nonlinear elements, are treated in a special way.
+Moreover, the multipoles, being a set of non-linear elements, are treated in a special way.
 The maximum number of elements is set as a parameter (see Appendix~\ref{DSP}).
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & SING \\
+    \textbf{Keyword}    & \texttt{SING} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & Described in the following sections
 \end{tabular}
@@ -153,7 +153,7 @@ The maximum number of elements is set as a parameter (see Appendix~\ref{DSP}).
 % ================================================================================================================================ %
 \subsubsection{Linear Elements} \label{LinEle}
 
-Each linear single element has a name, type, inverse bending radius, focusing and a nonzero length.
+Each linear single element has a name, type, inverse bending radius, focusing and a non-zero length.
 
 \paragraph{Format} \texttt{name type $ \varrho^{-1} $ K length}
 
@@ -190,7 +190,7 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 
 \paragraph{Remarks:}
 \begin{enumerate}
-    \item For the horizontal plane the bending radius is defined to be negative \mbox{($ \varrho < 0 $).} This is different from other programs like MAD \cite{MAD}.
+    \item For the horizontal plane the bending radius is defined to be negative \mbox{($ \varrho < 0 $).} This is different from other programs like Mad-X~\cite{MAD}.
     \item $ K < 0 $ corresponds to a horizontal focusing quadrupole.
     \item For the length of an edge focusing element (type=8) the same value must be used as for the corresponding bending magnet. A sector bending magnet is transformed into a rectangular magnet with an edge focusing element of positive length on either side, while for the opposite transformation a negative length is required.
     \item It is important to note that the splitting of a rectangular magnet, which is sometimes necessary if multipole errors are to be introduced, does change the linear optics. It is therefore advisable to replace the rectangular magnet with a sector magnet, which can be split without affecting the linear optics, and make an overall transformation into a rectangular magnet via edge focusing elements. Do not forget to use the total length of dipole as the length of the edge focusing element.
@@ -255,14 +255,15 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 % ================================================================================================================================ %
 \subsubsection{Multipole Blocks} \label{MulBlo}
 
-A set of normal, normal--r.m.s., skew, and skew--r.m.s. errors can be combined effectively.
+A set of normal, normal--RMS, skew, and skew--RMS errors can be combined effectively.
 The actual values for the strengths have to be given in a separate \textit{Multipole Coefficient} input block (see~\ref{MulCoe}) which must have the same name.
 To consider the curvature of dipoles which are replaced by drifts and dipole kicks this block is used in two different ways.
 
 \paragraph{Format} \texttt{name type cstr cref length}
 
-\begin{itemize}
-    \item Marker for high order kick (default)\\
+\begin{description}
+    \item [Marker for high order kick (default)]~\\
+    
     \bigskip
     \begin{tabular}{@{}lp{0.8\linewidth}}
         \texttt{name} & May contain up to 48 characters \\
@@ -271,20 +272,21 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
         \texttt{cref} & The reference radius given in the \textit{Multipole Coefficient} input block (~\ref{MulCoe}) will be multiplied by this factor. If it is zero the multipole block will be ignored. \\
         \texttt{length} & Must be = 0
     \end{tabular}
-    \item Default + dipole curvature \\
+    \item [Default + dipole curvature]~\\
+    
     \bigskip
     \begin{tabular}{@{}lp{0.8\linewidth}}
         \texttt{name} & May contain up to 48 characters \\
         \texttt{type} & Must be = 11 \\
-        \texttt{cstr} & The bending strength [rad] of horizontal or vertical dipole. Internally the value is set to one to allow the processing of a multipole block (~\ref{MulCoe}).\\
-        \texttt{cref} & The length [m] of the dipole that is approximated by a kick. Internally this value is set to one to allow the processing of a multipole block (~\ref{MulCoe}). \\
+        \texttt{cstr} & The bending strength [rad] of horizontal or vertical dipole. Internally the value is set to one to allow the processing of a multipole block (\ref{MulCoe}).\\
+        \texttt{cref} & The length [m] of the dipole that is approximated by a kick. Internally this value is set to one to allow the processing of a multipole block (\ref{MulCoe}). \\
         \texttt{length} & length = -1: horizontal dipole \\
                         & length = -2: vertical dipole
     \end{tabular}
-\end{itemize}
+\end{description}
 
 \paragraph{Remarks:}
-The definition of the multipole strength in a block will be given in (~\ref{MulCoe}).
+The definition of the multipole strength in a block will be given in (\ref{MulCoe}).
 
 % ================================================================================================================================ %
 \subsubsection{Cavities} \label{Cavities}
@@ -532,46 +534,58 @@ So in order for this paper's~\cite{RFmultsPaper} analytical equations to be comp
 % ================================================================================================================================ %
 \subsubsection{Electron Lens} \label{ELEN}
 
-\paragraph{Format} {\em name type}
-\begin{description}
-	\item [name] May contain up to sixteen characters
-	\item [type] 29
-\end{description}
+\paragraph{Format} \texttt{name type}
 
-\paragraph{Remark}
-The ``e-lens'' elements become active when the
-ELEN input block~\ref{sec:elen} is used. All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts. The parameters for the e-lens are defined in the ELEN input block.
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name} & May contain up to 48 characters \\
+    \texttt{type} & 29
+\end{tabular}
 
+\paragraph{Remarks:}
+The ``e-lens'' elements become active when the \texttt{ELEN} input block~\ref{sec:elen} is used.
+All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts.
+The parameters for the e-lens are defined in the ELEN input block.
+
+% ================================================================================================================================ %
 \subsubsection{Scattering point} \label{SCAT}
-\paragraph{Format} {\em name type}
-\begin{description}
-	\item [name] May contain up to sixteen characters
-	\item [type] 40
-\end{description}
 
-\paragraph{Remark}
-The ``scattering'' elements become active when the SCAT(ter) input block~\ref{sec:scatter} is used.
+\paragraph{Format} \texttt{name type}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name} & May contain up to 48 characters \\
+    \texttt{type} & 40
+\end{tabular}
+
+\paragraph{Remarks:}
+The ``scattering'' elements become active when the \texttt{SCAT}(ter) input block~\ref{sec:scatter} is used.
 All parameters except name and type have to be set to zero in the list of single elements, otherwise SixTrack aborts.
 The parameters of the scattering are defined in the SCAT(ter) input block.
 
-
+% ================================================================================================================================ %
 \subsubsection{Beam Position Monitor} \label{BPM}
-\paragraph{Format} {\em BPMname 0 0 0 0}
-\begin{description}
-\item [BPMname] Must start with ``BP'' and maybe followed by forteen characters.
-\end{description}
 
-\paragraph{Remark}
-This element dumps the coordinates of the 1st particle to the file with name {\em BPMname}.
+\paragraph{Format} \texttt{BPMname 0 0 0 0}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{BPMname} & Must start with ``BP'' and maybe followed by 46 characters.
+\end{tabular}
+
+\paragraph{Remarks:}
+This element dumps the coordinates of the 1st particle to the file with name ``BPMname''.
 The file contains 7 columns: $x$,$x'$, $y$,$y'$, $ct$,$\delta p/p$ and $E$.
-Usual SixTrack units are used. Any number of BPM elements can be used but
-the names must differ. 
+Usual SixTrack units are used.
+Any number of BPM elements can be used but the names must differ. 
 
-\subsubsection{Other element types}
+% ================================================================================================================================ %
+\subsubsection{Other Element Types}
 
 Some other elements, such as dipole edge (24), solenoid (25), multipole RF kicks ($\pm$26, $\pm$27, $\pm$28) are accepted by SixTrack, but they are not currently supported by the development team or tested for correctness.
 It is therefore advised to not use these elements.
 
+% ================================================================================================================================ %
 \subsection{Block Definitions} \label{BloDef}
 
 \subparagraph{Description} In four--dimensional transverse tracking,
