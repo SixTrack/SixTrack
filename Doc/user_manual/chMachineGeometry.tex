@@ -456,128 +456,94 @@ It is therefore advised to not use these elements.
 % ================================================================================================================================ %
 \section{Block Definitions} \label{BloDef}
 
-\subparagraph{Description} In four--dimensional transverse tracking,
-the linear elements between nonlinear elements can be combined to a
-single linear block to save computing time.
+In four--dimensional transverse tracking, the linear elements between non-linear elements can be combined to a single linear block to save computing time.
 
-\subparagraph{Keyword} BLOC \subparagraph{Number of data lines}
-variable but at least one
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{BLOC} \\
+    \textbf{Data lines} & $>1$ \\
+    \textbf{Format}     & First line: \texttt{mper msym(1) \dots~msym(mper)} (integers) \\
+                        & From second line: \texttt{block-name \{element-name\}}
+\end{tabular}
 
-\subparagraph{Format}
-\begin{itemize}
-\item first data line: {\em mper msym(1) \dots msym(mper)}
-  \/(integers)
-\item from second data line on: {\em block--name \{element--name\} }
-\end{itemize}
+\paragraph{Format Description}~
 
-\begin{description}
-\item [mper] Number of super--periods. The following set of blocks is
-  considered a {\em super--period}\/. The accelerator consists of {\em
-    mper} \/super--periods.
-\item [msym(i)] $\pm$ 1 for each super--period.  If \mbox{{\em
-      msym(i)}=1,} \/the \mbox{{\em i}\/'th} super--period will be
-  built up in the order in which linear elements appear in the blocks
-  below. If {\em msym(i)}\/=--1, the super--period will be built up in
-  reverse order.
-\item [block--name] The name of the block with up to sixteen
-  characters
-\item [element--name] The element names have to appear as a linear
-  element in the list of ``single elements'' (~\ref{LinEle}). If one
-  line is too short to contain all the elements of a block, a line
-  with additional elements to the same block can be added.  At least 5
-  (five) blanks must appear at the beginning of the extra line so that
-  names of blocks and names of linear elements in a block can be
-  distinguished.
-\end{description}
+\bigskip
+\begin{tabular}{@{}lp{0.75\linewidth}}
+    \texttt{mper} & Number of super periods. The following set of blocks is considered a \texttt{super-period}. The accelerator consists of \texttt{mper} super--periods. \\
+    \texttt{msym(i)} & $\pm$ 1 for each super--period. If $\mathrm{msym}(i)=1$, the \mbox{$i$'th} super--period will be built up in the order in which linear elements appear in the blocks  below. If $\mathrm{msym}(i)=-1$, the super--period will be built up in reverse order. \\
+    \texttt{block-name} & The name of the block with up to 48 characters. \\
+    \texttt{element-name} & The element names have to appear as a linear element in the list of ``single elements'' (\ref{LinEle}). If one line is too short to contain all the elements of a block, a line with additional elements to the same block can be added. At least 5 (five) blanks must appear at the beginning of the extra line so that names of blocks and names of linear elements in a block can be distinguished.
+\end{tabular}
 
-\subparagraph{Remarks}
+\paragraph{Remarks:}
 \begin{enumerate}
-\item When synchrotron oscillation is introduced, the linear elements
-  can no longer be lumped into one block, because in that case even a
-  drift length magnet is a nonlinear element with respect to the
-  longitudinal plane. However, the block structure is still kept to
-  make use of the speed--up in case one can restrict the studies to
-  the four--dimensional case.
-\item The maximum number of blocks and the maximum number of entries
-  in each block are defined as parameters (Appendix~\ref{DSP}).
-\item The inversion of a super--period ({\em msym(i)}\/= --1) is
-  presently no longer allowed.
+    \item When synchrotron oscillation is introduced, the linear elements can no longer be lumped into one block, because in that case even a drift length magnet is a non-linear element with respect to the longitudinal plane. However, the block structure is still kept to make use of the speed--up in case one can restrict the studies to the four--dimensional case.
+    \item The maximum number of blocks and the maximum number of entries in each block are defined as parameters (Appendix~\ref{DSP}).
+    \item The inversion of a super--period ($\mathrm{msym(i)} = -1$) is presently no longer allowed.
 \end{enumerate}
 
+% ================================================================================================================================ %
 \subsection{Structure Input} \label{StrInp}
 
-\subparagraph{Description} The model of the accelerator is put
-together by constructing a sequence of blocks of linear elements,
-nonlinear elements, observation points, and possibly a cavity with the
-keyword ``CAV'' used if this name does not appear in the list of
-single elements (~\ref{SinEle}) with type $\pm 12$. In that case, its
-parameters are given in the {\em Synchrotron Oscillations} \/input
-block (~\ref{SynOsc}).
+The model of the accelerator is put together by constructing a sequence of blocks of linear elements, non-linear elements, observation points, and possibly a cavity with the keyword ``CAV'' used if this name does not appear in the list of single elements (\ref{SinEle}) with type $\pm 12$.
+In that case, its parameters are given in the \textit{Synchrotron Oscillations} input block (\ref{SynOsc}).
 
-\subparagraph{Format} \{ {\em structure--element} \/$\vert$ CAV
-$\vert$ GO \}
+\paragraph{Format} \texttt{\{ structure-element $\vert$ CAV $\vert$ GO \}}
 
-\begin{description}
-\item [structure--element] Structure elements must appear as nonlinear
-  and observation elements in the single element list or in the list
-  of blocks of the {\em Block Definition} \/input block
-  (~\ref{BloDef}).
-\item [CAV] A cavity can be introduced by a keyword ``CAV''.
-  This element does not appear in the single element list
-  (~\ref{SinEle}).
-\item [GO] Starting point: the keyword ``GO'' denotes where the
-  tracking is started and where the tracked coordinates are recorded
-  at each turn.
-\end{description}
+\bigskip
+\begin{tabular}{@{}lp{0.70\linewidth}}
+    \texttt{structure-element} & Structure elements must appear as non-linear and observation elements in the single element list or in the list of blocks of the \textit{Block Definition} input block (\ref{BloDef}). \\
+    \texttt{CAV} & A cavity can be introduced by a keyword \texttt{CAV}. This element does not appear in the single element list   (\ref{SinEle}). \\
+    \texttt{GO} & Starting point: the keyword \texttt{GO} denotes where the tracking is started and where the tracked coordinates are recorded at each turn.
+\end{tabular}
 
-\subparagraph{Remark} Repetition of parts of the structure is
-indicated by parentheses with a multiplying factor N in front of them.
-If the left parenthesis ``('' occurs in a line of input, the factor N
-is expected to be found in the preceding characters. If the characters
-are blank, N is set to 1.  The right parenthesis ``)'' signals the end
-of the sequence to be repeated.
+\paragraph{Remarks:}
+Repetition of parts of the structure is indicated by parentheses with a multiplying factor N in front of them.
+If the left parenthesis ``('' occurs in a line of input, the factor \texttt{N} is expected to be found in the preceding characters.
+If the characters are blank, \texttt{N} is set to 1.
+The right parenthesis ``)'' signals the end of the sequence to be repeated.
 
+% ================================================================================================================================ %
 \subsection{Displacement of Elements} \label{DisEle}
 
-\subparagraph{Description} This block allows to displace nonlinear
-elements in horizontal and vertical positions.  With the r.m.s. values of
-the horizontal and vertical displacements it is possible to achieve a
-displacement that is different from element to element.
+This block allows to displace nonlinear elements in horizontal and vertical positions.
+With the RMS values of the horizontal and vertical displacements it is possible to achieve a displacement that is different from element to element.
 
-To simulate a measured closed orbit at the position of nonlinear
-elements, it is convenient to use the {\em Displacement of Elements}
-\/input block instead of trying to produce a closed orbit by dipole
-kicks.
+To simulate a measured closed orbit at the position of non-linear elements, it is convenient to use the \textit{Displacement of Elements} input block instead of trying to produce a closed orbit by dipole kicks.
 
-\subparagraph{Keyword} DISP \subparagraph{Number of data lines}
-variable
+\bigskip
+\begin{tabular}{@{}lp{0.80\linewidth}}
+    \textbf{Keyword} & \texttt{DISP} \\
+    \textbf{Data lines} & Variable
+\end{tabular}
 
-\subparagraph{Format} {\em name xd xdrms yd ydrms}
+\paragraph{Format} \texttt{name xd xdrms yd ydrms}
 
-\begin{description}
-\item [name] Name of the element which is displaced
-\item [xd] Horizontal displacement [mm]
-\item [xdrms] R.m.s. of horizontal displacement [mm]
-\item [yd] Vertical displacement [mm]
-\item [ydrms] R.m.s. of vertical displacement [mm]
-\end{description}
+\bigskip
+\begin{tabular}{@{}lp{0.80\linewidth}}
+    \texttt{name}  & Name of the element which is displaced \\
+    \texttt{xd}    & Horizontal displacement [mm] \\
+    \texttt{xdrms} & RMS of horizontal displacement [mm] \\
+    \texttt{yd}    & Vertical displacement [mm] \\
+    \texttt{ydrms} & RMS of vertical displacement [mm]
+\end{tabular}
 
-In the case of an AC dipole these variables are not meant for
-displacing this element but are used for the following AC dipole
-parameters:
-\subparagraph{Format} {\em name nfree nramp1 nplato nramp2}
-\begin{description}
-\item [name] May contain up to sixteen characters
-\item [nfree] Number of turns free of excitation at the begining of
-  the run.
-\item [nramp1] Number of turns to ramp up the excitation amplitude 
-  from 0 to $ACdipAmp$.
-\item [nplato] Number of turns of constant excitation amplitude. 
-\item [nramp2] Number of turns to ramp down the excitation amplitude.
-\end{description}
+\bigskip
+\noindent In the case of an AC dipole these variables are not meant for displacing this element but are used for the following AC dipole parameters:
 
-\subparagraph{Remark} In RACETRACK the displacements had been included
-in the {\em Single Element} \/input block (~\ref{SinEle}). In SixTrack
-they must be given in the separate {\em Displacement of Elements}
-\/input block because of the limited length of one line of input.
+\paragraph{Format} \texttt{name nfree nramp1 nplato nramp2}
+
+\bigskip
+\begin{tabular}{@{}lp{0.80\linewidth}}
+    \texttt{name}   & May contain up to 48 characters \\
+    \texttt{nfree}  & Number of turns free of excitation at the beginning of the run. \\
+    \texttt{nramp1} & Number of turns to ramp up the excitation amplitude from 0 to \texttt{ACdipAmp}. \\
+    \texttt{nplato} & Number of turns of constant excitation amplitude. \\
+    \texttt{nramp2} & Number of turns to ramp down the excitation amplitude.
+\end{tabular}
+
+\paragraph{Remarks:}
+In RACETRACK the displacements had been included in the \textit{Single Element} input block (\ref{SinEle}).
+In SixTrack they must be given in the separate \textit{Displacement of Elements} input block because of the limited length of one line of input.
 
