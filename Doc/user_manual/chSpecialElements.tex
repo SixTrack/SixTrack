@@ -1,127 +1,111 @@
 
 \chapter{Special Elements} \label{SpecElem}
 
-One advantage of SixTrack, that has been adopted from RACETRACK, is
-that it easily allows to define elements for a specific purpose. The
-special elements implemented till now are found in this section.
-All Special Elements should be written in the fort.3 file.
+One advantage of SixTrack, that has been adopted from RACETRACK, is that it easily allows to define elements for a specific purpose. The special elements implemented till now are found in this section.
+All Special Elements should be written in the \texttt{fort.3} file.
 
+% ================================================================================================================================ %
 \section{Multipole Coefficients} \label{MulCoe}
 
-\subparagraph{Description}
+Sets of normal and skew multipoles of up to tenth order, each with an RMS value, can be combined with this block.
+The multipole kick is calculated using a Horner scheme, which saves considerably in computation time.
+Moreover, using the multipole block reduces the number of elements in the single element list (\ref{SinEle}).
 
-Sets of normal and skew multipoles of up to tenth order, each with an
-r.m.s. value, can be combined with this block. The multipole kick is
-calculated using a Horner scheme which saves considerably in
-computation time. Moreover, using the multipole block reduces the
-number of elements in the single element list (~\ref{SinEle}).
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{MULT} \\
+    \textbf{Data lines} & 2 to 12 \\
+    \textbf{Format}     & First line: \texttt{name $R_{0}$ $\delta_{0}$} \\
+                        & Lines 2 to 12: \texttt{$B_{n}$ RMS-$B_{n}$ $A_{n}$ RMS-$A_{n}$}
+\end{tabular}
 
-\subparagraph{Keyword} MULT \subparagraph{Number of data lines} 2 to
-12
+\paragraph{Format Description}~
 
-\subparagraph{Format}
-\begin{itemize}
-\item first data line: {\em name} \/$ R_{0}\ \delta_{0} $
-\item data lines 2 to 12: $ B_{n}\ r.m.s.$--$B_{n}\ A_{n}\ r.m.s.$--$A_{n} $
-\end{itemize}
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}    & Name of the multipole block which must appear in the list of single elements (\ref{MulBlo}). \\
+    \texttt{$R_{0}$} & Reference radius (in mm) at which the magnet errors are calculated. This makes it convenient to use values from field measurements. \\
+    \texttt{$\delta_{0}$} & Bending strength of the dipole (in mrad). Field errors of line 2--11 are taken to be relative to the bending strength.
+\end{tabular}
 
-\begin{description}
-\item [name] Name of the multipole block which must appear in the list
-  of single elements (~\ref{MulBlo}).
-\item [$ R_{0} $] Reference radius (in mm) at which the magnet errors
-  are calculated.  This makes it convenient to use values from field
-  measurements.
-\item [$ \delta_{0} $] Bending strength of the dipole (in mrad). Field
-  errors of line 2--11 are taken to be relative to the bending
-  strength.
-\end{description}
-
-\subparagraph{Remarks}
+\paragraph{Remarks:}
 \begin{enumerate}
-\item The $ B_{n} $ and $ A_{n} $ are related to the $ b_{n}, a_{n} $
-  of the single nonlinear element (~\ref{NonEle}) in the following
-  way:
-  $$
-  b_{n} = \delta_{0} B_{n} R_{0}^{1-n} 10^{3n-6}; \\
-  a_{n} = \delta_{0} A_{n} R_{0}^{1-n} 10^{3n-6}
-  $$
-\item The sign convention and the factorial ($n$!) are treated as for
-  the single nonlinear elements in (~\ref{NonEle}).
-\item Multipoles of different names can be set to be equal using the
-  ``ORG'' input block.
-\item 22--poles are included (n = 11). By enlarging the parameter
-  ``MMUL''(Appendix~\ref{DSP}) up to 40--poles (MMUL=20) can be
-  treated. To make the change of MMUL effective, it is of course
-  necessary to recompile the program.
+    \item The $B_{n}$ and $A_{n}$ are related to the $b_{n}, a_{n}$ of the single nonlinear element (\ref{NonEle}) in the following way:
+        \begin{align*}
+            b_{n} &= \delta_{0} B_{n} R_{0}^{1-n} 10^{3n-6} \\
+            a_{n} &= \delta_{0} A_{n} R_{0}^{1-n} 10^{3n-6}
+        \end{align*}
+    \item The sign convention and the factorial ($n$!) are treated as for the single non-linear elements in (\ref{NonEle}).
+    \item Multipoles of different names can be set to be equal using the \texttt{ORG} input block.
+    \item 22--poles are included ($n=11$). By enlarging the parameter \texttt{MMUL} (Appendix~\ref{DSP}) up to 40--poles (\texttt{MMUL=20}) can be treated. To make the change of \texttt{MMUL} effective, it is of course necessary to recompile the program.
 \end{enumerate}
 
+% ================================================================================================================================ %
 \section{Aperture Limitations} \label{ApeLim}
 
-\subparagraph{Description} This input data block is used to introduce
-additional collimators or aperture limitations in the machine.  Each
-nonlinear element can be used for this purpose. Rectangular or
-elliptical shapes of the aperture limitations are allowed. On top of
-that there is a general (rectangular) aperture check at each non--zero
-length element. The general aperture values are chosen to be large
-enough (~\ref{T-DTP}) to define the short--term dynamic aperture.
+This input data block is used to introduce additional collimators or aperture limitations in the machine.
+Each non-linear element can be used for this purpose.
+Rectangular or elliptical shapes of the aperture limitations are allowed.
+On top of that, there is a general (rectangular) aperture check at each non-zero length element.
+The general aperture values are chosen to be large enough (\ref{T-DTP}) to define the short term dynamic aperture.
 
-\subparagraph{Keyword} LIMI \subparagraph{Number of data lines}
-variable
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{LIMI} \\
+    \textbf{Data lines} & variable \\
+    \textbf{Format}     & \texttt{name type xaper yaper}
+\end{tabular}
 
-\subparagraph{Format} {\em name type--of--limitation xaper yaper}
+\paragraph{Format Description}~
 
-\begin{description}
-\item [name] The name of any nonlinear (zero length) element in the
-  {\em Single Element} \/input block (~\ref{NonEle}) except multipole
-  blocks (~\ref{MulBlo}).
-\item [type--of--limitation] Two types of aperture limitations are
-  allowed: \newline ``RE'' for a rectangular aperture shape, i.e.\ 
-  $$
-  x_{i} < \mathrm{xaper}, y_{i} < \mathrm{yaper}
-  $$
-  ``EL'' for an elliptical aperture shape, i.e.\ 
-  $$
-  \frac{x_{i}^{2}}{\mathrm{xaper}^{2}} + \frac{y_{i}^{2}}
-  {\mathrm{yaper}^{2}} < 1
-  $$
-\item [xaper] Aperture in the horizontal plane in mm
-\item [yaper] Aperture in the vertical plane in mm
-\end{description}
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block (\ref{NonEle}) except multipole blocks (\ref{MulBlo}). \\
+    \texttt{type}   & Two types of aperture limitations are allowed: \\
+                    & \texttt{RE} for a rectangular aperture shape, i.e.
+                      \begin{equation*}
+                          x_{i} < \mathrm{xaper},\; y_{i} < \mathrm{yaper}
+                      \end{equation*}\\
+                    & \texttt{EL} for an elliptical aperture shape, i.e.
+                      \begin{equation*}
+                          \frac{x_{i}^{2}}{\mathrm{xaper}^{2}} + \frac{y_{i}^{2}} {\mathrm{yaper}^{2}} < 1
+                      \end{equation*}\\
+    \texttt{xaper}  & Aperture in the horizontal plane in mm \\
+    \texttt{yaper}  & Aperture in the vertical plane in mm
+\end{tabular}
 
+% ================================================================================================================================ %
 \section{Power Supply Ripple} \label{PowRip}
 
-The RIPP block is been deprecated since release 4.5.20, and the functionality is now provided by the DYNK block (\ref{sec:DYNK}).
-A fort.3 file containing a RIPP block is therefore no longer valid, and will result in an error message.
-The description below is therefore only provided as a reference for those who need to convert old input files.
+{\color{notered}\textbf{Note:}
+The \texttt{RIPP} block is been deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block (\ref{sec:DYNK}).
+A \texttt{fort.3} file containing a \texttt{RIPP} block is therefore no longer valid, and will result in an error message.
+The description below is therefore only provided as a reference for those who need to convert old input files.}
 
-\paragraph{Description} If power supply ripple is to be considered
-this input data block can be used. A nonlinear quadrupole is expected
-as a ripple element (type=2 and zero length in the single element list
-(~\ref{NonEle})), but in principle other nonlinear elements are also
-allowed.  Ripple depth, ripple frequency and starting phase of the
-ripple frequency are the input parameters.
+\bigskip
+\noindent If power supply ripple is to be considered this input data block can be used. A non-linear quadrupole is expected as a ripple element (type=2 and zero length in the single element list (\ref{NonEle})), but in principle other non-linear elements are also allowed.
+Ripple depth, ripple frequency and starting phase of the ripple frequency are the input parameters.
 
-\paragraph{Keyword} RIPP
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{RIPP} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & \texttt{name depth frequency start-phase nrturn}
+\end{tabular}
 
-\paragraph{Number of data lines} variable
+\paragraph{Format Description}~
 
-\paragraph{Format} {\em name ripple--depth ripple--frequency start--phase nrturn}
+\bigskip
+\begin{tabular}{@{}lp{0.75\linewidth}}
+    \texttt{name}        & Name of the nonlinear element in the \textit{single element} block (\ref{NonEle}) \\
+    \texttt{depth}       & Maximum kick strength of the ripple element. A quadrupole kick is usually expected. \\
+    \texttt{frequency}   & Given in number of turns (a real value is allowed) of one ripple period. \\
+    \texttt{start-phase} & Initial phase of the ripple element. \\
+    \texttt{nrturn}      & Initial number of turns, for prolongation runs the  number of turn already done
+\end{tabular}
 
-\begin{description}
-\item [name] Name of the nonlinear element in the ``single element''
-  block (~\ref{NonEle})
-\item [ripple--depth] Maximum kick strength of the ripple element, a
-  quadrupole kick is usually expected
-\item [ripple--frequency] Given in number of turns (a real value is
-  allowed) of one ripple period
-\item [start--phase] Initial phase of the ripple element
-\item [nrturn] Initial number of turns, for prolongation runs the
-  number of turn already done
-\end{description}
-
-
-\section{Dynamic Kicks}
-\label{sec:DYNK}
+% ================================================================================================================================ %
+\section{Dynamic Kicks} \label{sec:DYNK}
 
 \paragraph{Description}
 The DYNamic Kicks module~\cite{DYNKpaper} allows time-dependent modification of the settings of single elements.

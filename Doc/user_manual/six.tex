@@ -8,10 +8,6 @@
 \usepackage{verbatim}
 
 %\usepackage{html}
-\usepackage{hyperref}
-\usepackage{url}
-\hypersetup{colorlinks=true, citecolor=blue, urlcolor=blue, linkcolor=red}
-\urlstyle{same}
 
 \usepackage[table]{xcolor}
 \usepackage{longtable}
@@ -28,8 +24,18 @@
 
 \usepackage{fancyvrb}
 
+% Colours
 \definecolor{cverbbg}{gray}{0.93}
+\definecolor{notered}{rgb}{0.70,0.0,0.0}
+\definecolor{linkred}{rgb}{0.70,0.1,0.0}
 
+% Links
+\usepackage{hyperref}
+\usepackage{url}
+\hypersetup{colorlinks=true, citecolor=blue, urlcolor=blue, linkcolor=linkred}
+\urlstyle{same}
+
+% Verbatim Box
 \newenvironment{cverbatim}
  {\SaveVerbatim{cverb}}
  {\endSaveVerbatim
