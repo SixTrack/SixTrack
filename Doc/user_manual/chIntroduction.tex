@@ -1,53 +1,118 @@
 \chapter{Introduction}
 
-The Single Particle Tracking Code SixTrack is optimised to carry two particles~\footnote{%
-  Two particles are needed for the detection of  chaotic behaviour.
-} through an accelerator structure over a large number of turns.
+The Single Particle Tracking Code SixTrack is optimised to carry two particles~\footnote{Two particles are needed for the detection of  chaotic behaviour.} through an accelerator structure over a large number of turns.
 It is an offspring of RACETRACK \cite{RACETRACK} written by Albin Wrulich.
 The input structure has been changed as little as possible so that slightly modified RACETRACK input files, or those of other offsprings like FASTRAC \cite{FASTRAC} can be read.
 
 The main features of SixTrack are: \bigskip
 \begin{enumerate}
-  \item Treatment of the full six--dimensional motion including synchrotron motion in a symplectic manner \cite{Ripken85}.
-        The energy can be ramped at the same time considering the relativistic change of the velocity \cite{Ripken87}.
-  \item Detection of the onset of chaotic motion and thereby the long term dynamic aperture by evaluating the Lyapunov exponent.
-  \item Post processing procedure allowing:
-  \begin{itemize}
-    \item calculation of the Lyapunov exponent,
-    \item calculation of the average phase advance per turn,
-    \item FFT analysis,
-    \item resonance analysis,
-    \item calculation of the average, maximum and minimum values of the Courant--Snyder emittance and the invariants of linearly coupled motion,
-    \item calculation of smear, and
-    \item plotting using the CERN packages HBOOK, HPLOT and HIGZ \cite{HBOOK,HPLOT,HIGZ}
-  \end{itemize}
-  \item Calculation of first--order resonances and of correction schemes for the resonances \cite{Gilbert78}.
-  \item Calculation of the one--turn map using the differential algebra techniques.
-        The original DA package by M.Berz \cite{Berz89} has been replaced by the package of LBL~\cite{DALIE}.
-        The Fortran code is transferred into a Map producing via the (slightly modified) ``DAFOR'' code~\cite{DAFOR}.
-  \item The code is vectorised, with two particles, the number of amplitudes, the different relative momentum deviations \mbox{$ \frac{\Delta p}{p_o} $} in parallel \cite{Sixvec}.
-  \item Operational improvements:
-  \begin{itemize}
-    \item free format input,
-    \item optimisation of the calculation of multipole kicks,
-    \item improved treatment of random errors,
-    \item each binary data file has a header describing the history of the run (Appendix~\ref{Header})
-  \end{itemize}
+    \item Treatment of the full six--dimensional motion including synchrotron motion in a symplectic manner \cite{Ripken85}. The energy can be ramped at the same time considering the relativistic change of the velocity \cite{Ripken87}.
+    \item Detection of the onset of chaotic motion and thereby the long term dynamic aperture by evaluating the Lyapunov exponent.
+    \item Post processing procedure allowing:
+    \begin{itemize}
+        \item calculation of the Lyapunov exponent,
+        \item calculation of the average phase advance per turn,
+        \item FFT analysis,
+        \item resonance analysis,
+        \item calculation of the average, maximum and minimum values of the Courant--Snyder emittance and the invariants of linearly coupled motion,
+        \item calculation of smear, and
+        \item plotting using the CERN packages HBOOK, HPLOT and HIGZ \cite{HBOOK,HPLOT,HIGZ}
+    \end{itemize}
+    \item Calculation of first--order resonances and of correction schemes for the resonances \cite{Gilbert78}.
+    \item Calculation of the one--turn map using the differential algebra techniques. The original DA package by M.Berz \cite{Berz89} has been replaced by the package of LBL~\cite{DALIE}. The Fortran code is transferred into a Map producing via the (slightly modified) ``DAFOR'' code~\cite{DAFOR}.
+    \item The code is vectorised, with two particles, the number of amplitudes, the different relative momentum deviations \mbox{$ \frac{\Delta p}{p_o} $} in parallel \cite{Sixvec}.
+    \item Operational improvements:
+    \begin{itemize}
+        \item free format input,
+        \item optimisation of the calculation of multipole kicks,
+        \item improved treatment of random errors,
+        \item each binary data file has a header describing the history of the run (Appendix~\ref{Header})
+    \end{itemize}
 \end{enumerate}
+
+\section{Versions and Service}
+
+There are two versions: for element by element tracking there is a vector version, and there is a version to produce a one--turn map using the LBL Differential Algebra package.
+In both cases the input structure file \# 2 is used to determine if the thick or thin linear element mode has to be used.
+
+To use the power of the Differential Algebra, for instance to calculate the 6D closed orbit in an elegant fashion, the tracking versions may also be equipped with a low order map facility to avoid the otherwise huge demand on memory.
+
+It must be mentioned that in the linear thin lens version dipoles have to be treated in a special way.
+See section~\ref{MulBlo} for details.
+
+To convert MAD files into SixTrack input a special conversion program $mad\_6t$~\cite{CONVERTOR} has been developed (see also~\ref{MADT}).
+
+The following subroutines are taken from various packages:
+
+\begin{table}[h]
+\caption{External Routines}
+\label{T-ExtRou}
+\scriptsize \centering
+\begin{tabular}{|l|l|l|}
+    \hline \rule[-3.75mm]{0mm}{10mm}
+    {\bf\large Package} & {\bf\large Routine} & {\bf\large Purpose} \\
+    \hline \rule[-3.75mm]{0mm}{10mm} NAGLIB & E04UCF, E04UDM, E04UEF, X04ABF & using internally Normal Forms \\
+    \hline \rule[-3.75mm]{0mm}{10mm} HBOOK  & HBOOK2, HDELET, HLIMIT, HTITLE & graphic basics \\
+    \hline \rule[-3.75mm]{0mm}{10mm} HPLOT  & HPLAX,  HPLCAP, HPLEND, HPLINT, & graphic options \\
+    \cline{2-2} \rule[-3.75mm]{0mm}{10mm}   & HPLOPT, HPLSET, HPLSIZ, HPLSOF &  \\
+    \hline \rule[-3.75mm]{0mm}{10mm} HIGZ   & IGMETA, ISELNT, IPM, IPL       & graphic output \\
+    \hline
+\end{tabular}
+\normalsize
+\end{table}
+
+All versions can be downloaded from the web.
+The project webpage is found at \url{http://sixtrack.web.cern.ch/},
+  and primary source repository is located at \url{https://github.com/SixTrack/SixTrack}.
+Older versions can be found at \url{http://cern.ch/Frank.Schmidt/Source}.
+
+In case of problems, please see the CERN SixTrack egroups ``sixtrack-users'' and ``sixtrack-developers''.
+If these are not accessible to you, you are welcome to contact the coordinators: Riccardo De Maria and Kyrre Sjobak, as well as the original developer Frank Schmidt.
+Our contact details are available from the CERN phonebook.
+
+If you think you have found a defect in the program, please create a report on the issue tracker at \url{https://github.com/SixTrack/SixTrack/issues}.
+Note that for this to be usefull, you need to describe what the program is doing, what you expected it to do, and an example which demonstrates the unwanted behaviour.
+Plase also look through the issues that are already listed, and see if it is known.
+If so, you are welcome to add a comment to the issue, which may influence its priority or give additional and useful information to the developers.
+
+The most up to date version of the documentation can always be found on the GitHub repository mentioned above.
+Additionally, various older documentation can be found at \url{http://cern.ch/Frank.Schmidt/Documentation/doc.html}.
+
+\section{Evolution of SixTrack}
+
+Following, is a short historical overview how the versions of SixTrack have evolved.
+\begin{itemize}
+  \item {\bf Version 1}
+        The first version has been an upgrade of RACETRACK~\cite{RACETRACK} to include the full 6D formalism for long linear elements by G.~Ripken~\cite{Ripken85}.
+  \item {\bf Version 2}
+        The DA package and the Normal Form techniques~\cite{Berz89,Forest89} have been added to allow the production of high order one turn Taylor maps and their analysis.
+        The 6D thin lens formalism~\cite{Ripken95} has also been included to speed up the tracking without appreciable deterioration of the accelerator model for very large Hadron colliders like the LHC.
+  \item {\bf Version 3}
+        The beam--beam kick \`a la Bassetti and Erskine~\cite{BasErs} has been included together with the 6D part by Hirata et al.~\cite{Hirata}.
+        Moreover, this 6D part has been upgraded to include the full 6D linear coupling~\cite{ripbeam}.
+        Lastly, the LBL DA package has replaced the original one by Berz, and all operations needed to set up the accelerator structure are now performed with the help of Forest's LieLib package~\cite{DALIE}.
+  \item {\bf Version 4}
+        \todo[inline]{Add stuff}  
+  \item {\bf Version 5}
+        \todo[inline]{Add stuff}  
+\end{itemize}
+
+\section{SixTrack Input Structure}
 
 The SixTrack input is line oriented.
 Each line of 80 characters is treated as one string of input in which a certain sequence of numbers and character strings is expected to be found.
 The numbers and character strings must be separated by at least one blank.
 Floating point numbers can be given in any format, but must be distinguished from integer numbers.
-Omitted values at the end of an input line will keep their default values (~\ref{DTP}).
+Omitted values at the end of an input line will keep their default values (\ref{DTP}).
 Lines with a slash ``/'' in the first column will be ignored by the program.
 
 For detailed questions concerning rounding errors, calculation of the Lyapunov exponent and determination of the long term dynamic aperture, see \cite{thesis}.
 
-In chapter~\ref{InpStr}, the input structure of SixTrack is discussed in detail.
-To facilitate the use of the program, a set of appendices are added,
-  giving a list of keywords \mbox{(Appendix~\ref{Lkey}),}
-  a list of default values \mbox{(Appendix~\ref{Default}),}
-  the input and output files \mbox{(Appendix~\ref{Files}),}
-  a description of the data structure of the binary data files \mbox{(Appendix~\ref{Header}),}
-  and tracking examples \mbox{(Appendix~\ref{Exam}).}
+\subsection{Input Format}
+
+The idea of the RACETRACK input is to use a sequence of input blocks, each block with a specific keyword in the first line, the keyword \texttt{NEXT} in the last line and the input data in the lines in between.
+The keyword \texttt{ENDE} ends this sequence, and all blocks after this keyword are ignored.
+This system makes it easy to read input and allows easy change and addition of input blocks. It was therefore also used in SixTrack\@.
+
+In the following chapters, the input structure of SixTrack is discussed in detail.
+To facilitate the use of the program, a set of appendices are added, giving a list of keywords \mbox{(Appendix~\ref{Lkey}),} a list of default values \mbox{(Appendix~\ref{Default}),} the input and output files \mbox{(Appendix~\ref{Files}),} a description of the data structure of the binary data files \mbox{(Appendix~\ref{Header}),} and tracking examples \mbox{(Appendix~\ref{Exam}).}

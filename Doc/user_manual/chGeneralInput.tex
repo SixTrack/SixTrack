@@ -1,0 +1,124 @@
+
+\chapter{General Input} \label{GenInp}
+
+% ================================================================================================================================ %
+\section{Program Version} \label{ProVer}
+
+The \textit{Program Version} input block determines if all of the input will be in the input file \# 3, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file \# 2.
+The latter option is useful if tracking parameters are changed, but the geometry part of the input is left as it is.
+The geometry part can be produced directly from a MAD-X input file (see~\ref{MADT}).
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{FREE} or \texttt{GEOM} \\
+    \textbf{Data lines} & 0 \\
+    \textbf{Format}     & \texttt{keyword comment title} \\
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{keyword} & The first four characters of the first line of the input file \# 3 are reserved for the keyword. \texttt{FREE} for free format input with all input in file \# 3, and \texttt{GEOM} if the geometry part is in file \# 2 \\
+    \texttt{comment} & Following the first four characters, 8 characters are reserved for comments \\
+    \texttt{title}   & The next 60 characters are interpreted as the title of the output file \# 6
+\end{tabular}
+
+% ================================================================================================================================ %
+\section{Print Selection} \label{PriSel}
+
+Use of the \textit{Print Selection} input block causes the printing of the input data to the output file \# 6.
+It is advisable to always use this input block to have a complete protocol of the tracking run.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{PRIN} \\
+    \textbf{Data lines} & 0
+\end{tabular}
+
+% ================================================================================================================================ %
+\section{Comment Line} \label{ComLin}
+
+An additional comment can be specified with this block.
+It will be written to the binary data files (Appendix~\ref{Header}) and will appear in the post processing output as well.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{COMM} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & A string of up to 80 characters
+\end{tabular}
+
+% ================================================================================================================================ %
+\section{Iteration Errors} \label{IteErr}
+
+For the processing procedures, the number of iterations and the precision to which the processing is to be performed are chosen with the \textit{Iteration Errors} input block.
+If the input block is left out, default values will be used.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{ITER} \\
+    \textbf{Data lines} & 1 to 4 \\
+    \textbf{Format}     & Each data line holds three values as in table~\ref{T-IteErr}, except for the fourth line where the horizontal and vertical aperture limits can be additionally specified. This has been added to avoid artificial crashes for special machines.
+\end{tabular}
+
+\begin{table}[h]
+    \caption{Iteration Errors}
+    \label{T-IteErr}
+    \footnotesize
+    \centering
+    \begin{tabular}{|l|l|l|p{0.2\linewidth}|p{0.2\linewidth}|p{0.2\linewidth}|}
+        \hline
+        \rowcolor{blue!30}
+        Variable & Type & Default Val. & Number of Iterations for & Demanded Precision of & Variations of \\
+        \rowcolor{gray!15}
+        \multicolumn{6}{|l|}{Data Line 1} \\
+        \hline
+        \texttt{ITCO} & \texttt{int} & \texttt{50} & Closed orbit calculation & & \\
+        \hline
+        \texttt{DMA}  & \texttt{dbl}& \texttt{1e-12} & & Closed orbit displacements & \\
+        \hline
+        \texttt{DMAP} & \texttt{dbl} & \texttt{1e-15} & & Derivative of closed orbit displacements & \\
+        \hline
+        \rowcolor{gray!15}
+        \multicolumn{6}{|l|}{Data Line 2} \\
+        \hline
+        \texttt{ITQV} & \texttt{int} & \texttt{10} & Q Adjustment & & \\
+        \hline
+        \texttt{DKQ}  & \texttt{dbl} & \texttt{1e-10} & & & Quadrupole strengths \\
+        \hline
+        \texttt{DQQ} & \texttt{dbl} & \texttt{1e-10} & & Tunes & \\
+        \hline
+        \rowcolor{gray!15}
+        \multicolumn{6}{|l|}{Data Line 3} \\
+        \hline
+        \texttt{ITCRO} & \texttt{int} & \texttt{10} & Chromaticity correction & & \\
+        \hline
+        \texttt{DSM0} & \texttt{dbl} & \texttt{1e-10} & & & Sextupole strengths \\
+        \hline
+        \texttt{DECH} & \texttt{dbl} & \texttt{1e-10} & & Chromaticity correction & \\
+        \hline
+        \rowcolor{gray!15}
+        \multicolumn{6}{|l|}{Data Line 4} \\
+        \hline
+        \texttt{DE0} & \texttt{dbl} & \texttt{1e-9} & & & Momentum spread for chromaticity calculation \\
+        \hline
+        \texttt{DED} & \texttt{dbl} & \texttt{1e-9} & & & Momentum spread for evaluation of dispersion \\
+        \hline
+        \texttt{DSI} & \texttt{dbl} & \texttt{1e-9} & & Desired orbit r.m.s. value; compensation of resonance width & \\
+        \hline
+        \texttt{APER(1)} & \texttt{dbl} & \texttt{1000 [mm]} & & Horizontal aperture limit & \\
+        \hline
+        \texttt{APER(2)} & \texttt{dbl} & \texttt{1000 [mm]} & & Vertical aperture limit & \\
+        \hline
+    \end{tabular}
+    \normalsize
+\end{table}
+
+% ================================================================================================================================ %
+\section{MAD-X to SixTrack Conversion} \label{MADT}
+
+A converter has been developed~\cite{CONVERTOR} which is directly linked to Max-X\@.
+It produces the geometry file \# 2; an appendix to the parameter file \# 3, which defines which of the multipole errors are switched on; the error file \# 16 and the file \# 8 which holds the transverse misalignments and the tilt of the nonlinear kick elements.
+It also produce a file \# 34 with linear lattice functions, phase advances and multipole strengths needed for resonance calculations for the program \textit{SODD}~\cite{SODD}.
+%A description of %how to use the converter can be found in Appendix\ref{MADSIXC}.

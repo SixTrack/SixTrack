@@ -1,0 +1,146 @@
+
+\chapter{Organising Tasks} \label{OrgTask}
+
+In this section the input data blocks are described, which are used to
+organise the input structure.
+
+\section{Random Fluctuation Starting Number} \label{FluNum}
+
+\subparagraph{Description} If besides mean values for the multipole
+errors (Gaussian) random errors should be considered this input data
+structure is used to set the start value for the random generator.
+
+\subparagraph{Keyword} FLUC \subparagraph{Number of data lines} 1
+
+\subparagraph{Format} {\em izu0 mmac mout mcut} \/(integers)
+\begin{description}
+\item [izu0] Start value for the random number generator
+\item [mmac] {\em \large -- Sorry: disabled for the time being, i.e.\ 
+    mmac is fixed to be 1 --} \/({\small In the vectorised version the
+    number of different starting seeds can be varied.  Each seed is
+    calculated as \mbox{$ k \times izu0 $} where $k$ runs from 1 to
+    {\em mmac} \/which can not exceed 5 to save storage space (see
+    list of parameters in Appendix~\ref{DSP}).})
+\item {\em mout} A binary switch for various purposes, so all options,
+  as described below, can be combined. 
+\begin{itemize}
+\item {\em mout} \/= 0 : multipole errors internally created
+\item {\em mout} \/= 1 : multipole errors read--in from external file
+  
+  External multipole errors are read--in from file 16 into the array
+  of random values. To activate these values one has to set to a value
+  of 1 the relevant r.m.s.--positions of the corresponding multipole
+  blocks (~\ref{MulCoe}). The systematic components are added as usual
+  and multipoles not found in the fort.16 are treated as for ({\em
+    mout} \/= 0 ). An error is only detected if there are too few sets
+  of multipoles in fort.16.
+\item {\em mout} \/= 2: the geometry and strength file is written to
+  file \# 4 in the same format as the input file \# 2; the multipole
+  coefficients are written to file \# 9; name, misalignments and tilt
+  is written to file \# 27 and finally name, random single multipole
+  strength and both random transverse misalignments are written to
+  file \# 31.
+\item {\em mout} \/= 4: Name, horizontal and vertical misalignment and
+  also the element tilt are read--in from file \# 8.
+\item {\em mout} \/= 8: Name and 3 Random numbers for single kick
+  strength and both random transverse misalignments and also the value
+  of the tilt are read--in from file \# 30. 
+\end{itemize}
+\item [mcut] The random distribution can be cut by {\em mcut} \/sigma
+  of the distribution. No cuts are applied for {\em mcut = 0}\/.
+\end{description}
+
+\subparagraph{Remarks}
+\begin{enumerate}
+\item The RANECU random generator \cite{RANECU} is used as it produces
+  machine independent sequences of random numbers.
+\item If the starting point has to be changed or another nonlinear
+  element is to be inserted, this can be done without changing the
+  once chosen random distribution of errors by using the {\em
+    Organisation of Random Numbers} \/input block.
+\item The description of an accelerator is fully contained in 4 files:
+  fort.2 (geometry), fort.3 (tracking parameters and definition of
+  multipole blocks), fort.16 (multipole errors) and fort.30 (random
+  numbers of the single multipole kick, the horizontal and vertical
+  misalignment and the value of the tilt). This block allows to write
+  out the files \# 4, 9, 27, 31 which may serve as the input files \#
+  2, 16, 8 and 30 respectively. The file fort.30 superseeds fort.8 if
+  both files are read in.
+\end{enumerate}
+
+\section{Organisation of Random Numbers} \label{OrgRan}
+
+\subparagraph{Description} Working on a lattice for an accelerator
+often requires to introduce new nonlinear elements. In those cases
+simply introducing this new element means that the previously chosen
+random distribution of the errors will be changed and with it often
+the linear parameters. This input data block is mainly used to avoid
+this problem by reserving extra random numbers for the new elements.
+It also allows to change the observation point without affecting the
+machine. The random values of different nonlinear elements including
+blocks of multipoles can be set to be equal to allow to vary the
+number of nonlinear kicks in one magnet which clearly should have the
+same random distribution for each multipolar kick. Finally multipole
+sets with different name can be made equal with this input data block.
+
+\subparagraph{Keyword} ORGA \subparagraph{Number of data lines}
+variable
+
+\subparagraph{Format} {\em ele1 ele2 ele3} \/The data lines can be set
+in three different ways:
+\begin{enumerate}
+\item Ele1 = ``name'' where name $\ne$ MULT \\
+  Ele2 = ignored \\
+  Ele3 = ignored \\
+  The nonlinear element or multipole set will have its own set of
+  random numbers.
+\item Ele1 = ``name1'' where name1 $\ne$ MULT \\
+  Ele2 = ``name2'' \\
+  Ele3 = ignored \\
+  The nonlinear element or multipole block Ele1 has the same random
+  number set as those of Ele2, if it follows Ele2 as the first
+  nonlinear element in the structure list (~\ref{StrInp}).
+\item Ele1 = ``MULT'' \\
+  Ele2 = ``name2'' \\
+  Ele3 = ``name3'' \\
+  The multipole set ``name3'' is set to the values of the set
+  ``name2''. random errors are not influenced in this case.
+\end{enumerate}
+
+\subparagraph{Remarks}
+\begin{enumerate}
+\item A simple change of the starting point, by placing a ``GO''
+  somewhere in structure, used to change the machine optics as the
+  random numbers were shifted, too.  Simply calling this block even
+  without a data line, will always fix the sequence of random numbers
+  to start at the first multipole in the structure.
+\item This input data block must follow the definition of the
+  multipole block, otherwise multipoles cannot be set equal (option
+  3).
+\item Do not use the keyword ``MULT'' in the single element list
+  (~\ref{SinEle}).
+\end{enumerate}
+
+\section{Combination of Elements} \label{ComEle}
+
+\subparagraph{Description} It is often necessary to use several
+families of magnetic elements with a certain ratio $ R $ of magnetic
+strength to perform corrections like tune adjustment (~\ref{TunVar}),
+chromaticity correction (~\ref{ChrCor}) or resonance compensation
+(~\ref{ResCom}).  The {\em Combination of Elements} \/input block
+allows such a combination of elements.  The maximum number of elements
+is defined by the parameter NCOM (see Appendix~\ref{DSP}).
+
+\subparagraph{Keyword} COMB \subparagraph{Number of data lines}
+variable
+
+\subparagraph{Format} {\em e0 R1 e1 \dots Rn en}
+
+\begin{description}
+\item [e0] Reference element which appears in the input of the
+  processing procedure
+\item [e1, \dots, en] Elements to be combined with {\em e0}
+\item [Rj] Ratio of the magnetic strength of element {\em ej} \/to
+  that of element {\em e0}
+\end{description}
+
