@@ -107,248 +107,292 @@ Ripple depth, ripple frequency and starting phase of the ripple frequency are th
 % ================================================================================================================================ %
 \section{Dynamic Kicks} \label{sec:DYNK}
 
-\paragraph{Description}
 The DYNamic Kicks module~\cite{DYNKpaper} allows time-dependent modification of the settings of single elements.
 The supported elements and attributes are listed in Table~\ref{tab:DYNK_SET}.
 The settings can be computed on-the fly using several functions, loaded from input files or a combination, as described in Table~\ref{tab:DYNK_FUN}.
 
-Further, unless explicitly switched off using a NOFILE statement, DYNK produces an output file ``dynksets.dat''.
-This file contains the setting of all elements and attributes for which DYNK is active.
-It is written in all turns of the simulation, even if DYNK is not active in that exact turn.
+Further, unless explicitly switched off using a \texttt{NOFILE} statement, \texttt{DYNK} produces an output file \texttt{dynksets.dat}.
+This file contains the setting of all elements and attributes for which \texttt{DYNK} is active.
+It is written in all turns of the simulation, even if \texttt{DYNK} is not active in that exact turn.
 
-\paragraph{Keyword} DYNK
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{DYNK} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & There are four types of statements possible in a \texttt{DYNK} block, listed in the following subsections.\\
+\end{tabular}
 
-\paragraph{Number of data lines} variable
+\bigskip
+\noindent Lines starting with ``/'' are treated as comments, and are ignored.
 
-\paragraph{Format}
-There are four types of statements possible in a DYNK block, listed below.
-On top of this, lines starting with ``/'' are treated as a comment and ignored.
+% ================================================================================================================================ %
+\subsection{FUN Statements} \label{DYNK:FUN}
 
-\subparagraph{FUN} \emph{FUN function-name function-type arg1 arg2 arg3 \ldots}\\
-This statement defines a function, i.e. something which when evaluated produces a numerical value which can be used to set the value of an element attribute.
-The functions in DYNK all have a unique name, and they may take up to 7 arguments (a limitation imposed by the internal parameter \emph{getfields\_n\_max\_fields}).
+\paragraph{Format:}
+\texttt{FUN function-name function-type arg1 arg2 arg3 \ldots}
+
+\bigskip
+This statement defines a function, i.e. something which when evaluated, produces a numerical value, which can be used to set the value of an element attribute.
+The functions in \texttt{DYNK} all have a unique name, and they may take up to 7 arguments (a limitation imposed by the internal parameter \texttt{getfields\_n\_max\_fields}).
 The function type must be one of those listed in Table~\ref{tab:DYNK_FUN}.
-A function may be defined so that it uses the result of another function, which must be defined above it in the DYNK block.
+
+A function may be defined so that it uses the result of another function, which must be defined above it in the \texttt{DYNK} block.
 This requirement avoids any possibility for infinite recursion.
-The functions are only evaluated when needed, i.e. when used by a SET statement in that turn.
-The functions may thus be evaluated multiple times in one turn (if used by multiple SET statements which are active in that turn, or referenced by multiple other FUN statements which are themselves used more than once in that turn), or it may not be evaluated at all.
+The functions are only evaluated when needed, i.e. when used by a \texttt{SET} statement in that turn (\ref{DYNK:SET}).
+The functions may thus be evaluated multiple times in one turn (if used by multiple \texttt{SET} statements which are active in that turn, or referenced by multiple other \texttt{FUN} statements which are themselves used more than once in that turn), or it may not be evaluated at all.
 %All functions types have an index, which is used internally in place of the function type name.
-The functions are always evaluated as a function of the current turn number $t$, which may be shifted by a turn-shift specified in a SET statement.
+The functions are always evaluated as a function of the current turn number $t$, which may be shifted by a turn-shift specified in a \texttt{SET} statement (\ref{DYNK:SET}).
+
 Function names have a maximum length of 20 characters.
 
-\pagebreak
-%\begin{table}
+%\pagebreak
+
 \begin{center}
-\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
-  %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-  \caption{Available function types in DYNK.}
-  \label{tab:DYNK_FUN} \\*
-  \hline
-  \rowcolor{blue!30}
-  Type name & Arguments & Description \\*
-  \hline
-  \endfirsthead
+\small
+\begin{longtable}{|p{1.8cm} | p{4.1cm} | p{9.5cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Available function types in DYNK.}
+    \label{tab:DYNK_FUN} \\*
+    \hline
+    \rowcolor{blue!30}
+    Type name & Arguments & Description \\*
+    \hline
+    \endfirsthead
 
-  \hline
-  \rowcolor{blue!30}
-  Type name & Arguments & Description \\*
-  %\hline
-  \endhead
+    \hline
+    \rowcolor{blue!30}
+    Type name & Arguments & Description \\*
+    %\hline
+    \endhead
 
-  \rowcolor{gray!15}
-  \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
-  \hline
-  \endfoot
-  
-  \hline
-  \endlastfoot
+    \rowcolor{gray!15}
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+    
+    \hline
+    \endlastfoot
 
-  %\hline
-  \rowcolor{blue!15}
-  ``System'' functions & & \\*
+    %\hline
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{``System'' functions} \\*
+    \hline
 
-  GET        & \emph{element-name[string] attribute-name[string]} & 
-  Extracts the original value of a setting, i.e. as specified in the SINGLE ELEMENT section (Sec.~\ref{SinEle}). Attributes as used for SET, see Table~\ref{tab:DYNK_SET}. \\*
+    \texttt{GET} & \texttt{\makecell[tl]{element-name[string]\\attribute-name[string]}} & 
+    Extracts the original value of a setting, i.e. as specified in the SINGLE ELEMENT section (Sec.~\ref{SinEle}). Attributes as used for \texttt{SET}, see Table~\ref{tab:DYNK_SET}. \\*
+    \hline
 
-  FILE       & \emph{filename[string]} &
-  Loads the settings from file; the file is expected to be an ascii file with two columns where the first column is the turn number (should start at 1 and include all turns up to as long as is wanted), and the second column is the value for that turn number.\\*
-  
-  FILELIN    & \emph{filename[string]} &
-  Similar to FILE, but any double can be used as the turn number as long as they are monotonically rising.
-  When evaluated, the function interpolates from the line-segments specified in the file. \\*
-  
-  PIPE       & \emph{inPipeName[string] outPipeName[string] ID[string] fileUnit[int]} &
-  Uses a pair of UNIX FIFOs, through which it can communicate with an external program.
-  When evaluated, it sends a message through the outpipe, and then waits for a message on the inpipe which should contain the value the FUN should returned.
-  The ID is used in case several DYNK PIPE FUNs are using the same outPipe and inPipe, so that the controlling external program can choose what to calculate.
-  Note that it will use both \texttt{fileUnit} and \texttt{fileUnit+1}, and if several PIPE FUNs are using the same file, they must also use the same \texttt{fileUnit}.
-  For more details, see the example below.
-  Also note that PIPE is not available in the checkpoint/restart version of SixTrack.\\*
-  
-  RANDG      & \emph{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
-  Returns a pseudorandom number generated from a Gaussian distribution.
-  The mean value and width is controlled by \emph{mu} and \emph{sigma}, while \emph{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
-  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
-  Note that every RANDG function defined in DYNK uses its own separate random number stream.\\
+    \texttt{FILE} & \texttt{filename[string]} &
+    Loads the settings from file; the file is expected to be an ascii file with two columns where the first column is the turn number (should start at 1 and include all turns up to as long as is wanted), and the second column is the value for that turn number.\\*
+    \hline
+    
+    \texttt{FILELIN} & \texttt{filename[string]} &
+    Similar to \texttt{FILE}, but any double can be used as the turn number as long as they are monotonically rising.
+    When evaluated, the function interpolates from the line-segments specified in the file. \\*
+    \hline
+    
+    \texttt{PIPE} & \texttt{\makecell[tl]{inPipeName[string]\\outPipeName[string]\\ID[string]\\fileUnit[int]}} &
+    Uses a pair of UNIX FIFOs, through which it can communicate with an external program.
+    When evaluated, it sends a message through the outpipe, and then waits for a message on the inpipe which should contain the value the FUN should returned.
+    The ID is used in case several DYNK PIPE FUNs are using the same outPipe and inPipe, so that the controlling external program can choose what to calculate.
+    Note that it will use both \texttt{fileUnit} and \texttt{fileUnit+1}, and if several PIPE FUNs are using the same file, they must also use the same \texttt{fileUnit}.
+    For more details, see the example below.
+    Also note that \texttt{PIPE} is not available in the checkpoint/restart version of SixTrack.\\*
+    \hline
+    
+    \texttt{RANDG} & \texttt{\makecell[tl]{seed1[int]\\seed2[int]\\mu[real]\\sigma[real]\\mcut[int]}} &
+    Returns a pseudorandom number generated from a Gaussian distribution.
+    The mean value and width is controlled by \texttt{mu} and \texttt{sigma}, while \texttt{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
+    The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
+    Note that every \texttt{RANDG} function defined in \texttt{DYNK} uses its own separate random number stream.\\*
+    \hline
 
-  RANDU      & \emph{seed1[int] seed2[int]} &
-  Returns a pseudorandom number generated from a uniform distribution.
-  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
-  Note that every RANDU function defined in DYNK uses its own separate random number stream.\\
-  
-  RANDON      & \emph{seed1[int] seed2[int] P[float]} &
-  Returns the value of 1.0 or 0.0 resulting of the weighting with the probability \emph{P} of a pseudorandom number generated from a uniform distribution .
-  The integers \emph{seed1} and \emph{seed2} are the seed used to initialize the RANECU generator.
-  Note that every RANDON function defined in DYNK uses its own separate random number stream.\\
+    \texttt{RANDU} & \texttt{\makecell[tl]{seed1[int]\\seed2[int]}} &
+    Returns a pseudorandom number generated from a uniform distribution.
+    The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
+    Note that every \texttt{RANDU} function defined in \texttt{DYNK} uses its own separate random number stream.\\*
+    \hline
+    
+    \texttt{RANDON} & \texttt{\makecell[tl]{seed1[int]\\seed2[int]\\P[float]}} &
+    Returns the value of 1.0 or 0.0 resulting of the weighting with the probability \texttt{P} of a pseudorandom number generated from a uniform distribution .
+    The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
+    Note that every \texttt{RANDON} function defined in \texttt{DYNK} uses its own separate random number stream.\\
+    \hline
+    
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{Filters} \\*
+    
+    \texttt{FIR} & \texttt{\makecell[tl]{N[int]\\filename[string]\\baseFun[string]}} &
+    Applies a Finite Impulse Response (FIR) filter of order v{N} to the function \texttt{baseFun}.
+    The output is given as $y[t] = \sum_{i=0}^N b_i*x[t-i]$, where $t$ is the current turn and $x[t-0]$ is the result of the most recent call to \texttt{baseFun}.
+    The coefficients $b_0 \ldots b_N$ and initial values of $x[t-0]\ldots x[t-N]$ are loaded from the given file \texttt{filename}, which is a space-separated ascii file with three columns.
+    These columns are (1) row index \texttt{[int]}, (2) coefficients $b_i$ \texttt{[float]} and (3) initial values of the $x[]$ array \texttt{[float]}.
+    The row indices are expected to go from $0$ to at least $N$ in steps of $1$.
+    Note that the filter is stepped once per call, i.e. the array $x[]$ is shifted once every time the FUN is called.
+    Also note that when called, the filter is first stepped, then the new value is filled into the first position in $x[]$, and finally the sum is evaluated.
+    This means that the last value in the $x[]$ array is never used, while the first value ($x[t-0]$) is immediately pushed into $x[t-1]$ before the first evaluation.\\*
+    \hline
+    
+    \texttt{IIR} & \texttt{\makecell[tl]{N[int]\\filename[string]\\baseFun[string]}} &
+    Applies an Infinite Impulse Response (IIR) filter of order \texttt{N} to the function \texttt{baseFun}.
+    This is very similar to \texttt{FIR}, except that it also uses its own previous outputs.
+    The sum is thus written as $y[t] = \sum_{i=0}^N b_i*x[t-i] + \sum_{i=1}^N a_i*y[t-i]$.
+    The file \texttt{filename} is identical to that which is used for \texttt{FIR}, except for adding two more columns.
+    These columns are (4) $a_0\ldots a_N$ \texttt{[float]} and (5) initial values for the $y[]$ array \texttt{[float]}.
+    Note that $a_0$ is never used, and the value of $y[t-0]$ is pushed back to $y[t-1]$ before the first evaluation of the sum, such that $y[t-N]$ is never used.\\
+    \hline
+    
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{2-operand operators} \\*
 
-  \hline
-  \rowcolor{blue!15}
-  Filters & & \\*
-  
-  FIR        & \emph{N[int] filename[string] baseFun[string]} &
-  Applies a Finite Impulse Response (FIR) filter of order \emph{N} to the function \emph{baseFun}.
-  The output is given as $y[t] = \sum_{i=0}^N b_i*x[t-i]$, where $t$ is the current turn and $x[t-0]$ is the result of the most recent call to \emph{baseFun}.
-  The coefficients $b_0 \ldots b_N$ and initial values of $x[t-0]\ldots x[t-N]$ are loaded from the given file \emph{filename}, which is a space-separated ascii file with three columns.
-  These columns are (1) row index \emph{[int]}, (2) coefficients $b_i$ \emph{[float]} and (3) initial values of the $x[]$ array \emph{[float]}.
-  The row indices are expected to go from $0$ to at least $N$ in steps of $1$.
-  Note that the filter is stepped once per call, i.e. the array $x[]$ is shifted once every time the FUN is called.
-  Also note that when called, the filter is first stepped, then the new value is filled into the first position in $x[]$, and finally the sum is evaluated.
-  This means that the last value in the $x[]$ array is never used, while the first value ($x[t-0]$) is immediately pushed into $x[t-1]$ before the first evaluation.\\*
-  
-  IIR        & \emph{N[int] filename[string] baseFun[string]} &
-  Applies an Infinite Impulse Response (IIR) filter of order \emph{N} to the function \emph{baseFun}.
-  This is very similar to FIR, except that it also uses its own previous outputs.
-  The sum is thus written as $y[t] = \sum_{i=0}^N b_i*x[t-i] + \sum_{i=1}^N a_i*y[t-i]$.
-  The file \emph{filename} is identical to that which is used for FIR, except for adding two more columns.
-  These columns are (4) $a_0\ldots a_N$ \emph{[float]} and (5) initial values for the $y[]$ array \emph{[float]}.
-  Note that $a_0$ is never used, and the value of $y[t-0]$ is pushed back to $y[t-1]$ before the first evaluation of the sum, such that $y[t-N]$ is never used.\\
+    \texttt{ADD} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} &
+    Evaluate the functions referenced by \texttt{function-name-1} and \texttt{function-name-2}, and return the sum of the results.\\*
+    \hline
 
-  \hline
-  \rowcolor{blue!15}
-  2-operand operators & & \\*
+    \texttt{SUB} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} &
+    Similar to \texttt{ADD}, but return the result of function1 minus function2.\\*
+    \hline
+    
+    \texttt{MUL} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} & 
+    Similar to \texttt{ADD}, but return the product of the results. \\*
+    \hline
+    
+    \texttt{DIV} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} & 
+    Similar to \texttt{ADD}, but return the result of function1 divided by function2\\*
+    \hline
+    
+    \texttt{POW} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} & 
+    Similar to \texttt{ADD}, but return the result of function1 raised to the power of function2.\\
+    \hline
+    
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{1-operand operators} \\*
 
-  ADD        & \emph{function-name-1[string] function-name-2[string]} &
-  Evaluate the functions referenced by \emph{function-name-1} and \emph{function-name-2}, and return the sum of the results.\\*
+    \texttt{MINUS} & \texttt{function-name} &
+    Returns the value of the named function, with the opposite sign. \\*
+    \hline
 
-  SUB        & \emph{function-name-1[string] function-name-2[string]} &
-  Similar to ADD, but return the result of function1 minus function2.\\*
-  
-  MUL        & \emph{function-name-1[string] function-name-2[string]} & 
-  Similar to ADD, but return the product of the results. \\*
+    \texttt{SQRT} & \texttt{function-name} & 
+    Returns the square root of the value generated by the named function. \\*
+    \hline
+    
+    \texttt{SIN} & \texttt{function-name} & 
+    Returns the sine of the value generated by the named function. \\*
+    \hline
+    
+    \texttt{COS} & \texttt{function-name} &
+    Returns the cosine of the value generated by the named function. \\*
+    \hline
+    
+    \texttt{LOG} & \texttt{function-name} &
+    Returns the natural logarithm of the value generated by the named function. \\*
+    \hline
+    
+    \texttt{LOG10} & \texttt{function-name} &
+    Returns the common logarithm of the value generated by the named function. \\*
+    \hline
+    
+    \texttt{EXP} & \texttt{function-name} &
+    Returns the natural exponential function $e^x$, where $x$ is the value generated by the named function. \\
+    \hline
+    
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{Polynomial and elliptical functions} \\*
 
-  DIV        & \emph{function-name-1[string] function-name-2[string]} & 
-  Similar to ADD, but return the result of function1 divided by function2\\*
-  
-  POW        & \emph{function-name-1[string] function-name-2[string]} & 
-  Similar to ADD, but return the result of function1 raised to the power of function2.\\
-  
-  \hline
-  \rowcolor{blue!15}
-  1-operand operators & & \\*
+    \texttt{CONST} & \texttt{value[real]} & 
+    Always returns the value specified.\\*
+    \hline
+    
+    \texttt{TURN} & (none) & 
+    Return the turn number, i.e. $y(t) = t$.\\*
+    \hline
+    
+    \texttt{LIN} & \texttt{a[real] b[real]} & 
+    Computed value from the linear function $y(t) = a\cdot t + b$. \\*
+    \hline
+    
+    \texttt{LINSEG} & \texttt{\makecell[tl]{x1[real]\\x2[real]\\y1[real]\\y2[real]}} & 
+    The function is defined by a line segment between the points $(x_1,y_1)$ and $(x_2,y_2)$, and undefined for $x < x_1$ and $x>x_2$. 
+    It is required that $x_1 < x_2$.\\*
+    \hline
+    
+    \texttt{QUAD} & \texttt{\makecell[tl]{a[real]\\b[real]\\c[real]}} & 
+    Computed value from the quadratic function $y(t) = a\cdot t^2 + b\cdot t + c$. \\*
+    \hline
+    
+    \texttt{QUADSEG} & \texttt{\makecell[tl]{x1[real]\\x2[real]\\y1[real]\\y2[real]\\deriv1[real]}} & 
+    The quadratic function is defined by overlapping the quadratic curve segment which passes through the points $(x_1,y_1)$ and $(x_2,y_2)$, and $\mathrm{d}y/\mathrm{d}x$ at $x_1$ is \texttt{deriv1}. 
+    The quadratic coefficients $a,b,c$ are calculated as $a = \frac{\texttt{deriv1}}{x_1-x_2} + \frac{y_2-y_1}{(x_1-x_2)^2}$, $b=\frac{y_2-y_1}{x_2-x_1} - (x_1+x_2)\cdot a$ and $c = y_1 + \left(- x_1^2 \cdot a - x_1 \cdot b \right)$.\\
+    \hline
+    
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{Trancendental functions} \\*
 
-  MINUS      & \emph{function-name} &
-  Returns the value of the named function, with the oposite sign. \\*
+    \texttt{SINF} & \texttt{\makecell[tl]{A[real]\\omega[real]\\phi[real]}} & 
+    Computes $y(t) = A\sin\left(\omega t + \phi\right)$.\\*
+    \hline
+    
+    \texttt{COSF} & \texttt{\makecell[tl]{A[real]\\omega[real]\\phi[real]}} & 
+    Computes $y(t) = A\cos\left(\omega t + \phi\right)$.\\*
+    \hline
+    
+    \texttt{COSF\_RIPP} & \texttt{\makecell[tl]{A[real]\\period[real]\\phi[real]}} & 
+    Computes $y(t) = A\cos\left(\frac{2\pi (t-1)}{\mathrm{period}} + \phi\right)$. 
+    This specialized cosine is provided for compatibility, to be used when replacing old \texttt{RIPP} blocks.\\*
+    \hline
+    
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{Specialized functions} \\*
 
-  SQRT       & \emph{function-name} & 
-  Returns the square root of the value generated by the named function. \\*
-  
-  SIN        & \emph{function-name} & 
-  Returns the sine of the value generated by the named function. \\*
-  
-  COS        & \emph{function-name} &
-  Returns the cosine of the value generated by the named function. \\*
-  
-  LOG        & \emph{function-name} &
-  Returns the natural logarithm of the value generated by the named function. \\*
-  
-  LOG10      & \emph{function-name} &
-  Returns the common logarithm of the value generated by the named function. \\*
-  
-  EXP        & \emph{function-name} &
-  Returns the natural exponential function $e^x$, where $x$ is the value generated by the named function. \\
-  
-  \hline
-  \rowcolor{blue!15}
-  Polynomial and elliptical functions &  & \\*
-
-  CONST       & \emph{value[real]} & 
-  Always returns the value specified.\\*
-
-  TURN        & (none) & 
-  Return the turn number, i.e. $y(t) = t$.\\*
-
-  LIN         & \emph{a[real] b[real]} & 
-  Computed value from the linear function $y(t) = a\cdot t + b$. \\*
-
-  LINSEG      & \emph{x1[real] x2[real] y1[real] y2[real]} & 
-  The function is defined by a line segment between the points $(x_1,y_1)$ and $(x_2,y_2)$, and undefined for $x < x_1$ and $x>x_2$. 
-  It is required that $x_1 < x_2$.\\*
-
-  QUAD        & \emph{a[real] b[real] c[real]} & 
-  Computed value from the quadratic function $y(t) = a\cdot t^2 + b\cdot t + c$. \\*
-
-  QUADSEG     & \emph{x1[real] x2[real] y1[real] y2[real] deriv1[real]} & 
-  The quadratic function is defined by overlapping the quadratic curve segment which passes through the points $(x_1,y_1)$ and $(x_2,y_2)$, and $\mathrm{d}y/\mathrm{d}x$ at $x_1$ is \emph{deriv1}. 
-  The quadratic coefficients $a,b,c$ are calculated as $a = \frac{\emph{deriv1}}{x_1-x_2} + \frac{y_2-y_1}{(x_1-x_2)^2}$, $b=\frac{y_2-y_1}{x_2-x_1} - (x_1+x_2)\cdot a$ and $c = y_1 + \left(- x_1^2 \cdot a - x_1 \cdot b \right)$.\\
-
-  \hline
-  \rowcolor{blue!15}
-  Trancendental functions & & \\*
-
-  SINF        & \emph{A[real] omega[real] phi[real]} & 
-  Computes $y(t) = A\sin\left(\omega t + \phi\right)$.\\*
-
-  COSF        & \emph{A[real] omega[real] phi[real]} & 
-  Computes $y(t) = A\cos\left(\omega t + \phi\right)$.\\*
-  COSF\_RIPP  & \emph{A[real] period[real] phi[real]} & 
-  Computes $y(t) = A\cos\left(\frac{2\pi (t-1)}{\mathrm{period}} + \phi\right)$. 
-  This specialized cosine is provided for compatibility, to be used when replacing old \emph{RIPP} blocks.\\*
-
-  \hline
-  \rowcolor{blue!15}
-  Specialized functions & & \\*
-
-  PELP        & \emph{tinj[real] Iinj[real] Inom[real] A[real] D[real] R[real] te[real]} & 
-  This function describes a patched ``Parabolic-Exponential-Linear-Parabolic'' function, as used for ramping the LHC dipoles and described in~\cite[Appendix C]{SRussen:fieldComp} and~\cite{BurlaKing:CurrentRamp}. 
-  The parameters are:
-  \begin{itemize}
-  \setlength\itemsep{-0.3em}
-  \item The injection time \emph{tinj}, which is the time (in turn numbers) when the ramp starts.
-  \item The injection value \emph{Iinj}, which is the value when $t\le t_{inj}$
-  \item The final value \emph{Inom}, which is the value after the end of the ramp.
-  \item The acceleration parameter \emph{A}, which describes how fast the current is growing in the first (parabolic) segment.
-  \item The decelertation parameter \emph{D}, which describes how fast the current growths flattens out in the forth (parabolic) segment.
-  \item The ramp rate \emph{R}, which describes the maximum ramp rate, seen in the third (linear) segment.
-  \item The start time of the ramp \emph{te}, which describes at what time it switches from the parabolic (first) to the exponential (second) segment.
-  \end{itemize}
-  \\*
-  ONOFF       & \emph{p1[int] p2[int]} &
-  This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
-  It may be described as
-  $y(t) =  \left\{1.0 \; \mathrm{if} \; \mathrm{mod}(t-1,p2) < p1 \right\}; \; \left\{ 0.0 \; \mathrm{otherwise} \right\}$.
-  The reason for using $t-1$ is that the modulus is naturally zero-based, while SixTrack counts turns starting from 1.
-  Note that it is expected that $p1 >= 0$, $p2 > 1$, and $p1 <= p2$.
-  Also note that for negative $t$, the function will always return 1.0.
+    \texttt{PELP} & \texttt{\makecell[tl]{tinj[real]\\Iinj[real]\\Inom[real]\\A[real]\\D[real]\\R[real]\\te[real]}} & 
+    This function describes a patched ``Parabolic-Exponential-Linear-Parabolic'' function, as used for ramping the LHC dipoles and described in~\cite[Appendix C]{SRussen:fieldComp} and~\cite{BurlaKing:CurrentRamp}. 
+    The parameters are:
+    \begin{itemize}
+    \setlength\itemsep{-0.3em}
+        \item The injection time \texttt{tinj}, which is the time (in turn numbers) when the ramp starts.
+        \item The injection value \texttt{Iinj}, which is the value when $t\le t_{inj}$
+        \item The final value \texttt{Inom}, which is the value after the end of the ramp.
+        \item The acceleration parameter \texttt{A}, which describes how fast the current is growing in the first (parabolic) segment.
+        \item The decelertation parameter \texttt{D}, which describes how fast the current growths flattens out in the forth (parabolic) segment.
+        \item The ramp rate \texttt{R}, which describes the maximum ramp rate, seen in the third (linear) segment.
+        \item The start time of the ramp \texttt{te}, which describes at what time it switches from the parabolic (first) to the exponential (second) segment.
+    \end{itemize}
+    \\*
+    \hline
+    
+    \texttt{ONOFF} & \texttt{\makecell[tl]{p1[int]\\p2[int]}} &
+    This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
+    It may be described as
+    $y(t) =  \left\{1.0 \; \mathrm{if} \; \mathrm{mod}(t-1,p2) < p1 \right\}; \; \left\{ 0.0 \; \mathrm{otherwise} \right\}$.
+    The reason for using $t-1$ is that the modulus is naturally zero-based, while SixTrack counts turns starting from 1.
+    Note that it is expected that $p1 >= 0$, $p2 > 1$, and $p1 <= p2$.
+    Also note that for negative $t$, the function will always return 1.0.
 \end{longtable}
+\normalsize
 \end{center}
-%\end{tabular}
-%\end{table}
 
+% ================================================================================================================================ %
+\subsection{SET Statement} \label{DYNK:SET}
 
-\subparagraph{SET} \emph{SET element-name attribute-name function-name first-turn last-turn turn-shift}\\
-This statement defines an element setpoint, which changes an element/attribute to the value computed by the given function.
-The \emph{SET} becomes active when the turn number reaches \emph{first-turn}, and switches off once \emph{last-turn} has been passed.
-When switched off, the value applied in \texttt{last-turn} stays for the rest of the simulation, or until overwritten by another \emph{SET}.
-If \emph{last-turn} equals -1, the \emph{SET} is active untill the end of the simulation.
-The element type and attribute combinations which can be used in DYNK is shown in Table~\ref{tab:DYNK_SET}.
+\paragraph{Format:} \texttt{SET element-name attr-name func-name first-turn last-turn turn-shift}
 
-The argument \emph{turn-shift} is an integer (positive, negative, or zero) number which is added to the current turn number before computing the function.
-Thus, in order to (as an example) apply an exponential decay from the value $v_0$ starting in turn $t_0$ using the function defined as $f(t) = V_0 \exp(-t/\tau)$,
-a \emph{turn-shift} $-t_0$ should be applied.
+\bigskip
+This statement defines an element setpoint, which changes an element/attribute, \texttt{attr-name}, to the value computed by the given function, \texttt{func-name}.
+The \texttt{SET} statement becomes active when the turn number reaches \texttt{first-turn}, and switches off once \texttt{last-turn} has been passed.
+When switched off, the value applied in \texttt{last-turn} stays for the rest of the simulation, or until overwritten by another \texttt{SET}.
+If \texttt{last-turn} equals $-1$, the \texttt{SET} is active until the end of the simulation.
 
-In addition to changing single element attributes, it is also possible to use DYNK to change certain global attributes such as the reference energy.
+The element type and attribute combinations that can be used in \texttt{DYNK} are shown in Table~\ref{tab:DYNK_SET}.
+
+The argument \texttt{turn-shift} is an integer (positive, negative, or zero) number which is added to the current turn number before computing the function.
+Thus, in order to (as an example) apply an exponential decay from the value $v_0$ starting in turn $t_0$ using the function defined as $f(t) = V_0 \exp(-t/\tau)$, a \texttt{turn-shift} $-t_0$ should be applied.
+
+In addition to changing single element attributes, it is also possible to use \texttt{DYNK} to change certain global attributes such as the reference energy.
 This is done through the ``element'' \texttt{GLOBAL VARS}; for example one may want to simulate an energy ramp following the function \texttt{eramp} throughout the whole simulation.
-For this, one would use the \emph{SET} command ``\texttt{SET GLOBAL-VARS E0 eramp 1 -1 0}''.
+For this, one would use the \texttt{SET} command
+\begin{cverbatim}
+SET GLOBAL-VARS E0 eramp 1 -1 0
+\end{cverbatim}
 Because of this, SixTrack does not accept a real single element in \texttt{fort.2} named \texttt{GLOBAL-VARS} if \texttt{DYNK} is active.
 
 \begin{table}[h]
