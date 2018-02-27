@@ -550,7 +550,7 @@ module mod_fluka
     write(fluka_log_unit,*) ' - momentum  [GeV/c]:',fluka_pc0
     write(fluka_log_unit,*) ' - mass     [GeV/c2]:',fluka_mass0
 !    write(fluka_log_unit,*) ' - charge        [e]:',fluka_chrg0
-    write(fluka_log_unit,*) ' - mass        [amu]:',fluka_a0
+    write(fluka_log_unit,*) ' - mass number    []:',fluka_a0
     write(fluka_log_unit,*) ' - charge        [e]:',fluka_z0
     flush(fluka_log_unit)
 
