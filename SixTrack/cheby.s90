@@ -55,7 +55,6 @@ contains
         
     ! rotation angle
     lrotate=cheby_angle(jcheby).ne.zero
-    if (lrotate) angle_rad=cheby_angle(jcheby)/c180e0*pi
 
     ! Brho of beam
     beta_b=e0f*gammar/pma

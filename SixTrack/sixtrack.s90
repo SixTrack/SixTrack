@@ -10882,6 +10882,7 @@ end subroutine hamilton1
       if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
       if(idat.eq.'ELEN') goto 2400 !Hard-coded name, as variable name "elens" conflicted with module name
+      if(idat.eq.'CHEB') goto 2450 !Hard-coded name, as variable name "cheb" conflicted with module name
       if(idat.eq.wire)  goto 2500
       !Reserved:
       !DIST = 2600
@@ -16095,7 +16096,7 @@ end subroutine hamilton1
      &              errno,getfields_fields,8,elens_sig(ielens(j)) )
 +ei
             end if
-!           additional geometrical infos (L, I, ek):
+!           additional geometrical infos (L, I, Ek):
 !           depending on profile, the position of these parameters change
             tmpi1=0
             tmpi2=0
@@ -16194,6 +16195,11 @@ end subroutine hamilton1
      &'  L  =',elens_len(ielens(j)),' m',                               &
      &'  I  =',elens_I(ielens(j)),' A',                                 &
      &'  Ek =',elens_Ek(ielens(j)),' keV'
+               elens_theta_r2(j)=elens_ctheta_r2( elens_len(ielens(j)), elens_I(ielens(j)), &
+     &   elens_Ek(ielens(j)), elens_r2(ielens(j)) )
+               write(lout,fmt='((A),4(/,A,1PE10.3,A))')                 &
+     &   'ELENS new theta at r2 for ',bez(j),':',elens_theta_r2(j)
+               
             end if
             goto 2401           !Search success :)
             
@@ -16211,6 +16217,169 @@ end subroutine hamilton1
       
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
 
+!-----------------------------------------------------------------------
+!  Chebyshev Lens, kz=30,ktrack=66
+!  A. Mereghetti, CERN (BE-ABP-HSS)
+!  last modified: 28-06-2016
+!  phylosophy based on see FermiLAB-FN-0972-APC
+!  parsing of fort.3 inspired from elens      
+!-----------------------------------------------------------------------
+ 2450 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      lineno3 = lineno3+1 ! Line number used for some crash output
+
+      if(ch(1:1).eq.'/') goto 2450 ! skip comment lines
+      if (ch(:4).eq.next) goto 110 ! go to next BLOCK in fort.3 - we're done here!
+
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
+        write(lout,*)                                                   &
+     &       'ERROR in CHEB block: fortran IO format currently not ',   &
+     &       'supported!'
+        call prror(-1)
++ei
+
+!     1) read in chebyshev lens parameters
+      call getfields_split( ch, getfields_fields, getfields_lfields,    &
+     &        getfields_nfields, getfields_lerr )
+      if ( getfields_lerr ) then
+        write(lout,*)                                                   &
+     &       'ERROR in CHEB block: getfields_lerr=', getfields_lerr
+        call prror(-1)
+      endif
+
+!     Check (min) number of arguments
+      if(getfields_nfields.lt.2) then
+        write(lout,*)                                                   &
+     &       'ERROR in CHEB block: wrong number of input ',             &
+     &       'parameters: ninput = ', getfields_nfields, ' != 2 (min)'
+        call prror(-1)
+      endif
+
+!     Find the element, and check that we're not double-defining
+      if (getfields_lfields(1) .gt. 16) then
+         write(lout,*)                                                  &
+     &        "ERROR in CHEB block: Element name max 16 characters;"//  &
+     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))&
+     &        //"' is too long."
+         call prror(-1)
+      endif
+      
+      do j=1,nele               !loop over single elements and set parameters of chebyshev lens
+         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
+            ! check the element type (kz(j)_elens=30)
+            if(kz(j).ne.30) then
+               write(lout,*)                                            &
+     &              'ERROR: element type mismatch for CHEB!'//          &
+     &              'Element type is kz(',j,') = ',kz(j),'!= 30'
+               call prror(-1)
+            endif
+            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_cheb=30)
+               write(lout,*)                                            &
+     &'ERROR: length el(j) (Chebyshev lens is treated as thin element), '//&
+     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//&
+     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,      &
+     &')=',ek(j),'. Please check your input in the single element '//   &
+     &'definition of your CEHB. All values except for the type need '// &
+     &'to be zero.'
+               call prror(-1)
+            endif
+!           acquire new elens
+            mcheby=mcheby+1
+            if (mcheby.gt.ncheby) then
+               write(lout,*) "ERROR in CHEB block:"//                   &
+     &              "Too many lenses: ",mcheby," - max:",ncheby
+               call prror(-1)
+            end if
+            icheby(j)=mcheby
+
+            ! Parse the element
+
+            ! - file with coefficients
+            read (getfields_fields(2)(1:getfields_lfields(2)),*) tmpch
+            !   check if table of coefficients has been already used somewhere else
+            do tmpi1=1,mcheby_tables
+               if ( tmpch.eq.cheby_filename(tmpi1) ) then
+                  icheby_table(icheby(j))=tmpi1
+                  goto 1972
+               end if
+            end do
+            !   new table to be acquired:
+            mcheby_tables=mcheby_tables+1
+            if(mcheby_tables.gt.ncheby_tables) then
+               write(lout,*) "ERROR in CHEB block: Too many tables"//&
+     &" for Chebyshev coefficients: ",mcheby_tables," - max:",ncheby_tables
+               call prror(-1)
+            end if
+            icheby_table(icheby(j))=mcheby_tables
+1972        continue
+            cheby_filename(icheby_table(icheby(j)))=tmpch
+
+!           additional geometrical infos (tilt angle, offset_x, offset_y):
+            if ( getfields_nfields.ge.3 ) then
++if .not.crlibm
+               read (getfields_fields(3)(1:getfields_lfields(3)),*)    &
+     &              cheby_angle(icheby(j))
++ei
++if crlibm
+               cheby_angle(icheby(j))= round_near (                    &
+     &              errno,getfields_lfields(3)+1, getfields_fields(3) )
+               if (errno.ne.0) call rounderr (                         &
+     &              errno,getfields_fields,3,cheby_angle(icheby(j)) )
++ei
+               ! from deg to rad:
+               cheby_angle(icheby(j))=cheby_angle(icheby(j))/c180e0*pi
+            end if
+            if ( getfields_nfields.ge.4 ) then
++if .not.crlibm
+               read (getfields_fields(4)(1:getfields_lfields(4)),*)    &
+     &              cheby_offset_x(icheby(j))
++ei
++if crlibm
+               cheby_offset_x(icheby(j))= round_near (                 &
+     &              errno,getfields_lfields(4)+1, getfields_fields(4) )
+               if (errno.ne.0) call rounderr (                         &
+     &              errno,getfields_fields,4,cheby_offset_x(icheby(j)) )
++ei
+            end if
+            if ( getfields_nfields.ge.5 ) then
++if .not.crlibm
+               read (getfields_fields(5)(1:getfields_lfields(5)),*)    &
+     &              cheby_offset_y(icheby(j))
++ei
++if crlibm
+               cheby_offset_y(icheby(j))= round_near (                 &
+     &              errno,getfields_lfields(5)+1, getfields_fields(5) )
+               if (errno.ne.0) call rounderr (                         &
+     &              errno,getfields_fields,5,cheby_offset_y(icheby(j)) )
++ei
+            end if
+
+            ! print a summary of parameters
+            write(lout,fmt='((/,/,A),2(/,A,A),3(/,A,1PE10.3,A))')       &
+     &'CHEBY lens found in list of single elements with: ',             &
+     &'name     = ',bez(j),                                             &
+     &'file     = ',cheby_filename(icheby_table(icheby(j))),            &
+     &'angle    = ',cheby_angle(icheby(j))/pi*c180e0,' deg',            &
+     &'offset_x = ',cheby_offset_x(icheby(j)),' mm',                    &
+     &'offset_y = ',cheby_offset_y(icheby(j)),' mm'
+
+            goto 2451           !Search success :)
+            
+         endif
+      enddo
+
+!     Search for element failed!
+      write(lout,*) "ERROR in CHEB: "//                                 &
+     &     "Un-identified SINGLE ELEMENT '",                            &
+     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
+      call prror(-1)
+      
+!     element search was a success :)
+ 2451 continue
+      
+      goto 2450
+      
 !-----------------------------------------------------------------------
 !  Wire, kz=+/-15,ktrack=45
 !  A. Patapenka (NIU), M. Fitterer,  FNAL
@@ -16842,19 +17011,6 @@ end subroutine hamilton1
       !Check that the number of particles is OK
       if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
 +ei
-!     A.Mereghetti (CERN, BE-ABP-HSS)
-!     last modified: 28-02-2018
-!     finalise set up of eLenses: compute elens theta at R2, if requested by user
-      do j=1,melens
-         if (elens_len(ielens(j)).gt.zero.and. &
-              elens_I(ielens(j)) .gt.zero.and. &
-              elens_Ek(ielens(j)).gt.zero) then
-            elens_theta_r2(j)=elens_ctheta_r2( elens_len(ielens(j)), elens_I(ielens(j)), &
-     &   elens_Ek(ielens(j)), elens_r2(ielens(j)) )
-            write(lout,fmt='((A),4(/,A,1PE10.3,A))')                    &
-     &   'ELENS new theta at r2 for ',bez(j),':',elens_theta_r2(j)
-         end if
-      end do
 !     A.Mereghetti (CERN, BE-ABP-HSS)
 !     last modified: 28-02-2018
 !     finalise set up of Chebyshev lenses: parse files with coefficients
@@ -17490,6 +17646,11 @@ end subroutine hamilton1
          el(ix)=zero
 !--e-lens
       else if(kz(ix).eq.29) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
+!--chebyshev lens
+      else if(kz(ix).eq.30) then
          ed(ix)=zero
          ek(ix)=zero
          el(ix)=zero
