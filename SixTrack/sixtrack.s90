@@ -4007,6 +4007,12 @@
           ktrack(i)=64
           goto 290
         endif
++cd cheby
+! element described by Chebyshev polynomials
+        if(kzz.eq.30) then
+          ktrack(i)=66
+          goto 290
+        endif
 +cd crab1
         if(kzz.eq.23) then
           ktrack(i)=53
@@ -25140,6 +25146,7 @@ subroutine trauthin(nthinerr)
 +ca crab_mult
 +ca elens
 +ca scatter
++ca cheby
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
@@ -26024,6 +26031,9 @@ subroutine thin4d(nthinerr)
       case (63) ! Elens
         call elens_kick(ielens(ix))
         goto 620
+      case (66) ! Chebyshev polynomials
+        call cheby_kick(icheby(ix))
+        goto 620
       end select
       goto 630
 
@@ -26894,6 +26904,9 @@ subroutine thin6d(nthinerr)
       case (65) ! Scatter (thick)
 +ca scat_tck
         goto 640
+      case (66) ! Chebyshev polynomials
+        call cheby_kick(icheby(ix))
+        goto 640
       case default
         write (lout,*) "WARNING: Non-handled element in thin6d()!",  &
                        " i=", i, "ix=", ix, "myktrack=",  dotrack,   &
@@ -27215,7 +27228,7 @@ end subroutine thin6d
      &         640,410,250,270,290,310,330,350,370,390,                 &!31-40
      &         680,700,720,730,748,650,650,650,650,650,                 &!41-50
      &         745,746,751,752,753,754,650,650,650,650,                 &!51-60
-     &         650,650,761),ktrack(i)
+     &         650,650,761,762),ktrack(i)
           goto 650
    10     stracki=strack(i)
           if(iexact.eq.0) then
@@ -27637,6 +27650,10 @@ end subroutine thin6d
 !--elens
   761     continue
           call elens_kick(ielens(ix))
+          goto 640
+!--chebyshev lens
+  762     continue
+          call cheby_kick(icheby(ix))
           goto 640
 
 !----------------------------
@@ -28075,6 +28092,7 @@ subroutine trauthck(nthinerr)
 +ca beams24
 +ca wire
 +ca elens
++ca cheby
 +ca acdip1
 +ca crab1
 +ca crab_mult
@@ -28941,6 +28959,9 @@ subroutine thck4d(nthinerr)
       case (63) ! Elens
         call elens_kick(ielens(ix))
         goto 470
+      case (66) ! Chebyshev polynomials
+        call cheby_kick(icheby(ix))
+        goto 470
       end select
       goto 480
 
@@ -29733,6 +29754,9 @@ subroutine thck6d(nthinerr)
       case (63) ! Elens
         call elens_kick(ielens(ix))
         goto 490
+      case (66) ! Chebyshev polynomials
+        call cheby_kick(icheby(ix))
+        goto 490
       end select
       goto 500
 
@@ -30095,7 +30119,7 @@ subroutine thck6dua(nthinerr)
      &           490,260,520,540,560,580,600,620,640,660,               &!31-40
      &           680,700,720,730,748,500,500,500,500,500,               &!41-50
      &           745,746,751,752,753,754,500,500,500,500,               &!51-60
-     &           500,500,761),ktrack(i)
+     &           500,500,761,762),ktrack(i)
             goto 500
    20       jmel=mel(ix)
             do jb=1,jmel
@@ -30524,6 +30548,10 @@ subroutine thck6dua(nthinerr)
 !--elens
   761     continue
           call elens_kick(ielens(ix))
+          goto 490
+!--chebyshev lens
+  762     continue
+          call cheby_kick(icheby(ix))
           goto 490
 
 !----------------------------

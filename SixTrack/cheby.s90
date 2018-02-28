@@ -34,7 +34,7 @@ module cheby
 contains
 
 
-  subroutine cheby_applyKick(jcheby)
+  subroutine cheby_kick(jcheby)
 
     ! A. Mereghetti (CERN, BE-ABP-HSS)
     ! last modified: 20-02-2018
@@ -84,7 +84,7 @@ contains
        end if
 
        ! apply kick
-       call cheby_kick( xx, yy, dxp, dyp, icheby_table(jcheby), brho_b, beta_b )
+       call cheby_getKick( xx, yy, dxp, dyp, icheby_table(jcheby), brho_b, beta_b )
        ! take into account scaling factor
        dxp=dxp *cheby_scalingFact(jcheby)
        dyp=dyp *cheby_scalingFact(jcheby)
@@ -104,7 +104,7 @@ contains
     end do
     return
     
-  end subroutine cheby_applyKick
+  end subroutine cheby_kick
       
 
   subroutine cheby_comnul
@@ -259,7 +259,7 @@ contains
     
   end subroutine parseChebyFile
    
-  subroutine cheby_kick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
+  subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
     
     ! A. Mereghetti (CERN, BE-ABP-HSS)
     ! last modified: 28-02-2018
@@ -319,7 +319,7 @@ contains
     dxp=dxp/(brho_b*clight*beta_b)
     dyp=dyp/(brho_b*clight*beta_b)
      
-   end subroutine cheby_kick
+   end subroutine cheby_getKick
    
    
 end module cheby
