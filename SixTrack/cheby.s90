@@ -1,0 +1,35 @@
++dk cheby
+
+module cheby
+  use parpro
+  use floatPrecision
+  implicit none
+
+  ! A.Mereghetti, CERN
+  ! last modified: 28-02-2018
+  ! module for handling lenses with kicks expressed by Chebyshev polynomials
+  
+  integer, save          :: icheby(nele)              ! index of chebyshev lens
+  integer, parameter     :: ncheby=20                 ! max number of chebyshev lenses treated (in LATTICE structure)
+  integer, save          :: mcheby                    ! last chebyshev lens read
+  integer, parameter     :: ncheby_tables=5           ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
+  integer, save          :: mcheby_tables             ! last chebyshev table read
+  
+  ! variables to save parameters for tracking etc.
+  real(kind=fPrec), save :: cheby_offset_x(ncheby), cheby_offset_y(ncheby)  ! hor./vert. offset [mm]
+  real(kind=fPrec), save :: cheby_angle(ncheby)       ! rotation angle about the longitudinal axis [deg]
+  integer, save          :: icheby_table(ncheby)      ! index of chebyshev table
+  real(kind=fPrec), save :: cheby_scalingFact(ncheby) ! scaling factor []
+
+  ! tables with chebyshev coefficients
+  integer, parameter     :: cheby_unit=107            ! unit for reading the chebyshev coefficients
+  integer, parameter     :: cheby_max_order=60        ! max order of chebyshev polynomials
+  character(len=16), save:: cheby_filename(ncheby_tables)  ! file names
+  real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) ! coefficients
+  real(kind=fPrec), save :: cheby_refRadius(ncheby_tables) ! reference radius [mm]
+
+  
+contains
+
+
+end module cheby

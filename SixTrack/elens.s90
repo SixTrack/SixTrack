@@ -20,7 +20,8 @@ module elens
       ! variables to save elens parameters for tracking etc.
       integer, save          :: elens_type(nelens)      ! integer for elens type
                                                           ! 0 : Un-initialized.
-                                                          ! 1 : Hollow annular elens, uniform profile
+                                                          ! 1 : (Hollow annular) elens, uniform electron profile
+                                                          ! 2 : (Hollow annular) elens, Gaussian electron profile
       real(kind=fPrec), save :: elens_theta_r2(nelens)    ! kick strength at R2 [mrad]
       real(kind=fPrec), save :: elens_r2(nelens)          ! outer radius R2 [mm]
       real(kind=fPrec), save :: elens_r1(nelens)          ! inner radius R1 [mm]
