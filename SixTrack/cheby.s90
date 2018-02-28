@@ -27,7 +27,7 @@ module cheby
   integer, parameter     :: cheby_lFileName=16        ! length of filenames
   character(len=cheby_lFileName), save:: cheby_filename(ncheby_tables)  ! file names
   real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) ! coefficients
-  integer, parameter     :: cheby_maxOrder(ncheby_tables)  ! max order of the current map
+  integer, save          :: cheby_maxOrder(ncheby_tables)  ! max order of the current map
   real(kind=fPrec), save :: cheby_refRadius(ncheby_tables) ! reference radius [mm]
   
 
@@ -274,8 +274,8 @@ contains
     integer          :: iTable
      
     ! temp vars
-    real(kind=fPrec) :: uu, vv, Tx (0:cheby_order), Ty (0:cheby_order), &
-                        kx, ky, Tpx(0:cheby_order), Tpy(0:cheby_order), &
+    real(kind=fPrec) :: uu, vv, Tx (0:cheby_maxOrder(iTable)), Ty (0:cheby_maxOrder(iTable)), &
+                        kx, ky, Tpx(0:cheby_maxOrder(iTable)), Tpy(0:cheby_maxOrder(iTable)), &
                         fu, fv
     integer          :: ii, jj
      
