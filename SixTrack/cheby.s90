@@ -17,7 +17,7 @@ module cheby
   
   ! variables to save parameters for tracking etc.
   real(kind=fPrec), save :: cheby_offset_x(ncheby), cheby_offset_y(ncheby)  ! hor./vert. offset [mm]
-  real(kind=fPrec), save :: cheby_angle(ncheby)       ! rotation angle about the longitudinal axis [deg]
+  real(kind=fPrec), save :: cheby_angle(ncheby)       ! rotation angle about the longitudinal axis [rad]
   integer, save          :: icheby_table(ncheby)      ! index of chebyshev table
   real(kind=fPrec), save :: cheby_scalingFact(ncheby) ! scaling factor []
 
