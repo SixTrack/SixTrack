@@ -89,7 +89,7 @@ Double_t t12;
 Double_t t13;
 Double_t t14;
 
-Char_t name[17];
+Char_t name[49];
 
 //extern "C" void OpticsRootWriteCpl(double phi1, double phi2, double bexi, double bexii, double bezi, double bezii, double alzii, double gaxi, double gaxii, double gazi, double gazii, double phxi, double phxii, double phzi, double phzii, double phxpi, double couuang, double t61, double t62, double t63, double t64, double t11, double t12, double t13, double t14)
 
@@ -103,7 +103,7 @@ extern "C" void OpticsRootInit()
     OpticsTree = new TTree("LinearOptics","LinearOpticsTree");
     OpticsTree->Branch("n",&n,"n/I");
 
-    OpticsTree->Branch("name", name, "name[17]/C");
+    OpticsTree->Branch("name", name, "name[49]/C");
 
     OpticsTree->Branch("s", &s, "s/D");
 
@@ -213,7 +213,7 @@ extern "C" void OpticsRootWriteLin(int n_in, char* name_in, int c_len, double s_
     n = n_in;
     std::string tmpname(name_in);
     std::transform(tmpname.begin(), tmpname.end(), tmpname.begin(), ::toupper);
-    strncpy(name,tmpname.substr(0,c_len).c_str(),17);
+    strncpy(name,tmpname.substr(0,c_len).c_str(),49);
 
     s = s_in;
 

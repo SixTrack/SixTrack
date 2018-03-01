@@ -81,7 +81,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   real(kind=fPrec) xchk(2,npart)
 
 +if root
-  character(len=17) this_name
+  character(len=max_name_len+1) this_name
 +ei
 
 +if backtrk
@@ -1031,7 +1031,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
  1982 format (a16,2(1x,a2),8(1x,f15.5))
 end subroutine contour_aperture_marker
 
-character(len=16) function CrtApeName()
+character(len=max_name_len) function CrtApeName()
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
 !     last modified: 01-12-2016
@@ -1286,7 +1286,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 ! interface variables
   integer iunit
   character(len=2) aptype
-  character(len=16) name
+  character(len=max_name_len) name
   real(kind=fPrec) ape(7)
   real(kind=fPrec) spos
 
