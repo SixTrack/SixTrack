@@ -10519,6 +10519,7 @@ end subroutine hamilton1
 
       use elens
       use cheby
+      use utils
       implicit none
 
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -10605,7 +10606,7 @@ end subroutine hamilton1
       logical tmpl
       character(len=nchars) tmpch
       integer tmpi1,tmpi2,tmpi3
-      real(kind=fPrec) tmpflt, lininterp
+      real(kind=fPrec) tmpflt
 
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
@@ -20191,6 +20192,7 @@ end subroutine runda
       use parpro
       use mod_common
       use mod_commons
+      use utils
       implicit none
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
@@ -22597,6 +22599,7 @@ program maincr
       use mod_common
       use mod_commonmn
       use mod_commons
+      use utils
 
       implicit none
 
@@ -43292,143 +43295,6 @@ end subroutine subsea
 10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
      &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
       end
-
-+dk utils ! Various utility functions
-
-      subroutine invert_tas(fma_tas_inv,fma_tas)
-!-----------------------------------------------------------------------*
-!  FMA                                                                  *
-!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
-!  last modified: 04-01-2016                                            *
-!  purpose: invert the matrix of eigenvecors tas                        *
-!           (code copied from postpr only that ta is here fma_tas)      *
-!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
-!           note: inversion method copied from subroutine postpr        *
-!-----------------------------------------------------------------------*
-      use floatPrecision
-      use numerical_constants
-      use crcoall
-      implicit none
-+ca commonta
-
-      integer :: i,j            !iterators
-      real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-      real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-      integer ierro                   !error messages
-!     dummy variables
-      real(kind=fPrec), dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-      integer, dimension(6) :: idummy !for matrix inversion
-!     units: [mm,mrad,mm,mrad,mm,1]
-!     invert matrix
-!     - set values close to 1 equal to 1
-      do i=1,6
-         do j=1,6
-            fma_tas_inv(i,j)=fma_tas(j,i)
-         enddo
-      enddo
-      
-      if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
-     &pieni) then
-        fma_tas_inv(1,1)=one
-        fma_tas_inv(2,2)=one
-      endif
-      if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.   &
-     &pieni) then
-        fma_tas_inv(3,3)=one
-        fma_tas_inv(4,4)=one
-      endif
-      if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.   &
-     &pieni) then
-        fma_tas_inv(5,5)=one
-        fma_tas_inv(6,6)=one
-      endif
-      
-!     - invert: dinv returns the transposed matrix
-      call dinv(6,fma_tas_inv,6,idummy,ierro)
-      if (ierro.ne.0) then
-         write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
-         write(lout,*) "Subroutine DINV returned ierro=",ierro
-         call prror(-1)
-      endif
-      
-!     - transpose fma_tas_inv
-      tdummy=fma_tas_inv
-      do i=1,6
-        do j=1,6
-          fma_tas_inv(i,j)=tdummy(j,i)
-        enddo
-      enddo
-      end subroutine invert_tas
-
-      ! =================================================================================== !
-      !  A.Mereghetti, for the FLUKA Team and K.Sjobak for BE-ABP/HSS
-      !  Last modified: 29-10-2014
-      !
-      !  - Define a linear function with a set of x,y-coordinates xvals, yvals
-      !  - Return this function evaluated at the point x.
-      !  - The length of the arrays xvals and yvals should be given in datalen.
-      !
-      !  - xvals should be in increasing order, if not then program is aborted.
-      !  - If x < min(xvals) or x>max(xvals), program is aborted.
-      !  - If datalen <= 0, program is aborted. 
-      ! =================================================================================== !
-      real(kind=fPrec) function lininterp(x,xvals,yvals,datalen)
-
-        use floatPrecision
-        use crcoall
-        implicit none
-
-
-        real(kind=fPrec) x, xvals(*),yvals(*)
-        integer datalen
-        intent(in) x,xvals,yvals,datalen
-
-        integer ii
-        real(kind=fPrec) dydx, y0
-        
-        ! Sanity checks
-        if (datalen .le. 0) then
-           write(lout,*) "**** ERROR in lininterp() ****"
-           write(lout,*) "datalen was 0!"
-           call prror(-1)
-        end if
-        if (x .lt. xvals(1) .or. x .gt. xvals(datalen)) then
-           write(lout,*) "**** ERROR in lininterp() ****"
-           write(lout,*) "x =",x, "outside range", xvals(1),xvals(datalen)
-           call prror(-1)
-        end if
-
-        ! Find the right indexes i1 and i2
-        ! Special case: first value at first point
-        if (x .eq. xvals(1)) then
-           lininterp = yvals(1)
-           return
-        end if
-        
-        do ii=1, datalen-1
-           if (xvals(ii) .ge. xvals(ii+1)) then
-              write (lout,*) "**** ERROR in lininterp() ****"
-              write (lout,*) "xvals should be in increasing order"
-              write (lout,*) "xvals =", xvals(:datalen)
-              call prror(-1)
-           end if
-           
-           if (x .le. xvals(ii+1)) then
-              ! We're in the right interval
-              dydx = (yvals(ii+1)-yvals(ii)) / (xvals(ii+1)-xvals(ii))
-              y0   = yvals(ii) - dydx*xvals(ii)
-              lininterp = dydx*x + y0
-              return
-           end if
-        end do
-        
-        ! We didn't return yet: Something wrong
-        write (lout,*) "****ERROR in lininterp() ****"
-        write (lout,*) "Reached the end of the function"
-        write (lout,*) "This should not happen, please contact developers"
-        call prror(-1)
-
-      end function lininterp
 
 +dk sumpos
       subroutine sumpos

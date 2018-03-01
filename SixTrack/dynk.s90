@@ -2678,6 +2678,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     use crcoall
     use mod_common
     use mod_ranecu
+    use utils
     implicit none
 
 +ca comgetfields
@@ -2690,9 +2691,6 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 +if crlibm
     real(kind=fPrec) round_near
 +ei
-
-    ! to call lininterp
-    real(kind=fPrec) lininterp
 
     ! Temporaries for FILELIN
     integer filelin_start, filelin_xypoints
