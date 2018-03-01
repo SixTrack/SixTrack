@@ -174,7 +174,7 @@ contains
 +ca comgetfields
     character(len=160) string
     integer ierr, ii, jj, ifile, errno
-    real(kind=fPrec) tmpflt, beta, gamma, round_near
+    real(kind=fPrec) tmpflt, round_near
     
     ierr=0
     write(lout,*)' Parsing file with coefficients for Chebyshev polynomials ' &
@@ -207,24 +207,24 @@ contains
 +ei
              cheby_refRadius(ifile)=tmpflt
              if (cheby_refRadius(ifile).le.zero) then
-                write(lout,*)'Elens: ERROR: reference radius of Chebyshev coefficients .le.zero'
-                call prror(-1)
+                ierr=5
+                goto 1983
              end if
              
           else
              ! read chebyshev coefficients
              if (getfields_nfields.ne.4) then
-                ierr=5
+                ierr=6
                 goto 1983
              end if
              read (getfields_fields(1)(1:getfields_lfields(1)),*) ii
              if (ii.gt.cheby_max_order) then
-                ierr=6
+                ierr=7
                 goto 1983
              end if
              read (getfields_fields(2)(1:getfields_lfields(2)),*) jj
              if (jj.gt.cheby_max_order) then
-                ierr=7
+                ierr=8
                 goto 1983
              end if
 +if .not.crlibm

@@ -37,8 +37,9 @@ module elens
   integer, parameter     :: elens_max_points=500      ! max number of points in radial profiles
   integer, parameter     :: elens_lFileName=16        ! length of filenames
   character(len=elens_lFileName), save :: elens_filename(nelens_radials)  ! file names
-  real(kind=fPrec), save :: elens_radials_x(elens_max_points,nelens_radials),! profile: x [mm]
- &                          elens_radials_y(elens_max_points,nelens_radials) ! profile: y [A/cm2]
+  real(kind=fPrec), save :: elens_radials_r(elens_max_points,nelens_radials),! profile: r [mm]
+ &                          elens_radials_i(elens_max_points,nelens_radials),! profile: f []
+ &                          elens_radials_iTot(nelens_radials)               ! total current in profile [A]
   integer, save          :: elens_radials_m(nelens_radials)   ! number of points in profile
 
 
@@ -146,8 +147,8 @@ contains
           elens_filename(i)(j:j)=' '
        end do
        do j=1,elens_max_points
-          elens_radials_x(j,i)=zero
-          elens_radials_y(j,i)=zero
+          elens_radials_r(j,i)=zero
+          elens_radials_i(j,i)=zero
        end do
        elens_radials_m(i)=0
     end do
@@ -191,5 +192,136 @@ contains
   end function elens_ctheta_r2
   
       
- end module elens
+  subroutine elensParseRadialProfile(ifile)
+    
+    ! A.Mereghetti (CERN, BE-ABP-HSS)
+    ! last modified: 2018-03-01
+    ! always in main code
+        
+    ! read file with radial profile
+    ! ifile is index of file in table of radial profiles
+    
+    ! file is structured as:
+    !    r [mm] j [A/cm2]
+    ! the current density is then integrated radially;
+    ! a couple of points expresses the current density
+    !    at the upper edge of the radial bin;
+    ! the first line should look like: r_min 0.0,
+    !    with r_min lower than the first radius with a non-zero value;
+    ! comment line is headed by '#';
+    
+    use mathlib_bouncer
+    use physical_constants
+    use crcoall
+    use mod_common
+    use numerical_constants
+        
++ca comgetfields
+    character(len=160) string
+    integer ierr, ii, ifile, errno
+    real(kind=fPrec) tmpflt, round_near, rlast, rmean, dr
+    
+    ierr=0
+    rlast=zero
+    write(lout,*)' Parsing file with radial profile '//elens_filename(ifile)
+    open(elens_unit,file=elens_filename(ifile),status='old')
+    do while (.true.)
+       read(elens_unit,'(A)',end=1982,err=1983) string
+       if (string(1:1).ne.'#') then
+          call getfields_split( string, getfields_fields, getfields_lfields, &
+               getfields_nfields, getfields_lerr )
+          if ( getfields_lerr ) then
+             ierr=1
+             goto 1983
+          end if
+          if (getfields_nfields.lt.2) then
+             ierr=2
+             goto 1983
+          end if
+          
+          ! actually parse the line
+          
+          ! - acquire r
++if .not.crlibm
+          read (getfields_fields(1)(1:getfields_lfields(1)),*) tmpflt
++ei
++if crlibm
+          tmpflt=round_near(errno,getfields_lfields(1)+1,getfields_fields(1))
+          if (errno.ne.0) call rounderr (errno,getfields_fields,1,tmpflt)
++ei
+          !   check that radial coordinate in profile is increasing
+          if ( tmpflt.lt.rlast ) then
+             ierr=3
+             goto 1983
+          end if
+          elens_radials_m(ifile)=elens_radials_m(ifile)+1
+          if(elens_radials_m(ifile).gt.elens_max_points) then
+             ierr=4
+             goto 1983
+          end if
+          elens_radials_r(elens_radials_m(ifile),ifile)=tmpflt
+          rlast=elens_radials_r(elens_radials_m(ifile),ifile)
+          ! - acquire j
++if .not.crlibm
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) tmpflt
++ei
++if crlibm
+          tmpflt=round_near(errno,getfields_lfields(2)+1,getfields_fields(2))
+          if (errno.ne.0) call rounderr (errno,getfields_fields,2,tmpflt)
++ei
+          elens_radials_i(elens_radials_m(ifile),ifile)=tmpflt
+          ! check first value is 0.0:
+          if(elens_radials_m(ifile).eq.1) then
+             if(elens_radials_i(elens_radials_m(ifile),ifile).ne.zero)then
+                ierr=5
+                goto 1983
+             endif
+          endif
+       end if ! close if for non-comment chars
+    end do
+1982 close(elens_unit)
+    
+    ! echo parsed data
+    write(lout,fmt='(/,A,1X,I4)') ' Radial profile as from file ' &
+          //elens_filename(ifile)//' - #',ifile
+    do ii=1,elens_radials_m(ifile)
+       write(lout,fmt='(1(1X,I4)," : ",2(1PE10.3,1X))') ii, elens_radials_r(ii,ifile), &
+   &         elens_radials_i(ii,ifile)
+    end do
+
+    ! integrate function radially
+    write(lout,*)' integrating profile radially...'
+    do ii=2,elens_radials_m(ifile)
+       rmean=(elens_radials_r(ii,ifile)+elens_radials_r(ii-1,ifile))/two*c1m1 ! from mm to cm
+       dr=(elens_radials_r(ii,ifile)-elens_radials_r(ii-1,ifile))*c1m1        ! from mm to cm
+       elens_radials_i(ii,ifile)=elens_radials_i(ii-1,ifile)+ &
+   &         elens_radials_i(ii,ifile)*two*pi*rmean*dr
+    end do
+
+    ! normalise
+    write(lout,*)' normalising profile...'
+    elens_radials_iTot(ifile)=elens_radials_i(elens_radials_m(ifile),ifile)
+    do ii=1,elens_radials_m(ifile)
+       elens_radials_i(ii,ifile)=elens_radials_i(ii,ifile)/elens_radials_iTot(ifile)
+    end do
+
+    ! echo normalised data
+    write(lout,*) ' Integrated radial profile as after normalisation:'
+    write(lout,fmt='(/,A,1X,1PE10.3,1X,A)') ' - Integrated total current:',elens_radials_iTot(ifile),'A'
+    do ii=1,elens_radials_m(ifile)
+       write(lout,fmt='(1(1X,I4)," : ",2(1PE10.3,1X))') ii, elens_radials_r(ii,ifile), &
+   &         elens_radials_i(ii,ifile)
+    end do
+
+    return
+    
+1983 write(lout,*) 'ERROR ',ierr,' while acquiring radial profile from file '//elens_filename(ifile)
+    call prror(-1)
+    
+  end subroutine elensParseRadialProfile
+   
+
+
+  
+end module elens
  
