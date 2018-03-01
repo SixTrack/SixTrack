@@ -1,87 +1,54 @@
 
 \chapter{Organising Tasks} \label{OrgTask}
 
-In this section the input data blocks are described, which are used to
-organise the input structure.
+In this chapter, the input data blocks are described, which are used to organise the input structure.
 
+% ================================================================================================================================ %
 \section{Random Fluctuation Starting Number} \label{FluNum}
 
-\subparagraph{Description} If besides mean values for the multipole
-errors (Gaussian) random errors should be considered this input data
-structure is used to set the start value for the random generator.
+If besides mean values for the multipole errors (Gaussian) random errors should be considered, this input data structure is used to set the start value for the random generator.
 
-\subparagraph{Keyword} FLUC \subparagraph{Number of data lines} 1
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{FLUC} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & \texttt{izu0 mmac mout mcut} \/(integers)
+\end{tabular}
 
-\subparagraph{Format} {\em izu0 mmac mout mcut} \/(integers)
-\begin{description}
-\item [izu0] Start value for the random number generator
-\item [mmac] {\em \large -- Sorry: disabled for the time being, i.e.\ 
-    mmac is fixed to be 1 --} \/({\small In the vectorised version the
-    number of different starting seeds can be varied.  Each seed is
-    calculated as \mbox{$ k \times izu0 $} where $k$ runs from 1 to
-    {\em mmac} \/which can not exceed 5 to save storage space (see
-    list of parameters in Appendix~\ref{DSP}).})
-\item {\em mout} A binary switch for various purposes, so all options,
-  as described below, can be combined. 
-\begin{itemize}
-\item {\em mout} \/= 0 : multipole errors internally created
-\item {\em mout} \/= 1 : multipole errors read--in from external file
-  
-  External multipole errors are read--in from file 16 into the array
-  of random values. To activate these values one has to set to a value
-  of 1 the relevant r.m.s.--positions of the corresponding multipole
-  blocks (~\ref{MulCoe}). The systematic components are added as usual
-  and multipoles not found in the fort.16 are treated as for ({\em
-    mout} \/= 0 ). An error is only detected if there are too few sets
-  of multipoles in fort.16.
-\item {\em mout} \/= 2: the geometry and strength file is written to
-  file \# 4 in the same format as the input file \# 2; the multipole
-  coefficients are written to file \# 9; name, misalignments and tilt
-  is written to file \# 27 and finally name, random single multipole
-  strength and both random transverse misalignments are written to
-  file \# 31.
-\item {\em mout} \/= 4: Name, horizontal and vertical misalignment and
-  also the element tilt are read--in from file \# 8.
-\item {\em mout} \/= 8: Name and 3 Random numbers for single kick
-  strength and both random transverse misalignments and also the value
-  of the tilt are read--in from file \# 30. 
-\end{itemize}
-\item [mcut] The random distribution can be cut by {\em mcut} \/sigma
-  of the distribution. No cuts are applied for {\em mcut = 0}\/.
-\end{description}
+\paragraph{Format Description}~
 
-\subparagraph{Remarks}
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{izu0} & Start value for the random number generator \\
+    \texttt{mmac} & {\color{notered} Disabled for the time being, i.e.\  \texttt{mmac} is fixed to be 1} \\
+                  & In the vectorised version the number of different starting seeds can be varied. Each seed is calculated as \mbox{$ k \times izu0 $} where $k$ runs from 1 to \texttt{mmac} which can not exceed 5 to save storage space (see    list of parameters in Appendix~\ref{DSP}).) \\
+    \texttt{mout} & A binary switch for various purposes, so all options, as described below, can be combined. \\
+                  & \texttt{mout} = 0 : multipole errors internally created \\
+                  & \texttt{mout} = 1 : multipole errors read--in from external file \\
+                  & External multipole errors are read--in from file 16 into the array of random values. To activate these values one has to set to a value of 1 the relevant RMS--positions of the corresponding multipole blocks (\ref{MulCoe}). The systematic components are added as usual and multipoles not found in the \texttt{fort.16} are treated as for (\texttt{mout} = 0). An error is only detected if there are too few sets of multipoles in \texttt{fort.16}. \\
+                  & \texttt{mout} = 2: the geometry and strength file is written to file \# 4 in the same format as the input file \# 2; the multipole coefficients are written to file \# 9; name, misalignments and tilt is written to file \# 27 and finally name, random single multipole  strength and both random transverse misalignments are written to  file \# 31.\\
+                  & \texttt{mout} = 4: Name, horizontal and vertical misalignment and also the element tilt are read--in from file \# 8.\\
+                  & \texttt{mout} = 8: Name and 3 Random numbers for single kick strength and both random transverse misalignments and also the value of the tilt are read--in from file \# 30. \\
+    \texttt{mcut} & The random distribution can be cut by \texttt{mcut} sigma of the distribution. No cuts are applied for \texttt{mcut = 0}.
+\end{tabular}
+
+\paragraph{Remarks:}
+
 \begin{enumerate}
-\item The RANECU random generator \cite{RANECU} is used as it produces
-  machine independent sequences of random numbers.
-\item If the starting point has to be changed or another nonlinear
-  element is to be inserted, this can be done without changing the
-  once chosen random distribution of errors by using the {\em
-    Organisation of Random Numbers} \/input block.
-\item The description of an accelerator is fully contained in 4 files:
-  fort.2 (geometry), fort.3 (tracking parameters and definition of
-  multipole blocks), fort.16 (multipole errors) and fort.30 (random
-  numbers of the single multipole kick, the horizontal and vertical
-  misalignment and the value of the tilt). This block allows to write
-  out the files \# 4, 9, 27, 31 which may serve as the input files \#
-  2, 16, 8 and 30 respectively. The file fort.30 superseeds fort.8 if
-  both files are read in.
+    \item The RANECU random generator \cite{RANECU} is used as it produces machine independent sequences of random numbers.
+    \item If the starting point has to be changed or another non-linear element is to be inserted, this can be done without changing the once chosen random distribution of errors by using the \textit{Organisation of Random Numbers} input block.
+    \item The description of an accelerator is fully contained in 4 files: \texttt{fort.2} (geometry), \texttt{fort.3} (tracking parameters and definition of multipole blocks), \texttt{fort.16} (multipole errors) and \texttt{fort.30} (random numbers of the single multipole kick, the horizontal and vertical misalignment and the value of the tilt). This block allows to write  out the files \# 4, 9, 27, 31 which may serve as the input files \# 2, 16, 8 and 30 respectively. The file \texttt{fort.30} superseeds fort.8 if both files are read in.
 \end{enumerate}
 
+% ================================================================================================================================ %
 \section{Organisation of Random Numbers} \label{OrgRan}
 
-\subparagraph{Description} Working on a lattice for an accelerator
-often requires to introduce new nonlinear elements. In those cases
-simply introducing this new element means that the previously chosen
-random distribution of the errors will be changed and with it often
-the linear parameters. This input data block is mainly used to avoid
-this problem by reserving extra random numbers for the new elements.
-It also allows to change the observation point without affecting the
-machine. The random values of different nonlinear elements including
-blocks of multipoles can be set to be equal to allow to vary the
-number of nonlinear kicks in one magnet which clearly should have the
-same random distribution for each multipolar kick. Finally multipole
-sets with different name can be made equal with this input data block.
+Working on a lattice for an accelerator often requires to introduce new nonlinear elements.
+In those cases simply introducing this new element means that the previously chosen random distribution of the errors will be changed and with it often the linear parameters.
+This input data block is mainly used to avoid this problem by reserving extra random numbers for the new elements.
+It also allows to change the observation point without affecting the machine.
+The random values of different nonlinear elements including blocks of multipoles can be set to be equal to allow to vary the number of nonlinear kicks in one magnet which clearly should have the same random distribution for each multipolar kick.
+Finally multipole sets with different name can be made equal with this input data block.
 
 \subparagraph{Keyword} ORGA \subparagraph{Number of data lines}
 variable
@@ -121,6 +88,7 @@ in three different ways:
   (~\ref{SinEle}).
 \end{enumerate}
 
+% ================================================================================================================================ %
 \section{Combination of Elements} \label{ComEle}
 
 \subparagraph{Description} It is often necessary to use several

@@ -27,7 +27,7 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & As shown in the table~\ref{T-LinEle} \\
     \texttt{$ \varrho^{-1}$} &  Inverse bending radius in $\mathrm{m}^{-1}$ \\
     \texttt{K} & Focusing strength in $\mathrm{m}^{-2}$ \\
@@ -71,7 +71,7 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & As shown in table~\ref{T-NonEle} \\
     \texttt{$K_{n}$-strength} & Average multipole strength \\
     \texttt{rms-strength} & Random multipole strength \\
@@ -134,7 +134,7 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
     
     \bigskip
     \begin{tabular}{@{}lp{0.8\linewidth}}
-        \texttt{name} & May contain up to 48 characters \\
+        \texttt{name} & May contain up to 47 characters \\
         \texttt{type} & Must be = 11 \\
         \texttt{cstr} & The bending strength given in the \textit{Multipole Coefficient} input block (\ref{MulCoe}) is multiplied with this factor.\\
         \texttt{cref} & The reference radius given in the \textit{Multipole Coefficient} input block (\ref{MulCoe}) will be multiplied by this factor. If it is zero the multipole block will be ignored.\\
@@ -144,7 +144,7 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
     
     \bigskip
     \begin{tabular}{@{}lp{0.8\linewidth}}
-        \texttt{name} & May contain up to 48 characters \\
+        \texttt{name} & May contain up to 47 characters \\
         \texttt{type} & Must be = 11 \\
         \texttt{cstr} & The bending strength [rad] of horizontal or vertical dipole. Internally the value is set to one to allow the processing of a multipole block (\ref{MulCoe}).\\
         \texttt{cref} & The length [m] of the dipole that is approximated by a kick. Internally this value is set to one to allow the processing of a multipole block (\ref{MulCoe}). \\
@@ -163,7 +163,7 @@ The definition of the multipole strength in a block will be given in (\ref{MulCo
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & Type identifier is $+12$ and $-12$ for above and below transition energy respectively. \\
     \texttt{u0}   & Circumference voltage in [MV] \\
     \texttt{harm} & Harmonic number \\
@@ -184,7 +184,7 @@ In this case, only the element name and type and the location within the lattice
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & 20 \\
     \texttt{}     & The rest of the parameters are ignored and should be set to zero.
 \end{tabular}
@@ -197,7 +197,7 @@ The ``traditional'' format is used.
 
 \bigskip
 \begin{tabular}{@{}lp{0.7\linewidth}}
-    \texttt{name}  & May contain up to 48 characters \\
+    \texttt{name}  & May contain up to 47 characters \\
     \texttt{type}  & 20 \\
     \texttt{h-sep} & Horizontal beam--beam separation [mm] \\
     \texttt{v-sep} & Vertical beam--beam separation [mm] \\
@@ -217,7 +217,7 @@ These beam--beam elements become active when the ``Beam--Beam'' input block~\ref
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & 15
 \end{tabular}
 
@@ -232,7 +232,7 @@ All parameters except name and type have to be set to zero, otherwise SixTrack a
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & 22
 \end{tabular}
 
@@ -246,7 +246,7 @@ These ``trombone'' elements become active when the ``Phase Trombone Element'' in
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & Type identifier is $+16$ and $-16$ for horizontal and vertical AC dipoles respectively \\
     \texttt{ACdipAmp} & Maximum excitation amplitude [Tm] \\
     \texttt{Qd}   & Excitation frequency in units of [$2 \times \pi$] \\
@@ -263,7 +263,7 @@ The length of the ramps and the flat top are specified in the ``Displacement'' b
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & 24 \\
     \texttt{$r_{21}$} & Horizontal edge focusing \\
     \texttt{$r_{43}$} & Vertical edge focusing
@@ -301,7 +301,7 @@ The following equations describe their relation:
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters. \\
+    \texttt{name} & May contain up to 47 characters. \\
     \texttt{type} & Type identifier is $+23$ and $-23$ for horizontal and vertical crab cavities respectively. \\
     \texttt{voltage} & Crab Cavity voltage [MV]. \\
     \texttt{frequency} & Crab Cavity frequency [MHz]. \\
@@ -342,7 +342,7 @@ Provides a kick in the form of
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters. \\
+    \texttt{name} & May contain up to 47 characters. \\
     \texttt{type} & 26: normal quadrupole, -26 skew quadrupole, \\
                   & 27: normal sextupole, -27 skew sextupole, \\
                   & 28: normal octupole, -28 skew octupole \\
@@ -406,7 +406,7 @@ So in order for this paper's~\cite{RFmultsPaper} analytical equations to be comp
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & 29
 \end{tabular}
 
@@ -422,7 +422,7 @@ The parameters for the e-lens are defined in the ELEN input block.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 48 characters \\
+    \texttt{name} & May contain up to 47 characters \\
     \texttt{type} & 40
 \end{tabular}
 
@@ -472,7 +472,7 @@ In four--dimensional transverse tracking, the linear elements between non-linear
 \begin{tabular}{@{}lp{0.75\linewidth}}
     \texttt{mper} & Number of super periods. The following set of blocks is considered a \texttt{super-period}. The accelerator consists of \texttt{mper} super--periods. \\
     \texttt{msym(i)} & $\pm$ 1 for each super--period. If $\mathrm{msym}(i)=1$, the \mbox{$i$'th} super--period will be built up in the order in which linear elements appear in the blocks  below. If $\mathrm{msym}(i)=-1$, the super--period will be built up in reverse order. \\
-    \texttt{block-name} & The name of the block with up to 48 characters. \\
+    \texttt{block-name} & The name of the block with up to 47 characters. \\
     \texttt{element-name} & The element names have to appear as a linear element in the list of ``single elements'' (\ref{LinEle}). If one line is too short to contain all the elements of a block, a line with additional elements to the same block can be added. At least 5 (five) blanks must appear at the beginning of the extra line so that names of blocks and names of linear elements in a block can be distinguished.
 \end{tabular}
 
@@ -536,7 +536,7 @@ To simulate a measured closed orbit at the position of non-linear elements, it i
 
 \bigskip
 \begin{tabular}{@{}lp{0.80\linewidth}}
-    \texttt{name}   & May contain up to 48 characters \\
+    \texttt{name}   & May contain up to 47 characters \\
     \texttt{nfree}  & Number of turns free of excitation at the beginning of the run. \\
     \texttt{nramp1} & Number of turns to ramp up the excitation amplitude from 0 to \texttt{ACdipAmp}. \\
     \texttt{nplato} & Number of turns of constant excitation amplitude. \\
