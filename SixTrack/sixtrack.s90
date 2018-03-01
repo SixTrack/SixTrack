@@ -16355,11 +16355,25 @@ end subroutine hamilton1
 +ei
             end if
 
+            ! parse the file with Chebyshev coefficients
+            if ( cheby_maxOrder(icheby_table(icheby(j))).eq.0 ) then
+               ! file has not been parsed yet
+               inquire( file=cheby_filename(icheby_table(icheby(j))), exist=tmpl )
+               if ( .not. tmpl ) then
+                  write(lout,*) "ERROR: CHEBY problem with file with "//&
+     &"coefficients for Chebyshev polynominals:",cheby_filename(icheby_table(icheby(j)))
+                  call prror(-1)
+               endif
+               call parseChebyFile(icheby_table(icheby(j)))
+            end if
+
             ! print a summary of parameters
-            write(lout,fmt='((/,/,A),2(/,A,A),3(/,A,1PE10.3,A))')       &
+            write(lout,                                                 &
+     &fmt='((/,/,A),2(/,A,A),(/,A,A,A,I3),3(/,A,1PE10.3,A))')           &
      &'CHEBY lens found in list of single elements with: ',             &
      &'name     = ',bez(j),                                             &
      &'file     = ',cheby_filename(icheby_table(icheby(j))),            &
+     &'max order= ',cheby_maxOrder(icheby_table(icheby(j))),            &
      &'angle    = ',cheby_angle(icheby(j))/pi*c180e0,' deg',            &
      &'offset_x = ',cheby_offset_x(icheby(j)),' mm',                    &
      &'offset_y = ',cheby_offset_y(icheby(j)),' mm'
@@ -17011,19 +17025,6 @@ end subroutine hamilton1
       !Check that the number of particles is OK
       if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
 +ei
-!     A.Mereghetti (CERN, BE-ABP-HSS)
-!     last modified: 28-02-2018
-!     finalise set up of Chebyshev lenses: parse files with coefficients
-      do tmpi1=1,mcheby_tables
-         inquire( file=cheby_filename(tmpi1), exist=tmpl )
-         if ( .not. tmpl ) then
-            write(lout,*) "ERROR: CHEBY problems with file with "//&
-     &"coefficients for Chebyshev polynominals:",cheby_filename(tmpi1)
-            call prror(-1)
-         endif
-         call parseChebyFile(tmpi1)
-      end do
-      
       
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
