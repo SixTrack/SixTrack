@@ -10605,7 +10605,7 @@ end subroutine hamilton1
       logical tmpl
       character(len=nchars) tmpch
       integer tmpi1,tmpi2,tmpi3
-      real(kind=fPrec) tmpflt
+      real(kind=fPrec) tmpflt, lininterp
 
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
@@ -16117,11 +16117,11 @@ end subroutine hamilton1
                ! new radial profile to be acquired:
                melens_radials=melens_radials+1
                if(melens_radials.gt.nelens_radials) then
-                  write(lout,*) "ERROR in ELEN block: Too many radial profiles: "//&
+                  write(lout,*) "ERROR in ELEN block: Too many radial profiles: ",&
      &melens_radials," - max:",nelens_radials
                   call prror(-1)
                end if
-               elens_iradial(elens(j))=melens_radials
+               elens_iradial(ielens(j))=melens_radials
 1971           continue
                elens_filename(elens_iradial(ielens(j)))=tmpch
             end if
@@ -16208,8 +16208,8 @@ end subroutine hamilton1
                   call elensParseRadialProfile(elens_iradial(ielens(j)))
                   if (elens_r1(ielens(j)).lt.elens_radials_r(1,elens_iradial(ielens(j)))) &
      &                elens_r1(ielens(j))=elens_radials_r(1,elens_iradial(ielens(j)))
-                  if (elens_r2(ielens(j)).gt.elens_radials_r(elens_radials_m(elens_iradial(ielens(j))))) &
-     &                elens_r2(ielens(j))=elens_radials_r(elens_radials_m(elens_iradial(ielens(j))))
+                  if (elens_r2(ielens(j)).gt.elens_radials_r(elens_radials_m(elens_iradial(ielens(j))),elens_iradial(ielens(j)))) &
+     &                elens_r2(ielens(j))=elens_radials_r(elens_radials_m(elens_iradial(ielens(j))),elens_iradial(ielens(j)))
                end if
             end if
 
@@ -16224,17 +16224,17 @@ end subroutine hamilton1
       &                                 -exp_mb(-0.5*(elens_r2(ielens(j))/elens_sig(ielens(j)))**2)
             elseif (elens_type(ielens(j)).eq.3) then
 !              Radial distribution from file
-               elens_geo_norm(ielens(j))=&
-      & lininterp( elens_r2(ielens(j)),
-      &           elens_radials_r(1:elens_radials_m(elens_iradial(ielens(j)))), &
-      &           elens_radials_i(1:elens_radials_m(elens_iradial(ielens(j)))), &
-      &           elens_radials_m(elens_iradial(ielens(j))))-                   &
-      & lininterp( elens_r1(ielens(j)),
-      &           elens_radials_r(1:elens_radials_m(elens_iradial(ielens(j)))), &
-      &           elens_radials_i(1:elens_radials_m(elens_iradial(ielens(j)))), &
+               elens_geo_norm(ielens(j))=                                                                &
+      & lininterp( elens_r2(ielens(j)),                                                                  &
+      &           elens_radials_r(1:elens_radials_m(elens_iradial(ielens(j))),elens_iradial(ielens(j))), &
+      &           elens_radials_i(1:elens_radials_m(elens_iradial(ielens(j))),elens_iradial(ielens(j))), &
+      &           elens_radials_m(elens_iradial(ielens(j))))-                                            &
+      & lininterp( elens_r1(ielens(j)),                                                                  &
+      &           elens_radials_r(1:elens_radials_m(elens_iradial(ielens(j))),elens_iradial(ielens(j))), &
+      &           elens_radials_i(1:elens_radials_m(elens_iradial(ielens(j))),elens_iradial(ielens(j))), &
       &           elens_radials_m(elens_iradial(ielens(j))))
                if (elens_geo_norm(ielens(j)).le.zero) then
-                  write(lour,*)'ELENS error in geo_norm: .lt.zero!'
+                  write(lout,*)'ELENS error in geo_norm: .lt.zero!'
                   call prror(-1)
                end if
                if (elens_I(ielens(j)).eq.zero) then
@@ -43374,6 +43374,7 @@ end subroutine subsea
       ! =================================================================================== !
       real(kind=fPrec) function lininterp(x,xvals,yvals,datalen)
 
+        use floatPrecision
         use crcoall
         implicit none
 

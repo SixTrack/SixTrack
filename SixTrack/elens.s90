@@ -37,9 +37,9 @@ module elens
   integer, parameter     :: elens_max_points=500      ! max number of points in radial profiles
   integer, parameter     :: elens_lFileName=16        ! length of filenames
   character(len=elens_lFileName), save :: elens_filename(nelens_radials)  ! file names
-  real(kind=fPrec), save :: elens_radials_r(elens_max_points,nelens_radials),! profile: r [mm]
- &                          elens_radials_i(elens_max_points,nelens_radials),! profile: f []
- &                          elens_radials_iTot(nelens_radials)               ! total current in profile [A]
+  real(kind=fPrec), save :: elens_radials_r(elens_max_points,nelens_radials), & ! profile: r [mm]
+ &                          elens_radials_i(elens_max_points,nelens_radials), & ! profile: f []
+ &                          elens_radials_iTot(nelens_radials)                  ! total current in profile [A]
   integer, save          :: elens_radials_m(nelens_radials)   ! number of points in profile
 
 
@@ -60,7 +60,7 @@ contains
     use physical_constants
 +ca commonm1
         
-    real(kind=fPrec) :: xx, yy, rr, frr
+    real(kind=fPrec) :: xx, yy, rr, frr, lininterp
     integer          :: j, jelens
         
     do j=1,napx
@@ -93,8 +93,8 @@ contains
                        elens_geo_norm(jelens)
              case (3)   
                 ! RADIAL: eLens with radial profile from txt file
-                frr=-lininterp( rr, elens_radials_r(1:elens_radials_m(elens_iradial(jelens))), &
-      &                             elens_radials_i(1:elens_radials_m(elens_iradial(jelens))), &
+                frr=-lininterp( rr, elens_radials_r(1:elens_radials_m(elens_iradial(jelens)),elens_iradial(jelens)), &
+      &                             elens_radials_i(1:elens_radials_m(elens_iradial(jelens)),elens_iradial(jelens)), &
       &                             elens_radials_m(elens_iradial(jelens)))/elens_geo_norm(jelens)
              end select
           else ! r1 < r2 <= rr
@@ -155,8 +155,9 @@ contains
           elens_radials_i(j,i)=zero
        end do
        elens_radials_m(i)=0
+       elens_radials_iTot(i)=zero
     end do
-       
+
     return
   end subroutine elens_comnul
   

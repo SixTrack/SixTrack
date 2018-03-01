@@ -2691,7 +2691,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     real(kind=fPrec) round_near
 +ei
 
-
+    ! to call lininterp
+    real(kind=fPrec) lininterp
 
     ! Temporaries for FILELIN
     integer filelin_start, filelin_xypoints
