@@ -20,7 +20,7 @@ If besides mean values for the multipole errors (Gaussian) random errors should 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \texttt{izu0} & Start value for the random number generator \\
-    \texttt{mmac} & {\color{notered} Disabled for the time being, i.e.\  \texttt{mmac} is fixed to be 1} \\
+    \texttt{mmac} & {\color{notered} Disabled for the time being, i.e. \texttt{mmac} is fixed to be 1} \\
                   & In the vectorised version the number of different starting seeds can be varied. Each seed is calculated as \mbox{$ k \times izu0 $} where $k$ runs from 1 to \texttt{mmac} which can not exceed 5 to save storage space (see    list of parameters in Appendix~\ref{DSP}).) \\
     \texttt{mout} & A binary switch for various purposes, so all options, as described below, can be combined. \\
                   & \texttt{mout} = 0 : multipole errors internally created \\
@@ -50,65 +50,58 @@ It also allows to change the observation point without affecting the machine.
 The random values of different nonlinear elements including blocks of multipoles can be set to be equal to allow to vary the number of nonlinear kicks in one magnet which clearly should have the same random distribution for each multipolar kick.
 Finally multipole sets with different name can be made equal with this input data block.
 
-\subparagraph{Keyword} ORGA \subparagraph{Number of data lines}
-variable
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{ORGA} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & \texttt{ele1 ele2 ele3} \\
+                        & The data lines can be set in three different ways described below
+\end{tabular}
 
-\subparagraph{Format} {\em ele1 ele2 ele3} \/The data lines can be set
-in three different ways:
-\begin{enumerate}
-\item Ele1 = ``name'' where name $\ne$ MULT \\
-  Ele2 = ignored \\
-  Ele3 = ignored \\
-  The nonlinear element or multipole set will have its own set of
-  random numbers.
-\item Ele1 = ``name1'' where name1 $\ne$ MULT \\
-  Ele2 = ``name2'' \\
-  Ele3 = ignored \\
-  The nonlinear element or multipole block Ele1 has the same random
-  number set as those of Ele2, if it follows Ele2 as the first
-  nonlinear element in the structure list (~\ref{StrInp}).
-\item Ele1 = ``MULT'' \\
-  Ele2 = ``name2'' \\
-  Ele3 = ``name3'' \\
-  The multipole set ``name3'' is set to the values of the set
-  ``name2''. random errors are not influenced in this case.
-\end{enumerate}
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    Method 1 & \texttt{Ele1} = ``name'' where name $\ne$ \texttt{MULT} \\
+             & \texttt{Ele2} = ignored  \\
+             & \texttt{Ele3} = ignored  \\
+             & The nonlinear element or multipole set will have its own set of random numbers. \\
+    Method 2 & \texttt{Ele1} = ``name1'' where name1 $\ne$ \texttt{MULT} \\
+             & \texttt{Ele2} = ``name2'' \\
+             & \texttt{Ele3} = ignored \\
+             & The nonlinear element or multipole block \texttt{Ele1} has the same random number set as those of \texttt{Ele2}, if it follows \texttt{Ele2} as the first non-linear element in the structure list (~\ref{StrInp}). \\
+    Method 3 & \texttt{Ele1} = \texttt{MULT} \\
+             & \texttt{Ele2} = ``name2'' \\
+             & \texttt{Ele3} = ``name3'' \\
+             & The multipole set ``name3'' is set to the values of the set ``name2''. random errors are not influenced in this case.
+\end{tabular}
 
-\subparagraph{Remarks}
+\paragraph{Remarks:}~
+
 \begin{enumerate}
-\item A simple change of the starting point, by placing a ``GO''
-  somewhere in structure, used to change the machine optics as the
-  random numbers were shifted, too.  Simply calling this block even
-  without a data line, will always fix the sequence of random numbers
-  to start at the first multipole in the structure.
-\item This input data block must follow the definition of the
-  multipole block, otherwise multipoles cannot be set equal (option
-  3).
-\item Do not use the keyword ``MULT'' in the single element list
-  (~\ref{SinEle}).
+    \item A simple change of the starting point, by placing a ``GO'' somewhere in structure, used to change the machine optics as the random numbers were shifted, too. Simply calling this block even without a data line, will always fix the sequence of random numbers to start at the first multipole in the structure.
+    \item This input data block must follow the definition of the multipole block, otherwise multipoles cannot be set equal (option 3).
+    \item Do not use the keyword \texttt{MULT} in the single element list (\ref{SinEle}).
 \end{enumerate}
 
 % ================================================================================================================================ %
 \section{Combination of Elements} \label{ComEle}
 
-\subparagraph{Description} It is often necessary to use several
-families of magnetic elements with a certain ratio $ R $ of magnetic
-strength to perform corrections like tune adjustment (~\ref{TunVar}),
-chromaticity correction (~\ref{ChrCor}) or resonance compensation
-(~\ref{ResCom}).  The {\em Combination of Elements} \/input block
-allows such a combination of elements.  The maximum number of elements
-is defined by the parameter NCOM (see Appendix~\ref{DSP}).
+It is often necessary to use several families of magnetic elements with a certain ratio $R$ of magnetic strength to perform corrections like tune adjustment (\ref{TunVar}), chromaticity correction (\ref{ChrCor}) or resonance compensation (\ref{ResCom}).
+The \textit{Combination of Elements} input block allows such a combination of elements.
+The maximum number of elements is defined by the parameter \texttt{NCOM} (see Appendix~\ref{DSP}).
 
-\subparagraph{Keyword} COMB \subparagraph{Number of data lines}
-variable
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{COMB} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & \texttt{e0 R1 e1 \dots~Rn en}
+\end{tabular}
 
-\subparagraph{Format} {\em e0 R1 e1 \dots Rn en}
+\paragraph{Format Description}~
 
-\begin{description}
-\item [e0] Reference element which appears in the input of the
-  processing procedure
-\item [e1, \dots, en] Elements to be combined with {\em e0}
-\item [Rj] Ratio of the magnetic strength of element {\em ej} \/to
-  that of element {\em e0}
-\end{description}
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{e0} & Reference element which appears in the input of the processing procedure \\
+    \texttt{e1, \dots, en} & Elements to be combined with \texttt{e0} \\
+    \texttt{Rj} & Ratio of the magnetic strength of element \texttt{ej} to that of element \texttt{e0}
+\end{tabular}
 
