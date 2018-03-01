@@ -80,18 +80,22 @@ contains
        if (rr.gt.elens_r1(jelens)) then ! rr <= r1 -> no kick from elens
           if (rr.lt.elens_r2(jelens)) then ! r1 < rr < r2
              select case (elens_type(jelens))
+             ! NB: take into account negative charge!
              case (1)
                 ! UNIFORM: eLens with uniform profile
                 ! formula: (r^2-r1^2)/(r2^2-r1^2)
-                ! NB: take into account negative charge!
                 frr=-( (rr+elens_r1(jelens))*(rr-elens_r1(jelens)) )/elens_geo_norm(jelens)
              case (2)
                 ! GAUSSIAN: eLens with Gaussian profile
                 ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
-                ! NB: take into account negative charge!
                 frr=-( exp_mb(-0.5*(elens_r1(jelens)/elens_sig(jelens))**2)    &
                       -exp_mb(-0.5*(rr              /elens_sig(jelens))**2) )/ &
                        elens_geo_norm(jelens)
+             case (3)   
+                ! RADIAL: eLens with radial profile from txt file
+                frr=-lininterp( rr, elens_radials_r(1:elens_radials_m(elens_iradial(jelens))), &
+      &                             elens_radials_i(1:elens_radials_m(elens_iradial(jelens))), &
+      &                             elens_radials_m(elens_iradial(jelens)))/elens_geo_norm(jelens)
              end select
           else ! r1 < r2 <= rr
              frr=one
@@ -321,7 +325,5 @@ contains
   end subroutine elensParseRadialProfile
    
 
-
-  
 end module elens
  
