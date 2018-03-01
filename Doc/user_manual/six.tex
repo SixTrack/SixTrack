@@ -26,7 +26,8 @@
 \usepackage{fancyvrb}
 
 % Colours
-\definecolor{cverbbg}{gray}{0.93}
+\definecolor{cverbbg}{gray}{0.95}
+\definecolor{cverbbd}{gray}{0.35}
 \definecolor{notered}{rgb}{0.70,0.0,0.0}
 \definecolor{linkred}{rgb}{0.70,0.1,0.0}
 
@@ -40,8 +41,9 @@
 \newenvironment{cverbatim}
  {\SaveVerbatim{cverb}}
  {\endSaveVerbatim
-  \scriptsize\flushleft\fboxrule=0pt\fboxsep=.5em
-  \colorbox{cverbbg}{\BUseVerbatim{cverb}}%
+  \scriptsize\flushleft\addtolength{\leftskip}{5mm}
+  \fboxrule=0.4pt\fboxsep=0.6em
+  \fcolorbox{cverbbd}{cverbbg}{\BUseVerbatim{cverb}}%
   \endflushleft\normalsize
 }
 \newenvironment{description_alligned}[1]

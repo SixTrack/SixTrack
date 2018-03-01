@@ -221,6 +221,7 @@ Function names have a maximum length of 20 characters.
     
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Filters} \\*
+    \hline
     
     \texttt{FIR} & \texttt{\makecell[tl]{N[int]\\filename[string]\\baseFun[string]}} &
     Applies a Finite Impulse Response (FIR) filter of order v{N} to the function \texttt{baseFun}.
@@ -244,7 +245,8 @@ Function names have a maximum length of 20 characters.
     
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{2-operand operators} \\*
-
+    \hline
+    
     \texttt{ADD} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} &
     Evaluate the functions referenced by \texttt{function-name-1} and \texttt{function-name-2}, and return the sum of the results.\\*
     \hline
@@ -267,7 +269,8 @@ Function names have a maximum length of 20 characters.
     
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{1-operand operators} \\*
-
+    \hline
+    
     \texttt{MINUS} & \texttt{function-name} &
     Returns the value of the named function, with the opposite sign. \\*
     \hline
@@ -298,7 +301,8 @@ Function names have a maximum length of 20 characters.
     
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Polynomial and elliptical functions} \\*
-
+    \hline
+    
     \texttt{CONST} & \texttt{value[real]} & 
     Always returns the value specified.\\*
     \hline
@@ -327,7 +331,8 @@ Function names have a maximum length of 20 characters.
     
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Trancendental functions} \\*
-
+    \hline
+    
     \texttt{SINF} & \texttt{\makecell[tl]{A[real]\\omega[real]\\phi[real]}} & 
     Computes $y(t) = A\sin\left(\omega t + \phi\right)$.\\*
     \hline
@@ -343,7 +348,8 @@ Function names have a maximum length of 20 characters.
     
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Specialized functions} \\*
-
+    \hline
+    
     \texttt{PELP} & \texttt{\makecell[tl]{tinj[real]\\Iinj[real]\\Inom[real]\\A[real]\\D[real]\\R[real]\\te[real]}} & 
     This function describes a patched ``Parabolic-Exponential-Linear-Parabolic'' function, as used for ramping the LHC dipoles and described in~\cite[Appendix C]{SRussen:fieldComp} and~\cite{BurlaKing:CurrentRamp}. 
     The parameters are:
@@ -402,7 +408,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
 \caption{Element types and attributes available in DYNK.}
 \label{tab:DYNK_SET} %\\*
-\begin{tabular}{|l | l l p{6cm}|}
+\begin{tabular}{|l | l | l | p{6cm}|}
 
   \hline
   \rowcolor{blue!30}
@@ -445,8 +451,8 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   \hline
     \multirow{3}{*}{\parbox{4cm}{Scattering \\ (40),\\ Section~\ref{sec:scatter}} }
     & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter}, paragraph about ELEM command.\\
-    &      &       &  \\
-    &      &       &  \\
+    % &      &       &  \\
+    % &      &       &  \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{\texttt{GLOBAL-VARS} \\ Not a real element,\\ changes global variable}}
     & \texttt{E0}     & MeV      & Reference energy of synchronous particle \\
@@ -459,37 +465,49 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
 \end{center}
 \end{table}
 
-\subparagraph{NOFILE}
-The presence of this statement in a DYNK block switches off the normal writing of the output file ``dynksets.dat'' in every line, instead producing a file only containing the message ``\#\#\# DYNK file output was disabled with flag NOFILE in fort.3 \#\#\#''.
+\subsection{Additional Flags}
+
+\paragraph{Flag:} \texttt{NOFILE}\\
+
+The presence of this statement in a \texttt{DYNK} block switches off the normal writing of the output file \texttt{dynksets.dat} in every line, instead producing a file only containing the message
+\begin{cverbatim}
+### DYNK file output was disabled with flag NOFILE in fort.3 ### 
+\end{cverbatim}
 This can be useful to save disk space in very long simulations.
 
-\subparagraph{DEBU}
-This statement switches on extra ``debugging'' output from DYNK.
+\paragraph{Flag:} \texttt{DEBU}
+
+This statement switches on extra ``debugging'' output from \texttt{DYNK}.
 This can be useful if debugging the code or if debugging the input.
 
-\paragraph{Output file \emph{dynksets.dat}}
-When a DYNK block is present in the input file, a file ``dynksets.dat'' is created and in the current working directory.
-Unless a \emph{NOFILE} statement is present, this file contains first a header ``\# turn element attribute SETidx funname value'', followed by rows of data in the format specified in the header.
-This data is written for all element/attribute combinations and in all turns, wether a SET is active for this element/attribute in this turn or not.
-If no \emph{SET} is active when the line is written out, the \emph{SETidx} is written as -1, and the \emph{funname} is ``N/A''.
-If a SET is active when the line is written out, the \emph{SETidx} is the index of the currently active \emph{SET} statement, where the first statement occuring in fort.3 has index 1 etc.
-Similarly, the \emph{funname} is the name referencing the currently active \emph{FUN} statement.
+\subsection{Output File \texttt{dynksets.dat}}
 
-\paragraph{Examples}
+When a \texttt{DYNK} block is present in the input file, a file \texttt{dynksets.dat} is created and in the current working directory.
+Unless a \texttt{NOFILE} statement is present, this file contains first a header 
+\begin{cverbatim}
+# turn element attribute SETidx funname value
+\end{cverbatim}
+followed by rows of data in the format specified in the header.
+This data is written for all element/attribute combinations and in all turns, wether a \texttt{SET} is active for this element/attribute in this turn or not.
+If no \texttt{SET} is active when the line is written out, the \texttt{SETidx} is written as $-1$, and the \texttt{funname} is ``N/A''.
+If a \texttt{SET} is active when the line is written out, the \texttt{SETidx} is the index of the currently active \texttt{SET} statement, where the first statement occuring in \texttt{fort.3} has index 1, etc.
+Similarly, the \texttt{funname} is the name referencing the currently active \texttt{FUN} statement.
 
-\subparagraph{Replacement of RIPP block}
-One use of the DYNK block is to replace the functionality of the RIPP block (Section~\ref{PowRip}).
-The FUN type COSF\_RIPP is provided for exactly this purpose, and provides an exact replacement.
-As an example, the RIPP block in the SixTest test-case prob1 looks like (slightly reduced in size):
-\begin{verbatim}
+\subsection{DYNK Examples}
+
+\paragraph{Replacement of \texttt{RIPP} block}~\\
+One use of the \texttt{DYNK} block is to replace the functionality of the \texttt{RIPP} block (Section~\ref{PowRip}).
+The \texttt{FUN} type \texttt{COSF\_RIPP} is provided for exactly this purpose, and provides an exact replacement.
+As an example, the \texttt{RIPP} block in the SixTest test-case prob1 looks like (slightly reduced in size):
+\begin{cverbatim}
 RIPPLE OF POWER SUPPLIES------------------------------------------------
          dmqx1f50l5+2      3.2315D-10    224.9
          dmqx2af50l5+2    -3.2315D-10    224.9
          dmqx1f10mel5+2    2.5246D-16    0.0011245
 NEXT
-\end{verbatim}
+\end{cverbatim}
 This can be replaced by the following:
-\begin{verbatim}
+\begin{cverbatim}
 DYNK
 NOFILE
 FUN RIPP-dmqx1f50l5+2 COSF_RIPP 3.2315D-10 224.9 0.0
@@ -499,19 +517,19 @@ SET dmqx2af50l5+2 average_ms RIPP-dmqx2af50l5+2 1 -1 0
 FUN RIPP-dmqx1f20kl5+2 COSF_RIPP 2.5246D-12 0.56225 0.0
 SET dmqx1f20kl5+2 average_ms RIPP-dmqx1f20kl5+2 1 -1 0
 NEXT
-\end{verbatim}
-Here, each RIPP data line is replaced with two lines, one FUN statement for generating the function, and one SET statement for applying the value.
-Note that the SET statements have an end-time ``-1'', meaning it is used untill the end of the simulation.
-Also note the precense of the NOFILE flag, which is used to not generate a potentially very large (for very long simulations) dynkfile.dat output file.
+\end{cverbatim}
+Here, each \texttt{RIPP} data line is replaced with two lines, one FUN statement for generating the function, and one \texttt{SET} statement for applying the value.
+Note that the \texttt{SET} statements have an end-time \texttt{-1}, meaning it is used until the end of the simulation.
+Also note the precense of the \texttt{NOFILE} flag, which is used to not generate a potentially very large (for very long simulations) \texttt{dynkfile.dat} output file.
 
-\subparagraph{Starting tracking inside a bump}
+\paragraph{Starting tracking inside a bump}~\\
 
 This example was taken from the paper~\cite{DYNKpaper}, and demonstrates how a bump can be temporarilly disabled if the starting point of the tracking is inside of it.
 The reason for doing this is removing the neccessity of generating a starting distribution with the bump already applied.
 Here, the HL-LHC v1.1 lattice is used, with vertical crab cavities around the first interaction point (IP1, ATLAS), which is also the point where the tracking is started.
 The crab cavities opening the bump are called CRAB\_IP1\_L1$\cdots$4, while the closing cavities are CRAB\_IP1\_R1$\cdots$4.
-The DYNK block for this looks like:
-\begin{verbatim}
+The \texttt{DYNK} block for this looks like:
+\begin{cverbatim}
 DYNK
 FUN zero CONST 0.0
 FUN CV_1R1 Get CRAB_IP1_R1 voltage
@@ -527,23 +545,23 @@ SET CRAB_IP1_R2 voltage CV_1R2 2 2 0
 SET CRAB_IP1_R3 voltage CV_1R3 2 2 0
 SET CRAB_IP1_R4 voltage CV_1R4 2 2 0
 NEXT
-\end{verbatim}
+\end{cverbatim}
 
-Here, the function ``zero'' is defined such that it always returns 0.0, and is used to switch off the closing cavities in the first turn, i.e. when the beam exits the bump.
+Here, the function \texttt{zero} is defined such that it always returns $0.0$, and is used to switch off the closing cavities in the first turn, i.e. when the beam exits the bump.
 Further, the functions CV\_1R1$\cdots$1R4 and CV\_1L are used to store the original value of the voltages, without having to explicitly enter them into the DYNK block.
 
-The SET statements then first sets the voltage of all the cavities to zero in turn 1, and then in turn 2 sets it to their respective ``switched on'' voltages.
-The SET statements end after turn 2, but the last values are retained.
+The \texttt{SET} statements then first sets the voltage of all the cavities to zero in turn 1, and then in turn 2 sets it to their respective ``switched on'' voltages.
+The \texttt{SET} statements end after turn 2, but the last values are retained.
 
 This means that when the simulation starts with the bunch in IP1, it exits the bump without any kicks from the closing crab cavities.
 It then comes around (still in turn 1), and encountered the switched-on opening cavities CRAB\_IP1\_L1$\cdots$4, which crabs the beam.
 After passing through IP1, the turn counter is increased from 1 to 2, triggering the SET statements to switch on the closing cavities CRAB\_IP1\_R1$\cdots$4 as well.
 
-\subparagraph{Ramp and exponential decay of crab voltage, combined with a linear drift of crab phase}
+\paragraph{Ramp and exponential decay of crab voltage, combined with a linear drift of crab phase}~\\
 \begin{figure}
   \centering
   \includegraphics{figures/fail_voltagePhase2v2}
-  \caption{Singals generate by DYNK example for ramp + exponential decay of crab voltage, and also linear drift of crab phase. Only the signals for CRAB\_IP1\_L1 are shown. The plot is made from the data in dynksets.dat.}
+  \caption{Singals generate by \texttt{DYNK} example for ramp + exponential decay of crab voltage, and also linear drift of crab phase. Only the signals for CRAB\_IP1\_L1 are shown. The plot is made from the data in \texttt{dynksets.dat}.}
   \label{fig:DYNK_fail}
 \end{figure}
 
@@ -551,7 +569,7 @@ This slightly more complicated example builds on the example given above.
 It shows how to change two parameters (voltage and phase) of several objects.
 It also demonstrates how functions can be chained together, making more complicated functions.
 Some of the resulting functions are shown in Figure~\ref{fig:DYNK_fail}, and the DYNK block here looks like:
-\begin{verbatim}
+\begin{cverbatim}
 DYNK
 /DEBUG
 FUN zero CONST 0.0
@@ -598,35 +616,39 @@ SET CRAB_IP1_L2 phase phasedrift 70 100 -70
 SET CRAB_IP1_L3 phase phasedrift 70 100 -70
 SET CRAB_IP1_L4 phase phasedrift 70 100 -70
 NEXT
-\end{verbatim}
+\end{cverbatim}
 The first functions defined here are the same as above, storing the default values (as defined in the single element list) for the relevant elements and also zero.
-Then follows a normalized linear ramp function ``ramp'', with gradient 0.02 = 1/50.
+Then follows a normalized linear ramp function ``ramp'', with gradient $0.02 = 1/50$.
 This is then used by the ``specialized'' ramp functions ``ramp\_R1$\cdots$R4'', which scales ``ramp'' so that the end point is the standard voltages for $t\in 0\ldots50$.
 
-These functions are used to first set the crabs to 0.0 for the first 9 revolutions, and in the 10th revolution the ramp starts.
-As the ``ramp'' function is defined starting at turn 0, a shift -10 or -11 is applied to the ramps.
-The ramp is switched off after turn 60/61, leaving the crabs to be operating at the last SET value.
+These functions are used to first set the crabs to $0.0$ for the first $9$ revolutions, and in the 10th revolution the ramp starts.
+As the ``ramp'' function is defined starting at turn $0$, a shift $-10$ or $-11$ is applied to the ramps.
+The ramp is switched off after turn 60/61, leaving the crabs to be operating at the last \texttt{SET} value.
 
 Further, we want to demonstrate a failure in the crab voltage.
 This is done using an exponential decaying function $V(t) = V_0 \exp\left(-0.05 t\right)$, which is implemented as three chained functions:
-\begin{description_alligned}{decayScaled}
-\item[expCore] $f(t) = -0.05 t + 0.0$
-\item[decay] $g(t) = \exp(f(t)) = \exp(-0.05 t + 0.0)$
-\item[decayScaled] $h(t) = V_0 \cdot g(f(t)) = V_0 \cdot \exp(f(t)) = \exp(-0.05 t + 0.0)$
-\end{description_alligned}
-For the SET, the time $t$ is then shifted by -70 turns, so that the functions are evaluated starting at t=0.
 
-\subparagraph{Detuning a cavity (accelerating or crab)}~\\
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{expCore}     & $f(t) = -0.05 t + 0.0$ \\
+    \textbf{decay}       & $g(t) = \exp(f(t)) = \exp(-0.05 t + 0.0)$ \\
+    \textbf{decayScaled} & $h(t) = V_0 \cdot g(f(t)) = V_0 \cdot \exp(f(t)) = \exp(-0.05 t + 0.0)$
+\end{tabular}
+
+\bigskip
+For the \texttt{SET}, the time $t$ is then shifted by $-70$ turns, so that the functions are evaluated starting at $t=0$.
+
+\paragraph{Detuning a cavity (accelerating or crab)}~\\
 \todo[inline]{Write}
 
-\subparagraph{Using the PIPE function}~\\
+\paragraph{Using the PIPE function}~\\
 %Note: This example is referenced from the FUN table.
 
-To use the PIPE functionality, add a FUN and SET to the DYNK block such as:
-\begin{verbatim}
+To use the \texttt{PIPE} functionality, add a \texttt{FUN} and \texttt{SET} to the \texttt{DYNK} block such as:
+\begin{cverbatim}
 FUN pipe1 PIPE /tmp/pip1 /tmp/pip2 myID1 4242
 SET  ACFCA.AR1.B1 voltage pipe1 10 -1 -9
-\end{verbatim}
+\end{cverbatim}
 Then create the two pipes using the \texttt{mkfifo} UNIX command, e.g.\ \texttt{mkfifo~pip1} and \texttt{mkfifo~pip2} in the chosen directory.
 When starting SixTrack, it will first open the input pipe (while reading the DYNK block), and wait for the external program to do the same.
 This can be simulated by running \texttt{cat~>~pip1}; it is also possible to open the input pipe before starting SixTrack.
@@ -636,12 +658,12 @@ Note that when SixTrack ends, the output pipe will be closed, so the recieving \
 After opening the output pipe, SixTrack writes the line \texttt{DYNKPIPE~!******************!} to this file.
 It then writes a line similar to \texttt{INIT~ID=myID1~for~FUN=pipe1} for each FUN using this output pipe.
 
-During tracking, when one of the PIPE FUNs are called SixTrack writes a line similar to \texttt{GET ID=myID1 TURN=~1} to the output pipe.
-Note that the turn number is the one passed to the FUN from SET, i.e. including any turn-shift.
-It then waits for a single floating point number to be written (in ascii) to the input pipe, which is then read and returned from the FUN.
+During tracking, when one of the \texttt{PIPE} \texttt{FUN}s are called SixTrack writes a line similar to \texttt{GET ID=myID1 TURN=~1} to the output pipe.
+Note that the turn number is the one passed to the \texttt{FUN} from \texttt{SET}, i.e. including any turn-shift.
+It then waits for a single floating point number to be written (in ascii) to the input pipe, which is then read and returned from the \texttt{FUN}.
 
-\section{Beam--Beam Element}
-\label{BeamBeam}
+% ================================================================================================================================ %
+\section{Beam--Beam Element} \label{BeamBeam}
 
 \paragraph{Description} The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD~\cite{MAD}.
 However, a much faster but nevertheless precise calculation using interpolation can be used~\cite{ERIC}.
