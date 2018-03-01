@@ -18,7 +18,7 @@ module cheby
   ! variables to save parameters for tracking etc.
   real(kind=fPrec), save :: cheby_offset_x(ncheby), cheby_offset_y(ncheby)  ! hor./vert. offset [mm]
   real(kind=fPrec), save :: cheby_angle(ncheby)       ! rotation angle about the longitudinal axis [rad]
-  integer, save          :: icheby_table(ncheby)      ! index of chebyshev table
+  integer, save          :: cheby_itable(ncheby)      ! index of chebyshev table
   real(kind=fPrec), save :: cheby_scalingFact(ncheby) ! scaling factor []
 
   ! tables with chebyshev coefficients
@@ -68,10 +68,10 @@ contains
 
        ! check that particle is within the domain of chebyshev polynomials
        rr=sqrt(xx**2+yy**2)
-       if (rr.gt.cheby_refRadius(icheby_table(jcheby))) then
+       if (rr.gt.cheby_refRadius(cheby_itable(jcheby))) then
           write(lout,*) 'ERROR in cheby_kick: particle at position (x,y,r): ',     &
                xv(1,j), xv(2,j), rr,' is outside radial domain of Chebyshev polinomials: ', &
-               cheby_refRadius(icheby_table(jcheby))
+               cheby_refRadius(cheby_itable(jcheby))
           call prror(-1)
        end if
        
@@ -83,7 +83,7 @@ contains
        end if
 
        ! apply kick
-       call cheby_getKick( xx, yy, dxp, dyp, icheby_table(jcheby), brho_b, beta_b )
+       call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(jcheby), brho_b, beta_b )
        ! take into account scaling factor
        dxp=dxp *cheby_scalingFact(jcheby)
        dyp=dyp *cheby_scalingFact(jcheby)
@@ -123,7 +123,7 @@ contains
     end do
     mcheby=0
     do i=1,ncheby
-       icheby_table(i)      = 0
+       cheby_itable(i)      = 0
        cheby_offset_x(i)    = zero
        cheby_offset_y(i)    = zero
        cheby_angle(i)       = zero

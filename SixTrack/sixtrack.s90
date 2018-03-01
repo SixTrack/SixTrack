@@ -16040,6 +16040,15 @@ end subroutine hamilton1
      &       'parameters: ninput = ', getfields_nfields, ' != 8 (GAUSSIAN)'
                   call prror(-1)
                endif
+            case ("RADIAL")
+               ! Read in this case
+               elens_type(ielens(j)) = 3
+               if(getfields_nfields.lt.8) then
+                  write(lout,*)                                         &
+     &       'ERROR in ELEN block: wrong number of input ',             &
+     &       'parameters: ninput = ', getfields_nfields, ' != 8 (RADIAL)'
+                  call prror(-1)
+               endif
             case default
                write(lout,*) "ERROR in ELEN: "//                        &
      &              "Elens type '"//                                    &
@@ -16084,17 +16093,37 @@ end subroutine hamilton1
 +ei
 
             if ( elens_type(ielens(j)).eq.2 ) then
-!               GAUSSIAN profile of electrons: need also sigma of e-beam
+!              GAUSSIAN profile of electrons: need also sigma of e-beam
 +if .not.crlibm
-                read (getfields_fields(8)(1:getfields_lfields(8)),*) &
+               read (getfields_fields(8)(1:getfields_lfields(8)),*)    &
      &              elens_sig(ielens(j))
 +ei
 +if crlibm
-                elens_sig(ielens(j))= round_near (                   &
+               elens_sig(ielens(j))= round_near (                      &
      &              errno,getfields_lfields(8)+1, getfields_fields(8) )
-                if (errno.ne.0) call rounderr (                      &
+               if (errno.ne.0) call rounderr (                         &
      &              errno,getfields_fields,8,elens_sig(ielens(j)) )
 +ei
+            elseif ( elens_type(ielens(j)).eq.3 ) then
+               ! RADIAL profile of electrons from file: need also file name
+               read (getfields_fields(8)(1:getfields_lfields(8)),*) tmpch
+               ! check if file has been already used somewhere else
+               do tmpi1=1,melens_radials
+                  if ( tmpch.eq.elens_filename(tmpi1) ) then
+                     elens_iradial(ielens(j))=tmpi1
+                     goto 1971
+                  end if
+               end do
+               ! new radial profile to be acquired:
+               melens_radials=melens_radials+1
+               if(melens_radials.gt.nelens_radials) then
+                  write(lout,*) "ERROR in ELEN block: Too many radial profiles: "//&
+     &melens_radials," - max:",nelens_radials
+                  call prror(-1)
+               end if
+               elens_iradial(elens(j))=melens_radials
+1971           continue
+               elens_filename(elens_iradial(ielens(j)))=tmpch
             end if
 !           additional geometrical infos (L, I, Ek):
 !           depending on profile, the position of these parameters change
@@ -16106,6 +16135,10 @@ end subroutine hamilton1
                tmpi2=9
                tmpi3=10
             elseif ( elens_type(ielens(j)).eq.2.and.getfields_nfields.ge.11 ) then
+               tmpi1=9
+               tmpi2=10
+               tmpi3=11
+            elseif ( elens_type(ielens(j)).eq.3.and.getfields_nfields.ge.11 ) then
                tmpi1=9
                tmpi2=10
                tmpi3=11
@@ -16187,8 +16220,10 @@ end subroutine hamilton1
 
             if (elens_type(ielens(j)).eq.2) write(lout,fmt='(A,1PE10.3,A)') &
      &'sig      = ',elens_sig(ielens(j)),' mm'
+            if (elens_type(ielens(j)).eq.3) write(lout,fmt='(A,A)')     &
+     &'filename = ',elens_filename(ielens(j))
             if (elens_len(ielens(j)).gt.zero.and. &
-                 elens_I(ielens(j)) .gt.zero.and. &
+                 elens_I(ielens(j)) .ne.zero.and. &
                  elens_Ek(ielens(j)).gt.zero) then
                write(lout,fmt='((A),4(/,A,1PE10.3,A))')                 &
      &'ELENS theta_r2 will be recomputed after input parsing based on:',&
@@ -16300,7 +16335,7 @@ end subroutine hamilton1
             !   check if table of coefficients has been already used somewhere else
             do tmpi1=1,mcheby_tables
                if ( tmpch.eq.cheby_filename(tmpi1) ) then
-                  icheby_table(icheby(j))=tmpi1
+                  cheby_itable(icheby(j))=tmpi1
                   goto 1972
                end if
             end do
@@ -16311,9 +16346,9 @@ end subroutine hamilton1
      &" for Chebyshev coefficients: ",mcheby_tables," - max:",ncheby_tables
                call prror(-1)
             end if
-            icheby_table(icheby(j))=mcheby_tables
+            cheby_itable(icheby(j))=mcheby_tables
 1972        continue
-            cheby_filename(icheby_table(icheby(j)))=tmpch
+            cheby_filename(cheby_itable(icheby(j)))=tmpch
 
 !           additional geometrical infos (tilt angle, offset_x, offset_y):
             if ( getfields_nfields.ge.3 ) then
@@ -16356,15 +16391,15 @@ end subroutine hamilton1
             end if
 
             ! parse the file with Chebyshev coefficients
-            if ( cheby_maxOrder(icheby_table(icheby(j))).eq.0 ) then
+            if ( cheby_maxOrder(cheby_itable(icheby(j))).eq.0 ) then
                ! file has not been parsed yet
-               inquire( file=cheby_filename(icheby_table(icheby(j))), exist=tmpl )
+               inquire( file=cheby_filename(cheby_itable(icheby(j))), exist=tmpl )
                if ( .not. tmpl ) then
                   write(lout,*) "ERROR: CHEBY problem with file with "//&
-     &"coefficients for Chebyshev polynominals:",cheby_filename(icheby_table(icheby(j)))
+     &"coefficients for Chebyshev polynominals:",cheby_filename(cheby_itable(icheby(j)))
                   call prror(-1)
                endif
-               call parseChebyFile(icheby_table(icheby(j)))
+               call parseChebyFile(cheby_itable(icheby(j)))
             end if
 
             ! print a summary of parameters
@@ -16372,8 +16407,8 @@ end subroutine hamilton1
      &fmt='((/,/,A),2(/,A,A),(/,A,A,A,I3),3(/,A,1PE10.3,A))')           &
      &'CHEBY lens found in list of single elements with: ',             &
      &'name     = ',bez(j),                                             &
-     &'file     = ',cheby_filename(icheby_table(icheby(j))),            &
-     &'max order= ',cheby_maxOrder(icheby_table(icheby(j))),            &
+     &'file     = ',cheby_filename(cheby_itable(icheby(j))),            &
+     &'max order= ',cheby_maxOrder(cheby_itable(icheby(j))),            &
      &'angle    = ',cheby_angle(icheby(j))/pi*c180e0,' deg',            &
      &'offset_x = ',cheby_offset_x(icheby(j)),' mm',                    &
      &'offset_y = ',cheby_offset_y(icheby(j)),' mm'
