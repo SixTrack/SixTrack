@@ -169,64 +169,6 @@
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
      &crzb(npart),cbxb(npart),cbzb(npart)
 +cd comApeInfo
-!     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 28-11-2016
-!     always in main code
-!     use a dedicated array to store the type of aperture of each SINGLE ELEMENT
-!        and if it is tilted / offcentered
-      integer kape
-      logical lapeofftlt
-!     keep in mind if any aperture profile is assigned to any
-!       SINGLE ELEMENT or not
-      logical limifound
-!     echoing / dumpint acquired infos
-      logical ldmpaper                       ! Flag for activating the dump
-      integer aperunit                       ! unit for the output file
-      character(len=16) aper_filename             ! name of the output file
-      integer loadunit                       ! unit for the external load file
-      character(len=16) load_file             ! name of the external load file
-!     array to keep track of lost particles if they are not killed
-!     for now, it stores the ID of the particle lost
-      integer plost
-!     flag for killing particles at the aperture check or let them live
-      logical apflag
-      logical lexist
-      real(kind=fPrec) ape
-+if .not.backtrk
-      common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
-     &  plost(npart), aper_filename, aperunit, ldmpaper, limifound,     &
-     &  apflag, load_file, loadunit
-+ei
-+if backtrk
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 24-11-2016
-!     NB: add also temporary variables for back-tracking
-!         inserted in main code by the 'backtrk' compilation flag
-      common/apert/ ape(7,nele),kape(nele),lapeofftlt(nele),            &
-     &  plost(npart), yold(2,npart), apold(7), sold, bktpre, kapold,    &
-     &  limifound, aper_filename, aperunit, ldmpaper, apflag,           &
-     &  load_file, loadunit
-+ei
-!     recognised aperture types:
-!     - 2: rectangle
-!     - 3: ellipse
-!     - 4: rectellipse
-!     - 5: octagon
-!     - 6: racetrack
-!     A.Mereghetti
-!     last modified: 01-12-2016
-      character(len=2) rect,elli,reel,ratr,octa,circ,nana
-      data  rect, elli, reel, ratr, octa, circ, nana                    &
-     &    / 'RE', 'EL', 'RL', 'RT', 'OC', 'CR', 'NA' /
-+if backtrk
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 24-11-2016
-!     additional variables for back-tracking, when computing locations of
-!        lost particles
-!     inserted in main code by the 'backtrk' compilation flag
-      integer kapold
-      real(kind=fPrec) yold,sold,apold,bktpre
-+ei
 +cd commont1 !Note: Same variables as commont2 but different names
       integer ichrom,is
       real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,x,y
@@ -10650,7 +10592,6 @@ end subroutine hamilton1
 +ca elensparam
 +ca wireparam
 +ca parbeam_exp
-+ca comApeInfo
 +ca dbreaddis
 
 
@@ -10700,6 +10641,7 @@ end subroutine hamilton1
 
       logical lapefound
       logical lerr1
+      logical lexist
 
       save
 !-----------------------------------------------------------------------
@@ -22419,7 +22361,6 @@ program maincr
 
 +ca wireparam !For dump3
 
-+ca comApeInfo
 +ca dbreaddis
 
 
@@ -25592,7 +25533,6 @@ subroutine thin4d(nthinerr)
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
-+ca comApeInfo
 
   save
 !-----------------------------------------------------------------------
@@ -26236,7 +26176,6 @@ subroutine thin6d(nthinerr)
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
-+ca comApeInfo
   real(kind=fPrec) dEpTur
   save
 
@@ -27106,7 +27045,6 @@ end subroutine thin6d
 +ca wireparam
 +ca elenstracktmp
 +ca dbdcum
-+ca comApeInfo
 
 +if fluka
 
@@ -28493,7 +28431,6 @@ subroutine thck4d(nthinerr)
 +ei
 
 +ca dbdcum
-+ca comApeInfo
 
   save
 
@@ -29177,7 +29114,6 @@ subroutine thck6d(nthinerr)
 +ei
 
 +ca dbdcum
-+ca comApeInfo
 
   save
 +if debug
@@ -29989,7 +29925,6 @@ subroutine thck6dua(nthinerr)
 +ei
 
 +ca dbdcum
-+ca comApeInfo
 
       save
 !-----------------------------------------------------------------------
@@ -32099,6 +32034,7 @@ subroutine comnul
       use mod_common
       use mod_commonmn
       use mod_commons
+      use aperture
       use bdex, only : bdex_comnul
       implicit none
       
@@ -32121,7 +32057,6 @@ subroutine comnul
 
 +ca parbeam_exp
 
-+ca comApeInfo
       save
 !-----------------------------------------------------------------------
 !
@@ -32787,9 +32722,8 @@ subroutine SELNUL( iel )
       use parpro
       use mod_common
       use mod_commons
+      use aperture
       implicit none
-
-+ca comApeInfo
 
 !     local variables
       integer iel, i1, i3, i4

@@ -5,7 +5,7 @@ module aperture
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-
+  
   use parpro !For nele
 
   !contains pstop(npart) etc
@@ -14,17 +14,59 @@ module aperture
   use parpro
   use mod_common
   use mod_commons
-
+  
   use mod_hions
-
+  
   implicit none
+  
+  ! A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 02-03-2018
+  ! always in main code
+
+  logical, save :: limifound                   ! limi block in fort.3
+
+  integer, save :: kape(nele)                  ! type of aperture
+  real(kind=fPrec), save ::  ape(7,nele)       ! aperture parameters
+  logical, save :: lapeofftlt(nele)            ! aperture is tilted/offcentred
+
+  ! save (i.e. do not kill) lost particles
+  logical, save :: apflag                      ! - save or not
+  integer, save :: plost(npart)                ! - particle ID
+
+  ! dump aperture profile:
+  logical, save :: ldmpaper                    ! - dump or not
+  integer, save :: aperunit                    ! - fortran unit
+  character(len=16), save :: aper_filename     ! - file name
+  ! load aperture markers from external file:
+  integer, save :: loadunit                    ! - fortran unit
+  character(len=16), save :: load_file         ! - file name
+
++if backtrk
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 02-03-2018
+  ! NB: add also temporary variables for back-tracking
+  !     inserted in main code by the 'backtrk' compilation flag
+  real(kind=fPrec), save :: yold(2,npart)      ! angles before last lens
+  real(kind=fPrec), save :: apold(7)           ! aperture parameters at last lens
+  real(kind=fPrec), save :: sold               ! s-coord at last lens
+  real(kind=fPrec), save :: bktpre             ! precision of back-tracking
+  integer, save :: kapold                      ! type of aperture at last lens
++ei
+
+  ! aperture types                                               -- kape
+  character(len=2), parameter ::  circ='CR', & ! circle          -- 1
+                                  rect='RE', & ! rectangle       -- 2
+                                  elli='EL', & ! ellipse         -- 3
+                                  reel='RL', & ! rectellipse     -- 4
+                                  octa='OC', & ! octagon         -- 5
+                                  ratr='RT', & ! racetrack       -- 6
+                                  nana='NA'    ! not-an-aperture -- 
 
 contains
 
 
 subroutine lostpart(turn, i, ix, llost, nthinerr)
 !-----------------------------------------------------------------------
-!
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified:  8-12-2014
 !     aperture check and dump lost particles
@@ -73,7 +115,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca dbcommon
 +ei
 +ca dbdcum
-+ca comApeInfo
 
 ! temporary variables
   logical lparID
@@ -698,7 +739,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   implicit none
 
 +ca commontr
-+ca comApeInfo
 
 ! interface variables
   integer itElUp,itElDw
@@ -796,7 +836,6 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 ! interface variables
   integer iEl
   logical lInsUp
@@ -1073,7 +1112,6 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 
 ! interface variables
   integer iUp, ixUp, iDw, ixDw, oKApe
@@ -1115,7 +1153,6 @@ character(len=2) function get_ape_type( tkape )
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
-+ca comApeInfo
 
 ! interface variables
   integer tkape
@@ -1147,7 +1184,6 @@ subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 
 ! interface variables
   integer ixApeTo, ixApeFrom, nKApe
@@ -1181,7 +1217,6 @@ subroutine dump_aperture_model
   implicit none
 
 +ca commontr
-+ca comApeInfo
 +ca dbdcum
 
 ! temporary variables
@@ -1265,7 +1300,6 @@ subroutine dumpMe
   implicit none
 
 +ca commontr
-+ca comApeInfo
 +ca dbdcum
 
 ! temporary variables
@@ -1323,7 +1357,6 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 
 +ca commontr
 +ca dbdcum
-+ca comApeInfo
 
 ! interface variables
   integer iunit, iEl, ixEl
