@@ -6,7 +6,7 @@ module aperture
   use mathlib_bouncer
   use numerical_constants
   
-  use parpro !For nele
+  use parpro !For nele, npart
 
   !contains pstop(npart) etc
   use mod_commonmn
@@ -36,6 +36,7 @@ module aperture
   ! dump aperture profile:
   logical, save :: ldmpaper                    ! - dump or not
   integer, save :: aperunit                    ! - fortran unit
+  integer, parameter :: aperunitdef=3          ! - default: fort.3
   character(len=16), save :: aper_filename     ! - file name
   ! load aperture markers from external file:
   integer, save :: loadunit                    ! - fortran unit
@@ -50,6 +51,7 @@ module aperture
   real(kind=fPrec), save :: apold(7)           ! aperture parameters at last lens
   real(kind=fPrec), save :: sold               ! s-coord at last lens
   real(kind=fPrec), save :: bktpre             ! precision of back-tracking
+  real(kind=fPrec), parameter :: bktpredef=0.1 ! default precision of back-tracking
   integer, save :: kapold                      ! type of aperture at last lens
 +ei
 
@@ -63,6 +65,50 @@ module aperture
                                   nana='NA'    ! not-an-aperture -- 
 
 contains
+
+subroutine aperture_comnul
+
+  use numerical_constants
+  implicit none
+  integer ii, jj
+
+  limifound=.false.
+
+  do ii=1,nele
+     kape(ii)=0
+     do jj=1,7
+        ape(jj,ii)=c1e3
+     end do
+     lapeofftlt(ii)=.false.
+  end do
+
+  apflag=.false.
+  do ii=1,npart
+     plost(ii)=0
+  end do
+
+  ldmpaper      = .false.
+  aperunit      = 0
+  aper_filename = ' '
+  loadunit      = aperunitdef
+  load_file     = ' '
+
++if backtrk
+  do ii=1,npart
+     do jj=1,2
+        yold(jj,ii)=zero
+     end do
+  end do
+  do ii=1,7
+     aplod(ii)=zero
+  end do
+  sold=zero
+  bktpre=bktpredef
+  kapold=0
++ei
+  return
+
+end subroutine aperture_comnul
 
 
 subroutine lostpart(turn, i, ix, llost, nthinerr)

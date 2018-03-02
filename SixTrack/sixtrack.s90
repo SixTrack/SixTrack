@@ -13541,7 +13541,7 @@ end subroutine hamilton1
 !  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
   950 continue
-      loadunit = 3
+!     loadunit is initialised to 3 in aperture_comnul
   951 continue
       read(loadunit,10020,end=952,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -32411,14 +32411,6 @@ subroutine comnul
         zrms(i)=zero
         benkc(i)=zero
         r00(i)=zero
-
-! Old aperture type variables
-!        apx(i)=c1e3
-!        apz(i)=c1e3
-!        ape(1,i)=c1e6
-!        ape(2,i)=c1e6
-!        ape(3,i)=c1e12
-
         ratioe(i)=one
         hsyc(i)=zero
         phasc(i)=zero
@@ -32679,17 +32671,11 @@ subroutine comnul
       end do
 
 !--APERTURE-------------------------------------------------------------
-!     P.G.Ortega, for the FLUKA Team
-!     last modified: 04-07-2014
+!     P.G.Ortega and A.Mereghetti, for the FLUKA Team
+!     last modified: 02-03-2018
 !     initialise common
 !     always in main code
-      ldmpaper      = .false.
-      aperunit      = 0
-      aper_filename = ' '
-      load_file     = ' '
-      limifound     = .false.
-!     flag to kill/let live particles at aperture check
-      apflag=.false.
+      call aperture_comnul
 
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
