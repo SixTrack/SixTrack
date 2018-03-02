@@ -484,6 +484,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             ejfv(jj)=ejfv(jj1)
             ejv(jj)=ejv(jj1)
             rvv(jj)=rvv(jj1)
+! ph: hisix
+            nzz(jj)=nzz(jj1)
+            naa(jj)=naa(jj1)
+            nucm(jj)=nucm(jj1)
+            mtc(jj)=mtc(jj1)
+            moidpsv(jj)=moidpsv(jj1)
+            omoidpsv(jj)=omoidpsv(jj1)
+! ph: hisix
 +if rvet
             rvet(jj)=rvet(jj1)
 +ei
