@@ -123,7 +123,7 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 % ================================================================================================================================ %
 \subsection{Multipole Blocks} \label{MulBlo}
 
-A set of normal, normal--RMS, skew, and skew--RMS errors can be combined effectively.
+A set of normal, normal--r.m.s., skew, and skew--r.m.s. errors can be combined effectively.
 The actual values for the strengths have to be given in a separate \textit{Multipole Coefficient} input block (\ref{MulCoe}) which must have the same name.
 To consider the curvature of dipoles which are replaced by drifts and dipole kicks this block is used in two different ways.
 
@@ -508,7 +508,7 @@ The right parenthesis ``)'' signals the end of the sequence to be repeated.
 \subsection{Displacement of Elements} \label{DisEle}
 
 This block allows to displace nonlinear elements in horizontal and vertical positions.
-With the RMS values of the horizontal and vertical displacements it is possible to achieve a displacement that is different from element to element.
+With the r.m.s. values of the horizontal and vertical displacements it is possible to achieve a displacement that is different from element to element.
 
 To simulate a measured closed orbit at the position of non-linear elements, it is convenient to use the \textit{Displacement of Elements} input block instead of trying to produce a closed orbit by dipole kicks.
 
@@ -524,9 +524,9 @@ To simulate a measured closed orbit at the position of non-linear elements, it i
 \begin{tabular}{@{}lp{0.80\linewidth}}
     \texttt{name}  & Name of the element which is displaced \\
     \texttt{xd}    & Horizontal displacement [mm] \\
-    \texttt{xdrms} & RMS of horizontal displacement [mm] \\
+    \texttt{xdrms} & r.m.s. of horizontal displacement [mm] \\
     \texttt{yd}    & Vertical displacement [mm] \\
-    \texttt{ydrms} & RMS of vertical displacement [mm]
+    \texttt{ydrms} & r.m.s. of vertical displacement [mm]
 \end{tabular}
 
 \bigskip

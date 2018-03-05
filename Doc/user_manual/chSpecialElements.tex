@@ -7,7 +7,7 @@ All Special Elements should be written in the \texttt{fort.3} file.
 % ================================================================================================================================ %
 \section{Multipole Coefficients} \label{MulCoe}
 
-Sets of normal and skew multipoles of up to tenth order, each with an RMS value, can be combined with this block.
+Sets of normal and skew multipoles of up to tenth order, each with an r.m.s. value, can be combined with this block.
 The multipole kick is calculated using a Horner scheme, which saves considerably in computation time.
 Moreover, using the multipole block reduces the number of elements in the single element list (\ref{SinEle}).
 
@@ -16,7 +16,7 @@ Moreover, using the multipole block reduces the number of elements in the single
     \textbf{Keyword}    & \texttt{MULT} \\
     \textbf{Data lines} & 2 to 12 \\
     \textbf{Format}     & First line: \texttt{name $R_{0}$ $\delta_{0}$} \\
-                        & Lines 2 to 12: \texttt{$B_{n}$ RMS-$B_{n}$ $A_{n}$ RMS-$A_{n}$}
+                        & Lines 2 to 12: \texttt{$B_{n}$ rms-$B_{n}$ $A_{n}$ rms-$A_{n}$}
 \end{tabular}
 
 \paragraph{Format Description}~
@@ -689,7 +689,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
 \begin{tabular}{@{}llp{0.65\linewidth}}
     \texttt{partnum}       & float   & Number of particles in bunch \\
     \texttt{emitnx,emitny} & floats  & Horizontal and vertical normalized emittance respectively [$\mu \mbox{m}\cdot\mbox{rad}$] \\
-    \texttt{sigz,sige}     & floats  & RMS bunch length [m] and RMS energy spread \\
+    \texttt{sigz,sige}     & floats  & r.m.s. bunch length [m] and r.m.s. energy spread \\
     \texttt{ibeco}         & integer & Switch (0 = off; 1 = on) to subtract the closed orbit introduced by the separation of the beams. It is recommended to always subtract it as it is not yet calculated in a selfconsistent manner. The \texttt{ibeco} switch also acts on the ``wire'' elements \ref{sec:WIRE} in the same way as on the beam-beam elements. It subtracts the closed orbit introduced by the wire if \texttt{ibeco}=1 and applies it if \texttt{ibeco}=0. \\
     \texttt{ibtyp}         & integer & Switch (0 = off; 1 = on) to use the fast beam--beam algorithms developed in collaboration with G.A.~Erskine and E.~McIntosh.  The linear optics are calculated with ``exact'' beam--beam kicks. \\
     \texttt{lhc}           & integer & For the LHC with its anti--symmetric IR the separation of the beams in one plane can be calculated by the $\beta$--function of the other plane. For flat beams (not anti-symmetric optics) the separation can be loaded from the \texttt{fort.2} file. (0 = off; 1 = anti-symmetric; 2 = load from file). \\
@@ -911,7 +911,7 @@ Note that all parameters except for the type have to be set to 0 in the single e
 % ================================================================================================================================ %
 \section{``Phase Trombone'' Element} \label{Trombone}
 
-The linear ``phase trombone'' allows the introduction of a change in the tranverse phases without spoiling the linear optics of the rest of the machine, i.e. the Twiss parameters are the same at entrance and exit of the element.
+The linear ``phase trombone'' allows the introduction of a change in the transverse phases without spoiling the linear optics of the rest of the machine, i.e. the Twiss parameters are the same at entrance and exit of the element.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
