@@ -55,14 +55,16 @@ module aperture
   integer, save :: kapold                      ! type of aperture at last lens
 +ei
 
-  ! aperture types                                               -- kape
-  character(len=2), parameter ::  circ='CR', & ! circle          -- 1
-                                  rect='RE', & ! rectangle       -- 2
-                                  elli='EL', & ! ellipse         -- 3
-                                  reel='RL', & ! rectellipse     -- 4
-                                  octa='OC', & ! octagon         -- 5
-                                  ratr='RT', & ! racetrack       -- 6
-                                  nana='NA'    ! not-an-aperture -- 
+  ! aperture types -- kape
+  ! circle          -- 1
+  ! rectangle       -- 2
+  ! ellipse         -- 3
+  ! rectellipse     -- 4
+  ! octagon         -- 5
+  ! racetrack       -- 6
+  ! not-an-aperture -- 
+  character(len=2), parameter, dimension(0:6) ::  &
+ &               apeName=(/'NA','CR','RE','EL','RL','OC','RT'/)
 
 contains
 
@@ -1192,32 +1194,6 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
   end if
 end subroutine interp_aperture
 
-character(len=2) function get_ape_type( tkape )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 08-12-2016
-!     always in main code
-!-----------------------------------------------------------------------
-  implicit none
-
-! interface variables
-  integer tkape
-
-  if(tkape.eq.2) then
-    get_ape_type=rect
-  else if(tkape.eq.3) then
-    get_ape_type=elli
-  else if(tkape.eq.4) then
-    get_ape_type=reel
-  else if(tkape.eq.5) then
-    get_ape_type=octa
-  else if(tkape.eq.6) then
-    get_ape_type=ratr
-  end if
-
-  return
-end function get_ape_type
-
 subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
@@ -1257,7 +1233,7 @@ subroutine dump_aperture_model
 !-----------------------------------------------------------------------
 !     by P.Garcia Ortega, for the FLUKA Team, and A.Mereghetti
 !     last modified: 08-12-2016
-!     dump apertures 
+!     dump all apertures declared in machine
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
@@ -1270,10 +1246,9 @@ subroutine dump_aperture_model
   logical lopen
 
 +if backtrk
-  integer iOld, ixOld, niter, oKApe,jj
+  integer iOld, ixOld, niter, oKApe, jj
   real(kind=fPrec) aprr,slos,step
   dimension aprr(7)
-  character(len=2) aptype
 +ei
 
   write(lout,*)''
@@ -1326,8 +1301,7 @@ subroutine dump_aperture_model
             step = (slos-dcum(iOld))/(dcum(i)-dcum(iOld))
             if ( step.lt.zero .or. step.gt.one ) exit
             call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
-            aptype=get_ape_type( oKApe )
-            call dump_aperture( aperunit, bez(ix), aptype, slos, aprr )
+            call dump_aperture( aperunit, bez(ix), apeName(oKApe), slos, aprr )
           end do
         end if
         iOld=i
@@ -1407,11 +1381,7 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 ! interface variables
   integer iunit, iEl, ixEl
 
-! temporary variables
-  character(len=2) aptype
-
-  aptype=get_ape_type( kape(ixEl) )
-  call dump_aperture( iunit, bez(ixEl), aptype, dcum(iEl),ape(1:7,ixEl) )
+  call dump_aperture( iunit, bez(ixEl), apeName(kape(ixEl)), dcum(iEl),ape(1:7,ixEl) )
 
   return
 end subroutine dump_aperture_marker

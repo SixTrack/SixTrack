@@ -10526,8 +10526,7 @@ end subroutine hamilton1
       integer ifiend35
       real(kind=fPrec) tcnst
 +ei
-      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,                     &
-     &ap11,ap22,ap33,ap44,apang,ofxx,ofzz,apxx,apzz,bk0d,bkad,          &
+      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,           &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
@@ -13535,238 +13534,190 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
 !  APERTURE LIMITATIONS
 !  A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!  last modified: 14-01-2015
+!  JMolson (CERN, BE-ABP-HSS)
+!  last modified: 02-03-2018
 !  original LIMI block extended to deal with RectEllipse, Octagon and
 !     RaceTrack aperture types, and with offset/tilting of profile
 !  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
   950 continue
 !     loadunit is initialised to 3 in aperture_comnul
-  951 continue
-      read(loadunit,10020,end=952,iostat=ierro) ch
+      read(loadunit,10020,end=951,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 951
+      if(ch(1:1).eq.'/') goto 950 ! skip comment lines
 
-!  P.G.Ortega, 14-01-2015, reading apertures from external file
-      if(ch(:4).eq.'LOAD') then
-        call intepr(5,1,ch,ch1)
-        read(ch1,*) idat, loadunit, load_file
-        inquire( file=load_file, exist=lexist )
-        if ( .not. lexist ) then
-            write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
-     &      "IN THE RUNNING FOLDER"
-            call prror(-1)
-        endif
-        if(load_file .ne. ' ') then
-           open(loadunit,file=load_file,form='formatted') 
-           write(lout,*) 'APERTURES READ FROM FILE: ',load_file
-        else
-           open(loadunit,form='formatted')
-           write(lout,*) 'APERTURES READ FROM FILE: fort.',loadunit
-        endif
-        goto 951
-      endif
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
+      write(lout,*)'ERROR in LIMI block: fortran IO format currently'// &
+     &       ' not supported!'
+      call prror(-1)
++ei
 
-!  P.G.Ortega,  04-07-2014, flag for dumping the aperture model
-      if(ch(:4).eq.prin) then
-        call intepr(5,1,ch,ch1)
-        read(ch1,*) idat, aperunit, aper_filename
-        ldmpaper  = .true.
-        goto 951
-      endif
-
-!  P.G.Ortega,  14-08-2014, flag for saving particles at aperture check
-      if(ch(:4).eq.'SAVE') then
-        apflag  = .true.
-        goto 951
-      endif
-
+!     P.G.Ortega and A.Mereghetti, 02-03-2018
+!     'next': echo aperture profiles
       if(ch(:4).eq.next) then
         if ( limifound ) then
           write(lout,10320)
-!         dump all elements found:
           do ii=1,il
-            if( kape(ii).eq.1 ) then
-              irel=circ
-            else if( kape(ii).eq.2 ) then
-              irel=rect
-            else if( kape(ii).eq.3 ) then
-              irel=elli
-            else if( kape(ii).eq.4 ) then
-              irel=reel
-            else if( kape(ii).eq.5 ) then
-              irel=octa
-            else if( kape(ii).eq.6 ) then
-              irel=ratr
-            end if
-
-            if ( kape(ii) .ne. 0 ) then
-              write(lout,10330)                                         &
-     &           bez(ii), irel, ape(1,ii), ape(2,ii), ape(3,ii),        &
-     &               ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
-            endif
+            if ( kape(ii).ne.0 ) write(lout,10330) bez(ii),      &
+     &       apeName(kape(ii)), ape(1,ii), ape(2,ii), ape(3,ii), &
+     &           ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
           enddo
 +if backtrk
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 12-06-2014
-!         echo precision for back-tracking, when computing locations of lost
-!            particles
-!         inserted in main code by the 'backtrk' compilation flag
-          write(lout,*)''
-          write(lout,*)'       back-tracking at aperture LIMIs is on'
-          write(lout,*)'            with precision [m]:',bktpre
-          write(lout,*)''
+!         A.Mereghetti and P.Garcia Ortega, 12-06-2014
+!         echo precision for back-tracking
+          write(lout,*)' --> back-tracking at aperture LIMIs is on,'//&
+     &' with precision [m]:',bktpre
 +ei
         else
-          write(lout,                                                   &
-     &        '(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
+          write(lout,'(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
         endif
         goto 110
-      endif
-      ap11=zero
-      ap22=zero
-      ap33=zero
-      ap44=zero
-      apang=zero
-      ofxx=zero
-      ofzz=zero
 
+      else
+
+        call getfields_split( ch, getfields_fields, getfields_lfields,  &
+     &        getfields_nfields, getfields_lerr )
+        if ( getfields_lerr ) then
+          write(lout,*)'ERROR in LIMI block: getfields_lerr=', getfields_lerr, &
+     &    ' at line: ',ch
+          call prror(-1)
+        endif
+
+        if(ch(:4).eq.'LOAD') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! reading apertures from external file
+          if(getfields_nfields.lt.3) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &       'parameters for keywor LOAD: ninput = ', getfields_nfields, ' != 3 (min)'
+            call prror(-1)
+          endif
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) loadunit
+          read (getfields_fields(3)(1:getfields_lfields(3)),*) load_file
+          inquire( file=load_file, exist=lexist )
+          if (.not.lexist ) then
+             write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
+     &       "IN THE RUNNING FOLDER"
+             call prror(-1)
+          endif
+          open(loadunit,file=load_file,form='formatted') 
+          write(lout,*) 'APERTURES READ FROM FILE: ',load_file
+
+        elseif(ch(:4).eq.'PRIN') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! flag for dumping the aperture model
+          if(getfields_nfields.lt.3) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &         'parameters for keyword PRIN: ninput = ', getfields_nfields, ' != 3 (min)'
+            call prror(-1)
+          endif
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) aperunit
+          read (getfields_fields(3)(1:getfields_lfields(3)),*) aper_filename
+          ldmpaper  = .true.
+
+        elseif(ch(:4).eq.'SAVE') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! flag for saving particles at aperture check
+          apflag  = .true.
+
+        elseif(ch(:4).eq.'PREC') then
+          ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
+          ! set precision for back-tracking
 +if .not.backtrk
-      if(ch(:4).eq.'PREC') then
-        write(lout,*)
-        write(lout,*) 'WARNING: PREC statement active only in case'
-        write(lout,*) '  backtrc pre-processing is on; ignoring...'
-        write(lout,*)
-        goto 951
-      endif
+          write(lout,*)' --> WARNING: PREC statement active only in case'
+          write(lout,*)' -->   backtrc pre-processing is on; ignoring...'
 +ei
 +if backtrk
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 12-06-2014
-!     set precision for back-tracking, when computing locations of lost
-!         particles
-!     inserted in main code by the 'backtrk' compilation flag
-      if(ch(:4).eq.'PREC') then
-        call intepr(1,1,ch,ch1)
-        read(ch1,*) idat, tmplen
-        if ( tmplen.le.zero ) then
-          write(lout,*) 'WARNING: Wrong precision value: ', tmplen
-          write(lout,*) '  in LIMI input block, ignoring...'
-          write(lout,*) '  Using default [m]: ', bktpre
-        else
-           bktpre = tmplen
-        endif
-        goto 951
-      endif
-+ei
-      call intepr(8,1,ch,ch1)
-+if fio
-+if crlibm 
-      call enable_xp()
-+ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
-+ei
-
-+if .not.fio
+          if(getfields_nfields.lt.2) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &         'parameters for keyword PREC: ninput = ', getfields_nfields, ' != 2 (min)'
+            call prror(-1)
+          endif
 +if .not.crlibm
-      read(ch1,*) idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) tmplen
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) irel
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap11=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap22=fround(errno,fields,4)
-          nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap33=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap44=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        apang=fround(errno,fields,7)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ofxx=fround(errno,fields,8)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ofzz=fround(errno,fields,9)
-        nf=nf-1
-      endif
-
+          tmplen=round_near (errno,getfields_lfields(2)+1, getfields_fields(2))
+          if (errno.ne.0) call rounderr(errno,getfields_fields,2,tmplen)
 +ei
-+ei
-      lapefound=.false.
-      do 970 j=1,il
-      if(idat.ne.bez(j)) goto 970
-      lapefound=.true.
-      ape(1,j)=ap11
-      ape(2,j)=ap22
-      ape(3,j)=ap33
-      ape(4,j)=ap44
-      ape(5,j)=apang
-      ape(6,j)=ofxx
-      ape(7,j)=ofzz
-      if(irel.eq.circ) then !Circle
-        kape(j)=1
-        ape(2,j)=ape(1,j)
-        ape(3,j)=ape(1,j)
-        ape(4,j)=ape(1,j)
-      else if(irel.eq.rect) then !Rectangle
-        kape(j)=2
-!       get ready for a RL-equivalent description
-        ape(3,j)=sqrt(two)*ape(1,j)
-        ape(4,j)=sqrt(two)*ape(2,j)
-      else if(irel.eq.elli) then !Ellipse
-        kape(j)=3
-!       get ready for a RL-equivalent description
-        ape(3,j)=ape(1,j)
-        ape(4,j)=ape(2,j)
-      else if(irel.eq.reel) then !Rectellipse
-        kape(j)=4
-      else if(irel.eq.octa) then !Octagon  
-        kape(j)=5
-      else if(irel.eq.ratr) then !Racetrack
-        kape(j)=6
-      else
-        write(lout,*) 'Aperture profile not identified for element ',   &
-     &idat
-        write(lout,*) '  value:', irel
-        call prror(-1)
-      endif
-      if (ape(5,j).ne.zero.or.ape(6,j).ne.zero.or.ape(7,j).ne.zero) then
-         lapeofftlt(j) = .true.
-      endif
-      limifound=.true.
-  970 continue
+          if ( tmplen.le.zero ) then
+            write(lout,*) 'WARNING: Wrong precision value: ', tmplen
+            write(lout,*) '  in LIMI input block, ignoring...'
+            write(lout,*) '  Using default [m]: ', bktpre
+          else
+            bktpre = tmplen
+          endif
++ei !END +if backtrk
 
-      if(.not. lapefound) then
-        write(lout,*)
-        write(lout,*) 'WARNING: Unidentified element ', idat
-        write(lout,*) '  in LIMI input block, ignoring...'
-        write(lout,*)
-      endif
-      goto 951
-  952 continue
-      if ( loadunit .ne. 3 ) then
+        else
+          ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
+          ! parse a line with the aperture parameters
+          if(getfields_nfields.lt.9) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &        'parameters for declaring an aperture marker: ninput = ',   &
+     &        getfields_nfields, ' != 9 (min)'
+            call prror(-1)
+          endif
+
+          lapefound=.false.
+          read (getfields_fields(1)(1:getfields_lfields(1)),*) idat
+          do j=1,il
+            if(idat.eq.bez(j)) then
+              lapefound=.true.
+              read (getfields_fields(2)(1:getfields_lfields(2)),*) irel
+              ! parse the float descriptors
+              do i=1,7
++if .not.crlibm
+                read (getfields_fields(j+2)(1:getfields_lfields(j+2)),*) ape(i,j)
++ei
++if crlibm
+                ape(i,j)=round_near (errno,getfields_lfields(j+2)+1, getfields_fields(j+2))
+                if (errno.ne.0) call rounderr(errno,getfields_fields,j+2,ape(i,j))
++ei
+              enddo
+              if(irel.eq.apeName(1)) then !Circle
+                kape(j)=1
+                ape(2,j)=ape(1,j)
+                ape(3,j)=ape(1,j)
+                ape(4,j)=ape(1,j)
+              else if(irel.eq.apeName(2)) then !Rectangle
+                kape(j)=2
+                ! get ready for a RL-equivalent description
+                ape(3,j)=sqrt(two)*ape(1,j)
+                ape(4,j)=sqrt(two)*ape(2,j)
+              else if(irel.eq.apeName(3)) then !Ellipse
+                kape(j)=3
+                ! get ready for a RL-equivalent description
+                ape(3,j)=ape(1,j)
+                ape(4,j)=ape(2,j)
+              else if(irel.eq.apeName(4)) then !Rectellipse
+                kape(j)=4
+              else if(irel.eq.apeName(5)) then !Octagon  
+                kape(j)=5
+              else if(irel.eq.apeName(6)) then !Racetrack
+                kape(j)=6
+              else
+                write(lout,*) 'Aperture profile not identified for element ',idat
+                write(lout,*) '  value:', irel
+                call prror(-1)
+              endif
+              if (ape(5,j).ne.zero.or.ape(6,j).ne.zero.or.ape(7,j).ne.zero) lapeofftlt(j)=.true.
+              limifound=.true.
+              exit
+            end if
+          end do
+
+          if(.not.lapefound) then
+            write(lout,*) 'WARNING: Unidentified element ', idat
+            write(lout,*) '  in LIMI input block, ignoring...'
+          end if
+        end if ! specific non-NEXT lines
+      end if ! non-NEXT lines
+      goto 950 ! go to next line to be parsed
+
+  951 continue
+      if ( loadunit.ne.3 ) then
         close(loadunit)
         goto 950
       endif
