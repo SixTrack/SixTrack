@@ -257,6 +257,10 @@ contains
     call mod_common_allocate_arrays
     call aperture_allocate_arrays
     call elens_allocate_arrays
+    call dump_allocate_arrays
+    call scatter_allocate_arrays
+    call bdex_allocate_arrays
+    call dynk_allocate_arrays
 
   end subroutine allocate_arrays
 
@@ -271,6 +275,11 @@ contains
     !Call sub-subroutines to actually expand
     call mod_commons_expand_arrays(nele_new)
     call aperture_expand_arrays(nele_new)
+    call elens_expand_arrays(nele_new)
+    call dump_expand_arrays(nele_new)
+    call scatter_expand_arrays(nele_new)
+    call bdex_expand_arrays(nele_new)
+    call dynk_expand_arrays(nele_new)
 
     !Update nele etc.
     nele = nele_new

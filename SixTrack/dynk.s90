@@ -6,7 +6,7 @@ module dynk
     use mathlib_bouncer
     use numerical_constants, only : one, two, c1e3
 
-    use parpro !For nele
+    use parpro, only : nele, max_name_len
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
@@ -27,7 +27,7 @@ module dynk
 
     ! See TWIKI for documentation
 
-    ! Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
+    ! Needs blocks stringzerotrim (for stringzerotrim_maxlen)
     ! and comgetfields (for getfields_l_max_string)
 
 ! ================================================================================================ !
@@ -88,23 +88,21 @@ module dynk
     real(kind=fPrec) fsets_origvalue_dynk(maxsets_dynk)
 
     ! Number of used positions in arrays
-    integer nsets_unique_dynk 
+    integer nsets_unique_dynk
 
     ! Some elements (multipoles) overwrites the general settings info when initialized.
     ! Store this information on the side.
     ! Also used by setvalue and getvalue
-    integer dynk_izuIndex
-    dimension dynk_izuIndex(nele)
-    real(kind=fPrec) dynk_elemdata(nele,3)
+    integer, allocatable, save :: dynk_izuIndex(:) !(nele
+    real(kind=fPrec), allocatable, save :: dynk_elemdata(:,:) !(nele,3)
 
 ! ================================================================================================ !
-    
+
     save ldynk, ldynkdebug, ldynkfiledisable
     save funcs_dynk, iexpr_dynk, fexpr_dynk, cexpr_dynk, nfuncs_dynk
     save niexpr_dynk, nfexpr_dynk, ncexpr_dynk
     save sets_dynk, csets_dynk, nsets_dynk
     save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-    save dynk_izuIndex, dynk_elemdata
     save maxidata_dynk, maxfdata_dynk, maxcdata_dynk
 
 +if cr
@@ -137,6 +135,27 @@ module dynk
 ! ================================================================================================ !
 contains
 
+  subroutine dynk_allocate_arrays
+  use crcoall
+  implicit none
+  integer stat
+
+  allocate(dynk_izuIndex(nele), dynk_elemdata(nele,3), STAT=stat)
+  if (stat.ne.0) then
+     write(lout,'(A,I8)') "ERROR in SUBROUTINE DYNK_ALLOCATE_ARRAYS; stat=", stat
+     call prror(-1)
+  endif
+end subroutine dynk_allocate_arrays
+
+subroutine dynk_expand_arrays(nele_new)
+  use crcoall
+  implicit none
+  integer, intent(in) :: nele_new
+
+  !TODO...
+end subroutine dynk_expand_arrays
+
+  
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 27-09-2017
