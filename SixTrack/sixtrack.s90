@@ -13602,7 +13602,7 @@ end subroutine hamilton1
              call prror(-1)
           endif
           open(loadunit,file=load_file,form='formatted') 
-          write(lout,*) 'APERTURES READ FROM FILE: ',load_file
+          write(lout,*) 'APERTURES READ FROM FILE: ',load_file,' - UNIT: ',loadunit
 
         elseif(ch(:4).eq.'PRIN') then
           ! P.G.Ortega and A.Mereghetti, 02-03-2018
@@ -23025,12 +23025,12 @@ program maincr
           write(lout,10320) m*izu0,nzfz,rmean,rdev
           write(lout,10070)
         endif
-        if(m.eq.1) call ord
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
+        ! possible to re-shuffle lattice structure
+        if(m.eq.1) call orglat
 
-!       A.Mereghetti
-!       last modified: 16-12-2016
-!       initialise aperture of first and last elements of sequence
-!       always in main code
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
+        ! initialise aperture of first and last elements of sequence
         if (limifound) then
            write(lout,*) ' check that beginning/end of lattice'//       &
      &' structure is assigned aperture markers...'
@@ -23038,20 +23038,22 @@ program maincr
         end if
 
 +if fluka
-!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!       last modified: 01-12-2016
-!       check integrity of coupling markers
-!       inserted in main code by the 'fluka' compilation flag
+        ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+        ! last modified: 01-12-2016
+        ! check integrity of coupling markers
+        ! inserted in main code by the 'fluka' compilation flag
         if (fluka_enable) call check_coupling_integrity
 +ei
 
-!       P. G. Ortega, for the FLUKA Team
-!       last modified: 01-07-2014
-!       dump aperture model
-!       always in main code
-        if (ldmpaper) then
-          call dump_aperture_model
-        endif
+        ! P. G. Ortega, for the FLUKA Team
+        ! last modified: 01-07-2014
+        ! dump aperture model
+        ! always in main code
+        if (ldmpaper) call dump_aperture_model
+
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
+        ! map errors, now that the sequence is no longer going to change
+        if(m.eq.1) call ord
 
         call clorb(ded)
 
@@ -31545,6 +31547,7 @@ subroutine synuthck
         write(lout,10025)
         goto 550
       endif
+      call orglat
       call ord
       call clorb(ded)
 
@@ -38135,37 +38138,29 @@ end subroutine matrix
 +dk ord
       subroutine ord
 !-----------------------------------------------------------------------
-!  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
+!  ORGANISATION OF NONLINEAR ELEMENTS AND RANDOM NUMBERS
+!  reserving places in zfz:
+!  - 1+2 for misalignment (h/v - DISP block / fort.8 / fort.30);
+!  - 2xmmul for multipole errors (fort.16);
+!  mapping also position of errors for a given element in lattice
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
       use mod_common
       use mod_commons
       implicit none
-      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
-     &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
-      real(kind=fPrec) extalig1,exterr1
+      integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
 +ca commont1
-      dimension ilf(nblz),ilfr(nblz),jra(nele,5),iran(nele),inz(nele)
-      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
-     &icextal1(nblz)
-+if time
-      real(kind=fPrec) exterr2,tcnst2
-      dimension exterr2(nblz,40),tcnst2(nblz)
-+ei
+      dimension jra(nele,5),iran(nele),inz(nele)
 +if bnlelens
 +ca rhicelens
 +ei
       save
 !-----------------------------------------------------------------------
-      do i=1,nblz
-        ilf(i)=0
-        ilfr(i)=0
-      end do
-
+      ! initialisation
       do i=1,nele
         iran(i)=0
         inz(i)=0
@@ -38174,20 +38169,7 @@ end subroutine matrix
         end do
       end do
 
-      if(mper.eq.1) goto 40
-
-      do i=2,mper
-        do j=1,mbloz
-          ii=(i-1)*mbloz+j
-          ihi=j
-          if(msym(i).lt.0) ihi=mbloz-j+1
-          ic(ii)=msym(i)*ic(ihi)
-          if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
-        end do
-      end do
-
 !--ORGANISATION OF RANDOM NUMBERS
-   40 iu=mper*mbloz
       if(niu(1).lt.0) niu(1)=iabs(niu(1))
       if(niu(2).lt.0) niu(2)=iabs(niu(2))
       if(niu(1).eq.0) niu(1)=1
@@ -38199,14 +38181,16 @@ end subroutine matrix
       iorg=iorg-1
       if(iorg.ge.0) then
         if(iorg.eq.0) then !iorg == 0
-          do 50 i=1,iu
+          do i=1,iu
             ix=ic(i)
-            if(ix.le.nblo) goto 50
+            ! skip blocks:
+            if(ix.le.nblo) cycle
             ix=ix-nblo
             kpz=kp(ix)
             kzz=kz(ix)
-            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 50
-            if(kzz.eq.15) goto 50
+            ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
+            !  map position of errors for present element in lattice structure
             mzu(i)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
@@ -38215,154 +38199,99 @@ end subroutine matrix
               write(lout,*) "ERROR in ORD: nzfz was too small"
               call prror(-1)
             endif
-   50     continue
+          end do
         else ! iorg.gt.0
-          do 70 i=1,iorg
-            do 60 j=1,il
+          do i=1,iorg
+            do j=1,il
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &               call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &               call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
                 jra(i,4)=kz(j)
               endif
-   60       continue
+            end do
             kzz1=jra(i,2)
             kzz2=jra(i,4)
             if(kzz1.ne.0.and.kzz2.eq.0) then
               jra(i,5)=nra1
               nra1=nra1+mran*3
-              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)             &
-     &             nra1=nra1+mran*2*mmul
+              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni) nra1=nra1+mran*2*mmul
               if(nra1.gt.nzfz) call prror(32)
             endif
             if(kzz1.eq.11.and.(kzz2.ne.11.and.kzz2.ne.0)) call prror(33)
-   70     continue
-          do 110 i=1,iu
+          end do
+          do i=1,iu
             ix=ic(i)
-            if(ix.le.nblo) goto 110
+            ! skip blocks:
+            if(ix.le.nblo) cycle
             ix=ix-nblo
             kpz=kp(ix)
             kzz=kz(ix)
-            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 110
-            if(kzz.eq.15) goto 110
-            do 80 j=1,iorg
+            ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
+            do j=1,iorg
               if(bez(ix).eq.bezr(1,j)) goto 90
-   80       continue
+            end do
             goto 100
    90       jra3=jra(j,3)
             if(jra3.ne.0) then
+              ! map position of errors for present element in lattice structure
               mzu(i)=iran(jra3)
               iran(ix)=mzu(i)
             else
               inz(j)=inz(j)+1
               if(inz(j).gt.mran) call prror(34)
+              ! map position of errors for present element in lattice structure
               mzu(i)=jra(j,5)
               iran(ix)=mzu(i)
               jra(j,5)=jra(j,5)+3
               if(jra(j,2).eq.11) jra(j,5)=jra(j,5)+2*mmul
             endif
-            goto 110
+            cycle
+            ! map position of errors for present element in lattice structure
   100       mzu(i)=izu
             iran(ix)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
-  110     continue
+          end do
         endif
       else !iorg < 0 (in case of no ORGA block in fort.3)
-        do 115 i=1,iu
+        do i=1,iu
           ix=ic(i)
-          if(ix.le.nblo) goto 115
+          ! skip blocks:
+          if(ix.le.nblo) cycle
           ix=ix-nblo
           kpz=kp(ix)
           kzz=kz(ix)
-          if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 115
-          if(kzz.eq.15) goto 115
+          ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+          if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
+          ! why just checking? shouldn't we map on mzu(i)?
           if(izu.gt.nran) call prror(30)
           if(izu.gt.nzfz) then
             write(lout,*) "ERROR in ORD: nzfz was too small"
             call prror(-1)
           endif
-  115   continue
+        end do
       endif
       
-      ! "GO" was not the first structure element -> Reshuffle the structure
-      if(kanf.ne.1) then
-        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
-        kanf1=kanf-1
-        do 130 i=1,kanf1
-          if(iorg.ge.0) ilfr(i)=mzu(i)
-          ilf(i)=ic(i)
-          icext1(i)=icext(i)
-          icextal1(i)=icextal(i)
-          extalig1(i,1)=extalign(i,1)
-          extalig1(i,2)=extalign(i,2)
-          extalig1(i,3)=extalign(i,3)
-          do 120 ii=1,40
-            exterr1(i,ii)=exterr(i,ii)
-+if time
-            exterr2(i,ii)=exterr35(i,ii)
-+ei
-  120     continue
-+if time
-          tcnst2(i)=tcnst35(i)
-+ei
-  130   continue
-        do 150 i=kanf,iu
-          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
-          ic(i-kanf1)=ic(i)
-          icext(i-kanf1)=icext(i)
-          icextal(i-kanf1)=icextal(i)
-          extalign(i-kanf1,1)=extalign(i,1)
-          extalign(i-kanf1,2)=extalign(i,2)
-          extalign(i-kanf1,3)=extalign(i,3)
-          do 140 ii=1,40
-            exterr(i-kanf1,ii)=exterr(i,ii)
-+if time
-            exterr35(i-kanf1,ii)=exterr35(i,ii)
-+ei
-  140     continue
-+if time
-          tcnst35(i-kanf1)=tcnst2(i)
-+ei
-  150   continue
-        do 170 i=1,kanf1
-          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
-          ic(iu-kanf1+i)=ilf(i)
-          icext(iu-kanf1+i)=icext1(i)
-          icextal(iu-kanf1+i)=icextal1(i)
-          extalign(iu-kanf1+i,1)=extalig1(i,1)
-          extalign(iu-kanf1+i,2)=extalig1(i,2)
-          extalign(iu-kanf1+i,3)=extalig1(i,3)
-          do 160 ii=1,40
-            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-+if time
-            exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
-+ei
-  160     continue
-+if time
-          tcnst35(iu-kanf1+i)=tcnst35(i)
-+ei
-  170   continue
-      endif
-      
+!     misalignments
       izu=0
-      do 190 i=1,iu
+      do i=1,iu
         ix=ic(i)
-        if(ix.le.nblo) goto 190
+        ! skip blocks:
+        if(ix.le.nblo) cycle
         ix=ix-nblo
         kpz=kp(ix)
         kzz=kz(ix)
-        if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 190
-        if(kzz.eq.15) goto 190
+        ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+        if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
         if(icextal(i).ne.0) then
           izu=izu+2
           xrms(ix)=one
@@ -38376,7 +38305,7 @@ end subroutine matrix
           izu=izu+3
         endif
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).ne.0) then
-          do 180 j=1,mmul
+          do j=1,mmul
             izu=izu+1
             zfz(izu)=exterr(i,20+j)
 +if time
@@ -38387,14 +38316,144 @@ end subroutine matrix
 +if time
             zfz35(izu)=exterr35(i,j)
 +ei
-  180     continue
-        else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.                 &
-     &icext(i).eq.0) then
+          end do
+        else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).eq.0) then
           izu=izu+2*mmul
         endif
-  190 continue
+      end do
       return
-      end
+      end subroutine ord
+
+      subroutine orglat
+!-----------------------------------------------------------------------
+!  ORGANISATION OF LATTICE SEQUENCE
+!  A.Mereghetti, last modified 2016-03-14
+!  extract pieces of code about lattice structure from original ord
+!     subroutine
+!-----------------------------------------------------------------------
+      use floatPrecision
+      use numerical_constants
+      use mathlib_bouncer
+      use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
+      implicit none
+      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
+      real(kind=fPrec) extalig1,exterr1
++ca commont1
+      dimension ilf(nblz),ilfr(nblz)
+      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
+     &icextal1(nblz)
++if time
+      real(kind=fPrec) exterr2,tcnst2
+      dimension exterr2(nblz,40),tcnst2(nblz)
++ei
++if bnlelens
++ca rhicelens
++ei
+      save
+!-----------------------------------------------------------------------
+      if(mper.gt.1) then
+        do i=2,mper
+          do j=1,mbloz
+            ii=(i-1)*mbloz+j
+            ihi=j
+            if(msym(i).lt.0) ihi=mbloz-j+1
+            ic(ii)=msym(i)*ic(ihi)
+            if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+          end do
+        end do
+      end if
+      
+      ! set iu
+      iu=mper*mbloz
+
+      ! "GO" was not the first structure element -> Reshuffle the structure
+      if(kanf.ne.1) then
+        write(*,*) ' -> reshuffling lattice structure following' &
+     &//' existence of GO keyword not in first position of lattice definition!'
+
+!        initialise some temporary variables
+         do i=1,nblz
+            ilf(i)=0
+            ilfr(i)=0
+            icext1(i)=0
+            icextal1(i)=0
+            do ii=1,3
+               extalig1(i,ii)=zero
+            enddo
+            do ii=1,40
+               exterr1(i,ii)=zero
++if time
+               exterr2(i,ii)=zero
++ei
+            enddo
++if time
+            tcnst35(i)=zero
++ei
+        enddo
+
+        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+        kanf1=kanf-1
+        do i=1,kanf1
+          if(iorg.ge.0) ilfr(i)=mzu(i)
+          ilf(i)=ic(i)
+          icext1(i)=icext(i)
+          icextal1(i)=icextal(i)
+          extalig1(i,1)=extalign(i,1)
+          extalig1(i,2)=extalign(i,2)
+          extalig1(i,3)=extalign(i,3)
+          do ii=1,40
+            exterr1(i,ii)=exterr(i,ii)
++if time
+            exterr2(i,ii)=exterr35(i,ii)
++ei
+          end do
++if time
+          tcnst2(i)=tcnst35(i)
++ei
+        end do
+        do i=kanf,iu
+          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
+          ic(i-kanf1)=ic(i)
+          icext(i-kanf1)=icext(i)
+          icextal(i-kanf1)=icextal(i)
+          extalign(i-kanf1,1)=extalign(i,1)
+          extalign(i-kanf1,2)=extalign(i,2)
+          extalign(i-kanf1,3)=extalign(i,3)
+          do ii=1,40
+            exterr(i-kanf1,ii)=exterr(i,ii)
++if time
+            exterr35(i-kanf1,ii)=exterr35(i,ii)
++ei
+          end do
++if time
+          tcnst35(i-kanf1)=tcnst2(i)
++ei
+        end do
+        do i=1,kanf1
+          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
+          ic(iu-kanf1+i)=ilf(i)
+          icext(iu-kanf1+i)=icext1(i)
+          icextal(iu-kanf1+i)=icextal1(i)
+          extalign(iu-kanf1+i,1)=extalig1(i,1)
+          extalign(iu-kanf1+i,2)=extalig1(i,2)
+          extalign(iu-kanf1+i,3)=extalig1(i,3)
+          do ii=1,40
+            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
++if time
+            exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
++ei
+          end do
++if time
+          tcnst35(iu-kanf1+i)=tcnst35(i)
++ei
+        end do
+      endif
+      
+      return
+      end subroutine orglat
 
 +dk phasad
 !-----------------------------------------------------------------------

@@ -26,7 +26,7 @@ module aperture
   logical, save :: limifound                   ! limi block in fort.3
 
   integer, save :: kape(nele)                  ! type of aperture
-  real(kind=fPrec), save ::  ape(7,nele)       ! aperture parameters
+  real(kind=fPrec), save ::  ape(7,nele)       ! aperture parameters [mm]
   logical, save :: lapeofftlt(nele)            ! aperture is tilted/offcentred
 
   ! save (i.e. do not kill) lost particles
@@ -47,15 +47,15 @@ module aperture
   ! last modified: 02-03-2018
   ! NB: add also temporary variables for back-tracking
   !     inserted in main code by the 'backtrk' compilation flag
-  real(kind=fPrec), save :: yold(2,npart)      ! angles before last lens
-  real(kind=fPrec), save :: apold(7)           ! aperture parameters at last lens
-  real(kind=fPrec), save :: sold               ! s-coord at last lens
-  real(kind=fPrec), save :: bktpre             ! precision of back-tracking
-  real(kind=fPrec), parameter :: bktpredef=0.1 ! default precision of back-tracking
+  real(kind=fPrec), save :: yold(2,npart)      ! angles before last lens [mrad]
+  real(kind=fPrec), save :: apold(7)           ! aperture parameters at last lens [mm]
+  real(kind=fPrec), save :: sold               ! s-coord at last lens [m]
+  real(kind=fPrec), save :: bktpre             ! precision of back-tracking [m]
+  real(kind=fPrec), parameter :: bktpredef=0.1 ! default precision of back-tracking [m]
   integer, save :: kapold                      ! type of aperture at last lens
 +ei
 
-  ! aperture types -- kape
+  ! aperture types  -- kape
   ! circle          -- 1
   ! rectangle       -- 2
   ! ellipse         -- 3
@@ -65,6 +65,10 @@ module aperture
   ! not-an-aperture -- 
   character(len=2), parameter, dimension(0:6) ::  &
  &               apeName=(/'NA','CR','RE','EL','RL','OC','RT'/)
+
+  ! precision parameters:
+  real(kind=fPrec), parameter :: aPrec=c1m6 ! identify two ap. markers as identical [mm]
+  real(kind=fPrec), parameter :: sPrec=c1m7 ! identify two ap. markers as at the same s-pos [m]
 
 contains
 
@@ -780,23 +784,26 @@ end subroutine roffpos
 
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 20-12-2016
-!     always in main code
+! by A.Mereghetti
+! last modified: 20-12-2016
+! always in main code
+! check elements itElUp (upstream) and itElDw (downstream) and
+!   assign them (or insert) an aperture marker, in case;
+! lInsUp: force the insertion of an aperture marker upstream
+!   of itElUp (.false. in case of initialisation of aperture profile
+!   of entire lattice, as the upstream element is the actual entry
+!   in lattice sequence);
 !-----------------------------------------------------------------------
   implicit none
 
 +ca commontr
 
 ! interface variables
-  integer itElUp,itElDw
+  integer itElUp, itElDw
   logical lInsUp
 ! run time variables
   integer iElUp, iElDw, ixApeUp, ixApeDw, jj, iuold
   logical lExtremes, lsame
-  real(kind=fPrec) aPrec
-! precision on aperture parameters to be identical
-  data aPrec / c1m6 / 
 
 ! do not overwrite interface variables
   iElUp=itElUp
@@ -806,8 +813,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 
 ! upstream marker 
   iuold=iu
-  call contour_aperture_marker( iElUp, lInsUp  )
-
+  call contour_aperture_marker( iElUp, lInsUp )
 ! the addition of the upstream aperture marker may have
 !    shifted by one the downstream entries
 ! NB: if lExtremes, the upstream marker is the last entry
@@ -815,9 +821,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   if( .not.lExtremes ) then
     if( iu-iuold.ne.0 ) then
       iElDw=iElDw+(iu-iuold)
-      write(lout,*) '...inserted upstream marker - downstream  entries shifted by',iu-iuold
+      write(lout,*) '...inserted upstream marker - downstream entries shifted by',iu-iuold
     else
-      write(lout,*) '...no need to insert an upstream marker'
+      write(lout,*) '...no need to insert an upstream marker - no shift of downstream entries required.'
     end if
   end if
 
@@ -835,7 +841,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
     end if
     write(lout,*) '...inserted downstream marker - downstream entries shifted by',iu-iuold
   else
-    write(lout,*) '...no need to insert a downstream marker'
+    write(lout,*) '...no need to insert a downstream marker - no shift of downstream entries required.'
   end if
 
   if( lExtremes ) then
@@ -889,13 +895,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   logical lInsUp
 ! temporary variables
   integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,ixEl
-  real(kind=fPrec) tmpape(7), ddcum, sPrec, aPrec
+  real(kind=fPrec) tmpape(7), ddcum
   logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
-
-! precision on s-coordinates to be identical
-  data sPrec / c1m7 / 
-! precision on aperture parameters to be identical
-  data aPrec / c1m6 / 
 
 ! echo of input parameters
   write(lout,*) ''
@@ -1260,40 +1261,33 @@ subroutine dump_aperture_model
   inquire( unit=aperunit, opened=lopen )
   if( .not.lopen ) then
     if( aperunit.ne.0 ) then
-      if( aper_filename.eq.' ' ) then
-        open( aperunit, form='formatted' )
-        write(lout,*) 'DUMPED IN UNIT: ',aperunit
-      else
-        open( aperunit, file=aper_filename, form='formatted' )
-        write(lout,*) 'DUMPED IN FILE: ',aper_filename
-      end if
+       open( aperunit, file=aper_filename, form='formatted' )
+       write(lout,*) 'APERTURE PROFILE DUMPED IN FILE: ',aper_filename,' - UNIT: ',aperunit
     end if
   end if
 
 ! Header
   call dump_aperture_header( aperunit )
 
-+if backtrk
-  iOld=1
-  ixOld=ic(iOld)-nblo
-  if( kape(ixOld).eq.0 ) then
+! First element of lattice
+  i=1
+  ix=ic(i)-nblo
+  if( kape(ix).eq.0 ) then
     write(lout,*) ' ERROR - first element of lattice structure is not assigned any aperture type'
     call prror(-1)
-  else
-    call dump_aperture_marker( aperunit, ixOld, iOld )
   end if
-+ei
+  call dump_aperture_marker( aperunit, ix, i )
 
   do i=2,iu
     ix=ic(i)-nblo
     if(ix.gt.0) then
-!   SINGLE ELEMENT 
+      ! SINGLE ELEMENT 
       if( kape(ix) .ne. 0 ) then
 +if .not.backtrk
         call dump_aperture_marker( aperunit, ix, i )
 +ei
 +if backtrk
-  !Number of iterations 
+        ! Number of iterations 
         if( (dcum(i)-dcum(iOld)).gt.zero) then
           niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
           do jj=1,niter
@@ -1343,7 +1337,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
 !     last modified: 08-12-2016
-!     dump single aperture
+!     dump any aperture marker
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
@@ -1370,7 +1364,7 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
 !     last modified: 08-12-2016
-!     dump single aperture
+!     dump single aperture marker, existing in aperture DB
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
@@ -1381,7 +1375,7 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 ! interface variables
   integer iunit, iEl, ixEl
 
-  call dump_aperture( iunit, bez(ixEl), apeName(kape(ixEl)), dcum(iEl),ape(1:7,ixEl) )
+  call dump_aperture( iunit, bez(ixEl), apeName(kape(ixEl)), dcum(iEl), ape(1:7,ixEl) )
 
   return
 end subroutine dump_aperture_marker
