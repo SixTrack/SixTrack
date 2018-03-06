@@ -242,6 +242,7 @@ module parpro_scale
   ! by telling various other module to rescale their arrays;
   ! It is split off from parpro as a separate module
   ! in order to avoid circular dependencies.
+  use parpro
   implicit none
 contains
 
@@ -380,25 +381,29 @@ module mod_common
   integer, allocatable, save :: kpa(:) !(nele)
   
   ! common /linop/
-  character(len=max_name_len), save :: bez(nele), bezb(nblo), bezl(nele)
+  character(len=max_name_len), allocatable, save :: bez(:), bezb(:), bezl(:) !(nele)
   real(kind=fPrec),  save :: elbe(nblo),eui,euii
   integer, save :: ilin,nt,iprint,ntco,nlin
   
   ! common /cororb/
   real(kind=fPrec), save :: betam(nmon1,2),pam(nmon1,2),betac(ncor1,2), &
        pac(ncor1,2),bclorb(nmon1,2)
-  integer, save :: nhmoni,nhcorr,nvmoni,nvcorr,ncororb(nele)
+  integer, save :: nhmoni,nhcorr,nvmoni,nvcorr
+  integer, allocatable, save :: ncororb(:) !nele
   
   ! common /clos/
   real(kind=fPrec), save :: sigma0(2)
   integer, save :: iclo, ncorru,ncorrep
   
   ! common /combin/
-  real(kind=fPrec), save :: ratio(ncom,20),ratioe(nele)
-  integer, save :: icomb0(20),icomb(ncom,20),iratioe(nele),icoe
+  real(kind=fPrec), save :: ratio(ncom,20)
+  real(kind=fPrec), allocatable, save :: ratioe(:) !(nele)
+  integer, save :: icomb0(20),icomb(ncom,20),icoe
+  integer, allocatable, save :: iratioe(:) !(nele)
   
   ! common/seacom/m21,m22,m23
-  integer, save :: ise,ise1,ise2,ise3,isea(nele),mesa,mp,m21,m22,m23
+  integer, save :: ise,ise1,ise2,ise3,mesa,mp,m21,m22,m23
+  integer, allocatable, save :: isea(:) !(nele)
   
   ! common /subres/
   real(kind=fPrec), save :: qxt,qzt,tam1,tam2,totl
@@ -438,17 +443,19 @@ module mod_common
   real(kind=fPrec), save :: clo6(3),clop6(3)
   
   ! common /dkic/
-  real(kind=fPrec), save :: dki(nele,3)
+  real(kind=fPrec), allocatable, save :: dki(:,:) !(nele,3)
 
   ! common /beam/
   real(kind=fPrec), save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb), &
-       clobeam(6,nbb),beamoff(6,nbb),parbe(nele,18),track6d(6,npart),    &
-       ptnfac(nele),sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
+       clobeam(6,nbb),beamoff(6,nbb),track6d(6,npart),    &
+       sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
+  real(kind=fPrec), allocatable, save :: parbe(:,:) !(nele,18)
+  real(kind=fPrec), allocatable, save :: ptnfac(:) !(nele)
   integer, save :: nbeam,ibbc,ibeco,ibtyp,lhc
   
   ! common/trom/
   real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6)
-  integer, save ::  imtr(nele)
+  integer, allocatable, save ::  imtr(:) !(nele)
   
   ! common /bb6d/
   real(kind=fPrec), save :: bbcu(nbb,12)
@@ -503,12 +510,48 @@ contains
     allocate(kpa(nele), STAT=stat)
     if (stat.ne.0) goto 42
 
+    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(ncororb(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(ratioe(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(iratioe(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(isea(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(dki(nele,3), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(parbe(nele,18), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(ptnfac(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(imtr(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(acdipph(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(nturn1(nele), nturn2(nele), nturn3(nele), nturn4(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
+    allocate(crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele), STAT=stat)
+    if (stat.ne.0) goto 42
+
     !Und so weiter...
 
     !TODO: Certain "COMNUL" functionality should probably be done here as well.
 
 42  continue
-    write(lout,'(A,I8,1x,A)') "ERROR in MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat, "(part 11)"
+    write(lout,'(A,I8,1x,A)') "ERROR in SUBROUTINE MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat
     call prror(-1)
 
   end subroutine mod_common_allocate_arrays
