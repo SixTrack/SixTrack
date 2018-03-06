@@ -42,7 +42,7 @@ module aperture
   ! flag for killing particles at the aperture check or let them live
   logical, save :: apflag
   logical lexist
-  real(kind=fPrec), allocatable, save :: ape(7,:) ! (7,nele)
+  real(kind=fPrec), allocatable, save :: ape(:,:) ! (7,nele)
   
   ! Recognised aperture types:
   character(len=2), parameter :: circ = 'CR' ! kape = 1
@@ -71,16 +71,19 @@ subroutine aperture_allocate_arrays
   implicit none
   integer stat
   
-  allocate(kape(nele_initial), lapeofftlt(nele_initial), ape(7,nele_initial), STAT=stat)
+  allocate(kape(nele), lapeofftlt(nele), ape(7,nele), STAT=stat)
 
   if (stat.ne.0) then
-    write(lout,'(A,I8)') "ERROR in APERTURE_ALLOCATE_ARRAYS; stat=", stat
+    write(lout,'(A,I8)') "ERROR in SUBROUTINE APERTURE_ALLOCATE_ARRAYS; stat=", stat
     call prror(-1)
   endif
 end subroutine aperture_allocate_arrays
 
 subroutine aperture_expand_arrays(nele_new)
   implicit none
+  integer, intent(in) :: nele_new
+
+  !TODO...
   
 end subroutine aperture_expand_arrays
 

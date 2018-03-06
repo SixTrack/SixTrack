@@ -3,6 +3,7 @@
 module elens
   use parpro
   use floatPrecision
+  use crcoall
   implicit none
   
 !     M. Fitterer, FNAL, A. Mereghtti, CERN
@@ -15,8 +16,8 @@ module elens
       integer, save          :: melens
 
       ! index of elens:
-      integer, save          :: ielens(nele)
-      
+      integer,allocatable, save          :: ielens(:) !(nele)
+
       ! variables to save elens parameters for tracking etc.
       integer, save          :: elens_type(nelens)      ! integer for elens type
                                                           ! 0 : Un-initialized.
@@ -44,5 +45,26 @@ module elens
       real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) ! reference radius [mm]
       real(kind=fPrec), save :: elens_cheby_refBeta(nelens_cheby_tables) ! reference e-beta []
     contains
-      
+
+      subroutine elens_allocate_arrays
+        use crcoall
+        implicit none
+        integer stat
+
+        allocate(ielens(nele), STAT=stat)
+
+        if (stat.ne.0) then
+           write(lout,'(A,I8)') "ERROR in SUBROUTINE ELENS_ALLOCATE_ARRAYS; stat=", stat
+           call prror(-1)
+        endif
+      end subroutine elens_allocate_arrays
+
+      subroutine elens_expand_arrays(nele_new)
+        implicit none
+        integer, intent(in) :: nele_new
+
+        !TODO...
+
+      end subroutine elens_expand_arrays
+
 end module elens

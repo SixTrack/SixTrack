@@ -250,11 +250,13 @@ contains
     ! Allocate arrays scaling with the main memory parameters nele, npart, etc.
     implicit none
 
-    !Call subroutines to actually allocate
-    call aperture_allocate_arrays
-
-    !Update nele etc.
+    !Set nele etc.
     nele = nele_initial
+
+    !Call subroutines to actually allocate
+    call mod_common_allocate_arrays
+    call aperture_allocate_arrays
+    call elens_allocate_arrays
 
   end subroutine allocate_arrays
 
