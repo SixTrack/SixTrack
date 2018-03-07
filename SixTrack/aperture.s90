@@ -29,29 +29,27 @@ module aperture
   logical, save :: lapeofftlt(nele)            ! aperture is tilted/offcentred
 
   ! save (i.e. do not kill) lost particles
-  logical, save :: apflag                      ! - save or not
-  integer, save :: plost(npart)                ! - particle ID
+  logical, save :: apflag                      ! save or not
+  integer, save :: plost(npart)                ! particle ID
 
   ! dump aperture profile:
-  logical, save :: ldmpaper                    ! - dump or not
-  integer, save :: aperunit                    ! - fortran unit
-  character(len=16), save :: aper_filename     ! - file name
+  logical, save :: ldmpaper                    ! dump or not
+  integer, save :: aperunit                    ! fortran unit
+  character(len=16), save :: aper_filename     ! file name
   ! load aperture markers from external file:
-  integer, save :: loadunit                    ! - fortran unit
-  character(len=16), save :: load_file         ! - file name
+  integer, save :: loadunit                    ! fortran unit
+  character(len=16), save :: load_file         ! file name
 
-+if backtrk
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
-  ! NB: add also temporary variables for back-tracking
-  !     inserted in main code by the 'backtrk' compilation flag
+  ! variables for back-tracking
+  logical, save :: lbacktracking               ! activate back-tracking
   real(kind=fPrec), save :: xold(2,npart)      ! position after last check [mm]
   real(kind=fPrec), save :: yold(2,npart)      ! angles after last check [mrad]
   real(kind=fPrec), save :: apold(7)           ! aperture parameters at last lens [mm]
   real(kind=fPrec), save :: sold               ! s-coord at last lens [m]
   real(kind=fPrec), save :: bktpre             ! precision of back-tracking [m]
   integer, save :: kapold                      ! type of aperture at last lens
-+ei
 
   ! aperture types  -- kape
   ! circle          -- 1
@@ -97,7 +95,7 @@ subroutine aperture_comnul
   loadunit      = 3 ! default: read aperture markers in fort.3
   load_file     = ' '
 
-+if backtrk
+  lbacktracking=.true. ! backtracking on by default
   do ii=1,npart
      do jj=1,2
         xold(jj,ii)=zero
@@ -105,18 +103,17 @@ subroutine aperture_comnul
      end do
   end do
   do ii=1,7
-     aplod(ii)=zero
+     apold(ii)=zero
   end do
   sold=zero
   bktpre=c1m1 ! default precision: 0.1m
   kapold=0
-+ei
+
   return
 
 end subroutine aperture_comnul
 
 
-+if backtrk
 subroutine aperture_saveLastMarker( i, ix )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-07
@@ -196,7 +193,6 @@ subroutine aperture_backTrackingInit
   return  
 
 end subroutine aperture_backTrackingInit
-+ei ! +if backtrk
 
 
 subroutine lostpart(turn, i, ix, llost, nthinerr)
@@ -261,7 +257,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   character(len=max_name_len+1) this_name
 +ei
 
-+if backtrk
 ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 ! last modified: 12-06-2014
 ! additional variables for back-tracking, when computing locations of
@@ -271,7 +266,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   integer kapert      ! temporal integer for aperture type
   logical llos(npart) ! temporal logic array for interpolation
   real(kind=fPrec) xlos(2,npart), aprr(7), step(npart), length, slos(npart), apnew(7), xnew(2)
-+ei
   save
 !-----------------------------------------------------------------------
   llost=.false.
@@ -367,20 +361,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     do j=1,napx
       if(pstop(nlostp(j))) then
         llost=.true.
-        goto 10
+        exit
       end if
     end do
-10  continue
 
 
   if( llost ) then
-+if backtrk
-! A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
-! last modified: 24-11-2016
-! back-track particles, in order to better estimate actual loss point
-! inserted in main code by the 'backtrk' compilation flag
-
-! Initialise arrays
+    ! Initialise arrays
     do j=1,napx
       xlos(1,j) = xv(1,j)
       xlos(2,j) = xv(2,j)
@@ -388,116 +375,121 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       slos(j)   = dcum(i)
       step(j)   = one
     end do
+      
+    if (lbacktracking) then
+      ! A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
+      ! last modified: 24-11-2016
+      ! back-track particles, in order to better estimate actual loss point
 
-    if( kape(ix) .ne. 0 ) then
-      ! initialize temporary aperture profile;
-      ! it can be either a constant aperture or a changing one (only RL allowed, for the moment!)
-      kapert = kape(ix)
-      do jj=1,7
-        apnew(jj) = ape(jj,ix)
-      end do
-
-      if( kape(ix) .ge. 5 .or. kapold .ge. 5 ) then
-      ! force constant Racetrack or Octagon profile
+      if( kape(ix) .ne. 0 ) then
+        ! initialize temporary aperture profile;
+        ! it can be either a constant aperture or a changing one (only RL allowed, for the moment!)
+        kapert = kape(ix)
         do jj=1,7
-          apold(jj) = apnew(jj)
+          apnew(jj) = ape(jj,ix)
         end do
-      else
-        ! a possible RL-equivalent transition
-        kapert = 4
-      end if
-
-      ! Length between elements
-      length = dcum(i)-sold
-      if( length .lt. zero ) then
-        ! pay attention to overflow:
-        ! length = dcum(i)+(dcum(iu+1)-sold)
-        length = length+dcum(iu+1)
-      end if
-
-      if( length .le. bktpre ) goto 11
-
-      ! Number of iterations (ln(2x/precision)/ln(2)+1)
-      niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
-
-      ! Interpolation of the lost particles position down to bktpre
-      ! only for already lost particles
-      do jj=1,niter
-        do j=1,napx
-          if(pstop(nlostp(j))) then
-            ! Update parameter
-            if( llos(j) ) then
-              step(j) = step(j) - one / (two**(jj))
-            else
-              step(j) = step(j) + one / (two**(jj))
-            end if
-
-            ! step discretized, to compare with BeamLossPattern
-            if(jj.eq.niter) then
-              slos(j) = int((sold+length*step(j))/bktpre+one)*bktpre
-              step(j) = (slos(j)-sold)/length
-            end if
-           
-            ! Update position
-            xlos(1,j) = xv(1,j) -yold(1,j)*(one-step(j))*length
-            xlos(2,j) = xv(2,j) -yold(2,j)*(one-step(j))*length
-            slos(j)   = sold    +length*step(j)
-           
-            ! Update apertures
-            do jj1=1,7
-              aprr(jj1)=apold(jj1)+(apnew(jj1)-apold(jj1))*step(j)
-            end do
-           
-            ! Check aperture
-            if( lapeofftlt(ix) ) then
-              call roffpos( xlos(1,j), xlos(2,j), xnew(1),xnew(2), aprr(5), aprr(6), aprr(7) )
-            else
-              xnew(1) = xlos(1,j)
-              xnew(2) = xlos(2,j)
-            end if
-
-            if( kapert.eq.1 ) then
-!           Circle
-              radius2 = aprr(1)**2
-              llos(j)=checkCR(xnew(1),xnew(2),radius2) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
-            else if( kapert.eq.2 ) then
-!           Rectangle
-              llos(j)=checkRE(xnew(1),xnew(2),aprr(1),aprr(2)) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
-            else if( kapert.eq.3 ) then
-!           Ellipse
-              apxx = aprr(3)**2.
-              apyy = aprr(4)**2.
-              apxy = apxx * apyy
-              llos(j)=checkEL( xnew(1),xnew(2),apxx,apyy,apxy )  .or.myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
-            else if( kapert.eq.4 ) then
-!           RectEllipse
-              apxx = aprr(3)**2.
-              apyy = aprr(4)**2.
-              apxy = apxx * apyy
-              llos(j) = checkRL( xnew(1),xnew(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. & 
+      
+        if( kape(ix) .ge. 5 .or. kapold .ge. 5 ) then
+        ! force constant Racetrack or Octagon profile
+          do jj=1,7
+            apold(jj) = apnew(jj)
+          end do
+        else
+          ! a possible RL-equivalent transition
+          kapert = 4
+        end if
+      
+        ! Length between elements
+        length = dcum(i)-sold
+        if( length .lt. zero ) then
+          ! pay attention to overflow:
+          ! length = dcum(i)+(dcum(iu+1)-sold)
+          length = length+dcum(iu+1)
+        end if
+      
+        if( length .le. bktpre ) goto 11
+      
+        ! Number of iterations (ln(2x/precision)/ln(2)+1)
+        niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
+      
+        ! Interpolation of the lost particles position down to bktpre
+        ! only for already lost particles
+        do jj=1,niter
+          do j=1,napx
+            if(pstop(nlostp(j))) then
+              ! Update parameter
+              if( llos(j) ) then
+                step(j) = step(j) - one / (two**(jj))
+              else
+                step(j) = step(j) + one / (two**(jj))
+              end if
+      
+              ! step discretized, to compare with BeamLossPattern
+              if(jj.eq.niter) then
+                slos(j) = int((sold+length*step(j))/bktpre+one)*bktpre
+                step(j) = (slos(j)-sold)/length
+              end if
+             
+              ! Update position
+              xlos(1,j) = xv(1,j) -yold(1,j)*(one-step(j))*length
+              xlos(2,j) = xv(2,j) -yold(2,j)*(one-step(j))*length
+              slos(j)   = sold    +length*step(j)
+             
+              ! Update apertures
+              do jj1=1,7
+                aprr(jj1)=apold(jj1)+(apnew(jj1)-apold(jj1))*step(j)
+              end do
+             
+              ! Check aperture
+              if( lapeofftlt(ix) ) then
+                call roffpos( xlos(1,j), xlos(2,j), xnew(1),xnew(2), aprr(5), aprr(6), aprr(7) )
+              else
+                xnew(1) = xlos(1,j)
+                xnew(2) = xlos(2,j)
+              end if
+      
+              if( kapert.eq.1 ) then
+!             Circle
+                radius2 = aprr(1)**2
+                llos(j)=checkCR(xnew(1),xnew(2),radius2) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+              else if( kapert.eq.2 ) then
+!             Rectangle
+                llos(j)=checkRE(xnew(1),xnew(2),aprr(1),aprr(2)) .or. myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+              else if( kapert.eq.3 ) then
+!             Ellipse
+                apxx = aprr(3)**2.
+                apyy = aprr(4)**2.
+                apxy = apxx * apyy
+                llos(j)=checkEL( xnew(1),xnew(2),apxx,apyy,apxy )  .or.myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+              else if( kapert.eq.4 ) then
+!             RectEllipse
+                apxx = aprr(3)**2.
+                apyy = aprr(4)**2.
+                apxy = apxx * apyy
+                llos(j) = checkRL( xnew(1),xnew(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. & 
+ &                        myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+              else if( kapert.eq.5 ) then
+!             Octagon
+                ap_oc_1 = aprr(2)*tan_mb(pi/two-aprr(4))-aprr(1)
+                ap_oc_2 = aprr(1)*tan_mb(aprr(3))
+                ap_oc_3 = aprr(2)-aprr(1)*tan_mb(aprr(3))
+      
+                llos(j)=checkOC(xnew(1), xnew(2), aprr(1), aprr(2), ap_oc_1, ap_oc_2, ap_oc_3) .or. &
  &                      myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
-            else if( kapert.eq.5 ) then
-!           Octagon
-              ap_oc_1 = aprr(2)*tan_mb(pi/two-aprr(4))-aprr(1)
-              ap_oc_2 = aprr(1)*tan_mb(aprr(3))
-              ap_oc_3 = aprr(2)-aprr(1)*tan_mb(aprr(3))
-
-              llos(j)=checkOC(xnew(1), xnew(2), aprr(1), aprr(2), ap_oc_1, ap_oc_2, ap_oc_3) .or. &
- &                    myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
-            else if( kapert.eq.6 ) then
-!           Racetrack
-!           NB: it follows the MadX definition
-              llos(j)=checkRT( xnew(1), xnew(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
- &                    myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
-            end if !if( kapert.eq.1 ) then
-          end if !if(pstop(j)) then
-        end do !do j=1,napx
-      end do !do jj=1,niter
-           
-11    continue
-        
-    end if !if( kape(ix) .ne. 0 ) then
-+ei !+if backtrk
+              else if( kapert.eq.6 ) then
+!             Racetrack
+!             NB: it follows the MadX definition
+                llos(j)=checkRT( xnew(1), xnew(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
+ &                      myisnan(xnew(1),xnew(1)).or.myisnan(xnew(2),xnew(2))
+              end if !if( kapert.eq.1 ) then
+            end if !if(pstop(j)) then
+          end do !do j=1,napx
+        end do !do jj=1,niter
+             
+11      continue
+          
+      end if !if( kape(ix) .ne. 0 ) then
+    end if ! if(lbacktracking)
 
 ! If lost particles aren't killed, the lost info is dumped only
 ! the first time they hit the aperture. Their secondaries generated
@@ -553,16 +545,15 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 !   Print to unit 999 (fort.999)
     do j=1,napx
       if(pstop(nlostp(j))) then
-+if backtrk
-!     A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
-!     last modified: 11-06-2014
-!     back-track particles, in order to better estimate actual loss point
-!     inserted in main code by the 'backtrk' compilation flag
-        if ( slos(j).gt.dcum(iu+1) ) then
-        ! pay attention to overflow:
-          slos(j)=slos(j)-dcum(iu+1)
-        end if
-+ei
+        if (lbacktracking) then
+          ! A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
+          ! last modified: 11-06-2014
+          ! back-track particles, in order to better estimate actual loss point
+          if ( slos(j).gt.dcum(iu+1) )then
+            ! pay attention to overflow:
+            slos(j)=slos(j)-dcum(iu+1)
+          end if
+        endif
 
 +if fluka
         write(999,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')  &
@@ -571,13 +562,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         write(999,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')     &
 +ei
 
-+if .not.backtrk
-     &         turn, i, ix, bez(ix), dcum(i),                           &
-+ei
-+if backtrk
      &         turn, i, ix, bez(ix), slos(j),                           &
-+ei
-
 +if fluka
      &         fluka_uid(j), fluka_gen(j), fluka_weight(j),             &
 +ei
@@ -588,12 +573,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         j,                                                       &
 +ei
 
-+if .not.backtrk
-     &         xv(1,j)*c1m3, yv(1,j)*c1m3, xv(2,j)*c1m3,                &
-+ei
-+if backtrk
      &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3,            &
-+ei
      &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)*(nucm0/nucm(j))-e0)*c1e6,             &
      &         -c1m3 * (sigmv(j)/clight) * (e0/e0f),                    &
      &         naa(j), nzz(j)
@@ -1328,14 +1308,12 @@ subroutine dump_aperture_model
   integer i, ix
   logical lopen
 
-+if backtrk
   integer iOld, ixOld, niter, oKApe, jj
   real(kind=fPrec) aprr,slos,step
   dimension aprr(7)
-+ei
 
   write(lout,*)''
-  write(lout,10340)
+  write(lout,fmt="(131('-'))")
   write(lout,*)''
   write(lout,*)' DUMP OF APERTURE MODEL'
   write(lout,*)''
@@ -1365,30 +1343,28 @@ subroutine dump_aperture_model
     if(ix.gt.0) then
       ! SINGLE ELEMENT 
       if( kape(ix) .ne. 0 ) then
-+if .not.backtrk
-        call dump_aperture_marker( aperunit, ix, i )
-+ei
-+if backtrk
-        ! Number of iterations 
-        if( (dcum(i)-dcum(iOld)).gt.zero) then
-          niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
-          do jj=1,niter
-            slos = int(dcum(iOld)/bktpre+jj)*bktpre
-            step = (slos-dcum(iOld))/(dcum(i)-dcum(iOld))
-            if ( step.lt.zero .or. step.gt.one ) exit
-            call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
-            call dump_aperture( aperunit, bez(ix), apeName(oKApe), slos, aprr )
-          end do
-        end if
-        iOld=i
-        ixOld=ix
-+ei
+        if (lbacktracking) then
+          ! Number of iterations 
+          if( (dcum(i)-dcum(iOld)).gt.zero) then
+            niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
+            do jj=1,niter
+              slos = int(dcum(iOld)/bktpre+jj)*bktpre
+              step = (slos-dcum(iOld))/(dcum(i)-dcum(iOld))
+              if ( step.lt.zero .or. step.gt.one ) exit
+              call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
+              call dump_aperture( aperunit, bez(ix), apeName(oKApe), slos, aprr )
+            end do
+          end if
+          iOld=i
+          ixOld=ix
+        else
+          call dump_aperture_marker( aperunit, ix, i )
+        endif
       end if
     end if
   end do
 
- 1984 format (a16,1x,a2,8(1x,f15.5))
-10340 format(131('-'))
+  return
 
 end subroutine dump_aperture_model
 
