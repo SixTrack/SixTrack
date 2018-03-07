@@ -11,7 +11,6 @@ module aperture
   !contains pstop(npart) etc
   use mod_commonmn
   use crcoall
-  use parpro
   use mod_common
   use mod_commons
   
@@ -36,7 +35,6 @@ module aperture
   ! dump aperture profile:
   logical, save :: ldmpaper                    ! - dump or not
   integer, save :: aperunit                    ! - fortran unit
-  integer, parameter :: aperunitdef=3          ! - default: fort.3
   character(len=16), save :: aper_filename     ! - file name
   ! load aperture markers from external file:
   integer, save :: loadunit                    ! - fortran unit
@@ -47,11 +45,11 @@ module aperture
   ! last modified: 02-03-2018
   ! NB: add also temporary variables for back-tracking
   !     inserted in main code by the 'backtrk' compilation flag
-  real(kind=fPrec), save :: yold(2,npart)      ! angles before last lens [mrad]
+  real(kind=fPrec), save :: xold(2,npart)      ! position after last check [mm]
+  real(kind=fPrec), save :: yold(2,npart)      ! angles after last check [mrad]
   real(kind=fPrec), save :: apold(7)           ! aperture parameters at last lens [mm]
   real(kind=fPrec), save :: sold               ! s-coord at last lens [m]
   real(kind=fPrec), save :: bktpre             ! precision of back-tracking [m]
-  real(kind=fPrec), parameter :: bktpredef=0.1 ! default precision of back-tracking [m]
   integer, save :: kapold                      ! type of aperture at last lens
 +ei
 
@@ -96,12 +94,13 @@ subroutine aperture_comnul
   ldmpaper      = .false.
   aperunit      = 0
   aper_filename = ' '
-  loadunit      = aperunitdef
+  loadunit      = 3 ! default: read aperture markers in fort.3
   load_file     = ' '
 
 +if backtrk
   do ii=1,npart
      do jj=1,2
+        xold(jj,ii)=zero
         yold(jj,ii)=zero
      end do
   end do
@@ -109,12 +108,95 @@ subroutine aperture_comnul
      aplod(ii)=zero
   end do
   sold=zero
-  bktpre=bktpredef
+  bktpre=c1m1 ! default precision: 0.1m
   kapold=0
 +ei
   return
 
 end subroutine aperture_comnul
+
+
++if backtrk
+subroutine aperture_saveLastMarker( i, ix )
+  !-----------------------------------------------------------------------
+  ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-07
+  ! save last aperture marker
+  !-----------------------------------------------------------------------
+
+  implicit none
++ca dbdcum
+  ! interface variables
+  integer i, ix
+  ! temporary variables
+  integer j
+
+  ! Store old s value
+  sold  =  dcum(i)
+  ! Store information about aperture
+  kapold = kape(ix)
+  do j=1,7
+     apold(j) = ape(j,ix)
+  end do
+
+  return
+
+end subroutine aperture_saveLastMarker
+
+
+subroutine aperture_saveLastCoordinates
+  !-----------------------------------------------------------------------
+  ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-07
+  ! save particle coordinates at last aperture check
+  !-----------------------------------------------------------------------
+
+  use mod_commonmn ! for napx, xv and yv
+  implicit none
+  ! temporary variables
+  integer j
+
+  do j=1,napx
+     xold(1,j) = xv(1,j)
+     xold(2,j) = xv(2,j)
+     yold(1,j) = yv(1,j)
+     yold(2,j) = yv(2,j)
+  end do
+  return
+
+end subroutine aperture_saveLastCoordinates
+
+
+subroutine aperture_backTrackingInit
+  !-----------------------------------------------------------------------
+  ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-07
+  ! initialise variables for back-tracking
+  !-----------------------------------------------------------------------
+  use parpro     ! for nblo
+  use mod_common ! for ic(i)
+  use crcoall    ! for lout
+  implicit none
+  ! temporary variables
+  integer i, ix
+
+  i=1
+  ix=ic(i)-nblo
+  if ( ix.lt.0 ) then
+     write(lout,*)'Impossible to properly initialise backtracking: first '// &
+ &   'element of lattice structure is not a single element'
+     call prror(-1)
+  endif
+  if ( kape(i).eq.0 ) then
+     write(lout,*)'Impossible to properly initialise backtracking: first '// &
+ &   'element of lattice structure is not assigned an aperture profile'
+     call prror(-1)
+  endif
+
+  call aperture_saveLastCoordinates
+  call aperture_saveLastMarker( i, ix )
+
+  return  
+
+end subroutine aperture_backTrackingInit
++ei ! +if backtrk
 
 
 subroutine lostpart(turn, i, ix, llost, nthinerr)
@@ -525,7 +607,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
        &  xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3, yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
        &  -c1m3 * (sigmv(j)/clight) * (e0/e0f))
         end if
-+ei
++ei ! root output
       end if
     end do
 

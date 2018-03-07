@@ -5635,77 +5635,6 @@ cc2008
      &**2)+yv(2,j)**2))                                                  !hr03
 +ei
 
-+cd lostpart
-!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!         last modified: 17-07-2013
-!         on-line aperture check
-!         always in main code
-          call lostpart(n, i, ix, llost, nthinerr )
-!         stop tracking if no particle survives to this element
-          if(nthinerr.ne.0) return
-+if backtrk
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 24-11-2016
-!         store old infos for back-tracking at aperture check at downstream locations
-!         inserted in main code by the 'backtrk' compilation flag
-          if ( kape(ix).ne.0 ) then
-!           Store old s value
-            sold  =  dcum(i)
-!           Store information of aperture
-            kapold = kape(ix)
-            do j=1,7
-              apold(j) = ape(j,ix)
-            end do
-          end if
-+ei
-
-+cd backtrkinit
-
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 24-11-2016
-!     initialise variables for back-tracking particles
-!     inserted in main code by the 'backtrk' compilation flag
-!     . store 'old' angle of particles
-      do j=1,napx
-        yold(1,j) = yv(1,j)
-        yold(2,j) = yv(2,j)
-      end do
-!     . store 'old' s value
-      sold = dcum(0)
-!     . store information of aperture
-!       force general aperture, i.e. RE with aper(1) and aper(2)
-!       assumption: tracked particles do not fall outside aperture
-!         limits in the first elements...
-      kapold = 2
-      do j=1,7
-         apold(j) = zero
-      end do
-      apold(1) = aper(1)
-      apold(2) = aper(2)
-      apold(3) = sqrt(two)*aper(1)
-      apold(4) = sqrt(two)*aper(2)
-      if ( ktrack(1).ne.1 ) then
-         if ( kape(ic(1)-nblo).ne.0 ) then
-!        the first entry of the lattice sequence is a 
-!           SINGLE ELEMENT, to which an aperture profile
-!           is assigned
-            kapold = kape(ic(1)-nblo)
-            do j=1,7
-               apold(j) = ape(j,ic(1)-nblo)
-            end do
-         endif
-      endif
-+cd backtrksave
-
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 24-11-2016
-!         store old angle of particles
-!         inserted in main code by the 'backtrk' compilation flag
-          do j=1,napx
-            yold(1,j) = yv(1,j)
-            yold(2,j) = yv(2,j)
-          end do
-
 +cd umlalid
           iwrite=0
           if(nlin.eq.0) then
@@ -25501,7 +25430,11 @@ subroutine thin4d(nthinerr)
 +ei
 
 +if backtrk
-+ca backtrkinit
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  ! inserted in main code by the 'backtrk' compilation flag
+  call aperture_backTrackingInit
 +ei
 +if fluka
   ! A.Mereghetti, for the FLUKA Team
@@ -25592,7 +25525,11 @@ subroutine thin4d(nthinerr)
             if(fluka_type(ix).eq.FLUKA_ELEMENT) then
               call kernel_fluka_element( n, i, ix )
 +if backtrk
-+ca backtrksave
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 24-11-2016
+              ! store old angle of particles
+              ! inserted in main code by the 'backtrk' compilation flag
+              call aperture_saveLastCoordinates
 +ei
               goto 620
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
@@ -25603,7 +25540,11 @@ subroutine thin4d(nthinerr)
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
 +if backtrk
-+ca backtrksave
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 24-11-2016
+              ! store old angle of particles
+              ! inserted in main code by the 'backtrk' compilation flag
+              call aperture_saveLastCoordinates
 +ei
               goto 620
             end if
@@ -25636,7 +25577,11 @@ subroutine thin4d(nthinerr)
 +ca ex4Ddrift
         end if
 +if backtrk
-+ca backtrksave
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 24-11-2016
+        ! store old angle of particles
+        ! inserted in main code by the 'backtrk' compilation flag
+        call aperture_saveLastCoordinates
 +ei
         goto 630
       case (3)
@@ -25995,7 +25940,21 @@ subroutine thin4d(nthinerr)
         
 !----------------------------
 620 continue
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
++if backtrk
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 24-11-2016
+      ! store old infos for back-tracking at aperture check at downstream locations
+      ! inserted in main code by the 'backtrk' compilation flag
+      if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
++ei
 
 625 continue
     if (.not. ldumpfront) then
@@ -26004,9 +25963,7 @@ subroutine thin4d(nthinerr)
 
 630 continue
 
-!        call lostpart(nthinerr)
-!        if(nthinerr.ne.0) return
-
+    if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
     if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -26152,7 +26109,11 @@ subroutine thin6d(nthinerr)
 +ei
 
 +if backtrk
-+ca backtrkinit
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  ! inserted in main code by the 'backtrk' compilation flag
+  call aperture_backTrackingInit
 +ei
 +if fluka
   ! A.Mereghetti, for the FLUKA Team
@@ -26276,7 +26237,11 @@ subroutine thin6d(nthinerr)
             if(fluka_type(ix).eq.FLUKA_ELEMENT) then
               call kernel_fluka_element( n, i, ix )
 +if backtrk
-+ca backtrksave
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 24-11-2016
+              ! store old angle of particles
+              ! inserted in main code by the 'backtrk' compilation flag
+              call aperture_saveLastCoordinates
 +ei
               goto 640
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
@@ -26287,7 +26252,11 @@ subroutine thin6d(nthinerr)
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
 +if backtrk
-+ca backtrksave
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 24-11-2016
+              ! store old angle of particles
+              ! inserted in main code by the 'backtrk' compilation flag
+              call aperture_saveLastCoordinates
 +ei
               goto 640
             end if
@@ -26418,7 +26387,11 @@ subroutine thin6d(nthinerr)
             end do
           endif
 +if backtrk
-+ca backtrksave
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 24-11-2016
+          ! store old angle of particles
+          ! inserted in main code by the 'backtrk' compilation flag
+          call aperture_saveLastCoordinates
 +ei
           goto 650
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
@@ -26434,7 +26407,11 @@ subroutine thin6d(nthinerr)
 +ca ex6Ddrift
 
 +if backtrk
-+ca backtrksave
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 24-11-2016
+          ! store old angle of particles
+          ! inserted in main code by the 'backtrk' compilation flag
+          call aperture_saveLastCoordinates
 +ei
           end if
           goto 650
@@ -26872,7 +26849,22 @@ subroutine thin6d(nthinerr)
       call collimate_end_element
 +ei
 !GRD END OF UPGRADE
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
++if backtrk
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 24-11-2016
+      ! store old infos for back-tracking at aperture check at downstream locations
+      ! inserted in main code by the 'backtrk' compilation flag
+      if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
++ei
+
 645   continue
 
       if (.not. ldumpfront) then
@@ -26885,9 +26877,9 @@ subroutine thin6d(nthinerr)
     call collimate_end_turn
 +ei
 
+    if(nthinerr.ne.0) return
+
 +if .not.collimat
-    ! call lostpart(nthinerr)
-    ! if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
     if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -27024,7 +27016,11 @@ end subroutine thin6d
       nthinerr=0
 
 +if backtrk
-+ca backtrkinit
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  ! inserted in main code by the 'backtrk' compilation flag
+  call aperture_backTrackingInit
 +ei
 +if fluka
 
@@ -27120,7 +27116,11 @@ end subroutine thin6d
                 if(fluka_type(ix).eq.FLUKA_ELEMENT) then
                   call kernel_fluka_element( n, i, ix )
 +if backtrk
-+ca backtrksave
+                  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                  ! last modified: 24-11-2016
+                  ! store old angle of particles
+                  ! inserted in main code by the 'backtrk' compilation flag
+                  call aperture_saveLastCoordinates
 +ei
                   goto 640
                 else if(fluka_type(ix).eq.FLUKA_ENTRY) then
@@ -27131,7 +27131,11 @@ end subroutine thin6d
                   fluka_inside = .false.
                   call kernel_fluka_exit( n, i, ix )
 +if backtrk
-+ca backtrksave
+                  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                  ! last modified: 24-11-2016
+                  ! store old angle of particles
+                  ! inserted in main code by the 'backtrk' compilation flag
+                  call aperture_saveLastCoordinates
 +ei
                   goto 640
                 end if
@@ -27174,7 +27178,11 @@ end subroutine thin6d
           endif
 
 +if backtrk
-+ca backtrksave
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 24-11-2016
+          ! store old angle of particles
+          ! inserted in main code by the 'backtrk' compilation flag
+          call aperture_saveLastCoordinates
 +ei
 
           goto 650
@@ -27600,7 +27608,20 @@ end subroutine thin6d
 
   640     continue
 
-+ca lostpart
+          ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+          ! last modified: 17-07-2013
+          ! on-line aperture check
+          ! always in main code
+          call lostpart( n, i, ix, llost, nthinerr )
+          ! stop tracking if no particle survives to this element
+          if(nthinerr.ne.0) return
++if backtrk
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 24-11-2016
+          ! store old infos for back-tracking at aperture check at downstream locations
+          ! inserted in main code by the 'backtrk' compilation flag
+          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
++ei
 
   645     continue
 
@@ -27609,7 +27630,6 @@ end subroutine thin6d
       endif
 
   650   continue
-        !call lostpart(nthinerr)
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -28410,7 +28430,11 @@ subroutine thck4d(nthinerr)
 +ei
 
 +if backtrk
-+ca backtrkinit
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  ! inserted in main code by the 'backtrk' compilation flag
+  call aperture_backTrackingInit
 +ei
 
 +if fluka
@@ -28509,7 +28533,11 @@ subroutine thck4d(nthinerr)
 !                      according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
 +if backtrk
-+ca backtrksave
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 24-11-2016
+              ! store old angle of particles
+              ! inserted in main code by the 'backtrk' compilation flag
+              call aperture_saveLastCoordinates
 +ei
               goto 470
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
@@ -28523,7 +28551,6 @@ subroutine thck4d(nthinerr)
 !                      according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
 +if backtrk
-+ca backtrksave
 +ei
               goto 470
             end if
@@ -28558,6 +28585,13 @@ subroutine thck4d(nthinerr)
           xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
           yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
         end do
++if backtrk
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 24-11-2016
+        ! store old angle of particles
+        ! inserted in main code by the 'backtrk' compilation flag
+        call aperture_saveLastCoordinates
++ei
         goto 480
       case (2)
         goto 480
@@ -28894,14 +28928,6 @@ subroutine thck4d(nthinerr)
       end select
       goto 480
 
-! This code block was after a goto 480 statement before
-! the rewrite to select case as well, and therefore would
-! not have been executed. It was placed after the content
-! now included in case (1)
-+if backtrk
-+ca backtrksave
-+ei
-
 240   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
@@ -28923,7 +28949,21 @@ subroutine thck4d(nthinerr)
 !----------------------------
 
 470   continue
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
++if backtrk
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 24-11-2016
+      ! store old infos for back-tracking at aperture check at downstream locations
+      ! inserted in main code by the 'backtrk' compilation flag
+      if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
++ei
 
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -28957,7 +28997,6 @@ subroutine thck4d(nthinerr)
 
 480 continue
 
-    ! call lostpart(nthinerr)
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -29097,7 +29136,11 @@ subroutine thck6d(nthinerr)
 +ei
 
 +if backtrk
-+ca backtrkinit
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  ! inserted in main code by the 'backtrk' compilation flag
+  call aperture_backTrackingInit
 +ei
 +if fluka
 !     A.Mereghetti, for the FLUKA Team
@@ -29208,7 +29251,11 @@ subroutine thck6d(nthinerr)
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
 +if backtrk
-+ca backtrksave
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 24-11-2016
+              ! store old angle of particles
+              ! inserted in main code by the 'backtrk' compilation flag
+              call aperture_saveLastCoordinates
 +ei
               goto 490
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
@@ -29221,7 +29268,11 @@ subroutine thck6d(nthinerr)
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
 +if backtrk
-+ca backtrksave
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 24-11-2016
+              ! store old angle of particles
+              ! inserted in main code by the 'backtrk' compilation flag
+              call aperture_saveLastCoordinates
 +ei
               goto 490
             end if
@@ -29272,7 +29323,11 @@ subroutine thck6d(nthinerr)
           end do
         end do
 +if backtrk
-+ca backtrksave
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 24-11-2016
+        ! store old angle of particles
+        ! inserted in main code by the 'backtrk' compilation flag
+        call aperture_saveLastCoordinates
 +ei
         goto 500
       case (2)
@@ -29710,7 +29765,21 @@ subroutine thck6d(nthinerr)
 
 490   continue
 
-+ca lostpart
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
++if backtrk
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 24-11-2016
+      ! store old infos for back-tracking at aperture check at downstream locations
+      ! inserted in main code by the 'backtrk' compilation flag
+      if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
++ei
+
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
       ! last modified: 17-07-2013
@@ -29758,7 +29827,6 @@ subroutine thck6d(nthinerr)
 !===================================================================
 !===================================================================
 
-    !call lostpart(nthinerr)
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -29903,7 +29971,11 @@ subroutine thck6dua(nthinerr)
 +ei
 
 +if backtrk
-+ca backtrkinit
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  ! inserted in main code by the 'backtrk' compilation flag
+  call aperture_backTrackingInit
 +ei
 +if fluka
 !     A.Mereghetti, for the FLUKA Team
@@ -30006,7 +30078,11 @@ subroutine thck6dua(nthinerr)
 !                      according to momentum of surviving/new particles
                     recompute_linear_matrices = .true.
 +if backtrk
-+ca backtrksave
+                    ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                    ! last modified: 24-11-2016
+                    ! store old angle of particles
+                    ! inserted in main code by the 'backtrk' compilation flag
+                    call aperture_saveLastCoordinates
 +ei
                     goto 490
                   else if(fluka_type(ix).eq.FLUKA_ENTRY) then
@@ -30020,7 +30096,11 @@ subroutine thck6dua(nthinerr)
 !                      according to momentum of surviving/new particles
                     recompute_linear_matrices = .true.
 +if backtrk
-+ca backtrksave
+                    ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                    ! last modified: 24-11-2016
+                    ! store old angle of particles
+                    ! inserted in main code by the 'backtrk' compilation flag
+                    call aperture_saveLastCoordinates
 +ei
                     goto 490
                   end if
@@ -30061,7 +30141,11 @@ subroutine thck6dua(nthinerr)
             end do
 
 +if backtrk
-+ca backtrksave
+            ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+            ! last modified: 24-11-2016
+            ! store old angle of particles
+            ! inserted in main code by the 'backtrk' compilation flag
+            call aperture_saveLastCoordinates
 +ei
 
             goto 500
@@ -30497,7 +30581,20 @@ subroutine thck6dua(nthinerr)
 
   490     continue
 
-+ca lostpart
+          ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+          ! last modified: 17-07-2013
+          ! on-line aperture check
+          ! always in main code
+          call lostpart( n, i, ix, llost, nthinerr )
+          ! stop tracking if no particle survives to this element
+          if(nthinerr.ne.0) return
++if backtrk
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 24-11-2016
+          ! store old infos for back-tracking at aperture check at downstream locations
+          ! inserted in main code by the 'backtrk' compilation flag
+          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
++ei
 
 +if fluka
 
@@ -30529,7 +30626,6 @@ subroutine thck6dua(nthinerr)
       endif
 
   500     continue
-          !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
 +if .not.fluka
