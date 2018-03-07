@@ -261,6 +261,7 @@ contains
     call scatter_allocate_arrays
     call bdex_allocate_arrays
     call dynk_allocate_arrays
+    call wire_allocate_arrays
 
   end subroutine allocate_arrays
 
@@ -280,6 +281,7 @@ contains
     call scatter_expand_arrays(nele_new)
     call bdex_expand_arrays(nele_new)
     call dynk_expand_arrays(nele_new)
+    call wire_expand_arrays(nele_new)
 
     !Update nele etc.
     nele = nele_new
