@@ -966,40 +966,6 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd wireparam
-!     A. Patapenka (NIU), M. Fitterer (FNAL)
-!     Common block for wire definition
-      ! variables to save wire parameters for tracking etc.
-      real(kind=fPrec) :: wire_current(nele)    ! wire current [A]
-      real(kind=fPrec) :: wire_lint(nele)       ! integrated length of the wire [m]
-      real(kind=fPrec) :: wire_lphys(nele)      ! physical length of the wire [m]
-      ! integer to include or not closed orbit in the separation between beam and wire
-      ! 0  : Un-initialized if wire element not found
-      ! +1 : dispx is the distance between x0=y0=0 and the wire
-      ! -1 : dispx is the distance between the closed orbit and the wire 
-      !
-      !    x=y=0    <->   xco     <->    xwire
-      !               closed orbit    wire position
-      ! wire_flagco = +1: dispx = xwire -> rx = x + xsep
-      ! wire_flagco = -1: dispx = xwire - xco -> rx = x - xco + xsep
-      ! -> rx = x + xwire
-      integer          :: wire_flagco(nele)     
-      real(kind=fPrec) :: wire_dispx(nele),                             &
-     &                    wire_dispy(nele)      ! hor./vert. displacement of the wire [mm]
-      real(kind=fPrec) :: wire_tiltx(nele),                             &
-     &                    wire_tilty(nele)      ! hor./vert. tilt of the wire [degrees] -90 < tilty < 90,
-                                                !  uses the same definition as the DISP block
-      common /wireparamco/ wire_current,wire_lint,wire_lphys,           &
-     &wire_flagco,wire_dispx,wire_dispy,wire_tiltx,wire_tilty
-
-      ! wire parameters for closed orbit calculation (FOX part)
-      ! for FOX length of variable names must be smaller 8
-      integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
-      real(kind=fPrec) wire_clo ! closed orbit at wire
-      real(kind=fPrec) wireclo0 ! initial coordinates for closed orbit
-      integer wire_num_aux      ! auxiliary variable to count number of wires
-      integer wire_num          ! wire number for each structure element (default = 0 if no wire)
-      common/wireco/ wire_clo(6,wire_max),wire_num(nblz)
 
 +cd wiretracktmp
 ! temporary variables
@@ -10585,6 +10551,7 @@ end subroutine hamilton1
       use mod_common
       use mod_commons
 
+      use wire
       implicit none
 
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -10660,7 +10627,6 @@ end subroutine hamilton1
 +ca comgetfields
 +ca stringzerotrim
 +ca elensparam
-+ca wireparam
 +ca parbeam_exp
 +ca comApeInfo
 +ca dbreaddis
@@ -10685,9 +10651,6 @@ end subroutine hamilton1
 !     - elens
       character(len=4) elens
       data elens /'ELEN'/
-!     - wire
-      character(len=4) wire
-      data wire /'WIRE'/
 !     - scatter
       character(len=4) scat
       data scat /'SCAT'/
@@ -10946,7 +10909,7 @@ end subroutine hamilton1
       if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
       if(idat.eq.elens) goto 2400
-      if(idat.eq.wire)  goto 2500
+      if(idat.eq."WIRE")  goto 2500
       !Reserved:
       !DIST = 2600
       !HION = 2700
@@ -17128,6 +17091,7 @@ end subroutine hamilton1
       use parpro !Needed for common
       use mod_common
       use mod_commonmn
+      use wire
       implicit none
       
       integer, intent(in) :: ix
@@ -17140,7 +17104,6 @@ end subroutine hamilton1
 +ca comgetfields
 +ca stringzerotrim
 +ca elensparam
-+ca wireparam
 
       !Temp variables
       integer i
@@ -19907,6 +19870,7 @@ end subroutine runda
       use parpro
       use mod_common
       use mod_commons
+      use wire
       implicit none
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
@@ -19946,7 +19910,6 @@ end subroutine runda
 +ca comgetfields
 !+ca fma
 ! END for FMA analysis
-+ca wireparam
 +if debug
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -19962,7 +19925,7 @@ end subroutine runda
 +ei
       logical lopen
       character(len=256) filename
-
+      integer wire_num_aux ! auxiliary variable to count number of wires
       save
 !-----------------------------------------------------------------------
 +ca daini
@@ -21342,6 +21305,7 @@ end subroutine runda
       use parpro
       use mod_common
       use mod_commons
+      use wire
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
@@ -21351,7 +21315,6 @@ end subroutine runda
 +ca commondl
 +ca commonl
 +ca commonxz
-+ca wireparam
 +if bnlelens
 +ca rhicelens
 +ei
@@ -22314,6 +22277,7 @@ program maincr
       use mod_commonmn
       use mod_commons
 
+      use wire
       implicit none
 
 +ca errout
@@ -22390,7 +22354,6 @@ program maincr
 +ca dbdcum
 +ca stringzerotrim
 
-+ca wireparam !For dump3
 
 +ca comApeInfo
 +ca dbreaddis
@@ -25463,6 +25426,7 @@ subroutine thin4d(nthinerr)
   use mod_commonmn
   use mod_commons
   use bdex, only : bdex_enable
+  use wire
   implicit none
 
 +ca exactvars
@@ -25502,7 +25466,6 @@ subroutine thin4d(nthinerr)
 
 +ca comgetfields
 +ca elensparam
-+ca wireparam
 +ca elenstracktmp
 +ca dbdcum
 +ca comApeInfo
@@ -26098,6 +26061,7 @@ subroutine thin6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use wire
   implicit none
 
 +ca exactvars
@@ -26144,7 +26108,6 @@ subroutine thin6d(nthinerr)
 
 +ca comgetfields
 +ca elensparam
-+ca wireparam
 +ca elenstracktmp
 +ca dbdcum
 +ca comApeInfo
@@ -26974,6 +26937,7 @@ end subroutine thin6d
       use mod_commonmn
       use mod_commons
       use bdex, only : bdex_enable
+      use wire
       implicit none
 
 +ca exactvars
@@ -27009,7 +26973,6 @@ end subroutine thin6d
 +ei
 +ca comgetfields
 +ca elensparam
-+ca wireparam
 +ca elenstracktmp
 +ca dbdcum
 +ca comApeInfo
@@ -28354,6 +28317,7 @@ subroutine thck4d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use wire
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
@@ -28385,7 +28349,6 @@ subroutine thck4d(nthinerr)
 +ei
 +ca comgetfields
 +ca elensparam
-+ca wireparam
 +ca elenstracktmp
 
 +if fluka
@@ -29033,6 +28996,7 @@ subroutine thck6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use wire
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -29068,7 +29032,6 @@ subroutine thck6d(nthinerr)
 +ei
 +ca comgetfields
 +ca elensparam
-+ca wireparam
 +ca elenstracktmp
 
 +if fluka
@@ -29837,6 +29800,7 @@ subroutine thck6dua(nthinerr)
       use mod_common
       use mod_commonmn
       use mod_commons
+      use wire
       implicit none
 
       integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -29870,7 +29834,6 @@ subroutine thck6dua(nthinerr)
 +ei
 +ca comgetfields
 +ca elensparam
-+ca wireparam
 +ca elenstracktmp
 
 +if fluka
@@ -31998,6 +31961,7 @@ subroutine comnul
       use mod_commonmn
       use mod_commons
       use bdex, only : bdex_comnul
+      use wire
       implicit none
       
       integer i,i1,i2,i3,i4,j
@@ -32015,7 +31979,6 @@ subroutine comnul
 +ca dbdcum
 
 +ca elensparam
-+ca wireparam
 
 +ca parbeam_exp
 
