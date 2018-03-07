@@ -32,6 +32,10 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
 +ca common
 
+!   <<<<<<<<<<<<<< test 07-03-2018
++ca commonm1
+!   <<<<<<<<<<<<<< test 07-03-2018
+
 +ca commontr
 
    ! Initialisation de l'espace commun
@@ -145,6 +149,12 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
       if (ffImported(dataindex)) then
          write(*,*) "FringeField : ",ffFNames(dataindex)," Already imported!"
       else
+         
+!   <<<<<<<<<<<<<< test 07-03-2018
+         write(*,*) "123 321",p0,e0f,e0f*c1e3*c1e3/clight," dtl ",dpsv(ffj)," p0sp ",oidpsv(ffj), &
+                              " gam0 ",gamma0
+!   <<<<<<<<<<<<<< test 07-03-2018
+         
          ffTA(:)%norm = 1.0d0/p0
          call CreateVectCoef(ffFNames(dataindex),   &
                              ffTA(dataindex)%n,     &
@@ -204,13 +214,20 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! 12 : Test
    ! -------------------------------------------------------------------------
    else if (workChoise == 12) then
-      if (ffi == 1) then
+      if (.false.) then !(ffi == 1) then
        do ffj = 1,napx
          if (.true..or.(nlostp(ffj) == 1).or.(nlostp(ffj) == 9).or.(nlostp(ffj) == 10).or.            &
              (nlostp(ffj) == 15).or.(nlostp(ffj) == 16)) then
             write(*,*) "12 21 ", ffi, ffn, ffj, nlostp(ffj), xv(1,ffj), yv(1,ffj), xv(2,ffj),&
                         yv(2,ffj), dpsv(ffj), dpd(ffj), oidpsv(ffj)
          endif
+         
+!   <<<<<<<<<<<<<< test 07-03-2018
+         if (nlostp(ffj) == 1) then
+            write(*,*) "124 421",p0,e0f,e0f*c1e3*c1e3/clight," dtl ",dpsv(ffj)," p0sp ",oidpsv(ffj), &
+                                " gam0 ",gamma0
+         endif
+!   <<<<<<<<<<<<<< test 07-03-2018
        enddo
       endif
 
@@ -334,11 +351,13 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
   	   if ((inex=="IN").or.(inex=="OUT_O"))  call AntiDriftAntiQuad(x,px,y,py,                    &
                                                          ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                                                          ffParam(dataindex,2),ffParam(dataindex,3),    &
-                                                         ffParam(dataindex,4),ffParam(dataindex,5),'D')
+                                                         ffParam(dataindex,4),ffParam(dataindex,5),'D',&
+                                                         1.0d0/(1.0d0+delta))
    	   if (inex=="OUT")                      call AntiDriftAntiQuad(x,px,y,py,                    &
                                                          ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                                                          ffParam(dataindex,2),ffParam(dataindex,3),    &
-                                                         ffParam(dataindex,4),ffParam(dataindex,5),'Q')
+                                                         ffParam(dataindex,4),ffParam(dataindex,5),'Q',&
+                                                         1.0d0/(1.0d0+delta))
 !           call AntiDriftAntiQuad(x,px,y,py,0,ffTA(dataindex)%dz*0.5d0,0,0,0,0,'D')
 
 ! <<<< to be clean
@@ -378,11 +397,13 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
  	   if ((inex=="IN").or.(inex=="OUT_O"))  call AntiDriftAntiQuad(x,px,y,py,                    &
                                                          ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                                                          ffParam(dataindex,2),ffParam(dataindex,3),    &
-                                                         ffParam(dataindex,4),ffParam(dataindex,5),'Q')
+                                                         ffParam(dataindex,4),ffParam(dataindex,5),'Q',&
+                                                         1.0d0/(1.0d0+delta))
   	   if (inex=="OUT")                      call AntiDriftAntiQuad(x,px,y,py,                    &
                                                          ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                                                          ffParam(dataindex,2),ffParam(dataindex,3),    &
-                                                         ffParam(dataindex,4),ffParam(dataindex,5),'D')
+                                                         ffParam(dataindex,4),ffParam(dataindex,5),'D',&
+                                                         1.0d0/(1.0d0+delta))
 
 
 !write(*,*) "FField 5 -> oidpsv(ffj)=",oidpsv(ffj)," / ",1d0/(1d0+dpsv(ffj))

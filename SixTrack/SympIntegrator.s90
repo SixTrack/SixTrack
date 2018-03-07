@@ -18,7 +18,7 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
    double precision :: px, py, delta    ! Impulsion initial
    double precision :: dz, gam0         ! Pas en z et coefficient gam0
    double precision :: valA             ! Coefficient de MAJ donne par la subroutine
-   double precision :: g2d2inv
+!   double precision :: g2d2inv
    double precision :: dzover2          !  Dsigma/2
    double precision :: deltap1
    !double precision :: TAx(0:lx,0:s+1),TAy(0:ly,0:s+1),TAz(0:lz,0:s+1)
@@ -35,8 +35,8 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
 
    !                    ?????????????????????????????????
    ! -------------------------------------------------------------------------
-   g2d2inv=deltap1/gam0
-   g2d2inv=g2d2inv*g2d2inv*0.5d0
+!   g2d2inv=deltap1/gam0
+!   g2d2inv=g2d2inv*g2d2inv*0.5d0
    
    
    ! Boucle en z
@@ -59,7 +59,7 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
 
    do i=startp,endp,sens
       !             * h1
-      zb=zb-dzover2*g2d2inv                                    ! ???????????
+!      zb=zb-dzover2*g2d2inv                                    ! ???????????
 
       !             * h2
       call HornerDX(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
@@ -69,95 +69,95 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
 
       !             * h3
       !                 ** Changement de variable
-      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !px=px-valA
-      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !py=py-valA
-
-      !x=x+dzover2*px*deltap1
-      !zb=zb-dzover2*0.5d0*px*px*deltap1*deltap1
-
-      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      py=py-valA
-      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       px=px-valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py-valA
 
-      y=y+dzover2*py*deltap1
-      zb=zb-dzover2*0.5d0*py*py*deltap1*deltap1
+      x=x+dzover2*px*deltap1
+ !     zb=zb-dzover2*0.5d0*px*px*deltap1*deltap1
+
+      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !py=py-valA
+      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !px=px-valA
+
+      !y=y+dzover2*py*deltap1
+!      zb=zb-dzover2*0.5d0*py*py*deltap1*deltap1
 
 
       !                 ** Changement de variable
-      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !px=px+valA
-      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !py=py+valA
-
-      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      py=py+valA
-      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       px=px+valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py+valA
+
+      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !py=py+valA
+      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !px=px+valA
 
 
       !             * h4
       !                 ** Changement de variable
-      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !px=px-valA
-      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !py=py-valA
+      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      px=px-valA
+      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      py=py-valA
 
-      !y=y+dz*py*deltap1
+      y=y+dz*py*deltap1
       !zb=zb-dzover2*py*py*deltap1*deltap1
 
-      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      py=py-valA
-      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      px=px-valA
+      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      !py=py-valA
+      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      !px=px-valA
 
-      x=x+dz*px*deltap1
-      zb=zb-dzover2*px*px*deltap1*deltap1
+      !x=x+dz*px*deltap1
+!      zb=zb-dzover2*px*px*deltap1*deltap1
 
 
       !                 ** Changement de variable
-      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !px=px+valA
-      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !py=py+valA
-
-      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      py=py+valA
-      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       px=px+valA
+      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      py=py+valA
+
+      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      !py=py+valA
+      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      !px=px+valA
 
 
       !             * h3
       !                 ** Changement de variable
-      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !px=px-valA
-      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !py=py-valA
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      px=px-valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py-valA
 
-      !x=x+dzover2*px*deltap1
+      x=x+dzover2*px*deltap1
       !zb=zb-dzover2*0.5d0*px*px*deltap1*deltap1
 
-      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      py=py-valA
-      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      px=px-valA
+      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !py=py-valA
+      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !px=px-valA
 
-      y=y+dzover2*py*deltap1
-      zb=zb-dzover2*0.5d0*py*py*deltap1*deltap1
+      !y=y+dzover2*py*deltap1
+ !     zb=zb-dzover2*0.5d0*py*py*deltap1*deltap1
 
 
       !                 ** Changement de variable
-      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !px=px+valA
-      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !py=py+valA
-
-      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      py=py+valA
-      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       px=px+valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py+valA
+
+      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !py=py+valA
+      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      !px=px+valA
 
 
       !             * h2
@@ -167,7 +167,7 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
       py=py+dzover2*valA
 
       !             * h1
-      zb=zb-dzover2*g2d2inv                                    ! ??????????
+!      zb=zb-dzover2*g2d2inv                                    ! ??????????
    enddo
 end subroutine
 
@@ -175,7 +175,7 @@ end subroutine
 !! ---------------------------------------------------------------------------
 !!      Calcul de l'anti-Drift ou de l'anti-Quad suivant oper
 !! ---------------------------------------------------------------------------
-subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper)
+subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
    implicit none
 
    ! Initialisation des parametres
@@ -188,6 +188,7 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper)
    double precision :: px_tmp, py_tmp ! Impulsion initial temporaire
    double precision :: K              ! Force de l'anti-Quad
    double precision :: Lff,Lin,Lin_tp ! Longeur du fichier dans le Quad
+   double precision :: deltap1
    double precision :: Corx, Cory, CoK!       et correcteur
    double precision :: Corx_tp, Cory_tp!       et correcteur
    double precision :: a,b,c,d,bcmad  ! Parametre pour le calcul de l'anti-Quad
@@ -195,17 +196,17 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper)
    double precision :: DbNbDivQad
 
    if (oper=="D") then       ! [D(Lff-Lin)]^-1
-      x_tmp = x - (Lff-Lin)*px
-      y_tmp = y - (Lff-Lin)*py
+      x_tmp = x - (Lff-Lin)*px*deltap1
+      y_tmp = y - (Lff-Lin)*py*deltap1
       px_tmp = px
       py_tmp = py
 
 
    elseif (oper=="Q") then   ! [D(-Cor/2)*Q(KLin,Lin+Cor)*D(-Cor/2)]^-1
       DbNbDivQad = dble(NbDivQad)
-      Lin_tp  = Lin /DbNbDivQad
-      Corx_tp = Corx/DbNbDivQad
-      Cory_tp = Cory/DbNbDivQad
+      Lin_tp  = Lin *deltap1/DbNbDivQad
+      Corx_tp = Corx*deltap1/DbNbDivQad
+      Cory_tp = Cory*deltap1/DbNbDivQad
       
       ! Focalisation en x
 !      a =  1.0d0 - (K - CoK)*Lin_tp *(Lin_tp+      Corx_tp*0.5d0)
