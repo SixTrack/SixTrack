@@ -204,57 +204,35 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
 
    elseif (oper=="Q") then   ! [D(-Cor/2)*Q(KLin,Lin+Cor)*D(-Cor/2)]^-1
       DbNbDivQad = dble(NbDivQad)
-      Lin_tp  = Lin *deltap1/DbNbDivQad
-      Corx_tp = Corx*deltap1/DbNbDivQad
-      Cory_tp = Cory*deltap1/DbNbDivQad
+      Lin_tp  = Lin /DbNbDivQad
+      Corx_tp = Corx/DbNbDivQad
+      Cory_tp = Cory/DbNbDivQad
       
       ! Focalisation en x
-!      a =  1.0d0 - (K - CoK)*Lin_tp *(Lin_tp+      Corx_tp*0.5d0)
-!      b = (1.0d0 - (K - CoK)*Corx_tp*(Lin_tp+3.0d0*Corx_tp*0.5d0)*0.5d0)*Lin_tp
-!      c =        - (K - CoK)*Lin_tp
-!      d =  1.0d0 + (K - CoK)*Lin_tp*Corx_tp*0.5d0
-
-!      a =  1.0d0 - (K - CoK)*Lin_tp *(Lin_tp+Corx_tp*0.5d0)
-!      b = (1.0d0 + (K - CoK)*Corx_tp*(Lin_tp+Corx_tp*0.5d0)*0.5d0)*Lin_tp
-!      c =        - (K - CoK)*Lin_tp
-!      d =  1.0d0 + (K - CoK)*Lin_tp*Corx_tp*0.5d0
-
-
-      a =  1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)* Lin_tp*0.5d0
-      b = (1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)*(Lin_tp-Corx_tp)*0.25d0)*Lin_tp
+      a =  1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)* Lin_tp         *0.5d0 *deltap1
+      b = (1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)*(Lin_tp-Corx_tp)*0.25d0*deltap1)*Lin_tp*deltap1
       c =        - (K - CoK)* Lin_tp
-      d =  1.0d0 - (K - CoK)*(Lin_tp-Corx_tp)* Lin_tp*0.5d0
-      bcmad = a*d - b*c
+      d =  1.0d0 - (K - CoK)*(Lin_tp-Corx_tp)* Lin_tp         *0.5d0 *deltap1
+      !bcmad = a*d - b*c
       
       do i = 1,NbDivQad 
-        x_tmp  = (d*x -b*px)/bcmad
-        px_tmp = (a*px -c*x)/bcmad
+        x_tmp  = (d*x -b*px)!/bcmad
+        px_tmp = (a*px -c*x)!/bcmad
         
         x  =  x_tmp
         px = px_tmp
       enddo
 
       ! Defocalisation en y
-!      a =  1.0d0 + (K + CoK)*Lin_tp *(Lin_tp+      Cory_tp*0.5d0)
-!      b = (1.0d0 + (K + CoK)*Cory_tp*(Lin_tp+3.0d0*Cory_tp*0.5d0)*0.5d0)*Lin_tp
-!      c =          (K + CoK)*Lin_tp
-!      d =  1.0d0 - (K + CoK)*Lin_tp*Cory_tp*0.5d0
-
-!      a =  1.0d0 + (K + CoK)*Lin_tp *(Lin_tp+Cory_tp*0.5d0)
-!      b = (1.0d0 - (K + CoK)*Cory_tp*(Lin_tp+Cory_tp*0.5d0)*0.5d0)*Lin_tp
-!      c =          (K + CoK)*Lin_tp
-!      d =  1.0d0 - (K + CoK)*Lin_tp*Cory_tp*0.5d0
-
-
-      a =  1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp*0.5d0
-      b = (1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)*(Lin_tp-Cory_tp)*0.25d0)*Lin_tp
+      a =  1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp         *0.5d0 *deltap1
+      b = (1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)*(Lin_tp-Cory_tp)*0.25d0*deltap1)*Lin_tp*deltap1
       c =          (K + CoK)* Lin_tp
-      d =  1.0d0 + (K + CoK)*(Lin_tp-Cory_tp)* Lin_tp*0.5d0
-      bcmad = a*d-b*c
+      d =  1.0d0 + (K + CoK)*(Lin_tp-Cory_tp)* Lin_tp         *0.5d0 *deltap1
+      !bcmad = a*d-b*c
 
       do i = 1,NbDivQad 
-         y_tmp  = (d*y -b*py)/bcmad
-         py_tmp = (a*py -c*y)/bcmad
+         y_tmp  = (d*y -b*py)!/bcmad
+         py_tmp = (a*py -c*y)!/bcmad
         
          y  =  y_tmp
          py = py_tmp
