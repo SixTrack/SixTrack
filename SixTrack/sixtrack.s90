@@ -216,9 +216,6 @@
       common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),             &
      &asdaq_da(2,6),smida_da(mcor),xx_da(2),yy_da(2),dpda_da,dpda1_da,  &
      &sigmda_da,ej1_da,ejf1_da,rv_da
-+cd commond2
-      real(kind=fPrec) ald6,asd6
-      common/dael6/ald6(nele,2,6,nema),asd6(nele,2,6,nema)
 +cd commonas
       integer idao,iscrri
       integer          iscrda
@@ -18524,13 +18521,13 @@ subroutine envada
   use parpro
   use mod_common
   use mod_commons
+  use mod_commond2
   implicit none
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
 +ca commont1
 +ca commondl
 +ca commond1
-+ca commond2
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19013,6 +19010,7 @@ subroutine runda
       use parpro
       use mod_common
       use mod_commons
+      use mod_commond2
       implicit none
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
@@ -19029,7 +19027,6 @@ subroutine runda
 +ca commonxz
 +ca commonm1
 +ca commond1
-+ca commond2
 +ca commonc
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
@@ -20111,6 +20108,7 @@ end subroutine runda
       use mod_common
       use mod_commons
       use wire
+      use mod_commond2
       implicit none
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
@@ -20132,7 +20130,6 @@ end subroutine runda
 +ca commonxz
 +ca commonm1
 +ca commond1
-+ca commond2
 +ca commonc
 +ca commonta
       dimension damap(6),damapi(6),damap1(6)

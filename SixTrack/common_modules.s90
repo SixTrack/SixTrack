@@ -243,6 +243,18 @@ module parpro_scale
   ! It is split off from parpro as a separate module
   ! in order to avoid circular dependencies.
   use parpro
+
+  use mod_common,   only : mod_common_allocate_arrays,   mod_common_expand_arrays
+  use mod_commonmn, only : mod_commonmn_allocate_arrays, mod_commonmn_expand_arrays
+  use mod_commons,  only : mod_commons_allocate_arrays,  mod_commons_expand_arrays
+  use aperture,     only : aperture_allocate_arrays,     aperture_expand_arrays
+  use elens,        only : elens_allocate_arrays,        elens_expand_arrays
+  use dump,         only : dump_allocate_arrays,         dump_expand_arrays
+  use scatter,      only : scatter_allocate_arrays,      scatter_expand_arrays
+  use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
+  use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
+  use wire,         only : wire_allocate_arrays,         wire_expand_arrays
+
   implicit none
 contains
 
@@ -255,6 +267,8 @@ contains
 
     !Call subroutines to actually allocate
     call mod_common_allocate_arrays
+    call mod_commonmn_allocate_arrays
+    call mod_commons_allocate_arrays
     call aperture_allocate_arrays
     call elens_allocate_arrays
     call dump_allocate_arrays
@@ -274,6 +288,8 @@ contains
     !Decide how much to actually expand -- set nele_new etc. based on some heuristic
 
     !Call sub-subroutines to actually expand
+    call mod_common_expand_arrays(nele_new)
+    call mod_commonmn_expand_arrays(nele_new)
     call mod_commons_expand_arrays(nele_new)
     call aperture_expand_arrays(nele_new)
     call elens_expand_arrays(nele_new)
@@ -291,8 +307,8 @@ contains
 +if vvector
   subroutine allocate_thickarrays
     ! Kicks off the allocation of the thick tracking arrays
-    use mod_commonmn
-    use mod_commons
+    use mod_commonmn, only : mod_commonmn_allocate_thickarrays
+    use mod_commons,  only : mod_commons_allocate_thickarrays
     implicit none
 
     call mod_commonmn_allocate_thickarrays
@@ -628,9 +644,19 @@ module mod_commonmn
        di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
        di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
   real(kind=fPrec), allocatable, save :: hv(:,:,:,:),bl1v(:,:,:,:) !(6,2,npart,nblo)
-  
-+if vvector
+
 contains
+  subroutine mod_commonmn_allocate_arrays
+    implicit none
+  end subroutine mod_commonmn_allocate_arrays
+
+  subroutine mod_commonmn_expand_arrays(nele_new)
+    implicit none
+    integer, intent(in) :: nele_new
+    integer stat
+
+  end subroutine mod_commonmn_expand_arrays
++if vvector
   subroutine mod_commonmn_allocate_thickarrays
     use numerical_constants, only : zero
     use crcoall
@@ -689,9 +715,20 @@ module mod_commons
   integer, save :: itra
 +ei
 
-+if vvector
 contains
+
+  subroutine mod_commons_allocate_arrays
+    implicit none
+  end subroutine mod_commons_allocate_arrays
+
+  subroutine mod_commons_expand_arrays(nele_new)
+    implicit none
+    integer, intent(in) :: nele_new
+    integer stat
+
+  end subroutine mod_commons_expand_arrays
   
++if vvector
   subroutine mod_commons_allocate_thickarrays
     !Subroutine for initial allocation of the big thick tracking arrays 'al' and 'as'
     use numerical_constants, only : zero
@@ -724,3 +761,12 @@ contains
   end subroutine mod_commons_allocate_thickarrays
 +ei
 end module mod_commons
+
+module mod_commond2
+  use floatPrecision
+  implicit none
+
+  real(kind=fPrec), allocatable, save :: ald6(:,:,:,:), asd6(:,:,:,:) !(nele,2,6,nema)
+
+contains
+end module mod_commond2
