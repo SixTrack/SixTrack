@@ -247,6 +247,7 @@ module parpro_scale
   use mod_common,   only : mod_common_allocate_arrays,   mod_common_expand_arrays
   use mod_commonmn, only : mod_commonmn_allocate_arrays, mod_commonmn_expand_arrays
   use mod_commons,  only : mod_commons_allocate_arrays,  mod_commons_expand_arrays
+  use mod_commond2, only : mod_commond2_allocate_arrays, mod_commond2_expand_arrays
   use aperture,     only : aperture_allocate_arrays,     aperture_expand_arrays
   use elens,        only : elens_allocate_arrays,        elens_expand_arrays
   use dump,         only : dump_allocate_arrays,         dump_expand_arrays
@@ -269,6 +270,7 @@ contains
     call mod_common_allocate_arrays
     call mod_commonmn_allocate_arrays
     call mod_commons_allocate_arrays
+    call mod_commond2_allocate_arrays
     call aperture_allocate_arrays
     call elens_allocate_arrays
     call dump_allocate_arrays
@@ -291,6 +293,7 @@ contains
     call mod_common_expand_arrays(nele_new)
     call mod_commonmn_expand_arrays(nele_new)
     call mod_commons_expand_arrays(nele_new)
+    call mod_commond2_expand_arrays(nele_new)
     call aperture_expand_arrays(nele_new)
     call elens_expand_arrays(nele_new)
     call dump_expand_arrays(nele_new)
@@ -575,10 +578,10 @@ contains
     allocate(crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele), STAT=stat)
     if (stat.ne.0) goto 42
 
-    !Und so weiter...
-
     !TODO: Certain "COMNUL" functionality should probably be done here as well.
 
+    return !Finished successfully
+    
 42  continue
     write(lout,'(A,I8,1x,A)') "ERROR in SUBROUTINE MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat
     call prror(-1)
@@ -764,9 +767,33 @@ end module mod_commons
 
 module mod_commond2
   use floatPrecision
+  use parpro, only : nele, nema
+  use crcoall
   implicit none
 
+  !Note: These only to be neccessary for thick4d?
   real(kind=fPrec), allocatable, save :: ald6(:,:,:,:), asd6(:,:,:,:) !(nele,2,6,nema)
 
 contains
+  subroutine mod_commond2_allocate_arrays
+    implicit none
+    integer stat
+
+    allocate(ald6(nele,2,6,nema), asd6(nele,2,6,nema), STAT=stat)
+    if (stat.ne.0) then
+       write(lout,'(A,I8)') "ERROR in SUBROUTINE mod_commond2_allocate_arrays; stat=", stat
+       call prror(-1)
+    endif
+    
+  end subroutine mod_commond2_allocate_arrays
+
+  subroutine mod_commond2_expand_arrays(nele_new)
+    implicit none
+    integer, intent(in) :: nele_new
+    integer stat
+
+    !TODO...
+    
+  end subroutine mod_commond2_expand_arrays
+  
 end module mod_commond2
