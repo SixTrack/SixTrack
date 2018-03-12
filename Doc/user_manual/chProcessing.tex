@@ -1,126 +1,90 @@
 
 \chapter{Processing} \label{Proc}
 
-This section comprises all the input blocks that do some kind of pre--
-or post--processing.
+This chapter comprises all the input blocks that do some kind of pre-- or post--processing.
 
+% ================================================================================================================================ %
 \section{Linear Optics Calculation} \label{LinOpt}
 
-\subparagraph{Description} The linear optics calculation input block
-is used to make a printout of all linear parameters (magnet lengths,
-$\beta$ and $\alpha$ functions, tunes, dispersion and closed orbit) in
-the horizontal and vertical planes at the end of each element or
-linear block.  The number of elements or blocks can be chosen.
+The linear optics calculation input block is used to make a print-out of all linear parameters (magnet lengths, $\beta$ and $\alpha$ functions, tunes, dispersion and closed orbit) in the horizontal and vertical planes at the end of each element or linear block.
+The number of elements or blocks can be chosen.
 
-\subparagraph{Keyword} LINE \subparagraph{Number of data lines}
-variable but at least 1
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{LINE} \\
+    \textbf{Data lines} & $\geq 1$ \\
+    \textbf{Format}     & First line: \texttt{mode num\_blocks ilin ntco E\_I E\_II} \\
+                        & Other lines: \texttt{name(1), \dots , name(nlin)}
+\end{tabular}
 
-\subparagraph{Format}
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{mode}        & char    & \texttt{ELEMENT} for a printout after each single element (\ref{SinEle}). \\
+                         &         & \texttt{BLOCK} for a printout after each structure block (\ref{BloDef}). \\
+    \texttt{num\_blocks} & integer & The number of the blocks in the structure to which the linear parameter will be printed. If this number is set to zero or is larger than the number of blocks, the complete structure will be calculated. \\
+    \texttt{ilin}        & integer & Logical switch to calculate the traditional linear optics calculation in 4D (\texttt{1 = ilin}) and with the DA approach 6D (\texttt{2 = ilin}). \\
+    \texttt{ntco}        & integer & A switch to write out linear coupling parameters. \\
+                         &         &  \texttt{ntco = 0}: no write-out. \\
+                         &         &  \texttt{ntco $\neq$ 0}: write-out of all linear coupled (4D) parameters including the coupling angle. These parameters (name, longitudinal position, the phase advances at that location, 4   $\beta$--, $\alpha$-- and $\gamma$--functions, 4 angles for coordinates and momenta respectively, plus the coupling angle [rad]) are written in ascii format on file \# 11. This write-out happens every \texttt{ntco} turns. \\
+    \texttt{E\_I, E\_II} & floats  & The two eigen-emittances to be chosen to determine the coupling angle. They are typically set to be equal. \\
+    \texttt{names}       & char    & For \texttt{nlin $\leq$ nele} element and block names the linear parameters are printed whenever they appear in the accelerator structure.
+\end{tabular}
+
+\paragraph{Remarks}
 \begin{itemize}
-\item first data line: {\em mode number--of--blocks ilin ntco E\_I E\_II}
-\item other data lines: {\em name(1), \dots , name(nlin)}
+    \item To make this block work the Tracking Parameter block (~\ref{TraPar}) has to used as well.
+    \item When the \texttt{ELEMENT 0} option is used, a file unit \# 34 is written with the longitudinal position, name, element type, multipole strength, $\beta$ functions and phase advances in the horizontal and vertical phase space respectively. This file is used as input for the \texttt{SODD} program~\cite{SODD} to calculate de-tuning and distortion terms in first and second order. A full program suite can be found at: /afs/cern.ch/group/si/slap/share/sodd
+    \item If the \texttt{BLOCK} option has been used, the tunes may be wrong by a multiple of 1/2. This option is not active in the DA part (\texttt{2 = ilin}), which also ignores the (\texttt{NTCO}) option.
 \end{itemize}
 
-
-\begin{description}
-\item [mode] ``ELEMENT'' for a printout after each single element
-  (\ref{SinEle}); ``BLOCK'' for a printout after each structure block
-  (\ref{BloDef})
-\item [number--of--blocks] (integer) The number of the blocks in the
-  structure to which the linear parameter will be printed. If this
-  number is set to zero or is larger than the number of blocks, the
-  complete structure will be calculated.
-\item [ilin] (integer) Logical switch to calculate the traditional
-  linear optics calculation in 4D ({\it 1 = ilin}) and with the DA
-  approach 6D ({\it 2 = ilin}).
-\item [ntco] (integer) A switch to write out linear coupling
-  parameters.
- \begin{itemize}
- \item {\em ntco} \/= 0 : no write--out
- \item {\em ntco} \/$\neq$ 0 : write--out of all linear coupled (4D)
-   parameters including the coupling angle.  These parameters (name,
-   longitudinal position, the phase advances at that location, 4
-   $\beta$--, $\alpha$-- and $\gamma$--functions, 4 angles for
-   coordinates and momenta respectively, plus the coupling angle
-   [rad]) are written in ascii format on file \# 11.
-   This write-out happens every \emph{ntco} turns.
- \end{itemize}
-\item [E\_I, E\_II] (floats) The two eigen--emittances to be chosen to
-  determine the coupling angle. They are typically set to be equal.
-\item [names] (char) For {\em nlin} \/($\leq $ {\em nele}\/) element--
-  and block names the linear parameters are printed whenever they
-  appear in the accelerator structure.
-\end{description}
-
-\subparagraph{Remarks}
-\begin{enumerate}
-\item To make this block work the Tracking Parameter block
-  (~\ref{TraPar}) has to used as well.
-\item When the ``ELEMENT 0'' option is used a file unit \# 34 is
-  written with the longitudinal position, name, element type,
-  multipole strength, $\beta$ functions and phase advances in the
-  horizontal and vertical phase space respectively. This file is used
-  as input for the ``SODD'' program~\cite{SODD} to calculate detuning
-  and distortion terms in first and second order. A full program suite
-  can be found at: /afs/cern.ch/group/si/slap/share/sodd
-\item If the ``BLOCK'' option has been used, the tunes may be wrong by
-  a multiple of 1/2. This option is not active in the DA part ({\it 2
-    = ilin}), which also ignores the ({\it NTCO}) option.
-\end{enumerate}
-
+% ================================================================================================================================ %
 \section{Tune Variation} \label{TunVar}
 
-\subparagraph{Description} This input block initializes a tune
-adjustment with zero length quadrupoles.  This is normally done with
-two families of focusing and defocusing quadrupoles. It may be
-necessary, however, to have a fixed phase advance between certain
-positions in the machine. This can be done with this block by
-splitting the corresponding family into two sub--families which then
-are adjusted to give the desired phase advance.
+This input block initializes a tune adjustment with zero length quadrupoles.
+This is normally done with two families of focusing and defocusing quadrupoles.
+It may be necessary, however, to have a fixed phase advance between certain positions in the machine.
+This can be done with this block by splitting the corresponding family into two sub--families which then are adjusted to give the desired phase advance.
 
-\subparagraph{Keyword} TUNE \subparagraph{Number of data lines} 2 or 4
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{TUNE} \\
+    \textbf{Data lines} & 2 or 4 \\
+    \textbf{Format}     & Line 1: \texttt{name1 Qx iqmod6} \\
+                        & Line 2: \texttt{name2 Qy} \\
+                        & Line 3 (optional): \texttt{name3 $\Delta Q$} \\
+                        & Line 4 (optional): \texttt{name4 name5}
+\end{tabular}
 
-\subparagraph{Format}
-\begin{itemize}
-\item data lines 1: {\em name1 Qx iqmod6}
-\item data lines 2: {\em name2 Qy}
-\item data lines 3 and 4, optional: {\em name3 $\Delta Q$} \/and {\em
-    name4 name5} \/respectively
-\end{itemize}
+\paragraph{Format Description}~
 
-\begin{description}
-\item [name1, name2] Names of focusing and defocusing quadrupole
-  families respectively (in the single element list (~\ref{LinEle})
-\item [Qx, Qy] (floats) Horizontal and vertical tune {\em including}
-  \/the integer part
-\item [iqmod6] (integer) Logical switch to calculate the tunes in the
-  traditional manner ({\it 1 = iqmod6}) and with the DA approach
-  including the beam-beam kick ({\it 2 = iqmod6}).
-\item [name3] Name of the second sub--family, where the first
-  sub--family is one of the above ({\em name1} \/or {\em name2}\/)
-  This second sub--family replaces the elements of the first
-  sub--family between the positions marked by {\em name4} \/and {\em
-    name5}\/.
-\item [$\Delta Q$] Extra phase advance {\em including} \/the integer
-  part (horizontal or vertical depending on the first sub--family)
-  between the positions in the machine marked by {\em name4} \/and
-  {\em name5}
-\item [name4, name5] Two markers in the machine for the phase advance
-  $\Delta Q$ with the elements of the second sub--family between them
-\end{description}
+\bigskip
+\begin{tabular}{@{}llp{0.65\linewidth}}
+    \texttt{name1, name2} & char    & Names of focusing and defocusing quadrupole families respectively (in the single element list (~\ref{LinEle}). \\
+    \texttt{Qx, Qy}       & floats  & Horizontal and vertical tune \emph{including} the integer part. \\
+    \texttt{iqmod6}       & integer & Logical switch to calculate the tunes in the traditional manner (\texttt{1 = iqmod6}) and with the DA approach including the beam-beam kick (\texttt{2 = iqmod6}). \\
+    \texttt{name3}        & char    & Name of the second sub--family, where the first sub--family is one of the above (\texttt{name1} or \texttt{name2}). This second sub--family replaces the elements of the first sub--family between the positions marked by \texttt{name4} and \texttt{name5}. \\
+    \texttt{$\Delta Q$}   & float   & Extra phase advance \emph{including} the integer part (horizontal or vertical depending on the first sub--family) between the positions in the machine marked by \texttt{name4} and \texttt{name5}.\\
+    \texttt{name4, name5} & char    & Two markers in the machine for the phase advance $\Delta Q$ with the elements of the second sub--family between them
+\end{tabular}
 
-\subparagraph{Remark} The integer has to be included as the full phase
-advance around the machine is calculated by the program.
+\paragraph{Remarks}~\\
 
+The integer has to be included as the full phase advance around the machine is calculated by the program.
+
+% ================================================================================================================================ %
 \section{Chromaticity Correction} \label{ChrCor}
 
-\subparagraph{Description} The chromaticity can be adjusted
-to desired values with two sextupole family using this input block.
+The chromaticity can be adjusted to desired values with two sextupole family using this input block.
 
-\subparagraph{Keyword} CHRO \subparagraph{Number of data lines} 2
-
-\subparagraph{Format} data lines 1: {\em name1 $Q'_x$ ichrom}
-\subparagraph{Format} data lines 2: {\em name2 $Q'_y$}
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{CHRO} \\
+    \textbf{Data lines} & 2 \\
+    \textbf{Format}     & Line 1: \texttt{name1 $Q'_x$ ichrom} \\
+                        & Line 2: \texttt{name2 $Q'_y$}
+\end{tabular}
 
 \begin{description}
 \item [name1/2] Names (in the single element list (~\ref{NonEle}) of the
@@ -135,6 +99,7 @@ to desired values with two sextupole family using this input block.
 small momentum spread is required (DE0 in table (~\ref{T-IteErr})). It
 sometimes is required to optimize this spread.
 
+% ================================================================================================================================ %
 \section{Orbit Correction} \label{OrbCorr}
 
 \subparagraph{Description} Due to dipole errors in a real accelerator
@@ -199,6 +164,7 @@ variable but at least 1
   by at least one space.
 \end{enumerate}
 
+% ================================================================================================================================ %
 \section{Decoupling of Motion in the Transverse Planes}
 \label{LinDec} 
 
@@ -232,6 +198,7 @@ however, are not always equivalent. In the resonance approach the
 zeroth harmonic is compensated, whilst a decoupling also takes into
 account the higher--order terms.
 
+% ================================================================================================================================ %
 \section{Sub--resonance Calculation} \label{SubCal}
 
 \subparagraph{Description} First order resonance widths of multipoles
@@ -259,8 +226,8 @@ multipoles up to to tenth order.
 \item [length] Length of the accelerator in meters
 \end{description}
 
-\section{Search for Optimum
-  Places to Compensate Resonances} \label{SeaPla}
+% ================================================================================================================================ %
+\section{Search for Optimum Places to Compensate Resonances} \label{SeaPla}
 
 \subparagraph{Description} To be able to compensate a specific
 resonance one has to know how a correcting multipole affects the
@@ -297,6 +264,7 @@ variable but at least 2
   appear in the single element list (~\ref{NonEle})
 \end{description}
 
+% ================================================================================================================================ %
 \section{Resonance Compensation} \label{ResCom}
 
 \subparagraph{Description} The input block allows the compensation of
@@ -351,6 +319,7 @@ the multipoles.
 \item [Qx0, Qy0] Desired tune values including the integer part
 \end{description}
 
+% ================================================================================================================================ %
 \section{Differential Algebra} \label{DifAlg}
 
 \subparagraph{Description} This input block initiates the calculation
@@ -418,6 +387,7 @@ described in sections~\ref{Normal} and~\ref{Corrections}.
   extra map is written to file \# 17.
 \end{itemize}
 
+% ================================================================================================================================ %
 \section{Normal Forms} \label{Normal}
 
 \subparagraph{Description} All the parameters to compute the Normal
@@ -453,6 +423,7 @@ block~\ref{Corrections} can be found in reference \cite{Massimo}.
   fact corrected by default when $par1 =1$ or $par2 =2$.
 \end{itemize}
 
+% ================================================================================================================================ %
 \section{Corrections} \label{Corrections}
 
 \subparagraph{Description} All the parameters to optimise the
@@ -520,6 +491,7 @@ tune--shift using a set of correctors are given in the {\em Correction
   allowed (as stated in the previous section).
 \end{itemize}
 
+% ================================================================================================================================ %
 \section{Post--processing} \label{PosPro}
 
 \subparagraph{Description} It has been seen in the past that the
