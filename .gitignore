@@ -35,6 +35,7 @@ Doc/*/*.out
 Doc/*/*.toc
 *.bbl
 *.blg
+*.synctex.gz
 
 #Python temps
 *.pyc

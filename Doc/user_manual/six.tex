@@ -1,5 +1,5 @@
-\documentclass[a4paper,11pt]{report} 
-\usepackage[a4paper,margin=2cm]{geometry}
+\documentclass[twoside,a4paper,11pt]{report} 
+\usepackage[twoside,a4paper,top=25mm,bottom=25mm,left=20mm,right=20mm]{geometry}
 
 \usepackage{float} 
 %\usepackage{graphics}
@@ -59,6 +59,43 @@
 \pagestyle{headings}
 \raggedbottom
 
+% Page Layout
+%*************
+
+\usepackage{fancyhdr}
+
+% Plain Page Numbering
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[LE,RO]{\thepage}
+}
+
+% Header style for numbered chapters
+\newcommand{\defaulthead}{
+    \fancyhead[LE]{\nouppercase{\scshape\leftmark}}
+    \fancyhead[RO]{\nouppercase{\scshape\rightmark}}
+}
+
+% Custom heading for unnumbered chapters
+\newcommand{\simplehead}[1]{
+    \fancyhead[LE]{\nouppercase{\itshape #1}}
+    \fancyhead[RO]{\nouppercase{\itshape #1}}
+}
+
+\pagestyle{fancy}
+
+% Page Header
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter: #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}{}}
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancyhf{}
+\defaulthead
+\headheight 15pt
+\fancyfoot[LE,RO]{\thepage}
+
+% Main Document
 \begin{document}
 
 \pagenumbering{roman}

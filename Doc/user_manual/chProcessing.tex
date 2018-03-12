@@ -86,145 +86,118 @@ The chromaticity can be adjusted to desired values with two sextupole family usi
                         & Line 2: \texttt{name2 $Q'_y$}
 \end{tabular}
 
-\begin{description}
-\item [name1/2] Names (in the single element list (~\ref{NonEle}) of the
-  two sextupole families
-\item [$Q'$] Desired values of the chromaticity: $Q'=\frac{\delta
-    Q}{\delta (\frac{\Delta p}{p_o})}$.
-\item [ichrom] (integer) Logical switch to calculate the traditional
-  chromaticity calculation ({\it 1 = ichrom}) and with the DA
-  approach including the beam-beam kick ({\it 2 = ichrom}).
-\end{description}
-\subparagraph{Remark} To make the chromaticity correction work well a
-small momentum spread is required (DE0 in table (~\ref{T-IteErr})). It
-sometimes is required to optimize this spread.
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}llp{0.65\linewidth}}
+    \texttt{name1, name2} & char    & Names (in the single element list (~\ref{NonEle}) of the two sextupole families. \\
+    \texttt{$Q^\prime$}   & float   & Desired values of the chromaticity: $Q^\prime=\frac{\delta Q}{\delta( \frac{\Delta p}{p_o})}$. \\
+    \texttt{ichrom}       & integer & Logical switch to calculate the traditional chromaticity calculation (\texttt{1 = ichrom}) and with the DA approach including the beam-beam kick (\texttt{2 = ichrom}). \\
+\end{tabular}
+
+\paragraph{Remarks}~\\
+
+To make the chromaticity correction work well a small momentum spread is required (\texttt{DE0} in table (\ref{T-IteErr})).
+It sometimes is required to optimize this spread.
 
 % ================================================================================================================================ %
 \section{Orbit Correction} \label{OrbCorr}
 
-\subparagraph{Description} Due to dipole errors in a real accelerator
-a closed orbit different from the beam axis is unavoidable. Even after
-careful adjustment one always will be left over with some random
-deviation of the closed orbit around the zero position. A closed orbit
-is introduced by nonzero strengths of $ b_{1} $ and $ a_{1} $
-components of the multipole block (~\ref{MulCoe}), horizontal and
-vertical dipole kicks (~\ref{NonEle}) or displacements of nonlinear
-elements (~\ref{DisEle}).  This input data block allows the correction
-of a such a random distributed closed orbit using he first two types
-in a ``most effective corrector strategy'' \cite{Auti}. For that
-purpose correctors have to be denoted by {\em ``HCOR= ''} \/and {\em
-  ``VCOR= ''} \/and monitors by {\em ``HMON= ''} \/and {\em ``VMON=
-  ''} \/for the horizontal and vertical plane respectively. After
-correction the orbit is scaled to the desired r.m.s. values unless they
-are zero.
+Due to dipole errors in a real accelerator, a closed orbit different from the beam axis is unavoidable.
+Even after careful adjustment, one always will be left over with some random deviation of the closed orbit around the zero position.
+A closed orbit is introduced by non-zero strengths of $b_{1}$ and $a_{1}$ components of the multipole block (\ref{MulCoe}), horizontal and vertical dipole kicks (\ref{NonEle}), or displacements of non-linear elements (\ref{DisEle}).
+This input data block allows the correction of a such a random distributed closed orbit using he first two types in a ``most effective corrector strategy'' \cite{Auti}.
+For that purpose, correctors have to be denoted by \texttt{HCOR=} and \texttt{VCOR=}, and monitors by \texttt{HMON=} and \texttt{VMON=} for the horizontal and vertical plane respectively.
+After correction, the orbit is scaled to the desired r.m.s. values, unless they are zero.
 
-On file unit 28 the horizontal orbit displacement, measured at the
-horizontal monitors, will be written together with the monitor number,
-on file unit 29 the same is done for the vertical closed orbit
-displacement. 
+The horizontal orbit displacement, measured at the horizontal monitors, will be written to \texttt{fort.28} -- together with the monitor number, in \texttt{fort.29}. The same is done for the vertical closed orbit displacement. 
 
-\subparagraph{Keyword} ORBI \subparagraph{Number of data lines}
-variable but at least 1
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{ORBI} \\
+    \textbf{Data lines} & $\geq 1$ \\
+    \textbf{Format}     & First line: \texttt{sigmax sigmay ncorru ncorrep} \\
+                        & Other lines: \texttt{HCOR=namec}, \texttt{HMON=namem}, \texttt{VCOR=namec} or \texttt{VMON=namem}.\\
+\end{tabular}
 
-\subparagraph{Format}
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}lp{0.75\linewidth}}
+    \texttt{sigmax, sigmay} & Desired r.m.s.--values of the randomly distributed closed orbit. \\
+    \texttt{ncorru}         & Number of correctors to be used. \\
+    \texttt{ncorrep}        & Number of corrections. \\
+                            & If \texttt{ncorrep=0}, the correction is iterated until \texttt{ITCO} iterations or after the both desired r.m.s.--values have been reached (see table~\ref{T-IteErr}). \\
+    \texttt{HCOR=namec}     & Horizontal correction element of name \texttt{namec}. \\
+    \texttt{HMON=namem}     & Horizontal monitor for the closed orbit of name \texttt{namem}. \\
+    \texttt{VCOR=namec}     & Vertical correction element of name \texttt{namec}. \\
+    \texttt{VMON=namem}     & Vertical monitor for the closed orbit of name \texttt{namem}.
+\end{tabular}
+
+\paragraph{Remarks}~
+
 \begin{itemize}
-\item first data line: {\em sigmax sigmay ncorru ncorrep}
-\item other data lines: {\em ``HCOR= '' namec} \/or {\em ``HMON= ''
-    namem} \newline or {\em ``VCOR= '' namec} \/or {\em ``VMON= ''
-    namem}
+    \item Elements can have only one extra functionality: either horizontal corrector, horizontal monitor, vertical corrector or   vertical monitor. If the number of monitors in a plane is smaller than the number of correctors it is likely to encounter numerical problems.
+    \item The \texttt{HCOR=}, \texttt{HMON=}, \texttt{VCOR=}, and \texttt{VMON=} must be separated from the following name by at least one space.
 \end{itemize}
-
-\begin{description}
-\item [sigmax, sigmay] Desired r.m.s.--values of the randomly distributed
-  closed orbit
-\item [ncorru] Number of correctors to be used
-\item [ncorrep] Number of corrections \newline If {\em ncorrep=0}
-  \/the correction is iterated until {\em ITCO} \/(see
-  table~\ref{T-IteErr}) iterations or after the both desired
-  r.m.s.--values have been reached.
-\item [``HCOR= '' namec] Horizontal correction element of name {\em
-    namec}
-\item [``HMON= '' namem] Horizontal monitor for the closed orbit of
-  name {\em namem}
-\item [``VCOR= '' namec] Vertical correction element of name {\em
-    namec}
-\item [``VMON= '' namem] Vertical monitor for the closed orbit of name
-  {\em namem}
-\end{description}
-
-\subparagraph{Remarks}
-\begin{enumerate}
-\item Elements can have only one extra functionality: either
-  horizontal corrector, horizontal monitor, vertical corrector or
-  vertical monitor. If the number of monitors in a plane is smaller
-  than the number of correctors it is likely to encounter numerical
-  problems.
-\item The {\em ``HCOR= ''}\/, {\em ``HMON= ''}\/, {\em ``VCOR= ''}
-  \/and {\em ``VMON= ''} \/must be separated from the following name
-  by at least one space.
-\end{enumerate}
 
 % ================================================================================================================================ %
-\section{Decoupling of Motion in the Transverse Planes}
-\label{LinDec} 
+\section{Decoupling of Motion in the Transverse Planes} \label{LinDec} 
 
-\subparagraph{Description} Skew--quadrupole components in the lattice
-create a linear coupling between the transverse planes of motion. A
-decoupling can be achieved with this block using four independent
-families of skew--quadrupoles, which cancel the off--diagonal parts of
-the transfer map. As these skew--quadrupoles also influence the tunes
-an adjustment of the tunes is performed at the same time.
+Skew--quadrupole components in the lattice create a linear coupling between the transverse planes of motion.
+A decoupling can be achieved with this block using four independent families of skew--quadrupoles, which cancel the off--diagonal parts of the transfer map.
+As these skew--quadrupoles also influence the tunes an adjustment of the tunes is performed at the same time.
 
-\subparagraph{Keyword} DECO \subparagraph{Number of data lines} 3
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{DECO} \\
+    \textbf{Data lines} & 3 \\
+    \textbf{Format}     & Line 1: \texttt{name1,name2,name3,name4} \\
+                        & Line 2: \texttt{name5 Qx} \\
+                        & Line 3: \texttt{name6 Qy}
+\end{tabular}
 
-\subparagraph{Format}
-\begin{itemize}
-\item first data line: {\em name1,name2,name3,name4}
-\item data lines 2 and 3: {\em name5 Qx} \/and {\em name6 Qy}
-  \/respectively
-\end{itemize}
+\paragraph{Format Description}~
 
-\begin{description}
-\item [name1,2,3,4] Names of the four skew--quadrupole families
-\item [name5, name6] Names of focusing and defocusing quadrupole
-  families respectively (in the single element list (~\ref{LinEle})
-\item [Qx, Qy] (floats) Horizontal and vertical tune {\em including}
-  \/the integer part
-\end{description}
+\bigskip
+\begin{tabular}{@{}llp{0.70\linewidth}}
+    \texttt{name1,2,3,4} & char   & Names of the four skew--quadrupole families. \\
+    \texttt{name5,6}     & char   & Names of focusing and defocusing quadrupole families respectively (in the single element list (\ref{LinEle}). \\
+    \texttt{Qx, Qy}      & floats & Horizontal and vertical tune \emph{including} the integer part.
+\end{tabular}
 
-\subparagraph{Remark} A decoupling can also be achieved by
-compensating skew--resonances (~\ref{ResCom}).  The two approaches,
-however, are not always equivalent. In the resonance approach the
-zeroth harmonic is compensated, whilst a decoupling also takes into
-account the higher--order terms.
+\paragraph{Remarks}~\\
+
+A decoupling can also be achieved by compensating skew--resonances (\ref{ResCom}).
+The two approaches, however, are not always equivalent.
+In the resonance approach the zeroth harmonic is compensated, whilst a decoupling also takes into account the higher--order terms.
 
 % ================================================================================================================================ %
 \section{Sub--resonance Calculation} \label{SubCal}
 
-\subparagraph{Description} First order resonance widths of multipoles
-from second to ninth order are calculated following the approach of
-Guignard \cite{Gilbert78}. This includes resonances, which are a
-multiple of two lower than the order of the multipole. The first order
-detuning including feed--down from closed orbit is calculated from all
-multipoles up to to tenth order.
+First order resonance widths of multipoles from second to ninth order are calculated following the approach of Guignard \cite{Gilbert78}.
+This includes resonances, which are a multiple of two lower than the order of the multipole.
+The first order detuning including feed--down from closed orbit is calculated from all multipoles up to to tenth order.
 
-\subparagraph{Keyword} SUBR \subparagraph{Number of data lines} 1
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{SUBR} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & \texttt{n1 n2 Qx Qy Ax Ay Ip length}
+\end{tabular}
 
-\subparagraph{Format} {\em n1 n2 Qx Qy Ax Ay Ip length}
+\paragraph{Format Description}~
 
-\begin{description}
-\item [n1, n2] (integers) Lowest and highest order of the resonance
-\item [Qx, Qy] Horizontal and vertical tune including the integer part
-\item [Ax, Ay] Horizontal and vertical amplitudes in mm
-\item [Ip] (integer) Is a switch to change the nearest distance to the
-  resonance \mbox{$ e = nxQx + nyQy $.} In cases of structure
-  resonances a change of $p$ by one unit may be useful.
- \begin{itemize}
- \item {\em ip} \/= 0 : $e$ is unchanged
- \item {\em ip} \/= 1 : \mbox{$ (e \pm 1) = nxQx + nyQy - (p \pm 1) $}
- \end{itemize}
-\item [length] Length of the accelerator in meters
-\end{description}
+\bigskip
+\begin{tabular}{@{}llp{0.75\linewidth}}
+    \texttt{n1, n2} & integers & Lowest and highest order of the resonance. \\
+    \texttt{Qx, Qy} & floats   & Horizontal and vertical tune including the integer part. \\
+    \texttt{Ax, Ay} & floats   & Horizontal and vertical amplitudes in mm. \\
+    \texttt{Ip}     & integer  & Is a switch to change the nearest distance to the resonance \mbox{$e = nxQx + nyQy$.} In cases of structure resonances a change of $p$ by one unit may be useful. \\
+                    &          & \texttt{ip = 0}: $e$ is unchanged. \\
+                    &          & \texttt{ip = 1}: \mbox{$(e \pm 1) = nxQx + nyQy - (p \pm 1)$}. \\
+    \texttt{length} & float    & Length of the accelerator in meters
+\end{tabular}
 
 % ================================================================================================================================ %
 \section{Search for Optimum Places to Compensate Resonances} \label{SeaPla}
