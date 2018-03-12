@@ -18,7 +18,7 @@ If besides mean values for the multipole errors (Gaussian) random errors should 
 \paragraph{Format Description}~
 
 \bigskip
-\begin{tabular}{@{}lp{0.8\linewidth}}
+\begin{longtabu}{@{}lp{0.8\linewidth}}
     \texttt{izu0} & Start value for the random number generator \\
     \texttt{mmac} & {\color{notered} Disabled for the time being, i.e. \texttt{mmac} is fixed to be 1} \\
                   & In the vectorised version the number of different starting seeds can be varied. Each seed is calculated as \mbox{$ k \times izu0 $} where $k$ runs from 1 to \texttt{mmac} which can not exceed 5 to save storage space (see    list of parameters in Appendix~\ref{DSP}).) \\
@@ -30,7 +30,7 @@ If besides mean values for the multipole errors (Gaussian) random errors should 
                   & \texttt{mout} = 4: Name, horizontal and vertical misalignment and also the element tilt are read--in from file \# 8.\\
                   & \texttt{mout} = 8: Name and 3 Random numbers for single kick strength and both random transverse misalignments and also the value of the tilt are read--in from file \# 30. \\
     \texttt{mcut} & The random distribution can be cut by \texttt{mcut} sigma of the distribution. No cuts are applied for \texttt{mcut = 0}.
-\end{tabular}
+\end{longtabu}
 
 \paragraph{Remarks}
 
@@ -59,7 +59,7 @@ Finally multipole sets with different name can be made equal with this input dat
 \end{tabular}
 
 \bigskip
-\begin{tabular}{@{}lp{0.8\linewidth}}
+\begin{longtabu}{@{}lp{0.8\linewidth}}
     Method 1 & \texttt{Ele1} = ``name'' where name $\ne$ \texttt{MULT} \\
              & \texttt{Ele2} = ignored  \\
              & \texttt{Ele3} = ignored  \\
@@ -72,7 +72,7 @@ Finally multipole sets with different name can be made equal with this input dat
              & \texttt{Ele2} = ``name2'' \\
              & \texttt{Ele3} = ``name3'' \\
              & The multipole set ``name3'' is set to the values of the set ``name2''. random errors are not influenced in this case.
-\end{tabular}
+\end{longtabu}
 
 \paragraph{Remarks}~
 

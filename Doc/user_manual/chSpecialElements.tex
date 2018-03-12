@@ -59,7 +59,7 @@ The general aperture values are chosen to be large enough (\ref{T-DTP}) to defin
 \paragraph{Format Description}~
 
 \bigskip
-\begin{tabular}{@{}lp{0.8\linewidth}}
+\begin{longtabu}{@{}lp{0.8\linewidth}}
     \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block (\ref{NonEle}) except multipole blocks (\ref{MulBlo}). \\
     \texttt{type}   & Two types of aperture limitations are allowed: \\
                     & \texttt{RE} for a rectangular aperture shape, i.e.
@@ -72,7 +72,7 @@ The general aperture values are chosen to be large enough (\ref{T-DTP}) to defin
                       \end{equation*}\\
     \texttt{xaper}  & Aperture in the horizontal plane in mm \\
     \texttt{yaper}  & Aperture in the vertical plane in mm
-\end{tabular}
+\end{longtabu}
 
 % ================================================================================================================================ %
 \section{Power Supply Ripple} \label{PowRip}
@@ -96,13 +96,13 @@ Ripple depth, ripple frequency and starting phase of the ripple frequency are th
 \paragraph{Format Description}~
 
 \bigskip
-\begin{tabular}{@{}lp{0.75\linewidth}}
+\begin{longtabu}{@{}lp{0.75\linewidth}}
     \texttt{name}        & Name of the nonlinear element in the \textit{single element} block (\ref{NonEle}) \\
     \texttt{depth}       & Maximum kick strength of the ripple element. A quadrupole kick is usually expected. \\
     \texttt{frequency}   & Given in number of turns (a real value is allowed) of one ripple period. \\
     \texttt{start-phase} & Initial phase of the ripple element. \\
     \texttt{nrturn}      & Initial number of turns, for prolongation runs the  number of turn already done
-\end{tabular}
+\end{longtabu}
 
 % ================================================================================================================================ %
 \section{Dynamic Kicks} \label{sec:DYNK}
@@ -686,7 +686,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
 \end{tabular}
 
 \bigskip
-\begin{tabular}{@{}llp{0.65\linewidth}}
+\begin{longtabu}{@{}llp{0.65\linewidth}}
     \texttt{partnum}       & float   & Number of particles in bunch \\
     \texttt{emitnx,emitny} & floats  & Horizontal and vertical normalized emittance respectively [$\mu \mbox{m}\cdot\mbox{rad}$] \\
     \texttt{sigz,sige}     & floats  & r.m.s. bunch length [m] and r.m.s. energy spread \\
@@ -699,12 +699,12 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
     \texttt{xang}          & float   & Half crossing angle (angle the between the trajectories of the two beams) at this particular element [rad]. \\
     \texttt{xplane}        & float   & Crossing plane angle [rad]. \\
     \texttt{xstr}          & float   & Angle of the position of the slices in the boosted frame [rad] (i.e. $X = Z \sin(\mathit{xstr}) \cos(\mathit{xplane})$, $Y =Z \sin(\mathit{xstr}) \cos(\mathit{xplane})$ ).  In absence of crabbing user should make sure \texttt{xstr=xang}; in case the \texttt{xstr} flag is not set then \texttt{xstr=xang} is assumed and a warning is printed (since version 4.5.45).
-\end{tabular}
+\end{longtabu}
 
 \paragraph{EXPERT format}~\\
 
 \bigskip
-\begin{tabular}{@{}lp{0.8\linewidth}}
+\begin{longtabu}{@{}lp{0.8\linewidth}}
     First line:   & \texttt{EXPERT} \\
     Second line:  & \texttt{partnum emitnx emitny sigz sige ibeco ibtyp lhc ibbc} \\
     Further lines & 4D BB lens (1 line per element): \\
@@ -713,13 +713,13 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
                   & ~~~~\texttt{name ibsix xang xplane h-sep v-sep} \\
                   & ~~~~\texttt{$\Sigma_{x,x}$ $\Sigma_{x,xp}$ $\Sigma_{xp,xp}$ $\Sigma_{y,y}$ $\Sigma_{y,yp}$} \\
                   & ~~~~\texttt{$\Sigma_{yp,yp}$ $\Sigma_{x,y}$ $\Sigma_{x,py}$ $\Sigma_{xp,y}$ $\Sigma_{xp,yp}$ strength-ratio}
-\end{tabular}
+\end{longtabu}
 
 \bigskip
 Some parameters are new or defined in a different way:
 
 \bigskip
-\begin{tabular}{@{}llp{0.65\linewidth}}
+\begin{longtabu}{@{}llp{0.65\linewidth}}
     \texttt{lhc}   & integer & This parameter is kept for now only for RHIC studies when equal to 9. \\
     \texttt{name}  &         & Name of the beam--beam element. \\
     \texttt{ibsix} & integer & Number of slices of the 6D beam--beam element.\\
@@ -731,7 +731,7 @@ Some parameters are new or defined in a different way:
     \texttt{v-sep} & float   & Vertical beam--beam separation [mm] \\
     \texttt{strength-ratio} & float & Strength ratio with respect to the nominal beam--beam kick strength. This is useful to allow for splitting one beam--beam kick into several (longitudinally close by) kicks.\\
     $\Sigma_{i,j}$ & float   & Second order momenta matrix for the strong beam, in units of mm and mrad. For example $\Sigma_{xxp}$ in [mm\ mrad]
-\end{tabular}
+\end{longtabu}
 
 \paragraph{Conversion from traditional to EXPERT format}~\\
 

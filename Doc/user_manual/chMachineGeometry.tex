@@ -196,7 +196,7 @@ The ``traditional'' format is used.
 \paragraph{Format} \texttt{name type h-sep v-sep strength-ratio ${\sigma\_\rm{hor}}^2$ ${\sigma\_\rm{ver}}^2$ ${\sigma\_\rm{lon}}^2$}
 
 \bigskip
-\begin{tabular}{@{}lp{0.7\linewidth}}
+\begin{longtabu}{@{}lp{0.7\linewidth}}
     \texttt{name}  & May contain up to 47 characters \\
     \texttt{type}  & 20 \\
     \texttt{h-sep} & Horizontal beam--beam separation [mm] \\
@@ -205,7 +205,7 @@ The ``traditional'' format is used.
     \texttt{${\sigma\_\rm{hor}}^2$} & When the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$ \\
     \texttt{${\sigma\_\rm{ver}}^2$} & When the flag $lhc=2$ is set in the BEAM block of the fort.3 file, this column represent the vertical $\sigma$ for the strong beam $\rm{[mm^2]}$ \\
     \texttt{${\sigma\_\rm{lon}}^2$} & This variable is for future purposes, at the present it is always equal to zero.
-\end{tabular}
+\end{longtabu}
 
 \paragraph{Remarks}
 These beam--beam elements become active when the ``Beam--Beam'' input block~\ref{BeamBeam} is used.
@@ -469,12 +469,12 @@ In four--dimensional transverse tracking, the linear elements between non-linear
 \paragraph{Format Description}~
 
 \bigskip
-\begin{tabular}{@{}lp{0.75\linewidth}}
+\begin{longtabu}{@{}lp{0.75\linewidth}}
     \texttt{mper} & Number of super periods. The following set of blocks is considered a \texttt{super-period}. The accelerator consists of \texttt{mper} super--periods. \\
     \texttt{msym(i)} & $\pm$ 1 for each super--period. If $\mathrm{msym}(i)=1$, the \mbox{$i$'th} super--period will be built up in the order in which linear elements appear in the blocks  below. If $\mathrm{msym}(i)=-1$, the super--period will be built up in reverse order. \\
     \texttt{block-name} & The name of the block with up to 47 characters. \\
     \texttt{element-name} & The element names have to appear as a linear element in the list of ``single elements'' (\ref{LinEle}). If one line is too short to contain all the elements of a block, a line with additional elements to the same block can be added. At least 5 (five) blanks must appear at the beginning of the extra line so that names of blocks and names of linear elements in a block can be distinguished.
-\end{tabular}
+\end{longtabu}
 
 \paragraph{Remarks}
 \begin{enumerate}
@@ -492,11 +492,11 @@ In that case, its parameters are given in the \textit{Synchrotron Oscillations} 
 \paragraph{Format} \texttt{\{ structure-element $\vert$ CAV $\vert$ GO \}}
 
 \bigskip
-\begin{tabular}{@{}lp{0.70\linewidth}}
+\begin{longtabu}{@{}lp{0.70\linewidth}}
     \texttt{structure-element} & Structure elements must appear as non-linear and observation elements in the single element list or in the list of blocks of the \textit{Block Definition} input block (\ref{BloDef}). \\
     \texttt{CAV} & A cavity can be introduced by a keyword \texttt{CAV}. This element does not appear in the single element list   (\ref{SinEle}). \\
     \texttt{GO} & Starting point: the keyword \texttt{GO} denotes where the tracking is started and where the tracked coordinates are recorded at each turn.
-\end{tabular}
+\end{longtabu}
 
 \paragraph{Remarks}
 Repetition of parts of the structure is indicated by parentheses with a multiplying factor N in front of them.
