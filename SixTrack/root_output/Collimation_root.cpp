@@ -19,7 +19,7 @@ Int_t nturn;
 Int_t npart;
 
 //Collimator database variables
-Char_t db_name[17];
+Char_t db_name[49];
 Char_t db_material[5];
 Double_t db_nsig;
 Double_t db_length;
@@ -46,7 +46,7 @@ extern "C" void CollimationRootInit()
     CollimatorLossTree->Branch("caverage",&caverage,"caverage/D");
     CollimatorLossTree->Branch("csigma",&csigma,"csigma/D");
     CollimatorLossTree->Branch("length",&length,"length/D");
-    CollimatorLossTree->Branch("db_name",db_name,"db_name[17]/C");
+    CollimatorLossTree->Branch("db_name",db_name,"db_name[49]/C");
 
     CollimationSurvivalTree = new TTree("CollimationSurvival","CollimationSurvivalTree");
     CollimationSurvivalTree->Branch("nturn",&nturn,"nturn/I");
@@ -62,7 +62,7 @@ extern "C" void CollimationDBRootInit()
     CollimatorDatabaseTree->Branch("db_length",&db_length,"db_length/D");
     CollimatorDatabaseTree->Branch("db_rotation",&db_rotation,"db_rotation/D");
     CollimatorDatabaseTree->Branch("db_offset",&db_offset,"db_offset/D");
-    CollimatorDatabaseTree->Branch("db_name",db_name,"db_name[17]/C");
+    CollimatorDatabaseTree->Branch("db_name",db_name,"db_name[49]/C");
     CollimatorDatabaseTree->Branch("db_material",db_material,"db_material[5]/C");
 }
 

@@ -26,27 +26,38 @@ module dump
   
 +ca comgetfields ! for getfields_l_max_string
 
-  logical, save :: ldumphighprec          ! high precision printout required at all flagged SINGLE ELEMENTs
-  logical, save :: ldumpfront             ! dump at the beginning of each element, not at the end.
-  logical, save :: ldump (-1:nele)        ! flag the SINGLE ELEMENT for dumping
-  
-  integer, save :: ndumpt (-1:nele)       ! dump every n turns at a flagged SINGLE ELEMENT (dump frequency)
-  integer, save :: dumpfirst (-1:nele)    ! First turn for DUMP to be active
-  integer, save :: dumplast (-1:nele)     ! Last turn for this DUMP to be active (-1=all)
-  integer, save :: dumpunit (-1:nele)     ! fortran unit for dump at a flagged SINGLE ELEMENT
-  integer, save :: dumpfmt (-1:nele)      ! flag the format of the dump
-  
-  character(len=getfields_l_max_string), save :: dump_fname (-1:nele)
-  
+  ! High precision printout required at all flagged SINGLE ELEMENTs
+  logical, save :: ldumphighprec
+  ! Dump at the beginning of each element, not at the end.
+  logical, save :: ldumpfront
+  ! flag the SINGLE ELEMENT for dumping
+  logical, allocatable, save :: ldump(:)  !(-1:nele)
+
+  ! Dump every n turns at a flagged SINGLE ELEMENT (dump frequency)
+  integer, allocatable, save :: ndumpt(:) !(-1:nele)
+  ! First turn for DUMP to be active
+  integer, allocatable, save :: dumpfirst(:) !(-1:nele)
+  ! Last turn for this DUMP to be active (-1=all)
+  integer, allocatable, save :: dumplast(:) !(-1:nele)
+  ! Fortran unit for dump at a flagged SINGLE ELEMENT
+  integer, allocatable, save :: dumpunit(:) !(-1:nele)
+  ! Flag the format of the dump
+  integer, allocatable, save :: dumpfmt(:) !(-1:nele)
+  ! Filename to write the dump to
+  character(len=getfields_l_max_string), allocatable, save :: dump_fname(:) !(-1:nele)
+
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
   real(kind=fPrec), save :: dumptas (-1:nblz,6,6)
-  
-  real(kind=fPrec), save :: dumptasinv (-1:nblz,6,6) ! inverse matrix of dumptas
-  real(kind=fPrec), save :: dumpclo (-1:nblz,6)      ! closed orbit used for normalisation of phase space
-                                                     ! TODO: check units used in dumpclo; is x' or px used?
+  ! inverse matrix of dumptas
+  real(kind=fPrec), save :: dumptasinv (-1:nblz,6,6)
+  ! closed orbit used for normalisation of phase space
+  ! TODO: check units used in dumpclo; is x' or px used?
+  real(kind=fPrec), save :: dumpclo (-1:nblz,6)
+
 +if cr
-  integer,save :: dumpfilepos(-1:nele), dumpfilepos_cr(-1:nele) ! For resetting file positions
+  ! For resetting file positions
+  integer, allocatable,save :: dumpfilepos(:), dumpfilepos_cr(:) !(-1:nele)
 +ei
 
 ! ================================================================================================================================ !
@@ -55,6 +66,35 @@ module dump
 contains
 
 ! ================================================================================================================================ !
+subroutine dump_allocate_arrays
+  use crcoall
+  implicit none
+  integer stat
+
+  allocate(ldump(-1:nele), ndumpt(-1:nele), dumpfirst(-1:nele), dumplast(-1:nele), &
+       dumpunit(-1:nele), dumpfmt(-1:nele), dump_fname(-1:nele), STAT=stat)
+  if (stat.ne.0) then
+     write(lout,'(A,I8)') "ERROR in SUBROUTINE DUMP_ALLOCATE_ARRAYS; stat=", stat
+     call prror(-1)
+  endif
+
++if cr
+  allocate(dumpfilepos(-1:nele),dumpfilepos_cr(-1:nele), STAT=stat)
+  if (stat.ne.0) then
+     write(lout,'(A,I8)') "ERROR in SUBROUTINE DUMP_ALLOCATE_ARRAYS; stat=", stat
+     call prror(-1)
+  endif
++ei
+end subroutine dump_allocate_arrays
+
+subroutine dump_expand_arrays(nele_new)
+  use crcoall
+  implicit none
+  integer, intent(in) :: nele_new
+
+  !TODO...
+end subroutine dump_expand_arrays
+
 subroutine dump_lines (n,i,ix)
 
   implicit none
@@ -131,7 +171,7 @@ subroutine dump_parseInputLine(ch)
   
   character(len=*), intent(in) :: ch
   ! Temp variables
-  character(len=16) idat ! Synchronized with daten
+  character(len=max_name_len) idat ! Synchronized with daten
   integer i1,i2,i3,i4,i5,kk,j
   
   character(len=getfields_l_max_string) ch1
@@ -163,9 +203,9 @@ subroutine dump_parseInputLine(ch)
     call prror(-1)
   end if
   
-  if (getfields_lfields(1) > 16) then
+  if (getfields_lfields(1) > max_name_len) then
     write(lout,*) "ERROR in DUMP:"
-    write(lout,*) "element names are max. 16 characters"
+    write(lout,*) "element names are max. ', max_name_len, ' characters"
     call prror(-1)
   end if
   
@@ -344,6 +384,7 @@ subroutine dump_initialize
 +ca stringzerotrim
   integer i,j
   logical lopen
+  character(len=256) filename
   
   do i=-1,il
 +if cr
@@ -610,7 +651,7 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
   
   ! Temporary variables
   integer j,k,l,m,n
-  character(len=16) localBez
+  character(len=max_name_len) localBez
   
   real(kind=fPrec) localDcum
   integer localKtrack
@@ -1166,6 +1207,7 @@ subroutine dump_crcheck_positionFiles
   
   integer i,j
   logical lerror,lopen
+  character(len=256) filename
   
   do i=-1, il
     if (ldump(i)) then

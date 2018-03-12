@@ -6,7 +6,7 @@ module dynk
     use mathlib_bouncer
     use numerical_constants, only : one, two, c1e3
 
-    use parpro !For nele
+    use parpro, only : nele, max_name_len
     IMPLICIT NONE
 
     ! We have to declare all this stuff, and we can't set them PRIVATE.
@@ -27,7 +27,7 @@ module dynk
 
     ! See TWIKI for documentation
 
-    ! Needs blocks parpro (for nele) and stringzerotrim (for stringzerotrim_maxlen)
+    ! Needs blocks stringzerotrim (for stringzerotrim_maxlen)
     ! and comgetfields (for getfields_l_max_string)
 
 ! ================================================================================================ !
@@ -88,23 +88,21 @@ module dynk
     real(kind=fPrec) fsets_origvalue_dynk(maxsets_dynk)
 
     ! Number of used positions in arrays
-    integer nsets_unique_dynk 
+    integer nsets_unique_dynk
 
     ! Some elements (multipoles) overwrites the general settings info when initialized.
     ! Store this information on the side.
     ! Also used by setvalue and getvalue
-    integer dynk_izuIndex
-    dimension dynk_izuIndex(nele)
-    real(kind=fPrec) dynk_elemdata(nele,3)
+    integer, allocatable, save :: dynk_izuIndex(:) !(nele
+    real(kind=fPrec), allocatable, save :: dynk_elemdata(:,:) !(nele,3)
 
 ! ================================================================================================ !
-    
+
     save ldynk, ldynkdebug, ldynkfiledisable
     save funcs_dynk, iexpr_dynk, fexpr_dynk, cexpr_dynk, nfuncs_dynk
     save niexpr_dynk, nfexpr_dynk, ncexpr_dynk
     save sets_dynk, csets_dynk, nsets_dynk
     save csets_unique_dynk, fsets_origvalue_dynk, nsets_unique_dynk
-    save dynk_izuIndex, dynk_elemdata
     save maxidata_dynk, maxfdata_dynk, maxcdata_dynk
 
 +if cr
@@ -137,13 +135,34 @@ module dynk
 ! ================================================================================================ !
 contains
 
+  subroutine dynk_allocate_arrays
+  use crcoall
+  implicit none
+  integer stat
+
+  allocate(dynk_izuIndex(nele), dynk_elemdata(nele,3), STAT=stat)
+  if (stat.ne.0) then
+     write(lout,'(A,I8)') "ERROR in SUBROUTINE DYNK_ALLOCATE_ARRAYS; stat=", stat
+     call prror(-1)
+  endif
+end subroutine dynk_allocate_arrays
+
+subroutine dynk_expand_arrays(nele_new)
+  use crcoall
+  implicit none
+  integer, intent(in) :: nele_new
+
+  !TODO...
+end subroutine dynk_expand_arrays
+
+  
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 27-09-2017
 ! =================================================================================================
 subroutine dynk_allocate
 
-      use crcoall
+    use crcoall
     implicit none
 
 
@@ -278,11 +297,11 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         funcs_dynk(nfuncs_dynk,5) = -1          !ARG3
 
         ! Sanity checks, length of BEZ elements
-        if (getfields_lfields(4) .gt. 16 .or. getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
+        if (getfields_lfields(4) .gt. max_name_len .or. getfields_lfields(4) .gt. maxstrlen_dynk-1 ) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN GET got an element name with     "
-            write (lout,*) "length =", getfields_lfields(4), "> 16"
+            write (lout,*) "length =", getfields_lfields(4), "> ", max_name_len
             write (lout,*) "or > ",maxstrlen_dynk-1
             write (lout,*) "The name was: '",getfields_fields(4)(1:getfields_lfields(4)),"'"
             write (lout,*) "*************************************"
@@ -1951,10 +1970,10 @@ subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
     read(getfields_fields(7)(1:getfields_lfields(7)),*) sets_dynk(nsets_dynk,4) ! turnShift
 
     ! Sanity check on string lengths
-    if (getfields_lfields(2).gt.16 .or. getfields_lfields(2).gt.maxstrlen_dynk-1) then
+    if (getfields_lfields(2).gt.max_name_len .or. getfields_lfields(2).gt.maxstrlen_dynk-1) then
         write (lout,*) "*************************************"
         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-        write (lout,*) "SET got an element name with length =",getfields_lfields(2),"> 16 or > maxstrlen_dynk-1."
+        write (lout,*) "SET got an element name with length =",getfields_lfields(2),"> ", max_name_len, " or > maxstrlen_dynk-1."
         write (lout,*) "The name was: '",getfields_fields(2)(1:getfields_lfields(2)),"'"
         write (lout,*) "*************************************"
         call prror(51)
@@ -2990,13 +3009,13 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       use crcoall
     use mod_common
     use mod_commonmn
+    use elens
     implicit none
 
 +ca commonm1
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
-+ca elensparam
 
     character(maxstrlen_dynk) element_name, att_name
     real(kind=fPrec) newValue
@@ -3147,8 +3166,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
             ! Electron lens
             else if (el_type.eq.29) then
-                if (att_name_stripped.eq."thetamax") then ! [mrad]
-                    elens_theta_max(ii) = newValue
+                if (att_name_stripped.eq."theta_r2") then ! [mrad]
+                    elens_theta_r2(ii) = newValue
                 else
                     goto 100 ! ERROR
                 end if
@@ -3206,13 +3225,13 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       use crcoall
     use mod_common
     use mod_commonmn
+    use elens
     implicit none
 
 +ca commontr
 +ca comgetfields
 +ca stringzerotrim
 
-+ca elensparam
 
     character(maxstrlen_dynk) element_name, att_name
     intent(in) element_name, att_name
@@ -3347,8 +3366,8 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
             ! Electron lens
             else if (el_type.eq.29) then
-                if(att_name_s.eq."thetamax") then ! [mrad]
-                    dynk_getvalue = elens_theta_max(ii)
+                if(att_name_s.eq."theta_r2") then ! [mrad]
+                    dynk_getvalue = elens_theta_r2(ii)
                 else
                     goto 100 ! ERROR
                 end if

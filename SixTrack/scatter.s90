@@ -26,57 +26,65 @@ module scatter
     ! PUBLIC
     ! Common variables for the SCATTER routines
     logical scatter_active
-    
-    integer scatter_elemPointer (nele) ! Pointer from an element back to a ELEM statement
-                                       ! (0 => not used)
+    ! Pointer from an element back to a ELEM statement (0 => not used)
+    integer, allocatable :: scatter_elemPointer(:) !(nele)
+
+    ! Max of scattering ELEM statements in use.
     integer scatter_maxELEM
-    parameter (scatter_maxELEM=200)    ! Max of scattering ELEM statements in use.
+    parameter (scatter_maxELEM=200)
+
+    ! Number of generators per ELEM
+    ! (2 slots taken by pointers to singleElement and profile).
     integer scatter_maxGenELEM
-    parameter (scatter_maxGenELEM=5)   ! Number of generators per ELEM
-                                       ! (2 slots taken by pointers to singleElement and profile).
-    
+    parameter (scatter_maxGenELEM=5)
+
     ! Configuration for an ELEM, columns are:
     ! (1) = pointer to the SingleElement
     ! (2) = pointer to PROFILE
     ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
-    integer scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
-    
-    real(kind=fPrec) scatter_ELEM_scale(scatter_maxELEM)
-    
+    integer :: scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
+
+    real(kind=fPrec) :: scatter_ELEM_scale(scatter_maxELEM)
+
     ! Configuration for PROFILE
+
+    ! Max number of profiles
     integer scatter_maxPROFILE
-    parameter (scatter_maxPROFILE=200)  ! Max number of profiles
-    integer scatter_PROFILE(scatter_maxPROFILE, 5)
+    parameter (scatter_maxPROFILE=200)
     ! Columns of scatter_PROFILE:
     ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
     ! (2)   : Profile type
     ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-    
+    integer :: scatter_PROFILE(scatter_maxPROFILE, 5)
+
     ! Configuration for GENERATOR
     integer scatter_maxGENERATOR
     parameter (scatter_maxGENERATOR=20)
-    integer scatter_GENERATOR(scatter_maxGENERATOR,5)
     ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
     ! (2)   : Generator type
     ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-    
+    integer  :: scatter_GENERATOR(scatter_maxGENERATOR,5)
+
     ! General data storage ala DYNK
     integer scatter_maxdata, scatter_maxstrlen
     parameter (scatter_maxdata   = 5000,                              &
                scatter_maxstrlen = stringzerotrim_maxlen )
-    
+
     integer,                       allocatable :: scatter_idata (:)
     real(kind=fPrec),              allocatable :: scatter_fdata (:)
     character (scatter_maxstrlen), allocatable :: scatter_cdata (:)
     
     ! Number of currently used positions in arrays
-    integer scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
-    integer scatter_nidata, scatter_nfdata, scatter_ncdata
+    integer :: scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR
+    integer :: scatter_nidata, scatter_nfdata, scatter_ncdata
     
-    integer scatter_seed1, scatter_seed2
+    integer :: scatter_seed1, scatter_seed2
     
-    logical scatter_debug
-    
+    logical :: scatter_debug
+
+    !Declare which variables should be statically stored;
+    ! TODO: Consider putting the SAVE keyword direcly into
+    ! the variable declarations instead.
     save scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,       &
          scatter_PROFILE, scatter_GENERATOR,                          &
          scatter_idata, scatter_fdata, scatter_cdata,                 &
@@ -103,6 +111,31 @@ module scatter
 ! ================================================================================================ !
 contains
 
+!Used for the very initial allocation of arrays that scale with global parameters like NELE
+subroutine scatter_allocate_arrays
+  use crcoall
+  implicit none
+  integer stat
+  
+  allocate(scatter_elemPointer(nele), STAT=stat)
+
+  if (stat.ne.0) then
+    write(lout,'(A,I8)') "ERROR in SUBROUTINE SCATTER_ALLOCATE_ARRAYS; stat=", stat
+    call prror(-1)
+  endif
+end subroutine scatter_allocate_arrays
+
+!Used changing the allocation of arrays that scale with global parameters like NELE
+subroutine scatter_expand_arrays(nele_new)
+  use crcoall
+  implicit none
+  integer, intent(in) :: nele_new
+
+  !TODO...
+  
+end subroutine scatter_expand_arrays
+
+  
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
