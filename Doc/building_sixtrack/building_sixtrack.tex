@@ -625,7 +625,11 @@ To run several tests in parallel, use the flag \texttt{-j \textit{numjobs}}.
 To run specific tests, use the flag \texttt{-R \textit{name}}, where \textit{name} is a regexp contained in the names of the tests you want to run.
 It is also possible to exclude certain tests using the \texttt{-E \texttt{name}} flag, where again \textit{name} is a regexp for the tests to exclude.
 
-The tests are classified as \texttt{fast} ($\lesssim 60~\mathrm{secconds}$), \texttt{medium} ($\lesssim 30~\mathrm{minutes}$), or \texttt{slow}; it is possible to run a group by using the \texttt{-L} flag, e.g.\ \texttt{-L fast}~.
+The tests are classified as
+\texttt{fast} ($\lesssim 60~\mathrm{secconds}$),
+\texttt{perf} (fast for performance regressions only),
+\texttt{medium} ($\lesssim 30~\mathrm{minutes}$),
+or \texttt{slow}; it is possible to run a group by using the \texttt{-L} flag, e.g.\ \texttt{-L fast}~.
 
 Note that when running a binary compiled with the CR flag, the test harness will kill the binary several times during the run, in order to check that the results still come out correct.
 
@@ -642,6 +646,17 @@ In order to send the statistics for a build to CDash, add the argument \texttt{-
 On the page that is linked to above, you may either click on the name of a build to see the test results, or you may click on the percentage of coverage to see the coverage.
 
 \subsection{Adding new tests}
+
+In order to add new test:
+\begin{itemize}
+    \item add directory in \texttt(SixTest/<test-name>) containing input files
+        (e.g.  \texttt{fort.2, fort.3, fort.8, fort.16} and
+        \texttt{Sixin.zip} containing the same files.
+    \item add the reference output file adding \texttt{.canonical} extenstion to the filename (e.g. \texttt{fort.90.canonical, singletrackfile.dat.canonical, fort.10.canonical, fort.6.canonical}.
+    \item add \texttt{<test-name>} in \texttt{SixTest/CMakeLists.txt} in \texttt{SIXTRACK\_TESTS} list and category (e.g. \texttt{MEDIUM\_TESTS} ).
+\end{itemize}
+
+
 
 \subsection{Testing tools}
 In order to manage the binaries, 
