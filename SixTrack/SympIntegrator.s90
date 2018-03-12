@@ -3,7 +3,8 @@
 !! ---------------------------------------------------------------------------
 !!      Subroutine de la MAJ du point (x,y,z,px,py,delta)
 !! ---------------------------------------------------------------------------
-subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,inex)
+!subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,inex)
+subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,inex)
    implicit none
 
    ! Initialisation des parametres
@@ -15,8 +16,8 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
    integer :: startp,endp,sens
    integer(kind=2) :: ij_Ax(0:1,0:lx,0:s),ij_Ay(0:1,0:ly,0:s),ij_Az(0:1,0:lz,0:s)
    double precision :: x, y, zb         ! Position initial x, y et curviligne z
-   double precision :: px, py, delta    ! Impulsion initial
-   double precision :: dz, gam0         ! Pas en z et coefficient gam0
+   double precision :: px, py!, delta    ! Impulsion initial
+   double precision :: dz!, gam0         ! Pas en z et coefficient gam0
    double precision :: valA             ! Coefficient de MAJ donne par la subroutine
 !   double precision :: g2d2inv
    double precision :: dzover2          !  Dsigma/2
@@ -31,7 +32,7 @@ subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay
 
    ! Calcul de deltap1 = 1/(1+delta)
    ! -------------------------------------------------------------------------
-   deltap1=1.0d0/(1.0d0+delta)
+   !deltap1=1.0d0/(1.0d0+delta)
 
    !                    ?????????????????????????????????
    ! -------------------------------------------------------------------------
@@ -250,5 +251,124 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
    y  =  y_tmp
    px = px_tmp
    py = py_tmp
+end subroutine
+
+
+!! ---------------------------------------------------------------------------
+!!     Generate Anti-Quad matrix for
+!! ---------------------------------------------------------------------------
+subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2,c2,d2)
+   
+   implicit none
+
+   ! Initialisation des parametres
+   ! -------------------------------------------------------------------------
+   character(len=512),intent(in) :: inex           ! Characterise si on est en entree ou en sortie
+   integer :: i,l                                  ! Indice de la boucle pour la position z
+   integer,intent(in) :: n,m,s                     ! Expo. max pour x et y, et Nb de pas en z
+   integer,intent(in) :: lz
+   integer :: startp,endp,sens
+   integer(kind=2),intent(in) :: ij_Az(0:1,0:lz,0:s)
+   double precision,intent(in) :: dz               ! Pas en z et coefficient gam0
+   double precision,intent(in) :: deltap1
+   double precision,intent(in) :: TAz(0:lz,0:s)
+   
+   double precision,intent(out) :: a1,b1,c1,d1,a2,b2,c2,d2
+   
+   double precision :: atp,btp,ctp,dtp,C0x,C0y,bcmad!,sixth
+   
+   ! Initialisation of the parameter
+   a1=1.0d0;   b1=0.0d0;   c1=0.0d0;   d1=1.0d0;
+   a2=1.0d0;   b2=0.0d0;   c2=0.0d0;   d2=1.0d0;
+   !sixth=1.0d0/6.0d0
+   
+   ! Boucle en z
+   ! -------------------------------------------------------------------------
+   ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Rajouter pour inverser la lecture des tableaux
+   startp = 0
+   endp = s-1
+!   endp = s
+   sens = 1
+
+   if (inex=="OUT_O") then
+     startp = endp
+     endp = 0
+     sens = -1
+     !dz=-dz
+   endif
+   ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Rajouter pour inverser la lecture des tableaux
+
+   do i=startp,endp,sens
+     C0x=0.0d0
+     C0y=0.0d0
+     
+     do l=0,lz
+       if ((ij_Az(0,l,i)==2).and.(ij_Az(1,l,i)==0)) then
+         C0x=2.0d0*TAz(l,i)
+       endif
+
+       if ((ij_Az(0,l,i)==0).and.(ij_Az(1,l,i)==2)) then
+         C0y=2.0d0*TAz(l,i)
+       endif
+     enddo
+
+     
+     ! Approx
+!     atp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*a1 + ((1.0d0+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*c1
+!     btp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*b1 + ((1.0d0+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*d1
+!     ctp= (C0x*dz*(1.0d0+deltap1*C0x*dz*dz*sixth))*a1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*c1
+!     dtp= (C0x*dz*(1.0d0+deltap1*C0x*dz*dz*sixth))*b1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*d1
+     
+     ! Thin
+     atp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*a1 + ((1.0d0+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*c1
+     btp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*b1 + ((1.0d0+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*d1
+     ctp= (C0x*dz)*a1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*c1
+     dtp= (C0x*dz)*b1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*d1
+     a1=atp; b1=btp; c1=ctp; d1=dtp;
+     
+     
+     ! Approx
+!     atp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*a2 + ((1.0d0+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*c2
+!     btp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*b2 + ((1.0d0+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*d2
+!     ctp= (C0y*dz*(1.0d0+deltap1*C0y*dz*dz*sixth))*a2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*c2
+!     dtp= (C0y*dz*(1.0d0+deltap1*C0y*dz*dz*sixth))*b2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*d2
+
+     ! Thin
+     atp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*a2 + ((1.0d0+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*c2
+     btp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*b2 + ((1.0d0+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*d2
+     ctp= (C0y*dz)*a2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*c2
+     dtp= (C0y*dz)*b2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*d2
+     a2=atp; b2=btp; c2=ctp; d2=dtp;
+   enddo
+   
+   ! Inversion of the matrix
+   bcmad=1.0d0/(a1*d1-b1*c1)
+   atp=d1*bcmad;  btp=-b1*bcmad;  ctp=-c1*bcmad;  dtp=a1*bcmad;
+   a1=atp; b1=btp; c1=ctp; d1=dtp;
+
+   bcmad=1.0d0/(a2*d2-b2*c2)
+   atp=d2*bcmad;  btp=-b2*bcmad;  ctp=-c2*bcmad;  dtp=a2*bcmad;
+   a2=atp; b2=btp; c2=ctp; d2=dtp;
+end subroutine
+
+
+!! ---------------------------------------------------------------------------
+!!     Compute Anti-Quad matrix for
+!! ---------------------------------------------------------------------------
+subroutine ComputeAntiQuad(x,px,y,py,a1,b1,c1,d1,a2,b2,c2,d2)
+   implicit none
+
+   ! Initialisation des parametres
+   ! -------------------------------------------------------------------------
+   double precision,intent(inout) :: x, y           ! Position initial x, y
+   double precision,intent(inout) :: px, py         ! Impulsion initial
+   double precision,intent(out)   :: a1,b1,c1,d1,a2,b2,c2,d2
+   
+   double precision :: x_tmp, y_tmp   ! Position initial x, y temporaire
+   double precision :: px_tmp, py_tmp ! Impulsion initial temporaire
+   
+   x_tmp =a1*x + b1*px;   px_tmp=c1*x + d1*px;   x=x_tmp;   px=px_tmp;
+   y_tmp =a2*y + b2*py;   py_tmp=c2*y + d2*py;   y=y_tmp;   py=py_tmp;
+   
 end subroutine
 +ei
