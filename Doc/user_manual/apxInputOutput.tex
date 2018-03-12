@@ -1,0 +1,160 @@
+\chapter{Input and Output Files} \label{Files}
+
+The program uses a couple of files for its input and output procedures.
+
+\begin{center}
+\begin{longtable}{|c|c|c|c|c|}
+  \caption{List of Input and Output Files.}\\
+  \hline
+  \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents} \\
+  \hline
+  \endfirsthead
+  \hline
+  \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents} \\
+  \hline
+  \endhead
+  
+%  \hline
+%\rule[-1.25mm]{0mm}{7.5mm}
+  \rule[-3.75mm]{0mm}{10mm}
+  2 & X & & Ascii & Geometry and Strength Parameters \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  3 & X & & Ascii & Tracking Parameters \\*
+  \hline \rule[-3.75mm]{0mm}{10mm} 4 & & X & Ascii & Geometry and
+  strength Parameters (format as file \#
+  2) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  6 & & X & Ascii & Input Parameters and Analysis of Data \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  8 & X & & Ascii & Name, hor., ver. Misalignment and Tilt \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  9 & & X & Ascii & Internally used multipoles \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Format: $a16,\ 2 \times \{6 \times (1p,3d23.15),\
+  (1p,2d23.15)\}$ \\ 
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  10 & X & X & Ascii & Summary of Post--processing (auxiliary) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  11 & & X & Ascii & This file is used to dump linear \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & coupling parameters at locations of choice \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  12 & & X & Ascii & End Coordinates of both Particles \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Format: ($15 \times F10.6$) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  13 & X & & Ascii & Start Coordinates for a Prolongation \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  14 & & X & Ascii & Horizontal FFT Spectrum for detailed \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Analysis; Format:  ($2 \times F10.6$) \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  15 & & X & Ascii & Vertical FFT Spectrum for detailed \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Analysis; Format: ($2 \times F10.6$) \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  16 & X & & Ascii & External multipole errors \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Format: $a16,\ 2 \times \{6 \times (1p,3d23.15),\
+  (1p,2d23.15)\}$ \\ 
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  17 & & X & Ascii & Additional Map at \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & location of interest \\
+%  \hline
+%  \hline \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents}
+%  \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  18 & & X & Ascii & One--Turn Map with Differential \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Algebra \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  19 & X & X & Ascii & Internal use for Differential Algebra \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  20 & & X & Meta--file & PS--file of selected Plots \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  21 & & X & Ascii & Factorisation of the one--turn \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & map \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  22 & & X & Ascii & Transformation in the \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Normal Form coordinates \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  23 & & X & Ascii & Hamiltonian in \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & action variables \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  24 & & X & Ascii & Tune--shift in action \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & coordinates \\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  25 & & X & Ascii & Tune--shift in Cartesian \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & coordinates \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  26 & & X & Ascii & NAGLIB log--file \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  27 & & X & Ascii & Name, hor., ver. Misalignment and Tilt \\
+  \hline \rule[-1.75mm]{0mm}{10mm}
+  28 & & X & Ascii & Horizontal closed orbit displacement, \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & &   &       & measured at monitors \\
+  \hline \rule[-1.75mm]{0mm}{10mm}
+  29 & & X & Ascii & Vertical closed orbit displacement, \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & &   &       & measured at monitors \\
+%  \hline
+%  \hline \rule[-5mm]{0mm}{12.5mm} {\bf File Unit} & {\bf Input} & {\bf Output} & {\bf File Type} & {\bf Contents} \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  30 & X & & Ascii & Name, Random strength, misalignments and tilt \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  31 & & X & Ascii & Name, Random strength, misalignments and tilt \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  32 & X & X & Binary & Binary dump of full accelerator description \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  33 & X & & Ascii & Guess values for 6D closed orbit search \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  34 & & X & Ascii & Multipole strength and linear lattice
+    parameters~\cite{SODD} \\ 
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  90 -- k & & X & Binary & Tracking Data (not singletrackfile)\\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & $ 0 <= k <= 31 $\\
+  \hline \rule[-1.25mm]{0mm}{7.5mm}
+  90 & & X & Binary & Tracking Data (singletrackfile)\\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & \texttt{singletrackfile.dat}\\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  92 & & X & Ascii & Checkpoint/Restart only: \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & Program ``standard output'' (lout) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  93 & & X & Ascii & Checkpoint/Restart only: Log file \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  94 & & X & Ascii & Checkpoint/Restart only: Temp file for \\* 
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & &resetting binary tracking data file(s) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  95 & X & X & Ascii & Checkpoint/Restart only: Data file 1 \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  96 & X & X & Ascii & Checkpoint/Restart only: Data file 2 \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  98 & & X & Ascii & 6D coordinates at Cavity (1p,6(2x,e25.18)) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  664 & X &  & Ascii & DYNK reading FUN FILE(LIN) \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & (only during initialization) \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  665 & & X & Ascii & DYNK output file \texttt{dynksets.dat} \\
+  \hline \rule[-3.75mm]{0mm}{10mm}
+  2001001 & & X & Ascii & FMA output file \texttt{fma\_sixtrack} \\\hline \rule[-3.75mm]{0mm}{10mm}
+  200101+i*10 & & X & Ascii & FMA output file \texttt{NORM\_*}, \\*
+  \rule[-3.7mm]{0mm}{7.5mm}
+  & & & & where $i=1,\ldots,\mathrm{number \ of \ FMAs}$ \\\hline
+\end{longtable}
+\end{center}
+
+%\clearpage
+
+In addition to those files listed in the table, DUMP uses arbitary file unit numbers as determined by the input file. The collimation module also uses many input/output files at various units, which are not listed here.

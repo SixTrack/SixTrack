@@ -1,0 +1,453 @@
+\chapter{Data Structure of the Data--Files} \label{Header}
+
+A common data structure for the programs MAD and SixTrack is agreed
+on. Besides some minor differences this allows a straightforward
+post--processing of data from either program. Each binary data--file
+has a header which holds a description of the run with comments,
+tracking parameters and 50 additional parameters for future purposes,
+six of which are already specified in SixTrack\@.
+
+\begin{table}[h]
+\caption{Header of the Binary Data--Files}
+\label{T-HDF}
+\centering
+\begin{tabular}{|c|c|c|}
+  \hline
+  {\bf Data Type} & {\bf Bytes} & {\bf Description} \\
+  \hline
+  Character & 80 & General title of the run \\
+  \hline
+  Character & 80 & Additional title \\
+  \hline
+  Character & 8 & Date \\
+  \hline
+  Character & 8 & Time \\
+  \hline
+  Character & 8 & Program name \\
+  \hline
+  Integer & 4 & First particle in the file \\
+  \hline
+  Integer & 4 & Last particle in the file \\
+  \hline
+  Integer & 4 & Total number of particles \\
+  \hline
+  Integer & 4 & Code for dimensionality of phase space \\
+  & & 1,2,4 are hor., vert.\ and longitudinal respectively \\
+  \hline
+  Integer & 4 & Projected number of turns \\
+  \hline
+  Float & 8 & Horizontal Tune \\
+  \hline
+  Float & 8 & Vertical Tune \\
+  \hline
+  Float & 8 & Longitudinal Tune \\
+  \hline
+  Float & 6 * 8 & Closed Orbit vector \\
+  \hline
+  Float & 6 * 8 & Dispersion vector \\
+  \hline
+  Float & 36 * 8 & Six--dimensional transfer map \\
+  \hline
+  \multicolumn{3}{|l|}{----- 50 additional parameters -----} \\
+  \hline
+  Float & 8 & Maximum number of different seeds \\
+  & & \\
+  \hline
+  Float & 8 & Actual seed number \\
+  \hline
+  Float & 8 & Starting value of the seed \\
+  \hline
+  Float & 8 & Number of turns in the reverse direction \\
+  & & (IBM only) \\
+  \hline
+  Float & 8 & Correction--factor for the Lyapunov \\
+  & & ($\sigma = s - v_o \times t$) \\
+  \hline
+  Float & 8 & Correction--factor for the Lyapunov \\
+  & & (\mbox{$ \frac{\Delta p}{p_o} $}) \\
+  \hline
+  Float & 8 & Start turn number for ripple prolongation \\
+  \hline
+  Float & 43 * 8 & Dummies \\
+  \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+
+Following this header the tracking data are written in n samples of
+nine numbers preceded by the turn number. In the MAD format the number
+of samples n is not restricted, whilst SixTrack writes only up to two
+samples for the two particles for the Lyapunov--exponent method. Up to
+64 particles (two per file) can be treated in the vectorised version
+of SixTrack\@.
+
+\begin{table}[h]
+\caption{Format of the Binary Data}
+\label{T-FBD}
+\centering
+\begin{tabular}{|c|c|c|}
+  \hline
+  {\bf Data Type} & {\bf Bytes} & {\bf Description} \\
+  \hline
+  Integer & 4 & Turn number \\
+  \hline \multicolumn{3}{|l|}{----- One or two samples of 9 values are
+    following -----}
+  \\
+  \hline
+  Integer & 4 & Particle number \\
+  \hline
+  Float & 8 & Angular distance in phase space ( $ <= 1 $ ) \\
+  \hline
+  Float & 8 & x (mm) \\
+  \hline
+  Float & 8 & $x'$ (mrad)\\
+  \hline
+  Float & 8 & y (mm) \\
+  \hline
+  Float & 8 & $y'$ (mrad) \\
+  \hline
+  Float & 8 & Path--length ($\sigma = s - v_o \times t$) (mm) \\
+  \hline Float & 8 & Relative momentum deviation \mbox{$ \frac{\Delta
+      p}{p_o}
+    $}\\
+  \hline
+  Float & 8 & Energy (MeV) \\
+  \hline
+\end{tabular}
+\end{table}
+
+Note that in case the ``Single Track File'' option is enabled at compile time, multiple of these files (normally one per particle pair) are interleaved in a single file.
+This is done by writing first all headers in order (i.e. first the header for initial particle/final particle 1/2, then 3/4, 5/6 etc.) and then the same for the tracking data.
+The ``total number of particles'' field can always be read from the first header record, which gives the number of header records present in the file.
+The two file formats are equivalent, i.e. they contain exactly the same data, and it is thus possible to convert losslessly between them.
+
+Some of the post--processing data are written in Ascii--format on file
+\# 10. This can be used for instance for plotting purposes. Each time
+the post--processing routine is called 60 double precision numbers
+(some of them still dummy) are added to the file.
+
+The file with the errors (in: fort.16, out: fort.9) has the following
+format: first line -- name of element; line 2--7 -- normal multipoles
+order 1--18; line 8 -- normal multipoles of order 19 and 20; line
+9--14 -- skew multipoles order 1--18; line 15 -- skew multipoles of
+order 19 and 20. The strength definition is according to
+block~\ref{MulCoe} and to be effective in fort.3 the random values of
+the corresponding multipole block have to be set to 1.0. A word of
+caution: when writing on file fort.9 the {\em total} \/multipole
+strength is used, i.e.\ systematic and random part combined. File
+fort.16 and fort.9 might therefore be different. When using fort.9 as
+input (fort.16) the systematic part in fort.3 has to be set to 0.0.
+
+Misalignment and tilt are in file \# 8 and \# 27 as input and output
+respectively. The format is (a16,2x,1p,2d14.6,d17.9), i.e.\ name,
+horizontal misalignment, vertical misalignment and tilt. The
+misalignment is in units of [mm] the tilt in units of [mrad]. The
+files \# 30 (in) and \# 31 (out) have the random single nonlinear
+element kick, misalignments and tilt in the format:
+(a8,1p,d19.11,2d14.6,d17.9). Misalignment and tilt in file fort.8 or
+fort.30 is automatically activated while the random strength (strength
+definition same as in block~\ref{SinEle}) needs an entry in the fourth
+column in the geometry file fort.2. File \# 28 and \# 29 hold integer
+counter and closed orbit displacement at a horizontal or vertical
+monitor respectively. 
+
+\newcounter{dst} \setcounter{dst}{0}
+
+\begin{table}[t]\small
+\caption{Post--processing Data}
+\label{T-PPD}
+\centering
+\begin{tabular}{|c|c|}
+  \hline
+  {\bf \# of Column} & {\bf Description} \\
+  \hline \stepcounter{dst}
+  \thedst & Maximum turn number \\
+  \hline \stepcounter{dst}
+  \thedst & Stability Flag (0=stable, 1=lost) \\
+  \hline \stepcounter{dst}
+  \thedst & Horizontal Tune \\
+  \hline \stepcounter{dst}
+  \thedst & Vertical Tune \\
+  \hline \stepcounter{dst}
+  \thedst & Horizontal $\beta$--function \\
+  \hline \stepcounter{dst}
+  \thedst & Vertical $\beta$--function \\
+  \hline \stepcounter{dst}
+  \thedst & Horizontal amplitude $1^{st}$ particle\\
+  \hline \stepcounter{dst}
+  \thedst & Vertical amplitude $1^{st}$ particle\\
+  \hline \stepcounter{dst} \thedst & Relative momentum deviation
+  \mbox{$ \frac{\Delta p}{p_o}
+    $}\\
+  \hline \stepcounter{dst}
+  \thedst & Final distance in phase space \\
+  \hline \stepcounter{dst}
+  \thedst & Maximum slope of distance in phase space \\
+  \hline \stepcounter{dst}
+  \thedst & Horizontal detuning \\
+  \hline \stepcounter{dst}
+  \thedst & Spread of horizontal detuning \\
+  \hline \stepcounter{dst}
+  \thedst & Vertical detuning \\
+  \hline \stepcounter{dst}
+  \thedst & Spread of vertical detuning \\
+  \hline \stepcounter{dst}
+  \thedst & Horizontal factor to nearest resonance \\
+  \hline \stepcounter{dst}
+  \thedst & Vertical factor to nearest resonance \\
+  \hline \stepcounter{dst}
+  \thedst & Order of nearest resonance \\
+  \hline \stepcounter{dst}
+  \thedst & Horizontal smear \\
+  \hline \stepcounter{dst}
+  \thedst & Vertical smear \\
+  \hline \stepcounter{dst}
+  \thedst & Transverse smear \\
+  \hline \stepcounter{dst}
+  \thedst & Survived turns $1^{st}$ particle \\
+  \hline \stepcounter{dst}
+  \thedst & Survived turns $2^{nd}$ particle \\
+  \hline \stepcounter{dst}
+  \thedst & Starting seed for random generator \\
+  \hline \stepcounter{dst}
+  \thedst & Synchrotron tune \\
+  \hline \stepcounter{dst}
+  \thedst & Horizontal amplitude $2^{nd}$ particle\\
+  \hline \stepcounter{dst}
+  \thedst & Vertical amplitude $2^{nd}$ particle\\
+  \hline \stepcounter{dst}
+  \thedst & Minimum horizontal amplitude\\
+  \hline \stepcounter{dst}
+  \thedst & Mean horizontal amplitude\\
+  \hline \stepcounter{dst}
+  \thedst & Maximum horizontal amplitude\\
+  \hline \stepcounter{dst}
+  \thedst & Minimum vertical amplitude\\
+  \hline \stepcounter{dst}
+  \thedst & Mean vertical amplitude\\
+  \hline \stepcounter{dst}
+  \thedst & Maximum vertical amplitude\\
+  \hline \stepcounter{dst}
+  \thedst & Minimum horizontal amplitude (linear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Mean horizontal amplitude (linear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Maximum horizontal amplitude (linear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Minimum vertical amplitude (linear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Mean vertical amplitude (linear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Maximum vertical amplitude (linear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Minimum horizontal amplitude (nonlinear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Mean horizontal amplitude (nonlinear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Maximum horizontal amplitude (nonlinear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Minimum vertical amplitude (nonlinear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Mean vertical amplitude (nonlinear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Maximum vertical amplitude (nonlinear decoupled)\\
+  \hline \stepcounter{dst}
+  \thedst & Emittance Mode I\\
+  \hline \stepcounter{dst}
+  \thedst & Emittance Mode II\\
+  \hline \stepcounter{dst}
+  \thedst & Secondary horizontal $\beta$--function\\
+  \hline \stepcounter{dst}
+  \thedst & Secondary vertical $\beta$--function\\
+  \hline \stepcounter{dst}
+  \thedst & $Q'_x$\\
+  \hline \stepcounter{dst}
+  \thedst & $Q'_y$\\
+  \hline \stepcounter{dst}
+  \thedst \ -- 58 & Dummy \\
+  \hline
+  59 -- 60 & Internal use\\
+  \hline
+\end{tabular}
+%\normalsize
+\end{table}
+
+\clearpage
+
+As an option the 4D linear parameters can be dumped to file \# 11 when
+the linear optics block~\ref{LinOpt} is activated. This can be used
+for instance for a post--processing of linear coupling. 25 values are
+written in a binary format.
+
+\newcounter{dlo} \setcounter{dlo}{0}
+
+\vspace{20mm}
+
+\begin{table}[h]
+\caption{4D Linear Parameters}
+\label{t-4lp}
+\centering
+\begin{tabular}{|c|c|}
+  \hline
+  {\bf \# of Column} & {\bf Description} \\
+  \hline \stepcounter{dlo}
+  \thedlo & Name of the element \\
+  \hline \stepcounter{dlo}
+  \thedlo & Longitudinal Position [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Horizontal phase advance \\
+  \hline \stepcounter{dlo}
+  \thedlo & Vertical phase advance \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary horizontal $\beta$--function [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary horizontal $\beta$--function [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary vertical $\beta$--function [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary vertical $\beta$--function [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary horizontal $\alpha$--function [rad] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary horizontal $\alpha$--function [rad] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary vertical $\alpha$--function [rad] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary vertical $\alpha$--function [rad] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary horizontal $\gamma$--function [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary horizontal $\gamma$--function [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary vertical $\gamma$--function [m] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary vertical $\gamma$--function [m]\\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary horizontal phase of x--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary horizontal phase of x--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary vertical phase of y--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary vertical phase of y--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary horizontal phase of $x'$--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary horizontal phase of $x'$--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Secondary vertical phase of $y'$--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Primary vertical phase of $y'$--coordinate [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & Coupling angle [pi] \\
+  \hline \stepcounter{dlo}
+  \thedlo & $D_x$ [mm]\\
+  \hline \stepcounter{dlo}
+  \thedlo & $D'_x$ [mrad]\\
+  \hline \stepcounter{dlo}
+  \thedlo & $D_y$ [mm]\\
+  \hline \stepcounter{dlo}
+  \thedlo & $D'_y$ [mrad]\\
+  \hline
+\end{tabular}
+%\normalsize
+\end{table}
+
+
+\clearpage
+
+When external multipole errors are read--in (see section~\ref{FluNum})
+the program expects a complete list of magnet errors on file \# 16.
+The format of each set of multipole errors is given in
+table~\ref{T-XME}. The definition of the multipole coefficients should
+be as described in section~\ref{MulCoe}.
+
+\newcounter{dsu} \setcounter{dsu}{0}
+
+\vspace{20mm}
+
+\begin{table}[h]
+\caption{Format of file with external errors \# 16 and internal errors
+written to \# 9}
+\label{T-XME}
+\centering
+\begin{tabular}{|c|c|}
+  \hline
+  {\bf \# of Row} & {\bf Description} \\
+  \hline \stepcounter{dsu}
+  \thedsu & Name of multipole set \\
+  \hline \stepcounter{dsu}
+  \thedsu & $B_1 \ B_2 \ B_3$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $B_4 \ B_5 \ B_6$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $B_7 \ B_8 \ B_9$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $B_{10} \ B_{11} \ B_{12}$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $B_{13} \ B_{14} \ B_{15}$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $B_{16} \ B_{17} \ B_{18}$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $B_{19} \ B_{20} $\\
+  \hline \stepcounter{dsu}
+  \thedsu & $A_1 \ A_2 \ A_3$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $A_4 \ A_5 \ A_6$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $A_7 \ A_8 \ A_9$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $A_{10} \ A_{11} \ A_{12}$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $A_{13} \ A_{14} \ A_{15}$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $A_{16} \ A_{17} \ A_{18}$\\
+  \hline \stepcounter{dsu}
+  \thedsu & $A_{19} \ A_{20}$\\
+  \hline
+\end{tabular}
+%\normalsize
+\end{table}
+
+With the parameter ``mout'' set to 2 or 3 in the ``Random
+Fluctuation'' block (~\ref{FluNum}) the internally used multipoles are
+written to file \# 9 in the same format as above. This file can
+therefore be used as an input fort.16 file for a subsequent run.
+
+The file \# 34 is written when the ``Linear Optic Block'' (see
+section~\ref{LinOpt}) is invoked with the ``ELEMENT 0'' option. 
+
+\setcounter{dsu}{0}
+\begin{table}[h]
+\caption{Format of file \# 34 for detuning and distortion calculation
+  with external program ``SODD''~\cite{SODD}}
+\label{T-SODD}
+\centering
+\begin{tabular}{|c|c|}
+  \hline
+  {\bf \# of Column} & {\bf Description} \\
+  \hline \stepcounter{dsu}
+  \thedsu & Longitudinal position [m] \\
+  \hline \stepcounter{dsu}
+  \thedsu & Type ``n'' of Multipole ($n >$ 0 $=>$ erect, $n <$ 0 $=>$
+  skew) \\ 
+  \hline \stepcounter{dsu}
+  \thedsu & Multipole strength [$\mathrm{mrad} \cdot \mathrm{mm}^{(1-|n|)}$] \\
+  \hline \stepcounter{dsu}
+  \thedsu & Horizontal $\beta$--function [m] \\
+  \hline \stepcounter{dsu}
+  \thedsu & Vertical $\beta$--function [m] \\
+  \hline \stepcounter{dsu}
+  \thedsu & Horizontal phase advance \\
+  \hline \stepcounter{dsu}
+  \thedsu & Vertical phase advance \\
+  \hline
+\end{tabular}
+%\normalsize
+\end{table}
+
+The last line serves as the end of the structure: Length of the
+accelerator, fake name ``END'', fake type ``100'', $\beta$ functions
+and phase advances at the end of the accelerator for the horizontal
+and vertical plane respectively.
