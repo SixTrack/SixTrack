@@ -145,300 +145,310 @@ File \# 28 and \# 29 hold integer counter and closed orbit displacement at a hor
 
 \newcounter{dst} \setcounter{dst}{0}
 
-\begin{table}[t]\small
-\caption{Post--processing Data}
-\label{T-PPD}
-\centering
-\begin{tabular}{|c|c|}
-  \hline
-  {\bf \# of Column} & {\bf Description} \\
-  \hline \stepcounter{dst}
-  \thedst & Maximum turn number \\
-  \hline \stepcounter{dst}
-  \thedst & Stability Flag (0=stable, 1=lost) \\
-  \hline \stepcounter{dst}
-  \thedst & Horizontal Tune \\
-  \hline \stepcounter{dst}
-  \thedst & Vertical Tune \\
-  \hline \stepcounter{dst}
-  \thedst & Horizontal $\beta$--function \\
-  \hline \stepcounter{dst}
-  \thedst & Vertical $\beta$--function \\
-  \hline \stepcounter{dst}
-  \thedst & Horizontal amplitude $1^{st}$ particle\\
-  \hline \stepcounter{dst}
-  \thedst & Vertical amplitude $1^{st}$ particle\\
-  \hline \stepcounter{dst} \thedst & Relative momentum deviation
-  \mbox{$ \frac{\Delta p}{p_o}
-    $}\\
-  \hline \stepcounter{dst}
-  \thedst & Final distance in phase space \\
-  \hline \stepcounter{dst}
-  \thedst & Maximum slope of distance in phase space \\
-  \hline \stepcounter{dst}
-  \thedst & Horizontal detuning \\
-  \hline \stepcounter{dst}
-  \thedst & Spread of horizontal detuning \\
-  \hline \stepcounter{dst}
-  \thedst & Vertical detuning \\
-  \hline \stepcounter{dst}
-  \thedst & Spread of vertical detuning \\
-  \hline \stepcounter{dst}
-  \thedst & Horizontal factor to nearest resonance \\
-  \hline \stepcounter{dst}
-  \thedst & Vertical factor to nearest resonance \\
-  \hline \stepcounter{dst}
-  \thedst & Order of nearest resonance \\
-  \hline \stepcounter{dst}
-  \thedst & Horizontal smear \\
-  \hline \stepcounter{dst}
-  \thedst & Vertical smear \\
-  \hline \stepcounter{dst}
-  \thedst & Transverse smear \\
-  \hline \stepcounter{dst}
-  \thedst & Survived turns $1^{st}$ particle \\
-  \hline \stepcounter{dst}
-  \thedst & Survived turns $2^{nd}$ particle \\
-  \hline \stepcounter{dst}
-  \thedst & Starting seed for random generator \\
-  \hline \stepcounter{dst}
-  \thedst & Synchrotron tune \\
-  \hline \stepcounter{dst}
-  \thedst & Horizontal amplitude $2^{nd}$ particle\\
-  \hline \stepcounter{dst}
-  \thedst & Vertical amplitude $2^{nd}$ particle\\
-  \hline \stepcounter{dst}
-  \thedst & Minimum horizontal amplitude\\
-  \hline \stepcounter{dst}
-  \thedst & Mean horizontal amplitude\\
-  \hline \stepcounter{dst}
-  \thedst & Maximum horizontal amplitude\\
-  \hline \stepcounter{dst}
-  \thedst & Minimum vertical amplitude\\
-  \hline \stepcounter{dst}
-  \thedst & Mean vertical amplitude\\
-  \hline \stepcounter{dst}
-  \thedst & Maximum vertical amplitude\\
-  \hline \stepcounter{dst}
-  \thedst & Minimum horizontal amplitude (linear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Mean horizontal amplitude (linear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Maximum horizontal amplitude (linear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Minimum vertical amplitude (linear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Mean vertical amplitude (linear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Maximum vertical amplitude (linear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Minimum horizontal amplitude (nonlinear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Mean horizontal amplitude (nonlinear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Maximum horizontal amplitude (nonlinear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Minimum vertical amplitude (nonlinear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Mean vertical amplitude (nonlinear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Maximum vertical amplitude (nonlinear decoupled)\\
-  \hline \stepcounter{dst}
-  \thedst & Emittance Mode I\\
-  \hline \stepcounter{dst}
-  \thedst & Emittance Mode II\\
-  \hline \stepcounter{dst}
-  \thedst & Secondary horizontal $\beta$--function\\
-  \hline \stepcounter{dst}
-  \thedst & Secondary vertical $\beta$--function\\
-  \hline \stepcounter{dst}
-  \thedst & $Q'_x$\\
-  \hline \stepcounter{dst}
-  \thedst & $Q'_y$\\
-  \hline \stepcounter{dst}
-  \thedst \ -- 58 & Dummy \\
-  \hline
-  59 -- 60 & Internal use\\
-  \hline
-\end{tabular}
-%\normalsize
-\end{table}
+\begin{center}
+\begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
+    \caption{Post--processing Data} \label{T-PPD}\\
+    \hline
+    
+    \rowcolor{blue!30}
+    \textbf{Column} & \textbf{Description} \\
+    \hline
+    \endfirsthead
+    
+    \rowcolor{blue!30}
+    \textbf{Column} & \textbf{Description} \\
+    \hline
+    \endhead
+    
+    \hline \stepcounter{dst}
+    \thedst & Maximum turn number \\
+    \hline \stepcounter{dst}
+    \thedst & Stability Flag (0=stable, 1=lost) \\
+    \hline \stepcounter{dst}
+    \thedst & Horizontal Tune \\
+    \hline \stepcounter{dst}
+    \thedst & Vertical Tune \\
+    \hline \stepcounter{dst}
+    \thedst & Horizontal $\beta$--function \\
+    \hline \stepcounter{dst}
+    \thedst & Vertical $\beta$--function \\
+    \hline \stepcounter{dst}
+    \thedst & Horizontal amplitude $1^{st}$ particle\\
+    \hline \stepcounter{dst}
+    \thedst & Vertical amplitude $1^{st}$ particle\\
+    \hline \stepcounter{dst} \thedst & Relative momentum deviation \mbox{$\Delta p/p_0$}\\
+    \hline \stepcounter{dst}
+    \thedst & Final distance in phase space \\
+    \hline \stepcounter{dst}
+    \thedst & Maximum slope of distance in phase space \\
+    \hline \stepcounter{dst}
+    \thedst & Horizontal detuning \\
+    \hline \stepcounter{dst}
+    \thedst & Spread of horizontal detuning \\
+    \hline \stepcounter{dst}
+    \thedst & Vertical detuning \\
+    \hline \stepcounter{dst}
+    \thedst & Spread of vertical detuning \\
+    \hline \stepcounter{dst}
+    \thedst & Horizontal factor to nearest resonance \\
+    \hline \stepcounter{dst}
+    \thedst & Vertical factor to nearest resonance \\
+    \hline \stepcounter{dst}
+    \thedst & Order of nearest resonance \\
+    \hline \stepcounter{dst}
+    \thedst & Horizontal smear \\
+    \hline \stepcounter{dst}
+    \thedst & Vertical smear \\
+    \hline \stepcounter{dst}
+    \thedst & Transverse smear \\
+    \hline \stepcounter{dst}
+    \thedst & Survived turns $1^{st}$ particle \\
+    \hline \stepcounter{dst}
+    \thedst & Survived turns $2^{nd}$ particle \\
+    \hline \stepcounter{dst}
+    \thedst & Starting seed for random generator \\
+    \hline \stepcounter{dst}
+    \thedst & Synchrotron tune \\
+    \hline \stepcounter{dst}
+    \thedst & Horizontal amplitude $2^{nd}$ particle\\
+    \hline \stepcounter{dst}
+    \thedst & Vertical amplitude $2^{nd}$ particle\\
+    \hline \stepcounter{dst}
+    \thedst & Minimum horizontal amplitude\\
+    \hline \stepcounter{dst}
+    \thedst & Mean horizontal amplitude\\
+    \hline \stepcounter{dst}
+    \thedst & Maximum horizontal amplitude\\
+    \hline \stepcounter{dst}
+    \thedst & Minimum vertical amplitude\\
+    \hline \stepcounter{dst}
+    \thedst & Mean vertical amplitude\\
+    \hline \stepcounter{dst}
+    \thedst & Maximum vertical amplitude\\
+    \hline \stepcounter{dst}
+    \thedst & Minimum horizontal amplitude (linear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Mean horizontal amplitude (linear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Maximum horizontal amplitude (linear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Minimum vertical amplitude (linear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Mean vertical amplitude (linear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Maximum vertical amplitude (linear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Minimum horizontal amplitude (nonlinear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Mean horizontal amplitude (nonlinear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Maximum horizontal amplitude (nonlinear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Minimum vertical amplitude (nonlinear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Mean vertical amplitude (nonlinear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Maximum vertical amplitude (nonlinear decoupled)\\
+    \hline \stepcounter{dst}
+    \thedst & Emittance Mode I\\
+    \hline \stepcounter{dst}
+    \thedst & Emittance Mode II\\
+    \hline \stepcounter{dst}
+    \thedst & Secondary horizontal $\beta$--function\\
+    \hline \stepcounter{dst}
+    \thedst & Secondary vertical $\beta$--function\\
+    \hline \stepcounter{dst}
+    \thedst & $Q'_x$\\
+    \hline \stepcounter{dst}
+    \thedst & $Q'_y$\\
+    \hline \stepcounter{dst}
+    \thedst--58 & Dummy \\
+    \hline
+    59--60 & Internal use\\
+    \hline
+\end{longtable}
+\end{center}
 
-\clearpage
-
-As an option the 4D linear parameters can be dumped to file \# 11 when
-the linear optics block~\ref{LinOpt} is activated. This can be used
-for instance for a post--processing of linear coupling. 25 values are
-written in a binary format.
+As an option the 4D linear parameters can be dumped to file \# 11 when the linear optics block~\ref{LinOpt} is activated.
+This can be used for instance for a post--processing of linear coupling.
+25 values are written in a binary format.
 
 \newcounter{dlo} \setcounter{dlo}{0}
 
-\vspace{20mm}
+\bigskip
+\begin{center}
+\begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
+    \caption{4D Linear Parameters} \label{t-4lp}\\
+    \hline
+    
+    \rowcolor{blue!30}
+    \textbf{Column} & \textbf{Description} \\
+    \hline
+    \endfirsthead
+    
+    \rowcolor{blue!30}
+    \textbf{Column} & \textbf{Description} \\
+    \hline
+    \endhead
+    
+    \hline \stepcounter{dlo}
+    \thedlo & Name of the element \\
+    \hline \stepcounter{dlo}
+    \thedlo & Longitudinal Position [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Horizontal phase advance \\
+    \hline \stepcounter{dlo}
+    \thedlo & Vertical phase advance \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary horizontal $\beta$--function [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary horizontal $\beta$--function [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary vertical $\beta$--function [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary vertical $\beta$--function [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary horizontal $\alpha$--function [rad] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary horizontal $\alpha$--function [rad] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary vertical $\alpha$--function [rad] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary vertical $\alpha$--function [rad] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary horizontal $\gamma$--function [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary horizontal $\gamma$--function [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary vertical $\gamma$--function [m] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary vertical $\gamma$--function [m]\\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary horizontal phase of x--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary horizontal phase of x--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary vertical phase of y--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary vertical phase of y--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary horizontal phase of $x'$--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary horizontal phase of $x'$--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Secondary vertical phase of $y'$--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Primary vertical phase of $y'$--coordinate [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & Coupling angle [pi] \\
+    \hline \stepcounter{dlo}
+    \thedlo & $D_x$ [mm]\\
+    \hline \stepcounter{dlo}
+    \thedlo & $D'_x$ [mrad]\\
+    \hline \stepcounter{dlo}
+    \thedlo & $D_y$ [mm]\\
+    \hline \stepcounter{dlo}
+    \thedlo & $D'_y$ [mrad]\\
+    \hline
+\end{longtable}
+\end{center}
 
-\begin{table}[h]
-\caption{4D Linear Parameters}
-\label{t-4lp}
-\centering
-\begin{tabular}{|c|c|}
-  \hline
-  {\bf \# of Column} & {\bf Description} \\
-  \hline \stepcounter{dlo}
-  \thedlo & Name of the element \\
-  \hline \stepcounter{dlo}
-  \thedlo & Longitudinal Position [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Horizontal phase advance \\
-  \hline \stepcounter{dlo}
-  \thedlo & Vertical phase advance \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary horizontal $\beta$--function [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary horizontal $\beta$--function [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary vertical $\beta$--function [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary vertical $\beta$--function [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary horizontal $\alpha$--function [rad] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary horizontal $\alpha$--function [rad] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary vertical $\alpha$--function [rad] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary vertical $\alpha$--function [rad] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary horizontal $\gamma$--function [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary horizontal $\gamma$--function [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary vertical $\gamma$--function [m] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary vertical $\gamma$--function [m]\\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary horizontal phase of x--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary horizontal phase of x--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary vertical phase of y--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary vertical phase of y--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary horizontal phase of $x'$--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary horizontal phase of $x'$--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Secondary vertical phase of $y'$--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Primary vertical phase of $y'$--coordinate [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & Coupling angle [pi] \\
-  \hline \stepcounter{dlo}
-  \thedlo & $D_x$ [mm]\\
-  \hline \stepcounter{dlo}
-  \thedlo & $D'_x$ [mrad]\\
-  \hline \stepcounter{dlo}
-  \thedlo & $D_y$ [mm]\\
-  \hline \stepcounter{dlo}
-  \thedlo & $D'_y$ [mrad]\\
-  \hline
-\end{tabular}
-%\normalsize
-\end{table}
-
-
-\clearpage
-
-When external multipole errors are read--in (see section~\ref{FluNum})
-the program expects a complete list of magnet errors on file \# 16.
-The format of each set of multipole errors is given in
-table~\ref{T-XME}. The definition of the multipole coefficients should
-be as described in section~\ref{MulCoe}.
+When external multipole errors are read in (see section~\ref{FluNum}), the program expects a complete list of magnet errors on file \# 16.
+The format of each set of multipole errors is given in table~\ref{T-XME}.
+The definition of the multipole coefficients should be as described in section~\ref{MulCoe}.
 
 \newcounter{dsu} \setcounter{dsu}{0}
 
-\vspace{20mm}
+\bigskip
+\begin{center}
+\begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
+    \caption{Format of file with external errors \# 16 and internal errors written to \# 9} \label{T-XME}\\
+    \hline
+    
+    \rowcolor{blue!30}
+    \textbf{Row} & \textbf{Description} \\
+    \hline
+    \endfirsthead
+    
+    \rowcolor{blue!30}
+    \textbf{Row} & \textbf{Description} \\
+    \hline
+    \endhead
+    
+    \hline \stepcounter{dsu}
+    \thedsu & Name of multipole set \\
+    \hline \stepcounter{dsu}
+    \thedsu & $B_1 \ B_2 \ B_3$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $B_4 \ B_5 \ B_6$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $B_7 \ B_8 \ B_9$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $B_{10} \ B_{11} \ B_{12}$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $B_{13} \ B_{14} \ B_{15}$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $B_{16} \ B_{17} \ B_{18}$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $B_{19} \ B_{20} $\\
+    \hline \stepcounter{dsu}
+    \thedsu & $A_1 \ A_2 \ A_3$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $A_4 \ A_5 \ A_6$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $A_7 \ A_8 \ A_9$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $A_{10} \ A_{11} \ A_{12}$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $A_{13} \ A_{14} \ A_{15}$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $A_{16} \ A_{17} \ A_{18}$\\
+    \hline \stepcounter{dsu}
+    \thedsu & $A_{19} \ A_{20}$\\
+    \hline
+\end{longtable}
+\end{center}
 
-\begin{table}[h]
-\caption{Format of file with external errors \# 16 and internal errors
-written to \# 9}
-\label{T-XME}
-\centering
-\begin{tabular}{|c|c|}
-  \hline
-  {\bf \# of Row} & {\bf Description} \\
-  \hline \stepcounter{dsu}
-  \thedsu & Name of multipole set \\
-  \hline \stepcounter{dsu}
-  \thedsu & $B_1 \ B_2 \ B_3$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $B_4 \ B_5 \ B_6$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $B_7 \ B_8 \ B_9$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $B_{10} \ B_{11} \ B_{12}$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $B_{13} \ B_{14} \ B_{15}$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $B_{16} \ B_{17} \ B_{18}$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $B_{19} \ B_{20} $\\
-  \hline \stepcounter{dsu}
-  \thedsu & $A_1 \ A_2 \ A_3$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $A_4 \ A_5 \ A_6$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $A_7 \ A_8 \ A_9$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $A_{10} \ A_{11} \ A_{12}$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $A_{13} \ A_{14} \ A_{15}$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $A_{16} \ A_{17} \ A_{18}$\\
-  \hline \stepcounter{dsu}
-  \thedsu & $A_{19} \ A_{20}$\\
-  \hline
-\end{tabular}
-%\normalsize
-\end{table}
+With the parameter \texttt{mout} set to 2 or 3 in the ``Random Fluctuation'' block (\ref{FluNum}), the internally used multipoles are written to file \# 9 in the same format as above.
+This file can therefore be used as an input \texttt{fort.16} file for a subsequent run.
 
-With the parameter ``mout'' set to 2 or 3 in the ``Random
-Fluctuation'' block (~\ref{FluNum}) the internally used multipoles are
-written to file \# 9 in the same format as above. This file can
-therefore be used as an input fort.16 file for a subsequent run.
-
-The file \# 34 is written when the ``Linear Optic Block'' (see
-section~\ref{LinOpt}) is invoked with the ``ELEMENT 0'' option. 
+The file \# 34 is written when the ``Linear Optic Block'' (see section~\ref{LinOpt}) is invoked with the \texttt{ELEMENT 0} option. 
 
 \setcounter{dsu}{0}
-\begin{table}[h]
-\caption{Format of file \# 34 for detuning and distortion calculation
-  with external program ``SODD''~\cite{SODD}}
-\label{T-SODD}
-\centering
-\begin{tabular}{|c|c|}
-  \hline
-  {\bf \# of Column} & {\bf Description} \\
-  \hline \stepcounter{dsu}
-  \thedsu & Longitudinal position [m] \\
-  \hline \stepcounter{dsu}
-  \thedsu & Type ``n'' of Multipole ($n >$ 0 $=>$ erect, $n <$ 0 $=>$
-  skew) \\ 
-  \hline \stepcounter{dsu}
-  \thedsu & Multipole strength [$\mathrm{mrad} \cdot \mathrm{mm}^{(1-|n|)}$] \\
-  \hline \stepcounter{dsu}
-  \thedsu & Horizontal $\beta$--function [m] \\
-  \hline \stepcounter{dsu}
-  \thedsu & Vertical $\beta$--function [m] \\
-  \hline \stepcounter{dsu}
-  \thedsu & Horizontal phase advance \\
-  \hline \stepcounter{dsu}
-  \thedsu & Vertical phase advance \\
-  \hline
-\end{tabular}
-%\normalsize
-\end{table}
 
-The last line serves as the end of the structure: Length of the
-accelerator, fake name ``END'', fake type ``100'', $\beta$ functions
-and phase advances at the end of the accelerator for the horizontal
-and vertical plane respectively.
+\bigskip
+\begin{center}
+\begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
+    \caption{Format of file \# 34 for detuning and distortion calculation with external program ``SODD''~\cite{SODD}} \label{T-SODD}\\
+    \hline
+    
+    \rowcolor{blue!30}
+    \textbf{Column} & \textbf{Description} \\
+    \hline
+    \endfirsthead
+    
+    \rowcolor{blue!30}
+    \textbf{Column} & \textbf{Description} \\
+    \hline
+    \endhead
+    
+    \hline \stepcounter{dsu}
+    \thedsu & Longitudinal position [m] \\
+    \hline \stepcounter{dsu}
+    \thedsu & Type \texttt{n} of Multipole ($n >$ 0 $=>$ erect, $n <$ 0 $=>$ skew) \\ 
+    \hline \stepcounter{dsu}
+    \thedsu & Multipole strength [$\mathrm{mrad} \cdot \mathrm{mm}^{(1-|n|)}$] \\
+    \hline \stepcounter{dsu}
+    \thedsu & Horizontal $\beta$--function [m] \\
+    \hline \stepcounter{dsu}
+    \thedsu & Vertical $\beta$--function [m] \\
+    \hline \stepcounter{dsu}
+    \thedsu & Horizontal phase advance \\
+    \hline \stepcounter{dsu}
+    \thedsu & Vertical phase advance \\
+    \hline
+\end{longtable}
+\end{center}
+
+The last line serves as the end of the structure:
+Length of the accelerator, fake name \texttt{END}, fake type \texttt{100}, $\beta$ functions and phase advances at the end of the accelerator for the horizontal and vertical plane respectively.
