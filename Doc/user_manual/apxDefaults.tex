@@ -1,170 +1,135 @@
 \chapter{List of Default Values} \label{Default}
 
+% ================================================================================================================================ %
 \section{Default Tracking Parameters} \label{DTP}
 
-Some of the parameters for tracking are set to non--zero values.  This
-is done for instance to avoid as much as possible program errors such
-as division by zero due to an erroneous input. The default values for
-the {\em Iteration Errors} \/(~\ref{IteErr}) see table~\ref{T-IteErr}.
+Some of the parameters for tracking are set to non--zero values.
+This is done for instance to avoid as much as possible program errors such as division by zero due to an erroneous input.
+The default values for the \textit{Iteration Errors} (\ref{IteErr}) see table~\ref{T-IteErr}.
 
 \newcounter{dtp} \setcounter{dtp}{0}
 
-\vspace{30mm}
-
+\bigskip
 \begin{table}[h]
-\caption{Default Tracking Parameters}
-\label{T-DTP}
-\scriptsize \centering
-\begin{tabular}{|c|c|c|c|c|}
-  \hline \rule[-4mm]{0mm}{10mm}
-  {\bf \#} & {\bf Description} & {\bf Value} & {\bf \S} & {\bf Page} \\
-  \hline \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp & General
-  Aperture Limitations (horizontal and vertical) & 1000 mm
-  &~\ref{ApeLim}
-  & \pageref{ApeLim} \\
-  \hline \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp & Starting in
-  the Accelerator Structure at Element Number & 1 &~\ref{StrInp} &
-  \pageref{StrInp} \\
-  \hline \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp & Number of
-  Turns in the forward Direction & 1 &~\ref{TraPar} & \pageref{TraPar}
-  \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm}
-  \thedtp & Initial horizontal Amplitude & 0.001 mm & & \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp &
-  Horizontal and vertical Phase Space Coupling Switches on
-  & 1 & & \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp & Flat
-  Bottom, Ramping and Flat Top Printout after Turn Number & 1 & &
-  \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp &
-  Printout of Coordinates (file 6) after Turn Number & 10000
-  & & \\
-  \hline \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp & Kinetic
-  Energy [MeV] of the Reference Particle & $ 10^{-6} $ &~\ref{IniCoo}
-  &
-  \pageref{IniCoo} \\
-  \hline \stepcounter{dtp} \rule[-2mm]{0mm}{6mm}
-  \thedtp & Harmonic Number & 1 &~\ref{SynOsc} & \pageref{SynOsc} \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm}
-  \thedtp & Momentum Compaction Factor & 0.001 & & \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm}
-  \thedtp & Length of the Machine & 1 km & & \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp & Mass
-  of the Particle (Proton) & 938.2723128 $ \mathrm{MeV} / \mathrm{c}^2
-  $ &
-  & \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp &
-  Momentum Correction Factor for Distance in Phase Space
-  & 1 & & \\
-  \cline{1-3} \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp &
-  Path--length Correction Factor for Distance in Phase Space
-  & 1 & & \\
-  \hline \stepcounter{dtp} \rule[-2mm]{0mm}{6mm} \thedtp & Averaging
-  Turn Interval for Post--processing & 1 &~\ref{PosPro} &
-  \pageref{PosPro} \\
-  \hline
-\end{tabular}
-\normalsize
+    \caption{Default Tracking Parameters}
+    \label{T-DTP}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|l|l|l|c|c|}
+        \hline
+        \rowcolor{blue!30}
+        \textbf{\#} & \textbf{Description} & \textbf{Value} & \textbf{\S} & \textbf{Page} \\
+        \hline \stepcounter{dtp}
+        \thedtp & General Aperture Limitations (horizontal and vertical) & 1000 mm & \ref{ApeLim} & \pageref{ApeLim} \\
+        \hline \stepcounter{dtp}
+        \thedtp & Starting in the Accelerator Structure at Element Number & 1 & \ref{StrInp} & \pageref{StrInp} \\
+        \hline \stepcounter{dtp}
+        \thedtp & Number of Turns in the forward Direction & 1 & \ref{TraPar} & \pageref{TraPar} \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Initial horizontal Amplitude & 0.001 mm & & \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Horizontal and vertical Phase Space Coupling Switches on & 1 & & \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Flat Bottom, Ramping and Flat Top Printout after Turn Number & 1 & & \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Printout of Coordinates (file 6) after Turn Number & 10000 & & \\
+        \hline \stepcounter{dtp}
+        \thedtp & Kinetic Energy [MeV] of the Reference Particle & $ 10^{-6} $ & \ref{IniCoo} & \pageref{IniCoo} \\
+        \hline \stepcounter{dtp}
+        \thedtp & Harmonic Number & 1 & \ref{SynOsc} & \pageref{SynOsc} \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Momentum Compaction Factor & 0.001 & & \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Length of the Machine & 1 km & & \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Mass of the Particle (Proton) & 938.2723128 $ \mathrm{MeV} / \mathrm{c}^2 $ & & \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Momentum Correction Factor for Distance in Phase Space & 1 & & \\
+        \cline{1-3} \stepcounter{dtp}
+        \thedtp & Path--length Correction Factor for Distance in Phase Space & 1 & & \\
+        \hline \stepcounter{dtp}
+        \thedtp & Averaging Turn Interval for Post--processing & 1 & \ref{PosPro} & \pageref{PosPro} \\
+        \hline
+    \end{tabular}
+    \normalsize
 \end{table}
 
-\clearpage
+\newpage
 
+% ================================================================================================================================ %
 \section{Default Size Parameters} \label{DSP}
 
 For large machines the arrays holding the machine parameters might have to be increased.
 The size of each of the dimensions of the arrays is therefore defined as a parameter.
-This can be done by compiling with the BIGNPART, HUGENPART, BIGNBLZ, and/or HUGENBLZ flags.
+This can be done by compiling with the \texttt{BIGNPART}, \texttt{HUGENPART}, \texttt{BIGNBLZ}, or \texttt{HUGENBLZ} flags.
 The default values are adjusted to allow the treatment of a full LHC lattice: the tracking version uses 50 Mb and the DA version 400 Mb.
 
 \newcounter{dsp} \setcounter{dsp}{0}
 
-\vspace{20mm}
-
+\bigskip
 \begin{table}[h]
-\caption{Default Size Parameters}
-\label{T-DSP}
-\scriptsize \centering
-\begin{tabular}{|c|c|c|c|c|c|}
-  \hline \rule[-4mm]{0mm}{10mm} {\bf \#} & {\bf Description} & {\bf
-    Value} & {\bf Name} & {\bf \S} & {\bf Page}
-  \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Coordinates used in the Correction Routines & 6 &
-  MPA & & \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Number of
-  Single Elements & 750 & NELE &~\ref{SinEle} &
-  \pageref{SinEle} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Number of
-  Blocks of Linear Elements & 160 & NBLO &~\ref{BloDef} &
-  \pageref{BloDef} \\
-  \cline{1-4} \stepcounter{dsp} \rule[-2mm]{0mm}{6mm}
-  \thedsp & Number of Linear Elements per Block & 100 & NELB & & \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Total
-  Number of Elements in the Structure & 15000 & NBLZ &~\ref{StrInp} &
-  \pageref{StrInp} \\
-  \cline{1-4} \stepcounter{dsp} \rule[-2mm]{0mm}{6mm}
-  \thedsp & Number of Accelerator Super--periods & 16 & NPER & & \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Total
-  Number of Random Values & 300000 & NZFZ &~\ref{FluNum} &
-  \pageref{FluNum}
-  \\
-  \cline{1-4} \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Number
-  of Random Values for the basic Set of Nonlinear
-  Elements & 280000 & NRAN & & \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Number of
-  Random Values for inserted Nonlinear Elements &
-  20000 & &~\ref{OrgRan} & \pageref{OrgRan} \\
-  \cline{1-4} \stepcounter{dsp} \rule[-1mm]{0mm}{5mm} \thedsp & Number
-  of Random Values for each Inserted Nonlinear Element
-  & 500 & MRAN & &  \\
-  \rule[-2mm]{0mm}{5mm}
-  & Number of Nonlinear Elements that can be inserted & 20 & & & \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Limit
-  Number of Particles for Vectorisation & 64 & NPART & &
-  \\
-%\hline
-%\stepcounter{dsp}
-%\rule[-2mm]{0mm}{6mm}
-%\thedsp & Number of different Random Distributions for Vectorisation
-%& 1 & NMAC &~\ref{FluNum} & \pageref{FluNum} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Elements for Combined Tasks & 100 & NCOM &~\ref{ComEle} &
-  \pageref{ComEle} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Resonance Compensation Order & 5 & NRCO &~\ref{ComEle} &
-  \pageref{ComEle} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Total
-  Number of Data for Processing & 20000 & NPOS &~\ref{PosPro} &
-  \pageref{PosPro} \\
-  \cline{1-4} \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Number
-  of Intervals for Calculation of Lyapunov--Exponents & 10000 &
-  NLYA & & \\
-  \cline{1-4} \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Number
-  of Intervals for Calculation of Invariants & 1000
-  & NINV & & \\
-  \cline{1-4} \stepcounter{dsp} \rule[-2mm]{0mm}{6mm}
-  \thedsp & Number of Data for Plotting & 20000 & NPLO & & \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Pole Order of Multipole Block & 11 & MMUL &~\ref{MulCoe} &
-  \pageref{MulCoe} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of extra Parameters of the DA Map & 10 & MCOR &~\ref{DifAlg}
-  & \pageref{DifAlg} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Order of DA Calculation & 15 & NEMA &~\ref{DifAlg}
-  & \pageref{DifAlg} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Monitors for Micado Closed Orbit Correction & 600 & NMON1
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of Correctors for Micado Closed Orbit Correction & 600 & NCOR1
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum Number of Beam--Beam Elements & 350 & NBB &~\ref{BeamBeam} & \pageref{BeamBeam} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum Number of Slices for 6D Beam--Beam Kick & 99 & MBEA &~\ref{BeamBeam} & \pageref{BeamBeam} \\
-  \hline \stepcounter{dsp} \rule[-2mm]{0mm}{6mm} \thedsp & Maximum
-  Number of ``Phase Trombone'' Elements & 20 & NTR
-  &~\ref{PT} & \pageref{PT} \\
-  \hline
-\end{tabular}
-\normalsize
+    \caption{Default Size Parameters}
+    \label{T-DSP}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        \rowcolor{blue!30}
+        \textbf{\#} & \textbf{Description} & \textbf{Value} & \textbf{Name} & \textbf{\S} & \textbf{Page} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of Coordinates used in the Correction Routines & 6 & \texttt{MPA} & & \\
+        \hline \stepcounter{dsp}
+        \thedsp & Number of Single Elements & 750 & \texttt{NELE} & \ref{SinEle} & \pageref{SinEle} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Number of Blocks of Linear Elements & 160 & \texttt{NBLO} & \ref{BloDef} & \pageref{BloDef} \\
+        \cline{1-4} \stepcounter{dsp}
+        \thedsp & Number of Linear Elements per Block & 100 & \texttt{NELB} & & \\
+        \hline \stepcounter{dsp}
+        \thedsp & Total Number of Elements in the Structure & 15000 & \texttt{NBLZ} & \ref{StrInp} & \pageref{StrInp} \\
+        \cline{1-4} \stepcounter{dsp}
+        \thedsp & Number of Accelerator Super--periods & 16 & \texttt{NPER} & & \\
+        \hline \stepcounter{dsp}
+        \thedsp & Total Number of Random Values & 300000 & \texttt{NZFZ} & \ref{FluNum} & \pageref{FluNum} \\
+        \cline{1-4} \stepcounter{dsp}
+        \thedsp & Number of Random Values for the basic Set of Nonlinear Elements & 280000 & \texttt{NRAN} & & \\
+        \hline \stepcounter{dsp}
+        \thedsp & Number of Random Values for inserted Nonlinear Elements & 20000 & & \ref{OrgRan} & \pageref{OrgRan} \\
+        \cline{1-4} \stepcounter{dsp}
+        \thedsp & Number of Random Values for each Inserted Nonlinear Element & 500 & \texttt{MRAN} & & \\
+                & Number of Nonlinear Elements that can be inserted & 20 & & & \\
+        \hline \stepcounter{dsp}
+        \thedsp & Limit Number of Particles for Vectorisation & 64 & \texttt{NPART} & & \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of Elements for Combined Tasks & 100 & \texttt{NCOM} & \ref{ComEle} & \pageref{ComEle} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Resonance Compensation Order & 5 & \texttt{NRCO} & \ref{ComEle} & \pageref{ComEle} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Total Number of Data for Processing & 20000 & \texttt{NPOS} & \ref{PosPro} & \pageref{PosPro} \\
+        \cline{1-4} \stepcounter{dsp}
+        \thedsp & Number of Intervals for Calculation of Lyapunov--Exponents & 10000 & \texttt{NLYA} & & \\
+        \cline{1-4} \stepcounter{dsp}
+        \thedsp & Number of Intervals for Calculation of Invariants & 1000 & \texttt{NINV} & & \\
+        \cline{1-4} \stepcounter{dsp}
+        \thedsp & Number of Data for Plotting & 20000 & \texttt{NPLO} & & \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Pole Order of Multipole Block & 11 & \texttt{MMUL} & \ref{MulCoe} & \pageref{MulCoe} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of extra Parameters of the DA Map & 10 & \texttt{MCOR} & \ref{DifAlg} & \pageref{DifAlg} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Order of DA Calculation & 15 & \texttt{NEMA} & \ref{DifAlg} & \pageref{DifAlg} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of Monitors for Micado Closed Orbit Correction & 600 & \texttt{NMON1} & \ref{OrbCorr} & \pageref{OrbCorr} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of Correctors for Micado Closed Orbit Correction & 600 & \texttt{NCOR1} & \ref{OrbCorr} & \pageref{OrbCorr} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of Beam--Beam Elements & 350 & \texttt{NBB} & \ref{BeamBeam} & \pageref{BeamBeam} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of Slices for 6D Beam--Beam Kick & 99 & \texttt{MBEA} & \ref{BeamBeam} & \pageref{BeamBeam} \\
+        \hline \stepcounter{dsp}
+        \thedsp & Maximum Number of ``Phase Trombone'' Elements & 20 & \texttt{NTR} & ref{PT} & \pageref{PT} \\
+        \hline
+    \end{tabular}
+    \normalsize
 \end{table}
