@@ -1,120 +1,112 @@
 \chapter{Data Structure of the Data--Files} \label{Header}
 
-A common data structure for the programs MAD and SixTrack is agreed
-on. Besides some minor differences this allows a straightforward
-post--processing of data from either program. Each binary data--file
-has a header which holds a description of the run with comments,
-tracking parameters and 50 additional parameters for future purposes,
-six of which are already specified in SixTrack\@.
+A common data structure for the programs MAD-X and SixTrack is agreed on.
+Besides some minor differences this allows a straightforward post--processing of data from either program.
+Each binary data--file has a header which holds a description of the run with comments, tracking parameters and 50 additional parameters for future purposes, six of which are already specified in SixTrack.
 
 \begin{table}[h]
-\caption{Header of the Binary Data--Files}
-\label{T-HDF}
-\centering
-\begin{tabular}{|c|c|c|}
-  \hline
-  {\bf Data Type} & {\bf Bytes} & {\bf Description} \\
-  \hline
-  Character & 80 & General title of the run \\
-  \hline
-  Character & 80 & Additional title \\
-  \hline
-  Character & 8 & Date \\
-  \hline
-  Character & 8 & Time \\
-  \hline
-  Character & 8 & Program name \\
-  \hline
-  Integer & 4 & First particle in the file \\
-  \hline
-  Integer & 4 & Last particle in the file \\
-  \hline
-  Integer & 4 & Total number of particles \\
-  \hline
-  Integer & 4 & Code for dimensionality of phase space \\
-  & & 1,2,4 are hor., vert.\ and longitudinal respectively \\
-  \hline
-  Integer & 4 & Projected number of turns \\
-  \hline
-  Float & 8 & Horizontal Tune \\
-  \hline
-  Float & 8 & Vertical Tune \\
-  \hline
-  Float & 8 & Longitudinal Tune \\
-  \hline
-  Float & 6 * 8 & Closed Orbit vector \\
-  \hline
-  Float & 6 * 8 & Dispersion vector \\
-  \hline
-  Float & 36 * 8 & Six--dimensional transfer map \\
-  \hline
-  \multicolumn{3}{|l|}{----- 50 additional parameters -----} \\
-  \hline
-  Float & 8 & Maximum number of different seeds \\
-  & & \\
-  \hline
-  Float & 8 & Actual seed number \\
-  \hline
-  Float & 8 & Starting value of the seed \\
-  \hline
-  Float & 8 & Number of turns in the reverse direction \\
-  & & (IBM only) \\
-  \hline
-  Float & 8 & Correction--factor for the Lyapunov \\
-  & & ($\sigma = s - v_o \times t$) \\
-  \hline
-  Float & 8 & Correction--factor for the Lyapunov \\
-  & & (\mbox{$ \frac{\Delta p}{p_o} $}) \\
-  \hline
-  Float & 8 & Start turn number for ripple prolongation \\
-  \hline
-  Float & 43 * 8 & Dummies \\
-  \hline
-\end{tabular}
+    \caption{Header of the Binary Data Files}
+    \label{T-HDF}
+    \centering
+    \begin{tabular}{|c|c|>{\raggedright\arraybackslash}p{8cm}|}
+        \hline
+        \rowcolor{blue!30}
+        \textbf{Data Type} & \textbf{Bytes} & \textbf{Description} \\
+        \hline
+        Character & 80 & General title of the run \\
+        \hline
+        Character & 80 & Additional title \\
+        \hline
+        Character & 8 & Date \\
+        \hline
+        Character & 8 & Time \\
+        \hline
+        Character & 8 & Program name \\
+        \hline
+        Integer & 4 & First particle in the file \\
+        \hline
+        Integer & 4 & Last particle in the file \\
+        \hline
+        Integer & 4 & Total number of particles \\
+        \hline
+        Integer & 4 & Code for dimensionality of phase space 1,2,4 are hor., vert.\ and longitudinal respectively \\
+        \hline
+        Integer & 4 & Projected number of turns \\
+        \hline
+        Float & 8 & Horizontal Tune \\
+        \hline
+        Float & 8 & Vertical Tune \\
+        \hline
+        Float & 8 & Longitudinal Tune \\
+        \hline
+        Float & 6 * 8 & Closed Orbit vector \\
+        \hline
+        Float & 6 * 8 & Dispersion vector \\
+        \hline
+        Float & 36 * 8 & Six--dimensional transfer map \\
+        \hline
+        \rowcolor{gray!15}
+        \multicolumn{3}{|l|}{50 additional parameters} \\
+        \hline
+        Float & 8 & Maximum number of different seeds \\
+        \hline
+        Float & 8 & Actual seed number \\
+        \hline
+        Float & 8 & Starting value of the seed \\
+        \hline
+        Float & 8 & Number of turns in the reverse direction \\
+        & & (IBM only) \\
+        \hline
+        Float & 8 & Correction--factor for the Lyapunov ($\sigma = s - v_0 \times t$) \\
+        \hline
+        Float & 8 & Correction--factor for the Lyapunov (\mbox{$\Delta p/p_0$}) \\
+        \hline
+        Float & 8 & Start turn number for ripple prolongation \\
+        \hline
+        Float & 43 * 8 & Dummies \\
+        \hline
+    \end{tabular}
 \end{table}
 
 \clearpage
 
-Following this header the tracking data are written in n samples of
-nine numbers preceded by the turn number. In the MAD format the number
-of samples n is not restricted, whilst SixTrack writes only up to two
-samples for the two particles for the Lyapunov--exponent method. Up to
-64 particles (two per file) can be treated in the vectorised version
-of SixTrack\@.
+Following this header the tracking data are written in n samples of mine numbers preceded by the turn number.
+In the MAD-X format, the number of samples in is not restricted, whilst SixTrack writes only up to two samples for the two particles for the Lyapunov--exponent method.
+Up to 64 particles (two per file) can be treated in the vectorised version of SixTrack.
 
 \begin{table}[h]
-\caption{Format of the Binary Data}
-\label{T-FBD}
-\centering
-\begin{tabular}{|c|c|c|}
-  \hline
-  {\bf Data Type} & {\bf Bytes} & {\bf Description} \\
-  \hline
-  Integer & 4 & Turn number \\
-  \hline \multicolumn{3}{|l|}{----- One or two samples of 9 values are
-    following -----}
-  \\
-  \hline
-  Integer & 4 & Particle number \\
-  \hline
-  Float & 8 & Angular distance in phase space ( $ <= 1 $ ) \\
-  \hline
-  Float & 8 & x (mm) \\
-  \hline
-  Float & 8 & $x'$ (mrad)\\
-  \hline
-  Float & 8 & y (mm) \\
-  \hline
-  Float & 8 & $y'$ (mrad) \\
-  \hline
-  Float & 8 & Path--length ($\sigma = s - v_o \times t$) (mm) \\
-  \hline Float & 8 & Relative momentum deviation \mbox{$ \frac{\Delta
-      p}{p_o}
-    $}\\
-  \hline
-  Float & 8 & Energy (MeV) \\
-  \hline
-\end{tabular}
+    \caption{Format of the Binary Data}
+    \label{T-FBD}
+    \centering
+    \begin{tabular}{|c|c|>{\raggedright\arraybackslash}p{8cm}|}
+        \hline
+        \rowcolor{blue!30}
+        \textbf{Data Type} & \textbf{Bytes} & \textbf{Description} \\
+        \hline
+        Integer & 4 & Turn number \\
+        \hline
+        \rowcolor{gray!15}
+        \multicolumn{3}{|l|}{One or two samples of 9 values are following} \\
+        \hline
+        Integer & 4 & Particle number \\
+        \hline
+        Float & 8 & Angular distance in phase space ( $ <= 1 $ ) \\
+        \hline
+        Float & 8 & x (mm) \\
+        \hline
+        Float & 8 & $x'$ (mrad)\\
+        \hline
+        Float & 8 & y (mm) \\
+        \hline
+        Float & 8 & $y'$ (mrad) \\
+        \hline
+        Float & 8 & Path--length ($\sigma = s - v_0 \times t$) (mm) \\
+        \hline
+        Float & 8 & Relative momentum deviation \mbox{$ \Delta p/p_0$}\\
+        \hline
+        Float & 8 & Energy (MeV) \\
+        \hline
+    \end{tabular}
 \end{table}
 
 Note that in case the ``Single Track File'' option is enabled at compile time, multiple of these files (normally one per particle pair) are interleaved in a single file.
@@ -122,35 +114,34 @@ This is done by writing first all headers in order (i.e. first the header for in
 The ``total number of particles'' field can always be read from the first header record, which gives the number of header records present in the file.
 The two file formats are equivalent, i.e. they contain exactly the same data, and it is thus possible to convert losslessly between them.
 
-Some of the post--processing data are written in Ascii--format on file
-\# 10. This can be used for instance for plotting purposes. Each time
-the post--processing routine is called 60 double precision numbers
-(some of them still dummy) are added to the file.
+Some of the post processing data is written in Ascii format to file \# 10.
+This can be used for instance for plotting purposes.
+Each time the post processing routine is called 60 double precision numbers (some of them still dummy) are added to the file.
 
-The file with the errors (in: fort.16, out: fort.9) has the following
-format: first line -- name of element; line 2--7 -- normal multipoles
-order 1--18; line 8 -- normal multipoles of order 19 and 20; line
-9--14 -- skew multipoles order 1--18; line 15 -- skew multipoles of
-order 19 and 20. The strength definition is according to
-block~\ref{MulCoe} and to be effective in fort.3 the random values of
-the corresponding multipole block have to be set to 1.0. A word of
-caution: when writing on file fort.9 the {\em total} \/multipole
-strength is used, i.e.\ systematic and random part combined. File
-fort.16 and fort.9 might therefore be different. When using fort.9 as
-input (fort.16) the systematic part in fort.3 has to be set to 0.0.
+The file with the errors (in: \texttt{fort.16}, out: \texttt{fort.9}) has the following format:
 
-Misalignment and tilt are in file \# 8 and \# 27 as input and output
-respectively. The format is (a16,2x,1p,2d14.6,d17.9), i.e.\ name,
-horizontal misalignment, vertical misalignment and tilt. The
-misalignment is in units of [mm] the tilt in units of [mrad]. The
-files \# 30 (in) and \# 31 (out) have the random single nonlinear
-element kick, misalignments and tilt in the format:
-(a8,1p,d19.11,2d14.6,d17.9). Misalignment and tilt in file fort.8 or
-fort.30 is automatically activated while the random strength (strength
-definition same as in block~\ref{SinEle}) needs an entry in the fourth
-column in the geometry file fort.2. File \# 28 and \# 29 hold integer
-counter and closed orbit displacement at a horizontal or vertical
-monitor respectively. 
+\bigskip
+\begin{tabular}{ll}
+    \textbf{first line} & name of element; \\
+    \textbf{line 2--7}  & normal multipoles order 1--18; \\
+    \textbf{line 8}     & normal multipoles of order 19 and 20; \\
+    \textbf{line 9--14} & skew multipoles order 1--18; \\
+    \textbf{line 15}    & skew multipoles of order 19 and 20.
+\end{tabular}
+
+\bigskip
+The strength definition is according to block~\ref{MulCoe} and to be effective in \texttt{fort.3}.
+The random values of the corresponding multipole block have to be set to 1.0.
+A word of caution: when writing on file \texttt{fort.9} the \textit{total} multipole strength is used, i.e.\ systematic and random part combined.
+File \texttt{fort.16} and \texttt{fort.9} might therefore be different.
+When using \texttt{fort.9} as input (\texttt{fort.16}), the systematic part in \texttt{fort.3} has to be set to 0.0.
+
+Misalignment and tilt are in file \# 8 and \# 27 as input and output respectively.
+The format is (\texttt{a16,2x,1p,2d14.6,d17.9}), i.e.\ name, horizontal misalignment, vertical misalignment and tilt.
+The misalignment is in units of [mm] the tilt in units of [mrad].
+The files \# 30 (in) and \# 31 (out) have the random single non-linear element kick, misalignments and tilt in the format: (\texttt{a8,1p,d19.11,2d14.6,d17.9}).
+Misalignment and tilt in file \texttt{fort.8} or \texttt{fort.30} is automatically activated, while the random strength (strength definition same as in block~\ref{SinEle}) needs an entry in the fourth column in the geometry file \texttt{fort.2}.
+File \# 28 and \# 29 hold integer counter and closed orbit displacement at a horizontal or vertical monitor respectively. 
 
 \newcounter{dst} \setcounter{dst}{0}
 
