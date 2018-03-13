@@ -266,7 +266,7 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
     \label{fma:tab:1}
     \begin{tabularx}{\textwidth}{|l|l|X|}
     \hline
-    \rowcolor{blue!15}
+    \rowcolor{blue!30}
     \textbf{Library} & \textbf{Method} & \textbf{Description} \\
     \hline
     \texttt{PLATO} \cite{plato1,plato2}
@@ -288,8 +288,7 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
     \cline{2-3}
     & \texttt{TUNEAPA} & Computes the tune as the average phase advance on a two dimensional plane, given n iterates of a map. \\
     \hline
-    \texttt{NAFF} \cite{NAFFpaper, NAFFpaper2}% ================================================================================================================================ %
-
+    \texttt{NAFF} \cite{NAFFpaper, NAFFpaper2}
     & \texttt{NAFF} & Computes the tune using the laskar method. The first estimation of the tune is obtained with an FFT and the precise value is determined by maximizing the Fourier integral. A Hann window of first and second order for the transverse and longitudinal motion are used respectively. The \texttt{NAFF} flag must be enabled at build time \cite{sixbuild}. \\
     \hline
     \end{tabularx}
@@ -301,7 +300,7 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
     \caption{Format of the \texttt{NORM} files}\label{fma:tab:2}
     \begin{tabularx}{\textwidth}{|c|c|X|}
         \hline
-        \rowcolor{blue!15}
+        \rowcolor{blue!30}
         \textbf{Line Number} & \textbf{Type} & \textbf{Description} \\
         \hline
         1 & Header & Closed orbit  $x$,$x'$,$y$,$y'$,$z$,$dE/E$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
@@ -324,7 +323,7 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
     \caption{Format of the fma\_sixtrack file}\label{fma:tab:3}
     \begin{tabularx}{\textwidth}{|c|c|X|}
         \hline
-        \rowcolor{blue!15}
+        \rowcolor{blue!30}
         \textbf{Line Number} & \textbf{Type} & \textbf{Description} \\
         \hline
         1--2 & Header & Header with units and description:\\
