@@ -6249,7 +6249,6 @@ cc2008
         endif
 +cd trom10
         if(kzz.eq.22) then
-          print *, "trroooooooo10"
           do j=1,ium
             do kx=1,2
               ll=kx*2
@@ -6331,7 +6330,6 @@ cc2008
           irrtr=imtr(ix)
           do j=1,napx
 +cd trom41
-print *, "trroooooooo41"
       sigmv(j)=(((((sigmv(j)+cotr(irrtr,5))+rrtr(irrtr,5,1)*xv(1,j))+   &!hr03
      &rrtr(irrtr,5,2)*yv(1,j))+rrtr(irrtr,5,3)*xv(2,j))+                &!hr03
 !BNL-NOV08
@@ -6340,8 +6338,6 @@ print *, "trroooooooo41"
 !BNL-NOV08
 
 +cd trom42
-print *, "trroooooooo42"
-print *, "thissss", real(idz(1),fPrec)
             pux=xv(1,j)
             dpsv3(j)=dpsv(j)*c1e3
             xv(1,j)=((cotr(irrtr,1)+rrtr(irrtr,1,1)*pux)+               &!hr03
