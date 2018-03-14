@@ -179,7 +179,7 @@ Function names have a maximum length of 20 characters.
     \multicolumn{3}{|l|}{``System'' functions} \\*
     \hline
 
-    \texttt{GET} & \texttt{\makecell[tl]{element-name[string]\\attribute-name[string]}} & 
+    \texttt{GET} & \texttt{element-name[string] attribute-name[string]} & 
     Extracts the original value of a setting, i.e. as specified in the SINGLE ELEMENT section (Sec.~\ref{SinEle}). Attributes as used for \texttt{SET}, see Table~\ref{tab:DYNK_SET}. \\*
     \hline
 
@@ -192,7 +192,7 @@ Function names have a maximum length of 20 characters.
     When evaluated, the function interpolates from the line-segments specified in the file. \\*
     \hline
     
-    \texttt{PIPE} & \texttt{\makecell[tl]{inPipeName[string]\\outPipeName[string]\\ID[string]\\fileUnit[int]}} &
+    \texttt{PIPE} & \texttt{inPipeName[string] outPipeName[string] ID[string] fileUnit[int]} &
     Uses a pair of UNIX FIFOs, through which it can communicate with an external program.
     When evaluated, it sends a message through the outpipe, and then waits for a message on the inpipe which should contain the value the FUN should returned.
     The ID is used in case several DYNK PIPE FUNs are using the same outPipe and inPipe, so that the controlling external program can choose what to calculate.
@@ -201,20 +201,20 @@ Function names have a maximum length of 20 characters.
     Also note that \texttt{PIPE} is not available in the checkpoint/restart version of SixTrack.\\*
     \hline
     
-    \texttt{RANDG} & \texttt{\makecell[tl]{seed1[int]\\seed2[int]\\mu[real]\\sigma[real]\\mcut[int]}} &
+    \texttt{RANDG} & \texttt{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
     Returns a pseudorandom number generated from a Gaussian distribution.
     The mean value and width is controlled by \texttt{mu} and \texttt{sigma}, while \texttt{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
     The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
     Note that every \texttt{RANDG} function defined in \texttt{DYNK} uses its own separate random number stream.\\*
     \hline
 
-    \texttt{RANDU} & \texttt{\makecell[tl]{seed1[int]\\seed2[int]}} &
+    \texttt{RANDU} & \texttt{seed1[int] seed2[int]} &
     Returns a pseudorandom number generated from a uniform distribution.
     The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
     Note that every \texttt{RANDU} function defined in \texttt{DYNK} uses its own separate random number stream.\\*
     \hline
     
-    \texttt{RANDON} & \texttt{\makecell[tl]{seed1[int]\\seed2[int]\\P[float]}} &
+    \texttt{RANDON} & \texttt{seed1[int] seed2[int] P[float]} &
     Returns the value of 1.0 or 0.0 resulting of the weighting with the probability \texttt{P} of a pseudorandom number generated from a uniform distribution .
     The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
     Note that every \texttt{RANDON} function defined in \texttt{DYNK} uses its own separate random number stream.\\
@@ -224,7 +224,7 @@ Function names have a maximum length of 20 characters.
     \multicolumn{3}{|l|}{Filters} \\*
     \hline
     
-    \texttt{FIR} & \texttt{\makecell[tl]{N[int]\\filename[string]\\baseFun[string]}} &
+    \texttt{FIR} & \texttt{N[int] filename[string] baseFun[string]} &
     Applies a Finite Impulse Response (FIR) filter of order v{N} to the function \texttt{baseFun}.
     The output is given as $y[t] = \sum_{i=0}^N b_i*x[t-i]$, where $t$ is the current turn and $x[t-0]$ is the result of the most recent call to \texttt{baseFun}.
     The coefficients $b_0 \ldots b_N$ and initial values of $x[t-0]\ldots x[t-N]$ are loaded from the given file \texttt{filename}, which is a space-separated ascii file with three columns.
@@ -235,7 +235,7 @@ Function names have a maximum length of 20 characters.
     This means that the last value in the $x[]$ array is never used, while the first value ($x[t-0]$) is immediately pushed into $x[t-1]$ before the first evaluation.\\*
     \hline
     
-    \texttt{IIR} & \texttt{\makecell[tl]{N[int]\\filename[string]\\baseFun[string]}} &
+    \texttt{IIR} & \texttt{N[int] filename[string] baseFun[string]} &
     Applies an Infinite Impulse Response (IIR) filter of order \texttt{N} to the function \texttt{baseFun}.
     This is very similar to \texttt{FIR}, except that it also uses its own previous outputs.
     The sum is thus written as $y[t] = \sum_{i=0}^N b_i*x[t-i] + \sum_{i=1}^N a_i*y[t-i]$.
@@ -248,23 +248,23 @@ Function names have a maximum length of 20 characters.
     \multicolumn{3}{|l|}{2-operand operators} \\*
     \hline
     
-    \texttt{ADD} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} &
+    \texttt{ADD} & \texttt{function-name-1[string] function-name-2[string]} &
     Evaluate the functions referenced by \texttt{function-name-1} and \texttt{function-name-2}, and return the sum of the results.\\*
     \hline
 
-    \texttt{SUB} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} &
+    \texttt{SUB} & \texttt{function-name-1[string] function-name-2[string]} &
     Similar to \texttt{ADD}, but return the result of function1 minus function2.\\*
     \hline
     
-    \texttt{MUL} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} & 
+    \texttt{MUL} & \texttt{function-name-1[string] function-name-2[string]} & 
     Similar to \texttt{ADD}, but return the product of the results. \\*
     \hline
     
-    \texttt{DIV} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} & 
+    \texttt{DIV} & \texttt{function-name-1[string] function-name-2[string]} & 
     Similar to \texttt{ADD}, but return the result of function1 divided by function2\\*
     \hline
     
-    \texttt{POW} & \texttt{\makecell[tl]{function-name-1[string]\\function-name-2[string]}} & 
+    \texttt{POW} & \texttt{function-name-1[string] function-name-2[string]} & 
     Similar to \texttt{ADD}, but return the result of function1 raised to the power of function2.\\
     \hline
     
@@ -316,16 +316,16 @@ Function names have a maximum length of 20 characters.
     Computed value from the linear function $y(t) = a\cdot t + b$. \\*
     \hline
     
-    \texttt{LINSEG} & \texttt{\makecell[tl]{x1[real]\\x2[real]\\y1[real]\\y2[real]}} & 
+    \texttt{LINSEG} & \texttt{x1[real] x2[real] y1[real] y2[real]} & 
     The function is defined by a line segment between the points $(x_1,y_1)$ and $(x_2,y_2)$, and undefined for $x < x_1$ and $x>x_2$. 
     It is required that $x_1 < x_2$.\\*
     \hline
     
-    \texttt{QUAD} & \texttt{\makecell[tl]{a[real]\\b[real]\\c[real]}} & 
+    \texttt{QUAD} & \texttt{a[real] b[real] c[real]} & 
     Computed value from the quadratic function $y(t) = a\cdot t^2 + b\cdot t + c$. \\*
     \hline
     
-    \texttt{QUADSEG} & \texttt{\makecell[tl]{x1[real]\\x2[real]\\y1[real]\\y2[real]\\deriv1[real]}} & 
+    \texttt{QUADSEG} & \texttt{x1[real] x2[real] y1[real] y2[real] deriv1[real]} & 
     The quadratic function is defined by overlapping the quadratic curve segment which passes through the points $(x_1,y_1)$ and $(x_2,y_2)$, and $\mathrm{d}y/\mathrm{d}x$ at $x_1$ is \texttt{deriv1}. 
     The quadratic coefficients $a,b,c$ are calculated as $a = \frac{\texttt{deriv1}}{x_1-x_2} + \frac{y_2-y_1}{(x_1-x_2)^2}$, $b=\frac{y_2-y_1}{x_2-x_1} - (x_1+x_2)\cdot a$ and $c = y_1 + \left(- x_1^2 \cdot a - x_1 \cdot b \right)$.\\
     \hline
@@ -334,15 +334,15 @@ Function names have a maximum length of 20 characters.
     \multicolumn{3}{|l|}{Trancendental functions} \\*
     \hline
     
-    \texttt{SINF} & \texttt{\makecell[tl]{A[real]\\omega[real]\\phi[real]}} & 
+    \texttt{SINF} & \texttt{A[real] omega[real] phi[real]} & 
     Computes $y(t) = A\sin\left(\omega t + \phi\right)$.\\*
     \hline
     
-    \texttt{COSF} & \texttt{\makecell[tl]{A[real]\\omega[real]\\phi[real]}} & 
+    \texttt{COSF} & \texttt{A[real] omega[real] phi[real]} & 
     Computes $y(t) = A\cos\left(\omega t + \phi\right)$.\\*
     \hline
     
-    \texttt{COSF\_RIPP} & \texttt{\makecell[tl]{A[real]\\period[real]\\phi[real]}} & 
+    \texttt{COSF\_RIPP} & \texttt{A[real] period[real] phi[real]} & 
     Computes $y(t) = A\cos\left(\frac{2\pi (t-1)}{\mathrm{period}} + \phi\right)$. 
     This specialized cosine is provided for compatibility, to be used when replacing old \texttt{RIPP} blocks.\\*
     \hline
@@ -351,7 +351,7 @@ Function names have a maximum length of 20 characters.
     \multicolumn{3}{|l|}{Specialized functions} \\*
     \hline
     
-    \texttt{PELP} & \texttt{\makecell[tl]{tinj[real]\\Iinj[real]\\Inom[real]\\A[real]\\D[real]\\R[real]\\te[real]}} & 
+    \texttt{PELP} & \texttt{tinj[real] Iinj[real] Inom[real] A[real] D[real] R[real] te[real]} & 
     This function describes a patched ``Parabolic-Exponential-Linear-Parabolic'' function, as used for ramping the LHC dipoles and described in~\cite[Appendix C]{SRussen:fieldComp} and~\cite{BurlaKing:CurrentRamp}. 
     The parameters are:
     \begin{itemize}
@@ -367,7 +367,7 @@ Function names have a maximum length of 20 characters.
     \\*
     \hline
     
-    \texttt{ONOFF} & \texttt{\makecell[tl]{p1[int]\\p2[int]}} &
+    \texttt{ONOFF} & \texttt{p1[int] p2[int]} &
     This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
     It may be described as
     $y(t) =  \left\{1.0 \; \mathrm{if} \; \mathrm{mod}(t-1,p2) < p1 \right\}; \; \left\{ 0.0 \; \mathrm{otherwise} \right\}$.

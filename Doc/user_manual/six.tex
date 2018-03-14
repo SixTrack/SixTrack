@@ -17,8 +17,9 @@
 \usepackage{tabu}
 \usepackage{multirow}
 \usepackage{tabularx}
-\usepackage{makecell}
-\tabulinesep=^1mm_1mm
+% \usepackage{makecell}
+%\tabulinesep=^1mm_1mm
+\renewcommand{\arraystretch}{1.1}
 
 \usepackage{caption}
 \captionsetup[table]{skip=2pt}
@@ -115,13 +116,14 @@
 
 \input{incTitlePage}
 \cleardoublepage
-\pdfbookmark{Acknowledgements}{Acknowledgements}
-\input{incAcknowledgement}
-\cleardoublepage
 
 \tableofcontents
 \cleardoublepage
 \pagenumbering{arabic}
+
+\pdfbookmark{Acknowledgements}{Acknowledgements}
+\input{incAcknowledgement}
+\cleardoublepage
 
 % Chapters
 \input{chIntroduction}

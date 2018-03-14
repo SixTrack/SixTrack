@@ -108,7 +108,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
             \end{equation*}
         \end{enumerate}
         and are then transformed with the 6D linear transformation into real space. Note that results may differ from those of older versions.
-    \item The amplitude scan is performed from \texttt{amp(1)} to \texttt{amp0} in steps of $\emph{delta} = (\emph{amp0} - \emph{amp(1)}) / (napx-1)$. For the intermediate amplitudes, \texttt{delta} is added up for each step, however the last amplitude is guaranteed to be fixed to the given value. This enables ``control calculations'' by setting the first amplitude of one simulation equal to the last amplitude of another simulation, and unless there are calculation errors, they shall produce exactly the same results.
+    \item The amplitude scan is performed from \texttt{amp(1)} to \texttt{amp0} in steps of $\mbox{delta} = (\mbox{amp0} - \mbox{amp(1)}) / (napx-1)$. For the intermediate amplitudes, \texttt{delta} is added up for each step, however the last amplitude is guaranteed to be fixed to the given value. This enables ``control calculations'' by setting the first amplitude of one simulation equal to the last amplitude of another simulation, and unless there are calculation errors, they shall produce exactly the same results.
     \item Note that if \texttt{iclo6 = 2} and \texttt{idfor = 0} in the input file, then \texttt{idfor} is internally set to 1, as is seen in some outputs. This does not mean that the closed orbit is not added; the setting of \texttt{iclo6 = 2} simply takes precedence.
 \end{enumerate}
 
