@@ -366,36 +366,36 @@ How to use the RF multipoles (from MAD-X to SixTrack):\\
 
 \noindent\textbf{2\textsuperscript{nd} order multipole (quadrupole):}\\
 \noindent In the MAD-X script write:
-\begin{cverbatim}
+\begin{ctverbatim}
 MULT.1, KNL=\{0,-0.06*1e-3\}, PNL=\{0, 0.25\};
-\end{cverbatim}
+\end{ctverbatim}
 where \texttt{-0.06*1e-3} is the $b_2$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
 This gives the following single element in \texttt{fort.2}:
-\begin{cverbatim}
+\begin{ctverbatim}
 mult.1q  26  6.00000000e-05  400.00000000e+00  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
-\end{cverbatim}
+\end{ctverbatim}
 
 \noindent\textbf{3\textsuperscript{rd} order multipole (sextupole):}\\
 \noindent In the MAD-X script write:
-\begin{cverbatim}
+\begin{ctverbatim}
 MULT.1, FREQ=400., KNL=\{0,0,1159.*1e-3\}, PNL=\{0,0,0.25\};
-\end{cverbatim}
+\end{ctverbatim}
 where \texttt{1159.*1e-3} is the $b_3$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
 This gives the following single element in \texttt{fort.2}:
-\begin{cverbatim}
+\begin{ctverbatim}
 mult.1s  27 -5.79500000e-01  4.00000000e+02  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
-\end{cverbatim}
+\end{ctverbatim}
 
 \noindent\textbf{4\textsuperscript{th} order multipole (octupole):}\\
 \noindent In  the MAD-X script write:
-\begin{cverbatim}
+\begin{ctverbatim}
 MULT.1, FREQ=400., KNL=\{0,0,0,-4.*1e-3\}, PNL=\{0,0,0,0.25\};
-\end{cverbatim}
+\end{ctverbatim}
 where \texttt{-4.*1e-3} is the $b_4$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
 This gives the following single element in \texttt{fort.2}:
-\begin{cverbatim}
+\begin{ctverbatim}
 mult.1o  28  6.666666667e-04  4.00000000e+02  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
-\end{cverbatim}
+\end{ctverbatim}
 
 \bigskip
 \noindent The values of $b_2$, $b_3$, and $b_4$ used in the above examples were taken from Table II of paper~\cite{RFmultsPaper}.

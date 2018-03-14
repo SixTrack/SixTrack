@@ -1,7 +1,8 @@
 
 \chapter{Special Elements} \label{SpecElem}
 
-One advantage of SixTrack, that has been adopted from RACETRACK, is that it easily allows to define elements for a specific purpose. The special elements implemented till now are found in this section.
+One advantage of SixTrack, that has been adopted from RACETRACK, is that it easily allows to define elements for a specific purpose.
+The special elements implemented util now are found in this section.
 All Special Elements should be written in the \texttt{fort.3} file.
 
 % ================================================================================================================================ %
@@ -15,8 +16,8 @@ Moreover, using the multipole block reduces the number of elements in the single
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{MULT} \\
     \textbf{Data lines} & 2 to 12 \\
-    \textbf{Format}     & First line: \texttt{name $R_{0}$ $\delta_{0}$} \\
-                        & Lines 2 to 12: \texttt{$B_{n}$ rms-$B_{n}$ $A_{n}$ rms-$A_{n}$}
+    \textbf{Format}     & First line: \texttt{name $R_{0}$ $\delta_{0}$}. \\
+                        & Lines 2 to 12: \texttt{$B_{n}$ rms-$B_{n}$ $A_{n}$ rms-$A_{n}$}.
 \end{tabular}
 
 \paragraph{Format Description}~
@@ -52,7 +53,7 @@ The general aperture values are chosen to be large enough (\ref{T-DTP}) to defin
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{LIMI} \\
-    \textbf{Data lines} & variable \\
+    \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{name type xaper yaper}
 \end{tabular}
 
@@ -70,20 +71,20 @@ The general aperture values are chosen to be large enough (\ref{T-DTP}) to defin
                       \begin{equation*}
                           \frac{x_{i}^{2}}{\mathrm{xaper}^{2}} + \frac{y_{i}^{2}} {\mathrm{yaper}^{2}} < 1
                       \end{equation*}\\
-    \texttt{xaper}  & Aperture in the horizontal plane in mm \\
-    \texttt{yaper}  & Aperture in the vertical plane in mm
+    \texttt{xaper}  & Aperture in the horizontal plane in mm. \\
+    \texttt{yaper}  & Aperture in the vertical plane in mm.
 \end{longtabu}
 
 % ================================================================================================================================ %
 \section{Power Supply Ripple} \label{PowRip}
 
-{\color{notered}\textbf{Note:}
+\textcolor{notered}{\textbf{Note:}
 The \texttt{RIPP} block is been deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block (\ref{sec:DYNK}).
 A \texttt{fort.3} file containing a \texttt{RIPP} block is therefore no longer valid, and will result in an error message.
 The description below is therefore only provided as a reference for those who need to convert old input files.}
 
 \bigskip
-\noindent If power supply ripple is to be considered this input data block can be used. A non-linear quadrupole is expected as a ripple element (type=2 and zero length in the single element list (\ref{NonEle})), but in principle other non-linear elements are also allowed.
+\noindent If power supply ripple is to be considered this input data block can be used. A non-linear quadrupole is expected as a ripple element (\texttt{type=2} and zero length in the single element list (\ref{NonEle})), but in principle other non-linear elements are also allowed.
 Ripple depth, ripple frequency and starting phase of the ripple frequency are the input parameters.
 
 \bigskip
@@ -97,11 +98,11 @@ Ripple depth, ripple frequency and starting phase of the ripple frequency are th
 
 \bigskip
 \begin{longtabu}{@{}lp{0.75\linewidth}}
-    \texttt{name}        & Name of the nonlinear element in the \textit{single element} block (\ref{NonEle}) \\
+    \texttt{name}        & Name of the non-linear element in the \textit{single element} block (\ref{NonEle}). \\
     \texttt{depth}       & Maximum kick strength of the ripple element. A quadrupole kick is usually expected. \\
     \texttt{frequency}   & Given in number of turns (a real value is allowed) of one ripple period. \\
     \texttt{start-phase} & Initial phase of the ripple element. \\
-    \texttt{nrturn}      & Initial number of turns, for prolongation runs the  number of turn already done
+    \texttt{nrturn}      & Initial number of turns, for prolongation runs the  number of turn already done.
 \end{longtabu}
 
 % ================================================================================================================================ %
@@ -406,7 +407,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
 %\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
 %\begin{longtable}{|l | l l l|}
   %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-\caption{Element types and attributes available in DYNK.}
+\caption{Element types and attributes available in \texttt{DYNK}.}
 \label{tab:DYNK_SET} %\\*
 \begin{tabular}{|l | l | l | p{6cm}|}
 
@@ -490,7 +491,7 @@ Unless a \texttt{NOFILE} statement is present, this file contains first a header
 followed by rows of data in the format specified in the header.
 This data is written for all element/attribute combinations and in all turns, wether a \texttt{SET} is active for this element/attribute in this turn or not.
 If no \texttt{SET} is active when the line is written out, the \texttt{SETidx} is written as $-1$, and the \texttt{funname} is ``N/A''.
-If a \texttt{SET} is active when the line is written out, the \texttt{SETidx} is the index of the currently active \texttt{SET} statement, where the first statement occuring in \texttt{fort.3} has index 1, etc.
+If a \texttt{SET} is active when the line is written out, the \texttt{SETidx} is the index of the currently active \texttt{SET} statement, where the first statement occurring in \texttt{fort.3} has index 1, etc.
 Similarly, the \texttt{funname} is the name referencing the currently active \texttt{FUN} statement.
 
 \subsection{Examples}
@@ -520,14 +521,14 @@ NEXT
 \end{cverbatim}
 Here, each \texttt{RIPP} data line is replaced with two lines, one FUN statement for generating the function, and one \texttt{SET} statement for applying the value.
 Note that the \texttt{SET} statements have an end-time \texttt{-1}, meaning it is used until the end of the simulation.
-Also note the precense of the \texttt{NOFILE} flag, which is used to not generate a potentially very large (for very long simulations) \texttt{dynkfile.dat} output file.
+Also note the presence of the \texttt{NOFILE} flag, which is used to not generate a potentially very large (for very long simulations) \texttt{dynkfile.dat} output file.
 
 \paragraph{Starting tracking inside a bump}~\\
 
-This example was taken from the paper~\cite{DYNKpaper}, and demonstrates how a bump can be temporarilly disabled if the starting point of the tracking is inside of it.
-The reason for doing this is removing the neccessity of generating a starting distribution with the bump already applied.
+This example was taken from the paper~\cite{DYNKpaper}, and demonstrates how a bump can be temporarily disabled if the starting point of the tracking is inside of it.
+The reason for doing this is removing the necessity of generating a starting distribution with the bump already applied.
 Here, the HL-LHC v1.1 lattice is used, with vertical crab cavities around the first interaction point (IP1, ATLAS), which is also the point where the tracking is started.
-The crab cavities opening the bump are called CRAB\_IP1\_L1$\cdots$4, while the closing cavities are CRAB\_IP1\_R1$\cdots$4.
+The crab cavities opening the bump are called \texttt{CRAB\_IP1\_L1$\cdots$4}, while the closing cavities are \texttt{CRAB\_IP1\_R1$\cdots$4}.
 The \texttt{DYNK} block for this looks like:
 \begin{cverbatim}
 DYNK
@@ -548,14 +549,14 @@ NEXT
 \end{cverbatim}
 
 Here, the function \texttt{zero} is defined such that it always returns $0.0$, and is used to switch off the closing cavities in the first turn, i.e. when the beam exits the bump.
-Further, the functions CV\_1R1$\cdots$1R4 and CV\_1L are used to store the original value of the voltages, without having to explicitly enter them into the DYNK block.
+Further, the functions \texttt{CV\_1R1$\cdots$1R4} and \texttt{CV\_1L} are used to store the original value of the voltages, without having to explicitly enter them into the DYNK block.
 
 The \texttt{SET} statements then first sets the voltage of all the cavities to zero in turn 1, and then in turn 2 sets it to their respective ``switched on'' voltages.
 The \texttt{SET} statements end after turn 2, but the last values are retained.
 
-This means that when the simulation starts with the bunch in IP1, it exits the bump without any kicks from the closing crab cavities.
-It then comes around (still in turn 1), and encountered the switched-on opening cavities CRAB\_IP1\_L1$\cdots$4, which crabs the beam.
-After passing through IP1, the turn counter is increased from 1 to 2, triggering the SET statements to switch on the closing cavities CRAB\_IP1\_R1$\cdots$4 as well.
+This means that when the simulation starts with the bunch in \texttt{IP1}, it exits the bump without any kicks from the closing crab cavities.
+It then comes around (still in turn 1), and encountered the switched-on opening cavities \texttt{CRAB\_IP1\_L1$\cdots$4}, which crabs the beam.
+After passing through IP1, the turn counter is increased from 1 to 2, triggering the SET statements to switch on the closing cavities \texttt{CRAB\_IP1\_R1$\cdots$4} as well.
 
 \paragraph{Ramp and exponential decay of crab voltage, combined with a linear drift of crab phase}~\\
 \begin{figure}
@@ -568,7 +569,7 @@ After passing through IP1, the turn counter is increased from 1 to 2, triggering
 This slightly more complicated example builds on the example given above.
 It shows how to change two parameters (voltage and phase) of several objects.
 It also demonstrates how functions can be chained together, making more complicated functions.
-Some of the resulting functions are shown in Figure~\ref{fig:DYNK_fail}, and the DYNK block here looks like:
+Some of the resulting functions are shown in Figure~\ref{fig:DYNK_fail}, and the \texttt{DYNK} block here looks like:
 \begin{cverbatim}
 DYNK
 /DEBUG
@@ -618,11 +619,11 @@ SET CRAB_IP1_L4 phase phasedrift 70 100 -70
 NEXT
 \end{cverbatim}
 The first functions defined here are the same as above, storing the default values (as defined in the single element list) for the relevant elements and also zero.
-Then follows a normalized linear ramp function ``ramp'', with gradient $0.02 = 1/50$.
-This is then used by the ``specialized'' ramp functions ``ramp\_R1$\cdots$R4'', which scales ``ramp'' so that the end point is the standard voltages for $t\in 0\ldots50$.
+Then follows a normalized linear ramp function \texttt{ramp}, with gradient $0.02 = 1/50$.
+This is then used by the ``specialized'' ramp functions \texttt{ramp\_R1$\cdots$R4}, which scales \texttt{ramp} so that the end point is the standard voltages for $t\in 0\ldots50$.
 
 These functions are used to first set the crabs to $0.0$ for the first $9$ revolutions, and in the 10th revolution the ramp starts.
-As the ``ramp'' function is defined starting at turn $0$, a shift $-10$ or $-11$ is applied to the ramps.
+As the \texttt{ramp} function is defined starting at turn $0$, a shift $-10$ or $-11$ is applied to the ramps.
 The ramp is switched off after turn 60/61, leaving the crabs to be operating at the last \texttt{SET} value.
 
 Further, we want to demonstrate a failure in the crab voltage.
@@ -650,13 +651,13 @@ FUN pipe1 PIPE /tmp/pip1 /tmp/pip2 myID1 4242
 SET  ACFCA.AR1.B1 voltage pipe1 10 -1 -9
 \end{cverbatim}
 Then create the two pipes using the \texttt{mkfifo} UNIX command, e.g.\ \texttt{mkfifo~pip1} and \texttt{mkfifo~pip2} in the chosen directory.
-When starting SixTrack, it will first open the input pipe (while reading the DYNK block), and wait for the external program to do the same.
+When starting SixTrack, it will first open the input pipe (while reading the \texttt{DYNK} block), and wait for the external program to do the same.
 This can be simulated by running \texttt{cat~>~pip1}; it is also possible to open the input pipe before starting SixTrack.
 After opening the input pipe, SixTrack will open the output pipe, again this can be simulated by running \texttt{cat~pip2}, and again this pipe may be opened before starting SixTrack.
-Note that when SixTrack ends, the output pipe will be closed, so the recieving \texttt{cat} process is terminated.
+Note that when SixTrack ends, the output pipe will be closed, so the receiving \texttt{cat} process is terminated.
 
 After opening the output pipe, SixTrack writes the line \texttt{DYNKPIPE~!******************!} to this file.
-It then writes a line similar to \texttt{INIT~ID=myID1~for~FUN=pipe1} for each FUN using this output pipe.
+It then writes a line similar to \texttt{INIT~ID=myID1~for~FUN=pipe1} for each \texttt{FUN} using this output pipe.
 
 During tracking, when one of the \texttt{PIPE} \texttt{FUN}s are called SixTrack writes a line similar to \texttt{GET ID=myID1 TURN=~1} to the output pipe.
 Note that the turn number is the one passed to the \texttt{FUN} from \texttt{SET}, i.e. including any turn-shift.
@@ -665,7 +666,7 @@ It then waits for a single floating point number to be written (in ascii) to the
 % ================================================================================================================================ %
 \section{Beam--Beam Element} \label{BeamBeam}
 
-The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD~\cite{MAD}.
+The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD-X~\cite{MAD}.
 However, a much faster but nevertheless precise calculation using interpolation can be used~\cite{ERIC}.
 Since SixTrack version 3, the beam--beam is also available in the 6D form \`{a} la Hirata~\cite{Hirata}.
 Lastly, the linear coupling has been considered in 4 and 6 dimensional phase space~\cite{ripbeam}. 
@@ -735,12 +736,12 @@ Some parameters are new or defined in a different way:
 
 \paragraph{Conversion from traditional to EXPERT format}~\\
 
-An automatic converter from the ``traditional'' input block to the new ``expert'' format is built into SixTrack; every time a non-EXPERT input block is encountered, a conversion is printed to the standard output.
+An automatic converter from the ``traditional'' input block to the new ``expert'' format is built into SixTrack; every time a non-\texttt{EXPERT} input block is encountered, a conversion is printed to the standard output.
 Therefore, all the user needs to do is to run SixTrack (number of turns does not matter) on an input file that should be converted, and follow the instructions which are printed at the beginning of the program output.
 
 \paragraph{Remarks}~\\
 
-These beam--beam elements have to appear in the single element list (~\ref{NonEle}) (type 20).
+These beam--beam elements have to appear in the single element list (\ref{NonEle}) (type 20).
 If the ``traditional'' option is used in the \texttt{BEAM} block, the listing in the single element list must contain their horizontal and vertical beam--beam separations (see~\ref{BBS}).
 
 \paragraph{Sign Convention}~\\
@@ -791,7 +792,7 @@ Some clarifications regarding the sign convention used for the separation and cr
 \begin{figure}[h]
     \begin{center}
     \includegraphics[width=0.8\textwidth]{figures/BB_xsing}
-    \caption{Coordinate manipulation to move from the accelerator frame to a head-on collision frame (Figures left and center). A positve crossing angle is considered as shown in the left figure. Then Lorentz boost and Synchro-Betatron Mapping are applied (right).}
+    \caption{Coordinate manipulation to move from the accelerator frame to a head-on collision frame (Figures left and center). A positive crossing angle is considered as shown in the left figure. Then Lorentz boost and Synchro-Betatron Mapping are applied (right).}
     \label{fig:BB_xsing}
     \end{center}
 \end{figure}
@@ -799,7 +800,8 @@ Some clarifications regarding the sign convention used for the separation and cr
 % ================================================================================================================================ %
 \section{Wire} \label{sec:WIRE}
 
-The wire block serves for reading in the input parameters for the wire. Each wire also needs to be added as single element in the list of single elements.
+The wire block serves for reading in the input parameters for the wire.
+Each wire also needs to be added as single element in the list of single elements.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -878,12 +880,13 @@ The wire block serves for reading in the input parameters for the wire. Each wir
 
 The user has to check that the wires defined in the WIRE block are also defined in the list of single elements and vice versa.
 All parameters, except for the type (type 15), are ignored in the single element definition and the execution is aborted if the parameters are non-zero.
-In addition to the parameters defined in the \texttt{WIRE} block, the \texttt{ibeco} parameter in the \texttt{BEAM} block (see Sec.~\ref{BeamBeam}) imposes the same behavior on the wire as for beam-beam.
+In addition to the parameters defined in the \texttt{WIRE} block, the \texttt{ibeco} parameter in the \texttt{BEAM} block (see Section~\ref{BeamBeam}) imposes the same behavior on the wire as for beam-beam.
 Explicitly, the closed orbit introduced by the wire is subtracted if \texttt{ibeco}=1 and not subtracted if \texttt{ibeco}=0.
 
 \paragraph{Example:}~\\
 
-In the following we give some examples for wire definitions. This example defines two wires wire\_1 and wire\_2.
+In the following we give some examples for wire definitions.
+This example defines two wires \texttt{wire\_1} and \texttt{wire\_2}.
 
 The input block in \texttt{fort.3} is given by:
 \begin{cverbatim}
@@ -925,9 +928,9 @@ The linear ``phase trombone'' allows the introduction of a change in the transve
 
 \bigskip
 \begin{tabular}{@{}llp{0.6\linewidth}}
-    \texttt{name} & string & May contain up to 47 characters \\
+    \texttt{name} & char & May contain up to 47 characters. \\
     \texttt{cx, cx', cy, cy', cz, cz'} & floats & 6D closed orbit to be added to the coordinates. \\
-    \texttt{M($ 6 \times 6$)} & floats & $ 6 \times 6$ matrix elements
+    \texttt{M($ 6 \times 6$)} & floats & $ 6 \times 6$ matrix elements.
 \end{tabular}
 
 \paragraph{Remarks}~\\
@@ -951,7 +954,7 @@ Including \texttt{BDEX} in one of these versions results in a run-time error.
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{BDEX} \\
     \textbf{Data lines} & Variable \\
-    \textbf{Format}     & There are three types of statements possible in a BDEX block, listed below.
+    \textbf{Format}     & There are three types of statements possible in a \texttt{BDEX} block, listed below.
 \end{tabular}
 
 \bigskip
@@ -970,7 +973,7 @@ This creates a new channel through which the \texttt{BDEX} can communicate.
 Currently, the only implemented \texttt{chanType} is \texttt{PIPE}, however \texttt{TCPIP} is also foreseen.
 
 For the \texttt{PIPE} type, the statement including arguments is \texttt{CHAN PIPE inPipeName outPipeName format fileUnit}.
-This uses a pair of UNIX FIFOs, through which SixTrack can comunicate with an external program.
+This uses a pair of UNIX FIFOs, through which SixTrack can communicate with an external program.
 When the channel is used, it sends a message on the outpipe, then waits for a reply with the new distribution over the inPipe.
 The \texttt{format} is an integer used to indicate the output/input format, and is currently unused.
 The \texttt{fileUnit} is the Fortran unit number that should be used to open the inPipe.
@@ -1144,7 +1147,7 @@ BLOC56            hel1              hel2
 % ================================================================================================================================ %
 \section{Scattering} \label{sec:scatter}
 
-{\color{notered}\textbf{Note: }This module is experimental! Use at your own risk; both the input format and physics implementation may change.}
+\textcolor{notered}{\textbf{Note:} This module is experimental! Use at your own risk; both the input format and physics implementation may change.}
 
 \bigskip
 The \texttt{SCATTER} module is a framework for scattering particles through Monte Carlo processes at various points in the machine.
@@ -1211,7 +1214,7 @@ GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30e-27
 
 \paragraph{SEED} \texttt{SEED seed1 seed2}\\
 
-This sets the seed of the internal RNG used by the SCATTER block \todo{Cite RANECU}.
+This sets the seed of the internal RNG used by the \texttt{SCATTER} block \todo{Cite RANECU}.
 Two integer seeds are required, for this block.
-The \texttt{SEED} block is mandatory for the SCATTER block to work.
+The \texttt{SEED} block is mandatory for the \texttt{SCATTER} block to work.
 Note that when running several simulations, the seed settings must be varied between each run in order to get uncorrelated results.
