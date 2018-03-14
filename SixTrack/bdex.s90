@@ -19,44 +19,66 @@ module bdex
 !For the string length stuff
 +ca comgetfields
 
-  logical bdex_enable               ! Is BDEX in use?
-  logical bdex_debug                ! Debug mode?
-  
-  integer bdex_elementAction(nele)  ! BDEX in use for this element?
-                                    ! 0: No.
-                                    ! 1: Do a particle exchange at this element.
-                                    ! Other values are reserved for future use.
-  integer bdex_elementChannel(nele) ! Which BDEX channel does this element use?
-                                    ! This points in the bdex_channel arrays.
-  
-  integer bdex_maxchannels, bdex_nchannels
-  parameter (bdex_maxchannels=16)
-  
-  integer bdex_channels(bdex_maxchannels,4) ! Basic data for the bdex_channels, one row/channel
-                                            ! Column 1: Type of channel. Values:
-                                            !           0: Channel not in use
-                                            !           1: PIPE channel
-                                            !           2: TCPIP channel (not implemented)
-                                            ! Column 2: Meaning varies, based on the value of col. 1:
-                                            !           If col 1 is PIPE, then it is the output format.
-                                            ! Column 3: Meaning varies, based on the value of col. 1:
-                                            !           If col 1 is PIPE, it points to the first (of two) files in bdex_stringStorage.
-                                            ! Column 4: Meaning varies, based on the value of col. 1:
-                                            !           If col 1 is PIPE, then it is the unit number to use (first of two consecutive).
-  character( getfields_l_max_string ) bdex_channelNames(bdex_maxchannels)    ! The names of the BDEX channel
-  
-  integer bdex_maxStore, bdex_nstringStorage
-  parameter ( bdex_maxStore=20 ) !Number of places in the bdex_xxStorage arrays
-  character( getfields_l_max_string ) bdex_stringStorage ( bdex_maxStore )
-  
-  save &
-       bdex_elementAction, bdex_elementChannel, &
-       bdex_channels, bdex_channelNames, bdex_nchannels, &
-       bdex_stringStorage,bdex_nstringStorage, &
-       bdex_enable, bdex_debug
+  ! Is BDEX in use?
+  logical, save :: bdex_enable
+  ! Debug mode?
+  logical, save :: bdex_debug
+
+  ! BDEX in use for this element?
+  ! 0: No.
+  ! 1: Do a particle exchange at this element.
+  ! Other values are reserved for future use.
+  integer, allocatable, save :: bdex_elementAction(:) !(nele)
+  ! Which BDEX channel does this element use?
+  ! This points in the bdex_channel arrays.
+  integer, allocatable, save :: bdex_elementChannel(:) !(nele)
+
+  integer, parameter :: bdex_maxchannels = 16
+  integer, save :: bdex_nchannels
+
+  ! Basic data for the bdex_channels, one row/channel
+  ! Column 1: Type of channel. Values:
+  !           0: Channel not in use
+  !           1: PIPE channel
+  !           2: TCPIP channel (not implemented)
+  ! Column 2: Meaning varies, based on the value of col. 1:
+  !           If col 1 is PIPE, then it is the output format.
+  ! Column 3: Meaning varies, based on the value of col. 1:
+  !           If col 1 is PIPE, it points to the first (of two) files in bdex_stringStorage.
+  ! Column 4: Meaning varies, based on the value of col. 1:
+  !           If col 1 is PIPE, then it is the unit number to use (first of two consecutive).
+  integer, save :: bdex_channels(bdex_maxchannels,4)
+  ! The names of the BDEX channel
+  character(len=getfields_l_max_string ), save :: bdex_channelNames(bdex_maxchannels)
+
+  !Number of places in the bdex_xxStorage arrays
+  integer, parameter :: bdex_maxStore=20
+  integer, save :: bdex_nstringStorage
+  character(len=getfields_l_max_string ), save :: bdex_stringStorage ( bdex_maxStore )
 
 contains
-  
+
+  subroutine bdex_allocate_arrays
+    use crcoall
+    implicit none
+    integer stat
+
+    allocate(bdex_elementAction(nele),bdex_elementChannel(nele), STAT=stat)
+    if (stat.ne.0) then
+       write(lout,'(A,I8)') "ERROR in SUBROUTINE BDEX_ALLOCATE_ARRAYS; stat=", stat
+       call prror(-1)
+    endif
+
+  end subroutine bdex_allocate_arrays
+
+  subroutine bdex_expand_arrays(nele_new)
+    use crcoall
+    implicit none
+    integer, intent(in) :: nele_new
+
+    !TODO...
+  end subroutine bdex_expand_arrays
+
   subroutine bdex_closefiles
     implicit none
 

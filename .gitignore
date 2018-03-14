@@ -25,7 +25,8 @@ SixTrack/zlib/install
 
 SixTrack/count.log
 
-#LaTeX temps
+# LaTeX temps
+Doc/html
 Doc/user_manual/six.pdf
 Doc/*/*.aux
 Doc/*/*.log
