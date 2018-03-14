@@ -12,7 +12,7 @@
 Int_t turn;
 Int_t i;
 Int_t ix;
-char loss_name[17];
+char loss_name[49];
 Double_t slos;
 Int_t ipart;
 Double_t x;
@@ -32,7 +32,7 @@ extern "C" void ApertureCheckRootInit()
     ApertureLossTree->Branch("turn",&turn,"turn/I");
     ApertureLossTree->Branch("i",&i,"i/I");
     ApertureLossTree->Branch("ix",&ix,"ix/I");
-    ApertureLossTree->Branch("name",&loss_name,"name[17]/C");
+    ApertureLossTree->Branch("name",&loss_name,"name[49]/C");
     ApertureLossTree->Branch("ipart",&ipart,"ipart/I");
     ApertureLossTree->Branch("slos",&slos,"slos/D");
     ApertureLossTree->Branch("x", &x, "x/D");
@@ -52,7 +52,7 @@ extern "C" void ApertureCheckWriteLossParticle(int turn_in, int i_in, int ix_in,
 
     std::string tmpname(bez_in);
     std::transform(tmpname.begin(), tmpname.end(), tmpname.begin(), ::toupper);
-    strncpy(loss_name,tmpname.substr(0,bez_len).c_str(),17);
+    strncpy(loss_name,tmpname.substr(0,bez_len).c_str(),49);
 
     slos = slos_in;
     ipart = ipart_in;
