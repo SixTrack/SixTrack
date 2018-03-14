@@ -6263,6 +6263,28 @@ cc2008
           enddo
         endif
 +cd trombsym
+        if(kzz.eq.22) then
+          do j=1,ium
+            temptrack(1)=x(j,1)
+            temptrack(2)=y(j,1)*odpsv(df)
+            temptrack(3)=x(j,2)
+            temptrack(4)=y(j,2)
+            temptrack(5)=sigmv(j)
+            temptrack(6)=(ejv-e0)/e0
+
+            do kx=1,6
+              x(j,1) = x(j,1)+temptrack(kx)*rrtr(imtr(ix))
+              y(j,1) = y(j,1)+temptrack(kx)*rrtr(imtr(ix)) 
+              x(j,2) = x(j,2)+temptrack(kx)*rrtr(imtr(ix)) 
+              y(j,2) = y(j,2)+temptrack(kx)*temptrack(kx) 
+              sigmv(j) = sigmv(j)+temptrack(kx)*temptrack(kx)       
+                            
+            enddo
+          enddo
+        endif
+                
+
+
 
 +cd trom20
         if(kzz.eq.22) then
