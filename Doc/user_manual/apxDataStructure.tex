@@ -114,7 +114,7 @@ This is done by writing first all headers in order (i.e. first the header for in
 The ``total number of particles'' field can always be read from the first header record, which gives the number of header records present in the file.
 The two file formats are equivalent, i.e. they contain exactly the same data, and it is thus possible to convert losslessly between them.
 
-Some of the post processing data is written in Ascii format to file \# 10.
+Some of the post processing data is written in Ascii format to file \texttt{fort.10}.
 This can be used for instance for plotting purposes.
 Each time the post processing routine is called 60 double precision numbers (some of them still dummy) are added to the file.
 
@@ -136,18 +136,18 @@ A word of caution: when writing on file \texttt{fort.9} the \textit{total} multi
 File \texttt{fort.16} and \texttt{fort.9} might therefore be different.
 When using \texttt{fort.9} as input (\texttt{fort.16}), the systematic part in \texttt{fort.3} has to be set to 0.0.
 
-Misalignment and tilt are in file \# 8 and \# 27 as input and output respectively.
+Misalignment and tilt are in file \texttt{fort.8} and \texttt{fort.27} as input and output respectively.
 The format is (\texttt{a16,2x,1p,2d14.6,d17.9}), i.e.\ name, horizontal misalignment, vertical misalignment and tilt.
 The misalignment is in units of [mm] the tilt in units of [mrad].
-The files \# 30 (in) and \# 31 (out) have the random single non-linear element kick, misalignments and tilt in the format: (\texttt{a8,1p,d19.11,2d14.6,d17.9}).
+The files \texttt{fort.30} (in) and \texttt{fort.31} (out) have the random single non-linear element kick, misalignments and tilt in the format: (\texttt{a8,1p,d19.11,2d14.6,d17.9}).
 Misalignment and tilt in file \texttt{fort.8} or \texttt{fort.30} is automatically activated, while the random strength (strength definition same as in block~\ref{SinEle}) needs an entry in the fourth column in the geometry file \texttt{fort.2}.
-File \# 28 and \# 29 hold integer counter and closed orbit displacement at a horizontal or vertical monitor respectively. 
+Files \texttt{fort.28} and \texttt{fort.29} hold integer counter and closed orbit displacement at a horizontal or vertical monitor respectively. 
 
 \newcounter{dst} \setcounter{dst}{0}
 
 \begin{center}
 \begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
-    \caption{Post--processing Data} \label{T-PPD}\\
+    \caption{Post Processing Data} \label{T-PPD}\\
     \hline
     
     \rowcolor{blue!30}
@@ -155,6 +155,7 @@ File \# 28 and \# 29 hold integer counter and closed orbit displacement at a hor
     \hline
     \endfirsthead
     
+    \hline
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
@@ -269,7 +270,7 @@ File \# 28 and \# 29 hold integer counter and closed orbit displacement at a hor
 \end{longtable}
 \end{center}
 
-As an option the 4D linear parameters can be dumped to file \# 11 when the linear optics block~\ref{LinOpt} is activated.
+As an option the 4D linear parameters can be dumped to file \texttt{fort.11} when the linear optics block~\ref{LinOpt} is activated.
 This can be used for instance for a post--processing of linear coupling.
 25 values are written in a binary format.
 
@@ -286,6 +287,7 @@ This can be used for instance for a post--processing of linear coupling.
     \hline
     \endfirsthead
     
+    \hline
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
@@ -353,7 +355,7 @@ This can be used for instance for a post--processing of linear coupling.
 \end{longtable}
 \end{center}
 
-When external multipole errors are read in (see section~\ref{FluNum}), the program expects a complete list of magnet errors on file \# 16.
+When external multipole errors are read in (see section~\ref{FluNum}), the program expects a complete list of magnet errors to file \texttt{fort.16}.
 The format of each set of multipole errors is given in table~\ref{T-XME}.
 The definition of the multipole coefficients should be as described in section~\ref{MulCoe}.
 
@@ -362,7 +364,7 @@ The definition of the multipole coefficients should be as described in section~\
 \bigskip
 \begin{center}
 \begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
-    \caption{Format of file with external errors \# 16 and internal errors written to \# 9} \label{T-XME}\\
+    \caption{Format of file with external errors, \texttt{fort.16}, and internal errors written to \texttt{fort.9}} \label{T-XME}\\
     \hline
     
     \rowcolor{blue!30}
@@ -370,6 +372,7 @@ The definition of the multipole coefficients should be as described in section~\
     \hline
     \endfirsthead
     
+    \hline
     \rowcolor{blue!30}
     \textbf{Row} & \textbf{Description} \\
     \hline
@@ -409,17 +412,17 @@ The definition of the multipole coefficients should be as described in section~\
 \end{longtable}
 \end{center}
 
-With the parameter \texttt{mout} set to 2 or 3 in the ``Random Fluctuation'' block (\ref{FluNum}), the internally used multipoles are written to file \# 9 in the same format as above.
+With the parameter \texttt{mout} set to 2 or 3 in the ``Random Fluctuation'' block (\ref{FluNum}), the internally used multipoles are written to file \texttt{fort.9} in the same format as above.
 This file can therefore be used as an input \texttt{fort.16} file for a subsequent run.
 
-The file \# 34 is written when the ``Linear Optic Block'' (see section~\ref{LinOpt}) is invoked with the \texttt{ELEMENT 0} option. 
+The file \texttt{fort.34} is written when the ``Linear Optic Block'' (see section~\ref{LinOpt}) is invoked with the \texttt{ELEMENT 0} option. 
 
 \setcounter{dsu}{0}
 
 \bigskip
 \begin{center}
 \begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
-    \caption{Format of file \# 34 for detuning and distortion calculation with external program ``SODD''~\cite{SODD}} \label{T-SODD}\\
+    \caption{Format of file \texttt{fort.34} for detuning and distortion calculation with external program ``SODD''~\cite{SODD}} \label{T-SODD}\\
     \hline
     
     \rowcolor{blue!30}
@@ -427,6 +430,7 @@ The file \# 34 is written when the ``Linear Optic Block'' (see section~\ref{LinO
     \hline
     \endfirsthead
     
+    \hline
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
