@@ -60,7 +60,7 @@ if(NOT COLLIMAT)
                 SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
         endif()
 
-	if(NAFF)
+        if(NAFF)
                 SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
         endif()
 
@@ -150,6 +150,7 @@ if(NOT COLLIMAT)
           scatter_bbelastic
           dump_all_highprec
           dump_2_all_ele_highprec
+          perf1
           ${SIXTRACK_TESTS}
         )
 
@@ -369,11 +370,18 @@ SET(SLOW_TESTS
   prob3
   )
 
+#Performance test
+SET(PERF_TESTS
+  perf1
+  )
+
+
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
         list(FIND FAST_TESTS ${TST} LABEL_FAST)
         list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
         list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
+        list(FIND PERF_TESTS ${TST} LABEL_PERF)
 
         if(${LABEL_FAST} GREATER -1)
                 set_property(TEST ${TST} PROPERTY LABELS fast)
@@ -381,6 +389,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
                 set_property(TEST ${TST} PROPERTY LABELS medium)
         elseif(${LABEL_SLOW} GREATER -1)
                 set_property(TEST ${TST} PROPERTY LABELS slow)
+        elseif(${LABEL_PERF} GREATER -1)
+                set_property(TEST ${TST} PROPERTY LABELS perf)
         else()
                 message(STATUS "TEST ${TST} needs a label setting!")
                 set_property(TEST ${TST} PROPERTY LABELS NeedsLabel)
