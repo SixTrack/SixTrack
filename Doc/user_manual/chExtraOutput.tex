@@ -10,7 +10,7 @@ How to do this is described below.
 The \texttt{DUMP} block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.
 This can be done in any \texttt{SINGLE ELEMENTS} which are directly mentioned in the \texttt{STRUCTURE INPUT} part of \texttt{fort.2} (\texttt{BLOC}s cannot be used).
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
-Please note that each single element can only be selected once; however it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence (by editing fort.2).
+Please note that each single element can only be selected once; however it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence (by editing \texttt{fort.2}).
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
@@ -31,7 +31,7 @@ Please note that each single element can only be selected once; however it is po
     \texttt{format}        & integer & A switch specifying the output format. See table (\ref{tab:dumpformat}). \\
     \texttt{filename}      & char    & The name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so, then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}. \\
     \texttt{first}         & integer & The first turn where this dump should be active. This argument may be omitted if \texttt{last} is also omitted, and if so it defaults to turn 1. \\
-    \texttt{last}          & integer & The last turn where this dump should be active, -1 meaning ``untill the end of the simulation''. This argument may be omitted if \texttt{first} is also omitted, and if so it defaults to -1. \\
+    \texttt{last}          & integer & The last turn where this dump should be active, --1 meaning ``untill the end of the simulation''. This argument may be omitted if \texttt{first} is also omitted, and if so it defaults to -1. \\
     \texttt{HIGH}          & keyword & If present anywhere in the \texttt{DUMP} block, this triggers high-precission output, meaning more digits in the output files. \\
     \texttt{FRONT}         & keyword & If present anywhere in the \texttt{DUMP} block, this keyword triggers the DUMPed particles to be dumped in front of the element, i.e.\ before the kick. This works for all elements, including \texttt{BLOC}s, when combined with the \texttt{ALL} as \texttt{element\ name}. Note that \texttt{FRONT} is not yet supported for thick tracking, and trying to use this combination will produce a run-time error.
 \end{longtabu}

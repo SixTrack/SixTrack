@@ -27,7 +27,7 @@ The number of elements or blocks can be chosen.
     \texttt{ilin}        & integer & Logical switch to calculate the traditional linear optics calculation in 4D (\texttt{1 = ilin}) and with the DA approach 6D (\texttt{2 = ilin}). \\
     \texttt{ntco}        & integer & A switch to write out linear coupling parameters. \\
                          &         &  \texttt{ntco = 0}: no write-out. \\
-                         &         &  \texttt{ntco $\neq$ 0}: write-out of all linear coupled (4D) parameters including the coupling angle. These parameters (name, longitudinal position, the phase advances at that location, 4   $\beta$--, $\alpha$-- and $\gamma$--functions, 4 angles for coordinates and momenta respectively, plus the coupling angle [rad]) are written in ascii format on file \# 11. This write-out happens every \texttt{ntco} turns. \\
+                         &         &  \texttt{ntco $\neq$ 0}: write-out of all linear coupled (4D) parameters including the coupling angle. These parameters (name, longitudinal position, the phase advances at that location, 4   $\beta$--, $\alpha$-- and $\gamma$--functions, 4 angles for coordinates and momenta respectively, plus the coupling angle [rad]) are written in ascii format on file \texttt{fort.11}. This write-out happens every \texttt{ntco} turns. \\
     \texttt{E\_I, E\_II} & floats  & The two eigen-emittances to be chosen to determine the coupling angle. They are typically set to be equal. \\
     \texttt{names}       & char    & For \texttt{nlin $\leq$ nele} element and block names the linear parameters are printed whenever they appear in the accelerator structure.
 \end{longtabu}
@@ -35,7 +35,7 @@ The number of elements or blocks can be chosen.
 \paragraph{Remarks}
 \begin{itemize}
     \item To make this block work the Tracking Parameter block (~\ref{TraPar}) has to used as well.
-    \item When the \texttt{ELEMENT 0} option is used, a file unit \# 34 is written with the longitudinal position, name, element type, multipole strength, $\beta$ functions and phase advances in the horizontal and vertical phase space respectively. This file is used as input for the \texttt{SODD} program~\cite{SODD} to calculate de-tuning and distortion terms in first and second order. A full program suite can be found at: /afs/cern.ch/group/si/slap/share/sodd
+    \item When the \texttt{ELEMENT 0} option is used, a file \texttt{fort.34} is written with the longitudinal position, name, element type, multipole strength, $\beta$ functions and phase advances in the horizontal and vertical phase space respectively. This file is used as input for the \texttt{SODD} program~\cite{SODD} to calculate de-tuning and distortion terms in first and second order. A full program suite can be found at: /afs/cern.ch/group/si/slap/share/sodd
     \item If the \texttt{BLOCK} option has been used, the tunes may be wrong by a multiple of 1/2. This option is not active in the DA part (\texttt{2 = ilin}), which also ignores the (\texttt{NTCO}) option.
 \end{itemize}
 
@@ -310,13 +310,13 @@ A four--dimensional version integrated in SixTrack is available as described in 
     \item For \texttt{nsix = 1}, the map can only be calculated till a cavity is reached.
     \item If the 6D closed orbit is calculated, the $5 \times 6$ map cannot be done. \texttt{nsix} is therefore forced to 0.
     \item If \texttt{nvar} is set to 5, the momentum dependence is determined without the need for including a fake cavity. With other words: the linear blocks are automatically broken up into single linear elements so that the momentum dependence can be calculated.
-    \item If a DA map is needed at some longitudinal location, one just has to introduce an element denoted \texttt{DAMAP} at that place in the structure, \texttt{DAMAP} has also to appear as a marker (zero length, element type = 0) in the single element list (\ref{NonEle}). This extra map is written to file \# 17.
+    \item If a DA map is needed at some longitudinal location, one just has to introduce an element denoted \texttt{DAMAP} at that place in the structure, \texttt{DAMAP} has also to appear as a marker (zero length, element type = 0) in the single element list (\ref{NonEle}). This extra map is written to file \texttt{fort.17}.
 \end{itemize}
 
 % ================================================================================================================================ %
 \section{Normal Forms} \label{Normal}
 
-All the parameters to compute the Normal Form of a truncated one--turn map are given in the \textit{Normal Form} input block.
+All the parameters to compute the Normal Form of a truncated one turn map are given in the \textit{Normal Form} input block.
 Details on these procedures including the next block~\ref{Corrections} can be found in reference \cite{Massimo}.
 
 \bigskip
@@ -483,7 +483,7 @@ The following quantities are calculated:
     \item The post--processing can be done in two ways:
     \begin{enumerate}
         \item directly following a tracking run by adding this input block to the input blocks of the tracking,
-        \item as a later run where the tracking parameter file (unit \# 3) consists of only the \textit{Program Version} input   block~\ref{ProVer} (using the \texttt{FREE} option) and of this input block specifying the post--processing parameters followed by \texttt{ENDE} as usual.
+        \item as a later run where the tracking parameter file \texttt{fort.3} consists of only the \textit{Program Version} input   block~\ref{ProVer} (using the \texttt{FREE} option) and of this input block specifying the post--processing parameters followed by \texttt{ENDE} as usual.
     \end{enumerate}
     \item The HBOOK/HPLOT routines are only used at the start of the main program for initialisation and termination. The actual plots are done in the post--processing subroutine. The routines are activated only if at least one of the plotting parameters (\texttt{idis, icow, istw, iffw}) is set to one.
 \end{enumerate}
