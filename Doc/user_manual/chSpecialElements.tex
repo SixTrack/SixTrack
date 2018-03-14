@@ -812,7 +812,7 @@ Each wire also needs to be added as single element in the list of single element
 \end{tabular}
 
 \begin{center}
-\begin{longtable}{|p{2.0cm} |p{1.0cm} |p{9.2cm}|}
+\begin{longtable}{|p{2.0cm} |p{1.4cm} |p{9.2cm}|}
     %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
     \caption{Input parameters for the \texttt{WIRE} block.}
     \label{tab:wire} \\*
@@ -896,19 +896,17 @@ wire_2   -1  +98.9   2.0  1.0   10.0   10.0     0.0     0.0
 NEXT
 \end{cverbatim}
 The single and structure element definition in \texttt{fort.2} is given by:
-\begin{cverbatim}
+\begin{ctverbatim}
 SINGLE ELEMENTS---------------------------------------------------------
 ...
-wire_1           15   0.000000000e+00   0.000000000e+00 
-0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
-wire_2           15   0.000000000e+00   0.000000000e+00 
-0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+wire_1   15 0.000000000e+00 0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
+wire_2   15 0.000000000e+00 0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
 ...
 STRUCTURE INPUT---------------------------------------------------------
 ...
 BLOC56            wire_1              wire_2
 ...
-\end{cverbatim}
+\end{ctverbatim}
 Note that all parameters except for the type have to be set to 0 in the single element definition.
 
 % ================================================================================================================================ %
@@ -1025,7 +1023,7 @@ Currently the ideal electron lens is implemented, i.e.~with no errors in the e-b
 \end{tabular}
 
 \begin{center}
-\begin{longtable}{|p{2.0cm} | p{2.4cm} p{1.0cm} p{9.0cm}|}
+\begin{longtable}{|p{2.0cm} | p{2.4cm} | p{1.0cm} | p{9.0cm}|}
     %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
     \caption{Input parameters for \texttt{ELEN} block.}
     \label{tab:elen} \\*
@@ -1127,19 +1125,17 @@ hel2 GAUSSIAN 4.920e-03 6.928 4.619 1.1547 2.3093 0 0 0.3
 NEXT
 \end{cverbatim}
 The single and structure element definition in \texttt{fort.2} is given by:
-\begin{cverbatim}
+\begin{ctverbatim}
 SINGLE ELEMENTS---------------------------------------------------------
 ...
-hel1            29   0.000000000e+00   0.000000000e+00 
-   0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
-hel2            29   0.000000000e+00   0.000000000e+00   
-   0.000000000e+00    0.000000000e+00    0.000000000e+00    0.000000000e+00
+hel1            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
+hel2            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
 ...
 STRUCTURE INPUT---------------------------------------------------------
 ...
 BLOC56            hel1              hel2
 ...
-\end{cverbatim}
+\end{ctverbatim}
 
 \bigskip
 \noindent \textbf{Note:} All parameters except for the type are set to 0 in the single element definition.
