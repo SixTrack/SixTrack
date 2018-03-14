@@ -6373,6 +6373,7 @@ cc2008
         endif
 +cd trom10
         if(kzz.eq.22) then
+          print *, "trroooooooo10"
           do j=1,ium
             do kx=1,2
               ll=kx*2
@@ -6386,21 +6387,15 @@ cc2008
             enddo
           enddo
         endif
++cd trombsym
+
 +cd trom20
         if(kzz.eq.22) then
           irrtr=imtr(ix)
-!FOX  DPDA=DPDA1*C1M3 ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
-!FOX  RV=EJ1/E0*E0F/EJF1 ;
 
 !FOX  YP(1)=Y(1)*(1+DPDA) ;
 !FOX  YP(2)=Y(2)*(1+DPDA) ;
-!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3/(E0F/E0) ;
-
-
-
-
+!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
 
 !FOX  TEMPI(1) = X(1) ;
 !FOX  TEMPI(2) = YP(1) ;
@@ -6408,10 +6403,6 @@ cc2008
 !FOX  TEMPI(4) = YP(2) ;
 !FOX  TEMPI(5) = SIGMDA ;
 !FOX  TEMPI(6) = PUSIG ;
-
-
-
-
 
 !FOX  X(1)=COTR(IRRTR,1) +
 !FOX  RRTR(IRRTR,1,1)*TEMPI(1)+RRTR(IRRTR,1,2)*TEMPI(2)+
@@ -6444,16 +6435,15 @@ cc2008
 !FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
 
 
+!FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DPDA=DPDA1*C1M3 ;
+
 !FOX  Y(1)=YP(1)/(1+DPDA) ; 
 !FOX  Y(2)=YP(2)/(1+DPDA) ;
 
-
-
-
-
-print*, "pusiiiiig", dare(pusig)
-print*, "dpda1111", dare(dpda1)
-print*, "beta", E0/E0F
 
       endif
 +cd trom30
@@ -6465,13 +6455,17 @@ print*, "beta", E0/E0F
           irrtr=imtr(ix)
           do j=1,napx
 +cd trom41
+print *, "trroooooooo41"
       sigmv(j)=(((((sigmv(j)+cotr(irrtr,5))+rrtr(irrtr,5,1)*xv(1,j))+   &!hr03
      &rrtr(irrtr,5,2)*yv(1,j))+rrtr(irrtr,5,3)*xv(2,j))+                &!hr03
 !BNL-NOV08
 !     &rrtr(irrtr,5,4)*yv(2,j)
      &rrtr(irrtr,5,4)*yv(2,j))+(rrtr(irrtr,5,6)*dpsv(j))*c1e3            !hr03
 !BNL-NOV08
+
 +cd trom42
+print *, "trroooooooo42"
+print *, "thissss", real(idz(1),fPrec)
             pux=xv(1,j)
             dpsv3(j)=dpsv(j)*c1e3
             xv(1,j)=((cotr(irrtr,1)+rrtr(irrtr,1,1)*pux)+               &!hr03
