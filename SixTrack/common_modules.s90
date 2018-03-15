@@ -486,8 +486,8 @@ module mod_common
   integer, save :: nbeam,ibbc,ibeco,ibtyp,lhc
   
   ! common/trom/
-  real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6)
-  integer, allocatable, save ::  imtr(:) !(nele)
+  real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6),pttemp,temptr(6)
+  integer, allocatable, save ::  imtr(:),kxxa !(nele),
   
   ! common /bb6d/
   real(kind=fPrec), save :: bbcu(nbb,12)

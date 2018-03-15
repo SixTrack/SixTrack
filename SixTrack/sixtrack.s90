@@ -1069,7 +1069,7 @@
      &rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
      &qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
      &iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-     &nprint,ndafi,qwsk,betx,betz,                                      &
+     &nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                 &
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
@@ -6262,36 +6262,15 @@ cc2008
             enddo
           enddo
         endif
-+cd trombsym
-        if(kzz.eq.22) then
-          do j=1,ium
-            temptrack(1)=x(j,1)
-            temptrack(2)=y(j,1)*odpsv(df)
-            temptrack(3)=x(j,2)
-            temptrack(4)=y(j,2)
-            temptrack(5)=sigmv(j)
-            temptrack(6)=(ejv-e0)/e0
-
-            do kx=1,6
-              x(j,1) = x(j,1)+temptrack(kx)*rrtr(imtr(ix))
-              y(j,1) = y(j,1)+temptrack(kx)*rrtr(imtr(ix)) 
-              x(j,2) = x(j,2)+temptrack(kx)*rrtr(imtr(ix)) 
-              y(j,2) = y(j,2)+temptrack(kx)*temptrack(kx) 
-              sigmv(j) = sigmv(j)+temptrack(kx)*temptrack(kx)       
-                            
-            enddo
-          enddo
-        endif
                 
-
 
 
 +cd trom20
         if(kzz.eq.22) then
           irrtr=imtr(ix)
 
-!FOX  YP(1)=Y(1)*(1+DPDA) ;
-!FOX  YP(2)=Y(2)*(1+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
 !FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
 
 !FOX  TEMPI(1) = X(1) ;
@@ -6352,29 +6331,51 @@ cc2008
           irrtr=imtr(ix)
           do j=1,napx
 +cd trom41
-      sigmv(j)=(((((sigmv(j)+cotr(irrtr,5))+rrtr(irrtr,5,1)*xv(1,j))+   &!hr03
-     &rrtr(irrtr,5,2)*yv(1,j))+rrtr(irrtr,5,3)*xv(2,j))+                &!hr03
+ !     sigmv(j)=(((((sigmv(j)+cotr(irrtr,5))+rrtr(irrtr,5,1)*xv(1,j))+   &!hr03
+ !    &rrtr(irrtr,5,2)*yv(1,j))+rrtr(irrtr,5,3)*xv(2,j))+                &!hr03
 !BNL-NOV08
 !     &rrtr(irrtr,5,4)*yv(2,j)
-     &rrtr(irrtr,5,4)*yv(2,j))+(rrtr(irrtr,5,6)*dpsv(j))*c1e3            !hr03
+!     &rrtr(irrtr,5,4)*yv(2,j))+(rrtr(irrtr,5,6)*dpsv(j))*c1e3            !hr03
 !BNL-NOV08
 
 +cd trom42
-            pux=xv(1,j)
-            dpsv3(j)=dpsv(j)*c1e3
-            xv(1,j)=((cotr(irrtr,1)+rrtr(irrtr,1,1)*pux)+               &!hr03
-     &rrtr(irrtr,1,2)*yv(1,j))+(real(idz(1),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,1,6)   !hr03
-            yv(1,j)=((cotr(irrtr,2)+rrtr(irrtr,2,1)*pux)+               &!hr03
-     &rrtr(irrtr,2,2)*yv(1,j))+(real(idz(1),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,2,6)   !hr03
-            pux=xv(2,j)
-            xv(2,j)=((cotr(irrtr,3)+rrtr(irrtr,3,3)*pux)+               &!hr03
-     &rrtr(irrtr,3,4)*yv(2,j))+(real(idz(2),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,3,6)   !hr03
-            yv(2,j)=((cotr(irrtr,4)+rrtr(irrtr,4,3)*pux)+               &!hr03
-     &rrtr(irrtr,4,4)*yv(2,j))+(real(idz(2),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,4,6)   !hr03
+
+            !The values are stored in the temp vector which are used for the multiplication. 
+            print *, "Is here but diessss hereeee"
+            temptr(1)=xv(j,1)
+            temptr(2)=yv(j,1)*(one+dpsv(j))
+            temptr(3)=xv(j,2)
+            temptr(4)=yv(j,2)*(one+dpsv(j))
+            !temptr(5)=sigmv(j)
+            !temptr(6)=((ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+            print *, "allllivveee"
+            ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+            xv(j,1)  = cotr(irrtr,1)
+            yv(j,1)  = cotr(irrtr,2)
+            xv(j,2)  = cotr(irrtr,3)
+            yv(j,2)  = cotr(irrtr,4)
+            sigmv(j) = cotr(irrtr,5)
+            pttemp   = cotr(irrtr,6)
+            ! Multiplying the arbitrary matrix to the coordinates. 
+            do kxxa=1,6
+              xv(j,1)   =  xv(j,1)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+              yv(j,1)   =  yv(j,1)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+              xv(j,2)   =  xv(j,2)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+              yv(j,2)   =  yv(j,2)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
+              sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
+              pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+            enddo
+            ! Transforming back to the tracked coordinates of Sixtrack...
+            ejv(j)  = e0f*pttemp/(c1e3*(e0/e0f))+e0
+            ejfv(j)=sqrt(ejv(j)**2-pma**2)
+            rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+            dpsv(j)=(ejfv(j)-e0f)/e0f
+            oidpsv(j)=one/(one+dpsv(j))
+            dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+            
+            ! We have to go back to angles after we updated the energy. 
+            yv(j,1) = yv(j,1)/(one+dpsv(j))
+            yv(j,2) = yv(j,2)/(one+dpsv(j))
           enddo
 
 !----------------------------------------------------------------------
