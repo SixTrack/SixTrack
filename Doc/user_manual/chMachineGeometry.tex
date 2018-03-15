@@ -133,7 +133,7 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 % ================================================================================================================================ %
 \subsection{Multipole Blocks} \label{MulBlo}
 
-A set of normal, normal--r.m.s., skew, and skew--r.m.s. errors can be combined effectively.
+A set of normal, normal-r.m.s., skew, and skew-r.m.s. errors can be combined effectively.
 The actual values for the strengths have to be given in a separate \textit{Multipole Coefficient} input block (\ref{MulCoe}) which must have the same name.
 To consider the curvature of dipoles which are replaced by drifts and dipole kicks this block is used in two different ways.
 
@@ -237,7 +237,7 @@ All parameters except name and type have to be set to zero, otherwise SixTrack a
 The parameters for the wire are defined in the \texttt{WIRE} input block.
 
 % ================================================================================================================================ %
-\subsection{``Phase--trombone'' or Matrix Element} \label{PT}
+\subsection{``Phase-trombone'' or Matrix Element} \label{PT}
 
 \paragraph{Format} \texttt{name type}
 
@@ -467,7 +467,7 @@ It is therefore advised to not use these elements.
 % ================================================================================================================================ %
 \section{Block Definitions} \label{BloDef}
 
-In four--dimensional transverse tracking, the linear elements between non-linear elements can be combined to a single linear block to save computing time.
+In four-dimensional transverse tracking, the linear elements between non-linear elements can be combined to a single linear block to save computing time.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -481,17 +481,17 @@ In four--dimensional transverse tracking, the linear elements between non-linear
 
 \bigskip
 \begin{longtabu}{@{}lp{0.75\linewidth}}
-    \texttt{mper} & Number of super periods. The following set of blocks is considered a \texttt{super-period}. The accelerator consists of \texttt{mper} super--periods. \\
-    \texttt{msym(i)} & $\pm$ 1 for each super--period. If $\mathrm{msym}(i)=1$, the \mbox{$i$'th} super--period will be built up in the order in which linear elements appear in the blocks  below. If $\mathrm{msym}(i)=-1$, the super--period will be built up in reverse order. \\
+    \texttt{mper} & Number of super periods. The following set of blocks is considered a \texttt{super-period}. The accelerator consists of \texttt{mper} super-periods. \\
+    \texttt{msym(i)} & $\pm$ 1 for each super-period. If $\mathrm{msym}(i)=1$, the \mbox{$i$'th} super-period will be built up in the order in which linear elements appear in the blocks  below. If $\mathrm{msym}(i)=-1$, the super-period will be built up in reverse order. \\
     \texttt{block-name} & The name of the block with up to 47 characters. \\
     \texttt{element-name} & The element names have to appear as a linear element in the list of ``single elements'' (\ref{LinEle}). If one line is too short to contain all the elements of a block, a line with additional elements to the same block can be added. At least 5 (five) blanks must appear at the beginning of the extra line so that names of blocks and names of linear elements in a block can be distinguished.
 \end{longtabu}
 
 \paragraph{Remarks}
 \begin{enumerate}
-    \item When synchrotron oscillation is introduced, the linear elements can no longer be lumped into one block, because in that case even a drift length magnet is a non-linear element with respect to the longitudinal plane. However, the block structure is still kept to make use of the speed--up in case one can restrict the studies to the four--dimensional case.
+    \item When synchrotron oscillation is introduced, the linear elements can no longer be lumped into one block, because in that case even a drift length magnet is a non-linear element with respect to the longitudinal plane. However, the block structure is still kept to make use of the speed-up in case one can restrict the studies to the four-dimensional case.
     \item The maximum number of blocks and the maximum number of entries in each block are defined as parameters (Appendix~\ref{DSP}).
-    \item The inversion of a super--period ($\mathrm{msym(i)} = -1$) is presently no longer allowed.
+    \item The inversion of a super-period ($\mathrm{msym(i)} = -1$) is presently no longer allowed.
 \end{enumerate}
 
 % ================================================================================================================================ %

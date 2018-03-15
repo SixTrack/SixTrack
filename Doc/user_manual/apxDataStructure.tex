@@ -1,8 +1,8 @@
-\chapter{Data Structure of the Data--Files} \label{Header}
+\chapter{Data Structure of the Data Files} \label{Header}
 
 A common data structure for the programs MAD-X and SixTrack is agreed on.
-Besides some minor differences this allows a straightforward post--processing of data from either program.
-Each binary data--file has a header which holds a description of the run with comments, tracking parameters and 50 additional parameters for future purposes, six of which are already specified in SixTrack.
+Besides some minor differences this allows a straightforward post-processing of data from either program.
+Each binary data file has a header which holds a description of the run with comments, tracking parameters and 50 additional parameters for future purposes, six of which are already specified in SixTrack.
 
 \begin{table}[h]
     \caption{Header of the Binary Data Files}
@@ -43,7 +43,7 @@ Each binary data--file has a header which holds a description of the run with co
         \hline
         Float & 6 * 8 & Dispersion vector \\
         \hline
-        Float & 36 * 8 & Six--dimensional transfer map \\
+        Float & 36 * 8 & Six-dimensional transfer map \\
         \hline
         \rowcolor{gray!15}
         \multicolumn{3}{|l|}{50 additional parameters} \\
@@ -57,9 +57,9 @@ Each binary data--file has a header which holds a description of the run with co
         Float & 8 & Number of turns in the reverse direction \\
         & & (IBM only) \\
         \hline
-        Float & 8 & Correction--factor for the Lyapunov ($\sigma = s - v_0 \times t$) \\
+        Float & 8 & Correction factor for the Lyapunov ($\sigma = s - v_0 \times t$) \\
         \hline
-        Float & 8 & Correction--factor for the Lyapunov (\mbox{$\Delta p/p_0$}) \\
+        Float & 8 & Correction factor for the Lyapunov (\mbox{$\Delta p/p_0$}) \\
         \hline
         Float & 8 & Start turn number for ripple prolongation \\
         \hline
@@ -71,7 +71,7 @@ Each binary data--file has a header which holds a description of the run with co
 \clearpage
 
 Following this header the tracking data are written in n samples of mine numbers preceded by the turn number.
-In the MAD-X format, the number of samples in is not restricted, whilst SixTrack writes only up to two samples for the two particles for the Lyapunov--exponent method.
+In the MAD-X format, the number of samples in is not restricted, whilst SixTrack writes only up to two samples for the two particles for the Lyapunov exponent method.
 Up to 64 particles (two per file) can be treated in the vectorised version of SixTrack.
 
 \begin{table}[h]
@@ -100,7 +100,7 @@ Up to 64 particles (two per file) can be treated in the vectorised version of Si
         \hline
         Float & 8 & $y'$ (mrad) \\
         \hline
-        Float & 8 & Path--length ($\sigma = s - v_0 \times t$) (mm) \\
+        Float & 8 & Path-length ($\sigma = s - v_0 \times t$) (mm) \\
         \hline
         Float & 8 & Relative momentum deviation \mbox{$ \Delta p/p_0$}\\
         \hline
@@ -170,9 +170,9 @@ Files \texttt{fort.28} and \texttt{fort.29} hold integer counter and closed orbi
     \hline \stepcounter{dst}
     \thedst & Vertical Tune \\
     \hline \stepcounter{dst}
-    \thedst & Horizontal $\beta$--function \\
+    \thedst & Horizontal $\beta$-function \\
     \hline \stepcounter{dst}
-    \thedst & Vertical $\beta$--function \\
+    \thedst & Vertical $\beta$-function \\
     \hline \stepcounter{dst}
     \thedst & Horizontal amplitude $1^{st}$ particle\\
     \hline \stepcounter{dst}
@@ -255,9 +255,9 @@ Files \texttt{fort.28} and \texttt{fort.29} hold integer counter and closed orbi
     \hline \stepcounter{dst}
     \thedst & Emittance Mode II\\
     \hline \stepcounter{dst}
-    \thedst & Secondary horizontal $\beta$--function\\
+    \thedst & Secondary horizontal $\beta$-function\\
     \hline \stepcounter{dst}
-    \thedst & Secondary vertical $\beta$--function\\
+    \thedst & Secondary vertical $\beta$-function\\
     \hline \stepcounter{dst}
     \thedst & $Q'_x$\\
     \hline \stepcounter{dst}
@@ -271,7 +271,7 @@ Files \texttt{fort.28} and \texttt{fort.29} hold integer counter and closed orbi
 \end{center}
 
 As an option the 4D linear parameters can be dumped to file \texttt{fort.11} when the linear optics block~\ref{LinOpt} is activated.
-This can be used for instance for a post--processing of linear coupling.
+This can be used for instance for a post-processing of linear coupling.
 25 values are written in a binary format.
 
 \newcounter{dlo} \setcounter{dlo}{0}
@@ -302,55 +302,55 @@ This can be used for instance for a post--processing of linear coupling.
     \hline \stepcounter{dlo}
     \thedlo & Vertical phase advance \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary horizontal $\beta$--function [m] \\
+    \thedlo & Primary horizontal $\beta$-function [m] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary horizontal $\beta$--function [m] \\
+    \thedlo & Secondary horizontal $\beta$-function [m] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary vertical $\beta$--function [m] \\
+    \thedlo & Secondary vertical $\beta$-function [m] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary vertical $\beta$--function [m] \\
+    \thedlo & Primary vertical $\beta$-function [m] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary horizontal $\alpha$--function [rad] \\
+    \thedlo & Primary horizontal $\alpha$-function [rad] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary horizontal $\alpha$--function [rad] \\
+    \thedlo & Secondary horizontal $\alpha$-function [rad] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary vertical $\alpha$--function [rad] \\
+    \thedlo & Secondary vertical $\alpha$-function [rad] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary vertical $\alpha$--function [rad] \\
+    \thedlo & Primary vertical $\alpha$-function [rad] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary horizontal $\gamma$--function [m] \\
+    \thedlo & Primary horizontal $\gamma$-function [m] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary horizontal $\gamma$--function [m] \\
+    \thedlo & Secondary horizontal $\gamma$-function [m] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary vertical $\gamma$--function [m] \\
+    \thedlo & Secondary vertical $\gamma$-function [m] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary vertical $\gamma$--function [m]\\
+    \thedlo & Primary vertical $\gamma$-function [m]\\
     \hline \stepcounter{dlo}
-    \thedlo & Primary horizontal phase of x--coordinate [pi] \\
+    \thedlo & Primary horizontal phase of x-coordinate [pi] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary horizontal phase of x--coordinate [pi] \\
+    \thedlo & Secondary horizontal phase of x-coordinate [pi] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary vertical phase of y--coordinate [pi] \\
+    \thedlo & Secondary vertical phase of y-coordinate [pi] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary vertical phase of y--coordinate [pi] \\
+    \thedlo & Primary vertical phase of y-coordinate [pi] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary horizontal phase of $x'$--coordinate [pi] \\
+    \thedlo & Primary horizontal phase of $x^\prime$-coordinate [pi] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary horizontal phase of $x'$--coordinate [pi] \\
+    \thedlo & Secondary horizontal phase of $x^\prime$-coordinate [pi] \\
     \hline \stepcounter{dlo}
-    \thedlo & Secondary vertical phase of $y'$--coordinate [pi] \\
+    \thedlo & Secondary vertical phase of $y^\prime$-coordinate [pi] \\
     \hline \stepcounter{dlo}
-    \thedlo & Primary vertical phase of $y'$--coordinate [pi] \\
+    \thedlo & Primary vertical phase of $y^\prime$-coordinate [pi] \\
     \hline \stepcounter{dlo}
     \thedlo & Coupling angle [pi] \\
     \hline \stepcounter{dlo}
     \thedlo & $D_x$ [mm]\\
     \hline \stepcounter{dlo}
-    \thedlo & $D'_x$ [mrad]\\
+    \thedlo & $D^\prime_x$ [mrad]\\
     \hline \stepcounter{dlo}
     \thedlo & $D_y$ [mm]\\
     \hline \stepcounter{dlo}
-    \thedlo & $D'_y$ [mrad]\\
+    \thedlo & $D^\prime_y$ [mrad]\\
     \hline
 \end{longtable}
 \end{center}
@@ -443,9 +443,9 @@ The file \texttt{fort.34} is written when the ``Linear Optic Block'' (see sectio
     \hline \stepcounter{dsu}
     \thedsu & Multipole strength [$\mathrm{mrad} \cdot \mathrm{mm}^{(1-|n|)}$] \\
     \hline \stepcounter{dsu}
-    \thedsu & Horizontal $\beta$--function [m] \\
+    \thedsu & Horizontal $\beta$-function [m] \\
     \hline \stepcounter{dsu}
-    \thedsu & Vertical $\beta$--function [m] \\
+    \thedsu & Vertical $\beta$-function [m] \\
     \hline \stepcounter{dsu}
     \thedsu & Horizontal phase advance \\
     \hline \stepcounter{dsu}

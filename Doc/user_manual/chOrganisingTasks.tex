@@ -24,11 +24,11 @@ If besides mean values for the multipole errors (Gaussian) random errors should 
                   & In the vectorised version the number of different starting seeds can be varied. Each seed is calculated as \mbox{$ k \times izu0 $} where $k$ runs from 1 to \texttt{mmac} which can not exceed 5 to save storage space (see    list of parameters in Appendix~\ref{DSP}).) \\
     \texttt{mout} & A binary switch for various purposes, so all options, as described below, can be combined. \\
                   & \texttt{mout} = 0 : multipole errors internally created \\
-                  & \texttt{mout} = 1 : multipole errors read--in from external file \\
-                  & External multipole errors are read--in from file 16 into the array of random values. To activate these values one has to set to a value of 1 the relevant r.m.s.--positions of the corresponding multipole blocks (\ref{MulCoe}). The systematic components are added as usual and multipoles not found in the \texttt{fort.16} are treated as for (\texttt{mout} = 0). An error is only detected if there are too few sets of multipoles in \texttt{fort.16}. \\
+                  & \texttt{mout} = 1 : multipole errors read-in from external file \\
+                  & External multipole errors are read-in from file 16 into the array of random values. To activate these values one has to set to a value of 1 the relevant r.m.s.-positions of the corresponding multipole blocks (\ref{MulCoe}). The systematic components are added as usual and multipoles not found in the \texttt{fort.16} are treated as for (\texttt{mout} = 0). An error is only detected if there are too few sets of multipoles in \texttt{fort.16}. \\
                   & \texttt{mout} = 2: the geometry and strength file is written to file \texttt{fort.4} in the same format as the input file \texttt{fort.2}; the multipole coefficients are written to file \texttt{fort.9}; name, misalignments and tilt is written to file \texttt{fort.27} and finally name, random single multipole  strength and both random transverse misalignments are written to file \texttt{fort.31}.\\
-                  & \texttt{mout} = 4: Name, horizontal and vertical misalignment and also the element tilt are read--in from file \texttt{fort.8}.\\
-                  & \texttt{mout} = 8: Name and 3 Random numbers for single kick strength and both random transverse misalignments and also the value of the tilt are read--in from file \texttt{fort.30}. \\
+                  & \texttt{mout} = 4: Name, horizontal and vertical misalignment and also the element tilt are read-in from file \texttt{fort.8}.\\
+                  & \texttt{mout} = 8: Name and 3 Random numbers for single kick strength and both random transverse misalignments and also the value of the tilt are read-in from file \texttt{fort.30}. \\
     \texttt{mcut} & The random distribution can be cut by \texttt{mcut} sigma of the distribution. No cuts are applied for \texttt{mcut = 0}.
 \end{longtabu}
 
