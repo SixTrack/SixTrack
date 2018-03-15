@@ -6341,14 +6341,12 @@ cc2008
 +cd trom42
 
             !The values are stored in the temp vector which are used for the multiplication. 
-            print *, "Is here but diessss hereeee"
             temptr(1)=xv(j,1)
             temptr(2)=yv(j,1)*(one+dpsv(j))
             temptr(3)=xv(j,2)
             temptr(4)=yv(j,2)*(one+dpsv(j))
-            !temptr(5)=sigmv(j)
-            !temptr(6)=((ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-            print *, "allllivveee"
+            temptr(5)=sigmv(j)
+            temptr(6)=((ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
             ! Adding the closed orbit. The previous values are stored in the temptr vector.   
             xv(j,1)  = cotr(irrtr,1)
             yv(j,1)  = cotr(irrtr,2)
@@ -6371,7 +6369,7 @@ cc2008
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
             dpsv(j)=(ejfv(j)-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
-            dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+            dpsv1(j)=(dpsv(j)*c1m3)*oidpsv(j)
             
             ! We have to go back to angles after we updated the energy. 
             yv(j,1) = yv(j,1)/(one+dpsv(j))

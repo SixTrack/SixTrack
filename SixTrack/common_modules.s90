@@ -486,8 +486,9 @@ module mod_common
   integer, save :: nbeam,ibbc,ibeco,ibtyp,lhc
   
   ! common/trom/
-  real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6),pttemp,temptr(6)
-  integer, allocatable, save ::  imtr(:),kxxa !(nele),
+  real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6)
+
+  integer, allocatable, save ::  imtr(:) !(nele),
   
   ! common /bb6d/
   real(kind=fPrec), save :: bbcu(nbb,12)
@@ -621,12 +622,12 @@ module mod_commonmn
        clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
        yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
        dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
-       xlv(npart),zlv(npart),rvv(npart),                                 &
+       xlv(npart),zlv(npart),rvv(npart),pttemp,temptr(6),                &
 +if rvet
        rvet(npart),                                                      &
 +ei
        ejf0v(npart)
-  integer, save :: numxv(npart),nms(npart),nlostp(npart)
+  integer, save :: numxv(npart),nms(npart),nlostp(npart),kxxa
   logical, save :: pstop(npart)
   
   ! common /main2/
