@@ -4534,7 +4534,7 @@
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
           
           !We want to go back to sixtrack variables (15.03.2018)
-!FOX      TRACKI(5) = TRACKI(5)*RV
+!FOX      TRACKI(5) = TRACKI(5)*RV ;
 
           dummy=dare(sigmda)  !Added 14.03.2018
 !FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
