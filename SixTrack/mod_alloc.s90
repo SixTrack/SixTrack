@@ -42,6 +42,10 @@ interface alloc
   module procedure alloc1dr128
   module procedure alloc2dr128
   module procedure alloc3dr128
+
+!characters
+  module procedure alloc1dc
+  module procedure alloc2dc
 end interface alloc
 
 interface resize
@@ -66,6 +70,8 @@ interface resize
   module procedure resize2dr128
   module procedure resize3dr128
 
+  module procedure resize1dc
+  module procedure resize2dc
 end interface resize
 
 contains
@@ -447,7 +453,7 @@ subroutine resize1di32(input, newsize, initial, ename)
   !The input variable to allocated
   integer(kind=int32), allocatable, intent(inout) :: input(:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   integer(kind=int32), allocatable :: buffer(:)
 
   !The inital value for the array to be set to
@@ -471,7 +477,7 @@ subroutine resize1di32(input, newsize, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -515,7 +521,7 @@ subroutine resize2di32(input, newsize1, newsize2, initial, ename)
   !The input variable to allocated
   integer(kind=int32), allocatable, intent(inout) :: input(:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   integer(kind=int32), allocatable :: buffer(:,:)
 
   !The inital value for the array to be set to
@@ -539,7 +545,7 @@ subroutine resize2di32(input, newsize1, newsize2, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -585,7 +591,7 @@ subroutine resize3di32(input, newsize1, newsize2, newsize3, initial, ename)
   !The input variable to allocated
   integer(kind=int32), allocatable, intent(inout) :: input(:,:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   integer(kind=int32), allocatable :: buffer(:,:,:)
 
   !The inital value for the array to be set to
@@ -609,7 +615,7 @@ subroutine resize3di32(input, newsize1, newsize2, newsize3, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -657,7 +663,7 @@ subroutine resize1di64(input, newsize, initial, ename)
   !The input variable to allocated
   integer(kind=int64), allocatable, intent(inout) :: input(:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   integer(kind=int64), allocatable :: buffer(:)
 
   !The inital value for the array to be set to
@@ -681,7 +687,7 @@ subroutine resize1di64(input, newsize, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -723,7 +729,7 @@ subroutine resize2di64(input, newsize1, newsize2, initial, ename)
   !The input variable to allocated
   integer(kind=int64), allocatable, intent(inout) :: input(:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   integer(kind=int64), allocatable :: buffer(:,:)
 
   !The inital value for the array to be set to
@@ -747,7 +753,7 @@ subroutine resize2di64(input, newsize1, newsize2, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -793,7 +799,7 @@ subroutine resize3di64(input, newsize1, newsize2, newsize3, initial, ename)
   !The input variable to allocated
   integer(kind=int64), allocatable, intent(inout) :: input(:,:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   integer(kind=int64), allocatable :: buffer(:,:,:)
 
   !The inital value for the array to be set to
@@ -817,7 +823,7 @@ subroutine resize3di64(input, newsize1, newsize2, newsize3, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1195,7 +1201,7 @@ subroutine resize1dr32(input, newsize, initial, ename)
   !The input variable to allocated
   real(kind=real32), allocatable, intent(inout) :: input(:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real32), allocatable :: buffer(:)
 
   !The inital value for the array to be set to
@@ -1219,7 +1225,7 @@ subroutine resize1dr32(input, newsize, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1263,7 +1269,7 @@ subroutine resize2dr32(input, newsize1, newsize2, initial, ename)
   !The input variable to allocated
   real(kind=real32), allocatable, intent(inout) :: input(:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real32), allocatable :: buffer(:,:)
 
   !The inital value for the array to be set to
@@ -1287,7 +1293,7 @@ subroutine resize2dr32(input, newsize1, newsize2, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1333,7 +1339,7 @@ subroutine resize3dr32(input, newsize1, newsize2, newsize3, initial, ename)
   !The input variable to allocated
   real(kind=real32), allocatable, intent(inout) :: input(:,:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real32), allocatable :: buffer(:,:,:)
 
   !The inital value for the array to be set to
@@ -1357,7 +1363,7 @@ subroutine resize3dr32(input, newsize1, newsize2, newsize3, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1405,7 +1411,7 @@ subroutine resize1dr64(input, newsize, initial, ename)
   !The input variable to allocated
   real(kind=real64), allocatable, intent(inout) :: input(:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real64), allocatable :: buffer(:)
 
   !The inital value for the array to be set to
@@ -1429,7 +1435,7 @@ subroutine resize1dr64(input, newsize, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1471,7 +1477,7 @@ subroutine resize2dr64(input, newsize1, newsize2, initial, ename)
   !The input variable to allocated
   real(kind=real64), allocatable, intent(inout) :: input(:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real64), allocatable :: buffer(:,:)
 
   !The inital value for the array to be set to
@@ -1495,7 +1501,7 @@ subroutine resize2dr64(input, newsize1, newsize2, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1541,7 +1547,7 @@ subroutine resize3dr64(input, newsize1, newsize2, newsize3, initial, ename)
   !The input variable to allocated
   real(kind=real64), allocatable, intent(inout) :: input(:,:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real64), allocatable :: buffer(:,:,:)
 
   !The inital value for the array to be set to
@@ -1565,7 +1571,7 @@ subroutine resize3dr64(input, newsize1, newsize2, newsize3, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1778,7 +1784,7 @@ subroutine resize1dr128(input, newsize, initial, ename)
   !The input variable to allocated
   real(kind=real128), allocatable, intent(inout) :: input(:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real128), allocatable :: buffer(:)
 
   !The inital value for the array to be set to
@@ -1802,7 +1808,7 @@ subroutine resize1dr128(input, newsize, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1844,7 +1850,7 @@ subroutine resize2dr128(input, newsize1, newsize2, initial, ename)
   !The input variable to allocated
   real(kind=real128), allocatable, intent(inout) :: input(:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real128), allocatable :: buffer(:,:)
 
   !The inital value for the array to be set to
@@ -1868,7 +1874,7 @@ subroutine resize2dr128(input, newsize1, newsize2, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1914,7 +1920,7 @@ subroutine resize3dr128(input, newsize1, newsize2, newsize3, initial, ename)
   !The input variable to allocated
   real(kind=real128), allocatable, intent(inout) :: input(:,:,:)
 
-  !A buffer used to expand the array 
+  !A buffer used to expand the array
   real(kind=real128), allocatable :: buffer(:,:,:)
 
   !The inital value for the array to be set to
@@ -1938,7 +1944,7 @@ subroutine resize3dr128(input, newsize1, newsize2, newsize3, initial, ename)
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, 'is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
-    return 
+    return
   end if
 
   !get the old size of the array
@@ -1974,6 +1980,266 @@ subroutine resize3dr128(input, newsize1, newsize2, newsize3, initial, ename)
   call move_alloc(buffer,input)
 
 end subroutine resize3dr128
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!                          CHARACTERS
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!alloc char 1d
+subroutine alloc1dc(input, strlen, startsize, initial, ename)
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  character(len=*), allocatable, intent(inout) :: input(:)
+
+  !The inital value for the array to be set to
+  character(len=*), intent(in) :: initial
+
+  !The initial size to allocate
+  integer, intent(in) :: startsize
+  integer, intent(in) :: strlen
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: k
+
+  request = startsize * strlen * CHARACTER_STORAGE_SIZE
+
+  !Check that we are not already allocated
+  if(allocated(input) .eqv. .TRUE.) then
+    write(lout,*) 'ERROR: input array is already allocated'
+    stop
+  end if
+
+  !Do the allocation
+  allocate(character(strlen) :: input(startsize), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !Log the number of allocated bits
+  allocated_bits = allocated_bits + request
+
+  !Initialise the array
+  do k=1, startsize
+    input(k) = initial
+  end do
+
+  call print_alloc(ename,request)
+end subroutine alloc1dc
+
+
+!alloc char 2d
+subroutine alloc2dc(input, strlen, startsize1, startsize2, initial, ename)
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  character(len=*), allocatable, intent(inout) :: input(:,:)
+
+  !The inital value for the array to be set to
+  character(len=*), intent(in) :: initial
+
+  !The initial size to allocate
+  integer, intent(in) :: startsize1
+  integer, intent(in) :: startsize2
+  integer, intent(in) :: strlen
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: k,l
+
+  request = startsize1 * startsize2 * strlen * CHARACTER_STORAGE_SIZE
+
+  !Check that we are not already allocated
+  if(allocated(input) .eqv. .TRUE.) then
+    write(lout,*) 'ERROR: input array is already allocated'
+    stop
+  end if
+
+  !Do the allocation
+  allocate(character(strlen) :: input(startsize1,startsize2), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !Log the number of allocated bits
+  allocated_bits = allocated_bits + request
+
+  !Initialise the array
+  do k=1, startsize1
+    do l=1, startsize2
+      input(k,l) = initial
+    end do
+  end do
+
+  call print_alloc(ename,request)
+end subroutine alloc2dc
+
+!resize 1d character array
+subroutine resize1dc(input, strlen, newsize, initial, ename)
+
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  character(len=*), allocatable, intent(inout) :: input(:)
+
+  !The inital value for the array to be set to
+  character(len=*), intent(in) :: initial
+
+  !The initial size to allocate
+  integer, intent(in) :: newsize
+  integer, intent(in) :: strlen
+
+  !A buffer used to expand the array
+  character(len=:), allocatable :: buffer(:)
+
+  !A variable to track the old size of the array
+  integer :: oldsize
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: i
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  if(allocated(input) .neqv. .TRUE.) then
+    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+      call alloc(input, strlen, newsize, initial, ename)
+    return
+  end if
+
+  !get the old size of the array
+  oldsize = size(input)
+
+  !log our request in size change
+  request = (newsize-oldsize) * strlen * CHARACTER_STORAGE_SIZE
+
+  !Allocate a buffer with the new array size, and fill it with the old input
+  allocate(character(len=strlen) :: buffer(newsize), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
+
+  !Set the initial values of the buffer
+  do i=oldsize+1,newsize
+    buffer(i) = initial
+  end do
+
+  !Do a pointer swap and deallocate the buffer
+  call move_alloc(buffer,input)
+
+end subroutine resize1dc
+
+
+!resize 2d character array
+subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
+
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  character(len=*), allocatable, intent(inout) :: input(:,:)
+
+  !The inital value for the array to be set to
+  character(len=*), intent(in) :: initial
+
+  !The initial size to allocate
+  integer, intent(in) :: newsize1
+  integer, intent(in) :: newsize2
+  integer, intent(in) :: strlen
+
+  !A buffer used to expand the array
+  character(len=:), allocatable :: buffer(:,:)
+
+  !A variable to track the old size of the array
+  integer :: oldsize1
+  integer :: oldsize2
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: k,l
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  if(allocated(input) .neqv. .TRUE.) then
+    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+      call alloc(input, strlen, newsize1, newsize2, initial, ename)
+    return
+  end if
+
+  !get the old size of the array
+  oldsize1 = size(input,1)
+  oldsize2 = size(input,2)
+
+  !log our request in size change
+  request = ((newsize1*newsize2)-(oldsize1*oldsize2)) * strlen * CHARACTER_STORAGE_SIZE
+
+  !Allocate a buffer with the new array size, and fill it with the old input
+  allocate(character(len=strlen) :: buffer(newsize1,newsize2), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
+
+  !Set the initial values of the buffer
+  do k=oldsize1+1,newsize1
+    do l=oldsize2+1,newsize2
+      buffer(k,l) = initial
+    end do
+  end do
+
+  !Do a pointer swap and deallocate the buffer
+  call move_alloc(buffer,input)
+
+end subroutine resize2dc
 
 end module mod_alloc
 

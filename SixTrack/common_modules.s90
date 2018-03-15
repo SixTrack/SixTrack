@@ -396,7 +396,7 @@ module mod_common
   ! common /rand0/
   real(kind=fPrec), save :: zfz(nzfz)
   integer, save :: iorg,mzu(nblz),izu0,mmac,mcut
-  character(len=max_name_len), allocatable, save :: bezr(:,:) !(3,nele)
+  character(len=max_name_len), allocatable, save :: bezr(:,:) !(max_name_len)(3,nele)
   
   ! common /rand1/
   real(kind=fPrec), save :: exterr(nblz,40),extalign(nblz,3),tiltc(nblz),tilts(nblz)
@@ -567,19 +567,20 @@ contains
     call alloc(irm,nele,0,'irm')
     call alloc(nmu,nele,0,'nmu')
 
-    allocate(bezr(3,nele), STAT=stat)
-    if (stat.ne.0) goto 42
-!    call alloc(bezr,3,nele,'','bezr')
+!    allocate(bezr(3,nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(bezr, max_name_len, 3, nele, ' ', 'bezr')
 
 !    allocate(kpa(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
     call alloc(kpa,nele,0,'kpa')
 
-    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
-    if (stat.ne.0) goto 42
-!    call alloc(bez,nele,0,'bez')
-!    call alloc(bezb,nele,0,'bezb')
-!    call alloc(bezl,nele,0,'bezl')
+!    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+
+    call alloc(bez, max_name_len, nele, ' ', 'bez')
+    call alloc(bezb, max_name_len, nele, ' ', 'bezb')
+    call alloc(bezl, max_name_len, nele, ' ', 'bezl')
 
 !    allocate(ncororb(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
@@ -675,15 +676,15 @@ contains
 
 !    allocate(bezr(3,nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-!    call alloc(bezr,3,nele,'','bezr')
+    call resize(bezr, max_name_len, 3, nele, ' ', 'bezr')
 
     call resize(kpa,nele_new,0,'kpa')
 
 !    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-!    call alloc(bez,nele,0,'bez')
-!    call alloc(bezb,nele,0,'bezb')
-!    call alloc(bezl,nele,0,'bezl')
+    call resize(bez,  max_name_len, nele, ' ', 'bez')
+    call resize(bezb, max_name_len, nele, ' ', 'bezb')
+    call resize(bezl, max_name_len, nele, ' ', 'bezl')
 
     call resize(ncororb,nele_new,0,'ncororb')
     call resize(ratioe,nele_new,zero,'ratioe')
