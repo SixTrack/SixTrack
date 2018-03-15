@@ -4442,6 +4442,10 @@
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
+              
+              !We want to provide a set of canonical variables (15.03.2018)
+              track6d(5,j) = track6d(5,j)/rvv(j)
+              
             enddo
             call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp, &
      &ibbc)
@@ -4450,8 +4454,6 @@
      &beamoff(1,imbb(i))
               xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-           &!hr03
      &beamoff(2,imbb(i))
-              sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))-           &!hr03
-     &beamoff(3,imbb(i))
               dpsv(j)=(track6d(6,j)+clobeam(6,imbb(i)))-                &!hr03
      &beamoff(6,imbb(i))                                                 !hr03
               oidpsv(j)=one/(one+dpsv(j))
@@ -4462,6 +4464,12 @@
               ejfv(j)=dpsv(j)*e0f+e0f
               ejv(j)=sqrt(ejfv(j)**2+pma**2)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+              
+              !We want to go back to sixtrack variables (15.03.2018)
+              track6d(5,j) = track6d(5,j)*rvv(j)
+              sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))-           &!hr03
+     &beamoff(3,imbb(i))
+              
               if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
             enddo
 +cd beam6dfi
@@ -4508,8 +4516,6 @@
 !FOX      X(1)=TRACKI(1)*C1E3+DUMMY-BEAMOFF1 ;
           dummy=dare(x(2))
 !FOX      X(2)=TRACKI(3)*C1E3+DUMMY-BEAMOFF2 ;
-          dummy=dare(sigmda)  !Added 14.03.2018
-!FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
           dummy=dare(yp(1))
 !FOX      YP(1)=TRACKI(2)*C1E3+DUMMY-BEAMOFF4 ;
           dummy=dare(yp(2))
@@ -4522,6 +4528,8 @@
 !FOX      EJF1=E0F*(ONE+DPDA) ;
 !FOX      EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
+          dummy=dare(sigmda)  !Added 14.03.2018
+!FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
           if(ithick.eq.1) call envada
 +cd multf01
 +if .not.tilt
