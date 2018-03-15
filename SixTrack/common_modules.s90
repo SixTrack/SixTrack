@@ -326,6 +326,8 @@ end module parpro_scale
 module mod_common
   use parpro
   use floatPrecision
+  use mod_alloc
+  use numerical_constants
   
   implicit none
 
@@ -503,80 +505,131 @@ contains
 
   subroutine mod_common_allocate_arrays
     use crcoall
+
     implicit none
+
     integer stat
 
-    allocate(ed(nele),el(nele),ek(nele),sm(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(ed(nele),el(nele),ek(nele),sm(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
 
-    allocate(kz(nele),kp(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+    call alloc(ed,nele,zero,'ed')
+    call alloc(el,nele,zero,'el')
+    call alloc(ek,nele,zero,'ek')
+    call alloc(sm,nele,zero,'sm')
 
-    allocate(bbbx(nele),bbby(nele),bbbs(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(kz(nele),kp(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
 
-    allocate(xpl(nele),xrms(nele),zpl(nele),zrms(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+    call alloc(kz,nele,0,'kz')
+    call alloc(kp,nele,0,'kp')
 
-    allocate(a(nele,2,6), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(bbbx(nele),bbby(nele),bbbs(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(bbbx,nele,zero,'bbbx')
+    call alloc(bbby,nele,zero,'bbby')
+    call alloc(bbbs,nele,zero,'bbbs')
 
-    allocate(hsyc(nele),phasc(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(xpl(nele),xrms(nele),zpl(nele),zrms(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(xpl,nele,zero,'xpl')
+    call alloc(zpl,nele,zero,'zpl')
+    call alloc(xrms,nele,zero,'xrms')
+    call alloc(zrms,nele,zero,'zrms')
 
-    allocate(itionc(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(a(nele,2,6), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(a,nele,2,6,zero,'a')
 
-    allocate(bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(hsyc(nele),phasc(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(hsyc,nele,zero,'hsyc')
+    call alloc(phasc,nele,zero,'phasc')
 
-    allocate(benkc(nele),r00(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(itionc(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(itionc,nele,0,'itionc')
 
-    allocate(irm(nele),nmu(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(bk0,nele,mmul,zero,'bk0')
+    call alloc(ak0,nele,mmul,zero,'ak0')
+    call alloc(bka,nele,mmul,zero,'bka')
+    call alloc(aka,nele,mmul,zero,'aka')
+
+!    allocate(benkc(nele),r00(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(benkc,nele,zero,'benkc')
+    call alloc(r00,nele,zero,'r00')
+
+!    allocate(irm(nele),nmu(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(irm,nele,0,'irm')
+    call alloc(nmu,nele,0,'nmu')
 
     allocate(bezr(3,nele), STAT=stat)
     if (stat.ne.0) goto 42
+!    call alloc(bezr,3,nele,'','bezr')
 
-    allocate(kpa(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(kpa(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(kpa,nele,0,'kpa')
 
     allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
     if (stat.ne.0) goto 42
+!    call alloc(bez,nele,0,'bez')
+!    call alloc(bezb,nele,0,'bezb')
+!    call alloc(bezl,nele,0,'bezl')
 
-    allocate(ncororb(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(ncororb(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(ncororb,nele,0,'ncororb')
 
-    allocate(ratioe(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(ratioe(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(ratioe,nele,zero,'ratioe')
 
-    allocate(iratioe(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(iratioe(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(iratioe,nele,0,'iratioe')
 
-    allocate(isea(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(isea(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(isea,nele,0,'isea')
 
-    allocate(dki(nele,3), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(dki(nele,3), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(dki,nele,3,zero,'dki')
 
-    allocate(parbe(nele,18), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(parbe(nele,18), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(parbe,nele,18,zero,'parbe')
 
-    allocate(ptnfac(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(ptnfac(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(ptnfac,nele,zero,'ptnfac')
 
-    allocate(imtr(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(imtr(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(imtr,nele,0,'imtr')
 
-    allocate(acdipph(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(acdipph(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(acdipph,nele,zero,'acdipph')
 
-    allocate(nturn1(nele), nturn2(nele), nturn3(nele), nturn4(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(nturn1(nele), nturn2(nele), nturn3(nele), nturn4(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(nturn1,nele,0,'nturn1')
+    call alloc(nturn2,nele,0,'nturn2')
+    call alloc(nturn3,nele,0,'nturn3')
+    call alloc(nturn4,nele,0,'nturn4')
 
-    allocate(crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele), STAT=stat)
-    if (stat.ne.0) goto 42
+!    allocate(crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+    call alloc(crabph,nele,zero,'crabph')
+    call alloc(crabph2,nele,zero,'crabph2')
+    call alloc(crabph3,nele,zero,'crabph3')
+    call alloc(crabph4,nele,zero,'crabph4')
 
     !TODO: Certain "COMNUL" functionality should probably be done here as well.
 
@@ -594,6 +647,61 @@ contains
     integer stat
 
     !TODO: Do the thing. This will be long and fugly
+    call resize(ed,nele_new,zero,'ed')
+    call resize(el,nele_new,zero,'el')
+    call resize(ek,nele_new,zero,'ek')
+    call resize(sm,nele_new,zero,'sm')
+    call resize(kz,nele_new,0,'kz')
+    call resize(kp,nele_new,0,'kp')
+    call resize(bbbx,nele_new,zero,'bbbx')
+    call resize(bbby,nele_new,zero,'bbby')
+    call resize(bbbs,nele_new,zero,'bbbs')
+    call resize(xpl,nele_new,zero,'xpl')
+    call resize(zpl,nele_new,zero,'zpl')
+    call resize(xrms,nele_new,zero,'xrms')
+    call resize(zrms,nele_new,zero,'zrms')
+    call resize(a,nele_new,2,6,zero,'a')
+    call resize(hsyc,nele_new,zero,'hsyc')
+    call resize(phasc,nele_new,zero,'phasc')
+    call resize(itionc,nele_new,0,'itionc')
+    call resize(bk0,nele_new,mmul,zero,'bk0')
+    call resize(ak0,nele_new,mmul,zero,'ak0')
+    call resize(bka,nele_new,mmul,zero,'bka')
+    call resize(aka,nele_new,mmul,zero,'aka')
+    call resize(benkc,nele_new,zero,'benkc')
+    call resize(r00,nele_new,zero,'r00')
+    call resize(irm,nele_new,0,'irm')
+    call resize(nmu,nele_new,0,'nmu')
+
+!    allocate(bezr(3,nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+!    call alloc(bezr,3,nele,'','bezr')
+
+    call resize(kpa,nele_new,0,'kpa')
+
+!    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
+!    if (stat.ne.0) goto 42
+!    call alloc(bez,nele,0,'bez')
+!    call alloc(bezb,nele,0,'bezb')
+!    call alloc(bezl,nele,0,'bezl')
+
+    call resize(ncororb,nele_new,0,'ncororb')
+    call resize(ratioe,nele_new,zero,'ratioe')
+    call resize(iratioe,nele_new,0,'iratioe')
+    call resize(isea,nele_new,0,'isea')
+    call resize(dki,nele_new,3,zero,'dki')
+    call resize(parbe,nele_new,18,zero,'parbe')
+    call resize(ptnfac,nele_new,zero,'ptnfac')
+    call resize(imtr,nele_new,0,'imtr')
+    call resize(acdipph,nele_new,zero,'acdipph')
+    call resize(nturn1,nele_new,0,'nturn1')
+    call resize(nturn2,nele_new,0,'nturn2')
+    call resize(nturn3,nele_new,0,'nturn3')
+    call resize(nturn4,nele_new,0,'nturn4')
+    call resize(crabph,nele_new,zero,'crabph')
+    call resize(crabph2,nele_new,zero,'crabph2')
+    call resize(crabph3,nele_new,zero,'crabph3')
+    call resize(crabph4,nele_new,zero,'crabph4')
 
     !Note: One should probably here check the allocation status of the arrays, i.e. that they all actually are allocated...
     
