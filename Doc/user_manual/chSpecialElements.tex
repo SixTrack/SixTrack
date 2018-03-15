@@ -38,7 +38,7 @@ Moreover, using the multipole block reduces the number of elements in the single
         \end{align*}
     \item The sign convention and the factorial ($n$!) are treated as for the single non-linear elements in (\ref{NonEle}).
     \item Multipoles of different names can be set to be equal using the \texttt{ORG} input block.
-    \item 22--poles are included ($n=11$). By enlarging the parameter \texttt{MMUL} (Appendix~\ref{DSP}) up to 40--poles (\texttt{MMUL=20}) can be treated. To make the change of \texttt{MMUL} effective, it is of course necessary to recompile the program.
+    \item 22-poles are included ($n=11$). By enlarging the parameter \texttt{MMUL} (Appendix~\ref{DSP}) up to 40-poles (\texttt{MMUL=20}) can be treated. To make the change of \texttt{MMUL} effective, it is of course necessary to recompile the program.
 \end{enumerate}
 
 % ================================================================================================================================ %
@@ -693,7 +693,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
     \texttt{sigz,sige}     & floats  & r.m.s. bunch length [m] and r.m.s. energy spread \\
     \texttt{ibeco}         & integer & Switch (0 = off; 1 = on) to subtract the closed orbit introduced by the separation of the beams. It is recommended to always subtract it as it is not yet calculated in a selfconsistent manner. The \texttt{ibeco} switch also acts on the ``wire'' elements \ref{sec:WIRE} in the same way as on the beam-beam elements. It subtracts the closed orbit introduced by the wire if \texttt{ibeco}=1 and applies it if \texttt{ibeco}=0. \\
     \texttt{ibtyp}         & integer & Switch (0 = off; 1 = on) to use the fast beam--beam algorithms developed in collaboration with G.A.~Erskine and E.~McIntosh.  The linear optics are calculated with ``exact'' beam--beam kicks. \\
-    \texttt{lhc}           & integer & For the LHC with its anti--symmetric IR the separation of the beams in one plane can be calculated by the $\beta$--function of the other plane. For flat beams (not anti-symmetric optics) the separation can be loaded from the \texttt{fort.2} file. (0 = off; 1 = anti-symmetric; 2 = load from file). \\
+    \texttt{lhc}           & integer & For the LHC with its anti-symmetric IR the separation of the beams in one plane can be calculated by the $\beta$-function of the other plane. For flat beams (not anti-symmetric optics) the separation can be loaded from the \texttt{fort.2} file. (0 = off; 1 = anti-symmetric; 2 = load from file). \\
     \texttt{ibbc}          & integer & Linear coupling considered in 4D and 6D (0 = off; 1 = on). \\
     \texttt{name}          &           & Name of 6D beam--beam element. Beam--beam elements that do not appear will be treated as 4D kicks. \\
     \texttt{ibsix}         & integer & Number of slices of the 6D beam--beam element. If \texttt{ibsix} is set to 0 this element is treated as a 4D element. \\
