@@ -4489,6 +4489,10 @@
 !FOX      TRACKI(5)=(SIGMDA-DUMMY)*C1M3 ;
           dummy=dare(dpda)
 !FOX      TRACKI(6)=DPDA-DUMMY ;
+
+!We want to provide a set of canonical variables (15.03.2018)
+!FOX      TRACKI(5)=TRACKI(5)/RV ;
+
           call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc)
           if(ibeco.eq.1) then
             beamoff1=dare(tracki(1))*c1e3
@@ -4528,6 +4532,10 @@
 !FOX      EJF1=E0F*(ONE+DPDA) ;
 !FOX      EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
+          
+          !We want to go back to sixtrack variables (15.03.2018)
+!FOX      TRACKI(5) = TRACKI(5)*RV
+
           dummy=dare(sigmda)  !Added 14.03.2018
 !FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
           if(ithick.eq.1) call envada
