@@ -6320,7 +6320,6 @@ cc2008
 !FOX  Y(1)=YP(1)/(1+DPDA) ; 
 !FOX  Y(2)=YP(2)/(1+DPDA) ;
 
-
       endif
 +cd trom30
         if(kzz.eq.22) then
@@ -6340,26 +6339,27 @@ cc2008
 
 +cd trom42
 
-            !The values are stored in the temp vector which are used for the multiplication. 
-            temptr(1)=xv(j,1)
-            temptr(2)=yv(j,1)*(one+dpsv(j))
-            temptr(3)=xv(j,2)
-            temptr(4)=yv(j,2)*(one+dpsv(j))
+            !The values are stored in the temp vector which are used for the multiplication.
+            temptr(1)=xv(1,j)
+            temptr(2)=yv(1,j)*(one+dpsv(j))
+            temptr(3)=xv(2,j)
+            temptr(4)=yv(2,j)*(one+dpsv(j))
             temptr(5)=sigmv(j)
             temptr(6)=((ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
             ! Adding the closed orbit. The previous values are stored in the temptr vector.   
-            xv(j,1)  = cotr(irrtr,1)
-            yv(j,1)  = cotr(irrtr,2)
-            xv(j,2)  = cotr(irrtr,3)
-            yv(j,2)  = cotr(irrtr,4)
+            xv(1,j)  = cotr(irrtr,1)
+            yv(1,j)  = cotr(irrtr,2)
+            xv(2,j)  = cotr(irrtr,3)
+            yv(2,j)  = cotr(irrtr,4)
             sigmv(j) = cotr(irrtr,5)
             pttemp   = cotr(irrtr,6)
+
             ! Multiplying the arbitrary matrix to the coordinates. 
             do kxxa=1,6
-              xv(j,1)   =  xv(j,1)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-              yv(j,1)   =  yv(j,1)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
-              xv(j,2)   =  xv(j,2)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
-              yv(j,2)   =  yv(j,2)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
+              xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+              yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+              xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+              yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
               sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
               pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
             enddo
