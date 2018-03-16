@@ -46,6 +46,10 @@ interface alloc
 !characters
   module procedure alloc1dc
   module procedure alloc2dc
+
+!logical
+  module procedure alloc1dl
+  module procedure alloc2dl
 end interface alloc
 
 interface resize
@@ -72,6 +76,9 @@ interface resize
 
   module procedure resize1dc
   module procedure resize2dc
+
+  module procedure resize1dl
+  module procedure resize2dl
 end interface resize
 
 contains
@@ -475,7 +482,7 @@ subroutine resize1di32(input, newsize, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize, initial, ename)
     return
   end if
@@ -543,7 +550,7 @@ subroutine resize2di32(input, newsize1, newsize2, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
     return
   end if
@@ -613,7 +620,7 @@ subroutine resize3di32(input, newsize1, newsize2, newsize3, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
     return
   end if
@@ -685,7 +692,7 @@ subroutine resize1di64(input, newsize, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize, initial, ename)
     return
   end if
@@ -751,7 +758,7 @@ subroutine resize2di64(input, newsize1, newsize2, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
     return
   end if
@@ -821,7 +828,7 @@ subroutine resize3di64(input, newsize1, newsize2, newsize3, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
     return
   end if
@@ -1223,7 +1230,7 @@ subroutine resize1dr32(input, newsize, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize, initial, ename)
     return
   end if
@@ -1291,7 +1298,7 @@ subroutine resize2dr32(input, newsize1, newsize2, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
     return
   end if
@@ -1361,7 +1368,7 @@ subroutine resize3dr32(input, newsize1, newsize2, newsize3, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
     return
   end if
@@ -1433,7 +1440,7 @@ subroutine resize1dr64(input, newsize, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize, initial, ename)
     return
   end if
@@ -1499,7 +1506,7 @@ subroutine resize2dr64(input, newsize1, newsize2, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
     return
   end if
@@ -1569,7 +1576,7 @@ subroutine resize3dr64(input, newsize1, newsize2, newsize3, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
     return
   end if
@@ -1806,7 +1813,7 @@ subroutine resize1dr128(input, newsize, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize, initial, ename)
     return
   end if
@@ -1872,7 +1879,7 @@ subroutine resize2dr128(input, newsize1, newsize2, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, initial, ename)
     return
   end if
@@ -1942,7 +1949,7 @@ subroutine resize3dr128(input, newsize1, newsize2, newsize3, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
     call alloc(input, newsize1, newsize2, newsize3, initial, ename)
     return
   end if
@@ -2135,7 +2142,7 @@ subroutine resize1dc(input, strlen, newsize, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
       call alloc(input, strlen, newsize, initial, ename)
     return
   end if
@@ -2205,7 +2212,7 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   integer :: error
 
   if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, 'is not allocated.'
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
       call alloc(input, strlen, newsize1, newsize2, initial, ename)
     return
   end if
@@ -2240,6 +2247,256 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   call move_alloc(buffer,input)
 
 end subroutine resize2dc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!                          LOGICAL
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+subroutine alloc1dl(input, startsize, initial, ename)
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  logical, allocatable, intent(inout) :: input(:)
+
+  !The inital value for the array to be set to
+  logical, intent(in) :: initial
+
+  !The initial size to allocate
+  integer, intent(in) :: startsize
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: k
+
+  request = startsize !* storage_size(logical)
+
+  !Check that we are not already allocated
+  if(allocated(input) .eqv. .TRUE.) then
+    write(lout,*) 'ERROR: input array is already allocated'
+    stop
+  end if
+
+  !Do the allocation
+  allocate(input(startsize), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !Log the number of allocated bits
+  allocated_bits = allocated_bits + request
+
+  !Initialise the array
+  do k=1, startsize
+    input(k) = initial
+  end do
+
+  call print_alloc(ename,request)
+end subroutine alloc1dl
+
+subroutine alloc2dl(input, startsize1, startsize2, initial, ename)
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  logical, allocatable, intent(inout) :: input(:,:)
+
+  !The inital value for the array to be set to
+  logical, intent(in) :: initial
+
+  !The initial size to allocate
+  integer, intent(in) :: startsize1, startsize2
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: k,l
+
+  request = startsize1 * startsize2 !* storage_size(logical)
+
+  !Check that we are not already allocated
+  if(allocated(input) .eqv. .TRUE.) then
+    write(lout,*) 'ERROR: input array is already allocated'
+    stop
+  end if
+
+  !Do the allocation
+  allocate(input(startsize1, startsize2), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !Log the number of allocated bits
+  allocated_bits = allocated_bits + request
+
+  !Initialise the array
+  do k=1, startsize1
+    do l=1, startsize2
+     input(k,l) = initial
+    end do
+  end do
+
+  call print_alloc(ename,request)
+end subroutine alloc2dl
+
+!resize 1d logical array
+subroutine resize1dl(input, newsize, initial, ename)
+
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  logical, allocatable, intent(inout) :: input(:)
+
+  !A buffer used to expand the array
+  logical, allocatable :: buffer(:)
+
+  !The inital value for the array to be set to
+  logical, intent(in) :: initial
+
+  !The new size that the array should be set to
+  integer, intent(in) :: newsize
+
+  !A variable to track the old size of the array
+  integer :: oldsize
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: i
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  if(allocated(input) .neqv. .TRUE.) then
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
+    call alloc(input, newsize, initial, ename)
+    return
+  end if
+
+  !get the old size of the array
+  oldsize = size(input)
+
+  !log our request in size change
+  request = (newsize-oldsize) !* storage_size(logical)
+
+  !Allocate a buffer with the new array size, and fill it with the old input
+  allocate(buffer(newsize), source=input, stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
+
+  !Set the initial values of the buffer
+  if(newsize.gt.oldsize) then
+    do i=oldsize+1,newsize
+      buffer(i) = initial
+    end do
+  end if
+
+  !Do a pointer swap and deallocate the buffer
+  call move_alloc(buffer,input)
+
+end subroutine resize1dl
+
+!resize 2d logical array
+subroutine resize2dl(input, newsize1, newsize2, initial, ename)
+
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  logical, allocatable, intent(inout) :: input(:,:)
+
+  !A buffer used to expand the array
+  logical, allocatable :: buffer(:,:)
+
+  !The inital value for the array to be set to
+  logical, intent(in) :: initial
+
+  !The new size that the array should be set to
+  integer, intent(in) :: newsize1, newsize2
+
+  !A variable to track the old size of the array
+  integer :: oldsize1, oldsize2
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: i, j
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  if(allocated(input) .neqv. .TRUE.) then
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
+    call alloc(input, newsize1, newsize2, initial, ename)
+    return
+  end if
+
+  !get the old size of the array
+  oldsize1 = size(input,1)
+  oldsize2 = size(input,2)
+
+  !log our request in size change
+  request = ((newsize1*newsize2) - (oldsize1*oldsize2)) !* storage_size(logical)
+
+  !Allocate a buffer with the new array size, and fill it with the old input
+  allocate(buffer(newsize1, newsize2), source=input, stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
+
+  !Set the initial values of the buffer
+  do i=oldsize1+1,newsize1
+    do j=oldsize2+1,newsize2
+      buffer(i,j) = initial
+    end do
+  end do
+
+  !Do a pointer swap and deallocate the buffer
+  call move_alloc(buffer,input)
+
+end subroutine resize2dl
 
 end module mod_alloc
 
