@@ -141,6 +141,7 @@ if(NOT COLLIMAT)
           beam-HO_6D-oldstyle
           beam-HO_6D-simple-oldstyle
           beam-HO_6D-simple-newstyle
+          beam-HO_6D-simple-newstyle-orbit
           beam-HO_LR-newstyle
           beam-HO_LR-oldstyle
           beam-HO_LR-ibbc-oldstyle

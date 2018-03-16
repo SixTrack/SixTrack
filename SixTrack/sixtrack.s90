@@ -1003,7 +1003,7 @@
 !FOX  D V RE INT E0 ; D V RE INT E0F ; D V RE INT PMA ;
 !FOX  D V RE INT XS ; D V RE INT ZS ; D V RE INT OX ; D V RE INT OXP ;
 !FOX  D V RE INT OZ ; D V RE INT OZP ; D V RE INT SIGM1 ;
-!FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ;
+!FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ; D V RE INT BEAMOFF3 ;
 !FOX  D V RE INT BEAMOFF4 ; D V RE INT BEAMOFF5 ; D V RE INT BEAMOFF6 ;
 !FOX  D V RE INT DPS1 ; D V RE INT RKBF ; D V RE INT RBF ;
 !FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ;
@@ -3937,6 +3937,7 @@
      &ibbc)
             beamoff(1,imbb(i))=track6d(1,1)*c1e3
             beamoff(2,imbb(i))=track6d(3,1)*c1e3
+            beamoff(3,imbb(i))=track6d(5,1)*c1e3
             beamoff(4,imbb(i))=track6d(2,1)*c1e3
             beamoff(5,imbb(i))=track6d(4,1)*c1e3
             beamoff(6,imbb(i))=track6d(6,1)
@@ -4441,6 +4442,10 @@
               track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
+              
+              !We want to provide a set of canonical variables (15.03.2018)
+              track6d(5,j) = track6d(5,j)/rvv(j)
+              
             enddo
             call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp, &
      &ibbc)
@@ -4459,6 +4464,12 @@
               ejfv(j)=dpsv(j)*e0f+e0f
               ejv(j)=sqrt(ejfv(j)**2+pma**2)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+              
+              !We want to go back to sixtrack variables (15.03.2018)
+              track6d(5,j) = track6d(5,j)*rvv(j)
+              sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))-           &!hr03
+     &beamoff(3,imbb(i))
+              
               if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
             enddo
 +cd beam6dfi
@@ -4478,16 +4489,22 @@
 !FOX      TRACKI(5)=(SIGMDA-DUMMY)*C1M3 ;
           dummy=dare(dpda)
 !FOX      TRACKI(6)=DPDA-DUMMY ;
+
+!We want to provide a set of canonical variables (15.03.2018)
+!FOX      TRACKI(5)=TRACKI(5)/RV ;
+
           call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc)
           if(ibeco.eq.1) then
             beamoff1=dare(tracki(1))*c1e3
             beamoff2=dare(tracki(3))*c1e3
+            beamoff3=dare(tracki(5))*c1e3 !Added 14.03.2018
             beamoff4=dare(tracki(2))*c1e3
             beamoff5=dare(tracki(4))*c1e3
             beamoff6=dare(tracki(6))
           else
             beamoff1=zero
             beamoff2=zero
+            beamoff3=zero
             beamoff4=zero
             beamoff5=zero
             beamoff6=zero
@@ -4515,6 +4532,12 @@
 !FOX      EJF1=E0F*(ONE+DPDA) ;
 !FOX      EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
+          
+          !We want to go back to sixtrack variables (15.03.2018)
+!FOX      TRACKI(5) = TRACKI(5)*RV ;
+
+          dummy=dare(sigmda)  !Added 14.03.2018
+!FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
           if(ithick.eq.1) call envada
 +cd multf01
 +if .not.tilt
@@ -19083,7 +19106,7 @@ subroutine runda
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
      &nsta,nsto,idaa
-      real(kind=fPrec) beamoff1,beamoff2,beamoff4,beamoff5,             &
+      real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,  &
      &beamoff6,benkcc,betr0,c5m4,cbxb,cbzb,cik,crk,crxb,crzb,dare,dpdav,&
      &dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,rho2b,&
      &rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,      &
@@ -20195,7 +20218,7 @@ end subroutine runda
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
      &aa2r,a1,a1r,xy,h,df
       real(kind=fPrec) al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
-     &beamoff2,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
+     &beamoff2,beamoff3,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
      &cik,coefh2,coefv1,coefv2,cp,crk,crxb,crzb,cx,d,dicu,dare,det1,dp, &
      &dpdav,dpdav2,dphi,dps1,dps11,dummy,ed1,ed2,g1,g2,g3,ox,oxp,oxp1,  &
      &oz,ozp,ozp1,phi,r0,r2b,r2bf,rb,rbf,rdd,rho2b,rkb,rkbf,rrad,       &
