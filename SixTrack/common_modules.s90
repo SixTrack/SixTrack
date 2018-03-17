@@ -710,15 +710,15 @@ contains
 
 !    allocate(bezr(3,nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call resize(bezr, max_name_len, 3, nele, ' ', 'bezr')
+    call resize(bezr, max_name_len, 3, nele_new, ' ', 'bezr')
 
     call resize(kpa,nele_new,0,'kpa')
 
 !    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call resize(bez,  max_name_len, nele, ' ', 'bez')
-    call resize(bezb, max_name_len, nele, ' ', 'bezb')
-    call resize(bezl, max_name_len, nele, ' ', 'bezl')
+    call resize(bez,  max_name_len, nele_new, ' ', 'bez')
+    call resize(bezb, max_name_len, nele_new, ' ', 'bezb')
+    call resize(bezl, max_name_len, nele_new, ' ', 'bezl')
 
     call resize(ncororb,nele_new,0,'ncororb')
     call resize(ratioe,nele_new,zero,'ratioe')
