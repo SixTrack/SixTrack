@@ -1,5 +1,4 @@
 +dk mod_alloc
-
 module mod_alloc
 
   use, intrinsic :: iso_fortran_env
@@ -392,7 +391,7 @@ subroutine alloc2di64(input, startsize1, startsize2, initial, ename)
   !Initialise the array
   do k=1, startsize1
     do l=1, startsize2
-     input(k,l) = initial
+      input(k,l) = initial
     end do
   end do
 
@@ -446,7 +445,7 @@ subroutine alloc3di64(input, startsize1, startsize2, startsize3, initial, ename)
   do k=1, startsize1
     do l=1, startsize2
       do m=1, startsize3
-       input(k,l,m) = initial
+        input(k,l,m) = initial
       end do
     end do
   end do
@@ -499,13 +498,18 @@ subroutine resize1di32(input, newsize, initial, ename)
   !log our request in size change
   request = (newsize-oldsize) * storage_size(int32)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
+
+  !Copy the data over
+  do i=1,oldsize
+    buffer(i) = input(i)
+  end do
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
@@ -568,24 +572,30 @@ subroutine resize2di32(input, newsize1, newsize2, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2) - (oldsize1*oldsize2)) * storage_size(int32)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
+  !Set the initial values of the buffer
+  do i=1,newsize2
+    do j=1,newsize1
+      buffer(j,i) = initial
+    end do
+  end do
+  !Copy the data over
+  do i=1,oldsize2
+    do j=1,oldsize2
+      buffer(j,i)=input(j,i)
+    end do
+  end do
+
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
-
-  !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      buffer(i,j) = initial
-    end do
-  end do
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -639,26 +649,34 @@ subroutine resize3di32(input, newsize1, newsize2, newsize3, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2*newsize3) - (oldsize1*oldsize2*oldsize3)) * storage_size(int32)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2, newsize3), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        buffer(i,j,k) = initial
+  do i=1,newsize3
+    do j=1,newsize2
+      do k=1,newsize1
+        buffer(k,j,i) = initial
       end do
     end do
   end do
+  !Copy the data over
+  do i=1,oldsize3
+    do j=1,oldsize2
+      do k=1,oldsize2
+        buffer(k,j,i)=input(k,j,i)
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -709,13 +727,18 @@ subroutine resize1di64(input, newsize, initial, ename)
   !log our request in size change
   request = (newsize-oldsize) * storage_size(int64)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
+
+  !Copy the data over
+  do i=1,oldsize
+    buffer(i) = input(i)
+  end do
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
@@ -777,23 +800,30 @@ subroutine resize2di64(input, newsize1, newsize2, initial, ename)
   request = ((newsize1*newsize2) - (oldsize1*oldsize2)) * storage_size(int64)
 
   !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2), source=input, stat=error)
+  allocate(buffer(newsize1, newsize2), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
+  !Set the initial values of the buffer
+  do i=1,newsize2
+    do j=1,newsize1
+      buffer(j,i) = initial
+    end do
+  end do
+
+  !Copy the data over
+  do i=1,oldsize2
+    do j=1,oldsize2
+      buffer(j,i)=input(j,i)
+    end do
+  end do
+
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
-
-  !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      buffer(i,j) = initial
-    end do
-  end do
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -847,26 +877,35 @@ subroutine resize3di64(input, newsize1, newsize2, newsize3, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2*newsize3) - (oldsize1*oldsize2*oldsize3)) * storage_size(int64)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2, newsize3), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        buffer(i,j,k) = initial
+  do i=1,newsize3
+    do j=1,newsize2
+      do k=1,newsize1
+        buffer(k,j,i) = initial
       end do
     end do
   end do
+
+  !Copy the data over
+  do i=1,oldsize3
+    do j=1,oldsize2
+      do k=1,oldsize2
+        buffer(k,j,i)=input(k,j,i)
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1360,13 +1399,18 @@ subroutine resize1dr32(input, newsize, initial, ename)
   !log our request in size change
   request = (newsize-oldsize) * storage_size(real32)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
+
+  !Copy the data over
+  do i=1,oldsize
+    buffer(i) = input(i)
+  end do
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
@@ -1429,24 +1473,31 @@ subroutine resize2dr32(input, newsize1, newsize2, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2) - (oldsize1*oldsize2)) * storage_size(real32)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
+  !Set the initial values of the buffer
+  do i=1,newsize2
+    do j=1,newsize1
+      buffer(j,i) = initial
+    end do
+  end do
+
+  !Copy the data over
+  do i=1,oldsize2
+    do j=1,oldsize1
+      buffer(j,i)=input(j,i)
+    end do
+  end do
+
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
-
-  !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      buffer(i,j) = initial
-    end do
-  end do
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1501,25 +1552,34 @@ subroutine resize3dr32(input, newsize1, newsize2, newsize3, initial, ename)
   request = ((newsize1*newsize2*newsize3) - (oldsize1*oldsize2*oldsize3)) * storage_size(real32)
 
   !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3), source=input, stat=error)
+  allocate(buffer(newsize1, newsize2, newsize3), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        buffer(i,j,k) = initial
+  do i=1,newsize3
+    do j=1,newsize2
+      do k=1,newsize1
+        buffer(k,j,i) = initial
       end do
     end do
   end do
+
+  !Copy the data over
+  do i=1,oldsize3
+    do j=1,oldsize2
+      do k=1,oldsize1
+        buffer(k,j,i)=input(k,j,i)
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1573,28 +1633,39 @@ subroutine resize4dr32(input, newsize1, newsize2, newsize3, newsize4, initial, e
   !log our request in size change
   request = ((newsize1*newsize2*newsize3*newsize4) - (oldsize1*oldsize2*oldsize3*oldsize4)) * storage_size(real32)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3, newsize4), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2, newsize3, newsize4), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        do l=oldsize4+1,newsize4
-          buffer(i,j,k,l) = initial
+  do i=1,newsize4
+    do j=1,newsize3
+      do k=1,newsize2
+        do l=1,newsize1
+          buffer(l,k,j,i) = initial
         end do
       end do
     end do
   end do
+
+  !Copy the data over
+  do i=1,oldsize4
+    do j=1,oldsize3
+      do k=1,oldsize2
+        do l=1,oldsize1
+          buffer(l,k,j,i)=input(l,k,j,i)
+        end do
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1646,13 +1717,18 @@ subroutine resize1dr64(input, newsize, initial, ename)
   !log our request in size change
   request = (newsize-oldsize) * storage_size(real64)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
+
+  !Copy the data over
+  do i=1,oldsize
+    buffer(i) = input(i)
+  end do
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
@@ -1713,24 +1789,31 @@ subroutine resize2dr64(input, newsize1, newsize2, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2) - (oldsize1*oldsize2)) * storage_size(real64)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
+  !Set the initial values of the buffer
+  do i=1,newsize2
+    do j=1,newsize1
+      buffer(j,i) = initial
+    end do
+  end do
+
+  !Copy the data over
+  do i=1,oldsize2
+    do j=1,oldsize1
+      buffer(j,i)=input(j,i)
+    end do
+  end do
+
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
-
-  !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      buffer(i,j) = initial
-    end do
-  end do
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1784,26 +1867,35 @@ subroutine resize3dr64(input, newsize1, newsize2, newsize3, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2*newsize3) - (oldsize1*oldsize2*oldsize3)) * storage_size(real64)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2, newsize3), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        buffer(i,j,k) = initial
+  do i=1,newsize3
+    do j=1,newsize2
+      do k=1,newsize1
+        buffer(k,j,i) = initial
       end do
     end do
   end do
+
+  !Copy the data over
+  do i=1,oldsize3
+    do j=1,oldsize2
+      do k=1,oldsize1
+        buffer(k,j,i)=input(k,j,i)
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1858,36 +1950,44 @@ subroutine resize4dr64(input, newsize1, newsize2, newsize3, newsize4, initial, e
   !log our request in size change
   request = ((newsize1*newsize2*newsize3*newsize4) - (oldsize1*oldsize2*oldsize3*oldsize4)) * storage_size(real64)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3, newsize4), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2, newsize3, newsize4), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        do l=oldsize4+1,newsize4
-          buffer(i,j,k,l) = initial
+  do i=1,newsize4
+    do j=1,newsize3
+      do k=1,newsize2
+        do l=1,newsize1
+          buffer(l,k,j,i) = initial
         end do
       end do
     end do
   end do
 
+  !Copy the data over
+  do i=1,oldsize4
+    do j=1,oldsize3
+      do k=1,oldsize2
+        do l=1,oldsize1
+          buffer(l,k,j,i)=input(l,k,j,i)
+        end do
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
+
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
 
 end subroutine resize4dr64
-
-
-
 
 !alloc real128
 subroutine alloc1dr128(input, startsize, initial, ename)
@@ -2151,13 +2251,18 @@ subroutine resize1dr128(input, newsize, initial, ename)
   !log our request in size change
   request = (newsize-oldsize) * storage_size(real128)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
+
+  !Copy the data over
+  do i=1,oldsize
+    buffer(i) = input(i)
+  end do
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
@@ -2218,24 +2323,31 @@ subroutine resize2dr128(input, newsize1, newsize2, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2) - (oldsize1*oldsize2)) * storage_size(real128)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
+  !Set the initial values of the buffer
+  do i=1,newsize2
+    do j=1,newsize1
+      buffer(j,i) = initial
+    end do
+  end do
+
+  !Copy the data over
+  do i=1,oldsize2
+    do j=1,oldsize1
+      buffer(j,i)=input(j,i)
+    end do
+  end do
+
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
-
-  !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      buffer(i,j) = initial
-    end do
-  end do
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -2289,26 +2401,35 @@ subroutine resize3dr128(input, newsize1, newsize2, newsize3, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2*newsize3) - (oldsize1*oldsize2*oldsize3)) * storage_size(real128)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2, newsize3), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        buffer(i,j,k) = initial
+  do i=1,newsize3
+    do j=1,newsize2
+      do k=1,newsize1
+        buffer(k,j,i) = initial
       end do
     end do
   end do
+
+  !Copy the data over
+  do i=1,oldsize3
+    do j=1,oldsize2
+      do k=1,oldsize1
+        buffer(k,j,i)=input(k,j,i)
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -2364,27 +2485,38 @@ subroutine resize4dr128(input, newsize1, newsize2, newsize3, newsize4, initial, 
   request = ((newsize1*newsize2*newsize3*newsize4) - (oldsize1*oldsize2*oldsize3*oldsize4)) * storage_size(real128)
 
   !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3, newsize4), source=input, stat=error)
+  allocate(buffer(newsize1, newsize2, newsize3, newsize4), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-
   !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      do k=oldsize3+1,newsize3
-        do l=oldsize4+1,newsize4
-          buffer(i,j,k,l) = initial
+  do i=1,newsize4
+    do j=1,newsize3
+      do k=1,newsize2
+        do l=1,newsize1
+          buffer(l,k,j,i) = initial
         end do
       end do
     end do
   end do
+
+  !Copy the data over
+  do i=1,oldsize4
+    do j=1,oldsize3
+      do k=1,oldsize2
+        do l=1,oldsize1
+          buffer(l,k,j,i)=input(l,k,j,i)
+        end do
+      end do
+    end do
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -2555,7 +2687,7 @@ subroutine resize1dc(input, strlen, newsize, initial, ename)
   !log our request in size change
   request = (newsize-oldsize) * strlen * CHARACTER_STORAGE_SIZE
 
-  !Allocate a buffer with the new array size, and fill it with the old input
+  !Allocate a buffer with the new array size
   allocate(character(strlen) :: buffer(newsize), stat=error)
 
   !Print and exit if we have an error
@@ -2613,7 +2745,7 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   integer(kind=int64) :: request
 
   !Loop variable
-  integer :: k,l
+  integer :: i,j
 
   !Set to non-zero in case of an allocation error
   integer :: error
@@ -2631,7 +2763,7 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2)-(oldsize1*oldsize2)) * strlen * CHARACTER_STORAGE_SIZE
 
-  !Allocate a buffer with the new array size, and fill it with the old input
+  !Allocate a buffer with the new array size
   allocate(character(strlen) :: buffer(newsize1,newsize2), stat=error)
 
   !Print and exit if we have an error
@@ -2643,17 +2775,17 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
 
- !copy old values across
-  do k=1,oldsize1
-    do l=+1,oldsize2
-      buffer(k,l) = input(k,l)
+  !Set the initial values of the buffer
+  do i=1,newsize2
+    do j=1,newsize1
+      buffer(j,i) = initial
     end do
   end do
 
-  !Set the initial values of the buffer
-  do k=oldsize1+1,newsize1
-    do l=oldsize2+1,newsize2
-      buffer(k,l) = initial
+ !copy old values across
+  do i=1,oldsize2
+    do j=1,oldsize1
+      buffer(j,i) = input(j,i)
     end do
   end do
 
@@ -2819,13 +2951,18 @@ subroutine resize1dl(input, newsize, initial, ename)
   !log our request in size change
   request = (newsize-oldsize) !* storage_size(logical)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
+
+  !Copy the data over
+  do i=1,oldsize
+    buffer(i) = input(i)
+  end do
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
@@ -2888,24 +3025,31 @@ subroutine resize2dl(input, newsize1, newsize2, initial, ename)
   !log our request in size change
   request = ((newsize1*newsize2) - (oldsize1*oldsize2)) !* storage_size(logical)
 
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2), source=input, stat=error)
+  !Allocate a buffer with the new array size
+  allocate(buffer(newsize1, newsize2), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
     call alloc_error(ename, error, request)
   end if
 
+  !Set the initial values of the buffer
+  do i=1,newsize2
+    do j=1,newsize1
+      buffer(j,i) = initial
+    end do
+  end do
+
+  !Copy the data over
+  do i=1,oldsize2
+    do j=1,oldsize1
+      buffer(j,i)=input(j,i)
+    end do
+  end do
+
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
-
-  !Set the initial values of the buffer
-  do i=oldsize1+1,newsize1
-    do j=oldsize2+1,newsize2
-      buffer(i,j) = initial
-    end do
-  end do
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -2913,5 +3057,3 @@ subroutine resize2dl(input, newsize1, newsize2, initial, ename)
 end subroutine resize2dl
 
 end module mod_alloc
-
-
