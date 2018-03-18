@@ -430,7 +430,7 @@ module mod_common
   ! common /rand0/
   real(kind=fPrec), save :: zfz(nzfz)
   integer, save :: iorg,mzu(nblz),izu0,mmac,mcut
-  character(len=max_name_len), allocatable, save :: bezr(:,:) !(max_name_len)(3,nele)
+  character(len=:), allocatable, save :: bezr(:,:) !(max_name_len)(3,nele)
   
   ! common /rand1/
   real(kind=fPrec), save :: exterr(nblz,40),extalign(nblz,3),tiltc(nblz),tilts(nblz)
@@ -449,7 +449,8 @@ module mod_common
   integer, allocatable, save :: kpa(:) !(nele)
   
   ! common /linop/
-  character(len=max_name_len), allocatable, save :: bez(:), bezb(:), bezl(:) !(nele)
+  character(len=:), allocatable, save :: bez(:), bezl(:) !(nele)
+  character(len=max_name_len), save :: bezb(nblo) !(nblo)
   real(kind=fPrec),  save :: elbe(nblo),eui,euii
   integer, save :: ilin,nt,iprint,ntco,nlin
   
@@ -613,7 +614,7 @@ contains
 !    if (stat.ne.0) goto 42
 
     call alloc(bez, max_name_len, nele, ' ', 'bez')
-    call alloc(bezb, max_name_len, nele, ' ', 'bezb')
+!    call alloc(bezb, max_name_len, nele, ' ', 'bezb')
     call alloc(bezl, max_name_len, nele, ' ', 'bezl')
 
 !    allocate(ncororb(nele), STAT=stat)
@@ -717,7 +718,7 @@ contains
 !    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
     call resize(bez,  max_name_len, nele_new, ' ', 'bez')
-    call resize(bezb, max_name_len, nele_new, ' ', 'bezb')
+!    call resize(bezb, max_name_len, nele_new, ' ', 'bezb')
     call resize(bezl, max_name_len, nele_new, ' ', 'bezl')
 
     call resize(ncororb,nele_new,0,'ncororb')

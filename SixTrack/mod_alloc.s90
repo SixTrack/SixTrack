@@ -2408,7 +2408,7 @@ subroutine alloc1dc(input, strlen, startsize, initial, ename)
   character(len=*), intent(in) :: ename
 
   !The input variable to allocated
-  character(len=*), allocatable, intent(inout) :: input(:)
+  character(len=:), allocatable, intent(inout) :: input(:)
 
   !The inital value for the array to be set to
   character(len=*), intent(in) :: initial
@@ -2462,7 +2462,7 @@ subroutine alloc2dc(input, strlen, startsize1, startsize2, initial, ename)
   character(len=*), intent(in) :: ename
 
   !The input variable to allocated
-  character(len=*), allocatable, intent(inout) :: input(:,:)
+  character(len=:), allocatable, intent(inout) :: input(:,:)
 
   !The inital value for the array to be set to
   character(len=*), intent(in) :: initial
@@ -2519,7 +2519,7 @@ subroutine resize1dc(input, strlen, newsize, initial, ename)
   character(len=*), intent(in) :: ename
 
   !The input variable to allocated
-  character(len=*), allocatable, intent(inout) :: input(:)
+  character(len=:), allocatable, intent(inout) :: input(:)
 
   !The inital value for the array to be set to
   character(len=*), intent(in) :: initial
@@ -2556,7 +2556,7 @@ subroutine resize1dc(input, strlen, newsize, initial, ename)
   request = (newsize-oldsize) * strlen * CHARACTER_STORAGE_SIZE
 
   !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(character(len=strlen) :: buffer(newsize), stat=error)
+  allocate(character(strlen) :: buffer(newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -2566,6 +2566,11 @@ subroutine resize1dc(input, strlen, newsize, initial, ename)
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
+
+ !copy old values across
+  do i=1,oldsize
+    buffer(i) = input(i)
+  end do
 
   !Set the initial values of the buffer
   do i=oldsize+1,newsize
@@ -2587,7 +2592,7 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   character(len=*), intent(in) :: ename
 
   !The input variable to allocated
-  character(len=*), allocatable, intent(inout) :: input(:,:)
+  character(len=:), allocatable, intent(inout) :: input(:,:)
 
   !The inital value for the array to be set to
   character(len=*), intent(in) :: initial
@@ -2627,7 +2632,7 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   request = ((newsize1*newsize2)-(oldsize1*oldsize2)) * strlen * CHARACTER_STORAGE_SIZE
 
   !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(character(len=strlen) :: buffer(newsize1,newsize2), stat=error)
+  allocate(character(strlen) :: buffer(newsize1,newsize2), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -2637,6 +2642,13 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,request)
+
+ !copy old values across
+  do k=1,oldsize1
+    do l=+1,oldsize2
+      buffer(k,l) = input(k,l)
+    end do
+  end do
 
   !Set the initial values of the buffer
   do k=oldsize1+1,newsize1

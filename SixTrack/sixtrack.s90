@@ -10497,7 +10497,7 @@ end subroutine hamilton1
       character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
       character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
       character(len=max_name_len) coll
-      character(len=max_name_len), allocatable :: bez0(:) !nele
+      character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
       character(len=60) ihead
       integer nchars
       parameter (nchars=160)
