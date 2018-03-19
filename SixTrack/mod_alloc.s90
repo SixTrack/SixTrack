@@ -109,16 +109,27 @@ subroutine alloc_error(ename, error, requested_bits)
 end subroutine alloc_error
 
 subroutine print_alloc(ename, requested_bits)
+
+  use numerical_constants, only : one
+
   implicit none
 
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
 
   integer, parameter :: mb = 1024*1024*8
+  integer, parameter :: kb = 1024*8
  
   write(lout,*) 'Memory allocation for array ', ename
-  write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/mb, ' Mbytes'
-  write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mb, ' Mbytes'
+
+  if(real(allocated_bits,real64)/mb .lt. one) then
+    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/kb, ' kbytes'
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/kb, ' kbytes'
+  else
+    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/mb, ' Mbytes'
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mb, ' Mbytes'
+  end if
+
   write(lout,*) ''
 
 end subroutine print_alloc
