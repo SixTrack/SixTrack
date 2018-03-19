@@ -471,8 +471,8 @@ subroutine dump_initialize
                 write(lout,*) "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS, one of which is StartDUMP"
                 call prror(-1)
               else if (dump_fname(j).ne.dump_fname(i)) then
-                write(lout,*) "ERROR in DUMP: output unit",dumpunit(i)," used by two DUMPS, but filenames differ:", &
-                              trim(stringzerotrim(dump_fname(i))), " vs ", trim(stringzerotrim(dump_fname(j)))
+                write(lout,*) "ERROR in DUMP: output unit",dumpunit(i)," used by two DUMPS, but filenames differ: ", &
+                              "'",trim(stringzerotrim(dump_fname(i))), "' vs '", trim(stringzerotrim(dump_fname(j))), "'"
                 call prror(-1)
               else
                 ! Everything is fine
