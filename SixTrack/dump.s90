@@ -22,6 +22,8 @@ module dump
   
   use floatPrecision
   use parpro ! For nele
+  use mod_alloc
+
   implicit none
   
 +ca comgetfields ! for getfields_l_max_string
@@ -44,7 +46,7 @@ module dump
   ! Flag the format of the dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
-  character(len=getfields_l_max_string), allocatable, save :: dump_fname(:) !(-1:nele)
+  character(len=:), allocatable, save :: dump_fname(:) !(getfields_l_max_string)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -71,12 +73,20 @@ subroutine dump_allocate_arrays
   implicit none
   integer stat
 
-  allocate(ldump(-1:nele), ndumpt(-1:nele), dumpfirst(-1:nele), dumplast(-1:nele), &
-       dumpunit(-1:nele), dumpfmt(-1:nele), dump_fname(-1:nele), STAT=stat)
-  if (stat.ne.0) then
-     write(lout,'(A,I8)') "ERROR in SUBROUTINE DUMP_ALLOCATE_ARRAYS; stat=", stat
-     call prror(-1)
-  endif
+!  allocate(ldump(-1:nele), ndumpt(-1:nele), dumpfirst(-1:nele), dumplast(-1:nele), &
+!       dumpunit(-1:nele), dumpfmt(-1:nele), dump_fname(-1:nele), STAT=stat)
+!  if (stat.ne.0) then
+!     write(lout,'(A,I8)') "ERROR in SUBROUTINE DUMP_ALLOCATE_ARRAYS; stat=", stat
+!     call prror(-1)
+!  endif
+  call alloc(ldump,nele,.FALSE.,'ldump',-1)
+  call alloc(ndumpt,nele,0,'ndumpt',-1)
+  call alloc(dumpfirst,nele,0,'dumpfirst',-1)
+  call alloc(dumplast,nele,0,'dumplast',-1)
+  call alloc(dumpunit,nele,0,'dumpunit',-1)
+  call alloc(dumpfmt,nele,0,'dumpfmt',-1)
+  call alloc(dump_fname,getfields_l_max_string,nele,char(0),'dump_fname',-1)
+
 
 +if cr
   allocate(dumpfilepos(-1:nele),dumpfilepos_cr(-1:nele), STAT=stat)
@@ -92,7 +102,14 @@ subroutine dump_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
 
-  !TODO...
+  call resize(ldump,nele_new,.FALSE.,'ldump',-1)
+  call resize(ndumpt,nele_new,0,'ndumpt',-1)
+  call resize(dumpfirst,nele_new,0,'dumpfirst',-1)
+  call resize(dumplast,nele_new,0,'dumplast',-1)
+  call resize(dumpunit,nele_new,0,'dumpunit',-1)
+  call resize(dumpfmt,nele_new,0,'dumpfmt',-1)
+  call resize(dump_fname,getfields_l_max_string,nele_new,char(0),'dump_fname',-1)
+
 end subroutine dump_expand_arrays
 
 subroutine dump_lines (n,i,ix)
