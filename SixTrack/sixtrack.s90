@@ -26575,9 +26575,9 @@ subroutine thin6d(nthinerr)
 !         endif
 +ei
 
-          if( bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) then
-             call bdex_track(i,ix,n)
-          end if
+!          if( bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) then
+!             call bdex_track(i,ix,n)
+!          end if
 +ei
 +if collimat
       dotrack = myktrack
