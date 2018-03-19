@@ -117,19 +117,28 @@ subroutine print_alloc(ename, requested_bits)
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
 
-  integer, parameter :: mb = 1024*1024*8
-  integer, parameter :: kb = 1024*8
+!  integer(kind=int64), parameter :: gb = 1024*1024*1024*8
+  integer(kind=int64), parameter :: mb = 1024*1024*8
+  integer(kind=int64), parameter :: kb = 1024*8
+  integer(kind=int64), parameter :: bb = 8
  
   write(lout,*) 'Memory allocation for array ', ename
 
-  if(real(allocated_bits,real64)/mb .lt. one) then
+  if((real(allocated_bits,real64)/mb .lt. one) .and. (real(allocated_bits,real64)/kb .gt. one)) then
     write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/kb, ' kbytes'
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/kb, ' kbytes'
-  else
+  else if(real(allocated_bits,real64)/mb .ge. one) then
     write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/mb, ' Mbytes'
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mb, ' Mbytes'
+  else
+    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/bb, ' bytes'
   end if
 
+  if((real(requested_bits,real64)/mb .lt. one) .and. (real(requested_bits,real64)/kb .gt. one)) then
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/kb, ' kbytes'
+  else if(real(requested_bits,real64)/mb .ge. one) then
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mb, ' Mbytes'
+  else
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/bb, ' bytes'
+  end if
   write(lout,*) ''
 
 end subroutine print_alloc
