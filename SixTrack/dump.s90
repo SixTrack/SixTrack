@@ -71,7 +71,13 @@ contains
 subroutine dump_allocate_arrays
   use crcoall
   implicit none
-  integer stat
+  integer :: stat
+
+  integer :: j
+  character(len=getfields_l_max_string) :: defaultstring
+  do j=1,getfields_l_max_string
+    defaultstring(j:j) = char(0)
+  end do
 
 !  allocate(ldump(-1:nele), ndumpt(-1:nele), dumpfirst(-1:nele), dumplast(-1:nele), &
 !       dumpunit(-1:nele), dumpfmt(-1:nele), dump_fname(-1:nele), STAT=stat)
@@ -85,8 +91,7 @@ subroutine dump_allocate_arrays
   call alloc(dumplast,nele,0,'dumplast',-1)
   call alloc(dumpunit,nele,0,'dumpunit',-1)
   call alloc(dumpfmt,nele,0,'dumpfmt',-1)
-  call alloc(dump_fname,getfields_l_max_string,nele,char(0),'dump_fname',-1)
-
+  call alloc(dump_fname,getfields_l_max_string,nele,defaultstring,'dump_fname',-1)
 
 +if cr
   allocate(dumpfilepos(-1:nele),dumpfilepos_cr(-1:nele), STAT=stat)
@@ -102,13 +107,20 @@ subroutine dump_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
 
+  integer :: j
+  character(len=getfields_l_max_string) :: defaultstring
+
+  do j=1,getfields_l_max_string
+    defaultstring(j:j) = char(0)
+  end do
+
   call resize(ldump,nele_new,.FALSE.,'ldump',-1)
   call resize(ndumpt,nele_new,0,'ndumpt',-1)
   call resize(dumpfirst,nele_new,0,'dumpfirst',-1)
   call resize(dumplast,nele_new,0,'dumplast',-1)
   call resize(dumpunit,nele_new,0,'dumpunit',-1)
   call resize(dumpfmt,nele_new,0,'dumpfmt',-1)
-  call resize(dump_fname,getfields_l_max_string,nele_new,char(0),'dump_fname',-1)
+  call resize(dump_fname,getfields_l_max_string,nele_new,defaultstring,'dump_fname',-1)
 
 end subroutine dump_expand_arrays
 
