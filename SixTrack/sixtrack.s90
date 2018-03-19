@@ -11010,19 +11010,25 @@ end subroutine hamilton1
         endif
       endif
 !--General
-      if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
-!      if(i.gt.nele-1) call prror(16)
-      if(i.gt.nele-1) then
-        call expand_arrays(nele+10, npart, nblz, nblo)
-        call resize(bez0, max_name_len, nele+10, ' ', 'bez0')
-+if vvector
-        if (ithick.eq.1) then
-          call expand_thickarrays(nele+10, npart, nblz, nblo )
-        end if
-+ei
+      if(abs(el(i)).gt.pieni.and.kz(i).ne.0) then
+        ithick=1
       end if
 
-      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) )kp(i)=0
+!      if(i.gt.nele-1) call prror(16)
+      if(i.gt.nele-2) then
+        call expand_arrays(nele+10, npart, nblz, nblo)
+        call resize(bez0, max_name_len, nele, ' ', 'bez0')
+!+if vvector
+!        if (ithick.eq.1) then
+!          call expand_thickarrays(nele+10, npart, nblz, nblo )
+!        end if
+!+ei
+      end if
+
+      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) ) then
+        kp(i)=0
+      end if
+
 ! set element name
       bez(i)=idat
       bez0(i)=idat
