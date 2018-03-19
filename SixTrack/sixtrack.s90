@@ -3488,7 +3488,7 @@
           do j=1,napx
          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(2d0*pi)           &!hr03
      &+  crabph3(ix)                                                      !hr03
-	  
+  
 +ca alignva
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
@@ -19595,7 +19595,7 @@ subroutine runda
 !FOX  CRABAMP=ED(IX) ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
-	   
+   
            
 !FOX  Y(1)=Y(1) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
