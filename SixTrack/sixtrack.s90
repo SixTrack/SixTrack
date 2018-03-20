@@ -13423,6 +13423,10 @@ end subroutine hamilton1
      &       ' not supported!'
       call prror(-1)
 +ei
+      
+!     LIMI block naturally activates backtracking, unless explicitly
+!       requested by user
+      lbacktracking=.true.
 
 !     P.G.Ortega and A.Mereghetti, 02-03-2018
 !     'next': echo aperture profiles
@@ -13444,6 +13448,7 @@ end subroutine hamilton1
           endif
         else
           write(lout,'(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
+          lbacktracking=.false.
         endif
         goto 110
 

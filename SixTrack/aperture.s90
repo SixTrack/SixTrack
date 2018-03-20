@@ -123,7 +123,7 @@ subroutine aperture_comnul
   loadunit      = 3 ! default: read aperture markers in fort.3
   load_file     = ' '
 
-  lbacktracking=.true. ! backtracking on by default
+  lbacktracking = .false. ! backtracking off by default
   do ii=1,npart
      do jj=1,2
         xLast(jj,ii)=zero
