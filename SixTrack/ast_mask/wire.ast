@@ -1,0 +1,5 @@
+wire.s90 sixtrack.s90
+wiren.f
+df cr,boinc,collimat,datamods,bignblz,hugenblz,bignpart,hugenpart
+e wiremodule
+ex

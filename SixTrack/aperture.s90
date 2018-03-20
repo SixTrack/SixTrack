@@ -1,6 +1,10 @@
 +dk aperture
 
 module aperture
+  ! Aperture check module
+  ! A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
+  ! J.Molson, BE/ABP-HSS
+  ! K.Sjobak, BE/ABP-LAT
 
   use floatPrecision
   use mathlib_bouncer
@@ -22,34 +26,34 @@ module aperture
   ! last modified: 02-03-2018
   ! always in main code
 
-  logical, save :: limifound                   ! limi block in fort.3
+  logical, save :: limifound                       ! limi block in fort.3
 
-  integer, save :: kape(nele)                  ! type of aperture
-  real(kind=fPrec), save ::  ape(7,nele)       ! aperture parameters [mm]
-  logical, save :: lapeofftlt(nele)            ! aperture is tilted/offcentred
+  integer, allocatable, save :: kape(:)            ! type of aperture (nele)
+  real(kind=fPrec), allocatable, save ::  ape(:,:) ! aperture parameters (7,nele) [mm]
+  logical, allocatable, save :: lapeofftlt(:)      ! aperture is tilted/offcentred (nele)
 
   ! save (i.e. do not kill) lost particles
-  logical, save :: apflag                      ! save or not
-  integer, save :: plost(npart)                ! particle ID
+  logical, save :: apflag                          ! save or not
+  integer, save :: plost(npart)                    ! particle ID
 
   ! dump aperture profile:
-  logical, save :: ldmpaper                    ! dump or not
-  integer, save :: aperunit                    ! fortran unit
-  character(len=16), save :: aper_filename     ! file name
+  logical, save :: ldmpaper                        ! dump or not
+  integer, save :: aperunit                        ! fortran unit
+  character(len=16), save :: aper_filename         ! file name
   ! load aperture markers from external file:
-  integer, save :: loadunit                    ! fortran unit
-  character(len=16), save :: load_file         ! file name
+  integer, save :: loadunit                        ! fortran unit
+  character(len=16), save :: load_file             ! file name
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
   ! variables for back-tracking
-  logical, save :: lbacktracking               ! activate back-tracking
-  real(kind=fPrec), save :: xLast(2,npart)     ! position after last check [mm]
-  real(kind=fPrec), save :: yLast(2,npart)     ! angles after last check [mrad]
-  real(kind=fPrec), save :: apLast(7)          ! aperture parameters at last lens [mm]
-  real(kind=fPrec), save :: sLast              ! s-coord at last lens [m]
-  real(kind=fPrec), save :: bktpre             ! precision of back-tracking [m]
-  integer, save :: kapLast                     ! type of aperture at last lens
+  logical, save :: lbacktracking                   ! activate back-tracking
+  real(kind=fPrec), save :: xLast(2,npart)         ! position after last check [mm]
+  real(kind=fPrec), save :: yLast(2,npart)         ! angles after last check [mrad]
+  real(kind=fPrec), save :: apLast(7)              ! aperture parameters at last lens [mm]
+  real(kind=fPrec), save :: sLast                  ! s-coord at last lens [m]
+  real(kind=fPrec), save :: bktpre                 ! precision of back-tracking [m]
+  integer, save :: kapLast                         ! type of aperture at last lens
 
   ! aperture types  -- kape
   ! circle          -- 1
@@ -66,7 +70,31 @@ module aperture
   real(kind=fPrec), parameter :: aPrec=c1m6 ! identify two ap. markers as identical [mm]
   real(kind=fPrec), parameter :: sPrec=c1m7 ! identify two ap. markers as at the same s-pos [m]
 
+
 contains
+
+
+subroutine aperture_allocate_arrays
+  implicit none
+  integer stat
+  
+  allocate(kape(nele), lapeofftlt(nele), ape(7,nele), STAT=stat)
+
+  if (stat.ne.0) then
+    write(lout,'(A,I8)') "ERROR in SUBROUTINE APERTURE_ALLOCATE_ARRAYS; stat=", stat
+    call prror(-1)
+  endif
+end subroutine aperture_allocate_arrays
+
+
+subroutine aperture_expand_arrays(nele_new)
+  implicit none
+  integer, intent(in) :: nele_new
+
+  !TODO...
+  
+end subroutine aperture_expand_arrays
+
 
 subroutine aperture_comnul
 
