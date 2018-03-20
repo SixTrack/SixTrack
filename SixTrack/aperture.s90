@@ -293,7 +293,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   integer niter       ! number of iterations
   integer kapert      ! temporal integer for aperture type
   logical llos(npart) ! temporal logic array for interpolation
-  real(kind=fPrec) xlos(2,npart), aprr(7), step(npart), length, slos(npart), apnew(7), xnew(2)
+  real(kind=fPrec) xlos(2,npart), ylos(2,npart), aprr(7), step(npart), length, slos(npart), apnew(7), xnew(2)
   save
 !-----------------------------------------------------------------------
   llost=.false.
@@ -403,6 +403,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     do j=1,napx
       xlos(1,j) = xLast(1,j)
       xlos(2,j) = xLast(2,j)
+      ylos(1,j) = yLast(1,j)
+      ylos(2,j) = yLast(2,j)
       llos(j)   = pstop(nlostp(j))
       slos(j)   = dcum(i)
       step(j)   = one
@@ -605,8 +607,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         j,                                                       &
 +ei
 
-     &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3,            &
-     &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)*(nucm0/nucm(j))-e0)*c1e6,             &
+     &         xlos(1,j)*c1m3, ylos(1,j)*c1m3, xlos(2,j)*c1m3, ylos(2,j)*c1m3,   &
+     &         ejfv(j)*c1m3, (ejv(j)*(nucm0/nucm(j))-e0)*c1e6,             &
      &         -c1m3 * (sigmv(j)/clight) * (e0/e0f),                    &
      &         naa(j), nzz(j)
 
@@ -616,7 +618,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         if(root_flag .and. root_ApertureCheck.eq.1) then
           this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
           call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos(j), ipart(j)+100*samplenumber,&
-       &  xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3, yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
+       &  xlos(1,j)*c1m3, ylos(1,j)*c1m3, xlos(2,j)*c1m3, ylos(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
        &  -c1m3 * (sigmv(j)/clight) * (e0/e0f))
         end if
 +ei ! root output
