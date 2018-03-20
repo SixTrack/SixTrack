@@ -44,12 +44,12 @@ module aperture
   ! last modified: 02-03-2018
   ! variables for back-tracking
   logical, save :: lbacktracking               ! activate back-tracking
-  real(kind=fPrec), save :: xold(2,npart)      ! position after last check [mm]
-  real(kind=fPrec), save :: yold(2,npart)      ! angles after last check [mrad]
-  real(kind=fPrec), save :: apold(7)           ! aperture parameters at last lens [mm]
-  real(kind=fPrec), save :: sold               ! s-coord at last lens [m]
+  real(kind=fPrec), save :: xLast(2,npart)     ! position after last check [mm]
+  real(kind=fPrec), save :: yLast(2,npart)     ! angles after last check [mrad]
+  real(kind=fPrec), save :: apLast(7)          ! aperture parameters at last lens [mm]
+  real(kind=fPrec), save :: sLast              ! s-coord at last lens [m]
   real(kind=fPrec), save :: bktpre             ! precision of back-tracking [m]
-  integer, save :: kapold                      ! type of aperture at last lens
+  integer, save :: kapLast                     ! type of aperture at last lens
 
   ! aperture types  -- kape
   ! circle          -- 1
@@ -98,16 +98,16 @@ subroutine aperture_comnul
   lbacktracking=.true. ! backtracking on by default
   do ii=1,npart
      do jj=1,2
-        xold(jj,ii)=zero
-        yold(jj,ii)=zero
+        xLast(jj,ii)=zero
+        yLast(jj,ii)=zero
      end do
   end do
   do ii=1,7
-     apold(ii)=zero
+     apLast(ii)=zero
   end do
-  sold=zero
+  sLast=zero
   bktpre=c1m1 ! default precision: 0.1m
-  kapold=0
+  kapLast=0
 
   return
 
@@ -128,11 +128,11 @@ subroutine aperture_saveLastMarker( i, ix )
   integer j
 
   ! Store old s value
-  sold  =  dcum(i)
+  sLast  =  dcum(i)
   ! Store information about aperture
-  kapold = kape(ix)
+  kapLast = kape(ix)
   do j=1,7
-     apold(j) = ape(j,ix)
+     apLast(j) = ape(j,ix)
   end do
 
   return
@@ -152,10 +152,10 @@ subroutine aperture_saveLastCoordinates
   integer j
 
   do j=1,napx
-     xold(1,j) = xv(1,j)
-     xold(2,j) = xv(2,j)
-     yold(1,j) = yv(1,j)
-     yold(2,j) = yv(2,j)
+     xLast(1,j) = xv(1,j)
+     xLast(2,j) = xv(2,j)
+     yLast(1,j) = yv(1,j)
+     yLast(2,j) = yv(2,j)
   end do
   return
 
@@ -276,13 +276,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     if( lapeofftlt(ix) ) then
 !     Include offset and angle rotation
       do j=1,napx
-        call roffpos( xv(1,j), xv(2,j), xchk(1,j), xchk(2,j), ape(5,ix), ape(6,ix), ape(7,ix) )
+        call roffpos( xLast(1,j), xLast(2,j), xchk(1,j), xchk(2,j), ape(5,ix), ape(6,ix), ape(7,ix) )
       end do
     else
 !   use original coordinates
       do j=1,napx
-        xchk(1,j)=xv(1,j)
-        xchk(2,j)=xv(2,j)
+        xchk(1,j)=xLast(1,j)
+        xchk(2,j)=xLast(2,j)
       end do
     end if
 
@@ -353,7 +353,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! no actual aperture profile is assigned to any SINGLE ELEMENT
 ! use the general check (set in the ITER block)
     do j=1,napx
-      pstop(nlostp(j))=checkRE(xv(1,j), xv(2,j), aper(1), aper(2)) .or.myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+      pstop(nlostp(j))=checkRE(xLast(1,j), xLast(2,j), aper(1), aper(2)) .or. &
+ &                     myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
     end do
   end if
 
@@ -369,8 +370,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   if( llost ) then
     ! Initialise arrays
     do j=1,napx
-      xlos(1,j) = xv(1,j)
-      xlos(2,j) = xv(2,j)
+      xlos(1,j) = xLast(1,j)
+      xlos(2,j) = xLast(2,j)
       llos(j)   = pstop(nlostp(j))
       slos(j)   = dcum(i)
       step(j)   = one
@@ -389,10 +390,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           apnew(jj) = ape(jj,ix)
         end do
       
-        if( kape(ix) .ge. 5 .or. kapold .ge. 5 ) then
+        if( kape(ix) .ge. 5 .or. kapLast .ge. 5 ) then
         ! force constant Racetrack or Octagon profile
           do jj=1,7
-            apold(jj) = apnew(jj)
+            apLast(jj) = apnew(jj)
           end do
         else
           ! a possible RL-equivalent transition
@@ -400,10 +401,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         end if
       
         ! Length between elements
-        length = dcum(i)-sold
+        length = dcum(i)-sLast
         if( length .lt. zero ) then
           ! pay attention to overflow:
-          ! length = dcum(i)+(dcum(iu+1)-sold)
+          ! length = dcum(i)+(dcum(iu+1)-sLast)
           length = length+dcum(iu+1)
         end if
       
@@ -426,18 +427,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       
               ! step discretized, to compare with BeamLossPattern
               if(jj.eq.niter) then
-                slos(j) = int((sold+length*step(j))/bktpre+one)*bktpre
-                step(j) = (slos(j)-sold)/length
+                slos(j) = int((sLast+length*step(j))/bktpre+one)*bktpre
+                step(j) = (slos(j)-sLast)/length
               end if
              
               ! Update position
-              xlos(1,j) = xv(1,j) -yold(1,j)*(one-step(j))*length
-              xlos(2,j) = xv(2,j) -yold(2,j)*(one-step(j))*length
-              slos(j)   = sold    +length*step(j)
+              xlos(1,j) = xLast(1,j) -yLast(1,j)*(one-step(j))*length
+              xlos(2,j) = xLast(2,j) -yLast(2,j)*(one-step(j))*length
+              slos(j)   = sLast    +length*step(j)
              
               ! Update apertures
               do jj1=1,7
-                aprr(jj1)=apold(jj1)+(apnew(jj1)-apold(jj1))*step(j)
+                aprr(jj1)=apLast(jj1)+(apnew(jj1)-apLast(jj1))*step(j)
               end do
              
               ! Check aperture
@@ -604,18 +605,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! Record for postpr
     do j=1,napx
       if(pstop(nlostp(j))) then
-!       aperv(nlostp(j),1)=apx(ix)
-!       aperv(nlostp(j),2)=apz(ix)
-        ixv(nlostp(j))    = ix
-        xvl(1,nlostp(j))  = xv(1,j)
-        xvl(2,nlostp(j))  = xv(2,j)
-        yvl(1,nlostp(j))  = yv(1,j)
-        yvl(2,nlostp(j))  = yv(2,j)
-        dpsvl(nlostp(j))  = dpsv(j)
-        ejvl(nlostp(j))   = ejv(j)
-        sigmvl(nlostp(j)) = sigmv(j)
-        numxv(nlostp(j))  = numx
-        nnumxv(nlostp(j)) = numx
+        aperv(nlostp(j),1) = min(ape(1,ix),ape(3,ix))
+        aperv(nlostp(j),2) = min(ape(2,ix),ape(4,ix))
+        ixv(nlostp(j))     = ix
+        xvl(1,nlostp(j))   = xv(1,j)
+        xvl(2,nlostp(j))   = xv(2,j)
+        yvl(1,nlostp(j))   = yv(1,j)
+        yvl(2,nlostp(j))   = yv(2,j)
+        dpsvl(nlostp(j))   = dpsv(j)
+        ejvl(nlostp(j))    = ejv(j)
+        sigmvl(nlostp(j))  = sigmv(j)
+        numxv(nlostp(j))   = numx
+        nnumxv(nlostp(j))  = numx
       end if
     end do
   
