@@ -301,99 +301,102 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! Set pstop for each particle
 
   if( limifound ) then
-    if( lapeofftlt(ix) ) then
-!     Include offset and angle rotation
-      do j=1,napx
-        call roffpos( xLast(1,j), xLast(2,j), xchk(1,j), xchk(2,j), ape(5,ix), ape(6,ix), ape(7,ix) )
-      end do
-    else
-!   use original coordinates
-      do j=1,napx
-        xchk(1,j)=xLast(1,j)
-        xchk(2,j)=xLast(2,j)
-      end do
-    end if
 
-!   go through all possible types
-    if( kape(ix).eq.1 ) then
-!   Circle
-      radius2 = ape(1,ix)**2
-      do j=1,napx
-        pstop(nlostp(j))=checkCR( xchk(1,j),xchk(2,j),radius2 ) .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
-      end do
-    else if( kape(ix).eq.2 ) then
-!   Rectangle
-      do j=1,napx
-        pstop(nlostp(j))=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix)) &
+     ! general check (set in the ITER block)
+     if( kape(ix).eq.0 ) then
+        do j=1,napx
+           pstop(nlostp(j))=checkRE( xLast(1,j), xLast(2,j), aper(1), aper(2)).or. &
+ &                       myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+           llost=llost.or.pstop(nlostp(j))
+        end do
+        
+     else
+        if( lapeofftlt(ix) ) then
+           ! include offset and angle rotation
+           do j=1,napx
+              call roffpos( xLast(1,j), xLast(2,j), xchk(1,j), xchk(2,j), ape(5,ix), ape(6,ix), ape(7,ix) )
+           end do
+        else
+           ! use original coordinates
+           do j=1,napx
+              xchk(1,j)=xLast(1,j)
+              xchk(2,j)=xLast(2,j)
+           end do
+        end if
+
+        ! go through all possible types
+        select case(kape(ix))
+        case (1) ! circle
+           radius2 = ape(1,ix)**2
+           do j=1,napx
+              pstop(nlostp(j))=checkCR( xchk(1,j),xchk(2,j),radius2 ) .or.myisnan(xchk(1,j),xchk(1,j)).or. &
+ &                     myisnan(xchk(2,j),xchk(2,j))
+              llost=llost.or.pstop(nlostp(j))
+           end do
+        case (2) ! Rectangle
+           do j=1,napx
+              pstop(nlostp(j))=checkRE(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix)) &
  &                       .or.myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
-      end do
-    else if( kape(ix).eq.3 ) then
-!   Ellipse
-      apxx = ape(3,ix)**2.
-      apyy = ape(4,ix)**2.
-      apxy = apxx * apyy
-      do j=1,napx
-        pstop(nlostp(j))=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy ).or.myisnan(xchk(1,j),xchk(1,j)) &
+              llost=llost.or.pstop(nlostp(j))
+           end do
+        case (3) ! Ellipse
+           apxx = ape(3,ix)**2.
+           apyy = ape(4,ix)**2.
+           apxy = apxx * apyy
+           do j=1,napx
+              pstop(nlostp(j))=checkEL( xchk(1,j),xchk(2,j),apxx,apyy,apxy ).or.myisnan(xchk(1,j),xchk(1,j)) &
  &                       .or.myisnan(xchk(2,j),xchk(2,j))
-      end do
-    else if( kape(ix).eq.4 ) then
-!   RectEllipse
-      apxx = ape(3,ix)**2.
-      apyy = ape(4,ix)**2.
-      apxy = apxx * apyy
-      do j=1,napx
-        pstop(nlostp(j))=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),apxx, apyy, apxy ) .or. &
+              llost=llost.or.pstop(nlostp(j))
+           end do
+        case (4) ! RectEllipse
+           apxx = ape(3,ix)**2.
+           apyy = ape(4,ix)**2.
+           apxy = apxx * apyy
+           do j=1,napx
+              pstop(nlostp(j))=checkRL(xchk(1,j),xchk(2,j),ape(1,ix),ape(2,ix),apxx, apyy, apxy ) .or. &
  &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
-      end do
-    else if( kape(ix).eq.5 ) then
-!   Octagon
-!   As in MAD-X:
-!   x.gt.ap1 .or. y.gt.ap2 .or.
-!   (ap2*tan_mb(pi/two-ap4)-ap1)*
-!   (y-ap1*tan_mb(ap3))-
-!   (ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
-
-!   Pre-calculate constants before the loop
-      ap_oc_1 = ape(2,ix)*tan_mb(pi/two-ape(4,ix))-ape(1,ix)
-      ap_oc_2 = ape(1,ix)*tan_mb(ape(3,ix))
-      ap_oc_3 = ape(2,ix)-ape(1,ix)*tan_mb(ape(3,ix))
-
-      do j=1,napx
-        pstop(nlostp(j))=checkOC(xchk(1,j), xchk(2,j), ape(1,ix), ape(2,ix), ap_oc_1, ap_oc_2, ap_oc_3) .or. &
+              llost=llost.or.pstop(nlostp(j))
+           end do
+        case (5) ! Octagon
+           !   As in MAD-X:
+           !   x.gt.ap1 .or. y.gt.ap2 .or.
+           !   (ap2*tan_mb(pi/two-ap4)-ap1)*
+           !   (y-ap1*tan_mb(ap3))-
+           !   (ap2-ap1*tan_mb(ap3))*(x-ap1).lt.zero
+           ap_oc_1 = ape(2,ix)*tan_mb(pi/two-ape(4,ix))-ape(1,ix)
+           ap_oc_2 = ape(1,ix)*tan_mb(ape(3,ix))
+           ap_oc_3 = ape(2,ix)-ape(1,ix)*tan_mb(ape(3,ix))
+           do j=1,napx
+              pstop(nlostp(j))=checkOC(xchk(1,j), xchk(2,j), ape(1,ix), ape(2,ix), ap_oc_1, ap_oc_2, ap_oc_3) .or. &
  &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
-      end do
-    else if( kape(ix).eq.6 ) then
-!   Racetrack
-!   NB: it follows the MadX definition
-      apxy = ape(3,ix)**2.
-      do j=1,napx
-        pstop(nlostp(j))=checkRT( xchk(1,j), xchk(2,j), ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or. &
+              llost=llost.or.pstop(nlostp(j))
+           end do
+        case (6) ! Racetrack
+           !   NB: it follows the MadX definition
+           apxy = ape(3,ix)**2.
+           do j=1,napx
+              pstop(nlostp(j))=checkRT( xchk(1,j), xchk(2,j), ape(1,ix), ape(2,ix), ape(3,ix), apxy ) .or. &
  &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
-      end do
-    else
-!   Unknown aperture type, general check (set in the ITER block)
-      do j=1,napx
-        pstop(nlostp(j))=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2)).or. &
+              llost=llost.or.pstop(nlostp(j))
+           end do
+        case default
+           ! Unknown aperture type, general check (set in the ITER block)
+           do j=1,napx
+              pstop(nlostp(j))=checkRE( xchk(1,j), xchk(2,j), aper(1), aper(2)).or. &
  &                       myisnan(xchk(1,j),xchk(1,j)).or.myisnan(xchk(2,j),xchk(2,j))
-      end do
-    endif
+              llost=llost.or.pstop(nlostp(j))
+           end do
+        end select
+     end if ! if( kape(ix).eq.0 )
   else !if( limifound )
-! no actual aperture profile is assigned to any SINGLE ELEMENT
-! use the general check (set in the ITER block)
-    do j=1,napx
-      pstop(nlostp(j))=checkRE(xLast(1,j), xLast(2,j), aper(1), aper(2)) .or. &
+     ! no actual aperture profile is assigned to any SINGLE ELEMENT
+     ! use the general check (set in the ITER block)
+     do j=1,napx
+        pstop(nlostp(j))=checkRE(xLast(1,j), xLast(2,j), aper(1), aper(2)) .or. &
  &                     myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-    end do
+        llost=llost.or.pstop(nlostp(j))
+     end do
   end if
-
-!   is there at least a particle lost?
-    do j=1,napx
-      if(pstop(nlostp(j))) then
-        llost=.true.
-        exit
-      end if
-    end do
-
 
   if( llost ) then
     ! Initialise arrays
@@ -542,7 +545,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               if( ipart(j)+100*samplenumber .eq. plost(jj) ) then
 +ei
 +if .not.collimat.and..not.fluka
-              if ( j .eq. plost(jj) ) then
+              if ( nlostp(j) .eq. plost(jj) ) then
 +ei
                 lparID=.true.
               end if
