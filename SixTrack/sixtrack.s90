@@ -24413,11 +24413,19 @@ end interface
 
 +ei
           if(ierro.ne.0) call prror(56)
-          e0f=sqrt(e0**2-pma**2)                                         !hr05
-          ejfv(ia)=sqrt(ejv(ia)**2-pma**2)                               !hr05
-          ejfv(ia+1)=sqrt(ejv(ia+1)**2-pma**2)                           !hr05
+          mtc(ia)=one
+          mtc(ia+1)=one
+          nucm(ia)=nucm0
+          nucm(ia+1)=nucm0
+          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
+          ejfv(ia)=sqrt(ejv(ia)**2-nucm(ia)**2)                               !hr05
+          ejfv(ia+1)=sqrt(ejv(ia+1)**2-nucm(ia+1)**2)                           !hr05
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
+          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
+          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
+          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
+          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
         if ( idfor.ne.3 ) then
         write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
