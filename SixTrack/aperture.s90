@@ -79,12 +79,9 @@ subroutine aperture_allocate_arrays
   implicit none
   integer stat
   
-  allocate(kape(nele), lapeofftlt(nele), ape(7,nele), STAT=stat)
-
-  if (stat.ne.0) then
-    write(lout,'(A,I8)') "ERROR in SUBROUTINE APERTURE_ALLOCATE_ARRAYS; stat=", stat
-    call prror(-1)
-  endif
+  call alloc(kape,nele,0,'kape')
+  call alloc(lapeofftlt,nele,.FALSE.,'lapeofftlt')
+  call alloc(ape,7,nele,zero,'ape')
 end subroutine aperture_allocate_arrays
 
 
@@ -92,7 +89,9 @@ subroutine aperture_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
 
-  !TODO...
+  call resize(kape,nele_new,0,'kape')
+  call resize(lapeofftlt,nele_new,.FALSE.,'lapeofftlt')
+  call resize(ape,7,nele_new,zero,'ape')
   
 end subroutine aperture_expand_arrays
 
