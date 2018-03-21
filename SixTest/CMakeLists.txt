@@ -34,6 +34,7 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 
 #List of tests that does not produce a valid fort.10
 SET(TESTS_NOFORT10
+  orbit6d-element-trombone
   orbit6d-element-quadrupole
   exact
   thick6dblocks
@@ -107,6 +108,7 @@ if(NOT COLLIMAT)
           lostnotilt
           notilt
           orbit6d-element-quadrupole
+          orbit6d-element-trombone
           prob1
           prob3
           s316
