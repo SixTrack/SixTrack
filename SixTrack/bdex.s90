@@ -14,6 +14,8 @@ module bdex
 !For nele
   use parpro
 
+  use mod_alloc
+
   implicit none
 
 !For the string length stuff
@@ -63,11 +65,8 @@ contains
     implicit none
     integer stat
 
-    allocate(bdex_elementAction(nele),bdex_elementChannel(nele), STAT=stat)
-    if (stat.ne.0) then
-       write(lout,'(A,I8)') "ERROR in SUBROUTINE BDEX_ALLOCATE_ARRAYS; stat=", stat
-       call prror(-1)
-    endif
+    call alloc(bdex_elementAction,nele,0,'bdex_elementAction')
+    call alloc(bdex_elementChannel,nele,0,'bdex_elementChannel')
 
   end subroutine bdex_allocate_arrays
 
@@ -76,7 +75,8 @@ contains
     implicit none
     integer, intent(in) :: nele_new
 
-    !TODO...
+    call resize(bdex_elementAction,nele_new,0,'bdex_elementAction')
+    call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
   end subroutine bdex_expand_arrays
 
   subroutine bdex_closefiles

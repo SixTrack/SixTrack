@@ -11,6 +11,8 @@ module scatter
     use parpro ! For nele
 
     use mod_ranecu
+
+    use mod_alloc
     
     IMPLICIT NONE
 
@@ -117,12 +119,15 @@ subroutine scatter_allocate_arrays
   implicit none
   integer stat
   
-  allocate(scatter_elemPointer(nele), STAT=stat)
+!  allocate(scatter_elemPointer(nele), STAT=stat)
+!
+!  if (stat.ne.0) then
+!    write(lout,'(A,I8)') "ERROR in SUBROUTINE SCATTER_ALLOCATE_ARRAYS; stat=", stat
+!    call prror(-1)
+!  endif
 
-  if (stat.ne.0) then
-    write(lout,'(A,I8)') "ERROR in SUBROUTINE SCATTER_ALLOCATE_ARRAYS; stat=", stat
-    call prror(-1)
-  endif
+   call alloc(scatter_elemPointer,nele,0,'scatter_elemPointer')
+
 end subroutine scatter_allocate_arrays
 
 !Used changing the allocation of arrays that scale with global parameters like NELE
@@ -131,7 +136,7 @@ subroutine scatter_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
 
-  !TODO...
+   call resize(scatter_elemPointer,nele_new,0,'scatter_elemPointer')
   
 end subroutine scatter_expand_arrays
 
