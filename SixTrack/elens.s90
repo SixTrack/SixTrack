@@ -4,6 +4,9 @@ module elens
   use parpro
   use floatPrecision
   use crcoall
+
+  use mod_alloc
+
   implicit none
   
 !     M. Fitterer, FNAL, A. Mereghtti, CERN
@@ -11,7 +14,7 @@ module elens
 !     Common block for electron lens definition
 
       ! size of table with elens data
-      integer, parameter     :: nelens=100
+      integer, parameter     :: nelens=125
       ! last elens read
       integer, save          :: melens
 
@@ -51,19 +54,22 @@ module elens
         implicit none
         integer stat
 
-        allocate(ielens(nele), STAT=stat)
+!        allocate(ielens(nele), STAT=stat)
+!
+!        if (stat.ne.0) then
+!           write(lout,'(A,I8)') "ERROR in SUBROUTINE ELENS_ALLOCATE_ARRAYS; stat=", stat
+!           call prror(-1)
+!        endif
 
-        if (stat.ne.0) then
-           write(lout,'(A,I8)') "ERROR in SUBROUTINE ELENS_ALLOCATE_ARRAYS; stat=", stat
-           call prror(-1)
-        endif
+         call alloc(ielens,nele,0,'ielens')
+
       end subroutine elens_allocate_arrays
 
       subroutine elens_expand_arrays(nele_new)
         implicit none
         integer, intent(in) :: nele_new
 
-        !TODO...
+         call resize(ielens,nele_new,0,'ielens')
 
       end subroutine elens_expand_arrays
 
