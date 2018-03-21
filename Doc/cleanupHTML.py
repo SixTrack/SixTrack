@@ -65,7 +65,7 @@ def wrapHTML(htmlDir, htmlFile, fileList):
         outFile.write("    $bMain  = true;\n")
         # outFile.write("    $sTitle = 'Manual';\n")
         outFile.write("    $sHead  = '"+htmlHead+"';\n")
-        outFile.write("    $sHead .= '<link rel=\"stylesheet\" href=\"/SixTrack/web/css/latexml-fix.css\" type=\"text/css\">\n';\n")
+        outFile.write("    $sHead .= '<link rel=\"stylesheet\" href=\"/SixTrack/css/latexml-fix.css\" type=\"text/css\">\n';\n")
         outFile.write("    require_once('../../includes/header.php');\n")
         outFile.write("?>\n")
         outFile.write("<article id='manual' class='ltx_document'>\n")

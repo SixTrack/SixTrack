@@ -3491,7 +3491,7 @@
           do j=1,napx
          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(2d0*pi)           &!hr03
      &+  crabph3(ix)                                                      !hr03
-	  
+  
 +ca alignva
         yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
      &(crkve**2-cikve**2))*                                             &!hr13
@@ -10562,8 +10562,12 @@ end subroutine hamilton1
       
       use crcoall
       use parpro
+      use parpro_scale
       use mod_common
       use mod_commons
+
+      use mod_alloc
+
       use elens
       use wire
       implicit none
@@ -10588,12 +10592,13 @@ end subroutine hamilton1
       
       character(len=max_name_len) sing,stru,prin,trac,diff,sync,ende,bloc,comm
       character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
-      character(len=max_name_len) beze,bez0,go,comb,sear,subr
+      character(len=max_name_len) beze,go,comb,sear,subr
       character(len=max_name_len) free,geom,cavi,disp,reso,bezext
       character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
       character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
       character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
       character(len=max_name_len) coll
+      character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
       character(len=60) ihead
       integer nchars
       parameter (nchars=160)
@@ -10656,7 +10661,7 @@ end subroutine hamilton1
       real(kind=fPrec) eLensTheta
       
       dimension icel(ncom,20),iss(2),iqq(5)
-      dimension beze(nblo,nelb),ilm(nelb),ilm0(40),bez0(nele),ic0(10)
+      dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
       dimension extaux(40),bezext(nblz)
       data sing,stru,prin,sync,ende,next,comm                           &
      &/'SING','STRU','PRIN','SYNC','ENDE','NEXT','COMM'/
@@ -10700,9 +10705,10 @@ end subroutine hamilton1
         iqq(i)=' '
       end do
 
-      do i=1,nele
-        bez0(i)=' '
-      end do
+      call alloc(bez0, max_name_len, nele, ' ', 'bez0')
+!      do i=1,nele
+!        bez0(i)=' '
+!      end do
 
       do i=1,nblo
         do j=1,nelb
@@ -11105,9 +11111,25 @@ end subroutine hamilton1
         endif
       endif
 !--General
-      if(abs(el(i)).gt.pieni.and.kz(i).ne.0) ithick=1
-      if(i.gt.nele-1) call prror(16)
-      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) )kp(i)=0
+      if(abs(el(i)).gt.pieni.and.kz(i).ne.0) then
+        ithick=1
+      end if
+
+!      if(i.gt.nele-1) call prror(16)
+      if(i.gt.nele-2) then
+        call expand_arrays(nele+10, npart, nblz, nblo)
+        call resize(bez0, max_name_len, nele, ' ', 'bez0')
+!+if vvector
+!        if (ithick.eq.1) then
+!          call expand_thickarrays(nele+10, npart, nblz, nblo )
+!        end if
+!+ei
+      end if
+
+      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) ) then
+        kp(i)=0
+      end if
+
 ! set element name
       bez(i)=idat
       bez0(i)=idat
@@ -19685,7 +19707,7 @@ subroutine runda
 !FOX  CRABAMP=ED(IX) ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
-	   
+   
            
 !FOX  Y(1)=Y(1) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
@@ -22654,6 +22676,23 @@ program maincr
       use wire
 
       implicit none
+
+
+interface
+
+  subroutine envarsv(dpsv,oidpsv,rvv,ekv) 
+    use floatPrecision
+    use parpro
+    use parpro_scale
+    implicit none
+
+    real(kind=fPrec) :: dpsv(npart)
+    real(kind=fPrec) :: oidpsv(npart)
+    real(kind=fPrec) :: rvv(npart)
+    real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:) 
+  end subroutine envarsv
+end interface
+
 
 +ca errout
 !-----------------------------------------------------------------------
@@ -26672,9 +26711,9 @@ subroutine thin6d(nthinerr)
 !         endif
 +ei
 
-          if( bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) then
-             call bdex_track(i,ix,n)
-          end if
+!          if( bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) then
+!             call bdex_track(i,ix,n)
+!          end if
 +ei
 +if collimat
       dotrack = myktrack
@@ -31325,7 +31364,7 @@ subroutine synuthck
       end subroutine synuthck
 
 +dk envarsv
-      subroutine envarsv(dpsv,oidpsv,rvv,ekv)
+subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
@@ -31339,15 +31378,20 @@ subroutine synuthck
       use parpro
       use mod_common
       use mod_commons
+
+      use mod_alloc
+
       implicit none
       integer ih1,ih2,j,kz1,l,l1,l2
 
       !Local version of variables normally found in mod_commonmn
-      real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,ekv,fi,    &
+      real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,fi,    &
            fok,fok1,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
            rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
-      
-      dimension ekv(npart,nele),fokqv(npart),dpsv(npart)
+
+      real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:) !(npart,nele)
+
+      dimension fokqv(npart),dpsv(npart)
       dimension rvv(npart),oidpsv(npart)
       dimension dpd(npart),dpsq(npart),fok(npart),rho(npart)
       dimension fok1(npart),si(npart),co(npart),g(npart),gl(npart)
@@ -31369,7 +31413,7 @@ subroutine synuthck
 !-----------------------------------------------------------------------
       save
 !-----------------------------------------------------------------------
-      
+
       do 10 j=1,napx
         dpd(j)=one+dpsv(j)
         dpsq(j)=sqrt(dpd(j))
@@ -31733,8 +31777,9 @@ subroutine synuthck
           al(4,2,j,l)=one
   150   continue
   160 continue
+
       return
-      end
+end subroutine envarsv
 
 +dk mainda
       program mainda
@@ -33272,6 +33317,7 @@ integer function INEESE()
   use crcoall
 
   use parpro
+  use parpro_scale
   use mod_common
   use mod_commonmn
   implicit none
@@ -33280,9 +33326,12 @@ integer function INEESE()
 
   il=il+1
   if( il.gt.nele ) then
-    write(lout,*)'ERROR: not enough space for adding element in list of SINGLE ELEMENTs!'
-    write(lout,*)'       please, increase nele and recompile!'
-    call prror(-1)
+    call expand_arrays(nele+10, npart, nblz, nblo )
++if vvector
+      if (ithick.eq.1) then
+        call expand_thickarrays(nele+10, npart, nblz, nblo )
+      end if
++ei
   end if
 
 ! initialise element to empty

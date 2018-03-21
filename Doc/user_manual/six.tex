@@ -1,28 +1,32 @@
-\documentclass[a4paper,11pt]{report} 
-\usepackage[a4paper,margin=2cm]{geometry}
+\documentclass[twoside,a4paper,11pt]{report} 
+\usepackage[twoside,a4paper,top=25mm,bottom=25mm,left=20mm,right=20mm]{geometry}
 
 \usepackage{float} 
 %\usepackage{graphics}
 \usepackage[dvips]{epsfig,rotating} 
 
 \usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{amssymb}
 
 %\usepackage{html}
 
-\usepackage[table]{xcolor}
+% Table Settings
 \usepackage{longtable}
+\usepackage[table]{xcolor}
+\usepackage{tabu}
 \usepackage{multirow}
+\usepackage{tabularx}
+% \usepackage{makecell}
+%\tabulinesep=^1mm_1mm
+\renewcommand{\arraystretch}{1.1}
 
 \usepackage{caption}
 \captionsetup[table]{skip=2pt}
 
 \usepackage{todonotes}
 %\usepackage{draftwatermark}
-\usepackage{tabularx}
 
-\usepackage{amsmath}
-
-\usepackage{makecell}
 \usepackage{fancyvrb}
 
 % Colours
@@ -46,6 +50,16 @@
   \fcolorbox{cverbbd}{cverbbg}{\BUseVerbatim{cverb}}%
   \endflushleft\normalsize
 }
+
+\newenvironment{ctverbatim}
+ {\SaveVerbatim{ctverb}}
+ {\endSaveVerbatim
+  \tiny\flushleft\addtolength{\leftskip}{5mm}
+  \fboxrule=0.4pt\fboxsep=0.6em
+  \fcolorbox{cverbbd}{cverbbg}{\BUseVerbatim{ctverb}}%
+  \endflushleft\normalsize
+}
+
 \newenvironment{description_alligned}[1]
 {\begin{list}{}%
     {\renewcommand\makelabel[1]{##1:\hfill}%
@@ -59,101 +73,91 @@
 \pagestyle{headings}
 \raggedbottom
 
+% Page Layout
+%*************
+
+\usepackage{fancyhdr}
+
+% Plain Page Numbering
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[LE,RO]{\thepage}
+}
+
+% Header style for numbered chapters
+\newcommand{\defaulthead}{
+    \fancyhead[LE]{\nouppercase{\scshape\leftmark}}
+    \fancyhead[RO]{\nouppercase{\scshape\rightmark}}
+}
+
+% Custom heading for unnumbered chapters
+\newcommand{\simplehead}[1]{
+    \fancyhead[LE]{\nouppercase{\itshape #1}}
+    \fancyhead[RO]{\nouppercase{\itshape #1}}
+}
+
+\pagestyle{fancy}
+
+% Page Header
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter: #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}{}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancyhf{}
+\defaulthead
+\headheight 15pt
+\fancyfoot[LE,RO]{\thepage}
+
+% Main Document
 \begin{document}
 
 \pagenumbering{roman}
 
-\input{titlepage}
-%\cleardoublepage
+\input{incTitlePage}
+\cleardoublepage
+\pdfbookmark{Acknowledgements}{Acknowledgements}
+\input{incAcknowledgement}
+\cleardoublepage
 
 \tableofcontents
-\listoftables
-%\cleardoublepage
+\cleardoublepage
 \pagenumbering{arabic}
 
 % Chapters
 \input{chIntroduction}
-% \input{chVersionsService}
+\cleardoublepage
 \input{chGeneralInput}
+\cleardoublepage
 \input{chMachineGeometry}
+\cleardoublepage
 \input{chSpecialElements}
+\cleardoublepage
 \input{chOrganisingTasks}
+\cleardoublepage
 \input{chProcessing}
+\cleardoublepage
 \input{chInitialConditions}
+\cleardoublepage
 \input{chExtraOutput}
-% \input{chInputStructure}
-\input{chConclusionAcknowledgement}
+\cleardoublepage
 
 \appendix
+\renewcommand{\chaptername}{Appendix}
 \input{apxKeywords}
+\cleardoublepage
 \input{apxDefaults}
+\cleardoublepage
 \input{apxInputOutput}
+\cleardoublepage
 \input{apxDataStructure}
-\input{apxExamples}
+\cleardoublepage
+% \input{apxExamples}
+% \cleardoublepage
 
 \input{theBibliography}
+\cleardoublepage
+\listoftables
+\cleardoublepage
 
 \end{document}
-
-% \chapter{MAD SixTrack Convertor} \label{MADSIXC}
-
-% A special version of the MAD program has been generated that creates
-% input files for SixTrack with the complete and exact description of
-% the current accelerator model stored in MAD\@. This then allows a
-% detailed comparison of the tracking results from both programs.
-
-% The programs SixTrack and MAD \cite {MAD} are both used for particle
-% tracking in realistic machines such as the LHC with all expected field
-% errors up to the highest order, and with displacement errors of
-% quadrupoles and possibly other elements. The LHC lattice and error
-% description, however, exists only in MAD format due to its much
-% greater flexibility and readability. If one wants to compare tracking
-% results of the two programs one needs therefore a conversion of the
-% current machine inside MAD into SixTrack format. In particular the
-% generated random field and displacement errors have to be transmitted
-% correctly since they influence the outcome of the long--term tracking
-% greatly.
-
-% To this end it was necessary to make a special MAD version that reads
-% a machine description, expands it, generates the errors, and then
-% performs the necessary transformations for SixTrack: different
-% conventions for the signs of magnet forces, grouping of identical
-% elements, concatenation of multiple drift spaces, creation of blocks
-% of linear elements between nonlinear ones, a different description
-% of field and position errors, and similar tedious questions had to be
-% solved. The results of the transformation are then written into input
-% files for SixTrack.
-
-% The special MAD version is actually a full MAD (except for plotting)
-% with an additional module for the SixTrack output.  This then allows
-% the user to perform orbit corrections and other calculations inside
-% MAD, and have the resulting modifications of the machine be
-% transferred to SixTrack.  All position errors (including tilt errors)
-% and field errors are transmitted.
-
-% The converter works correctly for thin and thick lens lattices.  In
-% the latter case, all dipoles and quadrupoles are split into two, and a
-% multipole is inserted in the centre, except for orbit corrector
-% magnets which are converted to thin lens.  Since MAD does not support
-% field errors higher than third order for thick elements, the
-% multipolar errors will have to be created with the corresponding thin
-% lens model, or by some other means.
-
-% The special MAD version accepts one additional command:
-% \begin{verbatim}
-%  sixt:
-%       elem       = (up to 20) element names
-%       lgelem     = (up to 20) lengths of the above elements
-%       structure  = structure file name, default: "fort.2"
-%       param_in   = name of a (mandatory, possibly empty)
-%                    extra input file for MAD, default: "fort.3.in"
-%       param_out  = parameter file name, default: "fort.3"
-%       errors     = field errors file name, default: "fort.16"
-%       poserr     = position errors file name, default: "fort.8"
-%       cavall     = all cavities in the structure, default: one only.
-% \end{verbatim}
-% The element length facility is necessary to give SixTrack the real
-% lengths of the dipoles (and possibly other elements) that are replaced
-% by thin multipoles.  \\
-% The parameter input file is copied to the start of the parameter
-% output file which may be useful in certain situations.

@@ -1,353 +1,226 @@
 
-\chapter{Initial Conditions for Tracking}
+\chapter{Initial Conditions for Tracking} \label{InitCondTrack}
 
-\subparagraph{Description} For the study of nonlinear system the
-choice of initial conditions is of crucial importance. The input
-structure for the initial conditions was therefore organise in such a
-way as to allow for maximum flexibility. SixTrack is optimised to
-reach the largest possible number of turns. In order to derive the
-Lyapunov exponent and thereby to distinguish between regular and
-chaotic motion, the particle has a close by companion particle.
-Moreover, experience has shown that varying only the amplitude while
-keeping the phases constant is sufficient to understand the nonlinear
-dynamics, as a subsequent detailed post--processing allows to find the
-dependence of the parameter of interest on these phases.
+For the study of non-linear system, the choice of initial conditions is of crucial importance.
+The input structure for the initial conditions was therefore organised in such a way as to allow for maximum flexibility.
+SixTrack is optimised to reach the largest possible number of turns.
+In order to derive the Lyapunov exponent, and thereby to distinguish between regular and chaotic motion, the particle has a close by companion particle.
+Moreover, experience has shown that varying only the amplitude while keeping the phases constant is sufficient to understand the non-linear dynamics, as a subsequent detailed post-processing allows to find the dependence of the parameter of interest on these phases.
 
+% ================================================================================================================================ %
 \section{Tracking Parameters} \label{TraPar}
 
-\subparagraph{Description} All tracking parameters are defined with
-this input block, the initial coordinates are generally set here, too.
-A fine tuning of the initial condition is done with Initial
-Coordinates block (~\ref{IniCoo}) and the parameters for the
-synchrotron oscillation are given in block (~\ref{SynOsc})
+All tracking parameters are defined with this input block.
+The initial coordinates are generally also set here.
+A fine tuning of the initial condition is done with \textit{Initial Coordinates} block (\ref{IniCoo}), and the parameters for the synchrotron oscillation are given in block (\ref{SynOsc}).
 
-\subparagraph{Keyword} TRAC \subparagraph{Number of data lines} 3
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{TRAC} &\\
+    \textbf{Data lines} & 3 &\\
+    \textbf{Format}     & Line 1: & \texttt{numl numlr napx amp(1) amp0 ird imc} \\
+                        &         & \texttt{niu(1) niu(2) numlcp numlmax} \\
+                        & Line 2: & \texttt{idy(1) idy(2) idfor irew iclo6} \\
+                        & Line 3: & \texttt{nde(1) nde(2) nwr(1) nwr(2) nwr(3) nwr(4)} \\
+                        &         & \texttt{ntwin ibidu iexact}
+\end{tabular}
 
-\subparagraph{Format}
-\begin{itemize}
-\item data line 1: {\em numl numlr napx amp(1) amp0 ird imc niu(1) niu(2) numlcp numlmax}
-\item data line 2: {\em idy(1) idy(2) idfor irew iclo6} \/(integers)
-\item data line 3: {\em nde(1) nde(2) nwr(1) nwr(2) nwr(3) nwr(4) ntwin ibidu iexact} \/(integers)
-\end{itemize}
+\paragraph{Format Description}~
 
-\begin{description}
-\item [numl] (integer) Number of turns in the forward direction
-\item [numlr] (integer) Number of turns in the backward direction
-\item [napx] (integer) Number of amplitude variations (i.e.\ particle pairs)
-\item [amp(1), amp0] (floats) Start and end amplitude (any sign) in
-  the horizontal phase space plane for the amplitude variations. The
-  vertical amplitude is calculated using the ratio between the
-  horizontal and vertical emittance set in the {\em Initial
-    Coordinates} \/block (~\ref{IniCoo}), where the initial phase in
-  phase space are also set. Additional information can be found in the
-  {\em Remarks}\/.
-\item [ird] (integer) Ignored.
-\item [imc] (integer) Number of variations of the relative momentum
-  deviation \mbox{$ \frac{\Delta p}{p_o} $}.  The maximum value of the
-  relative momentum deviation \mbox{$ \frac{\Delta p}{p_o} $} is taken
-  from that of the first particle in the {\em Initial Coordinates}
-  \/block (~\ref{IniCoo}).  The variation will be between \mbox{$ \pm
-    \frac{\Delta p}{p_o} (\mathrm{max}) $} in steps of \mbox{$
-    \frac{\Delta p}{p_o} (\mathrm{max}) $ / ({\em imc--1}\/).}
-\item[niu(1), niu(2)] Unknown; default values are 0.
-\item[numlcp] Checkpoint/restart version: How often to write checkpointing files.
-\item[numlmax] Checkpoint/restart version: Maximum ammount of turns; default is $10^6$.
-\item [idy(1), idy(2)] A tracking where one of the transversal motion
-  planes shall be ignored is only possible when all coupling terms are
-  switched off.  The part of the coupling that is due to closed orbit
-  and other effects can be turned off with these switches.
- \begin{itemize}
- \item {\em idy(1), idy(2)} \/= 1 : coupling on
- \item {\em idy(1), idy(2)} \/= 0 : coupling to the horizontal and
-   vertical motion plane respectively switched off
- \end{itemize}
-\item [idfor] Usually the closed orbit is added to the initial
-  coordinates. This can be turned off using {\em idfor}\/, for
-  instance when a run is to be prolonged.
- \begin{itemize}
- \item {\em idfor} \/= 0 : closed orbit added.
- \item {\em idfor} \/= 1 : initial coordinates unchanged.
- \item {\em idfor} \/= 2 : prolongation of a run, taken the initial coordinates from unit \# 13.
- \end{itemize}
-\item [irew] To reduce the amount of tracking data after each
-  amplitude and relative momentum deviation iteration \mbox{$
-    \frac{\Delta p}{p_o} $} the binary output units 90 and lower (see
-  Appendix~\ref{Files}) are rewound.  This is always done when the
-  post--processing is activated (~\ref{PosPro}). For certain
-  applications it may be useful to store all data. The switch {\em
-    irew} \/allows for that.
- \begin{itemize}
- \item {\em irew} \/= 0 : unit 90 (and lower) rewound
- \item {\em irew} \/= 1 : all data on unit 90 (and lower)
- \end{itemize}
-\item [iclo6]
-  This switch allows to calculate the 6D closed orbit and optical functions at the starting point, using the differential algebra package.
-  % It is ignored in the regular tracking versions.
-  It is active in all versions that link to the Differential Algebra package.
-  % This 6D closed orbit can be calculated from any longitudinal position contrary to earlier versions.
-  Note that iclo6 > 0 is mandatory for 6D simulations, and that iclo6 == 0 is mandatory for 4D simulations.
- \begin{itemize}
- \item {\em iclo6} \/= 0 : switched off
- \item {\em iclo6} \/= 1 : calculated
- \item {\em iclo6} \/= 2 : calculated and added to the initial coordinates (~\ref{IniCoo}).
- \item {\em iclo6} \/= 5 or = 6: like for {\em 1} \/and {\em 2} \/ but in addition a guess closed orbit is read (in free format) from fileunit \# 33.
- \end{itemize}
-\item [nde(1)]
-  Number of turns at flat bottom, useful for energy ramping.
-\item [nde(2)]
-  Number of turns for the energy ramping.  {\em numl}\/--{\em nde(2)} \/ gives the number of turns on the flat top.
-  For constant energy with \mbox{$ nde(1) = nde(2) = 0 $} the particles are considered to be on the flat top.
-\item [nwr(1)]
-  Every {\em nwr(1)}\/'th turn the coordinates will be written on unit 90 (and lower) in the flat bottom part of the tracking.
-\item [nwr(2)]
-  Every {\em nwr(2)}\/'th turn the coordinates in the ramping region will be written on unit 90 (and lower).
-\item [nwr(3)]
-  Every {\em nwr(3)}\/'th turn at the flat top a write out of the coordinates on unit 90 (and lower) will occur.
-  For
-  constant energy this number controls the amount of data on unit 90
-  (and lower), as the particles are considered on the flat top.
-\item [nwr(4)] In cases of very long runs it is sometimes useful to
-  save all coordinates for a prolongation of a run after a possible
-  crash of the computer.  Every {\em nwr(4)}\/'th turn the coordinates
-  are written to unit 6.
-\item [ntwin] For the analysis of the Lyapunov exponent it is usually
-  sufficient to store the calculated distance of phase space together
-  with the coordinate of the first particle ({\em ntwin} \/set to
-  one). You may want to improve the 6D calculation of the distance in
-  phase space with {\em sigcor, dpscor} \/(see~\ref{IniCoo}) when the
-  6D closed orbit is not calculated with {\em iclo6} \/$\neq 2$. If
-  storage space is no problem, one can store the coordinates of both
-  particles ({\em ntwin} \/set to two). The distance in phase space is
-  then calculated in the post--processing procedure
-  (see~\ref{PosPro}). This also allows a subsequent refined Lyapunov
-  analysis using differential--algebra and Lie--algebra techniques
-  (\cite{Refine}).
-\item [ibidu] Switch to creat or read binary dump of the full
-  accelerator decription on file \# 32. The parameters relevant to
-  tracking, i.e.\ {\em numl, amp0, amp(1), amp(2), damp, chi0, chid,
-    rat, $x_1$, $x'_1$, $y_1$, $y'_1$, ${\sigma}_1$, $\frac{\Delta
-      p}{p_{o1}}$, $x_2$, $x'_2$, $y_2$, $y'_2$, ${\sigma}_2$,
-    $\frac{\Delta p}{p_{o2}}$, time0, time1}, are to be given via the
-  tracking parameter file \# 3.
- \begin{itemize}
- \item {\em ibidu} \/= 1 : write dump
- \item {\em ibidu} \/= 2 : read dump
- \end{itemize}
-\item [iexact] Switch to enable exact solution of the equation of motion into
-  tracking and 6D (no 4D) optics calculations.
-  \begin{itemize}
-    \item {\em iexact} \/= 0 : approximated equation
-              (e.g. $x'\simeq \frac{P_x}{P_0(1+\delta)}$,
-                    $y'\simeq \frac{P_y}{P_0(1+\delta)}$);
-    \item {\em iexact} \/= 1 : exact equation (e.g
-      $x'\simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}$,
-      $y'\simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}$ ).
- \end{itemize}
-\end{description}
+\bigskip
+\begin{longtabu}{@{}llp{0.7\linewidth}}
+    \texttt{numl}          & integer  & Number of turns in the forward direction. \\
+    \texttt{numlr}         & integer  & Number of turns in the backward direction. \\
+    \texttt{napx}          & integer  & Number of amplitude variations (i.e.\ particle pairs). \\
+    \texttt{amp(1),amp0}   & floats   & Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations. The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set. Additional information can be found in the \textit{Remarks}. \\
+    \texttt{ird}           & integer  & Ignored. \\
+    \texttt{imc}           & integer  & Number of variations of the relative momentum deviation $\Delta p/p_0$. The maximum value of the relative momentum deviation $\Delta p/p_0$ is taken from that of the first particle in the \textit{Initial Coordinates} block (\ref{IniCoo}). The variation will be between \mbox{$\pm \left[\Delta p/p_0\right](\mathrm{max})$} in steps of \mbox{$\left[\Delta p/p_0\right](\mathrm{max})$ / (\texttt{imc-1}).} \\
+    \texttt{niu(1),niu(2)} &          & Unknown; default values are 0. \\
+    \texttt{numlcp}        & integer  & Checkpoint/restart version: How often to write checkpointing files. \\
+    \texttt{numlmax}       & integer  & Checkpoint/restart version: Maximum amount of turns; default is $10^6$. \\
+    \texttt{idy(1),idy(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
+                           &          & \texttt{idy(1), idy(2) = 1}: coupling on. \\
+                           &          & \texttt{idy(1), idy(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
+    \texttt{idfor}         & integer  & Usually the closed orbit is added to the initial coordinates. This can be turned off using \texttt{idfor}, for instance when a run is to be prolonged. \\
+                           &          & \texttt{idfor = 0}: closed orbit added. \\
+                           &          & \texttt{idfor = 1}: initial coordinates unchanged. \\
+                           &          & \texttt{idfor = 2}: prolongation of a run, taken the initial coordinates from \texttt{fort.13}. \\
+    \texttt{irew}          & integer  & To reduce the amount of tracking data after each amplitude and relative momentum deviation iteration $\Delta p/p_0$ the binary output units 90 and lower (see Appendix~\ref{Files}) are rewound. This is always done when the post-processing is activated (\ref{PosPro}). For certain applications it may be useful to store all data. The switch \texttt{irew} allows for that. \\
+                           &          & \texttt{irew = 0}: unit 90 (and lower) rewound. \\
+                           &          & \texttt{irew = 1}: all data on unit 90 (and lower). \\
+    \texttt{iclo6}         & integer  & This switch allows to calculate the 6D closed orbit and optical functions at the starting point, using the differential algebra package. It is active in all versions that link to the Differential Algebra package.  Note that \texttt{iclo6 > 0} is mandatory for 6D simulations, and that \texttt{iclo6 = 0} is mandatory for 4D simulations. \\
+                           &          & \texttt{iclo6 = 0}: switched off. \\
+                           &          & \texttt{iclo6 = 1}: calculated. \\
+                           &          & \texttt{iclo6 = 2}: calculated and added to the initial coordinates (\ref{IniCoo}). \\
+                           &          & \texttt{iclo6 = 5 or 6}: like for 1 and 2, but in addition a guess closed orbit is read (in free format) from file \texttt{fort.33}. \\
+    \texttt{nde(1)}        & integer  & Number of turns at flat bottom, useful for energy ramping. \\
+    \texttt{nde(2)}        & integer  & Number of turns for the energy ramping. \texttt{numl}-\texttt{nde(2)} gives the number of turns on the flat top. For constant energy with \mbox{$nde(1) = nde(2) = 0$} the particles are considered to be on the flat top. \\
+    \texttt{nwr(1)}        & integer  & Every \texttt{nwr(1)}'th turn the coordinates will be written on unit 90 (and lower) in the flat bottom part of the tracking. \\
+    \texttt{nwr(2)}        & integer  & Every \texttt{nwr(2)}'th turn the coordinates in the ramping region will be written on unit 90 (and lower). \\
+    \texttt{nwr(3)}        & integer  & Every \texttt{nwr(3)}'th turn at the flat top a write out of the coordinates on unit 90 (and lower) will occur. For constant energy this number controls the amount of data on unit 90 (and lower), as the particles are considered on the flat top. \\
+    \texttt{nwr(4)}        & integer  & In cases of very long runs it is sometimes useful to save all coordinates for a prolongation of a run after a possible crash of the computer. Every \texttt{nwr(4)}'th turn the coordinates are written to unit 6. \\
+    \texttt{ntwin}         & integer  & For the analysis of the Lyapunov exponent it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to one). You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated with \texttt{iclo6} $\neq 2$. If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two). The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}). This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra techniques (\cite{Refine}). \\
+    \texttt{ibidu}         & integer  & Switch to create or read binary dump of the full accelerator description on file \texttt{fort.32}. The parameters relevant to tracking, i.e.\ \texttt{numl, amp0, amp(1), amp(2), damp, chi0, chid, rat, $x_1$, $x^\prime_1$, $y_1$, $y^\prime_1$, $\sigma_1$, $\Delta p/p_{0,1}$, $x_2$, $x^\prime_2$, $y_2$, $y^\prime_2$, $\sigma_2$, $\Delta p/p_{0,2}$, time0, time1}, are to be given via the  tracking parameter file \texttt{fort.3}. \\
+                           &          & \texttt{ibidu = 1}: write dump. \\
+                           &          & \texttt{ibidu = 2}: read dump. \\
+    \texttt{iexact}        & integer  & Switch to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations. \\
+                           &          & \texttt{iexact = 0}: approximated equation
+                           \begin{equation*}
+                                \mbox{e.g.}
+                                \quad x^\prime \simeq \frac{P_x}{P_0(1+\delta)},
+                                \quad y^\prime \simeq \frac{P_y}{P_0(1+\delta)};
+                           \end{equation*} \\
+                           &          & \texttt{iexact = 1}: exact equation
+                           \begin{equation*}
+                                \mbox{e.g.}
+                                \quad x^\prime \simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}},
+                                \quad y^\prime \simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}.
+                           \end{equation*}
+\end{longtabu}
 
-\subparagraph{Remarks}
+\paragraph{Remarks}~
 \begin{enumerate}
-\item This input data block is usually combined with the {\em Initial
-    Coordinates} \/input block (~\ref{IniCoo}) to allow a flexible
-  choice of the initial coordinates for the tracking.
-\item For a prolongation of a run the following parameters have to be
-  set :
-\begin{itemize}
-\item in this input block : idfor = 1
-\item in the {\em Initial coordinates} \/input block :
-\begin{enumerate}
-\item itra = 0
-\item take the end coordinates of the previous run as the initial
-  coordinates (including all digits) for the new run.
-\end{enumerate}
-\end{itemize}
-\item A feature is installed for a prolongation of a run by using
-  \mbox{\em idfor = 2} \/and 
-  reading the initial data from unit \# 13. The end coordinates are
-  now written on unit \# 12 after each run. Intermediate coordinates
-  are also written on unit \# 12 in case the turn number \mbox{\em
-    nwr(4)} \/is exceeded in the run. The user takes responsibility to
-  transfer the required data from unit \# 12 to unit \# 13 if a
-  prolongation is requested.
-\item Some illogical combinations of parameters have been suppressed.
-\item The initial coordinates are calculated using a proper linear 6D
-  transformation: {\em amp(1)} \/is still the maximum horizontal
-  starting amplitude (excluding the dispersion contribution) from
-  which the emittance of mode 1 $e_I$ is derived, {\em rat}
-  \/(see~\ref{IniCoo}) is the ratio of $e_{II}/e_I$ of the emittances
-  of the two modes. The momentum deviation $\frac{\Delta p}{p_{o1}}$ is used to
-  define a longitudinal amplitude. The 6 normalized coordinates read:
-\begin{itemize}
-\item horizontal:\\
-
-  $\sqrt{e_I}=\frac{amp(1)}
-  {\sqrt{\beta_{xI}}+\sqrt{\left|rat\right|\times\beta_{xII}}}$,\\
-
-  $0.$
-
-\item vertical: \\
-
- $sign(rat)\times \sqrt{e_{II}}$, with $e_{II} =
- \left|rat\right|\times e_{I}$,\\
-
- $0.$
-
-\item longitudinal: \\
-
-$0.$,\\ 
-
-$\frac{\Delta p}{p_{o1}} \times \sqrt{\beta_{sIII}}$
-
-\end{itemize}
-and are then transformed with the 6D linear transformation into real
-space. Note that results may differ from those of older versions.
-
-\item The amplitude scan is performed from \emph{amp(1)} to \emph{amp0} in steps of $\emph{delta} = (\emph{amp0} - \emph{amp(1)}) / (napx-1)$.
-For the intermediate amplitudes, \emph{delta} is added up for each step, however the last amplitude is guaranteed to be fixed to the given value.
-This enables ``control calculations'' by setting the first amplitude of one simulation equal to the last amplitude of another simulation, and unless there are calculation errors, they shall produce exactly the same results.
-
-\item Note that if \emph{iclo6} = 2 and \emph{idfor} = 0 in the input file, then \emph{idfor} is internally set to 1, as is seen in some outputs.
-This does not mean that the closed orbit is not added; the setting of \emph{iclo6} = 2 simply takes precedence.
-
+    \item This input data block is usually combined with the \textit{Initial Coordinates} input block (\ref{IniCoo}) to allow a flexible choice of the initial coordinates for the tracking.
+    \item For a prolongation of a run the following parameters have to be set:
+    \begin{enumerate}
+        \item in this input block: \texttt{idfor = 1}
+        \item in the \textit{Initial coordinates} input block:
+        \begin{itemize}
+            \item \texttt{itra = 0}
+            \item take the end coordinates of the previous run as the initial coordinates (including all digits) for the new run.
+        \end{itemize}
+    \end{enumerate}
+    \item A feature is installed for a prolongation of a run by using \texttt{idfor = 2} and reading the initial data from file \texttt{fort.13}. The end coordinates are now written to \texttt{fort.12} after each run. Intermediate coordinates are also written to \texttt{fort.12} in case the turn number \texttt{nwr(4)} is exceeded in the run. The user takes responsibility to transfer the required data from \texttt{fort.12} to \texttt{fort.13} if a prolongation is requested.
+    \item Some illogical combinations of parameters have been suppressed.
+    \item The initial coordinates are calculated using a proper linear 6D transformation: \texttt{amp(1)} is still the maximum horizontal starting amplitude (excluding the dispersion contribution) from which the emittance of mode 1 $e_I$ is derived, \texttt{rat} (see~\ref{IniCoo}) is the ratio of $e_{II}/e_I$ of the emittances of the two modes. The momentum deviation $\frac{\Delta p}{p_{0,1}}$ is used to define a longitudinal amplitude. The 6 normalized coordinates read:
+        \begin{enumerate}
+            \item horizontal:\\
+            \begin{equation*}
+                \left[\sqrt{e_I} = \frac{\mbox{amp(1)}} {\sqrt{\beta_{xI}}+\sqrt{\left|\mbox{rat}\right|\times\beta_{xII}}}, \quad 0.0 \right]
+            \end{equation*}
+            \item vertical:\\
+            \begin{equation*}
+                \left[sign(\mbox{rat})\times \sqrt{e_{II}} \mbox{ with } e_{II} = \left|\mbox{rat}\right|\times e_{I}, \quad 0.0 \right]
+            \end{equation*}
+            \item longitudinal:\\
+            \begin{equation*}
+                \left[0.0, \quad \frac{\Delta p}{p_{0,1}} \times \sqrt{\beta_{sIII}} \right]
+            \end{equation*}
+        \end{enumerate}
+        and are then transformed with the 6D linear transformation into real space. Note that results may differ from those of older versions.
+    \item The amplitude scan is performed from \texttt{amp(1)} to \texttt{amp0} in steps of $\mbox{delta} = (\mbox{amp0} - \mbox{amp(1)}) / (napx-1)$. For the intermediate amplitudes, \texttt{delta} is added up for each step, however the last amplitude is guaranteed to be fixed to the given value. This enables ``control calculations'' by setting the first amplitude of one simulation equal to the last amplitude of another simulation, and unless there are calculation errors, they shall produce exactly the same results.
+    \item Note that if \texttt{iclo6 = 2} and \texttt{idfor = 0} in the input file, then \texttt{idfor} is internally set to 1, as is seen in some outputs. This does not mean that the closed orbit is not added; the setting of \texttt{iclo6 = 2} simply takes precedence.
 \end{enumerate}
 
+% ================================================================================================================================ %
 \section{Initial Coordinates} \label{IniCoo}
 
-\subparagraph{Description} The {\em Initial Coordinates} \/input block
-is meant to manipulate how the initial coordinates are organise, which
-are generally set in the tracking parameter block (~\ref{TraPar}).
-Number of particles, initial phase, ratio of the horizontal and
-vertical emittances and increments of \mbox{2 $\times$ 6} coordinates
-of the two particles, the reference energy and the starting energy for
-the two particles.
+The \textit{Initial Coordinates} input block is meant to manipulate how the initial coordinates are organise, which are generally set in the tracking parameter block (\ref{TraPar}).
+Number of particles, initial phase, ratio of the horizontal and vertical emittances and increments of \mbox{2 $\times$ 6} coordinates of the two particles, the reference energy and the starting energy for the two particles.
 
-\subparagraph{Keyword} INIT \subparagraph{Number of data lines} 16
-
-\subparagraph{Format}
-\begin{itemize}
-\item first data line: {\em itra chi0 chid rat iver}
-\item data lines 2 to 16: {\em 15 initial coordinates as listed in Table}~\ref{T-IniCoo}
-\end{itemize}
-
-\begin{description}
-\item [itra] (integer) Number of particles
- \begin{itemize}
- \item {\em itra} \/= 0 : Amplitude values of tracking parameter block
-   (~\ref{TraPar}) are ignored and coordinates of data line 2--16 are
-   taken. {\em itra} \/is set internally to 2 for tracking with two
-   particles.  This is necessary in case a run is to be prolonged.
- \item {\em itra} \/= 1 : Tracking of one particle, twin particle
-   ignored
- \item {\em itra} \/= 2 : Tracking the two twin particles
- \end{itemize}
-\item [chi0] Starting phase of the initial coordinate in the
-  horizontal and vertical phase space projections
-\item [chid] Phase difference between first and second particles
-\item [rat] Denotes the emittance ratio ($e_{II}/e_I$) of horizontal
-  and vertical motion. For further information see the \emph{Remarks} of the TRAC input block in Section~\ref{TraPar}.
-\item [iver] In tracking with coupling it is sometimes desired to
-  start with zero vertical amplitude which can be painful if the
-  emittance ratio {\em rat} \/is used to achieve it. For this purpose
-  the switch {\em iver} \/has been introduced:
-\begin{itemize}
-\item {\em iver} \/= 0 : Vertical coordinates unchanged
-\item {\em iver} \/= 1 : Vertical coordinates set to zero.
-\end{itemize}
-\end{description}
-
-\begin{table}
-\caption{Initial Coordinates of the 2 Particles}
-\label{T-IniCoo}
-\centering
-\begin{tabular}{|l|l|}
-  \hline
-  data line & contents \\
-  \hline
-  2 & $x_1$ [mm] coordinate of particle 1 \\
-  3 & $x'_1$ [mrad] coordinate of particle 1 \\
-  4 & $y_1$ [mm] coordinate of particle 1 \\
-  5 & $y'_1$ [mrad] coordinate of particle 1 \\
-  6 & path length difference 1 ($ {\sigma}_1 = s - v_o \times t$) [mm]
-  of
-  particle 1 \\
-  7 & $ \frac{\Delta p}{p_{o1}} $ of particle 1 \\
-  8 & $x_2$ [mm] coordinate of particle 2 \\
-  9 & $x'_2$ [mrad] coordinate of particle 2 \\
-  10 & $y_2$ [mm] coordinate of particle 2 \\
-  11 & $y'_2$ [mrad] coordinate of particle 2 \\
-  12 & path length difference ($ {\sigma}_2 = s - v_o \times t$) [mm]
-  of
-  particle 2 \\
-  13 & $ \frac{\Delta p}{p_{o2}} $ of particle 2 \\
-  14 & energy [MeV] of the reference particle \\
-  15 & energy [MeV] of particle 1 \\
-  16 & energy [MeV] of particle 2 \\
-  \hline
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{INIT} \\
+    \textbf{Data lines} & 16 \\
+    \textbf{Format}     & Line 1: \texttt{itra chi0 chid rat iver} \\
+                        & Lines 2 to 16: 15 initial coordinates as listed in Table~\ref{T-IniCoo}
 \end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.7\linewidth}}
+    \texttt{itra} & integer  & Number of particles: \\
+                  &          & \texttt{itra = 0}: Amplitude values of tracking parameter block (\ref{TraPar}) are ignored and coordinates of data line 2--16 are taken. \texttt{itra} is set internally to 2 for tracking with two    particles. This is necessary in case a run is to be prolonged. \\
+                  &          & \texttt{itra = 1}: Tracking of one particle, twin particle ignored. \\
+                  &          & \texttt{itra = 2}: Tracking the two twin particles. \\
+    \texttt{chi0} & float    & Starting phase of the initial coordinate in the horizontal and vertical phase space projections. \\
+    \texttt{chid} & float    & Phase difference between first and second particles. \\
+    \texttt{rat}  & float    & Denotes the emittance ratio ($e_{II}/e_I$) of horizontal and vertical motion. For further information see the \emph{Remarks} of the \texttt{TRAC} input block in Section~\ref{TraPar}. \\
+    \texttt{iver} & integer  & In tracking with coupling it is sometimes desired to start with zero vertical amplitude which can be painful if the emittance ratio \texttt{rat} is used to achieve it. For this purpose the switch \texttt{iver} has been introduced: \\
+                  &          & \texttt{iver = 0}: Vertical coordinates unchanged. \\
+                  &          & \texttt{iver = 1}: Vertical coordinates set to zero.
+\end{longtabu}
+
+\begin{table}[h]
+    \caption{Initial Coordinates of the 2 Particles}
+    \label{T-IniCoo}
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \rowcolor{blue!30}
+        Line & Contents \\
+        \hline
+        2 & $x_1$ [mm] coordinate of particle 1 \\
+        \hline
+        3 & $x'_1$ [mrad] coordinate of particle 1 \\
+        \hline
+        4 & $y_1$ [mm] coordinate of particle 1 \\
+        \hline
+        5 & $y'_1$ [mrad] coordinate of particle 1 \\
+        \hline
+        6 & path length difference 1 ($\sigma_1 = s - v_0 \times t$) [mm] of particle 1 \\
+        \hline
+        7 & $\Delta p/p_{0,1} $ of particle 1 \\
+        \hline
+        8 & $x_2$ [mm] coordinate of particle 2 \\
+        \hline
+        9 & $x'_2$ [mrad] coordinate of particle 2 \\
+        \hline
+        10 & $y_2$ [mm] coordinate of particle 2 \\
+        \hline
+        11 & $y'_2$ [mrad] coordinate of particle 2 \\
+        \hline
+        12 & path length difference ($ \sigma_2 = s - v_0 \times t$) [mm] of particle 2 \\
+        \hline
+        13 & $\Delta p/p_{0,2}$ of particle 2 \\
+        \hline
+        14 & energy [MeV] of the reference particle \\
+        \hline
+        15 & energy [MeV] of particle 1 \\
+        \hline
+        16 & energy [MeV] of particle 2 \\
+        \hline
+    \end{tabular}
 \end{table}
 
-\subparagraph{Remarks}
-\begin{enumerate}
-\item These 15 coordinates are taken as the initial coordinates if
-  {\em itra} \/is set to zero (see above). If {\em itra} \/is 1 or 2
-  these coordinates are added to the initial coordinates generally
-  defined in the tracking parameter block (~\ref{TraPar}). This
-  procedure seems complicated but it allows freely to define the
-  initial difference between the two twin particles. It also allows in
-  case a tracking run should be prolonged to continue with precisely
-  the same coordinates. This is important as small difference may lead
-  to largely different results.
-\item The reference particle is the particle in the centre of the
-  bucket which performs no synchrotron oscillations.
-\item The energy of the first and second particles is given
-  explicitly, again to make possible a continuation that leads
-  precisely to the same results as if the run would not have been
-  interrupted.
-\item There is a refined way of prolonging a run, see the \mbox{\em
-    Tracking Parameters} \/input block (~\ref{TraPar}).
-\end{enumerate}
-
-\section{Synchrotron Oscillation} \label{SynOsc}
-
-\subparagraph{Description} The parameters needed for treating the
-synchrotron oscillation in a symplectic manner are given in the {\em
-  Synchrotron Oscillation} \/input block.
-
-\subparagraph{Keyword} SYNC \subparagraph{Number of data lines} 2
-
-\subparagraph{Format}
+\paragraph{Remarks}~
 \begin{itemize}
-\item first data line: {\em harm alc u0 phag tlen pma ition dppoff}
-\item second data line: {\em dpscor sigcor}
+    \item These 15 coordinates are taken as the initial coordinates if \texttt{itra} is set to zero (see above). If \texttt{itra} is 1 or 2 these coordinates are added to the initial coordinates generally defined in the tracking parameter block (\ref{TraPar}). This procedure seems complicated but it allows freely to define the initial difference between the two twin particles. It also allows in case a tracking run should be prolonged to continue with precisely the same coordinates. This is important as small difference may lead to largely different results.
+    \item The reference particle is the particle in the centre of the bucket which performs no synchrotron oscillations.
+    \item The energy of the first and second particles is given explicitly, again to make possible a continuation that leads precisely to the same results as if the run would not have been interrupted.
+    \item There is a refined way of prolonging a run, see the \textit{Tracking Parameters} input block (\ref{TraPar}).
 \end{itemize}
 
-\begin{description}
-\item [harm] Harmonic number
-\item [alc] Momentum compaction factor, used here only to calculate
-  the linear synchrotron tune $ Q_{S} $.
-\item [u0] Circumference voltage in [MV]
-\item [phag] Acceleration phase in degrees
-\item [tlen] Length of the accelerator in meters
-\item [pma] rest mass of the particle in $ \mathrm{MeV}/\mathrm{c}^{2}
-  $
-\item [ition] (integer) Transition energy switch
- \begin{itemize}
- \item {\em ition} = \hspace{.3mm} 0 for no synchrotron oscillation
-   (energy ramping still possible)
- \item {\em ition} = \hspace{.5mm} 1 for above transition energy
- \item {\em ition} = --1 for below transition energy
- \end{itemize}
-\item [dppoff]  Offset Relative Momentum Deviation \mbox{$ \frac{\Delta
-      p}{p_o} $}: a fixpoint with respect to synchrotron oscillations.
-  It becomes active when the 6D closed orbit is calculated (see item
-  {\it iclo6} \/in section~\ref{TraPar}).
-\item [dpscor, sigcor] Scaling factor for relative momentum deviation
-  \mbox{$ \frac{\Delta p}{p_o} $} and the path length difference
-  ($\sigma = s - v_o \times t$) respectively.  They can be used to
-  improve the calculation of the 6D distance in phase space, but is
-  only used when {\em ntwin = 1} \/in the tracking parameter input
-  block~(\ref{TraPar}). Please set to 1 when the 6D closed is
-  calculated.
-\end{description}
-Note that the value of \emph{tlen} is also calculated internally by SixTrack (in ``dcum''), and a warning is issued if the given value is different from the calculated value.
+% ================================================================================================================================ %
+\section{Synchrotron Oscillation} \label{SynOsc}
 
+The parameters needed for treating the synchrotron oscillation in a symplectic manner are given in the \textit{Synchrotron Oscillation} input block.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{SYNC} \\
+    \textbf{Data lines} & 2 \\
+    \textbf{Format}     & Line 1: \texttt{harm alc u0 phag tlen pma ition dppoff} \\
+                        & Line 2: \texttt{dpscor sigcor}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{harm}   & integer & Harmonic number. \\
+    \texttt{alc}    & float   & Momentum compaction factor, used here only to calculate the linear synchrotron tune $Q_{S}$. \\
+    \texttt{u0}     & float   & Circumference voltage in [MV]. \\
+    \texttt{phag}   & float   & Acceleration phase in degrees. \\
+    \texttt{tlen}   & float   & Length of the accelerator in meters. \\
+    \texttt{pma}    & float   & Rest mass of the particle in $\mathrm{MeV}/\mathrm{c}^{2}$. \\
+    \texttt{ition}  & integer & Transition energy switch: \\
+                    &         & \texttt{ition = 0}: for no synchrotron oscillation (energy ramping still possible). \\
+                    &         & \texttt{ition = 1}: for above transition energy. \\
+                    &         & \texttt{ition = -1}: for below transition energy. \\
+    \texttt{dppoff} & float   & Offset Relative Momentum Deviation $\Delta p/p_0$: a fixpoint with respect to synchrotron oscillations. It becomes active when the 6D closed orbit is calculated (see item \texttt{iclo6} in section~\ref{TraPar}). \\
+    \texttt{dpscor,sigcor} & floats & Scaling factor for relative momentum deviation $\Delta p/p_0$ and the path length difference ($\sigma = s - v_0 \times t$) respectively. They can be used to improve the calculation of the 6D distance in phase space, but is only used when \texttt{ntwin = 1} in the tracking parameter input block~(\ref{TraPar}). Please set to 1 when the 6D closed is calculated.
+\end{longtabu}
+
+\textbf{Note:} The value of \texttt{tlen} is also calculated internally by SixTrack (in \texttt{dcum}), and a warning is issued if the given value is different from the calculated value.

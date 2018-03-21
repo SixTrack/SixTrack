@@ -4,227 +4,126 @@
 
 \begin{center}
 \scriptsize
-\begin{longtable}{|c|c|c|c|c|c|c|}
-
-  \caption{List of Keywords}\\
-  \hline 
-  \rule[-4mm]{0mm}{10mm} {\bf \#} & {\bf Keyword} & \multicolumn{2}{c|}{\bf Input--data--block} & {\bf Short Description} & {\bf \S } & {\bf Page} \\
-  \hline \rule[-3mm]{0mm}{8mm} & & {\bf Title} & {\bf \# of Data--lines} & & & \\
-  \endfirsthead
-  \hline 
-  \rule[-4mm]{0mm}{10mm} {\bf \#} & {\bf Keyword} & \multicolumn{2}{c|}{\bf Input--data--block} & {\bf Short Description} & {\bf \S } & {\bf Page} \\
-  \hline \rule[-3mm]{0mm}{8mm} & & {\bf Title} & {\bf \# of Data--lines} & & & \\
-  \endhead
-
-
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BEAM &  BEAM--BEAM Element & variable & 4-6D including Beam Separation &~\ref{BeamBeam} & \pageref{BeamBeam} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & &\& Linear Coupling   & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & BLOC &
-  Block--definition & variable + 1 & Blocks of
-  Linear Elements &~\ref{BloDef} & \pageref{BloDef} \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & BLOCK & & &
-  Linear Parameters for each Structure &~\ref{LinOpt} &
-  \pageref{LinOpt} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & Element & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & CAV & & &
-  Cavity in the Structure Input Block &~\ref{StrInp} &
-  \pageref{StrInp}
-  \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & CHRO &
-  Chromaticity & 2 & Correcting Chromaticity with &~\ref{ChrCor} &
-  \pageref{ChrCor} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Correction & & Sextupoles & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & CORR &
-  Tune--shift Corrections & 3 & Correction of Nonlinear
-  Tune--Shift &~\ref{Corrections} & \pageref{Corrections} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & COMB &
-  Combination of & variable & Combining Different Elements
-  &~\ref{ComEle}
-  & \pageref{ComEle} \\*
-  \rule[-2mm]{0mm}{2mm}
-  & & Elements & & for a Correction & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{2mm} \thekwc & COMM &
-  Comment Line & 1 & Additional Comments &~\ref{ComLin}
-  & \pageref{ComLin} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{2mm} \thekwc & DAMAP & & &
-  Location for a Printout of a DA map &~\ref{DifAlg}
-  & \pageref{DifAlg} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{2mm} \thekwc & DECO &
-  Decoupling & 3 & Compensation of Linear Coupling &~\ref{LinDec}
-  & \pageref{LinDec} \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & DIFF &
-  Differential & 1 & Calculating a One--turn Map with &~\ref{DifAlg} &
-  \pageref{DifAlg} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Algebra & & Differential Algebra & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & DISP &
-  Displacement of & variable & Displacing Nonlinear
-  Elements &~\ref{DisEle} & \pageref{DisEle} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Elements & & & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & DUMP & 
-  & variable &
-  Writing the beam population to file &~\ref{sec:DUMP} &
-  \pageref{sec:DUMP} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & DYNK & 
-  & variable &
-  Dynamic kicks &~\ref{sec:DYNK} &
-  \pageref{sec:DYNK} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & EL & & &
-  Elliptical Aperture Limitation &~\ref{ApeLim} &
-  \pageref{ApeLim} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ELEMENT & &
-  & Linear Parameters after each Single &~\ref{LinOpt} &
-  \pageref{LinOpt} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & Element & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ELEN & 
-  & variable &
-  Electron lens &~\ref{sec:elen} &
-  \pageref{sec:elen} \\ 
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm}
-  \thekwc & ENDE & & & End of SixTrack Input Structure & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & FLUC &
-  Random Fluctuation & 1 &
-  Seed for the Random Generator &~\ref{FluNum} & \pageref{FluNum} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Starting Number & & & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & FMA & & variable & Frequency Map Analysis &~\ref{sec:FMA} & \pageref{sec:FMA} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & FREE & $
-  1^{st} $ Program Version & 0 & Free Format Input from one
-  File &~\ref{ProVer} & \pageref{ProVer} \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & GEOM & $
-  2^{nd} $ Program Version & 0 & Input of Machine
-  Geometry in &~\ref{ProVer} & \pageref{ProVer} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & extra File & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & GO & & &
-  Start of Tracking in the Structure Input &~\ref{StrInp} &
-  \pageref{StrInp} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``HCOR= ''
-  & & & Specifies an Horizontal Orbit Corrector
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\*
-  & & & & Element (Dipole or Multipole) & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``HMON= ''
-  & & & Specifies an Horizontal Orbit Monitor
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & INIT &
-  Initial Coordinates & 16 & Setting up of the Initial
-  Coordinates &~\ref{IniCoo} & \pageref{IniCoo} \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & ITER &
-  Iteration Errors & 4 & \# of Iterations and Precision
-  &~\ref{IteErr} & \pageref{IteErr} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & for Correction Routines & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & LIMI &
-  Aperture Limitation & variable & Collimators that stop the
-  Program &~\ref{ApeLim} & \pageref{ApeLim} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & when being hit & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & MULT &
-  Multipole & max. 11 & Multipole Coefficients normal
-  and &~\ref{MulCoe} & \pageref{MulCoe} \\*
-  \rule[-1mm]{0mm}{4mm}
-  & & skew Coefficients & & up to $ 10^{th} $ order & & \\*
-  \cline{5-7} \rule[-1mm]{0mm}{4mm} & & & & Combination of Different
-  Multi-- &~\ref{OrgRan} &
-  \pageref{OrgRan} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & poles in the ORGA Input Block & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & NEXT & & &
-  Last Line of each Input Data Block &~\ref{OrbCorr} &
-  \pageref{OrbCorr} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & NORM &
-  Normal Form & 1 & Normal Form Operations on Maps
-  &~\ref{Normal} & \pageref{Normal} \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & ORBI &
-  Orbit Adjustment & variable & Adjusting Orbit
-  to desired &~\ref{OrbCorr} & \pageref{OrbCorr} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & Sigma Values & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & ORGA &
-  Organisation of & variable + 1 & Arranging Random
-  Errors and &~\ref{OrgRan} & \pageref{OrgRan} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Random Numbers & & Multipole sets & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & POST &
-  Post--processing & 3 & Post--processing of the
-  Tracking Data &~\ref{PosPro} & \pageref{PosPro} \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & PRIN &
-  Printout Selection & 0 & Initiates the Printing of &~\ref{PriSel} &
-  \pageref{PriSel} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & the Input Data & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & RE & & &
-  Rectangular Aperture Limitation &~\ref{ApeLim} &
-  \pageref{ApeLim} \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & RESO &
-  Resonance & 6 & Compensation of up to 3 &~\ref{ResCom} &
-  \pageref{ResCom} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Compensation & & Different Resonances & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & RIPP &
-  Power Supply Ripple & variable & Invokes a Sinusoidal Tune &~\ref{PowRip} &
-  \pageref{PowRip} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & \textit{(obsolete -- use DYNK)} & & Variation \textit{(obsolete -- use DYNK)} & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SEAR &
-  Search for Resonance & variable & Evaluating Longitudinal
-  Positions &~\ref{SeaPla} & \pageref{SeaPla} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Compensation Positions & & for a Resonance Compensation & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SING &
-  Single Elements & variable & Magnet Parameters of &~\ref{SinEle} &
-  \pageref{SinEle} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & Single Elements & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & STRU &
-  Structure Input & variable & Structure of
-  Linear Blocks and &~\ref{StrInp} & \pageref{StrInp} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & Nonlinear Elements & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SUBR &
-  Sub--resonance & 1 & Calculation of $ 1^{th} $
-  Order Reso-- &~\ref{SubCal} & \pageref{SubCal} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Calculation & & nances up to $ 9^{th} $ Multipole Order & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & SYNC &
-  Synchrotron & 2 & Parameters concerning Synchrotrons &~\ref{SynOsc}
-  &
-  \pageref{SynOsc} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Oscillations & & Oscillation & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & TRAC &
-  Tracking & 3 & All major Tracking Parameters for &~\ref{TraPar} &
-  \pageref{TraPar} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & Parameters & & the transversal Motion Plane & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & TUNE & Tune
-  Variation & 2 or 4 & Adjusting the Horizontal and &~\ref{TunVar} &
-  \pageref{TunVar} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & Vertical Tunes & & \\
-  \hline \stepcounter{kwc} \rule[-1mm]{0mm}{5mm} \thekwc & TROM & 
-  ``Phase Trombone'' element & mult. of 14& Phase Shift Transparent
-  &~\ref{Trombone} & 
-  \pageref{Trombone} \\*
-  \rule[-2mm]{0mm}{5mm}
-  & & & & for Linear Optics & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``VCOR= ''
-  & & & Specifies an Vertical Orbit Corrector
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\*
-  & & & & Element (Dipole or Multipole) & & \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & ``VMON= ''
-  & & & Specifies an Vertical Orbit Monitor
-  &~\ref{OrbCorr} & \pageref{OrbCorr} \\
-  \hline \stepcounter{kwc} \rule[-2mm]{0mm}{6mm} \thekwc & WIRE & WIRE element
-  & variable &
-  Wire element &~\ref{sec:WIRE} &
-  \pageref{sec:WIRE} \\ 
-  \hline
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{|l|l|>{\raggedright\arraybackslash}p{3.5cm}|l|>{\raggedright\arraybackslash}p{4cm}|c|c|}
+    \caption{List of Keywords}\\
+    \hline 
+    \rowcolor{blue!30}
+    \textbf{\#} & \textbf{Keyword} & \multicolumn{2}{c|}{\textbf{Input Data Block}} & \textbf{Short Description} & \textbf{\S } & \textbf{Page} \\
+    \hline
+    \rowcolor{blue!15}
+    & & \textbf{Title} & \textbf{\# of Lines} & & & \\
+    \endfirsthead
+ 
+    \hline 
+    \rowcolor{blue!30}
+    \textbf{\#} & \textbf{Keyword} & \multicolumn{2}{c|}{\textbf{Input Data Block}} & \textbf{Short Description} & \textbf{\S } & \textbf{Page} \\
+    \hline
+    \rowcolor{blue!15}
+    & & \textbf{Title} & \textbf{\# of Lines} & & & \\
+    \endhead
+    
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{BEAM}    &  Beam--Beam Element & variable & 4-6D including Beam Separation \& Linear Coupling & \ref{BeamBeam} & \pageref{BeamBeam} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{BLOC}    & Block-definition & variable + 1 & Blocks of Linear Elements & \ref{BloDef} & \pageref{BloDef} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{BLOCK}   & & & Linear Parameters for each Structure Element & \ref{LinOpt} & \pageref{LinOpt} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{CAV}     & & & Cavity in the Structure Input Block & \ref{StrInp} & \pageref{StrInp} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{CHRO}    & Chromaticity Correction & 2 & Correcting Chromaticity with Sextupoles & \ref{ChrCor} & \pageref{ChrCor} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{CORR}    & Tune-shift Corrections & 3 & Correction of Non-linear Tune-Shift & \ref{Corrections} & \pageref{Corrections} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{COMB}    & Combination of Elements & variable & Combining Different Elements for a Correction & \ref{ComEle} & \pageref{ComEle} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{COMM}    & Comment Line & 1 & Additional Comments & \ref{ComLin} & \pageref{ComLin} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{DAMAP}   & & & Location for a Printout of a DA map & \ref{DifAlg} & \pageref{DifAlg} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{DECO}    & Decoupling & 3 & Compensation of Linear Coupling & \ref{LinDec} & \pageref{LinDec} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{DIFF}    & Differential Algebra & 1 & Calculating a One turn Map with Differential Algebra & \ref{DifAlg} & \pageref{DifAlg} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{DISP}    & Displacement of Elements & variable & Displacing Non-linear Elements & \ref{DisEle} & \pageref{DisEle} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{DUMP}    & & variable & Writing the beam population to file & \ref{sec:DUMP} & \pageref{sec:DUMP} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{DYNK}    & & variable & Dynamic kicks & \ref{sec:DYNK} & \pageref{sec:DYNK} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{EL}      & & & Elliptical Aperture Limitation & \ref{ApeLim} & \pageref{ApeLim} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{ELEMENT} & & & Linear Parameters after each Single Element & \ref{LinOpt} & \pageref{LinOpt} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{ELEN}    & & variable & Electron lens & \ref{sec:elen} & \pageref{sec:elen} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{ENDE}    & & & End of SixTrack Input Structure & \ref{sec:informat} & \pageref{sec:informat} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{FLUC}    & Random Fluctuation Starting Number & 1 & Seed for the Random Generator & \ref{FluNum} & \pageref{FluNum} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{FMA}     & & variable & Frequency Map Analysis & \ref{sec:FMA} & \pageref{sec:FMA} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{FREE}    & $ 1^{st} $ Program Version & 0 & Free Format Input from one File & \ref{ProVer} & \pageref{ProVer} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{GEOM}    & $ 2^{nd} $ Program Version & 0 & Input of Machine Geometry in extra File & \ref{ProVer} & \pageref{ProVer} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{GO}      & & & Start of Tracking in the Structure Input & \ref{StrInp} & \pageref{StrInp} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{HCOR=}   & & & Specifies an Horizontal Orbit Corrector Element (Dipole or Multipole) & \ref{OrbCorr} & \pageref{OrbCorr} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{HMON=}   & & & Specifies an Horizontal Orbit Monitor & \ref{OrbCorr} & \pageref{OrbCorr} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{INIT}    & Initial Coordinates & 16 & Setting up of the Initial Coordinates & \ref{IniCoo} & \pageref{IniCoo} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{ITER}    & Iteration Errors & 4 & \# of Iterations and Precision for Correction Routines & \ref{IteErr} & \pageref{IteErr} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{LIMI}    & Aperture Limitation & variable & Collimators that stop the Program when being hit & \ref{ApeLim} & \pageref{ApeLim} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{MULT}    & Multipole & max. 11 & Multipole Coefficients normal and skew Coefficients up to $10^{th}$ order & \ref{MulCoe} & \pageref{MulCoe} \\
+    \cline{5-7}
+            &                  & & & Combination of Different Multipoles in the \texttt{ORGA} Input Block &\ref{OrgRan} & \pageref{OrgRan} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{NEXT}    & & & Last Line of each Input Data Block & \ref{OrbCorr} & \pageref{OrbCorr} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{NORM}    & Normal Form & 1 & Normal Form Operations on Maps & \ref{Normal} & \pageref{Normal} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{ORBI}    & Orbit Adjustment & variable & Adjusting Orbit to desired Sigma Values & \ref{OrbCorr} & \pageref{OrbCorr} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{ORGA}    & Organisation of Random Numbers & variable + 1 & Arranging Random Errors and Multipole sets & \ref{OrgRan} & \pageref{OrgRan} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{POST}    & Post-processing & 3 & Post-processing of the Tracking Data & \ref{PosPro} & \pageref{PosPro} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{PRIN}    & Printout Selection & 0 & Initiates the Printing of the Input Data & \ref{PriSel} & \pageref{PriSel} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{RE}      & & & Rectangular Aperture Limitation & \ref{ApeLim} & \pageref{ApeLim} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{RESO}    & Resonance Compensation & 6 & Compensation of up to 3 Different Resonances & \ref{ResCom} & \pageref{ResCom} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{RIPP}    & Power Supply Ripple \textcolor{notered}{Obsolete! Use \texttt{DYNK}} & variable & Invokes a Sinusoidal Tune Variation & \ref{PowRip} & \pageref{PowRip} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{SEAR}    & Search for Resonance Compensation Positions & variable & Evaluating Longitudinal Positions for a Resonance Compensation & \ref{SeaPla} & \pageref{SeaPla} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{SING}    & Single Elements & variable & Magnet Parameters of Single Elements & \ref{SinEle} & \pageref{SinEle} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{STRU}    & Structure Input & variable & Structure of Linear Blocks and Non-linear Elements & \ref{StrInp} & \pageref{StrInp} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{SUBR}    & Sub-resonance Calculation & 1 & Calculation of $ 1^{th} $ Order Resonances up to $9^{th}$ Multipole Order & \ref{SubCal} & \pageref{SubCal} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{SYNC}    & Synchrotron Oscillations & 2 & Parameters concerning Synchrotron Oscillation & \ref{SynOsc} & \pageref{SynOsc} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{TRAC}    & Tracking Parameters & 3 & All major Tracking Parameters for the transversal Motion Plane & \ref{TraPar} & \pageref{TraPar} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{TUNE}    & Tune Variation & 2 or 4 & Adjusting the Horizontal and Vertical Tunes & \ref{TunVar} & \pageref{TunVar} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{TROM}    & ``Phase Trombone'' element & mult. of 14& Phase Shift Transparent for Linear Optics & \ref{Trombone} & \pageref{Trombone} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{VCOR=}   & & & Specifies an Vertical Orbit Corrector Element (Dipole or Multipole) & \ref{OrbCorr} & \pageref{OrbCorr} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{VMON=}   & & & Specifies an Vertical Orbit Monitor & \ref{OrbCorr} & \pageref{OrbCorr} \\
+    \hline \stepcounter{kwc}
+    \thekwc & \texttt{WIRE}    & WIRE element & variable & Wire element & \ref{sec:WIRE} & \pageref{sec:WIRE} \\ 
+    \hline
 \end{longtable}
 \normalsize
 \end{center}
