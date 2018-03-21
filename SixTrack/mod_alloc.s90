@@ -16,6 +16,9 @@ module mod_alloc
 !some arrays are fixed to a specific variable type, and therefore we are prevented from doing this :(
 interface alloc
 !integers
+!int16
+  module procedure alloc1di16
+
 !int32s
   module procedure alloc1di32
   module procedure alloc2di32
@@ -55,6 +58,8 @@ interface alloc
 end interface alloc
 
 interface resize
+
+  module procedure resize1di16
 
   module procedure resize1di32
   module procedure resize2di32
@@ -150,6 +155,67 @@ end subroutine print_alloc
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!alloc int16
+subroutine alloc1di16(input, startsize, initial, ename, f_index_in)
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  integer(kind=int16), allocatable, intent(inout) :: input(:)
+
+  !The inital value for the array to be set to
+  integer(kind=int16), intent(in) :: initial
+
+  !The initial size to allocate
+  integer, intent(in) :: startsize
+
+  !The initial index
+  integer, intent(in), optional :: f_index_in
+  integer :: f_index
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: k
+
+  if(present(f_index_in)) then
+    f_index = f_index_in
+  else
+    f_index = 1
+  end if
+
+  request = startsize * storage_size(int16)
+
+  !Check that we are not already allocated
+  if(allocated(input) .eqv. .TRUE.) then
+    write(lout,*) 'ERROR: input array is already allocated for: ', ename
+    stop
+  end if
+
+  !Do the allocation
+  allocate(input(f_index:startsize), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !Log the number of allocated bits
+  allocated_bits = allocated_bits + request
+
+  !Initialise the array
+  do k=f_index, startsize
+    input(k) = initial
+  end do
+
+  call print_alloc(ename,request)
+end subroutine alloc1di16
 
 !alloc int32
 subroutine alloc1di32(input, startsize, initial, ename, f_index_in)
@@ -482,6 +548,90 @@ subroutine alloc3di64(input, startsize1, startsize2, startsize3, initial, ename)
 
   call print_alloc(ename,request)
 end subroutine alloc3di64
+
+
+!resize 1d int16 array
+subroutine resize1di16(input, newsize, initial, ename, f_index_in)
+
+  implicit none
+
+  !The name of the variable being assigned - for error printing
+  character(len=*), intent(in) :: ename
+
+  !The input variable to allocated
+  integer(kind=int16), allocatable, intent(inout) :: input(:)
+
+  !A buffer used to expand the array
+  integer(kind=int16), allocatable :: buffer(:)
+
+  !The inital value for the array to be set to
+  integer(kind=int16), intent(in) :: initial
+
+  !The new size that the array should be set to
+  integer, intent(in) :: newsize
+
+  !The initial index
+  integer, intent(in), optional :: f_index_in
+  integer :: f_index
+
+  !A variable to track the old size of the array
+  integer :: oldsize
+
+  !To keep track of the requested allocation size
+  integer(kind=int64) :: request
+
+  !Loop variable
+  integer :: i
+
+  !Set to non-zero in case of an allocation error
+  integer :: error
+
+  if(present(f_index_in)) then
+    f_index = f_index_in
+  else
+    f_index = 1
+  end if
+
+  if(allocated(input) .neqv. .TRUE.) then
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
+    call alloc(input, newsize, initial, ename, f_index)
+    return
+  end if
+
+  !get the old size of the array
+  oldsize = size(input)
+
+  !log our request in size change
+  request = (newsize-oldsize) * storage_size(int16)
+
+  !Allocate a buffer with the new array size
+  allocate(buffer(f_index:newsize), stat=error)
+
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+
+  !Copy the data over
+  do i=f_index,oldsize-(1-f_index)
+    buffer(i) = input(i)
+  end do
+
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
+
+  !Set the initial values of the buffer
+  if(newsize.gt.oldsize) then
+    do i=(oldsize-(1-f_index))+1,newsize
+      buffer(i) = initial
+    end do
+  end if
+
+  !Do a pointer swap and deallocate the buffer
+  call move_alloc(buffer,input)
+
+end subroutine resize1di16
 
 
 !resize 1d int32 array

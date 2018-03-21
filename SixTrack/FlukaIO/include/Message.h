@@ -12,6 +12,7 @@ extern "C" {
 /** Message type type */
 typedef uint8_t flukaio_message_type_t;
 
+#pragma pack(1)
 typedef struct { // Insertion point message
 	uint32_t turn;
 	uint16_t ipt;
@@ -32,6 +33,7 @@ typedef struct { // double variable passing
 	uint16_t id;	// variable id
 	double	 value;
 } flukaio_dble_data_t;
+#pragma pack()
 
 enum flukaio_int_id_e {
 	N_NPART  = 0x0
