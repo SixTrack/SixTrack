@@ -5527,6 +5527,10 @@ cc2008
 !       call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
 !     endif
 +ei
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 07-03-2018
+        ! store old particle coordinates
+        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,kz(jx))
 +cd sqrtfox0
 +if rvet
 !FOX  RVET=C1E3*PMA*PMA*(TWO+DPDA)*DPDA/E0/(ONE+DPDA) ;
@@ -25780,7 +25784,7 @@ subroutine thin4d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 620
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -25792,7 +25796,7 @@ subroutine thin4d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 620
             end if
           end if
@@ -25826,7 +25830,7 @@ subroutine thin4d(nthinerr)
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
         ! store old particle coordinates
-        if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
       case (3)
 +ca trom40
@@ -26479,7 +26483,7 @@ subroutine thin6d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 640
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -26491,7 +26495,7 @@ subroutine thin6d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 640
             end if
           end if
@@ -26623,7 +26627,7 @@ subroutine thin6d(nthinerr)
           ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
           ! last modified: 07-03-2018
           ! store old particle coordinates
-          if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           goto 650
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 +ei
@@ -26639,7 +26643,7 @@ subroutine thin6d(nthinerr)
             ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
             ! last modified: 07-03-2018
             ! store old particle coordinates
-            if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+            if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           end if
           goto 650
 +ei
@@ -27340,7 +27344,7 @@ end subroutine thin6d
                   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
                   ! last modified: 07-03-2018
                   ! store old particle coordinates
-                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                   goto 640
                 else if(fluka_type(ix).eq.FLUKA_ENTRY) then
                   fluka_inside = .true.
@@ -27352,7 +27356,7 @@ end subroutine thin6d
                   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
                   ! last modified: 07-03-2018
                   ! store old particle coordinates
-                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                   goto 640
                 end if
               end if
@@ -27395,7 +27399,7 @@ end subroutine thin6d
           ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
           ! last modified: 07-03-2018
           ! store old particle coordinates
-          if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           goto 650
    30     e0o=e0
           e0fo=e0f
@@ -28573,9 +28577,9 @@ subroutine thck4d(nthinerr)
   use wire
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
-          puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+ &        puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
@@ -28740,7 +28744,7 @@ subroutine thck4d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 470
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -28752,7 +28756,7 @@ subroutine thck4d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               ! re-compute transport matrices of linear elements,
               !    according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
@@ -28779,20 +28783,26 @@ subroutine thck4d(nthinerr)
 !----------count=43
       select case (ktrack(i))
       case (1)
-        do j=1,napx
-          puxve=xv(1,j)
-          puzve=yv(1,j)
-          xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
-          yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
-          puxve=xv(2,j)
-          puzve=yv(2,j)
-          xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
-          yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
-        end do
-        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-        ! last modified: 07-03-2018
-        ! store old particle coordinates
-        if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+        if (lbacktracking) then
+          jmel=mel(ix)
+          do jb=1,jmel
+            jx=mtyp(ix,jb)
+            do j=1,napx
++ca thcklin
+            end do
+          end do
+        else 
+          do j=1,napx
+            puxve=xv(1,j)
+            puzve=yv(1,j)
+            xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
+            yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
+            puxve=xv(2,j)
+            puzve=yv(2,j)
+            xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
+            yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
+          end do
+        end if 
         goto 480
       case (2)
         goto 480
@@ -29450,7 +29460,7 @@ subroutine thck6d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 490
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -29464,7 +29474,7 @@ subroutine thck6d(nthinerr)
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
-              if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 490
             end if
           end if
@@ -29513,10 +29523,6 @@ subroutine thck6d(nthinerr)
 +ca thcklin
           end do
         end do
-        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-        ! last modified: 07-03-2018
-        ! store old particle coordinates
-        if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
         goto 500
       case (2)
         do j=1,napx
@@ -30263,7 +30269,7 @@ subroutine thck6dua(nthinerr)
                     ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
                     ! last modified: 07-03-2018
                     ! store old particle coordinates
-                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                     goto 490
                   else if(fluka_type(ix).eq.FLUKA_ENTRY) then
                     fluka_inside = .true.
@@ -30278,7 +30284,7 @@ subroutine thck6dua(nthinerr)
                     ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
                     ! last modified: 07-03-2018
                     ! store old particle coordinates
-                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
+                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                     goto 490
                   end if
                 end if
@@ -30316,10 +30322,6 @@ subroutine thck6dua(nthinerr)
 +ca thcklin
               end do
             end do
-            ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-            ! last modified: 07-03-2018
-            ! store old particle coordinates
-            if (lbacktracking) call aperture_saveLastCoordinates(i,ix)
             goto 500
    40       e0o=e0
             e0fo=e0f

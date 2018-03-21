@@ -53,15 +53,17 @@ module aperture
   real(kind=fPrec), save :: bktpre                 ! precision of back-tracking [m]
   integer, save :: iLast, ixLast                   ! indeces of last aperture marker
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
-
+  integer, save :: iBckTypeLast                    ! map of back-tracking - it follows kz values, eg:
+                                                   ! 0 : drift (the only one available)
+  
   ! aperture types  -- kape
+  ! not-an-aperture -- 0
   ! circle          -- 1
   ! rectangle       -- 2
   ! ellipse         -- 3
   ! rectellipse     -- 4
   ! octagon         -- 5
   ! racetrack       -- 6
-  ! not-an-aperture -- 
   character(len=2), parameter, dimension(0:6) ::  &
  &               apeName=(/'NA','CR','RE','EL','RL','OC','RT'/)
 
@@ -134,6 +136,7 @@ subroutine aperture_comnul
   ixLast = 0
   iLastThick = 0
   ixLastThick = 0
+  iBckTypeLast = 0
 
   return
 
@@ -156,16 +159,16 @@ subroutine aperture_saveLastMarker( i, ix )
 end subroutine aperture_saveLastMarker
 
 
-subroutine aperture_saveLastCoordinates( i, ix )
+subroutine aperture_saveLastCoordinates( i, ix, iBack )
   !-----------------------------------------------------------------------
-  ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-07
+  ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! save particle coordinates at last aperture check
   !-----------------------------------------------------------------------
 
   use mod_commonmn ! for napx, xv and yv
   implicit none
   ! interface variables
-  integer i, ix
+  integer i, ix, iBack
   ! temporary variables
   integer j
 
@@ -177,6 +180,7 @@ subroutine aperture_saveLastCoordinates( i, ix )
   end do
   iLastThick = i
   ixLastThick = ix
+  iBckTypeLast = iBack
   return
 
 end subroutine aperture_saveLastCoordinates
@@ -207,7 +211,7 @@ subroutine aperture_backTrackingInit
      call prror(-1)
   endif
 
-  call aperture_saveLastCoordinates( i, ix )
+  call aperture_saveLastCoordinates( i, ix, -1 )
   call aperture_saveLastMarker( i, ix )
 
   return  
@@ -295,6 +299,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   !-----------------------------------------------------------------------
 
   llost=.false.
+  lback=.false.
   
   if (.not.limifound.or.kape(ix).eq.0) then
     ! limi block not there or aperture type not assigned
@@ -465,12 +470,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   !-----------------------------------------------------------------------
   ! dump coordinates in case of losses
   ! if back-tracking is requested, get more detailed point of loss
+  ! for the moment, only bi-section method
   !-----------------------------------------------------------------------
   
   if (llost) then
 
-    lback=lbacktracking.and.kape(ix).ne.0
-    if (lback) then
+    if (lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ne.0) then
+      lback=.true.
       ! Length between elements
       length = dcum(i)-dcum(iLast)
       ! - pay attention to overflow: length = dcum(i)+(dcum(iu+1)-dcum(iLast))
@@ -478,7 +484,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       ! - pay attention to too short thick elements
       if( length .le. bktpre ) lback=.false.
     end if
-    ! Number of iterations (ln(2x/precision)/ln(2)+1)
+    ! Number of iterations for bisection method (ln(2x/precision)/ln(2)+1)
     if (lback) niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
     
     do j=1,napx
@@ -491,17 +497,15 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           ! A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
           ! last modified: 21-03-2018
           ! back-track particles, in order to better estimate actual loss point
-          xlos(1) = xLast(1,j)
-          xlos(2) = xLast(2,j)
-          ylos(1) = yLast(1,j)
-          ylos(2) = yLast(2,j)
-          slos    = dcum(i)
-
+           
+          ylos(1)=yLast(1,j)
+          ylos(2)=yLast(2,j)
+               
           ! actual algorithm
           llos    = pstop(nlostp(j))
           step    = one
           do jj=1,niter
-            ! current step:
+            ! current step (bisection method):
             if( llos ) then
               step = step - one / (two**(jj))
             else
@@ -513,9 +517,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               step = (slos-dcum(iLast))/length
             end if
             ! - particle coordinates at current step
-            xlos(1) = xLast(1,j) -yLast(1,j)*(one-step)*length
-            xlos(2) = xLast(2,j) -yLast(2,j)*(one-step)*length
-            slos    = dcum(iLast)+length*step
+            select case(iBckTypeLast)
+            case (0)
+               ! back-track along a drift
+               xlos(1) = xLast(1,j) -yLast(1,j)*(one-step)*length
+               xlos(2) = xLast(2,j) -yLast(2,j)*(one-step)*length
+               slos    = dcum(iLast)-(one-step)*length
+            end select
             ! - aperture at current step
             call interp_aperture( iLast,ixLast, i,ix, kapert,aprr, slos )
             
