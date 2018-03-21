@@ -5492,6 +5492,10 @@ cc2008
 !       call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
 !     endif
 +ei
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 07-03-2018
+        ! store old particle coordinates
+        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,kz(jx))
 +cd sqrtfox0
 +if rvet
 !FOX  RVET=C1E3*PMA*PMA*(TWO+DPDA)*DPDA/E0/(ONE+DPDA) ;
@@ -5536,77 +5540,6 @@ cc2008
             sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)   &!hr03
      &**2)+yv(2,j)**2))                                                  !hr03
 +ei
-
-+cd lostpart
-!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!         last modified: 17-07-2013
-!         on-line aperture check
-!         always in main code
-          call lostpart(n, i, ix, llost, nthinerr )
-!         stop tracking if no particle survives to this element
-          if(nthinerr.ne.0) return
-+if backtrk
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 24-11-2016
-!         store old infos for back-tracking at aperture check at downstream locations
-!         inserted in main code by the 'backtrk' compilation flag
-          if ( kape(ix).ne.0 ) then
-!           Store old s value
-            sold  =  dcum(i)
-!           Store information of aperture
-            kapold = kape(ix)
-            do j=1,7
-              apold(j) = ape(j,ix)
-            end do
-          end if
-+ei
-
-+cd backtrkinit
-
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 24-11-2016
-!     initialise variables for back-tracking particles
-!     inserted in main code by the 'backtrk' compilation flag
-!     . store 'old' angle of particles
-      do j=1,napx
-        yold(1,j) = yv(1,j)
-        yold(2,j) = yv(2,j)
-      end do
-!     . store 'old' s value
-      sold = dcum(0)
-!     . store information of aperture
-!       force general aperture, i.e. RE with aper(1) and aper(2)
-!       assumption: tracked particles do not fall outside aperture
-!         limits in the first elements...
-      kapold = 2
-      do j=1,7
-         apold(j) = zero
-      end do
-      apold(1) = aper(1)
-      apold(2) = aper(2)
-      apold(3) = sqrt(two)*aper(1)
-      apold(4) = sqrt(two)*aper(2)
-      if ( ktrack(1).ne.1 ) then
-         if ( kape(ic(1)-nblo).ne.0 ) then
-!        the first entry of the lattice sequence is a 
-!           SINGLE ELEMENT, to which an aperture profile
-!           is assigned
-            kapold = kape(ic(1)-nblo)
-            do j=1,7
-               apold(j) = ape(j,ic(1)-nblo)
-            end do
-         endif
-      endif
-+cd backtrksave
-
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 24-11-2016
-!         store old angle of particles
-!         inserted in main code by the 'backtrk' compilation flag
-          do j=1,napx
-            yold(1,j) = yv(1,j)
-            yold(2,j) = yv(2,j)
-          end do
 
 +cd umlalid
           iwrite=0
@@ -10433,8 +10366,7 @@ end subroutine hamilton1
       integer ifiend35
       real(kind=fPrec) tcnst
 +ei
-      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,                     &
-     &ap11,ap22,ap33,ap44,apang,ofxx,ofzz,apxx,apzz,bk0d,bkad,          &
+      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,           &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
@@ -10550,6 +10482,7 @@ end subroutine hamilton1
 
       logical lapefound
       logical lerr1
+      logical lexist
 
       save
 !-----------------------------------------------------------------------
@@ -13460,238 +13393,289 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
 !  APERTURE LIMITATIONS
 !  A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!  last modified: 14-01-2015
+!  JMolson (CERN, BE-ABP-HSS)
+!  last modified: 02-03-2018
 !  original LIMI block extended to deal with RectEllipse, Octagon and
 !     RaceTrack aperture types, and with offset/tilting of profile
 !  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
   950 continue
-      loadunit = 3
-  951 continue
-      read(loadunit,10020,end=952,iostat=ierro) ch
+!     loadunit is initialised to 3 in aperture_comnul
+      read(loadunit,10020,end=951,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 951
+      if(ch(1:1).eq.'/') goto 950 ! skip comment lines
 
-!  P.G.Ortega, 14-01-2015, reading apertures from external file
-      if(ch(:4).eq.'LOAD') then
-        call intepr(5,1,ch,ch1)
-        read(ch1,*) idat, loadunit, load_file
-        inquire( file=load_file, exist=lexist )
-        if ( .not. lexist ) then
-            write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
-     &      "IN THE RUNNING FOLDER"
-            call prror(-1)
-        endif
-        if(load_file .ne. ' ') then
-           open(loadunit,file=load_file,form='formatted') 
-           write(lout,*) 'APERTURES READ FROM FILE: ',load_file
-        else
-           open(loadunit,form='formatted')
-           write(lout,*) 'APERTURES READ FROM FILE: fort.',loadunit
-        endif
-        goto 951
-      endif
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
+      write(lout,*)'ERROR in LIMI block: fortran IO format currently'// &
+     &       ' not supported!'
+      call prror(-1)
++ei
+      
+!     LIMI block naturally activates backtracking, unless explicitly
+!       requested by user
+      lbacktracking=.true.
 
-!  P.G.Ortega,  04-07-2014, flag for dumping the aperture model
-      if(ch(:4).eq.prin) then
-        call intepr(5,1,ch,ch1)
-        read(ch1,*) idat, aperunit, aper_filename
-        ldmpaper  = .true.
-        goto 951
-      endif
-
-!  P.G.Ortega,  14-08-2014, flag for saving particles at aperture check
-      if(ch(:4).eq.'SAVE') then
-        apflag  = .true.
-        goto 951
-      endif
-
+!     P.G.Ortega and A.Mereghetti, 02-03-2018
+!     'next': echo aperture profiles
       if(ch(:4).eq.next) then
         if ( limifound ) then
           write(lout,10320)
-!         dump all elements found:
           do ii=1,il
-            if( kape(ii).eq.1 ) then
-              irel=circ
-            else if( kape(ii).eq.2 ) then
-              irel=rect
-            else if( kape(ii).eq.3 ) then
-              irel=elli
-            else if( kape(ii).eq.4 ) then
-              irel=reel
-            else if( kape(ii).eq.5 ) then
-              irel=octa
-            else if( kape(ii).eq.6 ) then
-              irel=ratr
-            end if
-
-            if ( kape(ii) .ne. 0 ) then
-              write(lout,10330)                                         &
-     &           bez(ii), irel, ape(1,ii), ape(2,ii), ape(3,ii),        &
-     &               ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
-            endif
+            if ( kape(ii).ne.0 ) write(lout,10330) bez(ii),      &
+     &       apeName(kape(ii)), ape(1,ii), ape(2,ii), ape(3,ii), &
+     &           ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
           enddo
-+if backtrk
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 12-06-2014
-!         echo precision for back-tracking, when computing locations of lost
-!            particles
-!         inserted in main code by the 'backtrk' compilation flag
-          write(lout,*)''
-          write(lout,*)'       back-tracking at aperture LIMIs is on'
-          write(lout,*)'            with precision [m]:',bktpre
-          write(lout,*)''
-+ei
+!         A.Mereghetti and P.Garcia Ortega, 12-06-2014
+!         echo precision for back-tracking
+          if (lbacktracking) then
+            write(lout,*)' --> back-tracking at aperture LIMIs is on,'//&
+     &' with precision [m]:',bktpre
+          else
+            write(lout,*)' --> no back-tracking, only checks at aperture LIMIs'
+          endif
         else
-          write(lout,                                                   &
-     &        '(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
+          write(lout,'(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
+          lbacktracking=.false.
         endif
         goto 110
-      endif
-      ap11=zero
-      ap22=zero
-      ap33=zero
-      ap44=zero
-      apang=zero
-      ofxx=zero
-      ofzz=zero
 
-+if .not.backtrk
-      if(ch(:4).eq.'PREC') then
-        write(lout,*)
-        write(lout,*) 'WARNING: PREC statement active only in case'
-        write(lout,*) '  backtrc pre-processing is on; ignoring...'
-        write(lout,*)
-        goto 951
-      endif
-+ei
-+if backtrk
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 12-06-2014
-!     set precision for back-tracking, when computing locations of lost
-!         particles
-!     inserted in main code by the 'backtrk' compilation flag
-      if(ch(:4).eq.'PREC') then
-        call intepr(1,1,ch,ch1)
-        read(ch1,*) idat, tmplen
-        if ( tmplen.le.zero ) then
-          write(lout,*) 'WARNING: Wrong precision value: ', tmplen
-          write(lout,*) '  in LIMI input block, ignoring...'
-          write(lout,*) '  Using default [m]: ', bktpre
-        else
-           bktpre = tmplen
+      else
+
+        call getfields_split( ch, getfields_fields, getfields_lfields,  &
+     &        getfields_nfields, getfields_lerr )
+        if ( getfields_lerr ) then
+          write(lout,*)'ERROR in LIMI block: getfields_lerr=', getfields_lerr, &
+     &    ' at line: ',ch
+          call prror(-1)
         endif
-        goto 951
-      endif
-+ei
-      call intepr(8,1,ch,ch1)
-+if fio
-+if crlibm 
-      call enable_xp()
-+ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
-+ei
 
-+if .not.fio
+        if(ch(:4).eq.'LOAD') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! reading apertures from external file
+          if(getfields_nfields.lt.3) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &       'parameters for keywor LOAD: ninput = ', getfields_nfields, ' != 3 (min)'
+            call prror(-1)
+          endif
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) loadunit
+          read (getfields_fields(3)(1:getfields_lfields(3)),*) load_file
+          inquire( file=load_file, exist=lexist )
+          if (.not.lexist ) then
+             write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
+     &       "IN THE RUNNING FOLDER"
+             call prror(-1)
+          endif
+          open(loadunit,file=load_file,form='formatted') 
+          write(lout,*) 'APERTURES READ FROM FILE: ',load_file,' - UNIT: ',loadunit
+
+        elseif(ch(:4).eq.'PRIN') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! flag for dumping the aperture model
+          if(getfields_nfields.lt.3) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &         'parameters for keyword PRIN: ninput = ', getfields_nfields, ' != 3 (min)'
+            call prror(-1)
+          endif
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) aperunit
+          read (getfields_fields(3)(1:getfields_lfields(3)),*) aper_filename
+          ldmpaper  = .true.
+
+        elseif(ch(:4).eq.'SAVE') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! flag for saving particles at aperture check
+          apflag  = .true.
+
+        elseif(ch(:4).eq.'BACKTRKOFF') then
+          ! A.Mereghetti, 07-03-2018
+          ! switch off back tracking
+          lbacktracking=.false.
+
+        elseif(ch(:4).eq.'PREC') then
+          ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
+          ! set precision for back-tracking
+          if(getfields_nfields.lt.2) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &         'parameters for keyword PREC: ninput = ', getfields_nfields, ' != 2 (min)'
+            call prror(-1)
+          endif
 +if .not.crlibm
-      read(ch1,*) idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) tmplen
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) irel
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap11=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap22=fround(errno,fields,4)
-          nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap33=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap44=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        apang=fround(errno,fields,7)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ofxx=fround(errno,fields,8)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ofzz=fround(errno,fields,9)
-        nf=nf-1
-      endif
-
+          tmplen=round_near (errno,getfields_lfields(2)+1, getfields_fields(2))
+          if (errno.ne.0) call rounderr(errno,getfields_fields,2,tmplen)
 +ei
-+ei
-      lapefound=.false.
-      do 970 j=1,il
-      if(idat.ne.bez(j)) goto 970
-      lapefound=.true.
-      ape(1,j)=ap11
-      ape(2,j)=ap22
-      ape(3,j)=ap33
-      ape(4,j)=ap44
-      ape(5,j)=apang
-      ape(6,j)=ofxx
-      ape(7,j)=ofzz
-      if(irel.eq.circ) then !Circle
-        kape(j)=1
-        ape(2,j)=ape(1,j)
-        ape(3,j)=ape(1,j)
-        ape(4,j)=ape(1,j)
-      else if(irel.eq.rect) then !Rectangle
-        kape(j)=2
-!       get ready for a RL-equivalent description
-        ape(3,j)=sqrt(two)*ape(1,j)
-        ape(4,j)=sqrt(two)*ape(2,j)
-      else if(irel.eq.elli) then !Ellipse
-        kape(j)=3
-!       get ready for a RL-equivalent description
-        ape(3,j)=ape(1,j)
-        ape(4,j)=ape(2,j)
-      else if(irel.eq.reel) then !Rectellipse
-        kape(j)=4
-      else if(irel.eq.octa) then !Octagon
-        kape(j)=5
-      else if(irel.eq.ratr) then !Racetrack
-        kape(j)=6
-      else
-        write(lout,*) 'Aperture profile not identified for element ',   &
-     &idat
-        write(lout,*) '  value:', irel
-        call prror(-1)
-      endif
-      if (ape(5,j).ne.zero.or.ape(6,j).ne.zero.or.ape(7,j).ne.zero) then
-         lapeofftlt(j) = .true.
-      endif
-      limifound=.true.
-  970 continue
+          if ( tmplen.le.zero ) then
+            write(lout,*) 'WARNING: Wrong precision value: ', tmplen
+            write(lout,*) '  in LIMI input block, ignoring...'
+            write(lout,*) '  Using default [m]: ', bktpre
+          else
+            bktpre = tmplen
+          endif
 
-      if(.not. lapefound) then
-        write(lout,*)
-        write(lout,*) 'WARNING: Unidentified element ', idat
-        write(lout,*) '  in LIMI input block, ignoring...'
-        write(lout,*)
-      endif
-      goto 951
-  952 continue
-      if ( loadunit .ne. 3 ) then
+        else
+
+          read (getfields_fields(1)(1:getfields_lfields(1)),*) idat
+          lapefound=.false.
+          do j=1,il
+            if(idat.eq.bez(j)) then
+              lapefound=.true.
+              read (getfields_fields(2)(1:getfields_lfields(2)),*) irel
+              select case(irel)
+
+              case (apeName(1)) !Circle
+                if(getfields_nfields.lt.3) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(1)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 3 (min)'
+                  call prror(-1)
+                endif
+                do i=1,1
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=1
+                ape(2,j)=ape(1,j)
+                ape(3,j)=ape(1,j)
+                ape(4,j)=ape(1,j)
+                
+              case (apeName(2)) !Rectangle
+                if(getfields_nfields.lt.4) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(2)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 4 (min)'
+                  call prror(-1)
+                endif
+                do i=1,2
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=2
+                ! get ready for a RL-equivalent description
+                ape(3,j)=sqrt(two)*ape(1,j)
+                ape(4,j)=sqrt(two)*ape(2,j)
+                
+              case (apeName(3)) !Ellipse
+                if(getfields_nfields.lt.4) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(3)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 4 (min)'
+                  call prror(-1)
+                endif
+                do i=1,2
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=3
+                ! get ready for a RL-equivalent description
+                ape(3,j)=ape(1,j)
+                ape(4,j)=ape(2,j)
+                
+              case (apeName(4)) !Rectellipse
+                if(getfields_nfields.lt.6) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(4)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 6 (min)'
+                  call prror(-1)
+                endif
+                ! parse the float descriptors
+                do i=1,4
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=4
+                
+              case (apeName(5)) !Octagon  
+                if(getfields_nfields.lt.6) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(5)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 6 (min)'
+                  call prror(-1)
+                endif
+                do i=1,4
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=5
+                
+              case (apeName(6)) !Racetrack
+                if(getfields_nfields.lt.5) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(6)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 5 (min)'
+                  call prror(-1)
+                endif
+                do i=1,3
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=6
+                
+              case default
+                write(lout,*) 'Aperture profile not identified for element ',idat
+                write(lout,*) '  value:', irel
+                call prror(-1)
+              end select
+             
+              do i=5,7
+                if(getfields_nfields.ge.i+2) then
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                endif
+                if (ape(i,j).ne.zero) lapeofftlt(j)=.true.
+              end do
+              limifound=.true.
+              exit
+            end if
+          end do
+
+          if(.not.lapefound) then
+            write(lout,*) 'WARNING: Unidentified element ', idat
+            write(lout,*) '  in LIMI input block, ignoring...'
+          end if
+        end if ! specific non-NEXT lines
+      end if ! non-NEXT lines
+      goto 950 ! go to next line to be parsed
+
+  951 continue
+      if ( loadunit.ne.3 ) then
         close(loadunit)
         goto 950
       endif
@@ -23040,20 +23024,6 @@ end interface
         xv(2,i)=zero
         yv(1,i)=zero
         yv(2,i)=zero
-!       P.Garcia Ortega, for the FLUKA Team
-!       last modified: 14-08-2014
-!       additional variables for aperture check, to keep track of lost
-!       particles if they are not killed
-        plost(i)=0
-+if backtrk
-!       A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!       last modified: 12-06-2014
-!       additional variables for back-tracking, when computing locations of
-!          lost particles
-!       inserted in main code by the 'backtrk' compilation flag
-        yold(1,i)=zero
-        yold(2,i)=zero
-+ei
         dam(i)=zero
         ekkv(i)=zero
         sigmv(i)=zero
@@ -23336,12 +23306,51 @@ end interface
           write(lout,10320) m*izu0,nzfz,rmean,rdev
           write(lout,10070)
         endif
-        if(m.eq.1) call ord
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
+        ! possible to re-shuffle lattice structure
+        if(m.eq.1) call orglat
 
-!       A.Mereghetti
-!       last modified: 16-12-2016
-!       initialise aperture of first and last elements of sequence
-!       always in main code
+        ! A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
+        ! last modified: 01-07-2014
+        ! call routine for calculating dcum, necessary for the online
+        !    aperture check and in case of dumping particle population
+        !    or statistics or beam matrix
+        ! always in main code
+        call cadcum
+        if(idp.ne.0.and.ition.ne.0) then !6D tracking
+           if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
+              write(lout,'(1x,a)')                                        &
+     &             "WARNING: Problem with SYNC block detected"
+              write(lout,'(1x,a,f17.10)')                                 &
+     &             "TLEN in sync block =",tlen
+              write(lout,'(1x,a,f17.10)')                                 &
+     &             "Length from DCUM   =",dcum(iu+1)
+              write(lout,'(1x,a,f17.10)')                                 &
+     &             "Difference         =",dcum(iu+1)-tlen
+              write(lout,'(1x,a,e27.16,a)')                               &
+     &             "Relative error     =",                                &
+     &             2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
+              write(lout,'(1x,a,f17.10,a)')                               &
+     &             "Tolerance eps_dcum =", eps_dcum, " [m]"
+              write(lout,'(1x,a)')                                        &
+     &             "Please fix the TLEN parameter in your SYNC block"
+              write(lout,'(1x,a)')                                        &
+     &             "so that it matches the "//                            &
+     &             " calculated machine length from DCUM."
+              write(lout,'(1x,a)')                                        &
+     &             "If incorrect, the RF frequency"//                     &
+     &             " may be (slightly) wrong."
+        
+              !It's a warning not an error, and the consequences seem relatively small.
+              !Ideally, tlen should be calculated automatically based on the sequence.
+              !call prror(-1)
+           endif
+        else
+           tlen=dcum(iu+1)
+        endif
+
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
+        ! initialise aperture of first and last elements of sequence
         if (limifound) then
            write(lout,*) ' check that beginning/end of lattice'//       &
      &' structure is assigned aperture markers...'
@@ -23349,20 +23358,22 @@ end interface
         end if
 
 +if fluka
-!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!       last modified: 01-12-2016
-!       check integrity of coupling markers
-!       inserted in main code by the 'fluka' compilation flag
+        ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+        ! last modified: 01-12-2016
+        ! check integrity of coupling markers
+        ! inserted in main code by the 'fluka' compilation flag
         if (fluka_enable) call check_coupling_integrity
 +ei
 
-!       P. G. Ortega, for the FLUKA Team
-!       last modified: 01-07-2014
-!       dump aperture model
-!       always in main code
-        if (ldmpaper) then
-          call dump_aperture_model
-        endif
+        ! P. G. Ortega, for the FLUKA Team
+        ! last modified: 01-07-2014
+        ! dump aperture model
+        ! always in main code
+        if (ldmpaper) call dump_aperture_model
+
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
+        ! map errors, now that the sequence is no longer going to change
+        if(m.eq.1) call ord
 
         call clorb(ded)
 
@@ -24635,43 +24646,6 @@ end interface
 
 +ei
 
-!     A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 01-07-2014
-!     call routine for calculating dcum, necessary for the online
-!        aperture check and in case of dumping particle population
-!        or statistics or beam matrix
-!     always in main code
-      call cadcum
-      if(idp.ne.0.and.ition.ne.0) then !6D tracking
-         if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
-            write(lout,'(1x,a)')                                        &
-     &           "WARNING: Problem with SYNC block detected"
-            write(lout,'(1x,a,f17.10)')                                 &
-     &           "TLEN in sync block =",tlen
-            write(lout,'(1x,a,f17.10)')                                 &
-     &           "Length from DCUM   =",dcum(iu+1)
-            write(lout,'(1x,a,f17.10)')                                 &
-     &           "Difference         =",dcum(iu+1)-tlen
-            write(lout,'(1x,a,e27.16,a)')                               &
-     &           "Relative error     =",                                &
-     &           2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
-            write(lout,'(1x,a,f17.10,a)')                               &
-     &           "Tolerance eps_dcum =", eps_dcum, " [m]"
-            write(lout,'(1x,a)')                                        &
-     &           "Please fix the TLEN parameter in your SYNC block"
-            write(lout,'(1x,a)')                                        &
-     &           "so that it matches the "//                            &
-     &           " calculated machine length from DCUM."
-            write(lout,'(1x,a)')                                        &
-     &           "If incorrect, the RF frequency"//                     &
-     &           " may be (slightly) wrong."
-
-            !It's a warning not an error, and the consequences seem relatively small.
-            !Ideally, tlen should be calculated automatically based on the sequence.
-            !call prror(-1)
-         endif
-      endif
-
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     K. Sjobak, for BE/ABP-HSS
 !     M. Fitterer, for FNAL
@@ -25818,9 +25792,11 @@ subroutine thin4d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
   ! A.Mereghetti, for the FLUKA Team
   ! last modified: 14-06-2014
@@ -25909,9 +25885,10 @@ subroutine thin4d(nthinerr)
           if(fluka_type(ix).ne.FLUKA_NONE) then
             if(fluka_type(ix).eq.FLUKA_ELEMENT) then
               call kernel_fluka_element( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 620
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -25920,9 +25897,10 @@ subroutine thin4d(nthinerr)
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 620
             end if
           end if
@@ -25953,9 +25931,10 @@ subroutine thin4d(nthinerr)
         else
 +ca ex4Ddrift
         end if
-+if backtrk
-+ca backtrksave
-+ei
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 07-03-2018
+        ! store old particle coordinates
+        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
       case (3)
 +ca trom40
@@ -26313,7 +26292,18 @@ subroutine thin4d(nthinerr)
         
 !----------------------------
 620 continue
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
 625 continue
     if (.not. ldumpfront) then
@@ -26322,9 +26312,7 @@ subroutine thin4d(nthinerr)
 
 630 continue
 
-!        call lostpart(nthinerr)
-!        if(nthinerr.ne.0) return
-
+    if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
     if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -26464,9 +26452,11 @@ subroutine thin6d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
   ! A.Mereghetti, for the FLUKA Team
   ! last modified: 14-06-2014
@@ -26574,9 +26564,10 @@ subroutine thin6d(nthinerr)
           if(fluka_type(ix).ne.FLUKA_NONE) then
             if(fluka_type(ix).eq.FLUKA_ELEMENT) then
               call kernel_fluka_element( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 640
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -26585,9 +26576,10 @@ subroutine thin6d(nthinerr)
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 640
             end if
           end if
@@ -26716,9 +26708,10 @@ subroutine thin6d(nthinerr)
               ename(ie)    = bez(myix)(1:max_name_len)
             end do
           endif
-+if backtrk
-+ca backtrksave
-+ei
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store old particle coordinates
+          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           goto 650
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 +ei
@@ -26731,10 +26724,10 @@ subroutine thin6d(nthinerr)
             end do
           else
 +ca ex6Ddrift
-
-+if backtrk
-+ca backtrksave
-+ei
+            ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+            ! last modified: 07-03-2018
+            ! store old particle coordinates
+            if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           end if
           goto 650
 +ei
@@ -27171,7 +27164,19 @@ subroutine thin6d(nthinerr)
       call collimate_end_element
 +ei
 !GRD END OF UPGRADE
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+
 645   continue
 
       if (.not. ldumpfront) then
@@ -27184,9 +27189,9 @@ subroutine thin6d(nthinerr)
     call collimate_end_turn
 +ei
 
+    if(nthinerr.ne.0) return
+
 +if .not.collimat
-    ! call lostpart(nthinerr)
-    ! if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
     if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -27322,9 +27327,11 @@ end subroutine thin6d
 +ei
       nthinerr=0
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
 
 !     A.Mereghetti, for the FLUKA Team
@@ -27418,9 +27425,10 @@ end subroutine thin6d
               if(fluka_type(ix).ne.FLUKA_NONE) then
                 if(fluka_type(ix).eq.FLUKA_ELEMENT) then
                   call kernel_fluka_element( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+                  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                  ! last modified: 07-03-2018
+                  ! store old particle coordinates
+                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                   goto 640
                 else if(fluka_type(ix).eq.FLUKA_ENTRY) then
                   fluka_inside = .true.
@@ -27429,9 +27437,10 @@ end subroutine thin6d
                 else if(fluka_type(ix).eq.FLUKA_EXIT) then
                   fluka_inside = .false.
                   call kernel_fluka_exit( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+                  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                  ! last modified: 07-03-2018
+                  ! store old particle coordinates
+                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                   goto 640
                 end if
               end if
@@ -27471,11 +27480,10 @@ end subroutine thin6d
           else
 +ca ex6Ddrift
           endif
-
-+if backtrk
-+ca backtrksave
-+ei
-
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store old particle coordinates
+          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           goto 650
    30     e0o=e0
           e0fo=e0f
@@ -27899,7 +27907,17 @@ end subroutine thin6d
 
   640     continue
 
-+ca lostpart
+          ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+          ! last modified: 17-07-2013
+          ! on-line aperture check
+          ! always in main code
+          call lostpart( n, i, ix, llost, nthinerr )
+          ! stop tracking if no particle survives to this element
+          if(nthinerr.ne.0) return
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store infos of last aperture marker
+          if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
   645     continue
 
@@ -27908,7 +27926,6 @@ end subroutine thin6d
       endif
 
   650   continue
-        !call lostpart(nthinerr)
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -28644,9 +28661,9 @@ subroutine thck4d(nthinerr)
   use wire
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
-          puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+ &        puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
@@ -28708,9 +28725,10 @@ subroutine thck4d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
 
 +if fluka
 
@@ -28807,9 +28825,10 @@ subroutine thck4d(nthinerr)
 !                   re-compute transport matrices of linear elements,
 !                      according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 470
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -28818,12 +28837,13 @@ subroutine thck4d(nthinerr)
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
-!                   re-compute transport matrices of linear elements,
-!                      according to momentum of surviving/new particles
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
+              ! re-compute transport matrices of linear elements,
+              !    according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
               goto 470
             end if
           end if
@@ -28847,16 +28867,26 @@ subroutine thck4d(nthinerr)
 !----------count=43
       select case (ktrack(i))
       case (1)
-        do j=1,napx
-          puxve=xv(1,j)
-          puzve=yv(1,j)
-          xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
-          yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
-          puxve=xv(2,j)
-          puzve=yv(2,j)
-          xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
-          yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
-        end do
+        if (lbacktracking) then
+          jmel=mel(ix)
+          do jb=1,jmel
+            jx=mtyp(ix,jb)
+            do j=1,napx
++ca thcklin
+            end do
+          end do
+        else 
+          do j=1,napx
+            puxve=xv(1,j)
+            puzve=yv(1,j)
+            xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
+            yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
+            puxve=xv(2,j)
+            puzve=yv(2,j)
+            xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
+            yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
+          end do
+        end if 
         goto 480
       case (2)
         goto 480
@@ -29193,14 +29223,6 @@ subroutine thck4d(nthinerr)
       end select
       goto 480
 
-! This code block was after a goto 480 statement before
-! the rewrite to select case as well, and therefore would
-! not have been executed. It was placed after the content
-! now included in case (1)
-+if backtrk
-+ca backtrksave
-+ei
-
 240   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
@@ -29222,7 +29244,18 @@ subroutine thck4d(nthinerr)
 !----------------------------
 
 470   continue
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -29256,7 +29289,6 @@ subroutine thck4d(nthinerr)
 
 480 continue
 
-    ! call lostpart(nthinerr)
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -29396,9 +29428,11 @@ subroutine thck6d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 14-06-2014
@@ -29507,9 +29541,10 @@ subroutine thck6d(nthinerr)
               call kernel_fluka_element( n, i, ix )
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 490
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -29520,9 +29555,10 @@ subroutine thck6d(nthinerr)
               call kernel_fluka_exit( n, i, ix )
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 490
             end if
           end if
@@ -29571,9 +29607,6 @@ subroutine thck6d(nthinerr)
 +ca thcklin
           end do
         end do
-+if backtrk
-+ca backtrksave
-+ei
         goto 500
       case (2)
         do j=1,napx
@@ -30010,7 +30043,18 @@ subroutine thck6d(nthinerr)
 
 490   continue
 
-+ca lostpart
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
       ! last modified: 17-07-2013
@@ -30058,7 +30102,6 @@ subroutine thck6d(nthinerr)
 !===================================================================
 !===================================================================
 
-    !call lostpart(nthinerr)
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -30202,9 +30245,11 @@ subroutine thck6dua(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 14-06-2014
@@ -30302,12 +30347,13 @@ subroutine thck6dua(nthinerr)
                 if(fluka_type(ix).ne.FLUKA_NONE) then
                   if(fluka_type(ix).eq.FLUKA_ELEMENT) then
                     call kernel_fluka_element( n, i, ix )
-!                   re-compute transport matrices of linear elements,
-!                      according to momentum of surviving/new particles
+                    ! re-compute transport matrices of linear elements,
+                    !    according to momentum of surviving/new particles
                     recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+                    ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                    ! last modified: 07-03-2018
+                    ! store old particle coordinates
+                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                     goto 490
                   else if(fluka_type(ix).eq.FLUKA_ENTRY) then
                     fluka_inside = .true.
@@ -30319,9 +30365,10 @@ subroutine thck6dua(nthinerr)
 !                   re-compute transport matrices of linear elements,
 !                      according to momentum of surviving/new particles
                     recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+                    ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                    ! last modified: 07-03-2018
+                    ! store old particle coordinates
+                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                     goto 490
                   end if
                 end if
@@ -30359,11 +30406,6 @@ subroutine thck6dua(nthinerr)
 +ca thcklin
               end do
             end do
-
-+if backtrk
-+ca backtrksave
-+ei
-
             goto 500
    40       e0o=e0
             e0fo=e0f
@@ -30797,7 +30839,17 @@ subroutine thck6dua(nthinerr)
 
   490     continue
 
-+ca lostpart
+          ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+          ! last modified: 17-07-2013
+          ! on-line aperture check
+          ! always in main code
+          call lostpart( n, i, ix, llost, nthinerr )
+          ! stop tracking if no particle survives to this element
+          if(nthinerr.ne.0) return
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store infos of last aperture marker
+          if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
 +if fluka
 
@@ -30829,7 +30881,6 @@ subroutine thck6dua(nthinerr)
       endif
 
   500     continue
-          !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -31853,6 +31904,7 @@ end subroutine envarsv
         write(lout,10025)
         goto 550
       endif
+      call orglat
       call ord
       call clorb(ded)
 
@@ -32535,15 +32587,6 @@ subroutine comnul
       tlim=0.
       time0=0.
       time1=0.
-+if backtrk
-!-----------------------------------------------------------------------
-!       A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!       last modified: 12-06-2014
-!       default precision for back-tracking, when computing locations of lost
-!          particles
-!       inserted in main code by the 'backtrk' compilation flag
-       bktpre=c1m1
-+ei
 !-----------------------------------------------------------------------
       do 10 i=1,2
         nde(i)=0
@@ -32669,14 +32712,6 @@ subroutine comnul
         zrms(i)=zero
         benkc(i)=zero
         r00(i)=zero
-
-! Old aperture type variables
-!        apx(i)=c1e3
-!        apz(i)=c1e3
-!        ape(1,i)=c1e6
-!        ape(2,i)=c1e6
-!        ape(3,i)=c1e12
-
         ratioe(i)=one
         hsyc(i)=zero
         phasc(i)=zero
@@ -32964,17 +32999,11 @@ subroutine comnul
       end do
 
 !--APERTURE-------------------------------------------------------------
-!     P.G.Ortega, for the FLUKA Team
-!     last modified: 04-07-2014
+!     P.G.Ortega and A.Mereghetti, for the FLUKA Team
+!     last modified: 02-03-2018
 !     initialise common
 !     always in main code
-      ldmpaper      = .false.
-      aperunit      = 0
-      aper_filename = ' '
-      load_file     = ' '
-      limifound     = .false.
-!     flag to kill/let live particles at aperture check
-      apflag=.false.
+      call aperture_comnul
 
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
@@ -33009,7 +33038,6 @@ subroutine SELNUL( iel )
       use mod_commons
       use aperture
       implicit none
-
 
 !     local variables
       integer iel, i1, i3, i4
@@ -38488,37 +38516,29 @@ end subroutine matrix
 +dk ord
       subroutine ord
 !-----------------------------------------------------------------------
-!  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
+!  ORGANISATION OF NONLINEAR ELEMENTS AND RANDOM NUMBERS
+!  reserving places in zfz:
+!  - 1+2 for misalignment (h/v - DISP block / fort.8 / fort.30);
+!  - 2xmmul for multipole errors (fort.16);
+!  mapping also position of errors for a given element in lattice
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
       use mod_common
       use mod_commons
       implicit none
-      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
-     &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
-      real(kind=fPrec) extalig1,exterr1
+      integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
 +ca commont1
-      dimension ilf(nblz),ilfr(nblz),jra(nele,5),iran(nele),inz(nele)
-      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
-     &icextal1(nblz)
-+if time
-      real(kind=fPrec) exterr2,tcnst2
-      dimension exterr2(nblz,40),tcnst2(nblz)
-+ei
+      dimension jra(nele,5),iran(nele),inz(nele)
 +if bnlelens
 +ca rhicelens
 +ei
       save
 !-----------------------------------------------------------------------
-      do i=1,nblz
-        ilf(i)=0
-        ilfr(i)=0
-      end do
-
+      ! initialisation
       do i=1,nele
         iran(i)=0
         inz(i)=0
@@ -38527,20 +38547,7 @@ end subroutine matrix
         end do
       end do
 
-      if(mper.eq.1) goto 40
-
-      do i=2,mper
-        do j=1,mbloz
-          ii=(i-1)*mbloz+j
-          ihi=j
-          if(msym(i).lt.0) ihi=mbloz-j+1
-          ic(ii)=msym(i)*ic(ihi)
-          if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
-        end do
-      end do
-
 !--ORGANISATION OF RANDOM NUMBERS
-   40 iu=mper*mbloz
       if(niu(1).lt.0) niu(1)=iabs(niu(1))
       if(niu(2).lt.0) niu(2)=iabs(niu(2))
       if(niu(1).eq.0) niu(1)=1
@@ -38552,14 +38559,16 @@ end subroutine matrix
       iorg=iorg-1
       if(iorg.ge.0) then
         if(iorg.eq.0) then !iorg == 0
-          do 50 i=1,iu
+          do i=1,iu
             ix=ic(i)
-            if(ix.le.nblo) goto 50
+            ! skip blocks:
+            if(ix.le.nblo) cycle
             ix=ix-nblo
             kpz=kp(ix)
             kzz=kz(ix)
-            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 50
-            if(kzz.eq.15) goto 50
+            ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
+            !  map position of errors for present element in lattice structure
             mzu(i)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
@@ -38568,154 +38577,99 @@ end subroutine matrix
               write(lout,*) "ERROR in ORD: nzfz was too small"
               call prror(-1)
             endif
-   50     continue
+          end do
         else ! iorg.gt.0
-          do 70 i=1,iorg
-            do 60 j=1,il
+          do i=1,iorg
+            do j=1,il
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &               call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &               call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
                 jra(i,4)=kz(j)
               endif
-   60       continue
+            end do
             kzz1=jra(i,2)
             kzz2=jra(i,4)
             if(kzz1.ne.0.and.kzz2.eq.0) then
               jra(i,5)=nra1
               nra1=nra1+mran*3
-              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)             &
-     &             nra1=nra1+mran*2*mmul
+              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni) nra1=nra1+mran*2*mmul
               if(nra1.gt.nzfz) call prror(32)
             endif
             if(kzz1.eq.11.and.(kzz2.ne.11.and.kzz2.ne.0)) call prror(33)
-   70     continue
-          do 110 i=1,iu
+          end do
+          do i=1,iu
             ix=ic(i)
-            if(ix.le.nblo) goto 110
+            ! skip blocks:
+            if(ix.le.nblo) cycle
             ix=ix-nblo
             kpz=kp(ix)
             kzz=kz(ix)
-            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 110
-            if(kzz.eq.15) goto 110
-            do 80 j=1,iorg
+            ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
+            do j=1,iorg
               if(bez(ix).eq.bezr(1,j)) goto 90
-   80       continue
+            end do
             goto 100
    90       jra3=jra(j,3)
             if(jra3.ne.0) then
+              ! map position of errors for present element in lattice structure
               mzu(i)=iran(jra3)
               iran(ix)=mzu(i)
             else
               inz(j)=inz(j)+1
               if(inz(j).gt.mran) call prror(34)
+              ! map position of errors for present element in lattice structure
               mzu(i)=jra(j,5)
               iran(ix)=mzu(i)
               jra(j,5)=jra(j,5)+3
               if(jra(j,2).eq.11) jra(j,5)=jra(j,5)+2*mmul
             endif
-            goto 110
+            cycle
+            ! map position of errors for present element in lattice structure
   100       mzu(i)=izu
             iran(ix)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
-  110     continue
+          end do
         endif
       else !iorg < 0 (in case of no ORGA block in fort.3)
-        do 115 i=1,iu
+        do i=1,iu
           ix=ic(i)
-          if(ix.le.nblo) goto 115
+          ! skip blocks:
+          if(ix.le.nblo) cycle
           ix=ix-nblo
           kpz=kp(ix)
           kzz=kz(ix)
-          if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 115
-          if(kzz.eq.15) goto 115
+          ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+          if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
+          ! why just checking? shouldn't we map on mzu(i)?
           if(izu.gt.nran) call prror(30)
           if(izu.gt.nzfz) then
             write(lout,*) "ERROR in ORD: nzfz was too small"
             call prror(-1)
           endif
-  115   continue
+        end do
       endif
       
-      ! "GO" was not the first structure element -> Reshuffle the structure
-      if(kanf.ne.1) then
-        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
-        kanf1=kanf-1
-        do 130 i=1,kanf1
-          if(iorg.ge.0) ilfr(i)=mzu(i)
-          ilf(i)=ic(i)
-          icext1(i)=icext(i)
-          icextal1(i)=icextal(i)
-          extalig1(i,1)=extalign(i,1)
-          extalig1(i,2)=extalign(i,2)
-          extalig1(i,3)=extalign(i,3)
-          do 120 ii=1,40
-            exterr1(i,ii)=exterr(i,ii)
-+if time
-            exterr2(i,ii)=exterr35(i,ii)
-+ei
-  120     continue
-+if time
-          tcnst2(i)=tcnst35(i)
-+ei
-  130   continue
-        do 150 i=kanf,iu
-          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
-          ic(i-kanf1)=ic(i)
-          icext(i-kanf1)=icext(i)
-          icextal(i-kanf1)=icextal(i)
-          extalign(i-kanf1,1)=extalign(i,1)
-          extalign(i-kanf1,2)=extalign(i,2)
-          extalign(i-kanf1,3)=extalign(i,3)
-          do 140 ii=1,40
-            exterr(i-kanf1,ii)=exterr(i,ii)
-+if time
-            exterr35(i-kanf1,ii)=exterr35(i,ii)
-+ei
-  140     continue
-+if time
-          tcnst35(i-kanf1)=tcnst2(i)
-+ei
-  150   continue
-        do 170 i=1,kanf1
-          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
-          ic(iu-kanf1+i)=ilf(i)
-          icext(iu-kanf1+i)=icext1(i)
-          icextal(iu-kanf1+i)=icextal1(i)
-          extalign(iu-kanf1+i,1)=extalig1(i,1)
-          extalign(iu-kanf1+i,2)=extalig1(i,2)
-          extalign(iu-kanf1+i,3)=extalig1(i,3)
-          do 160 ii=1,40
-            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-+if time
-            exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
-+ei
-  160     continue
-+if time
-          tcnst35(iu-kanf1+i)=tcnst35(i)
-+ei
-  170   continue
-      endif
-      
+!     misalignments
       izu=0
-      do 190 i=1,iu
+      do i=1,iu
         ix=ic(i)
-        if(ix.le.nblo) goto 190
+        ! skip blocks:
+        if(ix.le.nblo) cycle
         ix=ix-nblo
         kpz=kp(ix)
         kzz=kz(ix)
-        if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 190
-        if(kzz.eq.15) goto 190
+        ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+        if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
         if(icextal(i).ne.0) then
           izu=izu+2
           xrms(ix)=one
@@ -38729,7 +38683,7 @@ end subroutine matrix
           izu=izu+3
         endif
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).ne.0) then
-          do 180 j=1,mmul
+          do j=1,mmul
             izu=izu+1
             zfz(izu)=exterr(i,20+j)
 +if time
@@ -38740,14 +38694,144 @@ end subroutine matrix
 +if time
             zfz35(izu)=exterr35(i,j)
 +ei
-  180     continue
-        else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.                 &
-     &icext(i).eq.0) then
+          end do
+        else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).eq.0) then
           izu=izu+2*mmul
         endif
-  190 continue
+      end do
       return
-      end
+      end subroutine ord
+
+      subroutine orglat
+!-----------------------------------------------------------------------
+!  ORGANISATION OF LATTICE SEQUENCE
+!  A.Mereghetti, last modified 2016-03-14
+!  extract pieces of code about lattice structure from original ord
+!     subroutine
+!-----------------------------------------------------------------------
+      use floatPrecision
+      use numerical_constants
+      use mathlib_bouncer
+      use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
+      implicit none
+      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
+      real(kind=fPrec) extalig1,exterr1
++ca commont1
+      dimension ilf(nblz),ilfr(nblz)
+      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
+     &icextal1(nblz)
++if time
+      real(kind=fPrec) exterr2,tcnst2
+      dimension exterr2(nblz,40),tcnst2(nblz)
++ei
++if bnlelens
++ca rhicelens
++ei
+      save
+!-----------------------------------------------------------------------
+      if(mper.gt.1) then
+        do i=2,mper
+          do j=1,mbloz
+            ii=(i-1)*mbloz+j
+            ihi=j
+            if(msym(i).lt.0) ihi=mbloz-j+1
+            ic(ii)=msym(i)*ic(ihi)
+            if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+          end do
+        end do
+      end if
+      
+      ! set iu
+      iu=mper*mbloz
+
+      ! "GO" was not the first structure element -> Reshuffle the structure
+      if(kanf.ne.1) then
+        write(*,*) ' -> reshuffling lattice structure following' &
+     &//' existence of GO keyword not in first position of lattice definition!'
+
+!        initialise some temporary variables
+         do i=1,nblz
+            ilf(i)=0
+            ilfr(i)=0
+            icext1(i)=0
+            icextal1(i)=0
+            do ii=1,3
+               extalig1(i,ii)=zero
+            enddo
+            do ii=1,40
+               exterr1(i,ii)=zero
++if time
+               exterr2(i,ii)=zero
++ei
+            enddo
++if time
+            tcnst35(i)=zero
++ei
+        enddo
+
+        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+        kanf1=kanf-1
+        do i=1,kanf1
+          if(iorg.ge.0) ilfr(i)=mzu(i)
+          ilf(i)=ic(i)
+          icext1(i)=icext(i)
+          icextal1(i)=icextal(i)
+          extalig1(i,1)=extalign(i,1)
+          extalig1(i,2)=extalign(i,2)
+          extalig1(i,3)=extalign(i,3)
+          do ii=1,40
+            exterr1(i,ii)=exterr(i,ii)
++if time
+            exterr2(i,ii)=exterr35(i,ii)
++ei
+          end do
++if time
+          tcnst2(i)=tcnst35(i)
++ei
+        end do
+        do i=kanf,iu
+          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
+          ic(i-kanf1)=ic(i)
+          icext(i-kanf1)=icext(i)
+          icextal(i-kanf1)=icextal(i)
+          extalign(i-kanf1,1)=extalign(i,1)
+          extalign(i-kanf1,2)=extalign(i,2)
+          extalign(i-kanf1,3)=extalign(i,3)
+          do ii=1,40
+            exterr(i-kanf1,ii)=exterr(i,ii)
++if time
+            exterr35(i-kanf1,ii)=exterr35(i,ii)
++ei
+          end do
++if time
+          tcnst35(i-kanf1)=tcnst2(i)
++ei
+        end do
+        do i=1,kanf1
+          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
+          ic(iu-kanf1+i)=ilf(i)
+          icext(iu-kanf1+i)=icext1(i)
+          icextal(iu-kanf1+i)=icextal1(i)
+          extalign(iu-kanf1+i,1)=extalig1(i,1)
+          extalign(iu-kanf1+i,2)=extalig1(i,2)
+          extalign(iu-kanf1+i,3)=extalig1(i,3)
+          do ii=1,40
+            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
++if time
+            exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
++ei
+          end do
++if time
+          tcnst35(iu-kanf1+i)=tcnst35(i)
++ei
+        end do
+      endif
+      
+      return
+      end subroutine orglat
 
 +dk phasad
 !-----------------------------------------------------------------------
