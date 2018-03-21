@@ -7702,8 +7702,9 @@ cc2008
    60     continue
 
 +dk close
-      subroutine closeUnits
+subroutine closeUnits
       use floatPrecision
+      use error
       use scatter, only : scatter_closefiles
       use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
       use dump, only : dump_closeUnits
@@ -7930,10 +7931,10 @@ cc2008
       close(999)
       
       return
-      end subroutine
+end subroutine closeUnits
 
 +dk cor_ord
-      subroutine coruord
+subroutine coruord
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
 !----
@@ -7943,6 +7944,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use numerical_constants
       use mathlib_bouncer
       
@@ -8213,13 +8215,14 @@ cc2008
      &'    = ',e16.8)
 10140 format(/,t10,'CHI_',i1,',0  = ',e16.8,11x, 'CHI_',i1,',0  = ',e16.&
      &8)
-      end
+end subroutine coruord
 
-      subroutine readd1(user,jaord,jpord)
+subroutine readd1(user,jaord,jpord)
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -8465,7 +8468,7 @@ cc2008
 !-----------------------------------------------------------------------
       return
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
-      end
+end subroutine readd1
 
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
@@ -8833,8 +8836,9 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
       return
       end
+
 +dk cor_glo
-      subroutine coruglo
+subroutine coruglo
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
 !----
@@ -8843,6 +8847,7 @@ end subroutine hamilton1
 !----
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use numerical_constants
       use mathlib_bouncer
       use crcoall
@@ -9108,12 +9113,14 @@ end subroutine hamilton1
      &'    = ',e16.8)
 10140 format(//,t10,'CHI_',i1,',0  = ',e16.8,11x, 'CHI_',i1,',0  = ',e16&
      &.8)
-      end
-      subroutine readd2(user)
+end subroutine coruglo
+
+subroutine readd2(user)
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -9369,7 +9376,7 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
       return
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
-      end
+end subroutine readd2
 
       subroutine hamilton2(jp)
 !-----------------------------------------------------------------------
@@ -10385,8 +10392,9 @@ end subroutine hamilton1
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
       end
+
 +dk adib
-      subroutine adib(e0f)
+subroutine adib(e0f)
 !-----------------------------------------------------------------------
 !  ADIABATIC ENERGY-DECREASE
 !-----------------------------------------------------------------------
@@ -10409,13 +10417,15 @@ end subroutine hamilton1
       e0=e0+hsy(1)*sin_mb(phas)
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
-      end
+end subroutine adib
+
 +dk daten
-      subroutine daten
+subroutine daten
 !-----------------------------------------------------------------------
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use scatter, only : scatter_active, scatter_debug,                &
      &     scatter_seed1,scatter_seed2,                                 &
@@ -16994,7 +17004,7 @@ end subroutine hamilton1
 10890 format(1x,'--> function ',i2,' of combo # ',i4,' of element',a16, &
      &'does not exist!')
 10891 format(1x,'--> single element ',a16,' is a thick lens one!')
-      end subroutine daten
+end subroutine daten
 
       real(kind=fPrec) function eLensTheta( len, Int, Ekin, Etot, r2 )
 !-----------------------------------------------------------------------
@@ -17029,7 +17039,7 @@ end subroutine hamilton1
       end if
       end function eLensTheta
 
-      subroutine parseChebyFile(ifile)
+subroutine parseChebyFile(ifile)
 !-----------------------------------------------------------------------
 !     read file with coefficients for chebyshev polynomials
 !     ifile is index of file in table of chebyshev files        
@@ -17045,6 +17055,7 @@ end subroutine hamilton1
 !     where i->x and j->y
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use numerical_constants
       use physical_constants
@@ -17161,7 +17172,7 @@ end subroutine hamilton1
          end do
       end do
       
-      end subroutine parseChebyFile
+end subroutine parseChebyFile
       
       subroutine write4
 !-----------------------------------------------------------------------
@@ -17330,7 +17341,7 @@ end subroutine hamilton1
       return
       end
       
-      subroutine initialize_element(ix,lfirst)
+subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 !     K.Sjobak & A.Santamaria, BE-ABP/HSS
 !     last modified: 23-12-2016
@@ -17344,6 +17355,7 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
 
       use floatPrecision
+      use error
       use dynk, only : dynk_elemdata
       use numerical_constants
       use crcoall
@@ -17676,7 +17688,7 @@ end subroutine hamilton1
       write (lout,*) "bez = ", bez(ix)
       call prror(-1)
 
-      end subroutine initialize_element
+end subroutine initialize_element
 
 +if crlibm
       
@@ -17788,8 +17800,9 @@ real(kind=fPrec) function fround(errno,fields,f)
       return
       end function fround
       
-      subroutine rounderr(errno,fields,f,value)
+subroutine rounderr(errno,fields,f,value)
       use floatPrecision
+      use error
       use crcoall
       implicit none
       integer nchars,nofields
@@ -17812,9 +17825,11 @@ real(kind=fPrec) function fround(errno,fields,f)
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
       return
-      end subroutine rounderr
+end subroutine rounderr
       
-      subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+  
+  use error
       use crcoall
       implicit none
       integer errno,nunit,lineno,nfields,nf,lf,l
@@ -17846,10 +17861,11 @@ real(kind=fPrec) function fround(errno,fields,f)
 ! Never returns
 end subroutine spliterr
       
-      integer function dtostr(x,results)
+integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
       use floatPrecision
+      use error
       use crcoall
       implicit none
       real(kind=fPrec) x
@@ -17934,7 +17950,7 @@ end subroutine spliterr
       results=lstr(1:24)
       dtostr=24
       return
-      end function dtostr
+end function dtostr
       
 +ei ! END of crlibm-specific functions
       
@@ -19025,6 +19041,7 @@ subroutine runda
 !        5 --> 6  AND  ASD6 / ALD6
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use numerical_constants
       use physical_constants
@@ -20116,11 +20133,12 @@ subroutine runda
 end subroutine runda
 
 +dk umlau6
-      subroutine umlauda
+subroutine umlauda
 !-----------------------------------------------------------------------
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use physical_constants
       use numerical_constants
       use mathlib_bouncer
@@ -21522,12 +21540,12 @@ end subroutine runda
      &'AFTER EACH BLOCK'/                                               &
      &'   A T T E N T I O N : BETATRON PHASE CALCULATION MIGHT BE WRONG'&
      &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
-      end
+end subroutine umlauda
 !
 !-----------------------------------------------------------------------
 ! WIRE DIFFERENTIAL ALGEBRA
 +dk wireda
-      subroutine wireda(ix,i)
+subroutine wireda(ix,i)
 ! MODEL OF STRAIGHT CURRENT WIRE
 !
 !     The model provides a transfer map of a straight current wire. 
@@ -21557,6 +21575,7 @@ end subroutine runda
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
       use floatPrecision
+      use error
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
@@ -21744,7 +21763,8 @@ end subroutine runda
 !FOX  YY(2)=YY(2)*C1E3;
 
 !     DADAL AUTOMATIC INCLUSION
-      end
+end subroutine wireda
+
 +dk runcav
       subroutine runcav
 !-----------------------------------------------------------------------
@@ -22022,7 +22042,7 @@ end subroutine runda
       end
 
 +dk beam6df
-      subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
+subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -22031,6 +22051,7 @@ end subroutine runda
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -22087,7 +22108,7 @@ end subroutine runda
       call boostif(sphi,cphi,tphi,salpha,calpha,track)
 !     DADAL AUTOMATIC INCLUSION
       return
-      end
+end subroutine beaminf
 
       subroutine boostf(sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
@@ -22495,6 +22516,7 @@ end subroutine runda
 +dk maincr
 program maincr
       use floatPrecision
+      use error
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
@@ -25197,6 +25219,7 @@ end interface
 subroutine trauthin(nthinerr)
   ! Updated to Fortran 2015 by V.K.B. Olsen, 19/11/2017
   use floatPrecision
+  use error
   use mathlib_bouncer
   use numerical_constants
   use scatter, only : scatter_elemPointer
@@ -25680,6 +25703,7 @@ end subroutine trauthin
 subroutine thin4d(nthinerr)
   ! Replaced computed goto with select case. VKBO 27/11/2017
   use floatPrecision
+  use error
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -26302,6 +26326,7 @@ end subroutine thin4d
 subroutine thin6d(nthinerr)
   ! Replaced computed gotos with select case, VKBO 27/11/2017
   use floatPrecision
+  use error
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -27182,7 +27207,7 @@ end subroutine thin6d
 
 !==============================================================================
 !
-      subroutine thin6dua(nthinerr)
+subroutine thin6dua(nthinerr)
 !-----------------------------------------------------------------------
 !
 !  TRACK THIN LENS 6D WITH ACCELERATION
@@ -27191,8 +27216,9 @@ end subroutine thin6d
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use physical_constants
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
 
 +if fluka
@@ -27879,7 +27905,7 @@ end subroutine thin6d
 +ei
   660 continue
       return
-      end subroutine thin6dua
+end subroutine thin6dua
 
 subroutine callcrp()
 !-----------------------------------------------------------------------
@@ -27889,6 +27915,7 @@ subroutine callcrp()
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -28038,7 +28065,7 @@ end subroutine callcrp
       return
       end subroutine dist1
 
-      subroutine write6(n)
+subroutine write6(n)
 !-----------------------------------------------------------------------
 !
 !  F. SCHMIDT
@@ -28046,6 +28073,7 @@ end subroutine callcrp
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -28136,7 +28164,7 @@ end subroutine callcrp
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
-      end subroutine write6
+end subroutine write6
 
 
 +dk tra_thck
@@ -28149,6 +28177,7 @@ end subroutine callcrp
 subroutine trauthck(nthinerr)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 20/11/2017
   use floatPrecision
+  use error
   use mathlib_bouncer
   use numerical_constants
   use dynk, only : ldynk, dynk_isused, dynk_pretrack
@@ -28570,6 +28599,7 @@ end subroutine trauthck
 subroutine thck4d(nthinerr)
   ! Replaced computed goto with select case, VKBO 27/11/2017
   use floatPrecision
+  use error
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -29248,6 +29278,7 @@ end subroutine thck4d
 subroutine thck6d(nthinerr)
   ! Replaced computed goto with select case, VKBO 28/11/2017
   use floatPrecision
+  use error
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -30053,6 +30084,7 @@ subroutine thck6dua(nthinerr)
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use physical_constants
       use mathlib_bouncer
       use numerical_constants
@@ -31645,8 +31677,9 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 end subroutine envarsv
 
 +dk mainda
-      program mainda
+program mainda
       use floatPrecision
+      use error
       use numerical_constants
       use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : output_unit
@@ -32217,7 +32250,7 @@ end subroutine envarsv
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
-      end
+end program mainda
 
 +dk comnul
 subroutine comnul
@@ -33106,6 +33139,7 @@ integer function INEELS( iEl )
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use numerical_constants
       use crcoall
       use parpro
@@ -33329,7 +33363,8 @@ end subroutine umschr
 +dk daliesix
 subroutine daliesix
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34096,12 +34131,13 @@ subroutine blocksv
       end
 
 +dk chroma
-      subroutine chroma
+subroutine chroma
 !-----------------------------------------------------------------------
 !  CALCULATION OF CHROMATICITY FROM 5 ENERGIE-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34227,7 +34263,7 @@ subroutine blocksv
 10030 format(t10,'SEXTUP.STRENGTHS ',g17.10,7x,g17.10,'   INDEX   ',a16/&
      &t10,'                 ',g17.10,7x,g17.10,'           ',a16)
 10035 format(/t5,'---- NO Improvement in last Step ----'/)
-      end
+end subroutine chroma
 
       subroutine chromda
 !-----------------------------------------------------------------------
@@ -34789,11 +34825,12 @@ subroutine blocksv
       end
 
 +dk mydaini
-      subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
+subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34867,14 +34904,15 @@ subroutine blocksv
 10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,            &
      &', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
       return
-      end
+end subroutine mydaini
 
 +dk mydainf
-      subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
+subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34935,15 +34973,16 @@ subroutine blocksv
 10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,            &
      &', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
       return
-      end
+end subroutine mydaini
 
 +dk clorb2
-      subroutine clorb2(dpp)
+subroutine clorb2(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -35009,15 +35048,16 @@ subroutine blocksv
    40 continue
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine clorb2
 
 +dk combel
-      subroutine combel(iql)
+subroutine combel(iql)
 !-----------------------------------------------------------------------
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -35055,7 +35095,7 @@ subroutine blocksv
    20 continue
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine combel
 
 +dk envar
 !-----------------------------------------------------------------------
@@ -35590,9 +35630,10 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
 !
 !-----------------------------------------------------------------------
   use floatPrecision
+  use error
   use numerical_constants
 
-      use crcoall
+  use crcoall
   implicit none
 
 +ca dbreaddis
@@ -35800,6 +35841,7 @@ subroutine linopt(dpp)
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use numerical_constants
       use mathlib_bouncer
       use crcoall
@@ -37142,14 +37184,15 @@ subroutine matrix(dpp,am)
 end subroutine matrix
 
 +dk orbit
-      subroutine corrorb
+subroutine corrorb
 !-----------------------------------------------------------------------
 !  CORRECTION OF CLOSED ORBIT FIRST (MOST EFFECTIV CORRECTOR STRATEGY
 !  USING MICADO), THEN
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -37477,7 +37520,7 @@ end subroutine matrix
      &' VER.-RMS: ',f6.3)
 10160 format(t5,'---- SCALING ITERATION NO. ',i4,' HOR.-PTP: ',f6.3,    &
      &' VER.-PTP: ',f6.3)
-      end
+end subroutine corrorb
 
       subroutine putorb(xinc,nx,npflag)
 !-----------------------------------------------------------------------
@@ -37646,7 +37689,7 @@ end subroutine matrix
       return
       end
 
-      subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
+subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 !*********************************************************************
 !     Subroutine HTLS to make Householder transform                  *
 !                                                                    *
@@ -37660,7 +37703,8 @@ end subroutine matrix
 !     PTP  - PEAK TO PEAK VALUE TO CORRECT FOR                       *
 !*********************************************************************
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -37827,7 +37871,8 @@ end subroutine matrix
   160 ptp=ptop(k)
       rms=rmss(k)
 10000 format(a,i4)
-      end
+end subroutine htls
+  
       subroutine htal(a,m,n,k,beta)
 !*********************************************************************
 !     Subroutine HTAL to make Householder transform                  *
@@ -38034,12 +38079,13 @@ end subroutine matrix
       end
 
 +dk ord
-      subroutine ord
+subroutine ord
 !-----------------------------------------------------------------------
 !  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -38295,7 +38341,7 @@ end subroutine matrix
         endif
   190 continue
       return
-      end
+end subroutine ord
 
 +dk phasad
 !-----------------------------------------------------------------------
@@ -38304,6 +38350,7 @@ end subroutine matrix
 subroutine phasad(dpp,qwc)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 20/11/2017
   use floatPrecision
+  use error
   use numerical_constants
   use mathlib_bouncer
   use crcoall
@@ -38800,13 +38847,14 @@ subroutine phasad(dpp,qwc)
 end subroutine phasad
 
 +dk qmod
-      subroutine qmod0
+subroutine qmod0
 !-----------------------------------------------------------------------
 !  ADJUSTMENT OF THE Q-VALUES PLUS AN ADDITIONAL ADJUSTMENT OF A
 !  X-PHASEADVANCE BETWEEN 2 POSITIONS IN THE MACHINE
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -39056,7 +39104,7 @@ end subroutine phasad
 10050 format(t10,'QUADRU.STRENGTHS',7x,g17.10,2x,g17.10,'   TYP     ',  &
      &a16/t10,                  23x,g17.10,2x,g17.10,'           ',     &
      &a16)
-      end
+end subroutine qmod0
 
       subroutine qmodda(mm,qwc)
 !-----------------------------------------------------------------------
@@ -39362,6 +39410,7 @@ end subroutine phasad
 subroutine umlauf(dpp,ium,ierr)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 23/11/2017
   use floatPrecision
+  use error
   use mathlib_bouncer
   use numerical_constants
   use parpro
@@ -39779,6 +39828,7 @@ end subroutine umlauf
 subroutine resex(dpp)
   ! Modified for Fortran 2015 by V.K.B. Olsen on 19/11/2017
   use floatPrecision
+  use error
   use numerical_constants
   use mathlib_bouncer
   
@@ -40521,11 +40571,12 @@ subroutine resex(dpp)
 end subroutine resex
 
 +dk rmod
-      subroutine rmod(dppr)
+subroutine rmod(dppr)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
   use floatPrecision
+  use error
   use numerical_constants
   use mathlib_bouncer
   use crcoall
@@ -40846,7 +40897,7 @@ end subroutine resex
      &'BEFORE         AFTER     COMPENSATION'// 19x,'HORIZONTAL   ',2g15&
      &.5/ 19x,'VERTICAL     ',2g15.5/ 10x,'   SEXTUPOLE'/)
 10110 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
-      end
+end subroutine rmod
 
 +dk search
       subroutine search(dpp)
@@ -40942,6 +40993,7 @@ end subroutine resex
 subroutine subre(dpp)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 23/11/2017
   use floatPrecision
+  use error
   use numerical_constants
   use mathlib_bouncer
   use crcoall
@@ -41970,6 +42022,7 @@ end subroutine subre
 subroutine subsea(dpp)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 23/11/2017
   use floatPrecision
+  use error
   use numerical_constants
   use mathlib_bouncer
   use parpro
@@ -42691,13 +42744,14 @@ subroutine subsea(dpp)
 end subroutine subsea
 
 +dk decoup
-      subroutine decoup
+subroutine decoup
 !-----------------------------------------------------------------------
 !  DECOUPLING USING MATRIX ELEMENTS
 !
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -42882,11 +42936,11 @@ end subroutine subsea
      &'               ',2g15.8,'         ',i3)
 10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
      &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
-      end
+end subroutine decoup
 
 +dk utils ! Various utility functions
 
-      subroutine invert_tas(fma_tas_inv,fma_tas)
+subroutine invert_tas(fma_tas_inv,fma_tas)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
 !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
@@ -42897,6 +42951,7 @@ end subroutine subsea
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
       use floatPrecision
+      use error
       use numerical_constants
       use crcoall
       implicit none
@@ -42949,7 +43004,7 @@ end subroutine subsea
           fma_tas_inv(i,j)=tdummy(j,i)
         enddo
       enddo
-      end subroutine invert_tas
+end subroutine invert_tas
 
 +dk sumpos
       subroutine sumpos
@@ -43091,7 +43146,7 @@ end subroutine subsea
       end
       
 +dk beam6d
-      subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
+subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -43100,6 +43155,7 @@ end subroutine subsea
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+      use error
       use mathlib_bouncer
       use numerical_constants
 
@@ -43151,9 +43207,9 @@ end subroutine subsea
       call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
       call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
       return
-      end
+end subroutine beamint
 
-      subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
+subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -43505,7 +43561,7 @@ end subroutine subsea
       return
       end
 
-      function gauinv(p0)
+function gauinv(p0)
 !GAUINV***********************************************
 !  INVERSE OF (INTEGRATED) NORMAL DISTRIBUTION FUNCTION
 !              1         X= Y
@@ -43518,6 +43574,7 @@ end subroutine subsea
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
       use floatPrecision
+      use error
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -43574,10 +43631,12 @@ end subroutine subsea
  900  write(lout,910) p0
  910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
       call prror(-1)
-      end
+end function gauinv
+
 +dk myrinv
-      subroutine kerset(ercode,lgfile,limitm,limitr)
+subroutine kerset(ercode,lgfile,limitm,limitr)
       use floatPrecision
+      use error
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -43667,7 +43726,7 @@ end subroutine subsea
 1001  format(/' ***** RUN TERMINATED BY CERN LIBRARY ERROR ',           &
      &'CONDITION ',a6)
 1002  format(/' ***** CERN LIBRARY ERROR CONDITION ',a6)
-      end
+end subroutine kerset
 
       subroutine rinv(n,a,idim,ir,ifail)
 !-----------------------------------------------------------------------
@@ -43911,7 +43970,8 @@ end subroutine subsea
       return
 !
       end
-      subroutine f010pr(name,n,idim,k,kprnt)
+
+subroutine f010pr(name,n,idim,k,kprnt)
 !     ******************************************************************
 !
 !     PRINT ROUTINE FOR PARAMETER ERRORS IN MATRIX SUBROUTINES $EQINV,
@@ -43926,6 +43986,7 @@ end subroutine subsea
 !
 !     ******************************************************************
       use floatPrecision
+      use error
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -43956,7 +44017,7 @@ end subroutine subsea
  2001 format( 7x, 'subroutine ', a6,' ... parameter',                   &
      &' error (n.lt.1 or n.gt.idim or k.lt.1).',                        &
      &6x,'n =', i4, 6x,'idim =', i4, 6x,'k =', i4,'.')
-      end
+end subroutine f010pr
 
       subroutine rfact(n,a,idim,ir,ifail,det,jfail)
       use floatPrecision
@@ -44459,8 +44520,9 @@ end subroutine subsea
         end function dotf
       end subroutine dfinv
 
-      subroutine tmprnt(name,n,idim,k)
+subroutine tmprnt(name,n,idim,k)
       use floatPrecision
+      use error
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -44500,7 +44562,7 @@ end subroutine subsea
 1002  format(7x,' parameter error in subroutine ', a6,                  &
      &' ... (n.lt.1 or idim.lt.n or k.lt.1).',                          &
      &5x,'n =', i4, 5x,'idim =', i4, 5x,'k =', i4,'.')
-      end
+end subroutine tmprnt
 
       subroutine lfitd(x,y,l,key,a,b,e)
 !-----------------------------------------------------------------------
@@ -44631,7 +44693,7 @@ end subroutine subsea
 +dk nwrtbnl
 !GRDRHIC
 !GRD-042008
-      subroutine bnlrdis(ngrd)
+subroutine bnlrdis(ngrd)
 !
 !     SR, 09-08-2005
 !     Format for the input file:
@@ -44641,6 +44703,7 @@ end subroutine subsea
 !               DE     -> [ MeV ]
 !
       use floatPrecision
+      use error
       use crcoall
       use parpro
       use mod_common
@@ -44793,11 +44856,12 @@ end subroutine subsea
  20   continue
       write(lout,*) 'I/O Error on Unit 54'
       call prror(-1)
-      end
+end subroutine bnlrdis
+
 !GRD-042008
 !GRDRHIC
 +dk checkpt
-      subroutine crcheck
+subroutine crcheck
 !     Thus subroutine checks if the C/R files fort.95 and fort.96 exists,
 !     and if so tries to load them into the cr* variables.
 !     This routine also repositions the output files for
@@ -44807,6 +44871,7 @@ end subroutine subsea
 !     
 !     See also subroutines crpoint and crstart.
       use floatPrecision
+      use error
       use numerical_constants
       use dynk, only : ldynk, ldynkfiledisable,                         &
            dynk_crcheck_readdata, dynk_crcheck_positionFiles
@@ -45688,9 +45753,9 @@ end subroutine subsea
 !GRDRHIC
 !GRD-042008
 +ei
-      end
+end subroutine crcheck
 
-      subroutine crpoint
+subroutine crpoint
 !     This subroutine writes the checkpoint data to fort.95/96,
 !     and copies the new output from the temporary (lout/fort.92) output file into fort.6.
 !     
@@ -45698,6 +45763,7 @@ end subroutine subsea
 !     
 !     See also subroutine crcheck and crstart.
       use floatPrecision
+      use error
       use numerical_constants
 
       use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
@@ -46263,9 +46329,9 @@ end subroutine subsea
       backspace (93,iostat=ierro)
       write(lout,*)'SIXTRACR CHECKPOINT I/O Error'
       call prror(-1)
-      end
+end subroutine crpoint
 
-      subroutine crstart
+subroutine crstart
 !     If we are restarting (restart is TRUE), this routine is called
 !     in the beginning of the tracking loops.
 !     It is used to copy the cr* variables to the normal variables,
@@ -46275,7 +46341,8 @@ end subroutine subsea
 !     
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
-  use numerical_constants
+      use error
+      use numerical_constants
       use dynk, only : ldynk, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
@@ -46702,7 +46769,7 @@ end subroutine subsea
      &sixrecs,'crsixrecs',crsixrecs
       write(lout,*)'SIXTRACR CRSTART Problem fort.6'
       call prror(-1)
-      end
+end subroutine crstart
 
 +dk aux
 !      logical function isnan(arg1,arg2)

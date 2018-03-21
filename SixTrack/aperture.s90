@@ -7,6 +7,7 @@ module aperture
   ! K.Sjobak, BE/ABP-LAT
 
   use floatPrecision
+  use error
   use mathlib_bouncer
   use numerical_constants
 

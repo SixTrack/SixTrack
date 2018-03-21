@@ -1,6 +1,8 @@
 +dk zipf
 
 module zipf
+
+  use error
   implicit none
 
 +ca comgetfields

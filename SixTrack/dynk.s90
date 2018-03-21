@@ -3,6 +3,7 @@
 module dynk
 
     use floatPrecision
+    use error
     use mathlib_bouncer
     use numerical_constants, only : zero, one, two, c1e3
 
