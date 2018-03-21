@@ -4260,8 +4260,7 @@
 !     write(*,*) '4ofcrk',crk
 !     write(*,*) '4ofexp',-exp_mb(-one*tkb)
 +ei
-              beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*              &!hr03
-     &sign(one,crk)                                                      !hr03
+              beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
 +if debug
 !GOTCHA
 !     if (dokcalls.ge.445959) then
@@ -4272,8 +4271,7 @@
 !       read(222)
 !     endif
 +ei
-              beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*              &!hr03
-     &sign(one,cik)                                                      !hr03
+              beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
 +cd beamco
               if(ibbc.eq.0) then
                 crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
@@ -4291,10 +4289,8 @@
                 crkveb(j)=parbe(ix,5)
                 cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +                &
-     &                parbe(ix,6)*bbcu(imbb(i),12)
-                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-                 &
-     &               parbe(ix,5)*bbcu(imbb(i),12)
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
             rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
@@ -4303,21 +4299,21 @@
             tkb(j)=rho2b(j)/(two*sigman2(1,imbb(i)))
 +cd beamr3
             if(ibbc.eq.0) then
-          yv(1,j)=yv(1,j)+oidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
+          yv(1,j)=yv(1,j)+moidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))                      !hr03
-          yv(2,j)=yv(2,j)+oidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
+          yv(2,j)=yv(2,j)+moidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))                      !hr03
             else
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)     !hr03
-              yv(1,j)=yv(1,j)+oidpsv(j)*cccc
+              yv(1,j)=yv(1,j)+moidpsv(j)*cccc
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)     !hr03
-              yv(2,j)=yv(2,j)+oidpsv(j)*cccc
+              yv(2,j)=yv(2,j)+moidpsv(j)*cccc
             endif
 +cd beamr3o
                 beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*    &!hr03
@@ -4351,10 +4347,10 @@
               call errf(zbb(j),xbb(j),cbzb(j),cbxb(j))
 +cd beama4
               if(ibbc.eq.0) then
-                yv(1,j)=yv(1,j)+oidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
+                yv(1,j)=yv(1,j)+moidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbzb(j)))*sign(one,crkveb(j))-beamoff(4,imbb(i)))                  !hr03
-                yv(2,j)=yv(2,j)+oidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
+                yv(2,j)=yv(2,j)+moidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbxb(j)))*sign(one,cikveb(j))-beamoff(5,imbb(i)))                  !hr03
               else
@@ -4362,12 +4358,12 @@
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),11)-((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)           !hr03
-                yv(1,j)=yv(1,j)+oidpsv(j)*cccc
+                yv(1,j)=yv(1,j)+moidpsv(j)*cccc
                 cccc=((rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*   &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),12)+((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)           !hr03
-                yv(2,j)=yv(2,j)+oidpsv(j)*cccc
+                yv(2,j)=yv(2,j)+moidpsv(j)*cccc
               endif
             enddo
 +cd beama4o
@@ -4387,10 +4383,10 @@
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-               track6d(1,j)=((xv(1,j)+parbe(ix,5)) - clobeam(1,imbb(i)))*c1m3
-              track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
+              track6d(1,j)=((xv(1,j)+parbe(ix,5)) - clobeam(1,imbb(i)))*c1m3
+              track6d(2,j)=(yv(1,j)/moidpsv(j)-clobeam(4,imbb(i)))*c1m3
               track6d(3,j)=((xv(2,j)+parbe(ix,6)) -  clobeam(2,imbb(i)))*c1m3
-              track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
+              track6d(4,j)=(yv(2,j)/moidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
             end do
@@ -4403,8 +4399,9 @@
               dpsv(j)=(track6d(6,j)+clobeam(6,imbb(i)))-beamoff(6,imbb(i))
               oidpsv(j)=one/(one+dpsv(j))
               moidpsv(j)=mtc(j)/(one+dpsv(j))
-              yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-beamoff(4,imbb(i)))*oidpsv(j)
-              yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-beamoff(5,imbb(i)))*oidpsv(j)
+              yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-beamoff(4,imbb(i)))*moidpsv(j)
+              yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-beamoff(5,imbb(i)))*moidpsv(j)
+              !TODO check for ions?
               ejfv(j)=dpsv(j)*e0f+e0f
               ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
