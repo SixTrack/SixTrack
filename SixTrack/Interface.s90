@@ -336,7 +336,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !         endif
          
          ! Generate the anti-quad
-         if (ffTA(dataindex)%checkAQ(nlostp(ffj))) then
+         !if (ffTA(dataindex)%checkAQ(nlostp(ffj))) then
            call GenerateAntiQuad(oidpsv(ffj), &
                              ffTA(dataindex)%n,                   &
                              ffTA(dataindex)%m,                   &
@@ -354,8 +354,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                              ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
                              ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
            
-           ffTA(dataindex)%checkAQ(nlostp(ffj))=.false.
-         endif
+         !  ffTA(dataindex)%checkAQ(nlostp(ffj))=.false.
+         !endif
          
          
          ! Selection of the particle that are only in the radius (r = 0.05m)
@@ -388,6 +388,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
              call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                       ffParam(dataindex,2),ffParam(dataindex,3), ffParam(dataindex,4),       &
                       ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+             
    	   elseif (inex=="OUT") then
              ! First AntiQuad routine
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
@@ -406,6 +407,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                              ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
                              ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
                              ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+             
    	   endif
 
 ! <<<< to be clean
@@ -465,6 +467,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
              call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
                       ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
                       ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+             
    	   endif
 
 
