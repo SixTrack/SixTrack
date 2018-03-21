@@ -15,11 +15,16 @@
       integer aa, zz
       integer ntconnect, ntsendp, ntsendeob, ntsendipt
       integer ntsendeoc, ntrecv, ntwait, ntend
+      integer ntsendnpart, ntnpart
+      integer ntsendbrhono, ntbrho
 
       integer N_PART, N_EOB, N_END
       parameter (N_PART = 1)
       parameter (N_EOB = 2)
       parameter (N_END  = 3)
+
+      integer npart
+      double precision brho
 
       turn = 0
       id   = 0
@@ -46,6 +51,11 @@
 
       write(*,*) "Connected to server"
 
+      npart = 56000
+      n = ntsendnpart(cid, npart)
+      brho = 1.2345d0
+      n = ntsendbrhono(cid, brho)
+
       do j = 1,NTURNS
 
         turn = j
@@ -56,6 +66,7 @@ c       Send ipt
           write(*,*) "Error sending IPT"
           goto 900
         end if
+
         do i = 1,NPARTS
           id = i
 

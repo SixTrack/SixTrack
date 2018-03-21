@@ -70,7 +70,7 @@ ssize_t connection_write_message_bin(
 		const void *data, const size_t datalen,
 		void *buf, const size_t buflen);
 ssize_t connection_receive_message(flukaio_connection_t *conn, flukaio_message_t *msg);
-inline ssize_t connection_read_message_from(flukaio_message_t *msg, const void *buffer, size_t buffer_len);
+ssize_t connection_read_message_from(flukaio_message_t *msg, const void *buffer, size_t buffer_len);
 
 #ifdef __cplusplus
 }

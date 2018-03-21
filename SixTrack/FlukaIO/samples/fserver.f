@@ -15,11 +15,17 @@
       integer aa, zz
       integer ntaccept, ntstart, ntsendp, ntsendeob, ntserver
       integer ntsendeoc, ntshdwn, ntwait, ntend
+      integer ntsendnpart, ntnpart
+      integer ntsendbrhono, ntbrho
+
       integer N_PART, N_EOB, N_END, N_IPT
       parameter (N_PART = 1)
       parameter (N_EOB  = 2)
       parameter (N_END  = 3)
       parameter (N_IPT  = 5)
+
+      integer npart
+      double precision brho
 
       ! Initialize fluka connections
       call ntinit()
@@ -38,16 +44,25 @@
 
       write(*,*) "Listening on port ", n
 
+
 100   continue ! while(1)
         write(*,*) "** Waiting for new connection"
         cid = ntaccept(sid)
+
+        npart = ntnpart(cid)
+        write(*,*) ">>>>>>>>> npart=",npart
+        n  = ntbrho(cid, brho)
+        write(*,*) ">>>>>>>>> brho=",brho, n
+
         if(.not.cid.lt.0) then
           write(*,*) "** New connection accepted"
 !          n = nttimeout(cid, 20)
 
             total = 0
             count = 0
+
 200         continue ! while(1)
+
               n = ntwait(cid,
      &              mtype, id, gen, wgt,
      &              x, y, z, tx, ty, tz, aa, zz, m, pc, t)

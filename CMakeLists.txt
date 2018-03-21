@@ -271,10 +271,10 @@ SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PR
 # Select which fortran files to generate and compile
 if(DA)
 	LIST(APPEND FORS_FIXFORM )
-	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens mod_alloc)
+	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
 else()
 	LIST(APPEND FORS_FIXFORM )
-	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens mod_alloc)
+	LIST(APPEND FORS_FREEFORM scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
 endif()
 
 if(COLLIMAT)

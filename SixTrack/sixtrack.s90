@@ -1587,33 +1587,29 @@
            crkve=crkveuk
 +cd kickv01h
 +if .not.tilt
-            yv(1,j)=yv(1,j)+strack(i)*oidpsv(j)
+            yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+strackc(i)*oidpsv(j)
-            yv(2,j)=yv(2,j)+stracks(i)*oidpsv(j)
+            yv(1,j)=yv(1,j)+(strackc(i)*oidpsv(j))*mtc(j)
+            yv(2,j)=yv(2,j)+(stracks(i)*oidpsv(j))*mtc(j)
 +ei
 +cd kickvxxh
 +if .not.tilt
-            yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
-            yv(2,j)=yv(2,j)-(strack(i)*oidpsv(j))*cikve                  !hr02
+            yv(1,j)=yv(1,j)+((strack(i)*oidpsv(j))*crkve)*mtc(j)
+            yv(2,j)=yv(2,j)-((strack(i)*oidpsv(j))*cikve)*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+oidpsv(j)*(strackc(i)*crkve+                &
-     &stracks(i)*cikve)
-            yv(2,j)=yv(2,j)+oidpsv(j)*(stracks(i)*crkve-                &!hr02
-     &strackc(i)*cikve)                                                  !hr02
+            yv(1,j)=yv(1,j)+(oidpsv(j)*(strackc(i)*crkve+stracks(i)*cikve))*mtc(j)
+            yv(2,j)=yv(2,j)+(oidpsv(j)*(stracks(i)*crkve-strackc(i)*cikve))*mtc(j)
 +ei
 +cd kickvdpe
 +if .not.tilt
-            yv(1,j)=yv(1,j)+(strackx(i)*oidpsv(j))*crkve                 !hr02
-            yv(2,j)=yv(2,j)-(strackz(i)*oidpsv(j))*cikve                 !hr02
+            yv(1,j)=yv(1,j)+((strackx(i)*oidpsv(j))*crkve)*mtc(j)
+            yv(2,j)=yv(2,j)-((strackz(i)*oidpsv(j))*cikve)*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+oidpsv(j)*(strackx(i)*crkve-                &
-     &stracks(i)*cikve)
-            yv(2,j)=yv(2,j)+oidpsv(j)*(strackz(i)*cikve+                &
-     &strackc(i)*crkve)
+            yv(1,j)=yv(1,j)+(oidpsv(j)*(strackx(i)*crkve-stracks(i)*cikve))*mtc(j)
+            yv(2,j)=yv(2,j)+(oidpsv(j)*(strackz(i)*cikve+strackc(i)*crkve))*mtc(j)
 +ei
 +cd kickvso1
             yv(1,j)=yv(1,j)-xv(2,j)*strackx(i)
@@ -1623,14 +1619,10 @@
 !
       crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
       cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-            yv(1,j)=crkve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &cikve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
-            yv(2,j)=cikve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &crkve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
-            crkve=xv(1,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &xv(2,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
-            cikve=xv(2,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &xv(1,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
+            yv(1,j)=crkve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+cikve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
+            yv(2,j)=cikve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-crkve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
+            crkve=xv(1,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+xv(2,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
+            cikve=xv(2,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-xv(1,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
             xv(1,j)=crkve
             xv(2,j)=cikve
             yv(1,j)=yv(1,j)+xv(2,j)*strackx(i)
@@ -1701,22 +1693,20 @@
       
 +cd kickv01v
 +if .not.tilt
-            yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
+            yv(2,j)=yv(2,j)+(strack(i)*oidpsv(j))*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)-stracks(i)*oidpsv(j)
-            yv(2,j)=yv(2,j)+strackc(i)*oidpsv(j)
+            yv(1,j)=yv(1,j)-(stracks(i)*oidpsv(j))*mtc(j)
+            yv(2,j)=yv(2,j)+(strackc(i)*oidpsv(j))*mtc(j)
 +ei
 +cd kickvxxv
 +if .not.tilt
-            yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*cikve                  !hr02
-            yv(2,j)=yv(2,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
+            yv(1,j)=yv(1,j)+((strack(i)*oidpsv(j))*cikve)*mtc(j)
+            yv(2,j)=yv(2,j)+((strack(i)*oidpsv(j))*crkve)*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+oidpsv(j)*(strackc(i)*cikve-                &
-     &stracks(i)*crkve)
-            yv(2,j)=yv(2,j)+oidpsv(j)*(strackc(i)*crkve+                &
-     &stracks(i)*cikve)
+            yv(1,j)=yv(1,j)+(oidpsv(j)*(strackc(i)*cikve-stracks(i)*crkve))*mtc(j)
+            yv(2,j)=yv(2,j)+(oidpsv(j)*(strackc(i)*crkve+stracks(i)*cikve))*mtc(j)
 +ei
 +cd kickl01h
 +if .not.tilt
@@ -3387,232 +3377,203 @@
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
 !---------CrabFreq input in MHz (ek)
 !---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
-          pi=four*atan_mb(one)
-        crabfreq=ek(ix)*c1e3
-        crabamp=ed(ix)
-        
-        do j=1,napx ! loop over particles
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+    
+  do j=1,napx ! loop over particles
+    crabamp=ed(ix)*nzz(j)
+    kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi+crabph(ix)
+    yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*sin_mb(kcrab)*(moidpsv(j)/e0f)
+    ejv(j)=ejv(j)-(((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*cos_mb(kcrab)
+    ejf0v(j)=ejfv(j)
+  
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
 
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03
-       yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*                          &!hr03
-     &sin_mb(kcrab)*(oidpsv(j)/e0f)                                      !hr03
-      ejv(j)=ejv(j) -                                                   &!hr03
-     &(((((crabamp*crabfreq)*2d0)*pi)/clight)                           &!hr03
-     &*xv(xory,j))*cos_mb(kcrab)                                         !hr03
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+
+  end do
 +cd ccmul2
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp2 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-!          write(*,*) ''
-!          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 2', crabamp2
-!          write(*,*) 'FREQ',  crabfreq
-!          write(*,*) 'PHASE', crabph2(ix)
-!          write(*,*) '-------------------'
-        do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph2(ix)                                                     !hr03
-         
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+! write(*,*) ''
+! write(*,*) '-------------------'
+! write(*,*) 'CRAB AMP 2', ed(ix)
+! write(*,*) 'FREQ',  crabfreq
+! write(*,*) 'PHASE', crabph2(ix)
+! write(*,*) '-------------------'
+  do j=1,napx
+    crabamp2 = ed(ix)*nzz(j)
+    kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
+   
 +ca alignva
-        yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*cos_mb(kcrab)
-        yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((0.5d0*(crabamp2))*(crkve**2-                  &!hr13
-     &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &(sin_mb(kcrab)*e0f)                                                !hr13
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+    yv(1,j)=yv(1,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+    yv(2,j)=yv(2,j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+    ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+    ejf0v(j)=ejfv(j)
+  
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  
+    if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  
+  end do
 +cd ccmul2s
 ! JBG RF CC Multipoles 2
-          pi=four*atan_mb(one)
-          crabamp2 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &
-     & +  crabph2(ix)
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+  do j=1,napx
+  crabamp2 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 +ca alignva
-        yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*cos_mb(kcrab)
-        yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))                      &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+  yv(2,j)=yv(2,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+  yv(1,j)=yv(1,j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+  ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
+  
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  
+  end do
 +cd ccmul3
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp3 = ed(ix)
-          crabfreq=ek(ix)*c1e3
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
 
-!          write(*,*) ''
-!          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 3', crabamp3
-!          write(*,*) 'FREQ',  crabfreq
-!          write(*,*) 'PHASE', crabph3(ix)
-!          write(*,*) '-------------------'
-          do j=1,napx
-         kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(2d0*pi)           &!hr03
-     &+  crabph3(ix)                                                      !hr03
-  
+!  write(*,*) ''
+!  write(*,*) '-------------------'
+!  write(*,*) 'CRAB AMP 3', crabamp3
+!  write(*,*) 'FREQ',  crabfreq
+!  write(*,*) 'PHASE', crabph3(ix)
+!  write(*,*) '-------------------'
+  do j=1,napx
+  crabamp3 = ed(ix)*nzz(j)
+  kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
+
 +ca alignva
-        yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
-     &(crkve**2-cikve**2))*                                             &!hr13
-     &cos_mb(kcrab)
-      yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
-     &cos_mb(kcrab)
-      ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
-     &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight)*c1m6)*        &!hr13
-     &sin_mb(kcrab))*e0f
-      ejf0v(j)=ejfv(j)
+  yv(1,j)=yv(1,j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
+  yv(2,j)=yv(2,j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
+  ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
+  ejf0v(j)=ejfv(j)
       
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
       
-      enddo
+  end do
 +cd ccmul3s
 ! JBG RF CC Multipoles 2
-          pi=four*atan_mb(one)
-          crabamp3 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph3(ix)                                                    !hr03
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+  do j=1,napx
+   crabamp3 = ed(ix)*nzz(j)
+   kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
 +ca alignva
-        yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
-     &((cikve**2)-(crkve**2)))*                                         &
-     &cos_mb(kcrab)
-        yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
-     &c1m3)*cos_mb(kcrab)
-      ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
-     &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     &
-     &(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
+  yv(2,j)=yv(2,j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
+  yv(1,j)=yv(1,j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
+  ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
+         ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
       
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
       
-      enddo
+  end do
 +cd ccmul4
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp4 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          ! Sixtrack uses mm and mrad, input m^{-n+1}
-!          write(*,*) ''
-!          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 4', crabamp4
-!          write(*,*) 'FREQ',  crabfreq
-!          write(*,*) 'PHASE', crabph4(ix)
-!          write(*,*) '-------------------'
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph4(ix)                                                     !hr03
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+! Sixtrack uses mm and mrad, input m^{-n+1}
+!  write(*,*) ''
+!  write(*,*) '-------------------'
+!  write(*,*) 'CRAB AMP 4', crabamp4
+!  write(*,*) 'FREQ',  crabfreq
+!  write(*,*) 'PHASE', crabph4(ix)
+!  write(*,*) '-------------------'
+  do j=1,napx
+  crabamp4 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 +ca alignva
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
-     &(crkve**3-(3d0*crkve)*cikve**2))*c1m6)*                           &!hr13
-     &cos_mb(kcrab)
-        yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
-     &((3d0*cikve)*crkve**2-cikve**3))*c1m6)*                           &!hr13
-     &cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((.25d0*(crabamp4))*(crkve**4-                  &!hr13
-     &(6d0*crkve**2)*cikve**2+cikve**4))*                               &!hr13
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &!hr13
-     &(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+  yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
+  yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
+  ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))*(((crabfreq*two)*pi)/clight))*c1m9)*&
+ &       (sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
+  
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  
+  end do
 +cd ccmul4s
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp4 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          ! Sixtrack uses mm and mrad, input m^{-n+1}
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph4(ix)                                                     !hr03
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+  ! Sixtrack uses mm and mrad, input m^{-n+1}
+  do j=1,napx
+  crabamp4 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 +ca alignva
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
-     &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos_mb(kcrab)
-        yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
-     &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3                          &
-     &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
+  yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
+  yv(2,j)=yv(2,j) + (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
+  ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
       
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
       
-      enddo
+  end do
 +cd acdipkick
           nfree=nturn1(ix)
          if(n.gt.nfree) then
@@ -4299,8 +4260,7 @@
 !     write(*,*) '4ofcrk',crk
 !     write(*,*) '4ofexp',-exp_mb(-one*tkb)
 +ei
-              beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*              &!hr03
-     &sign(one,crk)                                                      !hr03
+              beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
 +if debug
 !GOTCHA
 !     if (dokcalls.ge.445959) then
@@ -4311,8 +4271,7 @@
 !       read(222)
 !     endif
 +ei
-              beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*              &!hr03
-     &sign(one,cik)                                                      !hr03
+              beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
 +cd beamco
               if(ibbc.eq.0) then
                 crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
@@ -4330,10 +4289,8 @@
                 crkveb(j)=parbe(ix,5)
                 cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +                &
-     &                parbe(ix,6)*bbcu(imbb(i),12)
-                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-                 &
-     &               parbe(ix,5)*bbcu(imbb(i),12)
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
             rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
@@ -4342,21 +4299,21 @@
             tkb(j)=rho2b(j)/(two*sigman2(1,imbb(i)))
 +cd beamr3
             if(ibbc.eq.0) then
-          yv(1,j)=yv(1,j)+oidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
+          yv(1,j)=yv(1,j)+moidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))                      !hr03
-          yv(2,j)=yv(2,j)+oidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
+          yv(2,j)=yv(2,j)+moidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))                      !hr03
             else
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)     !hr03
-              yv(1,j)=yv(1,j)+oidpsv(j)*cccc
+              yv(1,j)=yv(1,j)+moidpsv(j)*cccc
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)     !hr03
-              yv(2,j)=yv(2,j)+oidpsv(j)*cccc
+              yv(2,j)=yv(2,j)+moidpsv(j)*cccc
             endif
 +cd beamr3o
                 beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*    &!hr03
@@ -4390,10 +4347,10 @@
               call errf(zbb(j),xbb(j),cbzb(j),cbxb(j))
 +cd beama4
               if(ibbc.eq.0) then
-                yv(1,j)=yv(1,j)+oidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
+                yv(1,j)=yv(1,j)+moidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbzb(j)))*sign(one,crkveb(j))-beamoff(4,imbb(i)))                  !hr03
-                yv(2,j)=yv(2,j)+oidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
+                yv(2,j)=yv(2,j)+moidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbxb(j)))*sign(one,cikveb(j))-beamoff(5,imbb(i)))                  !hr03
               else
@@ -4401,63 +4358,55 @@
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),11)-((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)           !hr03
-                yv(1,j)=yv(1,j)+oidpsv(j)*cccc
+                yv(1,j)=yv(1,j)+moidpsv(j)*cccc
                 cccc=((rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*   &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),12)+((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)           !hr03
-                yv(2,j)=yv(2,j)+oidpsv(j)*cccc
+                yv(2,j)=yv(2,j)+moidpsv(j)*cccc
               endif
             enddo
 +cd beama4o
-              beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*  &!hr03
-     &cbzb(j)))*                                                        &!hr03
-     &sign(one,crkveb(j))                                                !hr03
-              beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*  &!hr03
-     &cbxb(j)))*                                                        &!hr03
-     &sign(one,cikveb(j))                                                !hr03
-            enddo
+              beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*sign(one,crkveb(j))
+              beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))*sign(one,cikveb(j))
+            end do
 +cd beamwzf1
-            enddo
+            end do
             call wzsubv(napx,xrb(1),zrb(1),crxb(1),crzb(1))
             call wzsubv(napx,xbb(1),zbb(1),cbxb(1),cbzb(1))
             do j=1,napx
 +cd beamwzf2
-            enddo
+            end do
             call wzsubv(napx,zrb(1),xrb(1),crzb(1),crxb(1))
             call wzsubv(napx,zbb(1),xbb(1),cbzb(1),cbxb(1))
             do j=1,napx
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-               track6d(1,j)=((xv(1,j)+parbe(ix,5)) -                    &
-     &              clobeam(1,imbb(i)))*c1m3
-              track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -                     &
-     &             clobeam(2,imbb(i)))*c1m3
-              track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
+              track6d(1,j)=((xv(1,j)+parbe(ix,5)) - clobeam(1,imbb(i)))*c1m3
+              track6d(2,j)=(yv(1,j)/moidpsv(j)-clobeam(4,imbb(i)))*c1m3
+              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -  clobeam(2,imbb(i)))*c1m3
+              track6d(4,j)=(yv(2,j)/moidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
-            enddo
-            call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp, &
-     &ibbc)
+            end do
+
+            call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
+
             do j=1,napx
-              xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-           &!hr03
-     &beamoff(1,imbb(i))
-              xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-           &!hr03
-     &beamoff(2,imbb(i))
-              dpsv(j)=(track6d(6,j)+clobeam(6,imbb(i)))-                &!hr03
-     &beamoff(6,imbb(i))                                                 !hr03
+              xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-beamoff(1,imbb(i))
+              xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-beamoff(2,imbb(i))
+              dpsv(j)=(track6d(6,j)+clobeam(6,imbb(i)))-beamoff(6,imbb(i))
               oidpsv(j)=one/(one+dpsv(j))
-              yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-          &!hr03
-     &beamoff(4,imbb(i)))*oidpsv(j)
-              yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-          &!hr03
-     &beamoff(5,imbb(i)))*oidpsv(j)
+              moidpsv(j)=mtc(j)/(one+dpsv(j))
+              yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-beamoff(4,imbb(i)))*moidpsv(j)
+              yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-beamoff(5,imbb(i)))*moidpsv(j)
+              !TODO check for ions?
               ejfv(j)=dpsv(j)*e0f+e0f
-              ejv(j)=sqrt(ejfv(j)**2+pma**2)
+              ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-              if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-            enddo
+              if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+            end do
 +cd beam6dfi
           parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               !hr08
 !--Hirata's 6D beam-beam kick
@@ -4752,8 +4701,7 @@
 +ei
 +cd multb05
 +if .not.tilt
-                        y(j,2)=y(j,2)-((dki(ix,2)*dps(j))*c1e3)/(one+dps&!hr03
-     &(j))
+                        y(j,2)=y(j,2)-((dki(ix,2)*dps(j))*c1e3)/(one+dps(j))
 +ei
 +if tilt
                             y(j,1)=(y(j,1)+(((dki(ix,2)*dps(j))*c1e3)*  &!hr03
@@ -4771,10 +4719,8 @@
                           y(j,2)=y(j,2)-yv2j*odps1
 +ei
 +if tilt
-                          y(j,1)=y(j,1)-(tiltc(i)*yv1j-tilts(i)*yv2j)   &
-     &*odps1
-                          y(j,2)=y(j,2)-(tiltc(i)*yv2j+tilts(i)*yv1j)   &
-     &*odps1
+                          y(j,1)=y(j,1)-(tiltc(i)*yv1j-tilts(i)*yv2j)*odps1
+                          y(j,2)=y(j,2)-(tiltc(i)*yv2j+tilts(i)*yv1j)*odps1
 +ei
 +cd multb10
 +if .not.tilt
@@ -4782,56 +4728,52 @@
                         y(j,2)=y(j,2)-aai(i,1)*odps1
 +ei
 +if tilt
-                        y(j,1)=y(j,1)-(tiltc(i)*bbi(i,1)-               &
-     &tilts(i)*aai(i,1))*odps1
-                        y(j,2)=y(j,2)-(tiltc(i)*aai(i,1)+               &
-     &tilts(i)*bbi(i,1))*odps1
+                        y(j,1)=y(j,1)-(tiltc(i)*bbi(i,1)-tilts(i)*aai(i,1))*odps1
+                        y(j,2)=y(j,2)-(tiltc(i)*aai(i,1)+tilts(i)*bbi(i,1))*odps1
 +ei
 +cd mul4v01
 +if .not.tilt
-            yv(1,j)=yv(1,j)-((strack(i)*xlvj)*oidpsv(j)                 &!hr03
-     &+dpsv1(j))*dki(ix,1)
+            yv(1,j)=yv(1,j)-((strack(i)*xlvj)*moidpsv(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1)
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)-(((strack(i)*xlvj)*oidpsv(j)               &!hr03
-     &+dpsv1(j))*dki(ix,1))*tiltc(i))                                   &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*(one-tiltc(i))                       !hr03
-            yv(2,j)=(yv(2,j)-(((strack(i)*xlvj)*oidpsv(j)               &!hr03
-     &+dpsv1(j))*dki(ix,1))*tilts(i))                                   &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*tilts(i)                             !hr03
+            yv(1,j)=(yv(1,j)-((((strack(i)*xlvj)*moidpsv(j))            &
+     &+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tiltc(i))                     &
+     &+(((c1e3*dki(ix,1))*moidpsv(j))*(one-tiltc(i)))         ! hisix
+
+            yv(2,j)=(yv(2,j)-((((strack(i)*xlvj)*oidpsv(j))*mtc(j)      &
+     &+omoidpsv(j)+dpsv1(j))*dki(ix,1))*tilts(i))                       &
+     &+(((c1e3*dki(ix,1))*oidpsv(j))*tilts(i))*mtc(j)         ! hisix
+
 +ei
 +cd mul4v02
 +if .not.tilt
-            yv(1,j)=yv(1,j)-strack(i)*dpsv1(j)
+            yv(1,j)=yv(1,j)-strack(i)*(omoidpsv(j)+dpsv1(j))
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)-strackc(i)*dpsv1(j))                       &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*(one-tiltc(i))                       !hr03
-            yv(2,j)=(yv(2,j)-stracks(i)*dpsv1(j))                       &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*tilts(i)                             !hr03
+            yv(1,j)=(yv(1,j)-strackc(i)*(dpsv1(j) + omoidpsv(j)))+((c1e3*dki(ix,1))*moidpsv(j))*(one-tiltc(i))         ! hisix
+            yv(2,j)=(yv(2,j)-stracks(i)*(dpsv1(j) + omoidpsv(j)))+((c1e3*dki(ix,1))*moidpsv(j))*tilts(i)               ! hisix
 +ei
 +cd mul4v03
 +if .not.tilt
-            yv(2,j)=yv(2,j)-((strack(i)*zlvj)* oidpsv(j)                &!hr03
-     &-dpsv1(j))*dki(ix,2)
+            yv(2,j)=yv(2,j)-((strack(i)*zlvj)*moidpsv(j)-dpsv1(j)-omoidpsv(j))*dki(ix,2)
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)+(((strack(i)*zlvj)*oidpsv(j)               &!hr03
-     &-dpsv1(j))*dki(ix,2))*tilts(i))                                   &!hr03
-     &+((c1e3*dki(ix,2))*oidpsv(j))*tilts(i)                             !hr03
-            yv(2,j)=(yv(2,j)-(((strack(i)*zlvj)*oidpsv(j)               &!hr03
-     &-dpsv1(j))*dki(ix,2))*tiltc(i))                                   &!hr03
-     &-((c1e3*dki(ix,2))*oidpsv(j))*(one-tiltc(i))                       !hr03
+            yv(1,j)=(yv(1,j)+(((strack(i)*zlvj)*moidpsv(j)              & ! hisix
+     &-dpsv1(j)-omoidpsv(j))*dki(ix,2))*tilts(i))                       & ! hisix
+     &+((c1e3*dki(ix,2))*moidpsv(j))*tilts(i)
+            yv(2,j)=(yv(2,j)-(((strack(i)*zlvj)*moidpsv(j)              & ! hisix
+     &-dpsv1(j)-omoidpsv(j))*dki(ix,2))*tiltc(i))                       &
+     &-((c1e3*dki(ix,2))*moidpsv(j))*(one-tiltc(i))
 +ei
 +cd mul4v04
 +if .not.tilt
-            yv(2,j)=yv(2,j)+strack(i)*dpsv1(j)
+            yv(2,j)=yv(2,j)+strack(i)*(dpsv1(j)+omoidpsv(j)) ! hisix
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)-stracks(i)*dpsv1(j))                       &!hr03
-     &+((c1e3*dki(ix,2))*oidpsv(j))*tilts(i)                             !hr03
-            yv(2,j)=(yv(2,j)+strackc(i)*dpsv1(j))                       &!hr03
-     &-((c1e3*dki(ix,2))*oidpsv(j))*(one-tiltc(i))                       !hr03
+            yv(1,j)=(yv(1,j)-stracks(i)*(dpsv1(j)+omoidpsv(j)))         &!hisix
+     &+((c1e3*dki(ix,2))*moidpsv(j))*tilts(i)                            !hisix
+            yv(2,j)=(yv(2,j)+strackc(i)*(dpsv1(j)+omoidpsv(j)))         &!hisix
+     &-((c1e3*dki(ix,2))*moidpsv(j))*(one-tiltc(i))                      !hisix
 +ei
 +cd mul4v05
 +if time
@@ -4873,42 +4815,40 @@
 +ei
 +cd mul4v07
 +if .not.tilt
-              yv(1,j)=yv(1,j)+yv1j*oidpsv(j)
-              yv(2,j)=yv(2,j)+yv2j*oidpsv(j)
+              yv(1,j)=yv(1,j)+yv1j*moidpsv(j)   ! hisix
+              yv(2,j)=yv(2,j)+yv2j*moidpsv(j)   ! hisix
 +ei
 +if tilt
-              yv(1,j)=yv(1,j)+(tiltc(i)*yv1j-tilts(i)*yv2j)*oidpsv(j)
-              yv(2,j)=yv(2,j)+(tiltc(i)*yv2j+tilts(i)*yv1j)*oidpsv(j)
+              yv(1,j)=yv(1,j)+(tiltc(i)*yv1j-tilts(i)*yv2j)*moidpsv(j) ! hisix
+              yv(2,j)=yv(2,j)+(tiltc(i)*yv2j+tilts(i)*yv1j)*moidpsv(j) ! hisix
 +ei
 +cd mul4v08
 +if .not.tilt
 +if time
               yv(1,j)=yv(1,j)+(bbiv(1,1,i)*expt                         &
-     &+bbiv35(1,1,i)*(one-expt))*oidpsv(j)                               !hr03
+     &+bbiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
               yv(2,j)=yv(2,j)+(aaiv(1,1,i)                              &
-     &+aaiv35(1,1,i)*(one-expt))*oidpsv(j)                               !hr03
+     &+aaiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
 +ei
 +if .not.time
-              yv(1,j)=yv(1,j)+bbiv(1,1,i)*oidpsv(j)
-              yv(2,j)=yv(2,j)+aaiv(1,1,i)*oidpsv(j)
+              yv(1,j)=yv(1,j)+bbiv(1,1,i)*moidpsv(j) ! hisix
+              yv(2,j)=yv(2,j)+aaiv(1,1,i)*moidpsv(j) ! hisix
 +ei
 +ei
 +if tilt
 +if time
               yv(1,j)=yv(1,j)+(tiltc(i)*(bbiv(1,1,i)*expt               &
-     &+bbiv35(1,1,i)*(one-expt))-                                       &!hr03
-     &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hr03
-     &*oidpsv(j)
+     &+bbiv35(1,1,i)*(one-expt))-                                       &!hisix
+     &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hisix
+     &*moidpsv(j)
               yv(2,j)=yv(2,j)+(tiltc(i)*(aaiv(1,1,i)*expt               &
-     &+aaiv35(1,1,i)*(one-expt))+                                       &!hr03
-     &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hr03
-     &*oidpsv(j)
+     &+aaiv35(1,1,i)*(one-expt))+                                       &!hisix
+     &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hisix
+     &*moidpsv(j)
 +ei
 +if .not.time
-              yv(1,j)=yv(1,j)+(tiltc(i)*bbiv(1,1,i)-                    &
-     &tilts(i)*aaiv(1,1,i))*oidpsv(j)
-              yv(2,j)=yv(2,j)+(tiltc(i)*aaiv(1,1,i)+                    &
-     &tilts(i)*bbiv(1,1,i))*oidpsv(j)
+              yv(1,j)=yv(1,j)+(tiltc(i)*bbiv(1,1,i)-tilts(i)*aaiv(1,1,i))*moidpsv(j)
+              yv(2,j)=yv(2,j)+(tiltc(i)*aaiv(1,1,i)+tilts(i)*bbiv(1,1,i))*moidpsv(j)
 +ei
 +ei
 +cd mul6v01
@@ -5268,7 +5208,8 @@
                   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
                   dpsv(j)=(ejfv(j)-e0f)/e0f
                   oidpsv(j)=one/(one+dpsv(j))
-                  dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                      !hr03
+                  moidpsv(j)=mtc(j)/(one+dpsv(j))
+                  dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)*mtc(j)                      !hr03
 cc2008
                   namepart(j) = samplenumber*100 + j
 cc2008
@@ -7502,6 +7443,12 @@ cc2008
 !     allways in main code
       open(999)
 
+!     P. HERMES - hisix
+!     heavy-ion specific output
+      open(208)                  ! collimator losses (energy)
+      open(209)                  ! collimator losses in function of particle i
+      open(210)                  ! mtc after each collimator interaction
+
 ! END of +cd open
 
 +cd flukaclose
@@ -7928,7 +7875,11 @@ cc2008
 !     close unit where lostpart has dumped lost particles
 !     always in main code
       close(999)
-      
+
+      close(208) ! hisix
+      close(209) ! hisix
+      close(210) ! hisix debugging
+
       return
       end subroutine
 
@@ -10465,10 +10416,12 @@ end subroutine hamilton1
       use mod_common
       use mod_commons
 
+      use mod_hions
       use mod_alloc
 
       use elens
       use wire
+
       implicit none
 
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -10547,7 +10500,8 @@ end subroutine hamilton1
 +ca parbeam_exp
 +ca dbreaddis
 
-      ! Fluka related, might be best to lock to real64
+
+      !Fluka related, might be best to lock to real64
       real(kind=fPrec) tmpamplfact, tmplen
 
       ! some temp vars for parsing block lines
@@ -10585,6 +10539,10 @@ end subroutine hamilton1
 !     - root output:
       character(len=4) root
       data root /'ROOT'/
+!     hisix
+!     add block for input of heavy-ion properties
+      character(len=4) hion
+      data hion /'HION'/
 
 +if crlibm
       real(kind=fPrec) round_near
@@ -10745,12 +10703,18 @@ end subroutine hamilton1
       ise=0
       iskew=0
       preda=c1m38
+!hion
+      zz0 = 1
+      aa0 = 1
+      nucm0 = pmap
 +if .not.collimat
       do_coll = .false.
 +ei
 +if collimat
       has_coll = .false.
 +ei
+      has_hion = .false.
+
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -10836,6 +10800,9 @@ end subroutine hamilton1
       !Reserved:
       !DIST = 2600
       !HION = 2700
+!     hisix heavy ion input block
+      if(idat.eq.hion) goto 2700
+
       if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
       if(idat.eq.root) goto 3000
@@ -12369,6 +12336,7 @@ end subroutine hamilton1
         write(lout,*)
       endif
       if(pma.lt.pieni) call prror(27)
+      nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
       if(ncy2.eq.0) then
@@ -16430,6 +16398,21 @@ end subroutine hamilton1
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
 
 !-----------------------------------------------------------------------
+!     P. HERMES 01-07-2015
+!     hisix heavy ion input block
+!-----------------------------------------------------------------------
+ 2700 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      if(ch(1:1).eq.'/') goto 2700
+      if(ch(:4).eq.next) goto 110
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      read(ch1,*) aa0, zz0, nucm0
+      nucm0 = nucm0  * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+      has_hion = .true.
+      goto 110
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
 !  ZIPF
 !  K. Sjobak, BE-ABP/HSS
 !  Last modified: 7/2-2017
@@ -16580,6 +16563,14 @@ end subroutine hamilton1
          call prror(-1)
       endif
 +ei
+! If we don't have the HION block, we need to set some variables - default to the proton values
+      if(has_hion .eqv. .false.) then
+        zz0 = 1
+        aa0 = 1
+        nucm0 = pma
+        write(lout,*) 'No HION block found, will default to the proton values: [Z,A,M]', zz0, aa0, nucm0
+      end if
+
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il   ! converting 6D lenses to 4D
           if (beam_expflag .eq. 1) then
@@ -19595,8 +19586,7 @@ subroutine runda
 !FOX  CRABAMP=ED(IX) ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
-   
-           
+
 !FOX  Y(1)=Y(1) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT))/(1+DPDA) ;
@@ -22536,6 +22526,7 @@ program maincr
       use mod_commonmn
       use mod_commons
 
+      use mod_hions
       use aperture
       use wire
 
@@ -22634,6 +22625,7 @@ end interface
 
 
 +ca dbreaddis
+
 
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
@@ -23072,6 +23064,14 @@ end interface
         xlv(i)=zero
         zlv(i)=zero
         rvv(i)=one
+!Heavy ion variables
+! P. HERMES for hiSix
+        mtc(i) = one
+        naa(i) = 1
+        nzz(i) = 1
+        nucm(i)= pmap
+        moidpsv(i) = one
+        omoidpsv(i) = zero
 +if rvet
         rvet(i)=zero
 +ei
@@ -23859,7 +23859,8 @@ end interface
             write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
           endif
-          do 240 ib1=1,napx
+
+          do ib1=1,napx
             !Loop over all particles (not pairs) with the same
             ! ib (momentum variation, 1..imc ) and
             !  m (seed,               1..mmac).
@@ -23874,21 +23875,28 @@ end interface
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
             ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
-            if (ib1.eq.napx-1 .and. ib1.ne.1) then
-               !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
-               ! This is helpfull when doing DA studies and checking the "overlap"
-               ampv(ib2)=amp0
-            endif
+
+            if(ib1.eq.napx-1 .and. ib1.ne.1) then
+              !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
+              ! This is helpfull when doing DA studies and checking the "overlap"
+              ampv(ib2)=amp0
+            end if
+
             dp0v(ib2)=dp10
             dpsv(ib2)=dp10
             oidpsv(ib2)=one/(one+dp1)
+! Heavy ion variable
+            moidpsv(ib2)=mtc(ib2)/(one+dp1)
             nms(ib2)=m
-            if (ithick.eq.1) then
-               do 230 i=1,nele
-                  ekv(ib2,i)=ek(i)
- 230           continue
-            endif
-  240     continue
+
+            if(ithick.eq.1) then
+              do i=1,nele
+                ekv(ib2,i)=ek(i)
+              end do
+            end if
+
+          end do
+
           ib0=ib0+napx
   250   continue
   260 continue
@@ -23994,9 +24002,11 @@ end interface
           call prror(-1)
         endif
 
-        e0f=sqrt(e0**2-pma**2)
+!        e0f=sqrt(e0**2-pma**2)
+        e0f=sqrt(e0**2-nucm0**2)       ! hisix
 
-        call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) )
+        call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
+& ,naa(:), nzz(:), nucm(:) )      ! hisix
 
 !       finalise beam distribution creation
         do j=1, napx
@@ -24005,9 +24015,17 @@ end interface
           pstop (j) = .false.
 
 !         values related to momentum
-          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
-          dpsv  (j) = (ejfv(j)-e0f)/e0f
-          oidpsv(j) = one/(one+dpsv(j))
+!         old proton only terms:
+!          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
+!          dpsv  (j) = (ejfv(j)-e0f)/e0f
+!          oidpsv(j) = one/(one+dpsv(j))
+
+          ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)              ! hiSix
+          dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hiSix
+          oidpsv(j)   = one/(one+dpsv(j))
+          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))  
+          moidpsv (j) = mtc(j)*oidpsv(j)
+          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
 
 !         check existence of on-momentum particles in the distribution
           if ( abs(dpsv(j)).lt.c1m15 .or.  abs( (ejv(j)-e0)/e0 ) .lt.c1m15 ) then
@@ -24018,8 +24036,10 @@ end interface
             write(lout,'(5X,10X,4(1X,A25))') "momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
             write(lout,'(5X,"ORIGINAL: ",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
 
-            ejfv(j)   = e0f
-            ejv(j)    = e0
+!            ejfv(j)   = e0f
+!            ejv(j)    = e0
+            ejfv(j)   = e0f*(nucm(j)/nucm0)          ! P. HERMES for hiSix
+            ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)  ! P. HERMES for hiSix
             dpsv(j)   = zero
             oidpsv(j) = one
 
@@ -24028,6 +24048,18 @@ end interface
             write(lout,*)''
           endif
         end do
+
+! hisix
+        write(lout,*) 'Heavy-Ion SixTrack'
+        write(lout,*) '------------------'
+        write(lout,*) 'Reference ion species: [A,Z,M]', aa0, zz0, nucm0
+        write(lout,*) 'Reference energy [Z TeV]: ', c1m6*e0/zz0
+
+! hisix - debugging
+!        write(lout,*) 'Properties of tracked ion bunch [A,Z,E(MeV)], etc'
+!        do j=1,napx
+!          write(lout,*) naa(j),nzz(j),e0f*(nucm(j)/nucm0), ejfv(j), mtc(j), dpsv(j), ejv(j)
+!        end do
 
 !       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !       last modified: 07-02-2014
@@ -24046,6 +24078,13 @@ end interface
           ejv   (j) = zero
           dpsv  (j) = zero
           oidpsv(j) = one
+
+          mtc   (j) = one         ! P. HERMES for hiSix
+          naa   (j) = aa0
+          nzz   (j) = zz0
+          nucm  (j) = nucm0
+          moidpsv (j) = one
+          omoidpsv(j) = zero      ! P. HERMES for hiSix
         enddo
 
 !       add closed orbit
@@ -24058,6 +24097,8 @@ end interface
             sigmv(j)=sigmv(j)+clo6v(3,j)
             dpsv(j)=dpsv(j)+clop6v(3,j)
             oidpsv(j)=one/(one+dpsv(j))
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
+            omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
           end do
         end if
 
@@ -24065,8 +24106,8 @@ end interface
         if ( dist_echo ) then
            open(unit=dist_echo_unit)
            rewind(dist_echo_unit)
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # total energy of synch part [MeV]: ", e0
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # momentum of synch part [MeV/c]: ", e0f
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " total energy of synch part [MeV]: ", e0
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " momentum of synch part [MeV/c]: ", e0f
            write(dist_echo_unit,*) '#'
            write(dist_echo_unit,*) '# for every particle (j)'
            write(dist_echo_unit,*) '# xv(1), yv(1), xv(2), yv(2), sigmv, ejfv'
@@ -24182,6 +24223,14 @@ end interface
           ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
+
+          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
+          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
+          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
+          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
+          nucm(ia)=nucm0
+          nucm(ia+1)=nucm0
+
           write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 +if .not.crlibm
@@ -24361,11 +24410,19 @@ end interface
 
 +ei
           if(ierro.ne.0) call prror(56)
-          e0f=sqrt(e0**2-pma**2)                                         !hr05
-          ejfv(ia)=sqrt(ejv(ia)**2-pma**2)                               !hr05
-          ejfv(ia+1)=sqrt(ejv(ia+1)**2-pma**2)                           !hr05
+          mtc(ia)=one
+          mtc(ia+1)=one
+          nucm(ia)=nucm0
+          nucm(ia+1)=nucm0
+          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
+          ejfv(ia)=sqrt(ejv(ia)**2-nucm(ia)**2)                               !hr05
+          ejfv(ia+1)=sqrt(ejv(ia+1)**2-nucm(ia+1)**2)                           !hr05
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
+          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
+          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
+          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
+          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
         if ( idfor.ne.3 ) then
         write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
@@ -24519,7 +24576,7 @@ end interface
 
   if(ithick.eq.1) then
 !------ Compute matrices for linear tracking
-    call envarsv(dpsv,oidpsv,rvv,ekv)
+    call envarsv(dpsv,moidpsv,rvv,ekv)
     if(idp.eq.0 .or. ition.eq.0) then
 ! ------- Only in case of thck4d
       call blocksv
@@ -24562,7 +24619,7 @@ end interface
         flush(lout)
         flush(fluka_log_unit)
 
-        fluka_con = fluka_set_synch_part( e0, e0f, pma, 1 )
+        fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
 
         if (fluka_con .lt. 0) then
           write(lout, *) '[Fluka] Error: failed to update ref particle'
@@ -25695,6 +25752,8 @@ subroutine thin4d(nthinerr)
   use mod_fluka
 +ei
 
+  use mod_hions
+
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -26327,6 +26386,8 @@ subroutine thin6d(nthinerr)
   use mod_fluka
 +ei
 
+  use mod_hions
+
 +if collimat
   use collimation
 +ei
@@ -26387,18 +26448,12 @@ subroutine thin6d(nthinerr)
 +ca comgetfields
 +ca elenstracktmp
 +ca dbdcum
-  real(kind=fPrec) dEpTur
   save
 
 +if fast
   c5m4=5.0e-4_fPrec
 +ei
   nthinerr=0
-
-  ! fluka
-  ! dE per turn [MeV]
-  dEpTur=zero
-  write(lout,*)'-->dEpTur[MeV]:',dEpTur
 
 +if bnlelens
 !GRDRHIC
@@ -26453,20 +26508,6 @@ subroutine thin6d(nthinerr)
     call collimate_start_turn(n)
 +ei
     numx=n-1
-
-    if (dEpTur.ne.zero) then
-      do j=1,napx
-        ejf0v(j)=ejfv(j)
-        ejv(j)=ejv(j)-dEpTur
-        ejfv(j)=sqrt(ejv(j)**2-pma**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-        yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      end do
-    end if
 
 +if .not.fluka
     if(mod(numx,nwri).eq.0) call writebin(nthinerr)
@@ -26582,6 +26623,7 @@ subroutine thin6d(nthinerr)
 +if collimat
       dotrack = myktrack
 +ei
+
       select case(dotrack)
       case (1)
         stracki=strack(i)
@@ -26702,15 +26744,18 @@ subroutine thin6d(nthinerr)
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
           if(kz(ix).eq.12) then
-            ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
-            ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
           endif
-          ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                               !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)-e0f)/e0f
+          dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+!          dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)                           !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
         end do
@@ -27203,6 +27248,7 @@ end subroutine thin6d
       use mod_fluka
 +ei
 
+      use mod_hions
       use aperture
       use dynk, only : ldynk, dynk_apply
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
@@ -27447,7 +27493,7 @@ end subroutine thin6d
           if(fluka_enable) then
             write(lout,*) '[Fluka] Updating ref particle'
             write(fluka_log_unit,*) '# Updating ref particle'
-            mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+            mtemp = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
             if(mtemp .lt. 0) then
             write(lout,*) '[Fluka] Error: failed to update ref particle'
             write(fluka_log_unit, *) '# failed to update ref particle'
@@ -27463,16 +27509,17 @@ end subroutine thin6d
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr
             if(kz(ix).eq.12) then
-              ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+     &!hr01
-     &                                    phasc(ix))                     !hr01
+              ejv(j)=ejv(j)+(ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+phasc(ix)))*nzz(j)
             else
-              ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
+              ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas))*nzz(j)
             endif
 !           ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
-            ejfv(j)=sqrt((ejv(j)-pma)*(ejv(j)+pma))
+            ejfv(j)=sqrt((ejv(j)-nucm(j))*(ejv(j)+nucm(j)))
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
             dpsv(j)=(ejfv(j)-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
+            omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
             dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
             if(sigmv(j).gt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
@@ -27965,7 +28012,6 @@ subroutine callcrp()
 +ei
       return
 end subroutine callcrp
-
 
       subroutine dist1
 !-----------------------------------------------------------------------
@@ -28586,6 +28632,8 @@ subroutine thck4d(nthinerr)
   ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 +ei
+
+  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -29183,7 +29231,7 @@ subroutine thck4d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,oidpsv,rvv,ekv)
+        call envarsv(dpsv,moidpsv,rvv,ekv)
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
@@ -29264,6 +29312,7 @@ subroutine thck6d(nthinerr)
   use mod_fluka
 +ei
 
+  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -29531,14 +29580,16 @@ subroutine thck6d(nthinerr)
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
           if(kz(ix).eq.12) then
-            ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
-            ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
           end if
-          ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
           dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
@@ -29967,7 +30018,7 @@ subroutine thck6d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,oidpsv,rvv,ekv)
+        call envarsv(dpsv,moidpsv,rvv,ekv)
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
@@ -30067,6 +30118,8 @@ subroutine thck6dua(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
+
+      use mod_hions
       use bdex, only : bdex_enable
       use postprocessing, only : writebin
       use crcoall
@@ -30328,7 +30381,7 @@ subroutine thck6dua(nthinerr)
             if(fluka_enable) then
               write(*,*) '[Fluka] Updating ref particle'
               write(fluka_log_unit,*) '# Updating ref particle'
-              mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+              mtemp = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
               if (mtemp .lt. 0) then
                 write(*,*)'[Fluka] Error: failed to update ref particle'
                 write(fluka_log_unit,*)'# failed to update ref particle'
@@ -30345,15 +30398,16 @@ subroutine thck6dua(nthinerr)
               if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
               if(kz(ix).eq.12) then
-                ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+   &!hr01
-     &                                      phasc(ix))
+                ejv(j)=ejv(j)+(ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+phasc(ix)))*nzz(j)
               else
-                ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
+                ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas))*nzz(j)
               endif
-              ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
+              ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
               dpsv(j)=(ejfv(j)-e0f)/e0f
               oidpsv(j)=one/(one+dpsv(j))
+              moidpsv(j)=mtc(j)/(one+dpsv(j))
+              omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
             if(sigmv(j).gt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
 
@@ -30754,7 +30808,7 @@ subroutine thck6dua(nthinerr)
           if ( recompute_linear_matrices ) then
 !           after a FLUKA element: additional particles may have
 !             been generated
-            call envarsv(dpsv,oidpsv,rvv,ekv)
+            call envarsv(dpsv,moidpsv,rvv,ekv)
             recompute_linear_matrices = .false.
           elseif ( llost ) then
 !           after any other element: no additional particles,
@@ -35937,7 +35991,7 @@ subroutine prror(ier)
 end subroutine prror
 
 +dk readdis
-subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
+subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 07-02-2014
@@ -35954,6 +36008,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
 !       m:          rest mass [GeV/c2]
 !       pc:         particle momentum [GeV/c]
 !       dt:         time delay with respect to the reference particle [s]
+!     - aa,zz and m are now taken into account for hisix
 !
 !     NOTA BENE:
 !     - id, gen and weight are assigned by the fluka_mod_init subroutine;
@@ -35979,8 +36034,8 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
 !-----------------------------------------------------------------------
   use floatPrecision
   use numerical_constants
-
-      use crcoall
+  use, intrinsic :: iso_fortran_env, only : int16
+  use crcoall
   implicit none
 
 +ca dbreaddis
@@ -35989,9 +36044,11 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
   integer napx, npart
   real(kind=fPrec) enom, pnom, clight
   real(kind=fPrec) x, y, xp, yp, s, pc
+  real(kind=fPrec) m0
 
 ! temporary variables:
-  integer id, gen, aa, zz
+  integer id, gen
+  integer(kind=int16) aa, zz
   real(kind=fPrec) weight, z, zp, m, dt
   integer jj
   character(240) tmp_line
@@ -36003,6 +36060,9 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
   dimension xp( npart ), yp( npart )
   dimension s ( npart ), pc( npart )
   dimension dt( npart )
+! P. HERMES hisix
+  dimension aa( npart ), zz( npart )
+  dimension m ( npart )
 
   write(lout,*) ''
   write(lout,*) "Reading particles from ", dist_filename
@@ -36015,6 +36075,9 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
     yp(jj) = zero
     pc(jj) = zero
     s (jj) = zero
+    aa(jj) = 0            ! hisix
+    zz(jj) = 0            ! hisix
+    m (jj) = zero         ! hisix
   end do
 
 ! initialise particle counter
@@ -36045,7 +36108,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
     goto 1983
   end if
 
-  read( tmp_line, *, err=1982 ) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa, zz, m, pc(jj), dt(jj)
+  read( tmp_line, *, err=1982 ) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj), pc(jj), dt(jj)
   goto 1981
 
 ! error while parsing file:
@@ -36080,6 +36143,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
     xp(jj) = xp(jj) * c1e3 ! []      -> [1.0E-03]
     yp(jj) = yp(jj) * c1e3 ! []      -> [1.0E-03]
     pc(jj) = pc(jj) * c1e3 ! [GeV/c] -> [MeV/c]
+    m (jj) = m(jj)  * c1e3 ! [GeV/c^2] -> [MeV/c^2] ! P. HERMES
     s (jj) = -pnom/enom * dt(jj)*clight * c1e3
   end do
 
@@ -46734,6 +46798,8 @@ end subroutine subsea
 ! TEMPORARY? fix for crabamp/multipole problem
 !       oidpsv(j)=croidpsv(j)
         oidpsv(j)=one/(one+dpsv(j))
+        moidpsv(j)=mtc(j)/(one+dpsv(j))
+        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
         ejv(j)=crejv(j)
         ejfv(j)=crejfv(j)
         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))

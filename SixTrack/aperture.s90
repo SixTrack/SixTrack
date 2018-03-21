@@ -19,6 +19,8 @@ module aperture
   use mod_common
   use mod_commons
 
+  use mod_hions
+
   implicit none
 
   ! use a dedicated array to store the type of aperture of each SINGLE ELEMENT
@@ -453,10 +455,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ei
 
 +if fluka
-        write(999,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7))')  &
+        write(999,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')  &
 +ei
 +if .not.fluka
-        write(999,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7))')     &
+        write(999,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')     &
 +ei
 
 +if .not.backtrk
@@ -482,8 +484,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +if backtrk
      &         xlos(1,j)*c1m3, yv(1,j)*c1m3, xlos(2,j)*c1m3,            &
 +ei
-     &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)-e0)*c1e6,             &
-     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f)
+     &         yv(2,j)*c1m3,ejfv(j)*c1m3, (ejv(j)*(nucm0/nucm(j))-e0)*c1e6,             &
+     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f),                    &
+     &         naa(j), nzz(j)
 
 
 +if root
@@ -546,6 +549,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             ejfv(jj)=ejfv(jj1)
             ejv(jj)=ejv(jj1)
             rvv(jj)=rvv(jj1)
+! ph: hisix
+            nzz(jj)=nzz(jj1)
+            naa(jj)=naa(jj1)
+            nucm(jj)=nucm(jj1)
+            mtc(jj)=mtc(jj1)
+            moidpsv(jj)=moidpsv(jj1)
+            omoidpsv(jj)=omoidpsv(jj1)
+! ph: hisix
 +if rvet
             rvet(jj)=rvet(jj1)
 +ei
