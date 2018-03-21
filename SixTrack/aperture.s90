@@ -1316,16 +1316,13 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
      do jj=1,7
         oApe(jj)=ape(jj,ixUp)
      end do
-     do jj=8,9
-        oApe(jj)=zero
-     end do
   else
      oKApe=kape(ixUp)
      ddcum = spos-dcum(iUp)
      if( ddcum.lt.zero ) ddcum=tlen+ddcum
      mdcum = dcum(iDw)-dcum(iUp)
      if( mdcum.lt.zero ) mdcum=tlen+mdcum
-     do jj=1,9
+     do jj=1,7
         oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum+ape(jj,ixUp)
      end do
   end if
