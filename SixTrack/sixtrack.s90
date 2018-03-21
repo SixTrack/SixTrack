@@ -3377,67 +3377,67 @@
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
 !---------CrabFreq input in MHz (ek)
 !---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
-      pi=four*atan_mb(one)
-      crabfreq=ek(ix)*c1e3
-        
-      do j=1,napx ! loop over particles
-        crabamp=ed(ix)*nzz(j)
-        kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi+crabph(ix)
-        yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*sin_mb(kcrab)*(moidpsv(j)/e0f)
-        ejv(j)=ejv(j)-(((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*cos_mb(kcrab)
-        ejf0v(j)=ejfv(j)
-      
-        ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        moidpsv(j)=mtc(j)/(one+dpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-        yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-        yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+    
+  do j=1,napx ! loop over particles
+    crabamp=ed(ix)*nzz(j)
+    kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi+crabph(ix)
+    yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*sin_mb(kcrab)*(moidpsv(j)/e0f)
+    ejv(j)=ejv(j)-(((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*cos_mb(kcrab)
+    ejf0v(j)=ejfv(j)
+  
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
 
-      if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
 
-      end do
+  end do
 +cd ccmul2
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabfreq=ek(ix)*c1e3
-!          write(*,*) ''
-!          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 2', ed(ix)
-!          write(*,*) 'FREQ',  crabfreq
-!          write(*,*) 'PHASE', crabph2(ix)
-!          write(*,*) '-------------------'
-        do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
-          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
-         
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+! write(*,*) ''
+! write(*,*) '-------------------'
+! write(*,*) 'CRAB AMP 2', ed(ix)
+! write(*,*) 'FREQ',  crabfreq
+! write(*,*) 'PHASE', crabph2(ix)
+! write(*,*) '-------------------'
+  do j=1,napx
+    crabamp2 = ed(ix)*nzz(j)
+    kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
+   
 +ca alignva
-          yv(1,j)=yv(1,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
-          yv(2,j)=yv(2,j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
-          ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-      
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-      
-        end do
+    yv(1,j)=yv(1,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+    yv(2,j)=yv(2,j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+    ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+    ejf0v(j)=ejfv(j)
+  
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  
+    if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  
+  end do
 +cd ccmul2s
 ! JBG RF CC Multipoles 2
-          pi=four*atan_mb(one)
-          crabfreq=ek(ix)*c1e3
-          do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+  do j=1,napx
+  crabamp2 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 +ca alignva
   yv(2,j)=yv(2,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
   yv(1,j)=yv(1,j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
@@ -3519,7 +3519,7 @@
 ! JBG RF CC Multipoles
   pi=four*atan_mb(one)
   crabfreq=ek(ix)*c1e3
-  ! Sixtrack uses mm and mrad, input m^{-n+1}
+! Sixtrack uses mm and mrad, input m^{-n+1}
 !  write(*,*) ''
 !  write(*,*) '-------------------'
 !  write(*,*) 'CRAB AMP 4', crabamp4
@@ -3527,8 +3527,8 @@
 !  write(*,*) 'PHASE', crabph4(ix)
 !  write(*,*) '-------------------'
   do j=1,napx
- crabamp4 = ed(ix)*nzz(j)
- kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
+  crabamp4 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 +ca alignva
   yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
   yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
@@ -3547,7 +3547,7 @@
   
   if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
   
-  enddo
+  end do
 +cd ccmul4s
 ! JBG RF CC Multipoles
   pi=four*atan_mb(one)
@@ -26443,18 +26443,12 @@ subroutine thin6d(nthinerr)
 +ca comgetfields
 +ca elenstracktmp
 +ca dbdcum
-  real(kind=fPrec) dEpTur
   save
 
 +if fast
   c5m4=5.0e-4_fPrec
 +ei
   nthinerr=0
-
-  ! fluka
-  ! dE per turn [MeV]
-  dEpTur=zero
-  write(lout,*)'-->dEpTur[MeV]:',dEpTur
 
 +if bnlelens
 !GRDRHIC
@@ -26509,20 +26503,6 @@ subroutine thin6d(nthinerr)
     call collimate_start_turn(n)
 +ei
     numx=n-1
-
-    if (dEpTur.ne.zero) then
-      do j=1,napx
-        ejf0v(j)=ejfv(j)
-        ejv(j)=ejv(j)-dEpTur
-        ejfv(j)=sqrt(ejv(j)**2-pma**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-        yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      end do
-    end if
 
 +if .not.fluka
     if(mod(numx,nwri).eq.0) call writebin(nthinerr)
