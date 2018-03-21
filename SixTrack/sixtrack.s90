@@ -13531,59 +13531,151 @@ end subroutine hamilton1
           endif
 
         else
-          ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
-          ! parse a line with the aperture parameters
-          if(getfields_nfields.lt.9) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &        'parameters for declaring an aperture marker: ninput = ',   &
-     &        getfields_nfields, ' != 9 (min)'
-            call prror(-1)
-          endif
 
-          lapefound=.false.
           read (getfields_fields(1)(1:getfields_lfields(1)),*) idat
+          lapefound=.false.
           do j=1,il
             if(idat.eq.bez(j)) then
               lapefound=.true.
               read (getfields_fields(2)(1:getfields_lfields(2)),*) irel
-              ! parse the float descriptors
-              do i=1,7
+              select case(irel)
+
+              case (apeName(1)) !Circle
+                if(getfields_nfields.lt.3) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(1)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 3 (min)'
+                  call prror(-1)
+                endif
+                do i=1,1
 +if .not.crlibm
-                read (getfields_fields(j+2)(1:getfields_lfields(j+2)),*) ape(i,j)
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
 +ei
 +if crlibm
-                ape(i,j)=round_near (errno,getfields_lfields(j+2)+1, getfields_fields(j+2))
-                if (errno.ne.0) call rounderr(errno,getfields_fields,j+2,ape(i,j))
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
 +ei
-              enddo
-              select case(irel)
-              case (apeName(1)) !Circle
+                enddo
                 kape(j)=1
                 ape(2,j)=ape(1,j)
                 ape(3,j)=ape(1,j)
                 ape(4,j)=ape(1,j)
+                
               case (apeName(2)) !Rectangle
+                if(getfields_nfields.lt.4) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(2)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 4 (min)'
+                  call prror(-1)
+                endif
+                do i=1,2
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
                 kape(j)=2
                 ! get ready for a RL-equivalent description
                 ape(3,j)=sqrt(two)*ape(1,j)
                 ape(4,j)=sqrt(two)*ape(2,j)
+                
               case (apeName(3)) !Ellipse
+                if(getfields_nfields.lt.4) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(3)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 4 (min)'
+                  call prror(-1)
+                endif
+                do i=1,2
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
                 kape(j)=3
                 ! get ready for a RL-equivalent description
                 ape(3,j)=ape(1,j)
                 ape(4,j)=ape(2,j)
+                
               case (apeName(4)) !Rectellipse
+                if(getfields_nfields.lt.6) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(4)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 6 (min)'
+                  call prror(-1)
+                endif
+                ! parse the float descriptors
+                do i=1,4
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
                 kape(j)=4
+                
               case (apeName(5)) !Octagon  
+                if(getfields_nfields.lt.6) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(5)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 6 (min)'
+                  call prror(-1)
+                endif
+                do i=1,4
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
                 kape(j)=5
+                
               case (apeName(6)) !Racetrack
+                if(getfields_nfields.lt.5) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(6)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 5 (min)'
+                  call prror(-1)
+                endif
+                do i=1,3
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
                 kape(j)=6
+                
               case default
                 write(lout,*) 'Aperture profile not identified for element ',idat
                 write(lout,*) '  value:', irel
                 call prror(-1)
               end select
-              if (ape(5,j).ne.zero.or.ape(6,j).ne.zero.or.ape(7,j).ne.zero) lapeofftlt(j)=.true.
+             
+              do i=5,7
+                if(getfields_nfields.ge.i+2) then
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                endif
+                if (ape(i,j).ne.zero) lapeofftlt(j)=.true.
+              end do
               limifound=.true.
               exit
             end if
@@ -23251,6 +23343,8 @@ program maincr
               !Ideally, tlen should be calculated automatically based on the sequence.
               !call prror(-1)
            endif
+        else
+           tlen=dcum(iu+1)
         endif
 
         ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016

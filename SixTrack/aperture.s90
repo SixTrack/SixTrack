@@ -479,8 +479,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       lback=.true.
       ! Length between elements
       length = dcum(i)-dcum(iLast)
-      ! - pay attention to overflow: length = dcum(i)+(dcum(iu+1)-dcum(iLast))
-      if( length .lt. zero ) length = length+dcum(iu+1)
+      ! - pay attention to overflow:
+      if( length .lt. zero ) length = length+tlen
       ! - pay attention to too short thick elements
       if( length .le. bktpre ) lback=.false.
     end if
@@ -567,7 +567,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             end select
           end do !do jj=1,niter
           ! pay attention to overflow
-          if ( slos.gt.dcum(iu+1) ) slos=slos-dcum(iu+1)
+          if ( slos.gt.tlen ) slos=slos-tlen
         else
           xlos(1) = xv(1,j)
           xlos(2) = xv(2,j)
@@ -1183,13 +1183,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   lAdwDcum=abs(dcum(iNew)-dcum(iApeDw)).lt.sPrec.or.abs(dcum(iNew)-dcum(iApeDw)-tlen).lt.sPrec
 
 ! . constant aperture?
-  lconst = ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
-  if( lconst ) then
-    do jj=1,7
-      lconst = lconst .and.abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
-      if ( .not. lconst ) exit
-    end do
-  end if
+  lconst = constApeProfile( ixApeUp, ixApeDw )
 
 ! . can iNew be assigned an aperture marker?
 ! ie is it a single element and is it used anywhere else?
@@ -1262,7 +1256,7 @@ end subroutine contour_aperture_marker
 
 character(len=max_name_len) function CrtApeName()
 !-----------------------------------------------------------------------
-!     by A.Mereghetti
+!     by A.Mereghetti (CERN, BE/ABP-HSS)
 !     last modified: 01-12-2016
 !     Create Aperture Name
 !     always in main code
@@ -1280,10 +1274,28 @@ character(len=max_name_len) function CrtApeName()
   end do
 end function CrtApeName
 
+logical function constApeProfile( ixApeUp, ixApeDw )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti (CERN, BE/ABP-HSS)
+!     last modified: 21-03-2018
+!     Verify that two aperture markers actually describe the same aperture
+!       restriction  
+!-----------------------------------------------------------------------
+  implicit none
+  integer ixApeUp, ixApeDw, jj
+  constApeProfile=ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
+  if (constApeProfile) then
+     do jj=1,7
+        constApeProfile=constApeProfile.and.abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
+        if (.not.constApeProfile) exit
+     end do
+  end if
+end function constApeProfile
+
 subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
-!     last modified: 30-11-2016
+!     last modified: 21-03-2018
 !     interpolate aperture
 !     always in main code
 !-----------------------------------------------------------------------
@@ -1299,30 +1311,26 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
   real(kind=fPrec) ddcum, mdcum
   integer jj
 
-  if( kape(ixDw).gt.4 ) then
-    ! force constant Racetrack or Octagon profile
-    oKApe = kape(ixDw)
-    do jj=1,7
-      oApe(jj) = ape(jj,ixDw)
-    end do
-  else if( kape(ixUp).gt.4 ) then
-    ! force constant Racetrack or Octagon profile
-    oKApe = kape(ixUp)
-    do jj=1,7
-      oApe(jj) = ape(jj,ixUp)
-    end do
+  if( constApeProfile(ixUp,ixDw ) ) then
+     ! constant aperture - no need to interpolate
+     oKApe=kape(ixUp)
+     do jj=1,7
+        oApe(jj)=ape(jj,ixUp)
+     end do
+     do jj=8,9
+        oApe(jj)=zero
+     end do
   else
-    ! force rectellipse aperture and interpolate
-    oKApe = 4
-    ddcum = spos-dcum(iUp)
-    if( ddcum.lt.zero ) ddcum=tlen+ddcum
-    mdcum = dcum(iDw)-dcum(iUp)
-    if( mdcum.lt.zero ) mdcum=tlen+mdcum
-
-    do jj=1,7
-      oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum+ape(jj,ixUp)
-    end do
+     oKApe=kape(ixUp)
+     ddcum = spos-dcum(iUp)
+     if( ddcum.lt.zero ) ddcum=tlen+ddcum
+     mdcum = dcum(iDw)-dcum(iUp)
+     if( mdcum.lt.zero ) mdcum=tlen+mdcum
+     do jj=1,9
+        oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum+ape(jj,ixUp)
+     end do
   end if
+  return
 end subroutine interp_aperture
 
 subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
@@ -1377,8 +1385,7 @@ subroutine dump_aperture_model
   logical lopen
 
   integer iOld, ixOld, niter, oKApe, jj
-  real(kind=fPrec) aprr,slos,step
-  dimension aprr(7)
+  real(kind=fPrec) aprr(7),slos
 
   write(lout,*)''
   write(lout,fmt="(131('-'))")
@@ -1417,10 +1424,9 @@ subroutine dump_aperture_model
             niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
             do jj=1,niter
               slos = int(dcum(iOld)/bktpre+jj)*bktpre
-              step = (slos-dcum(iOld))/(dcum(i)-dcum(iOld))
-              if ( step.lt.zero .or. step.gt.one ) exit
+              if ( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
               call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
-              call dump_aperture( aperunit, bez(ix), apeName(oKApe), slos, aprr )
+              call dump_aperture( aperunit, bez(ix), apeName(oKApe), slos, aprr(1:7) )
             end do
           end if
           iOld=i
