@@ -171,14 +171,36 @@ contains
 
   subroutine requestFileUnit(fileName, fileUnit)
     
+    use crcoall
+    use end_sixtrack
+    
     implicit none
     
     character(len=*), intent(in)  :: fileName
     integer,          intent(out) :: fileUnit
     
-    fileUnit = funit_nextUnit
+    logical isOpen
     
-    write(*,*) "FUNIT> Unit ",fileUnit," assigned to file: ",fileName
+10  continue
+    
+    fileUnit       = funit_nextUnit
+    funit_nextUnit = funit_nextUnit + 1
+    if(funit_nextUnit > funit_maxUnit) goto 30
+    
+    inquire(unit=fileUnit, opened=isOpen)
+    if(isOpen) then 
+      goto 10
+    else
+      goto 20
+    end if
+
+20  continue
+    write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",fileName
+    return
+    
+30  continue
+    write(lout,"(a)") "FUNIT> Failed to find an available file unit for file ",fileName
+    call prror(-1)
     
   end subroutine requestFileUnit
 
