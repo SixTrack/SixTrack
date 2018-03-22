@@ -25228,7 +25228,7 @@ end interface
       call RunTimeRootWrite(pretime, trtime, posttime)
       call SixTrackRootExit()
 +ei
-
+      call alloc_exit
 !     We're done in maincr, no error :)
 +if cr
       call abend('                                                  ')
@@ -25377,7 +25377,7 @@ end interface
 10370 format(2(1X,I8),8(1X,1PE16.9))
 10380 format(10x,f47.33)
 +ei
-      end program maincr
+end program maincr
 
 +dk tra_thin
 !!--------------------------------------------------------------------------
