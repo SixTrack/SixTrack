@@ -34,6 +34,8 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 
 #List of tests that does not produce a valid fort.10
 SET(TESTS_NOFORT10
+  orbit6d-element-trombone
+  orbit6d-element-quadrupole
   exact
   thick6dblocks
   elensidealthck6d
@@ -53,6 +55,7 @@ SET(TESTS_NOFORT10
   collimation_k2_fcc_2017_h1_collision
   dump_all_highprec
   dump_2_all_ele_highprec
+  beam-HO_6D-simple-newstyle-orbit
   )
 
 if(NOT COLLIMAT)
@@ -105,6 +108,8 @@ if(NOT COLLIMAT)
           lostnumxv
           lostnotilt
           notilt
+          orbit6d-element-quadrupole
+          orbit6d-element-trombone
           prob1
           prob3
           s316
@@ -139,6 +144,7 @@ if(NOT COLLIMAT)
           beam-HO_6D-oldstyle
           beam-HO_6D-simple-oldstyle
           beam-HO_6D-simple-newstyle
+          beam-HO_6D-simple-newstyle-orbit
           beam-HO_LR-newstyle
           beam-HO_LR-oldstyle
           beam-HO_LR-ibbc-oldstyle
@@ -288,6 +294,7 @@ endforeach()
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 SET(FAST_TESTS
+  orbit6d-element-quadrupole
   thick4
   thick6dblocks
   thick6ddynk
@@ -344,6 +351,8 @@ SET(FAST_TESTS
   scatter_bbelastic
   dump_all_highprec
   dump_2_all_ele_highprec
+  orbit6d-element-trombone
+  beam-HO_6D-simple-newstyle-orbit
   )
 
 #Medium tests take < 30 mins to run
@@ -374,7 +383,6 @@ SET(SLOW_TESTS
 SET(PERF_TESTS
   perf1
   )
-
 
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 

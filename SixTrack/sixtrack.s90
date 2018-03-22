@@ -948,12 +948,12 @@
 !FOX  D V DA EXT EJ1 NORD NVAR ; D V DA EXT EJF1 NORD NVAR ;
 !FOX  D V DA EXT ALDA NORD NVAR 2 6 ; D V DA EXT ASDA NORD NVAR 2 6 ;
 !FOX  D V DA EXT ALDAQ NORD NVAR 2 6 ; D V DA EXT ASDAQ NORD NVAR 2 6 ;
-!FOX  D V DA EXT SMIDA NORD NVAR MCOR ;
+!FOX  D V DA EXT SMIDA NORD NVAR MCOR ; D V DA EXT DELTAS NORD NVAR ;
 !FOX  D V DA EXT KCRABDA NORD NVAR ;
 +cd daini
 !FOX  B D ;
 !FOX  D V DA COM SIGMDA NORD NVAR ; D V DA COM DPDA NORD NVAR ;
-!FOX  D V DA COM KCRABDA NORD NVAR ;
+!FOX  D V DA COM KCRABDA NORD NVAR ; D V DA COM DELTAS NORD NVAR ;
 !FOX  D V DA COM DPDA1 NORD NVAR ; D V DA COM RV NORD NVAR ;
 !FOX  D V DA COM XX NORD NVAR 2 ; D V DA COM YY NORD NVAR 2 ;
 !FOX  D V DA COM EJ1 NORD NVAR ; D V DA COM EJF1 NORD NVAR ;
@@ -968,7 +968,9 @@
 !FOX  D V DA INT CORRAU2 NORD NVAR MCOP ;
 !FOX  D V DA INT AA NORD NVAR 11 ;  D V DA INT BB NORD NVAR 11 ;
 !FOX  D V DA INT TRACKI NORD NVAR 6 ;
+!FOX  D V DA INT TEMPI NORD NVAR 6 ;
 !FOX  D V DA INT PUX NORD NVAR ; D V DA INT PUZ NORD NVAR ;
+!FOX  D V DA INT PUSIG NORD NVAR ;
 !FOX  D V DA INT EJF0 NORD NVAR ; D V DA INT EKK NORD NVAR ;
 !FOX  D V DA INT XL NORD NVAR ; D V DA INT ZL NORD NVAR ;
 !FOX  D V DA INT CRKVE NORD NVAR ; D V DA INT CIKVE NORD NVAR ;
@@ -985,6 +987,7 @@
 !FOX  D V DA INT CRABAMP2 NORD NVAR ;
 !FOX  D V DA INT CRABAMP3 NORD NVAR ;
 !FOX  D V DA INT CRABAMP4 NORD NVAR ;
+
 +if rvet
 !FOX  D V DA INT RVET NORD NVAR ;
 +ei
@@ -1000,7 +1003,7 @@
 !FOX  D V RE INT E0 ; D V RE INT E0F ; D V RE INT PMA ;
 !FOX  D V RE INT XS ; D V RE INT ZS ; D V RE INT OX ; D V RE INT OXP ;
 !FOX  D V RE INT OZ ; D V RE INT OZP ; D V RE INT SIGM1 ;
-!FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ;
+!FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ; D V RE INT BEAMOFF3 ;
 !FOX  D V RE INT BEAMOFF4 ; D V RE INT BEAMOFF5 ; D V RE INT BEAMOFF6 ;
 !FOX  D V RE INT DPS1 ; D V RE INT RKBF ; D V RE INT RBF ;
 !FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ;
@@ -1066,7 +1069,7 @@
      &rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
      &qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
      &iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-     &nprint,ndafi,qwsk,betx,betz,                                      &
+     &nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                 &
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
@@ -3895,6 +3898,7 @@
      &ibbc)
             beamoff(1,imbb(i))=track6d(1,1)*c1e3
             beamoff(2,imbb(i))=track6d(3,1)*c1e3
+            beamoff(3,imbb(i))=track6d(5,1)*c1e3
             beamoff(4,imbb(i))=track6d(2,1)*c1e3
             beamoff(5,imbb(i))=track6d(4,1)*c1e3
             beamoff(6,imbb(i))=track6d(6,1)
@@ -4389,10 +4393,12 @@
               track6d(4,j)=(yv(2,j)/moidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
+              
+              !We want to provide a set of canonical variables (15.03.2018)
+              track6d(5,j) = track6d(5,j)/rvv(j)
+              
             end do
-
             call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
-
             do j=1,napx
               xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-beamoff(1,imbb(i))
               xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-beamoff(2,imbb(i))
@@ -4405,6 +4411,11 @@
               ejfv(j)=dpsv(j)*e0f+e0f
               ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+              
+              !We want to go back to sixtrack variables (15.03.2018)
+              track6d(5,j) = track6d(5,j)*rvv(j)
+              sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))- beamoff(3,imbb(i))
+              
               if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
             end do
 +cd beam6dfi
@@ -4424,16 +4435,22 @@
 !FOX      TRACKI(5)=(SIGMDA-DUMMY)*C1M3 ;
           dummy=dare(dpda)
 !FOX      TRACKI(6)=DPDA-DUMMY ;
+
+!We want to provide a set of canonical variables (15.03.2018)
+!FOX      TRACKI(5)=TRACKI(5)/RV ;
+
           call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc)
           if(ibeco.eq.1) then
             beamoff1=dare(tracki(1))*c1e3
             beamoff2=dare(tracki(3))*c1e3
+            beamoff3=dare(tracki(5))*c1e3 !Added 14.03.2018
             beamoff4=dare(tracki(2))*c1e3
             beamoff5=dare(tracki(4))*c1e3
             beamoff6=dare(tracki(6))
           else
             beamoff1=zero
             beamoff2=zero
+            beamoff3=zero
             beamoff4=zero
             beamoff5=zero
             beamoff6=zero
@@ -4461,6 +4478,12 @@
 !FOX      EJF1=E0F*(ONE+DPDA) ;
 !FOX      EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
+          
+          !We want to go back to sixtrack variables (15.03.2018)
+!FOX      TRACKI(5) = TRACKI(5)*RV ;
+
+          dummy=dare(sigmda)  !Added 14.03.2018
+!FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
           if(ithick.eq.1) call envada
 +cd multf01
 +if .not.tilt
@@ -5553,6 +5576,7 @@ cc2008
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
 !FOX  DPDA1=DPDA*C1E3 ;
+!FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
           call dacop(yp(1),damap(2))
           call dacop(x(2),damap(3))
@@ -5567,7 +5591,7 @@ cc2008
           call dacsu(damap(3),c(2),damap(3))
           call dacsu(damap(4),cp(2),damap(4))
           if(ndimf.eq.3) then
-            call dacop(sigmda,damap(5))
+            call dacop(deltas,damap(5))
             call dacop(dpda1,damap(6))
             call dapek(damap(5),jj,c(3))
             call dapek(damap(6),jj,cp(3))
@@ -5757,6 +5781,7 @@ cc2008
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
 !FOX  DPDA1=DPDA*C1E3 ;
+!FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
           call dacop(yp(1),damap(2))
           call dacop(x(2),damap(3))
@@ -5771,7 +5796,7 @@ cc2008
           call dacsu(damap(3),c(2),damap(3))
           call dacsu(damap(4),cp(2),damap(4))
           if(ndimf.eq.3) then
-            call dacop(sigmda,damap(5))
+            call dacop(deltas,damap(5))
             call dacop(dpda1,damap(6))
             call dapek(damap(5),jj,c(3))
             call dapek(damap(6),jj,cp(3))
@@ -5793,7 +5818,7 @@ cc2008
 +ei
             do ii=1,3
               call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-              call averaged(angno,aa2r,.false.,angno)
+              call averaged(angno,aa2r,.false.,angno,rv)
               do j=1,ndimf
                 j1=2*j
                 jj(j1-1)=1
@@ -5819,7 +5844,7 @@ cc2008
               if(parbe(ix,2).gt.zero) then
                 do ii=4,10
                   call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-                  call averaged(angno,aa2r,.false.,angno)
+                  call averaged(angno,aa2r,.false.,angno, rv)
                   do j=1,ndimf
                     j1=2*j
                     jj(j1-1)=1
@@ -6131,23 +6156,64 @@ cc2008
             enddo
           enddo
         endif
+                
+
+
 +cd trom20
         if(kzz.eq.22) then
           irrtr=imtr(ix)
-!FOX  SIGMDA=SIGMDA+COTR(IRRTR,5)+RRTR(IRRTR,5,1)*X(1)+
-!FOX  RRTR(IRRTR,5,2)*Y(1)+RRTR(IRRTR,5,3)*X(2)+RRTR(IRRTR,5,4)*Y(2) ;
-!FOX  PUX=X(1) ;
-!FOX  PUZ=Y(1) ;
-!FOX  X(1)=COTR(IRRTR,1)+RRTR(IRRTR,1,1)*PUX+RRTR(IRRTR,1,2)*PUZ+
-!FOX  RRTR(IRRTR,1,6)*DPDA1 ;
-!FOX  Y(1)=COTR(IRRTR,2)+RRTR(IRRTR,2,1)*PUX+RRTR(IRRTR,2,2)*PUZ+
-!FOX  RRTR(IRRTR,2,6)*DPDA1 ;
-!FOX  PUX=X(2) ;
-!FOX  PUZ=Y(2) ;
-!FOX  X(2)=COTR(IRRTR,3)+RRTR(IRRTR,3,3)*PUX+RRTR(IRRTR,3,4)*PUZ+
-!FOX  RRTR(IRRTR,3,6)*DPDA1 ;
-!FOX  Y(2)=COTR(IRRTR,4)+RRTR(IRRTR,4,3)*PUX+RRTR(IRRTR,4,4)*PUZ+
-!FOX  RRTR(IRRTR,4,6)*DPDA1 ;
+
+!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
+
+!FOX  TEMPI(1) = X(1) ;
+!FOX  TEMPI(2) = YP(1) ;
+!FOX  TEMPI(3) = X(2) ;
+!FOX  TEMPI(4) = YP(2) ;
+!FOX  TEMPI(5) = SIGMDA ;
+!FOX  TEMPI(6) = PUSIG ;
+
+!FOX  X(1)=COTR(IRRTR,1) +
+!FOX  RRTR(IRRTR,1,1)*TEMPI(1)+RRTR(IRRTR,1,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,1,3)*TEMPI(3)+RRTR(IRRTR,1,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,1,5)*TEMPI(5)+RRTR(IRRTR,1,6)*TEMPI(6) ;
+
+!FOX  YP(1)=COTR(IRRTR,2) +
+!FOX  RRTR(IRRTR,2,1)*TEMPI(1)+RRTR(IRRTR,2,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,2,3)*TEMPI(3)+RRTR(IRRTR,2,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,2,5)*TEMPI(5)+RRTR(IRRTR,2,6)*TEMPI(6) ;
+
+!FOX  X(2)=COTR(IRRTR,3) +
+!FOX  RRTR(IRRTR,3,1)*TEMPI(1)+RRTR(IRRTR,3,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,3,3)*TEMPI(3)+RRTR(IRRTR,3,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,3,5)*TEMPI(5)+RRTR(IRRTR,3,6)*TEMPI(6) ;
+
+!FOX  YP(2)=COTR(IRRTR,4) +
+!FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
+
+!FOX  SIGMDA=COTR(IRRTR,5)+ 
+!FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
+
+!FOX  PUSIG=COTR(IRRTR,6)+ 
+!FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
+
+
+!FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DPDA=DPDA1*C1M3 ;
+
+!FOX  Y(1)=YP(1)/(1+DPDA) ; 
+!FOX  Y(2)=YP(2)/(1+DPDA) ;
+
       endif
 +cd trom30
         if(kzz.eq.22) then
@@ -6157,31 +6223,63 @@ cc2008
 +cd trom40
           irrtr=imtr(ix)
           do j=1,napx
-+cd trom41
-      sigmv(j)=(((((sigmv(j)+cotr(irrtr,5))+rrtr(irrtr,5,1)*xv(1,j))+   &!hr03
-     &rrtr(irrtr,5,2)*yv(1,j))+rrtr(irrtr,5,3)*xv(2,j))+                &!hr03
-!BNL-NOV08
-!     &rrtr(irrtr,5,4)*yv(2,j)
-     &rrtr(irrtr,5,4)*yv(2,j))+(rrtr(irrtr,5,6)*dpsv(j))*c1e3            !hr03
-!BNL-NOV08
-+cd trom42
-            pux=xv(1,j)
-            dpsv3(j)=dpsv(j)*c1e3
-            xv(1,j)=((cotr(irrtr,1)+rrtr(irrtr,1,1)*pux)+               &!hr03
-     &rrtr(irrtr,1,2)*yv(1,j))+(real(idz(1),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,1,6)   !hr03
-            yv(1,j)=((cotr(irrtr,2)+rrtr(irrtr,2,1)*pux)+               &!hr03
-     &rrtr(irrtr,2,2)*yv(1,j))+(real(idz(1),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,2,6)   !hr03
-            pux=xv(2,j)
-            xv(2,j)=((cotr(irrtr,3)+rrtr(irrtr,3,3)*pux)+               &!hr03
-     &rrtr(irrtr,3,4)*yv(2,j))+(real(idz(2),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,3,6)   !hr03
-            yv(2,j)=((cotr(irrtr,4)+rrtr(irrtr,4,3)*pux)+               &!hr03
-     &rrtr(irrtr,4,4)*yv(2,j))+(real(idz(2),fPrec)*dpsv3(j))*           &
-     &rrtr(irrtr,4,6)   !hr03
-          enddo
 
++cd trom41
+
+            !The values are stored in the temp vector which are used for the multiplication.
+            temptr(1)=xv(1,j)
+            temptr(2)=yv(1,j)*(one+dpsv(j))
+            temptr(3)=xv(2,j)
+            temptr(4)=yv(2,j)*(one+dpsv(j))
+            temptr(5)=sigmv(j)
+            temptr(6)=((ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+            ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+            xv(1,j)  = cotr(irrtr,1)
+            yv(1,j)  = cotr(irrtr,2)
+            xv(2,j)  = cotr(irrtr,3)
+            yv(2,j)  = cotr(irrtr,4)
+            sigmv(j) = cotr(irrtr,5)
+            pttemp   = cotr(irrtr,6)
+
+            ! Multiplying the arbitrary matrix to the coordinates. 
+            do kxxa=1,6
+              xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+              yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+              xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+              yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
+              sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
+              pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+            enddo
+            ! Transforming back to the tracked coordinates of Sixtrack...
+            ejv(j)  = e0f*pttemp/(c1e3*(e0/e0f))+e0
+            ejfv(j)=sqrt(ejv(j)**2-pma**2)
+            rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+            dpsv(j)=(ejfv(j)-e0f)/e0f
+            oidpsv(j)=one/(one+dpsv(j))
+            dpsv1(j)=(dpsv(j)*c1m3)*oidpsv(j)
+            
+            ! We have to go back to angles after we updated the energy. 
+            yv(j,1) = yv(j,1)/(one+dpsv(j))
+            yv(j,2) = yv(j,2)/(one+dpsv(j))
+          enddo
++cd trom42
+            temptr(1)=xv(1,j)
+            temptr(2)=yv(1,j)
+            temptr(3)=xv(2,j)
+            temptr(4)=yv(2,j)
+
+            xv(1,j)  = cotr(irrtr,1)
+            yv(1,j)  = cotr(irrtr,2)
+            xv(2,j)  = cotr(irrtr,3)
+            yv(2,j)  = cotr(irrtr,4)
+
+            do kxxa=1,6
+              xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+              yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+              xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+              yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)      
+            enddo
+          enddo
 !----------------------------------------------------------------------
 ! Wire element.
 
@@ -19012,7 +19110,7 @@ subroutine runda
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
      &nsta,nsto,idaa
-      real(kind=fPrec) beamoff1,beamoff2,beamoff4,beamoff5,             &
+      real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,  &
      &beamoff6,benkcc,betr0,c5m4,cbxb,cbzb,cik,crk,crxb,crzb,dare,dpdav,&
      &dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,rho2b,&
      &rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,      &
@@ -19099,18 +19197,23 @@ subroutine runda
 !FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;
       endif
       if(nvar2.eq.6) then
-        call davar(sigmda,zero,5)
+        call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
-!FOX  SIGMDA=SIGMDA+SIGM(1) ;
-!FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;
+!FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;        
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  EJF1=E0F*(ONE+DPDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DELTAS=DELTAS+SIGM(1)/RV ;
+
       else
-!FOX  SIGMDA=SIGM(1) ;
+!FOX  DELTAS=SIGM(1) ;
       endif
 !FOX  CORROLD(1)=X(1) ;
 !FOX  CORROLD(2)=YP(1) ;
 !FOX  CORROLD(3)=X(2) ;
 !FOX  CORROLD(4)=YP(2) ;
-!FOX  CORROLD(5)=SIGMDA ;
+!FOX  CORROLD(5)=DELTAS ;
 !FOX  CORROLD(6)=DPDA1 ;
       do 5 kkk=1,6
         dpdav=dare(corrold(kkk))
@@ -19119,6 +19222,7 @@ subroutine runda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+!FOX  SIGMDA=DELTAS*RV ;
       write(lout,*) ' ENTERING MAP '
       write(lout,*) 'INITIAL COORDINATES'
       write(lout,*) dare(x(1)),dare(y(1))
@@ -19160,6 +19264,7 @@ subroutine runda
 !FOX  EJF1=E0F*(ONE+DPDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DELTAS=SIGMDA/RV ;
             if(ithick.eq.1) then
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
@@ -19168,7 +19273,7 @@ subroutine runda
 !FOX  CORRNEW(2)=YP(1) ;
 !FOX  CORRNEW(3)=X(2) ;
 !FOX  CORRNEW(4)=YP(2) ;
-!FOX  CORRNEW(5)=SIGMDA ;
+!FOX  CORRNEW(5)=DELTAS ;
 !FOX  CORRNEW(6)=DPDA1 ;
                 do 24 kkk=1,6
                   dpdav=dare(corrnew(kkk))
@@ -19179,7 +19284,7 @@ subroutine runda
 !FOX  CORRAU2(2)=YP(1) ;
 !FOX  CORRAU2(3)=X(2) ;
 !FOX  CORRAU2(4)=YP(2) ;
-!FOX  CORRAU2(5)=SIGMDA ;
+!FOX  CORRAU2(5)=DELTAS ;
 !FOX  CORRAU2(6)=DPDA1 ;
                 do 25 kkk=1,6
 !FOX  CORRAU1(KKK)=CORRNEW(KKK) ;
@@ -19204,8 +19309,8 @@ subroutine runda
 !FOX  X(2)=CORROLD(3)+DPDAV ;
               dpdav=dare(yp(2))
 !FOX  YP(2)=CORROLD(4)+DPDAV ;
-              dpdav=dare(sigmda)
-!FOX  SIGMDA=CORROLD(5)+DPDAV ;
+              dpdav=dare(deltas)
+!FOX  DELTAS=CORROLD(5)+DPDAV ;
               dpdav=dare(dpda1)
 !FOX  DPDA1=CORROLD(6)+DPDAV ;
 !FOX  DPDA=DPDA1*C1M3 ;
@@ -19214,6 +19319,7 @@ subroutine runda
 !FOX  EJF1=E0F*(ONE+DPDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  SIGMDA=DELTAS*RV ;
               icav=icav+1
               call envada
             endif
@@ -19342,11 +19448,12 @@ subroutine runda
           if(nsix.eq.2) then
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  DELTAS=SIGMDA*RV ;
             call dapri(x(1),19)
             call dapri(yp(1),19)
             call dapri(x(2),19)
             call dapri(yp(2),19)
-            call dapri(sigmda,19)
+            call dapri(deltas,19)
             call dapri(dpda1,19)
             if(ncor.gt.0) then
               write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
@@ -19383,6 +19490,7 @@ subroutine runda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
           endif
           if(nvar2.eq.6.and.nsix.ne.2) then
             iflag=1
@@ -19519,20 +19627,21 @@ subroutine runda
             if(bez(ix).eq.'DAMAP') then
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  DELTAS=SIGMDA/RV ;
               if(icav.eq.0.or.ithick.ne.1) then
                 if(nvar2.ge.1) call dapri(x(1),17)
                 if(nvar2.ge.2) call dapri(yp(1),17)
                 if(nvar2.ge.3) call dapri(x(2),17)
                 if(nvar2.ge.4) call dapri(yp(2),17)
                 if(nvar2.eq.5.and.nsix.ne.2) call dapri(dpda1,17)
-                if(nvar2.eq.6.or.nsix.eq.2) call dapri(sigmda,17)
+                if(nvar2.eq.6.or.nsix.eq.2) call dapri(deltas,17)
                 if(nvar2.eq.6.or.nsix.eq.2) call dapri(dpda1,17)
               else
 !FOX  CORRAU1(1)=X(1) ;
 !FOX  CORRAU1(2)=YP(1) ;
 !FOX  CORRAU1(3)=X(2) ;
 !FOX  CORRAU1(4)=YP(2) ;
-!FOX  CORRAU1(5)=SIGMDA ;
+!FOX  CORRAU1(5)=DELTAS ;
 !FOX  CORRAU1(6)=DPDA1 ;
                 do 115 kkk=1,6
                   dpdav2(kkk)=dare(corrau1(kkk))
@@ -20001,6 +20110,7 @@ subroutine runda
   500 continue
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  DELTAS=SIGMDA/RV ;
       if(nsix.eq.2) nsix=0
       if(icav.eq.0.or.ithick.ne.1) then
         if(nvar2.ge.1) call dapri(x(1),18)
@@ -20008,14 +20118,14 @@ subroutine runda
         if(nvar2.ge.3) call dapri(x(2),18)
         if(nvar2.ge.4) call dapri(yp(2),18)
         if(nvar2.eq.5) call dapri(dpda1,18)
-        if(nvar2.eq.6) call dapri(sigmda,18)
+        if(nvar2.eq.6) call dapri(deltas,18)
         if(nvar2.eq.6) call dapri(dpda1,18)
       else
 !FOX  CORRAU1(1)=X(1) ;
 !FOX  CORRAU1(2)=YP(1) ;
 !FOX  CORRAU1(3)=X(2) ;
 !FOX  CORRAU1(4)=YP(2) ;
-!FOX  CORRAU1(5)=SIGMDA ;
+!FOX  CORRAU1(5)=DELTAS ;
 !FOX  CORRAU1(6)=DPDA1 ;
         do 505 kkk=1,6
           dpdav2(kkk)=dare(corrau1(kkk))
@@ -20039,7 +20149,7 @@ subroutine runda
 !FOX  Y(1)=CORRAU1(2) ;
 !FOX  X(2)=CORRAU2(3) ;
 !FOX  Y(2)=CORRAU1(4) ;
-!FOX  SIGMDA=CORRAU2(5) ;
+!FOX  SIGMDA=CORRAU2(5)*RV ;
 !FOX  DPDA1=CORRAU2(6) ;
 !FOX  DPDA=DPDA1*C1M3 ;
         call dapri(corrau2(1),18)
@@ -20111,7 +20221,7 @@ end subroutine runda
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
      &aa2r,a1,a1r,xy,h,df
       real(kind=fPrec) al1,al2,al3,angp,angnoe,au,aui,b1,b2,b3,beamoff1,&
-     &beamoff2,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
+     &beamoff2,beamoff3,beamoff4,beamoff5,beamoff6,betr0,c,c5m4,cbxb,cbzb,coefh1,&
      &cik,coefh2,coefv1,coefv2,cp,crk,crxb,crzb,cx,d,dicu,dare,det1,dp, &
      &dpdav,dpdav2,dphi,dps1,dps11,dummy,ed1,ed2,g1,g2,g3,ox,oxp,oxp1,  &
      &oz,ozp,ozp1,phi,r0,r2b,r2bf,rb,rbf,rdd,rho2b,rkb,rkbf,rrad,       &
@@ -20273,11 +20383,18 @@ end subroutine runda
         call davar(dpda1,dps11,5)
         ivar=ivar+1
       elseif(nvar2.eq.6) then
-        call davar(sigmda,sigm1,5)
-        call davar(dpda1,dps11,6)
+        call davar(deltas,zero,5)
+        call davar(dpda1,zero,6)
+!FOX  DPDA1=DPDA1+DPS1*C1E3 ;        
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  EJF1=E0F*(ONE+DPDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DELTAS=DELTAS+SIGM1/RV ;
+!FOX  SIGMDA=DELTAS*RV ;
         ivar=ivar+2
       else
-!FOX  SIGMDA=SIGM1 ;
+!FOX  DELTAS=SIGM1 ;
 !FOX  DPDA1=DPS1*C1E3 ;
       endif
       ivar1=ivar
@@ -20309,7 +20426,7 @@ end subroutine runda
         enddo
         if(ndimf.eq.3) then
           call damul(damap1(5),damap1(5),angno)
-          call averaged(angno,damap1,.true.,angno)
+          call averaged(angno,damap1,.true.,angno, rv)
           jj(5)=1
           jj(6)=1
 +if debug
@@ -20349,7 +20466,7 @@ end subroutine runda
 !FOX  CORROLD(2)=YP(1) ;
 !FOX  CORROLD(3)=X(2) ;
 !FOX  CORROLD(4)=YP(2) ;
-!FOX  CORROLD(5)=SIGMDA ;
+!FOX  CORROLD(5)=DELTAS ;
 !FOX  CORROLD(6)=DPDA1 ;
             do 5 kkk=1,6
               dpdav=dare(corrold(kkk))
@@ -20357,12 +20474,14 @@ end subroutine runda
     5       continue
 !FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+
       iflag=0
       iflag1=0
       iflag2=0
 !FOX  EJF1=E0F*(ONE+DPDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  SIGMDA=DELTAS*RV ;
       if(ithick.eq.1) call envada
       icav=0
       typ='START'
@@ -20419,6 +20538,7 @@ end subroutine runda
 !FOX  EJF1=E0F*(ONE+DPDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DELTAS=SIGMDA/RV ;
           if(ithick.eq.1) then
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
@@ -20427,7 +20547,7 @@ end subroutine runda
 !FOX  CORRNEW(2)=YP(1) ;
 !FOX  CORRNEW(3)=X(2) ;
 !FOX  CORRNEW(4)=YP(2) ;
-!FOX  CORRNEW(5)=SIGMDA ;
+!FOX  CORRNEW(5)=DELTAS ;
 !FOX  CORRNEW(6)=DPDA1 ;
               do 24 kkk=1,6
                 dpdav=dare(corrnew(kkk))
@@ -20438,7 +20558,7 @@ end subroutine runda
 !FOX  CORRAU2(2)=YP(1) ;
 !FOX  CORRAU2(3)=X(2) ;
 !FOX  CORRAU2(4)=YP(2) ;
-!FOX  CORRAU2(5)=SIGMDA ;
+!FOX  CORRAU2(5)=DELTAS ;
 !FOX  CORRAU2(6)=DPDA1 ;
               do 25 kkk=1,6
 !FOX  CORRAU1(KKK)=CORRNEW(KKK) ;
@@ -20477,8 +20597,8 @@ end subroutine runda
 !FOX  X(2)=CORROLD(3)+DPDAV ;
             dpdav=dare(yp(2))
 !FOX  YP(2)=CORROLD(4)+DPDAV ;
-            dpdav=dare(sigmda)
-!FOX  SIGMDA=CORROLD(5)+DPDAV ;
+            dpdav=dare(deltas)
+!FOX  DELTAS=CORROLD(5)+DPDAV ;
             dpdav=dare(dpda1)
 !FOX  DPDA1=CORROLD(6)+DPDAV ;
 !FOX  DPDA=DPDA1*C1M3 ;
@@ -20487,6 +20607,7 @@ end subroutine runda
 !FOX  EJF1=E0F*(ONE+DPDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  SIGMDA=DELTAS*RV ;
             icav=icav+1
             call envada
           endif
@@ -20627,6 +20748,8 @@ end subroutine runda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+
           if(nvar2.eq.6.and.nsix.ne.2) then
             iflag=1
             iflag1=1
@@ -20648,6 +20771,7 @@ end subroutine runda
           wire_num(i) = wire_num_aux
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  DELTAS=SIGMDA/RV ;
 !FOX  DPDA1=DPDA*C1E3 ;
           call dacop(x(1),damap(1))
           call dacop(yp(1),damap(2))
@@ -20663,7 +20787,7 @@ end subroutine runda
           call dacsu(damap(3),c(2),damap(3))
           call dacsu(damap(4),cp(2),damap(4))
           if(ndimf.eq.3) then
-            call dacop(sigmda,damap(5))
+            call dacop(deltas,damap(5))
             call dacop(dpda1,damap(6))
             call dapek(damap(5),jj,c(3))
             call dapek(damap(6),jj,cp(3))
@@ -20693,6 +20817,7 @@ end subroutine runda
       endif
 
       call wireda(ix,i)
+
 
 !FOX  Y(1)=YY(1) ;
 !FOX  Y(2)=YY(2) ;
@@ -21249,6 +21374,7 @@ end subroutine runda
 
 !FOX  YP(1)=Y(1)*(ONE+DPDA) ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  DELTAS=SIGMDA/RV ;
 +if debug
 !     call wda('afox   ',0d0,2,0,0,0)
 !     if (umcalls.eq.8) then
@@ -21270,7 +21396,7 @@ end subroutine runda
 !FOX  CORRAU1(2)=YP(1) ;
 !FOX  CORRAU1(3)=X(2) ;
 !FOX  CORRAU1(4)=YP(2) ;
-!FOX  CORRAU1(5)=SIGMDA ;
+!FOX  CORRAU1(5)=DELTAS ;
 !FOX  CORRAU1(6)=DPDA1 ;
 +if debug
 !     call wda('b435   ',0d0,2,0,0,0)
@@ -21308,11 +21434,12 @@ end subroutine runda
 !FOX  YP(1)=CORRAU2(2) ;
 !FOX  X(2)=CORRAU2(3) ;
 !FOX  YP(2)=CORRAU2(4) ;
-!FOX  SIGMDA=CORRAU2(5) ;
+!FOX  DELTAS=CORRAU2(5) ;
 !FOX  DPDA1=CORRAU2(6) ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+!FOX  SIGMDA=DELTAS*RV;
         if(icoonly.eq.1) then
           xxtr(1,1) = dare(x(1))
           yytr(1,1) = dare(y(1))
@@ -21351,7 +21478,7 @@ end subroutine runda
       call dacop(yp(1),damap(2))
       call dacop(yp(2),damap(4))
       if(ndimf.eq.3) then
-        call dacop(sigmda,damap(5))
+        call dacop(deltas,damap(5))
         call dacop(dpda1,damap(6))
       else
         call dacop(dpda1,damap(5))
@@ -21442,6 +21569,7 @@ end subroutine runda
 !     call abend('a470                                              ')
 !     endif
 +ei
+
       call dadal(damap,6)
       call dadal(damapi,6)
       call dadal(damap1,6)
@@ -21745,19 +21873,20 @@ end subroutine runda
 +ca daini
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
+
       betr0=sqrt(one-(pma/e0)**2)
       write(lout,*) ' REENTERING MAP '
       call davar(x(1),zero,1)
       call davar(yp(1),zero,2)
       call davar(x(2),zero,3)
       call davar(yp(2),zero,4)
-      call davar(sigmda,zero,5)
+      call davar(deltas,zero,5)
       call davar(dpda1,zero,6)
       call darea(x(1),18)
       call darea(yp(1),18)
       call darea(x(2),18)
       call darea(yp(2),18)
-      call darea(sigmda,18)
+      call darea(deltas,18)
       call darea(dpda1,18)
       rewind 18
 !Eric
@@ -21770,19 +21899,22 @@ end subroutine runda
 !FOX  EJF0=EJF1 ;
         if(abs(dppoff).gt.pieni) then
           sigmdac=sigmoff(iicav)
-!FOX  SIGMDA=SIGMDA-SIGMDAC ;
+!FOX  DELTAS=DELTAS-SIGMDAC ;
+
         endif
         call synoda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+
       endif
       if(nvar2.ge.1) call dapri(x(1),18)
       if(nvar2.ge.2) call dapri(yp(1),18)
       if(nvar2.ge.3) call dapri(x(2),18)
       if(nvar2.ge.4) call dapri(yp(2),18)
       if(nvar2.eq.5) call dapri(dpda1,18)
-      if(nvar2.eq.6) call dapri(sigmda,18)
+      if(nvar2.eq.6) call dapri(deltas,18)
       if(nvar2.eq.6) call dapri(dpda1,18)
       
       write(lout,*) 'END COORDINATES'
@@ -21862,6 +21994,7 @@ end subroutine runda
       endif
 !FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
+
       return
       end
 
@@ -25938,7 +26071,7 @@ subroutine thin4d(nthinerr)
         goto 630
       case (3)
 +ca trom40
-+ca trom42
++ca trom41
         goto 620
       case (2,4,5,6,7,8,9,10)
         goto 630
@@ -26735,7 +26868,9 @@ subroutine thin6d(nthinerr)
       case (2)
         do j=1,napx
           ejf0v(j)=ejfv(j)
-          if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
+          if(abs(dppoff).gt.pieni) then 
+            sigmv(j)=sigmv(j)-sigmoff(i)
+          endif
           if(kz(ix).eq.12) then
             ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
@@ -26757,7 +26892,6 @@ subroutine thin6d(nthinerr)
       case (3)
 +ca trom40
 +ca trom41
-+ca trom42
         goto 640
       case (4,5,6,7,8,9,10)
         goto 650
@@ -27855,7 +27989,6 @@ end subroutine thin6d
   740     continue
 +ca trom40
 +ca trom41
-+ca trom42
           goto 640
   745     continue
           xory=1
@@ -29656,7 +29789,6 @@ subroutine thck6d(nthinerr)
       case (3)
 +ca trom40
 +ca trom41
-+ca trom42
         goto 490
       case (4,5,6,7,8,9,10)
         goto 500
@@ -30437,7 +30569,9 @@ subroutine thck6dua(nthinerr)
 
             do j=1,napx
               ejf0v(j)=ejfv(j)
-              if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
+              if(abs(dppoff).gt.pieni) then 
+                sigmv(j)=sigmv(j)-sigmoff(i)
+              endif
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
               if(kz(ix).eq.12) then
                 ejv(j)=ejv(j)+(ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+phasc(ix)))*nzz(j)
@@ -30787,7 +30921,7 @@ subroutine thck6dua(nthinerr)
   740     continue
 +ca trom40
 +ca trom41
-+ca trom42
+
           goto 490
   745     continue
           xory=1
