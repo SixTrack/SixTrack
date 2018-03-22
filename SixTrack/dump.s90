@@ -95,11 +95,13 @@ subroutine dump_allocate_arrays
   call alloc(dump_fname,getfields_l_max_string,nele,defaultstring,'dump_fname',-1)
 
 +if cr
-  allocate(dumpfilepos(-1:nele),dumpfilepos_cr(-1:nele), STAT=stat)
-  if (stat.ne.0) then
-     write(lout,'(A,I8)') "ERROR in SUBROUTINE DUMP_ALLOCATE_ARRAYS; stat=", stat
-     call prror(-1)
-  endif
+  call alloc(dumpfilepos,nele,0,'dumpfilepos',-1)
+  call alloc(dumpfilepos_cr,nele,0,'dumpfilepos_cr',-1)
+!  allocate(dumpfilepos(-1:nele),dumpfilepos_cr(-1:nele), STAT=stat)
+!  if (stat.ne.0) then
+!     write(lout,'(A,I8)') "ERROR in SUBROUTINE DUMP_ALLOCATE_ARRAYS; stat=", stat
+!     call prror(-1)
+!  endif
 +ei
 end subroutine dump_allocate_arrays
 
@@ -123,6 +125,10 @@ subroutine dump_expand_arrays(nele_new)
   call resize(dumpfmt,nele_new,0,'dumpfmt',-1)
   call resize(dump_fname,getfields_l_max_string,nele_new,defaultstring,'dump_fname',-1)
 
++if cr
+  call resize(dumpfilepos,nele_new,0,'dumpfilepos',-1)
+  call resize(dumpfilepos_cr,nele_new,0,'dumpfilepos_cr',-1)
++ei
 end subroutine dump_expand_arrays
 
 subroutine dump_lines (n,i,ix)
