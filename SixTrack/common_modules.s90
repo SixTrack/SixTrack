@@ -147,6 +147,44 @@ module numerical_constants
 
 end module numerical_constants
 
++dk file_units
+! =================================================================================================
+!  FILE UNITS MODULE
+!  Written by: Veronica Berglyd Olsen, BE-ABP-HSS, March 2018
+!  Last modified: 22-03-2018
+! =================================================================================================
+module file_units
+  
+  implicit none
+  
+  integer :: funit_minUnit, funit_maxUnit
+  parameter(funit_minUnit=1000, funit_maxUnit=1999)
+  
+  integer,            allocatable :: funit_usedUnits(:)
+  character(len=256), allocatable :: funit_usedByFile(:)
+  
+  integer :: funit_nextUnit = funit_minUnit
+  
+  save funit_usedUnits, funit_usedByFile, funit_nextUnit
+
+contains
+
+  subroutine requestFileUnit(fileName, fileUnit)
+    
+    implicit none
+    
+    character(len=*), intent(in)  :: fileName
+    integer,          intent(out) :: fileUnit
+    
+    fileUnit = funit_nextUnit
+    
+    write(*,*) "FUNIT> Unit ",fileUnit," assigned to file: ",fileName
+    
+  end subroutine requestFileUnit
+
+end module file_units
+! =================================================================================================
+  
 +dk parpro
 module parpro
   ! Shared module defining the sizes of key arrays
