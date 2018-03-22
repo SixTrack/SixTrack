@@ -44010,7 +44010,13 @@ function gauinv(p0)
 end function gauinv
 
 +dk myrinv
-subroutine kerset(ercode,lgfile,limitm,limitr)
+! Changed by Veronica Berglyd Olsen, March 2018
+! kerset is never called anywhere, so I changed the soubroutine to replace the entry point and commented
+! out the unused code. The entry functionality is deprecated, so this kills a warning.
+! It appears the routine itself has been copied from MadX touschek.f90
+
+! subroutine kerset(ercode,lgfile,limitm,limitr)
+subroutine kermtr(ercode,log,mflag,rflag)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
@@ -44052,22 +44058,23 @@ subroutine kerset(ercode,lgfile,limitm,limitr)
       data      code(27),kntm(27),kntr(27) / 'G100.2', 255, 255 /
       save
 !-----------------------------------------------------------------------
-      logf  =  lgfile
-         l  =  0
-      if(ercode .ne. ' ')  then
-         do 10  l = 1, 6
-            if(ercode(1:l) .eq. ercode)  goto 12
-  10        continue
-  12     continue
-      endif
-      do 14     i  =  1, kounte
-         if(l .eq. 0)  goto 13
-         if(code(i)(1:l) .ne. ercode(1:l))  goto 14
-  13     if(limitm.ge.0) kntm(i)  =  limitm
-         if(limitr.ge.0) kntr(i)  =  limitr
-  14     continue
-      return
-      entry kermtr(ercode,log,mflag,rflag)
+!       logf  =  lgfile
+!          l  =  0
+!       if(ercode .ne. ' ')  then
+!          do 10  l = 1, 6
+!             if(ercode(1:l) .eq. ercode)  goto 12
+!   10        continue
+!   12     continue
+!       endif
+!       do 14     i  =  1, kounte
+!          if(l .eq. 0)  goto 13
+!          if(code(i)(1:l) .ne. ercode(1:l))  goto 14
+!   13     if(limitm.ge.0) kntm(i)  =  limitm
+!          if(limitr.ge.0) kntr(i)  =  limitr
+!   14     continue
+!       return
+!       entry kermtr(ercode,log,mflag,rflag)
+!-----------------------------------------------------------------------
       log  =  logf
       do 20     i  =  1, kounte
          if(ercode .eq. code(i))  goto 21
@@ -44102,7 +44109,7 @@ subroutine kerset(ercode,lgfile,limitm,limitr)
 1001  format(/' ***** RUN TERMINATED BY CERN LIBRARY ERROR ',           &
      &'CONDITION ',a6)
 1002  format(/' ***** CERN LIBRARY ERROR CONDITION ',a6)
-end subroutine kerset
+end subroutine kermtr
 
       subroutine rinv(n,a,idim,ir,ifail)
 !-----------------------------------------------------------------------
