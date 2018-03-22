@@ -367,7 +367,7 @@
      &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
      &sigsecut3,sigsecut2,enerror,bunchlength
 
-      character(len=24) name_sel
+      character(len=max_name_len) name_sel
       character(len=80) coll_db
       character(len=16) castordir
       character(len=80) filename_dis

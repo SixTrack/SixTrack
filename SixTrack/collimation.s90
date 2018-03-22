@@ -1042,7 +1042,8 @@ subroutine collimate_start_sample(nsample)
 
       do i = 1, db_ncoll
 ! start searching minimum gap
-        if((db_name1(i)(1:11).eq.bez(myix)(1:11)).or.(db_name2(i)(1:11).eq.bez(myix)(1:11))) then
+        if((db_name1(i)(1:max_name_len).eq.bez(myix)(1:max_name_len)).or. &
+           (db_name2(i)(1:max_name_len).eq.bez(myix)(1:max_name_len))) then
           if( db_length(i) .gt. zero ) then
             nsig_err = nsig + gap_rms_error(i)
 
@@ -1371,7 +1372,8 @@ subroutine collimate_start_collimator(stracki)
 
 !     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
   do j = 1, db_ncoll
-    if((db_name1(j)(1:11).eq.bez(myix)(1:11)) .or. (db_name2(j)(1:11).eq.bez(myix)(1:11))) then
+    if((db_name1(j)(1:max_name_len).eq.bez(myix)(1:max_name_len)) .or. &
+       (db_name2(j)(1:max_name_len).eq.bez(myix)(1:max_name_len))) then
       if( db_length(j) .gt. zero ) then
         found = .true.
         icoll = j
@@ -1470,7 +1472,8 @@ subroutine collimate_do_collimator(stracki)
 
 !++  Write beam ellipse at selected collimator
 ! ---- changed name_sel(1:11) name_sel(1:12) to be checked if feasible!!
-  if (((db_name1(icoll).eq.name_sel(1:12)) .or.(db_name2(icoll).eq.name_sel(1:12))) .and. dowrite_dist) then
+  if (((db_name1(icoll).eq.name_sel(1:max_name_len)) .or.&
+       (db_name2(icoll).eq.name_sel(1:max_name_len))) .and. dowrite_dist) then
 !          if (firstrun .and.                                            &
 !     &         ((db_name1(icoll).eq.name_sel(1:11))                     &
 !     &         .or.(db_name2(icoll).eq.name_sel(1:11)))                 &
@@ -1492,7 +1495,7 @@ subroutine collimate_do_collimator(stracki)
 !++  Output to temporary database and screen
   if(iturn.eq.1.and.firstrun) then
     write(40,*) '# '
-    write(40,*) db_name1(icoll)(1:11)
+    write(40,*) db_name1(icoll)!(1:11)
     write(40,*) db_material(icoll)
     write(40,*) db_length(icoll)
     write(40,*) db_rotation(icoll)
@@ -1503,7 +1506,7 @@ subroutine collimate_do_collimator(stracki)
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
     write(outlun,*) ' '
-    write(outlun,*) 'Name:                ', db_name1(icoll)(1:11)
+    write(outlun,*) 'Name:                ', db_name1(icoll)!(1:11)
     write(outlun,*) 'Material:            ', db_material(icoll)
     write(outlun,*) 'Length [m]:          ', db_length(icoll)
     write(outlun,*) 'Rotation [rad]:      ', db_rotation(icoll)
@@ -2566,7 +2569,8 @@ subroutine collimate_end_collimator()
 
 ! should name_sel(1:11) extended to allow longer names as done for
 ! coll the coll_ellipse.dat file !!!!!!!!
-  if(((db_name1(icoll).eq.name_sel(1:11)).or.(db_name2(icoll).eq.name_sel(1:11))) .and. iturn.eq.1  ) then
+  if(((db_name1(icoll).eq.name_sel(1:max_name_len)).or.&
+      (db_name2(icoll).eq.name_sel(1:max_name_len))) .and. iturn.eq.1  ) then
     num_selhit = 0
     num_surhit = 0
     num_selabs = 0
