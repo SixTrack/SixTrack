@@ -55,6 +55,7 @@ SET(TESTS_NOFORT10
   collimation_k2_fcc_2017_h1_collision
   dump_all_highprec
   dump_2_all_ele_highprec
+  beam-HO_6D-simple-newstyle-orbit
   )
 
 if(NOT COLLIMAT)
@@ -350,6 +351,8 @@ SET(FAST_TESTS
   scatter_bbelastic
   dump_all_highprec
   dump_2_all_ele_highprec
+  orbit6d-element-trombone
+  beam-HO_6D-simple-newstyle-orbit
   )
 
 #Medium tests take < 30 mins to run
@@ -380,7 +383,6 @@ SET(SLOW_TESTS
 SET(PERF_TESTS
   perf1
   )
-
 
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
