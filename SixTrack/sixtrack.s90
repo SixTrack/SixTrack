@@ -16962,8 +16962,9 @@ subroutine daten
          endif
          call parseChebyFile(tmpi1)
       end do
-      
-      
+
+      call dealloc(bez0,max_name_len,'bez0')
+
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
       return

@@ -108,6 +108,10 @@ interface dealloc
   module procedure dealloc1di16
   module procedure dealloc1di32
   module procedure dealloc1di64
+
+  module procedure dealloc1dl
+
+  module procedure dealloc1dc
 end interface dealloc
 
 contains
@@ -3429,6 +3433,33 @@ subroutine dealloc1di64(input, ename)
   deallocate(input)
 end subroutine dealloc1di64
 
+subroutine dealloc1dl(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  logical, allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - size(input)
+  deallocate(input)
+end subroutine dealloc1dl
 
+subroutine dealloc1dc(input, strlen, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  character(len=:), allocatable, intent(inout) :: input(:)
+  integer, intent(in) :: strlen
+
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  !TODO: Check what size(input) actually does
+  allocated_bits = allocated_bits - (size(input)*strlen * CHARACTER_STORAGE_SIZE)
+  deallocate(input)
+end subroutine dealloc1dc
 
 end module mod_alloc
