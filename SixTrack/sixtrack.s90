@@ -10476,6 +10476,7 @@ end subroutine hamilton1
       character(len=nchars) tmpch
       integer tmpi1,tmpi2,tmpi3
       real(kind=fPrec) tmpflt
+      real(kind=fPrec) tmpflts(9)
 
       ! Elens: online calculation of theta@r2
       real(kind=fPrec) eLensTheta
@@ -13569,17 +13570,14 @@ end subroutine hamilton1
                 endif
                 do i=1,1
 +if .not.crlibm
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
 +ei
 +if crlibm
-                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
+                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
 +ei
                 enddo
-                kape(j)=1
-                ape(2,j)=ape(1,j)
-                ape(3,j)=ape(1,j)
-                ape(4,j)=ape(1,j)
+                call aperture_initCR( j, tmpflts(1) )
                 
               case (apeName(2)) !Rectangle
                 if(getfields_nfields.lt.4) then
@@ -13590,17 +13588,14 @@ end subroutine hamilton1
                 endif
                 do i=1,2
 +if .not.crlibm
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
 +ei
 +if crlibm
-                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
+                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
 +ei
                 enddo
-                kape(j)=2
-                ! get ready for a RL-equivalent description
-                ape(3,j)=sqrt(two)*ape(1,j)
-                ape(4,j)=sqrt(two)*ape(2,j)
+                call aperture_initRE( j, tmpflts(1), tmpflts(2) )
                 
               case (apeName(3)) !Ellipse
                 if(getfields_nfields.lt.4) then
@@ -13611,17 +13606,14 @@ end subroutine hamilton1
                 endif
                 do i=1,2
 +if .not.crlibm
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
 +ei
 +if crlibm
-                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
+                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
 +ei
                 enddo
-                kape(j)=3
-                ! get ready for a RL-equivalent description
-                ape(3,j)=ape(1,j)
-                ape(4,j)=ape(2,j)
+                call aperture_initEL( j, tmpflts(1), tmpflts(2) )
                 
               case (apeName(4)) !Rectellipse
                 if(getfields_nfields.lt.6) then
@@ -13633,14 +13625,14 @@ end subroutine hamilton1
                 ! parse the float descriptors
                 do i=1,4
 +if .not.crlibm
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
 +ei
 +if crlibm
-                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
+                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
 +ei
                 enddo
-                kape(j)=4
+                call aperture_initRL( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
                 
               case (apeName(5)) !Octagon  
                 if(getfields_nfields.lt.6) then
@@ -13651,14 +13643,14 @@ end subroutine hamilton1
                 endif
                 do i=1,4
 +if .not.crlibm
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
 +ei
 +if crlibm
-                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
+                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
 +ei
                 enddo
-                kape(j)=5
+                call aperture_initOC( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
                 
               case (apeName(6)) !Racetrack
                 if(getfields_nfields.lt.5) then
@@ -13669,33 +13661,67 @@ end subroutine hamilton1
                 endif
                 do i=1,3
 +if .not.crlibm
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
 +ei
 +if crlibm
-                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
+                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
 +ei
                 enddo
-                kape(j)=6
+                call aperture_initRT( j, tmpflts(1), tmpflts(2), tmpflts(3) )
+                
+              case (apeName(-1)) !Transition
+                if(getfields_nfields.lt.8) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(-1)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 8 (min)'
+                  call prror(-1)
+                endif
+                do i=1,6
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
++ei
++if crlibm
+                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
++ei
+                enddo
+                call aperture_initTR( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4), tmpflts(5), tmpflts(6) )
                 
               case default
                 write(lout,*) 'Aperture profile not identified for element ',idat
                 write(lout,*) '  value:', irel
                 call prror(-1)
               end select
-             
-              do i=5,7
-                if(getfields_nfields.ge.i+2) then
+
+              if(kape(j).eq.-1)then
+                do i=7,9
+                  tmpflts(i)=zero
+                  if(getfields_nfields.ge.i+2) then
 +if .not.crlibm
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
+                    read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
 +ei
 +if crlibm
-                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
+                    tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                    if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
 +ei
-                endif
-                if (ape(i,j).ne.zero) lapeofftlt(j)=.true.
-              end do
+                  endif
+                end do
+              else 
+                do i=5,7
+                  tmpflts(i+2)=zero
+                  if(getfields_nfields.ge.i+2) then
++if .not.crlibm
+                    read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i+2)
++ei
++if crlibm
+                    tmpflts(i+2)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                    if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i+2))
++ei
+                  endif
+                end do
+              end if
+              call aperture_initroffpos( j, tmpflts(1), tmpflts(2), tmpflts(3) )
               limifound=.true.
               exit
             end if
@@ -33113,13 +33139,6 @@ subroutine SELNUL( iel )
       benkc(iel)=zero
       r00(iel)=zero
       
-      kape(iel)=0
-      lapeofftlt(iel)=.false.
-
-      do i1=1,7
-         ape(i1,iel)=c1e3
-      end do
-
       ratioe(iel)=one
       hsyc(iel)=zero
       phasc(iel)=zero
@@ -33165,6 +33184,8 @@ subroutine SELNUL( iel )
       do i1=1,5
          parbe(iel,i1)=zero
       end do
+
+      call aperture_nul(iel)
       
       return
 end subroutine SELNUL
