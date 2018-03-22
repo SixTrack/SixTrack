@@ -72,10 +72,6 @@
       integer errno,l1,l2
       integer dtostr
 +ei
-+cd errout
-!     Set the exit status in case of an error.
-      integer errout_status
-      common /errout/ errout_status
 +cd commtim
       real r1,timestart,timenow
       common /mytimes/timestart
@@ -7680,8 +7676,9 @@ cc2008
    60     continue
 
 +dk close
-      subroutine closeUnits
+subroutine closeUnits
       use floatPrecision
+      use end_sixtrack
       use scatter, only : scatter_closefiles
       use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
       use dump, only : dump_closeUnits
@@ -7912,10 +7909,10 @@ cc2008
       close(210) ! hisix debugging
 
       return
-      end subroutine
+end subroutine closeUnits
 
 +dk cor_ord
-      subroutine coruord
+subroutine coruord
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
 !----
@@ -7925,6 +7922,7 @@ cc2008
 !----
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       
@@ -8195,13 +8193,14 @@ cc2008
      &'    = ',e16.8)
 10140 format(/,t10,'CHI_',i1,',0  = ',e16.8,11x, 'CHI_',i1,',0  = ',e16.&
      &8)
-      end
+end subroutine coruord
 
-      subroutine readd1(user,jaord,jpord)
+subroutine readd1(user,jaord,jpord)
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -8447,7 +8446,7 @@ cc2008
 !-----------------------------------------------------------------------
       return
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
-      end
+end subroutine readd1
 
 !-----------------------------------------------------------------------
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
@@ -8815,8 +8814,9 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
       return
       end
+
 +dk cor_glo
-      subroutine coruglo
+subroutine coruglo
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
 !----
@@ -8825,6 +8825,7 @@ end subroutine hamilton1
 !----
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       use crcoall
@@ -9090,12 +9091,14 @@ end subroutine hamilton1
      &'    = ',e16.8)
 10140 format(//,t10,'CHI_',i1,',0  = ',e16.8,11x, 'CHI_',i1,',0  = ',e16&
      &.8)
-      end
-      subroutine readd2(user)
+end subroutine coruglo
+
+subroutine readd2(user)
 !-----------------------------------------------------------------------
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -9351,7 +9354,7 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
       return
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
-      end
+end subroutine readd2
 
       subroutine hamilton2(jp)
 !-----------------------------------------------------------------------
@@ -10367,8 +10370,9 @@ end subroutine hamilton1
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
       end
+
 +dk adib
-      subroutine adib(e0f)
+subroutine adib(e0f)
 !-----------------------------------------------------------------------
 !  ADIABATIC ENERGY-DECREASE
 !-----------------------------------------------------------------------
@@ -10391,13 +10395,15 @@ end subroutine hamilton1
       e0=e0+hsy(1)*sin_mb(phas)
       e0f=sqrt(e0**2-pma**2)                                             !hr05
       return
-      end
+end subroutine adib
+
 +dk daten
-      subroutine daten
+subroutine daten
 !-----------------------------------------------------------------------
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use scatter, only : scatter_active, scatter_debug,                &
      &     scatter_seed1,scatter_seed2,                                 &
@@ -17077,7 +17083,7 @@ end subroutine hamilton1
 10890 format(1x,'--> function ',i2,' of combo # ',i4,' of element',a16, &
      &'does not exist!')
 10891 format(1x,'--> single element ',a16,' is a thick lens one!')
-      end subroutine daten
+end subroutine daten
 
       real(kind=fPrec) function eLensTheta( len, Int, Ekin, Etot, r2 )
 !-----------------------------------------------------------------------
@@ -17112,7 +17118,7 @@ end subroutine hamilton1
       end if
       end function eLensTheta
 
-      subroutine parseChebyFile(ifile)
+subroutine parseChebyFile(ifile)
 !-----------------------------------------------------------------------
 !     read file with coefficients for chebyshev polynomials
 !     ifile is index of file in table of chebyshev files        
@@ -17128,6 +17134,7 @@ end subroutine hamilton1
 !     where i->x and j->y
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use physical_constants
@@ -17244,7 +17251,7 @@ end subroutine hamilton1
          end do
       end do
       
-      end subroutine parseChebyFile
+end subroutine parseChebyFile
       
       subroutine write4
 !-----------------------------------------------------------------------
@@ -17413,7 +17420,7 @@ end subroutine hamilton1
       return
       end
       
-      subroutine initialize_element(ix,lfirst)
+subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 !     K.Sjobak & A.Santamaria, BE-ABP/HSS
 !     last modified: 23-12-2016
@@ -17427,6 +17434,7 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
 
       use floatPrecision
+      use end_sixtrack
       use dynk, only : dynk_elemdata
       use numerical_constants
       use crcoall
@@ -17759,7 +17767,7 @@ end subroutine hamilton1
       write (lout,*) "bez = ", bez(ix)
       call prror(-1)
 
-      end subroutine initialize_element
+end subroutine initialize_element
 
 +if crlibm
       
@@ -17871,8 +17879,9 @@ real(kind=fPrec) function fround(errno,fields,f)
       return
       end function fround
       
-      subroutine rounderr(errno,fields,f,value)
+subroutine rounderr(errno,fields,f,value)
       use floatPrecision
+      use end_sixtrack
       use crcoall
       implicit none
       integer nchars,nofields
@@ -17895,9 +17904,11 @@ real(kind=fPrec) function fround(errno,fields,f)
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
       return
-      end subroutine rounderr
+end subroutine rounderr
       
-      subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+  
+      use end_sixtrack
       use crcoall
       implicit none
       integer errno,nunit,lineno,nfields,nf,lf,l
@@ -17929,10 +17940,11 @@ real(kind=fPrec) function fround(errno,fields,f)
 ! Never returns
 end subroutine spliterr
       
-      integer function dtostr(x,results)
+integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
       use floatPrecision
+      use end_sixtrack
       use crcoall
       implicit none
       real(kind=fPrec) x
@@ -18017,7 +18029,7 @@ end subroutine spliterr
       results=lstr(1:24)
       dtostr=24
       return
-      end function dtostr
+end function dtostr
       
 +ei ! END of crlibm-specific functions
       
@@ -19108,6 +19120,7 @@ subroutine runda
 !        5 --> 6  AND  ASD6 / ALD6
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use physical_constants
@@ -20210,11 +20223,12 @@ subroutine runda
 end subroutine runda
 
 +dk umlau6
-      subroutine umlauda
+subroutine umlauda
 !-----------------------------------------------------------------------
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use physical_constants
       use numerical_constants
       use mathlib_bouncer
@@ -21634,12 +21648,12 @@ end subroutine runda
      &'AFTER EACH BLOCK'/                                               &
      &'   A T T E N T I O N : BETATRON PHASE CALCULATION MIGHT BE WRONG'&
      &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
-      end
+end subroutine umlauda
 !
 !-----------------------------------------------------------------------
 ! WIRE DIFFERENTIAL ALGEBRA
 +dk wireda
-      subroutine wireda(ix,i)
+subroutine wireda(ix,i)
 ! MODEL OF STRAIGHT CURRENT WIRE
 !
 !     The model provides a transfer map of a straight current wire. 
@@ -21669,6 +21683,7 @@ end subroutine runda
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
@@ -21856,7 +21871,8 @@ end subroutine runda
 !FOX  YY(2)=YY(2)*C1E3;
 
 !     DADAL AUTOMATIC INCLUSION
-      end
+end subroutine wireda
+
 +dk runcav
       subroutine runcav
 !-----------------------------------------------------------------------
@@ -22139,7 +22155,7 @@ end subroutine runda
       end
 
 +dk beam6df
-      subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
+subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -22148,6 +22164,7 @@ end subroutine runda
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -22204,7 +22221,7 @@ end subroutine runda
       call boostif(sphi,cphi,tphi,salpha,calpha,track)
 !     DADAL AUTOMATIC INCLUSION
       return
-      end
+end subroutine beaminf
 
       subroutine boostf(sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
@@ -22612,6 +22629,7 @@ end subroutine runda
 +dk maincr
 program maincr
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
@@ -22676,7 +22694,6 @@ interface
 end interface
 
 
-+ca errout
 !-----------------------------------------------------------------------
 !
 !  SIXTRACK
@@ -25371,6 +25388,7 @@ end interface
 subroutine trauthin(nthinerr)
   ! Updated to Fortran 2015 by V.K.B. Olsen, 19/11/2017
   use floatPrecision
+  use end_sixtrack
   use mathlib_bouncer
   use numerical_constants
   use scatter, only : scatter_elemPointer
@@ -25854,6 +25872,7 @@ end subroutine trauthin
 subroutine thin4d(nthinerr)
   ! Replaced computed goto with select case. VKBO 27/11/2017
   use floatPrecision
+  use end_sixtrack
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -26492,6 +26511,7 @@ end subroutine thin4d
 subroutine thin6d(nthinerr)
   ! Replaced computed gotos with select case, VKBO 27/11/2017
   use floatPrecision
+  use end_sixtrack
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -27376,7 +27396,7 @@ end subroutine thin6d
 
 !==============================================================================
 !
-      subroutine thin6dua(nthinerr)
+subroutine thin6dua(nthinerr)
 !-----------------------------------------------------------------------
 !
 !  TRACK THIN LENS 6D WITH ACCELERATION
@@ -27385,8 +27405,9 @@ end subroutine thin6d
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use physical_constants
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
 
 +if fluka
@@ -28086,7 +28107,7 @@ end subroutine thin6d
 +ei
   660 continue
       return
-      end subroutine thin6dua
+end subroutine thin6dua
 
 subroutine callcrp()
 !-----------------------------------------------------------------------
@@ -28096,6 +28117,7 @@ subroutine callcrp()
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -28244,7 +28266,7 @@ end subroutine callcrp
       return
       end subroutine dist1
 
-      subroutine write6(n)
+subroutine write6(n)
 !-----------------------------------------------------------------------
 !
 !  F. SCHMIDT
@@ -28252,6 +28274,7 @@ end subroutine callcrp
 !  3 February 1999
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -28342,7 +28365,7 @@ end subroutine callcrp
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
      &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
-      end subroutine write6
+end subroutine write6
 
 
 +dk tra_thck
@@ -28355,6 +28378,7 @@ end subroutine callcrp
 subroutine trauthck(nthinerr)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 20/11/2017
   use floatPrecision
+  use end_sixtrack
   use mathlib_bouncer
   use numerical_constants
   use dynk, only : ldynk, dynk_isused, dynk_pretrack
@@ -28776,6 +28800,7 @@ end subroutine trauthck
 subroutine thck4d(nthinerr)
   ! Replaced computed goto with select case, VKBO 27/11/2017
   use floatPrecision
+  use end_sixtrack
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -29471,6 +29496,7 @@ end subroutine thck4d
 subroutine thck6d(nthinerr)
   ! Replaced computed goto with select case, VKBO 28/11/2017
   use floatPrecision
+  use end_sixtrack
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -30289,6 +30315,7 @@ subroutine thck6dua(nthinerr)
 !  F. SCHMIDT
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use physical_constants
       use mathlib_bouncer
       use numerical_constants
@@ -31894,8 +31921,9 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 end subroutine envarsv
 
 +dk mainda
-      program mainda
+program mainda
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       use, intrinsic :: iso_fortran_env, only : output_unit
@@ -31945,7 +31973,6 @@ end subroutine envarsv
 +ca commonta
 +ca commonl
 +ca commonc
-+ca errout      
 !-----------------------------------------------------------------------
       character(len=10) cmonth
       character(len=80) day,runtim
@@ -32467,7 +32494,7 @@ end subroutine envarsv
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
      &'RELATIVE MOMENTUM DEVIATION')
-      end
+end program mainda
 
 +dk comnul
 subroutine comnul
@@ -33332,6 +33359,7 @@ integer function INEELS( iEl )
 !     always in main code
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use crcoall
       use parpro
@@ -33555,7 +33583,8 @@ end subroutine umschr
 +dk daliesix
 subroutine daliesix
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34322,12 +34351,13 @@ subroutine blocksv
       end
 
 +dk chroma
-      subroutine chroma
+subroutine chroma
 !-----------------------------------------------------------------------
 !  CALCULATION OF CHROMATICITY FROM 5 ENERGIE-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34453,7 +34483,7 @@ subroutine blocksv
 10030 format(t10,'SEXTUP.STRENGTHS ',g17.10,7x,g17.10,'   INDEX   ',a16/&
      &t10,'                 ',g17.10,7x,g17.10,'           ',a16)
 10035 format(/t5,'---- NO Improvement in last Step ----'/)
-      end
+end subroutine chroma
 
       subroutine chromda
 !-----------------------------------------------------------------------
@@ -35015,11 +35045,12 @@ subroutine blocksv
       end
 
 +dk mydaini
-      subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
+subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -35093,14 +35124,15 @@ subroutine blocksv
 10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,            &
      &', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
       return
-      end
+end subroutine mydaini
 
 +dk mydainf
-      subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
+subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -35161,15 +35193,16 @@ subroutine blocksv
 10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,            &
      &', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
       return
-      end
+end subroutine mydaini
 
 +dk clorb2
-      subroutine clorb2(dpp)
+subroutine clorb2(dpp)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -35235,15 +35268,16 @@ subroutine blocksv
    40 continue
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine clorb2
 
 +dk combel
-      subroutine combel(iql)
+subroutine combel(iql)
 !-----------------------------------------------------------------------
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -35281,7 +35315,7 @@ subroutine blocksv
    20 continue
 !-----------------------------------------------------------------------
       return
-      end
+end subroutine combel
 
 +dk envar
 !-----------------------------------------------------------------------
@@ -35774,394 +35808,6 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     
 end subroutine envardis
 
-+dk error
-!-----------------------------------------------------------------------
-!  ERROR OUTPUT
-!-----------------------------------------------------------------------
-subroutine prror(ier)
-    
-    use floatPrecision
-    use numerical_constants
-    use mathlib_bouncer
-    use, intrinsic :: iso_fortran_env, only : error_unit
-
-+if fluka
-    ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-    ! last modified: 17-07-2013
-    ! import mod_fluka
-    ! inserted in main code by the 'fluka' compilation flag
-    use mod_fluka
-+ei
-
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commons
-      implicit none
-      integer ier
-+ca commont1
-+if bnlelens
-+ca rhicelens
-+ei
-
-+if fluka
-    ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-    ! last modified: 17-07-2013
-    ! status of connection
-    ! inserted in main code by the 'fluka' compilation flag
-    integer fluka_con
-+ei
-
-+ca errout
-    save
-
-    errout_status = ier
-    write(lout,10000)
-    select case (ier)
-    case (1)
-        write(lout,10010)
-    case (2)
-        write(lout,10020) nele
-    case (3)
-        write(lout,10030)
-    case (4)
-        write(lout,10040)
-    case (5)
-        write(lout,10050)
-    case (6)
-        write(lout,10060)
-    case (7)
-        write(lout,10070)
-    case (8)
-        write(lout,10080)
-    case (9)
-        write(lout,10090)
-    case (10)
-        write(lout,10100)
-    case (11)
-        write(lout,10110)
-    case (12)
-        write(lout,10120)
-    case (13)
-        write(lout,10130)
-    case (14)
-        write(lout,10140)
-    case (15)
-        write(lout,10150)
-    case (16)
-        write(lout,10160) nele
-    case (17)
-        write(lout,10170) nper
-    case (18)
-        write(lout,10180) nblo
-    case (19)
-        write(lout,10190) erbez
-    case (20)
-        write(lout,10200) erbez
-    case (21)
-        write(lout,10210)
-    case (22)
-        write(lout,10220)
-    case (23)
-        write(lout,10230)
-    case (24)
-        write(lout,10240)
-    case (25)
-        write(lout,10250)
-    case (26)
-        write(lout,10260) nelb
-    case (27)
-        write(lout,10270)
-    case (28)
-        write(lout,10280)
-    case (29)
-        write(lout,10290)
-    case (30)
-        write(lout,10300) nran
-    case (31)
-        write(lout,10310)
-    case (32)
-        write(lout,10320)
-    case (33)
-        write(lout,10330)
-    case (34)
-        write(lout,10340) mran
-    case (35)
-        write(lout,10350)
-    case (36)
-        write(lout,10360)
-    case (37)
-        write(lout,10370)
-    case (38)
-        write(lout,10380)
-    case (39)
-        write(lout,10390)
-    case (40)
-        write(lout,10400)
-    case (41)
-        write(lout,10410)
-    case (42)
-        write(lout,10420)
-    case (43)
-        write(lout,10430) nzfz
-    case (44)
-        write(lout,10440)
-    case (45)
-        write(lout,10450)
-    case (46)
-        write(lout,10460) nrco
-    case (47)
-        write(lout,10470)
-    case (48)
-        write(lout,10480)
-    case (49)
-        write(lout,10490)
-    case (50)
-        write(lout,10500)
-    case (51)
-        write(lout,10510)
-    case (52)
-        write(lout,10520) nema
-    case (53)
-        write(lout,10530)
-    case (54)
-        write(lout,10540) npart
-    case (55)
-        write(lout,10550) nmac
-    case (56)
-        write(lout,10560) ierro
-    case (57)
-        write(lout,10570) ierro
-    case (58)
-        write(lout,10580) ierro
-    case (59)
-        write(lout,10590) ierro
-    case (60)
-        write(lout,10600) ierro
-    case (61)
-        write(lout,10610) ierro
-    case (62)
-        write(lout,10620)
-    case (63)
-        write(lout,10630)
-    case (64)
-        write(lout,10640)
-    case (65)
-        write(lout,10650) mcor
-    case (66)
-        write(lout,10660)
-    case (67)
-        write(lout,10670)
-    case (68)
-        write(lout,10680)
-    case (69)
-        write(lout,10690)
-    case (70)
-        write(lout,10700)
-    case (71)
-        write(lout,10710)
-    case (72)
-        write(lout,10720)
-    case (73)
-        write(lout,10730)
-    case (74)
-        write(lout,10740)
-    case (75)
-        write(lout,10750)
-    case (76)
-        write(lout,10760)
-    case (77)
-        write(lout,10770)
-    case (78)
-        write(lout,10780)
-    case (79)
-        write(lout,10790)
-    case (80)
-        write(lout,10800)
-    case (81)
-        write(lout,10810)
-    case (82)
-        write(lout,10820)
-    case (83)
-        write(lout,10830)
-    case (84)
-        write(lout,10840)
-    case (85)
-        write(lout,10850) mmul
-    case (86)
-        write(lout,10860)
-    case (87)
-        write(lout,10870)
-    case (88)
-        write(lout,10880)
-    case (89)
-        write(lout,10890)
-    case (90)
-        write(lout,10900)
-    case (91)
-        write(lout,10910)
-    case (92)
-        write(lout,10920)
-    case (93)
-        write(lout,10930)
-    case (94)
-        write(lout,10940)
-    case (95)
-        write(lout,10950)
-    case (96)
-        write(lout,10960)
-    case (97)
-        write(lout,10970)
-    case (98)
-        write(lout,10980)
-    case (99)
-        write(lout,10990)
-    case (100)
-        write(lout,11000) ntr
-    case (101)
-        write(lout,11010)
-    case (102)
-        write(lout,11020) nbb
-    case (103)
-        write(lout,11030)
-    case (104)
-        write(lout,11040) max_name_len
-    case (105)
-        write(lout,11050) mmul
-    end select
-    
-+if fluka
-+ca flukaclose
-+ei
-    call closeUnits
-+if cr
-    call abend('                                                  ')
-+ei
-+if .not.cr
-    write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
-    stop 1
-+ei
-
-10000 format(5x///t10,'++++++++++++++++++++++++'/t10,'+++++ERROR DETECTED+++++'/&
-                  t10,'++++++++++++++++++++++++'/t10,'RUN TERMINATED ABNORMALLY !!!'//)
-10010 format(t10,'WRONG MODE DEFINITION')
-10020 format(t10,'NOT MORE THAN: ',i4,' POSITIONS FOR RESONANCE-COMPENSATION ALLOWED')
-10030 format(t10,'ELEMENT FOR RESONANCE-COMPENSATION IS NOT IN THE ELEMENTLIST')
-10040 format(t10,'UNSTABLE CLOSED ORBIT DURING INITIAL DISPERSION CALCULATION'/&
-             t10,'INSTABILITY OCCURRED FOR SMALL RELATIVE ENERGY DEVIATION')
-10050 format(t10,'UNSTABLE CLOSED ORBIT FOR ZERO ENERGY DEVIATION')
-10060 format(t10,'UNSTABLE CLOSED ORBIT DURING DISPERSION CALCULATION AFTER ORBIT SCALING'/&
-             t10,'INSTABILITY OCCURRED FOR SMALL RELATIVE ENERGY DEVIATION')
-10070 format(t10,'UNSTABLE CLOSED ORBIT AFTER ORBIT SCALING')
-10080 format(t10,'ELEMENTS SPECIFIED FOR TUNE VARIATION ARE NOT QUADRUPOLES')
-10090 format(t10,'UNSTABLE CLOSED ORBIT DURING TUNE VARIATION')
-10100 format(t10,'NO OPTICAL SOLUTION DURING TUNE VARIATION')
-10110 format(t10,'ELEMENTS SPECIFIED FOR CHROMATICITY CORRECTION ARE NOT SEXTUPOLES')
-10120 format(t10,'UNSTABLE CLOSED ORBIT DURING CHROMATICITY CORRECTION')
-10130 format(t10,'NO OPTICAL SOLUTION DURING CHROMATICITY CORRECTION')
-10140 format(t10,'ELEMENTS OF DIFFERENT TYPES ARE COMBINED IN DATA BLOCK COMBINATION OF ELEMENTS')
-10150 format(t10,'UNKNOWN BLOCK SPECIFICATION')
-10160 format(t10,'NO. OF SINGLE ELEMENTS EXCEEDS THE MAXIMUM ALLOWED VALUE: ',i4)
-10170 format(t10,'NO. OF SUPER PERIODS LARGER THAN : ',i4)
-10180 format(t10,'NO. OF DIFFERENT BLOCKS EXCEEDS THE MAXIMUM ALLOWED VALUE: ',i5)
-10190 format(t10,'UNKNOWN SINGLE ELEMENT : ',a16,' IN THE BLOCK DEFINITION')
-10200 format(t10,'UNKNOWN BLOCK NAME OR INSERTION NAME : ',a16,' IN THE STRUCTURE INPUT')
-10210 format(t10,'MAXIMUM NUMBER OF STRUCTURE ELEMENTS SURPASSED')
-10220 format(t10,'NO SOLUTION FOR ORBIT SCALING - POSSIBLE REASONS:'/t10,'--> DIPOLE STRENGTHS OF NON-CORRECTOR ELEMENTS TO HIGH'/&
-             t10,'--> NON-LINEARITIES TOO STRONG, TRY TO INCREASE INITIAL'/t10,'    CORRECTOR STRENGTHS'/&
-             t10,'--> USE ALL DIPOLE ELEMENTS FOR SCALING'/)
-10230 format(t10,'NO OPTICAL SOLUTION')
-10240 format(t10,'NO SOLUTION FOR DISPERSION')
-10250 format(t10,'--> PLEASE INCLUDE LENGTH OF MACHINE IN THE <SYNCHROTRON>-BLOCK')
-10260 format(t10,'ONE BLOCK CAN NOT HAVE MORE THAN ',i4,' ELEMENTS')
-10270 format(t10,'KINETIC ENERGY OF THE PARTICLE IS LESS OR EQUAL ZERO')
-10280 format(t10,'EITHER YOUR RF-FREQUENCY IS SHIFTED BY 180 DEGREES'/,&
-             t10,'THEN CHANGE THE SIGN OF <ITION> IN THE <SYNCHROTRON>-INPUTBLOCK',/&
-             t10,'OR YOUR ALFA-P IS WRONGLY INTRODUCED IN THE SAME INPUTBLOCK')
-10290 format(t10,'MULTIPOLE COEFFICIENTS CANNOT BE SET EQUAL')
-10300 format(t10,'THE RANDOM NUMBER: ',i6,' FOR THE INITIAL STRUCTURE IS TOO SMALL')
-10310 format(t10,'ELEMENTS THAT NEED RANDOM NUMBERS HAVE A KZ > 0')
-10320 format(t10,'THERE ARE NOT ENOUGH RANDOM NUMBERS FOR THE INSERTED ELEMENTS')
-10330 format(t10,'TO USE THE SAME RANDOM NUMBERS FOR 2 ELEMENTS, THE INSERTED ELEMENT ',&
-                 'MUST NOT NEED MORE OF SUCH NUMBERS THAN THE REFERENCE ELEMENT')
-10340 format(t10,'NOT MORE THAN',i4,' OF EACH TYPE OF INSERTED ELEMENTS CAN BE USED')
-10350 format(t10,'PROBLEMS DURING MATRIX-INVERSION IN QMOD')
-10360 format(t10,'NO CONVERGENCE IN RMOD')
-10370 format(t10,'CHOSEN ORDERS OF RESONANCES CAN NOT BE CALCULATED')
-10380 format(t10,'PROBLEMS DURING MATRIX-INVERSION IN RMOD')
-10390 format(t10,'WITH THE SPECIFIED ELEMENTS THE RESONANCE CANNOT BE COMPENSATED - ',&
-                 'RESONANCEORDER AND ELEMENTTYP # MUST BE THE SAME')
-10400 format(t10,'NOT MORE THAN 2 PARTICLES CAN BE TRACKED')
-10410 format(t10,'GEOMETRY AND STRENGTH FILE (UNIT 2) IS EMPTY OR DESTROYED')
-10420 format(t10,'TRACKING PARAMETER FILE (UNIT 3) IS EMPTY OR NON-EXISTING')
-10430 format(t10,'NOT MORE THAN ',i4,' RANDOM NUMBERS CAN BE USED')
-10440 format(t10,'FOR THE INPUTBLOCK - ORBIT CORRECTION - ONLY CORRECTORS WITH THE KEYWORDS ( HCOR= ; VCOR= )'/&
-             t10,'AND MONITORS WITH THE KEYWORDS ( HMON= ; VMON= ) ARE ALLOWED')
-10450 format(t10,'FOR THE INPUTBLOCK - LINEAR OPTICS - ONLY THE KEYWORD ( ELEMENT ) AND ( BLOCK ) ARE ALLOWED')
-10460 format(t10,'ORDER OF COMPENSATION CAN NOT BE LARGER THAN : ',i4)
-10470 format(t10,'ONLY UP TO 3 RESONANCES CAN BE COMPENSATED')
-10480 format(t10,'RESONANCE TYPE IS OUT OF THE RANGE OF THE RESONANCE ORDER')
-10490 format(t10,'ONLY UP TO 3 SUB-RESONANCES CAN BE COMPENSATED')
-10500 format(t10,'THE MULTIPOLE ORDER FOR THE SUB-RESONANCE COMPENSATION SHOULD NOT EXCEED THE VALUE 9')
-10510 format(t10,'PROBLEMS WITH FILE 3 WITH DYNAMIC KICKS')
-10520 format(t10,'MAXIMUM ORDER OF THE ONE TURN MAP IS ',i4,/,' NEMA HAS TO BE LARGER THAN NORD')
-10530 format(t10,'# OF VARIABLES -NV- OF THE ONE TURN MAP IS NOT IN THE ALLOWED RANGE [2 <= NV <= 5]')
-10540 format(t10,'MAXIMUM NUMBER OF PARTICLES FOR VECTORIZATION', ' IS ',i7)
-10550 format(t10,'MAXIMUM NUMBER OF DIFFERENT SEEDS FOR VECTORIZATION IS ',i4)
-10560 format(t10,'PROBLEMS WITH FILE 13 WITH INITIAL COORDINATES - ERROR CODE : ',i10)
-10570 format(t10,'PROBLEMS WITH FILE 2 WITH ACCELERATOR STRUCTURE - ERROR CODE : ',i10)
-10580 format(t10,'PROBLEMS WITH FILE 3 WITH TRACKING PARAMETERS - ERROR CODE : ',i10)
-10590 format(t10,'PROBLEMS WITH FILE 11 FOR CRAY INPUT - ERROR CODE : ',i10)
-10600 format(t10,'PROBLEMS WITH FILE 99 FOR BINARY OUTPUT - ERROR CODE : ',i10)
-10610 format(t10,'PROBLEMS WITH FILE 12 FOR END COORDINATES - ERROR CODE : ',i10)
-10620 format(t10,'ELEMENTS SPECIFIED FOR DECOUPLING ARE NOT SKEW QUADRUPOLES')
-10630 format(t10,'THERE ARE THE APPROPRIATE ELEMENTS FOR THE DECOUPLING OR SIMULTANEOUS TUNE ADJUSTMENT')
-10640 format(t10,'PROBLEMS DURING MATRIX-INVERSION IN DECOUP')
-10650 format(t10,'MAXIMUM NUMBER OF EXTRA PARAMETERS IS : ',i4)
-10660 format(t10,'EXTRA PARAMETERS FOR THE MAP DOES NOT EXIST')
-10670 format(t10,'ONLY SINGLE KICK ELEMENTS ALLOWED FOR MAP CALCULATION')
-10680 format(t10,'THE ORDER OF THE NORMAL FORM IS TOO HIGH. CHECK THE DIFFERENTIAL ALGEBRA PARAMETERS')
-10690 format(t10,'TOO MANY VARIABLES SPECIFIED. CHECK THE DIFFERENTIAL ALGEBRA PARAMETERS')
-10700 format(t10,'NO CORRECTORS SPECIFIED')
-10710 format(t10,'BOTH AMPLITUDE AND MOMENTUM ORDER ARE ZERO!')
-10720 format(t10,'BOTH AMPLITUDE AND MOMENTUM ORDER ARE DIFFERENT FROM ZERO!')
-10730 format(t10,'AMPLITUDE ORDER OUTSIDE RANGE [0,2]')
-10740 format(t10,'MOMENTUM ORDER OUTSIDE RANGE [0,3] (ONE EXCLUDED!)')
-10750 format(t10,'MINIMUM ORDER OUTSIDE RANGE [2,3]')
-10760 format(t10,'MINIMUM ORDER GREATER THAN MAXIMUM!')
-10770 format(t10,'MAXIMUM ORDER OUTSIDE RANGE [2,3]')
-10780 format(t10,'NORMAL FORMS ANALYSIS IMPOSSIBLE',/,t10,'THE TRANSFER MAP DOES NOT EXIST!')
-10790 format(t10,'ZERO OR NEGATIVE ENERGY DOES NOT MAKE MUCH SENSE')
-10800 format(t10,'PROBLEM READING EXTERNAL MULTIPOLE ERRORS')
-10810 format(t10,'TOO MANY ELEMENTS FOR LINEAR OPTICS WRITE-OUT')
-10820 format(t10,'FOR CLOSED ORBIT CORRECTORS ONLY DIPOLES OF LEGTH ZERO OR MULTIPOLE LENSES ALLOWED')
-10830 format(t10,'AN ELEMENT FOR CLOSED ORBIT CORRECTION CAN BE ONLY EITHER A HORIZONTAL MONITOR',/,&
-             t10,'OR A VERTICAL MONITOR OR A HORIZONTAL CORRECTOR OR A VERTICAL CORRECTOR')
-10840 format(t10,'NUMBER OF ORBIT CORRECTORS IS ZERO')
-10850 format(t10,'THE ORDER OF MULTIPOLES MMUL: ',i4,' HAS TO BE LARGER THAN 10 BUT SMALLER THAN 20')
-10860 format(t10,'PROBLEM READING EXTERNAL MISALIGNMENTS')
-10870 format(t10,'PROBLEM READING FROM FILE 30 (SINGLE KICKS AND MISALIGNMENTS')
-10880 format(t10,'BEAM_BEAM: EITHER NORMALIZED EMITTANCES OR THE RESULTING SIGMA VALUES EQUAL TO ZERO')
-10890 format(t10,'BEAM_BEAM: AT EACH INTERACTION POINT THE BEAM MUST BE EITHER ROUND OR ELLIPTICAL FOR ALL PARTICLES')
-10900 format(t10,'QUADRUPOLES ARE NOT SUITED TO ADJUST THE TUNES')
-10910 format(t10,'ORDER AND NUMBER OF VARIABLES HAVE TO BE LARGER THAN ZERO TO CALCULATE A DIFFERENTIAL ALGEBRA MAP')
-10920 format(t10,'YOU CANNOT COMBINE AN ELEMENT WITH ITSELF')
-10930 format(t10,'INVERTED LINEAR BLOCKS NOT ALLOWED')
-10940 format(t10,'  NUMBER OF NORMAL FORM VARIABLES HAVE TO BE: 2, 4, 5, 6 + PARAMETERS')
-10950 format(t10,'  DA CORRECTIONS IMPLEMENTED FOR 4-D AND 6-D ONLY ')
-10960 format(t10,'SEXTUPOLES ARE NOT SUITED TO ADJUST THE CHROMATICITY')
-10970 format(t10,'UNSTABLE CLOSED ORBIT IN DA CALCULATION')
-10980 format(t10,'TROMBONE ELEMENT NOT IN LIST OF SINGLE ELEMENTS')
-10990 format(t10,'INCOMPLETE PARAMETERS FOR TROMBONE ELEMENT')
-11000 format(t10,'MAXIMUM NUMBER OF TROMBONES EXCEEDED : NTR = ',i4)
-11010 format(t10,'AMPLITUDES EXCEED THE MAXIMUM VALUES IN UMLAUF')
-11020 format(t10,'MAXIMUM ELEMENT NUMBER FOR BEAM_BEAM WITH COUPLING EXCEEDED:  NBB = ',i4)
-11030 format(t10,'6D BEAM-BEAM WITH TILT NOT POSSIBLE')
-11040 format(t10,'SINGLE ELEMENT NAME LONGER THAN', i3, ' CHARACTERS')
-11050 format(t10,'THE INPUT ORDER OF MULTIPOLES IS LARGER THAN THE MAXIMUM ALLOWED ORDER MMUL: ',i4)
-
-end subroutine prror
-
 +dk readdis
 subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m )
 !-----------------------------------------------------------------------
@@ -36205,6 +35851,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, a
 !
 !-----------------------------------------------------------------------
   use floatPrecision
+  use end_sixtrack
   use numerical_constants
   use, intrinsic :: iso_fortran_env, only : int16
   use crcoall
@@ -36424,6 +36071,7 @@ subroutine linopt(dpp)
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       use crcoall
@@ -37766,14 +37414,15 @@ subroutine matrix(dpp,am)
 end subroutine matrix
 
 +dk orbit
-      subroutine corrorb
+subroutine corrorb
 !-----------------------------------------------------------------------
 !  CORRECTION OF CLOSED ORBIT FIRST (MOST EFFECTIV CORRECTOR STRATEGY
 !  USING MICADO), THEN
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -38101,7 +37750,7 @@ end subroutine matrix
      &' VER.-RMS: ',f6.3)
 10160 format(t5,'---- SCALING ITERATION NO. ',i4,' HOR.-PTP: ',f6.3,    &
      &' VER.-PTP: ',f6.3)
-      end
+end subroutine corrorb
 
       subroutine putorb(xinc,nx,npflag)
 !-----------------------------------------------------------------------
@@ -38270,7 +37919,7 @@ end subroutine matrix
       return
       end
 
-      subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
+subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 !*********************************************************************
 !     Subroutine HTLS to make Householder transform                  *
 !                                                                    *
@@ -38284,7 +37933,8 @@ end subroutine matrix
 !     PTP  - PEAK TO PEAK VALUE TO CORRECT FOR                       *
 !*********************************************************************
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -38451,7 +38101,8 @@ end subroutine matrix
   160 ptp=ptop(k)
       rms=rmss(k)
 10000 format(a,i4)
-      end
+end subroutine htls
+  
       subroutine htal(a,m,n,k,beta)
 !*********************************************************************
 !     Subroutine HTAL to make Householder transform                  *
@@ -38658,7 +38309,7 @@ end subroutine matrix
       end
 
 +dk ord
-      subroutine ord
+subroutine ord
 !-----------------------------------------------------------------------
 !  ORGANISATION OF NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !  reserving places in zfz:
@@ -38667,6 +38318,7 @@ end subroutine matrix
 !  mapping also position of errors for a given element in lattice
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       use crcoall
@@ -38844,9 +38496,9 @@ end subroutine matrix
         endif
       end do
       return
-      end subroutine ord
+end subroutine ord
 
-      subroutine orglat
+subroutine orglat
 !-----------------------------------------------------------------------
 !  ORGANISATION OF LATTICE SEQUENCE
 !  A.Mereghetti, last modified 2016-03-14
@@ -38975,7 +38627,7 @@ end subroutine matrix
       endif
       
       return
-      end subroutine orglat
+end subroutine orglat
 
 +dk phasad
 !-----------------------------------------------------------------------
@@ -38984,6 +38636,7 @@ end subroutine matrix
 subroutine phasad(dpp,qwc)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 20/11/2017
   use floatPrecision
+  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use crcoall
@@ -39480,13 +39133,14 @@ subroutine phasad(dpp,qwc)
 end subroutine phasad
 
 +dk qmod
-      subroutine qmod0
+subroutine qmod0
 !-----------------------------------------------------------------------
 !  ADJUSTMENT OF THE Q-VALUES PLUS AN ADDITIONAL ADJUSTMENT OF A
 !  X-PHASEADVANCE BETWEEN 2 POSITIONS IN THE MACHINE
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -39736,7 +39390,7 @@ end subroutine phasad
 10050 format(t10,'QUADRU.STRENGTHS',7x,g17.10,2x,g17.10,'   TYP     ',  &
      &a16/t10,                  23x,g17.10,2x,g17.10,'           ',     &
      &a16)
-      end
+end subroutine qmod0
 
       subroutine qmodda(mm,qwc)
 !-----------------------------------------------------------------------
@@ -40042,6 +39696,7 @@ end subroutine phasad
 subroutine umlauf(dpp,ium,ierr)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 23/11/2017
   use floatPrecision
+  use end_sixtrack
   use mathlib_bouncer
   use numerical_constants
   use parpro
@@ -40459,6 +40114,7 @@ end subroutine umlauf
 subroutine resex(dpp)
   ! Modified for Fortran 2015 by V.K.B. Olsen on 19/11/2017
   use floatPrecision
+  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   
@@ -41201,11 +40857,12 @@ subroutine resex(dpp)
 end subroutine resex
 
 +dk rmod
-      subroutine rmod(dppr)
+subroutine rmod(dppr)
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE STRENGTH OF CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
   use floatPrecision
+  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use crcoall
@@ -41526,7 +41183,7 @@ end subroutine resex
      &'BEFORE         AFTER     COMPENSATION'// 19x,'HORIZONTAL   ',2g15&
      &.5/ 19x,'VERTICAL     ',2g15.5/ 10x,'   SEXTUPOLE'/)
 10110 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
-      end
+end subroutine rmod
 
 +dk search
       subroutine search(dpp)
@@ -41622,6 +41279,7 @@ end subroutine resex
 subroutine subre(dpp)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 23/11/2017
   use floatPrecision
+  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use crcoall
@@ -42650,6 +42308,7 @@ end subroutine subre
 subroutine subsea(dpp)
   ! Rewritten to remove computed gotos by V.K.B.Olsen on 23/11/2017
   use floatPrecision
+  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use parpro
@@ -43371,13 +43030,14 @@ subroutine subsea(dpp)
 end subroutine subsea
 
 +dk decoup
-      subroutine decoup
+subroutine decoup
 !-----------------------------------------------------------------------
 !  DECOUPLING USING MATRIX ELEMENTS
 !
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use end_sixtrack
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -43562,11 +43222,11 @@ end subroutine subsea
      &'               ',2g15.8,'         ',i3)
 10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
      &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
-      end
+end subroutine decoup
 
 +dk utils ! Various utility functions
 
-      subroutine invert_tas(fma_tas_inv,fma_tas)
+subroutine invert_tas(fma_tas_inv,fma_tas)
 !-----------------------------------------------------------------------*
 !  FMA                                                                  *
 !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
@@ -43577,6 +43237,7 @@ end subroutine subsea
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use crcoall
       implicit none
@@ -43629,7 +43290,7 @@ end subroutine subsea
           fma_tas_inv(i,j)=tdummy(j,i)
         enddo
       enddo
-      end subroutine invert_tas
+end subroutine invert_tas
 
 +dk sumpos
       subroutine sumpos
@@ -43771,7 +43432,7 @@ end subroutine subsea
       end
       
 +dk beam6d
-      subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
+subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -43780,6 +43441,7 @@ end subroutine subsea
 !
 !-----------------------------------------------------------------------
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
 
@@ -43831,9 +43493,9 @@ end subroutine subsea
       call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
       call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
       return
-      end
+end subroutine beamint
 
-      subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
+subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
 !-----------------------------------------------------------------------
 !
 !   Hirata's 6d beam-beam from BBC
@@ -44185,7 +43847,7 @@ end subroutine subsea
       return
       end
 
-      function gauinv(p0)
+function gauinv(p0)
 !GAUINV***********************************************
 !  INVERSE OF (INTEGRATED) NORMAL DISTRIBUTION FUNCTION
 !              1         X= Y
@@ -44198,6 +43860,7 @@ end subroutine subsea
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -44254,10 +43917,12 @@ end subroutine subsea
  900  write(lout,910) p0
  910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
       call prror(-1)
-      end
+end function gauinv
+
 +dk myrinv
-      subroutine kerset(ercode,lgfile,limitm,limitr)
+subroutine kerset(ercode,lgfile,limitm,limitr)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -44347,7 +44012,7 @@ end subroutine subsea
 1001  format(/' ***** RUN TERMINATED BY CERN LIBRARY ERROR ',           &
      &'CONDITION ',a6)
 1002  format(/' ***** CERN LIBRARY ERROR CONDITION ',a6)
-      end
+end subroutine kerset
 
       subroutine rinv(n,a,idim,ir,ifail)
 !-----------------------------------------------------------------------
@@ -44591,7 +44256,8 @@ end subroutine subsea
       return
 !
       end
-      subroutine f010pr(name,n,idim,k,kprnt)
+
+subroutine f010pr(name,n,idim,k,kprnt)
 !     ******************************************************************
 !
 !     PRINT ROUTINE FOR PARAMETER ERRORS IN MATRIX SUBROUTINES $EQINV,
@@ -44606,6 +44272,7 @@ end subroutine subsea
 !
 !     ******************************************************************
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -44636,7 +44303,7 @@ end subroutine subsea
  2001 format( 7x, 'subroutine ', a6,' ... parameter',                   &
      &' error (n.lt.1 or n.gt.idim or k.lt.1).',                        &
      &6x,'n =', i4, 6x,'idim =', i4, 6x,'k =', i4,'.')
-      end
+end subroutine f010pr
 
       subroutine rfact(n,a,idim,ir,ifail,det,jfail)
       use floatPrecision
@@ -45139,8 +44806,9 @@ end subroutine subsea
         end function dotf
       end subroutine dfinv
 
-      subroutine tmprnt(name,n,idim,k)
+subroutine tmprnt(name,n,idim,k)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -45180,7 +44848,7 @@ end subroutine subsea
 1002  format(7x,' parameter error in subroutine ', a6,                  &
      &' ... (n.lt.1 or idim.lt.n or k.lt.1).',                          &
      &5x,'n =', i4, 5x,'idim =', i4, 5x,'k =', i4,'.')
-      end
+end subroutine tmprnt
 
       subroutine lfitd(x,y,l,key,a,b,e)
 !-----------------------------------------------------------------------
@@ -45311,7 +44979,7 @@ end subroutine subsea
 +dk nwrtbnl
 !GRDRHIC
 !GRD-042008
-      subroutine bnlrdis(ngrd)
+subroutine bnlrdis(ngrd)
 !
 !     SR, 09-08-2005
 !     Format for the input file:
@@ -45321,6 +44989,7 @@ end subroutine subsea
 !               DE     -> [ MeV ]
 !
       use floatPrecision
+      use end_sixtrack
       use crcoall
       use parpro
       use mod_common
@@ -45473,11 +45142,12 @@ end subroutine subsea
  20   continue
       write(lout,*) 'I/O Error on Unit 54'
       call prror(-1)
-      end
+end subroutine bnlrdis
+
 !GRD-042008
 !GRDRHIC
 +dk checkpt
-      subroutine crcheck
+subroutine crcheck
 !     Thus subroutine checks if the C/R files fort.95 and fort.96 exists,
 !     and if so tries to load them into the cr* variables.
 !     This routine also repositions the output files for
@@ -45487,6 +45157,7 @@ end subroutine subsea
 !     
 !     See also subroutines crpoint and crstart.
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use dynk, only : ldynk, ldynkfiledisable,                         &
            dynk_crcheck_readdata, dynk_crcheck_positionFiles
@@ -46368,9 +46039,9 @@ end subroutine subsea
 !GRDRHIC
 !GRD-042008
 +ei
-      end
+end subroutine crcheck
 
-      subroutine crpoint
+subroutine crpoint
 !     This subroutine writes the checkpoint data to fort.95/96,
 !     and copies the new output from the temporary (lout/fort.92) output file into fort.6.
 !     
@@ -46378,6 +46049,7 @@ end subroutine subsea
 !     
 !     See also subroutine crcheck and crstart.
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
 
       use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
@@ -46943,7 +46615,7 @@ end subroutine subsea
       backspace (93,iostat=ierro)
       write(lout,*)'SIXTRACR CHECKPOINT I/O Error'
       call prror(-1)
-      end
+end subroutine crpoint
 
 subroutine crstart
 !     If we are restarting (restart is TRUE), this routine is called
@@ -46955,6 +46627,7 @@ subroutine crstart
 !     
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use dynk, only : ldynk, dynk_crstart
 
@@ -47392,7 +47065,7 @@ end subroutine crstart
 
 +dk aux
 !      logical function isnan(arg1,arg2)
-      logical function myisnan(arg1,arg2)
+logical function myisnan(arg1,arg2)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -47401,9 +47074,9 @@ end subroutine crstart
 !      if(arg1.ne.arg2) isnan=.true.
       myisnan=.false.
       if(arg1.ne.arg2) myisnan=.true.
-      end
+end function myisnan
 
-      subroutine datime(nd,nt)
+subroutine datime(nd,nt)
       implicit none
 ! Fill common slate for usage by hmachi call as per z007 writeup.        !hr08
       common /slate/ isl(40)                                             !hr08
@@ -47435,9 +47108,9 @@ end subroutine crstart
 !     nt =            nn(1) *100 + nn(2)
       nt=values(5)*100+values(6)
       return
-      end
+end subroutine datime
 
-      subroutine timest(r1)
+subroutine timest(r1)
       implicit none
 +ca commtim
       logical start
@@ -47448,9 +47121,9 @@ end subroutine crstart
         call cpu_time(timestart)
       endif
       return
-      end
+end subroutine timest
 
-      subroutine timex(r1)
+subroutine timex(r1)
       implicit none
 +ca commtim
       save
@@ -47458,394 +47131,8 @@ end subroutine crstart
       call cpu_time(timenow)
       r1=timenow-timestart
       return
-      end
-      
-      subroutine abend(cstring)
-      use floatPrecision
-  use numerical_constants
-      use, intrinsic :: iso_fortran_env, only : error_unit
-      use crcoall
-      use parpro
-      use mod_common
-      implicit none
-+ca commonxz
-+ca crco
-+ca version
-+ca errout
-      integer i,lstring,j
-      character(len=*) cstring
-      character(len=256) filename
-      real(kind=fPrec) sumda(60)
-      logical fopen
-      character(len=8192) ch
-      character(len=25) ch1
-      integer errno,l1,l2
-      integer dtostr
-      integer ich
-      save
-        write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND called and closing files'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-! Calling close to be very safe.......96 calls to abend
-! Easier than adding the call on every abend
-      call closeUnits
-! If fort.10 is inexistent (physics error or some other problem)
-! we try and write a 0d0 file with a turn number and CPU time
-        write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND checking fort.10'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-+if nagfor
-+if boinc
-      call boincrf('fort.10',filename)
-      open(10,file=filename,form='formatted',status='unknown',err=11,   &
-+if fio
-     &round='nearest',                                                  &
-+ei
-     &recl=8195)
-+ei
-+if .not.boinc
-      open(10,file='fort.10',form='formatted',status='unknown',err=11,  &
-+if fio
-     &round='nearest',                                                  &
-+ei
-     &recl=8195)
-+ei
-+ei
+end subroutine timex
 
-+if .not.nagfor
-+if boinc
-      call boincrf('fort.10',filename)
-+if fio
-      open(10,file=filename,form='formatted',status='unknown',err=11,   &
-     &round='nearest')
-+ei
-+if .not.fio
-      open(10,file=filename,form='formatted',status='unknown',err=11)
-+ei
-+ei
-+if .not.boinc
-+if fio
-      open(10,file='fort.10',form='formatted',status='unknown',err=11,  &
-     &round='nearest')
-+ei
-+if .not.fio
-      open(10,file='fort.10',form='formatted',status='unknown',err=11)
-+ei
-+ei
-+ei
-
-! Now we try and read fort.10 i.e. is it empty?
-      read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
-! Seems to be OK
-      goto 12    
- 11   continue
-! Now we try and write a fort.10
-! We put some CPU for Igor, a version, and turn number 0
-        write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND writing a fort.10'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-!     the version
-      itot=0
-      ttot=0
-      do i=1,8
-        if (version(i:i).ne.' ') then
-          if (version(i:i).ne.'.') then
-            itot=itot*10+ichar(version(i:i))-ichar('0')
-          else
-            ttot=ttot*10**2+itot
-            itot=0
-          endif
-        endif
-      enddo
-      ttot=ttot*10**2+itot
-      do i=1,60
-        sumda(i)=zero
-      enddo
-      sumda(52)=real(ttot,fPrec)
-!     the CPU
-      call timex(time1)
-      trtime=time1-time0
-+if cr
-      trtime=trtime+crtime3  
-+ei
-      sumda(60)=real(trtime,fPrec)
-! Note it COULD happen that napxo is 0 for a very very early error
-! and even napx!!!
-      if (napxo.eq.0.and.napx.eq.0) napxo=1
-      write(93,*)                                                       &
-     &'SIXTRACR STOP/ABEND writing fort.10, lines',napxo,'/',napx
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      if (napxo.eq.0.and.napx.eq.0) napxo=1
-      if (napxo.eq.0) napxo=napx
-      do j=1,napxo
-+if .not.crlibm
-        write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-        do ich=8192,1,-1
-          if(ch(ich:ich).ne.' ') goto 707
-        enddo
- 707    write(10,'(a)',iostat=ierro) ch(:ich)
-+ei
-+if crlibm
-! Now use my new dtostr for portability
-        l1=1
-        do i=1,60
-! We return the length of the string (always 24)
-          errno=dtostr(sumda(i),ch1)
-          ch(l1:l1+errno)=' '//ch1(1:errno)
-          l1=l1+errno+1
-        enddo        
-        write(10,'(a)',iostat=ierro) ch(1:l1-1)
-+ei
-        if(ierro.ne.0) then
-          write(lout,*)
-          write(lout,*)                                                 &
-     &'*** ERROR ***,PROBLEMS WRITING TO FILE 10 FROM ABEND'
-          write(lout,*) 'ERROR CODE : ',ierro
-          write(lout,*)
-        endif
-      enddo
- 12   continue
-      close (10,iostat=ierro)
-+if cr
-+if debug
-                   !call system('../crend   >> crlog')
-+ei
-      close(91,err=4)
-    4 continue
-      close(94,err=5)
-    5 continue
-      close(95,err=6)
-    6 continue
-      close(96,err=7)
-    7 continue
-      if (lout.eq.92) then
-        write(93,*)                                                     &
-     &'SIXTRACR STOP/ABEND copying fort.92 to fort.6'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-        rewind 92
-    3   read(92,'(a1024)',end=1,err=8,iostat=ierro) arecord
-        lstring=1024
-        do i=1024,2,-1
-          lstring=i
-          if (arecord(i:i).ne.' ') goto 2
-          lstring=lstring-1
-        enddo
-    2   write(6,'(a)',iostat=ierro) arecord(1:lstring)
-        goto 3
-      endif
-    1 write(6,*,iostat=ierro)                                           &
-     &'SIXTRACR stop '//cstring
-      close(6,iostat=ierro)
-!     and get rid of fort.92
-      rewind 92
-      endfile (92,iostat=ierro)
-      close(92)
-      write(93,*)                                                       &
-     &'SIXTRACR stop '//cstring
-      write(93,*)
-+if debug
-                   !call system('../crend   >> crlog')
-+ei
-+if boinc
-!+if debug
-      do i=2,120
-        inquire(i,opened=fopen)
-        write(93,*) 'UNIT ',i,' opened ',fopen
-      enddo 
-!+ei
-!     call boinc_zipitall()
-!     call boinc_finish_graphics()
-      if(errout_status.ne.0) then
-         close(93)
-         call boincrf('fort.93',filename)
-         call print_lastlines_to_stderr(93,filename)
-         
-         call boincrf('fort.6',filename)
-         call print_lastlines_to_stderr(6,filename)
-      endif
-      call boinc_finish(errout_status) !This call does not return
-+ei !END +if boinc
-+if .not.boinc
-      if(errout_status.ne.0) then
-         close(93)
-         call print_lastlines_to_stderr(93,"fort.93")
-         call print_lastlines_to_stderr(6,"fort.6")
-
-         write(error_unit,'(a,i5)') "Stopping, errout_status=",         &
-     &        errout_status
-         stop 1
-      else
-         !No error
-         stop
-      endif
-+ei !END +if .not.boinc
-
-
-!!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
-
-    8 write(93,*)                                                       &
-     &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
-      close(93)
-      write(6,*)                                                        &
-     &'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
-+if debug
-                   !call system('../crend   >> crlog')
-+ei
-+if boinc
-      do i=2,120
-        inquire(i,opened=fopen)
-        write(6,*) 'UNIT ',i,' opened ',fopen
-      enddo 
-      close(6,err=31)
- 31   continue
-!     call boinc_zipitall()
-!     call boinc_finish_graphics()
-      if(errout_status.ne.0) then
-         close(93)
-         call boincrf('fort.93',filename)
-         call print_lastlines_to_stderr(93,filename)
-         
-         call boincrf('fort.6',filename)
-         call print_lastlines_to_stderr(6,filename)
-      endif
-      call boinc_finish(errout_status) !This call does not return
-+ei !END +if boinc
-+if .not.boinc
-      if(errout_status.ne.0) then
-         close(93)
-         call print_lastlines_to_stderr(93,"fort.93")
-         call print_lastlines_to_stderr(6,"fort.6")
-         
-         write(error_unit,'(a,i5)') "Stopping, errout_status=",         &
-     &        errout_status
-         stop 1
-      else
-         !No error
-         stop
-      endif
-+ei !END +if .not.boinc
-+ei !END +if cr
-
-+if .not.cr
-      !This one should probably remain as write(*,*) or use output_unit
-      write(*,*)                                                        &
-     &'SIXTRACK STOP/ABEND '//cstring
-+if debug
-                   !call system('../crend   >> crlog')
-+ei
-      ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
-      if(errout_status.ne.0) then
-         write(error_unit,'(a,i5)') "Stopping, errout_status=",         &
-     &        errout_status
-         stop 1
-      else
-         !No error
-         stop
-      endif
-+ei !END +if .not.cr
-      end subroutine abend
-
-      subroutine print_lastlines_to_stderr(file_unit, file_name)
-!     Subroutine to copy the last nlines lines from a file to stderr
-!     It is mainly used just before exiting SixTrack in case there was an error.
-!     This is useful since STDERR is often returned from batch systems and BOINC.
-!     K.Sjobak, June 2017
-      use, intrinsic :: iso_fortran_env, only : error_unit
-      implicit none
-
-+ca comgetfields
-!+ca stringzerotrim
-      
-      integer,          intent(in) :: file_unit
-      character(len=*), intent(in) :: file_name
-
-      integer nlines
-      parameter (nlines=40)
-      
-      character(len=1024) fileBuff (nlines)
-      integer fileBuff_idx
-      integer i,j
-      integer printLines
-
-      logical lopen
-      integer ierro
-
-!     Clear the buffer
-      do i=1,nlines
-         fileBuff(i)=''
-      end do
-      
-!     Open the file
-      inquire(unit=file_unit,opened=lopen)
-      if (lopen) then
-         write(error_unit,'(a,1x,i5,1x,a)')                             &
-     &        "Error when opening unit #",                              &
-     &        file_unit, ": The file is already open."
-         return
-      end if
-      
-      open(file_unit,file=file_name,form="formatted",                   &
-     &     status="old",iostat=ierro)
-      if (ierro .ne. 0) then
-         write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)')                   &
-     &        "Error when opening file '",                              &
-     &        trim(file_name),                                          &
-     &        "' on unit #", file_unit, ", iostat =",ierro
-         return
-      endif
-      
-!     Read into fileBuff as a ring buffer.
-      fileBuff_idx = 1
-      j = 0
-      
- 1    read(file_unit,'(a1024)',end=3,err=2,iostat=ierro)                &
-     &     fileBuff(fileBuff_idx)
-    ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
-      fileBuff_idx = fileBuff_idx+1
-      if (fileBuff_idx.ge.nlines) fileBuff_idx = 1
-      j = j+1
-      goto 1
-      
- 2    continue                  !An error occured
-      write(error_unit,'(a,1x,i5)')                                     &
-     &     "An error occured while reading the file, iostat=",ierro
-
-      
- 3    continue                  !EOF or error; anyway we're done.
-      close(file_unit)
-
-!     Print stuff back out from the buffer
-      if (j .lt. nlines) then
-         printLines = j
-         fileBuff_idx=1
-      else
-         printLines = nlines
-      endif
-      write(error_unit,'(a,1x,i5,1x,a,a,a)')                            &
-     &     "******* Last",printLines,"lines of file '",                 &
-     &     trim(file_name),"': *******"
-      
-      i = fileBuff_idx          !Position in buffer (we have already incremented i)
-      j = 0                     !How many have we printed
-      
- 10   if (i.gt.nlines) i=1      ! i is wrapping
-      write(error_unit,'(a)') trim(fileBuff(i))
-      i = i+1
-      j = j+1                   ! j just counts
-      if (j.lt.printLines) goto 10
-
-      write(error_unit,'(a,a,a)')                                       &
-     &     "******* Done writing tail of file '",                       &
-     &     trim(file_name),                                             &
-     &     "' to stderr *******"
-      
-      end subroutine print_lastlines_to_stderr
-      
 +dk plotdumy
       subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
       use floatPrecision
