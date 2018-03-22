@@ -19,6 +19,11 @@ static flukaio_server_t *servers[FLUKAIO_MAX_SERVERS];
 static flukaio_connection_t *get_connection(int cid);
 static flukaio_server_t *get_server(int serverid);
 
+/** particle buffer for ONLY one connection */
+static particle_info_t  *pbuffer=NULL;
+static int		 pbuffer_pos=0;
+static int		 pbuffer_max=0;
+
 int store_connection(flukaio_connection_t *conn);
 int store_server(flukaio_server_t *server);
 
@@ -82,40 +87,87 @@ int ntrecv_(
 	return n;
 } // ntrecv_
 
-int ntsendp_(
-		const int *cid,
+int ntsendp_(	const int     *cid,
 		const uint32_t *id, const uint32_t *gen,
-		const double *wgt,
-		const double  *x,   const double  *y, const double *z,
-		const double *tx,   const double *ty,  const double *tz,
+		const double  *wgt,
+		const double    *x, const double    *y, const double  *z,
+		const double   *tx, const double   *ty, const double *tz,
 		const uint16_t *aa, const uint16_t *zz,
-		const double *m, const double *pc,
-		const double *t)
+		const double    *m, const double   *pc,
+		const double    *t)
 {
 	flukaio_connection_t * conn = get_connection(*cid);
 
 	particle_info_t part;
-
-	part.id   = *id;
-	part.gen   = *gen;
+	part.id     = *id;
+	part.gen    = *gen;
 	part.weight = *wgt;
-	part.x = *x;
-	part.y = *y;
-	part.z = *z;
-	part.tx = *tx;
-	part.ty = *ty;
-	part.tz = *tz;
-	part.aa = *aa;
-	part.zz = *zz;
-	part.m = *m;
-	part.pc = *pc;
-	part.t = *t;
+	part.x      = *x;
+	part.y      = *y;
+	part.z      = *z;
+	part.tx     = *tx;
+	part.ty     = *ty;
+	part.tz     = *tz;
+	part.aa     = *aa;
+	part.zz     = *zz;
+	part.m      = *m;
+	part.pc     = *pc;
+	part.t      = *t;
 
 	return flukaio_send_particle(conn, &part);
 } // ntsendp_
 
-int ntsendeob_(const int *cid) {
+int ntsendpbuf_(const int     *cid,
+		const uint32_t *id, const uint32_t *gen,
+		const double  *wgt,
+		const double    *x, const double    *y, const double  *z,
+		const double   *tx, const double   *ty, const double *tz,
+		const uint16_t *aa, const uint16_t *zz,
+		const double    *m, const double   *pc,
+		const double    *t)
+{
+	if (pbuffer_pos >= pbuffer_max) {
+		if (pbuffer_max==0) {
+			pbuffer_max = 64;	// initial size
+			pbuffer = (particle_info_t*)malloc(sizeof(particle_info_t)*pbuffer_max);
+		} else {
+			pbuffer_max <<= 1;	// double the buffer
+			pbuffer = (particle_info_t*)realloc(pbuffer, sizeof(particle_info_t)*pbuffer_max);
+		}
+	}
+	//flukaio_connection_t * conn = get_connection(*cid);
+
+	pbuffer[pbuffer_pos].id     = *id;
+	pbuffer[pbuffer_pos].gen    = *gen;
+	pbuffer[pbuffer_pos].weight = *wgt;
+	pbuffer[pbuffer_pos].x      = *x;
+	pbuffer[pbuffer_pos].y      = *y;
+	pbuffer[pbuffer_pos].z      = *z;
+	pbuffer[pbuffer_pos].tx     = *tx;
+	pbuffer[pbuffer_pos].ty     = *ty;
+	pbuffer[pbuffer_pos].tz     = *tz;
+	pbuffer[pbuffer_pos].aa     = *aa;
+	pbuffer[pbuffer_pos].zz     = *zz;
+	pbuffer[pbuffer_pos].m      = *m;
+	pbuffer[pbuffer_pos].pc     = *pc;
+	pbuffer[pbuffer_pos].t      = *t;
+
+	return ++pbuffer_pos;
+//	return flukaio_send_particle(conn, &part);
+} // ntsendpbuf_
+
+int ntsendeob_(const int *cid)
+{
 	flukaio_connection_t* conn = get_connection(*cid);
+
+	if (pbuffer_pos>0) {
+		int i=0;
+		for (i=0; i<pbuffer_pos; i++) {
+			int err = flukaio_send_particle(conn, &pbuffer[i]);
+			if (err<0) return err;
+		}
+		pbuffer_pos = 0;
+	}
 
 	return flukaio_send_eob(conn);
 } // ntsendeob_
@@ -258,6 +310,10 @@ int ntshdwn_(const int *serverid) {
 		int ret = flukaio_server_shutdown(server);
 		// Update servers array
 		servers[*serverid] = NULL;
+		if (pbuffer) {
+			free(pbuffer);
+			pbuffer_max = pbuffer_pos = 0;
+		}
 		return ret;
 	}
 	return -1;

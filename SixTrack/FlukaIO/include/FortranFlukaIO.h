@@ -105,15 +105,40 @@ int ntwait_(
  * @param pc
  * @return message size if ok, -1 if error
  */
-int ntsendp_(
-		const int *cid,
+int ntsendp_(	const int     *cid,
 		const uint32_t *id, const uint32_t *gen,
-		const double *wgt,
-		const double  *x,   const double  *y, const double *z,
-		const double *tx,   const double *ty, const double *tz,
+		const double  *wgt,
+		const double    *x, const double    *y, const double  *z,
+		const double   *tx, const double   *ty, const double *tz,
 		const uint16_t *aa, const uint16_t *zz,
-		const double *m, const double *pc,
-		const double *t);
+		const double    *m, const double   *pc,
+		const double    *t);
+
+/**
+ * Send particle buffered
+ * @param cid Connection ID
+ * @param id Particle if
+ * @param wgt Particle statistical weight
+ * @param x
+ * @param y
+ * @param z
+ * @param tx
+ * @param ty
+ * @param tz
+ * @param aa
+ * @param zz
+ * @param m
+ * @param pc
+ * @return message size if ok, -1 if error
+ */
+int ntsendpbuf_(const int     *cid,
+		const uint32_t *id, const uint32_t *gen,
+		const double  *wgt,
+		const double    *x, const double    *y, const double  *z,
+		const double   *tx, const double   *ty, const double *tz,
+		const uint16_t *aa, const uint16_t *zz,
+		const double    *m, const double   *pc,
+		const double    *t);
 
 /**
  * Send End of Turn

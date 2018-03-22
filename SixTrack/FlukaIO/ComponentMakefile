@@ -129,11 +129,13 @@ flags:
 	
 $(TEST_TARGET): $(TEST_OBJS) $(MOCKS_OBJS)  $(PRODUCTION_CODE_START) $(TARGET_LIB) $(USER_LIBS) $(PRODUCTION_CODE_END) $(CPPUTEST_LIB) $(STDLIB_CODE_START) 
 	$(SILENCE)echo Linking $@
+	$(SILENCE)echo command $(LINK.o) -o $@ $^ $(LD_LIBRARIES)
 	$(SILENCE)$(LINK.o) -o $@ $^ $(LD_LIBRARIES)
 
 $(TARGET_LIB): $(OBJ)
 	$(SILENCE)echo Building archive $@
 	$(SILENCE)mkdir -p lib
+	$(SILENCE)echo command $(AR) $(ARFLAGS) $@ $^
 	$(SILENCE)$(AR) $(ARFLAGS) $@ $^
 	$(SILENCE)ranlib $@
 
@@ -145,12 +147,16 @@ vtest: $(TEST_TARGET)
 
 %.o: %.cpp
 	@echo compiling $(notdir $<)
+	$(SILENCE)echo command $(COMPILE.cpp) -M -MF $(subst .o,.d,$@) -MT "$@ $(subst .o,.d,$@)" $<
 	$(SILENCE)$(COMPILE.cpp) -M -MF $(subst .o,.d,$@) -MT "$@ $(subst .o,.d,$@)" $<
+	$(SILENCE)echo command $(COMPILE.cpp) $(OUTPUT_OPTION) $<
 	$(SILENCE)$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 
 %.o: %.c
 	@echo compiling $(notdir $<)
+	$(SILENCE)echo command $(COMPILE.c) -M -MF $(subst .o,.d,$@) -MT "$@ $(subst .o,.d,$@)" $<
 	$(SILENCE)$(COMPILE.c) -M -MF $(subst .o,.d,$@) -MT "$@ $(subst .o,.d,$@)" $<
+	$(SILENCE)echo command $(COMPILE.c) $(OUTPUT_OPTION) $<
 	$(SILENCE)$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 ifneq "$(MAKECMDGOALS)" "clean"

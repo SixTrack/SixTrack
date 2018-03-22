@@ -4,6 +4,7 @@ module dynk
 
     use floatPrecision
     use mathlib_bouncer
+    use mod_hions
     use numerical_constants, only : zero, one, two, c1e3
 
     use parpro, only : nele, max_name_len
@@ -3055,16 +3056,17 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         if (att_name_stripped .eq. "E0" ) then
             ! Modify the reference particle
             e0     = newValue
-            e0f    = sqrt(e0**2 - pma**2)
-            gammar = pma/e0
+            e0f    = sqrt(e0**2 - nucm0**2)
+            gammar = nucm0/e0
 
             ! Modify the Energy
             do j = 1, napx
-                dpsv(j) = (ejfv(j) - e0f)/e0f
+                dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
                 dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
                 dpd(j) = one + dpsv(j)
                 dpsq(j) = sqrt(dpd(j))
                 oidpsv(j) = one/(one + dpsv(j))
+                moidpsv(j) = mtc(j)/(one + dpsv(j))
                 rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
             end do
         end if

@@ -1590,33 +1590,29 @@
            crkve=crkveuk
 +cd kickv01h
 +if .not.tilt
-            yv(1,j)=yv(1,j)+strack(i)*oidpsv(j)
+            yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+strackc(i)*oidpsv(j)
-            yv(2,j)=yv(2,j)+stracks(i)*oidpsv(j)
+            yv(1,j)=yv(1,j)+(strackc(i)*oidpsv(j))*mtc(j)
+            yv(2,j)=yv(2,j)+(stracks(i)*oidpsv(j))*mtc(j)
 +ei
 +cd kickvxxh
 +if .not.tilt
-            yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
-            yv(2,j)=yv(2,j)-(strack(i)*oidpsv(j))*cikve                  !hr02
+            yv(1,j)=yv(1,j)+((strack(i)*oidpsv(j))*crkve)*mtc(j)
+            yv(2,j)=yv(2,j)-((strack(i)*oidpsv(j))*cikve)*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+oidpsv(j)*(strackc(i)*crkve+                &
-     &stracks(i)*cikve)
-            yv(2,j)=yv(2,j)+oidpsv(j)*(stracks(i)*crkve-                &!hr02
-     &strackc(i)*cikve)                                                  !hr02
+            yv(1,j)=yv(1,j)+(oidpsv(j)*(strackc(i)*crkve+stracks(i)*cikve))*mtc(j)
+            yv(2,j)=yv(2,j)+(oidpsv(j)*(stracks(i)*crkve-strackc(i)*cikve))*mtc(j)
 +ei
 +cd kickvdpe
 +if .not.tilt
-            yv(1,j)=yv(1,j)+(strackx(i)*oidpsv(j))*crkve                 !hr02
-            yv(2,j)=yv(2,j)-(strackz(i)*oidpsv(j))*cikve                 !hr02
+            yv(1,j)=yv(1,j)+((strackx(i)*oidpsv(j))*crkve)*mtc(j)
+            yv(2,j)=yv(2,j)-((strackz(i)*oidpsv(j))*cikve)*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+oidpsv(j)*(strackx(i)*crkve-                &
-     &stracks(i)*cikve)
-            yv(2,j)=yv(2,j)+oidpsv(j)*(strackz(i)*cikve+                &
-     &strackc(i)*crkve)
+            yv(1,j)=yv(1,j)+(oidpsv(j)*(strackx(i)*crkve-stracks(i)*cikve))*mtc(j)
+            yv(2,j)=yv(2,j)+(oidpsv(j)*(strackz(i)*cikve+strackc(i)*crkve))*mtc(j)
 +ei
 +cd kickvso1
             yv(1,j)=yv(1,j)-xv(2,j)*strackx(i)
@@ -1626,14 +1622,10 @@
 !
       crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
       cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-            yv(1,j)=crkve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &cikve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
-            yv(2,j)=cikve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &crkve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                        !hr02
-            crkve=xv(1,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+        &!hr02
-     &xv(2,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
-            cikve=xv(2,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-        &!hr02
-     &xv(1,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))                      !hr02
+            yv(1,j)=crkve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+cikve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
+            yv(2,j)=cikve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-crkve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
+            crkve=xv(1,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+xv(2,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
+            cikve=xv(2,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-xv(1,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
             xv(1,j)=crkve
             xv(2,j)=cikve
             yv(1,j)=yv(1,j)+xv(2,j)*strackx(i)
@@ -1704,22 +1696,20 @@
       
 +cd kickv01v
 +if .not.tilt
-            yv(2,j)=yv(2,j)+strack(i)*oidpsv(j)
+            yv(2,j)=yv(2,j)+(strack(i)*oidpsv(j))*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)-stracks(i)*oidpsv(j)
-            yv(2,j)=yv(2,j)+strackc(i)*oidpsv(j)
+            yv(1,j)=yv(1,j)-(stracks(i)*oidpsv(j))*mtc(j)
+            yv(2,j)=yv(2,j)+(strackc(i)*oidpsv(j))*mtc(j)
 +ei
 +cd kickvxxv
 +if .not.tilt
-            yv(1,j)=yv(1,j)+(strack(i)*oidpsv(j))*cikve                  !hr02
-            yv(2,j)=yv(2,j)+(strack(i)*oidpsv(j))*crkve                  !hr02
+            yv(1,j)=yv(1,j)+((strack(i)*oidpsv(j))*cikve)*mtc(j)
+            yv(2,j)=yv(2,j)+((strack(i)*oidpsv(j))*crkve)*mtc(j)
 +ei
 +if tilt
-            yv(1,j)=yv(1,j)+oidpsv(j)*(strackc(i)*cikve-                &
-     &stracks(i)*crkve)
-            yv(2,j)=yv(2,j)+oidpsv(j)*(strackc(i)*crkve+                &
-     &stracks(i)*cikve)
+            yv(1,j)=yv(1,j)+(oidpsv(j)*(strackc(i)*cikve-stracks(i)*crkve))*mtc(j)
+            yv(2,j)=yv(2,j)+(oidpsv(j)*(strackc(i)*crkve+stracks(i)*cikve))*mtc(j)
 +ei
 +cd kickl01h
 +if .not.tilt
@@ -3390,232 +3380,203 @@
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
 !---------CrabFreq input in MHz (ek)
 !---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
-          pi=four*atan_mb(one)
-        crabfreq=ek(ix)*c1e3
-        crabamp=ed(ix)
-        
-        do j=1,napx ! loop over particles
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+    
+  do j=1,napx ! loop over particles
+    crabamp=ed(ix)*nzz(j)
+    kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi+crabph(ix)
+    yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*sin_mb(kcrab)*(moidpsv(j)/e0f)
+    ejv(j)=ejv(j)-(((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*cos_mb(kcrab)
+    ejf0v(j)=ejfv(j)
+  
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
 
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph(ix)                                                     !hr03
-       yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*                          &!hr03
-     &sin_mb(kcrab)*(oidpsv(j)/e0f)                                      !hr03
-      ejv(j)=ejv(j) -                                                   &!hr03
-     &(((((crabamp*crabfreq)*2d0)*pi)/clight)                           &!hr03
-     &*xv(xory,j))*cos_mb(kcrab)                                         !hr03
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+
+  end do
 +cd ccmul2
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp2 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-!          write(*,*) ''
-!          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 2', crabamp2
-!          write(*,*) 'FREQ',  crabfreq
-!          write(*,*) 'PHASE', crabph2(ix)
-!          write(*,*) '-------------------'
-        do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph2(ix)                                                     !hr03
-         
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+! write(*,*) ''
+! write(*,*) '-------------------'
+! write(*,*) 'CRAB AMP 2', ed(ix)
+! write(*,*) 'FREQ',  crabfreq
+! write(*,*) 'PHASE', crabph2(ix)
+! write(*,*) '-------------------'
+  do j=1,napx
+    crabamp2 = ed(ix)*nzz(j)
+    kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
+   
 +ca alignva
-        yv(1,j)=yv(1,j) + ((crabamp2*crkve)*oidpsv(j))*cos_mb(kcrab)
-        yv(2,j)=yv(2,j) - ((crabamp2*cikve)*oidpsv(j))*cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((0.5d0*(crabamp2))*(crkve**2-                  &!hr13
-     &cikve**2))*(((crabfreq*2d0)*pi)/clight))*c1m3)*                   &!hr13
-     &(sin_mb(kcrab)*e0f)                                                !hr13
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+    yv(1,j)=yv(1,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+    yv(2,j)=yv(2,j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+    ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+    ejf0v(j)=ejfv(j)
+  
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  
+    if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  
+  end do
 +cd ccmul2s
 ! JBG RF CC Multipoles 2
-          pi=four*atan_mb(one)
-          crabamp2 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &
-     & +  crabph2(ix)
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+  do j=1,napx
+  crabamp2 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 +ca alignva
-        yv(2,j)=yv(2,j) + ((crabamp2*crkve)*oidpsv(j))*cos_mb(kcrab)
-        yv(1,j)=yv(1,j) + ((crabamp2*cikve)*oidpsv(j))*cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))                      &
-     &*(((crabfreq*2d0)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+  yv(2,j)=yv(2,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+  yv(1,j)=yv(1,j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+  ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
+  
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  
+  end do
 +cd ccmul3
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp3 = ed(ix)
-          crabfreq=ek(ix)*c1e3
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
 
-!          write(*,*) ''
-!          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 3', crabamp3
-!          write(*,*) 'FREQ',  crabfreq
-!          write(*,*) 'PHASE', crabph3(ix)
-!          write(*,*) '-------------------'
-          do j=1,napx
-         kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(2d0*pi)           &!hr03
-     &+  crabph3(ix)                                                      !hr03
-  
+!  write(*,*) ''
+!  write(*,*) '-------------------'
+!  write(*,*) 'CRAB AMP 3', crabamp3
+!  write(*,*) 'FREQ',  crabfreq
+!  write(*,*) 'PHASE', crabph3(ix)
+!  write(*,*) '-------------------'
+  do j=1,napx
+  crabamp3 = ed(ix)*nzz(j)
+  kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
+
 +ca alignva
-        yv(1,j)=yv(1,j)+(((crabamp3*oidpsv(j))*c1m3)*                   &!hr13
-     &(crkve**2-cikve**2))*                                             &!hr13
-     &cos_mb(kcrab)
-      yv(2,j)=yv(2,j)-((2d0*(((crabamp3*crkve)*cikve)*oidpsv(j)))*c1m3)*&!hr13
-     &cos_mb(kcrab)
-      ejv(j)=ejv(j)-(((((1d0/3d0)*(crabamp3))*(crkve**3-                &!hr13
-     &(3d0*cikve**2)*crkve))*(((crabfreq*2d0)*pi)/clight)*c1m6)*        &!hr13
-     &sin_mb(kcrab))*e0f
-      ejf0v(j)=ejfv(j)
+  yv(1,j)=yv(1,j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
+  yv(2,j)=yv(2,j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
+  ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
+  ejf0v(j)=ejfv(j)
       
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
       
-      enddo
+  end do
 +cd ccmul3s
 ! JBG RF CC Multipoles 2
-          pi=four*atan_mb(one)
-          crabamp3 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph3(ix)                                                    !hr03
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+  do j=1,napx
+   crabamp3 = ed(ix)*nzz(j)
+   kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
 +ca alignva
-        yv(2,j)=yv(2,j)-(((crabamp3*oidpsv(j))*c1m3)*                   &
-     &((cikve**2)-(crkve**2)))*                                         &
-     &cos_mb(kcrab)
-        yv(1,j)=yv(1,j)+((2d0*(crabamp3*(crkve*(cikve*oidpsv(j)))))*    &
-     &c1m3)*cos_mb(kcrab)
-      ejv(j)=ejv(j)+(((((1d0/3d0)*(crabamp3))*(cikve**3-                &
-     &((3d0*crkve**2)*cikve)))*(((crabfreq*2d0)*pi)/clight))*c1m6)*     &
-     &(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
+  yv(2,j)=yv(2,j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
+  yv(1,j)=yv(1,j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
+  ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
+         ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
       
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
       
-      enddo
+  end do
 +cd ccmul4
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp4 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          ! Sixtrack uses mm and mrad, input m^{-n+1}
-!          write(*,*) ''
-!          write(*,*) '-------------------'
-!          write(*,*) 'CRAB AMP 4', crabamp4
-!          write(*,*) 'FREQ',  crabfreq
-!          write(*,*) 'PHASE', crabph4(ix)
-!          write(*,*) '-------------------'
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph4(ix)                                                     !hr03
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+! Sixtrack uses mm and mrad, input m^{-n+1}
+!  write(*,*) ''
+!  write(*,*) '-------------------'
+!  write(*,*) 'CRAB AMP 4', crabamp4
+!  write(*,*) 'FREQ',  crabfreq
+!  write(*,*) 'PHASE', crabph4(ix)
+!  write(*,*) '-------------------'
+  do j=1,napx
+  crabamp4 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 +ca alignva
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &!hr13
-     &(crkve**3-(3d0*crkve)*cikve**2))*c1m6)*                           &!hr13
-     &cos_mb(kcrab)
-        yv(2,j)=yv(2,j) - (((crabamp4*oidpsv(j))*                       &!hr13
-     &((3d0*cikve)*crkve**2-cikve**3))*c1m6)*                           &!hr13
-     &cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((.25d0*(crabamp4))*(crkve**4-                  &!hr13
-     &(6d0*crkve**2)*cikve**2+cikve**4))*                               &!hr13
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &!hr13
-     &(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
-      
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-      
-      enddo
+  yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
+  yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
+  ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))*(((crabfreq*two)*pi)/clight))*c1m9)*&
+ &       (sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
+  
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+  
+  end do
 +cd ccmul4s
 ! JBG RF CC Multipoles
-          pi=four*atan_mb(one)
-          crabamp4 = ed(ix)
-          crabfreq=ek(ix)*c1e3
-          ! Sixtrack uses mm and mrad, input m^{-n+1}
-          do j=1,napx
-         kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*2d0)*pi         &!hr03
-     & +  crabph4(ix)                                                     !hr03
+  pi=four*atan_mb(one)
+  crabfreq=ek(ix)*c1e3
+  ! Sixtrack uses mm and mrad, input m^{-n+1}
+  do j=1,napx
+  crabamp4 = ed(ix)*nzz(j)
+  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 +ca alignva
-        yv(1,j)=yv(1,j) + (((crabamp4*oidpsv(j))*                       &
-     &(cikve**3-(3d0*cikve)*crkve**2))*c1m6)*                           &
-     &cos_mb(kcrab)
-        yv(2,j)=yv(2,j) + (((crabamp4*oidpsv(j))*                       &
-     &((3d0*crkve)*cikve**2-crkve**3))*c1m6)*                           &
-     &cos_mb(kcrab)
-      ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3                          &
-     &*cikve)-(cikve**3*crkve)))*                                       &
-     &(((crabfreq*2d0)*pi)/clight))*c1m9)*                              &
-     &(sin_mb(kcrab)*e0f)
-      ejf0v(j)=ejfv(j)
+  yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
+  yv(2,j)=yv(2,j) + (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
+  ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
+  ejf0v(j)=ejfv(j)
       
-      ejfv(j)=sqrt(ejv(j)**2-pma**2)
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)=(ejfv(j)-e0f)/e0f
-      oidpsv(j)=one/(one+dpsv(j))
-      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-      yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+  oidpsv(j)=one/(one+dpsv(j))
+  moidpsv(j)=mtc(j)/(one+dpsv(j))
+  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
       
-      if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
+  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
       
-      enddo
+  end do
 +cd acdipkick
           nfree=nturn1(ix)
          if(n.gt.nfree) then
@@ -4303,8 +4264,7 @@
 !     write(*,*) '4ofcrk',crk
 !     write(*,*) '4ofexp',-exp_mb(-one*tkb)
 +ei
-              beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*              &!hr03
-     &sign(one,crk)                                                      !hr03
+              beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
 +if debug
 !GOTCHA
 !     if (dokcalls.ge.445959) then
@@ -4315,8 +4275,7 @@
 !       read(222)
 !     endif
 +ei
-              beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*              &!hr03
-     &sign(one,cik)                                                      !hr03
+              beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
 +cd beamco
               if(ibbc.eq.0) then
                 crkveb(j)=(xv(1,j)-clobeam(1,imbb(i)))+parbe(ix,5)
@@ -4334,10 +4293,8 @@
                 crkveb(j)=parbe(ix,5)
                 cikveb(j)=parbe(ix,6)
               else
-                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11) +                &
-     &                parbe(ix,6)*bbcu(imbb(i),12)
-                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-                 &
-     &               parbe(ix,5)*bbcu(imbb(i),12)
+                crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
+                cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
               endif
 +cd beamr1
             rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
@@ -4346,21 +4303,21 @@
             tkb(j)=rho2b(j)/(two*sigman2(1,imbb(i)))
 +cd beamr3
             if(ibbc.eq.0) then
-          yv(1,j)=yv(1,j)+oidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
+          yv(1,j)=yv(1,j)+moidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))                      !hr03
-          yv(2,j)=yv(2,j)+oidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
+          yv(2,j)=yv(2,j)+moidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*  &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))                      !hr03
             else
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),11)-   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)     !hr03
-              yv(1,j)=yv(1,j)+oidpsv(j)*cccc
+              yv(1,j)=yv(1,j)+moidpsv(j)*cccc
               cccc=(((strack(i)*crkveb(j))/rho2b(j))*                   &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))*bbcu(imbb(i),12)+   &!hr03
      &(((strack(i)*cikveb(j))/rho2b(j))*                                &!hr03
      &(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)     !hr03
-              yv(2,j)=yv(2,j)+oidpsv(j)*cccc
+              yv(2,j)=yv(2,j)+moidpsv(j)*cccc
             endif
 +cd beamr3o
                 beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*    &!hr03
@@ -4394,10 +4351,10 @@
               call errf(zbb(j),xbb(j),cbzb(j),cbxb(j))
 +cd beama4
               if(ibbc.eq.0) then
-                yv(1,j)=yv(1,j)+oidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
+                yv(1,j)=yv(1,j)+moidpsv(j)*((rkb(j)*(crzb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbzb(j)))*sign(one,crkveb(j))-beamoff(4,imbb(i)))                  !hr03
-                yv(2,j)=yv(2,j)+oidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
+                yv(2,j)=yv(2,j)+moidpsv(j)*((rkb(j)*(crxb(j)-            &!hr03
      &exp_mb(-one*tkb(j))*                                              &!hr03
      &cbxb(j)))*sign(one,cikveb(j))-beamoff(5,imbb(i)))                  !hr03
               else
@@ -4405,73 +4362,62 @@
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),11)-((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),12)           !hr03
-                yv(1,j)=yv(1,j)+oidpsv(j)*cccc
+                yv(1,j)=yv(1,j)+moidpsv(j)*cccc
                 cccc=((rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*   &!hr03
      &sign(one,crkveb(j))-beamoff(4,imbb(i)))*                          &!hr03
      &bbcu(imbb(i),12)+((rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))* &!hr03
      &sign(one,cikveb(j))-beamoff(5,imbb(i)))*bbcu(imbb(i),11)           !hr03
-                yv(2,j)=yv(2,j)+oidpsv(j)*cccc
+                yv(2,j)=yv(2,j)+moidpsv(j)*cccc
               endif
             enddo
 +cd beama4o
-              beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*  &!hr03
-     &cbzb(j)))*                                                        &!hr03
-     &sign(one,crkveb(j))                                                !hr03
-              beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*  &!hr03
-     &cbxb(j)))*                                                        &!hr03
-     &sign(one,cikveb(j))                                                !hr03
-            enddo
+              beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*sign(one,crkveb(j))
+              beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))*sign(one,cikveb(j))
+            end do
 +cd beamwzf1
-            enddo
+            end do
             call wzsubv(napx,xrb(1),zrb(1),crxb(1),crzb(1))
             call wzsubv(napx,xbb(1),zbb(1),cbxb(1),cbzb(1))
             do j=1,napx
 +cd beamwzf2
-            enddo
+            end do
             call wzsubv(napx,zrb(1),xrb(1),crzb(1),crxb(1))
             call wzsubv(napx,zbb(1),xbb(1),cbzb(1),cbxb(1))
             do j=1,napx
 +cd beam6d
 !--Hirata's 6D beam-beam kick
             do j=1,napx
-               track6d(1,j)=((xv(1,j)+parbe(ix,5)) -                    &
-     &              clobeam(1,imbb(i)))*c1m3
-              track6d(2,j)=(yv(1,j)/oidpsv(j)-clobeam(4,imbb(i)))*c1m3
-              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -                     &
-     &             clobeam(2,imbb(i)))*c1m3
-              track6d(4,j)=(yv(2,j)/oidpsv(j)-clobeam(5,imbb(i)))*c1m3
+              track6d(1,j)=((xv(1,j)+parbe(ix,5)) - clobeam(1,imbb(i)))*c1m3
+              track6d(2,j)=(yv(1,j)/moidpsv(j)-clobeam(4,imbb(i)))*c1m3
+              track6d(3,j)=((xv(2,j)+parbe(ix,6)) -  clobeam(2,imbb(i)))*c1m3
+              track6d(4,j)=(yv(2,j)/moidpsv(j)-clobeam(5,imbb(i)))*c1m3
               track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
               track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
               
               !We want to provide a set of canonical variables (15.03.2018)
               track6d(5,j) = track6d(5,j)/rvv(j)
               
-            enddo
-            call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp, &
-     &ibbc)
+            end do
+            call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
             do j=1,napx
-              xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-           &!hr03
-     &beamoff(1,imbb(i))
-              xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-           &!hr03
-     &beamoff(2,imbb(i))
-              dpsv(j)=(track6d(6,j)+clobeam(6,imbb(i)))-                &!hr03
-     &beamoff(6,imbb(i))                                                 !hr03
+              xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-beamoff(1,imbb(i))
+              xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-beamoff(2,imbb(i))
+              dpsv(j)=(track6d(6,j)+clobeam(6,imbb(i)))-beamoff(6,imbb(i))
               oidpsv(j)=one/(one+dpsv(j))
-              yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-          &!hr03
-     &beamoff(4,imbb(i)))*oidpsv(j)
-              yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-          &!hr03
-     &beamoff(5,imbb(i)))*oidpsv(j)
+              moidpsv(j)=mtc(j)/(one+dpsv(j))
+              yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-beamoff(4,imbb(i)))*moidpsv(j)
+              yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-beamoff(5,imbb(i)))*moidpsv(j)
+              !TODO check for ions?
               ejfv(j)=dpsv(j)*e0f+e0f
-              ejv(j)=sqrt(ejfv(j)**2+pma**2)
+              ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
               
               !We want to go back to sixtrack variables (15.03.2018)
               track6d(5,j) = track6d(5,j)*rvv(j)
-              sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))-           &!hr03
-     &beamoff(3,imbb(i))
+              sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))- beamoff(3,imbb(i))
               
-              if(ithick.eq.1) call envarsv(dpsv,oidpsv,rvv,ekv)
-            enddo
+              if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+            end do
 +cd beam6dfi
           parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               !hr08
 !--Hirata's 6D beam-beam kick
@@ -4778,8 +4724,7 @@
 +ei
 +cd multb05
 +if .not.tilt
-                        y(j,2)=y(j,2)-((dki(ix,2)*dps(j))*c1e3)/(one+dps&!hr03
-     &(j))
+                        y(j,2)=y(j,2)-((dki(ix,2)*dps(j))*c1e3)/(one+dps(j))
 +ei
 +if tilt
                             y(j,1)=(y(j,1)+(((dki(ix,2)*dps(j))*c1e3)*  &!hr03
@@ -4797,10 +4742,8 @@
                           y(j,2)=y(j,2)-yv2j*odps1
 +ei
 +if tilt
-                          y(j,1)=y(j,1)-(tiltc(i)*yv1j-tilts(i)*yv2j)   &
-     &*odps1
-                          y(j,2)=y(j,2)-(tiltc(i)*yv2j+tilts(i)*yv1j)   &
-     &*odps1
+                          y(j,1)=y(j,1)-(tiltc(i)*yv1j-tilts(i)*yv2j)*odps1
+                          y(j,2)=y(j,2)-(tiltc(i)*yv2j+tilts(i)*yv1j)*odps1
 +ei
 +cd multb10
 +if .not.tilt
@@ -4808,56 +4751,52 @@
                         y(j,2)=y(j,2)-aai(i,1)*odps1
 +ei
 +if tilt
-                        y(j,1)=y(j,1)-(tiltc(i)*bbi(i,1)-               &
-     &tilts(i)*aai(i,1))*odps1
-                        y(j,2)=y(j,2)-(tiltc(i)*aai(i,1)+               &
-     &tilts(i)*bbi(i,1))*odps1
+                        y(j,1)=y(j,1)-(tiltc(i)*bbi(i,1)-tilts(i)*aai(i,1))*odps1
+                        y(j,2)=y(j,2)-(tiltc(i)*aai(i,1)+tilts(i)*bbi(i,1))*odps1
 +ei
 +cd mul4v01
 +if .not.tilt
-            yv(1,j)=yv(1,j)-((strack(i)*xlvj)*oidpsv(j)                 &!hr03
-     &+dpsv1(j))*dki(ix,1)
+            yv(1,j)=yv(1,j)-((strack(i)*xlvj)*moidpsv(j)+(omoidpsv(j)+dpsv1(j)))*dki(ix,1)
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)-(((strack(i)*xlvj)*oidpsv(j)               &!hr03
-     &+dpsv1(j))*dki(ix,1))*tiltc(i))                                   &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*(one-tiltc(i))                       !hr03
-            yv(2,j)=(yv(2,j)-(((strack(i)*xlvj)*oidpsv(j)               &!hr03
-     &+dpsv1(j))*dki(ix,1))*tilts(i))                                   &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*tilts(i)                             !hr03
+            yv(1,j)=(yv(1,j)-((((strack(i)*xlvj)*moidpsv(j))            &
+     &+(omoidpsv(j)+dpsv1(j)))*dki(ix,1))*tiltc(i))                     &
+     &+(((c1e3*dki(ix,1))*moidpsv(j))*(one-tiltc(i)))         ! hisix
+
+            yv(2,j)=(yv(2,j)-((((strack(i)*xlvj)*oidpsv(j))*mtc(j)      &
+     &+omoidpsv(j)+dpsv1(j))*dki(ix,1))*tilts(i))                       &
+     &+(((c1e3*dki(ix,1))*oidpsv(j))*tilts(i))*mtc(j)         ! hisix
+
 +ei
 +cd mul4v02
 +if .not.tilt
-            yv(1,j)=yv(1,j)-strack(i)*dpsv1(j)
+            yv(1,j)=yv(1,j)-strack(i)*(omoidpsv(j)+dpsv1(j))
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)-strackc(i)*dpsv1(j))                       &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*(one-tiltc(i))                       !hr03
-            yv(2,j)=(yv(2,j)-stracks(i)*dpsv1(j))                       &!hr03
-     &+((c1e3*dki(ix,1))*oidpsv(j))*tilts(i)                             !hr03
+            yv(1,j)=(yv(1,j)-strackc(i)*(dpsv1(j) + omoidpsv(j)))+((c1e3*dki(ix,1))*moidpsv(j))*(one-tiltc(i))         ! hisix
+            yv(2,j)=(yv(2,j)-stracks(i)*(dpsv1(j) + omoidpsv(j)))+((c1e3*dki(ix,1))*moidpsv(j))*tilts(i)               ! hisix
 +ei
 +cd mul4v03
 +if .not.tilt
-            yv(2,j)=yv(2,j)-((strack(i)*zlvj)* oidpsv(j)                &!hr03
-     &-dpsv1(j))*dki(ix,2)
+            yv(2,j)=yv(2,j)-((strack(i)*zlvj)*moidpsv(j)-dpsv1(j)-omoidpsv(j))*dki(ix,2)
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)+(((strack(i)*zlvj)*oidpsv(j)               &!hr03
-     &-dpsv1(j))*dki(ix,2))*tilts(i))                                   &!hr03
-     &+((c1e3*dki(ix,2))*oidpsv(j))*tilts(i)                             !hr03
-            yv(2,j)=(yv(2,j)-(((strack(i)*zlvj)*oidpsv(j)               &!hr03
-     &-dpsv1(j))*dki(ix,2))*tiltc(i))                                   &!hr03
-     &-((c1e3*dki(ix,2))*oidpsv(j))*(one-tiltc(i))                       !hr03
+            yv(1,j)=(yv(1,j)+(((strack(i)*zlvj)*moidpsv(j)              & ! hisix
+     &-dpsv1(j)-omoidpsv(j))*dki(ix,2))*tilts(i))                       & ! hisix
+     &+((c1e3*dki(ix,2))*moidpsv(j))*tilts(i)
+            yv(2,j)=(yv(2,j)-(((strack(i)*zlvj)*moidpsv(j)              & ! hisix
+     &-dpsv1(j)-omoidpsv(j))*dki(ix,2))*tiltc(i))                       &
+     &-((c1e3*dki(ix,2))*moidpsv(j))*(one-tiltc(i))
 +ei
 +cd mul4v04
 +if .not.tilt
-            yv(2,j)=yv(2,j)+strack(i)*dpsv1(j)
+            yv(2,j)=yv(2,j)+strack(i)*(dpsv1(j)+omoidpsv(j)) ! hisix
 +ei
 +if tilt
-            yv(1,j)=(yv(1,j)-stracks(i)*dpsv1(j))                       &!hr03
-     &+((c1e3*dki(ix,2))*oidpsv(j))*tilts(i)                             !hr03
-            yv(2,j)=(yv(2,j)+strackc(i)*dpsv1(j))                       &!hr03
-     &-((c1e3*dki(ix,2))*oidpsv(j))*(one-tiltc(i))                       !hr03
+            yv(1,j)=(yv(1,j)-stracks(i)*(dpsv1(j)+omoidpsv(j)))         &!hisix
+     &+((c1e3*dki(ix,2))*moidpsv(j))*tilts(i)                            !hisix
+            yv(2,j)=(yv(2,j)+strackc(i)*(dpsv1(j)+omoidpsv(j)))         &!hisix
+     &-((c1e3*dki(ix,2))*moidpsv(j))*(one-tiltc(i))                      !hisix
 +ei
 +cd mul4v05
 +if time
@@ -4899,42 +4838,40 @@
 +ei
 +cd mul4v07
 +if .not.tilt
-              yv(1,j)=yv(1,j)+yv1j*oidpsv(j)
-              yv(2,j)=yv(2,j)+yv2j*oidpsv(j)
+              yv(1,j)=yv(1,j)+yv1j*moidpsv(j)   ! hisix
+              yv(2,j)=yv(2,j)+yv2j*moidpsv(j)   ! hisix
 +ei
 +if tilt
-              yv(1,j)=yv(1,j)+(tiltc(i)*yv1j-tilts(i)*yv2j)*oidpsv(j)
-              yv(2,j)=yv(2,j)+(tiltc(i)*yv2j+tilts(i)*yv1j)*oidpsv(j)
+              yv(1,j)=yv(1,j)+(tiltc(i)*yv1j-tilts(i)*yv2j)*moidpsv(j) ! hisix
+              yv(2,j)=yv(2,j)+(tiltc(i)*yv2j+tilts(i)*yv1j)*moidpsv(j) ! hisix
 +ei
 +cd mul4v08
 +if .not.tilt
 +if time
               yv(1,j)=yv(1,j)+(bbiv(1,1,i)*expt                         &
-     &+bbiv35(1,1,i)*(one-expt))*oidpsv(j)                               !hr03
+     &+bbiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
               yv(2,j)=yv(2,j)+(aaiv(1,1,i)                              &
-     &+aaiv35(1,1,i)*(one-expt))*oidpsv(j)                               !hr03
+     &+aaiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
 +ei
 +if .not.time
-              yv(1,j)=yv(1,j)+bbiv(1,1,i)*oidpsv(j)
-              yv(2,j)=yv(2,j)+aaiv(1,1,i)*oidpsv(j)
+              yv(1,j)=yv(1,j)+bbiv(1,1,i)*moidpsv(j) ! hisix
+              yv(2,j)=yv(2,j)+aaiv(1,1,i)*moidpsv(j) ! hisix
 +ei
 +ei
 +if tilt
 +if time
               yv(1,j)=yv(1,j)+(tiltc(i)*(bbiv(1,1,i)*expt               &
-     &+bbiv35(1,1,i)*(one-expt))-                                       &!hr03
-     &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hr03
-     &*oidpsv(j)
+     &+bbiv35(1,1,i)*(one-expt))-                                       &!hisix
+     &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hisix
+     &*moidpsv(j)
               yv(2,j)=yv(2,j)+(tiltc(i)*(aaiv(1,1,i)*expt               &
-     &+aaiv35(1,1,i)*(one-expt))+                                       &!hr03
-     &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hr03
-     &*oidpsv(j)
+     &+aaiv35(1,1,i)*(one-expt))+                                       &!hisix
+     &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hisix
+     &*moidpsv(j)
 +ei
 +if .not.time
-              yv(1,j)=yv(1,j)+(tiltc(i)*bbiv(1,1,i)-                    &
-     &tilts(i)*aaiv(1,1,i))*oidpsv(j)
-              yv(2,j)=yv(2,j)+(tiltc(i)*aaiv(1,1,i)+                    &
-     &tilts(i)*bbiv(1,1,i))*oidpsv(j)
+              yv(1,j)=yv(1,j)+(tiltc(i)*bbiv(1,1,i)-tilts(i)*aaiv(1,1,i))*moidpsv(j)
+              yv(2,j)=yv(2,j)+(tiltc(i)*aaiv(1,1,i)+tilts(i)*bbiv(1,1,i))*moidpsv(j)
 +ei
 +ei
 +cd mul6v01
@@ -5294,7 +5231,8 @@
                   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
                   dpsv(j)=(ejfv(j)-e0f)/e0f
                   oidpsv(j)=one/(one+dpsv(j))
-                  dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                      !hr03
+                  moidpsv(j)=mtc(j)/(one+dpsv(j))
+                  dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)*mtc(j)                      !hr03
 cc2008
                   namepart(j) = samplenumber*100 + j
 cc2008
@@ -5577,6 +5515,10 @@ cc2008
 !       call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
 !     endif
 +ei
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 07-03-2018
+        ! store old particle coordinates
+        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,kz(jx))
 +cd sqrtfox0
 +if rvet
 !FOX  RVET=C1E3*PMA*PMA*(TWO+DPDA)*DPDA/E0/(ONE+DPDA) ;
@@ -5621,77 +5563,6 @@ cc2008
             sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)   &!hr03
      &**2)+yv(2,j)**2))                                                  !hr03
 +ei
-
-+cd lostpart
-!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!         last modified: 17-07-2013
-!         on-line aperture check
-!         always in main code
-          call lostpart(n, i, ix, llost, nthinerr )
-!         stop tracking if no particle survives to this element
-          if(nthinerr.ne.0) return
-+if backtrk
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 24-11-2016
-!         store old infos for back-tracking at aperture check at downstream locations
-!         inserted in main code by the 'backtrk' compilation flag
-          if ( kape(ix).ne.0 ) then
-!           Store old s value
-            sold  =  dcum(i)
-!           Store information of aperture
-            kapold = kape(ix)
-            do j=1,7
-              apold(j) = ape(j,ix)
-            end do
-          end if
-+ei
-
-+cd backtrkinit
-
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 24-11-2016
-!     initialise variables for back-tracking particles
-!     inserted in main code by the 'backtrk' compilation flag
-!     . store 'old' angle of particles
-      do j=1,napx
-        yold(1,j) = yv(1,j)
-        yold(2,j) = yv(2,j)
-      end do
-!     . store 'old' s value
-      sold = dcum(0)
-!     . store information of aperture
-!       force general aperture, i.e. RE with aper(1) and aper(2)
-!       assumption: tracked particles do not fall outside aperture
-!         limits in the first elements...
-      kapold = 2
-      do j=1,7
-         apold(j) = zero
-      end do
-      apold(1) = aper(1)
-      apold(2) = aper(2)
-      apold(3) = sqrt(two)*aper(1)
-      apold(4) = sqrt(two)*aper(2)
-      if ( ktrack(1).ne.1 ) then
-         if ( kape(ic(1)-nblo).ne.0 ) then
-!        the first entry of the lattice sequence is a 
-!           SINGLE ELEMENT, to which an aperture profile
-!           is assigned
-            kapold = kape(ic(1)-nblo)
-            do j=1,7
-               apold(j) = ape(j,ic(1)-nblo)
-            end do
-         endif
-      endif
-+cd backtrksave
-
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 24-11-2016
-!         store old angle of particles
-!         inserted in main code by the 'backtrk' compilation flag
-          do j=1,napx
-            yold(1,j) = yv(1,j)
-            yold(2,j) = yv(2,j)
-          end do
 
 +cd umlalid
           iwrite=0
@@ -7603,6 +7474,12 @@ cc2008
 !     allways in main code
       open(999)
 
+!     P. HERMES - hisix
+!     heavy-ion specific output
+      open(208)                  ! collimator losses (energy)
+      open(209)                  ! collimator losses in function of particle i
+      open(210)                  ! mtc after each collimator interaction
+
 ! END of +cd open
 
 +cd flukaclose
@@ -8029,7 +7906,11 @@ cc2008
 !     close unit where lostpart has dumped lost particles
 !     always in main code
       close(999)
-      
+
+      close(208) ! hisix
+      close(209) ! hisix
+      close(210) ! hisix debugging
+
       return
       end subroutine
 
@@ -10566,10 +10447,12 @@ end subroutine hamilton1
       use mod_common
       use mod_commons
 
+      use mod_hions
       use mod_alloc
 
       use elens
       use wire
+
       implicit none
 
       integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
@@ -10581,8 +10464,7 @@ end subroutine hamilton1
       integer ifiend35
       real(kind=fPrec) tcnst
 +ei
-      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,                     &
-     &ap11,ap22,ap33,ap44,apang,ofxx,ofzz,apxx,apzz,bk0d,bkad,          &
+      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,           &
      &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
      &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
      &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
@@ -10648,7 +10530,8 @@ end subroutine hamilton1
 +ca parbeam_exp
 +ca dbreaddis
 
-      ! Fluka related, might be best to lock to real64
+
+      !Fluka related, might be best to lock to real64
       real(kind=fPrec) tmpamplfact, tmplen
 
       ! some temp vars for parsing block lines
@@ -10686,6 +10569,10 @@ end subroutine hamilton1
 !     - root output:
       character(len=4) root
       data root /'ROOT'/
+!     hisix
+!     add block for input of heavy-ion properties
+      character(len=4) hion
+      data hion /'HION'/
 
 +if crlibm
       real(kind=fPrec) round_near
@@ -10693,6 +10580,7 @@ end subroutine hamilton1
 
       logical lapefound
       logical lerr1
+      logical lexist
 
       save
 !-----------------------------------------------------------------------
@@ -10846,12 +10734,18 @@ end subroutine hamilton1
       ise=0
       iskew=0
       preda=c1m38
+!hion
+      zz0 = 1
+      aa0 = 1
+      nucm0 = pmap
 +if .not.collimat
       do_coll = .false.
 +ei
 +if collimat
       has_coll = .false.
 +ei
+      has_hion = .false.
+
    90 read(3,10010,end=1530,iostat=ierro) idat,ihead
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
@@ -10937,6 +10831,9 @@ end subroutine hamilton1
       !Reserved:
       !DIST = 2600
       !HION = 2700
+!     hisix heavy ion input block
+      if(idat.eq.hion) goto 2700
+
       if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
       if(idat.eq.root) goto 3000
@@ -12470,6 +12367,7 @@ end subroutine hamilton1
         write(lout,*)
       endif
       if(pma.lt.pieni) call prror(27)
+      nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
       if(ncy2.eq.0) then
@@ -13593,238 +13491,289 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
 !  APERTURE LIMITATIONS
 !  A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!  last modified: 14-01-2015
+!  JMolson (CERN, BE-ABP-HSS)
+!  last modified: 02-03-2018
 !  original LIMI block extended to deal with RectEllipse, Octagon and
 !     RaceTrack aperture types, and with offset/tilting of profile
 !  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
   950 continue
-      loadunit = 3
-  951 continue
-      read(loadunit,10020,end=952,iostat=ierro) ch
+!     loadunit is initialised to 3 in aperture_comnul
+      read(loadunit,10020,end=951,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 951
+      if(ch(1:1).eq.'/') goto 950 ! skip comment lines
 
-!  P.G.Ortega, 14-01-2015, reading apertures from external file
-      if(ch(:4).eq.'LOAD') then
-        call intepr(5,1,ch,ch1)
-        read(ch1,*) idat, loadunit, load_file
-        inquire( file=load_file, exist=lexist )
-        if ( .not. lexist ) then
-            write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
-     &      "IN THE RUNNING FOLDER"
-            call prror(-1)
-        endif
-        if(load_file .ne. ' ') then
-           open(loadunit,file=load_file,form='formatted') 
-           write(lout,*) 'APERTURES READ FROM FILE: ',load_file
-        else
-           open(loadunit,form='formatted')
-           write(lout,*) 'APERTURES READ FROM FILE: fort.',loadunit
-        endif
-        goto 951
-      endif
+      ! We don't support FIO, since it's not supported by any compilers...
++if fio
+      write(lout,*)'ERROR in LIMI block: fortran IO format currently'// &
+     &       ' not supported!'
+      call prror(-1)
++ei
+      
+!     LIMI block naturally activates backtracking, unless explicitly
+!       requested by user
+      lbacktracking=.true.
 
-!  P.G.Ortega,  04-07-2014, flag for dumping the aperture model
-      if(ch(:4).eq.prin) then
-        call intepr(5,1,ch,ch1)
-        read(ch1,*) idat, aperunit, aper_filename
-        ldmpaper  = .true.
-        goto 951
-      endif
-
-!  P.G.Ortega,  14-08-2014, flag for saving particles at aperture check
-      if(ch(:4).eq.'SAVE') then
-        apflag  = .true.
-        goto 951
-      endif
-
+!     P.G.Ortega and A.Mereghetti, 02-03-2018
+!     'next': echo aperture profiles
       if(ch(:4).eq.next) then
         if ( limifound ) then
           write(lout,10320)
-!         dump all elements found:
           do ii=1,il
-            if( kape(ii).eq.1 ) then
-              irel=circ
-            else if( kape(ii).eq.2 ) then
-              irel=rect
-            else if( kape(ii).eq.3 ) then
-              irel=elli
-            else if( kape(ii).eq.4 ) then
-              irel=reel
-            else if( kape(ii).eq.5 ) then
-              irel=octa
-            else if( kape(ii).eq.6 ) then
-              irel=ratr
-            end if
-
-            if ( kape(ii) .ne. 0 ) then
-              write(lout,10330)                                         &
-     &           bez(ii), irel, ape(1,ii), ape(2,ii), ape(3,ii),        &
-     &               ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
-            endif
+            if ( kape(ii).ne.0 ) write(lout,10330) bez(ii),      &
+     &       apeName(kape(ii)), ape(1,ii), ape(2,ii), ape(3,ii), &
+     &           ape(4,ii), ape(5,ii), ape(6,ii), ape(7,ii)
           enddo
-+if backtrk
-!         A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!         last modified: 12-06-2014
-!         echo precision for back-tracking, when computing locations of lost
-!            particles
-!         inserted in main code by the 'backtrk' compilation flag
-          write(lout,*)''
-          write(lout,*)'       back-tracking at aperture LIMIs is on'
-          write(lout,*)'            with precision [m]:',bktpre
-          write(lout,*)''
-+ei
+!         A.Mereghetti and P.Garcia Ortega, 12-06-2014
+!         echo precision for back-tracking
+          if (lbacktracking) then
+            write(lout,*)' --> back-tracking at aperture LIMIs is on,'//&
+     &' with precision [m]:',bktpre
+          else
+            write(lout,*)' --> no back-tracking, only checks at aperture LIMIs'
+          endif
         else
-          write(lout,                                                   &
-     &        '(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
+          write(lout,'(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
+          lbacktracking=.false.
         endif
         goto 110
-      endif
-      ap11=zero
-      ap22=zero
-      ap33=zero
-      ap44=zero
-      apang=zero
-      ofxx=zero
-      ofzz=zero
 
-+if .not.backtrk
-      if(ch(:4).eq.'PREC') then
-        write(lout,*)
-        write(lout,*) 'WARNING: PREC statement active only in case'
-        write(lout,*) '  backtrc pre-processing is on; ignoring...'
-        write(lout,*)
-        goto 951
-      endif
-+ei
-+if backtrk
-!     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 12-06-2014
-!     set precision for back-tracking, when computing locations of lost
-!         particles
-!     inserted in main code by the 'backtrk' compilation flag
-      if(ch(:4).eq.'PREC') then
-        call intepr(1,1,ch,ch1)
-        read(ch1,*) idat, tmplen
-        if ( tmplen.le.zero ) then
-          write(lout,*) 'WARNING: Wrong precision value: ', tmplen
-          write(lout,*) '  in LIMI input block, ignoring...'
-          write(lout,*) '  Using default [m]: ', bktpre
-        else
-           bktpre = tmplen
+      else
+
+        call getfields_split( ch, getfields_fields, getfields_lfields,  &
+     &        getfields_nfields, getfields_lerr )
+        if ( getfields_lerr ) then
+          write(lout,*)'ERROR in LIMI block: getfields_lerr=', getfields_lerr, &
+     &    ' at line: ',ch
+          call prror(-1)
         endif
-        goto 951
-      endif
-+ei
-      call intepr(8,1,ch,ch1)
-+if fio
-+if crlibm 
-      call enable_xp()
-+ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
-+ei
 
-+if .not.fio
+        if(ch(:4).eq.'LOAD') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! reading apertures from external file
+          if(getfields_nfields.lt.3) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &       'parameters for keywor LOAD: ninput = ', getfields_nfields, ' != 3 (min)'
+            call prror(-1)
+          endif
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) loadunit
+          read (getfields_fields(3)(1:getfields_lfields(3)),*) load_file
+          inquire( file=load_file, exist=lexist )
+          if (.not.lexist ) then
+             write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
+     &       "IN THE RUNNING FOLDER"
+             call prror(-1)
+          endif
+          open(loadunit,file=load_file,form='formatted') 
+          write(lout,*) 'APERTURES READ FROM FILE: ',load_file,' - UNIT: ',loadunit
+
+        elseif(ch(:4).eq.'PRIN') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! flag for dumping the aperture model
+          if(getfields_nfields.lt.3) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &         'parameters for keyword PRIN: ninput = ', getfields_nfields, ' != 3 (min)'
+            call prror(-1)
+          endif
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) aperunit
+          read (getfields_fields(3)(1:getfields_lfields(3)),*) aper_filename
+          ldmpaper  = .true.
+
+        elseif(ch(:4).eq.'SAVE') then
+          ! P.G.Ortega and A.Mereghetti, 02-03-2018
+          ! flag for saving particles at aperture check
+          apflag  = .true.
+
+        elseif(ch(:4).eq.'BACKTRKOFF') then
+          ! A.Mereghetti, 07-03-2018
+          ! switch off back tracking
+          lbacktracking=.false.
+
+        elseif(ch(:4).eq.'PREC') then
+          ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
+          ! set precision for back-tracking
+          if(getfields_nfields.lt.2) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &         'parameters for keyword PREC: ninput = ', getfields_nfields, ' != 2 (min)'
+            call prror(-1)
+          endif
 +if .not.crlibm
-      read(ch1,*) idat,irel,ap11,ap22,ap33,ap44,apang,ofxx,ofzz
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) tmplen
 +ei
 +if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) irel
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap11=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap22=fround(errno,fields,4)
-          nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap33=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ap44=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        apang=fround(errno,fields,7)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ofxx=fround(errno,fields,8)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ofzz=fround(errno,fields,9)
-        nf=nf-1
-      endif
-
+          tmplen=round_near (errno,getfields_lfields(2)+1, getfields_fields(2))
+          if (errno.ne.0) call rounderr(errno,getfields_fields,2,tmplen)
 +ei
-+ei
-      lapefound=.false.
-      do 970 j=1,il
-      if(idat.ne.bez(j)) goto 970
-      lapefound=.true.
-      ape(1,j)=ap11
-      ape(2,j)=ap22
-      ape(3,j)=ap33
-      ape(4,j)=ap44
-      ape(5,j)=apang
-      ape(6,j)=ofxx
-      ape(7,j)=ofzz
-      if(irel.eq.circ) then !Circle
-        kape(j)=1
-        ape(2,j)=ape(1,j)
-        ape(3,j)=ape(1,j)
-        ape(4,j)=ape(1,j)
-      else if(irel.eq.rect) then !Rectangle
-        kape(j)=2
-!       get ready for a RL-equivalent description
-        ape(3,j)=sqrt(two)*ape(1,j)
-        ape(4,j)=sqrt(two)*ape(2,j)
-      else if(irel.eq.elli) then !Ellipse
-        kape(j)=3
-!       get ready for a RL-equivalent description
-        ape(3,j)=ape(1,j)
-        ape(4,j)=ape(2,j)
-      else if(irel.eq.reel) then !Rectellipse
-        kape(j)=4
-      else if(irel.eq.octa) then !Octagon
-        kape(j)=5
-      else if(irel.eq.ratr) then !Racetrack
-        kape(j)=6
-      else
-        write(lout,*) 'Aperture profile not identified for element ',   &
-     &idat
-        write(lout,*) '  value:', irel
-        call prror(-1)
-      endif
-      if (ape(5,j).ne.zero.or.ape(6,j).ne.zero.or.ape(7,j).ne.zero) then
-         lapeofftlt(j) = .true.
-      endif
-      limifound=.true.
-  970 continue
+          if ( tmplen.le.zero ) then
+            write(lout,*) 'WARNING: Wrong precision value: ', tmplen
+            write(lout,*) '  in LIMI input block, ignoring...'
+            write(lout,*) '  Using default [m]: ', bktpre
+          else
+            bktpre = tmplen
+          endif
 
-      if(.not. lapefound) then
-        write(lout,*)
-        write(lout,*) 'WARNING: Unidentified element ', idat
-        write(lout,*) '  in LIMI input block, ignoring...'
-        write(lout,*)
-      endif
-      goto 951
-  952 continue
-      if ( loadunit .ne. 3 ) then
+        else
+
+          read (getfields_fields(1)(1:getfields_lfields(1)),*) idat
+          lapefound=.false.
+          do j=1,il
+            if(idat.eq.bez(j)) then
+              lapefound=.true.
+              read (getfields_fields(2)(1:getfields_lfields(2)),*) irel
+              select case(irel)
+
+              case (apeName(1)) !Circle
+                if(getfields_nfields.lt.3) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(1)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 3 (min)'
+                  call prror(-1)
+                endif
+                do i=1,1
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=1
+                ape(2,j)=ape(1,j)
+                ape(3,j)=ape(1,j)
+                ape(4,j)=ape(1,j)
+                
+              case (apeName(2)) !Rectangle
+                if(getfields_nfields.lt.4) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(2)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 4 (min)'
+                  call prror(-1)
+                endif
+                do i=1,2
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=2
+                ! get ready for a RL-equivalent description
+                ape(3,j)=sqrt(two)*ape(1,j)
+                ape(4,j)=sqrt(two)*ape(2,j)
+                
+              case (apeName(3)) !Ellipse
+                if(getfields_nfields.lt.4) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(3)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 4 (min)'
+                  call prror(-1)
+                endif
+                do i=1,2
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=3
+                ! get ready for a RL-equivalent description
+                ape(3,j)=ape(1,j)
+                ape(4,j)=ape(2,j)
+                
+              case (apeName(4)) !Rectellipse
+                if(getfields_nfields.lt.6) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(4)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 6 (min)'
+                  call prror(-1)
+                endif
+                ! parse the float descriptors
+                do i=1,4
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=4
+                
+              case (apeName(5)) !Octagon  
+                if(getfields_nfields.lt.6) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(5)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 6 (min)'
+                  call prror(-1)
+                endif
+                do i=1,4
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=5
+                
+              case (apeName(6)) !Racetrack
+                if(getfields_nfields.lt.5) then
+                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
+           &        'for declaring a '//apeName(6)//' aperture marker: ninput = ',          &
+           &        getfields_nfields, ' != 5 (min)'
+                  call prror(-1)
+                endif
+                do i=1,3
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                enddo
+                kape(j)=6
+                
+              case default
+                write(lout,*) 'Aperture profile not identified for element ',idat
+                write(lout,*) '  value:', irel
+                call prror(-1)
+              end select
+             
+              do i=5,7
+                if(getfields_nfields.ge.i+2) then
++if .not.crlibm
+                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) ape(i,j)
++ei
++if crlibm
+                  ape(i,j)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
+                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,ape(i,j))
++ei
+                endif
+                if (ape(i,j).ne.zero) lapeofftlt(j)=.true.
+              end do
+              limifound=.true.
+              exit
+            end if
+          end do
+
+          if(.not.lapefound) then
+            write(lout,*) 'WARNING: Unidentified element ', idat
+            write(lout,*) '  in LIMI input block, ignoring...'
+          end if
+        end if ! specific non-NEXT lines
+      end if ! non-NEXT lines
+      goto 950 ! go to next line to be parsed
+
+  951 continue
+      if ( loadunit.ne.3 ) then
         close(loadunit)
         goto 950
       endif
@@ -16531,6 +16480,21 @@ end subroutine hamilton1
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
 
 !-----------------------------------------------------------------------
+!     P. HERMES 01-07-2015
+!     hisix heavy ion input block
+!-----------------------------------------------------------------------
+ 2700 read(3,10020,end=1530,iostat=ierro) ch
+      if(ierro.gt.0) call prror(58)
+      if(ch(1:1).eq.'/') goto 2700
+      if(ch(:4).eq.next) goto 110
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      read(ch1,*) aa0, zz0, nucm0
+      nucm0 = nucm0  * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+      has_hion = .true.
+      goto 110
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
 !  ZIPF
 !  K. Sjobak, BE-ABP/HSS
 !  Last modified: 7/2-2017
@@ -16681,6 +16645,14 @@ end subroutine hamilton1
          call prror(-1)
       endif
 +ei
+! If we don't have the HION block, we need to set some variables - default to the proton values
+      if(has_hion .eqv. .false.) then
+        zz0 = 1
+        aa0 = 1
+        nucm0 = pma
+        write(lout,*) 'No HION block found, will default to the proton values: [Z,A,M]', zz0, aa0, nucm0
+      end if
+
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il   ! converting 6D lenses to 4D
           if (beam_expflag .eq. 1) then
@@ -19707,8 +19679,7 @@ subroutine runda
 !FOX  CRABAMP=ED(IX) ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
-   
-           
+
 !FOX  Y(1)=Y(1) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT))/(1+DPDA) ;
@@ -22672,6 +22643,7 @@ program maincr
       use mod_commonmn
       use mod_commons
 
+      use mod_hions
       use aperture
       use wire
 
@@ -22770,6 +22742,7 @@ end interface
 
 
 +ca dbreaddis
+
 
       integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
      &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
@@ -23184,20 +23157,6 @@ end interface
         xv(2,i)=zero
         yv(1,i)=zero
         yv(2,i)=zero
-!       P.Garcia Ortega, for the FLUKA Team
-!       last modified: 14-08-2014
-!       additional variables for aperture check, to keep track of lost
-!       particles if they are not killed
-        plost(i)=0
-+if backtrk
-!       A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!       last modified: 12-06-2014
-!       additional variables for back-tracking, when computing locations of
-!          lost particles
-!       inserted in main code by the 'backtrk' compilation flag
-        yold(1,i)=zero
-        yold(2,i)=zero
-+ei
         dam(i)=zero
         ekkv(i)=zero
         sigmv(i)=zero
@@ -23208,6 +23167,14 @@ end interface
         xlv(i)=zero
         zlv(i)=zero
         rvv(i)=one
+!Heavy ion variables
+! P. HERMES for hiSix
+        mtc(i) = one
+        naa(i) = 1
+        nzz(i) = 1
+        nucm(i)= pmap
+        moidpsv(i) = one
+        omoidpsv(i) = zero
 +if rvet
         rvet(i)=zero
 +ei
@@ -23472,12 +23439,51 @@ end interface
           write(lout,10320) m*izu0,nzfz,rmean,rdev
           write(lout,10070)
         endif
-        if(m.eq.1) call ord
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
+        ! possible to re-shuffle lattice structure
+        if(m.eq.1) call orglat
 
-!       A.Mereghetti
-!       last modified: 16-12-2016
-!       initialise aperture of first and last elements of sequence
-!       always in main code
+        ! A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
+        ! last modified: 01-07-2014
+        ! call routine for calculating dcum, necessary for the online
+        !    aperture check and in case of dumping particle population
+        !    or statistics or beam matrix
+        ! always in main code
+        call cadcum
+        if(idp.ne.0.and.ition.ne.0) then !6D tracking
+           if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
+              write(lout,'(1x,a)')                                        &
+     &             "WARNING: Problem with SYNC block detected"
+              write(lout,'(1x,a,f17.10)')                                 &
+     &             "TLEN in sync block =",tlen
+              write(lout,'(1x,a,f17.10)')                                 &
+     &             "Length from DCUM   =",dcum(iu+1)
+              write(lout,'(1x,a,f17.10)')                                 &
+     &             "Difference         =",dcum(iu+1)-tlen
+              write(lout,'(1x,a,e27.16,a)')                               &
+     &             "Relative error     =",                                &
+     &             2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
+              write(lout,'(1x,a,f17.10,a)')                               &
+     &             "Tolerance eps_dcum =", eps_dcum, " [m]"
+              write(lout,'(1x,a)')                                        &
+     &             "Please fix the TLEN parameter in your SYNC block"
+              write(lout,'(1x,a)')                                        &
+     &             "so that it matches the "//                            &
+     &             " calculated machine length from DCUM."
+              write(lout,'(1x,a)')                                        &
+     &             "If incorrect, the RF frequency"//                     &
+     &             " may be (slightly) wrong."
+        
+              !It's a warning not an error, and the consequences seem relatively small.
+              !Ideally, tlen should be calculated automatically based on the sequence.
+              !call prror(-1)
+           endif
+        else
+           tlen=dcum(iu+1)
+        endif
+
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
+        ! initialise aperture of first and last elements of sequence
         if (limifound) then
            write(lout,*) ' check that beginning/end of lattice'//       &
      &' structure is assigned aperture markers...'
@@ -23485,20 +23491,22 @@ end interface
         end if
 
 +if fluka
-!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!       last modified: 01-12-2016
-!       check integrity of coupling markers
-!       inserted in main code by the 'fluka' compilation flag
+        ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+        ! last modified: 01-12-2016
+        ! check integrity of coupling markers
+        ! inserted in main code by the 'fluka' compilation flag
         if (fluka_enable) call check_coupling_integrity
 +ei
 
-!       P. G. Ortega, for the FLUKA Team
-!       last modified: 01-07-2014
-!       dump aperture model
-!       always in main code
-        if (ldmpaper) then
-          call dump_aperture_model
-        endif
+        ! P. G. Ortega, for the FLUKA Team
+        ! last modified: 01-07-2014
+        ! dump aperture model
+        ! always in main code
+        if (ldmpaper) call dump_aperture_model
+
+        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
+        ! map errors, now that the sequence is no longer going to change
+        if(m.eq.1) call ord
 
         call clorb(ded)
 
@@ -23995,7 +24003,8 @@ end interface
             write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
      &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
           endif
-          do 240 ib1=1,napx
+
+          do ib1=1,napx
             !Loop over all particles (not pairs) with the same
             ! ib (momentum variation, 1..imc ) and
             !  m (seed,               1..mmac).
@@ -24010,21 +24019,28 @@ end interface
             alf0v(ib2,1)=alf0(1)
             alf0v(ib2,2)=alf0(2)
             ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
-            if (ib1.eq.napx-1 .and. ib1.ne.1) then
-               !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
-               ! This is helpfull when doing DA studies and checking the "overlap"
-               ampv(ib2)=amp0
-            endif
+
+            if(ib1.eq.napx-1 .and. ib1.ne.1) then
+              !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
+              ! This is helpfull when doing DA studies and checking the "overlap"
+              ampv(ib2)=amp0
+            end if
+
             dp0v(ib2)=dp10
             dpsv(ib2)=dp10
             oidpsv(ib2)=one/(one+dp1)
+! Heavy ion variable
+            moidpsv(ib2)=mtc(ib2)/(one+dp1)
             nms(ib2)=m
-            if (ithick.eq.1) then
-               do 230 i=1,nele
-                  ekv(ib2,i)=ek(i)
- 230           continue
-            endif
-  240     continue
+
+            if(ithick.eq.1) then
+              do i=1,nele
+                ekv(ib2,i)=ek(i)
+              end do
+            end if
+
+          end do
+
           ib0=ib0+napx
   250   continue
   260 continue
@@ -24130,9 +24146,11 @@ end interface
           call prror(-1)
         endif
 
-        e0f=sqrt(e0**2-pma**2)
+!        e0f=sqrt(e0**2-pma**2)
+        e0f=sqrt(e0**2-nucm0**2)       ! hisix
 
-        call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) )
+        call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
+& ,naa(:), nzz(:), nucm(:) )      ! hisix
 
 !       finalise beam distribution creation
         do j=1, napx
@@ -24141,9 +24159,17 @@ end interface
           pstop (j) = .false.
 
 !         values related to momentum
-          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
-          dpsv  (j) = (ejfv(j)-e0f)/e0f
-          oidpsv(j) = one/(one+dpsv(j))
+!         old proton only terms:
+!          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
+!          dpsv  (j) = (ejfv(j)-e0f)/e0f
+!          oidpsv(j) = one/(one+dpsv(j))
+
+          ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)              ! hiSix
+          dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hiSix
+          oidpsv(j)   = one/(one+dpsv(j))
+          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))  
+          moidpsv (j) = mtc(j)*oidpsv(j)
+          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
 
 !         check existence of on-momentum particles in the distribution
           if ( abs(dpsv(j)).lt.c1m15 .or.  abs( (ejv(j)-e0)/e0 ) .lt.c1m15 ) then
@@ -24154,8 +24180,10 @@ end interface
             write(lout,'(5X,10X,4(1X,A25))') "momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
             write(lout,'(5X,"ORIGINAL: ",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
 
-            ejfv(j)   = e0f
-            ejv(j)    = e0
+!            ejfv(j)   = e0f
+!            ejv(j)    = e0
+            ejfv(j)   = e0f*(nucm(j)/nucm0)          ! P. HERMES for hiSix
+            ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)  ! P. HERMES for hiSix
             dpsv(j)   = zero
             oidpsv(j) = one
 
@@ -24164,6 +24192,18 @@ end interface
             write(lout,*)''
           endif
         end do
+
+! hisix
+        write(lout,*) 'Heavy-Ion SixTrack'
+        write(lout,*) '------------------'
+        write(lout,*) 'Reference ion species: [A,Z,M]', aa0, zz0, nucm0
+        write(lout,*) 'Reference energy [Z TeV]: ', c1m6*e0/zz0
+
+! hisix - debugging
+!        write(lout,*) 'Properties of tracked ion bunch [A,Z,E(MeV)], etc'
+!        do j=1,napx
+!          write(lout,*) naa(j),nzz(j),e0f*(nucm(j)/nucm0), ejfv(j), mtc(j), dpsv(j), ejv(j)
+!        end do
 
 !       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !       last modified: 07-02-2014
@@ -24182,6 +24222,13 @@ end interface
           ejv   (j) = zero
           dpsv  (j) = zero
           oidpsv(j) = one
+
+          mtc   (j) = one         ! P. HERMES for hiSix
+          naa   (j) = aa0
+          nzz   (j) = zz0
+          nucm  (j) = nucm0
+          moidpsv (j) = one
+          omoidpsv(j) = zero      ! P. HERMES for hiSix
         enddo
 
 !       add closed orbit
@@ -24194,6 +24241,8 @@ end interface
             sigmv(j)=sigmv(j)+clo6v(3,j)
             dpsv(j)=dpsv(j)+clop6v(3,j)
             oidpsv(j)=one/(one+dpsv(j))
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
+            omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
           end do
         end if
 
@@ -24201,8 +24250,8 @@ end interface
         if ( dist_echo ) then
            open(unit=dist_echo_unit)
            rewind(dist_echo_unit)
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # total energy of synch part [MeV]: ", e0
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " # momentum of synch part [MeV/c]: ", e0f
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " total energy of synch part [MeV]: ", e0
+           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " momentum of synch part [MeV/c]: ", e0f
            write(dist_echo_unit,*) '#'
            write(dist_echo_unit,*) '# for every particle (j)'
            write(dist_echo_unit,*) '# xv(1), yv(1), xv(2), yv(2), sigmv, ejfv'
@@ -24318,6 +24367,14 @@ end interface
           ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
+
+          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
+          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
+          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
+          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
+          nucm(ia)=nucm0
+          nucm(ia+1)=nucm0
+
           write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 +if .not.crlibm
@@ -24497,11 +24554,19 @@ end interface
 
 +ei
           if(ierro.ne.0) call prror(56)
-          e0f=sqrt(e0**2-pma**2)                                         !hr05
-          ejfv(ia)=sqrt(ejv(ia)**2-pma**2)                               !hr05
-          ejfv(ia+1)=sqrt(ejv(ia+1)**2-pma**2)                           !hr05
+          mtc(ia)=one
+          mtc(ia+1)=one
+          nucm(ia)=nucm0
+          nucm(ia+1)=nucm0
+          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
+          ejfv(ia)=sqrt(ejv(ia)**2-nucm(ia)**2)                               !hr05
+          ejfv(ia+1)=sqrt(ejv(ia+1)**2-nucm(ia+1)**2)                           !hr05
           oidpsv(ia)=one/(one+dpsv(ia))
           oidpsv(ia+1)=one/(one+dpsv(ia+1))
+          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
+          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
+          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
+          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
         if ( idfor.ne.3 ) then
         write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
@@ -24655,7 +24720,7 @@ end interface
 
   if(ithick.eq.1) then
 !------ Compute matrices for linear tracking
-    call envarsv(dpsv,oidpsv,rvv,ekv)
+    call envarsv(dpsv,moidpsv,rvv,ekv)
     if(idp.eq.0 .or. ition.eq.0) then
 ! ------- Only in case of thck4d
       call blocksv
@@ -24698,7 +24763,7 @@ end interface
         flush(lout)
         flush(fluka_log_unit)
 
-        fluka_con = fluka_set_synch_part( e0, e0f, pma, 1 )
+        fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
 
         if (fluka_con .lt. 0) then
           write(lout, *) '[Fluka] Error: failed to update ref particle'
@@ -24713,43 +24778,6 @@ end interface
       endif
 
 +ei
-
-!     A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 01-07-2014
-!     call routine for calculating dcum, necessary for the online
-!        aperture check and in case of dumping particle population
-!        or statistics or beam matrix
-!     always in main code
-      call cadcum
-      if(idp.ne.0.and.ition.ne.0) then !6D tracking
-         if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
-            write(lout,'(1x,a)')                                        &
-     &           "WARNING: Problem with SYNC block detected"
-            write(lout,'(1x,a,f17.10)')                                 &
-     &           "TLEN in sync block =",tlen
-            write(lout,'(1x,a,f17.10)')                                 &
-     &           "Length from DCUM   =",dcum(iu+1)
-            write(lout,'(1x,a,f17.10)')                                 &
-     &           "Difference         =",dcum(iu+1)-tlen
-            write(lout,'(1x,a,e27.16,a)')                               &
-     &           "Relative error     =",                                &
-     &           2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
-            write(lout,'(1x,a,f17.10,a)')                               &
-     &           "Tolerance eps_dcum =", eps_dcum, " [m]"
-            write(lout,'(1x,a)')                                        &
-     &           "Please fix the TLEN parameter in your SYNC block"
-            write(lout,'(1x,a)')                                        &
-     &           "so that it matches the "//                            &
-     &           " calculated machine length from DCUM."
-            write(lout,'(1x,a)')                                        &
-     &           "If incorrect, the RF frequency"//                     &
-     &           " may be (slightly) wrong."
-
-            !It's a warning not an error, and the consequences seem relatively small.
-            !Ideally, tlen should be calculated automatically based on the sequence.
-            !call prror(-1)
-         endif
-      endif
 
 !     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
 !     K. Sjobak, for BE/ABP-HSS
@@ -25831,6 +25859,8 @@ subroutine thin4d(nthinerr)
   use mod_fluka
 +ei
 
+  use mod_hions
+
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -25895,9 +25925,11 @@ subroutine thin4d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
   ! A.Mereghetti, for the FLUKA Team
   ! last modified: 14-06-2014
@@ -25986,9 +26018,10 @@ subroutine thin4d(nthinerr)
           if(fluka_type(ix).ne.FLUKA_NONE) then
             if(fluka_type(ix).eq.FLUKA_ELEMENT) then
               call kernel_fluka_element( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 620
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -25997,9 +26030,10 @@ subroutine thin4d(nthinerr)
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 620
             end if
           end if
@@ -26030,9 +26064,10 @@ subroutine thin4d(nthinerr)
         else
 +ca ex4Ddrift
         end if
-+if backtrk
-+ca backtrksave
-+ei
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 07-03-2018
+        ! store old particle coordinates
+        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
       case (3)
 +ca trom40
@@ -26390,7 +26425,18 @@ subroutine thin4d(nthinerr)
         
 !----------------------------
 620 continue
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
 625 continue
     if (.not. ldumpfront) then
@@ -26399,9 +26445,7 @@ subroutine thin4d(nthinerr)
 
 630 continue
 
-!        call lostpart(nthinerr)
-!        if(nthinerr.ne.0) return
-
+    if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
     if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -26463,6 +26507,8 @@ subroutine thin6d(nthinerr)
   use mod_fluka
 +ei
 
+  use mod_hions
+
 +if collimat
   use collimation
 +ei
@@ -26523,18 +26569,12 @@ subroutine thin6d(nthinerr)
 +ca comgetfields
 +ca elenstracktmp
 +ca dbdcum
-  real(kind=fPrec) dEpTur
   save
 
 +if fast
   c5m4=5.0e-4_fPrec
 +ei
   nthinerr=0
-
-  ! fluka
-  ! dE per turn [MeV]
-  dEpTur=zero
-  write(lout,*)'-->dEpTur[MeV]:',dEpTur
 
 +if bnlelens
 !GRDRHIC
@@ -26545,9 +26585,11 @@ subroutine thin6d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
   ! A.Mereghetti, for the FLUKA Team
   ! last modified: 14-06-2014
@@ -26589,20 +26631,6 @@ subroutine thin6d(nthinerr)
     call collimate_start_turn(n)
 +ei
     numx=n-1
-
-    if (dEpTur.ne.zero) then
-      do j=1,napx
-        ejf0v(j)=ejfv(j)
-        ejv(j)=ejv(j)-dEpTur
-        ejfv(j)=sqrt(ejv(j)**2-pma**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-        yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      end do
-    end if
 
 +if .not.fluka
     if(mod(numx,nwri).eq.0) call writebin(nthinerr)
@@ -26669,9 +26697,10 @@ subroutine thin6d(nthinerr)
           if(fluka_type(ix).ne.FLUKA_NONE) then
             if(fluka_type(ix).eq.FLUKA_ELEMENT) then
               call kernel_fluka_element( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 640
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -26680,9 +26709,10 @@ subroutine thin6d(nthinerr)
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 640
             end if
           end if
@@ -26718,6 +26748,7 @@ subroutine thin6d(nthinerr)
 +if collimat
       dotrack = myktrack
 +ei
+
       select case(dotrack)
       case (1)
         stracki=strack(i)
@@ -26810,9 +26841,10 @@ subroutine thin6d(nthinerr)
               ename(ie)    = bez(myix)(1:max_name_len)
             end do
           endif
-+if backtrk
-+ca backtrksave
-+ei
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store old particle coordinates
+          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           goto 650
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 +ei
@@ -26825,10 +26857,10 @@ subroutine thin6d(nthinerr)
             end do
           else
 +ca ex6Ddrift
-
-+if backtrk
-+ca backtrksave
-+ei
+            ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+            ! last modified: 07-03-2018
+            ! store old particle coordinates
+            if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           end if
           goto 650
 +ei
@@ -26840,15 +26872,18 @@ subroutine thin6d(nthinerr)
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
           if(kz(ix).eq.12) then
-            ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
-            ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
           endif
-          ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                               !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)-e0f)/e0f
+          dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+!          dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)                           !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
         end do
@@ -27263,7 +27298,19 @@ subroutine thin6d(nthinerr)
       call collimate_end_element
 +ei
 !GRD END OF UPGRADE
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+
 645   continue
 
       if (.not. ldumpfront) then
@@ -27276,9 +27323,9 @@ subroutine thin6d(nthinerr)
     call collimate_end_turn
 +ei
 
+    if(nthinerr.ne.0) return
+
 +if .not.collimat
-    ! call lostpart(nthinerr)
-    ! if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
     if(mod(n,nwr(4)).eq.0) call write6(n)
@@ -27340,6 +27387,7 @@ end subroutine thin6d
       use mod_fluka
 +ei
 
+      use mod_hions
       use aperture
       use dynk, only : ldynk, dynk_apply
       use dump, only : dump_linesFirst, dump_lines, ldumpfront
@@ -27413,9 +27461,11 @@ end subroutine thin6d
 +ei
       nthinerr=0
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
 
 !     A.Mereghetti, for the FLUKA Team
@@ -27509,9 +27559,10 @@ end subroutine thin6d
               if(fluka_type(ix).ne.FLUKA_NONE) then
                 if(fluka_type(ix).eq.FLUKA_ELEMENT) then
                   call kernel_fluka_element( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+                  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                  ! last modified: 07-03-2018
+                  ! store old particle coordinates
+                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                   goto 640
                 else if(fluka_type(ix).eq.FLUKA_ENTRY) then
                   fluka_inside = .true.
@@ -27520,9 +27571,10 @@ end subroutine thin6d
                 else if(fluka_type(ix).eq.FLUKA_EXIT) then
                   fluka_inside = .false.
                   call kernel_fluka_exit( n, i, ix )
-+if backtrk
-+ca backtrksave
-+ei
+                  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                  ! last modified: 07-03-2018
+                  ! store old particle coordinates
+                  if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                   goto 640
                 end if
               end if
@@ -27562,11 +27614,10 @@ end subroutine thin6d
           else
 +ca ex6Ddrift
           endif
-
-+if backtrk
-+ca backtrksave
-+ei
-
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store old particle coordinates
+          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           goto 650
    30     e0o=e0
           e0fo=e0f
@@ -27584,7 +27635,7 @@ end subroutine thin6d
           if(fluka_enable) then
             write(lout,*) '[Fluka] Updating ref particle'
             write(fluka_log_unit,*) '# Updating ref particle'
-            mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+            mtemp = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
             if(mtemp .lt. 0) then
             write(lout,*) '[Fluka] Error: failed to update ref particle'
             write(fluka_log_unit, *) '# failed to update ref particle'
@@ -27600,16 +27651,17 @@ end subroutine thin6d
             if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr
             if(kz(ix).eq.12) then
-              ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+     &!hr01
-     &                                    phasc(ix))                     !hr01
+              ejv(j)=ejv(j)+(ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+phasc(ix)))*nzz(j)
             else
-              ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
+              ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas))*nzz(j)
             endif
 !           ejfv(j)=sqrt(ejv(j)**2-pma**2)                               !hr01
-            ejfv(j)=sqrt((ejv(j)-pma)*(ejv(j)+pma))
+            ejfv(j)=sqrt((ejv(j)-nucm(j))*(ejv(j)+nucm(j)))
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
             dpsv(j)=(ejfv(j)-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
+            omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
             dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                            !hr01
             if(sigmv(j).gt.zero) sigmv(j)=e0f*e0o/(e0fo*e0)*sigmv(j)
             yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
@@ -27988,7 +28040,17 @@ end subroutine thin6d
 
   640     continue
 
-+ca lostpart
+          ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+          ! last modified: 17-07-2013
+          ! on-line aperture check
+          ! always in main code
+          call lostpart( n, i, ix, llost, nthinerr )
+          ! stop tracking if no particle survives to this element
+          if(nthinerr.ne.0) return
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store infos of last aperture marker
+          if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
   645     continue
 
@@ -27997,7 +28059,6 @@ end subroutine thin6d
       endif
 
   650   continue
-        !call lostpart(nthinerr)
         if(nthinerr.ne.0) return
         if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -28101,7 +28162,6 @@ subroutine callcrp()
 +ei
       return
 end subroutine callcrp
-
 
       subroutine dist1
 !-----------------------------------------------------------------------
@@ -28722,6 +28782,8 @@ subroutine thck4d(nthinerr)
   ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 +ei
+
+  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -28732,9 +28794,9 @@ subroutine thck4d(nthinerr)
   use wire
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,k,kpz,n,nmz,nthinerr
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
-          puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+ &        puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
@@ -28796,9 +28858,10 @@ subroutine thck4d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
 
 +if fluka
 
@@ -28895,9 +28958,10 @@ subroutine thck4d(nthinerr)
 !                   re-compute transport matrices of linear elements,
 !                      according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 470
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -28906,12 +28970,13 @@ subroutine thck4d(nthinerr)
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
               call kernel_fluka_exit( n, i, ix )
-!                   re-compute transport matrices of linear elements,
-!                      according to momentum of surviving/new particles
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
+              ! re-compute transport matrices of linear elements,
+              !    according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
               goto 470
             end if
           end if
@@ -28935,16 +29000,26 @@ subroutine thck4d(nthinerr)
 !----------count=43
       select case (ktrack(i))
       case (1)
-        do j=1,napx
-          puxve=xv(1,j)
-          puzve=yv(1,j)
-          xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
-          yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
-          puxve=xv(2,j)
-          puzve=yv(2,j)
-          xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
-          yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
-        end do
+        if (lbacktracking) then
+          jmel=mel(ix)
+          do jb=1,jmel
+            jx=mtyp(ix,jb)
+            do j=1,napx
++ca thcklin
+            end do
+          end do
+        else 
+          do j=1,napx
+            puxve=xv(1,j)
+            puzve=yv(1,j)
+            xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
+            yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
+            puxve=xv(2,j)
+            puzve=yv(2,j)
+            xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
+            yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
+          end do
+        end if 
         goto 480
       case (2)
         goto 480
@@ -29281,14 +29356,6 @@ subroutine thck4d(nthinerr)
       end select
       goto 480
 
-! This code block was after a goto 480 statement before
-! the rewrite to select case as well, and therefore would
-! not have been executed. It was placed after the content
-! now included in case (1)
-+if backtrk
-+ca backtrksave
-+ei
-
 240   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
@@ -29310,7 +29377,18 @@ subroutine thck4d(nthinerr)
 !----------------------------
 
 470   continue
-+ca lostpart
+
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -29319,7 +29397,7 @@ subroutine thck4d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,oidpsv,rvv,ekv)
+        call envarsv(dpsv,moidpsv,rvv,ekv)
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
@@ -29344,7 +29422,6 @@ subroutine thck4d(nthinerr)
 
 480 continue
 
-    ! call lostpart(nthinerr)
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -29400,6 +29477,7 @@ subroutine thck6d(nthinerr)
   use mod_fluka
 +ei
 
+  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -29483,9 +29561,11 @@ subroutine thck6d(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 14-06-2014
@@ -29594,9 +29674,10 @@ subroutine thck6d(nthinerr)
               call kernel_fluka_element( n, i, ix )
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 490
             else if(fluka_type(ix).eq.FLUKA_ENTRY) then
               fluka_inside = .true.
@@ -29607,9 +29688,10 @@ subroutine thck6d(nthinerr)
               call kernel_fluka_exit( n, i, ix )
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+              ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+              ! last modified: 07-03-2018
+              ! store old particle coordinates
+              if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
               goto 490
             end if
           end if
@@ -29658,23 +29740,22 @@ subroutine thck6d(nthinerr)
 +ca thcklin
           end do
         end do
-+if backtrk
-+ca backtrksave
-+ei
         goto 500
       case (2)
         do j=1,napx
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
           if(kz(ix).eq.12) then
-            ejv(j)=ejv(j)+ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix))
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
-            ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j))
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
           end if
-          ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
           dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
@@ -30094,7 +30175,18 @@ subroutine thck6d(nthinerr)
 
 490   continue
 
-+ca lostpart
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! on-line aperture check
+      ! always in main code
+      call lostpart( n, i, ix, llost, nthinerr )
+      ! stop tracking if no particle survives to this element
+      if(nthinerr.ne.0) return
+      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+      ! last modified: 07-03-2018
+      ! store infos of last aperture marker
+      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
       ! last modified: 17-07-2013
@@ -30102,7 +30194,7 @@ subroutine thck6d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,oidpsv,rvv,ekv)
+        call envarsv(dpsv,moidpsv,rvv,ekv)
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
@@ -30142,7 +30234,6 @@ subroutine thck6d(nthinerr)
 !===================================================================
 !===================================================================
 
-    !call lostpart(nthinerr)
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -30202,6 +30293,8 @@ subroutine thck6dua(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
       use mod_fluka
 +ei
+
+      use mod_hions
       use bdex, only : bdex_enable
       use postprocessing, only : writebin
       use crcoall
@@ -30284,9 +30377,11 @@ subroutine thck6dua(nthinerr)
 !GRD-042008
 +ei
 
-+if backtrk
-+ca backtrkinit
-+ei
+  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+  ! last modified: 24-11-2016
+  ! initialise variables for back-tracking particles
+  if (lbacktracking) call aperture_backTrackingInit
+
 +if fluka
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 14-06-2014
@@ -30384,12 +30479,13 @@ subroutine thck6dua(nthinerr)
                 if(fluka_type(ix).ne.FLUKA_NONE) then
                   if(fluka_type(ix).eq.FLUKA_ELEMENT) then
                     call kernel_fluka_element( n, i, ix )
-!                   re-compute transport matrices of linear elements,
-!                      according to momentum of surviving/new particles
+                    ! re-compute transport matrices of linear elements,
+                    !    according to momentum of surviving/new particles
                     recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+                    ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                    ! last modified: 07-03-2018
+                    ! store old particle coordinates
+                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                     goto 490
                   else if(fluka_type(ix).eq.FLUKA_ENTRY) then
                     fluka_inside = .true.
@@ -30401,9 +30497,10 @@ subroutine thck6dua(nthinerr)
 !                   re-compute transport matrices of linear elements,
 !                      according to momentum of surviving/new particles
                     recompute_linear_matrices = .true.
-+if backtrk
-+ca backtrksave
-+ei
+                    ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+                    ! last modified: 07-03-2018
+                    ! store old particle coordinates
+                    if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
                     goto 490
                   end if
                 end if
@@ -30441,11 +30538,6 @@ subroutine thck6dua(nthinerr)
 +ca thcklin
               end do
             end do
-
-+if backtrk
-+ca backtrksave
-+ei
-
             goto 500
    40       e0o=e0
             e0fo=e0f
@@ -30463,7 +30555,7 @@ subroutine thck6dua(nthinerr)
             if(fluka_enable) then
               write(*,*) '[Fluka] Updating ref particle'
               write(fluka_log_unit,*) '# Updating ref particle'
-              mtemp = fluka_set_synch_part( e0, e0f, pma, 1 )
+              mtemp = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
               if (mtemp .lt. 0) then
                 write(*,*)'[Fluka] Error: failed to update ref particle'
                 write(fluka_log_unit,*)'# failed to update ref particle'
@@ -30482,15 +30574,16 @@ subroutine thck6dua(nthinerr)
               endif
             if(sigmv(j).lt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
               if(kz(ix).eq.12) then
-                ejv(j)=ejv(j)+ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+   &!hr01
-     &                                      phasc(ix))
+                ejv(j)=ejv(j)+(ed(ix)*sin_mb((hsyc(ix)*sigmv(j)+phas)+phasc(ix)))*nzz(j)
               else
-                ejv(j)=ejv(j)+hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas)
+                ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)+phas))*nzz(j)
               endif
-              ejfv(j)=sqrt(ejv(j)**2-pma**2)                             !hr01
+              ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
               rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
               dpsv(j)=(ejfv(j)-e0f)/e0f
               oidpsv(j)=one/(one+dpsv(j))
+              moidpsv(j)=mtc(j)/(one+dpsv(j))
+              omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
               dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
             if(sigmv(j).gt.zero) sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j) !hr01
 
@@ -30880,7 +30973,17 @@ subroutine thck6dua(nthinerr)
 
   490     continue
 
-+ca lostpart
+          ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+          ! last modified: 17-07-2013
+          ! on-line aperture check
+          ! always in main code
+          call lostpart( n, i, ix, llost, nthinerr )
+          ! stop tracking if no particle survives to this element
+          if(nthinerr.ne.0) return
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store infos of last aperture marker
+          if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
 
 +if fluka
 
@@ -30891,7 +30994,7 @@ subroutine thck6dua(nthinerr)
           if ( recompute_linear_matrices ) then
 !           after a FLUKA element: additional particles may have
 !             been generated
-            call envarsv(dpsv,oidpsv,rvv,ekv)
+            call envarsv(dpsv,moidpsv,rvv,ekv)
             recompute_linear_matrices = .false.
           elseif ( llost ) then
 !           after any other element: no additional particles,
@@ -30912,7 +31015,6 @@ subroutine thck6dua(nthinerr)
       endif
 
   500     continue
-          !call lostpart(nthinerr)
           if(nthinerr.ne.0) return
           if(ntwin.ne.2) call dist1
 +if .not.fluka
@@ -31936,6 +32038,7 @@ end subroutine envarsv
         write(lout,10025)
         goto 550
       endif
+      call orglat
       call ord
       call clorb(ded)
 
@@ -32618,15 +32721,6 @@ subroutine comnul
       tlim=0.
       time0=0.
       time1=0.
-+if backtrk
-!-----------------------------------------------------------------------
-!       A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!       last modified: 12-06-2014
-!       default precision for back-tracking, when computing locations of lost
-!          particles
-!       inserted in main code by the 'backtrk' compilation flag
-       bktpre=c1m1
-+ei
 !-----------------------------------------------------------------------
       do 10 i=1,2
         nde(i)=0
@@ -32752,14 +32846,6 @@ subroutine comnul
         zrms(i)=zero
         benkc(i)=zero
         r00(i)=zero
-
-! Old aperture type variables
-!        apx(i)=c1e3
-!        apz(i)=c1e3
-!        ape(1,i)=c1e6
-!        ape(2,i)=c1e6
-!        ape(3,i)=c1e12
-
         ratioe(i)=one
         hsyc(i)=zero
         phasc(i)=zero
@@ -33047,17 +33133,11 @@ subroutine comnul
       end do
 
 !--APERTURE-------------------------------------------------------------
-!     P.G.Ortega, for the FLUKA Team
-!     last modified: 04-07-2014
+!     P.G.Ortega and A.Mereghetti, for the FLUKA Team
+!     last modified: 02-03-2018
 !     initialise common
 !     always in main code
-      ldmpaper      = .false.
-      aperunit      = 0
-      aper_filename = ' '
-      load_file     = ' '
-      limifound     = .false.
-!     flag to kill/let live particles at aperture check
-      apflag=.false.
+      call aperture_comnul
 
 !--DYNAMIC KICKS--------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
@@ -33092,7 +33172,6 @@ subroutine SELNUL( iel )
       use mod_commons
       use aperture
       implicit none
-
 
 !     local variables
       integer iel, i1, i3, i4
@@ -36074,7 +36153,7 @@ subroutine prror(ier)
 end subroutine prror
 
 +dk readdis
-subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
+subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 07-02-2014
@@ -36091,6 +36170,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
 !       m:          rest mass [GeV/c2]
 !       pc:         particle momentum [GeV/c]
 !       dt:         time delay with respect to the reference particle [s]
+!     - aa,zz and m are now taken into account for hisix
 !
 !     NOTA BENE:
 !     - id, gen and weight are assigned by the fluka_mod_init subroutine;
@@ -36116,8 +36196,8 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
 !-----------------------------------------------------------------------
   use floatPrecision
   use numerical_constants
-
-      use crcoall
+  use, intrinsic :: iso_fortran_env, only : int16
+  use crcoall
   implicit none
 
 +ca dbreaddis
@@ -36126,9 +36206,11 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
   integer napx, npart
   real(kind=fPrec) enom, pnom, clight
   real(kind=fPrec) x, y, xp, yp, s, pc
+  real(kind=fPrec) m0
 
 ! temporary variables:
-  integer id, gen, aa, zz
+  integer id, gen
+  integer(kind=int16) aa, zz
   real(kind=fPrec) weight, z, zp, m, dt
   integer jj
   character(240) tmp_line
@@ -36140,6 +36222,9 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
   dimension xp( npart ), yp( npart )
   dimension s ( npart ), pc( npart )
   dimension dt( npart )
+! P. HERMES hisix
+  dimension aa( npart ), zz( npart )
+  dimension m ( npart )
 
   write(lout,*) ''
   write(lout,*) "Reading particles from ", dist_filename
@@ -36152,6 +36237,9 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
     yp(jj) = zero
     pc(jj) = zero
     s (jj) = zero
+    aa(jj) = 0            ! hisix
+    zz(jj) = 0            ! hisix
+    m (jj) = zero         ! hisix
   end do
 
 ! initialise particle counter
@@ -36182,7 +36270,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
     goto 1983
   end if
 
-  read( tmp_line, *, err=1982 ) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa, zz, m, pc(jj), dt(jj)
+  read( tmp_line, *, err=1982 ) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj), pc(jj), dt(jj)
   goto 1981
 
 ! error while parsing file:
@@ -36217,6 +36305,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc )
     xp(jj) = xp(jj) * c1e3 ! []      -> [1.0E-03]
     yp(jj) = yp(jj) * c1e3 ! []      -> [1.0E-03]
     pc(jj) = pc(jj) * c1e3 ! [GeV/c] -> [MeV/c]
+    m (jj) = m(jj)  * c1e3 ! [GeV/c^2] -> [MeV/c^2] ! P. HERMES
     s (jj) = -pnom/enom * dt(jj)*clight * c1e3
   end do
 
@@ -38561,37 +38650,29 @@ end subroutine matrix
 +dk ord
       subroutine ord
 !-----------------------------------------------------------------------
-!  ORGANISATION OF BLOCKS, NONLINEAR ELEMENTS AND RANDOM NUMBERS
+!  ORGANISATION OF NONLINEAR ELEMENTS AND RANDOM NUMBERS
+!  reserving places in zfz:
+!  - 1+2 for misalignment (h/v - DISP block / fort.8 / fort.30);
+!  - 2xmmul for multipole errors (fort.16);
+!  mapping also position of errors for a given element in lattice
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
       use mod_common
       use mod_commons
       implicit none
-      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,inz,iran,ix,izu,j,jra,  &
-     &jra3,kanf1,kpz,kzz,kzz1,kzz2,nra1
-      real(kind=fPrec) extalig1,exterr1
+      integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
 +ca commont1
-      dimension ilf(nblz),ilfr(nblz),jra(nele,5),iran(nele),inz(nele)
-      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
-     &icextal1(nblz)
-+if time
-      real(kind=fPrec) exterr2,tcnst2
-      dimension exterr2(nblz,40),tcnst2(nblz)
-+ei
+      dimension jra(nele,5),iran(nele),inz(nele)
 +if bnlelens
 +ca rhicelens
 +ei
       save
 !-----------------------------------------------------------------------
-      do i=1,nblz
-        ilf(i)=0
-        ilfr(i)=0
-      end do
-
+      ! initialisation
       do i=1,nele
         iran(i)=0
         inz(i)=0
@@ -38600,20 +38681,7 @@ end subroutine matrix
         end do
       end do
 
-      if(mper.eq.1) goto 40
-
-      do i=2,mper
-        do j=1,mbloz
-          ii=(i-1)*mbloz+j
-          ihi=j
-          if(msym(i).lt.0) ihi=mbloz-j+1
-          ic(ii)=msym(i)*ic(ihi)
-          if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
-        end do
-      end do
-
 !--ORGANISATION OF RANDOM NUMBERS
-   40 iu=mper*mbloz
       if(niu(1).lt.0) niu(1)=iabs(niu(1))
       if(niu(2).lt.0) niu(2)=iabs(niu(2))
       if(niu(1).eq.0) niu(1)=1
@@ -38625,14 +38693,16 @@ end subroutine matrix
       iorg=iorg-1
       if(iorg.ge.0) then
         if(iorg.eq.0) then !iorg == 0
-          do 50 i=1,iu
+          do i=1,iu
             ix=ic(i)
-            if(ix.le.nblo) goto 50
+            ! skip blocks:
+            if(ix.le.nblo) cycle
             ix=ix-nblo
             kpz=kp(ix)
             kzz=kz(ix)
-            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 50
-            if(kzz.eq.15) goto 50
+            ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
+            !  map position of errors for present element in lattice structure
             mzu(i)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
@@ -38641,154 +38711,99 @@ end subroutine matrix
               write(lout,*) "ERROR in ORD: nzfz was too small"
               call prror(-1)
             endif
-   50     continue
+          end do
         else ! iorg.gt.0
-          do 70 i=1,iorg
-            do 60 j=1,il
+          do i=1,iorg
+            do j=1,il
               if(bez(j).eq.bezr(1,i)) then
                 jra(i,1)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &               call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
                 jra(i,2)=kz(j)
               endif
               if(bez(j).eq.bezr(2,i)) then
                 jra(i,3)=j
-                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22)            &
-     &               call prror(31)
+                if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
                 jra(i,4)=kz(j)
               endif
-   60       continue
+            end do
             kzz1=jra(i,2)
             kzz2=jra(i,4)
             if(kzz1.ne.0.and.kzz2.eq.0) then
               jra(i,5)=nra1
               nra1=nra1+mran*3
-              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni)             &
-     &             nra1=nra1+mran*2*mmul
+              if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni) nra1=nra1+mran*2*mmul
               if(nra1.gt.nzfz) call prror(32)
             endif
             if(kzz1.eq.11.and.(kzz2.ne.11.and.kzz2.ne.0)) call prror(33)
-   70     continue
-          do 110 i=1,iu
+          end do
+          do i=1,iu
             ix=ic(i)
-            if(ix.le.nblo) goto 110
+            ! skip blocks:
+            if(ix.le.nblo) cycle
             ix=ix-nblo
             kpz=kp(ix)
             kzz=kz(ix)
-            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 110
-            if(kzz.eq.15) goto 110
-            do 80 j=1,iorg
+            ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
+            do j=1,iorg
               if(bez(ix).eq.bezr(1,j)) goto 90
-   80       continue
+            end do
             goto 100
    90       jra3=jra(j,3)
             if(jra3.ne.0) then
+              ! map position of errors for present element in lattice structure
               mzu(i)=iran(jra3)
               iran(ix)=mzu(i)
             else
               inz(j)=inz(j)+1
               if(inz(j).gt.mran) call prror(34)
+              ! map position of errors for present element in lattice structure
               mzu(i)=jra(j,5)
               iran(ix)=mzu(i)
               jra(j,5)=jra(j,5)+3
               if(jra(j,2).eq.11) jra(j,5)=jra(j,5)+2*mmul
             endif
-            goto 110
+            cycle
+            ! map position of errors for present element in lattice structure
   100       mzu(i)=izu
             iran(ix)=izu
             izu=izu+3
             if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
             if(izu.gt.nran) call prror(30)
-  110     continue
+          end do
         endif
       else !iorg < 0 (in case of no ORGA block in fort.3)
-        do 115 i=1,iu
+        do i=1,iu
           ix=ic(i)
-          if(ix.le.nblo) goto 115
+          ! skip blocks:
+          if(ix.le.nblo) cycle
           ix=ix-nblo
           kpz=kp(ix)
           kzz=kz(ix)
-          if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 115
-          if(kzz.eq.15) goto 115
+          ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+          if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
           izu=izu+3
           if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
+          ! why just checking? shouldn't we map on mzu(i)?
           if(izu.gt.nran) call prror(30)
           if(izu.gt.nzfz) then
             write(lout,*) "ERROR in ORD: nzfz was too small"
             call prror(-1)
           endif
-  115   continue
+        end do
       endif
       
-      ! "GO" was not the first structure element -> Reshuffle the structure
-      if(kanf.ne.1) then
-        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
-        kanf1=kanf-1
-        do 130 i=1,kanf1
-          if(iorg.ge.0) ilfr(i)=mzu(i)
-          ilf(i)=ic(i)
-          icext1(i)=icext(i)
-          icextal1(i)=icextal(i)
-          extalig1(i,1)=extalign(i,1)
-          extalig1(i,2)=extalign(i,2)
-          extalig1(i,3)=extalign(i,3)
-          do 120 ii=1,40
-            exterr1(i,ii)=exterr(i,ii)
-+if time
-            exterr2(i,ii)=exterr35(i,ii)
-+ei
-  120     continue
-+if time
-          tcnst2(i)=tcnst35(i)
-+ei
-  130   continue
-        do 150 i=kanf,iu
-          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
-          ic(i-kanf1)=ic(i)
-          icext(i-kanf1)=icext(i)
-          icextal(i-kanf1)=icextal(i)
-          extalign(i-kanf1,1)=extalign(i,1)
-          extalign(i-kanf1,2)=extalign(i,2)
-          extalign(i-kanf1,3)=extalign(i,3)
-          do 140 ii=1,40
-            exterr(i-kanf1,ii)=exterr(i,ii)
-+if time
-            exterr35(i-kanf1,ii)=exterr35(i,ii)
-+ei
-  140     continue
-+if time
-          tcnst35(i-kanf1)=tcnst2(i)
-+ei
-  150   continue
-        do 170 i=1,kanf1
-          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
-          ic(iu-kanf1+i)=ilf(i)
-          icext(iu-kanf1+i)=icext1(i)
-          icextal(iu-kanf1+i)=icextal1(i)
-          extalign(iu-kanf1+i,1)=extalig1(i,1)
-          extalign(iu-kanf1+i,2)=extalig1(i,2)
-          extalign(iu-kanf1+i,3)=extalig1(i,3)
-          do 160 ii=1,40
-            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-+if time
-            exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
-+ei
-  160     continue
-+if time
-          tcnst35(iu-kanf1+i)=tcnst35(i)
-+ei
-  170   continue
-      endif
-      
+!     misalignments
       izu=0
-      do 190 i=1,iu
+      do i=1,iu
         ix=ic(i)
-        if(ix.le.nblo) goto 190
+        ! skip blocks:
+        if(ix.le.nblo) cycle
         ix=ix-nblo
         kpz=kp(ix)
         kzz=kz(ix)
-        if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 190
-        if(kzz.eq.15) goto 190
+        ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+        if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
         if(icextal(i).ne.0) then
           izu=izu+2
           xrms(ix)=one
@@ -38802,7 +38817,7 @@ end subroutine matrix
           izu=izu+3
         endif
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).ne.0) then
-          do 180 j=1,mmul
+          do j=1,mmul
             izu=izu+1
             zfz(izu)=exterr(i,20+j)
 +if time
@@ -38813,14 +38828,144 @@ end subroutine matrix
 +if time
             zfz35(izu)=exterr35(i,j)
 +ei
-  180     continue
-        else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.                 &
-     &icext(i).eq.0) then
+          end do
+        else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).eq.0) then
           izu=izu+2*mmul
         endif
-  190 continue
+      end do
       return
-      end
+      end subroutine ord
+
+      subroutine orglat
+!-----------------------------------------------------------------------
+!  ORGANISATION OF LATTICE SEQUENCE
+!  A.Mereghetti, last modified 2016-03-14
+!  extract pieces of code about lattice structure from original ord
+!     subroutine
+!-----------------------------------------------------------------------
+      use floatPrecision
+      use numerical_constants
+      use mathlib_bouncer
+      use crcoall
+      use parpro
+      use mod_common
+      use mod_commons
+      implicit none
+      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
+      real(kind=fPrec) extalig1,exterr1
++ca commont1
+      dimension ilf(nblz),ilfr(nblz)
+      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
+     &icextal1(nblz)
++if time
+      real(kind=fPrec) exterr2,tcnst2
+      dimension exterr2(nblz,40),tcnst2(nblz)
++ei
++if bnlelens
++ca rhicelens
++ei
+      save
+!-----------------------------------------------------------------------
+      if(mper.gt.1) then
+        do i=2,mper
+          do j=1,mbloz
+            ii=(i-1)*mbloz+j
+            ihi=j
+            if(msym(i).lt.0) ihi=mbloz-j+1
+            ic(ii)=msym(i)*ic(ihi)
+            if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+          end do
+        end do
+      end if
+      
+      ! set iu
+      iu=mper*mbloz
+
+      ! "GO" was not the first structure element -> Reshuffle the structure
+      if(kanf.ne.1) then
+        write(*,*) ' -> reshuffling lattice structure following' &
+     &//' existence of GO keyword not in first position of lattice definition!'
+
+!        initialise some temporary variables
+         do i=1,nblz
+            ilf(i)=0
+            ilfr(i)=0
+            icext1(i)=0
+            icextal1(i)=0
+            do ii=1,3
+               extalig1(i,ii)=zero
+            enddo
+            do ii=1,40
+               exterr1(i,ii)=zero
++if time
+               exterr2(i,ii)=zero
++ei
+            enddo
++if time
+            tcnst35(i)=zero
++ei
+        enddo
+
+        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+        kanf1=kanf-1
+        do i=1,kanf1
+          if(iorg.ge.0) ilfr(i)=mzu(i)
+          ilf(i)=ic(i)
+          icext1(i)=icext(i)
+          icextal1(i)=icextal(i)
+          extalig1(i,1)=extalign(i,1)
+          extalig1(i,2)=extalign(i,2)
+          extalig1(i,3)=extalign(i,3)
+          do ii=1,40
+            exterr1(i,ii)=exterr(i,ii)
++if time
+            exterr2(i,ii)=exterr35(i,ii)
++ei
+          end do
++if time
+          tcnst2(i)=tcnst35(i)
++ei
+        end do
+        do i=kanf,iu
+          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
+          ic(i-kanf1)=ic(i)
+          icext(i-kanf1)=icext(i)
+          icextal(i-kanf1)=icextal(i)
+          extalign(i-kanf1,1)=extalign(i,1)
+          extalign(i-kanf1,2)=extalign(i,2)
+          extalign(i-kanf1,3)=extalign(i,3)
+          do ii=1,40
+            exterr(i-kanf1,ii)=exterr(i,ii)
++if time
+            exterr35(i-kanf1,ii)=exterr35(i,ii)
++ei
+          end do
++if time
+          tcnst35(i-kanf1)=tcnst2(i)
++ei
+        end do
+        do i=1,kanf1
+          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
+          ic(iu-kanf1+i)=ilf(i)
+          icext(iu-kanf1+i)=icext1(i)
+          icextal(iu-kanf1+i)=icextal1(i)
+          extalign(iu-kanf1+i,1)=extalig1(i,1)
+          extalign(iu-kanf1+i,2)=extalig1(i,2)
+          extalign(iu-kanf1+i,3)=extalig1(i,3)
+          do ii=1,40
+            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
++if time
+            exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
++ei
+          end do
++if time
+          tcnst35(iu-kanf1+i)=tcnst35(i)
++ei
+        end do
+      endif
+      
+      return
+      end subroutine orglat
 
 +dk phasad
 !-----------------------------------------------------------------------
@@ -46871,6 +47016,8 @@ end subroutine subsea
 ! TEMPORARY? fix for crabamp/multipole problem
 !       oidpsv(j)=croidpsv(j)
         oidpsv(j)=one/(one+dpsv(j))
+        moidpsv(j)=mtc(j)/(one+dpsv(j))
+        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
         ejv(j)=crejv(j)
         ejfv(j)=crejfv(j)
         rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
