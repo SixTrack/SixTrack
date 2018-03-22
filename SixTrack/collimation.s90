@@ -104,6 +104,7 @@ module collimation
   use mathlib_bouncer
   use numerical_constants
   use mod_hions
+  use mod_alloc
 
 contains
 

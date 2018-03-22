@@ -10,6 +10,15 @@ module mod_alloc
 !The total quantity of memory allocated (bits)
   integer(kind=int64) :: allocated_bits = 0
 
+!The maximum quantity of memory allocated (bits)
+  integer(kind=int64) :: maximum_bits = 0
+
+
+!  integer(kind=int64), parameter :: gbyte = 1024*1024*1024*8
+  integer(kind=int64), parameter :: mbyte = 1024*1024*8
+  integer(kind=int64), parameter :: kbyte = 1024*8
+  integer(kind=int64), parameter :: byte = 8
+
 !Function/subroutine overloading follows below:
 
 !here we could probably use fPrec and save a lot of code
@@ -121,32 +130,46 @@ subroutine print_alloc(ename, requested_bits)
 
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
-
-!  integer(kind=int64), parameter :: gb = 1024*1024*1024*8
-  integer(kind=int64), parameter :: mb = 1024*1024*8
-  integer(kind=int64), parameter :: kb = 1024*8
-  integer(kind=int64), parameter :: bb = 8
  
   write(lout,*) 'Memory allocation for array ', ename
 
-  if((real(allocated_bits,real64)/mb .lt. one) .and. (real(allocated_bits,real64)/kb .gt. one)) then
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/kb, ' kbytes'
-  else if(real(allocated_bits,real64)/mb .ge. one) then
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/mb, ' Mbytes'
+  if((real(allocated_bits,real64)/mbyte .lt. one) .and. (real(allocated_bits,real64)/kbyte .gt. one)) then
+    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/kbyte, ' kbytes'
+  else if(real(allocated_bits,real64)/mbyte .ge. one) then
+    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/mbyte, ' Mbytes'
   else
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/bb, ' bytes'
+    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/byte, ' bytes'
   end if
 
-  if((real(requested_bits,real64)/mb .lt. one) .and. (real(requested_bits,real64)/kb .gt. one)) then
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/kb, ' kbytes'
-  else if(real(requested_bits,real64)/mb .ge. one) then
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mb, ' Mbytes'
+  if((real(requested_bits,real64)/mbyte .lt. one) .and. (real(requested_bits,real64)/kbyte .gt. one)) then
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/kbyte, ' kbytes'
+  else if(real(requested_bits,real64)/mbyte .ge. one) then
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mbyte, ' Mbytes'
   else
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/bb, ' bytes'
+    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/byte, ' bytes'
   end if
   write(lout,*) ''
 
+  if(allocated_bits.gt.maximum_bits) then
+    maximum_bits = allocated_bits
+  end if
+
 end subroutine print_alloc
+
+subroutine alloc_exit
+  implicit none
+
+  logical lopen
+  integer, parameter :: memunit = 47894
+
+  !write the maximum allocated memory to a file
+  inquire(unit=memunit, opened=lopen)
+  if(.not.lopen) then
+    open(memunit, file='memory_allocation.txt', form='formatted' )
+    write(memunit,*) maximum_bits/mbyte
+    close(memunit) 
+  end if
+end subroutine alloc_exit
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
