@@ -105,6 +105,7 @@ module collimation
   use numerical_constants
   use mod_hions
   use mod_alloc
+  use end_sixtrack
 
 contains
 
