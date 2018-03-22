@@ -4,6 +4,7 @@
 module scatter
 
     use floatPrecision
+    use end_sixtrack
     use mathlib_bouncer
 
     use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
@@ -115,8 +116,12 @@ contains
 
 !Used for the very initial allocation of arrays that scale with global parameters like NELE
 subroutine scatter_allocate_arrays
+
   use crcoall
+  use end_sixtrack
+  
   implicit none
+  
   integer stat
   
 !  allocate(scatter_elemPointer(nele), STAT=stat)
@@ -126,17 +131,18 @@ subroutine scatter_allocate_arrays
 !    call prror(-1)
 !  endif
 
-   call alloc(scatter_elemPointer,nele,0,'scatter_elemPointer')
+  call alloc(scatter_elemPointer,nele,0,'scatter_elemPointer')
 
 end subroutine scatter_allocate_arrays
 
 !Used changing the allocation of arrays that scale with global parameters like NELE
 subroutine scatter_expand_arrays(nele_new)
+  
   use crcoall
   implicit none
   integer, intent(in) :: nele_new
 
-   call resize(scatter_elemPointer,nele_new,0,'scatter_elemPointer')
+  call resize(scatter_elemPointer,nele_new,0,'scatter_elemPointer')
   
 end subroutine scatter_expand_arrays
 
@@ -147,10 +153,10 @@ end subroutine scatter_expand_arrays
 ! =================================================================================================
 subroutine scatter_allocate
     
-      use crcoall
+    use crcoall
     use parpro
+    
     implicit none
-
 
     integer stat
     integer i,j
@@ -192,9 +198,12 @@ end subroutine scatter_allocate
 !  Last modified: 09-2017
 ! =================================================================================================
 subroutine scatter_initialize
-      use crcoall
+  
+    use crcoall
     use parpro
+    
     implicit none
+    
     integer ierro
 
     logical lopen
@@ -340,9 +349,9 @@ end subroutine scatter_crcheck_readdata
 ! =================================================================================================
 subroutine scatter_crcheck_positionFiles
     
-      use crcoall
+    use crcoall
+    
     implicit none
-
 
     logical lopen
     integer ierro
@@ -544,9 +553,10 @@ end subroutine scatter_dumpdata
 ! =================================================================================================
 subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
 
-      use crcoall
+    use crcoall
     use mod_common
     use mod_commonmn
+    
     implicit none
 
 +ca comgetfields
@@ -702,7 +712,8 @@ end subroutine scatter_parseElem
 ! =================================================================================================
 subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
 
-      use crcoall
+    use crcoall
+    
     implicit none
 
 +ca comgetfields
@@ -865,7 +876,8 @@ end subroutine scatter_parseProfile
 ! =================================================================================================
 subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
 
-      use crcoall
+    use crcoall
+    
     implicit none
 
 +ca comgetfields
@@ -1015,7 +1027,8 @@ end subroutine scatter_parseGenerator
 ! =================================================================================================
 subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
 
-      use crcoall
+    use crcoall
+    
     implicit none
 
 +ca comgetfields
@@ -1157,8 +1170,9 @@ end subroutine scatter_thin
 ! =================================================================================================
 real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
 
-      use crcoall
+    use crcoall
     use mod_common
+    
     implicit none
 
 +ca stringzerotrim
@@ -1221,7 +1235,8 @@ end subroutine scatter_profile_getParticle
 ! =================================================================================================
 real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
 
-      use crcoall
+    use crcoall
+    
     implicit none
 
 +ca stringzerotrim
@@ -1267,9 +1282,9 @@ end function scatter_generator_getCrossSection
 ! =================================================================================================
 subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
 
-      use crcoall
+    use crcoall
+    
     implicit none
-
 
     integer, intent(in) :: generatorIDX
     real(kind=fPrec), intent(out) :: t, xi
@@ -1314,9 +1329,9 @@ end subroutine scatter_generator_getTandXi
 ! =================================================================================================
 real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
-      use crcoall
+    use crcoall
+    
     implicit none
-
 
     real(kind=fPrec), intent(in) :: a, b1, b2, phi, tmin
 

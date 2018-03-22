@@ -45,9 +45,11 @@
 +cd vecflow
       integer iflow,jtune
       common /vecflow/ iflow,jtune
+
 +dk lieinit
-      subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
+subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
+      use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       use crcoall
@@ -136,7 +138,8 @@
       xintex(          9)=  zero
       xintex(         10)=  4.592886537931051e-008_fPrec                       !hr11
       return
-      end
+end subroutine lieinit
+
 +dk flowpara
       subroutine flowpara(ifl,jtu)
       use floatPrecision
@@ -2977,6 +2980,7 @@
 +dk mapflol
 subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
 
@@ -3378,8 +3382,9 @@ end subroutine mapflol
       return
       end
 +dk initpert
-      subroutine initpert(st,ang,ra)
+subroutine initpert(st,ang,ra)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -3442,7 +3447,8 @@ end subroutine mapflol
         idsta(i)=int(dsta(i)+c1m2)
       enddo
       return
-      end
+end subroutine initpert
+
 +dk dlie
       real(kind=fPrec) function dlie(j)
       use floatPrecision
