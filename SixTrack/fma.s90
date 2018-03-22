@@ -1,7 +1,7 @@
 +dk fma
 
 module FMA
-  use error
+  use end_sixtrack
   implicit none
 !For getfields_l_max_string
 +ca comgetfields

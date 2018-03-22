@@ -2,7 +2,7 @@
 
 module zipf
 
-  use error
+  use end_sixtrack
   implicit none
 
 +ca comgetfields

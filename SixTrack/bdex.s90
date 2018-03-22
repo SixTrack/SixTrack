@@ -9,7 +9,7 @@ module bdex
   !     
 
   use floatPrecision
-  use error
+  use end_sixtrack
   use crcoall
   use numerical_constants
 !For nele

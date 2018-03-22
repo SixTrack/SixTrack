@@ -1,5 +1,5 @@
 error.s90 sixtrack.s90
 errorn.f
-df fluka,bnlelens,cr
-e error
+df fluka,bnlelens,cr,nagfor,boinc,fio,crlibm,debug
+e end_sixtrack
 ex

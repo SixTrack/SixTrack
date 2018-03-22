@@ -1,10 +1,12 @@
-+dk error
++dk end_sixtrack
 
-!-----------------------------------------------------------------------
-!  ERROR MODULE
-!-----------------------------------------------------------------------
+! =================================================================================================
+!  END SIXTRACK MODULE
+!  Converted to Module: 22-03-2018, VKBO
+!  Last modified: 22-03-2018
+! =================================================================================================
 
-module error
+module end_sixtrack
   
   use floatPrecision
   use numerical_constants
@@ -18,7 +20,9 @@ module error
   save errout_status
 
 contains
+! =================================================================================================
 
+! =================================================================================================
 subroutine prror(ier)
 
 +if fluka
@@ -399,9 +403,9 @@ subroutine prror(ier)
 
 end subroutine prror
 
+! =================================================================================================
 subroutine abend(cstring)
   
-  use floatPrecision
   use numerical_constants
   
   use, intrinsic :: iso_fortran_env, only : error_unit
@@ -409,7 +413,9 @@ subroutine abend(cstring)
   use crcoall
   use parpro
   use mod_common
+  
   implicit none
+  
 +ca commonxz
 +ca crco
 +ca version
@@ -680,10 +686,13 @@ subroutine abend(cstring)
 
 end subroutine abend
 
-!     Subroutine to copy the last nlines lines from a file to stderr
-!     It is mainly used just before exiting SixTrack in case there was an error.
-!     This is useful since STDERR is often returned from batch systems and BOINC.
-!     K.Sjobak, June 2017
+! =================================================================================================
+!  K. Sjobak, BE-ABP-HSS
+!  Last modified: June 2017
+!  Subroutine to copy the last nlines lines from a file to stderr
+!  It is mainly used just before exiting SixTrack in case there was an error.
+!  This is useful since STDERR is often returned from batch systems and BOINC.
+! =================================================================================================
 subroutine print_lastlines_to_stderr(file_unit, file_name)
   
   use, intrinsic :: iso_fortran_env, only : error_unit
@@ -764,5 +773,6 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
       write(error_unit,'(a,a,a)') "******* Done writing tail of file '",trim(file_name),"' to stderr *******"
   
 end subroutine print_lastlines_to_stderr
+! =================================================================================================
 
-end module error
+end module end_sixtrack
