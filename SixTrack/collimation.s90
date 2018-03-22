@@ -100,6 +100,11 @@ end block data scdata
 
 module collimation
 
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use mod_hions
+
 contains
 
 ! General routines:
@@ -129,9 +134,6 @@ contains
 !! can be used to do any initial configuration and/or file loading.
 !<
 subroutine collimate_init()
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -574,9 +576,6 @@ end subroutine collimate_init
 !! is injected into thin 6d
 !<
 subroutine collimate_start_sample(nsample)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -1177,9 +1176,6 @@ end subroutine collimate_start_sample
 !! This routine is called each time we hit a collimator
 !<
 subroutine collimate_start_collimator(stracki)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -1392,9 +1388,6 @@ end subroutine collimate_start_collimator
 !! This routine is calls the actual scattering functions
 !<
 subroutine collimate_do_collimator(stracki)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -2224,9 +2217,6 @@ end subroutine collimate_do_collimator
 !! This routine is called at the exit of a collimator
 !<
 subroutine collimate_end_collimator()
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -2651,9 +2641,6 @@ end subroutine collimate_end_collimator
 !! has been tracked by thin6d
 !<
 subroutine collimate_end_sample(j)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use parpro
   use mod_common
@@ -2849,9 +2836,6 @@ end subroutine collimate_end_sample
 !! can be used to do any final postrocessing and/or file saving.
 !<
 subroutine collimate_exit()
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -3013,10 +2997,6 @@ end subroutine collimate_exit
 !<
 subroutine collimate_start_turn(n)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
   use crcoall
   use parpro
   use mod_common
@@ -3055,10 +3035,6 @@ end subroutine collimate_start_turn
 !! This routine is called at the start of every element
 !<
 subroutine collimate_start_element(i)
-
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -3167,9 +3143,6 @@ end subroutine collimate_start_element
 !! This routine is called at the end of every element
 !<
 subroutine collimate_end_element
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -3331,10 +3304,6 @@ end subroutine collimate_end_element
 !! This routine is called at the end of every turn
 !<
 subroutine collimate_end_turn
-
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use parpro
   use mod_common
@@ -3771,7 +3740,6 @@ end subroutine collimate_end_turn
 !! the nuclear properties
 !<
 subroutine collimate_init_merlin()
-  use floatPrecision
 
   implicit none
 
@@ -3790,7 +3758,6 @@ end subroutine collimate_init_merlin
 !! K2 scattering collimation configuration
 !<
 subroutine collimate_init_k2()
-  use floatPrecision
 !nothing currently
 end subroutine collimate_init_k2
 
@@ -3833,10 +3800,6 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
      &     part_abs_pos_local, part_abs_turn_local,                     &
      &     impact, indiv, lint, onesided,name,                          &
      &     flagsec, j_slices, nabs_type)
-
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -4477,9 +4440,6 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !++  - Added debug comments
 !++  - Put real dp/dx
 !
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
 
       use crcoall
       use parpro
@@ -5146,8 +5106,6 @@ end subroutine collimaterhic
 !! Select a scattering type (elastic, sd, inelastic, ...)
 !<
 function ichoix(ma)
-  use floatPrecision
-  use mathlib_bouncer
   implicit none
 +ca interac
   integer ma,i,ichoix
@@ -5170,9 +5128,6 @@ end function ichoix
 !! is modified (energy loss is applied)
 !<
 function gettran(inter,xmat,p)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   implicit none
 
@@ -5241,8 +5196,6 @@ end function gettran
 !!
 !<
 subroutine tetat(t,p,tx,tz)
-  use floatPrecision
-  use mathlib_bouncer
 
   implicit none
 
@@ -5266,9 +5219,6 @@ end subroutine tetat
 !! Calculate the rutherford scattering cross section
 !<
 function ruth(t)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   implicit none
 
@@ -5288,9 +5238,6 @@ end function ruth
 !!
 !<
 subroutine scatin(plab)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use physical_constants
 
   implicit none
@@ -5410,10 +5357,6 @@ end subroutine scatin
 !!
 !<
 subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
-
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   implicit none
 
@@ -5634,9 +5577,6 @@ end subroutine jaw
 !!
 !<
 subroutine jaw0(s,nabs)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
 
       implicit none
 
@@ -5777,8 +5717,6 @@ end subroutine jaw0
 !!     collimator: x>0 and y<zlm1
 !<
 subroutine mcs(s)
-      use floatPrecision
-      use mathlib_bouncer
       implicit none
 !      save h,dh,bn
 +ca interac
@@ -5827,9 +5765,6 @@ end subroutine mcs
 !! ???
 !<
 subroutine scamcs(xx,xxp,s,radl_mat)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   implicit none
 
@@ -5857,8 +5792,6 @@ end subroutine scamcs
 !! ???
 !<
 subroutine soln3(a,b,dh,smax,s)
-  use floatPrecision
-  use numerical_constants
 
   implicit none
 
@@ -5907,9 +5840,6 @@ subroutine soln3(a,b,dh,smax,s)
 end subroutine soln3
 
 subroutine iterat(a,b,dh,s)
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   implicit none
 
@@ -5937,9 +5867,6 @@ end subroutine iterat
 !! calculate mean ionization energy loss according to Bethe-Bloch
 !<
 function get_dpodx(p,mat_i)          !Claudia
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use physical_constants
 
   implicit none
@@ -5981,9 +5908,8 @@ end function get_dpodx
 !! Should give the number per cubic meter
 !<
 function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
-  use floatPrecision
-  use numerical_constants
   implicit none
+
   real(kind=fPrec) AtomicNumber, Density, AtomicMass
   real(kind=fPrec) Avogadro
   real(kind=fPrec) CalcElectronDensity
@@ -6003,8 +5929,6 @@ end function CalcElectronDensity
 !!& (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
 !<
 function CalcPlasmaEnergy(ElectronDensity)
-  use floatPrecision
-  use numerical_constants
 
   implicit none
 
@@ -6050,9 +5974,6 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 ! DZ length traversed in material (meters)
 ! EnLo energy loss in GeV/meter
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use physical_constants
 
   IMPLICIT none
@@ -6143,11 +6064,7 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 
 !  Generate distribution
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-      use crcoall
+  use crcoall
   implicit none
 
 
@@ -6252,11 +6169,7 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
 !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-      use crcoall
+  use crcoall
   implicit none
 
 +ca collpara
@@ -6342,11 +6255,7 @@ end subroutine makedis_st
 subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity0, &
  &                        myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-      use crcoall
+  use crcoall
   implicit none
 
 +ca collpara
@@ -6444,11 +6353,7 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-      use crcoall
+  use crcoall
   implicit none
 
 +ca collpara
@@ -6577,10 +6482,7 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 !               s      -> [ mm ]
 !               DE     -> [ MeV ]
 
-  use floatPrecision
-  use mathlib_bouncer
-
-      use crcoall
+  use crcoall
   implicit none
 
 +ca collpara
@@ -6635,9 +6537,6 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 !               xp, yp -> [ sigma ]
 !               s      -> [ sigma ]
 !               DE     -> [ sigma ]
-
-  use floatPrecision
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -6785,11 +6684,7 @@ end subroutine readdis_norm
 subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
      &mybetay, myemitx0, myemity0, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-      use crcoall
+  use crcoall
   implicit none
 
 +ca collpara
@@ -6930,10 +6825,6 @@ end subroutine makedis_radial
 subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey, &
  &  myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
   use crcoall
   use parpro
   implicit none
@@ -7050,9 +6941,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 end subroutine makedis_ga
 
 function rndm4()
-  use floatPrecision
-  use mathlib_bouncer
-
   implicit none
 
   integer len, in
@@ -7085,7 +6973,6 @@ end function rndm4
 !cccccccccccccccccccccccccccccccccc
 !
 function rndm5(irnd)
-  use floatPrecision
 
   implicit none
 
@@ -7127,9 +7014,6 @@ real(kind=fPrec) function myran_gauss(cut)
 !     changed rndm4 to rndm5(irnd) and defined flag as true
 !
 !*********************************************************************
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   implicit none
 
@@ -7206,8 +7090,6 @@ subroutine ranlux(rvec,lenv)
 !!!                 32-bit integer seeds, to be used for restarting ++
 !!!      ISVEC must be dimensioned 25 in the calling program        ++
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      use floatPrecision
-      use mathlib_bouncer
       use crcoall
       implicit none
       integer lenv,isdext,iseeds,maxlev,ndskip,itwo24,next,j24,i24,     &
@@ -7480,8 +7362,6 @@ subroutine funlxp (func,xfcum,x2low,x2high)
 !    3. FUNLXP calls FUNPCT to do the actual finding of percentiles.
 !    4. both FUNLXP and FUNPCT use RADAPT for Gaussian integration.
 !
-      use floatPrecision
-      use mathlib_bouncer
       use crcoall
       implicit none
       external func
@@ -7526,8 +7406,6 @@ end subroutine funlxp
 subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
 !        Array XFCUM is filled from NLO to NLO+NBINS, which makes
 !        the number of values NBINS+1, or the number of bins NBINS
-      use floatPrecision
-      use mathlib_bouncer
       use crcoall
       implicit none
       external func
@@ -7642,8 +7520,6 @@ subroutine funlux(array,xran,len)
 !         Generation of LEN random numbers in any given distribution,
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
-      use floatPrecision
-      use mathlib_bouncer
       implicit none
 +ca funint
       integer len,ibuf,j,j1
@@ -7712,8 +7588,6 @@ subroutine funlz(func,x2low,x2high,xlow,xhigh)
 !            COVERING AT LEAST 1% OF THE GIVEN REGION.
 !         OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
 !         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
-      use floatPrecision
-      use mathlib_bouncer
       use crcoall
       implicit none
       external func
@@ -7792,8 +7666,6 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
 !        segments exceeds NDIM.  Either TOLA or TOLR (but not both!)
 !        can be set to zero, in which case only the other is used.
 
-      use floatPrecision
-      use mathlib_bouncer
       implicit none
 
       external f
@@ -7875,9 +7747,6 @@ end subroutine radapt
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine rgs56p(f,a,b,res,err)
 
-  use floatPrecision
-  use mathlib_bouncer
-
   implicit none
 
   integer i
@@ -7923,13 +7792,8 @@ end subroutine rgs56p
 !
 !*********************************************************************
 integer function mclock_liar( )
-
-  use floatPrecision
-  use mathlib_bouncer
-
-      use crcoall
+  use crcoall
   implicit none
-
 
   save
 
@@ -7967,9 +7831,6 @@ real(kind=fPrec) function ran_gauss(cut)
 !                the cut must be greater than 0.5
 !
 !*********************************************************************
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
 
   use crcoall
   use parpro
@@ -8008,7 +7869,6 @@ end function ran_gauss
 !! is used to read the collimator settings input file
 !<
 subroutine readcollimator
-  use floatPrecision
   use crcoall
   use parpro
 
@@ -8145,8 +8005,6 @@ subroutine readcollimator
 end subroutine readcollimator
 
 subroutine collimation_comnul
-  use floatPrecision
-  use numerical_constants, only : zero
   use parpro
   implicit none
 
