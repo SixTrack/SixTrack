@@ -29,7 +29,17 @@ module aperture
   logical, save :: limifound                       ! limi block in fort.3
 
   integer, allocatable, save :: kape(:)            ! type of aperture (nele)
-  real(kind=fPrec), allocatable, save ::  ape(:,:) ! aperture parameters (9,nele) [mm]
+  ! aperture parameteres ape(9,nele)
+  ! ape(1,:): hor dimension (RECT/RECTELLIPSE/OCT) [mm]
+  ! ape(2,:): ver dimension (RECT/RECTELLIPSE/OCT) [mm]
+  ! ape(3,:): hor dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
+  ! ape(4,:): ver dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
+  ! ape(5,:): m of sloped side (OCT) []
+  ! ape(6,:): q of sloped side (OCT) [mm]
+  ! ape(7,:): tilt angle of marker (all) [rad]
+  ! ape(8,:): hor offset of marker (all) [mm]
+  ! ape(9,:): ver offset of marker (all) [mm]
+  real(kind=fPrec), allocatable, save ::  ape(:,:)
   logical, allocatable, save :: lapeofftlt(:)      ! aperture is tilted/offcentred (nele)
 
   ! save (i.e. do not kill) lost particles
@@ -40,6 +50,7 @@ module aperture
   logical, save :: ldmpaper                        ! dump or not
   integer, save :: aperunit                        ! fortran unit
   character(len=16), save :: aper_filename         ! file name
+  logical, save :: ldmpaperMem                     ! dump aperture marker parameters as in memory
   ! load aperture markers from external file:
   integer, save :: loadunit                        ! fortran unit
   character(len=16), save :: load_file             ! file name
@@ -113,6 +124,7 @@ subroutine aperture_comnul
   ldmpaper      = .false.
   aperunit      = 0
   aper_filename = ' '
+  ldmpaperMem   = .false.
   loadunit      = 3 ! default: read aperture markers in fort.3
   load_file     = ' '
 
@@ -500,22 +512,24 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkTR( xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix) ) .or. &
+          pstop(nlostp(j))=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkTR( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix) ) .or. &
- &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            pstop(nlostp(j))= &
+ &                  checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
+ &                  myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkTR( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix) ) .or. &
- &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            pstop(nlostp(j))= &
+ &                  checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
+ &                  myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
         llost=llost.or.pstop(nlostp(j))
       end do
         
     case (1) ! circle
-      radius2 = ape(1,ix)**2
+      radius2 = ape(3,ix)**2
       do j=1,napx
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
@@ -560,8 +574,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       end do
 
     case (3) ! Ellipse
-      apxx = ape(1,ix)**2.
-      apyy = ape(2,ix)**2.
+      apxx = ape(3,ix)**2.
+      apyy = ape(4,ix)**2.
       apxy = apxx * apyy
       do j=1,napx
         if (lapeofftlt(ix)) then
@@ -726,16 +740,22 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               xchk(2) = xlos(2)
             end if
             select case(kapert)
+            case(-1) ! Transition
+              apxx = aprr(3)**2.
+              apyy = aprr(4)**2.
+              apxy = apxx * apyy
+              llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4),apxx,apyy,apxy,aprr(5),aprr(6)).or. &
+ &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
             case (1) ! Circle
-              radius2 = aprr(1)**2
+              radius2 = aprr(3)**2
               llos=checkCR(xchk(1),xchk(2),radius2) .or. &
  &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
             case (2) ! Rectangle
               llos=checkRE(xchk(1),xchk(2),aprr(1),aprr(2)) .or. &
  &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
             case (3) ! Ellipse
-              apxx = aprr(1)**2.
-              apyy = aprr(2)**2.
+              apxx = aprr(3)**2.
+              apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos=checkEL( xchk(1),xchk(2),apxx,apyy,apxy )  .or. &
  &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
@@ -1068,7 +1088,7 @@ logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q )
   real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q
 
   checkTR = checkRL(x,y,aprx,apry,apxx,apyy,apxy).or.checkOC(x,y,aprx,apry,m,q)
-  if (aprx-apex.gt.zero.and.apry-apey.gt.zero) checkTR=checkTR.or.checkRT(x,y,aprx,apry,apex)
+  if (aprx-apex.gt.zero.and.apry-apey.gt.zero) checkTR=checkTR.or.checkRT(x,y,aprx,apry,apex,apxx)
   return
 end function checkTR
 
@@ -1676,30 +1696,34 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
   real(kind=fPrec) spos
 
 ! dump info
-  select case(aptype)
-  case(-1) ! transition
+  if (ldmpaperMem) then
      write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
-  case(0) ! not an aperture marker
-     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
-  case(1) ! Circle
-     write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
-  case(2) ! Rectangle
-     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
-  case(3) ! Ellipse
-     write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
-  case(4) ! Rectellipse
-     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero, ape(7), ape(8), ape(9)
-  case(5) ! Octagon
-     ! get angles from points passing through x1,y1 and x2,y2
-     ! x1=ape(1)
-     ! y1=ape(1)*tan(theta1)
-     ! x2=ape(2)/tan(theta2)
-     ! y2=ape(2)
-     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), &
- &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero, ape(7), ape(8), ape(9)
-  case(6) ! Racetrack
-     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3),   zero,   zero,   zero, ape(7), ape(8), ape(9)
-  end select
+  else
+     select case(aptype)
+     case(-1) ! transition
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
+     case(0) ! not an aperture marker
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
+     case(1) ! Circle
+        write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
+     case(2) ! Rectangle
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
+     case(3) ! Ellipse
+        write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
+     case(4) ! Rectellipse
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero, ape(7), ape(8), ape(9)
+     case(5) ! Octagon
+        ! get angles from points passing through x1,y1 and x2,y2
+        ! x1=ape(1)
+        ! y1=ape(1)*tan(theta1)
+        ! x2=ape(2)/tan(theta2)
+        ! y2=ape(2)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), &
+             &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero, ape(7), ape(8), ape(9)
+     case(6) ! Racetrack
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3),   zero,   zero,   zero, ape(7), ape(8), ape(9)
+     end select
+  end if
   return
  1984 format (1x,a16,1x,a6,10(1x,f15.5))
 end subroutine dump_aperture
