@@ -1,0 +1,75 @@
++dk crcoall
+! =================================================================================================
+!  STANDARD OUTPUT MODULE
+!  Last modified: 22-03-2018
+!  For CR version, this is the "buffer file" fort.92;
+!  Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
+! =================================================================================================
+module crcoall
+  
+  implicit none
+  
+  integer lout
+  save lout
+  
+end module crcoall
+
++dk file_units
+! =================================================================================================
+!  FILE UNITS MODULE
+!  Written by: Veronica Berglyd Olsen, BE-ABP-HSS, March 2018
+!  Last modified: 22-03-2018
+! =================================================================================================
+module file_units
+  
+  implicit none
+  
+  integer :: funit_minUnit, funit_maxUnit
+  parameter(funit_minUnit=1000, funit_maxUnit=1999)
+  
+  integer,            allocatable :: funit_usedUnits(:)
+  character(len=256), allocatable :: funit_usedByFile(:)
+  
+  integer :: funit_nextUnit = funit_minUnit
+  
+  save funit_usedUnits, funit_usedByFile, funit_nextUnit
+
+contains
+
+  subroutine requestFileUnit(fileName, fileUnit)
+    
+    use crcoall
+    use end_sixtrack
+    
+    implicit none
+    
+    character(len=*), intent(in)  :: fileName
+    integer,          intent(out) :: fileUnit
+    
+    logical isOpen
+    
+10  continue
+    
+    fileUnit       = funit_nextUnit
+    funit_nextUnit = funit_nextUnit + 1
+    if(funit_nextUnit > funit_maxUnit) goto 30
+    
+    inquire(unit=fileUnit, opened=isOpen)
+    if(isOpen) then 
+      goto 10
+    else
+      goto 20
+    end if
+
+20  continue
+    write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",fileName
+    return
+    
+30  continue
+    write(lout,"(a)") "FUNIT> Failed to find an available file unit for file ",fileName
+    call prror(-1)
+    
+  end subroutine requestFileUnit
+
+end module file_units
+! =================================================================================================
