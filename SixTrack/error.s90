@@ -680,4 +680,89 @@ subroutine abend(cstring)
 
 end subroutine abend
 
+!     Subroutine to copy the last nlines lines from a file to stderr
+!     It is mainly used just before exiting SixTrack in case there was an error.
+!     This is useful since STDERR is often returned from batch systems and BOINC.
+!     K.Sjobak, June 2017
+subroutine print_lastlines_to_stderr(file_unit, file_name)
+  
+  use, intrinsic :: iso_fortran_env, only : error_unit
+  implicit none
+  
++ca comgetfields
+!+ca stringzerotrim
+  
+  integer,          intent(in) :: file_unit
+  character(len=*), intent(in) :: file_name
+  
+  integer nlines
+  parameter (nlines=40)
+  
+  character(len=1024) fileBuff (nlines)
+  integer fileBuff_idx
+  integer i,j
+  integer printLines
+  
+  logical lopen
+  integer ierro
+  
+  ! Clear the buffer
+  do i=1,nlines
+    fileBuff(i)=''
+  end do
+  
+  ! Open the file
+  inquire(unit=file_unit,opened=lopen)
+  if(lopen) then
+    write(error_unit,'(a,1x,i5,1x,a)') "Error when opening unit #",file_unit,": The file is already open."
+    return
+  end if
+  
+  open(file_unit,file=file_name,form="formatted",status="old",iostat=ierro)
+  if(ierro .ne. 0) then
+    write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)') &
+      "Error when opening file '",trim(file_name),"' on unit #", file_unit,", iostat =",ierro
+    return
+  end if
+  
+  ! Read into fileBuff as a ring buffer.
+  fileBuff_idx = 1
+  j = 0
+  
+1 read(file_unit,'(a1024)',end=3,err=2,iostat=ierro) fileBuff(fileBuff_idx)
+  ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
+  fileBuff_idx = fileBuff_idx+1
+  if (fileBuff_idx.ge.nlines) fileBuff_idx = 1
+  j = j+1
+  goto 1
+  
+2 continue ! An error occured
+  write(error_unit,'(a,1x,i5)') "An error occured while reading the file, iostat=",ierro
+  
+  
+3 continue ! EOF or error; anyway we're done.
+  close(file_unit)
+  
+  ! Print stuff back out from the buffer
+  if (j .lt. nlines) then
+    printLines = j
+    fileBuff_idx=1
+  else
+    printLines = nlines
+  end if
+  write(error_unit,'(a,1x,i5,1x,a,a,a)') "******* Last",printLines,"lines of file '",trim(file_name),"': *******"
+  
+  i = fileBuff_idx  ! Position in buffer (we have already incremented i)
+  j = 0             ! How many have we printed
+  
+10 continue
+  if(i.gt.nlines) i=1      ! i is wrapping
+    write(error_unit,'(a)') trim(fileBuff(i))
+    i = i+1
+    j = j+1                   ! j just counts
+    if(j.lt.printLines) goto 10
+      write(error_unit,'(a,a,a)') "******* Done writing tail of file '",trim(file_name),"' to stderr *******"
+  
+end subroutine print_lastlines_to_stderr
+
 end module error
