@@ -11,6 +11,12 @@ module error
   use mathlib_bouncer
   use, intrinsic :: iso_fortran_env, only : error_unit
   
+  implicit none
+
+  integer errout_status
+  
+  save errout_status
+
 contains
 
 subroutine prror(ier)
@@ -44,7 +50,6 @@ subroutine prror(ier)
   integer fluka_con
 +ei
 
-+ca errout
   save
 
   errout_status = ier
