@@ -66,6 +66,15 @@ module aperture
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
   integer, save :: iBckTypeLast                    ! map of back-tracking - it follows kz values, eg:
                                                    ! 0 : drift (the only one available)
+
+  ! A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
+  ! x-sec at specific locations
+  integer, save :: mxsec                           ! current number of requested x-secs
+  integer, parameter :: nxsec=10                   ! max number of requested x-secs
+  integer, save :: xsecunit(nxsec)                 ! fortran units
+  character(len=16), save :: xsec_filename(nxsec)  ! file names
+  real(kind=fPrec), save :: sLocMin(nxsec), sLocMax(nxsec), sLocDel(nxsec) ! locations
+  
   
   ! aperture types  -- kape
   ! no aperture     -- 0
@@ -141,6 +150,15 @@ subroutine aperture_comnul
   iLastThick = 0
   ixLastThick = 0
   iBckTypeLast = 0
+
+  mxsec = 0
+  do ii=1,nxsec
+     xsecunit(ii)=0
+     xsec_filename(ii)=' '
+     sLocMin(ii)=zero
+     sLocMax(ii)=zero
+     sLocDel(ii)=zero
+  enddo
 
   return
 
@@ -1763,6 +1781,60 @@ subroutine dump_aperture_header( iunit )
   return
  1984 format (a1,a16,1x,a6,1x,10(1x,a15))
 end subroutine dump_aperture_header
+
+subroutine dump_aperture_xsecs
+  !-----------------------------------------------------------------------
+  ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
+  ! dump cross-sections of apertures at specific locations (loop)
+  !-----------------------------------------------------------------------
+  implicit none
+  integer ixsec,ierro
+  logical lopen
+  real(kind=fPrec) sLoc
+
+  ! loop over requested lines
+  do ixsec=1,mxsec
+     ! from print_lastlines_to_stderr
+     inquire(unit=xsecunit(ixsec),opened=lopen)
+     if (lopen) then
+        write(lout,*)'Dump_aperture_xsecs - Error in opening unit ',xsecunit(ixsec), &
+ &            ' - filename: ',xsec_filename(ixsec),' - the file is already open.'
+        call prror(-1)
+     end if
+     open(unit=xsecunit(ixsec),file=xsec_filename(ixsec),form="formatted",status="old",iostat=ierro)
+     if (ierro .ne. 0) then
+        write(lout,'(a,a,a,1x,i5,1x,a,1x,i5)')                         &
+     &        "Error when opening file '",                             &
+     &        trim(xsec_filename(ixsec)),                              &
+     &        "' on unit #", xsecunit(ixsec), ", iostat =",ierro
+        call prror(-1)
+     endif
+
+     ! loop over s-locations
+     sLoc=sLocMin(ixsec)
+     do while(sLoc.le.sLocMax(ixsec))
+        call dump_aperture_xsec(sLoc,xsecunit(ixsec))
+        sLoc=sLoc+sLocDel(ixsec)
+     enddo
+     
+     close(xsecunit(ixsec))
+  enddo
+
+  return
+end subroutine dump_aperture_xsecs
+
+
+subroutine dump_aperture_xsec( sLoc, iunit )
+  !-----------------------------------------------------------------------
+  ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
+  ! dump the cross-sections of the machine aperture at a specific location
+  !-----------------------------------------------------------------------
+  implicit none
+  integer iunit
+  real(kind=fPrec) sLoc
+  return
+
+end subroutine dump_aperture_xsec
 
 end module aperture
 

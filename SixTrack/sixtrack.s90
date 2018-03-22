@@ -13474,6 +13474,11 @@ end subroutine hamilton1
           write(lout,'(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
           lbacktracking=.false.
         endif
+        if (mxsec.gt.0) then
+           do i=1,mxsec
+              if (sLocDel(i).eq.zero) sLocDel(i)=bktpre
+           enddo
+        endif
         goto 110
 
       else
@@ -13527,7 +13532,7 @@ end subroutine hamilton1
           ! flag for saving particles at aperture check
           apflag  = .true.
 
-        elseif(ch(:4).eq.'BACKTRKOFF') then
+        elseif(ch(:10).eq.'BACKTRKOFF') then
           ! A.Mereghetti, 07-03-2018
           ! switch off back tracking
           lbacktracking=.false.
@@ -13553,6 +13558,64 @@ end subroutine hamilton1
             write(lout,*) '  Using default [m]: ', bktpre
           else
             bktpre = tmplen
+          endif
+
+        elseif(ch(:4).eq.'XSEC') then
+          ! A.Mereghetti, 22-03-2018
+          ! ask for xsec at specific locations
+          if(getfields_nfields.lt.4) then
+            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
+     &         'parameters for keyword XSEC: ninput = ', getfields_nfields, ' != 4 (min)'
+            call prror(-1)
+          endif
+          mxsec=mxsec+1
+          if (mxsec.gt.nxsec) then
+            write(lout,*)'ERROR in LIMI block: too many xsecs! asked:',mxsec,' - max:',nxsec
+            call prror(-1)
+          end if
+          read (getfields_fields(2)(1:getfields_lfields(2)),*) xsecunit(mxsec)
+          read (getfields_fields(3)(1:getfields_lfields(3)),*) xsec_filename(mxsec)
++if .not.crlibm
+          read (getfields_fields(4)(1:getfields_lfields(4)),*) sLocMin(mxsec)
++ei
++if crlibm
+          sLocMin(mxsec)=round_near (errno,getfields_lfields(4)+1, getfields_fields(4))
+          if (errno.ne.0) call rounderr(errno,getfields_fields,4,sLocMin(mxsec))
++ei
+          if (sLocMin(mxsec).lt.zero) then
+             write(lout,*)'ERROR in LIMI block: negative min s-value for xsecs!'
+             call prror(-1)
+          endif
+   
+          if(getfields_nfields.ge.5) then
++if .not.crlibm
+             read (getfields_fields(5)(1:getfields_lfields(5)),*) sLocMax(mxsec)
++ei
++if crlibm
+             sLocMax(mxsec)=round_near (errno,getfields_lfields(5)+1, getfields_fields(5))
+             if (errno.ne.0) call rounderr(errno,getfields_fields,5,sLocMax(mxsec))
++ei
+             if (sLocMax(mxsec).lt.zero) then
+                write(lout,*)'ERROR in LIMI block: negative max s-value for xsecs!'
+                call prror(-1)
+             endif
+          endif
+          if(getfields_nfields.ge.6) then
++if .not.crlibm
+             read (getfields_fields(6)(1:getfields_lfields(6)),*) sLocDel(mxsec)
++ei
++if crlibm
+             sLocDel(mxsec)=round_near (errno,getfields_lfields(6)+1, getfields_fields(6))
+             if (errno.ne.0) call rounderr(errno,getfields_fields,6,sLocDel(mxsec))
++ei
+             if (sLocDel(mxsec).lt.zero) sLocDel(mxsec)=-sLocDel(mxsec) ! increasing s-val
+          endif
+          if (sLocMax(mxsec).eq.zero) sLocMax(mxsec)=sLocMin(mxsec)
+          if (sLocMax(mxsec).lt.sLocMin(mxsec)) then
+             ! swap sMin and sMax
+             tmpflts(1)=sLocMax(mxsec)
+             sLocMax(mxsec)=sLocMin(mxsec)
+             sLocMin(mxsec)=tmpflts(1)
           endif
 
         else
@@ -23432,6 +23495,10 @@ end interface
         ! dump aperture model
         ! always in main code
         if (ldmpaper) call dump_aperture_model
+
+        ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
+        ! dump x-sections at specific locations
+        if (mxsec.gt.0) call dump_aperture_xsecs
 
         ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
         ! map errors, now that the sequence is no longer going to change
