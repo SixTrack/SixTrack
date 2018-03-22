@@ -46945,7 +46945,7 @@ end subroutine subsea
       call prror(-1)
       end
 
-      subroutine crstart
+subroutine crstart
 !     If we are restarting (restart is TRUE), this routine is called
 !     in the beginning of the tracking loops.
 !     It is used to copy the cr* variables to the normal variables,
@@ -46955,7 +46955,7 @@ end subroutine subsea
 !     
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use dynk, only : ldynk, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
@@ -46965,6 +46965,10 @@ end subroutine subsea
       use mod_common
       use mod_commonmn
       use mod_commons
+
+      use mod_alloc
+      use mod_hions
+
       implicit none
 +ca common2
 +ca commont1
@@ -47384,7 +47388,7 @@ end subroutine subsea
      &sixrecs,'crsixrecs',crsixrecs
       write(lout,*)'SIXTRACR CRSTART Problem fort.6'
       call prror(-1)
-      end
+end subroutine crstart
 
 +dk aux
 !      logical function isnan(arg1,arg2)
