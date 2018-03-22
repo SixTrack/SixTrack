@@ -100,6 +100,16 @@ interface resize
   module procedure resize2dl
 end interface resize
 
+interface dealloc
+  module procedure dealloc1dr32
+  module procedure dealloc1dr64
+  module procedure dealloc1dr128
+
+  module procedure dealloc1di16
+  module procedure dealloc1di32
+  module procedure dealloc1di64
+end interface dealloc
+
 contains
 
 subroutine alloc_error(ename, error, requested_bits)
@@ -3328,5 +3338,95 @@ subroutine resize2dl(input, newsize1, newsize2, initial, ename)
   call move_alloc(buffer,input)
 
 end subroutine resize2dl
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!                          DEALLOCATIONS
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!These exist to keep track of the total allocated memory
+subroutine dealloc1dr32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input)*storage_size(real32))
+  deallocate(input)
+end subroutine dealloc1dr32
+
+subroutine dealloc1dr64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input)*storage_size(real64))
+  deallocate(input)
+end subroutine dealloc1dr64
+
+subroutine dealloc1dr128(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input)*storage_size(real128))
+  deallocate(input)
+end subroutine dealloc1dr128
+
+subroutine dealloc1di16(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input)*storage_size(int16))
+  deallocate(input)
+end subroutine dealloc1di16
+
+subroutine dealloc1di32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input)*storage_size(int32))
+  deallocate(input)
+end subroutine dealloc1di32
+
+subroutine dealloc1di64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input)*storage_size(int64))
+  deallocate(input)
+end subroutine dealloc1di64
+
+
 
 end module mod_alloc
