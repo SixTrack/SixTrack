@@ -33612,6 +33612,7 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
   use mod_common     ! for iu, tlen, ic
   use parpro   
   use crcoall        ! for lout
+  use end_sixtrack
   implicit none
 +ca dbdcum
 
