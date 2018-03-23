@@ -1,6 +1,8 @@
 +dk zipf
 
 module zipf
+
+  use end_sixtrack
   implicit none
 
 +ca comgetfields

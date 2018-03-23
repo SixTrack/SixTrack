@@ -529,7 +529,8 @@ module mod_common
   
   ! common/trom/
   real(kind=fPrec), save :: cotr(ntr,6),rrtr(ntr,6,6)
-  integer, allocatable, save ::  imtr(:) !(nele)
+
+  integer, allocatable, save ::  imtr(:) !(nele),
   
   ! common /bb6d/
   real(kind=fPrec), save :: bbcu(nbb,12)
@@ -548,7 +549,12 @@ contains
 
     implicit none
 
-    integer stat
+    integer j
+    character(len=max_name_len) :: defaultstring
+    do j=1,max_name_len
+      defaultstring(j:j) = char(0)
+    end do
+!    integer stat
 
 !    allocate(ed(nele),el(nele),ek(nele),sm(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
@@ -609,7 +615,7 @@ contains
 
 !    allocate(bezr(3,nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call alloc(bezr, max_name_len, 3, nele, ' ', 'bezr')
+    call alloc(bezr, max_name_len, 3, nele, defaultstring, 'bezr')
 
 !    allocate(kpa(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
@@ -618,9 +624,9 @@ contains
 !    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
 
-    call alloc(bez, max_name_len, nele, ' ', 'bez')
+    call alloc(bez, max_name_len, nele, defaultstring, 'bez')
 !    call alloc(bezb, max_name_len, nele, ' ', 'bezb')
-    call alloc(bezl, max_name_len, nele, ' ', 'bezl')
+    call alloc(bezl, max_name_len, nele, defaultstring, 'bezl')
 
 !    allocate(ncororb(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
@@ -676,16 +682,23 @@ contains
 
     return !Finished successfully
     
-42  continue
-    write(lout,'(A,I8,1x,A)') "ERROR in SUBROUTINE MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat
-    call prror(-1)
+!42  continue
+!    write(lout,'(A,I8,1x,A)') "ERROR in SUBROUTINE MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat
+!    call prror(-1)
 
   end subroutine mod_common_allocate_arrays
 
   subroutine mod_common_expand_arrays(nele_new)
     implicit none
+
     integer, intent(in) :: nele_new
-    integer stat
+!    integer stat
+
+    integer j
+    character(len=max_name_len) :: defaultstring
+    do j=1,max_name_len
+      defaultstring(j:j) = char(0)
+    end do
 
     !TODO: Do the thing. This will be long and fugly
     call resize(ed,nele_new,zero,'ed')
@@ -716,15 +729,15 @@ contains
 
 !    allocate(bezr(3,nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call resize(bezr, max_name_len, 3, nele_new, ' ', 'bezr')
+    call resize(bezr, max_name_len, 3, nele_new, defaultstring, 'bezr')
 
     call resize(kpa,nele_new,0,'kpa')
 
 !    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call resize(bez,  max_name_len, nele_new, ' ', 'bez')
+    call resize(bez,  max_name_len, nele_new, defaultstring, 'bez')
 !    call resize(bezb, max_name_len, nele_new, ' ', 'bezb')
-    call resize(bezl, max_name_len, nele_new, ' ', 'bezl')
+    call resize(bezl, max_name_len, nele_new, defaultstring, 'bezl')
 
     call resize(ncororb,nele_new,0,'ncororb')
     call resize(ratioe,nele_new,zero,'ratioe')
@@ -769,12 +782,12 @@ module mod_commonmn
        clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),xv(2,npart),     &
        yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
        dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
-       xlv(npart),zlv(npart),rvv(npart),                                 &
+       xlv(npart),zlv(npart),rvv(npart),pttemp,temptr(6),                &
 +if rvet
        rvet(npart),                                                      &
 +ei
        ejf0v(npart)
-  integer, save :: numxv(npart),nms(npart),nlostp(npart)
+  integer, save :: numxv(npart),nms(npart),nlostp(npart),kxxa
   logical, save :: pstop(npart)
   
   ! common /main2/
