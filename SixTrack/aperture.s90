@@ -10,7 +10,7 @@ module aperture
   use end_sixtrack
   use mathlib_bouncer
   use numerical_constants
-  
+
   use parpro !For nele, npart
 
   !contains pstop(npart) etc
@@ -18,9 +18,10 @@ module aperture
   use crcoall
   use mod_common
   use mod_commons
-  
+
   use mod_hions
-  
+  use mod_alloc
+
   implicit none
   
   ! A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
@@ -40,7 +41,7 @@ module aperture
   ! ape(7,:): tilt angle of marker (all) [rad]
   ! ape(8,:): hor offset of marker (all) [mm]
   ! ape(9,:): ver offset of marker (all) [mm]
-  real(kind=fPrec), allocatable, save ::  ape(:,:)
+  real(kind=fPrec), allocatable, save ::  ape(:,:) !(9,nele)
   logical, allocatable, save :: lapeofftlt(:)      ! aperture is tilted/offcentred (nele)
 
   ! save (i.e. do not kill) lost particles
@@ -86,8 +87,7 @@ module aperture
   ! octagon         -- 5
   ! racetrack       -- 6
   ! transition      -- 7
-  character(len=2), parameter, dimension(-1:6) ::  &
- &               apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
+  character(len=2), parameter, dimension(-1:6) :: apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
 
   ! precision parameters:
   real(kind=fPrec), parameter :: aPrec=c1m6 ! identify two ap. markers as identical [mm]
@@ -133,10 +133,10 @@ subroutine aperture_comnul
 
   ldmpaper      = .false.
   aperunit      = 0
-  aper_filename = ' '
+  aper_filename = char(0)
   ldmpaperMem   = .false.
   loadunit      = 3 ! default: read aperture markers in fort.3
-  load_file     = ' '
+  load_file     = char(0)
 
   lbacktracking = .false. ! backtracking off by default
   do ii=1,npart
@@ -155,7 +155,7 @@ subroutine aperture_comnul
   mxsec = 0
   do ii=1,nxsec
      xsecunit(ii)=0
-     xsec_filename(ii)=' '
+     xsec_filename(ii)=char(0)
      sLocMin(ii)=zero
      sLocMax(ii)=zero
      sLocDel(ii)=zero

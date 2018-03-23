@@ -367,7 +367,7 @@
      &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
      &sigsecut3,sigsecut2,enerror,bunchlength
 
-      character(len=24) name_sel
+      character(len=max_name_len) name_sel
       character(len=80) coll_db
       character(len=16) castordir
       character(len=80) filename_dis
@@ -13544,8 +13544,7 @@ subroutine daten
 !         A.Mereghetti and P.Garcia Ortega, 12-06-2014
 !         echo precision for back-tracking
           if (lbacktracking) then
-            write(lout,*)' --> back-tracking at aperture LIMIs is on,'//&
-     &' with precision [m]:',bktpre
+            write(lout,*)' --> back-tracking at aperture LIMIs is on, with precision [m]:',bktpre
           else
             write(lout,*)' --> no back-tracking, only checks at aperture LIMIs'
           endif
@@ -13562,11 +13561,9 @@ subroutine daten
 
       else
 
-        call getfields_split( ch, getfields_fields, getfields_lfields,  &
-     &        getfields_nfields, getfields_lerr )
+        call getfields_split( ch, getfields_fields, getfields_lfields,getfields_nfields, getfields_lerr )
         if ( getfields_lerr ) then
-          write(lout,*)'ERROR in LIMI block: getfields_lerr=', getfields_lerr, &
-     &    ' at line: ',ch
+          write(lout,*)'ERROR in LIMI block: getfields_lerr=', getfields_lerr, ' at line: ',ch
           call prror(-1)
         endif
 
@@ -13582,8 +13579,7 @@ subroutine daten
           read (getfields_fields(3)(1:getfields_lfields(3)),*) load_file
           inquire( file=load_file, exist=lexist )
           if (.not.lexist ) then
-             write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND ",&
-     &       "IN THE RUNNING FOLDER"
+             write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND IN THE RUNNING FOLDER"
              call prror(-1)
           endif
           open(loadunit,file=load_file,form='formatted') 
@@ -13867,7 +13863,7 @@ subroutine daten
                   endif
                 end do
               end if
-              call aperture_initroffpos( j, tmpflts(1), tmpflts(2), tmpflts(3) )
+              call aperture_initroffpos( j, tmpflts(7), tmpflts(8), tmpflts(9) )
               limifound=.true.
               exit
             end if
