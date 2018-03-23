@@ -310,7 +310,7 @@ end subroutine aperture_initRT
 subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2 )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
-  ! initialise aperture marker to octagon
+  ! initialise aperture marker to transition
   !-----------------------------------------------------------------------
   implicit none
   integer ix
@@ -336,7 +336,7 @@ end subroutine aperture_initTR
 subroutine aperture_initroffpos( ix, tilt, xoff, yoff )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-22
-  ! initialise aperture marker to racetrack
+  ! initialise offset/tilt of aperture marker
   !-----------------------------------------------------------------------
   implicit none
   integer ix
@@ -1236,8 +1236,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 !         updating an existing one
 !     interface variables:
 !     - iEl: entry in lattice sequence to be checked
-!     - lInsUp: if true, the new aperture marker is inserted upstream of
-!       iEl
+!     - lInsUp: if true, the new aperture marker is inserted upstream of iEl
 !     always in main code
 !-----------------------------------------------------------------------
 +if fluka
@@ -1832,6 +1831,7 @@ subroutine dump_aperture_xsec( sLoc, iunit )
   implicit none
   integer iunit
   real(kind=fPrec) sLoc
+  
   return
 
 end subroutine dump_aperture_xsec

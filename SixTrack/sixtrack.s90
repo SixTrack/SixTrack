@@ -33467,6 +33467,88 @@ integer function check_SE_unique( iEl, ixEl )
       
 end function check_SE_unique
 
+subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
+!     find the element at location sLoc
+!     interface variables:
+!     - sLoc: s-coordinate where element should be
+!     - iEl:  index in lattice structure of found element
+!     - ixEl: index in array of SINGLE ELEMENTs of found element
+!     - llast: if true, return last lens at sLoc
+!     always in main code
+!-----------------------------------------------------------------------
+  use floatPrecision
+  use mod_common     ! for iu, tlen, ic
+  use parpro   
+  use crcoall        ! for lout
+  implicit none
++ca dbdcum
+
+! interface variables
+  integer iEl, ixEl
+  real(kind=fPrec) sLoc
+  logical llast, lfound
+
+! temporary variables
+  integer i, iDelta, iCheck, iMax, iStep
+  logical lSlide
+
+  iEl=-1
+  ixEl=-1
+
+  if (sLoc.gt.tlen.or.sLoc.lt.zero) then
+     write(lout,'(a,f11.4,a,f11.4,a)')&
+ &         "requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
+     call prror(-1)
+  endif
+
+  ! fast search
+  iCheck=iu
+  iDelta=iu
+  do while(iDelta.gt.1.or.iCheck.gt.0.or.iCheck.lt.iu)
+     if (dcum(iCheck).eq.sLoc) exit
+     iDelta=nint(real(iDelta/2))
+     if (dcum(iCheck).lt.sLoc) then
+        iCheck=iCheck+iDelta
+     else
+        iCheck=iCheck-iDelta
+     endif
+  end do
+
+  ! finalise search
+  if (dcum(iCheck).lt.sLoc.or.(dcum(iCheck).eq.sLoc.and.llast)) then
+     iMax=iu
+     iStep=1
+     lslide=llast
+  else
+     iMax=1
+     iStep=-1
+     lSlide=.not.llast
+  endif
+  do i=iCheck,iMax,iStep
+     if (dcum(i).lt.sLoc) continue
+     if (dcum(i).gt.sLoc) then
+        if (iEl.eq.-1) iEl=i
+     else
+        iEl=i
+        if (lSlide) continue
+     endif
+     exit
+  enddo
+  
+  if (lfound) then
+     ixEl=ic(iEl)-nblo
+     if (ixEl.lt.0) ixEl=ic(iEl) ! drift
+  else
+     write(lout,'(a,f11.4,a,f11.4,a)')&
+ &         "s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
+     write(lout,*)"this is actually embarassing..."
+  endif
+  return
+      
+end subroutine find_entry_at_s
+
 +dk umschr
 subroutine umschr(iu1,iu2)
 !-----------------------------------------------------------------------
