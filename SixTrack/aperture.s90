@@ -509,8 +509,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
     do j=1,napx
-      pstop(nlostp(j))=checkRE( xv(1,j), xv(2,j), aper(1), aper(2)).or. &
- &                       myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+      pstop(nlostp(j))=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
+ &                       (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
       llost=llost.or.pstop(nlostp(j))
     end do
         
@@ -866,7 +866,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         ipart(j)+100*samplenumber,                                      &
 +ei
 +if .not.fluka.and..not.collimat
-     &         j,                                                              &
+     &         nlostp(j),                                                      &
 +ei
 
      &         xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
