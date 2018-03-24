@@ -24,11 +24,11 @@ module file_units
   
   implicit none
   
-  integer :: funit_minUnit, funit_maxUnit
-  parameter(funit_minUnit=1000, funit_maxUnit=1999)
+  integer :: funit_minUnit, funit_maxUnit, funit_maxStrLen
+  parameter(funit_minUnit=1000, funit_maxUnit=1999, funit_maxStrLen=100)
   
-  integer,            allocatable :: funit_usedUnits(:)
-  character(len=256), allocatable :: funit_usedByFile(:)
+  integer,                        dimension(:), allocatable :: funit_usedUnits
+  character(len=funit_maxStrLen), dimension(:), allocatable :: funit_usedByFile
   
   integer :: funit_nextUnit = funit_minUnit
   
@@ -48,6 +48,12 @@ contains
     
     logical isOpen
     
+    ! Check if the subroutine is called for the first time, and initialise the arrays to zero size.
+    if(funit_nextUnit == funit_minUnit) then
+      allocate(funit_usedUnits(0))
+      allocate(funit_usedByFile(0))
+    end if
+    
 10  continue
     
     fileUnit       = funit_nextUnit
@@ -56,8 +62,12 @@ contains
     
     inquire(unit=fileUnit, opened=isOpen)
     if(isOpen) then 
+      funit_usedUnits  = [funit_usedUnits,  fileUnit]
+      funit_usedByFile = [funit_usedByFile, "Unknown"//repeat(" ",93)]
       goto 10
     else
+      funit_usedUnits  = [funit_usedUnits,  fileUnit]
+      funit_usedByFile = [funit_usedByFile, fileName]
       goto 20
     end if
 
@@ -70,6 +80,21 @@ contains
     call prror(-1)
     
   end subroutine requestFileUnit
+  
+  subroutine listFileUnits
+    
+    use crcoall
+    
+    implicit none
+    
+    integer i
+    
+    write(lout,"(a)") "FUNIT> Dynamically assigned file units are:"
+    do i=1, size(funit_usedUnits)
+      write(lout,"(a,i4,a,a)") "FUNIT> Unit ",funit_usedUnits(i)," assigned to file: ",funit_usedByFile(i)
+    end do
+    
+  end subroutine listFileUnits
 
 end module file_units
 ! =================================================================================================

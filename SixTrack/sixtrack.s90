@@ -22721,6 +22721,7 @@ end subroutine beaminf
 program maincr
       use floatPrecision
       use end_sixtrack
+      use file_units
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
@@ -25312,6 +25313,8 @@ end interface
 !     call dumpum('THE END',999,9999)
 !     call dumpbin('THE END',999,9999)
 !     call dumpzfz('THE END',9,9)
+      ! Output dynamically assigned file units
+      call listFileUnits
 +ei
       call closeUnits
 
