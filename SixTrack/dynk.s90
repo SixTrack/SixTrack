@@ -43,6 +43,7 @@ module dynk
     logical ldynkdebug       ! print debug messages in main output
     logical ldynkfiledisable ! Disable writing dynksets.dat?
     integer ldynkfileunit    ! The file unit for dynksets.dat
+    integer ldynkFUNfileunit ! File unit for parseFUN files
 
 ! ================================================================================================ !
 !  Store the FUN statements
@@ -104,7 +105,7 @@ module dynk
 
 ! ================================================================================================ !
 
-    save ldynk, ldynkdebug, ldynkfiledisable, ldynkfileunit
+    save ldynk, ldynkdebug, ldynkfiledisable, ldynkfileunit, ldynkFUNfileunit
     save funcs_dynk, iexpr_dynk, fexpr_dynk, cexpr_dynk, nfuncs_dynk
     save niexpr_dynk, nfexpr_dynk, ncexpr_dynk
     save sets_dynk, csets_dynk, nsets_dynk
@@ -221,6 +222,7 @@ subroutine dynk_allocate
     
     ! Set file units for i/o files
     call requestFileUnit("dynksets.dat",ldynkfileunit)
+    call requestFileUnit("dynk_parseFUN_IO",ldynkFUNfileunit)
     
 end subroutine dynk_allocate
 
@@ -389,21 +391,19 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ncexpr_dynk = ncexpr_dynk+1
 
         ! Open the file
-        inquire(unit=664,opened=lopen)
+        inquire(unit=ldynkFUNfileunit,opened=lopen)
         if (lopen) then
             write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():FILE ****"
-            write(lout,*)"DYNK> unit 664 for file '" // &
-                 trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // &
-                 "' was already taken"
+            write(lout,*)"DYNK> Could not open file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             call prror(-1)
         end if
 
 +if boinc
         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
-        open(unit=664,file=filename,action='read',iostat=stat,status="OLD")
+        open(unit=ldynkFUNfileunit,file=filename,action='read',iostat=stat,status="OLD")
 +ei
 +if .not.boinc
-        open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',iostat=stat,status="OLD")
+        open(unit=ldynkFUNfileunit,file=cexpr_dynk(ncexpr_dynk),action='read',iostat=stat,status="OLD")
 +ei
         if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILE"
@@ -414,21 +414,21 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ! Count number of lines and allocate space
         nlines = 0
         do
-            read(664,*, iostat=stat)
+            read(ldynkFUNfileunit,*, iostat=stat)
             if (stat .ne. 0) exit
             nlines = nlines + 1
         end do
-        rewind(664)
+        rewind(ldynkFUNfileunit)
         call dynk_checkspace(0,nlines,0,.false.)
 
         ii = 0 ! Number of data lines read
         do
 +if .not.crlibm
-            read(664,*, iostat=stat) t,y
+            read(ldynkFUNfileunit,*, iostat=stat) t,y
             if (stat .ne. 0) exit !EOF
 +ei
 +if crlibm
-            read(664,'(a)', iostat=stat) ch
+            read(ldynkFUNfileunit,'(a)', iostat=stat) ch
             if (stat .ne. 0) exit !EOF
             call getfields_split(ch,filefields_fields,filefields_lfields,filefields_nfields,filefields_lerr)
             if (filefields_lerr) then
@@ -464,7 +464,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         end do
         funcs_dynk(nfuncs_dynk,5) = ii
 
-        close(664)
+        close(ldynkFUNfileunit)
 
     ! END CASE FILE
 
@@ -508,26 +508,24 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ncexpr_dynk = ncexpr_dynk+1
 
         ! Open the file
-        inquire(unit=664, opened=lopen)
+        inquire(unit=ldynkFUNfileunit, opened=lopen)
         if (lopen) then
             write(lout,*) "DYNK> **** ERROR in dynk_parseFUN():FILELIN ****"
-            write(lout,*) "DYNK> unit 664 for file '"// &
-                          trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"' was already taken"
+            write(lout,*) "DYNK> Could not open file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             call prror(-1)
         end if
 
 +if boinc
         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
-        open(unit=664,file=filename,action='read',iostat=stat,status='OLD')
+        open(unit=ldynkFUNfileunit,file=filename,action='read',iostat=stat,status='OLD')
 +ei
 +if .not.boinc
-        open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',iostat=stat,status='OLD')
+        open(unit=ldynkFUNfileunit,file=cexpr_dynk(ncexpr_dynk),action='read',iostat=stat,status='OLD')
 +ei
 
         if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-            write(lout,*) "DYNK> Error opening file '"// &
-                          trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))// "'"
+            write(lout,*) "DYNK> Error opening file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             call prror(51)
         end if
 
@@ -535,17 +533,16 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ii = 0 ! Number of data lines read
         do
 +if .not.crlibm
-            read(664,*, iostat=stat) x,y
+            read(ldynkFUNfileunit,*, iostat=stat) x,y
             if (stat .ne. 0) exit !EOF
 +ei
 +if crlibm
-            read(664,'(a)', iostat=stat) ch
+            read(ldynkFUNfileunit,'(a)', iostat=stat) ch
             if (stat .ne. 0) exit !EOF
             call getfields_split(ch,filefields_fields,filefields_lfields,filefields_nfields,filefields_lerr)
             if (filefields_lerr) then
                 write(lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                write(lout,*) "DYNK> Error reading file '"// &
-                              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                write(lout,*) "DYNK> Error reading file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                 write(lout,*) "DYNK> Error in getfields_split"
                 call prror(-1)
             end if
@@ -566,8 +563,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
             if (ii .gt. 0 .and. x .le. x2) then ! Insane: Decreasing x
                 write (lout,*) "DYNK> dynk_parseFUN():FILELIN"
-                write (lout,*) "DYNK> Error while reading file '"// &
-                               trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                write (lout,*) "DYNK> Error while reading file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                 write (lout,*) "DYNK> x values must be in increasing order"
                 call prror(-1)
             end if
@@ -575,7 +571,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
             ii = ii+1
         end do
         t = ii
-        rewind(664)
+        rewind(ldynkFUNfileunit)
 
         call dynk_checkspace(0,2*t,0,.false.)
         ! if (nfexpr_dynk+2*t .gt. maxdata_dynk) then
@@ -591,12 +587,11 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         ii = 0
         do
 +if .not.crlibm
-            read(664,*, iostat=stat) x,y
+            read(ldynkFUNfileunit,*, iostat=stat) x,y
             if (stat .ne. 0) then ! EOF
                 if (ii .ne. t) then
                     write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
-                    write (lout,*)"DYNK> Unexpected when reading file '"// &
-                                  trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                    write (lout,*)"DYNK> Unexpected when reading file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                     write (lout,*)"DYNK> ii=",ii,"t=",t
                     call prror(51)
                 end if
@@ -604,13 +599,12 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
             end if
 +ei
 +if crlibm
-            read(664,'(a)', iostat=stat) ch
+            read(ldynkFUNfileunit,'(a)', iostat=stat) ch
             if (stat .ne. 0) then !EOF
                 if (ii .ne. t) then
                     write (lout,*)"DYNK> dynk_parseFUN():FILELIN"
-                    write (lout,*)"DYNK> Unexpected when reading file '"// &
-                                  trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
-                    write (lout,*) "DYNK> ii=",ii,"t=",t
+                    write (lout,*)"DYNK> Unexpected when reading file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                    write (lout,*)"DYNK> ii=",ii,"t=",t
                     call prror(51)
                 end if
                 exit
@@ -652,7 +646,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
         nfexpr_dynk = nfexpr_dynk + 2*t
         funcs_dynk(nfuncs_dynk,5) = t
-        close(664)
+        close(ldynkFUNfileunit)
 
     ! END CASE FILELIN
 
@@ -1052,24 +1046,22 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
         cexpr_dynk(ncexpr_dynk)(1:getfields_lfields(5)) = getfields_fields(5)(1:getfields_lfields(5))
 
         ! Read the file
-        inquire( unit=664, opened=lopen )
+        inquire(unit=ldynkFUNfileunit, opened=lopen)
         if (lopen) then
             write(lout,*) "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
-            write(lout,*) "DYNK> unit 664 for file '"// &
-                          trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"' was already taken"
+            write(lout,*) "DYNK> Could not open file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             call prror(-1)
         end if
 +if boinc
         call boincrf(cexpr_dynk(ncexpr_dynk),filename)
-        open(unit=664,file=filename,action='read',iostat=stat,status="OLD")
+        open(unit=ldynkFUNfileunit,file=filename,action='read',iostat=stat,status="OLD")
 +ei
 +if .not.boinc
-        open(unit=664,file=cexpr_dynk(ncexpr_dynk),action='read',iostat=stat,status="OLD")
+        open(unit=ldynkFUNfileunit,file=cexpr_dynk(ncexpr_dynk),action='read',iostat=stat,status="OLD")
 +ei
         if (stat .ne. 0) then
             write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write(lout,*) "DYNK> Error opening file '" // &
-                          trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
+            write(lout,*) "DYNK> Error opening file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
             call prror(51)
         end if
 
@@ -1078,14 +1070,13 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
             ! Reading the FIR/IIR file without CRLIBM
 +if .not.crlibm
             if (isFIR) then
-                read(664,*,iostat=stat) t, x, y
+                read(ldynkFUNfileunit,*,iostat=stat) t, x, y
             else
-                read(664,*,iostat=stat) t, x, y, z, u
+                read(ldynkFUNfileunit,*,iostat=stat) t, x, y, z, u
             end if
             if (stat.ne.0) then
                 write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-                write(lout,*) "DYNK> Error reading file '" // &
-                              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk))) // "'"
+                write(lout,*) "DYNK> Error reading file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                 write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
                 call prror(-1)
             end if
@@ -1093,11 +1084,10 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
 
             ! Reading the FIR/IIR file with CRLIBM
 +if crlibm
-            read(664,'(a)', iostat=stat) ch
+            read(ldynkFUNfileunit,'(a)', iostat=stat) ch
             if (stat.ne.0) then
                 write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-                write(lout,*) "DYNK> Error reading file '"// &
-                              trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
+                write(lout,*) "DYNK> Error reading file '"//trim(stringzerotrim(cexpr_dynk(ncexpr_dynk)))//"'"
                 write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
                 call prror(-1)
             end if
@@ -1164,7 +1154,7 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
                 fexpr_dynk(nfexpr_dynk) = u   ! y_init[n-i]
             end if
         end do
-        close(664)
+        close(ldynkFUNfileunit)
 
     ! END CASES FIR & IIR
 
@@ -1751,7 +1741,7 @@ end subroutine dynk_parseFUN
 
 subroutine dynk_checkargs(nfields,nfields_expected,funsyntax)
 
-      use crcoall
+    use crcoall
     implicit none
 
     integer nfields, nfields_expected
@@ -1777,7 +1767,7 @@ end subroutine dynk_checkargs
 ! ================================================================================================ !
 subroutine dynk_checkspace(iblocks,fblocks,cblocks,quiet)
 
-      use crcoall
+    use crcoall
     implicit none
 
     integer iblocks, fblocks, cblocks
@@ -1948,7 +1938,7 @@ end subroutine dynk_checkspace
 ! ================================================================================================ !
 subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
 
-      use crcoall
+    use crcoall
     implicit none
 
 +ca comgetfields
@@ -2058,7 +2048,7 @@ end subroutine dynk_parseSET
 ! ================================================================================================ !
 integer function dynk_findFUNindex(funName_input, startfrom)
 
-      use crcoall
+    use crcoall
     implicit none
 
 
@@ -2147,7 +2137,7 @@ end function dynk_findSETindex
 ! ================================================================================================ !
 subroutine dynk_inputsanitycheck
 
-      use crcoall
+    use crcoall
     implicit none
 
 
@@ -2306,7 +2296,7 @@ end subroutine dynk_dumpdata
 ! ================================================================================================ !
 subroutine dynk_pretrack
 
-      use crcoall
+    use crcoall
     use mod_common
     implicit none
 
@@ -2571,7 +2561,7 @@ subroutine dynk_apply(turn)
             inquire(unit=ldynkfileunit, opened=lopen)
             if (lopen) then
                 write(lout,*) "DYNK> **** ERROR in dynk_apply() ****"
-                write(lout,*) "DYNK> unit 665 for dynksets.dat was already taken"
+                write(lout,*) "DYNK> Could not open file 'dynksets.dat'"
                 call prror(-1)
             end if
 +if boinc
@@ -3024,7 +3014,7 @@ end function dynk_computeFUN
 subroutine dynk_setvalue(element_name, att_name, newValue)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
-      use crcoall
+    use crcoall
     use mod_common
     use mod_commonmn
     use elens
@@ -3241,7 +3231,7 @@ end subroutine dynk_setvalue
 real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
-      use crcoall
+    use crcoall
     use mod_common
     use mod_commonmn
     use elens
@@ -3666,12 +3656,12 @@ subroutine dynk_crcheck_positionFiles
 
     inquire(unit=ldynkfileunit, opened=lopen)
     if (lopen) then
-        write(93,*) "SIXTRACR CRCHECK FAILED while repositioning dynksets.dat"
-        write(93,*) "Unit 665 already in use!"
+        write(93,*) "SIXTRACR CRCHECK FAILED while repositioning 'dynksets.dat'"
+        write(93,*) "Could not open file!"
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
 
-        write(lout,*) "SIXTRACR CRCHECK failure positioning dynksets.dat"
+        write(lout,*) "SIXTRACR CRCHECK failure positioning 'dynksets.dat'"
         call prror(-1)
     end if
 
@@ -3699,7 +3689,7 @@ subroutine dynk_crcheck_positionFiles
         open(unit=ldynkfileunit,file="dynksets.dat",status="old",position='append',action="write")
 +ei
 
-        write(93,*) "SIXTRACR CRCHECK sucessfully repositioned dynksets.dat, "// &
+        write(93,*) "SIXTRACR CRCHECK sucessfully repositioned 'dynksets.dat', "// &
                     "dynkfilepos=",dynkfilepos, "dynkfilepos_cr=",dynkfilepos_cr
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
@@ -3715,11 +3705,11 @@ subroutine dynk_crcheck_positionFiles
     return
 
 110 continue
-    write(93,*) "SIXTRACR CRCHECK *** ERROR *** reading dynksets.dat, iostat=",ierro
+    write(93,*) "SIXTRACR CRCHECK *** ERROR *** reading 'dynksets.dat', iostat=",ierro
     write(93,*) "dynkfilepos=",dynkfilepos," dynkfilepos_cr=",dynkfilepos_cr
     endfile   (93,iostat=ierro)
     backspace (93,iostat=ierro)
-    write(lout,*) "SIXTRACR CRCHECK failure positioning dynksets.dat"
+    write(lout,*) "SIXTRACR CRCHECK failure positioning 'dynksets.dat'"
     call prror(-1)  
 
 end subroutine dynk_crcheck_positionFiles
