@@ -11029,7 +11029,7 @@ subroutine daten
 !      if(i.gt.nele-1) call prror(16)
       !Changed to nele-2 to handle resizing correctly
       if(i.gt.nele-2) then
-        call expand_arrays(nele+10, npart, nblz, nblo)
+        call expand_arrays(nele+50, npart, nblz, nblo)
 
         !The value of nele will have been updated here
         call resize(bez0, max_name_len, nele, defaultstring, 'bez0')

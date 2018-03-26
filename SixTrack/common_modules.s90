@@ -177,7 +177,7 @@ module parpro
   parameter(npart = 65536,nmac = 1)
 +ei
 
-  integer, parameter :: nele_initial = 10 !Must be at least 1
+  integer, parameter :: nele_initial = 50 !Must be at least 1
   integer :: nele = -1
   
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
