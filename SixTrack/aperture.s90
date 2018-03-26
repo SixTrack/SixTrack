@@ -1695,6 +1695,8 @@ subroutine dump_aperture_model
     call prror(-1)
   end if
   call dump_aperture_marker( aperunit, ix, i )
+  iOld=i
+  ixOld=ix
 
   do i=2,iu
     ix=ic(i)-nblo
@@ -1709,14 +1711,13 @@ subroutine dump_aperture_model
               slos = int(dcum(iOld)/bktpre+jj)*bktpre
               if ( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
               call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
-              call dump_aperture( aperunit, bez(ix), oKApe, slos, aprr )
+              call dump_aperture( aperunit, '    interpolated', oKApe, slos, aprr )
             end do
           end if
           iOld=i
           ixOld=ix
-        else
-          call dump_aperture_marker( aperunit, ix, i )
         endif
+        call dump_aperture_marker( aperunit, ix, i )
       end if
     end if
   end do
@@ -2210,7 +2211,6 @@ subroutine intersectOC( xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, 
   nTmp(2)=c1e3
   call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
   ! octagon part
-  x
   if (nTmp(1).lt.nTmp(2)) then
      xChk=xTmp(1)
      yChk=yTmp(1)
