@@ -76,6 +76,8 @@ module aperture
   integer, save :: xsecunit(nxsec)                 ! fortran units
   character(len=16), save :: xsec_filename(nxsec)  ! file names
   real(kind=fPrec), save :: sLocMin(nxsec), sLocMax(nxsec), sLocDel(nxsec) ! locations
+  integer, save :: nAzimuts(nxsec)                 ! number of points (azimuth angles)
+  integer, parameter :: nAzimutDef=72              ! default number of points
   
   
   ! aperture types  -- kape
@@ -159,6 +161,7 @@ subroutine aperture_comnul
      sLocMin(ii)=zero
      sLocMax(ii)=zero
      sLocDel(ii)=zero
+     nAzimuts(ii)=nAzimutDef
   enddo
 
   return
@@ -1149,6 +1152,29 @@ subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
   return
 end subroutine roffpos
 
+subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
+!-----------------------------------------------------------------------
+!     A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-24
+!     inverse of roffpos - but same interface
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, xnew, ynew, tlt, xoff, yoff
+
+! temporary variables
+  real(kind=fPrec) theta, radio, ttmp
+
+  theta = atan2_mb(y, x)
+  radio = sqrt(x**two + y**two)
+  ttmp = theta+tlt
+  xnew = radio * cos_mb(ttmp)
+  ynew = radio * sin_mb(ttmp)
+  xnew = xnew-xoff
+  ynew = ynew-yoff
+  return
+end subroutine roffpos_inv
+
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
@@ -1335,65 +1361,20 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! NB: no risk of overflow, as first/last element in lattice
 ! sequence should be aperture markers (and the first
 ! call of this function is meant to verify this assumption)
-  iApeUp=-1
-  ixApeUp=-1
-  lApeUp=.false.
-  do i=iSrcUp,1,-1
-    ix=ic(i)-nblo
-    if(ix.gt.0) then
-!   SINGLE ELEMENT 
-+if fluka
-!     inserted in main code by the 'fluka' compilation flag
-!     aperture markers should not coincide with a FLUKA element
-      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
-+ei
-+if .not.fluka
-      if( kape(ix).ne.0 ) then
-+ei
-        iApeUp=i
-        ixApeUp=ix
-        exit
-      end if
-    end if
-  end do
-
+  call find_closest_aperture(iSrcUp,.true.,iApeUp,ixApeUp,lApeUp)
   if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
     write(lout,*)' ERROR - could not find upstream marker'
     call prror(-1)
   end if
-
-
 ! - get closest downstream aperture marker
 ! NB: no risk of overflow, as first/last element in lattice
 ! sequence should be aperture markers (and the first
 ! call of this function is meant to verify this assumption)
-  iApeDw=-1
-  ixApeDw=-1
-  lApeDw=.false.
-  do i=iSrcDw,iu
-    ix=ic(i)-nblo
-    if(ix.gt.0) then
-!   SINGLE ELEMENT 
-+if fluka
-!     inserted in main code by the 'fluka' compilation flag
-!     aperture markers should not coincide with a FLUKA element
-      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
-+ei
-+if .not.fluka
-      if( kape(ix).ne.0 ) then
-+ei
-        iApeDw=i
-        ixApeDw=ix
-        exit
-      end if
-    end if
-  end do
+  call find_closest_aperture(iSrcDw,.false.,iApeDw,ixApeDw,lApeDw)
   if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
     write(lout,*)' ERROR - could not find downstream marker'
     call prror(-1)
   end if
-
-
 ! - echo found apertures
   call dump_aperture_header( lout )
   call dump_aperture_marker( lout, ixApeUp, iApeUp )
@@ -1483,6 +1464,60 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
  1982 format (a16,2(1x,a2),8(1x,f15.5))
 end subroutine contour_aperture_marker
+
+subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-24
+!     find aperture marker closest to iStart
+!-----------------------------------------------------------------------
++if fluka
+! import mod_fluka
+! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
++ei
+  
+  implicit none
+  ! interface variables
+  integer iStart, iEl, ixEl
+  logical lUp, lfound
+  ! temporary variables
+  integer i, ix, iEnd, iStep
+  
+  iEl=-1
+  ixEl=-1
+  lfound=.false.
+
+  ! search
+  if (lUp) then
+     iEnd=1
+     iStep=-1
+  else
+     iEnd=iu
+     iStep=1
+  endif
+     
+  do i=iStart,iEnd,iStep
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
+!   SINGLE ELEMENT 
++if fluka
+!     inserted in main code by the 'fluka' compilation flag
+!     aperture markers should not coincide with a FLUKA element
+      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
++ei
++if .not.fluka
+      if( kape(ix).ne.0 ) then
++ei
+        iEl=i
+        ixEl=ix
+        lfound=.true.
+        exit
+      end if
+    end if
+ end do
+ return
+  
+end subroutine find_closest_aperture
 
 character(len=max_name_len) function CrtApeName()
 !-----------------------------------------------------------------------
@@ -1788,9 +1823,10 @@ subroutine dump_aperture_xsecs
   ! dump cross-sections of apertures at specific locations (loop)
   !-----------------------------------------------------------------------
   implicit none
-  integer ixsec,ierro
-  logical lopen
-  real(kind=fPrec) sLoc
+  ! temporary variables
+  logical lfound, lopen, lApeUp, lApeDw
+  integer ixsec, ierro, iEl, ixEl, iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape
+  real(kind=fPrec) sLoc, tmpape(9)
 
   ! loop over requested lines
   do ixsec=1,mxsec
@@ -1813,7 +1849,24 @@ subroutine dump_aperture_xsecs
      ! loop over s-locations
      sLoc=sLocMin(ixsec)
      do while(sLoc.le.sLocMax(ixsec))
-        call dump_aperture_xsec(sLoc,xsecunit(ixsec))
+        call find_entry_at_s( sLoc, .true., iEl, ixEl, lfound )
+        if (.not.lfound) call prror(-1)
+        ! get upstream aperture marker
+        call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)
+        if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
+           write(lout,*)' ERROR - could not find upstream aperture marker'
+           call prror(-1)
+        end if
+        ! get downstream aperture marker
+        call find_closest_aperture(iEl,.false.,iApeDw,ixApeDw,lApeDw)
+        if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
+           write(lout,*)' ERROR - could not find downstream aperture marker'
+           call prror(-1)
+        end if
+        ! interpolate and get aperture at desired location
+        call interp_aperture( iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape, tmpape, sLoc )
+        ! dump the x-sec of the aperture
+        call dump_aperture_xsec(xsecunit(ixsec),itmpape,tmpape,nAzimuts(ixsec),sLoc)
         sLoc=sLoc+sLocDel(ixsec)
      enddo
      
@@ -1824,18 +1877,240 @@ subroutine dump_aperture_xsecs
 end subroutine dump_aperture_xsecs
 
 
-subroutine dump_aperture_xsec( sLoc, iunit )
+subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
   ! dump the cross-sections of the machine aperture at a specific location
   !-----------------------------------------------------------------------
   implicit none
-  integer iunit
-  real(kind=fPrec) sLoc
+  ! interface variables
+  integer iunit, itmpape, nAzim
+  real(kind=fPrec) tmpape(9), sLoc
+  ! temporary variables
+  logical tmpOffTlt
+  integer i
+  real(kind=fPrec) xChk, yChk, nChk, thetaRay, xRay, yRay
   
+  write(iunit,*)'# aperture at s=',sLoc
+  write(iunit,*)'# type:',itmpape
+  write(iunit,*)'# specifiers:'
+  do i=1,9
+     write(iunit,*)'# - ape(',i,')=',tmpape(i)
+  enddo
+  write(iunit,*)'# number of points:',nAzim
+  write(iunit,1981) '# ang[deg]', 'rad [mm]', 'x [mm]', 'y [mm]'
+  tmpOffTlt=tmpape(7).ne.zero.or.tmpape(8).ne.zero.or.tmpape(9).ne.zero
+
+  ! origin of ray:
+  xRay=zero
+  yRay=zero
+  if (tmpOffTlt) call roffpos(xRay,yRay,xRay,yRay,tmpape(7),tmpape(8),tmpape(9))
+
+  ! loop over rays
+  select case(itmpape)
+  case(-1) ! transition
+  case(1) ! circle
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectCR(xRay,yRay,thetaRay-tmpape(7),tmpape(3),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
+     enddo
+  case(2) ! rectangle
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectRE(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
+     enddo
+  case(3) ! ellipse
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectEL(xRay,yRay,thetaRay-tmpape(7),tmpape(3),tmpape(4),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
+     enddo
+!   case(4) ! rectellipse
+!      do i=1,nAzim
+!         thetaRay=i/real(nAzim)*two*pi ! radians
+!         ! move to aperture reference system
+!         call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
+!         ! go back to machine reference system 
+!         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+!         ! echo result of scan
+!         write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
+!      enddo
+  end select
+  write(iunit,*)''
+  write(iunit,*)''
   return
+1981 FORMAT(1(1X,a10))
+1982 FORMAT(4(1x,f10.5))
 
 end subroutine dump_aperture_xsec
+
+subroutine intersectCR( xRay, yRay, thetaRay, radius, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, radius, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=radius
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
+     yChk=radius
+     xChk=zero
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
+     yChk=zero
+     xChk=-radius
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+     yChk=-radius
+     xChk=zero
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if ((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
+ &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+        ! first or fourth quadrant
+        xChk=(-mRay*qRay+sqrt(-qRay**2+radius**2+mRay**2*radius**2))/(one+mRay**2)
+     else
+        xChk=(-mRay*qRay-sqrt(-qRay**2+radius**2+mRay**2*radius**2))/(one+mRay**2)
+     endif
+     yChk=mRay*xChk+qRay
+  endif
+  nChk=radius
+  return
+end subroutine intersectCR
+
+subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay, xTmp(2), yTmp(2), nTmp(2)
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then
+     ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=xRe
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then
+     ! thetaRay=0.5pi
+     yChk=yRe
+     xChk=zero
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then
+     ! thetaRay=pi
+     yChk=zero
+     xChk=-xRe
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then
+     ! thetaRay=1.5pi
+     yChk=-yRe
+     xChk=zero
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if (zero.lt.thetaRay.and.thetaRay.lt.pi/two) then
+        ! first quadrant
+        xTmp(1)=xRe
+        yTmp(2)=yRe
+     elseif (pi/two.lt.thetaRay.and.thetaRay.lt.pi) then
+        ! second quadrant
+        xTmp(1)=-xRe
+        yTmp(2)=yRe
+     elseif (pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then
+        ! third quadrant
+        xTmp(1)=-xRe
+        yTmp(2)=-yRe
+     else
+        ! fourth quadrant
+        xTmp(1)=xRe
+        yTmp(2)=-yRe
+     endif
+     yTmp(1)=mRay*xTmp(1)+qRay
+     xTmp(2)=(yTmp(2)-qRay)/mRay
+     nTmp(1)=xTmp(1)**2+yTmp(1)**2
+     nTmp(2)=xTmp(2)**2+yTmp(2)**2
+     if (nTmp(1).lt.nTmp(2)) then
+        xChk=xTmp(1)
+        yChk=yTmp(1)
+     else
+        xChk=xTmp(2)
+        yChk=yTmp(2)
+     endif
+  endif
+  nChk=sqrt(xChk**2+yChk**2)
+  return
+end subroutine intersectRE
+
+subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, aa, bb, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay 
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then
+     ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=aa
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then
+     ! thetaRay=0.5pi
+     yChk=bb
+     xChk=zero
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then
+     ! thetaRay=pi
+     yChk=zero
+     xChk=-aa
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then
+     ! thetaRay=1.5pi
+     yChk=-bb
+     xChk=zero
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if ((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. &
+ &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then
+        ! first and fourth quadrant
+        xChk=(-aa**2*mRay*qRay+aa*bb*sqrt(-qRay**2+bb**2+mRay**2*aa**2))/(bb**2+aa**2*mRay**2)
+     else
+        xChk=(-aa**2*mRay*qRay-aa*bb*sqrt(-qRay**2+bb**2+mRay**2*aa**2))/(bb**2+aa**2*mRay**2)
+     endif
+     yChk=mRay*xChk+qRay
+  endif
+  nChk=sqrt(xChk**2+yChk**2)
+  return
+end subroutine intersectEL
 
 end module aperture
 

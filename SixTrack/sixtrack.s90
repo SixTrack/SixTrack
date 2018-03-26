@@ -13638,6 +13638,7 @@ subroutine daten
         elseif(ch(:4).eq.'XSEC') then
           ! A.Mereghetti, 22-03-2018
           ! ask for xsec at specific locations
+          ! example input line:        XSEC 155 myCrossSec.dat 12355.78 12356.78 0.1 180
           if(getfields_nfields.lt.4) then
             write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
      &         'parameters for keyword XSEC: ninput = ', getfields_nfields, ' != 4 (min)'
@@ -13692,6 +13693,7 @@ subroutine daten
              sLocMax(mxsec)=sLocMin(mxsec)
              sLocMin(mxsec)=tmpflts(1)
           endif
+          if(getfields_nfields.ge.7) read (getfields_fields(7)(1:getfields_lfields(7)),*) nAzimuts(mxsec)
 
         else
 
