@@ -1933,7 +1933,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system 
         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
      enddo
   case(2) ! rectangle
      do i=1,nAzim
@@ -1943,7 +1943,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system 
         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
      enddo
   case(3) ! ellipse
      do i=1,nAzim
@@ -1953,18 +1953,18 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system 
         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
      enddo
-!   case(4) ! rectellipse
-!      do i=1,nAzim
-!         thetaRay=i/real(nAzim)*two*pi ! radians
-!         ! move to aperture reference system
-!         call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
-!         ! go back to machine reference system 
-!         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
-!         ! echo result of scan
-!         write(iunit,1982) thetaRay/pi*180_fPrec,nChk,xChk,yChk
-!      enddo
+  case(4) ! rectellipse
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+     enddo
   end select
   write(iunit,*)''
   write(iunit,*)''
@@ -2030,39 +2030,35 @@ subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
   nChk=zero
   mRay=zero
   qRay=zero
-  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then
-     ! thetaRay=0.0 or thetaRay=2pi
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
      yChk=zero
      xChk=xRe
-  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then
-     ! thetaRay=0.5pi
+     nChk=xRe
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
      yChk=yRe
      xChk=zero
-  elseif (abs(thetaRay/pi-one).lt.c1m6) then
-     ! thetaRay=pi
+     nChk=yRe
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
      yChk=zero
      xChk=-xRe
-  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then
-     ! thetaRay=1.5pi
+     nChk=xRe
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-yRe
      xChk=zero
+     nChk=yRe
   else
      mRay=tan_mb(thetaRay)
      qRay=yRay-mRay*xRay
-     if (zero.lt.thetaRay.and.thetaRay.lt.pi/two) then
-        ! first quadrant
+     if (zero.lt.thetaRay.and.thetaRay.lt.pi/two) then ! first quadrant
         xTmp(1)=xRe
         yTmp(2)=yRe
-     elseif (pi/two.lt.thetaRay.and.thetaRay.lt.pi) then
-        ! second quadrant
+     elseif (pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         xTmp(1)=-xRe
         yTmp(2)=yRe
-     elseif (pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then
-        ! third quadrant
+     elseif (pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
         xTmp(1)=-xRe
         yTmp(2)=-yRe
-     else
-        ! fourth quadrant
+     else ! fourth quadrant
         xTmp(1)=xRe
         yTmp(2)=-yRe
      endif
@@ -2077,8 +2073,8 @@ subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
         xChk=xTmp(2)
         yChk=yTmp(2)
      endif
+     nChk=sqrt(xChk**2+yChk**2)
   endif
-  nChk=sqrt(xChk**2+yChk**2)
   return
 end subroutine intersectRE
 
@@ -2096,37 +2092,136 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, xChk, yChk, nChk )
   nChk=zero
   mRay=zero
   qRay=zero
-  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then
-     ! thetaRay=0.0 or thetaRay=2pi
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
      yChk=zero
      xChk=aa
-  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then
-     ! thetaRay=0.5pi
+     nChk=aa
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
      yChk=bb
      xChk=zero
-  elseif (abs(thetaRay/pi-one).lt.c1m6) then
-     ! thetaRay=pi
+     nChk=bb
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
      yChk=zero
      xChk=-aa
-  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then
-     ! thetaRay=1.5pi
+     nChk=aa
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-bb
      xChk=zero
+     nChk=bb
   else
      mRay=tan_mb(thetaRay)
      qRay=yRay-mRay*xRay
-     if ((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. &
- &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then
-        ! first and fourth quadrant
+     if ((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
+ &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
         xChk=(-aa**2*mRay*qRay+aa*bb*sqrt(-qRay**2+bb**2+mRay**2*aa**2))/(bb**2+aa**2*mRay**2)
      else
         xChk=(-aa**2*mRay*qRay-aa*bb*sqrt(-qRay**2+bb**2+mRay**2*aa**2))/(bb**2+aa**2*mRay**2)
      endif
      yChk=mRay*xChk+qRay
+     nChk=sqrt(xChk**2+yChk**2)
   endif
-  nChk=sqrt(xChk**2+yChk**2)
   return
 end subroutine intersectEL
 
+subroutine intersectRL( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
+  call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
+  call intersectEL( xRay, yRay, thetaRay, aa,  bb,  xTmp(2), yTmp(2), nTmp(2) )
+  if (nTmp(1).lt.nTmp(2)) then
+     xChk=xTmp(1)
+     yChk=yTmp(1)
+     nChk=nTmp(1)
+  else
+     xChk=xTmp(2)
+     yChk=yTmp(2)
+     nChk=nTmp(2)
+  endif
+  return
+end subroutine intersectRL
+  
+subroutine intersectLN( xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay, mTmp, qTmp
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  mTmp=zero
+  qTmp=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=-qLine/mLine
+     nChk=abs(qLine/mLine)
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
+     yChk=qLine
+     xChk=zero
+     nChk=abs(qLine)
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
+     yChk=zero
+     xChk=qLine/mLine
+     nChk=abs(qLine/mLine)
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+     yChk=-qLine
+     xChk=zero
+     nChk=abs(qLine)
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if (zero.lt.thetaRay.and.thetaRay.lt.pi/two) then ! first quadrant
+        mTmp=mLine
+        qTmp=qLine
+     elseif (pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
+        mTmp=-mLine
+        qTmp=qLine
+     elseif (pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
+        mTmp=mLine
+        qTmp=-qLine
+     else ! fourth quadrant
+        mTmp=-mLine
+        qTmp=-qLine
+     endif
+     xChk=-(qRay-qLine)/(mRay-mLine)
+     yChk=mRay*xChk+qRay
+     nChk=sqrt(xChk**2+yChk**2)
+  endif
+  return
+end subroutine intersectLN
+
+subroutine intersectOC( xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  use numerical_constants
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
+  nTmp(2)=c1e3
+  call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
+  ! octagon part
+  x
+  if (nTmp(1).lt.nTmp(2)) then
+     xChk=xTmp(1)
+     yChk=yTmp(1)
+     nChk=nTmp(1)
+  else
+     xChk=xTmp(2)
+     yChk=yTmp(2)
+     nChk=nTmp(2)
+  endif
+  return
+end subroutine intersectOC
+  
 end module aperture
 
