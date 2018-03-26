@@ -13515,11 +13515,15 @@ subroutine daten
 !  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
   950 continue
+!     LIMI block naturally activates backtracking, unless explicitly
+!       requested by user
+      lbacktracking=.true.
+  951 continue
 !     loadunit is initialised to 3 in aperture_comnul
-      read(loadunit,10020,end=951,iostat=ierro) ch
+      read(loadunit,10020,end=952,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 950 ! skip comment lines
+      if(ch(1:1).eq.'/') goto 951 ! skip comment lines
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
@@ -13528,10 +13532,6 @@ subroutine daten
       call prror(-1)
 +ei
       
-!     LIMI block naturally activates backtracking, unless explicitly
-!       requested by user
-      lbacktracking=.true.
-
 !     P.G.Ortega and A.Mereghetti, 02-03-2018
 !     'next': echo aperture profiles
       if(ch(:4).eq.next) then
@@ -13877,12 +13877,12 @@ subroutine daten
           end if
         end if ! specific non-NEXT lines
       end if ! non-NEXT lines
-      goto 950 ! go to next line to be parsed
+      goto 951 ! go to next line to be parsed
 
-  951 continue
+  952 continue
       if ( loadunit.ne.3 ) then
         close(loadunit)
-        goto 950
+        goto 951
       endif
       goto 1530
 
