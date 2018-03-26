@@ -48,6 +48,8 @@ module aperture
   logical, save :: apflag                          ! save or not
   integer, save :: plost(npart)                    ! particle ID
 
+  integer, save :: aperture_napxStart              ! initial napx
+
   ! dump aperture profile:
   logical, save :: ldmpaper                        ! dump or not
   integer, save :: aperunit                        ! fortran unit
@@ -164,6 +166,8 @@ subroutine aperture_comnul
      nAzimuts(ii)=nAzimutDef
   enddo
 
+  aperture_napxStart=0
+  
   return
 
 end subroutine aperture_comnul
@@ -480,7 +484,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca dbdcum
 
 ! temporary variables
-  logical lparID
+  logical lparID, llostp(npart)
   integer nthinerr
   real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
   real(kind=fPrec) xchk(2)
@@ -513,9 +517,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
     do j=1,napx
-      pstop(nlostp(j))=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
+      llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
  &                       (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
-      llost=llost.or.pstop(nlostp(j))
+      llost=llost.or.llostp(j)
     end do
         
   else
@@ -534,20 +538,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
+          llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))= &
+            llostp(j)= &
  &                  checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
  &                  myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))= &
+            llostp(j)= &
  &                  checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
  &                  myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
         
     case (1) ! circle
@@ -559,18 +563,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkCR( xchk(1),xchk(2),radius2 ) .or. &
+          llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
+            llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
+            llostp(j)=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
      
     case (2) ! Rectangle
@@ -581,18 +585,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
+          llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
+            llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
+            llostp(j)=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
 
     case (3) ! Ellipse
@@ -606,18 +610,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
+          llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
      
     case (4) ! RectEllipse
@@ -631,18 +635,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+          llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
       
     case (5) ! Octagon
@@ -653,18 +657,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+          llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            llostp(j)=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
 
     case (6) ! Racetrack
@@ -677,18 +681,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            llostp(j)=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
      
     end select
@@ -715,7 +719,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     if (lback) niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
     
     do j=1,napx
-      if(pstop(nlostp(j))) then
+      if(llostp(j)) then
         ! treat a lost particle
 
         ! ==============================================================
@@ -729,7 +733,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           ylos(2)=yLast(2,j)
                
           ! actual algorithm
-          llos    = pstop(nlostp(j))
+          llos    = llostp(j)
           step    = one
           do jj=1,niter
             ! current step (bisection method):
@@ -838,7 +842,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
           if(lparID) then
             !old lost particle or secondary, don't print it
-            pstop(nlostp(j)) = .false.
+            goto 1982
           else
             !new lost particle, store ID and print it
 +if fluka
@@ -878,7 +882,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         -c1m3 * (sigmv(j)/clight) * (e0/e0f),                           &
      &         naa(j), nzz(j)
 
-
 +if root
 ! root output
         if(root_flag .and. root_ApertureCheck.eq.1) then
@@ -889,89 +892,102 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         end if
 +ei ! root output
 
-        ! Don't kill lost particle if apflag is activated
-        if( apflag ) pstop(nlostp(j)) = .false.
-
-        ! Record for postpr
-        aperv(nlostp(j),1) = max(min(ape(1,ix),ape(3,ix)),c1m6) ! avoid 0.0
-        aperv(nlostp(j),2) = max(min(ape(2,ix),ape(4,ix)),c1m6) ! avoid 0.0
-        ixv(nlostp(j))     = ix
-        xvl(1,nlostp(j))   = xlos(1)
-        xvl(2,nlostp(j))   = xlos(2)
-        yvl(1,nlostp(j))   = ylos(1)
-        yvl(2,nlostp(j))   = ylos(2)
-        dpsvl(nlostp(j))   = dpsv(j)
-        ejvl(nlostp(j))    = ejv(j)
-        sigmvl(nlostp(j))  = sigmv(j)
-        numxv(nlostp(j))   = numx
-        nnumxv(nlostp(j))  = numx
-      end if ! if(pstop(nlostp(j)))
++if fluka.or.collimat
+        if (nlostp(j).le.aperture_napxStart) then
++ei
+           pstop(nlostp(j))=.true.
+           ! Record for postpr
+           if (.not.limifound.or.kape(ix).eq.0) then
+              aperv(nlostp(j),1) = aper(1)
+              aperv(nlostp(j),2) = aper(2)
+           else
+              aperv(nlostp(j),1) = min(ape(1,ix),ape(3,ix))
+              aperv(nlostp(j),2) = min(ape(2,ix),ape(4,ix))
+           endif
+           ixv(nlostp(j))     = ix
+           xvl(1,nlostp(j))   = xlos(1)
+           xvl(2,nlostp(j))   = xlos(2)
+           yvl(1,nlostp(j))   = ylos(1)
+           yvl(2,nlostp(j))   = ylos(2)
+           dpsvl(nlostp(j))   = dpsv(j)
+           ejvl(nlostp(j))    = ejv(j)
+           sigmvl(nlostp(j))  = sigmv(j)
+           numxv(nlostp(j))   = numx
+           nnumxv(nlostp(j))  = numx
++if fluka.or.collimat
+        endif ! (nlostp(j).le.aperture_napxStart)
++ei
+        
+1982    continue
+     
+      end if ! if(llostp(j))
     end do ! do j=1,napx
   
     ! flush loss particle file
     flush(999)
 
     ! Compact array
-    lnapx=napx
-    do j=napx,1,-1
-      if(pstop(nlostp(j))) then
-        if(j.ne.lnapx) then
-          do jj=j,lnapx-1
-            jj1=jj+1
-            nlostp(jj)=nlostp(jj1)
-            xv(1,jj)=xv(1,jj1)
-            xv(2,jj)=xv(2,jj1)
-            yv(1,jj)=yv(1,jj1)
-            yv(2,jj)=yv(2,jj1)
+    if (.not.apflag) then
+      lnapx=napx
+      do j=napx,1,-1
+        if(llostp(j)) then
+          if(j.ne.lnapx) then
+            do jj=j,lnapx-1
+              jj1=jj+1
+              nlostp(jj)=nlostp(jj1)
+              xv(1,jj)=xv(1,jj1)
+              xv(2,jj)=xv(2,jj1)
+              yv(1,jj)=yv(1,jj1)
+              yv(2,jj)=yv(2,jj1)
 +if bnlelens
-            namepart(jj)=namepart(jj1)
+              namepart(jj)=namepart(jj1)
 +ei
-            dpsv(jj)=dpsv(jj1)
-            sigmv(jj)=sigmv(jj1)
-            ejfv(jj)=ejfv(jj1)
-            ejv(jj)=ejv(jj1)
-            rvv(jj)=rvv(jj1)
+              dpsv(jj)=dpsv(jj1)
+              sigmv(jj)=sigmv(jj1)
+              ejfv(jj)=ejfv(jj1)
+              ejv(jj)=ejv(jj1)
+              rvv(jj)=rvv(jj1)
 ! ph: hisix
-            nzz(jj)=nzz(jj1)
-            naa(jj)=naa(jj1)
-            nucm(jj)=nucm(jj1)
-            mtc(jj)=mtc(jj1)
-            moidpsv(jj)=moidpsv(jj1)
-            omoidpsv(jj)=omoidpsv(jj1)
+              nzz(jj)=nzz(jj1)
+              naa(jj)=naa(jj1)
+              nucm(jj)=nucm(jj1)
+              mtc(jj)=mtc(jj1)
+              moidpsv(jj)=moidpsv(jj1)
+              omoidpsv(jj)=omoidpsv(jj1)
 ! ph: hisix
 +if rvet
-            rvet(jj)=rvet(jj1)
+              rvet(jj)=rvet(jj1)
 +ei
-            oidpsv(jj)=oidpsv(jj1)
-            dpsv1(jj)=dpsv1(jj1)
-            clo6v(1,jj)=clo6v(1,jj1)
-            clo6v(2,jj)=clo6v(2,jj1)
-            clo6v(3,jj)=clo6v(3,jj1)
-            clop6v(1,jj)=clop6v(1,jj1)
-            clop6v(2,jj)=clop6v(2,jj1)
-            clop6v(3,jj)=clop6v(3,jj1)
-
-            !--beam-beam element
-            di0xs(jj)=di0xs(jj1)
-            dip0xs(jj)=dip0xs(jj1)
-            di0zs(jj)=di0zs(jj1)
-            dip0zs(jj)=dip0zs(jj1)
-            do ib2=1,6
-              do ib3=1,6
-                tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+              oidpsv(jj)=oidpsv(jj1)
+              dpsv1(jj)=dpsv1(jj1)
+              clo6v(1,jj)=clo6v(1,jj1)
+              clo6v(2,jj)=clo6v(2,jj1)
+              clo6v(3,jj)=clo6v(3,jj1)
+              clop6v(1,jj)=clop6v(1,jj1)
+              clop6v(2,jj)=clop6v(2,jj1)
+              clop6v(3,jj)=clop6v(3,jj1)
+  
+              !--beam-beam element
+              di0xs(jj)=di0xs(jj1)
+              dip0xs(jj)=dip0xs(jj1)
+              di0zs(jj)=di0zs(jj1)
+              dip0zs(jj)=dip0zs(jj1)
+              do ib2=1,6
+                do ib3=1,6
+                  tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+                end do
               end do
-            end do
-          end do !do jj=j,lnapx-1
+            end do !do jj=j,lnapx-1
 +if fluka
-          if (fluka_enable) then
-            call fluka_lostpart(lnapx, j) ! Inform fluka
-          end if
+            if (fluka_enable) call fluka_lostpart(lnapx, j) ! Inform fluka
 +ei
-        end if !if(j.ne.lnapx) then
-        lnapx=lnapx-1
-      end if !if(pstop(nlostp(j))) then
-    end do !do j=napx,1,-1
-    napx=lnapx
+          end if !if(j.ne.lnapx) then
+          lnapx=lnapx-1
+        end if !if(llostp(j)) then
+      end do !do j=napx,1,-1
+      napx=lnapx
+    end if !(.not.apflag)
+    
   end if !if( llost ) then
 
   !-----------------------------------------------------------------------
