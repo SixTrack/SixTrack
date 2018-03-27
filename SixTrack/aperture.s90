@@ -801,12 +801,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end do !do jj=1,niter
           ! pay attention to overflow
           if ( slos.gt.tlen ) slos=slos-tlen
-        else
-          xlos(1) = xv(1,j)
-          xlos(2) = xv(2,j)
-          ylos(1) = yv(1,j)
-          ylos(2) = yv(2,j)
-          slos    = dcum(i)
+       else
+          if (lbacktracking) then
+             xlos(1) = xLast(1,j)
+             xlos(2) = xLast(2,j)
+             ylos(1) = yLast(1,j)
+             ylos(2) = yLast(2,j)
+             slos    = dcum(iLast)
+          else
+             xlos(1) = xv(1,j)
+             xlos(2) = xv(2,j)
+             ylos(1) = yv(1,j)
+             ylos(2) = yv(2,j)
+             slos    = dcum(i)
+          endif
         end if ! if (lback)
         
 
