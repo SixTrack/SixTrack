@@ -1035,7 +1035,7 @@ subroutine collimate_start_sample(nsample)
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
       else
         write(lout,*) "WARNING: Problem detected while writing twisslike.out' and 'sigmasettings.out': Collimator name '", &
- &                    bez(myix), "' was not recognized!"
+ &                    trim(adjustl(bez(myix))), "' was not recognized!"
         write(lout,*) " ->Setting nsig=1000.0."
         nsig = c1e3
       end if
@@ -1307,7 +1307,7 @@ subroutine collimate_start_collimator(stracki)
     end if
   else
     if(firstrun.and.iturn.eq.1) then
-      write(lout,*) "WARNING: When setting opening for the collimator named '" // bez(myix) // &
+      write(lout,*) "WARNING: When setting opening for the collimator named '" // trim(adjustl(bez(myix))) // &
    &  "' from fort.3, the name was not recognized."
       write(lout,*) " -> Setting nsig=1000.0."
     end if
