@@ -335,9 +335,9 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
-      integer max_ncoll,maxn,numeff,numeffdpop,outlun,nc
+      integer max_ncoll,maxn,numeff,numeffdpop,nc
       parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
-     &numeffdpop=29,outlun=54)
+     &numeffdpop=29)
 +cd database
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
       logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
