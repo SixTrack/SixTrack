@@ -18,7 +18,7 @@ end module crcoall
 ! =================================================================================================
 !  FILE UNITS MODULE
 !  Written by: Veronica Berglyd Olsen, BE-ABP-HSS, March 2018
-!  Last modified: 22-03-2018
+!  Last modified: 28-03-2018
 ! =================================================================================================
 module file_units
   
@@ -35,7 +35,9 @@ module file_units
   save funit_usedUnits, funit_usedByFile, funit_nextUnit
 
 contains
-
+  
+  ! Request a new fileunit. The filename parameter is only for internal record keeping. It should
+  ! be a string that describes what file, or set of files, the unit number is used for.
   subroutine requestFileUnit(fileName, fileUnit)
     
     use crcoall
@@ -46,6 +48,9 @@ contains
     character(len=*), intent(in)  :: fileName
     integer,          intent(out) :: fileUnit
     
+    character(len=len(fileName)) cleanName
+    
+    integer ch
     logical isOpen
     
     ! Check if the subroutine is called for the first time, and initialise the arrays to zero size.
@@ -53,6 +58,14 @@ contains
       allocate(funit_usedUnits(0))
       allocate(funit_usedByFile(0))
     end if
+    
+    ! Remove \0s from fileName
+    cleanName = fileName
+    do ch=1, len(cleanName)
+      if(cleanName(ch:ch) == char(0)) then
+        cleanName(ch:ch) = " "
+      end if
+    end do
     
 10  continue
     
@@ -67,20 +80,21 @@ contains
       goto 10
     else
       funit_usedUnits  = [funit_usedUnits,  fileUnit]
-      funit_usedByFile = [funit_usedByFile, fileName]
+      funit_usedByFile = [funit_usedByFile, cleanName]
       goto 20
     end if
 
 20  continue
-    write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",fileName
+    write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",trim(cleanName)
     return
     
 30  continue
-    write(lout,"(a)") "FUNIT> Failed to find an available file unit for file ",fileName
+    write(lout,"(a)") "FUNIT> Failed to find an available file unit for file ",trim(cleanName)
     call prror(-1)
     
   end subroutine requestFileUnit
   
+  ! Lists all assigned file units to lout
   subroutine listFileUnits
     
     use crcoall
@@ -91,10 +105,38 @@ contains
     
     write(lout,"(a)") "FUNIT> Dynamically assigned file units are:"
     do i=1, size(funit_usedUnits)
-      write(lout,"(a,i4,a,a)") "FUNIT> Unit ",funit_usedUnits(i)," assigned to file: ",funit_usedByFile(i)
+      write(lout,"(a,i4,a,a)") "FUNIT> Unit ",funit_usedUnits(i)," assigned to file: ",trim(funit_usedByFile(i))
     end do
     
   end subroutine listFileUnits
+  
+  ! Writes all assigned file units to file_units.dat
+  subroutine dumpFileUnits
+    
+    use crcoall
+    use end_sixtrack
+    
+    implicit none
+    
+    integer dumpUnit, i
+    logical isOpen
+    
+    call requestFileUnit("file_units.dat",dumpUnit)
+    inquire(unit=dumpUnit, opened=isOpen)
+    if(isOpen) then
+      write(lout,*) "ERROR in FUNIT when opening file_units.dat"
+      write(lout,*) "Unit ",dumpUnit," was already taken."
+      call prror(-1)
+    end if
+
+    open(dumpUnit,file="file_units.dat",form="formatted")
+    write(dumpUnit,"(a)") "# unit  assigned_to"
+    do i=1, size(funit_usedUnits)
+      write(dumpUnit,"(i6,a,a)") funit_usedUnits(i),"  ",trim(funit_usedByFile(i))
+    end do
+    close(dumpUnit)
+    
+  end subroutine dumpFileUnits
 
 end module file_units
 ! =================================================================================================
