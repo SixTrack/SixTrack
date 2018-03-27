@@ -2376,6 +2376,26 @@ subroutine collimate_end_collimator()
       yv(1,j)   = ejf0v(j)/ejfv(j)*yv(1,j)
       yv(2,j)   = ejf0v(j)/ejfv(j)*yv(2,j)
 
+!++   For absorbed particles set all coordinates to zero. Also
+!++   include very large offsets, let's say above 100mm or
+!++   100mrad.
+      if( (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) .or.&
+ &      xv(1,j).gt.c1e2 .or. yv(1,j).gt.c1e2 .or. xv(2,j).gt.c1e2 .or. yv(2,j).gt.c1e2) then
+        xv(1,j) = zero
+        yv(1,j) = zero
+        xv(2,j) = zero
+        yv(2,j) = zero
+        ejv(j)  = myenom
+        sigmv(j)= zero
+        part_abs_pos(j)=ie
+        part_abs_turn(j)=iturn
+        secondary(j) = 0
+        tertiary(j)  = 0
+        other(j)     = 0
+        scatterhit(j)= 0
+        nabs_type(j) = 0
+      end if
+
 !APRIL2005 ...OTHERWISE JUST GET BACK FORMER COORDINATES
     else
       xv(1,j) = rcx0(j)  * c1e3 + torbx(ie)
