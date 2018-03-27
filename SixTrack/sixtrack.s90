@@ -25312,9 +25312,10 @@ end interface
 !     call dumpum('THE END',999,9999)
 !     call dumpbin('THE END',999,9999)
 !     call dumpzfz('THE END',9,9)
-      ! Output dynamically assigned file units
-      call listFileUnits
 +ei
+      ! Write all dynamically assigned file units tp file_units.dat
+      call dumpFileUnits
+      
       call closeUnits
 
       if (zipf_numfiles.gt.0) then
