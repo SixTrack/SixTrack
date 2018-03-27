@@ -335,9 +335,9 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
-      integer max_ncoll,maxn,numeff,numeffdpop,outlun,nc
+      integer max_ncoll,maxn,numeff,numeffdpop,nc
       parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
-     &numeffdpop=29,outlun=54)
+     &numeffdpop=29)
 +cd database
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
       logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
@@ -11029,7 +11029,7 @@ subroutine daten
 !      if(i.gt.nele-1) call prror(16)
       !Changed to nele-2 to handle resizing correctly
       if(i.gt.nele-2) then
-        call expand_arrays(nele+10, npart, nblz, nblo)
+        call expand_arrays(nele+50, npart, nblz, nblo)
 
         !The value of nele will have been updated here
         call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
@@ -13515,11 +13515,15 @@ subroutine daten
 !  Possibility to read the apertures from external file with LOAD keyword
 !-----------------------------------------------------------------------
   950 continue
+!     LIMI block naturally activates backtracking, unless explicitly
+!       requested by user
+      lbacktracking=.true.
+  951 continue
 !     loadunit is initialised to 3 in aperture_comnul
-      read(loadunit,10020,end=951,iostat=ierro) ch
+      read(loadunit,10020,end=952,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
       lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 950 ! skip comment lines
+      if(ch(1:1).eq.'/') goto 951 ! skip comment lines
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
@@ -13528,10 +13532,6 @@ subroutine daten
       call prror(-1)
 +ei
       
-!     LIMI block naturally activates backtracking, unless explicitly
-!       requested by user
-      lbacktracking=.true.
-
 !     P.G.Ortega and A.Mereghetti, 02-03-2018
 !     'next': echo aperture profiles
       if(ch(:4).eq.next) then
@@ -13638,6 +13638,7 @@ subroutine daten
         elseif(ch(:4).eq.'XSEC') then
           ! A.Mereghetti, 22-03-2018
           ! ask for xsec at specific locations
+          ! example input line:        XSEC 155 myCrossSec.dat 12355.78 12356.78 0.1 180
           if(getfields_nfields.lt.4) then
             write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
      &         'parameters for keyword XSEC: ninput = ', getfields_nfields, ' != 4 (min)'
@@ -13692,6 +13693,7 @@ subroutine daten
              sLocMax(mxsec)=sLocMin(mxsec)
              sLocMin(mxsec)=tmpflts(1)
           endif
+          if(getfields_nfields.ge.7) read (getfields_fields(7)(1:getfields_lfields(7)),*) nAzimuts(mxsec)
 
         else
 
@@ -13875,12 +13877,12 @@ subroutine daten
           end if
         end if ! specific non-NEXT lines
       end if ! non-NEXT lines
-      goto 950 ! go to next line to be parsed
+      goto 951 ! go to next line to be parsed
 
-  951 continue
+  952 continue
       if ( loadunit.ne.3 ) then
         close(loadunit)
-        goto 950
+        goto 951
       endif
       goto 1530
 
@@ -23524,6 +23526,7 @@ end interface
       amp00=amp(1)
       if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
       napx=2*napx
+      aperture_napxStart=napx
       iation=abs(ition)
       ib0=0
       dp00=dp1
@@ -33600,6 +33603,89 @@ integer function check_SE_unique( iEl, ixEl )
   return
       
 end function check_SE_unique
+
+subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
+!     find the element at location sLoc
+!     interface variables:
+!     - sLoc: s-coordinate where element should be
+!     - iEl:  index in lattice structure of found element
+!     - ixEl: index in array of SINGLE ELEMENTs of found element
+!     - llast: if true, return last lens at sLoc
+!     always in main code
+!-----------------------------------------------------------------------
+  use floatPrecision
+  use mod_common     ! for iu, tlen, ic
+  use parpro   
+  use crcoall        ! for lout
+  use end_sixtrack
+  implicit none
++ca dbdcum
+
+! interface variables
+  integer iEl, ixEl
+  real(kind=fPrec) sLoc
+  logical llast, lfound
+
+! temporary variables
+  integer i, iDelta, iCheck, iMax, iStep
+  logical lSlide
+
+  iEl=-1
+  ixEl=-1
+
+  if (sLoc.gt.tlen.or.sLoc.lt.zero) then
+     write(lout,'(a,f11.4,a,f11.4,a)')&
+ &         "requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
+     call prror(-1)
+  endif
+
+  ! fast search
+  iCheck=iu
+  iDelta=iu
+  do while(iDelta.gt.1.or.iCheck.gt.0.or.iCheck.lt.iu)
+     if (dcum(iCheck).eq.sLoc) exit
+     iDelta=nint(real(iDelta/2))
+     if (dcum(iCheck).lt.sLoc) then
+        iCheck=iCheck+iDelta
+     else
+        iCheck=iCheck-iDelta
+     endif
+  end do
+
+  ! finalise search
+  if (dcum(iCheck).lt.sLoc.or.(dcum(iCheck).eq.sLoc.and.llast)) then
+     iMax=iu
+     iStep=1
+     lslide=llast
+  else
+     iMax=1
+     iStep=-1
+     lSlide=.not.llast
+  endif
+  do i=iCheck,iMax,iStep
+     if (dcum(i).lt.sLoc) continue
+     if (dcum(i).gt.sLoc) then
+        if (iEl.eq.-1) iEl=i
+     else
+        iEl=i
+        if (lSlide) continue
+     endif
+     exit
+  enddo
+  
+  if (lfound) then
+     ixEl=ic(iEl)-nblo
+     if (ixEl.lt.0) ixEl=ic(iEl) ! drift
+  else
+     write(lout,'(a,f11.4,a,f11.4,a)')&
+ &         "s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
+     write(lout,*)"this is actually embarassing..."
+  endif
+  return
+      
+end subroutine find_entry_at_s
 
 +dk umschr
 subroutine umschr(iu1,iu2)

@@ -48,6 +48,8 @@ module aperture
   logical, save :: apflag                          ! save or not
   integer, save :: plost(npart)                    ! particle ID
 
+  integer, save :: aperture_napxStart              ! initial napx
+
   ! dump aperture profile:
   logical, save :: ldmpaper                        ! dump or not
   integer, save :: aperunit                        ! fortran unit
@@ -76,6 +78,8 @@ module aperture
   integer, save :: xsecunit(nxsec)                 ! fortran units
   character(len=16), save :: xsec_filename(nxsec)  ! file names
   real(kind=fPrec), save :: sLocMin(nxsec), sLocMax(nxsec), sLocDel(nxsec) ! locations
+  integer, save :: nAzimuts(nxsec)                 ! number of points (azimuth angles)
+  integer, parameter :: nAzimutDef=72              ! default number of points
   
   
   ! aperture types  -- kape
@@ -159,8 +163,11 @@ subroutine aperture_comnul
      sLocMin(ii)=zero
      sLocMax(ii)=zero
      sLocDel(ii)=zero
+     nAzimuts(ii)=nAzimutDef
   enddo
 
+  aperture_napxStart=0
+  
   return
 
 end subroutine aperture_comnul
@@ -311,7 +318,7 @@ end subroutine aperture_initRT
 subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2 )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
-  ! initialise aperture marker to octagon
+  ! initialise aperture marker to transition
   !-----------------------------------------------------------------------
   implicit none
   integer ix
@@ -337,7 +344,7 @@ end subroutine aperture_initTR
 subroutine aperture_initroffpos( ix, tilt, xoff, yoff )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-22
-  ! initialise aperture marker to racetrack
+  ! initialise offset/tilt of aperture marker
   !-----------------------------------------------------------------------
   implicit none
   integer ix
@@ -477,7 +484,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca dbdcum
 
 ! temporary variables
-  logical lparID
+  logical lparID, llostp(npart)
   integer nthinerr
   real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
   real(kind=fPrec) xchk(2)
@@ -510,9 +517,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
     do j=1,napx
-      pstop(nlostp(j))=checkRE( xv(1,j), xv(2,j), aper(1), aper(2)).or. &
- &                       myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-      llost=llost.or.pstop(nlostp(j))
+      llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
+ &                       (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
+      llost=llost.or.llostp(j)
     end do
         
   else
@@ -531,20 +538,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
+          llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))= &
+            llostp(j)= &
  &                  checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
  &                  myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))= &
+            llostp(j)= &
  &                  checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
  &                  myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
         
     case (1) ! circle
@@ -556,18 +563,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkCR( xchk(1),xchk(2),radius2 ) .or. &
+          llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
+            llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
+            llostp(j)=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
      
     case (2) ! Rectangle
@@ -578,18 +585,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
+          llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
+            llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
+            llostp(j)=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
 
     case (3) ! Ellipse
@@ -603,18 +610,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
+          llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
      
     case (4) ! RectEllipse
@@ -628,18 +635,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+          llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+            llostp(j)=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
       
     case (5) ! Octagon
@@ -650,18 +657,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+          llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            llostp(j)=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
 
     case (6) ! Racetrack
@@ -674,18 +681,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           else 
             call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          pstop(nlostp(j))=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
  &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
         else
           if (lbacktracking) then
-            pstop(nlostp(j))=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
  &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
           else 
-            pstop(nlostp(j))=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            llostp(j)=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
  &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
           end if
         end if
-        llost=llost.or.pstop(nlostp(j))
+        llost=llost.or.llostp(j)
       end do
      
     end select
@@ -712,7 +719,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     if (lback) niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
     
     do j=1,napx
-      if(pstop(nlostp(j))) then
+      if(llostp(j)) then
         ! treat a lost particle
 
         ! ==============================================================
@@ -726,7 +733,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           ylos(2)=yLast(2,j)
                
           ! actual algorithm
-          llos    = pstop(nlostp(j))
+          llos    = llostp(j)
           step    = one
           do jj=1,niter
             ! current step (bisection method):
@@ -835,7 +842,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
           if(lparID) then
             !old lost particle or secondary, don't print it
-            pstop(nlostp(j)) = .false.
+            goto 1982
           else
             !new lost particle, store ID and print it
 +if fluka
@@ -867,14 +874,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         ipart(j)+100*samplenumber,                                      &
 +ei
 +if .not.fluka.and..not.collimat
-     &         j,                                                              &
+     &         nlostp(j),                                                      &
 +ei
 
      &         xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &         ejfv(j)*c1m3, (ejv(j)*(nucm0/nucm(j))-e0)*c1e6,                 &
      &         -c1m3 * (sigmv(j)/clight) * (e0/e0f),                           &
      &         naa(j), nzz(j)
-
 
 +if root
 ! root output
@@ -886,89 +892,102 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         end if
 +ei ! root output
 
-        ! Don't kill lost particle if apflag is activated
-        if( apflag ) pstop(nlostp(j)) = .false.
-
-        ! Record for postpr
-        aperv(nlostp(j),1) = max(min(ape(1,ix),ape(3,ix)),c1m6) ! avoid 0.0
-        aperv(nlostp(j),2) = max(min(ape(2,ix),ape(4,ix)),c1m6) ! avoid 0.0
-        ixv(nlostp(j))     = ix
-        xvl(1,nlostp(j))   = xlos(1)
-        xvl(2,nlostp(j))   = xlos(2)
-        yvl(1,nlostp(j))   = ylos(1)
-        yvl(2,nlostp(j))   = ylos(2)
-        dpsvl(nlostp(j))   = dpsv(j)
-        ejvl(nlostp(j))    = ejv(j)
-        sigmvl(nlostp(j))  = sigmv(j)
-        numxv(nlostp(j))   = numx
-        nnumxv(nlostp(j))  = numx
-      end if ! if(pstop(nlostp(j)))
++if fluka.or.collimat
+        if (nlostp(j).le.aperture_napxStart) then
++ei
+           pstop(nlostp(j))=.true.
+           ! Record for postpr
+           if (.not.limifound.or.kape(ix).eq.0) then
+              aperv(nlostp(j),1) = aper(1)
+              aperv(nlostp(j),2) = aper(2)
+           else
+              aperv(nlostp(j),1) = min(ape(1,ix),ape(3,ix))
+              aperv(nlostp(j),2) = min(ape(2,ix),ape(4,ix))
+           endif
+           ixv(nlostp(j))     = ix
+           xvl(1,nlostp(j))   = xlos(1)
+           xvl(2,nlostp(j))   = xlos(2)
+           yvl(1,nlostp(j))   = ylos(1)
+           yvl(2,nlostp(j))   = ylos(2)
+           dpsvl(nlostp(j))   = dpsv(j)
+           ejvl(nlostp(j))    = ejv(j)
+           sigmvl(nlostp(j))  = sigmv(j)
+           numxv(nlostp(j))   = numx
+           nnumxv(nlostp(j))  = numx
++if fluka.or.collimat
+        endif ! (nlostp(j).le.aperture_napxStart)
++ei
+        
+1982    continue
+     
+      end if ! if(llostp(j))
     end do ! do j=1,napx
   
     ! flush loss particle file
     flush(999)
 
     ! Compact array
-    lnapx=napx
-    do j=napx,1,-1
-      if(pstop(nlostp(j))) then
-        if(j.ne.lnapx) then
-          do jj=j,lnapx-1
-            jj1=jj+1
-            nlostp(jj)=nlostp(jj1)
-            xv(1,jj)=xv(1,jj1)
-            xv(2,jj)=xv(2,jj1)
-            yv(1,jj)=yv(1,jj1)
-            yv(2,jj)=yv(2,jj1)
+    if (.not.apflag) then
+      lnapx=napx
+      do j=napx,1,-1
+        if(llostp(j)) then
+          if(j.ne.lnapx) then
+            do jj=j,lnapx-1
+              jj1=jj+1
+              nlostp(jj)=nlostp(jj1)
+              xv(1,jj)=xv(1,jj1)
+              xv(2,jj)=xv(2,jj1)
+              yv(1,jj)=yv(1,jj1)
+              yv(2,jj)=yv(2,jj1)
 +if bnlelens
-            namepart(jj)=namepart(jj1)
+              namepart(jj)=namepart(jj1)
 +ei
-            dpsv(jj)=dpsv(jj1)
-            sigmv(jj)=sigmv(jj1)
-            ejfv(jj)=ejfv(jj1)
-            ejv(jj)=ejv(jj1)
-            rvv(jj)=rvv(jj1)
+              dpsv(jj)=dpsv(jj1)
+              sigmv(jj)=sigmv(jj1)
+              ejfv(jj)=ejfv(jj1)
+              ejv(jj)=ejv(jj1)
+              rvv(jj)=rvv(jj1)
 ! ph: hisix
-            nzz(jj)=nzz(jj1)
-            naa(jj)=naa(jj1)
-            nucm(jj)=nucm(jj1)
-            mtc(jj)=mtc(jj1)
-            moidpsv(jj)=moidpsv(jj1)
-            omoidpsv(jj)=omoidpsv(jj1)
+              nzz(jj)=nzz(jj1)
+              naa(jj)=naa(jj1)
+              nucm(jj)=nucm(jj1)
+              mtc(jj)=mtc(jj1)
+              moidpsv(jj)=moidpsv(jj1)
+              omoidpsv(jj)=omoidpsv(jj1)
 ! ph: hisix
 +if rvet
-            rvet(jj)=rvet(jj1)
+              rvet(jj)=rvet(jj1)
 +ei
-            oidpsv(jj)=oidpsv(jj1)
-            dpsv1(jj)=dpsv1(jj1)
-            clo6v(1,jj)=clo6v(1,jj1)
-            clo6v(2,jj)=clo6v(2,jj1)
-            clo6v(3,jj)=clo6v(3,jj1)
-            clop6v(1,jj)=clop6v(1,jj1)
-            clop6v(2,jj)=clop6v(2,jj1)
-            clop6v(3,jj)=clop6v(3,jj1)
-
-            !--beam-beam element
-            di0xs(jj)=di0xs(jj1)
-            dip0xs(jj)=dip0xs(jj1)
-            di0zs(jj)=di0zs(jj1)
-            dip0zs(jj)=dip0zs(jj1)
-            do ib2=1,6
-              do ib3=1,6
-                tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+              oidpsv(jj)=oidpsv(jj1)
+              dpsv1(jj)=dpsv1(jj1)
+              clo6v(1,jj)=clo6v(1,jj1)
+              clo6v(2,jj)=clo6v(2,jj1)
+              clo6v(3,jj)=clo6v(3,jj1)
+              clop6v(1,jj)=clop6v(1,jj1)
+              clop6v(2,jj)=clop6v(2,jj1)
+              clop6v(3,jj)=clop6v(3,jj1)
+  
+              !--beam-beam element
+              di0xs(jj)=di0xs(jj1)
+              dip0xs(jj)=dip0xs(jj1)
+              di0zs(jj)=di0zs(jj1)
+              dip0zs(jj)=dip0zs(jj1)
+              do ib2=1,6
+                do ib3=1,6
+                  tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+                end do
               end do
-            end do
-          end do !do jj=j,lnapx-1
+            end do !do jj=j,lnapx-1
 +if fluka
-          if (fluka_enable) then
-            call fluka_lostpart(lnapx, j) ! Inform fluka
-          end if
+            if (fluka_enable) call fluka_lostpart(lnapx, j) ! Inform fluka
 +ei
-        end if !if(j.ne.lnapx) then
-        lnapx=lnapx-1
-      end if !if(pstop(nlostp(j))) then
-    end do !do j=napx,1,-1
-    napx=lnapx
+          end if !if(j.ne.lnapx) then
+          lnapx=lnapx-1
+        end if !if(llostp(j)) then
+      end do !do j=napx,1,-1
+      napx=lnapx
+    end if !(.not.apflag)
+    
   end if !if( llost ) then
 
   !-----------------------------------------------------------------------
@@ -1149,6 +1168,29 @@ subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
   return
 end subroutine roffpos
 
+subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
+!-----------------------------------------------------------------------
+!     A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-24
+!     inverse of roffpos - but same interface
+!-----------------------------------------------------------------------
+  implicit none
+
+! parameters
+  real(kind=fPrec) x, y, xnew, ynew, tlt, xoff, yoff
+
+! temporary variables
+  real(kind=fPrec) theta, radio, ttmp
+
+  theta = atan2_mb(y, x)
+  radio = sqrt(x**two + y**two)
+  ttmp = theta+tlt
+  xnew = radio * cos_mb(ttmp)
+  ynew = radio * sin_mb(ttmp)
+  xnew = xnew-xoff
+  ynew = ynew-yoff
+  return
+end subroutine roffpos_inv
+
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
@@ -1237,8 +1279,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 !         updating an existing one
 !     interface variables:
 !     - iEl: entry in lattice sequence to be checked
-!     - lInsUp: if true, the new aperture marker is inserted upstream of
-!       iEl
+!     - lInsUp: if true, the new aperture marker is inserted upstream of iEl
 !     always in main code
 !-----------------------------------------------------------------------
 +if fluka
@@ -1336,65 +1377,20 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! NB: no risk of overflow, as first/last element in lattice
 ! sequence should be aperture markers (and the first
 ! call of this function is meant to verify this assumption)
-  iApeUp=-1
-  ixApeUp=-1
-  lApeUp=.false.
-  do i=iSrcUp,1,-1
-    ix=ic(i)-nblo
-    if(ix.gt.0) then
-!   SINGLE ELEMENT 
-+if fluka
-!     inserted in main code by the 'fluka' compilation flag
-!     aperture markers should not coincide with a FLUKA element
-      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
-+ei
-+if .not.fluka
-      if( kape(ix).ne.0 ) then
-+ei
-        iApeUp=i
-        ixApeUp=ix
-        exit
-      end if
-    end if
-  end do
-
+  call find_closest_aperture(iSrcUp,.true.,iApeUp,ixApeUp,lApeUp)
   if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
     write(lout,*)' ERROR - could not find upstream marker'
     call prror(-1)
   end if
-
-
 ! - get closest downstream aperture marker
 ! NB: no risk of overflow, as first/last element in lattice
 ! sequence should be aperture markers (and the first
 ! call of this function is meant to verify this assumption)
-  iApeDw=-1
-  ixApeDw=-1
-  lApeDw=.false.
-  do i=iSrcDw,iu
-    ix=ic(i)-nblo
-    if(ix.gt.0) then
-!   SINGLE ELEMENT 
-+if fluka
-!     inserted in main code by the 'fluka' compilation flag
-!     aperture markers should not coincide with a FLUKA element
-      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
-+ei
-+if .not.fluka
-      if( kape(ix).ne.0 ) then
-+ei
-        iApeDw=i
-        ixApeDw=ix
-        exit
-      end if
-    end if
-  end do
+  call find_closest_aperture(iSrcDw,.false.,iApeDw,ixApeDw,lApeDw)
   if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
     write(lout,*)' ERROR - could not find downstream marker'
     call prror(-1)
   end if
-
-
 ! - echo found apertures
   call dump_aperture_header( lout )
   call dump_aperture_marker( lout, ixApeUp, iApeUp )
@@ -1484,6 +1480,60 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
  1982 format (a16,2(1x,a2),8(1x,f15.5))
 end subroutine contour_aperture_marker
+
+subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-24
+!     find aperture marker closest to iStart
+!-----------------------------------------------------------------------
++if fluka
+! import mod_fluka
+! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
++ei
+  
+  implicit none
+  ! interface variables
+  integer iStart, iEl, ixEl
+  logical lUp, lfound
+  ! temporary variables
+  integer i, ix, iEnd, iStep
+  
+  iEl=-1
+  ixEl=-1
+  lfound=.false.
+
+  ! search
+  if (lUp) then
+     iEnd=1
+     iStep=-1
+  else
+     iEnd=iu
+     iStep=1
+  endif
+     
+  do i=iStart,iEnd,iStep
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
+!   SINGLE ELEMENT 
++if fluka
+!     inserted in main code by the 'fluka' compilation flag
+!     aperture markers should not coincide with a FLUKA element
+      if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
++ei
++if .not.fluka
+      if( kape(ix).ne.0 ) then
++ei
+        iEl=i
+        ixEl=ix
+        lfound=.true.
+        exit
+      end if
+    end if
+ end do
+ return
+  
+end subroutine find_closest_aperture
 
 character(len=max_name_len) function CrtApeName()
 !-----------------------------------------------------------------------
@@ -1645,6 +1695,8 @@ subroutine dump_aperture_model
     call prror(-1)
   end if
   call dump_aperture_marker( aperunit, ix, i )
+  iOld=i
+  ixOld=ix
 
   do i=2,iu
     ix=ic(i)-nblo
@@ -1659,14 +1711,13 @@ subroutine dump_aperture_model
               slos = int(dcum(iOld)/bktpre+jj)*bktpre
               if ( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
               call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
-              call dump_aperture( aperunit, bez(ix), oKApe, slos, aprr )
+              call dump_aperture( aperunit, '    interpolated', oKApe, slos, aprr )
             end do
           end if
           iOld=i
           ixOld=ix
-        else
-          call dump_aperture_marker( aperunit, ix, i )
         endif
+        call dump_aperture_marker( aperunit, ix, i )
       end if
     end if
   end do
@@ -1789,9 +1840,10 @@ subroutine dump_aperture_xsecs
   ! dump cross-sections of apertures at specific locations (loop)
   !-----------------------------------------------------------------------
   implicit none
-  integer ixsec,ierro
-  logical lopen
-  real(kind=fPrec) sLoc
+  ! temporary variables
+  logical lfound, lopen, lApeUp, lApeDw
+  integer ixsec, ierro, iEl, ixEl, iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape
+  real(kind=fPrec) sLoc, tmpape(9)
 
   ! loop over requested lines
   do ixsec=1,mxsec
@@ -1814,7 +1866,24 @@ subroutine dump_aperture_xsecs
      ! loop over s-locations
      sLoc=sLocMin(ixsec)
      do while(sLoc.le.sLocMax(ixsec))
-        call dump_aperture_xsec(sLoc,xsecunit(ixsec))
+        call find_entry_at_s( sLoc, .true., iEl, ixEl, lfound )
+        if (.not.lfound) call prror(-1)
+        ! get upstream aperture marker
+        call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)
+        if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
+           write(lout,*)' ERROR - could not find upstream aperture marker'
+           call prror(-1)
+        end if
+        ! get downstream aperture marker
+        call find_closest_aperture(iEl,.false.,iApeDw,ixApeDw,lApeDw)
+        if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
+           write(lout,*)' ERROR - could not find downstream aperture marker'
+           call prror(-1)
+        end if
+        ! interpolate and get aperture at desired location
+        call interp_aperture( iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape, tmpape, sLoc )
+        ! dump the x-sec of the aperture
+        call dump_aperture_xsec(xsecunit(ixsec),itmpape,tmpape,nAzimuts(ixsec),sLoc)
         sLoc=sLoc+sLocDel(ixsec)
      enddo
      
@@ -1825,17 +1894,334 @@ subroutine dump_aperture_xsecs
 end subroutine dump_aperture_xsecs
 
 
-subroutine dump_aperture_xsec( sLoc, iunit )
+subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
   ! dump the cross-sections of the machine aperture at a specific location
   !-----------------------------------------------------------------------
   implicit none
-  integer iunit
-  real(kind=fPrec) sLoc
+  ! interface variables
+  integer iunit, itmpape, nAzim
+  real(kind=fPrec) tmpape(9), sLoc
+  ! temporary variables
+  logical tmpOffTlt
+  integer i
+  real(kind=fPrec) xChk, yChk, nChk, thetaRay, xRay, yRay
+  
+  write(iunit,*)'# aperture at s=',sLoc
+  write(iunit,*)'# type:',itmpape
+  write(iunit,*)'# specifiers:'
+  do i=1,9
+     write(iunit,*)'# - ape(',i,')=',tmpape(i)
+  enddo
+  write(iunit,*)'# number of points:',nAzim
+  write(iunit,1981) '# ang[deg]', 'rad [mm]', 'x [mm]', 'y [mm]'
+  tmpOffTlt=tmpape(7).ne.zero.or.tmpape(8).ne.zero.or.tmpape(9).ne.zero
+
+  ! origin of ray:
+  xRay=zero
+  yRay=zero
+  if (tmpOffTlt) call roffpos(xRay,yRay,xRay,yRay,tmpape(7),tmpape(8),tmpape(9))
+
+  ! loop over rays
+  select case(itmpape)
+  case(-1) ! transition
+  case(1) ! circle
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectCR(xRay,yRay,thetaRay-tmpape(7),tmpape(3),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+     enddo
+  case(2) ! rectangle
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectRE(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+     enddo
+  case(3) ! ellipse
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectEL(xRay,yRay,thetaRay-tmpape(7),tmpape(3),tmpape(4),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+     enddo
+  case(4) ! rectellipse
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! move to aperture reference system
+        call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+     enddo
+  end select
+  write(iunit,*)''
+  write(iunit,*)''
   return
+1981 FORMAT(1(1X,a10))
+1982 FORMAT(4(1x,f10.5))
 
 end subroutine dump_aperture_xsec
 
+subroutine intersectCR( xRay, yRay, thetaRay, radius, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, radius, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=radius
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
+     yChk=radius
+     xChk=zero
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
+     yChk=zero
+     xChk=-radius
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+     yChk=-radius
+     xChk=zero
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if ((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
+ &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+        ! first or fourth quadrant
+        xChk=(-mRay*qRay+sqrt(-qRay**2+radius**2+mRay**2*radius**2))/(one+mRay**2)
+     else
+        xChk=(-mRay*qRay-sqrt(-qRay**2+radius**2+mRay**2*radius**2))/(one+mRay**2)
+     endif
+     yChk=mRay*xChk+qRay
+  endif
+  nChk=radius
+  return
+end subroutine intersectCR
+
+subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay, xTmp(2), yTmp(2), nTmp(2)
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=xRe
+     nChk=xRe
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
+     yChk=yRe
+     xChk=zero
+     nChk=yRe
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
+     yChk=zero
+     xChk=-xRe
+     nChk=xRe
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+     yChk=-yRe
+     xChk=zero
+     nChk=yRe
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if (zero.lt.thetaRay.and.thetaRay.lt.pi/two) then ! first quadrant
+        xTmp(1)=xRe
+        yTmp(2)=yRe
+     elseif (pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
+        xTmp(1)=-xRe
+        yTmp(2)=yRe
+     elseif (pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
+        xTmp(1)=-xRe
+        yTmp(2)=-yRe
+     else ! fourth quadrant
+        xTmp(1)=xRe
+        yTmp(2)=-yRe
+     endif
+     yTmp(1)=mRay*xTmp(1)+qRay
+     xTmp(2)=(yTmp(2)-qRay)/mRay
+     nTmp(1)=xTmp(1)**2+yTmp(1)**2
+     nTmp(2)=xTmp(2)**2+yTmp(2)**2
+     if (nTmp(1).lt.nTmp(2)) then
+        xChk=xTmp(1)
+        yChk=yTmp(1)
+     else
+        xChk=xTmp(2)
+        yChk=yTmp(2)
+     endif
+     nChk=sqrt(xChk**2+yChk**2)
+  endif
+  return
+end subroutine intersectRE
+
+subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, aa, bb, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay 
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=aa
+     nChk=aa
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
+     yChk=bb
+     xChk=zero
+     nChk=bb
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
+     yChk=zero
+     xChk=-aa
+     nChk=aa
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+     yChk=-bb
+     xChk=zero
+     nChk=bb
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if ((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
+ &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+        xChk=(-aa**2*mRay*qRay+aa*bb*sqrt(-qRay**2+bb**2+mRay**2*aa**2))/(bb**2+aa**2*mRay**2)
+     else
+        xChk=(-aa**2*mRay*qRay-aa*bb*sqrt(-qRay**2+bb**2+mRay**2*aa**2))/(bb**2+aa**2*mRay**2)
+     endif
+     yChk=mRay*xChk+qRay
+     nChk=sqrt(xChk**2+yChk**2)
+  endif
+  return
+end subroutine intersectEL
+
+subroutine intersectRL( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
+  call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
+  call intersectEL( xRay, yRay, thetaRay, aa,  bb,  xTmp(2), yTmp(2), nTmp(2) )
+  if (nTmp(1).lt.nTmp(2)) then
+     xChk=xTmp(1)
+     yChk=yTmp(1)
+     nChk=nTmp(1)
+  else
+     xChk=xTmp(2)
+     yChk=yTmp(2)
+     nChk=nTmp(2)
+  endif
+  return
+end subroutine intersectRL
+  
+subroutine intersectLN( xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) mRay, qRay, mTmp, qTmp
+  
+  ! scanning ray:
+  xChk=zero
+  yChk=zero
+  nChk=zero
+  mRay=zero
+  qRay=zero
+  mTmp=zero
+  qTmp=zero
+  if (abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+     yChk=zero
+     xChk=-qLine/mLine
+     nChk=abs(qLine/mLine)
+  elseif (abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
+     yChk=qLine
+     xChk=zero
+     nChk=abs(qLine)
+  elseif (abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
+     yChk=zero
+     xChk=qLine/mLine
+     nChk=abs(qLine/mLine)
+  elseif (abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+     yChk=-qLine
+     xChk=zero
+     nChk=abs(qLine)
+  else
+     mRay=tan_mb(thetaRay)
+     qRay=yRay-mRay*xRay
+     if (zero.lt.thetaRay.and.thetaRay.lt.pi/two) then ! first quadrant
+        mTmp=mLine
+        qTmp=qLine
+     elseif (pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
+        mTmp=-mLine
+        qTmp=qLine
+     elseif (pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
+        mTmp=mLine
+        qTmp=-qLine
+     else ! fourth quadrant
+        mTmp=-mLine
+        qTmp=-qLine
+     endif
+     xChk=-(qRay-qLine)/(mRay-mLine)
+     yChk=mRay*xChk+qRay
+     nChk=sqrt(xChk**2+yChk**2)
+  endif
+  return
+end subroutine intersectLN
+
+subroutine intersectOC( xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, nChk )
+  ! 0.0<=thetaRay<=2pi!!!!!
+  use numerical_constants
+  implicit none
+  ! interface variables
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, nChk
+  ! temp variables
+  real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
+  nTmp(2)=c1e3
+  call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
+  ! octagon part
+  if (nTmp(1).lt.nTmp(2)) then
+     xChk=xTmp(1)
+     yChk=yTmp(1)
+     nChk=nTmp(1)
+  else
+     xChk=xTmp(2)
+     yChk=yTmp(2)
+     nChk=nTmp(2)
+  endif
+  return
+end subroutine intersectOC
+  
 end module aperture
 
