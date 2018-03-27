@@ -448,8 +448,8 @@ subroutine dump_initialize
         ! Check that the filename is not already taken
         do j=-1,i-1
           if (ldump(j) .and. (dump_fname(j).eq.dump_fname(i))) then
-            write(lout,*) "ERROR in DUMP: Output filename unit",trim(stringzerotrim(dump_fname(i))), &
-                          "is used by two DUMPS, but output units differ:",dumpunit(i), " vs ", dumpunit(j)
+            write(lout,*) "ERROR in DUMP: Output filename '",trim(stringzerotrim(dump_fname(i))), &
+                          "' is used by two DUMPS, but output units differ:",dumpunit(i), " vs ", dumpunit(j)
             call prror(-1)
           end if
         end do

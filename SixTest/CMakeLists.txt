@@ -45,6 +45,7 @@ SET(TESTS_NOFORT10
   dump4
   dump5
   dump6
+  fileunits_DYNK_DUMP
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
@@ -134,6 +135,7 @@ if(NOT COLLIMAT)
           dump4
           dump5
           dump6
+          fileunits_DYNK_DUMP
           elensidealthin6d_DYNK_RANDU
           elensidealthin6d_DYNK_RANDON
           elensidealthin6d_DYNK_ONOFF
@@ -328,6 +330,7 @@ SET(FAST_TESTS
   dump7_fma_thin4d
   dump8_fma
   dump9
+  fileunits_DYNK_DUMP
   fcc
   elensidealthin6d_DYNK_RANDU
   elensidealthin6d_DYNK_RANDON
