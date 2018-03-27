@@ -207,6 +207,8 @@ subroutine dump_parseInputLine(ch)
   
   implicit none
   
++ca stringzerotrim
+  
   character(len=*), intent(in) :: ch
   ! Temp variables
   character(len=max_name_len) idat ! Synchronized with daten
@@ -341,7 +343,7 @@ subroutine dump_parseInputLine(ch)
 
   if(ndumpt(j)   <=  0) ndumpt(j)=1
   if(dumpunit(j) == -1) then
-    call requestFileUnit(dump_fname(j),dumpunit(j))
+    call requestFileUnit(stringzerotrim(dump_fname(j)),dumpunit(j))
   end if
   
   return

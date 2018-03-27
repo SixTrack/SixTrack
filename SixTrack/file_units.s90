@@ -113,12 +113,12 @@ contains
     call requestFileUnit("file_units.dat",dumpUnit)
     inquire(unit=dumpUnit, opened=isOpen)
     if(isOpen) then
-        write(lout,*) "ERROR in FUNIT when opening file_units.dat"
-        write(lout,*) "Unit ",dumpUnit," was already taken."
-        call prror(-1)
+      write(lout,*) "ERROR in FUNIT when opening file_units.dat"
+      write(lout,*) "Unit ",dumpUnit," was already taken."
+      call prror(-1)
     end if
 
-    open(dumpUnit,file="file_units.dat",status="replace",form="formatted")
+    open(dumpUnit,file="file_units.dat",form="formatted")
     write(dumpUnit,"(a)") "# unit  assigned_to"
     do i=1, size(funit_usedUnits)
       write(dumpUnit,"(i6,a,a)") funit_usedUnits(i),"  ",trim(funit_usedByFile(i))
