@@ -203,6 +203,8 @@ subroutine dump_parseInputLine(ch)
   
   use crcoall
   use mod_common
+  use file_units
+  
   implicit none
   
   character(len=*), intent(in) :: ch
@@ -212,10 +214,10 @@ subroutine dump_parseInputLine(ch)
   
   character(len=getfields_l_max_string) ch1
   
-  ! initialise reading variables, to avoid storing non sense values
+  ! initialise reading variables, to avoid storing nonsense values
   idat = ' ' ! Name
   i1 = 0     ! frequency
-  i2 = 0     ! unit
+  i2 = -1    ! unit
   i3 = 0     ! format
   i4 = 1     ! first turn
   i5 = -1    ! last turn
@@ -329,14 +331,18 @@ subroutine dump_parseInputLine(ch)
   
   ! Element found, store the data:
 10 continue
-  ldump(j) = .true.
-  ndumpt(j) = i1
-  if (ndumpt(j).le.0) ndumpt(j)=1
-  dumpunit(j) = i2
-  dumpfmt(j)  = i3
-  dump_fname(j)(1:getfields_lfields(5))=ch1(1:getfields_lfields(5))
+  ldump(j)     = .true.
+  ndumpt(j)    = i1
+  dumpunit(j)  = i2
+  dumpfmt(j)   = i3
+  dump_fname(j)(1:getfields_lfields(5)) = ch1(1:getfields_lfields(5))
   dumpfirst(j) = i4
-  dumplast(j) = i5
+  dumplast(j)  = i5
+
+  if(ndumpt(j)   <=  0) ndumpt(j)=1
+  if(dumpunit(j) == -1) then
+    call requestFileUnit(dump_fname(j),dumpunit(j))
+  end if
   
   return
   
