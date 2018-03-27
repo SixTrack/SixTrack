@@ -18,7 +18,7 @@ end module crcoall
 ! =================================================================================================
 !  FILE UNITS MODULE
 !  Written by: Veronica Berglyd Olsen, BE-ABP-HSS, March 2018
-!  Last modified: 22-03-2018
+!  Last modified: 28-03-2018
 ! =================================================================================================
 module file_units
   
@@ -48,6 +48,9 @@ contains
     character(len=*), intent(in)  :: fileName
     integer,          intent(out) :: fileUnit
     
+    character(len=len(fileName)) cleanName
+    
+    integer ch
     logical isOpen
     
     ! Check if the subroutine is called for the first time, and initialise the arrays to zero size.
@@ -55,6 +58,14 @@ contains
       allocate(funit_usedUnits(0))
       allocate(funit_usedByFile(0))
     end if
+    
+    ! Remove \0s from fileName
+    cleanName = fileName
+    do ch=1, len(cleanName)
+      if(cleanName(ch:ch) == char(0)) then
+        cleanName(ch:ch) = " "
+      end if
+    end do
     
 10  continue
     
@@ -69,16 +80,16 @@ contains
       goto 10
     else
       funit_usedUnits  = [funit_usedUnits,  fileUnit]
-      funit_usedByFile = [funit_usedByFile, fileName]
+      funit_usedByFile = [funit_usedByFile, cleanName]
       goto 20
     end if
 
 20  continue
-    write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",fileName
+    write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",trim(cleanName)
     return
     
 30  continue
-    write(lout,"(a)") "FUNIT> Failed to find an available file unit for file ",fileName
+    write(lout,"(a)") "FUNIT> Failed to find an available file unit for file ",trim(cleanName)
     call prror(-1)
     
   end subroutine requestFileUnit
@@ -94,7 +105,7 @@ contains
     
     write(lout,"(a)") "FUNIT> Dynamically assigned file units are:"
     do i=1, size(funit_usedUnits)
-      write(lout,"(a,i4,a,a)") "FUNIT> Unit ",funit_usedUnits(i)," assigned to file: ",funit_usedByFile(i)
+      write(lout,"(a,i4,a,a)") "FUNIT> Unit ",funit_usedUnits(i)," assigned to file: ",trim(funit_usedByFile(i))
     end do
     
   end subroutine listFileUnits
