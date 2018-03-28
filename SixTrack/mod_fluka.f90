@@ -144,10 +144,10 @@ module mod_fluka
       fluka_gen(j) = j
     end do
 
-    fluka_weight       = one
-    fluka_type         = FLUKA_NONE
-    fluka_geo_index    = 0
-    fluka_synch_length = zero
+!    fluka_weight       = one
+!    fluka_type         = FLUKA_NONE
+!    fluka_geo_index    = 0
+!    fluka_synch_length = zero
 
     call requestFileUnit('fluka.log', fluka_log_unit)
     call requestFileUnit('fluka_isotope.log', isotope_log_unit)
