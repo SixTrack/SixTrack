@@ -1841,7 +1841,7 @@ subroutine collimate_do_collimator(stracki)
       ldrift = c_length / two
     end if
 
-    write(7878,*) napx,myalphax,myalphay,mybetax,mybetay,myemitx0_collgap,myemity0_collgap,myenom,mynex2,mdex,myney2,mdey
+!    write(7878,*) napx,myalphax,myalphay,mybetax,mybetay,myemitx0_collgap,myemity0_collgap,myenom,mynex2,mdex,myney2,mdey
 
 !   create new pencil beam distribution with spread at start or end of collimator at the minAmpl
 !   note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
@@ -1866,7 +1866,7 @@ subroutine collimate_do_collimator(stracki)
        xv(2,j)  = xv(2,j) - ldrift*yv(2,j)
 
 !      write out distribution - generated either at the BEGINNING or END of the collimator
-       write(4997,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+!       write(4997,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
     end do
   end if
 

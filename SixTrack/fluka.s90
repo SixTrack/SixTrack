@@ -17,6 +17,7 @@
       use parpro
       use mod_common
       use aperture
+      use end_sixtrack
       implicit none
 
 +ca commontr
@@ -145,6 +146,7 @@
       use mod_commonmn
 
       use mod_hions
+      use end_sixtrack
 
       implicit none
 
@@ -288,6 +290,7 @@
       use mod_commonmn
 
       use mod_hions
+      use end_sixtrack
 
       implicit none
 
@@ -364,6 +367,7 @@
       use mod_commonmn
 
       use mod_hions
+      use end_sixtrack
 
       implicit none
 

@@ -23378,6 +23378,10 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
+      call SixTrackRootFortranInit
++ei
+      call daten
+
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -23385,10 +23389,8 @@ end interface
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
 +ei
+
 +if root
-      call SixTrackRootFortranInit
-+ei
-      call daten
 +if vvector
       if (ithick.eq.1) call allocate_thickarrays
 +ei
