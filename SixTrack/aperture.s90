@@ -1669,6 +1669,7 @@ subroutine dump_aperture_model
 
   integer iOld, ixOld, niter, oKApe, jj
   real(kind=fPrec) aprr(9),slos
+  character(len=max_name_len), parameter :: interpolated = 'interpolated'
 
   write(lout,*)''
   write(lout,fmt="(131('-'))")
@@ -1711,7 +1712,7 @@ subroutine dump_aperture_model
               slos = int(dcum(iOld)/bktpre+jj)*bktpre
               if ( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
               call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
-              call dump_aperture( aperunit, '    interpolated', oKApe, slos, aprr )
+              call dump_aperture( aperunit, interpolated, oKApe, slos, aprr )
             end do
           end if
           iOld=i
