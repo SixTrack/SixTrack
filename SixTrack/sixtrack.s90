@@ -23378,6 +23378,7 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
++if root
       call SixTrackRootFortranInit
 +ei
       call daten
@@ -23390,7 +23391,6 @@ end interface
       call fluka_mod_init(npart, nele, clight)
 +ei
 
-+if root
 +if vvector
       if (ithick.eq.1) call allocate_thickarrays
 +ei
