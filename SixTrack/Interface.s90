@@ -17,9 +17,11 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    type ffTable
      integer :: n,m,s                                                      ! Exposant maximum pour x et y, Nombre de point en z
      integer :: lx,ly,lz                                                   ! Number of coef per step
+     integer :: nb_oidpsv                                                  ! Nomber of case for AQ
      integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx,ij_TAy,ij_TAz  ! Tableau des indices ij de Ax, Ay et Az
      double precision :: dz, norm, Lgth                                    ! Taille du pas en z et normalisation
      double precision,dimension(:,:),allocatable :: TAx,TAy,TAz            ! Nouveau tableau des coefficients de Ax, Ay et Az
+     double precision,dimension(:,:),allocatable :: oidpsv_sv              ! oidpsv value for AQ-case
      double precision,dimension(:,:,:),allocatable :: AQx,AQy
      logical,dimension(:),allocatable :: checkAQ
    end type ffTable
@@ -240,7 +242,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !                               " gam0 ",gamma0," ffj ",nlostp(ffj)
 !         endif
 !   <<<<<<<<<<<<<< test 07-03-2018
-         
+!         
 !       enddo
 !     endif
 
@@ -359,8 +361,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          
          
          ! Selection of the particle that are only in the radius (r = 0.05m)
-!         if ((x*x+y*y>2.5d-3).or.(pstop(nlostp(ffj)))) then
-         if (((currQuad(2)==1).and.(x*x+y*y>3.6d-3)).or.             &!(x*x+y*y>2.5d-3)).or.             &
+!         if (.false.) then
+         if (((currQuad(2)==1).and.(x*x+y*y>6.4d-3)).or.             &!(x*x+y*y>3.6d-3)).or.             &
              ((currQuad(2)==2).and.(ffnotIN(nlostp(ffj),currQuad(1)))).or.       &
              (pstop(nlostp(ffj)))) then
 !	   write(*,*) "FField Part ",ffj," out of trust area (el. ",currQuad(1),")"
@@ -507,6 +509,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
 
       if (.not.firstTime2) then
+
 !         if (.not.firstTime) then
 !            do i = 1,npart
 !               if (pstop(i)) then
@@ -523,11 +526,12 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !                     sum_loss_out=sum_loss_out+ffloss(i,j,k,2)
 !                  enddo
 !            
-!                  write(*,*) "           -> ",ffQNames(k),": Number of period out of boundary: (in) ",&
+!                  write(*,*) "           -> ",TRIM(ffQNames(k)),": Number of period out of boundary: (in) ",&
 !                         &sum_loss_in," (out) ",sum_loss_out
 !               enddo
 !            enddo
 !         endif
+
          deallocate(ffloss,ffnotIN)
          firstTime2 = .true.
          write (*,*) "FringeField : Table for particle out of boundary deallocated!"
