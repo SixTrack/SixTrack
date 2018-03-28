@@ -18,6 +18,7 @@ module mod_fluka
   private
 
   public :: fluka_mod_init
+  public :: fluka_mod_expand_arrays
   public :: fluka_mod_end
 
   public :: fluka_connect
@@ -174,6 +175,8 @@ module mod_fluka
       fluka_uid(j) = j
       fluka_gen(j) = j
     end do
+
+    fluka_max_npart = npart_new
 
   end subroutine fluka_mod_expand_arrays
 
