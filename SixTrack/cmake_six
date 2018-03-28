@@ -17,25 +17,25 @@ echo ""
 #Run the Beauty "linters"
 if [ -x "$(command -v gawk)" ]; then
     function astuce_linter {
-	echo ""
-	echo "Running 'gawk -f beauty/count.awk "$1"' to check sanity of astuce directives in "$1":"
-	if ! gawk -f beauty/count.awk $1; then
-	    echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in "$1"\e[49m\e[0m"
-	    echo "This most likely means that you added or removed a +if or +ei,"
-	    echo " but forgot about its partner."
-	    exit 1
-	else
-	    echo "--> count.awk completed without errors."
-	fi
-	
-	echo "Running 'gawk -f beauty/check_astuce_ifs.awk "$1"' to check sanity of astuce directives in "$1":"
-	if ! gawk -f beauty/check_astuce_ifs.awk $1; then
-	    echo -e "\e[5m\e[41m WARNING: ASTUCE if has too many arguments in "$1" \e[49m\e[0m"
-	    echo "This most likely means that you have an extra space in an astuce +if statement"
-	    exit 1
-	else
-	    echo "--> check_astuce_ifs.awk completed without errors."
-	fi
+    echo ""
+    echo "Running 'gawk -f beauty/count.awk "$1"' to check sanity of astuce directives in "$1":"
+    if ! gawk -f beauty/count.awk $1; then
+        echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in "$1"\e[49m\e[0m"
+        echo "This most likely means that you added or removed a +if or +ei,"
+        echo " but forgot about its partner."
+        exit 1
+    else
+        echo "--> count.awk completed without errors."
+    fi
+    
+    echo "Running 'gawk -f beauty/check_astuce_ifs.awk "$1"' to check sanity of astuce directives in "$1":"
+    if ! gawk -f beauty/check_astuce_ifs.awk $1; then
+        echo -e "\e[5m\e[41m WARNING: ASTUCE if has too many arguments in "$1" \e[49m\e[0m"
+        echo "This most likely means that you have an extra space in an astuce +if statement"
+        exit 1
+    else
+        echo "--> check_astuce_ifs.awk completed without errors."
+    fi
     }
     astuce_linter sixtrack.s90
     astuce_linter plato_seq.s90
@@ -75,54 +75,54 @@ options_BUILDTYPE=defaultbuildtype #Which build type to make (should be in 'buil
 for var in "$@" #Loop over command line arguments
 do
     if [[ $var == clean ]]; then
-	echo "Cleaning cmake_six builds!"
-	set +e
-	#ls SixTrack_cmakesix*
-	rm -rf SixTrack_cmakesix*
-	exit
+    echo "Cleaning cmake_six builds!"
+    set +e
+    #ls SixTrack_cmakesix*
+    rm -rf SixTrack_cmakesix*
+    exit
     elif [[ $var == help ]]; then
-	echo "VALID OPTIONS FOR cmake_six:"
-	echo
-	echo "Compilers:"
-	for c in ${compilers[@]}
-	do
-	    echo $c
-	done
-	echo
-	echo "Build types:"
-	for c in ${buildtypes[@]}
-	do
-	    echo $c
-	done
-	echo ""
-	echo "Flags and default options:"
-	mkdir cmake_tmp
-	cd cmake_tmp
-	#Skip "-A" flag
-	cmake -LH ../../.
-	cd ..
-	rm -rf cmake_tmp
+    echo "VALID OPTIONS FOR cmake_six:"
+    echo
+    echo "Compilers:"
+    for c in ${compilers[@]}
+    do
+        echo $c
+    done
+    echo
+    echo "Build types:"
+    for c in ${buildtypes[@]}
+    do
+        echo $c
+    done
+    echo ""
+    echo "Flags and default options:"
+    mkdir cmake_tmp
+    cd cmake_tmp
+    #Skip "-A" flag
+    cmake -LH ../../.
+    cd ..
+    rm -rf cmake_tmp
 
-	echo ""
-	echo "Call cmake_six with FLAG as an argument to turn ON, and -FLAG to turn off."
+    echo ""
+    echo "Call cmake_six with FLAG as an argument to turn ON, and -FLAG to turn off."
 
-	echo ""
-	echo "Special options to cmake_six:"
-	echo "clean : Remove all build directories"
-	echo "help  : Display this message"
+    echo ""
+    echo "Special options to cmake_six:"
+    echo "clean : Remove all build directories"
+    echo "help  : Display this message"
 
-	echo ""
-	echo "Examples:"
-	echo "cmake_six gfortran"
-	echo "cmake_six gfortran release"
-	echo "cmake_six gfortran debug"
-	echo "cmake_six gfortran COLLIMAT -CRLIBM"
-	echo "cmake_six clean"
-	echo "cmake_six ifort-icc"
-	echo "cmake_six BIGNPART STF"
-	echo ""
-	echo "Specifying just a compiler for one language will cause cmake to use what it thinks is the default for your platform for the others."
-	exit
+    echo ""
+    echo "Examples:"
+    echo "cmake_six gfortran"
+    echo "cmake_six gfortran release"
+    echo "cmake_six gfortran debug"
+    echo "cmake_six gfortran COLLIMAT -CRLIBM"
+    echo "cmake_six clean"
+    echo "cmake_six ifort-icc"
+    echo "cmake_six BIGNPART STF"
+    echo ""
+    echo "Specifying just a compiler for one language will cause cmake to use what it thinks is the default for your platform for the others."
+    exit
     elif [[ $var == BUILD_TESTING ]]; then
         testing=1
     fi
@@ -136,77 +136,77 @@ for var in "$@" #Loop over command line arguments
 do
     ## Negative options
     if [[ $var == -* ]]; then
-	#echo "OFF" $var
-	varOn=${var:1} # Without the "-"
-	for v in ${options_ALL[@]}
-	do
-	    if [[ $v == $varOn ]]; then
-		echo "ERROR: option $v used more than once"
-		exit 1
-	    fi
-	done
+    #echo "OFF" $var
+    varOn=${var:1} # Without the "-"
+    for v in ${options_ALL[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: option $v used more than once"
+        exit 1
+        fi
+    done
 
-	for v in ${compilers[@]}
-	do
-	    if [[ $v == $varOn ]]; then
-		echo "ERROR: can't switch a compiler off"
-		exit 1
-	    fi
-	done
+    for v in ${compilers[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: can't switch a compiler off"
+        exit 1
+        fi
+    done
 
-	for v in ${buildtypes[@]}
-	do
-	    if [[ $v == $varOn ]]; then
-		echo "ERROR: can't switch a build type off"
-		exit 1
-	    fi
-	done
-	
-	options_ALL+=(${var:1})
-	options_OFF+=(${var:1})
-	
+    for v in ${buildtypes[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: can't switch a build type off"
+        exit 1
+        fi
+    done
+    
+    options_ALL+=(${var:1})
+    options_OFF+=(${var:1})
+    
     ## Positive options
     else
-	#echo "ON" $var
-	varOn=$var
-	for v in ${options_ALL[@]}
-	do
-	    if [[ $v == $varOn ]]; then
-		echo "ERROR: option $v used more than once"
-		exit 1
-	    fi
-	done
+    #echo "ON" $var
+    varOn=$var
+    for v in ${options_ALL[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: option $v used more than once"
+        exit 1
+        fi
+    done
 
-	thisWasSpecial="NO"
-	for v in ${compilers[@]}
-	do
-	    if [[ $v == $varOn ]]; then
-		if [[ $options_COMPILER != "defaultcompiler" ]]; then
-		    echo "ERROR: can't set multiple compilers"
-		    exit 1
-		fi
-		options_COMPILER=$varOn
-		thisWasSpecial="YES"
-	    fi
-	done
+    thisWasSpecial="NO"
+    for v in ${compilers[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        if [[ $options_COMPILER != "defaultcompiler" ]]; then
+            echo "ERROR: can't set multiple compilers"
+            exit 1
+        fi
+        options_COMPILER=$varOn
+        thisWasSpecial="YES"
+        fi
+    done
 
-	for v in ${buildtypes[@]}
-	do
-	    if [[ $v == $varOn ]]; then
-		if [[ $options_BUILDTYPE != "defaultbuildtype" ]]; then
-		    echo "ERROR: can't set multiple build types"
-		    exit 1
-		fi
-		options_BUILDTYPE=$varOn
-		thisWasSpecial="YES"
-	    fi
-	done
-	
-	if [[ $thisWasSpecial == "NO" ]]; then
-	    options_ALL+=($var)
-	    options_ON+=($var)	
-	fi
-	thisWasSpecial="NO"
+    for v in ${buildtypes[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        if [[ $options_BUILDTYPE != "defaultbuildtype" ]]; then
+            echo "ERROR: can't set multiple build types"
+            exit 1
+        fi
+        options_BUILDTYPE=$varOn
+        thisWasSpecial="YES"
+        fi
+    done
+    
+    if [[ $thisWasSpecial == "NO" ]]; then
+        options_ALL+=($var)
+        options_ON+=($var)	
+    fi
+    thisWasSpecial="NO"
     fi
 done
 #Sort the options
@@ -224,9 +224,9 @@ for i in $(seq 0 $(expr ${#compilers[@]} - 1 ) )
 do
     #echo $i ${compilers[$i]} ${compilers_CMAKE[$i]}
     if [ $options_COMPILER == ${compilers[$i]} ]; then
-	#echo "FOUND!"
-	CMAKE_OPTIONS_LIST+=${compilers_CMAKE[$i]}
-	CMAKE_OPTIONS_LIST+=" "
+    #echo "FOUND!"
+    CMAKE_OPTIONS_LIST+=${compilers_CMAKE[$i]}
+    CMAKE_OPTIONS_LIST+=" "
     fi
 done
 
@@ -234,8 +234,8 @@ done
 for i in $(seq 0 $(expr ${#buildtypes[@]} - 1 ) )
 do
     if [ $options_BUILDTYPE == ${buildtypes[$i]} ]; then
-	#echo "FOUND!"
-	CMAKE_OPTIONS_LIST+=${buildtypes_CMAKE[$i]}
+    #echo "FOUND!"
+    CMAKE_OPTIONS_LIST+=${buildtypes_CMAKE[$i]}
     fi
 done
 
