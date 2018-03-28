@@ -1,18 +1,15 @@
-#General
+# General
 *.o
 *~
 *.exe
-build*
 
 # SixTest
 SixTest/*/*.run_pro*
 SixTest/*/*.run_kill*
 SixTest/run_pro_*
 SixTest/run_kill_*
-#SixTest/read90/dtoa_c.o
-#SixTest/read90/dtoaf.o
 
-#Builds
+# Builds
 SixTrack/Makefile
 SixTrack/Makefile_makesix
 SixTrack/SixTrack_*
@@ -26,17 +23,21 @@ SixTrack/zlib/install
 
 SixTrack/count.log
 
-# LaTeX temps
+# Custom Build Folders
+build*
+Build*
+
+# LaTeX
 Doc/html
-Doc/user_manual/six.pdf
+Doc/*/*.pdf
 Doc/*/*.aux
 Doc/*/*.log
 Doc/*/*.lot
 Doc/*/*.out
 Doc/*/*.toc
-*.bbl
-*.blg
-*.synctex.gz
+Doc/*/*.bbl
+Doc/*/*.blg
+Doc/*/*.synctex.gz
 
-#Python temps
+# Python
 *.pyc
