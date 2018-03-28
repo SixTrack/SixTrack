@@ -2,6 +2,7 @@
 *.o
 *~
 *.exe
+build*
 
 # SixTest
 SixTest/*/*.run_pro*
