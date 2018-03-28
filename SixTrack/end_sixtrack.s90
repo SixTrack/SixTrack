@@ -25,13 +25,6 @@ contains
 ! =================================================================================================
 subroutine prror(ier)
 
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! import mod_fluka
-  ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
-+ei
 
   use crcoall
   use parpro
@@ -44,14 +37,6 @@ subroutine prror(ier)
 +ca commont1
 +if bnlelens
 +ca rhicelens
-+ei
-
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! status of connection
-  ! inserted in main code by the 'fluka' compilation flag
-  integer fluka_con
 +ei
 
   save
@@ -271,9 +256,6 @@ subroutine prror(ier)
     write(lout,11050) mmul
   end select
 
-+if fluka
-+ca flukaclose
-+ei
   call closeUnits
 +if cr
   call abend('                                                  ')

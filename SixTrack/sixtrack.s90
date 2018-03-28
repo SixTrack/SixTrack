@@ -7485,11 +7485,11 @@ cc2008
 !     clean closure of communication with fluka and un-set mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
       fluka_con = fluka_is_running()
-      if (fluka_con.eq.0) then
-        if ( .not. fluka_connected ) then
+      if(fluka_con.eq.0) then
+        if( .not. fluka_connected ) then
 !         temporarily connect to fluka, to properly terminate the run
           fluka_con = fluka_connect()
-          if (fluka_con.eq.-1) then
+          if(fluka_con.eq.-1) then
 !           no hope to properly close the run
             write(lout,*) '[Fluka] unable to connect to fluka while'
             write(lout,*) '        closing the simulation: please,'
@@ -7501,13 +7501,11 @@ cc2008
           endif
           write(lout,*) '[Fluka] Successfully connected to Fluka server'
           write(lout,*) '[Fluka]     (only temporarily)'
-          write(fluka_log_unit,*)                                       &
-     &'# Successfully connected to Fluka server'
-          write(fluka_log_unit,*)                                       &
-     &'#     (only temporarily)'
-        endif
+          write(fluka_log_unit,*) '# Successfully connected to Fluka server'
+          write(fluka_log_unit,*) '#     (only temporarily)'
+        end if
         call fluka_end
-      endif
+      end if
  1982 call fluka_mod_end
       flush(lout)
 !      flush(fluka_log_unit)
@@ -7677,20 +7675,43 @@ cc2008
 
 +dk close
 subroutine closeUnits
-      use floatPrecision
-      use end_sixtrack
-      use scatter, only : scatter_closefiles
-      use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
-      use dump, only : dump_closeUnits
-      use parpro
-      use mod_common
-      use bdex, only : bdex_closefiles
-      implicit none
+  use floatPrecision
+  use end_sixtrack
+  use scatter, only : scatter_closefiles
+  use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
+  use dump, only : dump_closeUnits
+  use parpro
+  use mod_common
+  use bdex, only : bdex_closefiles
+
++if fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! import mod_fluka
+  ! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
++ei
+
+  implicit none
 
 +ca comgetfields
 +ca parbeam_exp
-      integer i
-      logical lopen
+
+  integer i
+  logical lopen
+
++if fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! status of connection
+  ! inserted in main code by the 'fluka' compilation flag
+  integer fluka_con
++ei
+
++if fluka
++ca flukaclose
++ei
+
 !-----------------------------------------------------------------------
 !--CLOSE(DATA FILES
       close(2,err=2)
@@ -23378,18 +23399,20 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
-+if root
-      call SixTrackRootFortranInit
-+ei
-      call daten
-
 +if fluka
+
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     initialise fluka module
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
 +ei
+
++if root
+      call SixTrackRootFortranInit
++ei
+
+      call daten
 
 +if vvector
       if (ithick.eq.1) call allocate_thickarrays
