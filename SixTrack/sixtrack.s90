@@ -13548,8 +13548,7 @@ subroutine daten
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
-      write(lout,*)'ERROR in LIMI block: fortran IO format currently'// &
-     &       ' not supported!'
+      write(lout,*)'ERROR in LIMI block: fortran IO format currently not supported!'
       call prror(-1)
 +ei
       
@@ -13584,7 +13583,7 @@ subroutine daten
 
         call getfields_split( ch, getfields_fields, getfields_lfields,getfields_nfields, getfields_lerr )
         if ( getfields_lerr ) then
-          write(lout,*)'ERROR in LIMI block: getfields_lerr=', getfields_lerr, ' at line: ',ch
+          write(lout,*) 'ERROR in LIMI block: getfields_lerr=', getfields_lerr, ' at line: ',ch
           call prror(-1)
         endif
 
@@ -13592,8 +13591,8 @@ subroutine daten
           ! P.G.Ortega and A.Mereghetti, 02-03-2018
           ! reading apertures from external file
           if(getfields_nfields.lt.3) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &       'parameters for keywor LOAD: ninput = ', getfields_nfields, ' != 3 (min)'
+            write(lout,*) 'ERROR in LIMI block: wrong number of input parameters for keyword LOAD: ninput = ', &
+                          getfields_nfields, ' != 3 (min)'
             call prror(-1)
           endif
           read (getfields_fields(2)(1:getfields_lfields(2)),*) loadunit
@@ -15714,8 +15713,7 @@ subroutine daten
 !         dump all elements found:
           do ii=1,il
              if(fluka_type(ii).ne.FLUKA_NONE) then
-               write(lout,10510) bez(ii), fluka_type(ii),                  &
-     &                        fluka_geo_index(ii),fluka_synch_length(ii)
+               write(lout,10510) bez(ii), fluka_type(ii),fluka_geo_index(ii),fluka_synch_length(ii)
              endif
           enddo
           write(lout,*) ''
@@ -15799,6 +15797,8 @@ subroutine daten
         write(lout,*) '   parsed line:'
         write(lout,*) ch(:80)
         write(lout,*) ''
+        write(lout,*) 'fluka_type(entrance) = ', fluka_type(i1)
+        write(lout,*) 'at position = ', i1
         call prror(-1)
       endif
       if ( fluka_type(i2).ne.FLUKA_NONE ) then
@@ -15810,6 +15810,8 @@ subroutine daten
         write(lout,*) '   parsed line:'
         write(lout,*) ch(:80)
         write(lout,*) ''
+        write(lout,*) 'fluka_type(exit) = ', fluka_type(i2)
+        write(lout,*) 'at position = ', i2
         call prror(-1)
       endif
 
