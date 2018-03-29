@@ -1977,7 +1977,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   case(1) ! circle
      do i=1,nAzim
         thetaRay=i/real(nAzim)*two*pi ! radians
-        ! move to aperture reference system
+        ! call (angle to aperture ref sys)
         call intersectCR(xRay,yRay,thetaRay-tmpape(7),tmpape(3),xChk,yChk,nChk)
         ! go back to machine reference system 
         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
@@ -1987,7 +1987,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   case(2) ! rectangle
      do i=1,nAzim
         thetaRay=i/real(nAzim)*two*pi ! radians
-        ! move to aperture reference system
+        ! call (angle to aperture ref sys)
         call intersectRE(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),xChk,yChk,nChk)
         ! go back to machine reference system 
         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
@@ -1997,7 +1997,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   case(3) ! ellipse
      do i=1,nAzim
         thetaRay=i/real(nAzim)*two*pi ! radians
-        ! move to aperture reference system
+        ! call (angle to aperture ref sys)
         call intersectEL(xRay,yRay,thetaRay-tmpape(7),tmpape(3),tmpape(4),xChk,yChk,nChk)
         ! go back to machine reference system 
         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
@@ -2007,8 +2007,18 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   case(4) ! rectellipse
      do i=1,nAzim
         thetaRay=i/real(nAzim)*two*pi ! radians
-        ! move to aperture reference system
+        ! call (angle to aperture ref sys)
         call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
+        ! go back to machine reference system 
+        if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        ! echo result of scan
+        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+     enddo
+  case(5) ! octagon
+     do i=1,nAzim
+        thetaRay=i/real(nAzim)*two*pi ! radians
+        ! call (angle to aperture ref sys)
+        call intersectOC(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(5),tmpape(6),xChk,yChk,nChk)
         ! go back to machine reference system 
         if (tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
@@ -2256,8 +2266,8 @@ subroutine intersectOC( xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, 
   real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, nChk
   ! temp variables
   real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
-  nTmp(2)=c1e3
-  call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
+  call intersectRE( xRay, yRay, thetaRay,  xRe,  yRe, xTmp(1), yTmp(1), nTmp(1) )
+  call intersectRE( xRay, yRay, thetaRay, mOct, qOct, xTmp(2), yTmp(2), nTmp(2) )
   ! octagon part
   if (nTmp(1).lt.nTmp(2)) then
      xChk=xTmp(1)
