@@ -31,12 +31,28 @@ subroutine prror(ier)
   use mod_common
   use mod_commons
   
++if fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! import mod_fluka
+  ! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
++ei
+
   implicit none
   
   integer ier
 +ca commont1
 +if bnlelens
 +ca rhicelens
++ei
+
++if fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! status of connection
+  ! inserted in main code by the 'fluka' compilation flag
+  integer fluka_con
 +ei
 
   save
@@ -255,6 +271,10 @@ subroutine prror(ier)
   case (105)
     write(lout,11050) mmul
   end select
+
++if fluka
++ca flukaclose
++ei
 
   call closeUnits
 +if cr
@@ -686,8 +706,7 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
   integer,          intent(in) :: file_unit
   character(len=*), intent(in) :: file_name
   
-  integer nlines
-  parameter (nlines=40)
+  integer, parameter :: nlines = 40
   
   character(len=1024) fileBuff (nlines)
   integer fileBuff_idx

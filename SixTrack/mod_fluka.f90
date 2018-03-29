@@ -3,7 +3,7 @@ module mod_fluka
   use floatPrecision
   use numerical_constants
   use mod_alloc
-  use file_units
+  use file_units, only : requestFileUnit
 
   use, intrinsic :: ISO_FORTRAN_ENV, only : int8, int16, int32, int64
 
@@ -111,9 +111,7 @@ module mod_fluka
   integer(kind=int16),          public :: fluka_a0     ! nucelon number (hisix)
   integer(kind=int16),          public :: fluka_z0     ! charge multiplicity (hisix)
 
-  ! hack for Li-7
-  !real(kind=fPrec), parameter :: MLI = 6.5338351903884577D0
-  !real(kind=fPrec), parameter :: RLI = 3D0/1D0
+  save
 
   contains
 

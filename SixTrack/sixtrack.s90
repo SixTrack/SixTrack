@@ -7684,14 +7684,6 @@ subroutine closeUnits
   use mod_common
   use bdex, only : bdex_closefiles
 
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! import mod_fluka
-  ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
-+ei
-
   implicit none
 
 +ca comgetfields
@@ -7699,18 +7691,6 @@ subroutine closeUnits
 
   integer i
   logical lopen
-
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! status of connection
-  ! inserted in main code by the 'fluka' compilation flag
-  integer fluka_con
-+ei
-
-+if fluka
-+ca flukaclose
-+ei
 
 !-----------------------------------------------------------------------
 !--CLOSE(DATA FILES
