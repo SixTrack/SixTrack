@@ -13518,6 +13518,7 @@ subroutine daten
 !     LIMI block naturally activates backtracking, unless explicitly
 !       requested by user
       lbacktracking=.true.
+      loadunit=3 ! stream to fort.3
   951 continue
 !     loadunit is initialised to 3 in aperture_comnul
       read(loadunit,10020,end=952,iostat=ierro) ch
@@ -13875,8 +13876,8 @@ subroutine daten
             write(lout,*) 'WARNING: Unidentified element ', idat
             write(lout,*) '  in LIMI input block, ignoring...'
           end if
-        end if ! specific non-NEXT lines
-      end if ! non-NEXT lines
+        end if ! specific non-NEXT keywords
+      end if ! any non-NEXT keywords
       goto 951 ! go to next line to be parsed
 
   952 continue
