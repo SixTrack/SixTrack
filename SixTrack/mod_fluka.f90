@@ -418,6 +418,9 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! just receive particles from Fluka
+  ! The call from fluka.s90 is:
+  ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv, naa(:), nzz(:), nucm(:))
+  ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
   integer function fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
     implicit none
 
@@ -485,6 +488,8 @@ module mod_fluka
 
          if(fluka_nrecv.gt.fluka_max_npart) then
 
+            !If we hit the particle limit, we will need to  do a global array expand on npart
+            !call expand_arrays(nele, npart+50, nblz, nblo)
             write(fluka_log_unit, *) &
                  '# FlukaIO error: reached maximum number of particles, ', &
                  'no space left to store other incoming particles'
