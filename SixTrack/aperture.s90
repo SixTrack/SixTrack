@@ -65,6 +65,12 @@ module aperture
   logical, save :: lbacktracking                   ! activate back-tracking
   real(kind=fPrec), save :: xLast(2,npart)         ! position after last thick element [mm]
   real(kind=fPrec), save :: yLast(2,npart)         ! angles after last thick element [mrad]
+  real(kind=fPrec), save :: ejfvLast(npart)        ! linear momentum [MeV/c]
+  real(kind=fPrec), save :: ejvLast(npart)         ! total energy [MeV]
+  real(kind=fPrec), save :: nucmLast(npart)        ! nuclear mass [GeV/c2]
+  real(kind=fPrec), save :: sigmvLast(npart)       ! lag [mm]
+  real(kind=fPrec), save :: dpsvLast(npart)        ! 
+  integer, save :: naaLast(npart), nzzLast(npart)  ! nuclear mass and atomic number []
   real(kind=fPrec), save :: bktpre                 ! precision of back-tracking [m]
   integer, save :: iLast, ixLast                   ! indeces of last aperture marker
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
@@ -148,6 +154,13 @@ subroutine aperture_comnul
         xLast(jj,ii)=zero
         yLast(jj,ii)=zero
      end do
+     ejfvLast(jj)=zero
+     ejvLast(jj)=zero
+     nucmLast(jj)=zero
+     sigmvLast(jj)=zero
+     dpsvLast(jj)=zero
+     naaLast(jj)=0
+     nzzLast(jj)=0
   end do
   bktpre=c1m1 ! default precision: 0.1m
   iLast = 0
@@ -390,6 +403,13 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
      xLast(2,j) = xv(2,j)
      yLast(1,j) = yv(1,j)
      yLast(2,j) = yv(2,j)
+     ejfvLast(j) = ejfv(j)
+     ejvLast(j) = ejv(j)
+     nucmLast(j) = nucm(j)
+     sigmvLast(j) = sigmv(j)
+     dpsvLast(j) = dpsv(j)
+     naaLast(j) = naa(j)
+     nzzLast(j) = nzz(j)
   end do
   iLastThick = i
   ixLastThick = ix
@@ -502,7 +522,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   integer kapert      ! temporal integer for aperture type
   logical llos        ! temporal logic array for interpolation
   logical lback       ! actually perform backtracking
-  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, &
+ & ejvlos, nucmlos, sigmvlos, dpsvlos
+  integer naalos, nzzlos
   
   save
   
@@ -816,7 +838,25 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
              slos    = dcum(i)
           endif
         end if ! if (lback)
-        
+
+        ! get ready for dumping infos
+        if (lbacktracking) then
+           ejfvlos = ejfvLast(j)
+           ejvlos = ejvLast(j)
+           nucmlos = nucmLast(j)
+           sigmvlos = sigmv(j)
+           dpsvlos = dpsvLast(j)
+           naalos = naaLast(j)
+           nzzlos = naaLast(j)
+        else
+           ejfvlos = ejfv(j)
+           ejvlos = ejv(j)
+           nucmlos = nucm(j)
+           sigmvlos = sigmv(j)
+           dpsvlos = dpsv(j)
+           naalos = naa(j)
+           nzzlos = naa(j)
+        endif
 
         ! ==============================================================
         ! If lost particles aren't killed, the lost info is dumped only
@@ -886,17 +926,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ei
 
      &         xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
-     &         ejfv(j)*c1m3, (ejv(j)*(nucm0/nucm(j))-e0)*c1e6,                 &
-     &         -c1m3 * (sigmv(j)/clight) * (e0/e0f),                           &
-     &         naa(j), nzz(j)
+     &         ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
+     &         -c1m3 * (sigmvlos/clight) * (e0/e0f),                           &
+     &         naalos, nzzlos
 
 +if root
 ! root output
         if(root_flag .and. root_ApertureCheck.eq.1) then
           this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
           call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, ipart(j)+100*samplenumber,&
-       &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, &
-       &  -c1m3 * (sigmv(j)/clight) * (e0/e0f))
+       &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
+       &  -c1m3 * (sigmvlos/clight) * (e0/e0f))
         end if
 +ei ! root output
 
@@ -917,9 +957,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
            xvl(2,nlostp(j))   = xlos(2)
            yvl(1,nlostp(j))   = ylos(1)
            yvl(2,nlostp(j))   = ylos(2)
-           dpsvl(nlostp(j))   = dpsv(j)
-           ejvl(nlostp(j))    = ejv(j)
-           sigmvl(nlostp(j))  = sigmv(j)
+           dpsvl(nlostp(j))   = dpsvlos
+           ejvl(nlostp(j))    = ejvlos
+           sigmvl(nlostp(j))  = sigmvlos
            numxv(nlostp(j))   = numx
            nnumxv(nlostp(j))  = numx
 +if fluka.or.collimat
@@ -1719,7 +1759,7 @@ subroutine dump_aperture_model
               slos = int(dcum(iOld)/bktpre+jj)*bktpre
               if ( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
               call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
-              call dump_aperture( aperunit, '    interpolated', oKApe, slos, aprr )
+              call dump_aperture( aperunit, trim('interpolated'), oKApe, slos, aprr )
             end do
           end if
           iOld=i
