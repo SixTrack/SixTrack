@@ -84,16 +84,20 @@ module scatter
     integer :: scatter_seed1, scatter_seed2
     
     logical :: scatter_debug
+    
+    ! Variable for file units
+    integer :: scatter_logFile
 
     !Declare which variables should be statically stored;
     ! TODO: Consider putting the SAVE keyword direcly into
     ! the variable declarations instead.
-    save scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,       &
-         scatter_PROFILE, scatter_GENERATOR,                          &
-         scatter_idata, scatter_fdata, scatter_cdata,                 &
-         scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,         &
-         scatter_nidata, scatter_nfdata, scatter_ncdata,              &
-         scatter_debug, scatter_active, scatter_seed1, scatter_seed2
+    save scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,         &
+         scatter_PROFILE, scatter_GENERATOR,                            &
+         scatter_idata, scatter_fdata, scatter_cdata,                   &
+         scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,           &
+         scatter_nidata, scatter_nfdata, scatter_ncdata,                &
+         scatter_debug, scatter_active, scatter_seed1, scatter_seed2,   &
+         scatter_logFile
 
 +if cr
     integer :: scatter_filepos,scatter_filepos_cr
@@ -201,12 +205,16 @@ subroutine scatter_initialize
   
     use crcoall
     use parpro
+    use file_units
     
     implicit none
     
     integer ierro
 
     logical lopen
+    
+    ! Get a file unit number
+    call requestFileUnit("scatter_log.txt",scatter_logFile)
 
     ! Open scatter_log.txt
 +if cr
@@ -216,21 +224,21 @@ subroutine scatter_initialize
     if(scatter_filepos .eq. -1) then
         write(93,'(a)') "SCATTER> scatter_initialize opening new file scatter_log.txt"
 +ei
-        inquire( unit=667, opened=lopen )
-        if (lopen) then
+        inquire(unit=scatter_logFile, opened=lopen)
+        if(lopen) then
             write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
-            write(lout,*) "Unit 667 was already taken."
+            write(lout,*) "Unit ",scatter_logFile," was already taken."
             call prror(-1)
         end if
         
-        open(667,file="scatter_log.txt",status="replace",form="formatted")
-        write(667,"(A)") "# scatter_log"
-        write(667,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
+        open(scatter_logFile,file="scatter_log.txt",status="replace",form="formatted")
+        write(scatter_logFile,"(A)") "# scatter_log"
+        write(scatter_logFile,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
 +if cr
         scatter_filepos = 2
-        endfile(667,iostat=ierro)
-        backspace(667,iostat=ierro)
+        endfile(scatter_logFile,iostat=ierro)
+        backspace(scatter_logFile,iostat=ierro)
     else
         write(93,'(a)') "SCATTER> scatter_initialize kept already opened file scatter_log.txt"
     end if !scatter_filepos .eq. -1
@@ -248,8 +256,8 @@ subroutine scatter_closefiles
     logical lopen
     
     if (scatter_active) then
-        inquire(unit=667, opened=lopen)
-        if (lopen) close(667)
+        inquire(unit=scatter_logFile, opened=lopen)
+        if(lopen) close(scatter_logFile)
     end if
     
 end subroutine scatter_closefiles
@@ -361,42 +369,42 @@ subroutine scatter_crcheck_positionFiles
     integer j
     character(len=1024) arecord
     
-    inquire( unit=667, opened=lopen )
+    inquire(unit=scatter_logFile, opened=lopen)
     if(lopen) then
         write(93,'(a)') "SIXTRACR CRCHECK FAILED while repsositioning scatter_log.txt"
-        write(93,'(a)') "UNIT 667 already in use!"
-
+        write(93,'(a)') "UNIT ",scatter_logFile," already in use!"
+        
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
-
+        
         write(lout,*) "SIXTRACR CRCHECK failure positioning scatter_log.txt"
         call prror(-1)
     end if
-
+    
     if(scatter_filepos_cr .ne. -1) then
 +if boinc
         call boincrf("scatter_log.txt",filename)
-        open(unit=667,file=filename,status="old",action="readwrite", err=1)
+        open(unit=scatter_logFile,file=filename,status="old",action="readwrite", err=1)
 +ei
 +if .not.boinc
-        open(unit=667,file="scatter_log.txt",status="old",action="readwrite", err=1)
+        open(unit=scatter_logFile,file="scatter_log.txt",status="old",action="readwrite", err=1)
 +ei
         scatter_filepos=0
         do j=1, scatter_filepos_cr
-            read(667,'(a1024)',end=1,err=1,iostat=ierro) arecord
+            read(scatter_logFile,'(a1024)',end=1,err=1,iostat=ierro) arecord
             scatter_filepos = scatter_filepos+1
         end do
 
         ! Truncate the file after scatter_filepos_cr lines
-        endfile(667,iostat=ierro)
-        close(667)
+        endfile(scatter_logFile,iostat=ierro)
+        close(scatter_logFile)
 
 +if boinc
         call boincrf("scatter_log.txt",filename)
-        open(unit=667,file=filename,status="old",position="append",action="write", err=1)
+        open(unit=scatter_logFile,file=filename,status="old",position="append",action="write", err=1)
 +ei
 +if .not.boinc
-        open(unit=667,file="scatter_log.txt",status="old",position='append',action="write", err=1)
+        open(unit=scatter_logFile,file="scatter_log.txt",status="old",position='append',action="write", err=1)
 +ei       
         write(97,*) "SIXTRACR CRCHECK sucessfully repositioned scatter_log.txt, "// &
                     "scatter_filepos=",scatter_filepos, "scatter_filepos_cr=",scatter_filepos_cr
@@ -1138,7 +1146,7 @@ subroutine scatter_thin(i_elem, ix, turn)
             yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
             
             ! Output to file
-            write(667,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
+            write(scatter_logFile,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
                 trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
                 t, xi, theta, rndPhi(j), P
 +if cr
@@ -1154,8 +1162,8 @@ subroutine scatter_thin(i_elem, ix, turn)
     end do
 
 +if cr
-    endfile(667,iostat=ierro)
-    backspace(667,iostat=ierro)
+    endfile(scatter_logFile,iostat=ierro)
+    backspace(scatter_logFile,iostat=ierro)
 +ei
     
     ! Restore seeds in random generator

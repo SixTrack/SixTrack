@@ -335,9 +335,9 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd collpara
-      integer max_ncoll,maxn,numeff,numeffdpop,outlun,nc
+      integer max_ncoll,maxn,numeff,numeffdpop,nc
       parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
-     &numeffdpop=29,outlun=54)
+     &numeffdpop=29)
 +cd database
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
       logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
@@ -11029,7 +11029,7 @@ subroutine daten
 !      if(i.gt.nele-1) call prror(16)
       !Changed to nele-2 to handle resizing correctly
       if(i.gt.nele-2) then
-        call expand_arrays(nele+10, npart, nblz, nblo)
+        call expand_arrays(nele+50, npart, nblz, nblo)
 
         !The value of nele will have been updated here
         call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
@@ -22720,6 +22720,7 @@ end subroutine beaminf
 program maincr
       use floatPrecision
       use end_sixtrack
+      use file_units
       use mathlib_bouncer
       use physical_constants
       use numerical_constants
@@ -23378,6 +23379,11 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
++if root
+      call SixTrackRootFortranInit
++ei
+      call daten
+
 +if fluka
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -23385,10 +23391,7 @@ end interface
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
 +ei
-+if root
-      call SixTrackRootFortranInit
-+ei
-      call daten
+
 +if vvector
       if (ithick.eq.1) call allocate_thickarrays
 +ei
@@ -25313,6 +25316,9 @@ end interface
 !     call dumpbin('THE END',999,9999)
 !     call dumpzfz('THE END',9,9)
 +ei
+      ! Write all dynamically assigned file units tp file_units.dat
+      call dumpFileUnits
+      
       call closeUnits
 
       if (zipf_numfiles.gt.0) then
