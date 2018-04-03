@@ -11911,6 +11911,7 @@ cc2008
 !-----------------------------------------------------------------------
 +if ffield
 ! FringeField ASIMONA, BDALENA, TPUGNAT
+      ! Read config file
       call ffInterface(0, [0, 0],1,1,1)
 ! end FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
@@ -12219,6 +12220,7 @@ cc2008
         read(fields(1),*) idat
 +if ffield
 ! FringeField ASIMONA, BDALENA, TPUGNAT
+        ! Read the vector potential file and generate table
         ffi=1
         notfound=.true.
         do while ((ffi <= ffNLn).and.(notfound))
@@ -13024,6 +13026,7 @@ cc2008
      &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
 +if ffield
 ! FringeField ASIMONA, BDALENA, TPUGNAT
+      ! Allocate table for particle outside boundaries
       call ffInterface(3, [1, 1],1,1,1)
 ! end FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
@@ -13036,6 +13039,7 @@ cc2008
           read(fields(1),*) numl
 +if ffield
 ! FringeField ASIMONA, BDALENA, TPUGNAT
+      ! Allocate table for particle outside boundaries
       call ffInterface(3, [1, 1],1,1,1)
 ! end FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
@@ -26080,6 +26084,7 @@ C Should get me a NaN
 
 +if ffield
 ! FringeField ASIMONA, BDALENA, TPUGNAT
+      ! Free memory
       call ffInterface(6, [1, 2],1,1,1)
 ! end FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
@@ -27333,6 +27338,13 @@ C Should get me a NaN
 !GRD-042008
 +ei
 
++if ffield
+!                FringeField ASIMONA, BDALENA, TPUGNAT
+          ! Initialization of AQ matrix
+          call ffInterface(4,[1,1],1,1,1)
+!                FringeField ASIMONA, BDALENA, TPUGNAT
++ei
+
 !This is the loop over turns: label 660
 +if cr
       if (restart) then
@@ -27422,6 +27434,12 @@ C Should get me a NaN
 +ca timefct
 +ei
 
++if ffield
+!                FringeField ASIMONA, BDALENA, TPUGNAT
+          ! Print position and momentum
+!          call ffInterface(12,[1,1],i,j,n)
+!                FringeField ASIMONA, BDALENA, TPUGNAT
++ei
 +if .not.collimat
 !---------count:44
 +if debug
@@ -27430,11 +27448,6 @@ C Should get me a NaN
 !           endfile (93,iostat=ierro)
 !           backspace (93,iostat=ierro)
 !         endif
-+ei
-+if ffield
-!                FringeField ASIMONA, BDALENA, TPUGNAT
-          call ffInterface(12,[1,1],i,j,n)
-!                FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
 ! JBG RF CC Multipoles
 ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
