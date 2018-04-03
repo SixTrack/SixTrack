@@ -17123,7 +17123,7 @@ subroutine daten
 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
      &'EXTRA GEOMETRY STRENGTH FILE--')
 10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
-10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i3/ t10,              &
+10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
      &'BLOCKS PER PERIOD',t49,i5//)
 10290 format(t10,'MORE THAN ',i5,' COMBINATIONS SPECIFIED'/)
 10300 format(//131('-')//t10,'DATA BLOCK COMBINATION OF ELEMENTS',      &
