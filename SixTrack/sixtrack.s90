@@ -22917,6 +22917,10 @@ end interface
 !-----------------------------------------------------------------------
       errout_status = 0         ! Set to nonzero before calling abend in case of error.
                                 ! If prror is called, it will be set internally.
+      lout=92
++if .not.cr
+      lout=output_unit
++ei
       call allocate_arrays      ! Initial allocation of memory
 +if crlibm
 ! Removed the call to disable_xp for Laurent
@@ -22969,7 +22973,6 @@ end interface
 +if boinc
  611  continue
 +ei
-      lout=92
 !--   Very first get rid of any previous partial output
 +if boinc
       call boincrf('fort.92',filename)
@@ -23610,8 +23613,7 @@ end interface
         ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
         ! initialise aperture of first and last elements of sequence
         if (limifound) then
-           write(lout,*) ' check that beginning/end of lattice'//       &
-     &' structure is assigned aperture markers...'
+           write(lout,*) ' check that beginning/end of lattice structure is assigned aperture markers...'
            call contour_aperture_markers( iu, 1, .false. )
         end if
 
@@ -33550,11 +33552,11 @@ integer function INEESE()
 +ca commontr
 
   il=il+1
-  if( il.gt.nele ) then
-    call expand_arrays(nele+10, npart, nblz, nblo )
+  if( il.gt.nele-2 ) then
+    call expand_arrays(nele+50, npart, nblz, nblo )
 +if vvector
       if (ithick.eq.1) then
-        call expand_thickarrays(nele+10, npart, nblz, nblo )
+        call expand_thickarrays(nele, npart, nblz, nblo )
       end if
 +ei
   end if
