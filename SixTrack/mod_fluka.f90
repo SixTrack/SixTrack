@@ -2,6 +2,8 @@ module mod_fluka
 
   use floatPrecision
   use numerical_constants
+  use mod_alloc
+  use file_units, only : requestFileUnit
 
   use, intrinsic :: ISO_FORTRAN_ENV, only : int8, int16, int32, int64
 
@@ -16,6 +18,7 @@ module mod_fluka
   private
 
   public :: fluka_mod_init
+  public :: fluka_mod_expand_arrays
   public :: fluka_mod_end
 
   public :: fluka_connect
@@ -73,9 +76,9 @@ module mod_fluka
   logical, public :: fluka_enable    = .false.                     ! enable coupling
   logical, public :: fluka_connected = .false.                     ! fluka is connected
   logical, public :: fluka_debug     = .false.                     ! write debug messages
-  integer(kind=int32), public :: fluka_log_unit  = 888             ! logical unit for log messages
+  integer(kind=int32), public :: fluka_log_unit                    ! logical unit for log messages (was 888)
   ! hisix: write isotope info
-  integer(kind=int32), public :: isotope_log_unit = 822            ! logical unit for isotope-id output
+  integer(kind=int32), public :: isotope_log_unit                  ! logical unit for isotope-id output (was 822)
 
   ! fluka insertions
   logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
@@ -108,9 +111,7 @@ module mod_fluka
   integer(kind=int16),          public :: fluka_a0     ! nucelon number (hisix)
   integer(kind=int16),          public :: fluka_z0     ! charge multiplicity (hisix)
 
-  ! hack for Li-7
-  !real(kind=fPrec), parameter :: MLI = 6.5338351903884577D0
-  !real(kind=fPrec), parameter :: RLI = 3D0/1D0
+  save
 
   contains
 
@@ -129,39 +130,67 @@ module mod_fluka
     fluka_max_npart = maxp
     fluka_clight    = clight
 
-    allocate(fluka_uid(fluka_max_npart))
-    allocate(fluka_gen(fluka_max_npart))
-    allocate(fluka_weight(fluka_max_npart))
-    allocate(fluka_type(nele))
-    allocate(fluka_geo_index(nele))
-    allocate(fluka_synch_length(nele))
+    call alloc(fluka_uid,fluka_max_npart,0,'fluka_uid')
+    call alloc(fluka_gen,fluka_max_npart,0,'fluka_gen')
+    call alloc(fluka_weight,fluka_max_npart,one,'fluka_weight')
+    call alloc(fluka_type,nele,FLUKA_NONE,'fluka_type')
+    call alloc(fluka_geo_index,nele,0,'fluka_geo_index')
+    call alloc(fluka_synch_length,nele,zero,'fluka_synch_length')
 
     do j = 1, fluka_max_npart
       fluka_uid(j) = j
       fluka_gen(j) = j
     end do
 
-    fluka_weight       = 1.0D+00
-    fluka_type         = FLUKA_NONE
-    fluka_geo_index    = 0
-    fluka_synch_length = 0.0D+00
+!    fluka_weight       = one
+!    fluka_type         = FLUKA_NONE
+!    fluka_geo_index    = 0
+!    fluka_synch_length = zero
 
-    open(fluka_log_unit)
-    open(isotope_log_unit)
+    call requestFileUnit('fluka.log', fluka_log_unit)
+    call requestFileUnit('fluka_isotope.log', isotope_log_unit)
+    open(unit=fluka_log_unit, file='fluka.log')
+    open(unit=isotope_log_unit, file='fluka_isotope.log')
 
   end subroutine fluka_mod_init
+
+  subroutine fluka_mod_expand_arrays(npart_new, nele_new)
+
+    use parpro, only : npart
+
+    implicit none
+
+    integer :: npart_new, nele_new, j
+
+    call resize(fluka_uid,npart_new,0,'fluka_uid')
+    call resize(fluka_gen,npart_new,0,'fluka_gen')
+    call resize(fluka_weight,npart_new,one,'fluka_weight')
+    call resize(fluka_type,nele_new,FLUKA_NONE,'fluka_type')
+    call resize(fluka_geo_index,nele_new,0,'fluka_geo_index')
+    call resize(fluka_synch_length,nele_new,zero,'fluka_synch_length')
+
+    do j = npart+1, npart_new
+      fluka_uid(j) = j
+      fluka_gen(j) = j
+    end do
+
+    fluka_max_npart = npart_new
+
+  end subroutine fluka_mod_expand_arrays
 
   !----------------------------------------------------------------------------
   ! un-set the module
   subroutine fluka_mod_end()
     implicit none
-    deallocate(fluka_uid)
-    deallocate(fluka_gen)
-    deallocate(fluka_weight)
-    deallocate(fluka_type)
-    deallocate(fluka_geo_index)
-    deallocate(fluka_synch_length)
+    call dealloc(fluka_uid,'fluka_uid')
+    call dealloc(fluka_gen,'fluka_gen')
+    call dealloc(fluka_weight,'fluka_weight')
+    call dealloc(fluka_type,'fluka_type')
+    call dealloc(fluka_geo_index,'fluka_geo_index')
+    call dealloc(fluka_synch_length,'fluka_synch_length')
+
     close(fluka_log_unit)
+    close(isotope_log_unit)
   end subroutine fluka_mod_end
 
   !----------------------------------------------------------------------------
@@ -173,11 +202,13 @@ module mod_fluka
     character(len=255) :: net_nfo_file
     character(len=255) :: host
     integer :: port
+    integer :: net_nfo_unit
 
-    open(90, file=net_nfo_file, status='old')
-    read(90, *) host
-    read(90, *) port
-    close(90)
+    call requestFileUnit(net_nfo_file, net_nfo_unit)
+    open(net_nfo_unit, file=net_nfo_file, status='old')
+    read(net_nfo_unit, *) host
+    read(net_nfo_unit, *) port
+    close(net_nfo_unit)
 
   end subroutine fluka_read_config
 
@@ -316,28 +347,28 @@ module mod_fluka
       flgen = fluka_gen(j)
       flwgt = fluka_weight(j)
 
-      flx   = x(j) * 1.0D-01  ! from [mm] to [cm]
-      fly   = y(j) * 1.0D-01  ! from [mm] to [cm]
-      flz   = 0.0D+00
+      flx   = x(j) * c1m1  ! from [mm] to [cm]
+      fly   = y(j) * c1m1  ! from [mm] to [cm]
+      flz   = zero
 
-      flxp  = xp(j) * 1.0D-03 ! from [1.0E-03] to [1.0]
-      flyp  = yp(j) * 1.0D-03 ! from [1.0E-03] to [1.0]
+      flxp  = xp(j) * c1m3 ! from [1.0E-03] to [1.0]
+      flyp  = yp(j) * c1m3 ! from [1.0E-03] to [1.0]
       ! director cosines:
       ! full transformation:
-      flzp  = sqrt( 1.0D+00 / ( flxp**2 + flyp**2 + 1.0D+00 ) )
+      flzp  = sqrt( one / ( flxp**2 + flyp**2 + one ) )
 !      ! taylor expansion, for consistency with drifts in SixTrack:
 !      flzp  = 1d0 / ( 1d0 + ( flxp**2+flyp**2 )/2d0 )
       flxp  = flxp * flzp
       flyp  = flyp * flzp
 
       ! total energy:
-      flet  = etot(j) * 1.0D-03 ! from [MeV] to [GeV]
+      flet  = etot(j) * c1m3 ! from [MeV] to [GeV]
       ! longitudinal phase:
-      flt   = -s(j) * 1.0D-03 / ( (fluka_pc0/fluka_e0)*fluka_clight ) ! from [mm] to [s]
+      flt   = -s(j) * c1m3 / ( (fluka_pc0/fluka_e0)*fluka_clight ) ! from [mm] to [s]
 
 
       ! Ion properties (PH for hiSix)
-      flm   = mass(j) * 1.0D-03      ! unit is [GeV]
+      flm   = mass(j) * c1m3      ! unit is [GeV]
       flaa  = aa(j)
       flzz  = zz(j)
 
@@ -385,6 +416,9 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! just receive particles from Fluka
+  ! The call from fluka.s90 is:
+  ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv, naa(:), nzz(:), nucm(:))
+  ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
   integer function fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
     implicit none
 
@@ -417,14 +451,14 @@ module mod_fluka
       fluka_uid(j) = j
       fluka_gen(j) = j
 
-      fluka_weight(j) = 1.0D+00
+      fluka_weight(j) = one
 
-      x   (j) = 0.0D+00
-      y   (j) = 0.0D+00
-      xp  (j) = 0.0D+00
-      yp  (j) = 0.0D+00
-      etot(j) = 0.0D+00
-      s   (j) = 0.0D+00
+      x   (j) = zero
+      y   (j) = zero
+      xp  (j) = zero
+      yp  (j) = zero
+      etot(j) = zero
+      s   (j) = zero
 ! hisix: we should also parse m0,A0,Z0
       aa  (j) = 1
       zz  (j) = 1
@@ -452,6 +486,8 @@ module mod_fluka
 
          if(fluka_nrecv.gt.fluka_max_npart) then
 
+            !If we hit the particle limit, we will need to  do a global array expand on npart
+            !call expand_arrays(nele, npart+50, nblz, nblo)
             write(fluka_log_unit, *) &
                  '# FlukaIO error: reached maximum number of particles, ', &
                  'no space left to store other incoming particles'
@@ -477,20 +513,20 @@ module mod_fluka
 !
 ! PH for hisix: write the particle species and their initial conditions to fort.822
 !
-               write(isotope_log_unit,*) fluka_uid(fluka_nrecv),flgen, ipt, flaa, flzz, flet * 1.0D+03
+               write(isotope_log_unit,*) fluka_uid(fluka_nrecv),flgen, ipt, flaa, flzz, flet * c1e3
 
             end if
 
             fluka_weight(fluka_nrecv) = flwgt
-            x(fluka_nrecv)            = flx * 1.0D+01   ! from [cm]  to [mm]
-            y(fluka_nrecv)            = fly * 1.0D+01   ! from [cm]  to [mm]
-            xp(fluka_nrecv)           = flxp / flzp * 1.0D+03 ! from director cosine to x' [1.0E-03] 
-            yp(fluka_nrecv)           = flyp / flzp * 1.0D+03 ! from director cosine to x' [1.0E-03]
-            etot(fluka_nrecv)         = flet * 1.0D+03  ! from [GeV] to [MeV]
-            s(fluka_nrecv)            = ( el - (fluka_pc0/fluka_e0)*(flt*fluka_clight) ) * 1.0D+03 ! from [s] to [mm]
+            x(fluka_nrecv)            = flx * c1e1   ! from [cm]  to [mm]
+            y(fluka_nrecv)            = fly * c1e1   ! from [cm]  to [mm]
+            xp(fluka_nrecv)           = flxp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            yp(fluka_nrecv)           = flyp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            etot(fluka_nrecv)         = flet * c1e3  ! from [GeV] to [MeV]
+            s(fluka_nrecv)            = ( el - (fluka_pc0/fluka_e0)*(flt*fluka_clight) ) * c1e3 ! from [s] to [mm]
             aa(fluka_nrecv)           = flaa          !PH for hiSix
             zz(fluka_nrecv)           = flzz          !PH for hiSix
-            mass(fluka_nrecv)         = flm  * 1.0D+03  ! from [GeV] to [MeV]         !PH for hiSix
+            mass(fluka_nrecv)         = flm  * c1e3  ! from [GeV] to [MeV]         !PH for hiSix
          end if
       end if
 
@@ -538,9 +574,9 @@ module mod_fluka
 
     fluka_set_synch_part = 0
 
-    fluka_e0    = e0    *1.0D-03 ! from  [MeV]    to [GeV]   
-    fluka_pc0   = pc0   *1.0D-03 ! from  [MeV/c]  to [GeV/c] 
-    fluka_mass0 = mass0 *1.0D-03 ! from  [MeV/c2] to [GeV/c2]
+    fluka_e0    = e0    *c1m3 ! from  [MeV]    to [GeV]
+    fluka_pc0   = pc0   *c1m3 ! from  [MeV/c]  to [GeV/c]
+    fluka_mass0 = mass0 *c1m3 ! from  [MeV/c2] to [GeV/c2]
 !    fluka_chrg0 = chrg0
     fluka_a0 = a0
     fluka_z0 = z0
@@ -565,7 +601,7 @@ module mod_fluka
     end if
     write(fluka_log_unit,*) ' synchronised magnetic rigidity with Fluka'
     write(fluka_log_unit,*) '    transmitted value [Tm/0.3]:', fluka_brho0
-    write(fluka_log_unit,*) '    in proper units       [Tm]:', fluka_brho0 / ( fluka_clight*1.0D-09 )
+    write(fluka_log_unit,*) '    in proper units       [Tm]:', fluka_brho0 / ( fluka_clight*c1m9 )
     flush(fluka_log_unit)
 
   end function fluka_set_synch_part
@@ -634,3 +670,4 @@ module mod_fluka
   end function fluka_is_running
 
 end module mod_fluka
+

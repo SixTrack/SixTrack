@@ -912,15 +912,15 @@ Note that all parameters except for the type have to be set to 0 in the single e
 % ================================================================================================================================ %
 \section{``Phase Trombone'' Element} \label{Trombone}
 
-The linear ``phase trombone'' allows the introduction of a change in the transverse phases without spoiling the linear optics of the rest of the machine, i.e. the Twiss parameters are the same at entrance and exit of the element.
+The linear ``phase trombone'' allows for the introduction of an arbitrary transfer matrix. It can be used to introduce a change in the transverse phases without spoiling the linear optics of the rest of the machine, i.e. the Twiss parameters are the same at entrance and exit of the element. Note that it is up to the user to construct the matrix. The coordinates used as inputs are: $x$, $p_x$, $y$ ,$p_y$, $\sigma$, p_{\sigma}.   
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{TROM} \\
     \textbf{Data lines} & 1 line with name and then in blocks of 14 lines with 3 entries each. \\
     \textbf{Format}     & First line: \texttt{name} \\
-                        & Second line: \texttt{cx, cx', cy} \\
-                        & Third line: \texttt{cy', cz, cz'} \\
+                        & Second line:  $x$, $p_x$, $y$ \\
+                        & Third line:  $p_y$, $\sigma$, $p_{\sigma}$ \\
                         & Fourth util $15^{th}$: \texttt{M($ 6 \times 6$)} matrix 
 \end{tabular}
 

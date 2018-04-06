@@ -2,8 +2,8 @@
       character(len=8) version  !Keep data type in sync with 'cr_version'
       character(len=10) moddate !Keep data type in sync with 'cr_moddate'
       integer itot,ttot
-      data version /'4.7.18'/
-      data moddate /'21.12.2017'/
+      data version /'5.0-rc1'/
+      data moddate /'01.02.2018'/
 +cd license
 !!SixTrack
 !!
@@ -7485,11 +7485,11 @@ cc2008
 !     clean closure of communication with fluka and un-set mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
       fluka_con = fluka_is_running()
-      if (fluka_con.eq.0) then
-        if ( .not. fluka_connected ) then
+      if(fluka_con.eq.0) then
+        if( .not. fluka_connected ) then
 !         temporarily connect to fluka, to properly terminate the run
           fluka_con = fluka_connect()
-          if (fluka_con.eq.-1) then
+          if(fluka_con.eq.-1) then
 !           no hope to properly close the run
             write(lout,*) '[Fluka] unable to connect to fluka while'
             write(lout,*) '        closing the simulation: please,'
@@ -7501,13 +7501,11 @@ cc2008
           endif
           write(lout,*) '[Fluka] Successfully connected to Fluka server'
           write(lout,*) '[Fluka]     (only temporarily)'
-          write(fluka_log_unit,*)                                       &
-     &'# Successfully connected to Fluka server'
-          write(fluka_log_unit,*)                                       &
-     &'#     (only temporarily)'
-        endif
+          write(fluka_log_unit,*) '# Successfully connected to Fluka server'
+          write(fluka_log_unit,*) '#     (only temporarily)'
+        end if
         call fluka_end
-      endif
+      end if
  1982 call fluka_mod_end
       flush(lout)
 !      flush(fluka_log_unit)
@@ -7677,20 +7675,23 @@ cc2008
 
 +dk close
 subroutine closeUnits
-      use floatPrecision
-      use end_sixtrack
-      use scatter, only : scatter_closefiles
-      use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
-      use dump, only : dump_closeUnits
-      use parpro
-      use mod_common
-      use bdex, only : bdex_closefiles
-      implicit none
+  use floatPrecision
+  use end_sixtrack
+  use scatter, only : scatter_closefiles
+  use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
+  use dump, only : dump_closeUnits
+  use parpro
+  use mod_common
+  use bdex, only : bdex_closefiles
+
+  implicit none
 
 +ca comgetfields
 +ca parbeam_exp
-      integer i
-      logical lopen
+
+  integer i
+  logical lopen
+
 !-----------------------------------------------------------------------
 !--CLOSE(DATA FILES
       close(2,err=2)
@@ -13518,6 +13519,7 @@ subroutine daten
 !     LIMI block naturally activates backtracking, unless explicitly
 !       requested by user
       lbacktracking=.true.
+      loadunit=3 ! stream to fort.3
   951 continue
 !     loadunit is initialised to 3 in aperture_comnul
       read(loadunit,10020,end=952,iostat=ierro) ch
@@ -13527,8 +13529,7 @@ subroutine daten
 
       ! We don't support FIO, since it's not supported by any compilers...
 +if fio
-      write(lout,*)'ERROR in LIMI block: fortran IO format currently'// &
-     &       ' not supported!'
+      write(lout,*)'ERROR in LIMI block: fortran IO format currently not supported!'
       call prror(-1)
 +ei
       
@@ -13563,7 +13564,7 @@ subroutine daten
 
         call getfields_split( ch, getfields_fields, getfields_lfields,getfields_nfields, getfields_lerr )
         if ( getfields_lerr ) then
-          write(lout,*)'ERROR in LIMI block: getfields_lerr=', getfields_lerr, ' at line: ',ch
+          write(lout,*) 'ERROR in LIMI block: getfields_lerr=', getfields_lerr, ' at line: ',ch
           call prror(-1)
         endif
 
@@ -13571,8 +13572,8 @@ subroutine daten
           ! P.G.Ortega and A.Mereghetti, 02-03-2018
           ! reading apertures from external file
           if(getfields_nfields.lt.3) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &       'parameters for keywor LOAD: ninput = ', getfields_nfields, ' != 3 (min)'
+            write(lout,*) 'ERROR in LIMI block: wrong number of input parameters for keyword LOAD: ninput = ', &
+                          getfields_nfields, ' != 3 (min)'
             call prror(-1)
           endif
           read (getfields_fields(2)(1:getfields_lfields(2)),*) loadunit
@@ -13875,8 +13876,8 @@ subroutine daten
             write(lout,*) 'WARNING: Unidentified element ', idat
             write(lout,*) '  in LIMI input block, ignoring...'
           end if
-        end if ! specific non-NEXT lines
-      end if ! non-NEXT lines
+        end if ! specific non-NEXT keywords
+      end if ! any non-NEXT keywords
       goto 951 ! go to next line to be parsed
 
   952 continue
@@ -15693,8 +15694,7 @@ subroutine daten
 !         dump all elements found:
           do ii=1,il
              if(fluka_type(ii).ne.FLUKA_NONE) then
-               write(lout,10510) bez(ii), fluka_type(ii),                  &
-     &                        fluka_geo_index(ii),fluka_synch_length(ii)
+               write(lout,10510) bez(ii), fluka_type(ii),fluka_geo_index(ii),fluka_synch_length(ii)
              endif
           enddo
           write(lout,*) ''
@@ -15778,6 +15778,8 @@ subroutine daten
         write(lout,*) '   parsed line:'
         write(lout,*) ch(:80)
         write(lout,*) ''
+        write(lout,*) 'fluka_type(entrance) = ', fluka_type(i1)
+        write(lout,*) 'at position = ', i1
         call prror(-1)
       endif
       if ( fluka_type(i2).ne.FLUKA_NONE ) then
@@ -15789,6 +15791,8 @@ subroutine daten
         write(lout,*) '   parsed line:'
         write(lout,*) ch(:80)
         write(lout,*) ''
+        write(lout,*) 'fluka_type(exit) = ', fluka_type(i2)
+        write(lout,*) 'at position = ', i2
         call prror(-1)
       endif
 
@@ -17120,7 +17124,7 @@ subroutine daten
 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
      &'EXTRA GEOMETRY STRENGTH FILE--')
 10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
-10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i3/ t10,              &
+10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
      &'BLOCKS PER PERIOD',t49,i5//)
 10290 format(t10,'MORE THAN ',i5,' COMBINATIONS SPECIFIED'/)
 10300 format(//131('-')//t10,'DATA BLOCK COMBINATION OF ELEMENTS',      &
@@ -22914,6 +22918,10 @@ end interface
 !-----------------------------------------------------------------------
       errout_status = 0         ! Set to nonzero before calling abend in case of error.
                                 ! If prror is called, it will be set internally.
+      lout=92
++if .not.cr
+      lout=output_unit
++ei
       call allocate_arrays      ! Initial allocation of memory
 +if crlibm
 ! Removed the call to disable_xp for Laurent
@@ -22966,43 +22974,29 @@ end interface
 +if boinc
  611  continue
 +ei
-      lout=92
 !--   Very first get rid of any previous partial output
 +if boinc
       call boincrf('fort.92',filename)
-      open(lout,file=filename,form='formatted',status='unknown')
-+ei
-+if .not.boinc
-      open(lout,file='fort.92',form='formatted',status='unknown')
-+ei
-      rewind lout
-      endfile (lout,iostat=ierro)
-      close(lout)
-+if boinc
-      call boincrf('fort.92',filename)
 +if fio
-      open(lout,file=filename,form='formatted',status='unknown',        &
-     &round='nearest')
+      open(lout,file=filename,form='formatted',status='replace',round='nearest')
 +ei
 +if .not.fio
-      open(lout,file=filename,form='formatted',status='unknown')
+      open(lout,file=filename,form='formatted',status='replace')
 +ei
 +ei
 +if .not.boinc
 +if fio
-      open(lout,file='fort.92',form='formatted',status='unknown',       &
-     &round='nearest')
+      open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
 +ei
 +if .not.fio
-      open(lout,file='fort.92',form='formatted',status='unknown')
+      open(lout,file='fort.92',form='formatted',status='replace')
 +ei
 +ei
 !--   Now position the checkpoint/restart logfile=93
 +if boinc
       call boincrf('fort.93',filename)
 +if fio
-      open(93,file=filename,form='formatted',status='unknown',          &
-     &round='nearest')
+      open(93,file=filename,form='formatted',status='unknown', round='nearest')
 +ei
 +if .not.fio
       open(93,file=filename,form='formatted',status='unknown')
@@ -23010,8 +23004,7 @@ end interface
 +ei
 +if .not.boinc
 +if fio
-      open(93,file='fort.93',form='formatted',status='unknown',         &
-     &round='nearest')
+      open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
 +ei
 +if .not.fio
       open(93,file='fort.93',form='formatted',status='unknown')
@@ -23379,16 +23372,20 @@ end interface
       rad=pi/c180e0                                                       !hr05
 
 +if fluka
+
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     initialise fluka module
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
 +ei
+
 +if root
       call SixTrackRootFortranInit
 +ei
+
       call daten
+
 +if vvector
       if (ithick.eq.1) call allocate_thickarrays
 +ei
@@ -23603,8 +23600,7 @@ end interface
         ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
         ! initialise aperture of first and last elements of sequence
         if (limifound) then
-           write(lout,*) ' check that beginning/end of lattice'//       &
-     &' structure is assigned aperture markers...'
+           write(lout,*) ' check that beginning/end of lattice structure is assigned aperture markers...'
            call contour_aperture_markers( iu, 1, .false. )
         end if
 
@@ -26973,13 +26969,8 @@ subroutine thin6d(nthinerr)
               ename(ie)    = bez(myix)(1:max_name_len)
             end do
           endif
-          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-          ! last modified: 07-03-2018
-          ! store old particle coordinates
-          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
-          goto 650
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
-+ei
++ei ! if collimat
 +if .not.collimat
           if(iexact.eq.0) then
             do j=1,napx
@@ -26989,13 +26980,17 @@ subroutine thin6d(nthinerr)
             end do
           else
 +ca ex6Ddrift
-            ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-            ! last modified: 07-03-2018
-            ! store old particle coordinates
-            if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           end if
++ei ! if .not.collimat
+          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+          ! last modified: 07-03-2018
+          ! store old particle coordinates
+          ! NB: end up here in case of collimators too, but not in
+          !     in case of an aperture marker or other null-length non-active
+          !     elements, thanks to trauthin/trauthck and
+          !     if(abs(strack(i)).le.pieni) ktrack(i)=31
+          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
           goto 650
-+ei
 
       case (2)
         do j=1,napx
@@ -33543,11 +33538,11 @@ integer function INEESE()
 +ca commontr
 
   il=il+1
-  if( il.gt.nele ) then
-    call expand_arrays(nele+10, npart, nblz, nblo )
+  if( il.gt.nele-2 ) then
+    call expand_arrays(nele+50, npart, nblz, nblo )
 +if vvector
       if (ithick.eq.1) then
-        call expand_thickarrays(nele+10, npart, nblz, nblo )
+        call expand_thickarrays(nele, npart, nblz, nblo )
       end if
 +ei
   end if
