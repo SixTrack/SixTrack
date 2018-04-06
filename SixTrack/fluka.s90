@@ -478,6 +478,9 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       end do
 
 !     au revoir:
+      flush(208)
+      flush(209)
+
       return
 end subroutine kernel_fluka_exit
 
