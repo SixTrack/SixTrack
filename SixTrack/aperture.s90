@@ -418,7 +418,7 @@ subroutine aperture_backTrackingInit
  &   'element of lattice structure is not a single element'
      call prror(-1)
   endif
-  if ( kape(i).eq.0 ) then
+  if ( kape(ix).eq.0 ) then
      write(lout,*)'Impossible to properly initialise backtracking: first '// &
  &   'element of lattice structure is not assigned an aperture profile'
      call prror(-1)
