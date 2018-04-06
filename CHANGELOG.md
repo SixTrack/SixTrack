@@ -7,17 +7,17 @@ Following is only a few key points. Full changelog will be included in final rel
 **Code**
 
 * SixTrack is now Fortran 2008 Free Form, and depcrecated syntax has been converted or removed.
-* Significant portions of the code has been split out into Fortran modules, including many common blocks
-* SixTrack can now be compiled in single, double or quad precision
+* Significant portions of the code has been split out into Fortran modules, including many common blocks.
+* SixTrack can now be compiled in single, double or quad precision.
 * Partially completed:
-  * Autoscaling of arrays (Will replace BIGNPART/NELE and HUGENPART/NELE flags eventually)
-  * Dynamic file unit assignment
+  * Autoscaling of arrays. Will replace BIGNPART, HUGENPART, etc. flags eventually.
+  * Dynamic file unit assignment.
 * Fixed:
-  * Closed orbit search
+  * Closed orbit search.
 * Removed:
   * thin/thck6dua. Replacd by DYNK. See documenttaion.
 * Currently broken:
-  * Electron lens
+  * Electron lens.
 
 **Documentation**
 
