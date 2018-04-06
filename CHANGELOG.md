@@ -1,14 +1,38 @@
 # SixTrack Changelog
 
+### Version 5.0 RC1 [06.04.2018] - Release Candidate
+
+Following is only a few key points. Full changelog will be included in final release.
+
+**Code**
+
+* SixTrack is now Fortran 2008 Free Form, and depcrecated syntax has been converted or removed.
+* Significant portions of the code has been split out into Fortran modules, including many common blocks
+* SixTrack can now be compiled in single, double or quad precision
+* Partially completed:
+  * Autoscaling of arrays (Will replace BIGNPART/NELE and HUGENPART/NELE flags eventually)
+  * Dynamic file unit assignment
+* Fixed:
+  * Closed orbit search
+* Removed:
+  * thin/thck6dua. Replacd by DYNK. See documenttaion.
+* Currently broken:
+  * Electron lens
+
+**Documentation**
+
+* Manual has been completely reformatted and restructured.
+* Documentation still missing or incomplete for several modules.
+
 ### Version 4.7.18 [21.12.2017]
 
 * Fixing the RF multipole elements
-  - RF multipoles now affect the energy directly, not the momentum
-  - Fix missing RV update in RF multipole element with FOX (DA package); this improves the symplecticity check
-  - Fix errorenous factor 10^-3 in FOX part for RF mulitpole
-  - Fix broken 2nd order RF multipole in FOX part (missing `+ca alignf` call)
-  - Take care of px vs. xp. coordinates
-  - NOTE: Compilation with TILT flag OFF is broken.
+  * RF multipoles now affect the energy directly, not the momentum
+  * Fix missing RV update in RF multipole element with FOX (DA package); this improves the symplecticity check
+  * Fix errorenous factor 10^-3 in FOX part for RF mulitpole
+  * Fix broken 2nd order RF multipole in FOX part (missing `+ca alignf` call)
+  * Take care of px vs. xp. coordinates
+  * NOTE: Compilation with TILT flag OFF is broken.
 * Fix the makefile for build_manual
 * Fix building the testing wrapper on some older systems by explicitly enable C++11, even if the compiler does not use this by default
 * Update DA version tests and use explicit write formats for the DA output
@@ -26,8 +50,8 @@
 
 * Fixing the collimat 10k turn limit
 * SCATTER:
-  - Adds offset to Gaussian beam profile.
-  - Some minor changes to floating point values in calculations.
+  * Adds offset to Gaussian beam profile.
+  * Some minor changes to floating point values in calculations.
 
 ### Version 4.7.14 [31.10.2017]
 
@@ -346,9 +370,9 @@
 
 * Added new element ELEN, i.e. electron lens. This is a general infrastructure for different e-lenses (= different current distributions). Currently only the ideal hollow e-lens is implemented. The structure of the input has been chosen in order to later easily extend it also to other e-beam current distributions.
 * Modifications for collimation halo studies:
-  - Increased the range of the efficiency histogram vs. radial amplitude (file "efficiency.dat"), now ranging from 5-20.5 sigma.
-  - Fixed radial amplitude definition used for halo studies to include also the alpha and angle.
-  - Added to output files: "efficiency_dpop.dat": efficiency vs. Delta p/p to be used for off-momentum halo studies; "efficiency_2d.dat": 2D efficiency vs. radial amplitude and Delta p/p.
+  * Increased the range of the efficiency histogram vs. radial amplitude (file "efficiency.dat"), now ranging from 5-20.5 sigma.
+  * Fixed radial amplitude definition used for halo studies to include also the alpha and angle.
+  * Added to output files: "efficiency_dpop.dat": efficiency vs. Delta p/p to be used for off-momentum halo studies; "efficiency_2d.dat": 2D efficiency vs. radial amplitude and Delta p/p.
 * Five new materials added to the collimator database: Molybdenum-graphite (MoGR), Copper-diamond (CuCD), Molybdenum (Mo), Glidcop (Glid) and Inermet-180 (Iner). Variables and indexes linked to collimator materials throughout the code also reviewed.
 * Makefile now contains a proper option parser / dependency resolver. Some new checks of source consistency (syntax of astuce "if not"s) during compilation were added to both makefile and make_six . Makefile can now build 64-bit version, which works on Linux and OS X.
 * Modifications of output files for collimation halo studies.
@@ -377,10 +401,10 @@
 * Fix from Eric which makes the Differential Algebra version compile without complaining about linker error to COMNUL and various DYNK routines.
 * In LINOPT: Treat crab cavity dipoles the same way as other RF multipoles.
 * Improved error detection and bugfixes in COLLIMAT:
-  - Detect if no particles will be tracked (such as if there is no collimation block)
-  - Detect if initial distribution file is missing
-  - Use an unused FORTRAN unit number when loading initial distribution
-  - Detect if collimation database is missing and output appropriate error message
+  * Detect if no particles will be tracked (such as if there is no collimation block)
+  * Detect if initial distribution file is missing
+  * Use an unused FORTRAN unit number when loading initial distribution
+  * Detect if collimation database is missing and output appropriate error message
 
 ### Version 4.5.33 [05.02.2016]
 
@@ -491,7 +515,7 @@ _McIntosh, 9th May, 2014_
 * Going back to Version 4513 (best so far)
 * Added Riccardo's physics from SVN Version 176 
 * From Javier: increase bb 6d max number of slices, change logic for lhc option (strong beam optics):
-  - lhc=0 symmetric optics; lhc=1 antysymmetric; lhc=2, like lhc=0 but sigma 11,33,55 overwriten
+  * lhc=0 symmetric optics; lhc=1 antysymmetric; lhc=2, like lhc=0 but sigma 11,33,55 overwriten
 
 _McIntosh, Riccardo, Javier, 5th May, 2014_
 
@@ -523,12 +547,12 @@ _McIntosh, 3rd May, 2014_
 * Add Single Diffractive events in FLUKA_impacts.dat
 * Add Pencil Beam type 3 (R.Bruce): The new pencil beam model uses the existing routines for annular halo generation and samples a matched halo at the face or end of any given collimator, with all particles hitting the jaws at a variable depth. There is no unphysical tilt of the jaws with the beam envelope as in the previous pencil beam
 * Replacement of the scattering routine with an upgraded version (C.Tambasco and B.Salvachua). At the moment the old routine is commented out, to be seen if to delete it or put it as a compilation option. The new routine includes:
-  - A different Carbon density that better fits the real collimator jaw material.
-  - The addition of the logarithmic term in the in the rms angle equation of the multiple Coulomb scattering has been added.
-  - Implementation of the Bethe-Bloch equation (in place of a fix value) to better estimate the ionization losses.
-  - Computation of new fits of experimental data (TOTEM collaboration) to better extrapolate the proton-proton elastic and total cross sections.
-  - Updating of the proton-proton single diffractive cross section considering a recent parametrization based on the renormalized pomeron flux exchange.
-  - Updating of the proton-nucleus inelastic and total cross sections considering the new available data from the Particle Data Group.
+  * A different Carbon density that better fits the real collimator jaw material.
+  * The addition of the logarithmic term in the in the rms angle equation of the multiple Coulomb scattering has been added.
+  * Implementation of the Bethe-Bloch equation (in place of a fix value) to better estimate the ionization losses.
+  * Computation of new fits of experimental data (TOTEM collaboration) to better extrapolate the proton-proton elastic and total cross sections.
+  * Updating of the proton-proton single diffractive cross section considering a recent parametrization based on the renormalized pomeron flux exchange.
+  * Updating of the proton-nucleus inelastic and total cross sections considering the new available data from the Particle Data Group.
 * Further modification to the computation of ionisation losses taking into account the tale of the Landau distribution, since Bethe-Bloch is not valid for beta.gamma>1000 (D. Mirarchi).
 
 _McIntosh/Adriana, 30th April, 2014_
