@@ -2985,9 +2985,10 @@ subroutine mapflol(sa,sai,cr,cm,st)
       use numerical_constants
 
       use crcoall
+      use file_units
       implicit none
 
-
+      integer symplecticity_check_unit
       integer i,ier,iunst,j,l,n,n1,ndim,ndim2
       real(kind=fPrec) ap,ax,cm,cr,p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
       parameter (ndim2=6)
@@ -3044,16 +3045,11 @@ subroutine mapflol(sa,sai,cr,cm,st)
         enddo
         write(lout,*)'deviation for symplecticity ', c1e2*(xsu-nd2)/xsu,' %'
 
-        inquire( unit=1034, opened=lopen )
-        if( lopen ) then
-          write(lout,*) 'ERROR: unit 1034 is already open for symplecticity check writing in lielib.s90'
-          call prror(-1)
-        else
-!         Each time this is run we dump out the "deviation for symplecticity". This is re-written each time the check is run
-          open(1034,file="symplecticity_check.txt", status='replace')
-          write(1034,*) c1e2*(xsu-nd2)/xsu
-          close(1034)
-        end if
+!        Each time this is run we dump out the "deviation for symplecticity". This is re-written each time the check is run
+        call requestFileUnit('symplecticity_check.txt', symplecticity_check_unit)
+        open(symplecticity_check_unit,file="symplecticity_check.txt", status='replace')
+        write(symplecticity_check_unit,*) c1e2*(xsu-nd2)/xsu
+        close(symplecticity_check_unit)
 +if debug
 !       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
 +ei

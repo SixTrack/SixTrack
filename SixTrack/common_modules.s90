@@ -248,6 +248,10 @@ module parpro_scale
 
   use mod_hions,    only : mod_hions_allocate_arrays,    mod_hions_expand_arrays
 
++if fluka
+  use mod_fluka,    only : fluka_mod_expand_arrays
++ei
+
   implicit none
 contains
 
@@ -303,6 +307,11 @@ contains
     call wire_expand_arrays(nele_new)
 
     call mod_hions_expand_arrays(npart_new)
+
++if fluka
+    call fluka_mod_expand_arrays(npart_new, nele_new)
++ei
+
     !Update nele etc.
     nele = nele_new
 !    npart = npart_new

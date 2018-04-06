@@ -1,7 +1,7 @@
 +dk flukadeck
 +if fluka
 
-      subroutine check_coupling_integrity
+subroutine check_coupling_integrity
 !
 !-----------------------------------------------------------------------
 !     A.Mereghetti, for the FLUKA Team
@@ -125,9 +125,9 @@
 10010 format(132('-'))
 10020 format(1X,A10,1X,A4,12X,3(1X,A10))
 10030 format(1X,I10,1X,A16,3(1X,I10))
-      end subroutine
+end subroutine check_coupling_integrity
 
-      subroutine kernel_fluka_element( nturn, i, ix )
+subroutine kernel_fluka_element( nturn, i, ix )
 !
 !-----------------------------------------------------------------------
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -176,7 +176,7 @@
 !     PH hisix compute the number of nucleons sent to FLUKA
 !     PH hisix compute the total ion energy sent to FLUKA
       nnuc0 = 0
-      ien0  = 0.0
+      ien0  = zero
       do j=1,napx
         nnuc0   = nnuc0 + naa(j)
         ien0    = ien0 + ejv(j)
@@ -195,7 +195,7 @@
       end if
 
       nnuc1 = 0                 ! hisix: number of nucleons leaving the collimato
-      ien1  = 0.0               ! hisix: total energy leaving the collimator
+      ien1  = zero              ! hisix: total energy leaving the collimator
 !     particles to be tracked
       do j=1,napx
 !        Update values related to losses
@@ -270,9 +270,9 @@
 
 !     au revoir:
       return
-      end subroutine
+end subroutine kernel_fluka_element
 
-      subroutine kernel_fluka_entrance( nturn, i, ix )
+subroutine kernel_fluka_entrance( nturn, i, ix )
 !
 !-----------------------------------------------------------------------
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -324,7 +324,7 @@
 !     PH hisix compute ion energy sent to FLUKA
 !     PH initialize array of particle ids 
       nnuc0 = 0
-      ien0  = 0.0
+      ien0  = zero
       do j=1,npart
         pids(j) = 0
       end do
@@ -347,9 +347,9 @@
 
 !     au revoir:
       return
-      end subroutine
+end subroutine kernel_fluka_entrance
 
-      subroutine kernel_fluka_exit( nturn, i, ix )
+subroutine kernel_fluka_exit( nturn, i, ix )
 !
 !-----------------------------------------------------------------------
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -405,7 +405,7 @@
       end if
 
       nnuc1 = 0                 ! hisix: number of nucleons leaving the collimator
-      ien1  = 0.0               ! hisix: total energy leaving the collimator
+      ien1  = zero              ! hisix: total energy leaving the collimator
 !     particles to be tracked
       do j=1,napx
 !        Update values related to losses
@@ -420,11 +420,11 @@
          ejfv  (j) = sqrt((ejv(j)-nucm(j))*(ejv(j)+nucm(j)))   ! hisix: ion mass
          rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))                 ! hisix: remains unchanged
          dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
-         oidpsv(j) = 1.0D+00/(1.0D+00+dpsv(j))
-         dpsv1 (j) = (dpsv(j)*1.0D+03)*oidpsv(j)
+         oidpsv(j) = one/(one+dpsv(j))
+         dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))            ! hisix: mass to charge
          moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
-         omoidpsv(j) = 1.0D+03*((1.0D+00-mtc(j))*oidpsv(j))    ! hisix
+         omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))           ! hisix
          nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
          ien1        = ien1  + ejv(j)                          ! outcoming energy
       end do
@@ -469,17 +469,20 @@
          dpsv  (j) = zero
          oidpsv(j) = one
          dpsv1 (j) = zero
-         mtc   (j) = 1.0D+00        ! hiSix
+         mtc   (j) = one            ! hiSix
          naa   (j) = aa0            ! hiSix
          nzz   (j) = zz0            ! hiSix
          nucm  (j) = nucm0          ! hiSix
-         moidpsv (j) = 1.0D+00      ! hiSix
-         omoidpsv(j) = 0.0D+00      ! hiSix
+         moidpsv (j) = one          ! hiSix
+         omoidpsv(j) = zero         ! hiSix
       end do
 
 !     au revoir:
+      flush(208)
+      flush(209)
+
       return
-      end subroutine
+end subroutine kernel_fluka_exit
 
 +ei
 

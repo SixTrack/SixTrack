@@ -25,6 +25,12 @@ contains
 ! =================================================================================================
 subroutine prror(ier)
 
+
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+  
 +if fluka
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 17-07-2013
@@ -33,11 +39,6 @@ subroutine prror(ier)
   use mod_fluka
 +ei
 
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_commons
-  
   implicit none
   
   integer ier
@@ -274,6 +275,7 @@ subroutine prror(ier)
 +if fluka
 +ca flukaclose
 +ei
+
   call closeUnits
 +if cr
   call abend('                                                  ')
@@ -704,8 +706,7 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
   integer,          intent(in) :: file_unit
   character(len=*), intent(in) :: file_name
   
-  integer nlines
-  parameter (nlines=40)
+  integer, parameter :: nlines = 40
   
   character(len=1024) fileBuff (nlines)
   integer fileBuff_idx
