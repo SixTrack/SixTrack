@@ -152,7 +152,10 @@ subroutine print_alloc(ename, requested_bits)
 
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
- 
+  
+! Printing to lout breaks CR version
++if .not.cr
+
   write(lout,*) 'Memory allocation for array ', ename
 
   if((real(allocated_bits,real64)/mbyte .lt. one) .and. (real(allocated_bits,real64)/kbyte .gt. one)) then
@@ -175,6 +178,8 @@ subroutine print_alloc(ename, requested_bits)
   if(allocated_bits.gt.maximum_bits) then
     maximum_bits = allocated_bits
   end if
+
++ei
 
 end subroutine print_alloc
 
