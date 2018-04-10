@@ -1,5 +1,15 @@
 # SixTrack Changelog
 
+### List of Changes in Development Branch
+
+**User Changes**
+
+* DUMP now accepts -1 as file unit input, in which case a unit will be assigned dynamically.
+
+**Code Internal Functionality**
+
+* File units can now dynamically allocated by the file_units module.
+
 ### Version 5.0 RC1 [06.04.2018] - Release Candidate
 
 Following is only a few key points. Full changelog will be included in final release.
@@ -23,7 +33,6 @@ Following is only a few key points. Full changelog will be included in final rel
 
 * Manual has been completely reformatted and restructured.
 * Documentation still missing or incomplete for several modules.
-
 ### Version 4.7.18 [21.12.2017]
 
 * Fixing the RF multipole elements
