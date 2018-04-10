@@ -3426,7 +3426,7 @@
     dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
     yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-  
+    print *, "aaaaa", pmap, nucm(j), pma
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
   
   end do
@@ -6220,15 +6220,18 @@ cc2008
           irrtr=imtr(ix)
           do j=1,napx
 
+
+
+
 +cd trom41
 
             !The values are stored in the temp vector which are used for the multiplication.
             temptr(1)=xv(1,j)
-            temptr(2)=yv(1,j)*(one+dpsv(j))
+            temptr(2)=yv(1,j)/moidpsv(j)
             temptr(3)=xv(2,j)
-            temptr(4)=yv(2,j)*(one+dpsv(j))
+            temptr(4)=yv(2,j)/moidpsv(j)
             temptr(5)=sigmv(j)
-            temptr(6)=((ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+            temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
             ! Adding the closed orbit. The previous values are stored in the temptr vector.   
             xv(1,j)  = cotr(irrtr,1)
             yv(1,j)  = cotr(irrtr,2)
@@ -6247,16 +6250,22 @@ cc2008
               pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
             enddo
             ! Transforming back to the tracked coordinates of Sixtrack...
-            ejv(j)  = e0f*pttemp/(c1e3*(e0/e0f))+e0
-            ejfv(j)=sqrt(ejv(j)**2-pma**2)
+            ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+            
+
+            ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-            dpsv(j)=(ejfv(j)-e0f)/e0f
+            dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
-            dpsv1(j)=(dpsv(j)*c1m3)*oidpsv(j)
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
+            dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+
             
             ! We have to go back to angles after we updated the energy. 
-            yv(j,1) = yv(j,1)/(one+dpsv(j))
-            yv(j,2) = yv(j,2)/(one+dpsv(j))
+            yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
+            yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+            !yv(j,1) = yv(j,1)*moidpsv(j)
+            !yv(j,2) = yv(j,2)*moidpsv(j)
           enddo
 +cd trom42
             temptr(1)=xv(1,j)
@@ -6309,8 +6318,10 @@ cc2008
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
 !     magnetic rigidity
-      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            
 
+
+
+                                 
       tx = wire_tiltx(ix) !tilt x [degrees] 
       ty = wire_tilty(ix) !tilt y [degrees]
       tx = tx*(pi/c180e0) ![rad]
@@ -6341,7 +6352,7 @@ cc2008
       END IF 
       
       do j=1, napx
-
+      chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight 
       yv(1,j) = yv(1,j) * c1m3 !SI
       yv(2,j) = yv(2,j) * c1m3 !SI
     
@@ -6355,31 +6366,31 @@ cc2008
       END IF 
 
 ! x'-> px; y'->py
-      yv(1,j) = yv(1,j)*(one + dpsv(j))
-      yv(2,j) = yv(2,j)*(one + dpsv(j))
+      yv(1,j) = yv(1,j)/moidpsv(j)
+      yv(2,j) = yv(2,j)/moidpsv(j)
 
 !ibeco = 0
       if(ibeco.eq.0) then
 ! 2 symplectic rotation of coordinate system (tx, ty)
           yi = yi-(((xi*sin_mb(tx))*yv(2,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &sqrt(((one/moidpsv(j)))**2-yv(2,j)**2))/                               &
+     &cos_mb(atan_mb(yv(1,j)/sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-tx)
           xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv(1,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
-          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+          yv(1,j) = sqrt(((one/moidpsv(j)))**2-yv(2,j)**2)*                  &
      &sin_mb(atan_mb(yv(1,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
       
           xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &sqrt(((one/moidpsv(j)))**2-yv(1,j)**2))/                               &
+     &cos_mb(atan_mb(yv(2,j)/sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)
           yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv(2,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-          yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                  &
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
+          yv(2,j) = sqrt(((one/moidpsv(j)))**2-yv(1,j)**2)*                  &
      &sin_mb(atan_mb(yv(2,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
       
 ! 3 apply wire kick
           RTWO = xi**2+yi**2
@@ -6393,40 +6404,40 @@ cc2008
 ! 2 symplectic rotation of coordinate system (tx, ty)
 
           dyi = dyi-(((dxi*sin_mb(tx))*yv(2,j))/                        &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &sqrt(((one/moidpsv(j)))**2-yv(2,j)**2))/                               &
+     &cos_mb(atan_mb(yv(1,j)/sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-tx) 
           dxi = dxi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv(1,j)/      &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
  
           yi = yi-(((xi*sin_mb(tx))*yv(2,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &sqrt(((one/moidpsv(j)))**2-yv(2,j)**2))/                               &
+     &cos_mb(atan_mb(yv(1,j)/sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-tx)
           xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv(1,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
 
-          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
+          yv(1,j) = sqrt(((one/moidpsv(j)))**2-yv(2,j)**2)*                  &
      &sin_mb(atan_mb(yv(1,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
               
           dxi = dxi-(((dyi*sin_mb(ty))*yv(1,j))/                        &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &sqrt(((one/moidpsv(j)))**2-yv(1,j)**2))/                               &
+     &cos_mb(atan_mb(yv(2,j)/sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)
           dyi = dyi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv(2,j)/      &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
       
           xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
+     &sqrt(((one/moidpsv(j)))**2-yv(1,j)**2))/                               &
+     &cos_mb(atan_mb(yv(2,j)/sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)
           yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv(2,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
 
-         yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                   &
+         yv(2,j) = sqrt(((one/moidpsv(j)))**2-yv(1,j)**2)*                   &
      &sin_mb(atan_mb(yv(2,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
 
 ! 3 apply wire kick
           RTWO = xi**2+yi**2
@@ -6445,16 +6456,16 @@ cc2008
       endif
 
 ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
-      yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
+      yv(2,j) = sqrt(((one/moidpsv(j)))**2-yv(1,j)**2)*                      &
      &sin_mb(atan_mb(yv(2,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
-      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
+      yv(1,j) = sqrt(((one/moidpsv(j)))**2-yv(2,j)**2)*                      &
      &sin_mb(atan_mb(yv(1,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
+     &sqrt((((one/moidpsv(j)))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 
 ! px -> x'; py -> y'
-      yv(1,j) = yv(1,j)/(one + dpsv(j))
-      yv(2,j) = yv(2,j)/(one + dpsv(j))
+      yv(1,j) = yv(1,j)*moidpsv(j)
+      yv(2,j) = yv(2,j)*moidpsv(j)
 !-----------------------------------------------------------------------
 ! END OF WIRE MAP
 !-----------------------------------------------------------------------
@@ -21820,7 +21831,7 @@ subroutine wireda(ix,i)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
 
-      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight
+      CHI = (sqrt(e0**2-pma**2)*c1e6)/clight
       TX = wire_tiltx(ix) !tilt x [degrees] 
       TY = wire_tilty(ix) !tilt y [degrees]
       TX = TX*(pi/c180e0) ![rad]
