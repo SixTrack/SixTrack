@@ -214,24 +214,24 @@ subroutine scatter_initialize
     logical lopen
     
     ! Get a file unit number
-    call requestFileUnit("scatter_log.txt",scatter_logFile)
+    call requestFileUnit("scatter_log.dat",scatter_logFile)
 
-    ! Open scatter_log.txt
+    ! Open scatter_log.dat
 +if cr
     ! Could have loaded a CR just before the start of the tracking;
-    ! in this case the scatter_log.txt is already open and positioned,
+    ! in this case the scatter_log.dat is already open and positioned,
     ! so don't try to open the file again.
     if(scatter_filepos .eq. -1) then
-        write(93,'(a)') "SCATTER> scatter_initialize opening new file scatter_log.txt"
+        write(93,'(a)') "SCATTER> scatter_initialize opening new file scatter_log.dat"
 +ei
         inquire(unit=scatter_logFile, opened=lopen)
         if(lopen) then
-            write(lout,*) "ERROR in SCATTER when opening scatter_log.txt"
+            write(lout,*) "ERROR in SCATTER when opening scatter_log.dat"
             write(lout,*) "Unit ",scatter_logFile," was already taken."
             call prror(-1)
         end if
         
-        open(scatter_logFile,file="scatter_log.txt",status="replace",form="formatted")
+        open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
         write(scatter_logFile,"(A)") "# scatter_log"
         write(scatter_logFile,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
@@ -240,7 +240,7 @@ subroutine scatter_initialize
         endfile(scatter_logFile,iostat=ierro)
         backspace(scatter_logFile,iostat=ierro)
     else
-        write(93,'(a)') "SCATTER> scatter_initialize kept already opened file scatter_log.txt"
+        write(93,'(a)') "SCATTER> scatter_initialize kept already opened file scatter_log.dat"
     end if !scatter_filepos .eq. -1
 +ei
     
@@ -353,7 +353,7 @@ end subroutine scatter_crcheck_readdata
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
-!  Called from CRCHECK; resets the position of scatter_log.txt
+!  Called from CRCHECK; resets the position of scatter_log.dat
 ! =================================================================================================
 subroutine scatter_crcheck_positionFiles
     
@@ -371,23 +371,23 @@ subroutine scatter_crcheck_positionFiles
     
     inquire(unit=scatter_logFile, opened=lopen)
     if(lopen) then
-        write(93,'(a)') "SIXTRACR CRCHECK FAILED while repsositioning scatter_log.txt"
+        write(93,'(a)') "SIXTRACR CRCHECK FAILED while repsositioning scatter_log.dat"
         write(93,'(a)') "UNIT ",scatter_logFile," already in use!"
         
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
         
-        write(lout,*) "SIXTRACR CRCHECK failure positioning scatter_log.txt"
+        write(lout,*) "SIXTRACR CRCHECK failure positioning scatter_log.dat"
         call prror(-1)
     end if
     
     if(scatter_filepos_cr .ne. -1) then
 +if boinc
-        call boincrf("scatter_log.txt",filename)
+        call boincrf("scatter_log.dat",filename)
         open(unit=scatter_logFile,file=filename,status="old",action="readwrite", err=1)
 +ei
 +if .not.boinc
-        open(unit=scatter_logFile,file="scatter_log.txt",status="old",action="readwrite", err=1)
+        open(unit=scatter_logFile,file="scatter_log.dat",status="old",action="readwrite", err=1)
 +ei
         scatter_filepos=0
         do j=1, scatter_filepos_cr
@@ -400,20 +400,20 @@ subroutine scatter_crcheck_positionFiles
         close(scatter_logFile)
 
 +if boinc
-        call boincrf("scatter_log.txt",filename)
+        call boincrf("scatter_log.dat",filename)
         open(unit=scatter_logFile,file=filename,status="old",position="append",action="write", err=1)
 +ei
 +if .not.boinc
-        open(unit=scatter_logFile,file="scatter_log.txt",status="old",position='append',action="write", err=1)
+        open(unit=scatter_logFile,file="scatter_log.dat",status="old",position='append',action="write", err=1)
 +ei       
-        write(97,*) "SIXTRACR CRCHECK sucessfully repositioned scatter_log.txt, "// &
+        write(97,*) "SIXTRACR CRCHECK sucessfully repositioned scatter_log.dat, "// &
                     "scatter_filepos=",scatter_filepos, "scatter_filepos_cr=",scatter_filepos_cr
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
 
     else
         write(93,*) "SIXTRACR CRCHECK did not attempt repositioning "// &
-                    "of scatter_log.txt, scatter_filepos_cr=",scatter_filepos_cr
+                    "of scatter_log.dat, scatter_filepos_cr=",scatter_filepos_cr
         write(93,*) "If anything has been written to the file, "// &
                     "it will be correctly truncated in scatter_initialize."
         endfile (93,iostat=ierro)
@@ -423,11 +423,11 @@ subroutine scatter_crcheck_positionFiles
     return ! All was well
     
 1   continue
-    write(93,*) 'SIXTRACR CRCHECK *** ERROR *** reading scatter_log.txt, iostat=',ierro
+    write(93,*) 'SIXTRACR CRCHECK *** ERROR *** reading scatter_log.dat, iostat=',ierro
     write(93,*) 'scatter_filepos=',scatter_filepos,' scatter_filepos_cr=',scatter_filepos_cr
     endfile   (93,iostat=ierro)
     backspace (93,iostat=ierro)
-    write(lout,*)'SIXTRACR CRCHECK failure positioning scatter_log.txt'
+    write(lout,*)'SIXTRACR CRCHECK failure positioning scatter_log.dat'
     
     call prror(-1)
     
