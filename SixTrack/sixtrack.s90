@@ -945,7 +945,7 @@
 !FOX  D V DA EXT ALDA NORD NVAR 2 6 ; D V DA EXT ASDA NORD NVAR 2 6 ;
 !FOX  D V DA EXT ALDAQ NORD NVAR 2 6 ; D V DA EXT ASDAQ NORD NVAR 2 6 ;
 !FOX  D V DA EXT SMIDA NORD NVAR MCOR ; D V DA EXT DELTAS NORD NVAR ;
-!FOX  D V DA EXT KCRABDA NORD NVAR ;
+!FOX  D V DA EXT KCRABDA NORD NVAR ; D V DA EXT MOIDA NORD NVAR ;
 +cd daini
 !FOX  B D ;
 !FOX  D V DA COM SIGMDA NORD NVAR ; D V DA COM DPDA NORD NVAR ;
@@ -955,10 +955,10 @@
 !FOX  D V DA COM EJ1 NORD NVAR ; D V DA COM EJF1 NORD NVAR ;
 !FOX  D V DA COM ALDA NORD NVAR 2 6 ; D V DA COM ASDA NORD NVAR 2 6 ;
 !FOX  D V DA COM ALDAQ NORD NVAR 2 6 ; D V DA COM ASDAQ NORD NVAR 2 6 ;
-!FOX  D V DA COM SMIDA NORD NVAR MCOR ;
+!FOX  D V DA COM SMIDA NORD NVAR MCOR ; D V DA COM MOIDA NORD NVAR ;
 !FOX  D V DA INT X NORD NVAR 2 ; D V DA INT Y NORD NVAR 2 ;
 !FOX  D V DA INT YP NORD NVAR 2 ; D V DA INT DKIP NORD NVAR ;
-!FOX  D V DA INT CORROLD NORD NVAR MCOP ;
+!FOX  D V DA INT CORROLD NORD NVAR MCOP ; 
 !FOX  D V DA INT CORRNEW NORD NVAR MCOP ;
 !FOX  D V DA INT CORRAU1 NORD NVAR MCOP ;
 !FOX  D V DA INT CORRAU2 NORD NVAR MCOP ;
@@ -1007,10 +1007,10 @@
 !FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 18 ;
 !FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 !FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
-!FOX  D V RE INT PARBE14 ; D V RE INT PI ;
-!FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ;
+!FOX  D V RE INT PARBE14 ; D V RE INT PI ; D V RE INT NUCMD0 ;
+!FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ; D V RE INT MTCDA ;
 !FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
-!FOX  D V RE INT WIRECLO0 ;
+!FOX  D V RE INT WIRECLO0 ;  D V RE INT NUCMDA ;
 +if .not.fast
 !FOX  D V RE INT C2E3 ; D V RE INT C1E6 ;
 +ei
@@ -19307,6 +19307,7 @@ subroutine runda
       oxp=yytr(1,1)
       oz=xxtr(1,2)
       ozp=yytr(1,2)
+      mtcda = one
       if(nvar2.ge.1) call davar(x(1),zero,1)
 !FOX  X(1)=X(1)+OX ;
       if(nvar2.ge.2) call davar(yp(1),zero,2)
@@ -19325,10 +19326,12 @@ subroutine runda
       if(nvar2.eq.6) then
         call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
+print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt", numcm0, NUCM0
+
 !FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;        
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCM0*NUCM0) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=DELTAS+SIGM(1)/RV ;
 
@@ -20470,6 +20473,9 @@ subroutine umlauda
       ozp=yytr(1,2)
       sigm1=sigm(1)
       dps1=dps(1)
+      nucmd0=pma
+      nucmda=nucmd0 ! this is only for tests! 
+      mtcda = one !also tests!  
       if(iqmodc.eq.1) then
         if(el(iq(1)).le.pieni) then
           ed1=ed(iq(1))
@@ -20490,12 +20496,12 @@ subroutine umlauda
 !     call wda('uml4',0d0,4,0,0,0)
 +ei
       call davar(x(1),ox,1)
-      oxp1=oxp*(one+dps1)
+      oxp1=mtcda*oxp*(one+dps1)
       call davar(yp(1),oxp1,2)
       ivar=2
       if(nvar2.ge.4) then
         call davar(x(2),oz,3)
-        ozp1=ozp*(one+dps1)
+        ozp1=mtcda*ozp*(one+dps1)
         call davar(yp(2),ozp1,4)
         ivar=4
       else
@@ -20514,8 +20520,9 @@ subroutine umlauda
         call davar(dpda1,zero,6)
 !FOX  DPDA1=DPDA1+DPS1*C1E3 ;        
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!      adsfasfFOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMD0*NUCMD0) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=DELTAS+SIGM1/RV ;
 !FOX  SIGMDA=DELTAS*RV ;
@@ -22108,10 +22115,10 @@ end subroutine wireda
 !FOX  D V RE INT E0 ; D V RE INT PMA ; D V RE EXT E0F ;
 !FOX  D V RE INT HSY 3 ; D V RE INT PHAS ;
 !FOX  D V RE EXT ED NELE ; D V RE EXT HSYC NELE ;
-!FOX  D V RE EXT PHASC NELE ;
+!FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ; 
 !FOX  D V RE INT C1E3 ; D V RE INT ONE ;
 !FOX  D V IN EXT ITIONC NELE ; D V IN INT ITION ; D V IN INT IX ;
-!FOX  E D ;
+!FOX  E D ; D V RE INT NUCMD0 ; D V RE INT MTCDA ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       ix=ixcav

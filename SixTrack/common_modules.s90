@@ -413,7 +413,7 @@ module mod_common
   
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
-       crad,dppoff,sigmoff(nblz),tlen
+       crad,dppoff,sigmoff(nblz),tlen,mtcda,nucmda,nucmd0
   real(kind=fPrec), allocatable, save ::  hsyc(:), phasc(:) !(nele)
   integer, save :: iicav,ition,idp,ncy,ixcav
   integer, allocatable, save :: itionc(:) !(nele)
