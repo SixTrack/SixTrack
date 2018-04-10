@@ -114,7 +114,7 @@ module collimation
 ! file units
   integer, save :: dist0_unit, betatron_unit, beta_beat_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
   integer, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit, all_absorptions_unit
-  integer, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, Coll_Scatter_unit, FirstImpacts_unit, RHIClosses_unit
+  integer, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
   integer, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit, efficiency_2d_unit
   integer, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
   integer, save :: filename_dis_unit, coll_db_unit
@@ -756,15 +756,15 @@ subroutine collimate_start_sample(nsample)
     call requestFileUnit('all_absorptions.dat', all_absorptions_unit)
     call requestFileUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
     call requestFileUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
-    call requestFileUnit('Coll_Scatter.dat', Coll_Scatter_unit)
+    call requestFileUnit('coll_scatter.dat', coll_scatter_unit)
     call requestFileUnit('FirstImpacts.dat', FirstImpacts_unit)
 
     open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
     open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
     open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
-! RB: adding output files FLUKA_impacts_all.dat and Coll_Scatter.dat
+! RB: adding output files FLUKA_impacts_all.dat and coll_scatter.dat
     open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
-    open(unit=Coll_Scatter_unit, file='Coll_Scatter.dat') !was 3998
+    open(unit=coll_scatter_unit, file='coll_scatter.dat') !was 3998
     open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
 
     if (firstrun) then
@@ -778,7 +778,7 @@ subroutine collimate_start_sample(nsample)
 
 ! RB: write headers in new output files
       write(FLUKA_impacts_all_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-      write(Coll_Scatter_unit,*) &
+      write(coll_scatter_unit,*) &
  &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)" &
  &     ,", 5=dp, 6=dx', 7=dy'"
     end if ! if (firstrun) then
@@ -2971,7 +2971,7 @@ subroutine collimate_exit()
     close(all_absorptions_unit)
     close(FLUKA_impacts_unit)
     close(FLUKA_impacts_all_unit)
-    close(Coll_Scatter_unit)
+    close(coll_scatter_unit)
     close(FirstImpacts_unit)
   endif
 
@@ -5470,8 +5470,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     s=zero
 
     if(dowrite_impact) then
-      ! write Coll_Scatter.dat for complete scattering histories
-      write(Coll_Scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+      ! write coll_scatter.dat for complete scattering histories
+      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
     end if
     return
   else if(mat.eq.nmat-1) then
@@ -5481,8 +5481,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     z=z+s*zp
 
     if(dowrite_impact) then
-      ! write Coll_Scatter.dat for complete scattering histories
-      write(Coll_Scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+      ! write coll_scatter.dat for complete scattering histories
+      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
     end if
 
     return
@@ -5522,8 +5522,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     dpop=(p-p0)/p0
     if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories
-      write(Coll_Scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+! write coll_scatter.dat for complete scattering histories
+      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
     end if
     return
   end if
@@ -5550,8 +5550,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     dpop=(p-p0)/p0
 
     if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories
-      write(Coll_Scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+! write coll_scatter.dat for complete scattering histories
+      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
     end if
 
     return
@@ -5587,8 +5587,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     dpop=(p-p0)/p0
 
-! write Coll_Scatter.dat for complete scattering histories
-    write(Coll_Scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+! write coll_scatter.dat for complete scattering histories
+    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
     return
   end if
 
@@ -5631,9 +5631,9 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   end if
 
   if(dowrite_impact) then
-! write Coll_Scatter.dat for complete scattering histories.
+! write coll_scatter.dat for complete scattering histories.
 ! Includes changes in angle from both
-     write(Coll_Scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+     write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
   end if
 
 !++  Calculate the remaining interaction length and close the iteration
@@ -5741,8 +5741,8 @@ subroutine jaw0(s,nabs)
        s=(zlm-rlen)+zlm1                                                 !hr09
        p=p-dpodx(mat)*s
        dpop=1.d0-p0/p
-! write Coll_Scatter.dat for complete scattering histories
-       write(Coll_Scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &
+! write coll_scatter.dat for complete scattering histories
+       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &
      & icoll,iturn,ipart,nabs,-1.d0,0.d0,0.d0
        return
       end if
