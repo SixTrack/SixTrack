@@ -413,7 +413,7 @@ module mod_common
   
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
-       crad,dppoff,sigmoff(nblz),tlen,mtcda,nucmda,nucmd0
+       crad,dppoff,sigmoff(nblz),tlen,mtcda
   real(kind=fPrec), allocatable, save ::  hsyc(:), phasc(:) !(nele)
   integer, save :: iicav,ition,idp,ncy,ixcav
   integer, allocatable, save :: itionc(:) !(nele)
@@ -981,7 +981,7 @@ module mod_hions
   logical, save :: has_hion
 
 ! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0
+  real(kind=fPrec), save :: nucm0,nucmda
 
   real(kind=fPrec), save :: brhono
 

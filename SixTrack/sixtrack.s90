@@ -1007,7 +1007,7 @@
 !FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 18 ;
 !FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 !FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
-!FOX  D V RE INT PARBE14 ; D V RE INT PI ; D V RE INT NUCMD0 ;
+!FOX  D V RE INT PARBE14 ; D V RE INT PI ; D V RE INT NUCM0 ;
 !FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ; D V RE INT MTCDA ;
 !FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
 !FOX  D V RE INT WIRECLO0 ;  D V RE INT NUCMDA ;
@@ -1025,7 +1025,7 @@
 !FOX  D V RE INT CRABFREQ ; D V RE INT CRABPHT ;
 !FOX  D V RE INT CRABPHT2 ; D V RE INT CRABPHT3 ;
 !FOX  D V RE INT CRABPHT4 ; D V RE INT KCRAB ;
-!FOX  D V RE INT CLIGHT ;
+!FOX  D V RE INT CLIGHT ; D V RE INT ZZ0 ;
 !FOX  D V IN INT IDZ 2 ; D V IN INT KX ; D V IN INT IX ; D V IN INT JX ;
 !FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
 !FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
@@ -4419,12 +4419,12 @@
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
 !FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
-!FOX      YP(1)=Y(1)*(ONE+DPDA) ;
+!FOX      YP(1)=Y(1)/MOIDA ;
           dummy=dare(yp(1))
 !FOX      TRACKI(2)=(YP(1)-DUMMY)*C1M3 ;
           dummy=dare(x(2))
 !FOX      TRACKI(3)=(X(2)+PARBE(IX,6)-DUMMY)*C1M3 ;
-!FOX      YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX      YP(2)=Y(2)/MOIDA ;
           dummy=dare(yp(2))
 !FOX      TRACKI(4)=(YP(2)-DUMMY)*C1M3 ;
           dummy=dare(sigmda)
@@ -4473,10 +4473,10 @@
 !FOX      MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX      Y(1)=YP(1)*MOIDA ;
 !FOX      Y(2)=YP(2)*MOIDA ;
-!FOX      EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX      EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX      EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
-          
+      
           !We want to go back to sixtrack variables (15.03.2018)
 !FOX      TRACKI(5) = TRACKI(5)*RV ;
 
@@ -5520,7 +5520,7 @@ cc2008
 +cd sqrtfox0
 +if rvet
 !FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0*MOIDA ;
-!FOX  RVET=RVET/(E0*(ONE+DPDA)+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+
+!FOX  RVET=RVET/(E0/MOIDA+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+
 !FOX  DPDA*DPDA))) ;
 +ei
 +if .not.rvet
@@ -5571,8 +5571,8 @@ cc2008
               if(typ.eq.bezl(ii)) iwrite=1
             enddo
           endif
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  DPDA1=DPDA*C1E3 ;
 !FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
@@ -5776,8 +5776,8 @@ cc2008
           ibb=ibb+1
           if(ibb.gt.nbb) call prror(102)
           imbb(i)=ibb
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  DPDA1=DPDA*C1E3 ;
 !FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
@@ -6161,8 +6161,8 @@ cc2008
         if(kzz.eq.22) then
           irrtr=imtr(ix)
 
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
 
 !FOX  TEMPI(1) = X(1) ;
@@ -19234,6 +19234,7 @@ subroutine runda
       use mod_common
       use mod_commons
       use mod_commond2
+      use mod_hions
       implicit none
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
@@ -19375,7 +19376,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
       if(niu(2).lt.niu(1)) nsto=nsto+iu
       do 490 n=1,numl
         numx=n-1
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
         ncyo=ncy
@@ -19394,13 +19395,13 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           endif
           if(mout2.eq.1.and.i480.eq.nsta.and.n.eq.1) call write4
           if(iflag.eq.1) then
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=SIGMDA/RV ;
             if(ithick.eq.1) then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
               if(icav.eq.0) then
 !FOX  CORRNEW(1)=X(1) ;
 !FOX  CORRNEW(2)=YP(1) ;
@@ -19450,7 +19451,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=YP(1)*MOIDA ;
 !FOX  Y(2)=YP(2)*MOIDA ;
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  SIGMDA=DELTAS*RV ;
@@ -19580,8 +19581,8 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           ixcav=ix
           iicav=i
           if(nsix.eq.2) then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  DELTAS=SIGMDA*RV ;
             call dapri(x(1),19)
             call dapri(yp(1),19)
@@ -19760,8 +19761,8 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
 +ca trom20
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
             if(bez(ix).eq.'DAMAP') then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  DELTAS=SIGMDA/RV ;
               if(icav.eq.0.or.ithick.ne.1) then
                 if(nvar2.ge.1) call dapri(x(1),17)
@@ -19811,7 +19812,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           pi=four*atan_mb(one)
 
         if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX) ;
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 
@@ -19837,7 +19838,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           goto 440
       endif
         if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX) ;
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
@@ -20250,8 +20251,8 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
         endif
   490 continue
   500 continue
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  DELTAS=SIGMDA/RV ;
       if(nsix.eq.2) nsix=0
       if(icav.eq.0.or.ithick.ne.1) then
@@ -20359,6 +20360,7 @@ subroutine umlauda
       use mod_commons
       use wire
       use mod_commond2
+      use mod_hions
       implicit none
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
@@ -20487,9 +20489,10 @@ subroutine umlauda
       ozp=yytr(1,2)
       sigm1=sigm(1)
       dps1=dps(1)
-      nucmd0=pma
-      nucmda=nucmd0 ! this is only for tests! 
+      nucm0=pma
+      nucmda=nucm0 ! this is only for tests! 
       mtcda = one !also tests!  
+      print * , zz0, "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
       if(iqmodc.eq.1) then
         if(el(iq(1)).le.pieni) then
           ed1=ed(iq(1))
@@ -20532,11 +20535,12 @@ subroutine umlauda
       elseif(nvar2.eq.6) then
         call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
+
 !FOX  DPDA1=DPDA1+DPS1*C1E3 ;        
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+NUCMD0*NUCMD0) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCM0*NUCM0) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=DELTAS+SIGM1/RV ;
 !FOX  SIGMDA=DELTAS*RV ;
@@ -20626,7 +20630,7 @@ subroutine umlauda
       iflag=0
       iflag1=0
       iflag2=0
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  SIGMDA=DELTAS*RV ;
@@ -20683,13 +20687,13 @@ subroutine umlauda
 !     endif
 +ei
         if(iflag.eq.1) then
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=SIGMDA/RV ;
           if(ithick.eq.1) then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
             if(icav.eq.0) then
 !FOX  CORRNEW(1)=X(1) ;
 !FOX  CORRNEW(2)=YP(1) ;
@@ -20753,7 +20757,7 @@ subroutine umlauda
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=YP(1)*MOIDA ;
 !FOX  Y(2)=YP(2)*MOIDA ;
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  SIGMDA=DELTAS*RV ;
@@ -20921,8 +20925,8 @@ subroutine umlauda
             call prror(-1)
           endif
           wire_num(i) = wire_num_aux
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  DELTAS=SIGMDA/RV ;
 !FOX  DPDA1=DPDA*C1E3 ;
           call dacop(x(1),damap(1))
@@ -21065,7 +21069,7 @@ subroutine umlauda
         endif
           pi=four*atan_mb(one)
         if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX) ;
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -21093,7 +21097,7 @@ subroutine umlauda
           goto 440
       endif
         if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX) ;
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -21532,8 +21536,8 @@ subroutine umlauda
       endif
  430  continue ! END LOOP OVER SINGLE ELEMENTS IN UMLAUDA
 
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)/MOIDA ;
+!FOX  YP(2)=Y(2)/MOIDA ;
 !FOX  DELTAS=SIGMDA/RV ;
 +if debug
 !     call wda('afox   ',0d0,2,0,0,0)
@@ -21905,8 +21909,8 @@ subroutine wireda(ix,i)
 
 !-----------------------------------------------------------------------
 ! X' -> PX'; Y' -> PY
-!FOX  YY(1)=YY(1)*(ONE+DPDA) ;
-!FOX  YY(2)=YY(2)*(ONE+DPDA) ;
+!FOX  YY(1)=YY(1)/MOIDA ;
+!FOX  YY(2)=YY(2)/MOIDA ;
 
 ! 1 SHIFT - see the part of the code were wireda is called ....
 
@@ -22058,7 +22062,7 @@ end subroutine wireda
       e0f=sqrt(e0**2-pma**2)                                             !hr08
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCMD0/NUCMDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  EJF0=EJF1 ;
         if(abs(dppoff).gt.pieni) then
@@ -22128,6 +22132,7 @@ end subroutine wireda
       use parpro
       use mod_common
       use mod_commons
+      use mod_hions
       implicit none
       integer ix,idaa
 +ca commont1
@@ -22147,18 +22152,19 @@ end subroutine wireda
 !FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ; 
 !FOX  D V RE INT C1E3 ; D V RE INT ONE ;
 !FOX  D V IN EXT ITIONC NELE ; D V IN INT ITION ; D V IN INT IX ;
-!FOX  E D ; D V RE INT NUCMD0 ; D V RE INT MTCDA ;
+!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       ix=ixcav
       if(kz(ix).eq.12) then
-!FOX  EJ1=EJ1+ED(IX)*SIN(HSYC(IX)*SIGMDA/C1E3*
+!FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
 !FOX  ITIONC(IX)+PHASC(IX)) ;
       else
-!FOX  EJ1=EJ1+HSY(1)*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
+!FOX  EJ1=EJ1+HSY(1)*ZZ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
       endif
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
+
 
       return
       end
