@@ -14,6 +14,7 @@ module scatter
     use mod_ranecu
 
     use mod_alloc
+    use string_tools
     
     IMPLICIT NONE
 
@@ -21,10 +22,6 @@ module scatter
     ! Therefore, we always need to import the SCATTER module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-
-! For the string length stuff
-+ca comgetfields
-+ca stringzerotrim ! Note: Must include this again if linking to stringzerotrim to work.
 
     ! PUBLIC
     ! Common variables for the SCATTER routines
@@ -496,10 +493,10 @@ end subroutine scatter_crstart
 ! =================================================================================================
 subroutine scatter_dumpdata
 
-      use crcoall
+    use crcoall
+    use string_tools
+    
     implicit none
-
-+ca stringzerotrim
 
     integer ii,jj
 
@@ -567,10 +564,10 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
     
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
-
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
+    
     ! Temporary Variables
     integer ii, j
 +if crlibm
@@ -724,8 +721,9 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
     
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
     ! Temporary Variables
     integer ii, tmpIdx
@@ -888,8 +886,9 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
     
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
     ! Temporary Variables
     integer ii, tmpIdx
@@ -1039,7 +1038,9 @@ subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfield
     
     implicit none
 
-+ca comgetfields
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
     ! Check the number of arguments
     if(getfields_nfields .ne. 3) then
@@ -1063,14 +1064,12 @@ end subroutine scatter_parseSeed
 ! =================================================================================================
 subroutine scatter_thin(i_elem, ix, turn)
     
+    use string_tools
     use crcoall
     use mod_common
     use mod_commonmn
     
     implicit none
-    
-
-+ca stringzerotrim
 
 +if collimat
 +ca collpara ! Needed to define array sizes
@@ -1177,13 +1176,12 @@ end subroutine scatter_thin
 !  Last modified: 02-11-2017
 ! =================================================================================================
 real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
-
+    
+    use string_tools
     use crcoall
     use mod_common
     
     implicit none
-
-+ca stringzerotrim
     
     integer, intent(in) :: profileIdx
     real(kind=fPrec), intent(in) :: x, y
@@ -1242,12 +1240,11 @@ end subroutine scatter_profile_getParticle
 !  Last modified: 09-2017
 ! =================================================================================================
 real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generatorIDX, x,y, xp,yp, E)
-
+    
+    use string_tools
     use crcoall
     
     implicit none
-
-+ca stringzerotrim
 
     integer, intent(in) :: profileIDX, generatorIDX
     real(kind=fPrec), intent(in) :: x, y, xp, yp, E

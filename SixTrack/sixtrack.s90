@@ -871,17 +871,14 @@
 
       common /readdisdb/ dist_filename, dist_echo, dist_enable,dist_read_unit, dist_echo_unit
 
-!
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
       real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
-!
+
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
 +cd wiretracktmp
 ! temporary variables
@@ -889,52 +886,8 @@
       real(kind=fPrec) NNORM_, NNORM
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 
-!
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd   comgetfields
-!
-!     COMGETFIELDS
-!     Definitions needed to use the getfields_split() subroutine
-!     
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 29-08-2014
-!     some variables / parameters for a more flexible parsing of input lines
-!     always in main code
 
-!     parameters for the parser
-      integer getfields_n_max_fields, getfields_l_max_string
-      parameter ( getfields_n_max_fields = 15  ) ! max number of returned fields
-      parameter ( getfields_l_max_string = 161 ) ! max len of parsed line and its fields
-                                                 ! (nchars in daten +1 to always make room for \0)
-
-!     array of fields
-      character getfields_fields                                        &
-     &     ( getfields_n_max_fields )*( getfields_l_max_string )
-!     number of identified fields
-      integer getfields_nfields
-!     length of each what:
-      integer getfields_lfields( getfields_n_max_fields )
-!     an error flag
-      logical getfields_lerr
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd stringzerotrim
-! Definitions necessary for using the "stringzerotrim" function,
-! which is defined in deck "stringhandling".
-! Requires block comgetfields for getfields_l_max_string.
-! Used in at least DYNK, FMA, ZIPF, DUMP, and SCATTER.
-! K. Sjobak, BE-ABP/HSS
-      integer stringzerotrim_maxlen
-
-      !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
-      parameter (stringzerotrim_maxlen=getfields_l_max_string)
-      
-      character(len=stringzerotrim_maxlen) stringzerotrim ! Define the function
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd timefct
           expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
 +cd dainicom
@@ -7683,10 +7636,10 @@ subroutine closeUnits
   use parpro
   use mod_common
   use bdex, only : bdex_closefiles
+  use string_tools
 
   implicit none
 
-+ca comgetfields
 +ca parbeam_exp
 
   integer i
@@ -10428,6 +10381,7 @@ subroutine daten
       use physical_constants
       use numerical_constants
       use hdf5_output
+      use string_tools
 
 +if fluka
 
@@ -10494,7 +10448,11 @@ subroutine daten
       parameter (nchars=160)
       character(len=nchars) ch
       character(len=nchars+nchars) ch1
-      logical beam_xstr
+      character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+      integer   getfields_nfields                                                 ! Number of identified fields
+      integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+      logical   getfields_lerr                                                    ! An error flag
+          logical beam_xstr
 +if crlibm
       ! MAXF be kept in sync with value in function fround
       integer maxf,nofields
@@ -10533,8 +10491,6 @@ subroutine daten
 +if bnlelens
 +ca rhicelens
 +ei
-+ca comgetfields
-+ca stringzerotrim
 +ca parbeam_exp
 +ca dbreaddis
 
@@ -16730,6 +16686,7 @@ subroutine daten
       if(ierro > 0) call prror(58)
       lineno3 = lineno3 + 1
       
+      ch = adjustl(ch)
       if(ch(1:1) == '/') goto 3110 ! Comment line encountered
       
       if(ch(:4) == next) then
@@ -16761,8 +16718,8 @@ subroutine daten
         call h5_parseFILE(getfields_fields,getfields_lfields,getfields_nfields)
       elseif(ch(:4) == "ROOT") then
         call h5_parseROOT(getfields_fields,getfields_lfields,getfields_nfields)
-      elseif(ch(:3) == "USE") then
-        call h5_parseUSE(getfields_fields,getfields_lfields,getfields_nfields)
+      elseif(ch(:6) == "ENABLE") then
+        call h5_parseENABLE(getfields_fields,getfields_lfields,getfields_nfields)
       else
         write(lout,"(a)") "HDF5> ERROR, line type not recognized:"
         write(lout,"(a)") "HDF5> '"//trim(ch)//"'"
@@ -17304,9 +17261,15 @@ subroutine parseChebyFile(ifile)
       use crcoall
       use mod_common
       use elens
+      use string_tools
+      
       implicit none
-+ca comgetfields
+      
       character(len=160) string
+      character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+      integer   getfields_nfields                                                 ! Number of identified fields
+      integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+      logical   getfields_lerr                                                    ! An error flag
       integer ierr, ii, jj, ifile, errno
       real(kind=fPrec) tmpflt, beta, gamma, round_near
 
@@ -17601,6 +17564,7 @@ subroutine initialize_element(ix,lfirst)
       use dynk, only : dynk_elemdata
       use numerical_constants
       use crcoall
+      use string_tools
       use parpro !Needed for common
       use mod_common
       use mod_commonmn
@@ -17615,8 +17579,6 @@ subroutine initialize_element(ix,lfirst)
 
 +ca commontr
 +ca commonxz
-+ca comgetfields
-+ca stringzerotrim
 
       !Temp variables
       integer i
@@ -18320,118 +18282,6 @@ end function dtostr
       wi=vi
       return
       end
-+dk stringhandling
-      subroutine getfields_split( tmpline, getfields_fields,            &
-     &         getfields_lfields, getfields_nfields, getfields_lerr)
-!
-!-----------------------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 24-02-2015
-!     parse a line and split it into its fields
-!       fields are returned as 0-terminated and padded string
-!     always in main code
-! input:
-!  tmpline: usually line read in from fort.2 or fort.3. Values must be 
-!           separated by spaces
-! output:
-!  array of values with 
-!   getfields_fields(i):  (char) value of field
-!   getfields_lfields(i): (int) length of field
-!   getfields_nfields:    (int) number of fields
-!   getfields_lerr:       (logical)
-!-----------------------------------------------------------------------
-!
-      use crcoall
-      implicit none
-+ca comgetfields
-      
-      character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
-
-      intent(in) tmpline
-      intent(out) getfields_fields, getfields_lfields,                  &
-     &     getfields_nfields, getfields_lerr
-      
-!     runtime variables
-      integer ii, jj
-      logical lchar
-      integer lenstr, istart
-
-!     initialise output variables
-      getfields_lerr = .false.
-      getfields_nfields=0
-      do ii=1,getfields_n_max_fields
-         do jj=1,getfields_l_max_string
-            getfields_fields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
-         enddo
-         getfields_lfields(ii)=0
-      enddo
-
-!     parse the line
-      lchar = .false.
-      do ii=1, getfields_l_max_string-1 !For \0 termination
-         if ( tmpline(ii:ii) .eq. ' ' ) then
-!           blank char
-            if ( lchar ) then
-!              end of a string: record it
-               getfields_lfields(getfields_nfields)          = lenstr
-               getfields_fields (getfields_nfields)                     &
-     &              (1:getfields_lfields(getfields_nfields)) =          &
-     &              tmpline(istart:                                     &
-     &               istart+getfields_lfields(getfields_nfields))
-               lchar = .false.
-            endif
-         else
-!           non-blank char
-            if ( .not. lchar ) then
-!              a new what starts
-               getfields_nfields = getfields_nfields +1
-               if ( getfields_nfields.gt.getfields_n_max_fields ) then
-                  write (lout,*)'error! too many fields in line:'
-                  write (lout,*) tmpline
-                  write (lout,*)'please increase getfields_n_max_fields'
-                  getfields_lerr = .true.
-                  exit !Break do
-               endif
-               istart = ii
-               lchar = .true.
-               lenstr = 0
-            endif
-            lenstr = lenstr+1
-         endif
-      enddo
-
-      end subroutine getfields_split
-
-      function stringzerotrim(instring)
-!----------------------------------------------------------------------------
-!     K. Sjobak, BE-ABP/HSS
-!     last modified: 30-10-2014
-!     Replace "\0" with ' ' in strings.
-!     Usefull before output, else "write (*,*)" will actually write all the \0s
-!
-!     Warning: Do not add any write(*,*) inside this function:
-!     if this function is called by a write(*,*) and then does a write,
-!     the program may deadlock!
-!----------------------------------------------------------------------------
-      implicit none
-+ca comgetfields
-+ca stringzerotrim
-      character(len=stringzerotrim_maxlen) instring
-      intent(in) instring
-      
-      integer ii
-      
-      do ii=1,stringzerotrim_maxlen
-         if ( instring(ii:ii) .ne. char(0) ) then
-            stringzerotrim(ii:ii) = instring(ii:ii)
-         else 
-            stringzerotrim(ii:ii) = ' '
-         end if
-      end do
-      stringzerotrim = trim(stringzerotrim)
-
-      end function stringzerotrim
 
 +dk envars
 !-----------------------------------------------------------------------
@@ -20397,12 +20247,15 @@ subroutine umlauda
       use mathlib_bouncer
       use dump, only : dumpclo, dumptas, dumptasinv, ldump
       use crcoall
+      use string_tools
       use parpro
       use mod_common
       use mod_commons
       use wire
       use mod_commond2
+      
       implicit none
+      
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
@@ -20437,7 +20290,6 @@ subroutine umlauda
 +ca rhicelens
 +ei
 !     for FMA analysis
-+ca comgetfields
 !+ca fma
 ! END for FMA analysis
 +if debug
@@ -22791,63 +22643,60 @@ end subroutine beaminf
 
 +dk maincr
 program maincr
-      use floatPrecision
-      use end_sixtrack
-      use file_units
-      use mathlib_bouncer
-      use physical_constants
-      use numerical_constants
-
-      use scatter, only : scatter_active, scatter_initialize
-
-      use dynk, only : dynk_izuIndex
-
-      use fma, only : fma_postpr, fma_flag
-
-      use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
-
-      use zipf, only : zipf_numfiles, zipf_dozip
-      
-      use, intrinsic :: iso_fortran_env, only : output_unit
-
-      use aperture
-
-      use mod_ranecu
+  
+  use floatPrecision
+  use end_sixtrack
+  use file_units
+  use string_tools
+  use mathlib_bouncer
+  use physical_constants
+  use numerical_constants
+  
+  use scatter, only : scatter_active, scatter_initialize
+  use dynk, only : dynk_izuIndex
+  use fma, only : fma_postpr, fma_flag
+  use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
+  use zipf, only : zipf_numfiles, zipf_dozip
+  
+  use, intrinsic :: iso_fortran_env, only : output_unit
+  use aperture
+  use mod_ranecu
       
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! Last modified: 17-07-2013
+  ! import mod_fluka
+  ! inserted in main code by the 'fluka' compilation flag
+   use mod_fluka
 +ei
 
-      use postprocessing, only : postpr, writebin_header, writebin
+  use postprocessing, only : postpr, writebin_header, writebin
       
 +if root
-      use root_output
+  use root_output
 +ei
 
-      use crcoall
-      use parpro
-      use parpro_scale
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-
-      use mod_hions
-      use aperture
-      use wire
-
-      implicit none
-
-
+  use crcoall
+  use parpro
+  use parpro_scale
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  
+  use mod_hions
+  use aperture
+  use wire
+  
+  implicit none
+  
 interface
-
-  subroutine envarsv(dpsv,oidpsv,rvv,ekv) 
+  
+  subroutine envarsv(dpsv,oidpsv,rvv,ekv)
+      
     use floatPrecision
     use parpro
     use parpro_scale
+    
     implicit none
 
     real(kind=fPrec) :: dpsv(npart)
@@ -22855,8 +22704,8 @@ interface
     real(kind=fPrec) :: rvv(npart)
     real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:) 
   end subroutine envarsv
+  
 end interface
-
 
 !-----------------------------------------------------------------------
 !
@@ -22927,10 +22776,7 @@ end interface
 +if cr
 +ca crco
 +ei
-+ca comgetfields
 +ca dbdcum
-+ca stringzerotrim
-
 
 +ca dbreaddis
 
@@ -26015,8 +25861,10 @@ end subroutine trauthin
 !<
 subroutine thin4d(nthinerr)
   ! Replaced computed goto with select case. VKBO 27/11/2017
+  
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -26044,6 +25892,7 @@ subroutine thin4d(nthinerr)
   use aperture
   use elens
   use wire
+  
   implicit none
 
 +ca exactvars
@@ -26081,7 +25930,6 @@ subroutine thin4d(nthinerr)
 +ca bnlio
 +ei
 
-+ca comgetfields
 +ca elenstracktmp
 +ca dbdcum
 
@@ -26656,6 +26504,7 @@ subroutine thin6d(nthinerr)
   ! Replaced computed gotos with select case, VKBO 27/11/2017
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -26740,7 +26589,6 @@ subroutine thin6d(nthinerr)
 +ca bnlio
 +ei
 
-+ca comgetfields
 +ca elenstracktmp
 +ca dbdcum
   save
@@ -27607,7 +27455,6 @@ end subroutine thin6d
 ! +ca rhicelens
 ! +ca bnlio
 ! +ei
-! +ca comgetfields
 ! +ca elenstracktmp
 ! +ca dbdcum
 
@@ -28948,6 +28795,7 @@ subroutine thck4d(nthinerr)
   ! Replaced computed goto with select case, VKBO 27/11/2017
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -28978,7 +28826,7 @@ subroutine thck4d(nthinerr)
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
- &        puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+                   puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
@@ -29003,7 +28851,6 @@ subroutine thck4d(nthinerr)
 +ca rhicelens
 +ca bnlio
 +ei
-+ca comgetfields
 +ca elenstracktmp
 
 +if fluka
@@ -29644,6 +29491,7 @@ subroutine thck6d(nthinerr)
   ! Replaced computed goto with select case, VKBO 28/11/2017
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -29670,11 +29518,12 @@ subroutine thck6d(nthinerr)
   use aperture
   use elens
   use wire
+  
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
-          pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+                   pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
@@ -29703,7 +29552,6 @@ subroutine thck6d(nthinerr)
 !GRDRHIC
 !GRD-042008
 +ei
-+ca comgetfields
 +ca elenstracktmp
 
 +if fluka
@@ -30519,7 +30367,6 @@ end subroutine thck6d
 ! +ca rhicelens
 ! +ca bnlio
 ! +ei
-! +ca comgetfields
 ! +ca elenstracktmp
 
 ! +if fluka
@@ -45390,6 +45237,7 @@ subroutine crcheck
 !     See also subroutines crpoint and crstart.
       use floatPrecision
       use end_sixtrack
+      use string_tools
       use numerical_constants
       use dynk, only : ldynk, ldynkfiledisable,                         &
            dynk_crcheck_readdata, dynk_crcheck_positionFiles
@@ -45420,8 +45268,6 @@ subroutine crcheck
 +ca rhicelens
 +ei
 +ca crco
-+ca comgetfields
-+ca stringzerotrim      
 +ca version
       integer i,j,k,l,m,ia
       integer lstring,myia,mybinrecs,binrecs94

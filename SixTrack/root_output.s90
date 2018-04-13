@@ -248,12 +248,16 @@ subroutine SixTrackRootFortranInit
 end subroutine SixTrackRootFortranInit
 
 subroutine daten_root(ch)
+  
+  use string_tools
+  
   implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
   character(len=*), intent(in) :: ch
+  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+  integer   getfields_nfields                                                 ! Number of identified fields
+  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+  logical   getfields_lerr                                                    ! An error flag
 
 !ROOT is enabled
   root_flag = .true.

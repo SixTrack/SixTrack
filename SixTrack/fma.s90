@@ -1,10 +1,11 @@
 +dk fma
 
 module FMA
+  
   use end_sixtrack
+  use string_tools, only : getfields_l_max_string
+  
   implicit none
-!For getfields_l_max_string
-+ca comgetfields
 
   integer, parameter :: fma_max       = 200              !max. number of FMAs
   integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
@@ -42,13 +43,19 @@ contains
   end subroutine fma_error
   
   subroutine fma_parseInputline(ch)
-      use crcoall
+    
+    use crcoall
+    use string_tools
+    
     implicit none
 
     character(len=*), intent(in) :: ch
     
-+ca stringzerotrim
-
+    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+    integer   getfields_nfields                                                 ! Number of identified fields
+    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+    logical   getfields_lerr                                                    ! An error flag
+    
     if (ch(:10).eq."NoNormDUMP") then
        fma_writeNormDUMP = .false.
        return
@@ -143,20 +150,21 @@ contains
     !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
     !-----------------------------------------------------------------------*
     use floatPrecision
+    use string_tools
     use mathlib_bouncer
     use platofma
 
-    use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, &
-         dumptas, dumpclo, dumptasinv
+    use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, dumptas, dumpclo, dumptasinv
     
     !numbers (zero,one,two etc.)
     use numerical_constants, only : zero, one, c1e3
 
-      use crcoall
+    use crcoall
     use parpro
     use mod_common
+    
     implicit none
-+ca stringzerotrim
+    
 +ca commonta !normalisation matrix tasm -> remove later
 +ca commonc
     integer :: i,j,k,l,m,n                    ! for do loops
@@ -166,6 +174,10 @@ contains
     logical :: lexist                         ! flag to check if file fma_fname exists
     logical :: lread                          ! flag for file reading
     character(len=getfields_l_max_string) :: ch,ch1
+    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+    integer   getfields_nfields                                                 ! Number of identified fields
+    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+    logical   getfields_lerr                                                    ! An error flag
     character filefields_fields ( getfields_n_max_fields )*( getfields_l_max_string )
     integer filefields_nfields
     integer filefields_lfields( getfields_n_max_fields )

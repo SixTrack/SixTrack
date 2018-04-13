@@ -53,21 +53,39 @@ end subroutine h5_initFile
 ! ================================================================================================ !
 subroutine h5_parseFILE(getfields_fields,getfields_lfields,getfields_nfields)
   
-+ca comgetfields
+  use string_tools
+  
+  implicit none
+  
+  character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+  integer,   intent(in) :: getfields_nfields
+  integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
 end subroutine h5_parseFILE
 
 subroutine h5_parseROOT(getfields_fields,getfields_lfields,getfields_nfields)
+  
+  use string_tools
 
-+ca comgetfields
-
+  implicit none
+  
+  character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+  integer,   intent(in) :: getfields_nfields
+  integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
+  
 end subroutine h5_parseROOT
 
-subroutine h5_parseUSE(getfields_fields,getfields_lfields,getfields_nfields)
+subroutine h5_parseENABLE(getfields_fields,getfields_lfields,getfields_nfields)
 
-+ca comgetfields
+  use string_tools
+  
+  implicit none
+  
+  character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+  integer,   intent(in) :: getfields_nfields
+  integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
-end subroutine h5_parseUSE
+end subroutine h5_parseENABLE
 
 ! ================================================================================================ !
 !  HDF5 Dump Data
