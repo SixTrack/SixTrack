@@ -19,6 +19,7 @@ module mod_alloc
   integer(kind=int64), parameter :: kbyte = 1024*8
   integer(kind=int64), parameter :: byte = 8
 
+  integer, save :: alloc_logFileUnit = 0
 !Function/subroutine overloading follows below:
 
 !here we could probably use fPrec and save a lot of code
@@ -147,33 +148,50 @@ end subroutine alloc_error
 subroutine print_alloc(ename, requested_bits)
 
   use numerical_constants, only : one
+  use file_units
 
   implicit none
 
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
+  logical isThere
   
 ! Printing to lout breaks CR version
 +if .not.cr
-
-  write(lout,*) 'Memory allocation for array ', ename
+  
+  ! STOP THE SPAM !
+  ! James can fix later
+  if(alloc_logFileUnit == 0) then
+    call requestFileUnit("mem_alloc.dat", alloc_logFileUnit)
+  end if
+  
+  inquire(unit=alloc_logFileUnit,exist=isThere)
+  if(isThere) then
+    open(alloc_logFileUnit,file="mem_alloc.dat",status="old",position="append",action="write",form="formatted")
+  else
+    open(alloc_logFileUnit,file="mem_alloc.dat",status="new",action="write",form="formatted")
+  end if
+  
+  write(alloc_logFileUnit,*) 'Memory allocation for array ', ename
 
   if((real(allocated_bits,real64)/mbyte .lt. one) .and. (real(allocated_bits,real64)/kbyte .gt. one)) then
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/kbyte, ' kbytes'
+    write(alloc_logFileUnit,*) 'Current allocation is: ', real(allocated_bits,real64)/kbyte, ' kbytes'
   else if(real(allocated_bits,real64)/mbyte .ge. one) then
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/mbyte, ' Mbytes'
+    write(alloc_logFileUnit,*) 'Current allocation is: ', real(allocated_bits,real64)/mbyte, ' Mbytes'
   else
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/byte, ' bytes'
+    write(alloc_logFileUnit,*) 'Current allocation is: ', real(allocated_bits,real64)/byte, ' bytes'
   end if
 
   if((real(requested_bits,real64)/mbyte .lt. one) .and. (real(requested_bits,real64)/kbyte .gt. one)) then
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/kbyte, ' kbytes'
+    write(alloc_logFileUnit,*) 'Requested allocation is: ', real(requested_bits,real64)/kbyte, ' kbytes'
   else if(real(requested_bits,real64)/mbyte .ge. one) then
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mbyte, ' Mbytes'
+    write(alloc_logFileUnit,*) 'Requested allocation is: ', real(requested_bits,real64)/mbyte, ' Mbytes'
   else
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/byte, ' bytes'
+    write(alloc_logFileUnit,*) 'Requested allocation is: ', real(requested_bits,real64)/byte, ' bytes'
   end if
-  write(lout,*) ''
+  write(alloc_logFileUnit,*) ''
+  
+  close(alloc_logFileUnit)
 
   if(allocated_bits.gt.maximum_bits) then
     maximum_bits = allocated_bits
