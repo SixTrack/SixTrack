@@ -1,5 +1,5 @@
 mod_alloc.s90
 mod_allocn.f
-df debug 
+df debug,spammy
 e mod_alloc
 ex

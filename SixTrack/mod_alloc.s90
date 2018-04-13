@@ -154,8 +154,7 @@ subroutine print_alloc(ename, requested_bits)
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
   
-! Printing to lout breaks CR version
-+if .not.cr
++if spammy
   
   write(lout,*) 'Memory allocation for array ', ename
 
