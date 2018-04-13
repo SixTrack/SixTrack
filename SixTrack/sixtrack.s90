@@ -1,9 +1,9 @@
 +cd version
-      character(len=8) version  !Keep data type in sync with 'cr_version'
-      character(len=10) moddate !Keep data type in sync with 'cr_moddate'
-      integer itot,ttot
-      data version /'5.0-rc1'/
-      data moddate /'01.02.2018'/
+  character(len=8) version  ! Keep data type in sync with 'cr_version'
+  character(len=10) moddate ! Keep data type in sync with 'cr_moddate'
+  integer itot,ttot
+  data version /'5.0-rc1'/
+  data moddate /'01.02.2018'/
 +cd license
 !!SixTrack
 !!
@@ -1056,16 +1056,16 @@
      &sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
      &zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
      &mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-     &dech,dsm0,itco,itcro,itqv,iout,qw0,iq,iqmod,kpa,iqmod6,bez,elbe,  &
-     &bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac,pac,  &
-     &bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,           &
+     &dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+     &elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
+     &pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
      &ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
      &icoe,ise,mesa,mp,m21,m22,m23,                                     &
      &ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
      &rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
      &qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
      &iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-     &nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                 &
+     &nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
@@ -10480,7 +10480,7 @@ subroutine daten
       real(kind=fPrec) separx,separy
       real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
       
-      character(len=max_name_len) sing,stru,prin,trac,diff,sync,ende,bloc,comm
+      character(len=max_name_len) sing,stru,prin,quie,trac,diff,sync,ende,bloc,comm
       character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
       character(len=max_name_len) beze,go,comb,sear,subr
       character(len=max_name_len) free,geom,cavi,disp,reso,bezext
@@ -10555,16 +10555,12 @@ subroutine daten
       dimension icel(ncom,20),iss(2),iqq(5)
       dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
       dimension extaux(40),bezext(nblz)
-      data sing,stru,prin,sync,ende,next,comm                           &
-     &/'SING','STRU','PRIN','SYNC','ENDE','NEXT','COMM'/
-      data fluc,mult,chro,iter,tune,line,trac,diff                      &
-     &/'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
-      data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco    &
-     &/'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR',                  &
-     &'RESO','DISP','POST','RIPP','DECO'/
-      data comb,free,geom,cavi,beam,trom                                &
-     &/'COMB','FREE','GEOM','CAV','BEAM','TROM'/
-      data idum,kl,kr,orga,norm,corr/' ','(',')','ORGA','NORM','CORR'/
+      data sing,stru,prin,quie,sync,ende,next,comm /'SING','STRU','PRIN','QUIE','SYNC','ENDE','NEXT','COMM'/
+      data fluc,mult,chro,iter,tune,line,trac,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
+      data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco &
+           /'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR','RESO','DISP','POST','RIPP','DECO'/
+      data comb,free,geom,cavi,beam,trom /'COMB','FREE','GEOM','CAV','BEAM','TROM'/
+      data idum,kl,kr,orga,norm,corr /' ','(',')','ORGA','NORM','CORR'/
       data coll /'COLL'/
 !     - scatter
       character(len=4) scat
@@ -10736,6 +10732,7 @@ subroutine daten
       ilin=0
       nlin=0
       iout=0
+      iquiet=0
       idp=0
       izu0=0
       mmac=1
@@ -10801,6 +10798,7 @@ subroutine daten
       if(idat.eq.bloc) goto 190
       if(idat.eq.stru) goto 320
       if(idat.eq.prin) goto 550
+      if(idat.eq.quie) goto 552
       if(idat.eq.disp) goto 170
       if(idat.eq.tune) goto 600
       if(idat.eq.sync) goto 710
@@ -11963,6 +11961,8 @@ subroutine daten
 !  PRINTOUT INPUT PARAMETERS
 !-----------------------------------------------------------------------
   550 iout=1
+      goto 110
+  552 iquiet=1
       goto 110
 !-----------------------------------------------------------------------
 !  CHROMATCITY ADJUSTMENT
@@ -24454,7 +24454,7 @@ end interface
       do 340 ia=1,napx,2
         if(idfor.ne.2.and.idfor.ne.3) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-          write(lout,10050)
+          if(iquiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
@@ -24465,8 +24465,7 @@ end interface
           if(rat.lt.(-one*pieni)) dsign=-one*one                         !hr05
           x11=ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
           x13=(x11*dsign)*sqrt(abs(rat))                                 !hr05
-          amp(2)=(dsign*real(1-iver,fPrec))*                            &
-     &(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))                 !hr05
+          amp(2)=(dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))                 !hr05
           x1(5)=zero
           x1(6)=dpsv(ia)*sqrt(bet0s1)
           chi=chi0*rad
@@ -24510,11 +24509,11 @@ end interface
             endif
             chi=chi+dchi
   320     continue
-          write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-          write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),        &
-     &sigmv(ia),                                                        &
-     &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
-     &(ia+1),dpsv(ia+1)
+          if(iquiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+          if(iquiet == 0) then
+            write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
+                              xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
+          end if
 !---------------------------------------  END OF 'ANFB'
           if(iclo6.eq.2) then
             xv(1,ia)=xv(1,ia)+clo6v(1,ia)
@@ -24563,7 +24562,7 @@ end interface
           nucm(ia)=nucm0
           nucm(ia+1)=nucm0
 
-          write(lout,10020) ampv(ia),amp(2),epsa
+          if(iquiet==0) write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 +if .not.crlibm
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
@@ -24756,11 +24755,10 @@ end interface
           omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
           omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
-        if ( idfor.ne.3 ) then
-        write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
-     &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
-     &(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
-        endif
+        if (idfor /= 3 .and. iquiet == 0) then
+          write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
+                            yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+        end if
         idam=3
         icode=0
         if(abs(xv(1,ia)).le.pieni.and.abs(yv(1,ia)).le.pieni) then
@@ -25073,111 +25071,93 @@ end interface
       call writebin(nthinerr)
       if(nthinerr.eq.3000) goto 520
 +ei
-! If CR we have to worry about turns printed in fort.6
-! If lost should be OK, otherwise we need to use nnuml instead
-! of the numl in numxv/nnumxv???? Eric.
-! where we reset [n]numxv to nnuml UNLESS particle lost
-! Now we shall try using that fix at start of tracking
-      do 470 ia=1,napxo,2
+      ! If CR we have to worry about turns printed in fort.6
+      ! If lost should be OK, otherwise we need to use nnuml instead
+      ! of the numl in numxv/nnumxv???? Eric.
+      ! where we reset [n]numxv to nnuml UNLESS particle lost
+      ! Now we shall try using that fix at start of tracking
+      do ia=1,napxo,2
         ie=ia+1
         ia2=(ie)/2
         napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
-        if(pstop(ia).and.pstop(ie)) then
-!-- BOTH PARTICLES LOST
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-     &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-     &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          write(lout,10280)                                             &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejvl(ia),ejvl(ie)
-          write(12,10280,iostat=ierro)                                  &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejvl(ia),ejvl(ie)
-          if(ierro.ne.0) write(lout,*)                                  &
-     &'Warning from maincr: fort.12 has ',                              &
-     &'corrupted output probably due to lost particle: ',ia,            &
-     &' or: ',ie
-        endif
-        if(.not.pstop(ia).and.pstop(ie)) then
-!-- SECOND PARTICLE LOST
+        
+        if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
+          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
+          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
+          write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has ',&
+            'corrupted output probably due to lost particle: ',ia,' or: ',ie
+        end if
+        
+        if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
           id=id+1
-          write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-     &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          write(lout,10280)                                             &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejv(id),ejvl(ie)
-          write(12,10280,iostat=ierro)                                  &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0)                                                &
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
-     &         'corrupted output probably due to lost particle: ',ie
-        endif
-        if(pstop(ia).and..not.pstop(ie)) then
-!-- FIRST PARTICLE LOST
+          if(iquiet==0) then
+            write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          else
+            write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          end if
+          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
+          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
+          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ie
+        end if
+        
+        if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
           id=id+1
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-     &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-          write(lout,10280)                                             &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &e0,ejvl(ia),ejv(id)
-          write(12,10280,iostat=ierro)                                  &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0)                                                &
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
-     &         'corrupted output probably due to lost particle: ',ia
-        endif
-        if(.not.pstop(ia).and..not.pstop(ie)) then
-!-- BOTH PARTICLES STABLE
+          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+          if(iquiet==0) then
+            write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+          else
+            write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+          end if
+          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+          write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ia
+        end if
+        
+        if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-          write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          write(lout,10280)                                             &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
-     &e0,ejv(id),ejv(ig)
-          write(12,10280,iostat=ierro)                                  &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
-     &e0,ejv(id),ejv(ig)
-          if(ierro.ne.0)                                                &
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
-     &         'corrupted output although particles stable'
+          if(iquiet==0) then
+            write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          else
+            write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          end if
+          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output although particles stable'
           id=ig
-        endif
-  470 continue
+        end if
+      end do
 +ei
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     print stable particles only
-!     inserted in main code by the 'fluka' compilation flag
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! print stable particles only
+      ! inserted in main code by the 'fluka' compilation flag
       write(lout,*)
       write(lout,10340)
       if ( napxo .gt. 0 ) then
         write(lout,*)
         write(lout,10350) napxo
         write(lout,*)
-        write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []',      &
-     &    'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
+        write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
         write(lout,*)
         do ia=1,napxo
-         if(.not.pstop(ia)) then
-          write(lout,10370)                                             &
-     &fluka_uid(ia), fluka_gen(ia), fluka_weight(ia),                   &
-     &xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3,       &
-     &ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
-         end if
+          if(not.pstop(ia)) then
+            write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
+              xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3, &
+              ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
+          end if
         end do
       end if
 +ei
@@ -25509,19 +25489,15 @@ end interface
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
      &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
-10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
-     &'RELATIVE MOMENTUM DEVIATION')
-10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
-     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
-!     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
-     &' MOMENTUM DEVIATION ',g12.5/)
-10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',  &
-     &i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,'RELATIVE MOMENTUM DEVIATION')
+10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8/)
+10241 format(   5x,'PARTICLE ',i5,' STABLE - RANDOM SEED ', i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8)
+!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5/)
+10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8/)
+10271 format(   5x,'PARTICLE ',i5,' AND ',i5,' STABLE - RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8)
 10280 format(10x,f47.33)
-10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
-     &,' of Computing Time')
+10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)',' of Computing Time')
 10300 format(/10x,'For ',i12,' Turn(s)',g12.3,' second(s) of ',         &
      &'Computing Time was needed'//131('-'))
 10310 format(//10x,'Total Time used: ',g12.3,' second(s)'//131('-'))
@@ -34058,7 +34034,7 @@ end subroutine distance
 !  CALCULATION OF INITIAL COORDINATES
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34168,7 +34144,7 @@ end subroutine distance
 !                   BETA-, ALFA-FUNCTIONS, Q-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -47932,6 +47908,7 @@ end subroutine timex
       write(99,*) 'itcro ',itcro
       write(99,*) 'itqv ',itqv
       write(99,*) 'iout ',iout
+      write(99,*) 'iquiet ',iquiet
       write(99,*) 'qw0 ',qw0
       write(99,*) 'iq ',iq
       write(99,*) 'iqmod ',iqmod
@@ -48425,6 +48402,7 @@ end subroutine timex
       write(99) itcro
       write(99) itqv
       write(99) iout
+      write(99) iquiet
       write(99) qw0
       write(99) iq
       write(99) iqmod
