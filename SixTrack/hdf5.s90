@@ -1,9 +1,85 @@
 +dk hdf5
 
-module sixtrack_hdf5
+! ================================================================================================ !
+!  HDF5 Module
+! ~~~~~~~~~~~~~
+!  Written by:    Veronica Berglyd Olsen, BE-ABP-HSS, 2018
+!  Last Modified: 2018-04-13
+!
+!  Alternative output format.
+!  Controlled by the HDF5 input block.
+! ================================================================================================ !
+module hdf5_output
+  
+  use hdf5
+  use floatPrecision
+  use end_sixtrack
+  use crcoall
   
   implicit none
   
+  ! Parameters
+  integer, parameter :: h5_strLen = 100
+  
+  ! Common settings
+  logical, save :: h5_active, h5_debug
+  character(len=h5_strLen), save :: h5_fileName ! The HDF5 output file name
+  character(len=h5_strLen), save :: h5_rootPath ! The root group where the data for this session is stored
+  
+  ! Input block switches
+  logical, save :: h5_useForDUMP
+  logical, save :: h5_useForSCAT
+  logical, save :: h5_useForCOLL
+  
 contains
 
-end module sixtrack_hdf5
+! ================================================================================================ !
+!  HDF5 File Initialisation
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-13
+! ================================================================================================ !
+subroutine h5_initFile(fileName)
+  
+  implicit none
+  
+  character(len=h5_strLen), intent(in) :: fileName
+  
+end subroutine h5_initFile
+
+! ================================================================================================ !
+!  HDF5 Input File Parsing
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-13
+! ================================================================================================ !
+subroutine h5_parseFILE(getfields_fields,getfields_lfields,getfields_nfields)
+  
++ca comgetfields
+
+end subroutine h5_parseFILE
+
+subroutine h5_parseROOT(getfields_fields,getfields_lfields,getfields_nfields)
+
++ca comgetfields
+
+end subroutine h5_parseROOT
+
+subroutine h5_parseUSE(getfields_fields,getfields_lfields,getfields_nfields)
+
++ca comgetfields
+
+end subroutine h5_parseUSE
+
+! ================================================================================================ !
+!  HDF5 Dump Data
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-13
+! ================================================================================================ !
+subroutine h5_dumpData()
+  
+  implicit none
+  
+  
+end subroutine h5_dumpData
+
+! ================================================================================================ !
+end module hdf5_output

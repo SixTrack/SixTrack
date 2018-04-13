@@ -10427,6 +10427,7 @@ subroutine daten
       
       use physical_constants
       use numerical_constants
+      use hdf5_output
 
 +if fluka
 
@@ -10568,6 +10569,9 @@ subroutine daten
 !     - scatter
       character(len=4) scat
       data scat /'SCAT'/
+      ! HDF5
+      character(len=4) h5out
+      data h5out /'HDF5'/
 !     - coupling:
       character(len=4) fluk
       data fluk /'FLUK'/
@@ -10842,7 +10846,7 @@ subroutine daten
       if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
       if(idat.eq.'ELEN') goto 2400 !Hard-coded name, as variable name "elens" conflicted with module name
-      if(idat.eq."WIRE")  goto 2500 !Hard-coded name, as variable name "elens" conflicted with module name
+      if(idat.eq."WIRE") goto 2500 !Hard-coded name, as variable name "elens" conflicted with module name
       !Reserved:
       !DIST = 2600
       !HION = 2700
@@ -10852,6 +10856,7 @@ subroutine daten
       if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
       if(idat.eq.root) goto 3000
+      if(idat.eq.h5out) goto 3100
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -16701,6 +16706,71 @@ subroutine daten
       endif
       
       goto 2901                 !Read the next line of the SCATTER block
+
+!-----------------------------------------------------------------------
+!  HDF5
+!  V.K. Berglyd Olsen BE-ABP-HSS
+!  Last modified: 2018-04-13
+!-----------------------------------------------------------------------
+3100  continue
++if .not.hdf5
+      write(lout,*) "ERROR while parsing HDF5 in fort.3"
+      write(lout,*) "SixTrack was not compiled with the HDF5 flag"
+      call prror(-1)
++ei
++if hdf5
+      ! We have a SCATTER block; let's allocate the memory for it!
+      if (h5_active) then
+        write(lout,*) "ERROR while parsing HDF5 in fort.3"
+        write(lout,*) "More than one HDF5 block encountered"
+        call prror(-1)
+      end if
+      
+3110  read(3,10020, end=1530, iostat=ierro) ch
+      if(ierro > 0) call prror(58)
+      lineno3 = lineno3 + 1
+      
+      if(ch(1:1) == '/') goto 3110 ! Comment line encountered
+      
+      if(ch(:4) == next) then
+        
+        h5_active = .true.
+        
+        if(h5_debug) call h5_dumpData
+        goto 110 ! Read next block or ENDE
+      end if
+      
+      if(ch(:5) == "DEBUG") then
+        scatter_debug = .true.
+        write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
+        goto 3110
+      end if
+      
+      call getfields_split(ch, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
+      
+      if(getfields_lerr) call prror(51)
+      if(h5_debug) then
+        write (lout,"(a,i4,a)") "HDF5> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
+        do ii=1,getfields_nfields
+          write (lout,"(a,i4,a)") "HDF5> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
+        end do
+      end if
+      
+      ! Parse the lines
+      if(ch(:4) == "FILE") then
+        call h5_parseFILE(getfields_fields,getfields_lfields,getfields_nfields)
+      elseif(ch(:4) == "ROOT") then
+        call h5_parseROOT(getfields_fields,getfields_lfields,getfields_nfields)
+      elseif(ch(:3) == "USE") then
+        call h5_parseUSE(getfields_fields,getfields_lfields,getfields_nfields)
+      else
+        write(lout,"(a)") "HDF5> ERROR, line type not recognized:"
+        write(lout,"(a)") "HDF5> '"//trim(ch)//"'"
+        call prror(-1)
+      end if
+      
+      goto 3110 ! Read the next line of the block
++ei
 
 !----------------------------------------------------------------------------
 !     root output
