@@ -7847,7 +7847,7 @@ subroutine closeUnits
 +ei ! END +if bnlelens
 
 +if hdf5
-      call CLOSEHDF5()
+      ! call CLOSEHDF5()
 +ei
 +if debug
       close(99,err=99)
@@ -22944,7 +22944,7 @@ end interface
       stxt=''
 +ei
 +if hdf5
-       call INITHDF5()
+      !  call INITHDF5()
 +ei
 +if boinc
       call boinc_init()
