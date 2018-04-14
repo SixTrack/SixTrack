@@ -10352,210 +10352,200 @@ subroutine adib(e0f)
 end subroutine adib
 
 +dk daten
-subroutine daten
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use end_sixtrack
-      use mathlib_bouncer
-      use scatter, only : scatter_active, scatter_debug,                &
-     &     scatter_seed1,scatter_seed2,                                 &
-     &     scatter_dumpdata,                                            &
-     &     scatter_parseELEM, scatter_parseProfile,                     &
-     &     scatter_parseGenerator, scatter_parseSEED,                   &
-     &     scatter_allocate
-
-      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
-     &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,                 &
-     &     dynk_inputsanitycheck, dynk_allocate
-
-      use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
-     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP,       &
-     &     fma_parseInputLine
-
-      use dump, only : dump_parseInputLine, dump_parseInputDone
-
-      use zipf, only : zipf_parseInputDone, zipf_parseInputline
-      
-      use physical_constants
-      use numerical_constants
-      use hdf5_output
-      use string_tools
-      use strings
-
+! ================================================================================================ !
+subroutine daten
+  
+  use floatPrecision
+  use end_sixtrack
+  use mathlib_bouncer
+  
+  use scatter, only : scatter_active, scatter_debug,scatter_seed1,scatter_seed2,scatter_dumpdata,&
+    scatter_parseELEM,scatter_parseProfile,scatter_parseGenerator,scatter_parseSEED,scatter_allocate
+  use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_parseFUN,dynk_parseSET,dynk_dumpdata,&
+    dynk_inputsanitycheck,dynk_allocate
+  use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,fma_first,fma_last,&
+    fma_max,fma_flag,fma_writeNormDUMP,fma_parseInputLine
+  use dump, only : dump_parseInputLine, dump_parseInputDone
+  use zipf, only : zipf_parseInputDone, zipf_parseInputline
+  use bdex, only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use aperture
+  
+  use physical_constants
+  use numerical_constants
+  use string_tools
+  use strings
+  
 +if fluka
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! import mod_fluka
+  ! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
 +ei
-
++if hdf5
+  use hdf5_output
++ei
 +if root
-      use root_output
+  use root_output
 +ei
-
-      use bdex, only : bdex_debug, bdex_parseElem, bdex_parseChan,      &
-     &     bdex_parseInputDone
-
-      use aperture
-
-      use mod_ranecu
-      
-      use crcoall
-      use parpro
-      use parpro_scale
-      use mod_common
-      use mod_commons
-
-      use mod_hions
-      use mod_alloc
-
-      use elens
-      use wire
-
-      implicit none
-
-      integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
-     &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
-     &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
-     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,   &
-     &i4,i5
+  
+  use mod_ranecu
+  
+  use crcoall
+  use parpro
+  use parpro_scale
+  use mod_common
+  use mod_commons
+  
+  use mod_hions
+  use mod_alloc
+  
+  use elens
+  use wire
+  
+  implicit none
+  
+  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,    &
+    ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
+    izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
+    ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
 +if time
-      integer ifiend35
-      real(kind=fPrec) tcnst
+  integer ifiend35
+  real(kind=fPrec) tcnst
 +ei
-      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,           &
-     &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
-     &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
-     &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
-      !For BEAM-EXP
-      real(kind=fPrec) separx,separy
-      real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
-      
-      character(len=max_name_len) sing,stru,prin,quie,trac,diff,sync,ende,bloc,comm
-      character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
-      character(len=max_name_len) beze,go,comb,sear,subr
-      character(len=max_name_len) free,geom,cavi,disp,reso,bezext
-      character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-      character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
-      character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
-      character(len=max_name_len) coll
-      character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
-      character(len=60) ihead
-      integer nchars
-      parameter (nchars=160)
-      character(len=nchars) ch
-      character(len=nchars+nchars) ch1
-      character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-      integer   getfields_nfields                                                 ! Number of identified fields
-      integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-      logical   getfields_lerr                                                    ! An error flag
-          logical beam_xstr
+  real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,cosy,dummy,    &
+    emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,qbet,qigam,    &
+    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,xang,xstr,xpl0,xplane,xrms0,  &
+    zpl0,zrms0
+    
+  ! For BEAM-EXP
+  real(kind=fPrec) separx,separy
+  real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+  
+  character(len=max_name_len) sing,stru,prin,quie,trac,diff,sync,ende,bloc,comm
+  character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
+  character(len=max_name_len) beze,go,comb,sear,subr
+  character(len=max_name_len) free,geom,cavi,disp,reso,bezext
+  character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
+  character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
+  character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
+  character(len=max_name_len) coll
+  character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
+  character(len=60) ihead
+  integer nchars
+  parameter (nchars=160)
+  character(len=nchars) ch
+  character(len=nchars+nchars) ch1
+  logical   beam_xstr
+  
+  ! Variables for input line fields
+  ! These  should eventually be replaced by the string_tools->str_split subroutine
+  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+  integer   getfields_nfields                                                 ! Number of identified fields
+  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+  logical   getfields_lerr                                                    ! An error flag
+  
 +if crlibm
-      ! MAXF be kept in sync with value in function fround
-      integer maxf,nofields
-      parameter (maxf=30)
-      parameter (nofields=41)
-      character(len=maxf) fields(nofields)
-      integer errno,nfields,nunit,nf
-      real(kind=fPrec) fround
+  ! MAXF be kept in sync with value in function fround
+  integer maxf,nofields
+  parameter (maxf=30)
+  parameter (nofields=41)
+  character(len=maxf) fields(nofields)
+  integer errno,nfields,nunit,nf
+  real(kind=fPrec) fround
 +ei
 +if .not.crlibm
-      integer nunit
+  integer nunit
 +ei
-      integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
-      data lineno2 /0/
-      data lineno3 /0/
-      data lineno8 /0/
-      data lineno16 /0/
-      data lineno30 /0/
-      data lineno35 /0/
+  integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
+  data lineno2 /0/
+  data lineno3 /0/
+  data lineno8 /0/
+  data lineno16 /0/
+  data lineno30 /0/
+  data lineno35 /0/
 +ca commonex
 +ca commont1
 +ca commondl
-!
+  
 +if collimat
 +ca collpara
 +ca dbdaten
 +ca dbpencil
 +ca database
 +ca dbcolcom
-      logical has_coll
+  logical has_coll
 +ei
 +if .not.collimat
-      logical do_coll
+  logical do_coll
 +ei
-!
+  
 +if bnlelens
 +ca rhicelens
 +ei
 +ca parbeam_exp
 +ca dbreaddis
-
-
-      !Fluka related, might be best to lock to real64
-      real(kind=fPrec) tmpamplfact, tmplen
-
-      ! some temp vars for parsing block lines
-      logical tmpl
-      character(len=nchars) tmpch
-      integer tmpi1,tmpi2,tmpi3
-      real(kind=fPrec) tmpflt
-      real(kind=fPrec) tmpflts(9)
-
-      ! Elens: online calculation of theta@r2
-      real(kind=fPrec) eLensTheta
-      
-      dimension icel(ncom,20),iss(2),iqq(5)
-      dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
-      dimension extaux(40),bezext(nblz)
-      data sing,stru,prin,quie,sync,ende,next,comm /'SING','STRU','PRIN','QUIE','SYNC','ENDE','NEXT','COMM'/
-      data fluc,mult,chro,iter,tune,line,trac,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
-      data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco &
-           /'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR','RESO','DISP','POST','RIPP','DECO'/
-      data comb,free,geom,cavi,beam,trom /'COMB','FREE','GEOM','CAV','BEAM','TROM'/
-      data idum,kl,kr,orga,norm,corr /' ','(',')','ORGA','NORM','CORR'/
-      data coll /'COLL'/
-!     - scatter
-      character(len=4) scat
-      data scat /'SCAT'/
-      ! HDF5
-      character(len=4) h5out
-      data h5out /'HDF5'/
-!     - coupling:
-      character(len=4) fluk
-      data fluk /'FLUK'/
-!     - read particle distribution for FLUKA:
-      character(len=4) dist
-      data dist /'DIST'/
-!     - root output:
-      character(len=4) root
-      data root /'ROOT'/
-!     hisix
-!     add block for input of heavy-ion properties
-      character(len=4) hion
-      data hion /'HION'/
-
+  
+  ! Fluka related, might be best to lock to real64
+  real(kind=fPrec) tmpamplfact, tmplen
+  
+  ! some temp vars for parsing block lines
+  logical tmpl
+  character(len=nchars) tmpch
+  integer tmpi1,tmpi2,tmpi3
+  real(kind=fPrec) tmpflt
+  real(kind=fPrec) tmpflts(9)
+  
+  ! Elens: online calculation of theta@r2
+  real(kind=fPrec) eLensTheta
+  
+  dimension icel(ncom,20),iss(2),iqq(5)
+  dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
+  dimension extaux(40),bezext(nblz)
+  data sing,stru,prin,quie,sync,ende,next,comm /'SING','STRU','PRIN','QUIE','SYNC','ENDE','NEXT','COMM'/
+  data fluc,mult,chro,iter,tune,line,trac,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
+  data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco &
+    /'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR','RESO','DISP','POST','RIPP','DECO'/
+  data comb,free,geom,cavi,beam,trom /'COMB','FREE','GEOM','CAV','BEAM','TROM'/
+  data idum,kl,kr,orga,norm,corr /' ','(',')','ORGA','NORM','CORR'/
+  data coll /'COLL'/
+  !  scatter
+  character(len=4) scat
+  data scat /'SCAT'/
+  ! HDF5
+  character(len=4) h5out
+  data h5out /'HDF5'/
+  ! coupling:
+  character(len=4) fluk
+  data fluk /'FLUK'/
+  ! read particle distribution for FLUKA:
+  character(len=4) dist
+  data dist /'DIST'/
+  ! root output:
+  character(len=4) root
+  data root /'ROOT'/
+  ! hisix
+  ! add block for input of heavy-ion properties
+  character(len=4) hion
+  data hion /'HION'/
+  
 +if crlibm
-      real(kind=fPrec) round_near
+  real(kind=fPrec) round_near
 +ei
+  
+  logical lapefound
+  logical lerr1
+  logical lexist
+  
+  character(len=max_name_len) :: defaultstring
+  integer str_int
+  
+  save
+  
+! ================================================================================================ !
 
-      logical lapefound
-      logical lerr1
-      logical lexist
-
-      character(len=max_name_len) :: defaultstring
-      integer str_int
-      
-      ! Test variables, Veronica
-      type(string), allocatable :: chSplit(:)
-      integer nSplit
-
-      save
-!-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
       iss(1)=' '
@@ -16590,17 +16580,17 @@ subroutine daten
       call zipf_parseInputline(ch)
       goto 2800                    !Read the next line of the ZIPF block
 
-!-----------------------------------------------------------------------
-!  SCATTER
-!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
-!  Last modified: 29-08-2017
-!-----------------------------------------------------------------------
- 2900 continue
+! ================================================================================================ !
+!  SCATTER Input
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2017-08-29
+! ================================================================================================ !
+2900 continue
       ! We have a SCATTER block; let's allocate the memory for it!
       if (scatter_active) then
-         write(lout,*) "ERROR while parsing SCATTER in fort.3"
-         write(lout,*) "More than one SCATTER block encountered?"
-         call prror(-1)
+        write(lout,*) "ERROR while parsing SCATTER in fort.3"
+        write(lout,*) "More than one SCATTER block encountered?"
+        call prror(-1)
       end if
       call scatter_allocate
       
@@ -16612,128 +16602,80 @@ subroutine daten
       
       if (ch(:4).eq.next) then
          
-         scatter_active = .true.
+        scatter_active = .true.
 
-         if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
-            write(lout,*) "ERROR while parsing SCATTER in fort.3"
-            write(lout,*) "No SEED sets were specified"
-            call prror(-1)
-         endif
+        if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
+          write(lout,*) "ERROR while parsing SCATTER in fort.3"
+          write(lout,*) "No SEED sets were specified"
+          call prror(-1)
+        endif
          
-         if (scatter_debug) call scatter_dumpdata
-         goto 110               !Read next block or ENDE
-      endif
+        if (scatter_debug) call scatter_dumpdata
+        goto 110               !Read next block or ENDE
+      end if
       
       if (ch(:5).eq."DEBUG") then
-         scatter_debug = .true.
-         write(lout,'(a)') "SCATTER> Scatter block debugging is ON."
-         goto 2901
-      endif
+        scatter_debug = .true.
+        write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
+        goto 2901
+      end if
       
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &     getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(51)
-      if (scatter_debug) then
-         write (lout,'(A,I4,A)')                                        &
-     &        "SCATTER> Got a block, len=",                             &
-     &        len(trim(ch)), ": '"// trim(ch)// "'"
-         do ii=1,getfields_nfields
-            write (lout,'(a,I4,A)')                                     &
-     &           "SCATTER> Field(",ii,") ='"//                          &
-     &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-         enddo
-      endif
+      call getfields_split(ch,getfields_fields,getfields_lfields,getfields_nfields,getfields_lerr)
+      if(getfields_lerr) call prror(51)
+      if(scatter_debug) then
+        write (lout,"(a,i4,a)") "SCATTER> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
+        do ii=1, getfields_nfields
+          write (lout,"(a,i4,a)") "SCATTER> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
+        end do
+      end if
 
-      ! ***** PARSE SCATTER ELEM STATEMENT *****
       if (ch(:4).eq."ELEM") then
-         call scatter_parseElem(getfields_fields,getfields_lfields,     &
-     &                          getfields_nfields)
-      ! ***** PARSE SCATTER PRO STATEMENT *****
+        call scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
       else if (ch(:3).eq."PRO") then
-         call scatter_parseProfile(getfields_fields,getfields_lfields,  &
-     &                             getfields_nfields)
-      ! ***** PARSE SCATTER GEN STATEMENT *****
+        call scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
       else if (ch(:3).eq."GEN") then
-         call scatter_parseGenerator(getfields_fields,getfields_lfields,&
-     &                               getfields_nfields)
-      ! ***** PARSE SCATTER SEED STATEMENT *****
+        call scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
       else if (ch(:4).eq."SEED") then
-         call scatter_parseSEED(getfields_fields,getfields_lfields,     &
-     &                          getfields_nfields)
+        call scatter_parseSEED(getfields_fields,getfields_lfields,getfields_nfields)
       else
-         write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
-         write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
-         call prror(-1)
-      endif
+        write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
+        write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
+        call prror(-1)
+      end if
       
       goto 2901                 !Read the next line of the SCATTER block
 
-!-----------------------------------------------------------------------
-!  HDF5
-!  V.K. Berglyd Olsen BE-ABP-HSS
-!  Last modified: 2018-04-13
-!-----------------------------------------------------------------------
+! ================================================================================================ !
+!  HDF5 Input
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+! ================================================================================================ !
 3100  continue
 +if .not.hdf5
-      write(lout,*) "ERROR while parsing HDF5 in fort.3"
-      write(lout,*) "SixTrack was not compiled with the HDF5 flag"
+      write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+      write(lout,*) "SixTrack was not compiled with the HDF5 flag."
       call prror(-1)
 +ei
 +if hdf5
-      ! We have a SCATTER block; let's allocate the memory for it!
-      if (h5_active) then
-        write(lout,*) "ERROR while parsing HDF5 in fort.3"
-        write(lout,*) "More than one HDF5 block encountered"
+      ! Check if an HDF5 block has already been encountered
+      if (h5_isActive) then
+        write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+        write(lout,*) "More than one HDF5 block encountered."
         call prror(-1)
       end if
       
 3110  continue
-
-      ! read(3,10020, end=1530, iostat=ierro) ch
       read(3,10020, end=1530, iostat=ierro) ch
       if(ierro > 0) call prror(58)
       lineno3 = lineno3 + 1
       
-      ch = adjustl(ch)
       if(ch(1:1) == '/') goto 3110 ! Comment line encountered
-      
-      if(ch(:4) == next) then
-        
-        h5_active = .true.
-        
-        if(h5_debug) call h5_dumpData
+      if(ch(1:4) == next) then
+        h5_isActive = .true.
+        if(h5_debugOn) call h5_dumpData
         goto 110 ! Read next block or ENDE
-      end if
-      
-      if(ch(:5) == "DEBUG") then
-        scatter_debug = .true.
-        write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
-        goto 3110
-      end if
-      
-      call getfields_split(ch, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
-      call str_split(string(ch),chSplit,nSplit)
-      write(*,"(a)") (chSplit(i)%chr, i=1,nSplit)
-      
-      if(getfields_lerr) call prror(51)
-      if(h5_debug) then
-        write (lout,"(a,i4,a)") "HDF5> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
-        do ii=1,getfields_nfields
-          write (lout,"(a,i4,a)") "HDF5> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-        end do
-      end if
-      
-      ! Parse the lines
-      if(ch(:4) == "FILE") then
-        call h5_parseFILE(getfields_fields,getfields_lfields,getfields_nfields)
-      elseif(ch(:4) == "ROOT") then
-        call h5_parseROOT(getfields_fields,getfields_lfields,getfields_nfields)
-      elseif(ch(:6) == "ENABLE") then
-        call h5_parseENABLE(getfields_fields,getfields_lfields,getfields_nfields)
       else
-        write(lout,"(a)") "HDF5> ERROR, line type not recognized:"
-        write(lout,"(a)") "HDF5> '"//trim(ch)//"'"
-        call prror(-1)
+        call h5_parseInputLine(string(ch))
       end if
       
       goto 3110 ! Read the next line of the block

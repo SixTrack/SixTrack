@@ -15,6 +15,7 @@ module hdf5_output
   use floatPrecision
   use end_sixtrack
   use crcoall
+  use strings
   
   implicit none
   
@@ -22,7 +23,7 @@ module hdf5_output
   integer, parameter :: h5_strLen = 100
   
   ! Common settings
-  logical, save :: h5_active, h5_debug
+  logical, save :: h5_isActive, h5_debugOn
   character(len=h5_strLen), save :: h5_fileName ! The HDF5 output file name
   character(len=h5_strLen), save :: h5_rootPath ! The root group where the data for this session is stored
   
@@ -51,41 +52,21 @@ end subroutine h5_initFile
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-13
 ! ================================================================================================ !
-subroutine h5_parseFILE(getfields_fields,getfields_lfields,getfields_nfields)
+subroutine h5_parseInputLine(inLine)
   
   use string_tools
   
   implicit none
   
-  character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-  integer,   intent(in) :: getfields_nfields
-  integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
-
-end subroutine h5_parseFILE
-
-subroutine h5_parseROOT(getfields_fields,getfields_lfields,getfields_nfields)
+  type(string), intent(in) :: inLine
   
-  use string_tools
-
-  implicit none
-  
-  character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-  integer,   intent(in) :: getfields_nfields
-  integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
-  
-end subroutine h5_parseROOT
-
-subroutine h5_parseENABLE(getfields_fields,getfields_lfields,getfields_nfields)
-
-  use string_tools
-  
-  implicit none
-  
-  character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-  integer,   intent(in) :: getfields_nfields
-  integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
-
-end subroutine h5_parseENABLE
+  ! if(h5_debug) then
+  !   write (lout,"(a,i4,a)") "HDF5> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
+  !   do ii=1,getfields_nfields
+  !     write (lout,"(a,i4,a)") "HDF5> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
+  !   end do
+  ! end if
+end subroutine h5_parseInputLine
 
 ! ================================================================================================ !
 !  HDF5 Dump Data
@@ -95,6 +76,8 @@ end subroutine h5_parseENABLE
 subroutine h5_dumpData()
   
   implicit none
+
+  ! write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
   
   
 end subroutine h5_dumpData
