@@ -18,7 +18,15 @@ end module strings
 ! ================================================================================================ !
 module string_tools
   
+  use strings
+  
   implicit none
+  
+  public str_trim, chr_trim
+  
+  !
+  ! Old stuff added for backwards compatibility
+  !
   
   ! Parameters for the fields parser
   integer getfields_n_max_fields, getfields_l_max_string
@@ -36,12 +44,15 @@ module string_tools
   
   public stringzerotrim
   
-  
 contains
 
+! ================================================================================================ !
+!  String Split Routine
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+!  Splits a string into an array of strings by one or more space
+! ================================================================================================ !
 subroutine str_split(toSplit, returnArray, nArray)
-  
-  use strings
   
   implicit none
   
@@ -73,6 +84,72 @@ subroutine str_split(toSplit, returnArray, nArray)
   end do
   
 end subroutine str_split
+
+! ================================================================================================ !
+!  Trim String Routine
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+!  Trims leading and trailing white spaces from a string
+!  str_trim is for strings in and out
+!  chr_trim is for char arrays in and out
+! ================================================================================================ !
+function str_trim(theString) result(retString)
+  type(string), intent(in) :: theString
+  type(string)             :: retString
+  retString = string(trim(adjustl(theString%chr)))
+end function str_trim
+
+function chr_trim(theString) result(retString)
+  character(len=:), allocatable, intent(in) :: theString
+  character(:),     allocatable             :: retString
+  retString = trim(adjustl(theString))
+end function chr_trim
+
+! ================================================================================================ !
+!  Strip Quotes Routine
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+!  Removes a matching pair of single or double quotes at the beginning or end of a string
+! ================================================================================================ !
+function str_stripQuotes(theString) result(retString)
+  type(string), intent(in) :: theString
+  type(string)             :: retString
+  retString = string(chr_stripQuotes(theString%chr))
+end function str_stripQuotes
+
+function chr_stripQuotes(theString) result(retString)
+  
+  character(len=:), allocatable, intent(in) :: theString
+  character(:),     allocatable             :: tmpString
+  character(:),     allocatable             :: retString
+  
+  integer strLen
+  
+  tmpString = chr_trim(theString)
+  strLen    = len(tmpString)
+  
+  if(strLen < 2) then
+    ! String is too short, returned trimmed string only
+    retString = tmpString
+    return
+  end if
+  
+  if(tmpString(1:1) == '"' .and. tmpString(strLen:strLen) == '"') then
+    ! String is double quoted
+    retString = tmpString(2:strLen-1)
+    return
+  elseif(tmpString(1:1) == "'" .and. tmpString(strLen:strLen) == "'") then
+    ! String is single quoted
+    retString = tmpString(2:strLen-1)
+    return
+  else
+    ! String has no outer quote marks, or different quote marks
+    ! Return trimmed string only
+    retString = tmpString
+    return
+  end if
+  
+end function chr_stripQuotes
 
 ! ================================================================================================ !
 !  A.Mereghetti, for the FLUKA Team

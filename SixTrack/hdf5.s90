@@ -24,8 +24,8 @@ module hdf5_output
   
   ! Common settings
   logical, save :: h5_isActive, h5_debugOn
-  character(len=h5_strLen), save :: h5_fileName ! The HDF5 output file name
-  character(len=h5_strLen), save :: h5_rootPath ! The root group where the data for this session is stored
+  type(string), save :: h5_fileName ! The HDF5 output file name
+  type(string), save :: h5_rootPath ! The root group where the data for this session is stored
   
   ! Input block switches
   logical, save :: h5_useForDUMP
@@ -58,14 +58,38 @@ subroutine h5_parseInputLine(inLine)
   
   implicit none
   
-  type(string), intent(in) :: inLine
+  type(string), intent(in)  :: inLine
   
-  ! if(h5_debug) then
-  !   write (lout,"(a,i4,a)") "HDF5> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
-  !   do ii=1,getfields_nfields
-  !     write (lout,"(a,i4,a)") "HDF5> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-  !   end do
-  ! end if
+  type(string), allocatable :: lnSplit(:)
+  integer nSplit
+  
+  integer i
+  
+  ! Split the input line
+  call str_split(inLine,lnSplit,nSplit)
+  
+  if(nSplit == 0) then
+    if(h5_debugOn) then
+      write (lout,"(a,i3,a)") "HDF5> Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'"
+      write (lout,"(a)")      "HDF5> * No fields"
+    end if
+    return
+  end if
+  
+  select case(lnSplit(1)%chr)
+  case("DEBUG")
+    h5_debugOn = .true.
+    write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
+  case("FILE")
+    
+  end select
+  
+  ! Report if debugging is ON
+  if(h5_debugOn) then
+    write (lout,"(a,i3,3a)")  "HDF5> Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'"
+    write (lout,"(a,i2,3a)") ("HDF5> * Field(",i,") = '",lnSplit(i)%chr,"'",i=1,nSplit)
+  end if
+  
 end subroutine h5_parseInputLine
 
 ! ================================================================================================ !
@@ -77,7 +101,6 @@ subroutine h5_dumpData()
   
   implicit none
 
-  ! write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
   
   
 end subroutine h5_dumpData
