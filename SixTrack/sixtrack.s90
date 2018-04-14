@@ -16672,7 +16672,6 @@ subroutine daten
       if(ch(1:1) == '/') goto 3110 ! Comment line encountered
       if(ch(1:4) == next) then
         h5_isActive = .true.
-        if(h5_debugOn) call h5_dumpData
         goto 110 ! Read next block or ENDE
       else
         call h5_parseInputLine(string(ch))

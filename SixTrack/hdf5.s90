@@ -136,17 +136,4 @@ subroutine h5_parseInputLine(inLine)
 end subroutine h5_parseInputLine
 
 ! ================================================================================================ !
-!  HDF5 Dump Data
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-13
-! ================================================================================================ !
-subroutine h5_dumpData()
-  
-  implicit none
-
-  
-  
-end subroutine h5_dumpData
-
-! ================================================================================================ !
 end module hdf5_output

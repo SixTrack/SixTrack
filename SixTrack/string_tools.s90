@@ -99,12 +99,10 @@ function str_sub(theString, iA, iB) result(retString)
   type(string)                  :: retString
   character(len=:), allocatable :: tmpString
   
-  integer iA, iB, iC, iN
-  integer oldLen, newLen
+  integer iA, iB, oldLen, newLen
   
   oldLen = len(theString%chr)
   newLen = iB - iA + 1
-  allocate(character(newLen) :: tmpString)
   
   if(newLen <= 0) then
     retString = string("")
@@ -113,12 +111,9 @@ function str_sub(theString, iA, iB) result(retString)
   if(iA < 1)      iA = 1
   if(iB > oldLen) iB = oldLen
   
-  do iC=iA,iB
-    iN = iC-iA+1
-    tmpString(iN:iN) = theString%chr(iC:iC)
-  end do
-  
-  retString = string(tmpString)
+  allocate(character(newLen) :: tmpString)
+  tmpString(1:newLen) = theString%chr(iA:iB)
+  retString           = string(tmpString)
   
 end function str_sub
 
