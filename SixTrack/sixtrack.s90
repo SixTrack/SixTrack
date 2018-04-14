@@ -10382,6 +10382,7 @@ subroutine daten
       use numerical_constants
       use hdf5_output
       use string_tools
+      use strings
 
 +if fluka
 
@@ -10548,6 +10549,10 @@ subroutine daten
 
       character(len=max_name_len) :: defaultstring
       integer str_int
+      
+      ! Test variables, Veronica
+      type(string), allocatable :: chSplit(:)
+      integer nSplit
 
       save
 !-----------------------------------------------------------------------
@@ -16682,7 +16687,10 @@ subroutine daten
         call prror(-1)
       end if
       
-3110  read(3,10020, end=1530, iostat=ierro) ch
+3110  continue
+
+      ! read(3,10020, end=1530, iostat=ierro) ch
+      read(3,10020, end=1530, iostat=ierro) ch
       if(ierro > 0) call prror(58)
       lineno3 = lineno3 + 1
       
@@ -16704,6 +16712,8 @@ subroutine daten
       end if
       
       call getfields_split(ch, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
+      call str_split(string(ch),chSplit,nSplit)
+      write(*,"(a)") (chSplit(i)%chr, i=1,nSplit)
       
       if(getfields_lerr) call prror(51)
       if(h5_debug) then
@@ -17265,7 +17275,7 @@ subroutine parseChebyFile(ifile)
       
       implicit none
       
-      character(len=160) string
+      character(len=160) tmpstr
       character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
       integer   getfields_nfields                                                 ! Number of identified fields
       integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
@@ -17278,15 +17288,15 @@ subroutine parseChebyFile(ifile)
      &   //elens_cheby_filename(ifile)
       open(elens_cheby_unit,file=elens_cheby_filename(ifile),status='old')
       do while (.true.)
-         read(elens_cheby_unit,'(A)',end=1982,err=1983) string
-         if (string(1:1).ne.'#') then
-            call getfields_split( string, getfields_fields, getfields_lfields, &
+         read(elens_cheby_unit,'(A)',end=1982,err=1983) tmpstr
+         if (tmpstr(1:1).ne.'#') then
+            call getfields_split( tmpstr, getfields_fields, getfields_lfields, &
      &        getfields_nfields, getfields_lerr )
             if ( getfields_lerr ) then
                ierr=1
                goto 1983
             end if
-            if (string(1:1).eq.'I') then
+            if (tmpstr(1:1).eq.'I') then
 !              read reference current of e-beam in e-lens
                if (getfields_nfields.lt.3) then
                   ierr=2
@@ -17301,7 +17311,7 @@ subroutine parseChebyFile(ifile)
 +ei
                elens_cheby_refCurr(ifile)=tmpflt
                
-            elseif (string(1:2).eq.'Ek') then
+            elseif (tmpstr(1:2).eq.'Ek') then
 !              read reference kinetic energy of e-beam in e-lens
                if (getfields_nfields.lt.3) then
                   ierr=3
@@ -17317,7 +17327,7 @@ subroutine parseChebyFile(ifile)
                gamma=tmpflt*c1m3/pmae+1 ! from kinetic energy
                elens_cheby_refBeta(ifile)=sqrt((gamma+one)*(gamma-one))/(gamma)
                
-            elseif (string(1:3).eq.'rad') then
+            elseif (tmpstr(1:3).eq.'rad') then
 !              read reference radius e-beam in e-lens
                if (getfields_nfields.lt.3) then
                   ierr=4
@@ -17379,7 +17389,7 @@ subroutine parseChebyFile(ifile)
       
 end subroutine parseChebyFile
       
-      subroutine write4
+subroutine write4
 !-----------------------------------------------------------------------
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
 !-----------------------------------------------------------------------
@@ -17458,8 +17468,9 @@ end subroutine parseChebyFile
       goto 3
  90   continue
 10000 format(a16,1x,i2,1x,d22.15,1x,d22.15,1x,d17.10)
-      end
-      subroutine intepr(i,j,ch,ch1)
+end subroutine write4
+
+subroutine intepr(i,j,ch,ch1)
 !-----------------------------------------------------------------------
 !     SUBROUTINE TO INTEPRET INPUT WITH CHARACTERS AND NUMBERS MIXED
 !

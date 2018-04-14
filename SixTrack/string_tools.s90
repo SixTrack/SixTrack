@@ -1,5 +1,13 @@
 +dk string_tools
 
+module strings
+  
+  type string
+    character(len=:), allocatable :: chr
+  end type string
+  
+end module strings
+
 ! ================================================================================================ !
 !  SixTrack String Tools
 ! ~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,13 +30,49 @@ module string_tools
   integer stringzerotrim_maxlen
   
   ! Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
-  parameter (stringzerotrim_maxlen=getfields_l_max_string)
+  parameter(stringzerotrim_maxlen=getfields_l_max_string)
   
   character(len=stringzerotrim_maxlen) stringzerotrim ! Define the function
   
   public stringzerotrim
   
+  
 contains
+
+subroutine str_split(toSplit, returnArray, nArray)
+  
+  use strings
+  
+  implicit none
+  
+  type(string),              intent(in)  :: toSplit
+  type(string), allocatable, intent(out) :: returnArray(:)
+  integer,                   intent(out) :: nArray
+  
+  integer      :: ch, new
+  type(string) :: tmpString
+  
+  new    = 0
+  nArray = 0
+  do ch=1, len(toSplit%chr)
+    if(toSplit%chr(ch:ch) == " ") then
+      if(new == 0) then
+        cycle
+      else
+        if(nArray == 0) then
+          returnArray = [string(toSplit%chr(new:ch-1))]
+        else
+          returnArray = [returnArray, string(toSplit%chr(new:ch-1))]
+        end if
+        new    = 0
+        nArray = nArray + 1
+      end if
+    else
+      if(new == 0) new = ch
+    end if
+  end do
+  
+end subroutine str_split
 
 ! ================================================================================================ !
 !  A.Mereghetti, for the FLUKA Team
@@ -38,8 +82,7 @@ contains
 !  Parse a line and split it into its fields fields are returned as 0-terminated and padded string.
 !
 !  input:
-!    tmpline: usually line read in from fort.2 or fort.3. Values must be 
-!             separated by spaces
+!    tmpline: usually line read in from fort.2 or fort.3. Values must be separated by spaces
 !  Output:
 !    Array of values with 
 !      getfields_fields(i):  (char) value of field
