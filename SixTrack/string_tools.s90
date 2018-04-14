@@ -23,6 +23,7 @@ module string_tools
   implicit none
   
   public str_trim, chr_trim
+  public str_stripQuotes, chr_stripQuotes
   
   !
   ! Old stuff added for backwards compatibility
@@ -86,6 +87,42 @@ subroutine str_split(toSplit, returnArray, nArray)
 end subroutine str_split
 
 ! ================================================================================================ !
+!  SubString Routine
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+!  Returns a substring of a string
+!  This is a safer way of extracting a substring than slicing string%chr
+! ================================================================================================ !
+function str_sub(theString, iA, iB) result(retString)
+  
+  type(string), intent(in)      :: theString
+  type(string)                  :: retString
+  character(len=:), allocatable :: tmpString
+  
+  integer iA, iB, iC, iN
+  integer oldLen, newLen
+  
+  oldLen = len(theString%chr)
+  newLen = iB - iA + 1
+  allocate(character(newLen) :: tmpString)
+  
+  if(newLen <= 0) then
+    retString = string("")
+    return
+  end if
+  if(iA < 1)      iA = 1
+  if(iB > oldLen) iB = oldLen
+  
+  do iC=iA,iB
+    iN = iC-iA+1
+    tmpString(iN:iN) = theString%chr(iC:iC)
+  end do
+  
+  retString = string(tmpString)
+  
+end function str_sub
+
+! ================================================================================================ !
 !  Trim String Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
@@ -112,9 +149,32 @@ end function chr_trim
 !  Removes a matching pair of single or double quotes at the beginning or end of a string
 ! ================================================================================================ !
 function str_stripQuotes(theString) result(retString)
+  
   type(string), intent(in) :: theString
+  type(string)             :: tmpString
   type(string)             :: retString
-  retString = string(chr_stripQuotes(theString%chr))
+  
+  integer strLen
+  
+  tmpString = str_trim(theString)
+  strLen    = len(tmpString%chr)
+  
+  if(strLen < 2) then
+    retString = tmpString
+    return
+  end if
+  
+  if(tmpString%chr(1:1) == '"' .and. tmpString%chr(strLen:strLen) == '"') then
+    retString = str_sub(tmpString,2,strLen-1)
+    return
+  elseif(tmpString%chr(1:1) == "'" .and. tmpString%chr(strLen:strLen) == "'") then
+    retString = str_sub(tmpString,2,strLen-1)
+    return
+  else
+    retString = tmpString
+    return
+  end if
+  
 end function str_stripQuotes
 
 function chr_stripQuotes(theString) result(retString)
@@ -129,27 +189,26 @@ function chr_stripQuotes(theString) result(retString)
   strLen    = len(tmpString)
   
   if(strLen < 2) then
-    ! String is too short, returned trimmed string only
     retString = tmpString
     return
   end if
   
   if(tmpString(1:1) == '"' .and. tmpString(strLen:strLen) == '"') then
-    ! String is double quoted
     retString = tmpString(2:strLen-1)
     return
   elseif(tmpString(1:1) == "'" .and. tmpString(strLen:strLen) == "'") then
-    ! String is single quoted
     retString = tmpString(2:strLen-1)
     return
   else
-    ! String has no outer quote marks, or different quote marks
-    ! Return trimmed string only
     retString = tmpString
     return
   end if
   
 end function chr_stripQuotes
+
+! ================================================================================================ !
+!  HERE FOLLOWS THE OLD ROUTINES
+! ================================================================================================ !
 
 ! ================================================================================================ !
 !  A.Mereghetti, for the FLUKA Team

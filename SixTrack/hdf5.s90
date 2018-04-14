@@ -28,9 +28,9 @@ module hdf5_output
   type(string), save :: h5_rootPath ! The root group where the data for this session is stored
   
   ! Input block switches
+  logical, save :: h5_useForCOLL
   logical, save :: h5_useForDUMP
   logical, save :: h5_useForSCAT
-  logical, save :: h5_useForCOLL
   
 contains
 
@@ -55,6 +55,7 @@ end subroutine h5_initFile
 subroutine h5_parseInputLine(inLine)
   
   use string_tools
+  use end_sixtrack
   
   implicit none
   
@@ -70,24 +71,66 @@ subroutine h5_parseInputLine(inLine)
   
   if(nSplit == 0) then
     if(h5_debugOn) then
-      write (lout,"(a,i3,a)") "HDF5> Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'"
-      write (lout,"(a)")      "HDF5> * No fields"
+      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'"
+      write (lout,"(a)")      "HDF5> DEBUG  * No fields found"
     end if
     return
   end if
   
   select case(lnSplit(1)%chr)
+  
   case("DEBUG")
     h5_debugOn = .true.
     write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
+  
   case("FILE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR in FILE. Statements takes 1 input parameter, ",(nSplit-1)," given."
+    end if
+    h5_fileName = str_stripQuotes(lnSplit(2))
+    write(lout, "(3a)") "HDF5> Output file name set to: '",h5_fileName%chr,"'"
+  
+  case("ROOT")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR in ROOT. Statements takes 1 input parameter, ",(nSplit-1)," given."
+    end if
+    h5_rootPath = str_stripQuotes(lnSplit(2))
+    write(lout, "(3a)") "HDF5> Root path set to: '",h5_rootPath%chr,"'"
+  
+  case("ENABLE")
+  
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR in ENABLE. Statements takes 1 input parameter, ",(nSplit-1)," given."
+    end if
+    if(len(lnSplit(2)%chr) < 4) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR in ENABLE. Argument must be at least 4 characters."
+    end if
     
+    select case(lnSplit(2)%chr(1:4))
+    case("COLL")
+      h5_useForCOLL = .true.
+      write(lout,"(3a)") "HDF5> HDF5 is enabled for COLLIMATION."
+    case("DUMP")
+      h5_useForDUMP = .true.
+      write(lout,"(3a)") "HDF5> HDF5 is enabled for DUMP."
+    case("SCAT")
+      h5_useForSCAT = .true.
+      write(lout,"(3a)") "HDF5> HDF5 is enabled for SCATTER."
+    case default
+      write(lout,"(3a)") "HDF5> ERROR HDF5 is not available for ",lnSplit(2)%chr(1:4)," blocks."
+      call prror(-1)
+    end select
+  
+  case default
+    write(lout,"(3a)") "HDF5> ERROR Unrecognised statement '",lnSplit(1)%chr,"'."
+    call prror(-1)
+  
   end select
   
   ! Report if debugging is ON
   if(h5_debugOn) then
-    write (lout,"(a,i3,3a)")  "HDF5> Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'"
-    write (lout,"(a,i2,3a)") ("HDF5> * Field(",i,") = '",lnSplit(i)%chr,"'",i=1,nSplit)
+    write (lout,"(a,i3,3a)")  "HDF5> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'"
+    write (lout,"(a,i2,3a)") ("HDF5> DEBUG  * Field(",i,") = '",lnSplit(i)%chr,"'",i=1,nSplit)
   end if
   
 end subroutine h5_parseInputLine
