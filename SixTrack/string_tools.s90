@@ -1,5 +1,11 @@
 +dk string_tools
 
+! ================================================================================================ !
+!  SixTrack String Type
+! ~~~~~~~~~~~~~~~~~~~~~~
+!  V.K.B. Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-13
+! ================================================================================================ !
 module strings
   
   type string
@@ -11,10 +17,13 @@ end module strings
 ! ================================================================================================ !
 !  SixTrack String Tools
 ! ~~~~~~~~~~~~~~~~~~~~~~~
+!  V.K.B. Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-16
+!
+!  Old method: getfields_split, stringzerotrim
 !  A. Mereghetti, for the FLUKA Team
-!  K. Sjobak, V.K.B. Olsen, BE-ABP-HSS
+!  K. Sjobak, BE-ABP-HSS
 !  Last Modified: 2018-04-13
-!  Moved to module: 2018-04-13, V.K.B. Olsen
 ! ================================================================================================ !
 module string_tools
   
@@ -24,6 +33,8 @@ module string_tools
   
   public str_trim, chr_trim
   public str_stripQuotes, chr_stripQuotes
+  public str_sub
+  public str_inStr, chr_inStr
   
   !
   ! Old stuff added for backwards compatibility
@@ -51,7 +62,8 @@ contains
 !  String Split Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
-!  Splits a string into an array of strings by one or more space
+!  Splits a string into an array of strings by one or more space,
+!    but not within a pair of single our double quotes.
 ! ================================================================================================ !
 subroutine str_split(toSplit, returnArray, nArray)
   
@@ -62,12 +74,17 @@ subroutine str_split(toSplit, returnArray, nArray)
   integer,                   intent(out) :: nArray
   
   integer      :: ch, new
+  logical      :: sngQuote, dblQuote
   type(string) :: tmpString
   
-  new    = 0
-  nArray = 0
+  new      = 0
+  nArray   = 0
+  sngQuote = .false.
+  dblQuote = .false.
   do ch=1, len(toSplit%chr)
-    if(toSplit%chr(ch:ch) == " ") then
+    if(toSplit%chr(ch:ch) == "'") sngQuote = .not. sngQuote
+    if(toSplit%chr(ch:ch) == '"') dblQuote = .not. dblQuote
+    if(toSplit%chr(ch:ch) == " " .and. .not. sngQuote .and. .not. dblQuote) then
       if(new == 0) then
         cycle
       else
@@ -136,6 +153,45 @@ function chr_trim(theString) result(retString)
   character(:),     allocatable             :: retString
   retString = trim(adjustl(theString))
 end function chr_trim
+
+! ================================================================================================ !
+!  Count the Occurence of a Single Character in a String
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-16
+! ================================================================================================ !
+function str_inStr(theString, theNeedle) result(nNeedle)
+  
+  type(string),     intent(in)  :: theString
+  character(len=1), intent(in)  :: theNeedle
+  integer                       :: nNeedle
+  
+  integer ch
+  
+  nNeedle = 0
+  do ch=1, len(theString%chr)
+    if(theString%chr(ch:ch) == theNeedle) then
+      nNeedle = nNeedle + 1
+    end if
+  end do
+  
+end function str_inStr
+
+function chr_inStr(theString, theNeedle) result(nNeedle)
+  
+  character(len=:), allocatable, intent(in)  :: theString
+  character(len=1),              intent(in)  :: theNeedle
+  integer                                    :: nNeedle
+  
+  integer ch
+  
+  nNeedle = 0
+  do ch=1, len(theString)
+    if(theString(ch:ch) == theNeedle) then
+      nNeedle = nNeedle + 1
+    end if
+  end do
+  
+end function chr_inStr
 
 ! ================================================================================================ !
 !  Strip Quotes Routine

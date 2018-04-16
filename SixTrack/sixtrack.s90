@@ -22623,7 +22623,10 @@ program maincr
 +ei
 
   use postprocessing, only : postpr, writebin_header, writebin
-      
+
++if hdf5
+  use hdf5_output
++ei
 +if root
   use root_output
 +ei
@@ -22732,69 +22735,68 @@ end interface
 
 +ca dbreaddis
 
-
-      integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
-     &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
-     &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
-     &nerror,nlino,nlinoo,nmz,nthinerr
-      real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
-     &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
-     &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
-     &gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
-     &rdev,rmean,rsqsum,rsum,sic,tasia56,tasiar16,tasiar26,tasiar36,    &
-     &tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
-     &taus,x11,x13
-      integer idummy(6)
-      character(len=10) cmonth
-      character(len=4) cpto
+  integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
+    idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
+    jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
+    nerror,nlino,nlinoo,nmz,nthinerr
+  real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,  &
+    amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
+    dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
+    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
+    rdev,rmean,rsqsum,rsum,sic,tasia56,tasiar16,tasiar26,tasiar36,    &
+    tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
+    taus,x11,x13
+  integer idummy(6)
+  character(len=10) cmonth
+  character(len=4) cpto
 +if cr
-      character(len=80) day
+  character(len=80) day
 +ei
 +if .not.cr
-      character(len=80) day,runtim
+  character(len=80) day,runtim
 +ei
-      character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
-                                          !DANGER: If the len changes, CRCHECK will break.
+  character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
+                                      !DANGER: If the len changes, CRCHECK will break.
 +if boinc
-      character(len=256) filename
+  character(len=256) filename
 +ei
 +if crlibm
-      integer nchars
-      parameter (nchars=160)
-      character(len=nchars) ch
-      character(len=nchars+nchars) ch1
-      ! MAXF be kept in sync with value in function fround
-      integer maxf,nofields
-      parameter (maxf=30)
-      parameter (nofields=41)
-      character(len=maxf) fields(nofields)
-      integer errno,nfields,nunit,lineno,nf
-      real(kind=fPrec) fround
-      real(kind=fPrec) round_near
-      data lineno /0/
+  integer nchars
+  parameter (nchars=160)
+  character(len=nchars) ch
+  character(len=nchars+nchars) ch1
+  ! MAXF be kept in sync with value in function fround
+  integer maxf,nofields
+  parameter (maxf=30)
+  parameter (nofields=41)
+  character(len=maxf) fields(nofields)
+  integer errno,nfields,nunit,lineno,nf
+  real(kind=fPrec) fround
+  real(kind=fPrec) round_near
+  data lineno /0/
 +ei
 +if debug
-!     integer umcalls,dapcalls,dokcalls,dumpl
-!     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
+!  integer umcalls,dapcalls,dokcalls,dumpl
+!  common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
-      logical lopen
-      dimension cmonth(12)
-      data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
-     &'  April   ','   May    ','   June   ','   July   ',' August  ',  &
-     &' September',' October  ',' November ',' December '/
+  logical lopen
+  dimension cmonth(12)
+  data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
+    '  April   ','   May    ','   June   ','   July   ',' August  ',  &
+    ' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
-      errout_status = 0         ! Set to nonzero before calling abend in case of error.
-                                ! If prror is called, it will be set internally.
-      lout=92
+  errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                            ! If prror is called, it will be set internally.
+  lout=92
 +if .not.cr
-      lout=output_unit
+  lout=output_unit
 +ei
-      call allocate_arrays      ! Initial allocation of memory
+  call allocate_arrays      ! Initial allocation of memory
 +if crlibm
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
-      call disable_xp()
+  call disable_xp()
 +ei
 +if debug
 !     umcalls=0
@@ -22803,20 +22805,21 @@ end interface
 !     dumpl=0
 +ei
 ! Set napx,napxo,trtime for error handling
-      napx=0
-      napxo=0
-      trtime=0.0
-      napxto=0
-      runtim=''
+  napx=0
+  napxo=0
+  trtime=0.0
+  napxto=0
+  runtim=''
 +if cr
       stxt=''
 +ei
 +if hdf5
-      !  call INITHDF5()
+  !  call INITHDF5()
+  call h5_initHDF5()
 +ei
 +if boinc
-      call boinc_init()
-!     call boinc_init_graphics()
+  call boinc_init()
+!  call boinc_init_graphics()
 +ei
 +if cr
 ! Main start for Checkpoint/Restart
@@ -23251,9 +23254,12 @@ end interface
 +if root
       call SixTrackRootFortranInit
 +ei
-
-      call daten
-
+  
+  call daten
+  
++if hdf5
+  call h5_openFile()
++ei
 +if vvector
       if (ithick.eq.1) call allocate_thickarrays
 +ei
@@ -23511,12 +23517,12 @@ end interface
             if(ix.gt.nblo) then
               ix=ix-nblo
               call AcceleratorRootWrite(trim(adjustl(bez(ix))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(ix))) // C_NULL_CHAR), &
-&                                       kz(ix), ed(ix), ek(ix), el(ix))
+                                        kz(ix), ed(ix), ek(ix), el(ix))
             else
               do j=1,mel(ix)
                k=mtyp(ix,j)
                 call AcceleratorRootWrite(trim(adjustl(bez(k))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(k))) // C_NULL_CHAR), &
-&                                         kz(k), ed(k), ek(k), el(k))
+                                          kz(k), ed(k), ek(k), el(k))
               end do
             end if
           end do
@@ -23609,8 +23615,7 @@ end interface
             if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
             if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
             if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
-            write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),           &
-     &zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
+            write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
           endif
          
 !-- MULTIPOLE BLOCK
@@ -25157,26 +25162,26 @@ end interface
 !     call dumpbin('THE END',999,9999)
 !     call dumpzfz('THE END',9,9)
 +ei
-      ! Write all dynamically assigned file units tp file_units.dat
-      call dumpFileUnits
-      
-      call closeUnits
-
-      if (zipf_numfiles.gt.0) then
-         call zipf_dozip
-      endif
-
-+if root
-      call RunTimeRootWrite(pretime, trtime, posttime)
-      call SixTrackRootExit()
+  ! Write all dynamically assigned file units tp file_units.dat
+  call dumpFileUnits
+  call closeUnits
+  if (zipf_numfiles.gt.0) then
+    call zipf_dozip
+  endif
++if hdf5
+  call h5_closeHDF5()
 +ei
-      call alloc_exit
-!     We're done in maincr, no error :)
++if root
+  call RunTimeRootWrite(pretime, trtime, posttime)
+  call SixTrackRootExit()
++ei
+  call alloc_exit
+! We're done in maincr, no error :)
 +if cr
-      call abend('                                                  ')
+  call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+  stop
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
