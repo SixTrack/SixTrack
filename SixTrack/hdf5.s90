@@ -32,10 +32,20 @@ module hdf5_output
   logical, public, save :: h5_useForSCAT
   
   ! Runtime Variables
-  integer,        private, save :: h5_fileError
-  logical,        private, save :: h5_fileIsOpen
-  integer(HID_T), private, save :: h5_fileID
-  integer(HID_T), private, save :: h5_rootID
+  integer, public,  save :: h5_fileError
+  logical, private, save :: h5_fileIsOpen
+  
+  ! HDF5 File/Group IDs
+  integer(HID_T), public, save :: h5_fileID ! The internal ID of the file
+  integer(HID_T), public, save :: h5_rootID ! The internal ID of the root group
+  integer(HID_T), public, save :: h5_collID ! The internal ID of the collimation group
+  integer(HID_T), public, save :: h5_dumpID ! The internal ID of the dump group
+  integer(HID_T), public, save :: h5_scatID ! The internal ID of the scatter group
+  
+  ! Default Group Names
+  character(len=11), parameter :: h5_collGroup = "collimation"
+  character(len=4),  parameter :: h5_dumpGroup = "dump"
+  character(len=7),  parameter :: h5_scatGroup = "scatter"
   
 contains
 
@@ -128,6 +138,24 @@ subroutine h5_closeHDF5()
   write(lout,"(a)") "HDF5> Closed HDF5 file."
     
 end subroutine h5_closeHDF5
+
+! ================================================================================================ !
+!  Block-Wise Initialisation
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-16
+! ================================================================================================ !
+subroutine h5_initForScatter()
+  
+  call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
+  if(h5_fileError == -1) then
+    write(lout,"(3a)") "HDF5> ERROR Failed to create scatter group '",h5_scatGroup,"'."
+    call prror(-1)
+  end if
+  if(h5_debugOn) then
+    write(lout,"(a)") "HDF5> DEBUG Group initialised for scatter."
+  end if
+
+end subroutine h5_initForScatter
 
 ! ================================================================================================ !
 !  HDF5 Input File Parsing
