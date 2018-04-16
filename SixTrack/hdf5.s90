@@ -255,9 +255,9 @@ subroutine h5_parseInputLine(inLine)
   
   end select
   
-  #ifdef HDF5
+#ifdef HDF5
     write(lout,"(a)") "HDF5> Hello Kitty!!"
-  #endif
+#endif
   
   ! Report if debugging is ON
   if(h5_debugOn) then
