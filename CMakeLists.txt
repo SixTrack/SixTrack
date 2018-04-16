@@ -645,7 +645,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008 -cpp")
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
@@ -701,8 +701,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
-	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -736,8 +736,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	# nagfor
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -994,6 +994,7 @@ endif()
 if(HDF5)
 	if(HDF5_FOUND)
 		SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+		add_definitions(-DHDF5)
 	else()
 		MESSAGE(FATAL_ERROR "HDF5 build requested, but could not find the HDF5 package.")
 	endif(HDF5_FOUND)

@@ -255,6 +255,10 @@ subroutine h5_parseInputLine(inLine)
   
   end select
   
+  #ifdef HDF5
+    write(lout,"(a)") "HDF5> Hello Kitty!!"
+  #endif
+  
   ! Report if debugging is ON
   if(h5_debugOn) then
     write (lout,"(a,i3,3a)")  "HDF5> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'."
