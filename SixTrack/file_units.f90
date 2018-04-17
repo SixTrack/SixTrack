@@ -1,4 +1,3 @@
-+dk crcoall
 ! =================================================================================================
 !  STANDARD OUTPUT MODULE
 !  Last modified: 22-03-2018
@@ -14,7 +13,6 @@ module crcoall
   
 end module crcoall
 
-+dk file_units
 ! =================================================================================================
 !  FILE UNITS MODULE
 !  Written by: Veronica Berglyd Olsen, BE-ABP-HSS, March 2018
