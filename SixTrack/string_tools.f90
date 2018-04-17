@@ -129,6 +129,7 @@ function str_sub(theString, iA, iB) result(retString)
   allocate(character(newLen) :: tmpString)
   tmpString(1:newLen) = theString%chr(iA:iB)
   retString           = string(tmpString)
+  deallocate(tmpString)
   
 end function str_sub
 
@@ -148,7 +149,7 @@ end function str_trim
 
 function chr_trim(theString) result(retString)
   character(len=:), allocatable, intent(in) :: theString
-  character(:),     allocatable             :: retString
+  character(len=:), allocatable             :: retString
   retString = trim(adjustl(theString))
 end function chr_trim
 
@@ -229,8 +230,8 @@ end function str_stripQuotes
 function chr_stripQuotes(theString) result(retString)
   
   character(len=:), allocatable, intent(in) :: theString
-  character(:),     allocatable             :: tmpString
-  character(:),     allocatable             :: retString
+  character(len=:), allocatable             :: tmpString
+  character(len=:), allocatable             :: retString
   
   integer strLen
   
