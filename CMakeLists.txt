@@ -294,24 +294,19 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
 # Select which fortran files to generate and compile
 if(DA)
-	# LIST(APPEND FORS_FIXFORM )
-	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
+	list(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
+	list(APPEND FORS_F90 file_units string_tools)
 else()
-	# LIST(APPEND FORS_FIXFORM )
-	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
+	list(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
+	list(APPEND FORS_F90 file_units string_tools)
 endif()
-
-# Add files not using astuce
-set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/file_units.f90)
-set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/string_tools.f90)
 
 if(COLLIMAT)
 	LIST(APPEND FORS_FREEFORM collimation)
 endif(COLLIMAT)
 
 if(HDF5)
-	# LIST(APPEND FORS_FREEFORM hdf5)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/hdf5.f90)
+	list(APPEND FORS_F90 file_units hdf5_output)
 endif(HDF5)
 
 if(BEAMGAS)
@@ -326,14 +321,14 @@ if(ROOT)
 	LIST(APPEND FORS_FREEFORM root_output)
 endif(ROOT)
 
-# foreach(loop IN LISTS FORS_FIXFORM)
-# 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
-# endforeach()
-
 foreach(loop IN LISTS FORS_FREEFORM)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}n.f)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
+endforeach()
+
+foreach(loop IN LISTS FORS_F90)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90)
 endforeach()
 
 # List of files that must be treated by DAFOR
@@ -1053,7 +1048,7 @@ endif()
 
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90 ${CMAKE_SOURCE_DIR}/SixTrack/*.f90)
+file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
@@ -1179,7 +1174,7 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
+foreach(loop IN LISTS FORS_FREEFORM)
 	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
@@ -1311,21 +1306,16 @@ add_custom_target(generate_input)
 add_dependencies(generate_input run_astuce dafor)
 
 ## Run ASTUCE and DAFOR to generate Fortran source files ##
-foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
+foreach(loop IN LISTS FORS_FREEFORM)
 	message(STATUS "Will run astuce to generate ${loop}n.f using ${loop}.ast")
 	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
 	
 	LIST(FIND FORS_DAFOR    ${loop} FORS_DAFOR_LISTINDEX )
-	LIST(FIND FORS_FIXFORM  ${loop} FORS_FIXFORM_LISTINDEX )
 	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
 	
 	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
 		message(STATUS "Will run dafor to generate ${loop}.f from ${loop}n.f")
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}n.f ${loop}.f90 > ${loop}_dafor.log DEPENDS run_astuce)
-		
-	elseif(${FORS_FIXFORM_LISTINDEX} GREATER -1)
-		message(STATUS "Will copy ${loop}n.f to ${loop}.f")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f DEPENDS run_astuce)
 		
 	elseif(${FORS_FREEFORM_LISTINDEX} GREATER -1)
 		message(STATUS "Will copy ${loop}n.f to ${loop}.f90")
