@@ -292,19 +292,23 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
 # Select which fortran files to generate and compile
 if(DA)
-	LIST(APPEND FORS_FIXFORM )
+	# LIST(APPEND FORS_FIXFORM )
 	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc file_units)
 else()
-	LIST(APPEND FORS_FIXFORM )
-	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc file_units string_tools)
+	# LIST(APPEND FORS_FIXFORM )
+	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc file_units)
 endif()
+# Add files not using astuce
+
+set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/string_tools.f90)
 
 if(COLLIMAT)
 	LIST(APPEND FORS_FREEFORM collimation)
 endif(COLLIMAT)
 
 if(HDF5)
-	LIST(APPEND FORS_FREEFORM hdf5)
+	# LIST(APPEND FORS_FREEFORM hdf5)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/hdf5.f90)
 endif(HDF5)
 
 if(BEAMGAS)
@@ -329,7 +333,7 @@ foreach(loop IN LISTS FORS_FREEFORM)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
 endforeach()
 
-#List of files that must be treated by DAFOR
+# List of files that must be treated by DAFOR
 LIST(APPEND FORS_DAFOR sixvefox sixscfox sixda)
 
 if(BOINC AND NOT API)
@@ -473,14 +477,17 @@ endif()
 
 if(CRLIBM)
 	if(COLLIMAT)
-		message(FATAL_ERROR "Cannot build CRLIBM with COLLIMAT enabled..")
+		message(FATAL_ERROR "Cannot build CRLIBM with COLLIMAT enabled.")
 	endif()
 endif()
-# if(HDF5)
+if(HDF5)
 # 	if(NOT COLLIMAT)
 # 		message(FATAL_ERROR "Building with HDF5 requires COLLIMAT enabled")
 # 	endif()
-# endif()
+	if(CR)
+		message(FATAL_ERROR "Cannot build HDF5 with CR enabled")
+	endif()
+endif()
 if(BOINC)
 	if(NOT CRLIBM)
 		message(FATAL_ERROR "Building with BOINC requires CRLIBM enabled")
@@ -1044,7 +1051,7 @@ endif()
 
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
+file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90 ${CMAKE_SOURCE_DIR}/SixTrack/*.f90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
@@ -1306,8 +1313,8 @@ foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
 	message(STATUS "Will run astuce to generate ${loop}n.f using ${loop}.ast")
 	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
 	
-	LIST(FIND FORS_DAFOR   ${loop}  FORS_DAFOR_LISTINDEX )
-	LIST(FIND FORS_FIXFORM ${loop}  FORS_FIXFORM_LISTINDEX )
+	LIST(FIND FORS_DAFOR    ${loop} FORS_DAFOR_LISTINDEX )
+	LIST(FIND FORS_FIXFORM  ${loop} FORS_FIXFORM_LISTINDEX )
 	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
 	
 	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
