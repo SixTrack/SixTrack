@@ -7627,243 +7627,41 @@ cc2008
    60     continue
 
 +dk close
+! ================================================================================================ !
+!  Close all open file units
+!  Rewritten on 2018-04-17, VKBO
+! ================================================================================================ !
 subroutine closeUnits
-  use floatPrecision
-  use end_sixtrack
-  use scatter, only : scatter_closefiles
-  use dynk, only : ldynk, nfuncs_dynk, funcs_dynk, iexpr_dynk
-  use dump, only : dump_closeUnits
-  use parpro
-  use mod_common
-  use bdex, only : bdex_closefiles
-  use string_tools
+  
+  use scatter,    only : scatter_closeFiles
+  use dynk,       only : dynk_closeFiles
+  use dump,       only : dump_closeUnits
+  use bdex,       only : bdex_closeFiles
+  use file_units, only : funit_closeUnits, funit_minUnit
 
   implicit none
 
-+ca parbeam_exp
-
-  integer i
-  logical lopen
-
-!-----------------------------------------------------------------------
-!--CLOSE(DATA FILES
-      close(2,err=2)
- 2    continue
-      close(3,err=3)
- 3    continue
-      close(4,err=4)
- 4    continue
-      close(7,err=7)
- 7    continue
-      close(8,err=8)
- 8    continue
-      close(9,err=9)
- 9    continue
-      close(10,err=10)
- 10    continue
-      close(11,err=11)
- 11    continue
-      close(12,err=12)
- 12    continue
-      close(13,err=13)
- 13    continue
-      close(14,err=14)
- 14    continue
-      close(15,err=15)
- 15    continue
-      close(16,err=16)
- 16    continue
-      close(17,err=17)
- 17    continue
-      close(18,err=18)
- 18    continue
-      close(19,err=19)
- 19    continue
-      close(20,err=20)
- 20    continue
-      close(21,err=21)
- 21    continue
-      close(22,err=22)
- 22    continue
-      close(23,err=23)
- 23    continue
-      close(24,err=24)
- 24    continue
-      close(25,err=25)
- 25    continue
-      close(26,err=26)
- 26    continue
-      close(27,err=27)
- 27    continue
-      close(28,err=28)
- 28    continue
-      close(29,err=29)
- 29    continue
-      close(30,err=30)
- 30    continue
-      close(31,err=31)
- 31    continue
-      close(32,err=32)
- 32    continue
-      close(33,err=33)
- 33    continue
-      close(34,err=34)
- 34    continue
-      close(35,err=35)
- 35    continue
-+if .not.stf
-      close(59,err=59)
- 59    continue
-      close(60,err=60)
- 60    continue
-      close(61,err=61)
- 61    continue
-      close(62,err=62)
- 62    continue
-      close(63,err=63)
- 63    continue
-      close(64,err=64)
- 64    continue
-      close(65,err=65)
- 65    continue
-      close(66,err=66)
- 66    continue
-      close(67,err=67)
- 67    continue
-      close(68,err=68)
- 68    continue
-      close(69,err=69)
- 69    continue
-      close(70,err=70)
- 70    continue
-      close(71,err=71)
- 71    continue
-      close(72,err=72)
- 72    continue
-      close(73,err=73)
- 73    continue
-      close(74,err=74)
- 74    continue
-      close(75,err=75)
- 75    continue
-      close(76,err=76)
- 76    continue
-      close(77,err=77)
- 77    continue
-      close(78,err=78)
- 78    continue
-      close(79,err=79)
- 79    continue
-      close(80,err=80)
- 80    continue
-      close(81,err=81)
- 81    continue
-      close(82,err=82)
- 82    continue
-      close(83,err=83)
- 83    continue
-      close(84,err=84)
- 84    continue
-      close(85,err=85)
- 85    continue
-      close(86,err=86)
- 86    continue
-      close(87,err=87)
- 87    continue
-      close(88,err=88)
- 88    continue
-      close(89,err=89)
- 89    continue
-+ei !END +if .not.stf
-      close(90,err=90)
- 90    continue
-      close(98,err=98)
- 98    continue
-
-+if bnlelens
-!GRDRHIC
-!GRD-042008
-+if .not.boinc
-      close(51,err=51)
- 51    continue
-      close(52,err=52)
- 52    continue
-      close(53,err=53)
- 53    continue
-      close(97,err=97)
- 97    continue
-+ei
-      close(54,err=54)
- 54    continue
-!GRDRHIC
-!GRD-042008
-+ei ! END +if bnlelens
-
-+if hdf5
-      ! call CLOSEHDF5()
-+ei
-+if debug
-      close(99,err=99)
- 99    continue
-      close(100,err=100)
- 100    continue
-+ei
-!Eric....and more to come
-      close(110,err=110)
- 110    continue
-      close(111,err=111)
- 111    continue
-
-      if(beam_expfile_open) then
-         close(600,err=600)
-      endif
- 600  continue
-
-      call dump_closeUnits
-      
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 02-09-2014
-!     close units for logging dynks
-!     always in main code
-      if (ldynk) then
-         ! dynksets.dat
-         inquire(unit=665, opened=lopen)
-         if (lopen) close(665,err=665)
- 665     continue
-         
-         do i=1,nfuncs_dynk
-            if ( funcs_dynk(i,2).eq.3) then !PIPE FUN
-               ! InPipe
-               inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
-               if ( lopen ) close(iexpr_dynk(funcs_dynk(i,3)))
-               
-               ! OutPipe
-               inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
-               if ( lopen ) then
-                  write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)")            &
-     &                 "CLOSEUNITS"
-                  close(iexpr_dynk(funcs_dynk(i,3))+1)
-               endif
-            endif
-         end do
-      end if
-      
-      call bdex_closefiles
-      
-      call scatter_closefiles
-
-!     A.Mereghetti, D.Sinuela Pastor and P.G.Ortega, for the FLUKA Team
-!     last modified: 04-07-2014
-!     close unit where lostpart has dumped lost particles
-!     always in main code
-      close(999)
-
-      close(208) ! hisix
-      close(209) ! hisix
-      close(210) ! hisix debugging
-
-      return
+  integer chkUnit
+  logical isOpen
+  
+  ! Just iterate through the first 1000 units
+  do chkUnit=1, funit_minUnit-1
+    inquire(unit=chkUnit, opened=isOpen)
+    if(isOpen) close(chkUnit)
+  end do
+  
+  ! Call specific close units routines for modules
+  !   that assign units dynamically or via input.
+  call funit_closeUnits
+  call dump_closeUnits
+  call dynk_closeFiles
+  call bdex_closeFiles
+  call scatter_closeFiles
+  
+  return
+  
 end subroutine closeUnits
+! ================================================================================================ !
 
 +dk cor_ord
 subroutine coruord
@@ -22604,7 +22402,7 @@ program maincr
   use physical_constants
   use numerical_constants
   
-  use scatter, only : scatter_active, scatter_initialize
+  use scatter, only : scatter_active, scatter_initialise
   use dynk, only : dynk_izuIndex
   use fma, only : fma_postpr, fma_flag
   use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
@@ -24780,7 +24578,7 @@ end interface
 
       ! ! ! Initialize SCATTER ! ! !
       if (scatter_active) then
-         call scatter_initialize
+         call scatter_initialise
       endif
 
 +if root
@@ -25163,7 +24961,7 @@ end interface
 !     call dumpzfz('THE END',9,9)
 +ei
   ! Write all dynamically assigned file units tp file_units.dat
-  call dumpFileUnits
+  call funit_dumpUnits
   call closeUnits
   if (zipf_numfiles.gt.0) then
     call zipf_dozip

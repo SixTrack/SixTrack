@@ -3,7 +3,7 @@ module mod_fluka
   use floatPrecision
   use numerical_constants
   use mod_alloc
-  use file_units, only : requestFileUnit
+  use file_units, only : funit_requestUnit
 
   use, intrinsic :: ISO_FORTRAN_ENV, only : int8, int16, int32, int64
 
@@ -147,8 +147,8 @@ module mod_fluka
 !    fluka_geo_index    = 0
 !    fluka_synch_length = zero
 
-    call requestFileUnit('fluka.log', fluka_log_unit)
-    call requestFileUnit('fluka_isotope.log', isotope_log_unit)
+    call funit_requestUnit('fluka.log', fluka_log_unit)
+    call funit_requestUnit('fluka_isotope.log', isotope_log_unit)
     open(unit=fluka_log_unit, file='fluka.log')
     open(unit=isotope_log_unit, file='fluka_isotope.log')
 
@@ -204,7 +204,7 @@ module mod_fluka
     integer :: port
     integer :: net_nfo_unit
 
-    call requestFileUnit(net_nfo_file, net_nfo_unit)
+    call funit_requestUnit(net_nfo_file, net_nfo_unit)
     open(net_nfo_unit, file=net_nfo_file, status='old')
     read(net_nfo_unit, *) host
     read(net_nfo_unit, *) port

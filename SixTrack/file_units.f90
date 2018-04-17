@@ -36,7 +36,7 @@ contains
   
   ! Request a new fileunit. The filename parameter is only for internal record keeping. It should
   ! be a string that describes what file, or set of files, the unit number is used for.
-  subroutine requestFileUnit(fileName, fileUnit)
+  subroutine funit_requestUnit(fileName, fileUnit)
     
     use crcoall
     
@@ -89,10 +89,10 @@ contains
     write(lout,"(a)") "FUNIT> ERROR: Failed to find an available file unit for file ",trim(cleanName)
     stop -1
     
-  end subroutine requestFileUnit
+  end subroutine funit_requestUnit
   
   ! Lists all assigned file units to lout
-  subroutine listFileUnits
+  subroutine funit_listUnits
     
     use crcoall
     
@@ -105,10 +105,10 @@ contains
       write(lout,"(a,i4,a,a)") "FUNIT> Unit ",funit_usedUnits(i)," assigned to file: ",trim(funit_usedByFile(i))
     end do
     
-  end subroutine listFileUnits
+  end subroutine funit_listUnits
   
   ! Writes all assigned file units to file_units.dat
-  subroutine dumpFileUnits
+  subroutine funit_dumpUnits
     
     use crcoall
     
@@ -117,7 +117,7 @@ contains
     integer dumpUnit, i
     logical isOpen
     
-    call requestFileUnit("file_units.dat",dumpUnit)
+    call funit_requestUnit("file_units.dat",dumpUnit)
     inquire(unit=dumpUnit, opened=isOpen)
     if(isOpen) then
       write(lout,*) "ERROR in FUNIT when opening file_units.dat"
@@ -132,7 +132,22 @@ contains
     end do
     close(dumpUnit)
     
-  end subroutine dumpFileUnits
+  end subroutine funit_dumpUnits
+  
+  ! Closes all units opened by the module
+  subroutine funit_closeUnits
+    
+    implicit none
+    
+    integer chkUnit
+    logical isOpen
+    
+    do chkUnit=funit_minUnit, funit_nextUnit-1
+      inquire(unit=chkUnit, opened=isOpen)
+      if(isOpen) close(chkUnit)
+    end do
+    
+  end subroutine funit_closeUnits
 
 end module file_units
 ! =================================================================================================
