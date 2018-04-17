@@ -1,9 +1,9 @@
 +cd version
-      character(len=8) version  !Keep data type in sync with 'cr_version'
-      character(len=10) moddate !Keep data type in sync with 'cr_moddate'
-      integer itot,ttot
-      data version /'5.0-rc1'/
-      data moddate /'01.02.2018'/
+  character(len=8) version  ! Keep data type in sync with 'cr_version'
+  character(len=10) moddate ! Keep data type in sync with 'cr_moddate'
+  integer itot,ttot
+  data version /'5.0-rc1'/
+  data moddate /'01.02.2018'/
 +cd license
 !!SixTrack
 !!
@@ -871,17 +871,14 @@
 
       common /readdisdb/ dist_filename, dist_echo, dist_enable,dist_read_unit, dist_echo_unit
 
-!
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
       real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
-!
+
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
 +cd wiretracktmp
 ! temporary variables
@@ -889,52 +886,8 @@
       real(kind=fPrec) NNORM_, NNORM
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 
-!
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd   comgetfields
-!
-!     COMGETFIELDS
-!     Definitions needed to use the getfields_split() subroutine
-!     
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 29-08-2014
-!     some variables / parameters for a more flexible parsing of input lines
-!     always in main code
 
-!     parameters for the parser
-      integer getfields_n_max_fields, getfields_l_max_string
-      parameter ( getfields_n_max_fields = 15  ) ! max number of returned fields
-      parameter ( getfields_l_max_string = 161 ) ! max len of parsed line and its fields
-                                                 ! (nchars in daten +1 to always make room for \0)
-
-!     array of fields
-      character getfields_fields                                        &
-     &     ( getfields_n_max_fields )*( getfields_l_max_string )
-!     number of identified fields
-      integer getfields_nfields
-!     length of each what:
-      integer getfields_lfields( getfields_n_max_fields )
-!     an error flag
-      logical getfields_lerr
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd stringzerotrim
-! Definitions necessary for using the "stringzerotrim" function,
-! which is defined in deck "stringhandling".
-! Requires block comgetfields for getfields_l_max_string.
-! Used in at least DYNK, FMA, ZIPF, DUMP, and SCATTER.
-! K. Sjobak, BE-ABP/HSS
-      integer stringzerotrim_maxlen
-
-      !Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
-      parameter (stringzerotrim_maxlen=getfields_l_max_string)
-      
-      character(len=stringzerotrim_maxlen) stringzerotrim ! Define the function
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd timefct
           expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
 +cd dainicom
@@ -1056,16 +1009,16 @@
      &sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
      &zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
      &mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-     &dech,dsm0,itco,itcro,itqv,iout,qw0,iq,iqmod,kpa,iqmod6,bez,elbe,  &
-     &bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac,pac,  &
-     &bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,           &
+     &dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+     &elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
+     &pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
      &ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
      &icoe,ise,mesa,mp,m21,m22,m23,                                     &
      &ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
      &rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
      &qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
      &iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-     &nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                 &
+     &nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
      &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
@@ -7683,10 +7636,10 @@ subroutine closeUnits
   use parpro
   use mod_common
   use bdex, only : bdex_closefiles
+  use string_tools
 
   implicit none
 
-+ca comgetfields
 +ca parbeam_exp
 
   integer i
@@ -7847,7 +7800,7 @@ subroutine closeUnits
 +ei ! END +if bnlelens
 
 +if hdf5
-      call CLOSEHDF5()
+      ! call CLOSEHDF5()
 +ei
 +if debug
       close(99,err=99)
@@ -10399,202 +10352,200 @@ subroutine adib(e0f)
 end subroutine adib
 
 +dk daten
-subroutine daten
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use end_sixtrack
-      use mathlib_bouncer
-      use scatter, only : scatter_active, scatter_debug,                &
-     &     scatter_seed1,scatter_seed2,                                 &
-     &     scatter_dumpdata,                                            &
-     &     scatter_parseELEM, scatter_parseProfile,                     &
-     &     scatter_parseGenerator, scatter_parseSEED,                   &
-     &     scatter_allocate
-
-      use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,             &
-     &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,                 &
-     &     dynk_inputsanitycheck, dynk_allocate
-
-      use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,  &
-     &     fma_first,fma_last,fma_max,fma_flag,fma_writeNormDUMP,       &
-     &     fma_parseInputLine
-
-      use dump, only : dump_parseInputLine, dump_parseInputDone
-
-      use zipf, only : zipf_parseInputDone, zipf_parseInputline
-      
-      use physical_constants
-      use numerical_constants
-
+! ================================================================================================ !
+subroutine daten
+  
+  use floatPrecision
+  use end_sixtrack
+  use mathlib_bouncer
+  
+  use scatter, only : scatter_active, scatter_debug,scatter_seed1,scatter_seed2,scatter_dumpdata,&
+    scatter_parseELEM,scatter_parseProfile,scatter_parseGenerator,scatter_parseSEED,scatter_allocate
+  use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_parseFUN,dynk_parseSET,dynk_dumpdata,&
+    dynk_inputsanitycheck,dynk_allocate
+  use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,fma_first,fma_last,&
+    fma_max,fma_flag,fma_writeNormDUMP,fma_parseInputLine
+  use dump, only : dump_parseInputLine, dump_parseInputDone
+  use zipf, only : zipf_parseInputDone, zipf_parseInputline
+  use bdex, only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use aperture
+  
+  use physical_constants
+  use numerical_constants
+  use string_tools
+  use strings
+  
 +if fluka
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! import mod_fluka
+  ! inserted in main code by the 'fluka' compilation flag
+  use mod_fluka
 +ei
-
++if hdf5
+  use hdf5_output
++ei
 +if root
-      use root_output
+  use root_output
 +ei
-
-      use bdex, only : bdex_debug, bdex_parseElem, bdex_parseChan,      &
-     &     bdex_parseInputDone
-
-      use aperture
-
-      use mod_ranecu
-      
-      use crcoall
-      use parpro
-      use parpro_scale
-      use mod_common
-      use mod_commons
-
-      use mod_hions
-      use mod_alloc
-
-      use elens
-      use wire
-
-      implicit none
-
-      integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,&
-     &ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,&
-     &izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4, &
-     &ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,   &
-     &i4,i5
+  
+  use mod_ranecu
+  
+  use crcoall
+  use parpro
+  use parpro_scale
+  use mod_common
+  use mod_commons
+  
+  use mod_hions
+  use mod_alloc
+  
+  use elens
+  use wire
+  
+  implicit none
+  
+  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,    &
+    ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
+    izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
+    ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
 +if time
-      integer ifiend35
-      real(kind=fPrec) tcnst
+  integer ifiend35
+  real(kind=fPrec) tcnst
 +ei
-      real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,           &
-     &cosy,dummy,emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,  &
-     &qbet,qigam,r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,                 &
-     &xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
-      !For BEAM-EXP
-      real(kind=fPrec) separx,separy
-      real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
-      
-      character(len=max_name_len) sing,stru,prin,trac,diff,sync,ende,bloc,comm
-      character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
-      character(len=max_name_len) beze,go,comb,sear,subr
-      character(len=max_name_len) free,geom,cavi,disp,reso,bezext
-      character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-      character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
-      character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
-      character(len=max_name_len) coll
-      character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
-      character(len=60) ihead
-      integer nchars
-      parameter (nchars=160)
-      character(len=nchars) ch
-      character(len=nchars+nchars) ch1
-      logical beam_xstr
+  real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,cosy,dummy,    &
+    emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,qbet,qigam,    &
+    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,xang,xstr,xpl0,xplane,xrms0,  &
+    zpl0,zrms0
+    
+  ! For BEAM-EXP
+  real(kind=fPrec) separx,separy
+  real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+  
+  character(len=max_name_len) sing,stru,prin,quie,trac,diff,sync,ende,bloc,comm
+  character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
+  character(len=max_name_len) beze,go,comb,sear,subr
+  character(len=max_name_len) free,geom,cavi,disp,reso,bezext
+  character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
+  character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
+  character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
+  character(len=max_name_len) coll
+  character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
+  character(len=60) ihead
+  integer nchars
+  parameter (nchars=160)
+  character(len=nchars) ch
+  character(len=nchars+nchars) ch1
+  logical   beam_xstr
+  
+  ! Variables for input line fields
+  ! These  should eventually be replaced by the string_tools->str_split subroutine
+  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+  integer   getfields_nfields                                                 ! Number of identified fields
+  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+  logical   getfields_lerr                                                    ! An error flag
+  
 +if crlibm
-      ! MAXF be kept in sync with value in function fround
-      integer maxf,nofields
-      parameter (maxf=30)
-      parameter (nofields=41)
-      character(len=maxf) fields(nofields)
-      integer errno,nfields,nunit,nf
-      real(kind=fPrec) fround
+  ! MAXF be kept in sync with value in function fround
+  integer maxf,nofields
+  parameter (maxf=30)
+  parameter (nofields=41)
+  character(len=maxf) fields(nofields)
+  integer errno,nfields,nunit,nf
+  real(kind=fPrec) fround
 +ei
 +if .not.crlibm
-      integer nunit
+  integer nunit
 +ei
-      integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
-      data lineno2 /0/
-      data lineno3 /0/
-      data lineno8 /0/
-      data lineno16 /0/
-      data lineno30 /0/
-      data lineno35 /0/
+  integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
+  data lineno2 /0/
+  data lineno3 /0/
+  data lineno8 /0/
+  data lineno16 /0/
+  data lineno30 /0/
+  data lineno35 /0/
 +ca commonex
 +ca commont1
 +ca commondl
-!
+  
 +if collimat
 +ca collpara
 +ca dbdaten
 +ca dbpencil
 +ca database
 +ca dbcolcom
-      logical has_coll
+  logical has_coll
 +ei
 +if .not.collimat
-      logical do_coll
+  logical do_coll
 +ei
-!
+  
 +if bnlelens
 +ca rhicelens
 +ei
-+ca comgetfields
-+ca stringzerotrim
 +ca parbeam_exp
 +ca dbreaddis
-
-
-      !Fluka related, might be best to lock to real64
-      real(kind=fPrec) tmpamplfact, tmplen
-
-      ! some temp vars for parsing block lines
-      logical tmpl
-      character(len=nchars) tmpch
-      integer tmpi1,tmpi2,tmpi3
-      real(kind=fPrec) tmpflt
-      real(kind=fPrec) tmpflts(9)
-
-      ! Elens: online calculation of theta@r2
-      real(kind=fPrec) eLensTheta
-      
-      dimension icel(ncom,20),iss(2),iqq(5)
-      dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
-      dimension extaux(40),bezext(nblz)
-      data sing,stru,prin,sync,ende,next,comm                           &
-     &/'SING','STRU','PRIN','SYNC','ENDE','NEXT','COMM'/
-      data fluc,mult,chro,iter,tune,line,trac,diff                      &
-     &/'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
-      data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco    &
-     &/'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR',                  &
-     &'RESO','DISP','POST','RIPP','DECO'/
-      data comb,free,geom,cavi,beam,trom                                &
-     &/'COMB','FREE','GEOM','CAV','BEAM','TROM'/
-      data idum,kl,kr,orga,norm,corr/' ','(',')','ORGA','NORM','CORR'/
-      data coll /'COLL'/
-!     - scatter
-      character(len=4) scat
-      data scat /'SCAT'/
-!     - coupling:
-      character(len=4) fluk
-      data fluk /'FLUK'/
-!     - read particle distribution for FLUKA:
-      character(len=4) dist
-      data dist /'DIST'/
-!     - root output:
-      character(len=4) root
-      data root /'ROOT'/
-!     hisix
-!     add block for input of heavy-ion properties
-      character(len=4) hion
-      data hion /'HION'/
-
+  
+  ! Fluka related, might be best to lock to real64
+  real(kind=fPrec) tmpamplfact, tmplen
+  
+  ! some temp vars for parsing block lines
+  logical tmpl
+  character(len=nchars) tmpch
+  integer tmpi1,tmpi2,tmpi3
+  real(kind=fPrec) tmpflt
+  real(kind=fPrec) tmpflts(9)
+  
+  ! Elens: online calculation of theta@r2
+  real(kind=fPrec) eLensTheta
+  
+  dimension icel(ncom,20),iss(2),iqq(5)
+  dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
+  dimension extaux(40),bezext(nblz)
+  data sing,stru,prin,quie,sync,ende,next,comm /'SING','STRU','PRIN','QUIE','SYNC','ENDE','NEXT','COMM'/
+  data fluc,mult,chro,iter,tune,line,trac,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
+  data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco &
+    /'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR','RESO','DISP','POST','RIPP','DECO'/
+  data comb,free,geom,cavi,beam,trom /'COMB','FREE','GEOM','CAV','BEAM','TROM'/
+  data idum,kl,kr,orga,norm,corr /' ','(',')','ORGA','NORM','CORR'/
+  data coll /'COLL'/
+  !  scatter
+  character(len=4) scat
+  data scat /'SCAT'/
+  ! HDF5
+  character(len=4) h5out
+  data h5out /'HDF5'/
+  ! coupling:
+  character(len=4) fluk
+  data fluk /'FLUK'/
+  ! read particle distribution for FLUKA:
+  character(len=4) dist
+  data dist /'DIST'/
+  ! root output:
+  character(len=4) root
+  data root /'ROOT'/
+  ! hisix
+  ! add block for input of heavy-ion properties
+  character(len=4) hion
+  data hion /'HION'/
+  
 +if crlibm
-      real(kind=fPrec) round_near
+  real(kind=fPrec) round_near
 +ei
+  
+  logical lapefound
+  logical lerr1
+  logical lexist
+  
+  character(len=max_name_len) :: defaultstring
+  integer str_int
+  
+  save
+  
+! ================================================================================================ !
 
-      logical lapefound
-      logical lerr1
-      logical lexist
-
-      character(len=max_name_len) :: defaultstring
-      integer str_int
-
-      save
-!-----------------------------------------------------------------------
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
       iss(1)=' '
@@ -10732,6 +10683,7 @@ subroutine daten
       ilin=0
       nlin=0
       iout=0
+      iquiet=0
       idp=0
       izu0=0
       mmac=1
@@ -10797,6 +10749,7 @@ subroutine daten
       if(idat.eq.bloc) goto 190
       if(idat.eq.stru) goto 320
       if(idat.eq.prin) goto 550
+      if(idat.eq.quie) goto 552
       if(idat.eq.disp) goto 170
       if(idat.eq.tune) goto 600
       if(idat.eq.sync) goto 710
@@ -10842,7 +10795,7 @@ subroutine daten
       if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
       if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
       if(idat.eq.'ELEN') goto 2400 !Hard-coded name, as variable name "elens" conflicted with module name
-      if(idat.eq."WIRE")  goto 2500 !Hard-coded name, as variable name "elens" conflicted with module name
+      if(idat.eq."WIRE") goto 2500 !Hard-coded name, as variable name "elens" conflicted with module name
       !Reserved:
       !DIST = 2600
       !HION = 2700
@@ -10852,6 +10805,7 @@ subroutine daten
       if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
       if(idat.eq.scat) goto 2900
       if(idat.eq.root) goto 3000
+      if(idat.eq.h5out) goto 3100
 
       if(idat.eq.next) goto 110
       if(idat.eq.ende) goto 771
@@ -11958,6 +11912,8 @@ subroutine daten
 !  PRINTOUT INPUT PARAMETERS
 !-----------------------------------------------------------------------
   550 iout=1
+      goto 110
+  552 iquiet=1
       goto 110
 !-----------------------------------------------------------------------
 !  CHROMATCITY ADJUSTMENT
@@ -16624,17 +16580,17 @@ subroutine daten
       call zipf_parseInputline(ch)
       goto 2800                    !Read the next line of the ZIPF block
 
-!-----------------------------------------------------------------------
-!  SCATTER
-!  K. Sjobak, V.K. Berglyd Olsen BE-ABP-HSS
-!  Last modified: 29-08-2017
-!-----------------------------------------------------------------------
- 2900 continue
+! ================================================================================================ !
+!  SCATTER Input
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2017-08-29
+! ================================================================================================ !
+2900 continue
       ! We have a SCATTER block; let's allocate the memory for it!
       if (scatter_active) then
-         write(lout,*) "ERROR while parsing SCATTER in fort.3"
-         write(lout,*) "More than one SCATTER block encountered?"
-         call prror(-1)
+        write(lout,*) "ERROR while parsing SCATTER in fort.3"
+        write(lout,*) "More than one SCATTER block encountered?"
+        call prror(-1)
       end if
       call scatter_allocate
       
@@ -16646,61 +16602,83 @@ subroutine daten
       
       if (ch(:4).eq.next) then
          
-         scatter_active = .true.
+        scatter_active = .true.
 
-         if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
-            write(lout,*) "ERROR while parsing SCATTER in fort.3"
-            write(lout,*) "No SEED sets were specified"
-            call prror(-1)
-         endif
+        if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
+          write(lout,*) "ERROR while parsing SCATTER in fort.3"
+          write(lout,*) "No SEED sets were specified"
+          call prror(-1)
+        endif
          
-         if (scatter_debug) call scatter_dumpdata
-         goto 110               !Read next block or ENDE
-      endif
+        if (scatter_debug) call scatter_dumpdata
+        goto 110               !Read next block or ENDE
+      end if
       
       if (ch(:5).eq."DEBUG") then
-         scatter_debug = .true.
-         write(lout,'(a)') "SCATTER> Scatter block debugging is ON."
-         goto 2901
-      endif
+        scatter_debug = .true.
+        write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
+        goto 2901
+      end if
       
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &     getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) call prror(51)
-      if (scatter_debug) then
-         write (lout,'(A,I4,A)')                                        &
-     &        "SCATTER> Got a block, len=",                             &
-     &        len(trim(ch)), ": '"// trim(ch)// "'"
-         do ii=1,getfields_nfields
-            write (lout,'(a,I4,A)')                                     &
-     &           "SCATTER> Field(",ii,") ='"//                          &
-     &           getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-         enddo
-      endif
+      call getfields_split(ch,getfields_fields,getfields_lfields,getfields_nfields,getfields_lerr)
+      if(getfields_lerr) call prror(51)
+      if(scatter_debug) then
+        write (lout,"(a,i4,a)") "SCATTER> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
+        do ii=1, getfields_nfields
+          write (lout,"(a,i4,a)") "SCATTER> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
+        end do
+      end if
 
-      ! ***** PARSE SCATTER ELEM STATEMENT *****
       if (ch(:4).eq."ELEM") then
-         call scatter_parseElem(getfields_fields,getfields_lfields,     &
-     &                          getfields_nfields)
-      ! ***** PARSE SCATTER PRO STATEMENT *****
+        call scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
       else if (ch(:3).eq."PRO") then
-         call scatter_parseProfile(getfields_fields,getfields_lfields,  &
-     &                             getfields_nfields)
-      ! ***** PARSE SCATTER GEN STATEMENT *****
+        call scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
       else if (ch(:3).eq."GEN") then
-         call scatter_parseGenerator(getfields_fields,getfields_lfields,&
-     &                               getfields_nfields)
-      ! ***** PARSE SCATTER SEED STATEMENT *****
+        call scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
       else if (ch(:4).eq."SEED") then
-         call scatter_parseSEED(getfields_fields,getfields_lfields,     &
-     &                          getfields_nfields)
+        call scatter_parseSEED(getfields_fields,getfields_lfields,getfields_nfields)
       else
-         write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
-         write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
-         call prror(-1)
-      endif
+        write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
+        write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
+        call prror(-1)
+      end if
       
       goto 2901                 !Read the next line of the SCATTER block
+
+! ================================================================================================ !
+!  HDF5 Input
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+! ================================================================================================ !
+3100  continue
++if .not.hdf5
+      write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+      write(lout,*) "SixTrack was not compiled with the HDF5 flag."
+      call prror(-1)
++ei
++if hdf5
+      ! Check if an HDF5 block has already been encountered
+      if (h5_isActive) then
+        write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+        write(lout,*) "More than one HDF5 block encountered."
+        call prror(-1)
+      end if
+      
+3110  continue
+      read(3,10020, end=1530, iostat=ierro) ch
+      if(ierro > 0) call prror(58)
+      lineno3 = lineno3 + 1
+      
+      if(ch(1:1) == '/') goto 3110 ! Comment line encountered
+      if(ch(1:4) == next) then
+        h5_isActive = .true.
+        goto 110 ! Read next block or ENDE
+      else
+        call h5_parseInputLine(string(ch))
+      end if
+      
+      goto 3110 ! Read the next line of the block
++ei
 
 !----------------------------------------------------------------------------
 !     root output
@@ -17234,9 +17212,15 @@ subroutine parseChebyFile(ifile)
       use crcoall
       use mod_common
       use elens
+      use string_tools
+      
       implicit none
-+ca comgetfields
-      character(len=160) string
+      
+      character(len=160) tmpstr
+      character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+      integer   getfields_nfields                                                 ! Number of identified fields
+      integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+      logical   getfields_lerr                                                    ! An error flag
       integer ierr, ii, jj, ifile, errno
       real(kind=fPrec) tmpflt, beta, gamma, round_near
 
@@ -17245,15 +17229,15 @@ subroutine parseChebyFile(ifile)
      &   //elens_cheby_filename(ifile)
       open(elens_cheby_unit,file=elens_cheby_filename(ifile),status='old')
       do while (.true.)
-         read(elens_cheby_unit,'(A)',end=1982,err=1983) string
-         if (string(1:1).ne.'#') then
-            call getfields_split( string, getfields_fields, getfields_lfields, &
+         read(elens_cheby_unit,'(A)',end=1982,err=1983) tmpstr
+         if (tmpstr(1:1).ne.'#') then
+            call getfields_split( tmpstr, getfields_fields, getfields_lfields, &
      &        getfields_nfields, getfields_lerr )
             if ( getfields_lerr ) then
                ierr=1
                goto 1983
             end if
-            if (string(1:1).eq.'I') then
+            if (tmpstr(1:1).eq.'I') then
 !              read reference current of e-beam in e-lens
                if (getfields_nfields.lt.3) then
                   ierr=2
@@ -17268,7 +17252,7 @@ subroutine parseChebyFile(ifile)
 +ei
                elens_cheby_refCurr(ifile)=tmpflt
                
-            elseif (string(1:2).eq.'Ek') then
+            elseif (tmpstr(1:2).eq.'Ek') then
 !              read reference kinetic energy of e-beam in e-lens
                if (getfields_nfields.lt.3) then
                   ierr=3
@@ -17284,7 +17268,7 @@ subroutine parseChebyFile(ifile)
                gamma=tmpflt*c1m3/pmae+1 ! from kinetic energy
                elens_cheby_refBeta(ifile)=sqrt((gamma+one)*(gamma-one))/(gamma)
                
-            elseif (string(1:3).eq.'rad') then
+            elseif (tmpstr(1:3).eq.'rad') then
 !              read reference radius e-beam in e-lens
                if (getfields_nfields.lt.3) then
                   ierr=4
@@ -17346,7 +17330,7 @@ subroutine parseChebyFile(ifile)
       
 end subroutine parseChebyFile
       
-      subroutine write4
+subroutine write4
 !-----------------------------------------------------------------------
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
 !-----------------------------------------------------------------------
@@ -17425,8 +17409,9 @@ end subroutine parseChebyFile
       goto 3
  90   continue
 10000 format(a16,1x,i2,1x,d22.15,1x,d22.15,1x,d17.10)
-      end
-      subroutine intepr(i,j,ch,ch1)
+end subroutine write4
+
+subroutine intepr(i,j,ch,ch1)
 !-----------------------------------------------------------------------
 !     SUBROUTINE TO INTEPRET INPUT WITH CHARACTERS AND NUMBERS MIXED
 !
@@ -17531,6 +17516,7 @@ subroutine initialize_element(ix,lfirst)
       use dynk, only : dynk_elemdata
       use numerical_constants
       use crcoall
+      use string_tools
       use parpro !Needed for common
       use mod_common
       use mod_commonmn
@@ -17545,8 +17531,6 @@ subroutine initialize_element(ix,lfirst)
 
 +ca commontr
 +ca commonxz
-+ca comgetfields
-+ca stringzerotrim
 
       !Temp variables
       integer i
@@ -18250,118 +18234,6 @@ end function dtostr
       wi=vi
       return
       end
-+dk stringhandling
-      subroutine getfields_split( tmpline, getfields_fields,            &
-     &         getfields_lfields, getfields_nfields, getfields_lerr)
-!
-!-----------------------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     K.Sjobak and A.Santamaria, BE-ABP-HSS
-!     last modified: 24-02-2015
-!     parse a line and split it into its fields
-!       fields are returned as 0-terminated and padded string
-!     always in main code
-! input:
-!  tmpline: usually line read in from fort.2 or fort.3. Values must be 
-!           separated by spaces
-! output:
-!  array of values with 
-!   getfields_fields(i):  (char) value of field
-!   getfields_lfields(i): (int) length of field
-!   getfields_nfields:    (int) number of fields
-!   getfields_lerr:       (logical)
-!-----------------------------------------------------------------------
-!
-      use crcoall
-      implicit none
-+ca comgetfields
-      
-      character tmpline*(getfields_l_max_string-1) !nchars in daten is 160
-
-      intent(in) tmpline
-      intent(out) getfields_fields, getfields_lfields,                  &
-     &     getfields_nfields, getfields_lerr
-      
-!     runtime variables
-      integer ii, jj
-      logical lchar
-      integer lenstr, istart
-
-!     initialise output variables
-      getfields_lerr = .false.
-      getfields_nfields=0
-      do ii=1,getfields_n_max_fields
-         do jj=1,getfields_l_max_string
-            getfields_fields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
-         enddo
-         getfields_lfields(ii)=0
-      enddo
-
-!     parse the line
-      lchar = .false.
-      do ii=1, getfields_l_max_string-1 !For \0 termination
-         if ( tmpline(ii:ii) .eq. ' ' ) then
-!           blank char
-            if ( lchar ) then
-!              end of a string: record it
-               getfields_lfields(getfields_nfields)          = lenstr
-               getfields_fields (getfields_nfields)                     &
-     &              (1:getfields_lfields(getfields_nfields)) =          &
-     &              tmpline(istart:                                     &
-     &               istart+getfields_lfields(getfields_nfields))
-               lchar = .false.
-            endif
-         else
-!           non-blank char
-            if ( .not. lchar ) then
-!              a new what starts
-               getfields_nfields = getfields_nfields +1
-               if ( getfields_nfields.gt.getfields_n_max_fields ) then
-                  write (lout,*)'error! too many fields in line:'
-                  write (lout,*) tmpline
-                  write (lout,*)'please increase getfields_n_max_fields'
-                  getfields_lerr = .true.
-                  exit !Break do
-               endif
-               istart = ii
-               lchar = .true.
-               lenstr = 0
-            endif
-            lenstr = lenstr+1
-         endif
-      enddo
-
-      end subroutine getfields_split
-
-      function stringzerotrim(instring)
-!----------------------------------------------------------------------------
-!     K. Sjobak, BE-ABP/HSS
-!     last modified: 30-10-2014
-!     Replace "\0" with ' ' in strings.
-!     Usefull before output, else "write (*,*)" will actually write all the \0s
-!
-!     Warning: Do not add any write(*,*) inside this function:
-!     if this function is called by a write(*,*) and then does a write,
-!     the program may deadlock!
-!----------------------------------------------------------------------------
-      implicit none
-+ca comgetfields
-+ca stringzerotrim
-      character(len=stringzerotrim_maxlen) instring
-      intent(in) instring
-      
-      integer ii
-      
-      do ii=1,stringzerotrim_maxlen
-         if ( instring(ii:ii) .ne. char(0) ) then
-            stringzerotrim(ii:ii) = instring(ii:ii)
-         else 
-            stringzerotrim(ii:ii) = ' '
-         end if
-      end do
-      stringzerotrim = trim(stringzerotrim)
-
-      end function stringzerotrim
 
 +dk envars
 !-----------------------------------------------------------------------
@@ -20327,12 +20199,15 @@ subroutine umlauda
       use mathlib_bouncer
       use dump, only : dumpclo, dumptas, dumptasinv, ldump
       use crcoall
+      use string_tools
       use parpro
       use mod_common
       use mod_commons
       use wire
       use mod_commond2
+      
       implicit none
+      
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
@@ -20367,7 +20242,6 @@ subroutine umlauda
 +ca rhicelens
 +ei
 !     for FMA analysis
-+ca comgetfields
 !+ca fma
 ! END for FMA analysis
 +if debug
@@ -22721,63 +22595,63 @@ end subroutine beaminf
 
 +dk maincr
 program maincr
-      use floatPrecision
-      use end_sixtrack
-      use file_units
-      use mathlib_bouncer
-      use physical_constants
-      use numerical_constants
-
-      use scatter, only : scatter_active, scatter_initialize
-
-      use dynk, only : dynk_izuIndex
-
-      use fma, only : fma_postpr, fma_flag
-
-      use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
-
-      use zipf, only : zipf_numfiles, zipf_dozip
-      
-      use, intrinsic :: iso_fortran_env, only : output_unit
-
-      use aperture
-
-      use mod_ranecu
+  
+  use floatPrecision
+  use end_sixtrack
+  use file_units
+  use string_tools
+  use mathlib_bouncer
+  use physical_constants
+  use numerical_constants
+  
+  use scatter, only : scatter_active, scatter_initialize
+  use dynk, only : dynk_izuIndex
+  use fma, only : fma_postpr, fma_flag
+  use dump, only : dump_initialize, dumpclo,dumptas,dumptasinv
+  use zipf, only : zipf_numfiles, zipf_dozip
+  
+  use, intrinsic :: iso_fortran_env, only : output_unit
+  use aperture
+  use mod_ranecu
       
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
-      use mod_fluka
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! Last modified: 17-07-2013
+  ! import mod_fluka
+  ! inserted in main code by the 'fluka' compilation flag
+   use mod_fluka
 +ei
 
-      use postprocessing, only : postpr, writebin_header, writebin
-      
+  use postprocessing, only : postpr, writebin_header, writebin
+
++if hdf5
+  use hdf5_output
++ei
 +if root
-      use root_output
+  use root_output
 +ei
 
-      use crcoall
-      use parpro
-      use parpro_scale
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-
-      use mod_hions
-      use aperture
-      use wire
-
-      implicit none
-
-
+  use crcoall
+  use parpro
+  use parpro_scale
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  
+  use mod_hions
+  use aperture
+  use wire
+  
+  implicit none
+  
 interface
-
-  subroutine envarsv(dpsv,oidpsv,rvv,ekv) 
+  
+  subroutine envarsv(dpsv,oidpsv,rvv,ekv)
+      
     use floatPrecision
     use parpro
     use parpro_scale
+    
     implicit none
 
     real(kind=fPrec) :: dpsv(npart)
@@ -22785,8 +22659,8 @@ interface
     real(kind=fPrec) :: rvv(npart)
     real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:) 
   end subroutine envarsv
+  
 end interface
-
 
 !-----------------------------------------------------------------------
 !
@@ -22857,76 +22731,72 @@ end interface
 +if cr
 +ca crco
 +ei
-+ca comgetfields
 +ca dbdcum
-+ca stringzerotrim
-
 
 +ca dbreaddis
 
-
-      integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
-     &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
-     &jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
-     &nerror,nlino,nlinoo,nmz,nthinerr
-      real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
-     &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
-     &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
-     &gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
-     &rdev,rmean,rsqsum,rsum,sic,tasia56,tasiar16,tasiar26,tasiar36,    &
-     &tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
-     &taus,x11,x13
-      integer idummy(6)
-      character(len=10) cmonth
-      character(len=4) cpto
+  integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
+    idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
+    jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
+    nerror,nlino,nlinoo,nmz,nthinerr
+  real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,  &
+    amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
+    dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
+    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
+    rdev,rmean,rsqsum,rsum,sic,tasia56,tasiar16,tasiar26,tasiar36,    &
+    tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
+    taus,x11,x13
+  integer idummy(6)
+  character(len=10) cmonth
+  character(len=4) cpto
 +if cr
-      character(len=80) day
+  character(len=80) day
 +ei
 +if .not.cr
-      character(len=80) day,runtim
+  character(len=80) day,runtim
 +ei
-      character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
-                                          !DANGER: If the len changes, CRCHECK will break.
+  character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
+                                      !DANGER: If the len changes, CRCHECK will break.
 +if boinc
-      character(len=256) filename
+  character(len=256) filename
 +ei
 +if crlibm
-      integer nchars
-      parameter (nchars=160)
-      character(len=nchars) ch
-      character(len=nchars+nchars) ch1
-      ! MAXF be kept in sync with value in function fround
-      integer maxf,nofields
-      parameter (maxf=30)
-      parameter (nofields=41)
-      character(len=maxf) fields(nofields)
-      integer errno,nfields,nunit,lineno,nf
-      real(kind=fPrec) fround
-      real(kind=fPrec) round_near
-      data lineno /0/
+  integer nchars
+  parameter (nchars=160)
+  character(len=nchars) ch
+  character(len=nchars+nchars) ch1
+  ! MAXF be kept in sync with value in function fround
+  integer maxf,nofields
+  parameter (maxf=30)
+  parameter (nofields=41)
+  character(len=maxf) fields(nofields)
+  integer errno,nfields,nunit,lineno,nf
+  real(kind=fPrec) fround
+  real(kind=fPrec) round_near
+  data lineno /0/
 +ei
 +if debug
-!     integer umcalls,dapcalls,dokcalls,dumpl
-!     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
+!  integer umcalls,dapcalls,dokcalls,dumpl
+!  common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 +ei
-      logical lopen
-      dimension cmonth(12)
-      data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
-     &'  April   ','   May    ','   June   ','   July   ',' August  ',  &
-     &' September',' October  ',' November ',' December '/
+  logical lopen
+  dimension cmonth(12)
+  data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
+    '  April   ','   May    ','   June   ','   July   ',' August  ',  &
+    ' September',' October  ',' November ',' December '/
 +ca version
 !-----------------------------------------------------------------------
-      errout_status = 0         ! Set to nonzero before calling abend in case of error.
-                                ! If prror is called, it will be set internally.
-      lout=92
+  errout_status = 0         ! Set to nonzero before calling abend in case of error.
+                            ! If prror is called, it will be set internally.
+  lout=92
 +if .not.cr
-      lout=output_unit
+  lout=output_unit
 +ei
-      call allocate_arrays      ! Initial allocation of memory
+  call allocate_arrays      ! Initial allocation of memory
 +if crlibm
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
-      call disable_xp()
+  call disable_xp()
 +ei
 +if debug
 !     umcalls=0
@@ -22935,20 +22805,21 @@ end interface
 !     dumpl=0
 +ei
 ! Set napx,napxo,trtime for error handling
-      napx=0
-      napxo=0
-      trtime=0.0
-      napxto=0
-      runtim=''
+  napx=0
+  napxo=0
+  trtime=0.0
+  napxto=0
+  runtim=''
 +if cr
       stxt=''
 +ei
 +if hdf5
-       call INITHDF5()
+  !  call INITHDF5()
+  call h5_initHDF5()
 +ei
 +if boinc
-      call boinc_init()
-!     call boinc_init_graphics()
+  call boinc_init()
+!  call boinc_init_graphics()
 +ei
 +if cr
 ! Main start for Checkpoint/Restart
@@ -23383,9 +23254,12 @@ end interface
 +if root
       call SixTrackRootFortranInit
 +ei
-
-      call daten
-
+  
+  call daten
+  
++if hdf5
+  call h5_openFile()
++ei
 +if vvector
       if (ithick.eq.1) call allocate_thickarrays
 +ei
@@ -23643,12 +23517,12 @@ end interface
             if(ix.gt.nblo) then
               ix=ix-nblo
               call AcceleratorRootWrite(trim(adjustl(bez(ix))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(ix))) // C_NULL_CHAR), &
-&                                       kz(ix), ed(ix), ek(ix), el(ix))
+                                        kz(ix), ed(ix), ek(ix), el(ix))
             else
               do j=1,mel(ix)
                k=mtyp(ix,j)
                 call AcceleratorRootWrite(trim(adjustl(bez(k))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(k))) // C_NULL_CHAR), &
-&                                         kz(k), ed(k), ek(k), el(k))
+                                          kz(k), ed(k), ek(k), el(k))
               end do
             end if
           end do
@@ -23741,8 +23615,7 @@ end interface
             if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
             if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
             if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
-            write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),           &
-     &zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
+            write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
           endif
          
 !-- MULTIPOLE BLOCK
@@ -24384,7 +24257,7 @@ end interface
       do 340 ia=1,napx,2
         if(idfor.ne.2.and.idfor.ne.3) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-          write(lout,10050)
+          if(iquiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
@@ -24395,8 +24268,7 @@ end interface
           if(rat.lt.(-one*pieni)) dsign=-one*one                         !hr05
           x11=ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
           x13=(x11*dsign)*sqrt(abs(rat))                                 !hr05
-          amp(2)=(dsign*real(1-iver,fPrec))*                            &
-     &(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))                 !hr05
+          amp(2)=(dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))                 !hr05
           x1(5)=zero
           x1(6)=dpsv(ia)*sqrt(bet0s1)
           chi=chi0*rad
@@ -24440,11 +24312,11 @@ end interface
             endif
             chi=chi+dchi
   320     continue
-          write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-          write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),        &
-     &sigmv(ia),                                                        &
-     &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
-     &(ia+1),dpsv(ia+1)
+          if(iquiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+          if(iquiet == 0) then
+            write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
+                              xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
+          end if
 !---------------------------------------  END OF 'ANFB'
           if(iclo6.eq.2) then
             xv(1,ia)=xv(1,ia)+clo6v(1,ia)
@@ -24493,7 +24365,7 @@ end interface
           nucm(ia)=nucm0
           nucm(ia+1)=nucm0
 
-          write(lout,10020) ampv(ia),amp(2),epsa
+          if(iquiet==0) write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 +if .not.crlibm
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
@@ -24686,11 +24558,10 @@ end interface
           omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
           omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
-        if ( idfor.ne.3 ) then
-        write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),&
-     &dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1), sigmv       &
-     &(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
-        endif
+        if (idfor /= 3 .and. iquiet == 0) then
+          write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
+                            yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+        end if
         idam=3
         icode=0
         if(abs(xv(1,ia)).le.pieni.and.abs(yv(1,ia)).le.pieni) then
@@ -25003,111 +24874,93 @@ end interface
       call writebin(nthinerr)
       if(nthinerr.eq.3000) goto 520
 +ei
-! If CR we have to worry about turns printed in fort.6
-! If lost should be OK, otherwise we need to use nnuml instead
-! of the numl in numxv/nnumxv???? Eric.
-! where we reset [n]numxv to nnuml UNLESS particle lost
-! Now we shall try using that fix at start of tracking
-      do 470 ia=1,napxo,2
+      ! If CR we have to worry about turns printed in fort.6
+      ! If lost should be OK, otherwise we need to use nnuml instead
+      ! of the numl in numxv/nnumxv???? Eric.
+      ! where we reset [n]numxv to nnuml UNLESS particle lost
+      ! Now we shall try using that fix at start of tracking
+      do ia=1,napxo,2
         ie=ia+1
         ia2=(ie)/2
         napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
-        if(pstop(ia).and.pstop(ie)) then
-!-- BOTH PARTICLES LOST
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-     &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-     &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          write(lout,10280)                                             &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejvl(ia),ejvl(ie)
-          write(12,10280,iostat=ierro)                                  &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejvl(ia),ejvl(ie)
-          if(ierro.ne.0) write(lout,*)                                  &
-     &'Warning from maincr: fort.12 has ',                              &
-     &'corrupted output probably due to lost particle: ',ia,            &
-     &' or: ',ie
-        endif
-        if(.not.pstop(ia).and.pstop(ie)) then
-!-- SECOND PARTICLE LOST
+        
+        if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
+          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
+          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
+          write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has ',&
+            'corrupted output probably due to lost particle: ',ia,' or: ',ie
+        end if
+        
+        if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
           id=id+1
-          write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),         &
-     &abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          write(lout,10280)                                             &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejv(id),ejvl(ie)
-          write(12,10280,iostat=ierro)                                  &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),     &
-     &e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0)                                                &
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
-     &         'corrupted output probably due to lost particle: ',ie
-        endif
-        if(pstop(ia).and..not.pstop(ie)) then
-!-- FIRST PARTICLE LOST
+          if(iquiet==0) then
+            write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          else
+            write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          end if
+          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
+          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
+          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ie
+        end if
+        
+        if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
           id=id+1
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),         &
-     &abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-          write(lout,10280)                                             &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &e0,ejvl(ia),ejv(id)
-          write(12,10280,iostat=ierro)                                  &
-     &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0)                                                &
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
-     &         'corrupted output probably due to lost particle: ',ia
-        endif
-        if(.not.pstop(ia).and..not.pstop(ie)) then
-!-- BOTH PARTICLES STABLE
+          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+          if(iquiet==0) then
+            write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+          else
+            write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+          end if
+          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+          write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ia
+        end if
+        
+        if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-          write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          write(lout,10280)                                             &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
-     &e0,ejv(id),ejv(ig)
-          write(12,10280,iostat=ierro)                                  &
-     &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-     &xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),           &
-     &e0,ejv(id),ejv(ig)
-          if(ierro.ne.0)                                                &
-     &         write(lout,*) 'Warning from maincr: fort.12 has ',       &
-     &         'corrupted output although particles stable'
+          if(iquiet==0) then
+            write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          else
+            write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+          end if
+          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output although particles stable'
           id=ig
-        endif
-  470 continue
+        end if
+      end do
 +ei
 +if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     print stable particles only
-!     inserted in main code by the 'fluka' compilation flag
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! print stable particles only
+      ! inserted in main code by the 'fluka' compilation flag
       write(lout,*)
       write(lout,10340)
       if ( napxo .gt. 0 ) then
         write(lout,*)
         write(lout,10350) napxo
         write(lout,*)
-        write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []',      &
-     &    'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
+        write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
         write(lout,*)
         do ia=1,napxo
-         if(.not.pstop(ia)) then
-          write(lout,10370)                                             &
-     &fluka_uid(ia), fluka_gen(ia), fluka_weight(ia),                   &
-     &xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3,       &
-     &ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
-         end if
+          if(not.pstop(ia)) then
+            write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
+              xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3, &
+              ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
+          end if
         end do
       end if
 +ei
@@ -25309,26 +25162,26 @@ end interface
 !     call dumpbin('THE END',999,9999)
 !     call dumpzfz('THE END',9,9)
 +ei
-      ! Write all dynamically assigned file units tp file_units.dat
-      call dumpFileUnits
-      
-      call closeUnits
-
-      if (zipf_numfiles.gt.0) then
-         call zipf_dozip
-      endif
-
-+if root
-      call RunTimeRootWrite(pretime, trtime, posttime)
-      call SixTrackRootExit()
+  ! Write all dynamically assigned file units tp file_units.dat
+  call dumpFileUnits
+  call closeUnits
+  if (zipf_numfiles.gt.0) then
+    call zipf_dozip
+  endif
++if hdf5
+  call h5_closeHDF5()
 +ei
-      call alloc_exit
-!     We're done in maincr, no error :)
++if root
+  call RunTimeRootWrite(pretime, trtime, posttime)
+  call SixTrackRootExit()
++ei
+  call alloc_exit
+! We're done in maincr, no error :)
 +if cr
-      call abend('                                                  ')
+  call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+  stop
 +ei
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
      &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
@@ -25439,19 +25292,15 @@ end interface
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
      &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
-10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,                &
-     &'RELATIVE MOMENTUM DEVIATION')
-10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,         &
-     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
-!     &' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,                   &
-     &' MOMENTUM DEVIATION ',g12.5/)
-10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',  &
-     &i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,'RELATIVE MOMENTUM DEVIATION')
+10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8/)
+10241 format(   5x,'PARTICLE ',i5,' STABLE - RANDOM SEED ', i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8)
+!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
+10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5/)
+10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8/)
+10271 format(   5x,'PARTICLE ',i5,' AND ',i5,' STABLE - RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8)
 10280 format(10x,f47.33)
-10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
-     &,' of Computing Time')
+10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)',' of Computing Time')
 10300 format(/10x,'For ',i12,' Turn(s)',g12.3,' second(s) of ',         &
      &'Computing Time was needed'//131('-'))
 10310 format(//10x,'Total Time used: ',g12.3,' second(s)'//131('-'))
@@ -25969,8 +25818,10 @@ end subroutine trauthin
 !<
 subroutine thin4d(nthinerr)
   ! Replaced computed goto with select case. VKBO 27/11/2017
+  
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -25998,6 +25849,7 @@ subroutine thin4d(nthinerr)
   use aperture
   use elens
   use wire
+  
   implicit none
 
 +ca exactvars
@@ -26035,7 +25887,6 @@ subroutine thin4d(nthinerr)
 +ca bnlio
 +ei
 
-+ca comgetfields
 +ca elenstracktmp
 +ca dbdcum
 
@@ -26610,6 +26461,7 @@ subroutine thin6d(nthinerr)
   ! Replaced computed gotos with select case, VKBO 27/11/2017
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
@@ -26694,7 +26546,6 @@ subroutine thin6d(nthinerr)
 +ca bnlio
 +ei
 
-+ca comgetfields
 +ca elenstracktmp
 +ca dbdcum
   save
@@ -27561,7 +27412,6 @@ end subroutine thin6d
 ! +ca rhicelens
 ! +ca bnlio
 ! +ei
-! +ca comgetfields
 ! +ca elenstracktmp
 ! +ca dbdcum
 
@@ -28902,6 +28752,7 @@ subroutine thck4d(nthinerr)
   ! Replaced computed goto with select case, VKBO 27/11/2017
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -28932,7 +28783,7 @@ subroutine thck4d(nthinerr)
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
- &        puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+                   puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
@@ -28957,7 +28808,6 @@ subroutine thck4d(nthinerr)
 +ca rhicelens
 +ca bnlio
 +ei
-+ca comgetfields
 +ca elenstracktmp
 
 +if fluka
@@ -29598,6 +29448,7 @@ subroutine thck6d(nthinerr)
   ! Replaced computed goto with select case, VKBO 28/11/2017
   use floatPrecision
   use end_sixtrack
+  use string_tools
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
@@ -29624,11 +29475,12 @@ subroutine thck6d(nthinerr)
   use aperture
   use elens
   use wire
+  
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
-          pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
+                   pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
@@ -29657,7 +29509,6 @@ subroutine thck6d(nthinerr)
 !GRDRHIC
 !GRD-042008
 +ei
-+ca comgetfields
 +ca elenstracktmp
 
 +if fluka
@@ -30473,7 +30324,6 @@ end subroutine thck6d
 ! +ca rhicelens
 ! +ca bnlio
 ! +ei
-! +ca comgetfields
 ! +ca elenstracktmp
 
 ! +if fluka
@@ -33988,7 +33838,7 @@ end subroutine distance
 !  CALCULATION OF INITIAL COORDINATES
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -34098,7 +33948,7 @@ end subroutine distance
 !                   BETA-, ALFA-FUNCTIONS, Q-VALUES
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -45344,6 +45194,7 @@ subroutine crcheck
 !     See also subroutines crpoint and crstart.
       use floatPrecision
       use end_sixtrack
+      use string_tools
       use numerical_constants
       use dynk, only : ldynk, ldynkfiledisable,                         &
            dynk_crcheck_readdata, dynk_crcheck_positionFiles
@@ -45374,8 +45225,6 @@ subroutine crcheck
 +ca rhicelens
 +ei
 +ca crco
-+ca comgetfields
-+ca stringzerotrim      
 +ca version
       integer i,j,k,l,m,ia
       integer lstring,myia,mybinrecs,binrecs94
@@ -47862,6 +47711,7 @@ end subroutine timex
       write(99,*) 'itcro ',itcro
       write(99,*) 'itqv ',itqv
       write(99,*) 'iout ',iout
+      write(99,*) 'iquiet ',iquiet
       write(99,*) 'qw0 ',qw0
       write(99,*) 'iq ',iq
       write(99,*) 'iqmod ',iqmod
@@ -48355,6 +48205,7 @@ end subroutine timex
       write(99) itcro
       write(99) itqv
       write(99) iout
+      write(99) iquiet
       write(99) qw0
       write(99) iq
       write(99) iqmod

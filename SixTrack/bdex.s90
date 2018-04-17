@@ -16,11 +16,9 @@ module bdex
   use parpro
 
   use mod_alloc
+  use string_tools
 
   implicit none
-
-!For the string length stuff
-+ca comgetfields
 
   ! Is BDEX in use?
   logical, save :: bdex_enable
@@ -97,11 +95,16 @@ contains
   end subroutine bdex_closefiles
 
   subroutine bdex_parseElem(ch)
+    
     use mod_common
     implicit none
     
     character(len=*) ch
-
+    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+    integer   getfields_nfields                                                 ! Number of identified fields
+    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+    logical   getfields_lerr                                                    ! An error flag
+    
 
     integer ii,jj
 
@@ -167,14 +170,18 @@ contains
   end subroutine bdex_parseElem
   
   subroutine bdex_parseChan(ch)
+    
     use mod_common
+    use string_tools
+    
     implicit none
     
     character(len=*) ch
-
-+ca stringzerotrim
-
-
+    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+    integer   getfields_nfields                                                 ! Number of identified fields
+    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+    logical   getfields_lerr                                                    ! An error flag
+  
     integer ii,jj
 
     call getfields_split( ch, getfields_fields, getfields_lfields, &
@@ -217,11 +224,11 @@ contains
   end subroutine bdex_parseChan
 
   subroutine bdex_parseInputDone
-    use mod_common
-    implicit none
     
-+ca stringzerotrim
-
+    use mod_common
+    use string_tools
+    
+    implicit none
     
     integer ii
     
@@ -302,13 +309,15 @@ contains
   ! Deck with the initialization etc. routines for BDEX
   
   subroutine bdex_initializePipe( getfields_fields, getfields_lfields,getfields_nfields )
+    
     use parpro
+    use string_tools
+    
     implicit none
 
-+ca comgetfields
-    intent(in) getfields_fields, getfields_lfields, getfields_nfields
-
-+ca stringzerotrim
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
     !Temp variables
     ! For checking files before opening:
@@ -409,12 +418,15 @@ contains
   end subroutine bdex_initializePipe
   
   subroutine bdex_initializeTCPIP( getfields_fields,getfields_lfields,getfields_nfields )
+    
     use parpro
+    use string_tools
+    
     implicit none
-
-+ca comgetfields
-    intent(in) getfields_fields, getfields_lfields, getfields_nfields      
-
+    
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
     !TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
     ! Currently not implemented.
@@ -427,9 +439,12 @@ contains
   ! Deck with the routines used by BDEX during tracking
   
   subroutine bdex_track(i,ix,n)
+    
     use parpro
+    use string_tools
     use mod_common
     use mod_commonmn
+    
     implicit none
     ! i  : current structure element
     ! ix : current single element
@@ -439,8 +454,6 @@ contains
     intent(in) i, ix, n
 
 +ca commontr
-
-+ca comgetfields
 
 +if crlibm
     !Needed for string conversions for BDEX

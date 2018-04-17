@@ -16,7 +16,7 @@ ENABLE_LANGUAGE(Fortran)
 
 # Set Sixtrack version info
 file(READ ${CMAKE_SOURCE_DIR}/SixTrack/sixtrack.s90 IFILE)
-STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE} )
+STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
 SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
 SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
 SET(${PROJECT_NAME}_VERSION_MINOR "${CMAKE_MATCH_2}")
@@ -26,13 +26,18 @@ else()
 	SET(VERSION_STRING "${VERSION_STRING}.${CMAKE_MATCH_3}")
 	SET(${PROJECT_NAME}_VERSION_PATCH "${CMAKE_MATCH_3}")
 endif()
+string(REGEX MATCH "..$" NUM_MINOR "00${${PROJECT_NAME}_VERSION_MINOR}")
+string(REGEX MATCH "..$" NUM_PATCH "00${${PROJECT_NAME}_VERSION_PATCH}")
+set(NUM_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}${NUM_MINOR}${NUM_PATCH}")
+
 if ("${CMAKE_MATCH_4}" STREQUAL "")
 	SET(${PROJECT_NAME}_VERSION_RC "")
 else()
 	SET(VERSION_STRING "${VERSION_STRING}-${CMAKE_MATCH_4}")
 	SET(${PROJECT_NAME}_VERSION_RC ${CMAKE_MATCH_4})
 endif()
-MESSAGE(STATUS "Sixtrack version: ${VERSION_STRING}")
+message(STATUS "SixTrack Version: ${VERSION_STRING}")
+message(STATUS "Numeric Version:  ${NUM_VERSION}")
 SET(${PROJECT_NAME}_VERSION "${VERSION_STRING}")
 MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} and generating for ${CMAKE_GENERATOR}")
 
@@ -87,7 +92,9 @@ OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, 
 OPTION(BIGNPART "Allow tracking up to 2048 particles (normally 64)." OFF)
 OPTION(HUGENPART "Allow tracking up to 65536 particles (normally 64)" OFF)
 OPTION(DEBUG "Debugging output" OFF)
-OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postprocessing with BeamLossPattern) there instead of writing it to ASCII." OFF)
+OPTION(SPAMMY "Turns on additional spammy output" OFF)
+# OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postprocessing with BeamLossPattern) there instead of writing it to ASCII." OFF)
+OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
@@ -210,8 +217,13 @@ endif()
 if(DEBUG)
 	SET(SIXTRACK_FEATURES "debug_${SIXTRACK_FEATURES}")
 endif()
+if(SPAMMY)
+	SET(SIXTRACK_FEATURES "spammy_${SIXTRACK_FEATURES}")
+	add_definitions(-DSPAMMY)
+endif()
 if(HDF5)
 	SET(SIXTRACK_FEATURES "hdf5_${SIXTRACK_FEATURES}")
+	add_definitions(-DHDF5)
 endif()
 if(FIO)
 	SET(SIXTRACK_FEATURES "fio_${SIXTRACK_FEATURES}")
@@ -277,16 +289,16 @@ if(128BITM)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_quad")
 endif()
 
-#Create the sixtrack binary name string
-SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}_${SIXTRACK_FEATURES}" )
+# Create the sixtrack binary name string
+set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
 # Select which fortran files to generate and compile
 if(DA)
-	LIST(APPEND FORS_FIXFORM )
-	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc file_units)
+	list(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
+	list(APPEND FORS_F90 file_units string_tools)
 else()
-	LIST(APPEND FORS_FIXFORM )
-	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc file_units)
+	list(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
+	list(APPEND FORS_F90 file_units string_tools)
 endif()
 
 if(COLLIMAT)
@@ -294,7 +306,7 @@ if(COLLIMAT)
 endif(COLLIMAT)
 
 if(HDF5)
-	LIST(APPEND FORS_FREEFORM hdf5_sixtrack)
+	list(APPEND FORS_F90 file_units hdf5_output)
 endif(HDF5)
 
 if(BEAMGAS)
@@ -309,15 +321,17 @@ if(ROOT)
 	LIST(APPEND FORS_FREEFORM root_output)
 endif(ROOT)
 
-foreach(loop IN LISTS FORS_FIXFORM)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f)
-endforeach()
-
 foreach(loop IN LISTS FORS_FREEFORM)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}n.f)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
 endforeach()
 
-#List of files that must be treated by DAFOR
+foreach(loop IN LISTS FORS_F90)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90)
+endforeach()
+
+# List of files that must be treated by DAFOR
 LIST(APPEND FORS_DAFOR sixvefox sixscfox sixda)
 
 if(BOINC AND NOT API)
@@ -461,12 +475,15 @@ endif()
 
 if(CRLIBM)
 	if(COLLIMAT)
-		message(FATAL_ERROR "Cannot build CRLIBM with COLLIMAT enabled..")
+		message(FATAL_ERROR "Cannot build CRLIBM with COLLIMAT enabled.")
 	endif()
 endif()
 if(HDF5)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with HDF5 requires COLLIMAT enabled")
+# 	if(NOT COLLIMAT)
+# 		message(FATAL_ERROR "Building with HDF5 requires COLLIMAT enabled")
+# 	endif()
+	if(CR)
+		message(FATAL_ERROR "Cannot build HDF5 with CR enabled")
 	endif()
 endif()
 if(BOINC)
@@ -633,7 +650,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008 -cpp")
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
@@ -689,8 +706,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
-	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -724,8 +741,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	# nagfor
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -1135,7 +1152,7 @@ add_dependencies(SixTrack copy_input_files generate_input)
 add_custom_target(run_astuce)
 
 #make running astuce depend on astuce being built and the input files being in place
-add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks )
+add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
 
 #This target cleans the define flags
 add_custom_target(astuce_clean_define_flags)
@@ -1157,7 +1174,7 @@ macro(ast_masks_deck OPT FILE_NAME)
 	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
 endmacro()
 
-foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
+foreach(loop IN LISTS FORS_FREEFORM)
 	#Clean up the astuce flags for only what is enabled
 	if(NOT CRLIBM)
 		ast_masks_flag(crlibm ${loop})
@@ -1203,6 +1220,9 @@ foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
 	endif()
 	if(NOT DEBUG)
 		ast_masks_flag(debug ${loop})
+	endif()
+	if(NOT SPAMMY)
+		ast_masks_flag(spammy ${loop})
 	endif()
 	if(NOT HDF5)
 		ast_masks_flag(hdf5 ${loop})
@@ -1286,21 +1306,16 @@ add_custom_target(generate_input)
 add_dependencies(generate_input run_astuce dafor)
 
 ## Run ASTUCE and DAFOR to generate Fortran source files ##
-foreach(loop IN LISTS FORS_FIXFORM FORS_FREEFORM)
+foreach(loop IN LISTS FORS_FREEFORM)
 	message(STATUS "Will run astuce to generate ${loop}n.f using ${loop}.ast")
 	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
 	
-	LIST(FIND FORS_DAFOR   ${loop}  FORS_DAFOR_LISTINDEX )
-	LIST(FIND FORS_FIXFORM ${loop}  FORS_FIXFORM_LISTINDEX )
+	LIST(FIND FORS_DAFOR    ${loop} FORS_DAFOR_LISTINDEX )
 	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
 	
 	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
 		message(STATUS "Will run dafor to generate ${loop}.f from ${loop}n.f")
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}n.f ${loop}.f90 > ${loop}_dafor.log DEPENDS run_astuce)
-		
-	elseif(${FORS_FIXFORM_LISTINDEX} GREATER -1)
-		message(STATUS "Will copy ${loop}n.f to ${loop}.f")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f DEPENDS run_astuce)
 		
 	elseif(${FORS_FREEFORM_LISTINDEX} GREATER -1)
 		message(STATUS "Will copy ${loop}n.f to ${loop}.f90")

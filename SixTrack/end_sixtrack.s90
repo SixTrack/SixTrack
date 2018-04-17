@@ -24,8 +24,7 @@ contains
 
 ! =================================================================================================
 subroutine prror(ier)
-
-
+  
   use crcoall
   use parpro
   use mod_common
@@ -698,10 +697,9 @@ end subroutine abend
 subroutine print_lastlines_to_stderr(file_unit, file_name)
   
   use, intrinsic :: iso_fortran_env, only : error_unit
-  implicit none
+  use string_tools
   
-+ca comgetfields
-!+ca stringzerotrim
+  implicit none
   
   integer,          intent(in) :: file_unit
   character(len=*), intent(in) :: file_name

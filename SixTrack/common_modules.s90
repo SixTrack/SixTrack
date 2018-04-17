@@ -444,7 +444,7 @@ module mod_common
   
   ! common /clo/
   real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
-  integer, save :: itco,itcro,itqv,iout
+  integer, save :: itco,itcro,itqv,iout,iquiet
   
   ! common /qmodi/
   real(kind=fPrec), save :: qw0(3),amp0

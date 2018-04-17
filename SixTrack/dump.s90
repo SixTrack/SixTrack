@@ -24,10 +24,9 @@ module dump
   use end_sixtrack
   use parpro ! For nele
   use mod_alloc
+  use string_tools, only : getfields_l_max_string
 
   implicit none
-  
-+ca comgetfields ! for getfields_l_max_string
 
   ! High precision printout required at all flagged SINGLE ELEMENTs
   logical, save :: ldumphighprec
@@ -204,10 +203,16 @@ subroutine dump_parseInputLine(ch)
   use crcoall
   use mod_common
   use file_units
+  use string_tools
   
   implicit none
   
   character(len=*), intent(in) :: ch
+  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+  integer   getfields_nfields                                                 ! Number of identified fields
+  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+  logical   getfields_lerr                                                    ! An error flag
+  
   ! Temp variables
   character(len=max_name_len) idat ! Synchronized with daten
   integer i1,i2,i3,i4,i5,kk,j
@@ -353,8 +358,9 @@ subroutine dump_parseInputDone
   
   use crcoall
   use mod_common
+  use string_tools
+  
   implicit none
-+ca stringzerotrim
 
   ! Temp variables
   integer ii,jj,kk
@@ -419,11 +425,12 @@ subroutine dump_initialize
   
   use numerical_constants, only : zero
   use crcoall
+  use string_tools
   
   use mod_common
+  
   implicit none
   
-+ca stringzerotrim
   integer i,j
   logical lopen
   character(len=256) filename
@@ -1237,11 +1244,12 @@ end subroutine dump_crcheck_readdata
 subroutine dump_crcheck_positionFiles
   
   use crcoall
+  use string_tools
   use mod_common
+  
   implicit none
   
 +ca crco ! arecord
-+ca stringzerotrim
   
   ! For skipping through binary DUMP files (format 3&8)
   integer tmp_ID, tmp_nturn, tmp_ktrack
