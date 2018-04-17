@@ -306,7 +306,7 @@ if(COLLIMAT)
 endif(COLLIMAT)
 
 if(HDF5)
-	list(APPEND FORS_F90 file_units hdf5_output)
+	list(APPEND FORS_F90 hdf5_output)
 endif(HDF5)
 
 if(BEAMGAS)
