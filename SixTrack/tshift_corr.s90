@@ -973,7 +973,7 @@ subroutine coruglo
 10030 format(//,t10,'VALUES OF THE INTEGRATED GRADIENTS OF THE ',       &
      &'CORRECTOR MULTIPOLES',//,t10,'GLOBAL MOMENTUM CORRECTIONS')
 10040 format(//,t10,' ERROR IN ROUTINE E04UCF. IFAIL = ',i8)
-10050 format(//,t10,'CORRECTOR ELEMENT  - ',a16,' - ',4x,e20.14)
+10050 format(//,t10,'CORRECTOR ELEMENT  - ',a16,' - ',4x,e21.14)
 10060 format(///,t10,'HAMILTONIAN DEPENDENCE OF ORDER ' ,2x,i3,5x,      &
      &'MOMENTUM DEPENDENCE ')
 10070 format(//,t10,'BEFORE CORRECTION ')
@@ -1614,3 +1614,37 @@ subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
   return
 
 end subroutine objfun2
+
++dk nagdumy
+subroutine e04ucf(n,nclin,ncnln,lda,ldcj,ldr,a,bl,bu,confun,objfun,iter,ierroe,c,cjac,clamda,objf,  &
+                  objgrd,r,x,iwork,liwork,work,lwork,iuser,user,ifail)
+  use floatPrecision
+  implicit none
+  integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe,istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,iuser(*),ifail
+  real(kind=fPrec) a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),c(*),cjac(ldcj,*),clamda(n+nclin+ncnln),objf,&
+    objgrd(n),r(ldr,n),x(n),work(lwork),user(*)
+  external confun,objfun
+  save
+  return
+end subroutine e04ucf
+
+subroutine e04uef(c1)
+  implicit none
+  character c1
+  save
+  return
+end subroutine e04uef
+
+subroutine e04udm(c1)
+  implicit none
+  character c1
+  save
+  return
+end subroutine e04udm
+
+subroutine x04abf(n1,n2)
+  implicit none
+  integer n1,n2
+  save
+  return
+end subroutine x04abf

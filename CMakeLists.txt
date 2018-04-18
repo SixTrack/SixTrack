@@ -294,7 +294,7 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
 # Select which fortran files to generate and compile
 if(DA)
-	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing cor_ord cor_glo sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
+	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
 	list(APPEND FORS_F90 file_units string_tools)
 else()
 	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
