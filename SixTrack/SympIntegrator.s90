@@ -18,9 +18,8 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
    double precision :: px, py           ! Initial impulsion
    double precision :: dz               ! Step in z
    double precision :: valA             ! Coefficient of MAJ given by Horner subroutine
-!   double precision :: g2d2inv
    double precision :: dzover2          ! Dsigma/2
-   double precision :: deltap1          ! 1/(delta+1)
+   double precision :: deltap1,g2d2inv  ! 1/(delta+1)
    double precision :: TAx(0:lx,0:s),TAy(0:ly,0:s),TAz(0:lz,0:s)! Coefficient of Vector Potential by step
    
    
@@ -30,8 +29,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
 
    !                    ?????????????????????????????????
    ! -------------------------------------------------------------------------
-!   g2d2inv=deltap1/gam0
-!   g2d2inv=g2d2inv*g2d2inv*0.5d0
+!   g2d2inv=deltap1*deltap1*0.5d0
    
    
    ! Loop in z
@@ -54,7 +52,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
 
    do i=startp,endp,sens
       !             * h1
-!      zb=zb-dzover2*g2d2inv                                    ! ???????????
+!      zb=zb-dzover2                                    ! ???????????
 
       !             * h2
       call HornerDX(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
@@ -70,7 +68,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       py=py-valA
 
       x=x+dzover2*px*deltap1
- !     zb=zb-dzover2*0.5d0*px*px*deltap1*deltap1
+ !     zb=zb-dzover2*px*px*g2d2inv
 
 
       !                 ** Change of variable
@@ -88,7 +86,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       py=py-valA
 
       y=y+dz*py*deltap1
-      !zb=zb-dzover2*py*py*deltap1*deltap1
+      !zb=zb-dz*py*py*g2d2inv
 
 
       !                 ** Change of variable
@@ -106,7 +104,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       py=py-valA
 
       x=x+dzover2*px*deltap1
-      !zb=zb-dzover2*0.5d0*px*px*deltap1*deltap1
+      !zb=zb-dzover2*px*px*g2d2inv
 
 
       !                 ** Change of variable
@@ -123,7 +121,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       py=py+dzover2*valA
 
       !             * h1
-!      zb=zb-dzover2*g2d2inv                                    ! ??????????
+      !zb=zb-dzover2
    enddo
 end subroutine
 
