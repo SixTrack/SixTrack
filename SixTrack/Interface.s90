@@ -145,10 +145,10 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          allocate(ffImported(1:ffNLFile))
          ffImported = .false.
          firstTime = .false.
-         write (*,*) '"FringeField      : Config file imported '
+         write (*,*) 'FringeField      : Config file imported '
          
       else
-         write (*,*) '"FringeField      : Config file NOT imported'
+         write (*,*) 'FringeField      : Config file NOT imported'
          
       endif
 
