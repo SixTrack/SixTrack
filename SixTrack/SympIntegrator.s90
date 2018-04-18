@@ -8,7 +8,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
 
    ! Definition of parameters
    ! -------------------------------------------------------------------------
-   character(len=512) :: inex           ! Characterise if IN or OUT part of the Quad
+   character(len=512) :: inex           ! Characterize if IN or OUT part of the Quad
    integer :: i                         ! Indice for loop in z
    integer :: n,m,s                     ! Expo. max for x and y, and Nb of step in z
    integer :: lx,ly,lz                  ! Number max of coefficient by step
@@ -217,7 +217,7 @@ subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2
 
    ! Definition of parameters
    ! -------------------------------------------------------------------------
-   character(len=512),intent(in) :: inex           ! Characterise if IN or OUT part of the Quad
+   character(len=512),intent(in) :: inex           ! Characterize if IN or OUT part of the Quad
    integer :: i,l                                  ! Indice for loop in z
    integer,intent(in) :: n,m,s                     ! Expo. max for x and y, and Nb of step in z
    integer,intent(in) :: lz                        ! Number max of coefficient by step
