@@ -156,7 +156,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! -------------------------------------------------------------------------
    else if ((workChoise == 1).and.(.not.firstTime)) then
       if (ffImported(dataindex)) then
-         write(*,*) "FringeField      : ",ffFNames(dataindex)," Already imported!"
+         write(*,*) "FringeField      : ", TRIM(ADJUSTL(ffFNames(dataindex)))," Already imported!"
       else
          
          ffTA(:)%norm = 1.0d0/p0
@@ -178,21 +178,19 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                              ffTA(dataindex)%norm,  &
                                          OKRead)
          if (.not.OKRead) then
-            write(*,*) "FringeField ERROR : I couldn't read this file ", ffFNames(dataindex)
+            write(*,*) "FringeField ERROR : I couldn't read this file ",  TRIM(ADJUSTL(ffFNames(dataindex)))
 
          else
             ffImported(dataindex) = .true.
             
             
             ! Allocate memmory for AQ
-            Allocate(ffTA(dataindex)%AQx(1:2,1:2,1:npart),ffTA(dataindex)%AQy(1:2,1:2,1:npart))!, &
-                     !ffTA(dataindex)%checkAQ(1:npart))
+            Allocate(ffTA(dataindex)%AQx(1:2,1:2,1:npart),ffTA(dataindex)%AQy(1:2,1:2,1:npart))
             do j=1,npart
               ffTA(dataindex)%AQx(1,1,j)=0;              ffTA(dataindex)%AQx(1,2,j)=0;
               ffTA(dataindex)%AQx(2,1,j)=0;              ffTA(dataindex)%AQx(2,2,j)=0;
               ffTA(dataindex)%AQy(1,1,j)=0;              ffTA(dataindex)%AQy(1,2,j)=0;
               ffTA(dataindex)%AQy(2,1,j)=0;              ffTA(dataindex)%AQy(2,2,j)=0;
-              !ffTA(dataindex)%checkAQ(j)=.true.
             enddo
             
             
@@ -203,7 +201,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                write(*,*) "                     We use the computed one!"
             endif
  
-            write (*,*) "FringeField      : ", ffFNames(dataindex) , " imported! "
+            write (*,*) "FringeField      : ",  TRIM(ADJUSTL(ffFNames(dataindex))) , " imported! "
          endif
       endif
 
@@ -211,7 +209,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! -------------------------------------------------------------------------
    else if ((workChoise == 2).and.(.not.firstTime)) then
       if (.not.ffImported(dataindex)) then
-         write (*, *) 'FringeField ERROR: The data in', ffFNames(dataindex) ,'is not imported'
+         write (*, *) 'FringeField ERROR: The data in',  TRIM(ADJUSTL(ffFNames(dataindex))) ,'is not imported'
 
       else
          ! Change to Symp referenciale
@@ -221,7 +219,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          py= ((yv(2,ffj)            )*tiltc(ffi) - (yv(1,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
          
          
-         ! Selection of the particle that are only in the radius (r = 0.05m)
+         ! Selection of the particle that are only in the radius (r = 0.08m)
          if (((currQuad(2)==1).and.(x*x+y*y>6.4d-3)).or.             &
              ((currQuad(2)==2).and.(ffnotIN(nlostp(ffj),currQuad(1)))).or.       &
              (pstop(nlostp(ffj)))) then
