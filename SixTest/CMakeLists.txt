@@ -36,6 +36,7 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 SET(TESTS_NOFORT10
   orbit6d-element-trombone
   orbit6d-element-quadrupole
+  orbit6d-ions
   exact
   thick6dblocks
   elensidealthck6d
@@ -111,6 +112,7 @@ if(NOT COLLIMAT)
           notilt
           orbit6d-element-quadrupole
           orbit6d-element-trombone
+          orbit6d-ions
           prob1
           prob3
           s316
@@ -355,6 +357,7 @@ SET(FAST_TESTS
   dump_all_highprec
   dump_2_all_ele_highprec
   orbit6d-element-trombone
+  orbit6d-ions
   beam-HO_6D-simple-newstyle-orbit
   )
 
