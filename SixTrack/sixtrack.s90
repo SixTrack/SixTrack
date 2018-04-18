@@ -7626,43 +7626,6 @@ cc2008
             endif
    60     continue
 
-+dk close
-! ================================================================================================ !
-!  Close all open file units
-!  Rewritten on 2018-04-17, VKBO
-! ================================================================================================ !
-subroutine closeUnits
-  
-  use scatter,    only : scatter_closeFiles
-  use dynk,       only : dynk_closeFiles
-  use dump,       only : dump_closeUnits
-  use bdex,       only : bdex_closeFiles
-  use file_units, only : funit_closeUnits, funit_minUnit
-
-  implicit none
-
-  integer chkUnit
-  logical isOpen
-  
-  ! Just iterate through the first 1000 units
-  do chkUnit=1, funit_minUnit-1
-    inquire(unit=chkUnit, opened=isOpen)
-    if(isOpen) close(chkUnit)
-  end do
-  
-  ! Call specific close units routines for modules
-  !   that assign units dynamically or via input.
-  call funit_closeUnits
-  call dump_closeUnits
-  call dynk_closeFiles
-  call bdex_closeFiles
-  call scatter_closeFiles
-  
-  return
-  
-end subroutine closeUnits
-! ================================================================================================ !
-
 +dk errf
       subroutine errf(xx,yy,wx,wy)
 !----------------------------------------------------------------------*
