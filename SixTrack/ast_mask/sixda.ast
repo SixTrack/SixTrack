@@ -1,4 +1,4 @@
-sixtrack.s90 tshift_corr.s90 end_sixtrack.s90
+sixtrack.s90 tshift_corr.s90
 sixdan.f
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods
 e mainda
@@ -9,5 +9,4 @@ e dumps
 e cor_glo
 e cor_ord
 e plotdumy
-e close
 ex
