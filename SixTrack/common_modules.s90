@@ -933,6 +933,8 @@ contains
 
      call alloc(al,6,2,npart,nele,zero,'al')
      call alloc(as,6,2,npart,nele,zero,'as')
+     call alloc(at,6,2,2,nele,zero,'at')
+     call alloc(a2,6,2,2,nele,zero,'a2')
 
   end subroutine mod_commons_allocate_thickarrays
 
