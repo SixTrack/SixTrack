@@ -221,7 +221,8 @@
       integer icorr,idial,idptr,imod1,imod2,inorm,ipar,namp,ncor,nctype,&
      &ndimf,nmom,nmom1,nmom2,nord,nord1,nordf,nsix,nvar,nvar2,nvarf
       real(kind=fPrec) dpmax,preda,weig1,weig2
-      character(len=max_name_len) coel
+      ! FIXME: The len below should be max_name_len, but that doesn't compile at the moment.
+      character(len=48) coel
       common/dial/preda,idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
       common/norf/nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
       common/tcorr/icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel(10)
@@ -8519,7 +8520,7 @@ subroutine hamilton1(ja,jp)
               j4=jord-j1-j2-j3
               kointer=((j1+j2*3)+j3*3**2)+j4*3**3 ! hr04
               do l=0,ncoef
-                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
+                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
               end do
             end do
           end do
@@ -20203,7 +20204,18 @@ subroutine runda
 +ca kickfho
 +ca kickfxxv
           end select
-          
+! ----------------------------------------------------------------------
+! This is a repeat of the case for SKEW 14-POL because it is called by
+! a number of gotos in the DA version
+  440   continue
+!FOX  EKK=EKK*C1M15 ;
++ca kickfho
++ca kickfho
++ca kickfho
++ca kickfho
++ca kickfho
++ca kickfxxv
+! ----------------------------------------------------------------------
   480   continue
         if(mout2.eq.1) then
           if(ic(iu).le.nblo) then

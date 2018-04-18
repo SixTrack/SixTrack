@@ -319,7 +319,6 @@ contains
 
   end subroutine expand_arrays
 
-+if vvector
   subroutine allocate_thickarrays
     ! Kicks off the allocation of the thick tracking arrays
     use mod_commonmn, only : mod_commonmn_allocate_thickarrays
@@ -355,7 +354,6 @@ contains
 !    npart = npart_new
 !    nblz = nblz_new
   end subroutine expand_thickarrays
-+ei
 
 end module parpro_scale
 
@@ -821,11 +819,10 @@ contains
 
   end subroutine mod_commonmn_expand_arrays
 
-+if vvector
   subroutine mod_commonmn_allocate_thickarrays
     use numerical_constants, only : zero
     use crcoall
-  use mod_alloc
+    use mod_alloc
     implicit none
     
 !    integer i1,i2,i3,i
@@ -861,7 +858,7 @@ contains
   subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
     use crcoall
     use numerical_constants, only : zero
-  use mod_alloc
+    use mod_alloc
     implicit none
  
     integer,intent(in) :: nele_new, npart_new, nblo_new
@@ -872,7 +869,6 @@ contains
 
   end subroutine mod_commonmn_expand_thickarrays
 
-+ei
 end module mod_commonmn
 
 +dk mod_commons
@@ -883,25 +879,15 @@ module mod_commons
 
   implicit none
   
-+if vvector
   ! common /syos/
   real(kind=fPrec), allocatable, save :: as(:,:,:,:),al(:,:,:,:) !(6,2,npart,nele)
+  real(kind=fPrec), allocatable, save :: at(:,:,:,:),a2(:,:,:,:) !(6,2,npart,nele)
   real(kind=fPrec), save :: sigm(mpa),dps(mpa)
   integer, save :: idz(2)
   
   ! common /anf/
   real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1
   integer, save :: itra
-+ei
-+if .not.vvector
-  ! common /syos/
-  real(kind=fPrec), save :: as(6,2,2,nele),at(6,2,2,nele),a2(6,2,2,nele),al(6,2,2,nele),sigm(mpa),dps(mpa)
-  integer, save :: idz(2)
-  
-  ! common /anf/
-  real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1
-  integer, save :: itra
-+ei
 
 contains
 
@@ -916,7 +902,6 @@ contains
 
   end subroutine mod_commons_expand_arrays
   
-+if vvector
   subroutine mod_commons_allocate_thickarrays
     !Subroutine for initial allocation of the big thick tracking arrays 'al' and 'as'
     use numerical_constants, only : zero
@@ -962,7 +947,6 @@ contains
      call resize(as,6,2,npart_new,nele_new,zero,'as')
 
   end subroutine mod_commons_expand_thickarrays
-+ei
 end module mod_commons
 
 +dk mod_hions
