@@ -15,13 +15,13 @@
 !    Fringe Field interface parametter with SixTrack (ASIMONA, BDALENA, TPUGNAT)
 !-----------------------------------------------------------------------
       integer :: ffNLn                                           ! Number of line in the file
-      integer :: blabla
+      integer :: FFindex
       character(len=100), pointer, dimension(:) :: ffQNames      ! Names Quad
-      common/FringeField/ blabla(nele),ffQNames, ffNLn
+      common/FringeField/ FFindex(nele),ffQNames, ffNLn
 +cd ffieldcommon1
       logical ffReady                                            ! Check data read with success
       integer :: ffNLFile                                        ! Number of line in the file
       double precision, pointer, dimension(:,:) :: ffParam       ! Kin, Lin, Corin, Kex, Lex, Corex
-      character(len=100), pointer, dimension(:) :: ffFNames
+      character(len=300), pointer, dimension(:) :: ffFNames
       integer, pointer, dimension(:,:) :: ffQ2File
       common/FringeFieldTab/ ffNLFile, ffReady, ffParam, ffQ2File, ffFNames

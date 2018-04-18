@@ -12225,16 +12225,18 @@ cc2008
         notfound=.true.
         do while ((ffi <= ffNLn).and.(notfound))
           if (idat.eq.ffQNames(ffi)) then
-            blabla(i) = ffi
-            call ffInterface(1,[blabla(i),1],1,1,1)
-            call ffInterface(1,[blabla(i),2],1,1,1)
+            FFindex(i) = ffi
+            call ffInterface(1,[FFindex(i),1],1,1,1)
+            call ffInterface(1,[FFindex(i),2],1,1,1)
             notfound=.false.
++if debug
             write(*,*) "Found ", ffi, " at ", i
++ei
           endif
           ffi=ffi+1
         enddo
         if (notfound) then
-          blabla(i)=0
+          FFindex(i)=0
         endif
 ! end FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
@@ -27282,9 +27284,6 @@ C Should get me a NaN
 +ca parnum
 +if ffield
 +ca ffieldcommon
-      integer :: ffcontIN = 0
-      integer :: ffcontOUT = 0
-      integer :: ffcontTOT = 0
 +ei
 +ca common
 +ca common2
@@ -27435,10 +27434,12 @@ C Should get me a NaN
 +ei
 
 +if ffield
++if debug
 !                FringeField ASIMONA, BDALENA, TPUGNAT
           ! Print position and momentum
-!          call ffInterface(12,[1,1],i,j,n)
+          call ffInterface(12,[1,1],i,j,n)
 !                FringeField ASIMONA, BDALENA, TPUGNAT
++ei
 +ei
 +if .not.collimat
 !---------count:44
@@ -27644,38 +27645,11 @@ C Should get me a NaN
    70     do 80 j=1,napx
 +if ffield
 !                FringeField ASIMONA, BDALENA, TPUGNAT
-            if (blabla(ic(i)-nblo) /= 0) then
-              if (blabla(ic(i)-nblo) /= blabla(ic(i-2)-nblo)) then
-!                if (j==1) then
-!                  write(*,*) "Before  (in Track) : x = ",xv(1,j)," y= ",&
-!     &xv(2,j), i, j
-!                endif
-                call ffInterface(2,[blabla(ic(i)-nblo),1],i,j,n)
-                if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
-                  ffcontIN = ffcontIN + 1
-                endif
-!                if (j==1) then
-!                  write(*,*) "FringeField : The in  part has been",      &
-!     &" computed! -> elm: ",blabla(ic(i)-nblo),"  Tr=",n
-!                endif
+            if (FFindex(ic(i)-nblo) /= 0) then
+              if (FFindex(ic(i)-nblo) /= FFindex(ic(i-2)-nblo)) then
+                call ffInterface(2,[FFindex(ic(i)-nblo),1],i,j,n)
               endif
             endif
-
-!            if ((blabla(ic(i)-nblo) /= blabla(ic(i-2)-nblo)).and.(      &
-!     &blablaic(i)-nblo) /= 0)) then
-!            if (j==1) then
-!            write(*,*) "Before  (in Track) : x = ", xv(1,j), " y= ",    &
-!     &xv(2,j), i, j
-!            endif
-!             call ffInterface(2,[blabla(ic(i)-nblo),1],i,j,n)
-!              if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
-!                ffcontIN = ffcontIN + 1
-!              endif
-!              if (j==1) then
-!                write(*,*) "FringeField : The in  part has been",        &
-!     &" computed!",blabla(ic(i)-nblo)
-!              endif
-!            endif
 !                end FringeField ASIMONA, BDALENA, TPUGNAT
 +ei
 +ca alignva
@@ -27683,36 +27657,11 @@ C Should get me a NaN
 +if ffield
 !                FringeField ASIMONA, BDALENA, TPUGNAT
 
-            if (blabla(ic(i)-nblo) /= 0) then
-              if (blabla(ic(i)-nblo) /= blabla(ic(i+2)-nblo)) then
-                call ffInterface(2,[blabla(ic(i)-nblo),2],i,j,n)
-!                if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
-!                  ffcontOUT = ffcontOUT + 1
-!                endif
-!                if (j==1) then
-!                  write(*,*) "FringeField : The out part has been",     &
-!     &" computed! -> elm: ",blabla(ic(i)-nblo),"  Tr=",n
-!                endif
+            if (FFindex(ic(i)-nblo) /= 0) then
+              if (FFindex(ic(i)-nblo) /= FFindex(ic(i+2)-nblo)) then
+                call ffInterface(2,[FFindex(ic(i)-nblo),2],i,j,n)
               endif
             endif
-
-!            if ((blabla(ic(i)-nblo) /= blabla(ic(i+2)-nblo)).and.(      &
-!     &blabla(ic(i)-nblo) /= 0)) then
-!              call ffInterface(2,[blabla(ic(i)-nblo),2],i,j,n)
-!              if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
-!                ffcontOUT = ffcontOUT + 1
-!              endif
-!              if (j==1) then
-!                write(*,*) "FringeField : The out part has been",        &
-!     &" computed!",blabla(ic(i)-nblo)
-!              endif
-!            endif
-
-!            if ((j==1).and.(blabla(ic(i)-nblo) == 1)) then
-!              write(*,*) "IN =  ",ffcontIN
-!              write(*,*) "tot = ",ffcontTOT
-!              write(*,*) "out = ",ffcontOUT
-!            endif
 !                end FringeField ASIMONA, BDALENA, TPUGNAT                !hr02
 +ei
    80     continue

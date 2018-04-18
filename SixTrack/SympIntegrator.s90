@@ -1,38 +1,32 @@
 +dk ffsympintegrator
 +if ffield
 !! ---------------------------------------------------------------------------
-!!      Subroutine de la MAJ du point (x,y,z,px,py,delta)
+!!      Subroutine for MAJ of the point (x,y,z,px,py,deltap1)
 !! ---------------------------------------------------------------------------
-!subroutine SympIntegrator(x,px,y,py,zb,delta,gam0,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,inex)
 subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,inex)
    implicit none
 
-   ! Initialisation des parametres
+   ! Definition of parameters
    ! -------------------------------------------------------------------------
-   character(len=512) :: inex           ! Characterise si on est en entree ou en sortie
-   integer :: i                         ! Indice de la boucle pour la position z
-   integer :: n,m,s                     ! Expo. max pour x et y, et Nb de pas en z
-   integer :: lx,ly,lz
+   character(len=512) :: inex           ! Characterise if IN or OUT part of the Quad
+   integer :: i                         ! Indice for loop in z
+   integer :: n,m,s                     ! Expo. max for x and y, and Nb of step in z
+   integer :: lx,ly,lz                  ! Number max of coefficient by step
    integer :: startp,endp,sens
    integer(kind=2) :: ij_Ax(0:1,0:lx,0:s),ij_Ay(0:1,0:ly,0:s),ij_Az(0:1,0:lz,0:s)
-   double precision :: x, y, zb         ! Position initial x, y et curviligne z
-   double precision :: px, py!, delta    ! Impulsion initial
-   double precision :: dz!, gam0         ! Pas en z et coefficient gam0
-   double precision :: valA             ! Coefficient de MAJ donne par la subroutine
+   double precision :: x, y, zb         ! Initial position x, y and curviligne z
+   double precision :: px, py           ! Initial impulsion
+   double precision :: dz               ! Step in z
+   double precision :: valA             ! Coefficient of MAJ given by Horner subroutine
 !   double precision :: g2d2inv
-   double precision :: dzover2          !  Dsigma/2
-   double precision :: deltap1
-   !double precision :: TAx(0:lx,0:s+1),TAy(0:ly,0:s+1),TAz(0:lz,0:s+1)
-   double precision :: TAx(0:lx,0:s),TAy(0:ly,0:s),TAz(0:lz,0:s)
+   double precision :: dzover2          ! Dsigma/2
+   double precision :: deltap1          ! 1/(delta+1)
+   double precision :: TAx(0:lx,0:s),TAy(0:ly,0:s),TAz(0:lz,0:s)! Coefficient of Vector Potential by step
    
    
-   ! Initialisation de la taille des pas en z
+   ! Initialise the step size in z
    ! -------------------------------------------------------------------------
    dzover2=0.5d0*dz !loc
-
-   ! Calcul de deltap1 = 1/(1+delta)
-   ! -------------------------------------------------------------------------
-   !deltap1=1.0d0/(1.0d0+delta)
 
    !                    ?????????????????????????????????
    ! -------------------------------------------------------------------------
@@ -40,15 +34,15 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
 !   g2d2inv=g2d2inv*g2d2inv*0.5d0
    
    
-   ! Boucle en z
+   ! Loop in z
    ! -------------------------------------------------------------------------
-   ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Rajouter pour inverser la lecture des tableaux
    startp = 0
    endp = s-1
 !   endp = s
    sens = 1
 
 
+   ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inverse the reading of the table if OUT_O
    if (inex=="OUT_O") then
       startp = endp
       endp = 0
@@ -56,7 +50,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       dz=-dz
       dzover2=-dzover2
    endif
-   ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Rajouter pour inverser la lecture des tableaux
+   ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Inverse the reading of the table if OUT_O
 
    do i=startp,endp,sens
       !             * h1
@@ -69,7 +63,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       py=py+dzover2*valA
 
       !             * h3
-      !                 ** Changement de variable
+      !                 ** Change of variable
       call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       px=px-valA
       call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
@@ -78,29 +72,16 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       x=x+dzover2*px*deltap1
  !     zb=zb-dzover2*0.5d0*px*px*deltap1*deltap1
 
-      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !py=py-valA
-      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !px=px-valA
 
-      !y=y+dzover2*py*deltap1
-!      zb=zb-dzover2*0.5d0*py*py*deltap1*deltap1
-
-
-      !                 ** Changement de variable
+      !                 ** Change of variable
       call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       px=px+valA
       call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       py=py+valA
 
-      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !py=py+valA
-      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !px=px+valA
-
 
       !             * h4
-      !                 ** Changement de variable
+      !                 ** Change of variable
       call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       px=px-valA
       call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
@@ -109,29 +90,16 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       y=y+dz*py*deltap1
       !zb=zb-dzover2*py*py*deltap1*deltap1
 
-      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !py=py-valA
-      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !px=px-valA
 
-      !x=x+dz*px*deltap1
-!      zb=zb-dzover2*px*px*deltap1*deltap1
-
-
-      !                 ** Changement de variable
+      !                 ** Change of variable
       call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       px=px+valA
       call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       py=py+valA
 
-      !call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !py=py+valA
-      !call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
-      !px=px+valA
-
 
       !             * h3
-      !                 ** Changement de variable
+      !                 ** Change of variable
       call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       px=px-valA
       call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
@@ -140,25 +108,12 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       x=x+dzover2*px*deltap1
       !zb=zb-dzover2*0.5d0*px*px*deltap1*deltap1
 
-      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !py=py-valA
-      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !px=px-valA
 
-      !y=y+dzover2*py*deltap1
- !     zb=zb-dzover2*0.5d0*py*py*deltap1*deltap1
-
-
-      !                 ** Changement de variable
+      !                 ** Change of variable
       call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       px=px+valA
       call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       py=py+valA
-
-      !call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !py=py+valA
-      !call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
-      !px=px+valA
 
 
       !             * h2
@@ -181,19 +136,18 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
 
    ! Initialisation des parametres
    ! -------------------------------------------------------------------------
-   character :: oper                  ! Operation a effectuer ("AD" pour anti-
-                                      ! Drift, "AQ" pour anti-Quad)
-   double precision :: x, y           ! Position initial x, y
-   double precision :: px, py         ! Impulsion initial
-   double precision :: x_tmp, y_tmp   ! Position initial x, y temporaire
-   double precision :: px_tmp, py_tmp ! Impulsion initial temporaire
-   double precision :: K              ! Force de l'anti-Quad
-   double precision :: Lff,Lin,Lin_tp ! Longeur du fichier dans le Quad
-   double precision :: deltap1
-   double precision :: Corx, Cory, CoK!       et correcteur
-   double precision :: Corx_tp, Cory_tp!       et correcteur
-   double precision :: a,b,c,d,bcmad  ! Parametre pour le calcul de l'anti-Quad
-   integer          :: NbDivQad=16, i  ! Nombre de Subdivision de l'anti-Quad
+   character :: oper                  ! Operation to be executed ("AD" for anti-Drift, "AQ" for anti-Quad)
+   double precision :: x, y           ! Initial position x, y
+   double precision :: px, py         ! Initial momentum
+   double precision :: x_tmp, y_tmp   ! Initial position x, y temporary
+   double precision :: px_tmp, py_tmp ! Initial momentum temporary
+   double precision :: K              ! Strength of the anti-Quad
+   double precision :: Lff,Lin,Lin_tp ! Length in ConfigFringeField for the Quad
+   double precision :: Corx, Cory, CoK!              and correctors
+   double precision :: Corx_tp, Cory_tp!             and correctors
+   double precision :: deltap1        ! 1/(delta+1)
+   double precision :: a,b,c,d,bcmad  ! Parameter for the anti-Quad computation
+   integer          :: NbDivQad=16, i  ! Number of Subdivision of the anti-Quad
    double precision :: DbNbDivQad
 
    if (oper=="D") then       ! [D(Lff-Lin)]^-1
@@ -209,7 +163,7 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
       Corx_tp = Corx/DbNbDivQad
       Cory_tp = Cory/DbNbDivQad
       
-      ! Focalisation en x
+      ! Focalisation in x
       a =  1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)* Lin_tp         *0.5d0 *deltap1
       b = (1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)*(Lin_tp-Corx_tp)*0.25d0*deltap1)*Lin_tp*deltap1
       c =        - (K - CoK)* Lin_tp
@@ -224,7 +178,7 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
         px = px_tmp
       enddo
 
-      ! Defocalisation en y
+      ! Defocalisation in y
       a =  1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp         *0.5d0 *deltap1
       b = (1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)*(Lin_tp-Cory_tp)*0.25d0*deltap1)*Lin_tp*deltap1
       c =          (K + CoK)* Lin_tp
@@ -261,42 +215,41 @@ subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2
    
    implicit none
 
-   ! Initialisation des parametres
+   ! Definition of parameters
    ! -------------------------------------------------------------------------
-   character(len=512),intent(in) :: inex           ! Characterise si on est en entree ou en sortie
-   integer :: i,l                                  ! Indice de la boucle pour la position z
-   integer,intent(in) :: n,m,s                     ! Expo. max pour x et y, et Nb de pas en z
-   integer,intent(in) :: lz
+   character(len=512),intent(in) :: inex           ! Characterise if IN or OUT part of the Quad
+   integer :: i,l                                  ! Indice for loop in z
+   integer,intent(in) :: n,m,s                     ! Expo. max for x and y, and Nb of step in z
+   integer,intent(in) :: lz                        ! Number max of coefficient by step
    integer :: startp,endp,sens
    integer(kind=2),intent(in) :: ij_Az(0:1,0:lz,0:s)
-   double precision,intent(in) :: dz               ! Pas en z et coefficient gam0
-   double precision,intent(in) :: deltap1
-   double precision,intent(in) :: TAz(0:lz,0:s)
+   double precision :: dz               ! Step in z
+   double precision,intent(in) :: deltap1          ! 1/(delta+1)
+   double precision,intent(in) :: TAz(0:lz,0:s)    ! Coefficient of Vector Potential by step
    
    double precision,intent(out) :: a1,b1,c1,d1,a2,b2,c2,d2
    
-   double precision :: atp,btp,ctp,dtp,C0x,C0y,bcmad!,sixth
+   double precision :: atp,btp,ctp,dtp,C0x,C0y,bcmad
    
    ! Initialisation of the parameter
    a1=1.0d0;   b1=0.0d0;   c1=0.0d0;   d1=1.0d0;
    a2=1.0d0;   b2=0.0d0;   c2=0.0d0;   d2=1.0d0;
-   !sixth=1.0d0/6.0d0
    
-   ! Boucle en z
+   ! Loop in z
    ! -------------------------------------------------------------------------
-   ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Rajouter pour inverser la lecture des tableaux
    startp = 0
    endp = s-1
-!   endp = s
    sens = 1
 
+
+   ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inverse the reading of the table if OUT_O
    if (inex=="OUT_O") then
-     startp = endp
-     endp = 0
-     sens = -1
-     !dz=-dz
+      startp = endp
+      endp = 0
+      sens = -1
+      dz=-dz
    endif
-   ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Rajouter pour inverser la lecture des tableaux
+   ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Inverse the reading of the table if OUT_O
 
    do i=startp,endp,sens
      C0x=0.0d0
@@ -360,12 +313,12 @@ subroutine ComputeAntiQuad(x,px,y,py,a1,b1,c1,d1,a2,b2,c2,d2)
 
    ! Initialisation des parametres
    ! -------------------------------------------------------------------------
-   double precision,intent(inout) :: x, y           ! Position initial x, y
-   double precision,intent(inout) :: px, py         ! Impulsion initial
+   double precision,intent(inout) :: x, y           ! Initial position x, y
+   double precision,intent(inout) :: px, py         ! Initial momentum 
    double precision,intent(out)   :: a1,b1,c1,d1,a2,b2,c2,d2
    
-   double precision :: x_tmp, y_tmp   ! Position initial x, y temporaire
-   double precision :: px_tmp, py_tmp ! Impulsion initial temporaire
+   double precision :: x_tmp, y_tmp   ! Initial position x, y temporary
+   double precision :: px_tmp, py_tmp ! Initial momentum temporary
    
    x_tmp =a1*x + b1*px;   px_tmp=c1*x + d1*px;   x=x_tmp;   px=px_tmp;
    y_tmp =a2*y + b2*py;   py_tmp=c2*y + d2*py;   y=y_tmp;   py=py_tmp;
