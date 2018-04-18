@@ -23368,7 +23368,7 @@ end interface
 ! P. HERMES for hiSix
         mtc(i) = one
         naa(i) = 1
-        nzz(i) = zz0
+        nzz(i) = 1
         nucm(i)= pmap
         moidpsv(i) = one
         omoidpsv(i) = zero
