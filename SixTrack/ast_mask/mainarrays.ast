@@ -1,6 +1,6 @@
 common_modules.s90
 mainarraysn.f
-df bignpart,hugenpart,bignblz,hugenblz,beamgas,collimat,vvector,datamods
+df bignpart,hugenpart,bignblz,hugenblz,beamgas,collimat,datamods
 e parpro
 e mod_common
 e mod_commonmn
