@@ -221,7 +221,8 @@
       integer icorr,idial,idptr,imod1,imod2,inorm,ipar,namp,ncor,nctype,&
      &ndimf,nmom,nmom1,nmom2,nord,nord1,nordf,nsix,nvar,nvar2,nvarf
       real(kind=fPrec) dpmax,preda,weig1,weig2
-      character(len=max_name_len) coel
+      ! FIXME: The len below should be max_name_len, but that doesn't compile at the moment.
+      character(len=48) coel
       common/dial/preda,idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
       common/norf/nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
       common/tcorr/icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel(10)
@@ -1070,12 +1071,12 @@
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
      &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
-+if vvector
-     &as,al,sigm,dps,idz,dp1,itra,                                      &
-+ei
-+if .not.vvector
+! +if vvector
+!      &as,al,sigm,dps,idz,dp1,itra,                                      &
+! +ei
+! +if .not.vvector
      &as,at,a2,al,sigm,dps,idz,dp1,itra,                                &
-+ei
+! +ei
      &x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
      &bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
      &nvar2,nsix,ncor,ipar,nordf,                                       &
@@ -8519,7 +8520,7 @@ subroutine hamilton1(ja,jp)
               j4=jord-j1-j2-j3
               kointer=((j1+j2*3)+j3*3**2)+j4*3**3 ! hr04
               do l=0,ncoef
-                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
+                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
               end do
             end do
           end do
@@ -20203,7 +20204,18 @@ subroutine runda
 +ca kickfho
 +ca kickfxxv
           end select
-          
+! ----------------------------------------------------------------------
+! This is a repeat of the case for SKEW 14-POL because it is called by
+! a number of gotos in the DA version
+  440   continue
+!FOX  EKK=EKK*C1M15 ;
++ca kickfho
++ca kickfho
++ca kickfho
++ca kickfho
++ca kickfho
++ca kickfxxv
+! ----------------------------------------------------------------------
   480   continue
         if(mout2.eq.1) then
           if(ic(iu).le.nblo) then
@@ -23386,9 +23398,9 @@ end interface
 
       call daten
 
-+if vvector
+! +if vvector
       if (ithick.eq.1) call allocate_thickarrays
-+ei
+! +ei
       
 +if debug
 !     call dumpbin('adaten',999,9999)
@@ -32030,6 +32042,7 @@ program mainda
       use, intrinsic :: iso_fortran_env, only : output_unit
       use crcoall
       use parpro
+      use parpro_scale
       use mod_common
       use mod_commons
       implicit none
@@ -32107,10 +32120,10 @@ program mainda
 
       errout_status = 0         ! Set to nonzero before calling abend in case of error.
                                 ! If prror is called, it will be set internally.
-      
 +if .not.cr
       lout=output_unit
 +ei
+  call allocate_arrays      ! Initial allocation of memory
 
 +ca open
       write(lout,10000) version,moddate
@@ -32169,6 +32182,7 @@ program mainda
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr08
       call daten
+      if (ithick.eq.1) call allocate_thickarrays
       if(nord.le.0.or.nvar.le.0) call prror(91)
       if(ithick.eq.1) write(lout,10020)
       if(ithick.eq.0) write(lout,10030)
@@ -32998,17 +33012,6 @@ subroutine comnul
         do i3=1,2
           do i4=1,6
             a(i,i3,i4)=zero
-+if .not.vvector
-            do i1=1,2
-+ei
-+if vvector
-            do i1=1,npart
-+ei
-+if .not.vvector
-                at(i4,i3,i1,i)=zero
-                a2(i4,i3,i1,i)=zero
-+ei
-            end do
           end do
         end do
 
@@ -33354,17 +33357,6 @@ subroutine SELNUL( iel )
       do i3=1,2
         do i4=1,6
           a(iel,i3,i4)=zero
-+if .not.vvector
-          do i1=1,2
-+ei
-+if vvector
-          do i1=1,npart
-+ei
-+if .not.vvector
-            at(i4,i3,i1,iel)=zero
-            a2(i4,i3,i1,iel)=zero
-+ei
-          end do
         end do
       end do
 
@@ -33540,11 +33532,11 @@ integer function INEESE()
   il=il+1
   if( il.gt.nele-2 ) then
     call expand_arrays(nele+50, npart, nblz, nblo )
-+if vvector
-      if (ithick.eq.1) then
-        call expand_thickarrays(nele, npart, nblz, nblo )
-      end if
-+ei
+! +if vvector
+    if (ithick.eq.1) then
+      call expand_thickarrays(nele, npart, nblz, nblo )
+    end if
+! +ei
   end if
 
 ! initialise element to empty
@@ -47531,21 +47523,22 @@ end subroutine timex
 +dk dumps
 +if debug
 !DUMPS
-      subroutine warr(vname,value,i,j,k,l)
-      use floatPrecision
-      implicit none
-      character(len=*) vname
-      real(kind=fPrec) value
-      integer i,j,k,l
-      integer ierro
-      character(len=max_name_len) myname
-      myname=vname
-      write(100) myname,value,i,j,k,l
-      endfile (100,iostat=ierro)
-      backspace (100,iostat=ierro)
-      return
-      end
-      subroutine dumpbl1(dumpname,n,i)
+subroutine warr(vname,value,i,j,k,l)
+  use floatPrecision
+  use parpro
+  implicit none
+  character(len=*) vname
+  real(kind=fPrec) value
+  integer i,j,k,l
+  integer ierro
+  character(len=max_name_len) myname
+  myname=vname
+  write(100) myname,value,i,j,k,l
+  endfile (100,iostat=ierro)
+  backspace (100,iostat=ierro)
+  return
+end subroutine warr
+subroutine dumpbl1(dumpname,n,i)
       use floatPrecision
       use parpro
       use mod_common
@@ -47888,8 +47881,8 @@ end subroutine timex
       write(99,*) 'nvmoni ',nvmoni
       write(99,*) 'nvcorr ',nvcorr
       write(99,*) 'ncororb ',ncororb
-      write(99,*) 'apx ',apx
-      write(99,*) 'apz ',apz
+      ! write(99,*) 'apx ',apx
+      ! write(99,*) 'apz ',apz
       write(99,*) 'sigma0 ',sigma0
       write(99,*) 'iclo ',iclo
       write(99,*) 'ncorru ',ncorru
@@ -48381,8 +48374,8 @@ end subroutine timex
       write(99) nvmoni
       write(99) nvcorr
       write(99) ncororb
-      write(99) apx
-      write(99) apz
+      ! write(99) apx
+      ! write(99) apz
       write(99) sigma0
       write(99) iclo
       write(99) ncorru
@@ -48869,8 +48862,8 @@ end subroutine timex
       write(99,100) 'nvmoni ',nvmoni
       write(99,100) 'nvcorr ',nvcorr
       write(99,100) 'ncororb ',ncororb
-      write(99,100) 'apx ',apx
-      write(99,100) 'apz ',apz
+      ! write(99,100) 'apx ',apx
+      ! write(99,100) 'apz ',apz
       write(99,100) 'sigma0 ',sigma0
       write(99,100) 'iclo ',iclo
       write(99,100) 'ncorru ',ncorru

@@ -152,7 +152,7 @@ subroutine print_alloc(ename, requested_bits)
 
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
-  
+  return
 ! Printing to lout breaks CR version
 +if .not.cr
 
