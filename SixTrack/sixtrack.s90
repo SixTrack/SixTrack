@@ -16950,12 +16950,13 @@ subroutine runda
       if(mout2.eq.1) write(7,*) e0,pma
       e0f=sqrt(e0**2-pma**2)                                             !hr08
       betr0=sqrt(one-(pma/e0)**2)
-      do 10 i=1,mcor
-   10 iverg(i)=0
-      do 15 i=1,20
+      do i=1,mcor
+        iverg(i)=0
+      end do
+      do i=1,20
         fake(1,i)=zero
         fake(2,i)=zero
-   15 continue
+      end do
       time1=0.
       call timex(time1)
       if(niu(1).gt.1) then
@@ -17005,10 +17006,10 @@ subroutine runda
 !FOX  CORROLD(4)=YP(2) ;
 !FOX  CORROLD(5)=DELTAS ;
 !FOX  CORROLD(6)=DPDA1 ;
-      do 5 kkk=1,6
+      do kkk=1,6
         dpdav=dare(corrold(kkk))
 !FOX  CORROLD(KKK)=CORROLD(KKK)-DPDAV ;
-    5   continue
+      end do
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  Y(1)=YP(1)/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)/(ONE+DPDA) ;
@@ -17019,13 +17020,14 @@ subroutine runda
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
       if(ncor.gt.0) then
-        do 20 i=1,ncor
-          do 20 ii=1,iu
+        do i=1,ncor
+          do ii=1,iu
             if(ipar(i).eq.(ic(ii)-nblo).and.iverg(i).eq.0) then
               iverg(i)=1
               call davar(smida(i),ed(ic(ii)-nblo),nvar2+i)
             endif
-   20   continue
+          end do
+        end do
       endif
       nsta=niu(1)
       nsto=niu(2)
@@ -17433,10 +17435,10 @@ subroutine runda
 !FOX  CORRAU1(4)=YP(2) ;
 !FOX  CORRAU1(5)=DELTAS ;
 !FOX  CORRAU1(6)=DPDA1 ;
-                do 115 kkk=1,6
+                do kkk=1,6
                   dpdav2(kkk)=dare(corrau1(kkk))
 !FOX  CORRAU1(KKK)=CORRAU1(KKK)-DPDAV2(KKK) ;
-  115           continue
+                end do
                 if(ncor.gt.0) then
                   do kkk=1,ncor
                     kk=6+kkk
@@ -17446,9 +17448,9 @@ subroutine runda
                   enddo
                 endif
                 call dacct(corrau1,nvar,corrnew,nvar,corrau2,nvar)
-                do 116 kkk=1,6
+                do kkk=1,6
 !FOX  CORRAU2(KKK)=CORRAU2(KKK)+DPDAV2(KKK) ;
-  116           continue
+                end do
                 call dapri(corrau2(1),17)
                 call dapri(corrau2(2),17)
                 call dapri(corrau2(3),17)
@@ -17457,8 +17459,9 @@ subroutine runda
                 call dapri(corrau2(6),17)
               endif
               if(ncor.gt.0) then
-                do 120 i11=1,ncor
-  120           call dapri(smida(i11),17)
+                do i11=1,ncor
+                  call dapri(smida(i11),17)
+                end do
               endif
             endif
             goto 480
@@ -17961,8 +17964,9 @@ subroutine runda
         call dapri(corrau2(6),18)
       endif
       if(ncor.gt.0) then
-        do 510 i11=1,ncor
-  510   call dapri(smida(i11),18)
+        do i11=1,ncor
+          call dapri(smida(i11),18)
+        end do
       endif
       write(lout,*) 'END COORDINATES'
       write(lout,*) dare(x(1)),dare(y(1))
@@ -29948,10 +29952,11 @@ program mainda
       if(idp.ne.1.or.iation.ne.1) iclo6=0
       if(iclo6.eq.1.or.iclo6.eq.2) then
 +ca clor6
-        do 70 i=1,6
-          do 70 j=1,6
+        do i=1,6
+          do j=1,6
             tas(i,j)=tasm(i,j)
-   70   continue
+          end do
+        end do
       else
         ncorruo=ncorru
         ncorru=1
@@ -29986,9 +29991,11 @@ program mainda
           call mydaini(2,2,5,2,5,1)
           nlin=nlinoo
         endif
-        do 80 i=1,4
-          do 80 j=1,4
-   80   tas(i,j)=tasm(i,j)
+        do i=1,4
+          do j=1,4
+            tas(i,j)=tasm(i,j)
+          end do
+        end do
       endif
   550 continue
       tas16=tas(1,6)*c1m3
@@ -31331,7 +31338,7 @@ subroutine umschr(iu1,iu2)
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -31346,7 +31353,7 @@ subroutine umschr(iu1,iu2)
       do i=1,100
         jj(i)=0
       enddo
-      do 40 j=1,6
+      do j=1,6
         iplus=0
         read(iu1,'(A80)') aaa
         write(iu2,'(A80)') aaa
@@ -31360,24 +31367,24 @@ subroutine umschr(iu1,iu2)
         write(iu2,'(A80)') aaa
 
         if(nno.eq.1) then
-          do 10 i=1,5
-            read(iu1,'(6X,2X,G20.14,I5)') c,ii
-            write(iu2,'(6X,2X,G20.14,I5)') c,ii
-   10     continue
+          do i=1,5
+            read(iu1,'(6X,2X,G21.14,I5)') c,ii
+            write(iu2,'(6X,2X,G21.14,I5)') c,ii
+          end do
           if (j.eq.5) then
-            write(iu2,'(6X,2X,G20.14,I5)') one,5
+            write(iu2,'(6X,2X,G21.14,I5)') one,5
           else
-            write(iu2,'(6X,2X,G20.14,I5)') zero,5
+            write(iu2,'(6X,2X,G21.14,I5)') zero,5
           endif
-          read(iu1,'(6X,2X,G20.14,I5)') c,ii
-          write(iu2,'(6X,2X,G20.14,I5)') c,ii+1
-          read(iu1,'(6X,2X,G20.14,I5)') c,ii
+          read(iu1,'(6X,2X,G21.14,I5)') c,ii
+          write(iu2,'(6X,2X,G21.14,I5)') c,ii+1
+          read(iu1,'(6X,2X,G21.14,I5)') c,ii
           if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
         else
-   20     read(iu1,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
+   20     read(iu1,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
           if(ii.eq.0) then
             if(j.eq.5.and.ioo.lt.2) then
-              write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') iio+1,one,1, 0,0,0,0,1,0
+              write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iio+1,one,1, 0,0,0,0,1,0
               write(iu2,*) one
             endif
             goto 30
@@ -31387,15 +31394,15 @@ subroutine umschr(iu1,iu2)
           read(iu1,*) c1
           if(j.eq.5.and.(io.eq.2.or.jj(5).eq.1).and.iplus.eq.0) then
             iplus=1
-            write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii,one,io,0,0,0,0,1,0
+            write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,one,io,0,0,0,0,1,0
             write(iu2,*) one
           endif
-          write(iu2,'(I6,2X,G20.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj(i),i=1,4),0,jj(5)
+          write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj(i),i=1,4),0,jj(5)
           write(iu2,*) c1
           goto 20
         endif
    30   write(iu2,*)
-   40 continue
+      end do
       rewind iu1
       rewind iu2
       return

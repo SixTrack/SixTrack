@@ -176,7 +176,7 @@ subroutine coruord
     end do
 
     ! COMPUTES THE NEW HAMILTONIAN IN AMP AFTER THE CORRECTIONS
-    do 230 jord=2,maxa
+    do jord=2,maxa
       call hamilton1(jord,0)
       ! COMPUTES THE FUNCTION CHI
       if(jord.eq.2) then
@@ -212,7 +212,7 @@ subroutine coruord
 10030 format(/,t10,'VALUES OF THE INTEGRATED GRADIENTS OF THE ',        &
      &'CORRECTOR MULTIPOLES',/)
 10040 format(//,t10,' ERROR IN ROUTINE E04UCF. IFAIL = ',i8)
-10050 format(/,t10,'CORRECTOR ELEMENT  - ',a16,' - ',4x,e20.14)
+10050 format(/,t10,'CORRECTOR ELEMENT  - ',a16,' - ',4x,e21.14)
 10060 format(//,t10,'HAMILTONIAN DEPENDENCE OF ORDER ' ,2x,i3,5x,       &
      &'MOMENTUM DEPENDENCE ')
 10070 format(/,t10,'BEFORE CORRECTION ')
@@ -281,7 +281,7 @@ subroutine readd1(user,jaord,jpord)
   ! Unit 23 is opened with round='nearest' if fio is selected
 +if .not.crlibm
 10  continue
-  read(23,'(I6,2X,G20.14,I5,4X,18(2I2,1X))',end=30) ncoef,cc,nord,njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot)
+  read(23,'(I6,2X,G21.14,I5,4X,18(2I2,1X))',end=30) ncoef,cc,nord,njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot)
   read(23,*,end=30) cc
 +ei
 +if crlibm
@@ -525,7 +525,7 @@ subroutine hamilton1(ja,jp)
               j4=jord-j1-j2-j3
               kointer=((j1+j2*3)+j3*3**2)+j4*3**3 ! hr04
               do l=0,ncoef
-                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
+                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
               end do
             end do
           end do
@@ -587,7 +587,7 @@ subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
   
   use floatPrecision
   use mathlib_bouncer
-  use numerical_constants\
+  use numerical_constants
   
   implicit none
 
