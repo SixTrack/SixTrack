@@ -996,7 +996,7 @@
 !FOX  D V RE INT ED1 ; D V RE INT ED2 ;
 !FOX  D V RE INT DPDAV2 6 ; D V RE INT RRTR NTR 6 6 ;
 !FOX  D V RE INT COTR NTR 6 ; D V RE INT DPDAV ; D V RE INT BETR0 ;
-!FOX  D V RE INT E0 ; D V RE INT E0F ; D V RE INT PMA ;
+!FOX  D V RE INT E0 ; D V RE INT E0F ;
 !FOX  D V RE INT XS ; D V RE INT ZS ; D V RE INT OX ; D V RE INT OXP ;
 !FOX  D V RE INT OZ ; D V RE INT OZP ; D V RE INT SIGM1 ;
 !FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ; D V RE INT BEAMOFF3 ;
@@ -3426,7 +3426,6 @@
     dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
     yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-    print *, "aaaaa", pmap, nucm(j), pma
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
   
   end do
@@ -5225,7 +5224,7 @@
                   yv(2,j)  = c1e3*myyp(j)+torbyp(1)
                   sigmv(j) = mys(j)
                   ejv(j)   = myp(j)
-                  ejfv(j)=sqrt(ejv(j)**2-pma**2)                         !hr03
+                  ejfv(j)=sqrt(ejv(j)**2-nucm0**2)                         !hr03
                   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
                   dpsv(j)=(ejfv(j)-e0f)/e0f
                   oidpsv(j)=one/(one+dpsv(j))
@@ -10364,6 +10363,7 @@ end subroutine readd2
       use parpro
       use mod_common
       use mod_commons
+      use mod_hions
       implicit none
       integer numx
       real(kind=fPrec) e0f
@@ -10381,7 +10381,7 @@ end subroutine readd2
       if(numx.gt.nde(2)) return
       phas=phas0
       e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-pma**2)                                             !hr05
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
       return
       end
 
@@ -10396,6 +10396,7 @@ subroutine adib(e0f)
       use parpro
       use mod_common
       use mod_commons
+      use mod_hions
       implicit none
       real(kind=fPrec) e0f
 +ca commont1
@@ -10407,7 +10408,7 @@ subroutine adib(e0f)
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
       e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-pma**2)                                             !hr05
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
       return
 end subroutine adib
 
@@ -10763,8 +10764,8 @@ subroutine daten
       iskew=0
       preda=c1m38
 !hion
-      zz0 = 1
-      aa0 = 1
+      zz0 = one
+      aa0 = one
       nucm0 = pmap
 +if .not.collimat
       do_coll = .false.
@@ -12398,7 +12399,7 @@ subroutine daten
         write(lout,*)
       endif
       if(pma.lt.pieni) call prror(27)
-      nucm0=pma
+      !nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
       if(ncy2.eq.0) then
@@ -16612,7 +16613,18 @@ subroutine daten
       if(ch(:4).eq.next) goto 110
       ch1(:nchars+3)=ch(:nchars)//' / '
       read(ch1,*) aa0, zz0, nucm0
+
+
       nucm0 = nucm0  * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+
+        do j=1,npart
+          naa   (j) = aa0
+          nzz   (j) = zz0
+          nucm  (j) = nucm0
+
+        enddo
+
+      
       has_hion = .true.
       goto 110
 !-----------------------------------------------------------------------
@@ -19286,9 +19298,9 @@ subroutine runda
       do i=1,100
         jj(i)=0
       enddo
-      if(mout2.eq.1) write(7,*) e0,pma
-      e0f=sqrt(e0**2-pma**2)                                             !hr08
-      betr0=sqrt(one-(pma/e0)**2)
+      if(mout2.eq.1) write(7,*) e0,nucm0
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+      betr0=sqrt(one-(nucm0/e0)**2)
       do 10 i=1,mcor
    10 iverg(i)=0
       do 15 i=1,20
@@ -19310,7 +19322,6 @@ subroutine runda
       oxp=yytr(1,1)
       oz=xxtr(1,2)
       ozp=yytr(1,2)
-      mtcda = one
       if(nvar2.ge.1) call davar(x(1),zero,1)
 !FOX  X(1)=X(1)+OX ;
       if(nvar2.ge.2) call davar(yp(1),zero,2)
@@ -19329,7 +19340,7 @@ subroutine runda
       if(nvar2.eq.6) then
         call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
-print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt", numcm0, NUCM0
+
 
 !FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;        
 !FOX  DPDA=DPDA1*C1M3 ;
@@ -19627,6 +19638,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
+
           endif
           if(nvar2.eq.6.and.nsix.ne.2) then
             iflag=1
@@ -19813,6 +19825,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
 
         if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*ZZ0 ;
+
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 
@@ -19871,7 +19884,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf ! JBG Including misalignments
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
         crabpht2=crabph2(ix)
@@ -19904,7 +19917,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
@@ -19935,7 +19948,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  Y(1)=Y(1) + 2D0*(1D0/2D0)*CRABAMP3*((CRKVE*CRKVE)-
@@ -19967,7 +19980,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  Y(2)=Y(2) - CRABAMP3*((CIKVE*CIKVE)-
@@ -19998,7 +20011,7 @@ print *, "uttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP4=ED(IX) ;
+!FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP4)*
@@ -20481,18 +20494,19 @@ subroutine umlauda
       i4(9,2)=4
       i4(10,1)=4
       i4(10,2)=4
-      e0f=sqrt(e0**2-pma**2)                                             !hr05
-      betr0=sqrt(one-(pma/e0)**2)
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+      betr0=sqrt(one-(nucm0/e0)**2)
       ox=xxtr(1,1)
       oxp=yytr(1,1)
       oz=xxtr(1,2)
       ozp=yytr(1,2)
       sigm1=sigm(1)
       dps1=dps(1)
-      nucm0=pma
-      nucmda=nucm0 ! this is only for tests! 
-      mtcda = one !also tests!  
-      print * , zz0, "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+      nucmda=nucm0 ! this is doen like this in case we want to change so we can run Ions designed for different optics. 
+      !mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j)) Again we keep this variable in case we want to change the implementation later. 
+      mtcda = one  
+
+
       if(iqmodc.eq.1) then
         if(el(iq(1)).le.pieni) then
           ed1=ed(iq(1))
@@ -20513,12 +20527,12 @@ subroutine umlauda
 !     call wda('uml4',0d0,4,0,0,0)
 +ei
       call davar(x(1),ox,1)
-      oxp1=mtcda*oxp*(one+dps1)
+      oxp1=oxp*(one+dps1)
       call davar(yp(1),oxp1,2)
       ivar=2
       if(nvar2.ge.4) then
         call davar(x(2),oz,3)
-        ozp1=mtcda*ozp*(one+dps1)
+        ozp1=ozp*(one+dps1)
         call davar(yp(2),ozp1,4)
         ivar=4
       else
@@ -20544,6 +20558,7 @@ subroutine umlauda
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=DELTAS+SIGM1/RV ;
 !FOX  SIGMDA=DELTAS*RV ;
+
         ivar=ivar+2
       else
 !FOX  DELTAS=SIGM1 ;
@@ -20755,6 +20770,7 @@ subroutine umlauda
 !FOX  DPDA1=CORROLD(6)+DPDAV ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+
 !FOX  Y(1)=YP(1)*MOIDA ;
 !FOX  Y(2)=YP(2)*MOIDA ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -20900,6 +20916,7 @@ subroutine umlauda
 !FOX  SIGMDA=SIGMDA-SIGMDAC ;
           endif
           call synoda
+
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
@@ -21070,8 +21087,11 @@ subroutine umlauda
           pi=four*atan_mb(one)
         if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*ZZ0 ;
-           crabfreq=ek(ix)*c1e3
-           crabpht=crabph(ix)
+          
+          crabfreq=ek(ix)*c1e3
+          crabpht=crabph(ix)
+
+
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
                 
@@ -21132,7 +21152,7 @@ subroutine umlauda
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf ! JBG Including misalignments
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
 !       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
@@ -21167,7 +21187,7 @@ subroutine umlauda
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -21201,7 +21221,7 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -21236,7 +21256,7 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -21270,7 +21290,7 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP4=ED(IX) ;
+!FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -21309,7 +21329,7 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP4=ED(IX) ;
+!FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -21833,6 +21853,7 @@ subroutine wireda(ix,i)
       use mod_common
       use mod_commons
       use wire
+      use mod_hions
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
@@ -21869,7 +21890,7 @@ subroutine wireda(ix,i)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
 
-      CHI = (sqrt(e0**2-pma**2)*c1e6)/clight
+      CHI = (sqrt(e0**2-nucm0**2)*c1e6)/clight
       TX = wire_tiltx(ix) !tilt x [degrees] 
       TY = wire_tilty(ix) !tilt y [degrees]
       TX = TX*(pi/c180e0) ![rad]
@@ -22041,7 +22062,7 @@ end subroutine wireda
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
 
-      betr0=sqrt(one-(pma/e0)**2)
+      betr0=sqrt(one-(nucm0/e0)**2)
       write(lout,*) ' REENTERING MAP '
       call davar(x(1),zero,1)
       call davar(yp(1),zero,2)
@@ -22059,7 +22080,7 @@ end subroutine wireda
 !Eric
         rewind 111
       if(ition.ne.0) then
-      e0f=sqrt(e0**2-pma**2)                                             !hr08
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -22146,7 +22167,7 @@ end subroutine wireda
 !-----------------------------------------------------------------------
 !FOX  B D ;
 +ca dainicom
-!FOX  D V RE INT E0 ; D V RE INT PMA ; D V RE EXT E0F ;
+!FOX  D V RE INT E0 ; D V RE EXT E0F ;
 !FOX  D V RE INT HSY 3 ; D V RE INT PHAS ;
 !FOX  D V RE EXT ED NELE ; D V RE EXT HSYC NELE ;
 !FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ; 
@@ -22156,6 +22177,7 @@ end subroutine wireda
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       ix=ixcav
+
       if(kz(ix).eq.12) then
 !FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
 !FOX  ITIONC(IX)+PHASC(IX)) ;
@@ -22164,7 +22186,6 @@ end subroutine wireda
       endif
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
-
 
       return
       end
@@ -23347,7 +23368,7 @@ end interface
 ! P. HERMES for hiSix
         mtc(i) = one
         naa(i) = 1
-        nzz(i) = 1
+        nzz(i) = zz0
         nucm(i)= pmap
         moidpsv(i) = one
         omoidpsv(i) = zero
@@ -24178,7 +24199,7 @@ end interface
             endif
           endif
           write(lout,10080) dp1
-          e0f=sqrt(e0**2-pma**2)                                         !hr05
+          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
           if(iclo6.eq.0) then
             write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),     &
      &idz(2),                                                           &
@@ -24330,7 +24351,7 @@ end interface
           call prror(-1)
         endif
 
-!        e0f=sqrt(e0**2-pma**2)
+
         e0f=sqrt(e0**2-nucm0**2)       ! hisix
 
         call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
@@ -24547,8 +24568,8 @@ end interface
           endif
           ejfv(ia)=e0f*(one+dpsv(ia))
           ejfv(ia+1)=e0f*(one+dpsv(ia+1))
-          ejv(ia)=sqrt(ejfv(ia)**2+pma**2)                               !hr05
-          ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
+          ejv(ia)=sqrt(ejfv(ia)**2+nucm0**2)                               !hr05
+          ejv(ia+1)=sqrt(ejfv(ia+1)**2+nucm0**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
 
@@ -32510,7 +32531,7 @@ program mainda
         x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)                !hr08
         y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)               !hr08
   100 continue
-      e0f=sqrt(e0**2-pma**2)                                             !hr08
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
       if(iclo6.eq.0) then
         write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, idfor,iclo6,ition
       else
@@ -32519,11 +32540,11 @@ program mainda
       if(idfor.eq.1.and.iclo6.ne.2) goto 110
       ejf(1)=e0f*(one+dps(1))
       ejf(2)=e0f*(one+dps(2))
-      ej(1)=sqrt(ejf(1)**2+pma**2)                                       !hr08
-      ej(2)=sqrt(ejf(2)**2+pma**2)                                       !hr08
+      ej(1)=sqrt(ejf(1)**2+nucm0**2)                                       !hr08
+      ej(2)=sqrt(ejf(2)**2+nucm0**2)                                       !hr08
       goto 120
-  110 ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
-      ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
+  110 ejf(1)=sqrt(ej(1)**2-nucm0**2)                                       !hr08
+      ejf(2)=sqrt(ej(2)**2-nucm0**2)                                       !hr08
   120 write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
       write(lout,10010) amp,epsa
       write(lout,10170)
@@ -46931,7 +46952,7 @@ subroutine crstart
       napxo=crnapxo
       napx=crnapx
       e0=cre0
-      e0f=sqrt(e0**2-pma**2)                                             !hr08
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
       write(93,*) 'CRSTART doing binrecs'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
