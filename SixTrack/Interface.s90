@@ -5,8 +5,10 @@
 !! ---------------------------------------------------------------------------
 !!      workChoise    0  - Import config file
 !!                    1  - Import data file
+!!                    4  - Preparation of AQx and AQy
 !!                    2  - Symplectic integration
 !!                    11 - Test import data file
+!!                    12 - Print some particle information
 !!                    6  - Free all the memory
 !!                    3  - Allocate table for particle out of boundary
 subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
@@ -15,18 +17,18 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! Definition of the ffTable type
    ! -------------------------------------------------------------------------
    type ffTable
-     integer :: n,m,s                                                      ! Exposant maximum pour x et y, Nombre de point en z
+     integer :: n,m,s                                                      ! Max exposant for x and y, Number of point in z
      integer :: lx,ly,lz                                                   ! Number of coef per step
-     integer :: nb_oidpsv                                                  ! Nomber of case for AQ
-     integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx,ij_TAy,ij_TAz  ! Table of indices ij of Ax, Ay and Az
-     double precision :: dz, norm, Lgth                                    ! Step size in z and normalisation
-     double precision,dimension(:,:),allocatable :: TAx,TAy,TAz            ! New table of coefficients for Ax, Ay and Az
-     double precision,dimension(:,:),allocatable :: oidpsv_sv              ! oidpsv value for AQ-case
-     double precision,dimension(:,:,:),allocatable :: AQx,AQy
-     logical,dimension(:),allocatable :: checkAQ
+     integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx,ij_TAy,ij_TAz  ! Table of indices ij for Ax, Ay and Az
+     double precision :: dz, norm, Lgth                                    ! Step size in z and normalization
+     double precision,dimension(:,:),allocatable :: TAx,TAy,TAz            ! Table of coefficients for Ax, Ay and Az
+     double precision,dimension(:,:,:),allocatable :: AQx,AQy              ! AntiQuad matrix
+     double precision,dimension(:),allocatable :: Tdpsv                    ! dpsv value for AQ-case
+     double precision,dimension(:,:,:),allocatable :: TAQx,TAQy            ! Table of AntiQuad matrix in function of Delta
+!     logical,dimension(:),allocatable :: checkAQ
    end type ffTable
 
-   ! Common space with SixTrack 
+   ! Espace commun de SixTrack 
    ! -------------------------------------------------------------------------
 +ca parpro   
 
@@ -42,13 +44,13 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
 +ca commontr
 
-   ! Common space initialisation
+   ! Initialisation de l'espace commun
    ! -------------------------------------------------------------------------
 +ca ffieldcommon
 
 +ca ffieldcommon1
 
-   ! Initialisation physic parameters
+   ! Initialization physic parameters
    ! -------------------------------------------------------------------------
 !!$   double precision :: Eproton, Etot, gamma0, beta0, p0, clight, norm !, e0
    double precision :: Etot, gamma0, beta0, p0, norm !, e0
@@ -64,12 +66,14 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
    ! Function parameters
    ! -------------------------------------------------------------------------
-   integer :: workChoise, ffj, ffi, ffn
-   integer, dimension(2) :: currQuad  
+   integer,intent(in) :: workChoise, ffj, ffi, ffn
+   integer, dimension(2),intent(in) :: currQuad 
+   integer :: itDltmax, itDltmin, itDltmid, itDlt 
 
 
    ! Static variables
    ! -------------------------------------------------------------------------
+   integer, save :: nbDlt = 0
    logical, allocatable, dimension(:), save :: ffImported     ! Static matrix one if the correspond file is already imported
    type(ffTable), allocatable, dimension(:), save :: ffTA     ! Static vector containing all the data
    integer, allocatable, dimension(:,:,:,:), save :: ffloss   ! Static matrix 
@@ -86,7 +90,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
    ! Variables that will be eliminated
    ! -------------------------------------------------------------------------
-   double precision :: x, px, y, py, zb, delta, gam0
+   double precision :: x, px, y, py, zb, delta, gam0, betabeta0, sigma_s
+   double precision :: Ldpsv1,Ldpsv2, LoutQ
    double precision :: stracki
    character(len=512) :: inex
 
@@ -140,10 +145,10 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          allocate(ffImported(1:ffNLFile))
          ffImported = .false.
          firstTime = .false.
-         write (*,*) 'FringeField      : Config file imported '
+         write (*,*) '"FringeField      : Config file imported '
          
       else
-         write (*,*) 'FringeField      : Config file NOT imported'
+         write (*,*) '"FringeField      : Config file NOT imported'
          
       endif
 
@@ -151,7 +156,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! -------------------------------------------------------------------------
    else if ((workChoise == 1).and.(.not.firstTime)) then
       if (ffImported(dataindex)) then
-         write(*,*) "FringeField      : ",TRIM(ADJUSTL(ffFNames(dataindex)))," already imported!"
+         write(*,*) "FringeField      : ",ffFNames(dataindex)," Already imported!"
       else
          
          ffTA(:)%norm = 1.0d0/p0
@@ -173,21 +178,21 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                              ffTA(dataindex)%norm,  &
                                          OKRead)
          if (.not.OKRead) then
-            write(*,*) "FringeField ERROR : I couldn't read this file ", TRIM(ADJUSTL(ffFNames(dataindex)))
+            write(*,*) "FringeField ERROR : I couldn't read this file ", ffFNames(dataindex)
 
          else
             ffImported(dataindex) = .true.
             
             
-            ! Allocate memory for AQ
-            Allocate(ffTA(dataindex)%AQx(1:2,1:2,1:npart),ffTA(dataindex)%AQy(1:2,1:2,1:npart), &
-                     ffTA(dataindex)%checkAQ(1:npart))
+            ! Allocate memmory for AQ
+            Allocate(ffTA(dataindex)%AQx(1:2,1:2,1:npart),ffTA(dataindex)%AQy(1:2,1:2,1:npart))!, &
+                     !ffTA(dataindex)%checkAQ(1:npart))
             do j=1,npart
               ffTA(dataindex)%AQx(1,1,j)=0;              ffTA(dataindex)%AQx(1,2,j)=0;
               ffTA(dataindex)%AQx(2,1,j)=0;              ffTA(dataindex)%AQx(2,2,j)=0;
               ffTA(dataindex)%AQy(1,1,j)=0;              ffTA(dataindex)%AQy(1,2,j)=0;
               ffTA(dataindex)%AQy(2,1,j)=0;              ffTA(dataindex)%AQy(2,2,j)=0;
-              ffTA(dataindex)%checkAQ(j)=.true.
+              !ffTA(dataindex)%checkAQ(j)=.true.
             enddo
             
             
@@ -198,12 +203,333 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                write(*,*) "                     We use the computed one!"
             endif
  
+            write (*,*) "FringeField      : ", ffFNames(dataindex) , " imported! "
          endif
-         write (*,*) "FringeField      : ", TRIM(ADJUSTL(ffFNames(dataindex))) , " imported! "
+      endif
+
+   ! 2 : Symplectic routine
+   ! -------------------------------------------------------------------------
+   else if ((workChoise == 2).and.(.not.firstTime)) then
+      if (.not.ffImported(dataindex)) then
+         write (*, *) 'FringeField ERROR: The data in', ffFNames(dataindex) ,'is not imported'
+
+      else
+         ! Change to Symp referenciale
+         x = ((xv(1,ffj)-xsiv(1,ffi))*tiltc(ffi) + (xv(2,ffj)-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+         y = ((xv(2,ffj)-zsiv(1,ffi))*tiltc(ffi) - (xv(1,ffj)-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+         px= ((yv(1,ffj)            )*tiltc(ffi) + (yv(2,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
+         py= ((yv(2,ffj)            )*tiltc(ffi) - (yv(1,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
+         
+         
+         ! Selection of the particle that are only in the radius (r = 0.05m)
+         if (((currQuad(2)==1).and.(x*x+y*y>6.4d-3)).or.             &
+             ((currQuad(2)==2).and.(ffnotIN(nlostp(ffj),currQuad(1)))).or.       &
+             (pstop(nlostp(ffj)))) then
+         
+            if (firstTime2) then
+              write (*, *) "FringeField ERROR: The table for losses paticles wasn't allocated!"
+
+            else
+              ffloss(nlostp(ffj),ffn,currQuad(1),currQuad(2))=1 
+              if (currQuad(2)==1) then
+                ffnotIN(nlostp(ffj),currQuad(1)) = .true.
+              else
+                ffnotIN(nlostp(ffj),currQuad(1)) = .false.
+              endif
+
+            endif
+         
+	 ! Symplectic routine
+         else
+           !   - 
+           delta    = dpsv(ffj);
+           gam0     = gamma0;
+           zb       = 0;
+           sigma_s  = 0;
+           betabeta0= ejfv(ffj)/ejv(ffj);
+           betabeta0= betabeta0*betabeta0*rvv(ffj);
+           LoutQ    = (ffTA(dataindex)%Lgth-ffParam(dataindex,2))
+           Ldpsv1   = LoutQ*oidpsv(ffj);
+           Ldpsv2   = oidpsv(ffj)*oidpsv(ffj);
+
+           if (currQuad(2)==1) inex = "IN"
+           if (currQuad(2)==2) inex = "OUT"
+
+  	   !   - Repositionnement initial
+  	   if ((inex=="IN").or.(inex=="OUT_O")) then
+             !            * IN (enter) ---------> Drift
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3), ffParam(dataindex,4),       &
+!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+             x=x-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+!             sigma_s=sigma_s-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+
+!             x=x-Ldpsv1*px;
+!             y=y-Ldpsv1*py;
+!             sigma_s=sigma_s-Ldpsv2*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+
+             
+   	   elseif (inex=="OUT") then
+             !            * IN (enter) ---------> Quad
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
+!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+
+             !            * IN (enter) ---------> Drift (1)
+             x=x+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+             
+!             x=x+Ldpsv1*px;
+!             y=y+Ldpsv1*py;
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+
+
+             
+             !            * IN (enter) ---------> Quad (2)
+             if (nbDlt<1) then                ! Case Delta to small
+	       ! Generate the anti-quad
+	       call GenerateAntiQuad(oidpsv(ffj), &
+	                         ffTA(dataindex)%n,                   &
+	                         ffTA(dataindex)%m,                   &
+	                         ffTA(dataindex)%s,                   &
+	                         ffTA(dataindex)%dz,                  &
+	                         ffTA(dataindex)%lz,                  &
+	                         ffTA(dataindex)%ij_TAz,              &
+	                         ffTA(dataindex)%TAz,inex,            &
+	                         ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                      &
+                                 ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+                                              ! Case Delta bigger than anticipate
+             elseif (abs(dpsv(ffj))>ffTA(dataindex)%Tdpsv(nbDlt)+c1m6) then
+               ! Check the maximum delta
+               delta=-1.0d0
+               do j=1,npart
+                 if (delta<abs(dpsv(j))) then
+                   delta=abs(dpsv(j))
+                 endif
+               enddo
+               nbDlt=ceiling(abs( 2.0d0*(delta)*c1e6 ))
+               
+               ! Check the maximum delta
+               do i=1,ffNLFile
+                 if (ffImported(i) .eqv. .true.) then
+                   Deallocate(ffTA(i)%TAQx,ffTA(i)%TAQy,ffTA(i)%Tdpsv)
+                   Allocate(ffTA(i)%TAQx(1:2,1:2,1:nbDlt),ffTA(i)%TAQy(1:2,1:2,1:nbDlt),  &
+                            ffTA(i)%Tdpsv(1:nbDlt))
+          
+                   do k=1,nbDlt
+                      ffTA(i)%TAQx(1,1,k)=0;              ffTA(i)%TAQx(1,2,k)=0;
+                      ffTA(i)%TAQx(2,1,k)=0;              ffTA(i)%TAQx(2,2,k)=0;
+                      ffTA(i)%TAQy(1,1,k)=0;              ffTA(i)%TAQy(1,2,k)=0;
+                      ffTA(i)%TAQy(2,1,k)=0;              ffTA(i)%TAQy(2,2,k)=0;
+           
+                      ffTA(i)%Tdpsv(k)=(2.0d0*(k-1)/(nbDlt-1)- 1.0d0)*delta
+                           
+                      call GenerateAntiQuad(1.0d0/(1.0d0+ffTA(i)%Tdpsv(k)), &
+                                            ffTA(i)%n,                    &
+                                            ffTA(i)%m,                    &
+                                            ffTA(i)%s,                    &
+                                            ffTA(i)%dz,                   &
+                                            ffTA(i)%lz,                   &
+                                            ffTA(i)%ij_TAz,               &
+                                            ffTA(i)%TAz,inex,             &
+                                            ffTA(i)%TAQx(1,1,k),&
+                                            ffTA(i)%TAQx(1,2,k),&
+                                            ffTA(i)%TAQx(2,1,k),&
+                                            ffTA(i)%TAQx(2,2,k),&
+                                            ffTA(i)%TAQy(1,1,k),&
+                                            ffTA(i)%TAQy(1,2,k),&
+                                            ffTA(i)%TAQy(2,1,k),&
+                                            ffTA(i)%TAQy(2,2,k))
+                   enddo
+                 endif
+               enddo
+
+               ! Find the AQ matrix for the right dpsv
+               itDlt=0
+               do k=1,nbDlt
+                 if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
+                   itDlt=k
+                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                   itDlt=k
+                 endif
+               enddo
+               
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                 &
+                               ffTA(dataindex)%TAQx(1,1,itDlt),&
+                               ffTA(dataindex)%TAQx(1,2,itDlt),&
+                               ffTA(dataindex)%TAQx(2,1,itDlt),&
+                               ffTA(dataindex)%TAQx(2,2,itDlt),&
+                               ffTA(dataindex)%TAQy(1,1,itDlt),&
+                               ffTA(dataindex)%TAQy(1,2,itDlt),&
+                               ffTA(dataindex)%TAQy(2,1,itDlt),&
+                               ffTA(dataindex)%TAQy(2,2,itDlt))
+
+                                              ! Case Delta within anticipated domain
+             else
+               ! Find the AQ matrix for the right dpsv
+               itDlt=0
+               do k=1,nbDlt
+                 if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
+                   itDlt=k
+                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                   itDlt=k
+                 endif
+               enddo
+               
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                 &
+                               ffTA(dataindex)%TAQx(1,1,itDlt),&
+                               ffTA(dataindex)%TAQx(1,2,itDlt),&
+                               ffTA(dataindex)%TAQx(2,1,itDlt),&
+                               ffTA(dataindex)%TAQx(2,2,itDlt),&
+                               ffTA(dataindex)%TAQy(1,1,itDlt),&
+                               ffTA(dataindex)%TAQy(1,2,itDlt),&
+                               ffTA(dataindex)%TAQy(2,1,itDlt),&
+                               ffTA(dataindex)%TAQy(2,2,itDlt))
+
+             endif
+   	   endif
+
+
+ 	   !   - Compute Fringe Field using asymplectic Map (Lie2)
+           call SympIntegrator(x,px,y,py,zb,oidpsv(ffj), &
+                             ffTA(dataindex)%n,       &
+                             ffTA(dataindex)%m,       &
+                             ffTA(dataindex)%s,       &
+                             ffTA(dataindex)%dz,      &
+                             ffTA(dataindex)%lx,      &
+                             ffTA(dataindex)%ij_TAx,  &
+                             ffTA(dataindex)%TAx,     &
+                             ffTA(dataindex)%ly,      &
+                             ffTA(dataindex)%ij_TAy,  &
+                             ffTA(dataindex)%TAy,     & 
+                             ffTA(dataindex)%lz,      &
+                             ffTA(dataindex)%ij_TAz,  &
+                             ffTA(dataindex)%TAz,     &
+                             inex)
+
+!           sigma_s=sigma_s + ffTA(dataindex)%Lgth + zb*betabeta0
+
+
+  	   !   - Repositionnement Final
+   	   if ((inex=="IN").or.(inex=="OUT_O")) then
+             ! First AntiQuad routine
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
+!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+
+             if (nbDlt<1) then
+	       ! Generate the anti-quad
+	       call GenerateAntiQuad(oidpsv(ffj), &
+	                         ffTA(dataindex)%n,                   &
+	                         ffTA(dataindex)%m,                   &
+	                         ffTA(dataindex)%s,                   &
+	                         ffTA(dataindex)%dz,                  &
+	                         ffTA(dataindex)%lz,                  &
+	                         ffTA(dataindex)%ij_TAz,              &
+	                         ffTA(dataindex)%TAz,inex,            &
+	                         ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                      &
+                                 ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+             else
+               ! Find the AQ matrix for the right dpsv
+               itDlt=0
+               do k=1,nbDlt
+                 if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
+                   itDlt=k
+                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                   itDlt=k
+                 endif
+               enddo
+               
+               
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                 &
+                               ffTA(dataindex)%TAQx(1,1,itDlt),&
+                               ffTA(dataindex)%TAQx(1,2,itDlt),&
+                               ffTA(dataindex)%TAQx(2,1,itDlt),&
+                               ffTA(dataindex)%TAQx(2,2,itDlt),&
+                               ffTA(dataindex)%TAQy(1,1,itDlt),&
+                               ffTA(dataindex)%TAQy(1,2,itDlt),&
+                               ffTA(dataindex)%TAQy(2,1,itDlt),&
+                               ffTA(dataindex)%TAQy(2,2,itDlt))
+             endif
+             x=x+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+
+!             x=x+Ldpsv1*px;
+!             y=y+Ldpsv1*py;
+             
+  	   elseif (inex=="OUT") then
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
+!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+             x=x-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+
+!             x=x-Ldpsv1*px;
+!             y=y-Ldpsv1*py;
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+             
+   	   endif
+
+
+
+!           sigmv(ffj)=sigmv(ffj)+sigma_s*c1e3;
+
+
+
+           ! Change to SixTrack referenciale
+           yv(1,ffj) = (tiltc(ffi)*px - tilts(ffi)*py)*c1e3*oidpsv(ffj)
+           yv(2,ffj) = (tilts(ffi)*px + tiltc(ffi)*py)*c1e3*oidpsv(ffj)
+           xv(1,ffj) = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
+           xv(2,ffj) = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
+	endif
       endif
 
 
-+if debug
    ! 11 : Test
    ! -------------------------------------------------------------------------
    else if ((workChoise == 11).and.(.not.firstTime)) then
@@ -229,17 +555,15 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! 12 : Test
    ! -------------------------------------------------------------------------
    else if (workChoise == 12) then
-     if (ffi == 1) then
-       do ffj = 1,napx
-         if (.true..or.(nlostp(ffj) == 1).or.(nlostp(ffj) == 9).or.(nlostp(ffj) == 10).or.            &
-             (nlostp(ffj) == 15).or.(nlostp(ffj) == 16)) then
-           write(*,*) "12 21 ", ffi, ffn, ffj, nlostp(ffj), xv(1,ffj), yv(1,ffj), xv(2,ffj),&
-                       yv(2,ffj), dpsv(ffj), dpd(ffj), oidpsv(ffj)
+     if (ffi == 1) then !(.false.) then !
+       do j = 1,napx
+         if (.true..or.(nlostp(j) == 1).or.(nlostp(j) == 9).or.(nlostp(j) == 10).or.            &
+             (nlostp(j) == 15).or.(nlostp(j) == 16)) then
+           write(*,*) "12 21 ", ffi, ffn, j, nlostp(j), xv(1,j), yv(1,j), xv(2,j),&
+                       yv(2,j), dpsv(j), dpd(j), oidpsv(j)
          endif
-         
        enddo
      endif
-+ei
 
    ! 3 : Allocation table for particles out of boundary
    ! -------------------------------------------------------------------------
@@ -268,150 +592,54 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          return
 
       endif
-      
-   ! 2 : Symplectic routine
+   
+
+   ! 4 : Preparation of AQx and AQy
    ! -------------------------------------------------------------------------
-   else if ((workChoise == 2).and.(.not.firstTime)) then
-      if (.not.ffImported(dataindex)) then
-         write (*, *) 'FringeField ERROR: The data in', TRIM(ADJUSTL(ffFNames(dataindex))) ,'is not imported'
+   else if ((workChoise == 4).and.(.not.firstTime)) then
+     ! Check the maximum delta
+     delta=-1.0d0
+     do j=1,npart
+       if (delta<abs(dpsv(j))) then
+         delta=abs(dpsv(j))
+       endif
+     enddo
+     nbDlt=ceiling(abs( 2.0d0*(delta)*c1e6 ))
 
-      else
-         ! Change to Symp referenciale
-         x = ((xv(1,ffj)-xsiv(1,ffi))*tiltc(ffi) + (xv(2,ffj)-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-         y = ((xv(2,ffj)-zsiv(1,ffi))*tiltc(ffi) - (xv(1,ffj)-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-         px= ((yv(1,ffj)            )*tiltc(ffi) + (yv(2,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
-         py= ((yv(2,ffj)            )*tiltc(ffi) - (yv(1,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
-
-
- 
-         zb= 0;
-         delta= dpsv(ffj);
-         gam0= gamma0;
-         
-         ! Generate the anti-quad
-           call GenerateAntiQuad(oidpsv(ffj), &
-                             ffTA(dataindex)%n,                   &
-                             ffTA(dataindex)%m,                   &
-                             ffTA(dataindex)%s,                   &
-                             ffTA(dataindex)%dz,                  &
-                             ffTA(dataindex)%lz,                  &
-                             ffTA(dataindex)%ij_TAz,              &
-                             ffTA(dataindex)%TAz,inex,            &
-                             ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
-         
-         
-         ! Selection of the particle that are only in the radius (r = 0.05m)
-         if (((currQuad(2)==1).and.(x*x+y*y>6.4d-3)).or.             &
-             ((currQuad(2)==2).and.(ffnotIN(nlostp(ffj),currQuad(1)))).or.       &
-             (pstop(nlostp(ffj)))) then
-         
-            if (firstTime2) then
-              write (*, *) "FringeField ERROR: The table for losses paticles wasn't allocated!"
-
-            else
-              ffloss(nlostp(ffj),ffn,currQuad(1),currQuad(2))=1 
-              if (currQuad(2)==1) then
-                ffnotIN(nlostp(ffj),currQuad(1)) = .true.
-              else
-                ffnotIN(nlostp(ffj),currQuad(1)) = .false.
-              endif
-
-            endif
-	 ! Symplectic routine
-         else
-           if (currQuad(2)==1) inex = "IN"
-           if (currQuad(2)==2) inex = "OUT"
-
-  	   !   - Repositionnement initial
-  	   if ((inex=="IN").or.(inex=="OUT_O")) then
-             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
-                      ffParam(dataindex,2),ffParam(dataindex,3), ffParam(dataindex,4),       &
-                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
-             
-   	   elseif (inex=="OUT") then
-             ! First AntiQuad routine
-!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
-!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
-!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
-
-             ! New AntiQuad routine
-             x=x+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
-             y=y+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
-             call ComputeAntiQuad(x,px,y,py,                      &
-                             ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
-             
-   	   endif
-
-
- 	   !   - Calcul du Fringe Field grace a la Map symplectique
-           !call SympIntegrator(x,px,y,py,zb,delta,gam0, &
-           call SympIntegrator(x,px,y,py,zb,oidpsv(ffj), &
-                             ffTA(dataindex)%n,       &
-                             ffTA(dataindex)%m,       &
-                             ffTA(dataindex)%s,       &
-                             ffTA(dataindex)%dz,      &
-                             ffTA(dataindex)%lx,      &
-                             ffTA(dataindex)%ij_TAx,  &
-                             ffTA(dataindex)%TAx,     &
-                             ffTA(dataindex)%ly,      &
-                             ffTA(dataindex)%ij_TAy,  &
-                             ffTA(dataindex)%TAy,     & 
-                             ffTA(dataindex)%lz,      &
-                             ffTA(dataindex)%ij_TAz,  &
-                             ffTA(dataindex)%TAz,     &
-                             inex)
-
-  	   !   - Repositionnement Final
-   	   if ((inex=="IN").or.(inex=="OUT_O")) then
-             ! First AntiQuad routine
-!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
-!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
-!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
-
-             ! New AntiQuad routine
-             call ComputeAntiQuad(x,px,y,py,                      &
-                             ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
-                             ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
-             x=x+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
-             y=y+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
-             
-  	   elseif (inex=="OUT") then
-             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
-                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
-                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
-             
-   	   endif
-
-
-            ! Change to SixTrack referenciale
-            yv(1,ffj) = (tiltc(ffi)*px - tilts(ffi)*py)*c1e3*oidpsv(ffj)
-            yv(2,ffj) = (tilts(ffi)*px + tiltc(ffi)*py)*c1e3*oidpsv(ffj)
-            xv(1,ffj) = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
-            xv(2,ffj) = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
-
-
-	endif
-      endif
+     ! Check the maximum delta
+     do i=1,ffNLFile
+       if (ffImported(i) .eqv. .true.) then
+          Allocate(ffTA(i)%TAQx(1:2,1:2,1:nbDlt),ffTA(i)%TAQy(1:2,1:2,1:nbDlt),ffTA(i)%Tdpsv(1:nbDlt))
+          
+          do k=1,nbDlt
+            ffTA(i)%TAQx(1,1,k)=0;              ffTA(i)%TAQx(1,2,k)=0;
+            ffTA(i)%TAQx(2,1,k)=0;              ffTA(i)%TAQx(2,2,k)=0;
+            ffTA(i)%TAQy(1,1,k)=0;              ffTA(i)%TAQy(1,2,k)=0;
+            ffTA(i)%TAQy(2,1,k)=0;              ffTA(i)%TAQy(2,2,k)=0;
+            
+            ffTA(i)%Tdpsv(k)=(2.0d0*(k-1)/(nbDlt-1)- 1.0d0)*delta
+            
+            call GenerateAntiQuad(1.0d0/(1.0d0+ffTA(i)%Tdpsv(k)), &
+                                  ffTA(i)%n,                    &
+                                  ffTA(i)%m,                    &
+                                  ffTA(i)%s,                    &
+                                  ffTA(i)%dz,                   &
+                                  ffTA(i)%lz,                   &
+                                  ffTA(i)%ij_TAz,               &
+                                  ffTA(i)%TAz,inex,             &
+                                  ffTA(i)%TAQx(1,1,k),&
+                                  ffTA(i)%TAQx(1,2,k),&
+                                  ffTA(i)%TAQx(2,1,k),&
+                                  ffTA(i)%TAQx(2,2,k),&
+                                  ffTA(i)%TAQy(1,1,k),&
+                                  ffTA(i)%TAQy(1,2,k),&
+                                  ffTA(i)%TAQy(2,1,k),&
+                                  ffTA(i)%TAQy(2,2,k))
+         enddo
+       endif
+     enddo
+   
+   
       
       
    ! 6 : End of the code -> free the memory
@@ -422,7 +650,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
 
       if (.not.firstTime2) then
-+if debug
+
 !         if (.not.firstTime) then
 !            do i = 1,npart
 !               if (pstop(i)) then
@@ -444,7 +672,6 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !               enddo
 !            enddo
 !         endif
-+ei
 
          deallocate(ffloss,ffnotIN)
          firstTime2 = .true.
@@ -462,7 +689,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
             if (ffImported(i)) then
                deallocate(ffTA(i)%ij_TAx, ffTA(i)%ij_TAy, ffTA(i)%ij_TAz )
                deallocate(ffTA(i)%TAx   , ffTA(i)%TAy   , ffTA(i)%TAz    )
-               deallocate(ffTA(i)%AQx   , ffTA(i)%AQy   , ffTA(i)%checkAQ)
+               deallocate(ffTA(i)%AQx   , ffTA(i)%AQy   )!, ffTA(i)%checkAQ)
+               deallocate(ffTA(i)%TAQx  , ffTA(i)%TAQy  , ffTA(i)%Tdpsv  )
             endif
          enddo
          deallocate (ffTA)

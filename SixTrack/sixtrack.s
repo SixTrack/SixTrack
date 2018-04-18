@@ -27434,12 +27434,10 @@ C Should get me a NaN
 +ei
 
 +if ffield
-+if debug
 !                FringeField ASIMONA, BDALENA, TPUGNAT
           ! Print position and momentum
-          call ffInterface(12,[1,1],i,j,n)
+!          call ffInterface(12,[1,1],i,j,n)
 !                FringeField ASIMONA, BDALENA, TPUGNAT
-+ei
 +ei
 +if .not.collimat
 !---------count:44

@@ -311,7 +311,7 @@ end subroutine
 subroutine ComputeAntiQuad(x,px,y,py,a1,b1,c1,d1,a2,b2,c2,d2)
    implicit none
 
-   ! Initialisation des parametres
+   ! Initialization of parameters
    ! -------------------------------------------------------------------------
    double precision,intent(inout) :: x, y           ! Initial position x, y
    double precision,intent(inout) :: px, py         ! Initial momentum 
