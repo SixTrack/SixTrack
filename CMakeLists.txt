@@ -1409,6 +1409,10 @@ endif(G4COLLIMAT)
 
 #Again for naglib, I assume we are on lxplus or have CERN afs access.
 if(NAGLIB)
+	if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+		message(WARNING "Compiling with NAGLIB and gfortran may cause SixTrack to segfault.")
+	endif()
+	
 	if(64BIT)
 		if(STATIC)
 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
