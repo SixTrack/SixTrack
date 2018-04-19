@@ -1583,7 +1583,7 @@ subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
   
 end subroutine find_closest_aperture
 
-character(len=max_name_len) function CrtApeName()
+function CrtApeName() result(retValue)
 !-----------------------------------------------------------------------
 !     by A.Mereghetti (CERN, BE/ABP-HSS)
 !     last modified: 01-12-2016
@@ -1591,16 +1591,19 @@ character(len=max_name_len) function CrtApeName()
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
+  
+  character(len=max_name_len) retValue
   integer iApe, ii
   data iApe / 0 /
   save iApe
 
   iApe=iApe+1
-  write(CrtApeName, "(A10,I6)") "auto.aper.", iApe
+  write(retValue, "(A10,I6)") "auto.aper.", iApe
 
   do ii=11,16
-    if( CrtApeName(ii:ii) .eq. ' ' ) CrtApeName(ii:ii)='0'
+    if( retValue(ii:ii) .eq. ' ' ) retValue(ii:ii)='0'
   end do
+  
 end function CrtApeName
 
 logical function sameAperture( ixApeUp, ixApeDw )
