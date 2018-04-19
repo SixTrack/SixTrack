@@ -1099,10 +1099,13 @@ subroutine scatter_thin(i_elem, ix, turn)
   use hdf5_output
 +ei
   
++if collimat
+  use collimation
++ei
+
   implicit none
   
 +if collimat
-+ca collpara ! Needed to define array sizes
 +ca dbcommon ! Get the arrays that we need to set to mark the particle as "dirty" for collimation
 +ei
   

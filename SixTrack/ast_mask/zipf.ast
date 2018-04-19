@@ -1,4 +1,4 @@
-zipf.s90 sixtrack.s90
+zipf.s90 sixtrack.s90 collimation.s90
 zipfn.f
 df cr,boinc,collimat,datamods,bignblz,hugenblz,bignpart,hugenpart,libarchive
 e zipf

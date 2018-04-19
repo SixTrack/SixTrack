@@ -473,6 +473,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   use root_output
 +ei
 
++if collimat
+  use collimation
++ei
+
   implicit none
 
 ! parameters
@@ -495,9 +499,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +if bnlelens
 +ca rhicelens
 +ei
+
 +if collimat
 ! Module to access ipart array
-+ca collpara
 +ca dbthin6d
 +ca dbcommon
 +ei

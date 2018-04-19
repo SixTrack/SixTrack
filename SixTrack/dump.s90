@@ -679,6 +679,10 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
   use parpro
   use mod_common
   use mod_commonmn
++if collimat
+  use collimation
++ei
+
   implicit none
   
   ! interface variables:
@@ -691,7 +695,6 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
 +ca dbdcum
 
 +if collimat
-+ca collpara
 +ca dbcommon
 +ei
 +if .not.collimat

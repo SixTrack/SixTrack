@@ -1,4 +1,4 @@
-aperture.s90 sixtrack.s90
+aperture.s90 sixtrack.s90 collimation.s90
 aperturen.f
 df fluka,root,collimat
 e aperture

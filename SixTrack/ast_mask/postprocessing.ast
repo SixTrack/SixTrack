@@ -1,4 +1,4 @@
-postprocessing.s90 sixtrack.s90
+postprocessing.s90 sixtrack.s90 collimation.s90
 postprocessingn.f
 df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,libarchive,g4collimat,naff,fluka,root
 e POSTPR

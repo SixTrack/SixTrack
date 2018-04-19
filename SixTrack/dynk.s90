@@ -2446,6 +2446,9 @@ subroutine dynk_apply(turn)
     use mod_common
     use mod_commonmn
     
++if collimat
+    use collimation
++ei
     implicit none
 
 +ca commontr
@@ -2454,7 +2457,6 @@ subroutine dynk_apply(turn)
 +ei
 
 +if collimat
-+ca collpara
 +ca dbcommon
 +ei
 

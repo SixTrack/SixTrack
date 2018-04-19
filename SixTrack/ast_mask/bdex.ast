@@ -1,4 +1,4 @@
-bdex.s90 common_modules.s90 sixtrack.s90
+bdex.s90 common_modules.s90 sixtrack.s90 collimation.s90
 bdexn.f
 df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,merlinscatter,libarchive,g4collimat,naff
 e bdex
