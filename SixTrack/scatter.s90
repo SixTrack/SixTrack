@@ -128,11 +128,11 @@ subroutine scatter_allocate_arrays
 !  allocate(scatter_elemPointer(nele), STAT=stat)
 !
 !  if (stat.ne.0) then
-!    write(lout,'(A,I8)') "ERROR in SUBROUTINE SCATTER_ALLOCATE_ARRAYS; stat=", stat
+!    write(lout,"(A,I8)") "ERROR in SUBROUTINE SCATTER_ALLOCATE_ARRAYS; stat=", stat
 !    call prror(-1)
 !  endif
 
-  call alloc(scatter_elemPointer,nele,0,'scatter_elemPointer')
+  call alloc(scatter_elemPointer,nele,0,"scatter_elemPointer")
 
 end subroutine scatter_allocate_arrays
 
@@ -143,7 +143,7 @@ subroutine scatter_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
 
-  call resize(scatter_elemPointer,nele_new,0,'scatter_elemPointer')
+  call resize(scatter_elemPointer,nele_new,0,"scatter_elemPointer")
   
 end subroutine scatter_expand_arrays
   
@@ -161,14 +161,14 @@ subroutine scatter_allocate
     integer stat
     integer i,j
     
-    write(lout,'(A,I8)') "SCATTER_ALLOCATE : scatter_maxdata=",scatter_maxdata
+    write(lout,"(A,I8)") "SCATTER_ALLOCATE : scatter_maxdata=",scatter_maxdata
     allocate( scatter_idata(scatter_maxdata), &
               scatter_fdata(scatter_maxdata), &
               scatter_cdata(scatter_maxdata), &
               STAT=stat)
 
     if (stat.ne.0) then
-        write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE(); stat=",stat
+        write(lout,"(A,I8)") "ERROR in SCATTER_ALLOCATE(); stat=",stat
         call prror(-1)
     end if
     
@@ -180,14 +180,14 @@ subroutine scatter_allocate
     end do
     
 #ifdef CR
-    write(lout,'(A,I8)') "SCATTER_ALLOCATE [CR] : scatter_maxdata=",scatter_maxdata
+    write(lout,"(A,I8)") "SCATTER_ALLOCATE [CR] : scatter_maxdata=",scatter_maxdata
     allocate( scatter_idata_cr(scatter_maxdata), &
               scatter_fdata_cr(scatter_maxdata), &
               scatter_cdata_cr(scatter_maxdata), &
               STAT=stat )
     
     if (stat.ne.0) then
-       write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE [CR]; stat=",stat
+       write(lout,"(A,I8)") "ERROR in SCATTER_ALLOCATE [CR]; stat=",stat
        call prror(-1)
     end if
 #endif
@@ -414,7 +414,7 @@ subroutine scatter_crcheck_positionFiles
 #endif
         scatter_filepos=0
         do j=1, scatter_filepos_cr
-            read(scatter_logFile,'(a1024)',end=1,err=1,iostat=ierro) arecord
+            read(scatter_logFile,"(a1024)",end=1,err=1,iostat=ierro) arecord
             scatter_filepos = scatter_filepos+1
         end do
 
@@ -426,7 +426,7 @@ subroutine scatter_crcheck_positionFiles
         call boincrf("scatter_log.dat",filename)
         open(unit=scatter_logFile,file=filename,status="old",position="append",action="write", err=1)
 #else
-        open(unit=scatter_logFile,file="scatter_log.dat",status="old",position='append',action="write", err=1)
+        open(unit=scatter_logFile,file="scatter_log.dat",status="old",position="append",action="write", err=1)
 #endif
         write(97,*) "SIXTRACR CRCHECK sucessfully repositioned scatter_log.dat, "// &
                     "scatter_filepos=",scatter_filepos, "scatter_filepos_cr=",scatter_filepos_cr
@@ -445,11 +445,11 @@ subroutine scatter_crcheck_positionFiles
     return ! All was well
     
 1   continue
-    write(93,*) 'SIXTRACR CRCHECK *** ERROR *** reading scatter_log.dat, iostat=',ierro
-    write(93,*) 'scatter_filepos=',scatter_filepos,' scatter_filepos_cr=',scatter_filepos_cr
+    write(93,*) "SIXTRACR CRCHECK *** ERROR *** reading scatter_log.dat, iostat=",ierro
+    write(93,*) "scatter_filepos=",scatter_filepos," scatter_filepos_cr=",scatter_filepos_cr
     endfile   (93,iostat=ierro)
     backspace (93,iostat=ierro)
-    write(lout,*)'SIXTRACR CRCHECK failure positioning scatter_log.dat'
+    write(lout,*)"SIXTRACR CRCHECK failure positioning scatter_log.dat"
     
     call prror(-1)
     
@@ -620,8 +620,7 @@ subroutine scatter_parseInputLine(inLine)
   case("ELEM")
     call scatter_parseElem(lnSplit, nSplit)
   case("PRO")
-    ! call scatter_parseProfile(lnSplit, nSplit)
-    call scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
+    call scatter_parseProfile(lnSplit, nSplit)
   case("GEN")
     ! call scatter_parseGenerator(lnSplit, nSplit)
     call scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
@@ -655,10 +654,6 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   
   ! Temporary Variables
   integer ii, j
-#ifdef CRLIBM
-  integer errno
-  real(kind=fPrec) round_near
-#endif
   
   ! Check number of arguments
   if(nSplit < 5) then
@@ -777,163 +772,104 @@ end subroutine scatter_parseElem
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 20-10-2017
 ! =================================================================================================
-subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
-
-    use crcoall
+subroutine scatter_parseProfile(lnSplit, nSplit)
+  
+  use crcoall
+  use strings
+  use string_tools
+  
+  implicit none
+  
+  type(string), allocatable, intent(in) :: lnSplit(:)
+  integer,                   intent(in) :: nSplit
+  
+  ! Temporary Variables
+  integer ii, tmpIdx
+  
+  ! Check number of arguments
+  if(nSplit < 3) then
+    write(lout,"(a)") "SCATTER> ERROR, PRO expected at least 3 arguments:"
+    write(lout,"(a)") "PRO name type (arguments...)"
+    call prror(-1)
+  end if
+  
+  ! Add a profile to the list
+  scatter_nPROFILE = scatter_nPROFILE + 1
+  if(scatter_nPROFILE > scatter_maxPROFILE) then
+    write(lout,"(a,i4,a)") "SCATTER> ERROR, max profiles = ",scatter_maxPROFILE," exceeded."
+    call prror(-1)
+  end if
+  
+  ! Store the profile name
+  scatter_ncdata = scatter_ncdata + 1
+  if(scatter_ncdata > scatter_maxdata) then
+    write(lout,"(a,i4,a)") "SCATTER> ERROR, scatter_maxdata = ",scatter_maxdata," exceeded for scatter_ncdata"
+    call prror(-1)
+  end if
+  ! scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) = getfields_fields(2)(1:getfields_lfields(2))
+  scatter_cdata(scatter_ncdata)       = lnSplit(2)%chr
+  scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncdata
+  
+  ! Check that the profile name is unique
+  do ii=1,scatter_nPROFILE-1
+    if(trim(stringzerotrim(scatter_cdata(scatter_PROFILE(ii,1)) )) == lnSplit(2)%chr) then
+      write(lout,"(3a)") "SCATTER> ERROR, profile name '",lnSplit(2)%chr,"' is not unique."
+      call prror(-1)
+    end if
+  end do
+  
+  ! Profile type dependent code
+  select case (lnSplit(3)%chr)
+  case("FLAT")
+    scatter_PROFILE(scatter_nPROFILE,2) = 1 ! Integer code for FLAT
+    if(nSplit /= 6) then
+      write(lout,"(a)") "SCATTER> ERROR, PROfile type FLAT expected 6 arguments:"
+      write(lout,"(a)") "PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
+      call prror(-1)
+    end if
     
-    implicit none
-
-    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-    integer,   intent(in) :: getfields_nfields
-    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
-
-    ! Temporary Variables
-    integer ii, tmpIdx
-#ifdef CRLIBM
-    integer errno
-    real(kind=fPrec) round_near
-#endif
-
-    ! Check number of arguments
-    if(getfields_nfields .lt. 3) then
-        write(lout,"(a)") "SCATTER> ERROR, PRO expected at least 3 arguments:"
-        write(lout,"(a)") "PRO name type (arguments...)"
-        call prror(-1)
+    ! Request space to store the density
+    tmpIdx = scatter_nfdata + 1
+    scatter_PROFILE(scatter_nPROFILE,3) = tmpIdx
+    scatter_nfdata = scatter_nfdata + 3
+    if(scatter_nfdata > scatter_maxdata) then
+      write(lout,"(a,i4,a)") "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
+      call prror(-1)
     end if
-
-    ! Add a profile to the list
-    scatter_nPROFILE = scatter_nPROFILE + 1
-    if (scatter_nPROFILE .gt. scatter_maxPROFILE ) then
-        write(lout,'(a,i4,a)') "SCATTER> ERROR, max profiles = ",scatter_maxPROFILE," exceeded."
-        call prror(-1)
+    
+    scatter_fdata(tmpIdx)   = str_toReal(lnSplit(4)) ! Density
+    scatter_fdata(tmpIdx+1) = str_toReal(lnSplit(5)) ! Mass
+    scatter_fdata(tmpIdx+2) = str_toReal(lnSplit(6)) ! Momentum
+    
+  case("GAUSS1")
+    scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
+    if(nSplit /= 8) then
+      write(lout,"(a)") "SCATTER> ERROR, PROfile type GAUSS1 expected 8 arguments:"
+      write(lout,"(a)") "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
+      call prror(-1)
     end if
-
-    ! Store the profile name
-    scatter_ncdata = scatter_ncdata + 1
-    if (scatter_ncdata .gt. scatter_maxdata ) then
-        write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",scatter_maxdata," exceeded for scatter_ncdata"
-        call prror(-1)
+    
+    ! Request space to store the density
+    tmpIdx = scatter_nfdata + 1
+    scatter_PROFILE(scatter_nPROFILE,3) = tmpIdx
+    scatter_nfdata = scatter_nfdata + 5
+    if(scatter_nfdata > scatter_maxdata) then
+      write(lout,"(a,i4,a)") "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
+      call prror(-1)
     end if
-    scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) = getfields_fields(2)(1:getfields_lfields(2))
-    scatter_PROFILE(scatter_nPROFILE,1)                   = scatter_ncdata
-
-    ! Check that the profile name is unique
-    do ii=1,scatter_nPROFILE-1
-        if(trim(stringzerotrim(scatter_cdata(scatter_PROFILE(ii,1)) )) &
-            .eq. getfields_fields(2)(1:getfields_lfields(2)) ) then
-            
-            write(lout,"(a)") "SCATTER> ERROR, profile name '"// &
-                              getfields_fields(2)(1:getfields_lfields(2))// &
-                              "' is not unique."
-            call prror(-1)
-        end if
-    end do
-
-    ! Profile type dependent code
-    select case (getfields_fields(3)(1:getfields_lfields(3)))
-    case("FLAT")
-        scatter_PROFILE(scatter_nPROFILE,2) = 1 ! Integer code for FLAT
-        if(getfields_nfields .ne. 6) then
-            write(lout,"(a)") "SCATTER> ERROR, PROfile type FLAT expected 6 arguments:"
-            write(lout,"(a)") "PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
-            call prror(-1)
-        end if
-
-        ! Request space to store the density
-        tmpIdx = scatter_nfdata + 1
-        scatter_PROFILE(scatter_nPROFILE,3) = tmpIdx
-        scatter_nfdata = scatter_nfdata + 3
-        if(scatter_nfdata .gt. scatter_maxdata) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
-            call prror(-1)
-        end if
-
-#ifdef CRLIBM
-        ! Density
-        scatter_fdata(tmpIdx) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
-
-        ! Mass
-        scatter_fdata(tmpIdx+1) = round_near(errno,getfields_lfields(5)+1,getfields_fields(5))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,5,scatter_fdata(tmpIdx+1))
-
-        ! Momentum
-        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
-#else
-        ! Density
-        read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
-
-        ! Mass
-        read(getfields_fields(5)(1:getfields_lfields(5)),*) scatter_fdata(tmpIdx+1)
-
-        ! Momentum
-        read(getfields_fields(6)(1:getfields_lfields(6)),*) scatter_fdata(tmpIdx+2)
-#endif
-
-    case("GAUSS1")
-        scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
-        if(getfields_nfields .ne. 8) then
-            write(lout,"(a)") "SCATTER> ERROR, PROfile type GAUSS1 expected 8 arguments:"
-            write(lout,"(a)") "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] "// &
-                              "offset_x[mm] offset_y[mm]"
-            call prror(-1)
-        end if
-
-        ! Request space to store the density
-        tmpIdx = scatter_nfdata + 1
-        scatter_PROFILE(scatter_nPROFILE,3) = tmpIdx
-        scatter_nfdata = scatter_nfdata + 5
-        if(scatter_nfdata .gt. scatter_maxdata) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
-            call prror(-1)
-        end if
-
-#ifdef CRLIBM
-        ! Beam Charge
-        scatter_fdata(tmpIdx) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
-
-        ! Sigma X
-        scatter_fdata(tmpIdx+1) = round_near(errno,getfields_lfields(5)+1,getfields_fields(5))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,5,scatter_fdata(tmpIdx+1))
-
-        ! Sigma Y
-        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
-        
-        ! Offset X
-        scatter_fdata(tmpIdx+3) = round_near(errno,getfields_lfields(7)+1,getfields_fields(7))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,7,scatter_fdata(tmpIdx+3))
-
-        ! Offset Y
-        scatter_fdata(tmpIdx+4) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
-#else
-        ! Beam Charge
-        read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
-
-        ! Sigma X
-        read(getfields_fields(5)(1:getfields_lfields(5)),*) scatter_fdata(tmpIdx+1)
-
-        ! Sigma Y
-        read(getfields_fields(6)(1:getfields_lfields(6)),*) scatter_fdata(tmpIdx+2)
-
-        ! Offset X
-        read(getfields_fields(7)(1:getfields_lfields(7)),*) scatter_fdata(tmpIdx+3)
-
-        ! Offset Y
-        read(getfields_fields(8)(1:getfields_lfields(8)),*) scatter_fdata(tmpIdx+4)
-#endif
-
-    case default
-        write(lout,"(a)") "SCATTER> ERROR, PRO name '"// &
-                          getfields_fields(3)(1:getfields_lfields(3))// &
-                          "' not recognized."
-        call prror(-1)
-
-    end select
-
+    
+    scatter_fdata(tmpIdx)   = str_toReal(lnSplit(4)) ! Beam Charge
+    scatter_fdata(tmpIdx+1) = str_toReal(lnSplit(5)) ! Sigma X
+    scatter_fdata(tmpIdx+2) = str_toReal(lnSplit(6)) ! Sigma Y
+    scatter_fdata(tmpIdx+3) = str_toReal(lnSplit(7)) ! Offset X
+    scatter_fdata(tmpIdx+4) = str_toReal(lnSplit(8)) ! Offset Y
+    
+  case default
+    write(lout,"(3a)") "SCATTER> ERROR, PRO name '",lnSplit(3)%chr,"' not recognized."
+    call prror(-1)
+    
+  end select
+  
 end subroutine scatter_parseProfile
 
 ! =================================================================================================
@@ -967,14 +903,14 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
     ! Add a generator to the list
     scatter_nGENERATOR = scatter_nGENERATOR + 1
     if(scatter_nGENERATOR .gt. scatter_maxGENERATOR) then
-        write(lout,'(a,i4,a)') "SCATTER> ERROR, max generators = ",scatter_maxGENERATOR," exceeded."
+        write(lout,"(a,i4,a)") "SCATTER> ERROR, max generators = ",scatter_maxGENERATOR," exceeded."
         call prror(-1)
     end if
 
     ! Store the generator name
     scatter_ncdata = scatter_ncdata + 1
     if(scatter_ncdata .gt. scatter_maxdata) then
-        write(lout,'(a,i4,a)') "SCATTER> ERROR, scatter_maxdata = ",scatter_maxdata," exceeded for scatter_ncdata"
+        write(lout,"(a,i4,a)") "SCATTER> ERROR, scatter_maxdata = ",scatter_maxdata," exceeded for scatter_ncdata"
         call prror(-1)
     end if
     scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) = getfields_fields(2)(1:getfields_lfields(2))
@@ -1012,7 +948,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
         scatter_GENERATOR(scatter_nGENERATOR,4) = 0      ! Index of scatter input, if present
         scatter_nfdata = scatter_nfdata + getfields_nfields - 3
         if(scatter_nfdata .gt. scatter_maxdata) then
-            write(lout,'(a,i4,a)') "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
+            write(lout,"(a,i4,a)") "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
             call prror(-1)
         end if
 
