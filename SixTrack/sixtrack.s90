@@ -14385,7 +14385,7 @@ subroutine daten
 ! ================================================================================================ !
 !  SCATTER Input
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2017-08-29
+!  Last modified: 2018-04-20
 ! ================================================================================================ !
 2900 continue
   ! We have a SCATTER block; let's allocate the memory for it!
@@ -14401,42 +14401,18 @@ subroutine daten
   if(ierro.gt.0) call prror(58)
   lineno3 = lineno3+1 ! Line number used for some crash output
   
-  if(ch(1:1).eq.'/') goto 2901 ! skip comment line
-  
-  if (ch(:4).eq.next) then
-    
+  if(ch(1:1) == "/") goto 2901 ! skip comment line
+  if (ch(:4) == next) then
     scatter_active = .true.
-    
     if(scatter_seed1 == -1 .and. scatter_seed2 == -1) then
-      write(lout,*) "ERROR while parsing SCATTER in fort.3"
-      write(lout,*) "No SEED sets were specified"
+      write(lout,"(a)") "SCATTER> ERROR while parsing SCATTER in fort.3: No SEED sets were specified"
       call prror(-1)
-    endif
-    
+    end if
     if (scatter_debug) call scatter_dumpdata
-    goto 110               !Read next block or ENDE
+    goto 110 ! Read next block or ENDE
+  else
+    call scatter_parseInputLine(string(adjustl(ch)))
   end if
-  
-  ! if (ch(:5).eq."DEBUG") then
-  !   scatter_debug = .true.
-  !   write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
-  !   goto 2901
-  ! end if
-  
-  call scatter_parseInputLine(string(adjustl(ch)))
-  ! if (ch(:4).eq."ELEM") then
-  !   call scatter_parseElem(ch)
-  ! else if (ch(:3).eq."PRO") then
-  !   call scatter_parseProfile(ch)
-  ! else if (ch(:3).eq."GEN") then
-  !   call scatter_parseGenerator(ch)
-  ! else if (ch(:4).eq."SEED") then
-  !   call scatter_parseSEED(ch)
-  ! else
-  !   write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
-  !   write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
-  !   call prror(-1)
-  ! end if
   
   goto 2901 ! Read the next line of the SCATTER block
 

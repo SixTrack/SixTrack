@@ -320,10 +320,10 @@ endif()
 
 if(DA)
 	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 file_units string_tools)
+	list(APPEND FORS_F90 core_tools file_units string_tools)
 else()
 	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 file_units string_tools)
+	list(APPEND FORS_F90 core_tools file_units string_tools)
 endif()
 
 if(COLLIMAT)

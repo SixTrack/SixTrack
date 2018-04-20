@@ -1,18 +1,4 @@
 ! ================================================================================================ !
-!  SixTrack String Type
-! ~~~~~~~~~~~~~~~~~~~~~~
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-13
-! ================================================================================================ !
-module strings
-  
-  type string
-    character(len=:), allocatable :: chr
-  end type string
-  
-end module strings
-
-! ================================================================================================ !
 !  SixTrack String Tools
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -294,6 +280,9 @@ end function chr_stripQuotes
 function str_toReal(theString) result(theValue)
   
   use floatPrecision
+#ifdef CRLIBM
+  use crcoall
+#endif
   
   implicit none
   
@@ -308,6 +297,13 @@ function str_toReal(theString) result(theValue)
   cLen     = len(theString%chr) + 1
   cString  = theString%chr//char(0)
   theValue = round_near(cErr,cLen,cString)
+  
+  if(cErr /= 0) then
+    write (lout,"(a)")    "ERROR Data Input Error"
+    write (lout,"(a)")    "Overfow/Underflow in string_tools->str_toReal"
+    write (lout,"(a,i2)") "Errno: ",cErr
+    stop -1
+  end if
 #else
   read(theString%chr,*) theValue
 #endif
@@ -317,6 +313,9 @@ end function str_toReal
 function chr_toReal(theString) result(theValue)
   
   use floatPrecision
+#ifdef CRLIBM
+  use crcoall
+#endif
   
   implicit none
   
@@ -331,6 +330,13 @@ function chr_toReal(theString) result(theValue)
   cLen     = len(theString) + 1
   cString  = theString//char(0)
   theValue = round_near(cErr,cLen,cString)
+  
+  if(cErr /= 0) then
+    write (lout,"(a)")    "ERROR Data Input Error"
+    write (lout,"(a)")    "Overfow/Underflow in string_tools->chr_toReal"
+    write (lout,"(a,i2)") "Errno: ",cErr
+    stop -1
+  end if
 #else
   read(theString,*) theValue
 #endif
@@ -359,9 +365,7 @@ end function chr_toReal
 ! ================================================================================================ !
 subroutine getfields_split(tmpline, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
   
-  ! This is a core module, and should return error values, not error messages.
-  ! Enabling crcoall causes circular dependencies.
-  ! use crcoall
+  use crcoall
   
   implicit none
   
@@ -408,9 +412,9 @@ subroutine getfields_split(tmpline, getfields_fields, getfields_lfields, getfiel
         ! A new what starts
         getfields_nfields = getfields_nfields +1
         if(getfields_nfields > getfields_n_max_fields) then
-          ! write (lout,*) "ERROR: Too many fields in line:"
-          ! write (lout,*) tmpline
-          ! write (lout,*) "please increase getfields_n_max_fields"
+          write (lout,*) "ERROR: Too many fields in line:"
+          write (lout,*) tmpline
+          write (lout,*) "please increase getfields_n_max_fields"
           getfields_lerr = .true.
           exit ! Break do
         end if
