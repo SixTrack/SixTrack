@@ -246,7 +246,7 @@ subroutine scatter_initialise
       endfile(scatter_logFile,iostat=ierro)
       backspace(scatter_logFile,iostat=ierro)
     else
-      write(93,'(a)') "SCATTER> scatter_initialise kept already opened file scatter_log.dat"
+      write(93,"(a)") "SCATTER> scatter_initialise kept already opened file scatter_log.dat"
     end if !scatter_filepos .eq. -1
 #endif
 #ifdef HDF5
@@ -257,9 +257,9 @@ end subroutine scatter_initialise
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-16
+!  Last Modified: 2018-04-20
 ! =================================================================================================
-subroutine scatter_closeFiles
+subroutine scatter_closeUnits
   
 #ifdef HDF5
   use hdf5_output
@@ -282,7 +282,7 @@ subroutine scatter_closeFiles
   end if
 #endif
   
-end subroutine scatter_closeFiles
+end subroutine scatter_closeUnits
 
 ! =================================================================================================
 !  K. Sjobak, BE-ABP-LAT and V.K. Berglyd Olsen, BE-ABP-HSS
@@ -395,8 +395,8 @@ subroutine scatter_crcheck_positionFiles
     
     inquire(unit=scatter_logFile, opened=lopen)
     if(lopen) then
-        write(93,'(a)') "SIXTRACR CRCHECK FAILED while repsositioning scatter_log.dat"
-        write(93,'(a)') "UNIT ",scatter_logFile," already in use!"
+        write(93,"(a)") "SIXTRACR CRCHECK FAILED while repsositioning scatter_log.dat"
+        write(93,"(a)") "UNIT ",scatter_logFile," already in use!"
         
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
@@ -526,14 +526,14 @@ subroutine scatter_dumpdata
 
     integer ii,jj
 
-    write(lout,'(a)') "*** BEGIN SCATTER DUMP ***"
+    write(lout,"(a)") "*** BEGIN SCATTER DUMP ***"
 
-    write(lout,'(a)') "Options:"
+    write(lout,"(a)") "Options:"
     write(lout,*)     "scatter_active =", scatter_active
     write(lout,*)     "scatter_debug  =", scatter_debug
     write(lout,*)     "Seeds          =", scatter_seed1, ";", scatter_seed2
 
-    write(lout,'(a)') "Arrays:"
+    write(lout,"(a)") "Arrays:"
 
     write(lout,*) "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
     do ii=1, scatter_nELEM
@@ -570,7 +570,7 @@ subroutine scatter_dumpdata
         write(lout,*) ii, ": '"//trim(stringzerotrim(scatter_cdata(ii)))//"'"
     end do
 
-    write(lout,'(a)') "**** END SCATTER DUMP ****"
+    write(lout,"(a)") "**** END SCATTER DUMP ****"
 
 end subroutine scatter_dumpdata
 
@@ -580,160 +580,197 @@ end subroutine scatter_dumpdata
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-20
+! =================================================================================================
+subroutine scatter_parseInputLine(inLine)
+  
+  use strings
+  use string_tools
+  
+  implicit none
+  
+  type(string), intent(in)  :: inLine
+  type(string), allocatable :: lnSplit(:)
+  integer nSplit
+  
+  integer i
+  
+  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+  integer   getfields_nfields
+  integer   getfields_lfields(getfields_n_max_fields)
+  logical   getfields_lerr
+
+  call getfields_split(inLine%chr, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
+
+  ! Split the input line
+  call str_split(inLine,lnSplit,nSplit)
+  
+  if(nSplit == 0) then
+    if(scatter_debug) then
+      write (lout,"(a,i3,a)") "SCATTER> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'."
+      write (lout,"(a)")      "SCATTER> DEBUG  * No fields found."
+    end if
+    return
+  end if
+  
+  select case(lnSplit(1)%chr)
+  case("DEBUG")
+    scatter_debug = .true.
+    write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
+  case("ELEM")
+    call scatter_parseElem(lnSplit, nSplit)
+  case("PRO")
+    ! call scatter_parseProfile(lnSplit, nSplit)
+    call scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
+  case("GEN")
+    ! call scatter_parseGenerator(lnSplit, nSplit)
+    call scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
+  case("SEED")
+    ! call scatter_parseSeed(lnSplit, nSplit)
+    call scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
+  case default
+    write(lout,"(a)")  "SCATTER> ERROR Line type not recognized:"
+    write(lout,"(3a)") "SCATTER> '",lnSplit(1)%chr,"'"
+    call prror(-1)
+  end select
+  
+end subroutine scatter_parseInputLine
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
+subroutine scatter_parseElem(lnSplit, nSplit)
 
-    use crcoall
-    use mod_common
-    use mod_commonmn
-    
-    implicit none
-
-    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-    integer,   intent(in) :: getfields_nfields
-    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
-    
-    ! Temporary Variables
-    integer ii, j
+  use crcoall
+  use mod_common
+  use mod_commonmn
+  use strings
+  use string_tools
+  
+  implicit none
+  
+  type(string), allocatable, intent(in) :: lnSplit(:)
+  integer,                   intent(in) :: nSplit
+  
+  ! Temporary Variables
+  integer ii, j
 #ifdef CRLIBM
-    integer errno
-    real(kind=fPrec) round_near
+  integer errno
+  real(kind=fPrec) round_near
 #endif
+  
+  ! Check number of arguments
+  if(nSplit < 5) then
+    write(lout,"(a)") "SCATTER> ERROR, ELEM expected at least 5 arguments:"
+    write(lout,"(a)") "ELEM elemname profile scaling gen1 (gen2...)"
+    call prror(-1)
+  end if
 
-    ! Check number of arguments
-    if(getfields_nfields .lt. 5) then
-        write(lout,'(a)') "SCATTER> ERROR, ELEM expected at least 5 arguments:"
-        write(lout,'(a)') "ELEM elemname profile scaling gen1 (gen2...)"
+  ! Add the element to the list
+  scatter_nELEM = scatter_nELEM + 1
+  if(scatter_nELEM > scatter_maxELEM) then
+    write(lout,"(a,i4,a)") "SCATTER> ERROR, max elements = ",scatter_maxELEM," exceeded."
+    call prror(-1)
+  end if
+  
+  ! Find the single element referenced
+  ii = -1
+  do j=1,il
+    if(bez(j) == lnSplit(2)%chr) then
+      if(ii /= -1) then
+        write(lout,"(3a)") "SCATTER> ERROR, found element '",lnSplit(2)%chr,"' twice in SINGLE ELEMENTS list."
         call prror(-1)
-    end if
-
-    ! Add the element to the list
-    scatter_nELEM = scatter_nELEM + 1
-    if (scatter_nELEM .gt. scatter_maxELEM ) then
-        write(lout,'(a,i4,a)') "SCATTER> ERROR, max elements = ",scatter_maxELEM," exceeded."
+      end if
+      ii = j
+      
+      if(scatter_elemPointer(j) /= 0) then
+        write(lout,"(3a)") "SCATTER> ERROR, tried to define element '",lnSplit(2)%chr,"' twice."
         call prror(-1)
+      end if
+      
+      if(kz(j) /= 40) then
+        write(lout,"(3a,1x,i4)") "SCATTER> ERROR, SCATTER can only work on SINGLE ELEMENTs"//&
+          "of type 40; the referenced element '",lnSplit(2)%chr,"'is of type", kz(j)
+        call prror(-1)
+      end if
+      
+      if(el(j) /= 0 .or. ek(j) /= 0 .or. ed(j) /= 0) then
+        write(lout,*) "SCATTER> ERROR: length el(j) (SCATTER is treated as thin element), "// &
+                      " and first and second field have to be zero: el(j)=ed(j)=ek(j)=0; "//&
+                      "but el(",j,")=",el(j),", ed(",j,")=",ed(j),", ek(",j,")=",ek(j),"."
+        write(lout,*) "Please check your input in the single element "//&
+                      "definition of your SCATTER. All values except for the type must be zero."
+        call prror(-1)
+      end if
+      
+      scatter_elemPointer(j) = scatter_nELEM
+      scatter_ELEM(scatter_nELEM,1) = j
     end if
+  end do
+  
+  if(scatter_ELEM(scatter_nELEM,1) == 0) then
+    write(lout,"(3a)") "SCATTER> ERROR: Could not find element '",lnSplit(2)%chr,"'"
+    call prror(-1)
+  end if
+  
+  ! Find the profile name referenced
+  do j=1,scatter_nPROFILE
+    if(trim(stringzerotrim(scatter_cdata(scatter_PROFILE(j,1)))) == lnSplit(3)%chr) then
+      scatter_ELEM(scatter_nELEM,2) = j
+    end if
+  end do
+  
+  if (scatter_ELEM(scatter_nELEM,2) == 0) then
+    write(lout,"(3a)") "SCATTER> ERROR: Could not find profile '",lnSplit(3)%chr,"'"
+    call prror(-1)
+  end if
+  
+  ! Store the scaling
+  scatter_ELEM_scale(scatter_nELEM) = str_toReal(lnSplit(4))
+  ! if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_ELEM_scale(scatter_nELEM))
 
-    ! Find the single element referenced
-    ii = -1
-    do j=1,il
-        if(bez(j) .eq. getfields_fields(2)(1:getfields_lfields(2))) then
-            if (ii.ne.-1) then
-                write(lout,'(a)') "SCATTER> ERROR, found element '"// &
-                                  getfields_fields(2)(1:getfields_lfields(2))// &
-                                  "' twice in SINGLE ELEMENTS list."
-                call prror(-1)
-            end if
-            ii = j
+  ! Find the generator(s) referenced
+  if(nSplit-4 > scatter_maxGenELEM-2) then
+    write(lout,*) "SCATTER> ERROR when parsing ELEM,",nSplit-4,"generators specified, space for",scatter_maxGenELEM-2
+    call prror(-1)
+  end if
+  
+  do ii=5,nSplit
+    ! In general inside this loop:
+    ! Take care of offsets in getfields_field (-4) and scatter_ELEM (+2)
+    ! such that ii=5 -> column 3 of scatter_ELEM, ii=6 -> column 4, etc.
+    !
+    ! A dummy variable might not be a bad idea here ...
 
-            if (scatter_elemPointer(j).ne.0) then
-                write(lout,'(a)') "SCATTER> ERROR, tried to define element '"// &
-                                  getfields_fields(2)(1:getfields_lfields(2))// &
-                                  "' twice."
-                call prror(-1)
-            end if
-
-            if (kz(j) .ne. 40) then
-                write(lout,'(a,1x,i4)') "SCATTER> ERROR, SCATTER can only work on SINGLE ELEMENTs"//&
-                     "of type 40; the referenced element '"//&
-                     getfields_fields(2)(1:getfields_lfields(2))//&
-                     "'is of type", kz(j)
-                call prror(-1)
-            end if
-            
-            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then
-                write(lout,*) &
-                     'SCATTER> ERROR: length el(j) (SCATTER is treated as thin element), '// &
-                     ' and first and second field have to be zero: el(j)=ed(j)=ek(j)=0;'//&
-                'but el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,')=',ek(j),"."
-                write(lout,*) &
-                     'Please check your input in the single element '//&
-                'definition of your SCATTER. All values except for the type must be zero.'
-                call prror(-1)
-            end if
-            
-            scatter_elemPointer(j) = scatter_nELEM
-            scatter_ELEM(scatter_nELEM,1) = j
-        end if
+    !In case we won't find the generator name
+    scatter_ELEM(scatter_nELEM,ii-4+2) = -1
+    
+    ! Search for the generator with the right name
+    do j=1, scatter_nGENERATOR
+      if(trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1)))) == lnSplit(ii)%chr) then
+        ! Found it
+        scatter_ELEM(scatter_nELEM,ii-4+2) = j
+      end if
     end do
-
-    if (scatter_ELEM(scatter_nELEM,1).eq.0) then
-        write(lout,*) "SCATTER> ERROR: Could not find element '"// &
-                      getfields_fields(2)(1:getfields_lfields(2)) // "'"
-        call prror(-1)
+    
+    ! If it is still -1, it wasn't found
+    if(scatter_ELEM(scatter_nELEM,ii-4+2) == -1) then
+      write(lout,"(3a)") "SCATTER> ERROR when parsing ELEM, generator '",lnSplit(ii)%chr,"' not found."
+      call prror(-1)
     end if
-
-    ! Find the profile name referenced
-    do j=1,scatter_nPROFILE
-        if( trim(stringzerotrim(scatter_cdata(scatter_PROFILE(j,1)))) &
-                .eq. getfields_fields(3)(1:getfields_lfields(3)) ) then
-            scatter_ELEM(scatter_nELEM,2) = j
-        end if
+    
+    ! Loop over those GENerators we've filled before
+    ! (i.e. up to but not including column ii-4+2)
+    ! to check for duplicates
+    do j=3, ii-4+2-1
+      if(scatter_ELEM(scatter_nELEM,j) == scatter_ELEM(scatter_nELEM,ii-4+2)) then
+        write(lout,"(3a)") "SCATTER> ERROR when parsing ELEM, generator '",lnSplit(ii)%chr,"' used twice."
+        call prror(-1)
+      end if
     end do
-
-    if (scatter_ELEM(scatter_nELEM,2).eq.0) then
-        write(lout,*) "SCATTER> ERROR: Could not find profile '"// &
-                      getfields_fields(3)(1:getfields_lfields(3)) // "'"
-        call prror(-1)
-    end if
-
-    ! Store the scaling
-#ifdef CRLIBM
-    scatter_ELEM_scale(scatter_nELEM) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
-    if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_ELEM_scale(scatter_nELEM))
-#else
-    read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_ELEM_scale(scatter_nELEM)
-#endif
-
-    ! Find the generator(s) referenced
-    if (getfields_nfields-4 .gt. scatter_maxGenELEM-2) then
-        write(lout,*) "SCATTER> ERROR when parsing ELEM,", &
-                      getfields_nfields-4, "generators specified, space for", &
-                      scatter_maxGenELEM-2
-        call prror(-1)
-    end if
-
-    do ii=5,getfields_nfields
-        ! In general inside this loop:
-        ! Take care of offsets in getfields_field (-4) and scatter_ELEM (+2)
-        ! such that ii=5 -> column 3 of scatter_ELEM, ii=6 -> column 4, etc.
-        !
-        ! A dummy variable might not be a bad idea here ...
-
-        !In case we won't find the generator name
-        scatter_ELEM(scatter_nELEM,ii-4+2) = -1
-
-        ! Search for the generator with the right name
-        do j=1, scatter_nGENERATOR
-            if( trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1)))) &
-                .eq. getfields_fields(ii)(1:getfields_lfields(ii)) ) then
-                ! Found it
-                scatter_ELEM(scatter_nELEM,ii-4+2) = j
-            end if
-        end do
-
-        ! If it is still -1, it wasn't found
-        if(scatter_ELEM(scatter_nELEM,ii-4+2) .eq. -1) then
-            write(lout,*) "SCATTER> ERROR when parsing ELEM, generator '"// &
-                          getfields_fields(ii)(1:getfields_lfields(ii))// &
-                          "' not found."
-            call prror(-1)
-        end if
-
-        ! Loop over those GENerators we've filled before
-        ! (i.e. up to but not including column ii-4+2)
-        ! to check for duplicates
-        do j=3, ii-4+2-1
-            if(scatter_ELEM(scatter_nELEM,j) .eq. scatter_ELEM(scatter_nELEM,ii-4+2)) then
-                write(lout,*) "SCATTER> ERROR when parsing ELEM, generator '"// &
-                              getfields_fields(ii)(1:getfields_lfields(ii)) // &
-                              "' used twice."
-                call prror(-1)
-            end if
-        end do
-    end do
-
+  end do
+  
 end subroutine scatter_parseElem
 
 ! =================================================================================================
@@ -759,8 +796,8 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
-        write(lout,'(a)') "SCATTER> ERROR, PRO expected at least 3 arguments:"
-        write(lout,'(a)') "PRO name type (arguments...)"
+        write(lout,"(a)") "SCATTER> ERROR, PRO expected at least 3 arguments:"
+        write(lout,"(a)") "PRO name type (arguments...)"
         call prror(-1)
     end if
 
@@ -785,7 +822,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
         if(trim(stringzerotrim(scatter_cdata(scatter_PROFILE(ii,1)) )) &
             .eq. getfields_fields(2)(1:getfields_lfields(2)) ) then
             
-            write(lout,'(a)') "SCATTER> ERROR, profile name '"// &
+            write(lout,"(a)") "SCATTER> ERROR, profile name '"// &
                               getfields_fields(2)(1:getfields_lfields(2))// &
                               "' is not unique."
             call prror(-1)
@@ -797,8 +834,8 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
     case("FLAT")
         scatter_PROFILE(scatter_nPROFILE,2) = 1 ! Integer code for FLAT
         if(getfields_nfields .ne. 6) then
-            write(lout,'(a)') "SCATTER> ERROR, PROfile type FLAT expected 6 arguments:"
-            write(lout,'(a)') "PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
+            write(lout,"(a)") "SCATTER> ERROR, PROfile type FLAT expected 6 arguments:"
+            write(lout,"(a)") "PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
             call prror(-1)
         end if
 
@@ -837,8 +874,8 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
     case("GAUSS1")
         scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
         if(getfields_nfields .ne. 8) then
-            write(lout,'(a)') "SCATTER> ERROR, PROfile type GAUSS1 expected 8 arguments:"
-            write(lout,'(a)') "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] "// &
+            write(lout,"(a)") "SCATTER> ERROR, PROfile type GAUSS1 expected 8 arguments:"
+            write(lout,"(a)") "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] "// &
                               "offset_x[mm] offset_y[mm]"
             call prror(-1)
         end if
@@ -890,7 +927,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 #endif
 
     case default
-        write(lout,'(a)') "SCATTER> ERROR, PRO name '"// &
+        write(lout,"(a)") "SCATTER> ERROR, PRO name '"// &
                           getfields_fields(3)(1:getfields_lfields(3))// &
                           "' not recognized."
         call prror(-1)
@@ -922,8 +959,8 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
-        write(lout,'(a)') "SCATTER> ERROR, GEN expected at least 3 arguments:"
-        write(lout,'(a)') "GEN name type (arguments...)"
+        write(lout,"(a)") "SCATTER> ERROR, GEN expected at least 3 arguments:"
+        write(lout,"(a)") "GEN name type (arguments...)"
         call prror(-1)
     end if
 
@@ -947,7 +984,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
     do ii=1,scatter_nGENERATOR-1
         if (trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(ii,1)) )) &
             .eq. getfields_fields(2)(1:getfields_lfields(2)) ) then
-            write(lout,'(a)') "SCATTER> ERROR, generator name '"// &
+            write(lout,"(a)") "SCATTER> ERROR, generator name '"// &
                               getfields_fields(2)(1:getfields_lfields(2))// &
                               "' is not unique."
             call prror(-1)
@@ -964,8 +1001,8 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
         scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
         if(getfields_nfields .lt. 8 .or. getfields_nfields .gt. 9) then
-            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC expected 8 or 9 arguments:"
-            write(lout,'(a)') "GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
+            write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC expected 8 or 9 arguments:"
+            write(lout,"(a)") "GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
             call prror(-1)
         end if
 
@@ -1031,17 +1068,17 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
         ! Check sanity of input values
         if(scatter_fdata(tmpIdx+1) .lt. pieni) then
-            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
+            write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
             call prror(-1)
         end if
         if(scatter_fdata(tmpIdx+2) .lt. pieni) then
-            write(lout,'(a)') "SCATTER> ERROR, GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
+            write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
             call prror(-1)
         end if
 
     case default
 
-        write(lout,'(a)') "SCATTER> ERROR, GEN name '"// &
+        write(lout,"(a)") "SCATTER> ERROR, GEN name '"// &
                           getfields_fields(3)(1:getfields_lfields(3))// &
                           "' not recognized."
         call prror(-1)
@@ -1066,8 +1103,8 @@ subroutine scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfield
 
   ! Check the number of arguments
   if(getfields_nfields .ne. 3) then
-    write(lout,'(a)') "SCATTER> ERROR, SEED expected 2 arguments:"
-    write(lout,'(a)') "GEN seed1 seed2"
+    write(lout,"(a)") "SCATTER> ERROR, SEED expected 2 arguments:"
+    write(lout,"(a)") "GEN seed1 seed2"
     call prror(-1)
   end if
 

@@ -8163,8 +8163,8 @@ subroutine daten
   use end_sixtrack
   use mathlib_bouncer
   
-  use scatter, only : scatter_active, scatter_debug,scatter_seed1,scatter_seed2,scatter_dumpdata,&
-    scatter_parseELEM,scatter_parseProfile,scatter_parseGenerator,scatter_parseSEED,scatter_allocate
+  use scatter, only : scatter_active, scatter_debug, scatter_seed1, scatter_seed2, scatter_dumpdata, &
+    scatter_parseInputLine, scatter_allocate
   use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_parseFUN,dynk_parseSET,dynk_dumpdata,&
     dynk_inputsanitycheck,dynk_allocate
   use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,fma_first,fma_last,&
@@ -14388,64 +14388,57 @@ subroutine daten
 !  Last modified: 2017-08-29
 ! ================================================================================================ !
 2900 continue
-      ! We have a SCATTER block; let's allocate the memory for it!
-      if (scatter_active) then
-        write(lout,*) "ERROR while parsing SCATTER in fort.3"
-        write(lout,*) "More than one SCATTER block encountered?"
-        call prror(-1)
-      end if
-      call scatter_allocate
-      
- 2901 read(3,10020, end=1530, iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2901 ! skip comment line
-      
-      if (ch(:4).eq.next) then
-         
-        scatter_active = .true.
-
-        if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
-          write(lout,*) "ERROR while parsing SCATTER in fort.3"
-          write(lout,*) "No SEED sets were specified"
-          call prror(-1)
-        endif
-         
-        if (scatter_debug) call scatter_dumpdata
-        goto 110               !Read next block or ENDE
-      end if
-      
-      if (ch(:5).eq."DEBUG") then
-        scatter_debug = .true.
-        write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
-        goto 2901
-      end if
-      
-      call getfields_split(ch,getfields_fields,getfields_lfields,getfields_nfields,getfields_lerr)
-      if(getfields_lerr) call prror(51)
-      if(scatter_debug) then
-        write (lout,"(a,i4,a)") "SCATTER> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
-        do ii=1, getfields_nfields
-          write (lout,"(a,i4,a)") "SCATTER> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-        end do
-      end if
-
-      if (ch(:4).eq."ELEM") then
-        call scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
-      else if (ch(:3).eq."PRO") then
-        call scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
-      else if (ch(:3).eq."GEN") then
-        call scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
-      else if (ch(:4).eq."SEED") then
-        call scatter_parseSEED(getfields_fields,getfields_lfields,getfields_nfields)
-      else
-        write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
-        write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
-        call prror(-1)
-      end if
-      
-      goto 2901                 !Read the next line of the SCATTER block
+  ! We have a SCATTER block; let's allocate the memory for it!
+  if (scatter_active) then
+    write(lout,*) "ERROR while parsing SCATTER in fort.3"
+    write(lout,*) "More than one SCATTER block encountered?"
+    call prror(-1)
+  end if
+  call scatter_allocate
+  
+2901 continue
+  read(3,10020, end=1530, iostat=ierro) ch
+  if(ierro.gt.0) call prror(58)
+  lineno3 = lineno3+1 ! Line number used for some crash output
+  
+  if(ch(1:1).eq.'/') goto 2901 ! skip comment line
+  
+  if (ch(:4).eq.next) then
+    
+    scatter_active = .true.
+    
+    if(scatter_seed1 == -1 .and. scatter_seed2 == -1) then
+      write(lout,*) "ERROR while parsing SCATTER in fort.3"
+      write(lout,*) "No SEED sets were specified"
+      call prror(-1)
+    endif
+    
+    if (scatter_debug) call scatter_dumpdata
+    goto 110               !Read next block or ENDE
+  end if
+  
+  ! if (ch(:5).eq."DEBUG") then
+  !   scatter_debug = .true.
+  !   write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
+  !   goto 2901
+  ! end if
+  
+  call scatter_parseInputLine(string(adjustl(ch)))
+  ! if (ch(:4).eq."ELEM") then
+  !   call scatter_parseElem(ch)
+  ! else if (ch(:3).eq."PRO") then
+  !   call scatter_parseProfile(ch)
+  ! else if (ch(:3).eq."GEN") then
+  !   call scatter_parseGenerator(ch)
+  ! else if (ch(:4).eq."SEED") then
+  !   call scatter_parseSEED(ch)
+  ! else
+  !   write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
+  !   write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
+  !   call prror(-1)
+  ! end if
+  
+  goto 2901 ! Read the next line of the SCATTER block
 
 ! ================================================================================================ !
 !  HDF5 Input
@@ -14453,34 +14446,33 @@ subroutine daten
 !  Last modified: 2018-04-14
 ! ================================================================================================ !
 3100  continue
-+if .not.hdf5
-      write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-      write(lout,*) "SixTrack was not compiled with the HDF5 flag."
-      call prror(-1)
-+ei
-+if hdf5
-      ! Check if an HDF5 block has already been encountered
-      if (h5_isActive) then
-        write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-        write(lout,*) "More than one HDF5 block encountered."
-        call prror(-1)
-      end if
-      
+#ifndef HDF5
+  write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+  write(lout,*) "SixTrack was not compiled with the HDF5 flag."
+  call prror(-1)
+#else
+  ! Check if an HDF5 block has already been encountered
+  if (h5_isActive) then
+    write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+    write(lout,*) "More than one HDF5 block encountered."
+    call prror(-1)
+  end if
+  
 3110  continue
-      read(3,10020, end=1530, iostat=ierro) ch
-      if(ierro > 0) call prror(58)
-      lineno3 = lineno3 + 1
+  read(3, 10020, end=1530, iostat=ierro) ch
+  if(ierro > 0) call prror(58)
+  lineno3 = lineno3 + 1
       
-      if(ch(1:1) == '/') goto 3110 ! Comment line encountered
-      if(ch(1:4) == next) then
-        h5_isActive = .true.
-        goto 110 ! Read next block or ENDE
-      else
-        call h5_parseInputLine(string(ch))
-      end if
-      
-      goto 3110 ! Read the next line of the block
-+ei
+  if(ch(1:1) == '/') goto 3110 ! Comment line encountered
+  if(ch(1:4) == next) then
+    h5_isActive = .true.
+    goto 110 ! Read next block or ENDE
+  else
+    call h5_parseInputLine(string(ch))
+  end if
+  
+  goto 3110 ! Read the next line of the block
+#endif
 
 !----------------------------------------------------------------------------
 !     root output
