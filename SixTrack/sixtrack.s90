@@ -14408,7 +14408,7 @@ subroutine daten
       write(lout,"(a)") "SCATTER> ERROR while parsing SCATTER in fort.3: No SEED sets were specified"
       call prror(-1)
     end if
-    if (scatter_debug) call scatter_dumpdata
+    if (scatter_debug) call scatter_dumpData
     goto 110 ! Read next block or ENDE
   else
     call scatter_parseInputLine(string(adjustl(ch)))

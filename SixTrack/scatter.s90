@@ -515,64 +515,49 @@ end subroutine scatter_crstart
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Last modified: 2018-04-20
 ! =================================================================================================
-subroutine scatter_dumpdata
+subroutine scatter_dumpData
+  
+  use crcoall
+  
+  implicit none
+  
+  integer ii
 
-    use crcoall
-    use string_tools
-    
-    implicit none
-
-    integer ii,jj
-
-    write(lout,"(a)") "*** BEGIN SCATTER DUMP ***"
-
-    write(lout,"(a)") "Options:"
-    write(lout,*)     "scatter_active =", scatter_active
-    write(lout,*)     "scatter_debug  =", scatter_debug
-    write(lout,*)     "Seeds          =", scatter_seed1, ";", scatter_seed2
-
-    write(lout,"(a)") "Arrays:"
-
-    write(lout,*) "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
-    do ii=1, scatter_nELEM
-        write(lout,*) ii, ":", scatter_ELEM(ii,:)
-    end do
-
-    write(lout,*) "scatter_ELEM_scale: (",scatter_nELEM,"):"
-    do ii=1, scatter_nELEM
-        write(lout,*) ii, ":", scatter_ELEM_scale(ii)
-    end do
-
-    write(lout,*) "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
-    do ii=1, scatter_nPROFILE
-        write(lout,*) ii, ":", scatter_PROFILE(ii,:)
-    end do
-
-    write(lout,*) "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
-    do ii=1, scatter_nGENERATOR
-        write(lout,*) ii, ":", scatter_GENERATOR(ii,:)
-    end do
-
-    write(lout,*) "scatter_idata: (",scatter_nidata,"):"
-    do ii=1, scatter_nidata
-        write(lout,*) ii, ":", scatter_idata(ii)
-    end do
-
-    write(lout,*) "scatter_fdata: (",scatter_nfdata,"):"
-    do ii=1, scatter_nfdata
-        write(lout,*) ii, ":", scatter_fdata(ii)
-    end do
-
-    write(lout,*) "scatter_cdata: (",scatter_ncdata,"):"
-    do ii=1, scatter_ncdata
-        write(lout,*) ii, ": '"//trim(stringzerotrim(scatter_cdata(ii)))//"'"
-    end do
-
-    write(lout,"(a)") "**** END SCATTER DUMP ****"
-
-end subroutine scatter_dumpdata
+  write(lout,"(a)")             "*** BEGIN SCATTER DUMP ***"
+  
+  write(lout,"(a)")             "Options:"
+  write(lout,"(a,l1)")          "scatter_active =", scatter_active
+  write(lout,"(a,l1)")          "scatter_debug  =", scatter_debug
+  write(lout,"(2(a,i8))")       "Seeds          =", scatter_seed1, ";", scatter_seed2
+  
+  write(lout,"(a)")             "Arrays:"
+  
+  write(lout,"(a,2(i3,a))")     "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
+  write(lout,"(i4,a,5(1x,i3))") (ii,":",scatter_ELEM(ii,:),ii=1,scatter_nELEM)
+  
+  write(lout,"(a,i3,a)")        "scatter_ELEM_scale: (",scatter_nELEM,"):"
+  write(lout,"(i4,a,e14.7)")    (ii,":",scatter_ELEM_scale(ii),ii=1,scatter_nELEM)
+  
+  write(lout,"(a,2(i3,a))")     "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
+  write(lout,"(i4,a,5(1x,i3))") (ii,":",scatter_PROFILE(ii,:),ii=1,scatter_nPROFILE)
+  
+  write(lout,"(a,2(i3,a))")     "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
+  write(lout,"(i4,a,5(1x,i3))") (ii,":",scatter_GENERATOR(ii,:),ii=1,scatter_nGENERATOR)
+  
+  write(lout,"(a,i3,a)")        "scatter_idata: (",scatter_nidata,"):"
+  write(lout,"(i4,a,i4)")       (ii,":",scatter_idata(ii),ii=1,scatter_nidata)
+  
+  write(lout,"(a,i3,a)")        "scatter_fdata: (",scatter_nfdata,"):"
+  write(lout,"(i4,a,e14.7)")    (ii,":",scatter_fdata(ii),ii=1,scatter_nfdata)
+  
+  write(lout,"(a,i3,a)")        "scatter_cdata: (",scatter_ncdata,"):"
+  write(lout,"(i4,a)")          (ii,": '"//trim(chr_trimZero(scatter_cdata(ii)))//"'",ii=1,scatter_ncdata)
+  
+  write(lout,"(a)")             "**** END SCATTER DUMP ****"
+  
+end subroutine scatter_dumpData
 
 ! =================================================================================================
 ! BEGIN Input Parser Functions
@@ -709,7 +694,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   
   ! Find the profile name referenced
   do j=1,scatter_nPROFILE
-    if(trim(stringzerotrim(scatter_cdata(scatter_PROFILE(j,1)))) == lnSplit(3)%chr) then
+    if(trim(chr_trimZero(scatter_cdata(scatter_PROFILE(j,1)))) == lnSplit(3)%chr) then
       scatter_ELEM(scatter_nELEM,2) = j
     end if
   end do
@@ -741,7 +726,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     
     ! Search for the generator with the right name
     do j=1, scatter_nGENERATOR
-      if(trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(j,1)))) == lnSplit(ii)%chr) then
+      if(trim(chr_trimZero(scatter_cdata(scatter_GENERATOR(j,1)))) == lnSplit(ii)%chr) then
         ! Found it
         scatter_ELEM(scatter_nELEM,ii-4+2) = j
       end if
@@ -809,7 +794,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   
   ! Check that the profile name is unique
   do ii=1,scatter_nPROFILE-1
-    if(trim(stringzerotrim(scatter_cdata(scatter_PROFILE(ii,1)) )) == lnSplit(2)%chr) then
+    if(trim(chr_trimZero(scatter_cdata(scatter_PROFILE(ii,1)) )) == lnSplit(2)%chr) then
       write(lout,"(3a)") "SCATTER> ERROR, profile name '",lnSplit(2)%chr,"' is not unique."
       call prror(-1)
     end if
@@ -1097,7 +1082,7 @@ subroutine scatter_thin(i_elem, ix, turn)
       else
 #endif
         write(scatter_logFile,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
-            trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
+            trim(chr_trimZero(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
             t, xi, theta, rndPhi(j), P
 #ifdef HDF5
       end if
@@ -1160,7 +1145,7 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
     case default
         write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
-                      "for profile '"// trim(stringzerotrim( &
+                      "for profile '"// trim(chr_trimZero( &
                       scatter_cdata(scatter_PROFILE(profileIdx,1)) &
                       ))//"' not understood."
         call prror(-1)
@@ -1226,7 +1211,7 @@ real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generato
     case default
         write(lout,*) "SCATTER> ERROR in scatter_generator_getCrossSection"
         write(lout,*) "Type", scatter_PROFILE(profileIdx,2), &
-                      "for profile '"// trim(stringzerotrim( &
+                      "for profile '"// trim(chr_trimZero( &
                       scatter_cdata(scatter_PROFILE(profileIdx,1)) &
                       ))//"' not understood."
         call prror(-1)
