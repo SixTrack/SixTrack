@@ -22980,7 +22980,6 @@ end interface
 +ei
   ! Write all dynamically assigned file units tp file_units.dat
   call funit_dumpUnits
-  call closeUnits
   if (zipf_numfiles.gt.0) then
     call zipf_dozip
   endif
@@ -22992,7 +22991,10 @@ end interface
   call SixTrackRootExit()
 +ei
   call alloc_exit
-! We're done in maincr, no error :)
+  call closeUnits ! Must be last as it also closes fort.6
+! ----------------------------------------------------------------------
+!   We're done in maincr, no error :)
+! ----------------------------------------------------------------------
 +if cr
   call abend('                                                  ')
 +ei

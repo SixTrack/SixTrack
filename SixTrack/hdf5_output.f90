@@ -143,7 +143,7 @@ subroutine h5_closeHDF5()
   end if
   
   write(lout,"(a)") "HDF5> Closed HDF5 file."
-    
+  
 end subroutine h5_closeHDF5
 
 ! ================================================================================================ !

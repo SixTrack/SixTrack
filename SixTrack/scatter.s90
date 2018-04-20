@@ -96,7 +96,7 @@ module scatter
          scatter_debug, scatter_active, scatter_seed1, scatter_seed2,   &
          scatter_logFile
 
-+if cr
+#ifdef CR
     integer :: scatter_filepos,scatter_filepos_cr
     integer,                      allocatable :: scatter_idata_cr (:)
     real(kind=fPrec),             allocatable :: scatter_fdata_cr (:)
@@ -108,7 +108,7 @@ module scatter
          scatter_idata_cr, scatter_fdata_cr, scatter_cdata_cr, &
          scatter_nidata_cr,scatter_nfdata_cr, scatter_ncdata_cr, &
          scatter_seed1_cr, scatter_seed2_cr
-+ei
+#endif
 
 ! ================================================================================================ !
 !  HERE COMES THE SUBROUTINES
@@ -179,7 +179,7 @@ subroutine scatter_allocate
         end do
     end do
     
-+if cr
+#ifdef CR
     write(lout,'(A,I8)') "SCATTER_ALLOCATE [CR] : scatter_maxdata=",scatter_maxdata
     allocate( scatter_idata_cr(scatter_maxdata), &
               scatter_fdata_cr(scatter_maxdata), &
@@ -190,7 +190,7 @@ subroutine scatter_allocate
        write(lout,'(A,I8)') "ERROR in SCATTER_ALLOCATE [CR]; stat=",stat
        call prror(-1)
     end if
-+ei
+#endif
 end subroutine scatter_allocate
 
 ! =================================================================================================
@@ -202,10 +202,10 @@ subroutine scatter_initialise
   use crcoall
   use parpro
   use file_units
-+if hdf5
+#ifdef HDF5
   ! use hdf5
   use hdf5_output
-+ei
+#endif
   
   implicit none
   
@@ -213,23 +213,23 @@ subroutine scatter_initialise
 
   logical lopen
 
-+if hdf5
+#ifdef HDF5
   if(h5_useForSCAT) then
     call h5_initForScatter()
     ! h5dcreate_f(h5_scattID, "scatter_log", type_id, space_id, dset_id, hdferr)
   else
-+ei
+#endif
     ! Get a file unit number
     call funit_requestUnit("scatter_log.dat",scatter_logFile)
 
     ! Open scatter_log.dat
-+if cr
+#ifdef CR
     ! Could have loaded a CR just before the start of the tracking;
     ! in this case the scatter_log.dat is already open and positioned,
     ! so don't try to open the file again.
     if(scatter_filepos .eq. -1) then
       write(93,"(a)") "SCATTER> scatter_initialise opening new file scatter_log.dat"
-+ei
+#endif
       inquire(unit=scatter_logFile, opened=lopen)
       if(lopen) then
         write(lout,*) "ERROR in SCATTER when opening scatter_log.dat"
@@ -241,17 +241,17 @@ subroutine scatter_initialise
       write(scatter_logFile,"(A)") "# scatter_log"
       write(scatter_logFile,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
-+if cr
+#ifdef CR
       scatter_filepos = 2
       endfile(scatter_logFile,iostat=ierro)
       backspace(scatter_logFile,iostat=ierro)
     else
       write(93,'(a)') "SCATTER> scatter_initialise kept already opened file scatter_log.dat"
     end if !scatter_filepos .eq. -1
-+ei
-+if hdf5
+#endif
+#ifdef HDF5
   end if ! h5_useForSCAT
-+ei
+#endif
   
 end subroutine scatter_initialise
 
@@ -261,26 +261,26 @@ end subroutine scatter_initialise
 ! =================================================================================================
 subroutine scatter_closeFiles
   
-+if hdf5
+#ifdef HDF5
   use hdf5_output
-+ei
+#endif
 
   implicit none
   
   logical lopen
   
-+if hdf5
+#ifdef HDF5
   if(h5_useForSCAT) then
     !call h5_closeForScatter()
   else
-+ei
+#endif
     if (scatter_active) then
       inquire(unit=scatter_logFile, opened=lopen)
       if(lopen) close(scatter_logFile)
     end if
-+if hdf5
+#ifdef HDF5
   end if
-+ei
+#endif
   
 end subroutine scatter_closeFiles
 
@@ -333,9 +333,9 @@ subroutine scatter_comnul
     scatter_seed1 = -1
     scatter_seed2 = -1
 
-+if cr
+#ifdef CR
     scatter_filepos = -1
-+ei
+#endif
 end subroutine scatter_comnul
 
 ! =================================================================================================
@@ -344,7 +344,7 @@ end subroutine scatter_comnul
 !  Called from CRCHECK; reads the _cr arrays for scatter from file-
 !  Sets readerr=.true. if something goes wrong while reading.
 ! =================================================================================================
-+if cr
+#ifdef CR
 subroutine scatter_crcheck_readdata(fileunit,readerr)
     
     use crcoall
@@ -387,9 +387,9 @@ subroutine scatter_crcheck_positionFiles
 
     logical lopen
     integer ierro
-+if boinc
+#ifdef BOINC
     character(len=256) filename
-+ei
+#endif
     integer j
     character(len=1024) arecord
     
@@ -406,13 +406,12 @@ subroutine scatter_crcheck_positionFiles
     end if
     
     if(scatter_filepos_cr .ne. -1) then
-+if boinc
+#ifdef BOINC
         call boincrf("scatter_log.dat",filename)
         open(unit=scatter_logFile,file=filename,status="old",action="readwrite", err=1)
-+ei
-+if .not.boinc
+#else
         open(unit=scatter_logFile,file="scatter_log.dat",status="old",action="readwrite", err=1)
-+ei
+#endif
         scatter_filepos=0
         do j=1, scatter_filepos_cr
             read(scatter_logFile,'(a1024)',end=1,err=1,iostat=ierro) arecord
@@ -423,13 +422,12 @@ subroutine scatter_crcheck_positionFiles
         endfile(scatter_logFile,iostat=ierro)
         close(scatter_logFile)
 
-+if boinc
+#ifdef BOINC
         call boincrf("scatter_log.dat",filename)
         open(unit=scatter_logFile,file=filename,status="old",position="append",action="write", err=1)
-+ei
-+if .not.boinc
+#else
         open(unit=scatter_logFile,file="scatter_log.dat",status="old",position='append',action="write", err=1)
-+ei       
+#endif
         write(97,*) "SIXTRACR CRCHECK sucessfully repositioned scatter_log.dat, "// &
                     "scatter_filepos=",scatter_filepos, "scatter_filepos_cr=",scatter_filepos_cr
         endfile (93,iostat=ierro)
@@ -512,7 +510,8 @@ subroutine scatter_crstart
     end do
     
 end subroutine scatter_crstart
-+ei
+#endif
+! End of CR
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
@@ -597,10 +596,10 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
     
     ! Temporary Variables
     integer ii, j
-+if crlibm
+#ifdef CRLIBM
     integer errno
     real(kind=fPrec) round_near
-+ei
+#endif
 
     ! Check number of arguments
     if(getfields_nfields .lt. 5) then
@@ -680,13 +679,12 @@ subroutine scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfield
     end if
 
     ! Store the scaling
-+if crlibm
+#ifdef CRLIBM
     scatter_ELEM_scale(scatter_nELEM) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
     if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_ELEM_scale(scatter_nELEM))
-+ei
-+if .not.crlibm
+#else
     read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_ELEM_scale(scatter_nELEM)
-+ei
+#endif
 
     ! Find the generator(s) referenced
     if (getfields_nfields-4 .gt. scatter_maxGenELEM-2) then
@@ -754,10 +752,10 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
     ! Temporary Variables
     integer ii, tmpIdx
-+if crlibm
+#ifdef CRLIBM
     integer errno
     real(kind=fPrec) round_near
-+ei
+#endif
 
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
@@ -813,7 +811,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
             call prror(-1)
         end if
 
-+if crlibm
+#ifdef CRLIBM
         ! Density
         scatter_fdata(tmpIdx) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
@@ -825,8 +823,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
         ! Momentum
         scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
-+ei
-+if .not.crlibm
+#else
         ! Density
         read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
 
@@ -835,7 +832,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
         ! Momentum
         read(getfields_fields(6)(1:getfields_lfields(6)),*) scatter_fdata(tmpIdx+2)
-+ei
+#endif
 
     case("GAUSS1")
         scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
@@ -855,7 +852,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
             call prror(-1)
         end if
 
-+if crlibm
+#ifdef CRLIBM
         ! Beam Charge
         scatter_fdata(tmpIdx) = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
@@ -875,8 +872,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
         ! Offset Y
         scatter_fdata(tmpIdx+4) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
-+ei
-+if .not.crlibm
+#else
         ! Beam Charge
         read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
 
@@ -891,7 +887,7 @@ subroutine scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfi
 
         ! Offset Y
         read(getfields_fields(8)(1:getfields_lfields(8)),*) scatter_fdata(tmpIdx+4)
-+ei
+#endif
 
     case default
         write(lout,'(a)') "SCATTER> ERROR, PRO name '"// &
@@ -919,10 +915,10 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
 
     ! Temporary Variables
     integer ii, tmpIdx
-+if crlibm
+#ifdef CRLIBM
     integer errno
     real(kind=fPrec) round_near
-+ei
+#endif
 
     ! Check number of arguments
     if(getfields_nfields .lt. 3) then
@@ -983,7 +979,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
             call prror(-1)
         end if
 
-+if crlibm
+#ifdef CRLIBM
         ! PPBEAMELASTIC a
         scatter_fdata(tmpIdx)   = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
         if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
@@ -1010,8 +1006,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
             if(errno .ne. 0) call rounderr(errno,getfields_fields,9,scatter_fdata(tmpIdx+5))
             scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
         end if
-+ei
-+if .not.crlibm
+#else
         ! PPBEAMELASTIC a
         read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
 
@@ -1032,7 +1027,7 @@ subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_n
             read(getfields_fields(9)(1:getfields_lfields(9)),*) scatter_fdata(tmpIdx+5)
             scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
         end if
-+ei
+#endif
 
         ! Check sanity of input values
         if(scatter_fdata(tmpIdx+1) .lt. pieni) then
@@ -1095,9 +1090,9 @@ subroutine scatter_thin(i_elem, ix, turn)
   use crcoall
   use mod_common
   use mod_commonmn
-+if hdf5
+#ifdef HDF5
   use hdf5_output
-+ei
+#endif
   
   implicit none
   
@@ -1161,10 +1156,8 @@ subroutine scatter_thin(i_elem, ix, turn)
       P = (N*crossSection)*scaling
             
       ! If RNG > P -> go to next particle, else scatter
-      if (rndP(j) .gt. P) then
-        cycle
-      end if
-
+      if(rndP(j) > P) cycle
+      
       ! Ask generator for t and xi
       call scatter_generator_getTandXi(GENidx,t,xi)
 
@@ -1175,20 +1168,20 @@ subroutine scatter_thin(i_elem, ix, turn)
       yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
 
       ! Output to file
-+if hdf5
+#ifdef HDF5
       if(h5_useForSCAT) then
         ! Something
       else
-+ei
+#endif
         write(scatter_logFile,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
             trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(GENidx,1)))), &
             t, xi, theta, rndPhi(j), P
-+if hdf5
+#ifdef HDF5
       end if
-+ei
-+if cr
+#endif
+#ifdef CR
       scatter_filepos = scatter_filepos+1
-+ei
+#endif
 
 +if collimat
       scatterhit(j) = 8
@@ -1198,10 +1191,10 @@ subroutine scatter_thin(i_elem, ix, turn)
     end do ! END loop over particles (j)
   end do
 
-+if cr
+#ifdef CR
   endfile(scatter_logFile,iostat=ierro)
   backspace(scatter_logFile,iostat=ierro)
-+ei
+#endif
     
   ! Restore seeds in random generator
   call recuut(scatter_seed1,scatter_seed2)
