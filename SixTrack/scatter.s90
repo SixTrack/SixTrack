@@ -19,49 +19,34 @@ module scatter
   ! Therefore, we always need to import the SCATTER module using "only",
   ! or else it will bring the contents of parpro, comgetfields,
   ! and stringzerotrim along with it...
-
-    ! PUBLIC
-    ! Common variables for the SCATTER routines
-    logical scatter_active
-    ! Pointer from an element back to a ELEM statement (0 => not used)
-    integer, allocatable :: scatter_elemPointer(:) !(nele)
-
-    ! Max of scattering ELEM statements in use.
-    integer scatter_maxELEM
-    parameter (scatter_maxELEM=200)
-
-    ! Number of generators per ELEM
-    ! (2 slots taken by pointers to singleElement and profile).
-    integer scatter_maxGenELEM
-    parameter (scatter_maxGenELEM=5)
-
-    ! Configuration for an ELEM, columns are:
-    ! (1) = pointer to the SingleElement
-    ! (2) = pointer to PROFILE
-    ! (3)--(scatter_maxGenElem) = pointer to GENERATORs
-    integer :: scatter_ELEM(scatter_maxELEM, scatter_maxGenELEM)
-
-    real(kind=fPrec) :: scatter_ELEM_scale(scatter_maxELEM)
-
-    ! Configuration for PROFILE
-
-    ! Max number of profiles
-    integer scatter_maxPROFILE
-    parameter (scatter_maxPROFILE=200)
-    ! Columns of scatter_PROFILE:
-    ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
-    ! (2)   : Profile type
-    ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-    integer :: scatter_PROFILE(scatter_maxPROFILE, 5)
-
-    ! Configuration for GENERATOR
-    integer scatter_maxGENERATOR
-    parameter (scatter_maxGENERATOR=20)
-    ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
-    ! (2)   : Generator type
-    ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-    integer  :: scatter_GENERATOR(scatter_maxGENERATOR,5)
-
+  
+  ! Common variables for the SCATTER routines
+  logical, public, save :: scatter_active
+  logical, public, save :: scatter_debug
+  
+  ! Pointer from an element back to a ELEM statement (0 => not used)
+  integer, allocatable :: scatter_elemPointer(:) !(nele)
+  
+  ! Configuration for an ELEM, columns are:
+  ! (1)   : pointer to the SingleElement
+  ! (2)   : pointer to PROFILE
+  ! (3-5) : pointer to GENERATORs
+  integer,          allocatable, public, save :: scatter_ELEM(:,:)
+  real(kind=fPrec), allocatable, public, save :: scatter_ELEM_scale(:)
+  
+  ! Configuration for PROFILE
+  ! Columns of scatter_PROFILE:
+  ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
+  ! (2)   : Profile type
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  integer, allocatable, public, save :: scatter_PROFILE(:,:)
+  
+  ! Configuration for GENERATOR
+  ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
+  ! (2)   : Generator type
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  integer, allocatable, public, save  :: scatter_GENERATOR(:,:)
+  
     ! General data storage ala DYNK
     integer scatter_maxdata, scatter_maxstrlen
     parameter (scatter_maxdata   = 5000,                              &
@@ -77,7 +62,6 @@ module scatter
     
     integer :: scatter_seed1, scatter_seed2
     
-    logical :: scatter_debug
     
     ! Variable for file units
     integer :: scatter_logFile
@@ -85,12 +69,11 @@ module scatter
     !Declare which variables should be statically stored;
     ! TODO: Consider putting the SAVE keyword direcly into
     ! the variable declarations instead.
-    save scatter_elemPointer, scatter_ELEM, scatter_ELEM_scale,         &
-         scatter_PROFILE, scatter_GENERATOR,                            &
+    save scatter_elemPointer,          &
          scatter_idata, scatter_fdata, scatter_cdata,                   &
          scatter_nELEM, scatter_nPROFILE, scatter_nGENERATOR,           &
          scatter_nidata, scatter_nfdata, scatter_ncdata,                &
-         scatter_debug, scatter_active, scatter_seed1, scatter_seed2,   &
+         scatter_seed1, scatter_seed2,   &
          scatter_logFile
 
 #ifdef CR
@@ -129,7 +112,11 @@ subroutine scatter_allocate_arrays
 !    call prror(-1)
 !  endif
 
-  call alloc(scatter_elemPointer,nele,0,"scatter_elemPointer")
+  call alloc(scatter_elemPointer, nele, 0,    "scatter_elemPointer")
+  call alloc(scatter_ELEM,        1,5,  0,    "scatter_ELEM")
+  call alloc(scatter_ELEM_scale,  1,    zero, "scatter_ELEM_scale")
+  call alloc(scatter_PROFILE,     1,5,  0,    "scatter_PROFILE")
+  call alloc(scatter_GENERATOR,   1,5,  0,    "scatter_GENERATOR")
 
 end subroutine scatter_allocate_arrays
 
@@ -150,13 +137,13 @@ end subroutine scatter_expand_arrays
 ! =================================================================================================
 subroutine scatter_allocate
     
-    use crcoall
-    use parpro
-    
-    implicit none
-
-    integer stat
-    integer i,j
+  use crcoall
+  use parpro
+  
+  implicit none
+  
+  integer stat
+  integer i,j
     
     write(lout,"(A,I8)") "SCATTER_ALLOCATE : scatter_maxdata=",scatter_maxdata
     allocate( scatter_idata(scatter_maxdata), &
@@ -292,32 +279,32 @@ subroutine scatter_comnul
     scatter_nPROFILE = 0
     scatter_nGENERATOR  = 0
     
-    do i=1,nele
-        scatter_elemPointer(i) = 0
-    end do
+    ! do i=1,nele
+    !     scatter_elemPointer(i) = 0
+    ! end do
     
-    do i=1,scatter_maxELEM
-        do j=1,scatter_maxGenELEM
-            scatter_ELEM(i,j) = 0
-        end do
-        scatter_ELEM_scale(i) = zero
-    end do
+    ! do i=1,scatter_maxELEM
+    !     do j=1,scatter_maxGenELEM
+    !         scatter_ELEM(i,j) = 0
+    !     end do
+    !     scatter_ELEM_scale(i) = zero
+    ! end do
     
-    do i=1,scatter_maxPROFILE
-        scatter_PROFILE(i,1)=0
-        scatter_PROFILE(i,2)=0
-        scatter_PROFILE(i,3)=0
-        scatter_PROFILE(i,4)=0
-        scatter_PROFILE(i,5)=0
-    end do
+    ! do i=1,scatter_maxPROFILE
+    !     scatter_PROFILE(i,1)=0
+    !     scatter_PROFILE(i,2)=0
+    !     scatter_PROFILE(i,3)=0
+    !     scatter_PROFILE(i,4)=0
+    !     scatter_PROFILE(i,5)=0
+    ! end do
     
-    do i=1,scatter_maxGENERATOR
-        scatter_GENERATOR(i,1)=0
-        scatter_GENERATOR(i,2)=0
-        scatter_GENERATOR(i,3)=0
-        scatter_GENERATOR(i,4)=0
-        scatter_GENERATOR(i,5)=0
-    end do
+    ! do i=1,scatter_maxGENERATOR
+    !     scatter_GENERATOR(i,1)=0
+    !     scatter_GENERATOR(i,2)=0
+    !     scatter_GENERATOR(i,3)=0
+    !     scatter_GENERATOR(i,4)=0
+    !     scatter_GENERATOR(i,5)=0
+    ! end do
 
     scatter_seed1 = -1
     scatter_seed2 = -1
@@ -523,7 +510,7 @@ subroutine scatter_dumpData
   
   write(lout,"(a)")             "Arrays:"
   
-  write(lout,"(a,2(i3,a))")     "scatter_ELEM: (",scatter_nELEM,",",scatter_maxGenELEM,"):"
+  write(lout,"(a,2(i3,a))")     "scatter_ELEM: (",scatter_nELEM,",",5,"):"
   write(lout,"(i4,a,5(1x,i3))") (ii,":",scatter_ELEM(ii,:),ii=1,scatter_nELEM)
   
   write(lout,"(a,i3,a)")        "scatter_ELEM_scale: (",scatter_nELEM,"):"
@@ -549,7 +536,7 @@ subroutine scatter_dumpData
 end subroutine scatter_dumpData
 
 ! =================================================================================================
-! BEGIN Input Parser Functions
+!  BEGIN Input Parser Functions
 ! =================================================================================================
 
 ! =================================================================================================
@@ -567,15 +554,6 @@ subroutine scatter_parseInputLine(inLine)
   type(string), allocatable :: lnSplit(:)
   integer nSplit
   
-  integer i
-  
-  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-  integer   getfields_nfields
-  integer   getfields_lfields(getfields_n_max_fields)
-  logical   getfields_lerr
-
-  call getfields_split(inLine%chr, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
-
   ! Split the input line
   call str_split(inLine,lnSplit,nSplit)
   
@@ -636,10 +614,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
   ! Add the element to the list
   scatter_nELEM = scatter_nELEM + 1
-  if(scatter_nELEM > scatter_maxELEM) then
-    write(lout,"(a,i4,a)") "SCATTER> ERROR, max elements = ",scatter_maxELEM," exceeded."
-    call prror(-1)
-  end if
+  call resize(scatter_ELEM, scatter_nELEM, 5, 0, "scatter_ELEM")
+  call resize(scatter_ELEM_scale, scatter_nELEM, zero, "scatter_ELEM_scale")
   
   ! Find the single element referenced
   ii = -1
@@ -698,8 +674,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   ! if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_ELEM_scale(scatter_nELEM))
 
   ! Find the generator(s) referenced
-  if(nSplit-4 > scatter_maxGenELEM-2) then
-    write(lout,*) "SCATTER> ERROR when parsing ELEM,",nSplit-4,"generators specified, space for",scatter_maxGenELEM-2
+  if(nSplit-4 > 3) then
+    write(lout,"(a,i2,a)") "SCATTER> ERROR when parsing ELEM,",nSplit-4,"generators specified, space for 3"
     call prror(-1)
   end if
   
@@ -767,10 +743,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   
   ! Add a profile to the list
   scatter_nPROFILE = scatter_nPROFILE + 1
-  if(scatter_nPROFILE > scatter_maxPROFILE) then
-    write(lout,"(a,i4,a)") "SCATTER> ERROR, max profiles = ",scatter_maxPROFILE," exceeded."
-    call prror(-1)
-  end if
+  call resize(scatter_PROFILE, scatter_nPROFILE, 5, 0, "scatter_PROFILE")
   
   ! Store the profile name
   scatter_ncdata = scatter_ncdata + 1
@@ -870,10 +843,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
   
   ! Add a generator to the list
   scatter_nGENERATOR = scatter_nGENERATOR + 1
-  if(scatter_nGENERATOR .gt. scatter_maxGENERATOR) then
-    write(lout,"(a,i4,a)") "SCATTER> ERROR, max generators = ",scatter_maxGENERATOR," exceeded."
-    call prror(-1)
-  end if
+  call resize(scatter_GENERATOR, scatter_nGENERATOR, 5, 0, "scatter_GENERATOR")
   
   ! Store the generator name
   scatter_ncdata = scatter_ncdata + 1
@@ -1029,7 +999,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   call recuin(scatter_seed1,scatter_seed2)
   
   ! Loop over generators
-  do i=3,scatter_maxGenELEM
+  do i=3,5
     
     GENidx = scatter_ELEM(ELEMidx,i)
     if(GENidx .eq. 0) exit ! No generator
