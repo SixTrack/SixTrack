@@ -441,10 +441,10 @@ program mainda
 !-----------------------------------------------------------------------
   call closeUnits
 +if cr
-      call abend('                                                  ')
+  call abend('                                                  ')
 +ei
 +if .not.cr
-      stop
+  stop
 +ei
 ! +if .not.tilt
 ! 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
