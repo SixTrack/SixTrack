@@ -35,6 +35,7 @@ module string_tools
   public str_stripQuotes, chr_stripQuotes
   public str_sub
   public str_inStr, chr_inStr
+  public str_toReal, chr_toReal
   
   !
   ! Old stuff added for backwards compatibility
@@ -283,6 +284,58 @@ function chr_stripQuotes(theString) result(retString)
   end if
   
 end function chr_stripQuotes
+
+! ================================================================================================ !
+!  Rounting Routines
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-20
+!  A wrapper for round_near for strings and character arrays
+! ================================================================================================ !
+function str_toReal(theString) result(theValue)
+  
+  use floatPrecision
+  
+  implicit none
+  
+  type(string), intent(in) :: theString
+  real(kind=fPrec)         :: theValue
+  
+#ifdef CRLIBM
+  real(kind=fPrec)              :: round_near
+  character(len=:), allocatable :: cString
+  integer                       :: cLen, cErr
+  
+  cLen     = len(theString%chr) + 1
+  cString  = theString%chr//char(0)
+  theValue = round_near(cErr,cLen,cString)
+#else
+  read(theString%chr,*) theValue
+#endif
+  
+end function str_toReal
+
+function chr_toReal(theString) result(theValue)
+  
+  use floatPrecision
+  
+  implicit none
+  
+  character(len=*), intent(in) :: theString
+  real(kind=fPrec)             :: theValue
+  
+#ifdef CRLIBM
+  real(kind=fPrec)              :: round_near
+  character(len=:), allocatable :: cString
+  integer                       :: cLen, cErr
+  
+  cLen     = len(theString) + 1
+  cString  = theString//char(0)
+  theValue = round_near(cErr,cLen,cString)
+#else
+  read(theString,*) theValue
+#endif
+  
+end function chr_toReal
 
 ! ================================================================================================ !
 !  HERE FOLLOWS THE OLD ROUTINES
