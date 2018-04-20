@@ -29647,32 +29647,37 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 end subroutine envarsv
 
 +dk comnul
-subroutine comnul
 !-----------------------------------------------------------------------
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use scatter, only : scatter_comnul
-      use dynk, only : dynk_comnul
-      use fma,  only : fma_comnul
-      use dump, only : dump_comnul
-      use zipf, only : zipf_comnul
+subroutine comnul
+  
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use scatter, only : scatter_comnul
+  use dynk, only : dynk_comnul
+  use fma,  only : fma_comnul
+  use dump, only : dump_comnul
+  use zipf, only : zipf_comnul
 +if collimat
-      use collimation, only : collimation_comnul
+  use collimation, only : collimation_comnul
 +ei
-      use parpro
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-      use bdex, only : bdex_comnul
-      use aperture
-      use elens
-      use wire
-      implicit none
-      
-      integer i,i1,i2,i3,i4,j
+#ifdef HDF5
+  use hdf5_output, only : h5_comnul
+#endif
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use bdex, only : bdex_comnul
+  use aperture
+  use elens
+  use wire
+  
+  implicit none
+  
+  integer i,i1,i2,i3,i4,j
 +ca commonex
 +ca commont1
 +ca commondl
@@ -29688,7 +29693,7 @@ subroutine comnul
 
 +ca parbeam_exp
 
-      save
+  save
 !-----------------------------------------------------------------------
 !
 +if bnlelens
@@ -30322,10 +30327,14 @@ subroutine comnul
 !     always in main code
 !     - general-purpose variables
       call dynk_comnul
-!--ZIPF----------------------------------------------------------------
+!--ZIPF-----------------------------------------------------------------
       call zipf_comnul
-!--SCATTER-------------------------------------------------------------
+!--SCATTER--------------------------------------------------------------
       call scatter_comnul
+!--HDF5-----------------------------------------------------------------
+#ifdef HDF5
+      call h5_comnul
+#endif
 !--COLLIMATION----------------------------------------------------------
 +if collimat
       call collimation_comnul

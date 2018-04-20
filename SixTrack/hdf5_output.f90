@@ -51,6 +51,35 @@ module hdf5_output
 contains
 
 ! ================================================================================================ !
+!  Set Initial Values
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-20
+! ================================================================================================ !
+subroutine h5_comnul
+  
+  h5_isActive   = .false.
+  h5_debugOn    = .false.
+  h5_isReady    = .false.
+  h5_doTruncate = .false.
+  h5_fileName   = string("")
+  h5_rootPath   = string("")
+  
+  h5_useForCOLL = .false.
+  h5_useForDUMP = .false.
+  h5_useForSCAT = .false.
+  
+  h5_fileError  = 0
+  h5_fileIsOpen = .false.
+  
+  h5_fileID     = 0
+  h5_rootID     = 0
+  h5_collID     = 0
+  h5_dumpID     = 0
+  h5_scatID     = 0
+  
+end subroutine h5_comnul
+
+! ================================================================================================ !
 !  HDF5 Initialisation
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16

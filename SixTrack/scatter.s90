@@ -2,26 +2,23 @@
 ! Deck for the scattering routines implemented in the SCATTER block
 
 module scatter
-
-    use floatPrecision
-    use end_sixtrack
-    use mathlib_bouncer
-
-    use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
-
-    use parpro ! For nele
-
-    use mod_ranecu
-
-    use mod_alloc
-    use string_tools
-    
-    implicit none
-
-    ! We have to declare all this stuff, and we can't set them PRIVATE.
-    ! Therefore, we always need to import the SCATTER module using "only",
-    ! or else it will bring the contents of parpro, comgetfields,
-    ! and stringzerotrim along with it...
+  
+  use floatPrecision
+  use end_sixtrack
+  use mathlib_bouncer
+  use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
+  use parpro ! For nele
+  use mod_ranecu
+  use mod_alloc
+  use strings
+  use string_tools
+  
+  implicit none
+  
+  ! We have to declare all this stuff, and we can't set them PRIVATE.
+  ! Therefore, we always need to import the SCATTER module using "only",
+  ! or else it will bring the contents of parpro, comgetfields,
+  ! and stringzerotrim along with it...
 
     ! PUBLIC
     ! Common variables for the SCATTER routines
@@ -172,13 +169,6 @@ subroutine scatter_allocate
         call prror(-1)
     end if
     
-    ! Zero the memory for strings.
-    do i=1, scatter_maxdata
-        do j=1, scatter_maxstrlen
-            scatter_cdata(i)(j:j) = char(0)
-        end do
-    end do
-    
 #ifdef CR
     write(lout,"(A,I8)") "SCATTER_ALLOCATE [CR] : scatter_maxdata=",scatter_maxdata
     allocate( scatter_idata_cr(scatter_maxdata), &
@@ -210,9 +200,8 @@ subroutine scatter_initialise
   implicit none
   
   integer ierro
-
   logical lopen
-
+  
 #ifdef HDF5
   if(h5_useForSCAT) then
     call h5_initForScatter()
@@ -287,7 +276,7 @@ end subroutine scatter_closeUnits
 ! =================================================================================================
 !  K. Sjobak, BE-ABP-LAT and V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 11-2017
-!  Called from COMNUL; initializes the arrays used by SCATTER.
+!  Called from COMNUL; initialises the arrays used by SCATTER.
 ! =================================================================================================
 subroutine scatter_comnul
   
@@ -874,9 +863,9 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
   
   ! Check number of arguments
   if(nSplit < 3) then
-      write(lout,"(a)") "SCATTER> ERROR, GEN expected at least 3 arguments:"
-      write(lout,"(a)") "GEN name type (arguments...)"
-      call prror(-1)
+    write(lout,"(a)") "SCATTER> ERROR, GEN expected at least 3 arguments:"
+    write(lout,"(a)") "GEN name type (arguments...)"
+    call prror(-1)
   end if
   
   ! Add a generator to the list
