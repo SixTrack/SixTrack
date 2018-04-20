@@ -1,3 +1,19 @@
++cd commadha
+  integer iamp
+  real x
+  real(kind=fPrec) ham,hama,hamp
+  common/hamil1/ham(0:3),x(10)
+  common/hamil2/hama(0:4),hamp(0:1),iamp
++cd commadh1
+  integer jeltot,maxa,maxp
+  real(kind=fPrec) hda
+  common/ad1/hda(0:3,3,0:3,0:4000),jeltot,maxa,maxp
++cd commadh2
+  integer jeltot,nordp,nordm,norda
+  real(kind=fPrec) hda,hdp
+  common/ad2/hda(0:4,5,0:8000),hdp(0:1,5,0:8000),jeltot,nordp,nordm,norda
+
+
 +dk cor_ord
 
 ! This needs to be converted to a module whenever the DA version actually works
