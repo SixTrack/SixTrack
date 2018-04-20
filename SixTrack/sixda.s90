@@ -97,16 +97,16 @@ program mainda
   
   write(cdate,"(i6.6)") idate
   write(ctime,"(i4.4)") itime
-  write(lout,"(a)")    ""
+  write(lout,"(a)")   ""
 +if .not.tilt
   write(lout,"(a57)") " SIXTRACK DA VERSION "//version//" - (last change: "//moddate//")"
 +ei
 +if tilt
   write(lout,"(a69)") " SIXTRACK DA VERSION "//version//" (with tilt) - (last change: "//moddate//")"
 +ei
-  write(lout,"(a)")    ""
+  write(lout,"(a)")   ""
   write(lout,"(a26)") " Runtime: 20"//cdate(1:2)//"-"//cdate(3:4)//"-"//cdate(5:6)//" "//ctime(1:2)//":"//ctime(3:4)
-  write(lout,"(a)")    ""
+  write(lout,"(a)")   ""
   
   ! Init stuff
   do i=1,2
@@ -446,14 +446,7 @@ program mainda
 +if .not.cr
   stop
 +ei
-! +if .not.tilt
-! 10000 format(/t10,'SIXTRACK DA VERSION ',A8,                            &
-!      &'  --  (last change: ',A10,')'//)
-! +ei
-! +if tilt
-! 10000 format(/t10,'SIXTRACK DA VERSION ',A8,' (with tilt)',             &
-!      &'  --  (last change: ',A10,')'//)
-! +ei
+
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:',&
              /t10,'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM',&
              /t10,'EMITTANCE-X = ',f15.3,10x,'EMITTANCE-Y =  ',f15.3, '  PI*MRAD*MM')
@@ -548,4 +541,5 @@ program mainda
      &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,'RELATIVE MOMENTUM DEVIATION')
+
 end program mainda
