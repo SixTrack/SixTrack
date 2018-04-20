@@ -17,6 +17,13 @@ module string_tools
   
   implicit none
   
+  ! "Standard" string length, +1 for \0
+  integer, parameter :: str_maxLen = 161
+  
+  ! Dummy empty strings
+  character(len=str_maxLen), parameter :: str_dSpace = repeat(" ",str_maxLen)
+  character(len=str_maxLen), parameter :: str_dNull  = repeat(char(0),str_maxLen)
+  
   public str_trim, chr_trim, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub
@@ -27,19 +34,9 @@ module string_tools
   ! Old stuff added for backwards compatibility
   !
   
-  ! Parameters for the fields parser
-  integer getfields_n_max_fields, getfields_l_max_string
-  
-  parameter(getfields_n_max_fields = 15)  ! Max number of returned fields
-  parameter(getfields_l_max_string = 161) ! Max len of parsed line and its fields (nchars in daten +1 to always make room for \0)
-  
-  ! Parameters for stringzerotrim
-  integer stringzerotrim_maxlen
-  
-  ! Note: This is also used for DYNK, and should AT LEAST be able to store a bez+char(0) -> 17.
-  parameter(stringzerotrim_maxlen=getfields_l_max_string)
-  
-  ! character(len=stringzerotrim_maxlen) stringzerotrim ! Define the function
+  integer, parameter :: getfields_n_max_fields = 15         ! Max number of returned fields
+  integer, parameter :: getfields_l_max_string = str_maxLen ! Max string length
+  integer, parameter :: stringzerotrim_maxlen  = str_maxLen ! Max string length
   
   public stringzerotrim
   
