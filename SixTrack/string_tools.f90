@@ -205,9 +205,9 @@ end function str_inStr
 
 function chr_inStr(theString, theNeedle) result(nNeedle)
   
-  character(len=:), allocatable, intent(in)  :: theString
-  character(len=1),              intent(in)  :: theNeedle
-  integer                                    :: nNeedle
+  character(len=*), intent(in)  :: theString
+  character(len=1), intent(in)  :: theNeedle
+  integer                       :: nNeedle
   
   integer ch
   
@@ -257,9 +257,9 @@ end function str_stripQuotes
 
 function chr_stripQuotes(theString) result(retString)
   
-  character(len=:), allocatable, intent(in) :: theString
-  character(len=:), allocatable             :: tmpString
-  character(len=:), allocatable             :: retString
+  character(len=*), intent(in)  :: theString
+  character(len=:), allocatable :: tmpString
+  character(len=:), allocatable :: retString
   
   integer strLen
   

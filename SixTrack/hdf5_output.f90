@@ -20,10 +20,12 @@ module hdf5_output
   implicit none
   
   ! Common Settings
-  logical,      public,  save :: h5_isActive, h5_debugOn ! Main module switches
-  logical,      private, save :: h5_doTruncate           ! Whether or not to truncate previous file if exists
-  type(string), private, save :: h5_fileName             ! The HDF5 output file name
-  type(string), private, save :: h5_rootPath             ! The root group where the data for this session is stored
+  logical,      public,  save :: h5_isActive    ! Existence of the HDF5 block
+  logical,      public,  save :: h5_debugOn     ! HDF5 debug flag present
+  logical,      public,  save :: h5_isReady     ! HDF5 file is open and ready for input
+  logical,      private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
+  type(string), private, save :: h5_fileName    ! The HDF5 output file name
+  type(string), private, save :: h5_rootPath    ! The root group where the data for this session is stored
   
   ! Input Block Switches
   logical, public, save :: h5_useForCOLL
@@ -80,6 +82,8 @@ subroutine h5_openFile()
   
   integer accessFlag
   
+  if(.not. h5_isActive) return
+  
   if(h5_doTruncate) then
     accessFlag = H5F_ACC_TRUNC_F
     if(h5_debugOn) then
@@ -109,6 +113,8 @@ subroutine h5_openFile()
     h5_rootID = h5_fileID
   end if
   
+  h5_isReady = .true.
+  
 end subroutine h5_openFile
 
 ! ================================================================================================ !
@@ -121,6 +127,8 @@ subroutine h5_closeHDF5()
   use end_sixtrack
   
   implicit none
+  
+  if(.not. h5_isReady) return
   
   call h5fclose_f(h5_fileID, h5_fileError)
   if(h5_fileError == -1) then
