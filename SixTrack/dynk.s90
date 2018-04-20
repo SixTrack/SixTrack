@@ -11,6 +11,7 @@ module dynk
     use parpro, only : nele, max_name_len
 
     use mod_alloc
+    use string_tools
 
     implicit none
 
@@ -18,10 +19,6 @@ module dynk
     ! Therefore, we always need to import the DYNK module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-
-!For the string length stuff
-+ca comgetfields
-+ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
 
     ! A.Mereghetti, for the FLUKA Team,
     ! K.Sjobak, A. Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
@@ -236,11 +233,10 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
     use crcoall
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
-    intent(in) getfields_fields, getfields_lfields, getfields_nfields
-
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
+  
     ! Temp variables
     integer ii, stat, t, nlines
     real(kind=fPrec) x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
@@ -1941,9 +1937,9 @@ subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
     use crcoall
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
     integer ii
 
@@ -2238,11 +2234,8 @@ end subroutine dynk_inputsanitycheck
 ! ================================================================================================ !
 subroutine dynk_dumpdata
 
-      use crcoall
+    use crcoall
     implicit none
-
-+ca comgetfields
-+ca stringzerotrim
 
     integer ii
     write (lout,*) "**************** DYNK parser knows: ****************"
@@ -2300,8 +2293,6 @@ subroutine dynk_pretrack
     use mod_common
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
 +ca commondl
 
     ! Temp variables
@@ -2458,8 +2449,6 @@ subroutine dynk_apply(turn)
     implicit none
 
 +ca commontr
-+ca comgetfields
-+ca stringzerotrim
 +if boinc
     character(len=256) filename
 +ei
@@ -2705,11 +2694,14 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     use crcoall
     use mod_common
     use mod_ranecu
+    
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
+    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer   getfields_nfields
+    integer   getfields_lfields(getfields_n_max_fields)
+    logical   getfields_lerr
+  
     integer funNum, turn
     intent (in) funNum, turn
 
@@ -3022,8 +3014,6 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
 +ca commonm1
 +ca commontr
-+ca comgetfields
-+ca stringzerotrim
 
     character(maxstrlen_dynk) element_name, att_name
     real(kind=fPrec) newValue
@@ -3238,9 +3228,6 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
     implicit none
 
 +ca commontr
-+ca comgetfields
-+ca stringzerotrim
-
 
     character(maxstrlen_dynk) element_name, att_name
     intent(in) element_name, att_name
@@ -3485,12 +3472,9 @@ end function dynk_lininterp
 ! ================================================================================================ !
 logical function dynk_isused(i)
 
-      use crcoall
+    use crcoall
     use mod_common
     implicit none
-
-+ca comgetfields
-+ca stringzerotrim
 
     integer, intent(in) :: i
     integer ix,k

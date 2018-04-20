@@ -3,10 +3,9 @@
 module zipf
 
   use end_sixtrack
+  use string_tools
+  
   implicit none
-
-+ca comgetfields
-+ca stringzerotrim
   
   integer zipf_maxfiles,zipf_numfiles
   parameter(zipf_maxfiles=256)
@@ -19,12 +18,17 @@ module zipf
 contains
 
   subroutine zipf_parseInputline(ch)
-      use crcoall
+    
+    use crcoall
+    
     implicit none
 
-
     character(len=*), intent(in) :: ch
-
+    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+    integer   getfields_nfields                                                 ! Number of identified fields
+    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+    logical   getfields_lerr                                                    ! An error flag
+  
     !Read filenames
     call getfields_split( ch, getfields_fields, getfields_lfields,    &
          getfields_nfields, getfields_lerr )
@@ -50,12 +54,11 @@ contains
   end subroutine zipf_parseInputline
   
   subroutine zipf_parseInputDone
-      use crcoall
+    
+    use crcoall
+    use string_tools
+    
     implicit none
-
-
-+ca comgetfields
-+ca stringzerotrim
 
     integer ii
     
@@ -112,10 +115,10 @@ contains
 !     AT THE END OF THE SIMULATION                                      *
 !     K.SJOBAK, 7/02/2016                                               *
 !-----------------------------------------------------------------------*
-      use crcoall
+    use crcoall
+    use string_tools
+    
     implicit none
-+ca comgetfields
-+ca stringzerotrim
 
 +if boinc
     character(stringzerotrim_maxlen) zipf_outfile_boinc
@@ -132,8 +135,6 @@ contains
 !            bind(C,name="f_write_archive_")
 !         use, intrinsic :: iso_c_binding, only : c_int
 !         implicit none
-!+ca comgetfields
-!+ca stringzerotrim  
 !         character(len=1), intent(in) :: outname
 !         character(len=1), intent(in) :: filenames(*)
 !         integer(kind=c_int), intent(in) :: numfiles

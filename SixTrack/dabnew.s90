@@ -16,8 +16,7 @@
      &ifi,lfi,nda,ndamaxi,nmmax,nocut,nomax,nst,nvmax
       real(kind=fPrec) cc,eps,epsmac,facint
 +if small
-      parameter(lda=10000,lst=200000,lea=500,                           &
-     &lia=10000,lno=120,lnv=40)
+      parameter(lda=10000,lst=200000,lea=500,lia=10000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
       common / dai / i1(lst),i2(lst),                                   &
@@ -27,8 +26,7 @@
       common /factor/ facint(0:lno)
 +ei
 +if big
-      parameter(lda=10000,lst=20050000,lea=100000,                      &
-     &lia=5000000,lno=120,lnv=40)
+      parameter(lda=10000,lst=20050000,lea=100000,lia=5000000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
       common / dai / i1(lst),i2(lst),                                   &
@@ -38,8 +36,7 @@
       common /factor/ facint(0:lno)
 +ei
 +if ctrack
-      parameter(lda=1000,lst=3000000,lea=20000,                         &
-     &lia=20000,lno=120,lnv=40)
+      parameter(lda=1000,lst=3000000,lea=20000,lia=20000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
       common / dai / i1(lst),i2(lst),                                   &
@@ -1194,7 +1191,7 @@ end subroutine dapek
 +dk dapok
 subroutine dapok(ina,jj,cjj)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -1395,7 +1392,7 @@ end subroutine dapok
 +dk daclr
 subroutine daclr(inc)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,illc,ilmc,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
 !     *********************
@@ -1419,7 +1416,7 @@ end subroutine daclr
 subroutine dacop(ina,inb)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer ia,ib,iif,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,&
@@ -1492,11 +1489,10 @@ end subroutine dacop
 subroutine datrashn(idif,ina,inbb)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
-      integer i,ia,idif,illa,ilma,ina,inbb,inoa,inva,ipoa,lda,lea,      &
-     &lia,lno,lnv,lst
+      integer i,ia,idif,illa,ilma,ina,inbb,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
       integer inb(1)
       real(kind=fPrec) rr
 !     *************************
@@ -1549,7 +1545,7 @@ end subroutine datrashn
 +dk daadd
 subroutine daadd(ina,inb,inc)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer idaadd(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
 !     *****************************
@@ -1574,7 +1570,7 @@ end subroutine daadd
 +dk dasub
 subroutine dasub(ina,inb,inc)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer idasub(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
 !     *****************************
@@ -1780,7 +1776,7 @@ end subroutine daexc
 subroutine daexct(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
 +if cr
@@ -1863,7 +1859,7 @@ end subroutine damul
 subroutine damult(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
 +if cr
@@ -2020,7 +2016,7 @@ end subroutine dasqr
 subroutine dasqrt(ina,inc)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,i1ia,i2ia,ia,ib,ib1,ic,illa,illc,ilma,ilmc,ina,inc,inoa,&
@@ -2291,7 +2287,7 @@ subroutine dacsu(ina,ckon,inb)
 subroutine dasuc(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
 +if cr
@@ -2364,7 +2360,7 @@ subroutine dacmu(ina,ckon,inc)
 subroutine dacmut(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst,minv
@@ -2447,7 +2443,7 @@ subroutine dacmut(ina,ckon,inb)
 subroutine dacdi(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
@@ -2476,7 +2472,7 @@ subroutine dacdi(ina,ckon,inb)
 subroutine dadic(ina,ckon,inc)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer idadic(1),illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,lda,lea,lia,lno,lnv,lst
@@ -2515,7 +2511,7 @@ subroutine dadic(ina,ckon,inc)
 subroutine dacma(ina,inb,bfac,inc)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
 +if cr
@@ -2573,7 +2569,7 @@ subroutine dalin(ina,afac,inb,bfac,inc)
 subroutine dalint(ina,afac,inb,bfac,inc)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ia,iamax,ib,ibmax,ic,icmax,illa,illb,illc,ilma,ilmb,    &
@@ -2793,16 +2789,15 @@ subroutine dafun(cf,ina,inc)
 +dk dafunt
 subroutine dafunt(cf,ina,inc)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,illa,illc,ilma,ilmc,ina,inc,ind,inoa,inoc,inon(1),inva, &
      &invc,ipoa,ipoc,ipow(1),iscr(1),jj,lda,lea,lfun,lia,lno,lnv,lst,no
 
-      real(kind=fPrec) a0,a1,a2,a3,a4,a5,ca,e1,                         &
-     &e2,ea,era,p,ra,rpi4,sa,scr,                                       &
-     &t,xf
+      real(kind=fPrec) a0,a1,a2,a3,a4,a5,ca,e1,e2,ea,era,p,ra,rpi4,sa,scr,t,xf
 !     ****************************
 !
 !     THIS SUBROUTINE COMPUTES THE FUNCTION CF OF THE DA VECTOR A
@@ -3329,7 +3324,7 @@ subroutine dafunt(cf,ina,inc)
 +dk daabs
 subroutine daabs(ina,anorm)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) anorm
@@ -3458,7 +3453,7 @@ subroutine dacct(ma,ia,mb,ib,mc,ic)
 subroutine dacctt(mb,ib,mc,ic,ma,ia)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ia,ib,ic,iia,iib,iic,illa,illb,illc,ilma,ilmb,ilmc,inoa,&
@@ -3547,7 +3542,7 @@ subroutine dacctt(mb,ib,mc,ic,ma,ia)
 subroutine mtree(mb,ib,mc,ic)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ib,ib1,ibi,ic,ic1,ic2,icc,ichk(1),ii,iib,iic,illb,illc, &
@@ -3784,7 +3779,7 @@ subroutine ppushpri(mc,ic,mf,jc,line)
 +dk ppush
 subroutine ppush(mc,ic,xi,xf)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ic,iv,jl,jv,lda,lea,lia,lno,lnv,lst,mc
       real(kind=fPrec) xf,xi,xm,xt,xx
@@ -3825,7 +3820,7 @@ subroutine ppush(mc,ic,xi,xf)
 +dk ppush1
 subroutine ppush1(mc,xi,xf)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,jl,jv,lda,lea,lia,lno,lnv,lst,mc
       real(kind=fPrec) xf,xi,xm,xt,xx
@@ -3861,7 +3856,7 @@ subroutine ppush1(mc,xi,xf)
 +dk dainv
 subroutine dainv(ma,ia,mb,ib)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) x
@@ -3917,7 +3912,7 @@ subroutine dainv(ma,ia,mb,ib)
 subroutine dainvt(ma,ia,mb,ib)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ia,ib,ie,ier,illa,illb,ilma,ilmb,inoa,inob,inva,invb,   &
@@ -4069,7 +4064,7 @@ subroutine dainvt(ma,ia,mb,ib)
 +dk matinv
 subroutine matinv(a,ai,n,nmx,ier)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ier,indx,j,n,nmax,nmx
       real(kind=fPrec) a,ai,aw,d
@@ -4107,7 +4102,7 @@ subroutine matinv(a,ai,n,nmx,ier)
 +dk ludcmp
 subroutine ludcmp(a,n,np,indx,d,ier)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ier,imax,indx,j,k,n,nmax,np
       real(kind=fPrec) a,aamax,d,dum,sum,tiny,vv
@@ -4188,7 +4183,7 @@ subroutine ludcmp(a,n,np,indx,d,ier)
 +dk lubksb
 subroutine lubksb(a,n,np,indx,b,nmx)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ii,indx,j,ll,n,nmx,np
       real(kind=fPrec) a,b,sum
@@ -4235,7 +4230,7 @@ subroutine lubksb(a,n,np,indx,b,nmx)
 +dk dapin
 subroutine dapin(ma,ia,mb,ib,jx)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) x
@@ -4294,7 +4289,7 @@ subroutine dapin(ma,ia,mb,ib,jx)
 +dk dapint
 subroutine dapint(ma,ia,mb,ib,jind)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ia,ib,illa,ilma,inoa,inva,ipoa,k,lda,lea,lia,lno,lnv,lst
 !     **********************************
@@ -4859,8 +4854,9 @@ subroutine dacfut(ina,fun,inc)
 +dk dapri
 subroutine dapri(ina,iunit)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,k,lda,lea,lia,lno,lnv,lst
@@ -4993,8 +4989,9 @@ subroutine dapri(ina,iunit)
 +dk dapri77
 subroutine dapri77(ina,iunit)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,lda,lea,lia,lno,lnv,lst
@@ -5119,6 +5116,7 @@ subroutine dapri77(ina,iunit)
 +dk dashift
 subroutine dashift(ina,inc,ishift)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -5255,6 +5253,7 @@ subroutine dashift(ina,inc,ishift)
 +dk darea
 subroutine darea(ina,iunit)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -5413,6 +5412,7 @@ subroutine darea(ina,iunit)
 +dk darea77
 subroutine darea77(ina,iunit)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -5497,6 +5497,7 @@ subroutine darea77(ina,iunit)
 +dk dadeb
 subroutine dadeb(iunit,c,istop)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -5674,6 +5675,7 @@ subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
 +dk damch
 subroutine damch(iaa,ia)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -5861,6 +5863,7 @@ subroutine datra(idif,ina,inc)
 +dk etred
 subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -5944,7 +5947,7 @@ subroutine hash(no1,nv1,jj,ic1,ic2)
 subroutine dehash(no1,nv1,ic1,ic2,jj)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,no1,nv1
@@ -6020,7 +6023,7 @@ subroutine daswap(j1,j2,inb)
 +dk dagauss
 subroutine dagauss(ina,inb,nd2,anorm)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,ja,jb,lda,lea,lia,lno,lnv,lst,nd2
       real(kind=fPrec) anorm,gau
@@ -6057,7 +6060,7 @@ subroutine dagauss(ina,inb,nd2,anorm)
 subroutine daran(ina,cm,xran)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
@@ -6117,7 +6120,7 @@ subroutine daran(ina,cm,xran)
       real(kind=fPrec) function bran(xran)
       use floatPrecision
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       implicit none
       real(kind=fPrec) xran
 !     ************************************
@@ -6136,8 +6139,7 @@ subroutine daran(ina,cm,xran)
 subroutine danorm2(ina,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
-     &lst
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
       integer incc(1)
 !     ******************************
 !
@@ -6212,8 +6214,7 @@ subroutine danorm2t(ina,inb)
 subroutine danormr(ina,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
-     &lst
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
       integer incc(1)
 !     ******************************
 !
@@ -6297,6 +6298,7 @@ subroutine dakey(c)
 +dk dapri6
 subroutine dapri6(ina,result,ien,i56)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -6385,6 +6387,7 @@ subroutine dapri6(ina,result,ien,i56)
 +dk darea6
 subroutine darea6(ina,zfeld,i56)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -6471,7 +6474,7 @@ subroutine darea6(ina,zfeld,i56)
 +dk dare
       real(kind=fPrec) function dare(ina)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       implicit none
       integer ii,illa,ilma,ina,inoa,inva,ioa,ipoa,j,jj,lda,lea,lia,lno, &
      &lnv,lst
@@ -6523,6 +6526,7 @@ subroutine darea6(ina,zfeld,i56)
 +dk daprimax
 subroutine daprimax(ina,iunit)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -6633,6 +6637,7 @@ subroutine daprimax(ina,iunit)
 +dk damono
 subroutine damono(ina,jd,cfac,istart,inc)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -6694,8 +6699,9 @@ subroutine damono(ina,jd,cfac,istart,inc)
 +dk dacycle
 subroutine dacycle(ina,ipresent,value,j,illa)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
-  use numerical_constants
+      use numerical_constants
       use crcoall
       implicit none
       integer i,ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent,j,lda,lea,lia,lno,lnv,lst
@@ -6751,6 +6757,7 @@ subroutine dacycle(ina,ipresent,value,j,illa)
 +dk daorder
 subroutine daorder(ina,iunit,jx,invo,nchop)
       use floatPrecision
+      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none

@@ -1,4 +1,3 @@
-+dk crcoall
 ! =================================================================================================
 !  STANDARD OUTPUT MODULE
 !  Last modified: 22-03-2018
@@ -14,7 +13,6 @@ module crcoall
   
 end module crcoall
 
-+dk file_units
 ! =================================================================================================
 !  FILE UNITS MODULE
 !  Written by: Veronica Berglyd Olsen, BE-ABP-HSS, March 2018
@@ -41,7 +39,6 @@ contains
   subroutine requestFileUnit(fileName, fileUnit)
     
     use crcoall
-!    use end_sixtrack, only : prror
     
     implicit none
     
@@ -85,13 +82,12 @@ contains
     end if
 
 20  continue
-    write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",trim(cleanName)
+    ! write(lout,"(a,i4,a,a)") "FUNIT> Unit ",fileUnit," assigned to file: ",trim(cleanName)
     return
     
 30  continue
-    write(lout,"(a)") "FUNIT> Failed to find an available file unit for file ",trim(cleanName)
+    write(lout,"(a)") "FUNIT> ERROR: Failed to find an available file unit for file ",trim(cleanName)
     stop -1
-!    call prror(-1)
     
   end subroutine requestFileUnit
   
@@ -115,7 +111,6 @@ contains
   subroutine dumpFileUnits
     
     use crcoall
-!    use end_sixtrack, only : prror
     
     implicit none
     
@@ -128,7 +123,6 @@ contains
       write(lout,*) "ERROR in FUNIT when opening file_units.dat"
       write(lout,*) "Unit ",dumpUnit," was already taken."
       stop -1
-!      call prror(-1)
     end if
 
     open(dumpUnit,file="file_units.dat",form="formatted")
