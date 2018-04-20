@@ -622,8 +622,7 @@ subroutine scatter_parseInputLine(inLine)
   case("PRO")
     call scatter_parseProfile(lnSplit, nSplit)
   case("GEN")
-    ! call scatter_parseGenerator(lnSplit, nSplit)
-    call scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
+    call scatter_parseGenerator(lnSplit, nSplit)
   case("SEED")
     ! call scatter_parseSeed(lnSplit, nSplit)
     call scatter_parseSeed(getfields_fields,getfields_lfields,getfields_nfields)
@@ -637,7 +636,7 @@ end subroutine scatter_parseInputLine
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Last modified: 2018-04-20
 ! =================================================================================================
 subroutine scatter_parseElem(lnSplit, nSplit)
 
@@ -770,7 +769,7 @@ end subroutine scatter_parseElem
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 20-10-2017
+!  Last modified: 2018-04-20
 ! =================================================================================================
 subroutine scatter_parseProfile(lnSplit, nSplit)
   
@@ -806,7 +805,6 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     write(lout,"(a,i4,a)") "SCATTER> ERROR, scatter_maxdata = ",scatter_maxdata," exceeded for scatter_ncdata"
     call prror(-1)
   end if
-  ! scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) = getfields_fields(2)(1:getfields_lfields(2))
   scatter_cdata(scatter_ncdata)       = lnSplit(2)%chr
   scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncdata
   
@@ -876,151 +874,103 @@ end subroutine scatter_parseProfile
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-subroutine scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
-
-    use crcoall
+subroutine scatter_parseGenerator(lnSplit, nSplit)
+  
+  use crcoall
+  use strings
+  use string_tools
+  
+  implicit none
+  
+  type(string), allocatable, intent(in) :: lnSplit(:)
+  integer,                   intent(in) :: nSplit
+  
+  ! Temporary Variables
+  integer ii, tmpIdx
+  
+  ! Check number of arguments
+  if(nSplit < 3) then
+      write(lout,"(a)") "SCATTER> ERROR, GEN expected at least 3 arguments:"
+      write(lout,"(a)") "GEN name type (arguments...)"
+      call prror(-1)
+  end if
+  
+  ! Add a generator to the list
+  scatter_nGENERATOR = scatter_nGENERATOR + 1
+  if(scatter_nGENERATOR .gt. scatter_maxGENERATOR) then
+    write(lout,"(a,i4,a)") "SCATTER> ERROR, max generators = ",scatter_maxGENERATOR," exceeded."
+    call prror(-1)
+  end if
+  
+  ! Store the generator name
+  scatter_ncdata = scatter_ncdata + 1
+  if(scatter_ncdata .gt. scatter_maxdata) then
+    write(lout,"(a,i4,a)") "SCATTER> ERROR, scatter_maxdata = ",scatter_maxdata," exceeded for scatter_ncdata"
+    call prror(-1)
+  end if
+  scatter_cdata(scatter_ncdata)           = lnSplit(2)%chr
+  scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncdata
+  
+  ! Check that the generator name is unique
+  do ii=1,scatter_nGENERATOR-1
+    if(trim(chr_trimZero(scatter_cdata(scatter_GENERATOR(ii,1)))) == lnSplit(2)%chr) then
+      write(lout,"(3a)") "SCATTER> ERROR, generator name '",lnSplit(2)%chr,"' is not unique."
+      call prror(-1)
+    end if
+  end do
+  
+  ! Generator type-dependent code
+  select case (lnSplit(3)%chr)
+  case("ABSORBER")
     
-    implicit none
-
-    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-    integer,   intent(in) :: getfields_nfields
-    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
-
-    ! Temporary Variables
-    integer ii, tmpIdx
-#ifdef CRLIBM
-    integer errno
-    real(kind=fPrec) round_near
-#endif
-
-    ! Check number of arguments
-    if(getfields_nfields .lt. 3) then
-        write(lout,"(a)") "SCATTER> ERROR, GEN expected at least 3 arguments:"
-        write(lout,"(a)") "GEN name type (arguments...)"
-        call prror(-1)
+    scatter_GENERATOR(scatter_nGENERATOR,2) = 1  ! Code for ABSORBER
+    
+  case("PPBEAMELASTIC")
+    
+    scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
+    if(nSplit < 8 .or. nSplit > 9) then
+      write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC expected 8 or 9 arguments:"
+      write(lout,"(a)") "GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
+      call prror(-1)
+    end if
+    
+    ! Request space to store the arguments
+    tmpIdx = scatter_nfdata + 1
+    scatter_GENERATOR(scatter_nGENERATOR,3) = tmpIdx
+    scatter_GENERATOR(scatter_nGENERATOR,4) = 0      ! Index of scatter input, if present
+    scatter_nfdata = scatter_nfdata + nSplit - 3
+    if(scatter_nfdata > scatter_maxdata) then
+      write(lout,"(a,i4,a)") "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
+      call prror(-1)
     end if
 
-    ! Add a generator to the list
-    scatter_nGENERATOR = scatter_nGENERATOR + 1
-    if(scatter_nGENERATOR .gt. scatter_maxGENERATOR) then
-        write(lout,"(a,i4,a)") "SCATTER> ERROR, max generators = ",scatter_maxGENERATOR," exceeded."
-        call prror(-1)
+    scatter_fdata(tmpIdx)   = str_toReal(lnSplit(4)) ! PPBEAMELASTIC a
+    scatter_fdata(tmpIdx+1) = str_toReal(lnSplit(5)) ! PPBEAMELASTIC b1
+    scatter_fdata(tmpIdx+2) = str_toReal(lnSplit(6)) ! PPBEAMELASTIC b2
+    scatter_fdata(tmpIdx+3) = str_toReal(lnSplit(7)) ! PPBEAMELASTIC phi
+    scatter_fdata(tmpIdx+4) = str_toReal(lnSplit(8)) ! PPBEAMELASTIC tmin
+    
+    if(nSplit == 9) then
+      scatter_fdata(tmpIdx+5) = str_toReal(lnSplit(9)) ! PPBEAMELASTIC crossSection
     end if
-
-    ! Store the generator name
-    scatter_ncdata = scatter_ncdata + 1
-    if(scatter_ncdata .gt. scatter_maxdata) then
-        write(lout,"(a,i4,a)") "SCATTER> ERROR, scatter_maxdata = ",scatter_maxdata," exceeded for scatter_ncdata"
-        call prror(-1)
+    
+    ! Check sanity of input values
+    if(scatter_fdata(tmpIdx+1) < pieni) then
+      write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
+      call prror(-1)
     end if
-    scatter_cdata(scatter_ncdata)(1:getfields_lfields(2)) = getfields_fields(2)(1:getfields_lfields(2))
-    scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncdata
-
-    ! Check that the generator name is unique
-    do ii=1,scatter_nGENERATOR-1
-        if (trim(stringzerotrim(scatter_cdata(scatter_GENERATOR(ii,1)) )) &
-            .eq. getfields_fields(2)(1:getfields_lfields(2)) ) then
-            write(lout,"(a)") "SCATTER> ERROR, generator name '"// &
-                              getfields_fields(2)(1:getfields_lfields(2))// &
-                              "' is not unique."
-            call prror(-1)
-        end if
-    end do
-
-    ! Generator type-dependent code
-    select case (getfields_fields(3)(1:getfields_lfields(3)))
-    case("ABSORBER")
-
-        scatter_GENERATOR(scatter_nGENERATOR,2) = 1  ! Code for ABSORBER
-
-    case("PPBEAMELASTIC")
-
-        scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
-        if(getfields_nfields .lt. 8 .or. getfields_nfields .gt. 9) then
-            write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC expected 8 or 9 arguments:"
-            write(lout,"(a)") "GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
-            call prror(-1)
-        end if
-
-        ! Request space to store the arguments
-        tmpIdx = scatter_nfdata + 1
-        scatter_GENERATOR(scatter_nGENERATOR,3) = tmpIdx
-        scatter_GENERATOR(scatter_nGENERATOR,4) = 0      ! Index of scatter input, if present
-        scatter_nfdata = scatter_nfdata + getfields_nfields - 3
-        if(scatter_nfdata .gt. scatter_maxdata) then
-            write(lout,"(a,i4,a)") "SCATTER> ERROR, maxdata = ",scatter_maxdata," exceeded for floats."
-            call prror(-1)
-        end if
-
-#ifdef CRLIBM
-        ! PPBEAMELASTIC a
-        scatter_fdata(tmpIdx)   = round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,4,scatter_fdata(tmpIdx))
-
-        ! PPBEAMELASTIC b1
-        scatter_fdata(tmpIdx+1) = round_near(errno,getfields_lfields(5)+1,getfields_fields(5))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,5,scatter_fdata(tmpIdx+1))
-
-        ! PPBEAMELASTIC b2
-        scatter_fdata(tmpIdx+2) = round_near(errno,getfields_lfields(6)+1,getfields_fields(6))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,6,scatter_fdata(tmpIdx+2))
-
-        ! PPBEAMELASTIC phi
-        scatter_fdata(tmpIdx+3) = round_near(errno,getfields_lfields(7)+1,getfields_fields(7))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,7,scatter_fdata(tmpIdx+3))
-
-        ! PPBEAMELASTIC b2
-        scatter_fdata(tmpIdx+4) = round_near(errno,getfields_lfields(8)+1,getfields_fields(8))
-        if(errno .ne. 0) call rounderr(errno,getfields_fields,8,scatter_fdata(tmpIdx+4))
-
-        if(getfields_nfields .eq. 9) then
-            ! PPBEAMELASTIC crossSection
-            scatter_fdata(tmpIdx+5) = round_near(errno,getfields_lfields(9)+1,getfields_fields(9))
-            if(errno .ne. 0) call rounderr(errno,getfields_fields,9,scatter_fdata(tmpIdx+5))
-            scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
-        end if
-#else
-        ! PPBEAMELASTIC a
-        read(getfields_fields(4)(1:getfields_lfields(4)),*) scatter_fdata(tmpIdx)
-
-        ! PPBEAMELASTIC b1
-        read(getfields_fields(5)(1:getfields_lfields(5)),*) scatter_fdata(tmpIdx+1)
-
-        ! PPBEAMELASTIC b2
-        read(getfields_fields(6)(1:getfields_lfields(6)),*) scatter_fdata(tmpIdx+2)
-
-        ! PPBEAMELASTIC phi
-        read(getfields_fields(7)(1:getfields_lfields(7)),*) scatter_fdata(tmpIdx+3)
-
-        ! PPBEAMELASTIC tmin
-        read(getfields_fields(8)(1:getfields_lfields(8)),*) scatter_fdata(tmpIdx+4)
-
-        if(getfields_nfields .eq. 9) then
-            ! PPBEAMELASTIC crossSection
-            read(getfields_fields(9)(1:getfields_lfields(9)),*) scatter_fdata(tmpIdx+5)
-            scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
-        end if
-#endif
-
-        ! Check sanity of input values
-        if(scatter_fdata(tmpIdx+1) .lt. pieni) then
-            write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
-            call prror(-1)
-        end if
-        if(scatter_fdata(tmpIdx+2) .lt. pieni) then
-            write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
-            call prror(-1)
-        end if
-
-    case default
-
-        write(lout,"(a)") "SCATTER> ERROR, GEN name '"// &
-                          getfields_fields(3)(1:getfields_lfields(3))// &
-                          "' not recognized."
-        call prror(-1)
-
-    end select
-
+    if(scatter_fdata(tmpIdx+2) < pieni) then
+      write(lout,"(a)") "SCATTER> ERROR, GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
+      call prror(-1)
+    end if
+    
+  case default
+    
+    write(lout,"(3a)") "SCATTER> ERROR, GEN name '",lnSplit(3)%chr,"' not recognized."
+    call prror(-1)
+    
+  end select
+    
 end subroutine scatter_parseGenerator
 
 ! =================================================================================================
