@@ -15706,51 +15706,54 @@ subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
 end subroutine splitfld
 
 real(kind=fPrec) function fround(errno,fields,f)
-      use floatPrecision
-      implicit none
-      integer maxf
-      ! MAXF be kept in sync with maxf in various routines
-      ! We maybe should use len(field(f)) here, like is done in splitfld...
-      parameter (maxf=30)
-      integer errno,f
-      character(len=*) fields(*)
-      real(kind=real64) round_near,value
-      real(kind=real64) ftemp
-      ftemp=round_near(errno,maxf,fields(f))
-      fround=real(ftemp,fPrec)
+  ! This is also implemented in module string_tools
+  !   as functions str_toReal and chr_toReal
+  use floatPrecision
+  implicit none
+  integer maxf
+  ! MAXF be kept in sync with maxf in various routines
+  ! We maybe should use len(field(f)) here, like is done in splitfld...
+  parameter (maxf=30)
+  integer errno,f
+  character(len=*) fields(*)
+  real(kind=real64) round_near,value
+  real(kind=real64) ftemp
+  ftemp=round_near(errno,maxf,fields(f))
+  fround=real(ftemp,fPrec)
 
-      if (errno.ne.0) then
-        value=fround
-        call rounderr(errno,fields,f,value)
-      endif
-      return
-      end function fround
+  if (errno.ne.0) then
+    value=fround
+    call rounderr(errno,fields,f,value)
+  endif
+  return
+end function fround
       
 subroutine rounderr(errno,fields,f,value)
-      use floatPrecision
-      use end_sixtrack
-      use crcoall
-      implicit none
-      integer nchars,nofields
-      integer errno,nfields,f,l
-      character(len=*) fields(*)
-      character(len=999) localstr
-      real(kind=fPrec) value
+  use floatPrecision
+  use end_sixtrack
+  use crcoall
+  implicit none
+  integer nchars,nofields
+  integer errno,nfields,f,l
+  character(len=*) fields(*)
+  character(len=999) localstr
+  real(kind=fPrec) value
 
-      write (lout,10000)
-      write (lout,*) 'Data Input Error (probably in subroutine daten)'
-      write (lout,*) 'Overfow/Underflow in strtod()'
-      write (lout,*) 'Errno: ',errno
-      l=len(fields(f))
-      localstr=fields(f)(1:l)
-      write (lout,*) 'f:fieldf:',f,':'//localstr
-      write (lout,*) 'Function fround (rounderr) returning:',value
+  write (lout,10000)
+  write (lout,*) 'Data Input Error (probably in subroutine daten)'
+  write (lout,*) 'Overfow/Underflow in strtod()'
+  write (lout,*) 'Errno: ',errno
+  l=len(fields(f))
+  localstr=fields(f)(1:l)
+  write (lout,*) 'f:fieldf:',f,':'//localstr
+  write (lout,*) 'Function fround (rounderr) returning:',value
+  
+  call prror(-1)
       
-      call prror(-1)
-      
-10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
-     &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
-      return
+10000 format(5x//&
+             /t10,'++++++++++++++++++++++++'&
+             /t10,'+++++ERROR DETECTED+++++'&
+             /t10,'++++++++++++++++++++++++'/)
 end subroutine rounderr
       
 subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)

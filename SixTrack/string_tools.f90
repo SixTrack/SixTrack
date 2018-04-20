@@ -332,7 +332,10 @@ function chr_toReal(theString) result(theValue)
   theValue = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
-    write (lout,"(a)")    "ERROR Data Input Error"
+    write (lout,"(a)")    "++++++++++++++++++++++++"
+    write (lout,"(a)")    "+    ERROR DETECTED    +"
+    write (lout,"(a)")    "++++++++++++++++++++++++"
+    write (lout,"(a)")    "Data Input Error"
     write (lout,"(a)")    "Overfow/Underflow in string_tools->chr_toReal"
     write (lout,"(a,i2)") "Errno: ",cErr
     stop -1
