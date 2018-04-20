@@ -259,11 +259,11 @@ subroutine scatter_comnul
   scatter_nPROFILE   = 0
   scatter_nGENERATOR = 0
   
-  scatter_seed1 = -1
-  scatter_seed2 = -1
+  scatter_seed1      = -1
+  scatter_seed2      = -1
 
 #ifdef CR
-  scatter_filepos = -1
+  scatter_filepos    = -1
 #endif
 end subroutine scatter_comnul
 

@@ -48,6 +48,8 @@ contains
 !  Last modified: 2018-04-14
 !  Splits a string into an array of strings by one or more space,
 !    but not within a pair of single our double quotes.
+!  Note: Copying data from one string to another string, by slicing the char array, does not work
+!        with the intel compiler. It mu
 ! ================================================================================================ !
 subroutine str_split(toSplit, returnArray, nArray)
   
@@ -57,10 +59,12 @@ subroutine str_split(toSplit, returnArray, nArray)
   type(string), allocatable, intent(out) :: returnArray(:)
   integer,                   intent(out) :: nArray
   
-  integer ch, new
+  character(len=:), allocatable :: tmpString
+  
+  integer ch, newBit
   logical sngQuote, dblQuote
   
-  new      = 0
+  newBit   = 0
   nArray   = 0
   sngQuote = .false.
   dblQuote = .false.
@@ -68,30 +72,75 @@ subroutine str_split(toSplit, returnArray, nArray)
     if(toSplit%chr(ch:ch) == "'") sngQuote = .not. sngQuote
     if(toSplit%chr(ch:ch) == '"') dblQuote = .not. dblQuote
     if(toSplit%chr(ch:ch) == " " .and. .not. sngQuote .and. .not. dblQuote) then
-      if(new == 0) then
+      if(newBit == 0) then
         cycle
       else
-        if(nArray == 0) then
-          returnArray = [string(toSplit%chr(new:ch-1))]
-        else
-          returnArray = [returnArray, string(toSplit%chr(new:ch-1))]
-        end if
-        new    = 0
+        call str_arrAppend(returnArray, str_sub(toSplit, newBit, ch-1))
+        newBit = 0
         nArray = nArray + 1
       end if
     else
-      if(new == 0) new = ch
+      if(newBit == 0) newBit = ch
     end if
   end do
   
 end subroutine str_split
 
 ! ================================================================================================ !
+!  Safe Append to Array
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+!  Appends a string to a string array.
+! ================================================================================================ !
+subroutine str_arrAppend(theArray, theString)
+  
+  use crcoall
+  
+  implicit none
+  
+  type(string), allocatable, intent(inout) :: theArray(:)
+  type(string),              intent(in)    :: theString
+  
+  type(string), allocatable :: tmpArray(:)
+  integer                   :: allocErr
+  integer                   :: arrSize, arrElem
+  
+  if(allocated(theArray)) then
+    
+    arrSize = size(theArray,1)
+    allocate(tmpArray(arrSize + 1), stat=allocErr)
+    if(allocErr /= 0) then
+      write(lout,"(a)") "ERROR Allocation of string array"
+      stop 1
+    end if
+    
+    do arrElem=1, arrSize
+      tmpArray(arrElem) = theArray(arrElem)
+    end do
+    tmpArray(arrSize + 1) = theString
+    
+    call move_alloc(tmpArray,theArray)
+    
+  else
+    
+    allocate(theArray(1), stat=allocErr)
+    if(allocErr /= 0) then
+      write(lout,"(a)") "ERROR Allocation of string array"
+      stop 1
+    end if
+    theArray(1) = theString
+    
+  end if
+  
+end subroutine str_arrAppend
+
+! ================================================================================================ !
 !  SubString Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
 !  Returns a substring of a string
-!  This is a safer way of extracting a substring than slicing string%chr
+!  This is a safer way of extracting a substring than slicing string%chr.
+!  Writing a substring of a string to another string produces garbage with the intel compiler.
 ! ================================================================================================ !
 function str_sub(theString, iA, iB) result(retString)
   
@@ -299,7 +348,7 @@ function str_toReal(theString) result(theValue)
     write (lout,"(a)")    "ERROR Data Input Error"
     write (lout,"(a)")    "Overfow/Underflow in string_tools->str_toReal"
     write (lout,"(a,i2)") "Errno: ",cErr
-    stop -1
+    stop 1
   end if
 #else
   read(theString%chr,*) theValue
@@ -402,8 +451,7 @@ subroutine getfields_split(tmpline, getfields_fields, getfields_lfields, getfiel
       if(lchar) then
         ! End of a string: record it
         getfields_lfields(getfields_nfields) = lenstr
-        getfields_fields(getfields_nfields)(1:getfields_lfields(getfields_nfields)) &
-          = tmpline(istart:istart+getfields_lfields(getfields_nfields))
+        getfields_fields(getfields_nfields)(1:lenstr) = tmpline(istart:istart+lenstr)
         lchar = .false.
       end if
     else
