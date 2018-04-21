@@ -736,6 +736,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
 	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
+	# set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp -assume realloc_lhs")
+	# set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp -assume realloc_lhs")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")

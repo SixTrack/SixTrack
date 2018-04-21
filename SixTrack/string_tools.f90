@@ -59,8 +59,6 @@ subroutine str_split(toSplit, returnArray, nArray)
   type(string), allocatable, intent(out) :: returnArray(:)
   integer,                   intent(out) :: nArray
   
-  character(len=:), allocatable :: tmpString
-  
   integer ch, newBit
   logical sngQuote, dblQuote
   
@@ -76,6 +74,7 @@ subroutine str_split(toSplit, returnArray, nArray)
         cycle
       else
         call str_arrAppend(returnArray, str_sub(toSplit, newBit, ch-1))
+        ! call str_arrAppend(returnArray, string(toSplit%chr(newBit:ch-1)))
         newBit = 0
         nArray = nArray + 1
       end if
