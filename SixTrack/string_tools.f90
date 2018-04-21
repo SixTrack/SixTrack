@@ -49,7 +49,7 @@ contains
 !  Splits a string into an array of strings by one or more space,
 !    but not within a pair of single our double quotes.
 !  Note: Copying data from one string to another string, by slicing the char array, does not work
-!        with the intel compiler. It mu
+!        with the intel compiler unless -assume realloc-lhs is enabled.
 ! ================================================================================================ !
 subroutine str_split(toSplit, returnArray, nArray)
   
