@@ -1,7 +1,7 @@
 ! ================================================================================================ !
 !  SixTrack String Type
 ! ~~~~~~~~~~~~~~~~~~~~~~
-!  V.K.B. Olsen, BE-ABP-HSS
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-13
 ! ================================================================================================ !
 module strings
@@ -15,13 +15,15 @@ end module strings
 ! ================================================================================================ !
 !  SixTrack String Tools
 ! ~~~~~~~~~~~~~~~~~~~~~~~
-!  V.K.B. Olsen, BE-ABP-HSS
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
 !
 !  Old method: getfields_split, stringzerotrim
 !  A. Mereghetti, for the FLUKA Team
-!  K. Sjobak, BE-ABP-HSS
-!  Last Modified: 2018-04-13
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-19
+!
+!  Note: Careful with adding use <module> to this module as it easily creates circular dependencies
 ! ================================================================================================ !
 module string_tools
   
@@ -29,7 +31,7 @@ module string_tools
   
   implicit none
   
-  public str_trim, chr_trim
+  public str_trim, chr_trim, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub
   public str_inStr, chr_inStr
@@ -71,9 +73,8 @@ subroutine str_split(toSplit, returnArray, nArray)
   type(string), allocatable, intent(out) :: returnArray(:)
   integer,                   intent(out) :: nArray
   
-  integer      :: ch, new
-  logical      :: sngQuote, dblQuote
-  type(string) :: tmpString
+  integer ch, new
+  logical sngQuote, dblQuote
   
   new      = 0
   nArray   = 0
@@ -148,10 +149,37 @@ function str_trim(theString) result(retString)
 end function str_trim
 
 function chr_trim(theString) result(retString)
-  character(len=:), allocatable, intent(in) :: theString
-  character(len=:), allocatable             :: retString
+  character(len=*), intent(in)  :: theString
+  character(len=:), allocatable :: retString
   retString = trim(adjustl(theString))
 end function chr_trim
+
+! ================================================================================================ !
+!  Trim Zero String Routine
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-14
+!  Cuts the string at first char(0)
+! ================================================================================================ !
+function chr_trimZero(theString) result(retString)
+  
+  character(len=*), intent(in)  :: theString
+  character(len=:), allocatable :: retString
+  
+  integer ch, cut
+  do ch=1, len(theString)
+    if(theString(ch:ch) == char(0)) then
+      cut = ch-1
+      exit
+    end if
+  end do
+  
+  if(cut > 0 .and. cut < len(theString)) then
+    retString = theString(1:cut)
+  else
+    retString = theString
+  end if
+  
+end function chr_trimZero
 
 ! ================================================================================================ !
 !  Count the Occurence of a Single Character in a String
@@ -278,7 +306,9 @@ end function chr_stripQuotes
 ! ================================================================================================ !
 subroutine getfields_split(tmpline, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
   
-  use crcoall
+  ! This is a core module, and should return error values, not error messages.
+  ! Enabling crcoall causes circular dependencies.
+  ! use crcoall
   
   implicit none
   
@@ -325,9 +355,9 @@ subroutine getfields_split(tmpline, getfields_fields, getfields_lfields, getfiel
         ! A new what starts
         getfields_nfields = getfields_nfields +1
         if(getfields_nfields > getfields_n_max_fields) then
-          write (lout,*) "ERROR: Too many fields in line:"
-          write (lout,*) tmpline
-          write (lout,*) "please increase getfields_n_max_fields"
+          ! write (lout,*) "ERROR: Too many fields in line:"
+          ! write (lout,*) tmpline
+          ! write (lout,*) "please increase getfields_n_max_fields"
           getfields_lerr = .true.
           exit ! Break do
         end if

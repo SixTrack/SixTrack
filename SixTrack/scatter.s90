@@ -197,7 +197,7 @@ end subroutine scatter_allocate
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
 ! =================================================================================================
-subroutine scatter_initialize
+subroutine scatter_initialise
   
   use crcoall
   use parpro
@@ -220,7 +220,7 @@ subroutine scatter_initialize
   else
 +ei
     ! Get a file unit number
-    call requestFileUnit("scatter_log.dat",scatter_logFile)
+    call funit_requestUnit("scatter_log.dat",scatter_logFile)
 
     ! Open scatter_log.dat
 +if cr
@@ -228,7 +228,7 @@ subroutine scatter_initialize
     ! in this case the scatter_log.dat is already open and positioned,
     ! so don't try to open the file again.
     if(scatter_filepos .eq. -1) then
-      write(93,"(a)") "SCATTER> scatter_initialize opening new file scatter_log.dat"
+      write(93,"(a)") "SCATTER> scatter_initialise opening new file scatter_log.dat"
 +ei
       inquire(unit=scatter_logFile, opened=lopen)
       if(lopen) then
@@ -246,20 +246,20 @@ subroutine scatter_initialize
       endfile(scatter_logFile,iostat=ierro)
       backspace(scatter_logFile,iostat=ierro)
     else
-      write(93,'(a)') "SCATTER> scatter_initialize kept already opened file scatter_log.dat"
+      write(93,'(a)') "SCATTER> scatter_initialise kept already opened file scatter_log.dat"
     end if !scatter_filepos .eq. -1
 +ei
 +if hdf5
   end if ! h5_useForSCAT
 +ei
   
-end subroutine scatter_initialize
+end subroutine scatter_initialise
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
 ! =================================================================================================
-subroutine scatter_closefiles
+subroutine scatter_closeFiles
   
 +if hdf5
   use hdf5_output
@@ -282,7 +282,7 @@ subroutine scatter_closefiles
   end if
 +ei
   
-end subroutine scatter_closefiles
+end subroutine scatter_closeFiles
 
 ! =================================================================================================
 !  K. Sjobak, BE-ABP-LAT and V.K. Berglyd Olsen, BE-ABP-HSS
@@ -439,7 +439,7 @@ subroutine scatter_crcheck_positionFiles
         write(93,*) "SIXTRACR CRCHECK did not attempt repositioning "// &
                     "of scatter_log.dat, scatter_filepos_cr=",scatter_filepos_cr
         write(93,*) "If anything has been written to the file, "// &
-                    "it will be correctly truncated in scatter_initialize."
+                    "it will be correctly truncated in scatter_initialise."
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
     end if

@@ -218,8 +218,8 @@ subroutine dynk_allocate
     write(lout,*) "maxstrlen_dynk=",maxstrlen_dynk
     
     ! Set file units for i/o files
-    call requestFileUnit("dynksets.dat",ldynkfileunit)
-    call requestFileUnit("dynk_parseFUN_IO",ldynkFUNfileunit)
+    call funit_requestUnit("dynksets.dat",ldynkfileunit)
+    call funit_requestUnit("dynk_parseFUN_IO",ldynkFUNfileunit)
     
 end subroutine dynk_allocate
 
@@ -3567,6 +3567,37 @@ subroutine dynk_comnul
     dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
 +ei
 end subroutine dynk_comnul
+
+! =================================================================================================
+!  A. Mereghetti, for the FLUKA Team
+!  Last Modified: 2018-04-17
+!  Close units for logging dynks
+! =================================================================================================
+subroutine dynk_closeFiles
+    
+    implicit none
+    
+    integer i
+    logical lopen
+    
+    if(.not. ldynk) return
+         
+    do i=1,nfuncs_dynk
+        if (funcs_dynk(i,2) == 3) then ! PIPE FUN
+            ! InPipe
+            inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
+            if(lopen) close(iexpr_dynk(funcs_dynk(i,3)))
+            
+            ! OutPipe
+            inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
+            if(lopen) then
+                write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)") "CLOSEUNITS"
+                close(iexpr_dynk(funcs_dynk(i,3))+1)
+            end if
+        end if
+    end do
+    
+end subroutine dynk_closeFiles
 
 ! ================================================================================================ !
 !  BEGIN Checkpoint Restart
