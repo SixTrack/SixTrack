@@ -219,11 +219,9 @@ if(DEBUG)
 endif()
 if(SPAMMY)
 	SET(SIXTRACK_FEATURES "spammy_${SIXTRACK_FEATURES}")
-	add_definitions(-DSPAMMY)
 endif()
 if(HDF5)
 	SET(SIXTRACK_FEATURES "hdf5_${SIXTRACK_FEATURES}")
-	add_definitions(-DHDF5)
 endif()
 if(FIO)
 	SET(SIXTRACK_FEATURES "fio_${SIXTRACK_FEATURES}")
@@ -292,13 +290,43 @@ endif()
 # Create the sixtrack binary name string
 set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
+###################################################################################################
+# Setting the c pre-processor definitons
+###################################################################################################
+
+if(BOINC)
+	add_definitions(-DBOINC)
+endif()
+if(CR)
+	add_definitions(-DCR)
+endif()
+if(CRLIBM)
+	add_definitions(-DCRLIBM)
+endif()
+if(FIO)
+	add_definitions(-DFIO)
+endif()
+if(HDF5)
+	add_definitions(-DHDF5)
+endif()
+if(ROOT)
+	add_definitions(-DROOT)
+endif()
+if(SPAMMY)
+	add_definitions(-DSPAMMY)
+endif()
+
+
+###################################################################################################
 # Select which fortran files to generate and compile
+###################################################################################################
+
 if(DA)
 	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 file_units string_tools)
+	list(APPEND FORS_F90 core_tools file_units string_tools)
 else()
 	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 file_units string_tools)
+	list(APPEND FORS_F90 core_tools file_units string_tools)
 endif()
 
 if(COLLIMAT)
@@ -706,8 +734,10 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
-	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
+	# set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
+	# set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp -assume realloc-lhs")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp -assume realloc-lhs")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")

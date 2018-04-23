@@ -20,10 +20,12 @@ module hdf5_output
   implicit none
   
   ! Common Settings
-  logical,      public,  save :: h5_isActive, h5_debugOn ! Main module switches
-  logical,      private, save :: h5_doTruncate           ! Whether or not to truncate previous file if exists
-  type(string), private, save :: h5_fileName             ! The HDF5 output file name
-  type(string), private, save :: h5_rootPath             ! The root group where the data for this session is stored
+  logical,      public,  save :: h5_isActive    ! Existence of the HDF5 block
+  logical,      public,  save :: h5_debugOn     ! HDF5 debug flag present
+  logical,      public,  save :: h5_isReady     ! HDF5 file is open and ready for input
+  logical,      private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
+  type(string), private, save :: h5_fileName    ! The HDF5 output file name
+  type(string), private, save :: h5_rootPath    ! The root group where the data for this session is stored
   
   ! Input Block Switches
   logical, public, save :: h5_useForCOLL
@@ -47,6 +49,35 @@ module hdf5_output
   character(len=7),  parameter :: h5_scatGroup = "scatter"
   
 contains
+
+! ================================================================================================ !
+!  Set Initial Values
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-20
+! ================================================================================================ !
+subroutine h5_comnul
+  
+  h5_isActive   = .false.
+  h5_debugOn    = .false.
+  h5_isReady    = .false.
+  h5_doTruncate = .false.
+  h5_fileName   = string("")
+  h5_rootPath   = string("")
+  
+  h5_useForCOLL = .false.
+  h5_useForDUMP = .false.
+  h5_useForSCAT = .false.
+  
+  h5_fileError  = 0
+  h5_fileIsOpen = .false.
+  
+  h5_fileID     = 0
+  h5_rootID     = 0
+  h5_collID     = 0
+  h5_dumpID     = 0
+  h5_scatID     = 0
+  
+end subroutine h5_comnul
 
 ! ================================================================================================ !
 !  HDF5 Initialisation
@@ -80,6 +111,8 @@ subroutine h5_openFile()
   
   integer accessFlag
   
+  if(.not. h5_isActive) return
+  
   if(h5_doTruncate) then
     accessFlag = H5F_ACC_TRUNC_F
     if(h5_debugOn) then
@@ -109,6 +142,8 @@ subroutine h5_openFile()
     h5_rootID = h5_fileID
   end if
   
+  h5_isReady = .true.
+  
 end subroutine h5_openFile
 
 ! ================================================================================================ !
@@ -121,6 +156,8 @@ subroutine h5_closeHDF5()
   use end_sixtrack
   
   implicit none
+  
+  if(.not. h5_isReady) return
   
   call h5fclose_f(h5_fileID, h5_fileError)
   if(h5_fileError == -1) then
@@ -135,7 +172,7 @@ subroutine h5_closeHDF5()
   end if
   
   write(lout,"(a)") "HDF5> Closed HDF5 file."
-    
+  
 end subroutine h5_closeHDF5
 
 ! ================================================================================================ !
@@ -253,10 +290,6 @@ subroutine h5_parseInputLine(inLine)
     call prror(-1)
   
   end select
-  
-#ifdef HDF5
-    write(lout,"(a)") "HDF5> Hello Kitty!!"
-#endif
   
   ! Report if debugging is ON
   if(h5_debugOn) then

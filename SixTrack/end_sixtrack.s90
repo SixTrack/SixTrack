@@ -790,7 +790,7 @@ end module end_sixtrack
 ! ================================================================================================ !
 subroutine closeUnits
   
-  use scatter,    only : scatter_closeFiles
+  use scatter,    only : scatter_closeUnits
   use dynk,       only : dynk_closeFiles
   use dump,       only : dump_closeUnits
   use bdex,       only : bdex_closeFiles
@@ -801,19 +801,19 @@ subroutine closeUnits
   integer chkUnit
   logical isOpen
   
-  ! Just iterate through the first 1000 units
-  do chkUnit=1, funit_minUnit-1
-    inquire(unit=chkUnit, opened=isOpen)
-    if(isOpen) close(chkUnit)
-  end do
-  
   ! Call specific close units routines for modules
   !   that assign units dynamically or via input.
   call funit_closeUnits
   call dump_closeUnits
   call dynk_closeFiles
   call bdex_closeFiles
-  call scatter_closeFiles
+  call scatter_closeUnits
+  
+  ! Then iterate through the first 1000 units
+  do chkUnit=1, funit_minUnit-1
+    inquire(unit=chkUnit, opened=isOpen)
+    if(isOpen) close(chkUnit)
+  end do
   
   return
   

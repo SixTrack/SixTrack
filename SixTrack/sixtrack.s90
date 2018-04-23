@@ -8148,8 +8148,8 @@ subroutine daten
   use end_sixtrack
   use mathlib_bouncer
   
-  use scatter, only : scatter_active, scatter_debug,scatter_seed1,scatter_seed2,scatter_dumpdata,&
-    scatter_parseELEM,scatter_parseProfile,scatter_parseGenerator,scatter_parseSEED,scatter_allocate
+  use scatter, only : scatter_active, scatter_debug, scatter_seed1, scatter_seed2, scatter_dumpdata, &
+    scatter_parseInputLine, scatter_allocate
   use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_parseFUN,dynk_parseSET,dynk_dumpdata,&
     dynk_inputsanitycheck,dynk_allocate
   use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,fma_first,fma_last,&
@@ -14333,168 +14333,137 @@ subroutine daten
       
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
 
-!-----------------------------------------------------------------------
-!     P. HERMES 01-07-2015
-!     hisix heavy ion input block
-!-----------------------------------------------------------------------
- 2700 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      if(ch(1:1).eq.'/') goto 2700
-      if(ch(:4).eq.next) goto 110
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      read(ch1,*) aa0, zz0, nucm0
-      nucm0 = nucm0  * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
-      has_hion = .true.
-      goto 110
-!-----------------------------------------------------------------------
+! ================================================================================================ !
+!  hisix heavy ion input block
+!  P. HERMES
+!  Last modified: 2015-07-01
+! ================================================================================================ !
+2700 continue
+  read(3, 10020, end=1530, iostat=ierro) ch
+  if(ierro.gt.0) call prror(58)
+  lineno3 = lineno3+1 ! Line number used for some crash output
 
-!-----------------------------------------------------------------------
-!  ZIPF
+  if(ch(1:1).eq.'/') goto 2700 ! Skip comment line
+  if(ch(:4).eq.next) goto 110
+  
+  ch1(:nchars+3)=ch(:nchars)//' / '
+  read(ch1,*) aa0, zz0, nucm0
+  nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+  has_hion = .true.
+  goto 110
+
+! ================================================================================================ !
+!  ZIPF Input
 !  K. Sjobak, BE-ABP/HSS
-!  Last modified: 7/2-2017
-!-----------------------------------------------------------------------
- 2800 read(3,10020, end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2800 ! skip comment line
-      
-      if (ch(:4).eq.next) then
-         call zipf_parseInputDone
-         goto 110                  !Read next block or ENDE
-      endif
-      
-      call zipf_parseInputline(ch)
-      goto 2800                    !Read the next line of the ZIPF block
+!  Last modified: 2017-02-07
+! ================================================================================================ !
+2800 continue
+  read(3, 10020, end=1530,iostat=ierro) ch
+  if(ierro.gt.0) call prror(58)
+  lineno3 = lineno3+1 ! Line number used for some crash output
+  
+  if(ch(1:1).eq.'/') goto 2800 ! Skip comment line
+  if(ch(:4).eq.next) then
+    call zipf_parseInputDone
+    goto 110 ! Read next block or ENDE
+  end if
+  call zipf_parseInputline(ch)
+  goto 2800  ! Read the next line of the ZIPF block
 
 ! ================================================================================================ !
 !  SCATTER Input
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2017-08-29
+!  Last modified: 2018-04-20
 ! ================================================================================================ !
 2900 continue
-      ! We have a SCATTER block; let's allocate the memory for it!
-      if (scatter_active) then
-        write(lout,*) "ERROR while parsing SCATTER in fort.3"
-        write(lout,*) "More than one SCATTER block encountered?"
-        call prror(-1)
-      end if
-      call scatter_allocate
-      
- 2901 read(3,10020, end=1530, iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2901 ! skip comment line
-      
-      if (ch(:4).eq.next) then
-         
-        scatter_active = .true.
-
-        if (scatter_seed1.eq.-1 .and. scatter_seed2.eq.-1) then
-          write(lout,*) "ERROR while parsing SCATTER in fort.3"
-          write(lout,*) "No SEED sets were specified"
-          call prror(-1)
-        endif
-         
-        if (scatter_debug) call scatter_dumpdata
-        goto 110               !Read next block or ENDE
-      end if
-      
-      if (ch(:5).eq."DEBUG") then
-        scatter_debug = .true.
-        write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
-        goto 2901
-      end if
-      
-      call getfields_split(ch,getfields_fields,getfields_lfields,getfields_nfields,getfields_lerr)
-      if(getfields_lerr) call prror(51)
-      if(scatter_debug) then
-        write (lout,"(a,i4,a)") "SCATTER> Got a block, len=",len(trim(ch)),": '"//trim(ch)//"'"
-        do ii=1, getfields_nfields
-          write (lout,"(a,i4,a)") "SCATTER> Field(",ii,") ='"//getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-        end do
-      end if
-
-      if (ch(:4).eq."ELEM") then
-        call scatter_parseElem(getfields_fields,getfields_lfields,getfields_nfields)
-      else if (ch(:3).eq."PRO") then
-        call scatter_parseProfile(getfields_fields,getfields_lfields,getfields_nfields)
-      else if (ch(:3).eq."GEN") then
-        call scatter_parseGenerator(getfields_fields,getfields_lfields,getfields_nfields)
-      else if (ch(:4).eq."SEED") then
-        call scatter_parseSEED(getfields_fields,getfields_lfields,getfields_nfields)
-      else
-        write(lout,'(a)') "SCATTER> ERROR, line type not recognized:"
-        write(lout,'(a)') "SCATTER> '"//trim(ch)//"'"
-        call prror(-1)
-      end if
-      
-      goto 2901                 !Read the next line of the SCATTER block
+  ! We have a SCATTER block; let's allocate the memory for it!
+  if (scatter_active) then
+    write(lout,*) "ERROR while parsing SCATTER in fort.3"
+    write(lout,*) "More than one SCATTER block encountered?"
+    call prror(-1)
+  end if
+  call scatter_allocate
+  
+2901 continue
+  read(3, 10020, end=1530, iostat=ierro) ch
+  if(ierro.gt.0) call prror(58)
+  lineno3 = lineno3+1 ! Line number used for some crash output
+  
+  if(ch(1:1) == "/") goto 2901 ! skip comment line
+  if (ch(:4) == next) then
+    scatter_active = .true.
+    if(scatter_seed1 == -1 .and. scatter_seed2 == -1) then
+      write(lout,"(a)") "SCATTER> ERROR while parsing SCATTER in fort.3: No SEED sets were specified"
+      call prror(-1)
+    end if
+    if (scatter_debug) call scatter_dumpData
+    goto 110 ! Read next block or ENDE
+  end if
+  call scatter_parseInputLine(string(adjustl(ch)))
+  
+  goto 2901  ! Read the next line of the SCATTER block
 
 ! ================================================================================================ !
-!  HDF5 Input
+!  ROOT Input Block
+! ================================================================================================ !
+3000 continue
+#ifndef ROOT
+  write(lout,*) "ERROR: ROOT output requested in fort.3"
+  write(lout,*) "but this exe does not have ROOT support compiled in"
+  call prror(-1)
+#else
+  read(3, 10020, end=1530, iostat=ierro) ch
+  if(ierro.gt.0) call prror(58)
+  lineno3 = lineno3+1 ! Line number used for some crash output
+  
+  if(ch(1:1).eq.'/') goto 3000 ! Skip comment line
+  if(ch(:4).eq.next) then
+    call root_parseInputDone
+    goto 110 ! Read next block or ENDE
+  end if
+  
+  call daten_root(ch)
+  
+  goto 3000  ! Read the next line of the ROOT block
+#endif
+
+! ================================================================================================ !
+!  HDF5 Input Block
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
 ! ================================================================================================ !
 3100  continue
-+if .not.hdf5
-      write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-      write(lout,*) "SixTrack was not compiled with the HDF5 flag."
-      call prror(-1)
-+ei
-+if hdf5
-      ! Check if an HDF5 block has already been encountered
-      if (h5_isActive) then
-        write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-        write(lout,*) "More than one HDF5 block encountered."
-        call prror(-1)
-      end if
-      
+#ifndef HDF5
+  write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+  write(lout,*) "SixTrack was not compiled with the HDF5 flag."
+  call prror(-1)
+#else
+  ! Check if an HDF5 block has already been encountered
+  if (h5_isActive) then
+    write(lout,*) "ERROR while parsing HDF5 in fort.3:"
+    write(lout,*) "More than one HDF5 block encountered."
+    call prror(-1)
+  end if
+  
 3110  continue
-      read(3,10020, end=1530, iostat=ierro) ch
-      if(ierro > 0) call prror(58)
-      lineno3 = lineno3 + 1
+  read(3, 10020, end=1530, iostat=ierro) ch
+  if(ierro > 0) call prror(58)
+  lineno3 = lineno3 + 1
       
-      if(ch(1:1) == '/') goto 3110 ! Comment line encountered
-      if(ch(1:4) == next) then
-        h5_isActive = .true.
-        goto 110 ! Read next block or ENDE
-      else
-        call h5_parseInputLine(string(ch))
-      end if
-      
-      goto 3110 ! Read the next line of the block
-+ei
+  if(ch(1:1) == "/") goto 3110 ! Comment line encountered
+  if(ch(1:4) == next) then
+    h5_isActive = .true.
+    goto 110 ! Read next block or ENDE
+  end if
+  call h5_parseInputLine(string(ch))
+  
+  goto 3110 ! Read the next line of the block
+#endif
 
-!----------------------------------------------------------------------------
-!     root output
-!----------------------------------------------------------------------------
-+if .not.root
- 3000 write(lout,*) "ERROR: ROOT output requested in fort.3"
-      write(lout,*) "but this exe does not have ROOT support compiled in"
-      call prror(-1)
-+ei
-+if root
- 3000 read(3,10020, end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 3000 ! skip comment line
-      
-      if (ch(:4).eq.next) then
-         call root_parseInputDone
-         goto 110                  !Read next block or ENDE
-      endif
-      
-      call daten_root(ch)
-
-      goto 3000                    !Read the next line of the ROOT block
-+ei
-!----------------------------------------------------------------------------
-!     ENDE was reached; we're done parsing fort.3, now do some postprocessing.
-!-----------------------------------------------------------------------------
-  771 if(napx.ge.1) then
+! ================================================================================================ !
+!  ENDE was reached; we're done parsing fort.3, now do some postprocessing.
+! ================================================================================================ !
+771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
         if(nbeam.ge.1) parbe14=                                         &!hr05
      &(((((-one*crad)*partnum)/four)/pi)/emitnx)*c1e6                    !hr05
@@ -15723,51 +15692,54 @@ subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
 end subroutine splitfld
 
 real(kind=fPrec) function fround(errno,fields,f)
-      use floatPrecision
-      implicit none
-      integer maxf
-      ! MAXF be kept in sync with maxf in various routines
-      ! We maybe should use len(field(f)) here, like is done in splitfld...
-      parameter (maxf=30)
-      integer errno,f
-      character(len=*) fields(*)
-      real(kind=real64) round_near,value
-      real(kind=real64) ftemp
-      ftemp=round_near(errno,maxf,fields(f))
-      fround=real(ftemp,fPrec)
+  ! This is also implemented in module string_tools
+  !   as functions str_toReal and chr_toReal
+  use floatPrecision
+  implicit none
+  integer maxf
+  ! MAXF be kept in sync with maxf in various routines
+  ! We maybe should use len(field(f)) here, like is done in splitfld...
+  parameter (maxf=30)
+  integer errno,f
+  character(len=*) fields(*)
+  real(kind=real64) round_near,value
+  real(kind=real64) ftemp
+  ftemp=round_near(errno,maxf,fields(f))
+  fround=real(ftemp,fPrec)
 
-      if (errno.ne.0) then
-        value=fround
-        call rounderr(errno,fields,f,value)
-      endif
-      return
-      end function fround
+  if (errno.ne.0) then
+    value=fround
+    call rounderr(errno,fields,f,value)
+  endif
+  return
+end function fround
       
 subroutine rounderr(errno,fields,f,value)
-      use floatPrecision
-      use end_sixtrack
-      use crcoall
-      implicit none
-      integer nchars,nofields
-      integer errno,nfields,f,l
-      character(len=*) fields(*)
-      character(len=999) localstr
-      real(kind=fPrec) value
+  use floatPrecision
+  use end_sixtrack
+  use crcoall
+  implicit none
+  integer nchars,nofields
+  integer errno,nfields,f,l
+  character(len=*) fields(*)
+  character(len=999) localstr
+  real(kind=fPrec) value
 
-      write (lout,10000)
-      write (lout,*) 'Data Input Error (probably in subroutine daten)'
-      write (lout,*) 'Overfow/Underflow in strtod()'
-      write (lout,*) 'Errno: ',errno
-      l=len(fields(f))
-      localstr=fields(f)(1:l)
-      write (lout,*) 'f:fieldf:',f,':'//localstr
-      write (lout,*) 'Function fround (rounderr) returning:',value
+  write (lout,10000)
+  write (lout,*) 'Data Input Error (probably in subroutine daten)'
+  write (lout,*) 'Overfow/Underflow in strtod()'
+  write (lout,*) 'Errno: ',errno
+  l=len(fields(f))
+  localstr=fields(f)(1:l)
+  write (lout,*) 'f:fieldf:',f,':'//localstr
+  write (lout,*) 'Function fround (rounderr) returning:',value
+  
+  call prror(-1)
       
-      call prror(-1)
-      
-10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
-     &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
-      return
+10000 format(5x//&
+             /t10,'++++++++++++++++++++++++'&
+             /t10,'+++++ERROR DETECTED+++++'&
+             /t10,'++++++++++++++++++++++++'/)
 end subroutine rounderr
       
 subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
@@ -22965,7 +22937,6 @@ end interface
 +ei
   ! Write all dynamically assigned file units tp file_units.dat
   call funit_dumpUnits
-  call closeUnits
   if (zipf_numfiles.gt.0) then
     call zipf_dozip
   endif
@@ -22977,7 +22948,10 @@ end interface
   call SixTrackRootExit()
 +ei
   call alloc_exit
-! We're done in maincr, no error :)
+  call closeUnits ! Must be last as it also closes fort.6
+! ----------------------------------------------------------------------
+!   We're done in maincr, no error :)
+! ----------------------------------------------------------------------
 +if cr
   call abend('                                                  ')
 +ei
@@ -29673,32 +29647,37 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 end subroutine envarsv
 
 +dk comnul
-subroutine comnul
 !-----------------------------------------------------------------------
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use scatter, only : scatter_comnul
-      use dynk, only : dynk_comnul
-      use fma,  only : fma_comnul
-      use dump, only : dump_comnul
-      use zipf, only : zipf_comnul
+subroutine comnul
+  
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use scatter, only : scatter_comnul
+  use dynk, only : dynk_comnul
+  use fma,  only : fma_comnul
+  use dump, only : dump_comnul
+  use zipf, only : zipf_comnul
 +if collimat
-      use collimation, only : collimation_comnul
+  use collimation, only : collimation_comnul
 +ei
-      use parpro
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-      use bdex, only : bdex_comnul
-      use aperture
-      use elens
-      use wire
-      implicit none
-      
-      integer i,i1,i2,i3,i4,j
+#ifdef HDF5
+  use hdf5_output, only : h5_comnul
+#endif
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use bdex, only : bdex_comnul
+  use aperture
+  use elens
+  use wire
+  
+  implicit none
+  
+  integer i,i1,i2,i3,i4,j
 +ca commonex
 +ca commont1
 +ca commondl
@@ -29714,7 +29693,7 @@ subroutine comnul
 
 +ca parbeam_exp
 
-      save
+  save
 !-----------------------------------------------------------------------
 !
 +if bnlelens
@@ -30348,10 +30327,14 @@ subroutine comnul
 !     always in main code
 !     - general-purpose variables
       call dynk_comnul
-!--ZIPF----------------------------------------------------------------
+!--ZIPF-----------------------------------------------------------------
       call zipf_comnul
-!--SCATTER-------------------------------------------------------------
+!--SCATTER--------------------------------------------------------------
       call scatter_comnul
+!--HDF5-----------------------------------------------------------------
+#ifdef HDF5
+      call h5_comnul
+#endif
 !--COLLIMATION----------------------------------------------------------
 +if collimat
       call collimation_comnul

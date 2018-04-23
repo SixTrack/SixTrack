@@ -830,7 +830,7 @@ subroutine resize2di32(input, newsize1, newsize2, initial, ename)
   end do
   !Copy the data over
   do i=1,oldsize2
-    do j=1,oldsize2
+    do j=1,oldsize1
       buffer(j,i)=input(j,i)
     end do
   end do
@@ -910,7 +910,7 @@ subroutine resize3di32(input, newsize1, newsize2, newsize3, initial, ename)
   !Copy the data over
   do i=1,oldsize3
     do j=1,oldsize2
-      do k=1,oldsize2
+      do k=1,oldsize1
         buffer(k,j,i)=input(k,j,i)
       end do
     end do
@@ -1058,7 +1058,7 @@ subroutine resize2di64(input, newsize1, newsize2, initial, ename)
 
   !Copy the data over
   do i=1,oldsize2
-    do j=1,oldsize2
+    do j=1,oldsize1
       buffer(j,i)=input(j,i)
     end do
   end do
@@ -1139,7 +1139,7 @@ subroutine resize3di64(input, newsize1, newsize2, newsize3, initial, ename)
   !Copy the data over
   do i=1,oldsize3
     do j=1,oldsize2
-      do k=1,oldsize2
+      do k=1,oldsize1
         buffer(k,j,i)=input(k,j,i)
       end do
     end do
