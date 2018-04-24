@@ -516,7 +516,6 @@ subroutine scatter_parseInputLine(inLine)
   
   type(string), intent(in)  :: inLine
   type(string), allocatable :: lnSplit(:)
-  type(string) theOne, theTwo
   integer nSplit
   
   ! Split the input line
@@ -524,20 +523,13 @@ subroutine scatter_parseInputLine(inLine)
   
   if(nSplit == 0) then
     if(scatter_debug) then
-      write (lout,"(a,i3,a)") "SCATTER> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'."
+      write (lout,"(a,i3,a)") "SCATTER> DEBUG Input line len=",len(inLine%get()),": '",chr_trim(inLine%get()),"'."
       write (lout,"(a)")      "SCATTER> DEBUG  * No fields found."
     end if
     return
   end if
   
-  ! Let's have some fun with strings
-  theOne = "The one ring"
-  theTwo = theOne+" to rule them all!"
-  
-  write(lout,"(a)") theOne%get()
-  write(lout,"(a)") theTwo%get()
-  
-  select case(lnSplit(1)%chr)
+  select case(lnSplit(1)%get())
   case("DEBUG")
     scatter_debug = .true.
     write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
@@ -551,7 +543,7 @@ subroutine scatter_parseInputLine(inLine)
     call scatter_parseSeed(lnSplit, nSplit)
   case default
     write(lout,"(a)")  "SCATTER> ERROR Line type not recognized:"
-    write(lout,"(3a)") "SCATTER> '",lnSplit(1)%chr,"'"
+    write(lout,"(3a)") "SCATTER> '",lnSplit(1)%get(),"'"
     call prror(-1)
   end select
   
@@ -590,21 +582,21 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   ! Find the single element referenced
   ii = -1
   do j=1,il
-    if(bez(j) == lnSplit(2)%chr) then
+    if(bez(j) == lnSplit(2)) then
       if(ii /= -1) then
-        write(lout,"(3a)") "SCATTER> ERROR, found element '",lnSplit(2)%chr,"' twice in SINGLE ELEMENTS list."
+        write(lout,"(3a)") "SCATTER> ERROR, found element '",lnSplit(2)%get(),"' twice in SINGLE ELEMENTS list."
         call prror(-1)
       end if
       ii = j
       
       if(scatter_elemPointer(j) /= 0) then
-        write(lout,"(3a)") "SCATTER> ERROR, tried to define element '",lnSplit(2)%chr,"' twice."
+        write(lout,"(3a)") "SCATTER> ERROR, tried to define element '",lnSplit(2)%get(),"' twice."
         call prror(-1)
       end if
       
       if(kz(j) /= 40) then
         write(lout,"(3a,1x,i4)") "SCATTER> ERROR, SCATTER can only work on SINGLE ELEMENTs"//&
-          "of type 40; the referenced element '",lnSplit(2)%chr,"'is of type", kz(j)
+          "of type 40; the referenced element '",lnSplit(2)%get(),"'is of type", kz(j)
         call prror(-1)
       end if
       
@@ -623,20 +615,20 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   end do
   
   if(scatter_ELEM(scatter_nELEM,1) == 0) then
-    write(lout,"(3a)") "SCATTER> ERROR: Could not find element '",lnSplit(2)%chr,"'"
+    write(lout,"(3a)") "SCATTER> ERROR: Could not find element '",lnSplit(2)%get(),"'"
     call prror(-1)
   end if
   
   ! Find the profile name referenced
   do j=1,scatter_nPROFILE
-    ! write(lout,"(5a)") "'",trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))),"', '",lnSplit(3)%chr,"'"
-    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))) == lnSplit(3)%get()) then
+    ! write(lout,"(5a)") "'",trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))),"', '",lnSplit(3)%get(),"'"
+    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))) == lnSplit(3)) then
       scatter_ELEM(scatter_nELEM,2) = j
     end if
   end do
   
   if(scatter_ELEM(scatter_nELEM,2) == 0) then
-    write(lout,"(3a)") "SCATTER> ERROR: Could not find profile '",lnSplit(3)%chr,"'"
+    write(lout,"(3a)") "SCATTER> ERROR: Could not find profile '",lnSplit(3)%get(),"'"
     call prror(-1)
   end if
   
@@ -655,7 +647,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     
     ! Search for the generator with the right name
     do j=1, scatter_nGENERATOR
-      if(trim(chr_trimZero(scatter_cData(scatter_GENERATOR(j,1)))) == lnSplit(ii)%chr) then
+      if(trim(chr_trimZero(scatter_cData(scatter_GENERATOR(j,1)))) == lnSplit(ii)) then
         ! Found it
         scatter_ELEM(scatter_nELEM,ii-4+2) = j
       end if
@@ -663,7 +655,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     
     ! If it is still -1, it wasn't found
     if(scatter_ELEM(scatter_nELEM,ii-4+2) == -1) then
-      write(lout,"(3a)") "SCATTER> ERROR when parsing ELEM, generator '",lnSplit(ii)%chr,"' not found."
+      write(lout,"(3a)") "SCATTER> ERROR when parsing ELEM, generator '",lnSplit(ii)%get(),"' not found."
       call prror(-1)
     end if
     
@@ -672,7 +664,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     ! to check for duplicates
     do j=3, ii-4+2-1
       if(scatter_ELEM(scatter_nELEM,j) == scatter_ELEM(scatter_nELEM,ii-4+2)) then
-        write(lout,"(3a)") "SCATTER> ERROR when parsing ELEM, generator '",lnSplit(ii)%chr,"' used twice."
+        write(lout,"(3a)") "SCATTER> ERROR when parsing ELEM, generator '",lnSplit(ii)%get(),"' used twice."
         call prror(-1)
       end if
     end do
@@ -712,20 +704,20 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   call resize(scatter_cData, str_maxLen, scatter_ncData, str_dSpace, "scatter_cData")
   write(lout,"(2(a,i3))") "cData is ",len(scatter_cData(1))," by ",size(scatter_cData)
   
-  scatter_cData(scatter_ncData)       = lnSplit(2)%chr
+  scatter_cData(scatter_ncData)       = lnSplit(2)
   write(lout,"(a)") scatter_cData(scatter_ncData)
   scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncData
   
   ! Check that the profile name is unique
   do ii=1,scatter_nPROFILE-1
-    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1)))) == lnSplit(2)%chr) then
-      write(lout,"(3a)") "SCATTER> ERROR, profile name '",lnSplit(2)%chr,"' is not unique."
+    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1)))) == lnSplit(2)) then
+      write(lout,"(3a)") "SCATTER> ERROR, profile name '",lnSplit(2)%get(),"' is not unique."
       call prror(-1)
     end if
   end do
   
   ! Profile type dependent code
-  select case (lnSplit(3)%chr)
+  select case (lnSplit(3)%get())
   case("FLAT")
     scatter_PROFILE(scatter_nPROFILE,2) = 1 ! Integer code for FLAT
     if(nSplit /= 6) then
@@ -765,7 +757,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     scatter_fData(tmpIdx+4) = str_toReal(lnSplit(8)) ! Offset Y
     
   case default
-    write(lout,"(3a)") "SCATTER> ERROR, PRO name '",lnSplit(3)%chr,"' not recognized."
+    write(lout,"(3a)") "SCATTER> ERROR, PRO name '",lnSplit(3)%get(),"' not recognized."
     call prror(-1)
     
   end select
@@ -805,19 +797,19 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
   scatter_ncData = scatter_ncData + 1
   call resize(scatter_cData, str_maxLen, scatter_ncData, str_dSpace, "scatter_cData")
   
-  scatter_cData(scatter_ncData)           = lnSplit(2)%chr
+  scatter_cData(scatter_ncData)           = lnSplit(2)
   scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncData
   
   ! Check that the generator name is unique
   do ii=1,scatter_nGENERATOR-1
-    if(trim(chr_trimZero(scatter_cData(scatter_GENERATOR(ii,1)))) == lnSplit(2)%chr) then
-      write(lout,"(3a)") "SCATTER> ERROR, generator name '",lnSplit(2)%chr,"' is not unique."
+    if(trim(chr_trimZero(scatter_cData(scatter_GENERATOR(ii,1)))) == lnSplit(2)) then
+      write(lout,"(3a)") "SCATTER> ERROR, generator name '",lnSplit(2)%get(),"' is not unique."
       call prror(-1)
     end if
   end do
   
   ! Generator type-dependent code
-  select case (lnSplit(3)%chr)
+  select case (lnSplit(3)%get())
   case("ABSORBER")
     
     scatter_GENERATOR(scatter_nGENERATOR,2) = 1  ! Code for ABSORBER
@@ -860,7 +852,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
     
   case default
     
-    write(lout,"(3a)") "SCATTER> ERROR, GEN name '",lnSplit(3)%chr,"' not recognized."
+    write(lout,"(3a)") "SCATTER> ERROR, GEN name '",lnSplit(3)%get(),"' not recognized."
     call prror(-1)
     
   end select

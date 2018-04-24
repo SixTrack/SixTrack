@@ -27,17 +27,30 @@ module strings
   type, public :: string
     character(len=:), allocatable, public :: chr
   contains
-    procedure, public,  pass(this) :: get => getString
-    procedure, public,  pass(this) :: set => setString
-    generic,   public              :: assignment(=) => assignStrStr, assignStrChr
-    generic,   public              :: operator(+)   => appendStrStr, appendStrChr
-    procedure, private, pass(left) :: assignStrStr, assignStrChr
-    procedure, private, pass(left) :: appendStrStr, appendStrChr
+    procedure, public, pass(this) :: get => getString
+    procedure, public, pass(this) :: set => setString
   end type string
   
   interface string
     module procedure stringConstructor
   end interface string
+  
+  interface assignment(=)
+    module procedure assignStrStr
+    module procedure assignStrChr
+    module procedure assignChrStr
+  end interface
+  
+  interface operator(+)
+    module procedure appendStrStr
+    module procedure appendStrChr
+  end interface
+  
+  interface operator(==)
+    module procedure compStrStr
+    module procedure compChrStr
+    module procedure compStrChr
+  end interface
   
 contains
   
@@ -57,6 +70,9 @@ contains
     this%chr = setValue
   end subroutine setString
   
+  ! ================================================================ !
+  !  String Assignment
+  ! ================================================================ !
   subroutine assignStrStr(left, right)
     class(string), intent(inout) :: left
     class(string), intent(in)    :: right
@@ -69,6 +85,15 @@ contains
     left%chr = right
   end subroutine assignStrChr
   
+  elemental subroutine assignChrStr(left, right)
+    character(len=*), intent(inout) :: left
+    class(string),    intent(in)    :: right
+    left = right%chr
+  end subroutine assignChrStr
+  
+  ! ================================================================ !
+  !  Append Strings
+  ! ================================================================ !
   type(string) elemental function appendStrStr(left, right)
     class(string),    intent(in)  :: left
     class(string),    intent(in)  :: right
@@ -96,5 +121,26 @@ contains
     appendStrChr%chr    = tmpChr
     deallocate(tmpChr)
   end function appendStrChr
+  
+  ! ================================================================ !
+  !  Compare Strings
+  ! ================================================================ !
+  logical elemental function compStrStr(left, right)
+    class(string), intent(in) :: left
+    class(string), intent(in) :: right
+    compStrStr = left%chr == right%chr
+  end function compStrStr
+  
+  logical elemental function compChrStr(left, right)
+    character(len=*), intent(in) :: left
+    class(string),    intent(in) :: right
+    compChrStr = left == right%chr
+  end function compChrStr
+  
+  logical elemental function compStrChr(left, right)
+    class(string),    intent(in) :: left
+    character(len=*), intent(in) :: right
+    compStrChr = left%chr == right
+  end function compStrChr
   
 end module strings
