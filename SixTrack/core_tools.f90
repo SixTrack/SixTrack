@@ -73,13 +73,13 @@ contains
     class(string),    intent(in)  :: left
     class(string),    intent(in)  :: right
     character(len=:), allocatable :: tmpChr
-    integer nL, nR
-    nL = len(left%chr)
-    nR = len(right%chr)
-    allocate(character(nL+nR) :: tmpChr)
-    tmpChr(1:nL)     = left%chr
-    tmpChr(nL+1:nR)  = right%chr
-    appendStrStr%chr = tmpChr
+    integer nOld, nNew
+    nOld =        len(left%chr)
+    nNew = nOld + len(right%chr)
+    allocate(character(nNew) :: tmpChr)
+    tmpChr(1:nOld)      = left%chr
+    tmpChr(nOld+1:nNew) = right%chr
+    appendStrStr%chr    = tmpChr
     deallocate(tmpChr)
   end function appendStrStr
   
@@ -87,13 +87,13 @@ contains
     class(string),    intent(in)  :: left
     character(len=*), intent(in)  :: right
     character(len=:), allocatable :: tmpChr
-    integer nL, nR
-    nL = len(left%chr)
-    nR = len(right)
-    allocate(character(nL+nR) :: tmpChr)
-    tmpChr(1:nL)     = left%chr
-    tmpChr(nL+1:nR)  = right
-    appendStrChr%chr = tmpChr
+    integer nOld, nNew
+    nOld =        len(left%chr)
+    nNew = nOld + len(right)
+    allocate(character(nNew) :: tmpChr)
+    tmpChr(1:nOld)      = left%chr
+    tmpChr(nOld+1:nNew) = right
+    appendStrChr%chr    = tmpChr
     deallocate(tmpChr)
   end function appendStrChr
   

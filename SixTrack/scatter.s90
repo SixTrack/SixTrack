@@ -452,39 +452,53 @@ subroutine scatter_dumpData
   
   implicit none
   
-  integer ii
+  integer i
 
-  write(lout,"(a)")             "*** BEGIN SCATTER DUMP ***"
+  write(lout,"(a)")       "*** BEGIN SCATTER DUMP ***"
   
-  write(lout,"(a)")             "Options:"
-  write(lout,"(a,l1)")          "scatter_active =", scatter_active
-  write(lout,"(a,l1)")          "scatter_debug  =", scatter_debug
-  write(lout,"(2(a,i8))")       "Seeds          =", scatter_seed1, ";", scatter_seed2
+  write(lout,"(a)")       "Options:"
+  write(lout,"(a,l2)")    "scatter_active =", scatter_active
+  write(lout,"(a,l2)")    "scatter_debug  =", scatter_debug
+  write(lout,"(2(a,i8))") "Seeds          =", scatter_seed1, ";", scatter_seed2
   
-  write(lout,"(a)")             "Arrays:"
+  write(lout,"(a)")       "Arrays:"
   
-  write(lout,"(a,2(i3,a))")     "scatter_ELEM: (",scatter_nELEM,",",5,"):"
-  write(lout,"(i4,a,5(1x,i3))") (ii,":",scatter_ELEM(ii,:),ii=1,scatter_nELEM)
+  write(lout,"(a,2(i3,a))") "scatter_ELEM: (",scatter_nELEM,",",5,"):"
+  do i=1,scatter_nELEM
+    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_ELEM(i,:)
+  end do
   
-  write(lout,"(a,i3,a)")        "scatter_ELEM_scale: (",scatter_nELEM,"):"
-  write(lout,"(i4,a,e14.7)")    (ii,":",scatter_ELEM_scale(ii),ii=1,scatter_nELEM)
+  write(lout,"(a,i3,a)") "scatter_ELEM_scale: (",scatter_nELEM,"):"
+  do i=1,scatter_nELEM
+    write(lout,"(i4,a,e14.7)") i,":",scatter_ELEM_scale(i)
+  end do
   
-  write(lout,"(a,2(i3,a))")     "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
-  write(lout,"(i4,a,5(1x,i3))") (ii,":",scatter_PROFILE(ii,:),ii=1,scatter_nPROFILE)
+  write(lout,"(a,2(i3,a))") "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
+  do i=1,scatter_nPROFILE
+    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_PROFILE(i,:)
+  end do
   
-  write(lout,"(a,2(i3,a))")     "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
-  write(lout,"(i4,a,5(1x,i3))") (ii,":",scatter_GENERATOR(ii,:),ii=1,scatter_nGENERATOR)
+  write(lout,"(a,2(i3,a))") "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
+  do i=1,scatter_nGENERATOR
+    write(lout,"(i4,a,5(1x,i3))") i,":",scatter_GENERATOR(i,:)
+  end do
   
-  write(lout,"(a,i3,a)")        "scatter_iData: (",scatter_niData,"):"
-  write(lout,"(i4,a,i4)")       (ii,":",scatter_iData(ii),ii=1,scatter_niData)
+  write(lout,"(a,i3,a)") "scatter_iData: (",scatter_niData,"):"
+  do i=1,scatter_niData
+    write(lout,"(i4,a,i4)") i,":",scatter_iData(i)
+  end do
   
-  write(lout,"(a,i3,a)")        "scatter_fData: (",scatter_nfData,"):"
-  write(lout,"(i4,a,e14.7)")    (ii,":",scatter_fData(ii),ii=1,scatter_nfData)
+  write(lout,"(a,i3,a)") "scatter_fData: (",scatter_nfData,"):"
+  do i=1,scatter_nfData
+    write(lout,"(i4,a,e14.7)") i,":",scatter_fData(i)
+  end do
   
-  write(lout,"(a,i3,a)")        "scatter_cData: (",scatter_ncData,"):"
-  write(lout,"(i4,a)")          (ii,": '"//trim(chr_trimZero(scatter_cData(ii)))//"'",ii=1,scatter_ncData)
+  write(lout,"(a,i3,a)") "scatter_cData: (",scatter_ncData,"):"
+  do i=1,scatter_ncData
+    write(lout,"(i4,a)") i,": '"//trim(chr_trimZero(scatter_cData(i)))//"'"
+  end do
   
-  write(lout,"(a)")             "**** END SCATTER DUMP ****"
+  write(lout,"(a)") "**** END SCATTER DUMP ****"
   
 end subroutine scatter_dumpData
 
@@ -502,6 +516,7 @@ subroutine scatter_parseInputLine(inLine)
   
   type(string), intent(in)  :: inLine
   type(string), allocatable :: lnSplit(:)
+  type(string) theOne, theTwo
   integer nSplit
   
   ! Split the input line
@@ -514,6 +529,13 @@ subroutine scatter_parseInputLine(inLine)
     end if
     return
   end if
+  
+  ! Let's have some fun with strings
+  theOne = "The one ring"
+  theTwo = theOne+" to rule them all!"
+  
+  write(lout,"(a)") theOne%get()
+  write(lout,"(a)") theTwo%get()
   
   select case(lnSplit(1)%chr)
   case("DEBUG")
@@ -607,12 +629,13 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   
   ! Find the profile name referenced
   do j=1,scatter_nPROFILE
-    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))) == lnSplit(3)%chr) then
+    ! write(lout,"(5a)") "'",trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))),"', '",lnSplit(3)%chr,"'"
+    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))) == lnSplit(3)%get()) then
       scatter_ELEM(scatter_nELEM,2) = j
     end if
   end do
   
-  if (scatter_ELEM(scatter_nELEM,2) == 0) then
+  if(scatter_ELEM(scatter_nELEM,2) == 0) then
     write(lout,"(3a)") "SCATTER> ERROR: Could not find profile '",lnSplit(3)%chr,"'"
     call prror(-1)
   end if
@@ -687,13 +710,15 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   ! Store the profile name
   scatter_ncData = scatter_ncData + 1
   call resize(scatter_cData, str_maxLen, scatter_ncData, str_dSpace, "scatter_cData")
+  write(lout,"(2(a,i3))") "cData is ",len(scatter_cData(1))," by ",size(scatter_cData)
   
   scatter_cData(scatter_ncData)       = lnSplit(2)%chr
+  write(lout,"(a)") scatter_cData(scatter_ncData)
   scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncData
   
   ! Check that the profile name is unique
   do ii=1,scatter_nPROFILE-1
-    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1)) )) == lnSplit(2)%chr) then
+    if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1)))) == lnSplit(2)%chr) then
       write(lout,"(3a)") "SCATTER> ERROR, profile name '",lnSplit(2)%chr,"' is not unique."
       call prror(-1)
     end if
