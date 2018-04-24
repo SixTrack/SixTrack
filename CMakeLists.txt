@@ -280,7 +280,17 @@ endif()
 #Create the sixtrack binary name string
 SET(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${${PROJECT_NAME}_VERSION_MAJOR}${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_PATCH}_${SIXTRACK_FEATURES}" )
 
+###################################################################################################
+# Setting the c pre-processor definitons
+###################################################################################################
+
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST DA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
+# LIST(APPEND PREPRO_FLAGS_PREC 32BITM 64BITM 128BITM)
+
+###################################################################################################
 # Select which fortran files to generate and compile
+###################################################################################################
 if(DA)
 	LIST(APPEND FORS_FIXFORM )
 	LIST(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf crcoall mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc file_units)
@@ -633,7 +643,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008 -cpp")
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
@@ -689,8 +699,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
-	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -724,8 +734,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	# nagfor
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -958,6 +968,14 @@ endif()
 #add the source files that will be used to build sixtrack
 add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
+
+# Pre-processor flags
+foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_PREC)
+	if(${loop})
+		message(STATUS "Adding compiler definition -D${loop} to target SixTrack")
+		target_compile_definitions(SixTrack PUBLIC -D${loop})
+	endif()
+endforeach()
 
 ##build astuce
 #add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
