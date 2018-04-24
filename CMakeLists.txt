@@ -294,28 +294,9 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-if(BOINC)
-	add_definitions(-DBOINC)
-endif()
-if(CR)
-	add_definitions(-DCR)
-endif()
-if(CRLIBM)
-	add_definitions(-DCRLIBM)
-endif()
-if(FIO)
-	add_definitions(-DFIO)
-endif()
-if(HDF5)
-	add_definitions(-DHDF5)
-endif()
-if(ROOT)
-	add_definitions(-DROOT)
-endif()
-if(SPAMMY)
-	add_definitions(-DSPAMMY)
-endif()
-
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST DA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
+# LIST(APPEND PREPRO_FLAGS_PREC 32BITM 64BITM 128BITM)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -1005,6 +986,14 @@ endif()
 #add the source files that will be used to build sixtrack
 add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
+
+# Pre-processor flags
+foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_PREC)
+	if(${loop})
+		message(STATUS "Adding compiler definition -D${loop} to target SixTrack")
+		target_compile_definitions(SixTrack PUBLIC -D${loop})
+	endif()
+endforeach()
 
 ##build astuce
 #add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
