@@ -17,8 +17,17 @@ end module crcoall
 !  SixTrack String Type
 ! ~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-24
-!  Based on: https://github.com/bceverly/fortranString
+!  Last Modified: 2018-04-25
+!
+!  Usage
+!    Declaration:   type(string) aString
+!    Get:           aString%get()                   => Returns chracater array
+!    Set:           aString%set("foo")              => Returns string
+!    Assignment:    aString = "foo"                 => Returns string
+!    Addition:      aString = aString + "bar"       => Returns combined string "foobar"
+!    Concatenation: write(*,*) "This is "//aString  => On-the-fly conversion to character array
+!    Comparison:    aString == "foobar"             => Compares a string/char to string/char
+!    Comparison:    aString /= "barfoo"             => Compares a string/char to string/char
 ! ================================================================================================ !
 module strings
   
@@ -27,8 +36,27 @@ module strings
   type, public :: string
     character(len=:), allocatable, public :: chr
   contains
-    procedure, public, pass(this) :: get => getString
-    procedure, public, pass(this) :: set => setString
+    procedure, public,  pass(this)  :: get => getString
+    procedure, public,  pass(this)  :: set => setString
+    
+    procedure, private, pass(left)  :: assignStrStr
+    procedure, private, pass(left)  :: assignStrChr
+    procedure, private, pass(right) :: assignChrStr
+    
+    procedure, private, pass(left)  :: appendStrStr
+    procedure, private, pass(left)  :: appendStrChr
+    
+    procedure, private, pass(left)  :: concatStrStr
+    procedure, private, pass(left)  :: concatStrChr
+    procedure, private, pass(right) :: concatChrStr
+    
+    procedure, private, pass(left)  :: compStrStr
+    procedure, private, pass(left)  :: compStrChr
+    procedure, private, pass(right) :: compChrStr
+    
+    procedure, private, pass(left)  :: compNStrStr
+    procedure, private, pass(left)  :: compNStrChr
+    procedure, private, pass(right) :: compNChrStr
   end type string
   
   interface string
@@ -46,10 +74,22 @@ module strings
     module procedure appendStrChr
   end interface
   
+  interface operator(//)
+    module procedure concatStrStr
+    module procedure concatStrChr
+    module procedure concatChrStr
+  end interface
+  
   interface operator(==)
     module procedure compStrStr
-    module procedure compChrStr
     module procedure compStrChr
+    module procedure compChrStr
+  end interface
+  
+  interface operator(/=)
+    module procedure compNStrStr
+    module procedure compNStrChr
+    module procedure compNChrStr
   end interface
   
 contains
@@ -92,7 +132,7 @@ contains
   end subroutine assignChrStr
   
   ! ================================================================ !
-  !  Append Strings
+  !  Append Strings with +, Returning String
   ! ================================================================ !
   type(string) elemental function appendStrStr(left, right)
     class(string),    intent(in)  :: left
@@ -123,24 +163,90 @@ contains
   end function appendStrChr
   
   ! ================================================================ !
-  !  Compare Strings
+  !  Concat Strings with //, Returning Character
   ! ================================================================ !
-  logical elemental function compStrStr(left, right)
+  elemental function concatStrStr(left, right) result(retValue)
+    class(string),    intent(in)  :: left
+    class(string),    intent(in)  :: right
+    character(len=:), allocatable :: retValue
+    integer nOld, nNew
+    nOld =        len(left%chr)
+    nNew = nOld + len(right%chr)
+    allocate(character(nNew) :: retValue)
+    retValue(1:nOld)      = left%chr
+    retValue(nOld+1:nNew) = right%chr
+  end function concatStrStr
+  
+  elemental function concatChrStr(left, right) result(retValue)
+    character(len=*), intent(in)  :: left
+    class(string),    intent(in)  :: right
+    character(len=:), allocatable :: retValue
+    integer nOld, nNew
+    nOld =        len(left)
+    nNew = nOld + len(right%chr)
+    allocate(character(nNew) :: retValue)
+    retValue(1:nOld)      = left
+    retValue(nOld+1:nNew) = right%chr
+  end function concatChrStr
+  
+  elemental function concatStrChr(left, right) result(retValue)
+    class(string),    intent(in)  :: left
+    character(len=*), intent(in)  :: right
+    character(len=:), allocatable :: retValue
+    integer nOld, nNew
+    nOld =        len(left%chr)
+    nNew = nOld + len(right)
+    allocate(character(nNew) :: retValue)
+    retValue(1:nOld)      = left%chr
+    retValue(nOld+1:nNew) = right
+  end function concatStrChr
+  
+  ! ================================================================ !
+  !  Compare Strings, Equal
+  ! ================================================================ !
+  elemental function compStrStr(left, right) result(retValue)
     class(string), intent(in) :: left
     class(string), intent(in) :: right
-    compStrStr = left%chr == right%chr
+    logical retValue
+    retValue = left%chr == right%chr
   end function compStrStr
   
-  logical elemental function compChrStr(left, right)
-    character(len=*), intent(in) :: left
-    class(string),    intent(in) :: right
-    compChrStr = left == right%chr
-  end function compChrStr
-  
-  logical elemental function compStrChr(left, right)
+  elemental function compStrChr(left, right) result(retValue)
     class(string),    intent(in) :: left
     character(len=*), intent(in) :: right
-    compStrChr = left%chr == right
+    logical retValue
+    retValue = left%chr == right
   end function compStrChr
+  
+  elemental function compChrStr(left, right) result(retValue)
+    character(len=*), intent(in) :: left
+    class(string),    intent(in) :: right
+    logical retValue
+    retValue = left == right%chr
+  end function compChrStr
+  
+  ! ================================================================ !
+  !  Compare Strings, Not Equal
+  ! ================================================================ !
+  elemental function compNStrStr(left, right) result(retValue)
+    class(string), intent(in) :: left
+    class(string), intent(in) :: right
+    logical retValue
+    retValue = left%chr /= right%chr
+  end function compNStrStr
+  
+  elemental function compNStrChr(left, right) result(retValue)
+    class(string),    intent(in) :: left
+    character(len=*), intent(in) :: right
+    logical retValue
+    retValue = left%chr /= right
+  end function compNStrChr
+  
+  elemental function compNChrStr(left, right) result(retValue)
+    character(len=*), intent(in) :: left
+    class(string),    intent(in) :: right
+    logical retValue
+    retValue = left /= right%chr
+  end function compNChrStr
   
 end module strings

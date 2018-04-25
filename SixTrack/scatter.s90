@@ -620,6 +620,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   end if
   
   ! Find the profile name referenced
+  write(lout,*) "Len = ",len(lnSplit(3)%chr)
   do j=1,scatter_nPROFILE
     ! write(lout,"(5a)") "'",trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))),"', '",lnSplit(3)%get(),"'"
     if(trim(chr_trimZero(scatter_cData(scatter_PROFILE(j,1)))) == lnSplit(3)) then
@@ -628,7 +629,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   end do
   
   if(scatter_ELEM(scatter_nELEM,2) == 0) then
-    write(lout,"(3a)") "SCATTER> ERROR: Could not find profile '",lnSplit(3)%get(),"'"
+    write(lout,"(a)") "SCATTER> ERROR: Could not find profile '"//lnSplit(3)//"'"
     call prror(-1)
   end if
   
