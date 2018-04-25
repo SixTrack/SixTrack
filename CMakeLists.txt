@@ -304,10 +304,10 @@ LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE 
 
 if(DA)
 	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 core_tools file_units string_tools)
+	list(APPEND FORS_F90 core_tools strings string_tools file_units)
 else()
 	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 core_tools file_units string_tools)
+	list(APPEND FORS_F90 core_tools strings string_tools file_units)
 endif()
 
 if(COLLIMAT)
