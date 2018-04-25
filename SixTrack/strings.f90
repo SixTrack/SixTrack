@@ -142,27 +142,27 @@ contains
     end if
   end function lenStr
   
-  elemental function trimStr(this) result(retValue)
-    class(string), intent(in) :: this
-    type(string)              :: retValue
+  pure function trimStr(this) result(retValue)
+    class(string),    intent(in)  :: this
+    character(len=:), allocatable :: retValue
     if(allocated(this%chr)) then
-      retValue%chr = trim(this%chr)
+      retValue = trim(this%chr)
     end if
   end function trimStr
   
-  elemental function adjLStr(this) result(retValue)
-    class(string), intent(in) :: this
-    type(string)              :: retValue
+  pure function adjLStr(this) result(retValue)
+    class(string),    intent(in)  :: this
+    character(len=:), allocatable :: retValue
     if(allocated(this%chr)) then
-      retValue%chr = adjustl(this%chr)
+      retValue = adjustl(this%chr)
     end if
   end function adjLStr
   
-  elemental function adjRStr(this) result(retValue)
-    class(string), intent(in) :: this
-    type(string)              :: retValue
+  pure function adjRStr(this) result(retValue)
+    class(string),    intent(in)  :: this
+    character(len=:), allocatable :: retValue
     if(allocated(this%chr)) then
-      retValue%chr = adjustr(this%chr)
+      retValue = adjustr(this%chr)
     end if
   end function adjRStr
   
