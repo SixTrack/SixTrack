@@ -10,18 +10,3 @@
 !     Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
       integer lout
       common /crflags/lout
-+cd ffieldcommon
-!-----------------------------------------------------------------------
-!    Fringe Field interface parametter with SixTrack (ASIMONA, BDALENA, TPUGNAT)
-!-----------------------------------------------------------------------
-      integer :: ffNLn                                           ! Number of line in the file
-      integer :: FFindex
-      character(len=100), pointer, dimension(:) :: ffQNames      ! Names Quad
-      common/FringeField/ FFindex(nele),ffQNames, ffNLn
-+cd ffieldcommon1
-      logical ffReady                                            ! Check data read with success
-      integer :: ffNLFile                                        ! Number of line in the file
-      double precision, pointer, dimension(:,:) :: ffParam       ! Kin, Lin, Corin, Kex, Lex, Corex
-      character(len=300), pointer, dimension(:) :: ffFNames
-      integer, pointer, dimension(:,:) :: ffQ2File
-      common/FringeFieldTab/ ffNLFile, ffReady, ffParam, ffQ2File, ffFNames

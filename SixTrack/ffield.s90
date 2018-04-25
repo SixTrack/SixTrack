@@ -1,6 +1,20 @@
 +dk modffield
 module ffield
 
+!+cd ffieldcommon
+!-----------------------------------------------------------------------
+!    Fringe Field interface parametter with SixTrack (ASIMONA, BDALENA, TPUGNAT)
+!-----------------------------------------------------------------------
+      integer :: ffNLn                                           ! Number of line in the file
+      character(len=100), pointer, dimension(:) :: ffQNames      ! Names Quad
+!      common/FringeField/ FFindex(nele),ffQNames, ffNLn
+!+cd ffieldcommon1
+      logical ffReady                                            ! Check data read with success
+      integer :: ffNLFile                                        ! Number of line in the file
+      double precision, pointer, dimension(:,:) :: ffParam       ! Kin, Lin, Corin, Kex, Lex, Corex
+      character(len=300), pointer, dimension(:) :: ffFNames
+      integer, pointer, dimension(:,:) :: ffQ2File
+!      common/FringeFieldTab/ ffNLFile, ffReady, ffParam, ffQ2File, ffFNames
    contains
 
 !! ---------------------------------------------------------------------------
@@ -46,12 +60,6 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !   <<<<<<<<<<<<<< test 07-03-2018
 
 +ca commontr
-
-   ! Initialisation de l'espace commun
-   ! -------------------------------------------------------------------------
-+ca ffieldcommon
-
-+ca ffieldcommon1
 
    ! Initialization physic parameters
    ! -------------------------------------------------------------------------
@@ -738,11 +746,6 @@ subroutine ReadconfigFile
    ! Initialisation common space with SixTrack
    ! -------------------------------------------------------------------------
 +ca parpro
-
-+ca ffieldcommon
-
-+ca ffieldcommon1
-
 
    ! Initialisation of parametters
    ! -------------------------------------------------------------------------

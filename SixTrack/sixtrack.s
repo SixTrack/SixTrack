@@ -11885,7 +11885,9 @@ cc2008
 +ca parpro
 +ca parnum
 +if ffield
-+ca ffieldcommon
+      integer :: FFindex !nele
+      common/FringeField/ FFindex(nele)
+
       integer :: ffi
       logical :: notfound
 +ei
@@ -27420,9 +27422,6 @@ C Should get me a NaN
       double precision expt
 +ei
 +ca parnum
-+if ffield
-+ca ffieldcommon
-+ei
 +ca common
 +ca common2
 +ca commons
@@ -27460,6 +27459,12 @@ C Should get me a NaN
 +ca elensparam
 +ca wireparam
 +ca elenstracktmp
+
++if ffield
+      integer :: FFindex !nele
+      common/FringeField/ FFindex(nele)
++ei
+
       save
 !-----------------------------------------------------------------------
 +if fast
