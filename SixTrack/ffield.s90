@@ -1,0 +1,1860 @@
++dk modffield
+!! ---------------------------------------------------------------------------
+!!      Interface with SixTrack
+!! ---------------------------------------------------------------------------
+!!      workChoise    0  - Import config file
+!!                    1  - Import data file
+!!                    4  - Preparation of AQx and AQy
+!!                    2  - Symplectic integration
+!!                    11 - Test import data file
+!!                    12 - Print some particle information
+!!                    6  - Free all the memory
+!!                    3  - Allocate table for particle out of boundary
+subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
+   implicit none
+   
+   ! Definition of the ffTable type
+   ! -------------------------------------------------------------------------
+   type ffTable
+     integer :: n,m,s                                                      ! Max exposant for x and y, Number of point in z
+     integer :: lx,ly,lz                                                   ! Number of coef per step
+     integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx,ij_TAy,ij_TAz  ! Table of indices ij for Ax, Ay and Az
+     double precision :: dz, norm, Lgth                                    ! Step size in z and normalization
+     double precision,dimension(:,:),allocatable :: TAx,TAy,TAz            ! Table of coefficients for Ax, Ay and Az
+     double precision,dimension(:,:,:),allocatable :: AQx,AQy              ! AntiQuad matrix
+     double precision,dimension(:),allocatable :: Tdpsv                    ! dpsv value for AQ-case
+     double precision,dimension(:,:,:),allocatable :: TAQx,TAQy            ! Table of AntiQuad matrix in function of Delta
+!     logical,dimension(:),allocatable :: checkAQ
+   end type ffTable
+
+   ! Espace commun de SixTrack 
+   ! -------------------------------------------------------------------------
++ca parpro   
+
++ca parnum
+   
++ca commonmn
+
++ca common
+
+!   <<<<<<<<<<<<<< test 07-03-2018
++ca commonm1
+!   <<<<<<<<<<<<<< test 07-03-2018
+
++ca commontr
+
+   ! Initialisation de l'espace commun
+   ! -------------------------------------------------------------------------
++ca ffieldcommon
+
++ca ffieldcommon1
+
+   ! Initialization physic parameters
+   ! -------------------------------------------------------------------------
+!!$   double precision :: Eproton, Etot, gamma0, beta0, p0, clight, norm !, e0
+   double precision :: Etot, gamma0, beta0, p0, norm !, e0
+!!$   parameter (clight=299792458.)                 ! Speed of light [m/s]
+!!$   parameter (Eproton=9.382720134258239e2)       ! Mass proton [MeV] 
+!   parameter (e0=1.60217653e-19)                   ! Energy of ref
+   parameter (Etot=0.0d0*pmap+7.0d0*c1e6)           ! Total Energy of the system [MeV]
+   parameter (gamma0=Etot/pmap)                     ! Ratio total energy and rest mass energy for the proton
+   parameter (beta0=sqrt(1.0d0-1.0d0/gamma0/gamma0))! Parameter beta0
+   parameter (p0=beta0*Etot*c1e6/clight)            ! Reference momentum [eV/c] 
+   !parameter (p0=7.e12)
+   
+
+   ! Function parameters
+   ! -------------------------------------------------------------------------
+   integer,intent(in) :: workChoise, ffj, ffi, ffn
+   integer, dimension(2),intent(in) :: currQuad 
+   integer :: itDltmax, itDltmin, itDltmid, itDlt 
+
+
+   ! Static variables
+   ! -------------------------------------------------------------------------
+   integer, save :: nbDlt = 0
+   logical, allocatable, dimension(:), save :: ffImported     ! Static matrix one if the correspond file is already imported
+   type(ffTable), allocatable, dimension(:), save :: ffTA     ! Static vector containing all the data
+   integer, allocatable, dimension(:,:,:,:), save :: ffloss   ! Static matrix 
+   logical, allocatable, dimension(:,:), save :: ffnotIN      ! Static matrix 
+   logical, save :: firstTime = .true.                        ! Static variable that check config's file was found
+   logical, save :: firstTime2 = .true.                       ! Static variable that check allocation table particle with (x*x+y+y)>r*r
+   
+
+   ! Useful variables
+   ! -------------------------------------------------------------------------
+   integer :: i, j, k, dataindex, sum_loss_in, sum_loss_out
+   logical :: OKRead
+
+
+   ! Variables that will be eliminated
+   ! -------------------------------------------------------------------------
+   double precision :: x, px, y, py, zb, delta, gam0, betabeta0, sigma_s
+   double precision :: Ldpsv1,Ldpsv2, LoutQ
+   double precision :: stracki
+   character(len=512) :: inex
+
+
+   ! Definition of the interface
+   ! -------------------------------------------------------------------------
+   interface
+      subroutine CreateVectCoef(FileName,n,m,s,dz,Lgth,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,norm,OKRead)
+         character(len=*) :: FileName
+         logical OKRead
+         integer :: n,m,s
+         integer :: lx,ly,lz
+         integer(kind=2), dimension (:, :, :) :: ij_Ax,ij_Ay,ij_Az
+         double precision :: dz,norm,Lgth
+         double precision, dimension (:, :) :: TAx,TAy,TAz
+      end subroutine
+
+      subroutine fftest(n,m,s,dz,Lgth,lx,ij_TAx,TAx,ly,ij_TAy,TAy,lz,ij_TAz,TAz,norm)
+         integer :: n,m,s
+         integer :: lx,ly,lz
+         integer(kind=2), dimension (:, :, :),allocatable :: ij_TAx,ij_TAy,ij_TAz
+         double precision :: dz,norm,Lgth
+         double precision, dimension (:,:),allocatable :: TAx,TAy,TAz
+      end subroutine
+   end interface 
+
+
+   ! ??????????????????????
+   ! -------------------------------------------------------------------------
+   if (.not.firstTime) then
+      dataindex = ffQ2File(currQuad(1), currQuad(2))
+   
+   else
+      ffReady = .false.
+      
+   endif
+   
+
+   ! 0 : Import the configuration file
+   ! -------------------------------------------------------------------------
+   if (workChoise == 0) then
+     
+      if (.not.firstTime) then
+         write(*,*) 'FringeField ERROR: The config file was already imported'
+         return
+      endif      
+      call ReadconfigFile
+      
+      if (ffReady .eqv. .true.) then
+         allocate(ffTA(1:ffNLFile))
+         allocate(ffImported(1:ffNLFile))
+         ffImported = .false.
+         firstTime = .false.
+         write (*,*) 'FringeField      : Config file imported '
+         
+      else
+         write (*,*) 'FringeField      : Config file NOT imported'
+         
+      endif
+
+   ! 1 : Import data files
+   ! -------------------------------------------------------------------------
+   else if ((workChoise == 1).and.(.not.firstTime)) then
+      if (ffImported(dataindex)) then
+         write(*,*) "FringeField      : ", TRIM(ADJUSTL(ffFNames(dataindex)))," Already imported!"
+      else
+         
+         ffTA(:)%norm = 1.0d0/p0
+         call CreateVectCoef(ffFNames(dataindex),   &
+                             ffTA(dataindex)%n,     &
+                             ffTA(dataindex)%m,     &
+                             ffTA(dataindex)%s,     &
+                             ffTA(dataindex)%dz,    &
+                             ffTA(dataindex)%Lgth,  &
+                             ffTA(dataindex)%lx,    &
+                             ffTA(dataindex)%ij_TAx,&
+                             ffTA(dataindex)%TAx,   &
+                             ffTA(dataindex)%ly,    &
+                             ffTA(dataindex)%ij_TAy,&
+                             ffTA(dataindex)%TAy,   &
+                             ffTA(dataindex)%lz,    &
+                             ffTA(dataindex)%ij_TAz,&
+                             ffTA(dataindex)%TAz,   &
+                             ffTA(dataindex)%norm,  &
+                                         OKRead)
+         if (.not.OKRead) then
+            write(*,*) "FringeField ERROR : I couldn't read this file ",  TRIM(ADJUSTL(ffFNames(dataindex)))
+
+         else
+            ffImported(dataindex) = .true.
+            
+            
+            ! Allocate memmory for AQ
+            Allocate(ffTA(dataindex)%AQx(1:2,1:2,1:npart),ffTA(dataindex)%AQy(1:2,1:2,1:npart))
+            do j=1,npart
+              ffTA(dataindex)%AQx(1,1,j)=0;              ffTA(dataindex)%AQx(1,2,j)=0;
+              ffTA(dataindex)%AQx(2,1,j)=0;              ffTA(dataindex)%AQx(2,2,j)=0;
+              ffTA(dataindex)%AQy(1,1,j)=0;              ffTA(dataindex)%AQy(1,2,j)=0;
+              ffTA(dataindex)%AQy(2,1,j)=0;              ffTA(dataindex)%AQy(2,2,j)=0;
+            enddo
+            
+            
+            
+            if (abs(ffTA(dataindex)%Lgth - ffParam(dataindex,6)) > 1E-12) then
+               write(*,*) "FringeField WARNING: The length in the Config file and computed are different: ", &
+                          ffParam(dataindex,6), " != ", ffTA(dataindex)%Lgth
+               write(*,*) "                     We use the computed one!"
+            endif
+ 
+            write (*,*) "FringeField      : ",  TRIM(ADJUSTL(ffFNames(dataindex))) , " imported! "
+         endif
+      endif
+
+   ! 2 : Symplectic routine
+   ! -------------------------------------------------------------------------
+   else if ((workChoise == 2).and.(.not.firstTime)) then
+      if (.not.ffImported(dataindex)) then
+         write (*, *) 'FringeField ERROR: The data in',  TRIM(ADJUSTL(ffFNames(dataindex))) ,'is not imported'
+
+      else
+         ! Change to Symp referenciale
+         x = ((xv(1,ffj)-xsiv(1,ffi))*tiltc(ffi) + (xv(2,ffj)-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+         y = ((xv(2,ffj)-zsiv(1,ffi))*tiltc(ffi) - (xv(1,ffj)-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+         px= ((yv(1,ffj)            )*tiltc(ffi) + (yv(2,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
+         py= ((yv(2,ffj)            )*tiltc(ffi) - (yv(1,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
+         
+         
+         ! Selection of the particle that are only in the radius (r = 0.08m)
+         if (((currQuad(2)==1).and.(x*x+y*y>6.4d-3)).or.             &
+             ((currQuad(2)==2).and.(ffnotIN(nlostp(ffj),currQuad(1)))).or.       &
+             (pstop(nlostp(ffj)))) then
+         
+            if (firstTime2) then
+              write (*, *) "FringeField ERROR: The table for losses paticles wasn't allocated!"
+
+            else
+              ffloss(nlostp(ffj),ffn,currQuad(1),currQuad(2))=1 
+              if (currQuad(2)==1) then
+                ffnotIN(nlostp(ffj),currQuad(1)) = .true.
+              else
+                ffnotIN(nlostp(ffj),currQuad(1)) = .false.
+              endif
+
+            endif
+         
+	 ! Symplectic routine
+         else
+           !   - 
+           delta    = dpsv(ffj);
+           gam0     = gamma0;
+           zb       = 0;
+           sigma_s  = 0;
+           betabeta0= ejfv(ffj)/ejv(ffj);
+           betabeta0= betabeta0*betabeta0*rvv(ffj);
+           LoutQ    = (ffTA(dataindex)%Lgth-ffParam(dataindex,2))
+           Ldpsv1   = LoutQ*oidpsv(ffj);
+           Ldpsv2   = oidpsv(ffj)*oidpsv(ffj);
+
+           if (currQuad(2)==1) inex = "IN"
+           if (currQuad(2)==2) inex = "OUT"
+
+  	   !   - Repositionnement initial
+  	   if ((inex=="IN").or.(inex=="OUT_O")) then
+             !            * IN (enter) ---------> Drift
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3), ffParam(dataindex,4),       &
+!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+             x=x-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+!             sigma_s=sigma_s-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+
+!             x=x-Ldpsv1*px;
+!             y=y-Ldpsv1*py;
+!             sigma_s=sigma_s-Ldpsv2*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+
+             
+   	   elseif (inex=="OUT") then
+             !            * IN (enter) ---------> Quad
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
+!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+
+             !            * IN (enter) ---------> Drift (1)
+             x=x+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+             
+!             x=x+Ldpsv1*px;
+!             y=y+Ldpsv1*py;
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+
+
+             
+             !            * IN (enter) ---------> Quad (2)
+             if (nbDlt<1) then                ! Case Delta to small
+	       ! Generate the anti-quad
+	       call GenerateAntiQuad(oidpsv(ffj), &
+	                         ffTA(dataindex)%n,                   &
+	                         ffTA(dataindex)%m,                   &
+	                         ffTA(dataindex)%s,                   &
+	                         ffTA(dataindex)%dz,                  &
+	                         ffTA(dataindex)%lz,                  &
+	                         ffTA(dataindex)%ij_TAz,              &
+	                         ffTA(dataindex)%TAz,inex,            &
+	                         ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                      &
+                                 ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+                                              ! Case Delta bigger than anticipate
+             elseif (abs(dpsv(ffj))>ffTA(dataindex)%Tdpsv(nbDlt)+c1m6) then
+               ! Check the maximum delta
+               delta=-1.0d0
+               do j=1,npart
+                 if (delta<abs(dpsv(j))) then
+                   delta=abs(dpsv(j))
+                 endif
+               enddo
+               nbDlt=ceiling(abs( 2.0d0*(delta)*c1e6 ))
+               
+               ! Check the maximum delta
+               do i=1,ffNLFile
+                 if (ffImported(i) .eqv. .true.) then
+                   Deallocate(ffTA(i)%TAQx,ffTA(i)%TAQy,ffTA(i)%Tdpsv)
+                   Allocate(ffTA(i)%TAQx(1:2,1:2,1:nbDlt),ffTA(i)%TAQy(1:2,1:2,1:nbDlt),  &
+                            ffTA(i)%Tdpsv(1:nbDlt))
+          
+                   do k=1,nbDlt
+                      ffTA(i)%TAQx(1,1,k)=0;              ffTA(i)%TAQx(1,2,k)=0;
+                      ffTA(i)%TAQx(2,1,k)=0;              ffTA(i)%TAQx(2,2,k)=0;
+                      ffTA(i)%TAQy(1,1,k)=0;              ffTA(i)%TAQy(1,2,k)=0;
+                      ffTA(i)%TAQy(2,1,k)=0;              ffTA(i)%TAQy(2,2,k)=0;
+           
+                      ffTA(i)%Tdpsv(k)=(2.0d0*(k-1)/(nbDlt-1)- 1.0d0)*delta
+                           
+                      call GenerateAntiQuad(1.0d0/(1.0d0+ffTA(i)%Tdpsv(k)), &
+                                            ffTA(i)%n,                    &
+                                            ffTA(i)%m,                    &
+                                            ffTA(i)%s,                    &
+                                            ffTA(i)%dz,                   &
+                                            ffTA(i)%lz,                   &
+                                            ffTA(i)%ij_TAz,               &
+                                            ffTA(i)%TAz,inex,             &
+                                            ffTA(i)%TAQx(1,1,k),&
+                                            ffTA(i)%TAQx(1,2,k),&
+                                            ffTA(i)%TAQx(2,1,k),&
+                                            ffTA(i)%TAQx(2,2,k),&
+                                            ffTA(i)%TAQy(1,1,k),&
+                                            ffTA(i)%TAQy(1,2,k),&
+                                            ffTA(i)%TAQy(2,1,k),&
+                                            ffTA(i)%TAQy(2,2,k))
+                   enddo
+                 endif
+               enddo
+
+               ! Find the AQ matrix for the right dpsv
+               itDlt=0
+               do k=1,nbDlt
+                 if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
+                   itDlt=k
+                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                   itDlt=k
+                 endif
+               enddo
+               
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                 &
+                               ffTA(dataindex)%TAQx(1,1,itDlt),&
+                               ffTA(dataindex)%TAQx(1,2,itDlt),&
+                               ffTA(dataindex)%TAQx(2,1,itDlt),&
+                               ffTA(dataindex)%TAQx(2,2,itDlt),&
+                               ffTA(dataindex)%TAQy(1,1,itDlt),&
+                               ffTA(dataindex)%TAQy(1,2,itDlt),&
+                               ffTA(dataindex)%TAQy(2,1,itDlt),&
+                               ffTA(dataindex)%TAQy(2,2,itDlt))
+
+                                              ! Case Delta within anticipated domain
+             else
+               ! Find the AQ matrix for the right dpsv
+               itDlt=0
+               do k=1,nbDlt
+                 if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
+                   itDlt=k
+                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                   itDlt=k
+                 endif
+               enddo
+               
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                 &
+                               ffTA(dataindex)%TAQx(1,1,itDlt),&
+                               ffTA(dataindex)%TAQx(1,2,itDlt),&
+                               ffTA(dataindex)%TAQx(2,1,itDlt),&
+                               ffTA(dataindex)%TAQx(2,2,itDlt),&
+                               ffTA(dataindex)%TAQy(1,1,itDlt),&
+                               ffTA(dataindex)%TAQy(1,2,itDlt),&
+                               ffTA(dataindex)%TAQy(2,1,itDlt),&
+                               ffTA(dataindex)%TAQy(2,2,itDlt))
+
+             endif
+   	   endif
+
+
+ 	   !   - Compute Fringe Field using asymplectic Map (Lie2)
+           call SympIntegrator(x,px,y,py,zb,oidpsv(ffj), &
+                             ffTA(dataindex)%n,       &
+                             ffTA(dataindex)%m,       &
+                             ffTA(dataindex)%s,       &
+                             ffTA(dataindex)%dz,      &
+                             ffTA(dataindex)%lx,      &
+                             ffTA(dataindex)%ij_TAx,  &
+                             ffTA(dataindex)%TAx,     &
+                             ffTA(dataindex)%ly,      &
+                             ffTA(dataindex)%ij_TAy,  &
+                             ffTA(dataindex)%TAy,     & 
+                             ffTA(dataindex)%lz,      &
+                             ffTA(dataindex)%ij_TAz,  &
+                             ffTA(dataindex)%TAz,     &
+                             inex)
+
+!           sigma_s=sigma_s + ffTA(dataindex)%Lgth + zb*betabeta0
+
+
+  	   !   - Repositionnement Final
+   	   if ((inex=="IN").or.(inex=="OUT_O")) then
+             ! First AntiQuad routine
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
+!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+
+             if (nbDlt<1) then
+	       ! Generate the anti-quad
+	       call GenerateAntiQuad(oidpsv(ffj), &
+	                         ffTA(dataindex)%n,                   &
+	                         ffTA(dataindex)%m,                   &
+	                         ffTA(dataindex)%s,                   &
+	                         ffTA(dataindex)%dz,                  &
+	                         ffTA(dataindex)%lz,                  &
+	                         ffTA(dataindex)%ij_TAz,              &
+	                         ffTA(dataindex)%TAz,inex,            &
+	                         ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                      &
+                                 ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+                                 ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+
+             else
+               ! Find the AQ matrix for the right dpsv
+               itDlt=0
+               do k=1,nbDlt
+                 if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
+                   itDlt=k
+                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                   itDlt=k
+                 endif
+               enddo
+               
+               
+               ! New AntiQuad routine
+               call ComputeAntiQuad(x,px,y,py,                 &
+                               ffTA(dataindex)%TAQx(1,1,itDlt),&
+                               ffTA(dataindex)%TAQx(1,2,itDlt),&
+                               ffTA(dataindex)%TAQx(2,1,itDlt),&
+                               ffTA(dataindex)%TAQx(2,2,itDlt),&
+                               ffTA(dataindex)%TAQy(1,1,itDlt),&
+                               ffTA(dataindex)%TAQy(1,2,itDlt),&
+                               ffTA(dataindex)%TAQy(2,1,itDlt),&
+                               ffTA(dataindex)%TAQy(2,2,itDlt))
+             endif
+             x=x+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+
+!             x=x+Ldpsv1*px;
+!             y=y+Ldpsv1*py;
+             
+  	   elseif (inex=="OUT") then
+!             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
+!                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
+!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+
+             x=x-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
+             y=y-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
+
+!             x=x-Ldpsv1*px;
+!             y=y-Ldpsv1*py;
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+             
+   	   endif
+
+
+
+!           sigmv(ffj)=sigmv(ffj)+sigma_s*c1e3;
+
+
+
+           ! Change to SixTrack referenciale
+           yv(1,ffj) = (tiltc(ffi)*px - tilts(ffi)*py)*c1e3*oidpsv(ffj)
+           yv(2,ffj) = (tilts(ffi)*px + tiltc(ffi)*py)*c1e3*oidpsv(ffj)
+           xv(1,ffj) = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
+           xv(2,ffj) = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
+	endif
+      endif
+
+
+   ! 11 : Test
+   ! -------------------------------------------------------------------------
+   else if ((workChoise == 11).and.(.not.firstTime)) then
+      call fftest(ffTA(dataindex)%n,     &
+                  ffTA(dataindex)%m,     &
+                  ffTA(dataindex)%s,     &
+                  ffTA(dataindex)%dz,    &
+                  ffTA(dataindex)%Lgth,  & 
+                  ffTA(dataindex)%lx,    &
+                  ffTA(dataindex)%ij_TAx,&
+                  ffTA(dataindex)%TAx,   &
+                  ffTA(dataindex)%ly,    &
+                  ffTA(dataindex)%ij_TAy,&
+                  ffTA(dataindex)%TAy,   &
+                  ffTA(dataindex)%lz,    &
+                  ffTA(dataindex)%ij_TAz,&
+                  ffTA(dataindex)%TAz,   &
+                  ffTA(dataindex)%norm)
+      ffImported(dataindex) = .true.
+      write (*,*) 'workChoise == 11'
+
+
+   ! 12 : Test
+   ! -------------------------------------------------------------------------
+   else if (workChoise == 12) then
+     if (ffi == 1) then !(.false.) then !
+       do j = 1,napx
+         if (.true..or.(nlostp(j) == 1).or.(nlostp(j) == 9).or.(nlostp(j) == 10).or.            &
+             (nlostp(j) == 15).or.(nlostp(j) == 16)) then
+           write(*,*) "12 21 ", ffi, ffn, j, nlostp(j), xv(1,j), yv(1,j), xv(2,j),&
+                       yv(2,j), dpsv(j), dpd(j), oidpsv(j)
+         endif
+       enddo
+     endif
+
+   ! 3 : Allocation table for particles out of boundary
+   ! -------------------------------------------------------------------------
+   else if ((workChoise == 3)) then
+      if (firstTime2) then
+         ALLOCATE(ffloss(1:npart,1:numl,1:ffNLn,1:2),ffnotIN(1:npart,1:ffNLn))
+         do i=1,npart
+            do j=1,numl
+               do k=1,ffNLn
+                  ffloss(i,j,k,1)=0
+                  ffloss(i,j,k,2)=0
+               enddo
+            enddo
+         enddo
+
+         do i=1,npart
+            do k=1,ffNLn
+               ffnotIN(i,k)=.false.
+            enddo
+         enddo
+
+         firstTime2=.false.
+
+      else
+         write(*,*) 'FringeField ERROR: Allocation table for particles out of boundary already done!'
+         return
+
+      endif
+   
+
+   ! 4 : Preparation of AQx and AQy
+   ! -------------------------------------------------------------------------
+   else if ((workChoise == 4).and.(.not.firstTime)) then
+     ! Check the maximum delta
+     delta=-1.0d0
+     do j=1,npart
+       if (delta<abs(dpsv(j))) then
+         delta=abs(dpsv(j))
+       endif
+     enddo
+     nbDlt=ceiling(abs( 2.0d0*(delta)*c1e6 ))
+
+     ! Check the maximum delta
+     do i=1,ffNLFile
+       if (ffImported(i) .eqv. .true.) then
+          Allocate(ffTA(i)%TAQx(1:2,1:2,1:nbDlt),ffTA(i)%TAQy(1:2,1:2,1:nbDlt),ffTA(i)%Tdpsv(1:nbDlt))
+          
+          do k=1,nbDlt
+            ffTA(i)%TAQx(1,1,k)=0;              ffTA(i)%TAQx(1,2,k)=0;
+            ffTA(i)%TAQx(2,1,k)=0;              ffTA(i)%TAQx(2,2,k)=0;
+            ffTA(i)%TAQy(1,1,k)=0;              ffTA(i)%TAQy(1,2,k)=0;
+            ffTA(i)%TAQy(2,1,k)=0;              ffTA(i)%TAQy(2,2,k)=0;
+            
+            ffTA(i)%Tdpsv(k)=(2.0d0*(k-1)/(nbDlt-1)- 1.0d0)*delta
+            
+            call GenerateAntiQuad(1.0d0/(1.0d0+ffTA(i)%Tdpsv(k)), &
+                                  ffTA(i)%n,                    &
+                                  ffTA(i)%m,                    &
+                                  ffTA(i)%s,                    &
+                                  ffTA(i)%dz,                   &
+                                  ffTA(i)%lz,                   &
+                                  ffTA(i)%ij_TAz,               &
+                                  ffTA(i)%TAz,inex,             &
+                                  ffTA(i)%TAQx(1,1,k),&
+                                  ffTA(i)%TAQx(1,2,k),&
+                                  ffTA(i)%TAQx(2,1,k),&
+                                  ffTA(i)%TAQx(2,2,k),&
+                                  ffTA(i)%TAQy(1,1,k),&
+                                  ffTA(i)%TAQy(1,2,k),&
+                                  ffTA(i)%TAQy(2,1,k),&
+                                  ffTA(i)%TAQy(2,2,k))
+         enddo
+       endif
+     enddo
+   
+   
+      
+      
+   ! 6 : End of the code -> free the memory
+   ! -------------------------------------------------------------------------
+   else if (workChoise == 6) then
+      write(*,*) " "
+      write(*,*) "------------------------ Fringe Field end ------------------------"
+
+
+      if (.not.firstTime2) then
+
+!         if (.not.firstTime) then
+!            do i = 1,npart
+!               if (pstop(i)) then
+!                  write(*,*) "     * Part ",i,":    LOST!!!"
+!               else
+!                  write(*,*) "     * Part ",i,":"
+!               endif
+!
+!               do k = 1,ffNLn
+!                  sum_loss_in=0
+!                  sum_loss_out=0
+!                  do j = 1,numl
+!                     sum_loss_in =sum_loss_in +ffloss(i,j,k,1)
+!                     sum_loss_out=sum_loss_out+ffloss(i,j,k,2)
+!                  enddo
+!            
+!                  write(*,*) "           -> ",TRIM(ffQNames(k)),": Number of period out of boundary: (in) ",&
+!                         &sum_loss_in," (out) ",sum_loss_out
+!               enddo
+!            enddo
+!         endif
+
+         deallocate(ffloss,ffnotIN)
+         firstTime2 = .true.
+         write (*,*) "FringeField      : Table for particle out of boundary deallocated!"
+
+      else
+         write (*,*) "FringeField      : Table for particle out of boundary wasn't deallocated!"
+
+      endif
+
+
+
+      if (.not.firstTime) then
+         do i = 1,ffNLFile
+            if (ffImported(i)) then
+               deallocate(ffTA(i)%ij_TAx, ffTA(i)%ij_TAy, ffTA(i)%ij_TAz )
+               deallocate(ffTA(i)%TAx   , ffTA(i)%TAy   , ffTA(i)%TAz    )
+               deallocate(ffTA(i)%AQx   , ffTA(i)%AQy   )!, ffTA(i)%checkAQ)
+               deallocate(ffTA(i)%TAQx  , ffTA(i)%TAQy  , ffTA(i)%Tdpsv  )
+            endif
+         enddo
+         deallocate (ffTA)
+         deallocate (ffImported)
+         deallocate (ffQNames, ffParam)
+         ffQNames => NULL()
+         ffParam => NULL()
+         firstTime = .true.
+         write (*,*) "FringeField      : All Fringe-Field table's deallocated!"
+
+      else
+         write (*,*) "FringeField      : All Fringe-Field table's weren't deallocated!"
+
+      endif
+   
+   else
+      write(*,*) 'FringeField ERROR: Not valid choise ', workChoise, ' or empty tables >> ', firstTime
+      write(*,*) '                   CurQ = ',currQuad(1),currQuad(2)
+      write(*,*) '                   ffQ2File = ',ffQ2File(currQuad(1),currQuad(2)),' Id Tab = ', dataindex
+
+   endif
+   
+   return
+end subroutine
+
+
+
+
+!! ---------------------------------------------------------------------------
+!!      Routine to test the code
+!! ---------------------------------------------------------------------------
+subroutine fftest(n,m,s,dz,Lgth,lx,ij_TAx,TAx,ly,ij_TAy,TAy,lz,ij_TAz,TAz,norm)
+     integer :: n,m,s                                                       ! Maximum exposant for x and y, Number of point in z
+     integer :: lx,ly,lz                                                    ! 
+     integer(kind=2),dimension(:,:,:), allocatable :: ij_TAx,ij_TAy,ij_TAz  ! Table of indices ij for Ax, Ay and Az
+     double precision :: dz,norm,Lgth                                       ! Step size in z and normalisation
+     double precision,dimension(:,:), allocatable :: TAx,TAy,TAz            ! New table of coefficients of Ax, Ay and Az
+     
+
+     n = 3
+     m = 12
+     s = 12122
+     dz = 0.256
+     Lgth = 0.1
+     lx = 223
+     ly = 225
+     lz = 224
+
+     allocate(ij_TAx(1:2,1:2,1:3), ij_TAz(1:2,1:2,1:3), ij_TAy(1:2,1:2,1:3))
+     allocate(TAx(1:2,1:2), TAz(1:2,1:2), TAy(1:2,1:2))
+
+     ij_TAx(1:2,1:2,1:3) = 1
+     TAx(1:2,1:2) = 2
+     ij_TAy(1:2,1:2,1:3) = 3
+     TAy(1:2,1:2) = 4
+     ij_TAz(1:2,1:2,1:3) = 5
+     TAz(1:2,1:2) = 9
+     norm = 0.288
+end subroutine
+
+!! ---------------------------------------------------------------------------
+!!      Read config file
+!! ---------------------------------------------------------------------------
+subroutine ReadconfigFile
+   implicit none
+
+   
+   ! Initialisation common space with SixTrack
+   ! -------------------------------------------------------------------------
++ca parpro
+
++ca ffieldcommon
+
++ca ffieldcommon1
+
+
+   ! Initialisation of parametters
+   ! -------------------------------------------------------------------------
+   logical :: conti = .true.
+   integer :: istat                                       ! Check accecibility of file
+   integer :: i, id
+   character(len=40) :: word 
+   character(len=150) :: path
+!   character(len=150) :: file_tm
+   
+
+   ! Find the file path
+   ! -------------------------------------------------------------------------
+   call getenv('FFConfigPath', path)
+   
+   if (path == " ") then
+      write(*, *) "FringeField WARNING: Couldn't read the environment variable 'FFConfigPath'"
+!      path ='/afs/cern.ch/user/d/dalena/hllhc/'
+      path ='./'
+      write(*, *) "                     we look for 'configFringeField.txt' in ", TRIM(ADJUSTL(path))
+   endif
+
+
+   ! Open the file
+   ! -------------------------------------------------------------------------
+   istat=0
+   ffNLn=0
+   ffNLFile=0
+   open(1789,file=TRIM(ADJUSTL(path))//'/configFringeField.txt',form='formatted',status='old',iostat=istat)
+   if (istat/=0) then
+      write(*,*) "FringeField ERROR: Couldn't find the configuration file configFringeField.txt" 
+      write(*,*) "FringeField ERROR: in ",TRIM(ADJUSTL(path))
+   else
+      ! Counting the line in the first part of the file
+      ! -------------------------------------------------------------------------
+      read(1789,*,iostat=istat) word           !skip the first line
+      if ((word == "NEXT").or.(word == "END")) then
+         write(*,*) 'FringeField ERROR: Wrong format config file'
+         return
+      endif
+
+      read(1789,*,iostat=istat) word           !skip the second line
+      if ((word == "NEXT").or.(word == "END")) then
+         write(*,*) 'FringeField ERROR: Wrong format config file'
+         return
+      endif
+
+      do while((istat==0).and.(conti))    !start reading   
+         read(1789,*,iostat=istat) word
+         if (word=="NEXT") then
+            conti=.false.
+         else
+            ffNLn=ffNLn+1
+         endif
+      end do
+
+      ! Counting the line in the second part of the file
+      ! -------------------------------------------------------------------------
+      conti = .true.
+
+      read(1789,*,iostat=istat) word           !skip the first line
+      if ((word == "NEXT").or.(word == "END")) then
+         write(*,*) 'FringeField ERROR: Wrong format config file'
+         return
+      endif
+
+      do while((istat==0).and.(conti))    !start reading       
+         read(1789,*,iostat=istat) word
+         if (word=="END") then
+            conti=.false.
+         endif
+         ffNLFile=ffNLFile+1 
+      end do
+
+      close(1789)
+      if ((ffNLn < 1).or.(ffNLFile < 1)) then
+         write(*,*) "FringeField ERROR: The configuration file configFringeField.txt has only ",ffNLn," and ", ffNLFile,"lines" 
+      else
+         allocate(ffQNames(1:ffNLn), ffFNames(1:ffNLFile), ffParam(1:ffNLFile,1:6), ffQ2File(1:ffNLn, 1:2))
+         ffQNames = " "
+         ffFNames = " "
+         ffParam  = 0.0d0
+         ffQ2File  = 0
+         open(1789,file=TRIM(ADJUSTL(path))//'configFringeField.txt',form='formatted',status='old',iostat=istat)
+         
+         !Read the first part
+         read(1789,*,iostat=istat)
+         read(1789,*,iostat=istat)
+
+         do i=1,ffNLn
+            !                         Quad name   ,File in       ,File out
+            read(1789,*,iostat=istat) ffQNames(i), ffQ2File(i,1), ffQ2File(i,2)
+         enddo
+         
+         !Read the second part
+         read(1789,*,iostat=istat)
+         read(1789,*,iostat=istat)
+
+         do i=1,ffNLFile
+            !                         Filename   ,K0          ,LinQ        ,Corr. x     ,Corr. y     ,Corr. K     ,Length File
+            read(1789,*,iostat=istat) ffFNames(i),ffParam(i,1),ffParam(i,2),ffParam(i,3),ffParam(i,4),ffParam(i,5),ffParam(i,6)
+!            read(1789,*,iostat=istat) file_tm,ffParam(i,1),ffParam(i,2),ffParam(i,3),ffParam(i,4),ffParam(i,5),ffParam(i,6)
+!            ffFNames(i)=TRIM(ADJUSTL(path))//TRIM(ADJUSTL(file_tm))
+         enddo
+
+         !check inputs
+         do i = 1,ffNLn
+            do id = 1,2
+               if ((ffQ2File(i,id) > ffNLFile).or.(ffQ2File(i,id) < 1)) then
+                  write(*,*) "FringeField ERROR: In the configuration file, file name reference is bad"
+                  return
+               endif
+            enddo
+         enddo
+
+         write(*,*) "FringeField      : SUCCESS!!!!!!!!!"
+         ffReady = .true.
+         close(1789)
+      endif
+   endif
+end subroutine
+
+
+
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine creating the vector potential tables
+!! ---------------------------------------------------------------------------
+subroutine CreateVectCoef(FileName,n,m,s,dz,Lgth,linex,ij_TAx,TAx,liney,ij_TAy,TAy,linez,ij_TAz,TAz,norm,OKRead)
+
+
+   ! Initialisation of the parametters
+   ! -------------------------------------------------------------------------
+   character(len=*) :: FileName                                         ! File adress
+   logical :: OKRead                                                    ! Error
+   integer :: n,m,s                                                     ! Maximum exposant for x and y, Number of point in z
+   integer :: linex,liney,linez                                         ! Number of coefficient by point
+   integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx,ij_TAy,ij_TAz ! Table of indices ij for Ax, Ay et Az
+   double precision :: dz, norm,Lgth                                    ! Step size in z and normalisation
+   double precision,dimension(:,:),allocatable :: TAx,TAy,TAz           ! New table for coefficients of Ax, Ay et Az
+
+   interface
+      subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth,linex,ij_TAx,TAx,liney,ij_TAy,TAy,linez,ij_TAz,TAz,norm,OKRead)
+         character(len=*) :: FileName
+         logical :: OKRead
+         integer :: n,m,s
+         integer :: linex,liney,linez
+         integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx, ij_TAy, ij_TAz
+         double precision :: dz, norm,Lgth
+         double precision,dimension(:,:),allocatable :: TAx, TAy, TAz
+      end subroutine
+   end interface
+
+
+   ! Detect the mamixum exposant for x and y, and the number of point in z
+   ! -------------------------------------------------------------------------
+   call ReadExpMax(FileName, n, m, s, OKRead)
+
+   if (.not.OKRead) then
+      stop
+   endif
+
+
+   ! Generate the vecto potential table
+   ! -------------------------------------------------------------------------
+   call ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_TAy,TAy, linez,ij_TAz,TAz, norm,OKRead)
+end subroutine
+
+
+
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine that detect the max expo. of x and y and the nb of step in z
+!! ---------------------------------------------------------------------------
+subroutine ReadExpMax(FileName, n, m, s, OKRead)
+
+
+   ! Initialisation of parametters
+   ! -------------------------------------------------------------------------
+   !character(*), PARAMETER :: fileplace = "/afs/cern.ch/user/d/dalena/hllhc/" 
+   character(len=*) :: FileName                                               ! File Adress
+   logical :: OKRead                                                          ! Error
+   integer :: istat                                                           ! Check. accecibility of the file
+   integer :: line                                                            ! Nb of line in file
+   integer :: n,m,s                                                           ! Exposant max for x and y, Nb of point in z
+   integer :: expx,expy,expz                                                  ! Expo. for x, y and z
+   integer, parameter :: lun=10                                               ! 
+   double precision :: st, sm1                                                ! Parametter for the detection of new step in z
+
+
+   ! Check the file exist
+   ! -------------------------------------------------------------------------
+   istat=0
+   open(unit=lun,iostat=istat,file=TRIM(ADJUSTL(FileName)),STATUS='OLD')
+   if (istat/=0) then
+      write(*,*) "FringeField ERROR: Opening Error ", FileName
+      stop
+   endif
+
+
+   ! Initialize values
+   ! -------------------------------------------------------------------------
+   istat=0
+   n=0
+   m=0
+   st=0.
+   sm1=1e12
+   line=1
+   s=0
+   
+
+   ! Read file
+   ! -------------------------------------------------------------------------
+   do while(istat==0)
+      read(lun,*,iostat=istat) st, expx, expy, expz ! Read line
+      if (st>sm1+1e-12) then                        ! Detect new step in z
+         s = s + 1                                  ! Compte step in z
+      endif
+      if (expx>n) n=expx                            ! Max. expo. in x
+      if (expy>m) m=expy                            ! Max. expo. in y
+      sm1=st
+      line=line+1                                   ! File size
+   end do
+
+
+   ! Close file
+   ! -------------------------------------------------------------------------
+   close(lun)
+   OKRead=.True.
+   return
+end subroutine
+
+
+
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine that generate the vector potential tables
+!! ---------------------------------------------------------------------------
+subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_TAy,TAy, linez,ij_TAz,TAz, norm,OKRead)
+
+
+   ! Initialization of parametters
+   ! -------------------------------------------------------------------------
+   !character(*), PARAMETER :: fileplace = "/afs/cern.ch/user/d/dalena/hllhc/" 
+   character(len=*) :: FileName                                             ! File adress
+   logical :: CoefSave                                                      ! 
+   logical :: OKRead                                                        ! Error
+   integer :: istat                                                         ! Check file accecibility
+   integer :: k,l                                                           ! Line for the table x, y and z
+   integer :: n,m,s                                                         ! Max. expo. for x and y, Number of point in z
+   integer :: expx,expy,expz                                                ! Expo. of x, y and z
+   integer :: sline                                                         ! Line in z
+   integer :: ind,alloc_stat
+   integer :: linex,liney,linez,tlinex,tliney,tlinez                        ! 
+   integer, parameter :: lun=10                                             ! 
+   integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx, ij_TAy, ij_TAz   ! Table of indices ij for Ax, Ay et Az
+   integer(kind=2),dimension(:,:,:),allocatable :: tpij_Ax, tpij_Ay, tpij_Az! Temporary table of indices ij for Ax, Ay et Az
+   double precision :: ax, ay, az                                           ! Coef. values
+   double precision :: st, sm1                                              ! Parametter for step size detection z
+   double precision :: dz, norm                                             ! Step size in z and normalization
+   double precision :: zin, Lgth
+   double precision,dimension(:,:),allocatable :: TAx, TAy, TAz             ! New table for coefficients of Ax, Ay and Az
+   double precision,dimension(:,:),allocatable :: tpTAx, tpTAy, tpTAz       ! Temporary table for coeff. of Ax, Ay and Az
+
+
+   ! Allocation of memory for tables
+   ! -------------------------------------------------------------------------
+   ind= n*m/2
+   ALLOCATE(tpTAx(0:ind,0:s),tpTAy(0:ind,0:s),tpTAz(0:ind,0:s), stat = alloc_stat)
+   if (alloc_stat/=0) then
+      write(*,*) "FringeField ERROR: Error allocate Tab FileRead"
+      return
+   endif                                            ! (line,z)
+   ALLOCATE(tpij_Ax(0:1,0:ind,0:s),tpij_Ay(0:1,0:ind,0:s),tpij_Az(0:1,0:ind,0:s), stat = alloc_stat)
+   if (alloc_stat/=0) then
+      write(*,*) "FringeField ERROR: Error allocate Tab FileRead"
+      return
+   endif                                            ! (0 pour i et 1 pour j,line,z)
+   
+
+   linex=0;liney=0;linez=0
+   do k=0,s
+      ! Initialize tables
+      ! -------------------------------------------------------------------------
+      do l=0,ind
+            tpTAx(l,k)=0.0d0
+            tpTAy(l,k)=0.0d0
+            tpTAz(l,k)=0.0d0
+            tpij_Ax(0,l,k)=0 ;tpij_Ax(1,l,k)=0 
+            tpij_Ay(0,l,k)=0 ;tpij_Ay(1,l,k)=0 
+            tpij_Az(0,l,k)=0 ;tpij_Az(1,l,k)=0 
+      enddo
+   enddo
+
+   ! Check file exist
+   ! -------------------------------------------------------------------------
+   istat=0
+   open(unit=lun,iostat=istat,file=TRIM(ADJUSTL(FileName)),STATUS='OLD')
+   if (istat/=0) then
+      write(6,*) "FringeField ERROR: Opening Error ", FileName
+      OKRead=.False.
+      stop
+   endif
+
+   ! Initialize parameters
+   ! -------------------------------------------------------------------------
+   st=0.
+   sm1=1e+12
+   istat=0
+   sline=0
+   dz=0
+
+
+   ! Read coef file
+   ! -------------------------------------------------------------------------
+   tlinex=0; tliney=0; tlinez=0
+   do while(istat==0)
+      st=0.0d0; expx=0; expy=0; expz=0; ax=0.0d0; ay=0.0d0; az=0.0d0; 
+      read(lun,*,iostat=istat) st, expx, expy, expz, ax, ay, az              ! Read line
+
+
+      if (st>sm1+1e-12) then                                                 ! Detect stepin z
+         dz=dz+st-sm1
+         sline = sline + 1
+         tlinex=0; tliney=0; tlinez=0
+      endif
+      if (sline == 0) zin = st
+      
+      ! --------------- Detect coef non trivial for Ax ---------------
+      if (ax/=0.) then
+         CoefSave=.False.
+
+         if (tlinex/=0) then
+            do l=0,tlinex               ! Check coef already saved
+               if ((tpij_Ax(0,l,sline)==INT2(expx)).AND.(tpij_Ax(1,l,sline)==INT2(expy))) then
+                  tpTAx(l,sline)=tpTAx(l,sline) + ax
+                  CoefSave=.True.
+               endif
+            enddo
+         endif
+
+         if (CoefSave.eqv..False.) then ! Create new coef
+
+            tpij_Ax(0,tlinex,sline)=INT2(expx)
+            tpij_Ax(1,tlinex,sline)=INT2(expy)
+            tpTAx(tlinex,sline)=tpTAx(tlinex,sline) + ax
+            tlinex=tlinex+1
+            CoefSave=.True.
+         endif
+      endif
+
+      ! --------------- Detect coef non trivial for Ay ---------------
+      if (ay/=0.) then
+         CoefSave=.False.
+
+         if (tliney/=0) then
+            do l=0,tliney               ! Check coef already saved
+               if ((tpij_Ay(0,l,sline)==INT2(expx)).AND.(tpij_Ay(1,l,sline)==INT2(expy))) then
+                  tpTAy(l,sline)=tpTAy(l,sline) + ay
+                  CoefSave=.True.
+               endif
+            enddo
+         endif
+
+         if (CoefSave.eqv..False.) then ! Create new coef
+            tpij_Ay(0,tliney,sline)=INT2(expx)
+            tpij_Ay(1,tliney,sline)=INT2(expy)
+            tpTAy(tliney,sline)=tpTAy(tliney,sline) + ay
+            tliney=tliney+1
+            CoefSave=.True.
+         endif
+      endif
+
+      ! --------------- Detect coef non trivial for Az ---------------
+      if (az/=0.) then
+         CoefSave=.False.
+
+         if (tlinez/=0) then
+            do l=0,tlinez               ! Check coef already saved
+               if ((tpij_Az(0,l,sline)==INT2(expx)).AND.(tpij_Az(1,l,sline)==INT2(expy))) then
+                  tpTAz(l,sline)=tpTAz(l,sline) + az
+                  CoefSave=.True.
+               endif
+            enddo
+         endif
+
+         if (CoefSave.eqv..False.) then ! Create new coef
+            tpij_Az(0,tlinez,sline)=INT2(expx)
+            tpij_Az(1,tlinez,sline)=INT2(expy)
+            tpTAz(tlinez,sline)=tpTAz(tlinez,sline) + az
+            tlinez=tlinez+1
+            CoefSave=.True.
+         endif
+      endif
+
+
+      ! Update tables size
+      ! -------------------------------------------------------------------------
+      if (linex<tlinex-1) then
+         linex=tlinex-1
+      endif
+      if (liney<tliney-1) then
+         liney=tliney-1
+      endif
+      if (linez<tlinez-1) then
+         linez=tlinez-1
+      endif
+
+      if (istat==0) then
+         sm1=st
+      endif
+      if (sline>s) then                                                      ! Detect error in z
+         OKRead=.False.
+         stop
+      endif
+   enddo
+   !Lgth = st - zin
+   Lgth = sm1 - zin
+
+
+   ! Normalize coefficients
+   ! -------------------------------------------------------------------------
+   do k=0,s
+      do l=0,linex
+         tpTAx(l,k)=tpTAx(l,k)*norm
+      enddo
+   enddo
+   do k=0,s
+      do l=0,liney
+         tpTAy(l,k)=tpTAy(l,k)*norm
+      enddo
+   enddo
+   do k=0,s
+      do l=0,linez
+         tpTAz(l,k)=tpTAz(l,k)*norm
+      enddo
+   enddo
+   dz=dz/dble(sline)
+!   Lgth = Lgth + dz   
+
+   ! Reduce table size
+   ! -------------------------------------------------------------------------
+   ALLOCATE(TAx(0:linex,0:s),TAy(0:liney,0:s),TAz(0:linez,0:s))                     ! (z,line)
+   ALLOCATE(ij_TAx(0:1,0:linex,0:s),ij_TAy(0:1,0:liney,0:s),ij_TAz(0:1,0:linez,0:s))! (z,line,0 pour i et 1 pour j)
+   
+   TAx(0:linex,0:s)=tpTAx(0:linex,0:s); ij_TAx(:,0:linex,0:s)=tpij_Ax(:,0:linex,0:s)
+   TAy(0:liney,0:s)=tpTAy(0:liney,0:s); ij_TAy(:,0:liney,0:s)=tpij_Ay(:,0:liney,0:s)
+   TAz(0:linez,0:s)=tpTAz(0:linez,0:s); ij_TAz(:,0:linez,0:s)=tpij_Az(:,0:linez,0:s)
+
+   DEALLOCATE(tpTAx,tpTAy,tpTAz)
+   DEALLOCATE(tpij_Ax,tpij_Ay,tpij_Az)
+   
+
+   ! Detect error during the reading 
+   ! -------------------------------------------------------------------------
+   if (istat>0) then
+      write(6,*) "FringeField ERROR: Reading Error Line ",line
+      OKRead=.False.
+      stop
+   endif
+   
+
+   ! Close file
+   ! -------------------------------------------------------------------------
+   close(10)
+   OKRead=.True.
+   return
+end subroutine
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de calcul du vecteur potentiel au point (x,y,z)
+!! ---------------------------------------------------------------------------
+subroutine Horner2D(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
+   implicit none
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   integer,intent(in) :: n,m,s                            ! Exposant max pour x et y, et nb de pas en z
+   integer,intent(in) :: z                                ! Position en z
+   integer,intent(in) :: line                             ! 
+   integer :: l                                           ! Indice en x et en y pour les boucles
+   integer(kind=2),intent(in) :: ij_Tab(0:1,0:line,0:s)   ! 
+   double precision,intent(in) :: x,y                     ! Position en x et y
+   double precision :: xpow(0:n),ypow(0:m)                ! 
+   double precision,intent(out) :: resultat               ! Valeur du vecteur potentiel au point (x,y,z)
+   double precision,intent(in) :: Tab(0:line,0:s)         ! Tableau des coef.
+   double precision :: r0                                 ! Variable pour le calcul du vecteur potentiel
+
+   integer :: max_i,max_j                                 ! variable to prevent the SIGFPE
+   double precision :: log_tmp
+
+   ! Initialisation des vecteurs xpow et ypow
+   ! -------------------------------------------------------------------------
+   log_tmp=abs(log10(abs(x)))
+   if (log_tmp*(n)>230) then
+      max_i=230/log_tmp
+   else
+      max_i=n
+   endif
+   log_tmp=abs(log10(abs(y)))
+   if (log_tmp*(m)>230) then
+      max_j=230/log_tmp
+   else
+      max_j=m
+   endif
+
+   xpow(0)=1.0d0
+   do l=1,max_i
+      xpow(l)=xpow(l-1)*x 
+   enddo
+   ypow(0)=1.0d0
+   do l=1,max_j
+      ypow(l)=ypow(l-1)*y 
+   enddo
+
+   
+   ! Initialisation de la boucle en x
+   ! -------------------------------------------------------------------------
+   r0=0.0d0
+   do l=0,line
+      if ((ij_Tab(0,l,z)<=max_i).and.(ij_Tab(1,l,z)<=max_j)) then
+         r0 = r0 + xpow(ij_Tab(0,l,z))*ypow(ij_Tab(1,l,z))*Tab(l,z)
+      endif
+   enddo
+   resultat=r0
+end subroutine
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de calcul du vecteur potentiel au point (x,y,z)
+!! ---------------------------------------------------------------------------
+subroutine HornerDX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
+   implicit none
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   integer,intent(in) :: n,m,s                            ! Exposant max pour x et y, et nb de pas en z
+   integer,intent(in) :: z                                ! Position en z
+   integer,intent(in) :: line                             ! 
+   integer :: l                                           ! Indice en x et en y pour les boucles
+   integer(kind=2),intent(in) :: ij_Tab(0:1,0:line,0:s)   ! 
+   double precision,intent(in) :: x,y                     ! Position en x et y
+   double precision :: xpow(0:n-1),ypow(0:m)              ! 
+   double precision,intent(out) :: resultat               ! Valeur du vecteur potentiel au point (x,y,z)
+   double precision,intent(in) :: Tab(0:line,0:s)         ! Tableau des coef.
+   double precision :: r0                                 ! Variable pour le calcul du vecteur potentiel
+   double precision :: di                                 ! Coefficient du a la derrivee
+
+   integer :: max_i,max_j                                 ! variable to prevent the SIGFPE
+   double precision :: log_tmp
+
+   ! Initialisation des vecteurs xpow et ypow
+   ! -------------------------------------------------------------------------
+   log_tmp=abs(log10(abs(x)))
+   if (log_tmp*(n-1)>230) then
+      max_i=230/log_tmp
+   else
+      max_i=n-1
+   endif
+   log_tmp=abs(log10(abs(y)))
+   if (log_tmp*(m)>230) then
+      max_j=230/log_tmp
+   else
+      max_j=m
+   endif
+
+
+   ! Initialisation des vecteurs xpow et ypow
+   ! -------------------------------------------------------------------------
+   xpow(0)=1.0d0
+   do l=1,max_i
+      xpow(l)=xpow(l-1)*x 
+   enddo
+   ypow(0)=1.0d0
+   do l=1,max_j
+      ypow(l)=ypow(l-1)*y 
+   enddo
+   
+   ! Initialisation de la boucle en x
+   ! -------------------------------------------------------------------------
+   r0=0.0d0
+   do l=0,line
+      di=dble(ij_Tab(0,l,z))
+      if ((di>0).and.(ij_Tab(0,l,z)-1<=max_i).and.(ij_Tab(1,l,z)<=max_j)) then
+         r0 = r0 + di*xpow(ij_Tab(0,l,z) - 1)*ypow(ij_Tab(1,l,z))*Tab(l,z)
+      endif
+   enddo
+   resultat=r0
+end subroutine
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de calcul du vecteur potentiel au point (x,y,z)
+!! ---------------------------------------------------------------------------
+subroutine HornerDY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
+   implicit none
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   integer,intent(in) :: n,m,s                            ! Exposant max pour x et y, et nb de pas en z
+   integer,intent(in) :: z                                ! Position en z
+   integer,intent(in) :: line                             ! 
+   integer :: l                                           ! Indice en x et en y pour les boucles
+   integer(kind=2),intent(in) :: ij_Tab(0:1,0:line,0:s)   ! 
+   double precision,intent(in) :: x,y                     ! Position en x et y
+   double precision :: xpow(0:n),ypow(0:m-1)              ! 
+   double precision,intent(out) :: resultat               ! Valeur du vecteur potentiel au point (x,y,z)
+   double precision,intent(in) :: Tab(0:line,0:s)         ! Tableau des coef.
+   double precision :: r0                                 ! Variable pour le calcul du vecteur potentiel
+   double precision :: dj                                 ! Coefficient du a la derrivee
+
+   integer :: max_i,max_j                                 ! variable to prevent the SIGFPE
+   double precision :: log_tmp
+
+   ! Initialisation des vecteurs xpow et ypow
+   ! -------------------------------------------------------------------------
+   log_tmp=abs(log10(abs(x)))
+   if (log_tmp*(n)>230) then
+      max_i=230/log_tmp
+   else
+      max_i=n
+   endif
+   log_tmp=abs(log10(abs(y)))
+   if (log_tmp*(m-1)>230) then
+      max_j=230/log_tmp
+   else
+      max_j=m-1
+   endif
+
+   xpow(0)=1.0d0
+   do l=1,max_i
+      xpow(l)=xpow(l-1)*x 
+   enddo
+   ypow(0)=1.0d0
+   do l=1,max_j
+      ypow(l)=ypow(l-1)*y 
+   enddo
+   
+   ! Initialisation de la boucle en x
+   ! -------------------------------------------------------------------------
+   r0=0.0d0
+   do l=0,line
+      dj=dble(ij_Tab(1,l,z))
+      if ((dj>0).and.(ij_Tab(0,l,z)<=max_i).and.(ij_Tab(1,l,z)-1<=max_j)) then
+         r0 = r0 + dj*xpow(ij_Tab(0,l,z))*ypow(ij_Tab(1,l,z) - 1)*Tab(l,z)
+      endif
+   enddo
+   resultat=r0
+end subroutine
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de calcul du vecteur potentiel au point (x,y,z)
+!! ---------------------------------------------------------------------------
+subroutine HornerDYIntX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
+   implicit none
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   integer,intent(in) :: n,m,s                            ! Exposant max pour x et y, et nb de pas en z
+   integer,intent(in) :: z                                ! Position en z
+   integer,intent(in) :: line                             ! 
+   integer :: l                                           ! Indice en x et en y pour les boucles
+   integer(kind=2),intent(in) :: ij_Tab(0:1,0:line,0:s)   ! 
+   double precision,intent(in) :: x,y                     ! Position en x et y
+   double precision :: xpow(0:n+1),ypow(0:m-1)            ! 
+   double precision,intent(out) :: resultat               ! Valeur du vecteur potentiel au point (x,y,z)
+   double precision,intent(in) :: Tab(0:line,0:s)         ! Tableau des coef.
+   double precision :: r0                                 ! Variable pour le calcul du vecteur potentiel
+   double precision :: di,dj                              ! Coefficient du a la derivee ou l'integration
+
+   integer :: max_i,max_j                                 ! variable to prevent the SIGFPE
+   double precision :: log_tmp
+
+   ! Initialisation des vecteurs xpow et ypow
+   ! -------------------------------------------------------------------------
+   log_tmp=abs(log10(abs(x)))
+   if (log_tmp*(n+1)>230) then
+      max_i=230/log_tmp
+   else
+      max_i=n+1
+   endif
+   log_tmp=abs(log10(abs(y)))
+   if (log_tmp*(m-1)>230) then
+      max_j=230/log_tmp
+   else
+      max_j=m-1
+   endif
+   
+   xpow(0)=1.0d0
+   do l=1,max_i
+      xpow(l)=xpow(l-1)*x 
+   enddo
+   ypow(0)=1.0d0
+   do l=1,max_j
+      ypow(l)=ypow(l-1)*y 
+   enddo
+   
+   ! Initialisation de la boucle en x
+   ! -------------------------------------------------------------------------
+   r0=0.0d0
+   do l=0,line
+!      di=dble(ij_Tab(0,l,z))
+      di=dble(ij_Tab(0,l,z) + 1)
+      dj=dble(ij_Tab(1,l,z))
+      if ((dj>0).and.(ij_Tab(0,l,z)+1<=max_i).and.(ij_Tab(1,l,z)-1<=max_j)) then
+        r0 = r0 + dj*xpow(ij_Tab(0,l,z) + 1)*ypow(ij_Tab(1,l,z) - 1)*Tab(l,z)/di
+
+      endif
+   enddo
+   resultat=r0
+end subroutine
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine de calcul du vecteur potentiel au point (x,y,z)
+!! ---------------------------------------------------------------------------
+subroutine HornerDXIntY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
+   implicit none
+
+   ! Initialisation des paramettres
+   ! -------------------------------------------------------------------------
+   integer,intent(in) :: n,m,s                            ! Exposant max pour x et y, et nb de pas en z
+   integer,intent(in) :: z                                ! Position en z
+   integer,intent(in) :: line                             ! 
+   integer :: l                                           ! Indice en x et en y pour les boucles
+   integer(kind=2),intent(in) :: ij_Tab(0:1,0:line,0:s)   ! 
+   double precision,intent(in) :: x,y                     ! Position en x et y
+   double precision :: xpow(0:n-1),ypow(0:m+1)            ! 
+   double precision,intent(out) :: resultat               ! Valeur du vecteur potentiel au point (x,y,z)
+   double precision,intent(in) :: Tab(0:line,0:s)         ! Tableau des coef.
+   double precision :: r0                                 ! Variable pour le calcul du vecteur potentiel
+   double precision :: di,dj                              ! Coefficient du a la derrivee ou l'integration
+
+   integer :: max_i,max_j                                 ! variable to prevent the SIGFPE
+   double precision :: log_tmp
+
+   ! Initialisation des vecteurs xpow et ypow
+   ! -------------------------------------------------------------------------
+   log_tmp=abs(log10(abs(x)))
+   if (log_tmp*(n-1)>230) then
+      max_i=230/log_tmp
+   else
+      max_i=n-1
+   endif
+   log_tmp=abs(log10(abs(y)))
+   if (log_tmp*(m+1)>230) then
+      max_j=230/log_tmp
+   else
+      max_j=m+1
+   endif
+   
+   xpow(0)=1.0d0
+   do l=1,max_i
+      xpow(l)=xpow(l-1)*x 
+   enddo
+   ypow(0)=1.0d0
+   do l=1,max_j
+      ypow(l)=ypow(l-1)*y 
+   enddo
+   
+   ! Initialisation de la boucle en x
+   ! -------------------------------------------------------------------------
+   r0=0.0d0
+   do l=0,line
+      di=dble(ij_Tab(0,l,z))
+!      dj=dble(ij_Tab(1,l,z))
+      dj=dble(ij_Tab(1,l,z) + 1)
+      if ((di>0).and.(ij_Tab(0,l,z)-1<=max_i).and.(ij_Tab(1,l,z)+1<=max_j)) then
+         r0 = r0 + di*xpow(ij_Tab(0,l,z) - 1)*ypow(ij_Tab(1,l,z) + 1)*Tab(l,z)/dj
+
+      endif
+   enddo
+   resultat=r0
+end subroutine
+
+!! ---------------------------------------------------------------------------
+!!      Subroutine for MAJ of the point (x,y,z,px,py,deltap1)
+!! ---------------------------------------------------------------------------
+subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,inex)
+   implicit none
+
+   ! Definition of parameters
+   ! -------------------------------------------------------------------------
+   character(len=512) :: inex           ! Characterize if IN or OUT part of the Quad
+   integer :: i                         ! Indice for loop in z
+   integer :: n,m,s                     ! Expo. max for x and y, and Nb of step in z
+   integer :: lx,ly,lz                  ! Number max of coefficient by step
+   integer :: startp,endp,sens
+   integer(kind=2) :: ij_Ax(0:1,0:lx,0:s),ij_Ay(0:1,0:ly,0:s),ij_Az(0:1,0:lz,0:s)
+   double precision :: x, y, zb         ! Initial position x, y and curviligne z
+   double precision :: px, py           ! Initial impulsion
+   double precision :: dz               ! Step in z
+   double precision :: valA             ! Coefficient of MAJ given by Horner subroutine
+   double precision :: dzover2          ! Dsigma/2
+   double precision :: deltap1,g2d2inv  ! 1/(delta+1)
+   double precision :: TAx(0:lx,0:s),TAy(0:ly,0:s),TAz(0:lz,0:s)! Coefficient of Vector Potential by step
+   
+   
+   ! Initialise the step size in z
+   ! -------------------------------------------------------------------------
+   dzover2=0.5d0*dz !loc
+
+   !                    ?????????????????????????????????
+   ! -------------------------------------------------------------------------
+!   g2d2inv=deltap1*deltap1*0.5d0
+   
+   
+   ! Loop in z
+   ! -------------------------------------------------------------------------
+   startp = 0
+   endp = s-1
+!   endp = s
+   sens = 1
+
+
+   ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inverse the reading of the table if OUT_O
+   if (inex=="OUT_O") then
+      startp = endp
+      endp = 0
+      sens = -1
+      dz=-dz
+      dzover2=-dzover2
+   endif
+   ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Inverse the reading of the table if OUT_O
+
+   do i=startp,endp,sens
+      !             * h1
+!      zb=zb-dzover2                                    ! ???????????
+
+      !             * h2
+      call HornerDX(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
+      px=px+dzover2*valA
+      call HornerDY(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
+      py=py+dzover2*valA
+
+      !             * h3
+      !                 ** Change of variable
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      px=px-valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py-valA
+
+      x=x+dzover2*px*deltap1
+ !     zb=zb-dzover2*px*px*g2d2inv
+
+
+      !                 ** Change of variable
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      px=px+valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py+valA
+
+
+      !             * h4
+      !                 ** Change of variable
+      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      px=px-valA
+      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      py=py-valA
+
+      y=y+dz*py*deltap1
+      !zb=zb-dz*py*py*g2d2inv
+
+
+      !                 ** Change of variable
+      call HornerDXIntY(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      px=px+valA
+      call Horner2D(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
+      py=py+valA
+
+
+      !             * h3
+      !                 ** Change of variable
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      px=px-valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py-valA
+
+      x=x+dzover2*px*deltap1
+      !zb=zb-dzover2*px*px*g2d2inv
+
+
+      !                 ** Change of variable
+      call Horner2D(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      px=px+valA
+      call HornerDYIntX(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
+      py=py+valA
+
+
+      !             * h2
+      call HornerDX(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
+      px=px+dzover2*valA
+      call HornerDY(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
+      py=py+dzover2*valA
+
+      !             * h1
+      !zb=zb-dzover2
+   enddo
+end subroutine
+
+
+!! ---------------------------------------------------------------------------
+!!      Calcul de l'anti-Drift ou de l'anti-Quad suivant oper
+!! ---------------------------------------------------------------------------
+subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
+   implicit none
+
+   ! Initialisation des parametres
+   ! -------------------------------------------------------------------------
+   character :: oper                  ! Operation to be executed ("AD" for anti-Drift, "AQ" for anti-Quad)
+   double precision :: x, y           ! Initial position x, y
+   double precision :: px, py         ! Initial momentum
+   double precision :: x_tmp, y_tmp   ! Initial position x, y temporary
+   double precision :: px_tmp, py_tmp ! Initial momentum temporary
+   double precision :: K              ! Strength of the anti-Quad
+   double precision :: Lff,Lin,Lin_tp ! Length in ConfigFringeField for the Quad
+   double precision :: Corx, Cory, CoK!              and correctors
+   double precision :: Corx_tp, Cory_tp!             and correctors
+   double precision :: deltap1        ! 1/(delta+1)
+   double precision :: a,b,c,d,bcmad  ! Parameter for the anti-Quad computation
+   integer          :: NbDivQad=16, i  ! Number of Subdivision of the anti-Quad
+   double precision :: DbNbDivQad
+
+   if (oper=="D") then       ! [D(Lff-Lin)]^-1
+      x_tmp = x - (Lff-Lin)*px*deltap1
+      y_tmp = y - (Lff-Lin)*py*deltap1
+      px_tmp = px
+      py_tmp = py
+
+
+   elseif (oper=="Q") then   ! [D(-Cor/2)*Q(KLin,Lin+Cor)*D(-Cor/2)]^-1
+      DbNbDivQad = dble(NbDivQad)
+      Lin_tp  = Lin /DbNbDivQad
+      Corx_tp = Corx/DbNbDivQad
+      Cory_tp = Cory/DbNbDivQad
+      
+      ! Focalisation in x
+      a =  1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)* Lin_tp         *0.5d0 *deltap1
+      b = (1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)*(Lin_tp-Corx_tp)*0.25d0*deltap1)*Lin_tp*deltap1
+      c =        - (K - CoK)* Lin_tp
+      d =  1.0d0 - (K - CoK)*(Lin_tp-Corx_tp)* Lin_tp         *0.5d0 *deltap1
+      !bcmad = a*d - b*c
+      
+      do i = 1,NbDivQad 
+        x_tmp  = (d*x -b*px)!/bcmad
+        px_tmp = (a*px -c*x)!/bcmad
+        
+        x  =  x_tmp
+        px = px_tmp
+      enddo
+
+      ! Defocalisation in y
+      a =  1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp         *0.5d0 *deltap1
+      b = (1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)*(Lin_tp-Cory_tp)*0.25d0*deltap1)*Lin_tp*deltap1
+      c =          (K + CoK)* Lin_tp
+      d =  1.0d0 + (K + CoK)*(Lin_tp-Cory_tp)* Lin_tp         *0.5d0 *deltap1
+      !bcmad = a*d-b*c
+
+      do i = 1,NbDivQad 
+         y_tmp  = (d*y -b*py)!/bcmad
+         py_tmp = (a*py -c*y)!/bcmad
+        
+         y  =  y_tmp
+         py = py_tmp
+      enddo
+
+   else
+      x_tmp  = x
+      y_tmp  = y
+      px_tmp = px
+      py_tmp = py
+
+
+   endif
+   x  =  x_tmp
+   y  =  y_tmp
+   px = px_tmp
+   py = py_tmp
+end subroutine
+
+
+!! ---------------------------------------------------------------------------
+!!     Generate Anti-Quad matrix for
+!! ---------------------------------------------------------------------------
+subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2,c2,d2)
+   
+   implicit none
+
+   ! Definition of parameters
+   ! -------------------------------------------------------------------------
+   character(len=512),intent(in) :: inex           ! Characterize if IN or OUT part of the Quad
+   integer :: i,l                                  ! Indice for loop in z
+   integer,intent(in) :: n,m,s                     ! Expo. max for x and y, and Nb of step in z
+   integer,intent(in) :: lz                        ! Number max of coefficient by step
+   integer :: startp,endp,sens
+   integer(kind=2),intent(in) :: ij_Az(0:1,0:lz,0:s)
+   double precision :: dz               ! Step in z
+   double precision,intent(in) :: deltap1          ! 1/(delta+1)
+   double precision,intent(in) :: TAz(0:lz,0:s)    ! Coefficient of Vector Potential by step
+   
+   double precision,intent(out) :: a1,b1,c1,d1,a2,b2,c2,d2
+   
+   double precision :: atp,btp,ctp,dtp,C0x,C0y,bcmad
+   
+   ! Initialisation of the parameter
+   a1=1.0d0;   b1=0.0d0;   c1=0.0d0;   d1=1.0d0;
+   a2=1.0d0;   b2=0.0d0;   c2=0.0d0;   d2=1.0d0;
+   
+   ! Loop in z
+   ! -------------------------------------------------------------------------
+   startp = 0
+   endp = s-1
+   sens = 1
+
+
+   ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inverse the reading of the table if OUT_O
+   if (inex=="OUT_O") then
+      startp = endp
+      endp = 0
+      sens = -1
+      dz=-dz
+   endif
+   ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Inverse the reading of the table if OUT_O
+
+   do i=startp,endp,sens
+     C0x=0.0d0
+     C0y=0.0d0
+     
+     do l=0,lz
+       if ((ij_Az(0,l,i)==2).and.(ij_Az(1,l,i)==0)) then
+         C0x=2.0d0*TAz(l,i)
+       endif
+
+       if ((ij_Az(0,l,i)==0).and.(ij_Az(1,l,i)==2)) then
+         C0y=2.0d0*TAz(l,i)
+       endif
+     enddo
+
+     
+     ! Approx
+!     atp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*a1 + ((1.0d0+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*c1
+!     btp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*b1 + ((1.0d0+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*d1
+!     ctp= (C0x*dz*(1.0d0+deltap1*C0x*dz*dz*sixth))*a1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*c1
+!     dtp= (C0x*dz*(1.0d0+deltap1*C0x*dz*dz*sixth))*b1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*d1
+     
+     ! Thin
+     atp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*a1 + ((1.0d0+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*c1
+     btp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*b1 + ((1.0d0+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*d1
+     ctp= (C0x*dz)*a1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*c1
+     dtp= (C0x*dz)*b1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*d1
+     a1=atp; b1=btp; c1=ctp; d1=dtp;
+     
+     
+     ! Approx
+!     atp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*a2 + ((1.0d0+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*c2
+!     btp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*b2 + ((1.0d0+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*d2
+!     ctp= (C0y*dz*(1.0d0+deltap1*C0y*dz*dz*sixth))*a2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*c2
+!     dtp= (C0y*dz*(1.0d0+deltap1*C0y*dz*dz*sixth))*b2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*d2
+
+     ! Thin
+     atp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*a2 + ((1.0d0+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*c2
+     btp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*b2 + ((1.0d0+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*d2
+     ctp= (C0y*dz)*a2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*c2
+     dtp= (C0y*dz)*b2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*d2
+     a2=atp; b2=btp; c2=ctp; d2=dtp;
+   enddo
+   
+   ! Inversion of the matrix
+   bcmad=1.0d0/(a1*d1-b1*c1)
+   atp=d1*bcmad;  btp=-b1*bcmad;  ctp=-c1*bcmad;  dtp=a1*bcmad;
+   a1=atp; b1=btp; c1=ctp; d1=dtp;
+
+   bcmad=1.0d0/(a2*d2-b2*c2)
+   atp=d2*bcmad;  btp=-b2*bcmad;  ctp=-c2*bcmad;  dtp=a2*bcmad;
+   a2=atp; b2=btp; c2=ctp; d2=dtp;
+end subroutine
+
+
+!! ---------------------------------------------------------------------------
+!!     Compute Anti-Quad matrix for
+!! ---------------------------------------------------------------------------
+subroutine ComputeAntiQuad(x,px,y,py,a1,b1,c1,d1,a2,b2,c2,d2)
+   implicit none
+
+   ! Initialization of parameters
+   ! -------------------------------------------------------------------------
+   double precision,intent(inout) :: x, y           ! Initial position x, y
+   double precision,intent(inout) :: px, py         ! Initial momentum 
+   double precision,intent(out)   :: a1,b1,c1,d1,a2,b2,c2,d2
+   
+   double precision :: x_tmp, y_tmp   ! Initial position x, y temporary
+   double precision :: px_tmp, py_tmp ! Initial momentum temporary
+   
+   x_tmp =a1*x + b1*px;   px_tmp=c1*x + d1*px;   x=x_tmp;   px=px_tmp;
+   y_tmp =a2*y + b2*py;   py_tmp=c2*y + d2*py;   y=y_tmp;   py=py_tmp;
+   
+end subroutine
+

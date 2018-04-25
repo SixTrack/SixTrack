@@ -262,7 +262,7 @@ if(COLLIMAT)
 endif()
 
 if(FFIELD)
-	LIST(APPEND FORS_FREEFORM FileRead Horner Interface SympIntegrator)
+	LIST(APPEND FORS_FREEFORM ffield)
 endif()
 
 foreach(loop IN LISTS FORS_FIXFORM)
