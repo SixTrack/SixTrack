@@ -753,55 +753,38 @@ The kick experienced by an arbitrary particle in $(x,y,z)$ can be expressed as
     -k_{\rm RF}z) + iK_{\text{S},n}L\sin(\varphi_n-k_{\rm RF}z))(x+iy)^n\right].
 \end{align}
 
-Temporarily in Sixtrack the following equations are used:
+In Sixtrack the following equations are used:
 
-\begin{align}\Delta p_{x} & =b_{2}\, x\,\cos\left(\phi+k\, z\right)\\
-\Delta p_{y} & =-b_{2}\, y\,\cos\left(\phi+k\, z\right)\\
-\Delta\delta & =-k\,\frac{b_{2}}{2}\,\left(x^{2}-y^{2}\right)\,\sin\left(\phi+k\, z\right)
+\begin{align}\Delta x' & =\frac{b_{2}\, x\,\cos\left(\phi+k\, z\right)}{1+\delta}\\
+\Delta y' & =\frac{-b_{2}\, y\,\cos\left(\phi+k\, z\right)} {1+\delta} \\
+\Delta E & =-P_0 k\beta_0\,\frac{b_{2}}{2}\,\left(x^{2}-y^{2}\right)\,\sin\left(\phi+k\, z\right)
 \end{align}
 
- \begin{align}\Delta p_{x} & =b_{3}\,\left(x^{2}-y^{2}\right)\,\cos\left(\phi+k\, z\right)\\
-\Delta p_{y} & =-2b_{3}\, xy\,\cos\left(\phi+k\, z\right)\\
-\Delta\delta & =-k\,\frac{b_{3}}{3}\,\left(x^{3}-3xy^{2}\right)\,\sin\left(\phi+k\, z\right)
+ \begin{align}\Delta x' & =\frac{b_{3}\,\left(x^{2}-y^{2}\right)\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta y' & =\frac{-2b_{3}\, xy\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta E & =-P_0 k\beta_0\,\frac{b_{3}}{3}\,\left(x^{3}-3xy^{2}\right)\,\sin\left(\phi+k\, z\right)
 \end{align}
 
- \begin{align}\Delta p_{x} & =b_{4}\,\left(x^{3}-3xy^{2}\right)\,\cos\left(\phi+k\, z\right)\\
-\Delta p_{y} & =-b_{4}\,\left(3x^{2}y-y^{3}\right)\,\cos\left(\phi+k\, z\right)\\
-\Delta\delta & =-k\,\frac{b_{4}}{4}\,\left(x^{4}-6x^{2}y^{2}+y^{4}\right)\,\sin\left(\phi+k\, z\right)
+ \begin{align}\Delta x' & =\frac{b_{4}\,\left(x^{3}-3xy^{2}\right)\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta y' & =\frac{-b_{4}\,\left(3x^{2}y-y^{3}\right)\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta E & =-\frac{P_0 k}{c}\,\frac{b_{4}}{4}\,\left(x^{4}-6x^{2}y^{2}+y^{4}\right)\,\sin\left(\phi+k\, z\right)
 \end{align}
 
- \begin{align}\Delta p_{x} & =a_{2}\, y\,\cos\left(\phi+k\, z\right)\\
-\Delta p_{y} & =a_{2}\, x\,\cos\left(\phi+k\, z\right)\\
-\Delta\delta & =-k\, a_{2}\, xy\,\sin\left(\phi+k\, z\right)
+ \begin{align}\Delta x' & =\frac{a_{2}\, y\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta y' & =\frac{a_{2}\, x\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta E & =P_0 k\beta_0\, a_{2}\, xy\,\sin\left(\phi+k\, z\right)
 \end{align}
 
- \begin{align}\Delta p_{x} & =2a_{3}\, xy\,\cos\left(\phi+k\, z\right)\\
-\Delta p_{y} & =-a_{3}\,\left(y^{2}-x^{2}\right)\,\cos\left(\phi+k\, z\right)\\
-\Delta\delta & =k\,\frac{a_{3}}{3}\,\left(y^{3}-3yx^{2}\right)\,\sin\left(\phi+k\, z\right)
+ \begin{align}\Delta x' & =\frac{2a_{3}\, xy\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta y' & =\frac{-a_{3}\,\left(y^{2}-x^{2}\right)\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta E & =\frac{P_0 k\beta_0a_{3}}{3}\,\left(y^{3}-3yx^{2}\right)\,\sin\left(\phi+k\, z\right)
 \end{align}
 
- \begin{align}\Delta p_{x} & =a_{4}\,\left(y^{3}-3yx^{2}\right)\,\cos\left(\phi+k\, z\right)\\
-\Delta p_{y} & =a_{4}\,\left(3xy^{2}-x^{3}\right)\,\cos\left(\phi+k\, z\right)\\
-\Delta\delta & =-k\, a_{4}\,\left(x^{3}y-y^{3}x\right)\,\sin\left(\phi+k\, z\right)
+ \begin{align}\Delta x' & =\frac{a_{4}\,\left(y^{3}-3yx^{2}\right)\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta y' & =\frac{a_{4}\,\left(3xy^{2}-x^{3}\right)\,\cos\left(\phi+k\, z\right)}{1 + \delta}\\
+\Delta E & =-P_0 k\beta_0\, a_{4}\,\left(x^{3}y-y^{3}x\right)\,\sin\left(\phi+k\, z\right),
 \end{align}
- 
-
-
-\subsection{Phase-trombone, matrix element}
-The linear ``phase trombone" allows to introduce a change in the transverse phases 
-without spoiling the linear optics of the rest of the machine, i.e. the Twiss 
-parameters are the same at entrance and exit of the element. The effect of the element 
-is contained in the matrix $M$. An addition to the closed orbit can be done through the
-elements $(x_{co},x'_{co},y_{co},y'_{co},\sigma_{co})$.
-
-\begin{align}
-    \sigma & \to \sigma + \sigma_{co} + M_{51}\cdot x + M_{52}\cdot x' 
-    + M_{53}\cdot y + M_{54}\cdot y' + M_{56}\cdot\delta \\
-    x & \to x_{co} + M_{11}\cdot x + M_{12}\cdot x' + M_{16}\cdot\delta \\
-    x' & \to x'_{co} + M_{21}\cdot x + M_{22}\cdot x' + M_{26}\cdot\delta \\
-    y & \to y_{co} + M_{33}\cdot y + M_{34}\cdot y' + M_{36}\cdot\delta \\
-    y' & \to y'_{co} + M_{43}\cdot y + M_{44}\cdot y' + M_{46}\cdot\delta
-\end{align}
+, where $k = \frac{2\pi f}{c\beta_0} $, $f$ is frequency and $c$ is the speed of light. 
 
 \subsection{Wire}
 \label{sec:wire}
