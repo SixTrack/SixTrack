@@ -64,14 +64,14 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! Initialization physic parameters
    ! -------------------------------------------------------------------------
 !!$   double precision :: Eproton, Etot, gamma0, beta0, p0, clight, norm !, e0
-   double precision :: Etot, gamma0, beta0, p0, norm !, e0
+   double precision :: norm !, e0
 !!$   parameter (clight=299792458.)                 ! Speed of light [m/s]
 !!$   parameter (Eproton=9.382720134258239e2)       ! Mass proton [MeV] 
 !   parameter (e0=1.60217653e-19)                   ! Energy of ref
-   parameter (Etot=0.0d0*pmap+7.0d0*c1e6)           ! Total Energy of the system [MeV]
-   parameter (gamma0=Etot/pmap)                     ! Ratio total energy and rest mass energy for the proton
-   parameter (beta0=sqrt(1.0d0-1.0d0/gamma0/gamma0))! Parameter beta0
-   parameter (p0=beta0*Etot*c1e6/clight)            ! Reference momentum [eV/c] 
+   double precision, parameter :: Etot=zero*pmap+7.0d0*c1e6             ! Total Energy of the system [MeV]
+   double precision, parameter :: gamma0=Etot/pmap                      ! Ratio total energy and rest mass energy for the proton
+   double precision, parameter :: beta0=sqrt(one-one/gamma0/gamma0)     ! Parameter beta0
+   double precision, parameter :: p0=beta0*Etot*c1e6/clight             ! Reference momentum [eV/c]
    !parameter (p0=7.e12)
    
 
@@ -146,7 +146,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          write(*,*) "FringeField      : ", TRIM(ADJUSTL(ffFNames(dataindex)))," Already imported!"
       else
          
-         ffTA(:)%norm = 1.0d0/p0
+         ffTA(:)%norm = one/p0
          call CreateVectCoef(ffFNames(dataindex),   &
                              ffTA(dataindex)%n,     &
                              ffTA(dataindex)%m,     &
@@ -182,7 +182,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
             
             
             
-            if (abs(ffTA(dataindex)%Lgth - ffParam(dataindex,6)) > 1E-12) then
+            if (abs(ffTA(dataindex)%Lgth - ffParam(dataindex,6)) > c1m12) then
                write(*,*) "FringeField WARNING: The length in the Config file and computed are different: ", &
                           ffParam(dataindex,6), " != ", ffTA(dataindex)%Lgth
                write(*,*) "                     We use the computed one!"
@@ -202,8 +202,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          ! Change to Symp referenciale
          x = ((xv(1,ffj)-xsiv(1,ffi))*tiltc(ffi) + (xv(2,ffj)-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
          y = ((xv(2,ffj)-zsiv(1,ffi))*tiltc(ffi) - (xv(1,ffj)-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-         px= ((yv(1,ffj)            )*tiltc(ffi) + (yv(2,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
-         py= ((yv(2,ffj)            )*tiltc(ffi) - (yv(1,ffj)            )*tilts(ffi))*c1m3*(1.0d0+dpsv(ffj))
+         px= ((yv(1,ffj)            )*tiltc(ffi) + (yv(2,ffj)            )*tilts(ffi))*c1m3*(one+dpsv(ffj))
+         py= ((yv(2,ffj)            )*tiltc(ffi) - (yv(1,ffj)            )*tilts(ffi))*c1m3*(one+dpsv(ffj))
          
          
          ! Selection of the particle that are only in the radius (r = 0.08m)
@@ -245,7 +245,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
              !            * IN (enter) ---------> Drift
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3), ffParam(dataindex,4),       &
-!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,one/(one+delta))
 
              x=x-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
              y=y-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
@@ -253,14 +253,14 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
 !             x=x-Ldpsv1*px;
 !             y=y-Ldpsv1*py;
-!             sigma_s=sigma_s-Ldpsv2*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+!             sigma_s=sigma_s-Ldpsv2*(one-betabeta0*(one-(px*px+py*py)*Ldpsv2));
 
              
    	   elseif (inex=="OUT") then
              !            * IN (enter) ---------> Quad
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
-!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,one/(one+delta))
 
 
              !            * IN (enter) ---------> Drift (1)
@@ -269,7 +269,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
              
 !             x=x+Ldpsv1*px;
 !             y=y+Ldpsv1*py;
-!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(one-betabeta0*(one-(px*px+py*py)*Ldpsv2));
 
 
              
@@ -307,13 +307,13 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                               ! Case Delta bigger than anticipate
              elseif (abs(dpsv(ffj))>ffTA(dataindex)%Tdpsv(nbDlt)+c1m6) then
                ! Check the maximum delta
-               delta=-1.0d0
+               delta=-one
                do j=1,npart
                  if (delta<abs(dpsv(j))) then
                    delta=abs(dpsv(j))
                  endif
                enddo
-               nbDlt=ceiling(abs( 2.0d0*(delta)*c1e6 ))
+               nbDlt=ceiling(abs( two*(delta)*c1e6 ))
                
                ! Check the maximum delta
                do i=1,ffNLFile
@@ -328,9 +328,9 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                       ffTA(i)%TAQy(1,1,k)=0;              ffTA(i)%TAQy(1,2,k)=0;
                       ffTA(i)%TAQy(2,1,k)=0;              ffTA(i)%TAQy(2,2,k)=0;
            
-                      ffTA(i)%Tdpsv(k)=(2.0d0*(k-1)/(nbDlt-1)- 1.0d0)*delta
+                      ffTA(i)%Tdpsv(k)=(two*(k-1)/(nbDlt-1)- one)*delta
                            
-                      call GenerateAntiQuad(1.0d0/(1.0d0+ffTA(i)%Tdpsv(k)), &
+                      call GenerateAntiQuad(one/(one+ffTA(i)%Tdpsv(k)),   &
                                             ffTA(i)%n,                    &
                                             ffTA(i)%m,                    &
                                             ffTA(i)%s,                    &
@@ -423,9 +423,9 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
              ! First AntiQuad routine
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
-!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+!                      ffParam(dataindex,5),'Q',oidpsv(ffj)) !,one/(one+delta))
 
-!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(one-betabeta0*(one-(px*px+py*py)*Ldpsv2));
 
              if (nbDlt<1) then
 	       ! Generate the anti-quad
@@ -489,14 +489,14 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
   	   elseif (inex=="OUT") then
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
-!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,1.0d0/(1.0d0+delta))
+!                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,one/(one+delta))
 
              x=x-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
              y=y-(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
 
 !             x=x-Ldpsv1*px;
 !             y=y-Ldpsv1*py;
-!             sigma_s=sigma_s-ffParam(dataindex,2)*(1.0d0-betabeta0*(1.0d0-(px*px+py*py)*Ldpsv2));
+!             sigma_s=sigma_s-ffParam(dataindex,2)*(one-betabeta0*(one-(px*px+py*py)*Ldpsv2));
              
    	   endif
 
@@ -583,13 +583,13 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    ! -------------------------------------------------------------------------
    else if ((workChoise == 4).and.(.not.firstTime)) then
      ! Check the maximum delta
-     delta=-1.0d0
+     delta=-one
      do j=1,npart
        if (delta<abs(dpsv(j))) then
          delta=abs(dpsv(j))
        endif
      enddo
-     nbDlt=ceiling(abs( 2.0d0*(delta)*c1e6 ))
+     nbDlt=ceiling(abs( two*(delta)*c1e6 ))
 
      ! Check the maximum delta
      do i=1,ffNLFile
@@ -602,9 +602,9 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
             ffTA(i)%TAQy(1,1,k)=0;              ffTA(i)%TAQy(1,2,k)=0;
             ffTA(i)%TAQy(2,1,k)=0;              ffTA(i)%TAQy(2,2,k)=0;
             
-            ffTA(i)%Tdpsv(k)=(2.0d0*(k-1)/(nbDlt-1)- 1.0d0)*delta
+            ffTA(i)%Tdpsv(k)=(two*(k-1)/(nbDlt-1)- one)*delta
             
-            call GenerateAntiQuad(1.0d0/(1.0d0+ffTA(i)%Tdpsv(k)), &
+            call GenerateAntiQuad(one/(one+ffTA(i)%Tdpsv(k)),   &
                                   ffTA(i)%n,                    &
                                   ffTA(i)%m,                    &
                                   ffTA(i)%s,                    &
@@ -746,6 +746,7 @@ subroutine ReadconfigFile
    ! Initialisation common space with SixTrack
    ! -------------------------------------------------------------------------
 +ca parpro
++ca parnum
 
    ! Initialisation of parametters
    ! -------------------------------------------------------------------------
@@ -759,7 +760,7 @@ subroutine ReadconfigFile
 
    ! Find the file path
    ! -------------------------------------------------------------------------
-   call getenv('FFConfigPath', path)
+   call get_environment_variable('FFConfigPath', path)
    
    if (path == " ") then
       write(*, *) "FringeField WARNING: Couldn't read the environment variable 'FFConfigPath'"
@@ -827,7 +828,7 @@ subroutine ReadconfigFile
          allocate(ffQNames(1:ffNLn), ffFNames(1:ffNLFile), ffParam(1:ffNLFile,1:6), ffQ2File(1:ffNLn, 1:2))
          ffQNames = " "
          ffFNames = " "
-         ffParam  = 0.0d0
+         ffParam  = zero
          ffQ2File  = 0
          open(1789,file=TRIM(ADJUSTL(path))//'configFringeField.txt',form='formatted',status='old',iostat=istat)
          
@@ -939,7 +940,7 @@ subroutine ReadExpMax(FileName, n, m, s, OKRead)
    n=0
    m=0
    st=0.
-   sm1=1e12
+   sm1=c1e12
    line=1
    s=0
    
@@ -948,7 +949,7 @@ subroutine ReadExpMax(FileName, n, m, s, OKRead)
    ! -------------------------------------------------------------------------
    do while(istat==0)
       read(lun,*,iostat=istat) st, expx, expy, expz ! Read line
-      if (st>sm1+1e-12) then                        ! Detect new step in z
+      if (st>sm1+c1m12) then                        ! Detect new step in z
          s = s + 1                                  ! Compte step in z
       endif
       if (expx>n) n=expx                            ! Max. expo. in x
@@ -1018,9 +1019,9 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
       ! Initialize tables
       ! -------------------------------------------------------------------------
       do l=0,ind
-            tpTAx(l,k)=0.0d0
-            tpTAy(l,k)=0.0d0
-            tpTAz(l,k)=0.0d0
+            tpTAx(l,k)=zero
+            tpTAy(l,k)=zero
+            tpTAz(l,k)=zero
             tpij_Ax(0,l,k)=0 ;tpij_Ax(1,l,k)=0 
             tpij_Ay(0,l,k)=0 ;tpij_Ay(1,l,k)=0 
             tpij_Az(0,l,k)=0 ;tpij_Az(1,l,k)=0 
@@ -1040,7 +1041,7 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
    ! Initialize parameters
    ! -------------------------------------------------------------------------
    st=0.
-   sm1=1e+12
+   sm1=c1e12
    istat=0
    sline=0
    dz=0
@@ -1050,11 +1051,11 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
    ! -------------------------------------------------------------------------
    tlinex=0; tliney=0; tlinez=0
    do while(istat==0)
-      st=0.0d0; expx=0; expy=0; expz=0; ax=0.0d0; ay=0.0d0; az=0.0d0; 
+      st=zero; expx=0; expy=0; expz=0; ax=zero; ay=zero; az=zero;
       read(lun,*,iostat=istat) st, expx, expy, expz, ax, ay, az              ! Read line
 
 
-      if (st>sm1+1e-12) then                                                 ! Detect stepin z
+      if (st>sm1+c1m12) then                                                 ! Detect stepin z
          dz=dz+st-sm1
          sline = sline + 1
          tlinex=0; tliney=0; tlinez=0
@@ -1208,6 +1209,8 @@ end subroutine
 subroutine Horner2D(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    implicit none
 
++ca parnum
+
    ! Initialisation des paramettres
    ! -------------------------------------------------------------------------
    integer,intent(in) :: n,m,s                            ! Exposant max pour x et y, et nb de pas en z
@@ -1239,11 +1242,11 @@ subroutine Horner2D(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_j=m
    endif
 
-   xpow(0)=1.0d0
+   xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
    enddo
-   ypow(0)=1.0d0
+   ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
    enddo
@@ -1251,7 +1254,7 @@ subroutine Horner2D(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
-   r0=0.0d0
+   r0=zero
    do l=0,line
       if ((ij_Tab(0,l,z)<=max_i).and.(ij_Tab(1,l,z)<=max_j)) then
          r0 = r0 + xpow(ij_Tab(0,l,z))*ypow(ij_Tab(1,l,z))*Tab(l,z)
@@ -1265,6 +1268,8 @@ end subroutine
 !! ---------------------------------------------------------------------------
 subroutine HornerDX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    implicit none
+
++ca parnum
 
    ! Initialisation des paramettres
    ! -------------------------------------------------------------------------
@@ -1301,18 +1306,18 @@ subroutine HornerDX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
 
    ! Initialisation des vecteurs xpow et ypow
    ! -------------------------------------------------------------------------
-   xpow(0)=1.0d0
+   xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
    enddo
-   ypow(0)=1.0d0
+   ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
    enddo
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
-   r0=0.0d0
+   r0=zero
    do l=0,line
       di=dble(ij_Tab(0,l,z))
       if ((di>0).and.(ij_Tab(0,l,z)-1<=max_i).and.(ij_Tab(1,l,z)<=max_j)) then
@@ -1327,6 +1332,8 @@ end subroutine
 !! ---------------------------------------------------------------------------
 subroutine HornerDY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    implicit none
+
++ca parnum
 
    ! Initialisation des paramettres
    ! -------------------------------------------------------------------------
@@ -1360,18 +1367,18 @@ subroutine HornerDY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_j=m-1
    endif
 
-   xpow(0)=1.0d0
+   xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
    enddo
-   ypow(0)=1.0d0
+   ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
    enddo
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
-   r0=0.0d0
+   r0=zero
    do l=0,line
       dj=dble(ij_Tab(1,l,z))
       if ((dj>0).and.(ij_Tab(0,l,z)<=max_i).and.(ij_Tab(1,l,z)-1<=max_j)) then
@@ -1386,6 +1393,8 @@ end subroutine
 !! ---------------------------------------------------------------------------
 subroutine HornerDYIntX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    implicit none
+
++ca parnum
 
    ! Initialisation des paramettres
    ! -------------------------------------------------------------------------
@@ -1419,18 +1428,18 @@ subroutine HornerDYIntX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_j=m-1
    endif
    
-   xpow(0)=1.0d0
+   xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
    enddo
-   ypow(0)=1.0d0
+   ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
    enddo
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
-   r0=0.0d0
+   r0=zero
    do l=0,line
 !      di=dble(ij_Tab(0,l,z))
       di=dble(ij_Tab(0,l,z) + 1)
@@ -1448,6 +1457,8 @@ end subroutine
 !! ---------------------------------------------------------------------------
 subroutine HornerDXIntY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    implicit none
+
++ca parnum
 
    ! Initialisation des paramettres
    ! -------------------------------------------------------------------------
@@ -1481,18 +1492,18 @@ subroutine HornerDXIntY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_j=m+1
    endif
    
-   xpow(0)=1.0d0
+   xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
    enddo
-   ypow(0)=1.0d0
+   ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
    enddo
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
-   r0=0.0d0
+   r0=zero
    do l=0,line
       di=dble(ij_Tab(0,l,z))
 !      dj=dble(ij_Tab(1,l,z))
@@ -1510,6 +1521,8 @@ end subroutine
 !! ---------------------------------------------------------------------------
 subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,inex)
    implicit none
+
++ca parnum
 
    ! Definition of parameters
    ! -------------------------------------------------------------------------
@@ -1530,11 +1543,11 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
    
    ! Initialise the step size in z
    ! -------------------------------------------------------------------------
-   dzover2=0.5d0*dz !loc
+   dzover2=half*dz !loc
 
    !                    ?????????????????????????????????
    ! -------------------------------------------------------------------------
-!   g2d2inv=deltap1*deltap1*0.5d0
+!   g2d2inv=deltap1*deltap1*half
    
    
    ! Loop in z
@@ -1637,6 +1650,8 @@ end subroutine
 subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
    implicit none
 
++ca parnum
+
    ! Initialisation des parametres
    ! -------------------------------------------------------------------------
    character :: oper                  ! Operation to be executed ("AD" for anti-Drift, "AQ" for anti-Quad)
@@ -1667,10 +1682,10 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
       Cory_tp = Cory/DbNbDivQad
       
       ! Focalisation in x
-      a =  1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)* Lin_tp         *0.5d0 *deltap1
-      b = (1.0d0 - (K - CoK)*(Lin_tp+Corx_tp)*(Lin_tp-Corx_tp)*0.25d0*deltap1)*Lin_tp*deltap1
-      c =        - (K - CoK)* Lin_tp
-      d =  1.0d0 - (K - CoK)*(Lin_tp-Corx_tp)* Lin_tp         *0.5d0 *deltap1
+      a =  one - (K - CoK)*(Lin_tp+Corx_tp)* Lin_tp         *half *deltap1
+      b = (one - (K - CoK)*(Lin_tp+Corx_tp)*(Lin_tp-Corx_tp)*0.25d0*deltap1)*Lin_tp*deltap1
+      c =      - (K - CoK)* Lin_tp
+      d =  one - (K - CoK)*(Lin_tp-Corx_tp)* Lin_tp         *half *deltap1
       !bcmad = a*d - b*c
       
       do i = 1,NbDivQad 
@@ -1682,10 +1697,10 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
       enddo
 
       ! Defocalisation in y
-      a =  1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp         *0.5d0 *deltap1
-      b = (1.0d0 + (K + CoK)*(Lin_tp+Cory_tp)*(Lin_tp-Cory_tp)*0.25d0*deltap1)*Lin_tp*deltap1
-      c =          (K + CoK)* Lin_tp
-      d =  1.0d0 + (K + CoK)*(Lin_tp-Cory_tp)* Lin_tp         *0.5d0 *deltap1
+      a =  one + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp         *half *deltap1
+      b = (one + (K + CoK)*(Lin_tp+Cory_tp)*(Lin_tp-Cory_tp)*0.25d0*deltap1)*Lin_tp*deltap1
+      c =        (K + CoK)* Lin_tp
+      d =  one + (K + CoK)*(Lin_tp-Cory_tp)* Lin_tp         *half *deltap1
       !bcmad = a*d-b*c
 
       do i = 1,NbDivQad 
@@ -1715,8 +1730,10 @@ end subroutine
 !!     Generate Anti-Quad matrix for
 !! ---------------------------------------------------------------------------
 subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2,c2,d2)
-   
+
    implicit none
+
++ca parnum
 
    ! Definition of parameters
    ! -------------------------------------------------------------------------
@@ -1735,8 +1752,8 @@ subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2
    double precision :: atp,btp,ctp,dtp,C0x,C0y,bcmad
    
    ! Initialisation of the parameter
-   a1=1.0d0;   b1=0.0d0;   c1=0.0d0;   d1=1.0d0;
-   a2=1.0d0;   b2=0.0d0;   c2=0.0d0;   d2=1.0d0;
+   a1=one;   b1=zero;   c1=zero;   d1=one;
+   a2=one;   b2=zero;   c2=zero;   d2=one;
    
    ! Loop in z
    ! -------------------------------------------------------------------------
@@ -1755,54 +1772,54 @@ subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2
    ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Inverse the reading of the table if OUT_O
 
    do i=startp,endp,sens
-     C0x=0.0d0
-     C0y=0.0d0
+     C0x=zero
+     C0y=zero
      
      do l=0,lz
        if ((ij_Az(0,l,i)==2).and.(ij_Az(1,l,i)==0)) then
-         C0x=2.0d0*TAz(l,i)
+         C0x=two*TAz(l,i)
        endif
 
        if ((ij_Az(0,l,i)==0).and.(ij_Az(1,l,i)==2)) then
-         C0y=2.0d0*TAz(l,i)
+         C0y=two*TAz(l,i)
        endif
      enddo
 
      
      ! Approx
-!     atp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*a1 + ((1.0d0+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*c1
-!     btp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*b1 + ((1.0d0+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*d1
-!     ctp= (C0x*dz*(1.0d0+deltap1*C0x*dz*dz*sixth))*a1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*c1
-!     dtp= (C0x*dz*(1.0d0+deltap1*C0x*dz*dz*sixth))*b1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*d1
+!     atp= (one+deltap1*C0x*dz*dz*half)*a1 + ((one+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*c1
+!     btp= (one+deltap1*C0x*dz*dz*half)*b1 + ((one+deltap1*C0x*dz*dz*sixth)*deltap1*dz)*d1
+!     ctp= (C0x*dz*(one+deltap1*C0x*dz*dz*sixth))*a1 + (one+deltap1*C0x*dz*dz*half)*c1
+!     dtp= (C0x*dz*(one+deltap1*C0x*dz*dz*sixth))*b1 + (one+deltap1*C0x*dz*dz*half)*d1
      
      ! Thin
-     atp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*a1 + ((1.0d0+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*c1
-     btp= (1.0d0+deltap1*C0x*dz*dz*0.5d0)*b1 + ((1.0d0+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*d1
-     ctp= (C0x*dz)*a1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*c1
-     dtp= (C0x*dz)*b1 + (1.0d0+deltap1*C0x*dz*dz*0.5d0)*d1
+     atp= (one+deltap1*C0x*dz*dz*half)*a1 + ((one+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*c1
+     btp= (one+deltap1*C0x*dz*dz*half)*b1 + ((one+deltap1*C0x*dz*dz*0.25d0)*deltap1*dz)*d1
+     ctp= (C0x*dz)*a1 + (one+deltap1*C0x*dz*dz*half)*c1
+     dtp= (C0x*dz)*b1 + (one+deltap1*C0x*dz*dz*half)*d1
      a1=atp; b1=btp; c1=ctp; d1=dtp;
      
      
      ! Approx
-!     atp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*a2 + ((1.0d0+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*c2
-!     btp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*b2 + ((1.0d0+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*d2
-!     ctp= (C0y*dz*(1.0d0+deltap1*C0y*dz*dz*sixth))*a2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*c2
-!     dtp= (C0y*dz*(1.0d0+deltap1*C0y*dz*dz*sixth))*b2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*d2
+!     atp= (one+deltap1*C0y*dz*dz*half)*a2 + ((one+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*c2
+!     btp= (one+deltap1*C0y*dz*dz*half)*b2 + ((one+deltap1*C0y*dz*dz*sixth)*deltap1*dz)*d2
+!     ctp= (C0y*dz*(one+deltap1*C0y*dz*dz*sixth))*a2 + (one+deltap1*C0y*dz*dz*half)*c2
+!     dtp= (C0y*dz*(one+deltap1*C0y*dz*dz*sixth))*b2 + (one+deltap1*C0y*dz*dz*half)*d2
 
      ! Thin
-     atp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*a2 + ((1.0d0+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*c2
-     btp= (1.0d0+deltap1*C0y*dz*dz*0.5d0)*b2 + ((1.0d0+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*d2
-     ctp= (C0y*dz)*a2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*c2
-     dtp= (C0y*dz)*b2 + (1.0d0+deltap1*C0y*dz*dz*0.5d0)*d2
+     atp= (one+deltap1*C0y*dz*dz*half)*a2 + ((one+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*c2
+     btp= (one+deltap1*C0y*dz*dz*half)*b2 + ((one+deltap1*C0y*dz*dz*0.25d0)*deltap1*dz)*d2
+     ctp= (C0y*dz)*a2 + (one+deltap1*C0y*dz*dz*half)*c2
+     dtp= (C0y*dz)*b2 + (one+deltap1*C0y*dz*dz*half)*d2
      a2=atp; b2=btp; c2=ctp; d2=dtp;
    enddo
    
    ! Inversion of the matrix
-   bcmad=1.0d0/(a1*d1-b1*c1)
+   bcmad=one/(a1*d1-b1*c1)
    atp=d1*bcmad;  btp=-b1*bcmad;  ctp=-c1*bcmad;  dtp=a1*bcmad;
    a1=atp; b1=btp; c1=ctp; d1=dtp;
 
-   bcmad=1.0d0/(a2*d2-b2*c2)
+   bcmad=one/(a2*d2-b2*c2)
    atp=d2*bcmad;  btp=-b2*bcmad;  ctp=-c2*bcmad;  dtp=a2*bcmad;
    a2=atp; b2=btp; c2=ctp; d2=dtp;
 end subroutine
