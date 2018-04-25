@@ -11,18 +11,32 @@
 !    Assignment:    aString = "foo"                 => Returns string
 !    Addition:      aString = aString + "bar"       => Returns combined string "foobar"
 !    Concatenation: write(*,*) "This is "//aString  => On-the-fly conversion to character array
-!    Comparison:    aString == "foobar"             => Compares a string/char to string/char
-!    Comparison:    aString /= "barfoo"             => Compares a string/char to string/char
+!    Comparison:    aString == "foobar"             => Compares a string/char to a string/char
+!    Comparison:    aString /= "barfoo"             => Compares a string/char to a string/char
 ! ================================================================================================ !
 module strings
   
   implicit none
   
   type, public :: string
+    
     character(len=:), allocatable, public :: chr
+    
   contains
-    procedure, public,  pass(this)  :: get => getString
-    procedure, public,  pass(this)  :: set => setString
+    
+    procedure, public,  pass(this)  :: get     => getStr
+    procedure, public,  pass(this)  :: set     => setStr
+    procedure, public,  pass(this)  :: len     => lenStr
+    procedure, public,  pass(this)  :: trim    => trimStr
+    procedure, public,  pass(this)  :: adjustl => adjLStr
+    procedure, public,  pass(this)  :: adjustr => adjRStr
+    
+    procedure, private, pass(this)  :: getStr
+    procedure, private, pass(this)  :: setStr
+    procedure, private, pass(this)  :: lenStr
+    procedure, private, pass(this)  :: trimStr
+    procedure, private, pass(this)  :: adjLStr
+    procedure, private, pass(this)  :: adjRStr
     
     procedure, private, pass(left)  :: assignStrStr
     procedure, private, pass(left)  :: assignStrChr
@@ -42,11 +56,28 @@ module strings
     procedure, private, pass(left)  :: compNStrStr
     procedure, private, pass(left)  :: compNStrChr
     procedure, private, pass(right) :: compNChrStr
+    
   end type string
   
   interface string
-    module procedure stringConstructor
+    module procedure constructStr
   end interface string
+  
+  interface len
+    module procedure lenStr
+  end interface len
+  
+  interface trim
+    module procedure trimStr
+  end interface trim
+  
+  interface adjustl
+    module procedure adjLStr
+  end interface adjustl
+  
+  interface adjustr
+    module procedure adjRStr
+  end interface adjustr
   
   interface assignment(=)
     module procedure assignStrStr
@@ -79,26 +110,66 @@ module strings
   
 contains
   
-  type(string) function stringConstructor()
-    stringConstructor%chr = ""
-  end function stringConstructor
+  type(string) function constructStr()
+    constructStr%chr = ""
+  end function constructStr
   
-  pure function getString(this) result(retValue)
+  ! ================================================================ !
+  !  Set and Get
+  ! ================================================================ !
+  pure function getStr(this) result(retValue)
     class(string),    intent(in)  :: this
     character(len=:), allocatable :: retValue
     retValue = this%chr
-  end function getString
+  end function getStr
   
-  pure subroutine setString(this, setValue)
+  pure subroutine setStr(this, setValue)
     class(string),    intent(inout) :: this
     character(len=*), intent(in)    :: setValue
-    this%chr = setValue
-  end subroutine setString
+    if(allocated(this%chr)) this%chr = setValue
+  end subroutine setStr
+  
+  ! ================================================================ !
+  !  Standard String Information and Operations
+  ! ================================================================ !
+  elemental function lenStr(this) result(retValue)
+    class(string), intent(in) :: this
+    integer                   :: retValue
+    if(allocated(this%chr)) then
+      retValue = len(this%chr)
+    else
+      retValue = 0
+    end if
+  end function lenStr
+  
+  elemental function trimStr(this) result(retValue)
+    class(string), intent(in) :: this
+    type(string)              :: retValue
+    if(allocated(this%chr)) then
+      retValue%chr = trim(this%chr)
+    end if
+  end function trimStr
+  
+  elemental function adjLStr(this) result(retValue)
+    class(string), intent(in) :: this
+    type(string)              :: retValue
+    if(allocated(this%chr)) then
+      retValue%chr = adjustl(this%chr)
+    end if
+  end function adjLStr
+  
+  elemental function adjRStr(this) result(retValue)
+    class(string), intent(in) :: this
+    type(string)              :: retValue
+    if(allocated(this%chr)) then
+      retValue%chr = adjustr(this%chr)
+    end if
+  end function adjRStr
   
   ! ================================================================ !
   !  String Assignment
   ! ================================================================ !
-  subroutine assignStrStr(left, right)
+  elemental subroutine assignStrStr(left, right)
     class(string), intent(inout) :: left
     class(string), intent(in)    :: right
     left%chr = right%chr
@@ -150,7 +221,7 @@ contains
   ! ================================================================ !
   !  Concat Strings with //, Returning Character
   ! ================================================================ !
-  elemental function concatStrStr(left, right) result(retValue)
+  pure function concatStrStr(left, right) result(retValue)
     class(string),    intent(in)  :: left
     class(string),    intent(in)  :: right
     character(len=:), allocatable :: retValue
@@ -162,7 +233,7 @@ contains
     retValue(nOld+1:nNew) = right%chr
   end function concatStrStr
   
-  elemental function concatChrStr(left, right) result(retValue)
+  pure function concatChrStr(left, right) result(retValue)
     character(len=*), intent(in)  :: left
     class(string),    intent(in)  :: right
     character(len=:), allocatable :: retValue
@@ -174,7 +245,7 @@ contains
     retValue(nOld+1:nNew) = right%chr
   end function concatChrStr
   
-  elemental function concatStrChr(left, right) result(retValue)
+  pure function concatStrChr(left, right) result(retValue)
     class(string),    intent(in)  :: left
     character(len=*), intent(in)  :: right
     character(len=:), allocatable :: retValue
