@@ -1,4 +1,8 @@
 +dk modffield
+module ffield
+
+   contains
+
 !! ---------------------------------------------------------------------------
 !!      Interface with SixTrack
 !! ---------------------------------------------------------------------------
@@ -93,30 +97,6 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    double precision :: Ldpsv1,Ldpsv2, LoutQ
    double precision :: stracki
    character(len=512) :: inex
-
-
-   ! Definition of the interface
-   ! -------------------------------------------------------------------------
-   interface
-      subroutine CreateVectCoef(FileName,n,m,s,dz,Lgth,lx,ij_Ax,TAx,ly,ij_Ay,TAy,lz,ij_Az,TAz,norm,OKRead)
-         character(len=*) :: FileName
-         logical OKRead
-         integer :: n,m,s
-         integer :: lx,ly,lz
-         integer(kind=2), dimension (:, :, :) :: ij_Ax,ij_Ay,ij_Az
-         double precision :: dz,norm,Lgth
-         double precision, dimension (:, :) :: TAx,TAy,TAz
-      end subroutine
-
-      subroutine fftest(n,m,s,dz,Lgth,lx,ij_TAx,TAx,ly,ij_TAy,TAy,lz,ij_TAz,TAz,norm)
-         integer :: n,m,s
-         integer :: lx,ly,lz
-         integer(kind=2), dimension (:, :, :),allocatable :: ij_TAx,ij_TAy,ij_TAz
-         double precision :: dz,norm,Lgth
-         double precision, dimension (:,:),allocatable :: TAx,TAy,TAz
-      end subroutine
-   end interface 
-
 
    ! ??????????????????????
    ! -------------------------------------------------------------------------
@@ -903,19 +883,6 @@ subroutine CreateVectCoef(FileName,n,m,s,dz,Lgth,linex,ij_TAx,TAx,liney,ij_TAy,T
    integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx,ij_TAy,ij_TAz ! Table of indices ij for Ax, Ay et Az
    double precision :: dz, norm,Lgth                                    ! Step size in z and normalisation
    double precision,dimension(:,:),allocatable :: TAx,TAy,TAz           ! New table for coefficients of Ax, Ay et Az
-
-   interface
-      subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth,linex,ij_TAx,TAx,liney,ij_TAy,TAy,linez,ij_TAz,TAz,norm,OKRead)
-         character(len=*) :: FileName
-         logical :: OKRead
-         integer :: n,m,s
-         integer :: linex,liney,linez
-         integer(kind=2),dimension(:,:,:),allocatable :: ij_TAx, ij_TAy, ij_TAz
-         double precision :: dz, norm,Lgth
-         double precision,dimension(:,:),allocatable :: TAx, TAy, TAz
-      end subroutine
-   end interface
-
 
    ! Detect the mamixum exposant for x and y, and the number of point in z
    ! -------------------------------------------------------------------------
@@ -1857,4 +1824,6 @@ subroutine ComputeAntiQuad(x,px,y,py,a1,b1,c1,d1,a2,b2,c2,d2)
    y_tmp =a2*y + b2*py;   py_tmp=c2*y + d2*py;   y=y_tmp;   py=py_tmp;
    
 end subroutine
+
+end module ffield
 

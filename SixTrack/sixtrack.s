@@ -11822,7 +11822,11 @@ cc2008
       use dynk, only : ldynk, ldynkdebug, ldynkfiledisable,
      &     dynk_parseFUN, dynk_parseSET, dynk_dumpdata,
      &     dynk_inputsanitycheck, dynk_allocate
-      
+
++if ffield
+      use ffield
++ei
+
       implicit none
 +ca crcoall
 +if crlibm
@@ -23692,6 +23696,10 @@ C Should get me a NaN
       
       use, intrinsic :: iso_fortran_env, only : output_unit
       
++if ffield
+      use ffield
++ei
+
       implicit none
 +ca crcoall
 +if crlibm
@@ -27378,6 +27386,11 @@ C Should get me a NaN
 !   'press' or 'PRESS' (only for first turn)
 ! - YIL: Added call to beamGasInit just after readcollimator
 +ei
+
++if ffield
+      use ffield
++ei
+
       implicit none
 +ca exactvars
 +ca commonex
