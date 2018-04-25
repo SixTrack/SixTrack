@@ -38,7 +38,7 @@ contains
     
     logical isOpen
     
-    cleanName = chr_trim(chr_trimZero(fileName))
+    cleanName = chr_strip(chr_trimZero(fileName))
     
 10  continue
     
@@ -70,18 +70,18 @@ contains
     inquire(unit=fileUnit, opened=isOpen)
     if(isOpen) then 
       funit_usedUnits(funit_nUnits)  = fileUnit
-      funit_usedByFile(funit_nUnits) = string("Unknown, unit already open.")
+      funit_usedByFile(funit_nUnits) = "Unknown, unit already open."
       goto 10
     else
       funit_usedUnits(funit_nUnits)  = fileUnit
-      funit_usedByFile(funit_nUnits) = string(cleanName)
+      funit_usedByFile(funit_nUnits) = cleanName
       goto 20
     end if
 
 20  return
     
 30  continue
-    write(lout,"(3a)") "FUNIT> ERROR Failed to find an available file unit for file '",cleanName,"'"
+    write(lout,"(a)") "FUNIT> ERROR Failed to find an available file unit for file '"//cleanName//"'"
     stop -1
     
   end subroutine funit_requestUnit
@@ -97,7 +97,7 @@ contains
     
     write(lout,"(a)") "FUNIT> Dynamically assigned file units are:"
     do i=1, size(funit_usedUnits)
-      write(lout,"(a,i4,2a)") "FUNIT>   Unit ",funit_usedUnits(i)," assigned to: ",funit_usedByFile(i)%chr
+      write(lout,"(a,i4,a)") "FUNIT>   Unit ",funit_usedUnits(i)," assigned to: "//funit_usedByFile(i)
     end do
     
   end subroutine funit_listUnits
@@ -123,7 +123,7 @@ contains
     open(dumpUnit,file="file_units.dat",form="formatted")
     write(dumpUnit,"(a)") "# unit  assigned_to"
     do i=1, size(funit_usedUnits)
-      write(dumpUnit,"(i6,2a)") funit_usedUnits(i),"  ",funit_usedByFile(i)%chr
+      write(dumpUnit,"(i6,a)") funit_usedUnits(i),"  "//funit_usedByFile(i)
     end do
     close(dumpUnit)
     
