@@ -20,7 +20,7 @@ module ffield
 !! ---------------------------------------------------------------------------
 !!      Interface with SixTrack
 !! ---------------------------------------------------------------------------
-!!      workChoise    0  - Import config file
+!!      workChoice    0  - Import config file
 !!                    1  - Import data file
 !!                    4  - Preparation of AQx and AQy
 !!                    2  - Symplectic integration
@@ -28,7 +28,7 @@ module ffield
 !!                    12 - Print some particle information
 !!                    6  - Free all the memory
 !!                    3  - Allocate table for particle out of boundary
-subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
+subroutine ffInterface (workChoice, currQuad, ffi, ffj, ffn)
    implicit none
    
    ! Definition of the ffTable type
@@ -77,7 +77,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
    ! Function parameters
    ! -------------------------------------------------------------------------
-   integer,intent(in) :: workChoise, ffj, ffi, ffn
+   integer,intent(in) :: workChoice, ffj, ffi, ffn
    integer, dimension(2),intent(in) :: currQuad 
    integer :: itDltmax, itDltmin, itDltmid, itDlt 
 
@@ -114,18 +114,18 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
    else
       ffReady = .false.
       
-   endif
+   end if
    
 
    ! 0 : Import the configuration file
    ! -------------------------------------------------------------------------
-   if (workChoise == 0) then
+   if (workChoice == 0) then
      
       if (.not.firstTime) then
          write(*,*) 'FringeField ERROR: The config file was already imported'
          return
-      endif      
-      call ReadconfigFile
+      end if
+      call ReadConfigFile
       
       if (ffReady .eqv. .true.) then
          allocate(ffTA(1:ffNLFile))
@@ -133,15 +133,14 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          ffImported = .false.
          firstTime = .false.
          write (*,*) 'FringeField      : Config file imported '
-         
       else
          write (*,*) 'FringeField      : Config file NOT imported'
          
-      endif
+      end if
 
    ! 1 : Import data files
    ! -------------------------------------------------------------------------
-   else if ((workChoise == 1).and.(.not.firstTime)) then
+   else if ((workChoice == 1).and.(.not.firstTime)) then
       if (ffImported(dataindex)) then
          write(*,*) "FringeField      : ", TRIM(ADJUSTL(ffFNames(dataindex)))," Already imported!"
       else
@@ -178,7 +177,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
               ffTA(dataindex)%AQx(2,1,j)=0;              ffTA(dataindex)%AQx(2,2,j)=0;
               ffTA(dataindex)%AQy(1,1,j)=0;              ffTA(dataindex)%AQy(1,2,j)=0;
               ffTA(dataindex)%AQy(2,1,j)=0;              ffTA(dataindex)%AQy(2,2,j)=0;
-            enddo
+            end do
             
             
             
@@ -186,15 +185,15 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                write(*,*) "FringeField WARNING: The length in the Config file and computed are different: ", &
                           ffParam(dataindex,6), " != ", ffTA(dataindex)%Lgth
                write(*,*) "                     We use the computed one!"
-            endif
+            end if
  
             write (*,*) "FringeField      : ",  TRIM(ADJUSTL(ffFNames(dataindex))) , " imported! "
-         endif
-      endif
+         end if
+      end if
 
    ! 2 : Symplectic routine
    ! -------------------------------------------------------------------------
-   else if ((workChoise == 2).and.(.not.firstTime)) then
+   else if ((workChoice == 2).and.(.not.firstTime)) then
       if (.not.ffImported(dataindex)) then
          write (*, *) 'FringeField ERROR: The data in',  TRIM(ADJUSTL(ffFNames(dataindex))) ,'is not imported'
 
@@ -220,11 +219,11 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                 ffnotIN(nlostp(ffj),currQuad(1)) = .true.
               else
                 ffnotIN(nlostp(ffj),currQuad(1)) = .false.
-              endif
+              end if
 
-            endif
+            end if
          
-	 ! Symplectic routine
+         ! Symplectic routine
          else
            !   - 
            delta    = dpsv(ffj);
@@ -240,8 +239,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
            if (currQuad(2)==1) inex = "IN"
            if (currQuad(2)==2) inex = "OUT"
 
-  	   !   - Repositionnement initial
-  	   if ((inex=="IN").or.(inex=="OUT_O")) then
+           !   - Repositionnement initial
+           if ((inex=="IN").or.(inex=="OUT_O")) then
              !            * IN (enter) ---------> Drift
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3), ffParam(dataindex,4),       &
@@ -256,7 +255,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !             sigma_s=sigma_s-Ldpsv2*(one-betabeta0*(one-(px*px+py*py)*Ldpsv2));
 
              
-   	   elseif (inex=="OUT") then
+             else if (inex=="OUT") then
              !            * IN (enter) ---------> Quad
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
@@ -274,24 +273,24 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 
              
              !            * IN (enter) ---------> Quad (2)
-             if (nbDlt<1) then                ! Case Delta to small
-	       ! Generate the anti-quad
-	       call GenerateAntiQuad(oidpsv(ffj), &
-	                         ffTA(dataindex)%n,                   &
-	                         ffTA(dataindex)%m,                   &
-	                         ffTA(dataindex)%s,                   &
-	                         ffTA(dataindex)%dz,                  &
-	                         ffTA(dataindex)%lz,                  &
-	                         ffTA(dataindex)%ij_TAz,              &
-	                         ffTA(dataindex)%TAz,inex,            &
-	                         ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+             if (nbDlt<1) then                ! Case Delta too small
+             ! Generate the anti-quad
+             call GenerateAntiQuad(oidpsv(ffj), &
+                             ffTA(dataindex)%n,                   &
+                             ffTA(dataindex)%m,                   &
+                             ffTA(dataindex)%s,                   &
+                             ffTA(dataindex)%dz,                  &
+                             ffTA(dataindex)%lz,                  &
+                             ffTA(dataindex)%ij_TAz,              &
+                             ffTA(dataindex)%TAz,inex,            &
+                             ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
 
                ! New AntiQuad routine
                call ComputeAntiQuad(x,px,y,py,                      &
@@ -300,19 +299,19 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                  ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
                                  ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
                                  ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+                             ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
 
-                                              ! Case Delta bigger than anticipate
-             elseif (abs(dpsv(ffj))>ffTA(dataindex)%Tdpsv(nbDlt)+c1m6) then
+                                              ! Case Delta bigger than anticipated
+             else if (abs(dpsv(ffj))>ffTA(dataindex)%Tdpsv(nbDlt)+c1m6) then
                ! Check the maximum delta
                delta=-one
                do j=1,npart
                  if (delta<abs(dpsv(j))) then
                    delta=abs(dpsv(j))
-                 endif
-               enddo
+                 end if
+               end do
                nbDlt=ceiling(abs( two*(delta)*c1e6 ))
                
                ! Check the maximum delta
@@ -346,19 +345,19 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                             ffTA(i)%TAQy(1,2,k),&
                                             ffTA(i)%TAQy(2,1,k),&
                                             ffTA(i)%TAQy(2,2,k))
-                   enddo
-                 endif
-               enddo
+                   end do
+                 end if
+               end do
 
                ! Find the AQ matrix for the right dpsv
                itDlt=0
                do k=1,nbDlt
                  if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
                    itDlt=k
-                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                 else if ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
                    itDlt=k
-                 endif
-               enddo
+                 end if
+               end do
                
                ! New AntiQuad routine
                call ComputeAntiQuad(x,px,y,py,                 &
@@ -378,10 +377,10 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                do k=1,nbDlt
                  if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
                    itDlt=k
-                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                 else if ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
                    itDlt=k
-                 endif
-               enddo
+                 end if
+               end do
                
                ! New AntiQuad routine
                call ComputeAntiQuad(x,px,y,py,                 &
@@ -394,11 +393,11 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                ffTA(dataindex)%TAQy(2,1,itDlt),&
                                ffTA(dataindex)%TAQy(2,2,itDlt))
 
-             endif
-   	   endif
+             end if
+          end if
 
 
- 	   !   - Compute Fringe Field using asymplectic Map (Lie2)
+        !   - Compute Fringe Field using asymplectic Map (Lie2)
            call SympIntegrator(x,px,y,py,zb,oidpsv(ffj), &
                              ffTA(dataindex)%n,       &
                              ffTA(dataindex)%m,       &
@@ -418,8 +417,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !           sigma_s=sigma_s + ffTA(dataindex)%Lgth + zb*betabeta0
 
 
-  	   !   - Repositionnement Final
-   	   if ((inex=="IN").or.(inex=="OUT_O")) then
+         !   - Repositionnement Final
+          if ((inex=="IN").or.(inex=="OUT_O")) then
              ! First AntiQuad routine
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
@@ -428,23 +427,23 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !             sigma_s=sigma_s-ffParam(dataindex,2)*(one-betabeta0*(one-(px*px+py*py)*Ldpsv2));
 
              if (nbDlt<1) then
-	       ! Generate the anti-quad
-	       call GenerateAntiQuad(oidpsv(ffj), &
-	                         ffTA(dataindex)%n,                   &
-	                         ffTA(dataindex)%m,                   &
-	                         ffTA(dataindex)%s,                   &
-	                         ffTA(dataindex)%dz,                  &
-	                         ffTA(dataindex)%lz,                  &
-	                         ffTA(dataindex)%ij_TAz,              &
-	                         ffTA(dataindex)%TAz,inex,            &
-	                         ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+           ! Generate the anti-quad
+           call GenerateAntiQuad(oidpsv(ffj), &
+                             ffTA(dataindex)%n,                   &
+                             ffTA(dataindex)%m,                   &
+                             ffTA(dataindex)%s,                   &
+                             ffTA(dataindex)%dz,                  &
+                             ffTA(dataindex)%lz,                  &
+                             ffTA(dataindex)%ij_TAz,              &
+                             ffTA(dataindex)%TAz,inex,            &
+                             ffTA(dataindex)%AQx(1,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQx(1,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
 
                ! New AntiQuad routine
                call ComputeAntiQuad(x,px,y,py,                      &
@@ -453,9 +452,9 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                  ffTA(dataindex)%AQx(2,1,nlostp(ffj)),&
                                  ffTA(dataindex)%AQx(2,2,nlostp(ffj)),&
                                  ffTA(dataindex)%AQy(1,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
-	                         ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
+                             ffTA(dataindex)%AQy(1,2,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,1,nlostp(ffj)),&
+                             ffTA(dataindex)%AQy(2,2,nlostp(ffj)))
 
              else
                ! Find the AQ matrix for the right dpsv
@@ -463,10 +462,10 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                do k=1,nbDlt
                  if (abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))<c1m6) then
                    itDlt=k
-                 elseif ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
+                 else if ((abs(dpsv(ffj)-ffTA(dataindex)%Tdpsv(k))==c1m6).and.(itDlt==0)) then
                    itDlt=k
-                 endif
-               enddo
+                 end if
+               end do
                
                
                ! New AntiQuad routine
@@ -479,14 +478,14 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                ffTA(dataindex)%TAQy(1,2,itDlt),&
                                ffTA(dataindex)%TAQy(2,1,itDlt),&
                                ffTA(dataindex)%TAQy(2,2,itDlt))
-             endif
+             end if
              x=x+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*px;
              y=y+(ffTA(dataindex)%Lgth-ffParam(dataindex,2))*oidpsv(ffj)*py;
 
 !             x=x+Ldpsv1*px;
 !             y=y+Ldpsv1*py;
              
-  	   elseif (inex=="OUT") then
+         else if (inex=="OUT") then
 !             call AntiDriftAntiQuad(x,px,y,py, ffParam(dataindex,1),ffTA(dataindex)%Lgth,    &
 !                      ffParam(dataindex,2),ffParam(dataindex,3),ffParam(dataindex,4),        &
 !                      ffParam(dataindex,5),'D',oidpsv(ffj)) !,one/(one+delta))
@@ -498,7 +497,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !             y=y-Ldpsv1*py;
 !             sigma_s=sigma_s-ffParam(dataindex,2)*(one-betabeta0*(one-(px*px+py*py)*Ldpsv2));
              
-   	   endif
+          end if
 
 
 
@@ -511,13 +510,13 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
            yv(2,ffj) = (tilts(ffi)*px + tiltc(ffi)*py)*c1e3*oidpsv(ffj)
            xv(1,ffj) = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
            xv(2,ffj) = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
-	endif
-      endif
+    end if
+      end if
 
 
    ! 11 : Test
    ! -------------------------------------------------------------------------
-   else if ((workChoise == 11).and.(.not.firstTime)) then
+   else if ((workChoice == 11).and.(.not.firstTime)) then
       call fftest(ffTA(dataindex)%n,     &
                   ffTA(dataindex)%m,     &
                   ffTA(dataindex)%s,     &
@@ -534,25 +533,25 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                   ffTA(dataindex)%TAz,   &
                   ffTA(dataindex)%norm)
       ffImported(dataindex) = .true.
-      write (*,*) 'workChoise == 11'
+      write (*,*) 'workChoice == 11'
 
 
    ! 12 : Test
    ! -------------------------------------------------------------------------
-   else if (workChoise == 12) then
+   else if (workChoice == 12) then
      if (ffi == 1) then !(.false.) then !
        do j = 1,napx
          if (.true..or.(nlostp(j) == 1).or.(nlostp(j) == 9).or.(nlostp(j) == 10).or.            &
              (nlostp(j) == 15).or.(nlostp(j) == 16)) then
            write(*,*) "12 21 ", ffi, ffn, j, nlostp(j), xv(1,j), yv(1,j), xv(2,j),&
                        yv(2,j), dpsv(j), dpd(j), oidpsv(j)
-         endif
-       enddo
-     endif
+         end if
+       end do
+     end if
 
    ! 3 : Allocation table for particles out of boundary
    ! -------------------------------------------------------------------------
-   else if ((workChoise == 3)) then
+   else if ((workChoice == 3)) then
       if (firstTime2) then
          ALLOCATE(ffloss(1:npart,1:numl,1:ffNLn,1:2),ffnotIN(1:npart,1:ffNLn))
          do i=1,npart
@@ -560,15 +559,15 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                do k=1,ffNLn
                   ffloss(i,j,k,1)=0
                   ffloss(i,j,k,2)=0
-               enddo
-            enddo
-         enddo
+               end do
+            end do
+         end do
 
          do i=1,npart
             do k=1,ffNLn
                ffnotIN(i,k)=.false.
-            enddo
-         enddo
+            end do
+         end do
 
          firstTime2=.false.
 
@@ -576,19 +575,19 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
          write(*,*) 'FringeField ERROR: Allocation table for particles out of boundary already done!'
          return
 
-      endif
+      end if
    
 
    ! 4 : Preparation of AQx and AQy
    ! -------------------------------------------------------------------------
-   else if ((workChoise == 4).and.(.not.firstTime)) then
+   else if ((workChoice == 4).and.(.not.firstTime)) then
      ! Check the maximum delta
      delta=-one
      do j=1,npart
        if (delta<abs(dpsv(j))) then
          delta=abs(dpsv(j))
-       endif
-     enddo
+       end if
+     end do
      nbDlt=ceiling(abs( two*(delta)*c1e6 ))
 
      ! Check the maximum delta
@@ -620,16 +619,16 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                                   ffTA(i)%TAQy(1,2,k),&
                                   ffTA(i)%TAQy(2,1,k),&
                                   ffTA(i)%TAQy(2,2,k))
-         enddo
-       endif
-     enddo
+         end do
+       end if
+     end do
    
    
       
       
    ! 6 : End of the code -> free the memory
    ! -------------------------------------------------------------------------
-   else if (workChoise == 6) then
+   else if (workChoice == 6) then
       write(*,*) " "
       write(*,*) "------------------------ Fringe Field end ------------------------"
 
@@ -642,7 +641,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !                  write(*,*) "     * Part ",i,":    LOST!!!"
 !               else
 !                  write(*,*) "     * Part ",i,":"
-!               endif
+!               end if
 !
 !               do k = 1,ffNLn
 !                  sum_loss_in=0
@@ -650,13 +649,13 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
 !                  do j = 1,numl
 !                     sum_loss_in =sum_loss_in +ffloss(i,j,k,1)
 !                     sum_loss_out=sum_loss_out+ffloss(i,j,k,2)
-!                  enddo
+!                  end do
 !            
 !                  write(*,*) "           -> ",TRIM(ffQNames(k)),": Number of period out of boundary: (in) ",&
 !                         &sum_loss_in," (out) ",sum_loss_out
-!               enddo
-!            enddo
-!         endif
+!               end do
+!            end do
+!         end if
 
          deallocate(ffloss,ffnotIN)
          firstTime2 = .true.
@@ -665,7 +664,7 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
       else
          write (*,*) "FringeField      : Table for particle out of boundary wasn't deallocated!"
 
-      endif
+      end if
 
 
 
@@ -676,8 +675,8 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
                deallocate(ffTA(i)%TAx   , ffTA(i)%TAy   , ffTA(i)%TAz    )
                deallocate(ffTA(i)%AQx   , ffTA(i)%AQy   )!, ffTA(i)%checkAQ)
                deallocate(ffTA(i)%TAQx  , ffTA(i)%TAQy  , ffTA(i)%Tdpsv  )
-            endif
-         enddo
+            end if
+         end do
          deallocate (ffTA)
          deallocate (ffImported)
          deallocate (ffQNames, ffParam)
@@ -689,14 +688,14 @@ subroutine ffInterface (workChoise, currQuad, ffi, ffj, ffn)
       else
          write (*,*) "FringeField      : All Fringe-Field table's weren't deallocated!"
 
-      endif
+      end if
    
    else
-      write(*,*) 'FringeField ERROR: Not valid choise ', workChoise, ' or empty tables >> ', firstTime
+      write(*,*) 'FringeField ERROR: Not valid choise ', workChoice, ' or empty tables >> ', firstTime
       write(*,*) '                   CurQ = ',currQuad(1),currQuad(2)
       write(*,*) '                   ffQ2File = ',ffQ2File(currQuad(1),currQuad(2)),' Id Tab = ', dataindex
 
-   endif
+   end if
    
    return
 end subroutine
@@ -739,7 +738,7 @@ end subroutine
 !! ---------------------------------------------------------------------------
 !!      Read config file
 !! ---------------------------------------------------------------------------
-subroutine ReadconfigFile
+subroutine ReadConfigFile
    implicit none
 
    
@@ -767,7 +766,7 @@ subroutine ReadconfigFile
 !      path ='/afs/cern.ch/user/d/dalena/hllhc/'
       path ='./'
       write(*, *) "                     we look for 'configFringeField.txt' in ", TRIM(ADJUSTL(path))
-   endif
+   end if
 
 
    ! Open the file
@@ -786,13 +785,13 @@ subroutine ReadconfigFile
       if ((word == "NEXT").or.(word == "END")) then
          write(*,*) 'FringeField ERROR: Wrong format config file'
          return
-      endif
+      end if
 
       read(1789,*,iostat=istat) word           !skip the second line
       if ((word == "NEXT").or.(word == "END")) then
          write(*,*) 'FringeField ERROR: Wrong format config file'
          return
-      endif
+      end if
 
       do while((istat==0).and.(conti))    !start reading   
          read(1789,*,iostat=istat) word
@@ -800,7 +799,7 @@ subroutine ReadconfigFile
             conti=.false.
          else
             ffNLn=ffNLn+1
-         endif
+         end if
       end do
 
       ! Counting the line in the second part of the file
@@ -811,13 +810,13 @@ subroutine ReadconfigFile
       if ((word == "NEXT").or.(word == "END")) then
          write(*,*) 'FringeField ERROR: Wrong format config file'
          return
-      endif
+      end if
 
       do while((istat==0).and.(conti))    !start reading       
          read(1789,*,iostat=istat) word
          if (word=="END") then
             conti=.false.
-         endif
+         end if
          ffNLFile=ffNLFile+1 
       end do
 
@@ -839,7 +838,7 @@ subroutine ReadconfigFile
          do i=1,ffNLn
             !                         Quad name   ,File in       ,File out
             read(1789,*,iostat=istat) ffQNames(i), ffQ2File(i,1), ffQ2File(i,2)
-         enddo
+         end do
          
          !Read the second part
          read(1789,*,iostat=istat)
@@ -850,7 +849,7 @@ subroutine ReadconfigFile
             read(1789,*,iostat=istat) ffFNames(i),ffParam(i,1),ffParam(i,2),ffParam(i,3),ffParam(i,4),ffParam(i,5),ffParam(i,6)
 !            read(1789,*,iostat=istat) file_tm,ffParam(i,1),ffParam(i,2),ffParam(i,3),ffParam(i,4),ffParam(i,5),ffParam(i,6)
 !            ffFNames(i)=TRIM(ADJUSTL(path))//TRIM(ADJUSTL(file_tm))
-         enddo
+         end do
 
          !check inputs
          do i = 1,ffNLn
@@ -858,15 +857,15 @@ subroutine ReadconfigFile
                if ((ffQ2File(i,id) > ffNLFile).or.(ffQ2File(i,id) < 1)) then
                   write(*,*) "FringeField ERROR: In the configuration file, file name reference is bad"
                   return
-               endif
-            enddo
-         enddo
+               end if
+            end do
+         end do
 
          write(*,*) "FringeField      : SUCCESS!!!!!!!!!"
          ffReady = .true.
          close(1789)
-      endif
-   endif
+      end if
+   end if
 end subroutine
 
 
@@ -894,7 +893,7 @@ subroutine CreateVectCoef(FileName,n,m,s,dz,Lgth,linex,ij_TAx,TAx,liney,ij_TAy,T
 
    if (.not.OKRead) then
       stop
-   endif
+   end if
 
 
    ! Generate the vecto potential table
@@ -931,7 +930,7 @@ subroutine ReadExpMax(FileName, n, m, s, OKRead)
    if (istat/=0) then
       write(*,*) "FringeField ERROR: Opening Error ", FileName
       stop
-   endif
+   end if
 
 
    ! Initialize values
@@ -951,7 +950,7 @@ subroutine ReadExpMax(FileName, n, m, s, OKRead)
       read(lun,*,iostat=istat) st, expx, expy, expz ! Read line
       if (st>sm1+c1m12) then                        ! Detect new step in z
          s = s + 1                                  ! Compte step in z
-      endif
+      end if
       if (expx>n) n=expx                            ! Max. expo. in x
       if (expy>m) m=expy                            ! Max. expo. in y
       sm1=st
@@ -1006,12 +1005,12 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
    if (alloc_stat/=0) then
       write(*,*) "FringeField ERROR: Error allocate Tab FileRead"
       return
-   endif                                            ! (line,z)
+   end if                                            ! (line,z)
    ALLOCATE(tpij_Ax(0:1,0:ind,0:s),tpij_Ay(0:1,0:ind,0:s),tpij_Az(0:1,0:ind,0:s), stat = alloc_stat)
    if (alloc_stat/=0) then
       write(*,*) "FringeField ERROR: Error allocate Tab FileRead"
       return
-   endif                                            ! (0 pour i et 1 pour j,line,z)
+   end if                                            ! (0 pour i et 1 pour j,line,z)
    
 
    linex=0;liney=0;linez=0
@@ -1025,8 +1024,8 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
             tpij_Ax(0,l,k)=0 ;tpij_Ax(1,l,k)=0 
             tpij_Ay(0,l,k)=0 ;tpij_Ay(1,l,k)=0 
             tpij_Az(0,l,k)=0 ;tpij_Az(1,l,k)=0 
-      enddo
-   enddo
+      end do
+   end do
 
    ! Check file exist
    ! -------------------------------------------------------------------------
@@ -1036,11 +1035,11 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
       write(6,*) "FringeField ERROR: Opening Error ", FileName
       OKRead=.False.
       stop
-   endif
+   end if
 
    ! Initialize parameters
    ! -------------------------------------------------------------------------
-   st=0.
+   st=zero
    sm1=c1e12
    istat=0
    sline=0
@@ -1059,7 +1058,7 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
          dz=dz+st-sm1
          sline = sline + 1
          tlinex=0; tliney=0; tlinez=0
-      endif
+      end if
       if (sline == 0) zin = st
       
       ! --------------- Detect coef non trivial for Ax ---------------
@@ -1071,9 +1070,9 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
                if ((tpij_Ax(0,l,sline)==INT2(expx)).AND.(tpij_Ax(1,l,sline)==INT2(expy))) then
                   tpTAx(l,sline)=tpTAx(l,sline) + ax
                   CoefSave=.True.
-               endif
-            enddo
-         endif
+               end if
+            end do
+         end if
 
          if (CoefSave.eqv..False.) then ! Create new coef
 
@@ -1082,8 +1081,8 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
             tpTAx(tlinex,sline)=tpTAx(tlinex,sline) + ax
             tlinex=tlinex+1
             CoefSave=.True.
-         endif
-      endif
+         end if
+      end if
 
       ! --------------- Detect coef non trivial for Ay ---------------
       if (ay/=0.) then
@@ -1094,9 +1093,9 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
                if ((tpij_Ay(0,l,sline)==INT2(expx)).AND.(tpij_Ay(1,l,sline)==INT2(expy))) then
                   tpTAy(l,sline)=tpTAy(l,sline) + ay
                   CoefSave=.True.
-               endif
-            enddo
-         endif
+               end if
+            end do
+         end if
 
          if (CoefSave.eqv..False.) then ! Create new coef
             tpij_Ay(0,tliney,sline)=INT2(expx)
@@ -1104,8 +1103,8 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
             tpTAy(tliney,sline)=tpTAy(tliney,sline) + ay
             tliney=tliney+1
             CoefSave=.True.
-         endif
-      endif
+         end if
+      end if
 
       ! --------------- Detect coef non trivial for Az ---------------
       if (az/=0.) then
@@ -1116,9 +1115,9 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
                if ((tpij_Az(0,l,sline)==INT2(expx)).AND.(tpij_Az(1,l,sline)==INT2(expy))) then
                   tpTAz(l,sline)=tpTAz(l,sline) + az
                   CoefSave=.True.
-               endif
-            enddo
-         endif
+               end if
+            end do
+         end if
 
          if (CoefSave.eqv..False.) then ! Create new coef
             tpij_Az(0,tlinez,sline)=INT2(expx)
@@ -1126,30 +1125,30 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
             tpTAz(tlinez,sline)=tpTAz(tlinez,sline) + az
             tlinez=tlinez+1
             CoefSave=.True.
-         endif
-      endif
+         end if
+      end if
 
 
       ! Update tables size
       ! -------------------------------------------------------------------------
       if (linex<tlinex-1) then
          linex=tlinex-1
-      endif
+      end if
       if (liney<tliney-1) then
          liney=tliney-1
-      endif
+      end if
       if (linez<tlinez-1) then
          linez=tlinez-1
-      endif
+      end if
 
       if (istat==0) then
          sm1=st
-      endif
+      end if
       if (sline>s) then                                                      ! Detect error in z
          OKRead=.False.
          stop
-      endif
-   enddo
+      end if
+   end do
    !Lgth = st - zin
    Lgth = sm1 - zin
 
@@ -1159,18 +1158,18 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
    do k=0,s
       do l=0,linex
          tpTAx(l,k)=tpTAx(l,k)*norm
-      enddo
-   enddo
+      end do
+   end do
    do k=0,s
       do l=0,liney
          tpTAy(l,k)=tpTAy(l,k)*norm
-      enddo
-   enddo
+      end do
+   end do
    do k=0,s
       do l=0,linez
          tpTAz(l,k)=tpTAz(l,k)*norm
-      enddo
-   enddo
+      end do
+   end do
    dz=dz/dble(sline)
 !   Lgth = Lgth + dz   
 
@@ -1193,7 +1192,7 @@ subroutine ReadVectPotCoeff(FileName,n,m,s,dz,Lgth, linex,ij_TAx,TAx, liney,ij_T
       write(6,*) "FringeField ERROR: Reading Error Line ",line
       OKRead=.False.
       stop
-   endif
+   end if
    
 
    ! Close file
@@ -1234,22 +1233,22 @@ subroutine Horner2D(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_i=230/log_tmp
    else
       max_i=n
-   endif
+   end if
    log_tmp=abs(log10(abs(y)))
    if (log_tmp*(m)>230) then
       max_j=230/log_tmp
    else
       max_j=m
-   endif
+   end if
 
    xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
-   enddo
+   end do
    ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
-   enddo
+   end do
 
    
    ! Initialisation de la boucle en x
@@ -1258,8 +1257,8 @@ subroutine Horner2D(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    do l=0,line
       if ((ij_Tab(0,l,z)<=max_i).and.(ij_Tab(1,l,z)<=max_j)) then
          r0 = r0 + xpow(ij_Tab(0,l,z))*ypow(ij_Tab(1,l,z))*Tab(l,z)
-      endif
-   enddo
+      end if
+   end do
    resultat=r0
 end subroutine
 
@@ -1295,13 +1294,13 @@ subroutine HornerDX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_i=230/log_tmp
    else
       max_i=n-1
-   endif
+   end if
    log_tmp=abs(log10(abs(y)))
    if (log_tmp*(m)>230) then
       max_j=230/log_tmp
    else
       max_j=m
-   endif
+   end if
 
 
    ! Initialisation des vecteurs xpow et ypow
@@ -1309,11 +1308,11 @@ subroutine HornerDX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
    xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
-   enddo
+   end do
    ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
-   enddo
+   end do
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
@@ -1322,8 +1321,8 @@ subroutine HornerDX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       di=dble(ij_Tab(0,l,z))
       if ((di>0).and.(ij_Tab(0,l,z)-1<=max_i).and.(ij_Tab(1,l,z)<=max_j)) then
          r0 = r0 + di*xpow(ij_Tab(0,l,z) - 1)*ypow(ij_Tab(1,l,z))*Tab(l,z)
-      endif
-   enddo
+      end if
+   end do
    resultat=r0
 end subroutine
 
@@ -1359,22 +1358,22 @@ subroutine HornerDY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_i=230/log_tmp
    else
       max_i=n
-   endif
+   end if
    log_tmp=abs(log10(abs(y)))
    if (log_tmp*(m-1)>230) then
       max_j=230/log_tmp
    else
       max_j=m-1
-   endif
+   end if
 
    xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
-   enddo
+   end do
    ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
-   enddo
+   end do
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
@@ -1383,8 +1382,8 @@ subroutine HornerDY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       dj=dble(ij_Tab(1,l,z))
       if ((dj>0).and.(ij_Tab(0,l,z)<=max_i).and.(ij_Tab(1,l,z)-1<=max_j)) then
          r0 = r0 + dj*xpow(ij_Tab(0,l,z))*ypow(ij_Tab(1,l,z) - 1)*Tab(l,z)
-      endif
-   enddo
+      end if
+   end do
    resultat=r0
 end subroutine
 
@@ -1420,22 +1419,22 @@ subroutine HornerDYIntX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_i=230/log_tmp
    else
       max_i=n+1
-   endif
+   end if
    log_tmp=abs(log10(abs(y)))
    if (log_tmp*(m-1)>230) then
       max_j=230/log_tmp
    else
       max_j=m-1
-   endif
+   end if
    
    xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
-   enddo
+   end do
    ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
-   enddo
+   end do
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
@@ -1447,8 +1446,8 @@ subroutine HornerDYIntX(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       if ((dj>0).and.(ij_Tab(0,l,z)+1<=max_i).and.(ij_Tab(1,l,z)-1<=max_j)) then
         r0 = r0 + dj*xpow(ij_Tab(0,l,z) + 1)*ypow(ij_Tab(1,l,z) - 1)*Tab(l,z)/di
 
-      endif
-   enddo
+      end if
+   end do
    resultat=r0
 end subroutine
 
@@ -1484,22 +1483,22 @@ subroutine HornerDXIntY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       max_i=230/log_tmp
    else
       max_i=n-1
-   endif
+   end if
    log_tmp=abs(log10(abs(y)))
    if (log_tmp*(m+1)>230) then
       max_j=230/log_tmp
    else
       max_j=m+1
-   endif
+   end if
    
    xpow(0)=one
    do l=1,max_i
       xpow(l)=xpow(l-1)*x 
-   enddo
+   end do
    ypow(0)=one
    do l=1,max_j
       ypow(l)=ypow(l-1)*y 
-   enddo
+   end do
    
    ! Initialisation de la boucle en x
    ! -------------------------------------------------------------------------
@@ -1511,8 +1510,8 @@ subroutine HornerDXIntY(x, y, z, n, m, s, line, ij_Tab, Tab, resultat)
       if ((di>0).and.(ij_Tab(0,l,z)-1<=max_i).and.(ij_Tab(1,l,z)+1<=max_j)) then
          r0 = r0 + di*xpow(ij_Tab(0,l,z) - 1)*ypow(ij_Tab(1,l,z) + 1)*Tab(l,z)/dj
 
-      endif
-   enddo
+      end if
+   end do
    resultat=r0
 end subroutine
 
@@ -1565,7 +1564,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
       sens = -1
       dz=-dz
       dzover2=-dzover2
-   endif
+   end if
    ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Inverse the reading of the table if OUT_O
 
    do i=startp,endp,sens
@@ -1640,7 +1639,7 @@ subroutine SympIntegrator(x,px,y,py,zb,deltap1,n,m,s,dz,lx,ij_Ax,TAx,ly,ij_Ay,TA
 
       !             * h1
       !zb=zb-dzover2
-   enddo
+   end do
 end subroutine
 
 
@@ -1675,7 +1674,7 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
       py_tmp = py
 
 
-   elseif (oper=="Q") then   ! [D(-Cor/2)*Q(KLin,Lin+Cor)*D(-Cor/2)]^-1
+   else if (oper=="Q") then   ! [D(-Cor/2)*Q(KLin,Lin+Cor)*D(-Cor/2)]^-1
       DbNbDivQad = dble(NbDivQad)
       Lin_tp  = Lin /DbNbDivQad
       Corx_tp = Corx/DbNbDivQad
@@ -1694,7 +1693,7 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
         
         x  =  x_tmp
         px = px_tmp
-      enddo
+      end do
 
       ! Defocalisation in y
       a =  one + (K + CoK)*(Lin_tp+Cory_tp)* Lin_tp         *half *deltap1
@@ -1709,7 +1708,7 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
         
          y  =  y_tmp
          py = py_tmp
-      enddo
+      end do
 
    else
       x_tmp  = x
@@ -1718,7 +1717,7 @@ subroutine AntiDriftAntiQuad(x,px,y,py,K,Lff,Lin,Corx,Cory,CoK,oper,deltap1)
       py_tmp = py
 
 
-   endif
+   end if
    x  =  x_tmp
    y  =  y_tmp
    px = px_tmp
@@ -1768,7 +1767,7 @@ subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2
       endp = 0
       sens = -1
       dz=-dz
-   endif
+   end if
    ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<< Inverse the reading of the table if OUT_O
 
    do i=startp,endp,sens
@@ -1778,12 +1777,12 @@ subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2
      do l=0,lz
        if ((ij_Az(0,l,i)==2).and.(ij_Az(1,l,i)==0)) then
          C0x=two*TAz(l,i)
-       endif
+       end if
 
        if ((ij_Az(0,l,i)==0).and.(ij_Az(1,l,i)==2)) then
          C0y=two*TAz(l,i)
-       endif
-     enddo
+       end if
+     end do
 
      
      ! Approx
@@ -1812,7 +1811,7 @@ subroutine GenerateAntiQuad(deltap1,n,m,s,dz,lz,ij_Az,TAz,inex,a1,b1,c1,d1,a2,b2
      ctp= (C0y*dz)*a2 + (one+deltap1*C0y*dz*dz*half)*c2
      dtp= (C0y*dz)*b2 + (one+deltap1*C0y*dz*dz*half)*d2
      a2=atp; b2=btp; c2=ctp; d2=dtp;
-   enddo
+   end do
    
    ! Inversion of the matrix
    bcmad=one/(a1*d1-b1*c1)
