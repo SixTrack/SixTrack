@@ -1,4 +1,10 @@
-+dk mod_alloc
+! ================================================================================================ !
+!  SixTrack Array Alloc Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  J. Molson, K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-26
+! ================================================================================================ !
+
 module mod_alloc
 
   use, intrinsic :: iso_fortran_env
@@ -154,7 +160,7 @@ subroutine print_alloc(ename, requested_bits)
   character(len=*), intent(in) :: ename
   integer(kind=int64) :: requested_bits
   
-+if spammy
+#ifdef spammy
   
   write(lout,*) 'Memory allocation for array ', ename
 
@@ -179,7 +185,7 @@ subroutine print_alloc(ename, requested_bits)
     maximum_bits = allocated_bits
   end if
 
-+ei
+#endif
 
 end subroutine print_alloc
 
@@ -2987,7 +2993,7 @@ subroutine resize1dc(input, strlen, newsize, initial, ename, f_index_in)
   end do
 
   !Set the initial values of the buffer
-  do i=oldsize+1,newsize
+  do i=oldsize+f_index,newsize
     buffer(i) = initial
   end do
 
