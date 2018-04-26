@@ -339,7 +339,7 @@ function str_toReal(theString) result(theValue)
   character(len=:), allocatable :: cString
   integer                       :: cLen, cErr
   
-  cLen     = len(theString%chr) + 1
+  cLen     = len(theString) + 1
   cString  = theString%chr//char(0)
   theValue = round_near(cErr,cLen,cString)
   

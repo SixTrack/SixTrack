@@ -16,6 +16,7 @@ module hdf5_output
   use end_sixtrack
   use crcoall
   use strings
+  use mod_alloc
   
   implicit none
   
@@ -42,6 +43,11 @@ module hdf5_output
   integer(HID_T), public, save :: h5_collID ! The internal ID of the collimation group
   integer(HID_T), public, save :: h5_dumpID ! The internal ID of the dump group
   integer(HID_T), public, save :: h5_scatID ! The internal ID of the scatter group
+  
+  ! DataSet ID Mappings
+  type(string),   allocatable, private, save :: h5_dataSetName(:)
+  type(string),   allocatable, private, save :: h5_dataSetPath(:)
+  integer(HID_T), allocatable, private, save :: h5_dataSetMap(:)
   
   ! Default Group Names
   character(len=11), parameter :: h5_collGroup = "collimation"
