@@ -895,10 +895,10 @@ subroutine scatter_thin(i_elem, ix, turn)
   
   implicit none
   
-+if collimat
+#ifdef COLIMAT
 +ca collpara ! Needed to define array sizes
 +ca dbcommon ! Get the arrays that we need to set to mark the particle as "dirty" for collimation
-+ei
+#endif
   
   ! Temp variables
   integer          ELEMidx, PROidx, GENidx
@@ -1175,7 +1175,7 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
   ! Approximate distribution
   g1    =           exp_mb(-b1*tmin)/b1  ! Soft scatter term
   g3    = (a**2) * (exp_mb(-b2*tmin)/b2) ! Hard scatter term
-  prob3 = g3/(g1+g3)              ! Probability of g3
+  prob3 = g3/(g1+g3)                     ! Probability of g3
   
   ! Pre-calculate inverses
   invB1 = one/b1
