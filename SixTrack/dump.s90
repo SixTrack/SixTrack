@@ -1199,7 +1199,6 @@ subroutine dump_comnul
     dumplast(i)  = 0
     dumpunit(i) = 0
     dumpfmt(i)  = 0
-    dump_fname(i) = repeat(char(0),str_maxLen)
 +if cr
     dumpfilepos(i) = -1
 +ei
