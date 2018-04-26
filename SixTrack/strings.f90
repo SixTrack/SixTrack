@@ -17,6 +17,10 @@
 !  Length:        len(aString)                    => Returns string length, like intrinsic len()
 !  Trim:          trim(aString)                   => Returns char array without trailing spaces
 !  Adjust:        adjust[lr](aString)             => Returns char array with l/r adjustment
+!  Strip:         aString%strip()                 => Returns a string without lead/trail spaces
+!  Strip Zero:    aString%strip(zero=.true.)      => As above, but first cuts at first \0 character
+!  Upper Case:    aString%upper()                 => Returns a string, replacing [a-z] with [A-Z]
+!  Lower Case:    aString%upper()                 => Returns a string, replacing [A-Z] with [a-z]
 !
 !  Note: gfortran 6.3 shows some unexpected behaviour when comparing char arrays and strings. This
 !        error is not reproducible in gfortran 7, and can be avoided by comparing
