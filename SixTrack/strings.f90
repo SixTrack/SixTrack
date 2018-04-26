@@ -2,7 +2,7 @@
 !  SixTrack String Module
 ! ~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-25
+!  Last Modified: 2018-04-26
 !
 !  Usage
 ! ~~~~~~~
@@ -22,8 +22,8 @@
 !  Upper Case:    aString%upper()                 => Returns a string, replacing [a-z] with [A-Z]
 !  Lower Case:    aString%lower()                 => Returns a string, replacing [A-Z] with [a-z]
 !
-!  Note: gfortran 6.3 shows some unexpected behaviour when comparing char arrays and strings. This
-!        error is not reproducible in gfortran 7, and can be avoided by comparing
+!  Note: gfortran 6.x shows some unexpected behaviour when comparing char arrays and string arrays.
+!        This error is not reproducible in gfortran 7, and can be avoided by comparing
 !        (aString%get() == "Something") instead of (aString == "Something").
 ! ================================================================================================ !
 module strings
