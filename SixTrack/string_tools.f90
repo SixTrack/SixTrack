@@ -24,7 +24,7 @@ module string_tools
   character(len=str_maxLen), parameter :: str_dSpace = repeat(" ",str_maxLen)
   character(len=str_maxLen), parameter :: str_dNull  = repeat(char(0),str_maxLen)
   
-  public str_trim, chr_trim, chr_trimZero
+  public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub
   public str_inStr, chr_inStr
@@ -109,7 +109,7 @@ subroutine str_arrAppend(theArray, theString)
     arrSize = size(theArray,1)
     allocate(tmpArray(arrSize + 1), stat=allocErr)
     if(allocErr /= 0) then
-      write(lout,"(a)") "ERROR Allocation of string array"
+      write(lout,"(a)") "ERROR Allocation of string array failed."
       stop 1
     end if
     
@@ -124,7 +124,7 @@ subroutine str_arrAppend(theArray, theString)
     
     allocate(theArray(1), stat=allocErr)
     if(allocErr /= 0) then
-      write(lout,"(a)") "ERROR Allocation of string array"
+      write(lout,"(a)") "ERROR Allocation of string array failed."
       stop 1
     end if
     theArray(1) = theString
@@ -167,24 +167,24 @@ function str_sub(theString, iA, iB) result(retString)
 end function str_sub
 
 ! ================================================================================================ !
-!  Trim String Routine
+!  Strip String Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
 !  Trims leading and trailing white spaces from a string
 !  str_trim is for strings in and out
 !  chr_trim is for char arrays in and out
 ! ================================================================================================ !
-function str_trim(theString) result(retString)
+function str_strip(theString) result(retString)
   type(string), intent(in) :: theString
   type(string)             :: retString
-  retString = string(trim(adjustl(theString%chr)))
-end function str_trim
+  retString = trim(adjustl(theString))
+end function str_strip
 
-function chr_trim(theString) result(retString)
+function chr_strip(theString) result(retString)
   character(len=*), intent(in)  :: theString
   character(len=:), allocatable :: retString
   retString = trim(adjustl(theString))
-end function chr_trim
+end function chr_strip
 
 ! ================================================================================================ !
 !  Trim Zero String Routine
@@ -266,8 +266,8 @@ function str_stripQuotes(theString) result(retString)
   
   integer strLen
   
-  tmpString = str_trim(theString)
-  strLen    = len(tmpString%chr)
+  tmpString = str_strip(theString)
+  strLen    = len(tmpString)
   
   if(strLen < 2) then
     retString = tmpString
@@ -295,7 +295,7 @@ function chr_stripQuotes(theString) result(retString)
   
   integer strLen
   
-  tmpString = chr_trim(theString)
+  tmpString = chr_strip(theString)
   strLen    = len(tmpString)
   
   if(strLen < 2) then

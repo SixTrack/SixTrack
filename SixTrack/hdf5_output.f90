@@ -184,7 +184,7 @@ subroutine h5_initForScatter()
   
   call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
   if(h5_fileError == -1) then
-    write(lout,"(3a)") "HDF5> ERROR Failed to create scatter group '",h5_scatGroup,"'."
+    write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
@@ -217,10 +217,16 @@ subroutine h5_parseInputLine(inLine)
   
   if(nSplit == 0) then
     if(h5_debugOn) then
-      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'."
+      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'."
       write (lout,"(a)")      "HDF5> DEBUG  * No fields found."
     end if
     return
+  end if
+  
+  ! Report if debugging is ON
+  if(h5_debugOn) then
+    write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'."
+    write (lout,"(a,i2,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
   end if
   
   select case(lnSplit(1)%chr)
@@ -241,7 +247,7 @@ subroutine h5_parseInputLine(inLine)
       h5_doTruncate = .false.
     end if
     h5_fileName = str_stripQuotes(lnSplit(2))
-    write(lout, "(3a)") "HDF5> Output file name set to: '",h5_fileName%chr,"'."
+    write(lout, "(a)") "HDF5> Output file name set to: '"//h5_fileName//"'."
   
   case("ROOT")
     if(nSplit /= 2) then
@@ -257,7 +263,7 @@ subroutine h5_parseInputLine(inLine)
       call prror(-1)
     end if
     h5_rootPath = str_stripQuotes(lnSplit(2))
-    write(lout, "(3a)") "HDF5> Root group set to: '",h5_rootPath%chr,"'."
+    write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
   
   case("ENABLE")
   
@@ -279,23 +285,17 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(3a)") "HDF5> HDF5 is enabled for DUMP."
     case("SCAT")
       h5_useForSCAT = .true.
-      write(lout,"(3a)") "HDF5> HDF5 is enabled for SCATTER."
+      write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
     case default
-      write(lout,"(3a)") "HDF5> ERROR HDF5 is not available for ",lnSplit(2)%chr(1:4)," blocks."
+      write(lout,"(a)") "HDF5> ERROR HDF5 is not available for "//lnSplit(2)%chr(1:4)//" blocks."
       call prror(-1)
     end select
   
   case default
-    write(lout,"(3a)") "HDF5> ERROR Unrecognised statement '",lnSplit(1)%chr,"'."
+    write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
     call prror(-1)
   
   end select
-  
-  ! Report if debugging is ON
-  if(h5_debugOn) then
-    write (lout,"(a,i3,3a)")  "HDF5> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'."
-    write (lout,"(a,i2,3a)") ("HDF5> DEBUG  * Field(",i,") = '",lnSplit(i)%chr,"'",i=1,nSplit)
-  end if
   
 end subroutine h5_parseInputLine
 
