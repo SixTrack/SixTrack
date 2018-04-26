@@ -38,10 +38,10 @@ module strings
     
     procedure, public,  pass(this)  :: get     => getStr
     procedure, public,  pass(this)  :: set     => setStr
-    procedure, public,  pass(this)  :: len     => lenStr
-    procedure, public,  pass(this)  :: trim    => trimStr
-    procedure, public,  pass(this)  :: adjustl => adjLStr
-    procedure, public,  pass(this)  :: adjustr => adjRStr
+  ! procedure, public,  pass(this)  :: len     => lenStr
+  ! procedure, public,  pass(this)  :: trim    => trimStr
+  ! procedure, public,  pass(this)  :: adjustl => adjLStr
+  ! procedure, public,  pass(this)  :: adjustr => adjRStr
     procedure, public,  pass(this)  :: strip   => stripStr
     procedure, public,  pass(this)  :: upper   => upperStr
     procedure, public,  pass(this)  :: lower   => lowerStr
