@@ -16,7 +16,7 @@
 !  Comparison:    aString /= "barfoo"             => Compares a string/char to a string/char
 !  Length:        len(aString)                    => Returns string length, like intrinsic len()
 !  Trim:          trim(aString)                   => Returns char array without trailing spaces
-!  Adjust:        adjust[lr](aString)             => Returns char array with l/r ajustment
+!  Adjust:        adjust[lr](aString)             => Returns char array with l/r adjustment
 !
 !  Note: gfortran 6.3 shows some unexpected behaviour when comparing char arrays and strings. This
 !        error is not reproducible in gfortran 7, and can be avoided by comparing
