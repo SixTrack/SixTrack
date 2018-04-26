@@ -5,17 +5,22 @@
 !  Last Modified: 2018-04-25
 !
 !  Usage
-!    Declaration:   type(string) aString
-!    Get:           aString%get()                   => Returns chracater array
-!    Set:           aString%set("foo")              => Returns string
-!    Assignment:    aString = "foo"                 => Returns string
-!    Addition:      aString = aString + "bar"       => Returns combined string "foobar"
-!    Concatenation: write(*,*) "This is "//aString  => On-the-fly conversion to character array
-!    Comparison:    aString == "foobar"             => Compares a string/char to a string/char
-!    Comparison:    aString /= "barfoo"             => Compares a string/char to a string/char
-!    Length:        len(aString)                    => Returns string length, like intrinsic len()
-!    Trim:          trim(aString)                   => Returns char array without trailing spaces
-!    Adjust:        adjust[lr](aString)             => Returns char array with l/r ajustment
+! ~~~~~~~
+!  Declaration:   type(string) aString
+!  Get:           aString%get()                   => Returns chracater array
+!  Set:           aString%set("foo")              => Returns string
+!  Assignment:    aString = "foo"                 => Returns string
+!  Addition:      aString = aString + "bar"       => Returns combined string "foobar"
+!  Concatenation: write(*,*) "This is "//aString  => On-the-fly conversion to character array
+!  Comparison:    aString == "foobar"             => Compares a string/char to a string/char
+!  Comparison:    aString /= "barfoo"             => Compares a string/char to a string/char
+!  Length:        len(aString)                    => Returns string length, like intrinsic len()
+!  Trim:          trim(aString)                   => Returns char array without trailing spaces
+!  Adjust:        adjust[lr](aString)             => Returns char array with l/r ajustment
+!
+!  Note: gfortran 6.3 shows some unexpected behaviour when comparing char arrays and strings. This
+!        error is not reproducible in gfortran 7, and can be avoided by comparing
+!        (aString%get() == "Something") instead of (aString == "Something").
 ! ================================================================================================ !
 module strings
   
