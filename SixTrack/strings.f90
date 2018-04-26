@@ -13,6 +13,9 @@
 !    Concatenation: write(*,*) "This is "//aString  => On-the-fly conversion to character array
 !    Comparison:    aString == "foobar"             => Compares a string/char to a string/char
 !    Comparison:    aString /= "barfoo"             => Compares a string/char to a string/char
+!    Length:        len(aString)                    => Returns string length, like intrinsic len()
+!    Trim:          trim(aString)                   => Returns char array without trailing spaces
+!    Adjust:        adjust[lr](aString)             => Returns char array with l/r ajustment
 ! ================================================================================================ !
 module strings
   
