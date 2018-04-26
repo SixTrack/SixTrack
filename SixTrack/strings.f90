@@ -38,13 +38,21 @@ module strings
     procedure, public,  pass(this)  :: trim    => trimStr
     procedure, public,  pass(this)  :: adjustl => adjLStr
     procedure, public,  pass(this)  :: adjustr => adjRStr
+    procedure, public,  pass(this)  :: strip   => stripStr
+    procedure, public,  pass(this)  :: upper   => upperStr
+    procedure, public,  pass(this)  :: lower   => lowerStr
     
     procedure, private, pass(this)  :: getStr
     procedure, private, pass(this)  :: setStr
+    
     procedure, private, pass(this)  :: lenStr
     procedure, private, pass(this)  :: trimStr
     procedure, private, pass(this)  :: adjLStr
     procedure, private, pass(this)  :: adjRStr
+    
+    procedure, private, pass(this)  :: stripStr
+    procedure, private, pass(this)  :: upperStr
+    procedure, private, pass(this)  :: lowerStr
     
     procedure, private, pass(left)  :: assignStrStr
     procedure, private, pass(left)  :: assignStrChr
@@ -173,6 +181,61 @@ contains
       retValue = adjustr(this%chr)
     end if
   end function adjRStr
+  
+  ! ================================================================ !
+  !  String Manipulation
+  !  Upper and Lower are based on:
+  !    http://fortranwiki.org/fortran/show/String_Functions
+  ! ================================================================ !
+  type(string) elemental function stripStr(this, zero)
+    class(string), intent(in)           :: this
+    logical,       intent(in), optional :: zero
+    integer i, cut
+    cut = len(this%chr)
+    if(present(zero)) then
+      if(zero) then
+        do i=1, len(this%chr)
+          if(this%chr(i:i) == char(0)) then
+            cut = i-1
+            exit
+          end if
+        end do
+      end if
+    end if
+    stripStr%chr = trim(adjustl(this%chr(1:cut)))
+  end function stripStr
+  
+  type(string) pure function upperStr(this)
+    class(string),    intent(in)  :: this
+    character(len=:), allocatable :: tmpValue
+    character          :: ch
+    integer, parameter :: ulOffset = ichar("A") - ichar("a")
+    integer            :: i
+    allocate(character(len(this%chr)) :: tmpValue)
+    do i = 1,len(this%chr)
+      ch = this%chr(i:i)
+      if(ch >= "a" .and. ch <= "z") ch = char(ichar(ch)+ulOffset)
+      tmpValue(i:i) = ch
+    end do
+    upperStr%chr = tmpValue
+    deallocate(tmpvalue)
+  end function upperStr
+  
+  type(string) elemental function lowerStr(this)
+    class(string),    intent(in)  :: this
+    character(len=:), allocatable :: tmpValue
+    character          :: ch
+    integer, parameter :: ulOffset = ichar("A") - ichar("a")
+    integer            :: i
+    allocate(character(len(this%chr)) :: tmpValue)
+    do i = 1,len(this%chr)
+      ch = this%chr(i:i)
+      if(ch >= "A" .and. ch <= "Z") ch = char(ichar(ch)-ulOffset)
+      tmpValue(i:i) = ch
+    end do
+    lowerStr%chr = tmpValue
+    deallocate(tmpvalue)
+  end function lowerStr
   
   ! ================================================================ !
   !  String Assignment
