@@ -61,8 +61,8 @@ subroutine h5_comnul
   h5_debugOn    = .false.
   h5_isReady    = .false.
   h5_doTruncate = .false.
-  h5_fileName   = string("")
-  h5_rootPath   = string("")
+  h5_fileName   = ""
+  h5_rootPath   = ""
   
   h5_useForCOLL = .false.
   h5_useForDUMP = .false.
@@ -217,7 +217,7 @@ subroutine h5_parseInputLine(inLine)
   
   if(nSplit == 0) then
     if(h5_debugOn) then
-      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'."
+      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
       write (lout,"(a)")      "HDF5> DEBUG  * No fields found."
     end if
     return
@@ -225,7 +225,7 @@ subroutine h5_parseInputLine(inLine)
   
   ! Report if debugging is ON
   if(h5_debugOn) then
-    write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'."
+    write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
     write (lout,"(a,i2,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
   end if
   
@@ -237,8 +237,8 @@ subroutine h5_parseInputLine(inLine)
   
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR in FILE. Statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
-      write(lout,"(a)")      "HDF5> Valid input is FILE filename [truncate]"
+      write(lout,"(a,i2,a)") "HDF5> ERROR: FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
+      write(lout,"(a)")      "HDF5>        Valid input is FILE filename [truncate]"
       call prror(-1)
     end if
     if(nSplit == 3) then
@@ -251,15 +251,15 @@ subroutine h5_parseInputLine(inLine)
   
   case("ROOT")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR in ROOT. Statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i2,a)") "HDF5> ERROR: ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
     end if
     if(str_inStr(lnSplit(2)," ") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR in ROOT. Group name cannot contain a space."
+      write(lout,"(a)") "HDF5> ERROR: ROOT group name cannot contain a space."
       call prror(-1)
     end if
     if(str_inStr(lnSplit(2),"/") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR in ROOT. Group name cannot contain a slash."
+      write(lout,"(a)") "HDF5> ERROR: ROOT group name cannot contain a slash."
       call prror(-1)
     end if
     h5_rootPath = str_stripQuotes(lnSplit(2))
@@ -268,11 +268,11 @@ subroutine h5_parseInputLine(inLine)
   case("ENABLE")
   
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR in ENABLE. Statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i2,a)") "HDF5> ERROR: ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
     end if
     if(len(lnSplit(2)%chr) < 4) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR in ENABLE. Argument must be at least 4 characters."
+      write(lout,"(a,i2,a)") "HDF5> ERROR: ENABLE argument must be at least 4 characters."
       call prror(-1)
     end if
     
@@ -287,12 +287,12 @@ subroutine h5_parseInputLine(inLine)
       h5_useForSCAT = .true.
       write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
     case default
-      write(lout,"(a)") "HDF5> ERROR HDF5 is not available for "//lnSplit(2)%chr(1:4)//" blocks."
+      write(lout,"(a)") "HDF5> ERROR: HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
       call prror(-1)
     end select
   
   case default
-    write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
+    write(lout,"(a)") "HDF5> ERROR: Unrecognised statement '"//lnSplit(1)//"'."
     call prror(-1)
   
   end select

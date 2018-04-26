@@ -516,7 +516,9 @@ subroutine scatter_parseInputLine(inLine)
   
   type(string), intent(in)  :: inLine
   type(string), allocatable :: lnSplit(:)
-  integer nSplit, i
+  
+  type(string) keyWord
+  integer      nSplit, i
   
   ! Split the input line
   call str_split(inLine,lnSplit,nSplit)
@@ -534,7 +536,9 @@ subroutine scatter_parseInputLine(inLine)
     write (lout,"(a,i2,a)") ("SCATTER> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
   end if
   
-  select case(lnSplit(1)%get())
+  keyWord = lnSplit(1)%upper()
+  
+  select case(keyWord%get())
   case("DEBUG")
     scatter_debug = .true.
     write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
@@ -547,8 +551,7 @@ subroutine scatter_parseInputLine(inLine)
   case("SEED")
     call scatter_parseSeed(lnSplit, nSplit)
   case default
-    write(lout,"(a)") "SCATTER> ERROR Line type not recognized:"
-    write(lout,"(a)") "SCATTER> '"//lnSplit(1)//"'"
+    write(lout,"(a)") "SCATTER> ERROR Line type not recognized: '"//keyWord//"'"
     call prror(-1)
   end select
   
