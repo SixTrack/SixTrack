@@ -67,6 +67,9 @@ interface alloc
   module procedure alloc1dc
   module procedure alloc2dc
 
+  ! Strings
+  module procedure alloc1ds
+
 !logical
   module procedure alloc1dl
   module procedure alloc2dl
@@ -101,6 +104,9 @@ interface resize
 
   module procedure resize1dc
   module procedure resize2dc
+  
+  ! Strings
+  module procedure resize1ds
 
   module procedure resize1dl
   module procedure resize2dl
@@ -2971,7 +2977,7 @@ subroutine resize1dc(input, strlen, new_e_index, initial, ename, f_index_in)
 
   !get the old size of the array
   old_e_index = size(input)+f_index-1
-  write(lout,"(3(a,i4))") "Resize: old end is ",old_e_index,", new end is ",new_e_index,", first index is ",f_index
+  ! write(lout,"(3(a,i4))") "Resize: old end is ",old_e_index,", new end is ",new_e_index,", first index is ",f_index
 
   !log our request in size change
   request = (new_e_index-old_e_index) * strlen * CHARACTER_STORAGE_SIZE
@@ -3085,6 +3091,127 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
 
 end subroutine resize2dc
 
+! ==================================================================== !
+!  STRINGS
+! ==================================================================== !
+
+subroutine alloc1ds(input, e_index, initial, ename, f_index_in)
+  
+  use strings
+  
+  implicit none
+  
+  character(len=*),              intent(in)    :: ename
+  type(string),     allocatable, intent(inout) :: input(:)
+  type(string),                  intent(in)    :: initial
+  integer,                       intent(in)    :: e_index
+  integer,          optional,    intent(in)    :: f_index_in
+  
+  integer :: f_index
+  integer :: error
+  integer(kind=int64) :: request
+  integer :: k
+
+  if(present(f_index_in)) then
+    f_index = f_index_in
+  else
+    f_index = 1
+  end if
+  
+  request = (e_index-f_index+1) !*storage_size(type(string))
+
+  ! Check that we are not already allocated
+  if(allocated(input) .eqv. .TRUE.) then
+    write(lout,*) 'ERROR: input array is already allocated for: ', ename
+    stop
+  end if
+  
+  ! Do the allocation
+  allocate(input(f_index:e_index), stat=error)
+  
+  ! Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+  
+  ! Log the number of allocated bits
+  allocated_bits = allocated_bits + request
+  
+  !Initialise the array
+  do k=f_index, e_index
+    input(k) = initial
+  end do
+    
+  call print_alloc(ename,request)
+  
+end subroutine alloc1ds
+
+subroutine resize1ds(input, new_e_index, initial, ename, f_index_in)
+  
+  use strings
+  
+  implicit none
+  
+  character(len=*),              intent(in)    :: ename
+  type(string),     allocatable, intent(inout) :: input(:)
+  type(string),     allocatable                :: buffer(:)
+  type(string),                  intent(in)    :: initial
+  integer,                       intent(in)    :: new_e_index
+  integer,          optional,    intent(in)    :: f_index_in
+
+  integer :: f_index
+  integer :: old_e_index
+  integer(kind=int64) :: request
+  integer :: i
+  integer :: error
+  
+  if(present(f_index_in)) then
+    f_index = f_index_in
+  else
+    f_index = 1
+  end if
+  
+  if(allocated(input) .neqv. .TRUE.) then
+    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
+    call alloc(input, new_e_index, initial, ename, f_index)
+    return
+  end if
+  
+  ! Get the old end index of the array
+  old_e_index = size(input)+f_index-1
+  
+  !log our request in size change
+  request = (new_e_index-old_e_index) !*storage_size(type(string))
+  
+  !Allocate a buffer with the new array size
+  allocate(buffer(f_index:new_e_index), stat=error)
+  
+  !Print and exit if we have an error
+  if(error.ne.0) then
+    call alloc_error(ename, error, request)
+  end if
+  
+  !Copy the data over
+  do i=f_index,old_e_index
+    buffer(i) = input(i)
+  end do
+  
+  !update the number of bits allocated (can be negative)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,request)
+  
+  !Set the initial values of the buffer
+  if(new_e_index > old_e_index) then
+    do i=old_e_index+1,new_e_index
+      buffer(i) = initial
+    end do
+  end if
+  
+  !Do a pointer swap and deallocate the buffer
+  call move_alloc(buffer,input)
+  
+end subroutine resize1ds
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
