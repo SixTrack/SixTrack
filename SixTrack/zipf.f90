@@ -1,8 +1,9 @@
 ! ================================================================================================ !
 !  ZIPF Module
 ! ~~~~~~~~~~~~~
-!  Written by:    
+!  K.N. Sjobak, BE-ABP-HSS
 !  Last Modified: 2018-04-27
+!  Compress selected output files into a zip file at the end of the simulation
 ! ================================================================================================ !
 module zipf
   
@@ -11,125 +12,100 @@ module zipf
   
   implicit none
   
-  integer zipf_maxfiles,zipf_numfiles
-  parameter(zipf_maxfiles=256)
+  integer, save :: zipf_numFiles
   
-  character(len=stringzerotrim_maxlen) zipf_outfile                  !Name of output file (Default: Sixout.zip)
-  character(len=stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
-  
-  save zipf_numfiles, zipf_outfile, zipf_filenames
+  character(len=:), allocatable, save :: zipf_fileNames(:) ! Name of files to pack into the zip file.
+  character(len=str_maxLen),     save :: zipf_outFile      ! Name of output file (Default: Sixout.zip)
   
 contains
 
-  subroutine zipf_parseInputline(ch)
-    
-    use crcoall
-    
-    implicit none
-
-    character(len=*), intent(in) :: ch
-    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-    integer   getfields_nfields                                                 ! Number of identified fields
-    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-    logical   getfields_lerr                                                    ! An error flag
+subroutine zipf_parseInputLine(ch)
   
-    !Read filenames
-    call getfields_split( ch, getfields_fields, getfields_lfields,    &
-         getfields_nfields, getfields_lerr )
-    if ( getfields_lerr ) call prror(-1)
-    
-    if (getfields_nfields .ne. 1) then
-       write(lout,'(a)')         "ERROR in ZIPF:"
-       write(lout,'(a,1x,i3,a)') "Expected 1 filename per line, got", &
-            getfields_nfields, ", line=",ch
-       call prror(-1)
-    end if
-
-    zipf_numfiles = zipf_numfiles + 1
-    if (zipf_numfiles .ge. zipf_maxfiles) then
-       write(lout,'(a)')       "ERROR in ZIPF:"
-       write(lout,'(a,1x,i5)') " Too many files, max=", zipf_maxfiles
-       call prror(-1)
-    endif
-    
-    zipf_filenames(zipf_numfiles)(1:getfields_lfields(1)) =           &
-              getfields_fields(1)(1:getfields_lfields(1))
-    
-  end subroutine zipf_parseInputline
+  use crcoall
+  use mod_alloc
   
-  subroutine zipf_parseInputDone
-    
-    use crcoall
-    use string_tools
-    
-    implicit none
-
-    integer ii
-    
-    zipf_outfile(1:10) = "Sixout.zip" ! Output name fixed for now
-    write(lout,'(a)')       "**** ZIPF ****"
-    write(lout,'(a,a,a)')   " Output file name = '",            &
-         trim(stringzerotrim(zipf_outfile)),"'"
-    write(lout,'(a,1x,i5)') " Number of files to pack=",        &
-         zipf_numfiles
-    write(lout,'(a)')       " Files:"
-    do ii=1,zipf_numfiles
-       write(lout,'(1x,i5,a,1x,a)') ii,":",                        &
-            trim(stringzerotrim(zipf_filenames(ii)))
-    end do
-    
-    if (.not.(zipf_numfiles.gt.0)) then
-       write(lout,'(a)') "ERROR in ZIPF:"
-       write(lout,'(a)') " ZIPF block was empty;"
-       write(lout,'(a)') " no files specified!"
-       call prror(-1)
-    endif
-
-#ifndef LIBARCHIVE
-    write(lout,'(a)') "ERROR in ZIPF:"
-    write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
-    write(lout,'(a)') " but this SixTrack was "//                  &
-         "compiled without it."
+  implicit none
+  
+  character(len=*), intent(in) :: ch
+  
+  character gFields(str_maxFields)*(str_maxLen) ! Array of fields
+  integer   nFields                             ! Number of identified fields
+  integer   lFields(str_maxFields)              ! Length of each what:
+  logical   errFields                           ! An error flag
+  
+  ! Read filenames
+  call getfields_split(ch, gFields, lFields, nFields, errFields)
+  if(errFields) call prror(-1)
+  
+  if (nFields /= 1) then
+    write(lout,"(a)")       "ERROR in ZIPF:"
+    write(lout,"(a,i3,3a)") "Expected 1 filename per line, got ",nFields,", line = '",ch,"'"
     call prror(-1)
+  end if
+  
+  zipf_numFiles = zipf_numFiles + 1
+  call resize(zipf_fileNames,str_maxLen, zipf_numFiles, str_dZeros, "zipf_fileNames")
+  zipf_fileNames(zipf_numFiles)(1:lFields(1)) = gFields(1)(1:lFields(1))
+  
+end subroutine zipf_parseInputLine
+
+subroutine zipf_parseInputDone
+  
+  use crcoall
+  use string_tools
+  
+  implicit none
+  
+  integer ii
+  
+  zipf_outFile(1:10) = "Sixout.zip" ! Output name fixed for now
+  write(lout,"(a)")     "**** ZIPF ****"
+  write(lout,"(3a)")    " Output file name = '",trim(chr_trimZero(zipf_outFile)),"'"
+  write(lout,"(a,i5)")  " Number of files to pack = ",zipf_numFiles
+  write(lout,"(a)")     " Files:"
+  write(lout,"(i5,2a)") (ii,": ",trim(chr_trimZero(zipf_fileNames(ii))),ii=1,zipf_numFiles)
+  
+  if(.not.(zipf_numFiles > 0)) then
+    write(lout,"(a)") "ERROR in ZIPF:"
+    write(lout,"(a)") " ZIPF block was empty;"
+    write(lout,"(a)") " no files specified!"
+    call prror(-1)
+  endif
+  
+#ifndef LIBARCHIVE
+  write(lout,"(a)") "ERROR in ZIPF:"
+  write(lout,"(a)") " ZIPF needs LIBARCHIVE to work,"
+  write(lout,"(a)") " but this SixTrack was compiled without it."
+  call prror(-1)
 #endif
-  end subroutine zipf_parseInputDone
+  
+end subroutine zipf_parseInputDone
 
-  subroutine zipf_comnul
-    implicit none
-    integer i,j
-    
-    zipf_numfiles = 0
-    
-    do j=1, stringzerotrim_maxlen
-       zipf_outfile(j:j)=char(0)
-    enddo
-    
-    do i=1, zipf_maxfiles
-       do j=1, stringzerotrim_maxlen
-          zipf_filenames(i)(j:j)=char(0)
-       enddo
-    enddo
-    
-  end subroutine zipf_comnul
+subroutine zipf_comnul
+  
+  use mod_alloc
+  
+  implicit none
+  
+  zipf_numFiles = 0
+  zipf_outFile  = str_dZeros
+  
+  call alloc(zipf_fileNames, str_maxLen, 1, str_dZeros, "zipf_fileNames")
+  
+end subroutine zipf_comnul
 
-  subroutine zipf_dozip
-!-----------------------------------------------------------------------*
-!     ZIPF                                                              *
-!     COMPRESS SELECTED OUTPUT FILES INTO .ZIP FILE                     *
-!     AT THE END OF THE SIMULATION                                      *
-!     K.SJOBAK, 7/02/2016                                               *
-!-----------------------------------------------------------------------*
-    use crcoall
-    use string_tools
-    
-    implicit none
-
+subroutine zipf_dozip
+  
+  use crcoall
+  
+  implicit none
+  
 #ifdef BOINC
-    character(stringzerotrim_maxlen) zipf_outfile_boinc
-    character(stringzerotrim_maxlen) zipf_filenames_boinc(zipf_maxfiles)
+    character(stringzerotrim_maxlen) zipf_outFile_boinc
+    character(stringzerotrim_maxlen) zipf_fileNames_boinc(zipf_maxfiles)
     integer ii
 #endif
-
+  
 !+if libarchive
 ! Having an actual explicit interface would be nice - this is 90% there,
 ! however some logic should probably be changed (here, in libArchive_Fwrapper.c,
@@ -147,33 +123,32 @@ contains
 !       end subroutine f_write_archive
 !    end interface
 !+ei
-
-
-    write(lout,'(a,a,a)') "ZIPF: Compressing file '", trim(stringzerotrim(zipf_outfile)),"'..."
-
+  
+  write(lout,"(3a)") "ZIPF: Compressing file '", trim(chr_trimZero(zipf_outFile)),"'..."
+  
 #ifdef LIBARCHIVE
 #ifdef BOINC
-    !For BOINC, we may need to translate the filenames.
-    call boincrf(trim(stringzerotrim(zipf_outfile)), zipf_outfile_boinc )
-    
-    do ii=1,zipf_numfiles
-       call boincrf(trim(stringzerotrim(zipf_filenames(ii))), zipf_filenames_boinc(ii) )
-       zipf_filenames_boinc(ii) = trim(zipf_filenames_boinc(ii))
-    end do
-    
-    !The f_write_archive function will handle the conversion from Fortran to C-style strings
-    call f_write_archive(trim(zipf_outfile_boinc),zipf_filenames_boinc,zipf_numfiles)
-#else
-    call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
-#endif
-#else
-    ! If not libarchive, the zipf subroutine shall just be a stub.
-    ! And anyway daten should not accept the block, so this is somewhat redundant.
-    write(lout,'(a)') " *** No libArchive in this SixTrack *** "
-#endif
-
-    write(lout,'(a)') "Done!"
-
-  end subroutine zipf_dozip
+  ! For BOINC, we may need to translate the filenames.
+  call boincrf(trim(stringzerotrim(zipf_outFile)), zipf_outFile_boinc )
   
+  do ii=1,zipf_numFiles
+    call boincrf(trim(chr_trimZero(zipf_fileNames(ii))), zipf_fileNames_boinc(ii))
+    zipf_fileNames_boinc(ii) = trim(zipf_fileNames_boinc(ii))
+  end do
+  
+  ! The f_write_archive function will handle the conversion from Fortran to C-style strings
+  call f_write_archive(trim(zipf_outFile_boinc),zipf_fileNames_boinc,zipf_numFiles)
+#else
+  call f_write_archive(zipf_outFile,zipf_fileNames,zipf_numFiles)
+#endif
+#else
+  ! If not libarchive, the zipf subroutine shall just be a stub.
+  ! And anyway daten should not accept the block, so this is somewhat redundant.
+  write(lout,"(a)") " *** No libArchive in this SixTrack *** "
+#endif
+  
+  write(lout,"(a)") "Done!"
+  
+end subroutine zipf_dozip
+
 end module zipf
