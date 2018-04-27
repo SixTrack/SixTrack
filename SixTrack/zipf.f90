@@ -1,7 +1,11 @@
-+dk zipf
-
+! ================================================================================================ !
+!  ZIPF Module
+! ~~~~~~~~~~~~~
+!  Written by:    
+!  Last Modified: 2018-04-27
+! ================================================================================================ !
 module zipf
-
+  
   use end_sixtrack
   use string_tools
   
@@ -14,7 +18,7 @@ module zipf
   character(len=stringzerotrim_maxlen) zipf_filenames(zipf_maxfiles) !Name of files to pack into the zip file.
   
   save zipf_numfiles, zipf_outfile, zipf_filenames
-    
+  
 contains
 
   subroutine zipf_parseInputline(ch)
@@ -81,13 +85,13 @@ contains
        call prror(-1)
     endif
 
-+if .not.libarchive
+#ifndef LIBARCHIVE
     write(lout,'(a)') "ERROR in ZIPF:"
     write(lout,'(a)') " ZIPF needs LIBARCHIVE to work,"
     write(lout,'(a)') " but this SixTrack was "//                  &
          "compiled without it."
     call prror(-1)
-+ei
+#endif
   end subroutine zipf_parseInputDone
 
   subroutine zipf_comnul
@@ -120,11 +124,11 @@ contains
     
     implicit none
 
-+if boinc
+#ifdef BOINC
     character(stringzerotrim_maxlen) zipf_outfile_boinc
     character(stringzerotrim_maxlen) zipf_filenames_boinc(zipf_maxfiles)
     integer ii
-+ei
+#endif
 
 !+if libarchive
 ! Having an actual explicit interface would be nice - this is 90% there,
@@ -147,8 +151,8 @@ contains
 
     write(lout,'(a,a,a)') "ZIPF: Compressing file '", trim(stringzerotrim(zipf_outfile)),"'..."
 
-+if libarchive
-+if boinc
+#ifdef LIBARCHIVE
+#ifdef BOINC
     !For BOINC, we may need to translate the filenames.
     call boincrf(trim(stringzerotrim(zipf_outfile)), zipf_outfile_boinc )
     
@@ -159,18 +163,14 @@ contains
     
     !The f_write_archive function will handle the conversion from Fortran to C-style strings
     call f_write_archive(trim(zipf_outfile_boinc),zipf_filenames_boinc,zipf_numfiles)
-+ei
-
-+if .not.boinc
+#else
     call f_write_archive(zipf_outfile,zipf_filenames,zipf_numfiles)
-+ei
-+ei
-
-+if .not.libarchive
+#endif
+#else
     ! If not libarchive, the zipf subroutine shall just be a stub.
     ! And anyway daten should not accept the block, so this is somewhat redundant.
     write(lout,'(a)') " *** No libArchive in this SixTrack *** "
-+ei
+#endif
 
     write(lout,'(a)') "Done!"
 

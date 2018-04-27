@@ -22,7 +22,7 @@ module string_tools
   
   ! Dummy empty strings
   character(len=str_maxLen), parameter :: str_dSpace = repeat(" ",str_maxLen)
-  character(len=str_maxLen), parameter :: str_dNull  = repeat(char(0),str_maxLen)
+  character(len=str_maxLen), parameter :: str_dZeros = repeat(char(0),str_maxLen)
   
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
