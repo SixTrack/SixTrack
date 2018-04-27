@@ -213,11 +213,11 @@ end subroutine alloc_exit
 !  Allocation and Resizing
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Inputs:
-!    ename       :: The name of the variable being assigned,for error printing
-!    new_e_index :: The new end index (size) that the array should be set to
-!    initial     :: The inital value for the array to be set to
-!    input       :: The input variable to allocated
-!    f_index     :: The index of the first element
+!    ename   :: The name of the variable being assigned,for error printing
+!    eIdx    :: The new end index (size) that the array should be set to
+!    initial :: The inital value for the array to be set to
+!    input   :: The input variable to allocated
+!    fIdx    :: The index of the first element
 ! ================================================================================================ !
 
 ! ================================================================================================ !
@@ -444,56 +444,56 @@ end subroutine alloc3di64
 
 
 ! 1D int16 Array
-subroutine resize1di16(input, new_e_index, initial, ename, f_index_in)
+subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
   integer(kind=int16), allocatable, intent(inout) :: input(:)
-  integer,                          intent(in)    :: new_e_index
+  integer,                          intent(in)    :: eIdx
   integer(kind=int16),              intent(in)    :: initial
   character(len=*),                 intent(in)    :: ename
-  integer,             optional,    intent(in)    :: f_index_in
+  integer,             optional,    intent(in)    :: fIdxIn
   
   integer(kind=int16), allocatable :: buffer(:)   ! Buffer array
-  integer                          :: f_index     ! First index
-  integer                          :: old_e_index ! Old end index
+  integer                          :: fIdx        ! First index
+  integer                          :: old_eIdx    ! Old end index
   integer(kind=int64)              :: request     ! Requested size addition
   
   integer i, error
   
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
   
   if(allocated(input) .neqv. .true.) then
     
     write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
     
-    request = (new_e_index-f_index+1) * storage_size(int16)
+    request = (eIdx-fIdx+1) * storage_size(int16)
     
-    allocate(input(f_index:new_e_index), stat=error)
+    allocate(input(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
     
-    do i=f_index, new_e_index
+    do i=fIdx, eIdx
       input(i) = initial
     end do
     
   else
     
-    old_e_index = size(input)+f_index-1
-    request = (new_e_index-old_e_index) * storage_size(int16)
+    old_eIdx = size(input)+fIdx-1
+    request = (eIdx-old_eIdx) * storage_size(int16)
     
-    allocate(buffer(f_index:new_e_index), stat=error)
+    allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
     
-    do i=f_index,old_e_index
+    do i=fIdx,old_eIdx
       buffer(i) = input(i)
     end do
     
-    if(new_e_index > old_e_index) then
-      do i=old_e_index+1, new_e_index
+    if(eIdx > old_eIdx) then
+      do i=old_eIdx+1, eIdx
         buffer(i) = initial
       end do
     end if
@@ -506,121 +506,58 @@ subroutine resize1di16(input, new_e_index, initial, ename, f_index_in)
   call print_alloc(ename,request)
   
 end subroutine resize1di16
-subroutine resize1di16(input, new_e_index, initial, ename, f_index_in)
-  
-  implicit none
-  
-  integer(kind=int16), allocatable, intent(inout) :: input(:)
-  integer,                          intent(in)    :: new_e_index
-  integer(kind=int16),              intent(in)    :: initial
-  character(len=*),                 intent(in)    :: ename
-  integer,             optional,    intent(in)    :: f_index_in
-  
-  integer(kind=int16), allocatable :: buffer(:)   ! Buffer array
-  integer                          :: f_index     ! First index
-  integer                          :: old_e_index ! Old end index
-  integer(kind=int64)              :: request     ! Requested size addition
-  
-  integer i, error
-  
-  if(present(f_index_in)) then
-    f_index = f_index_in
-  else
-    f_index = 1
-  end if
-  
-  if(allocated(input) .neqv. .true.) then
-    
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
-    
-    request = (new_e_index-f_index+1) * storage_size(int16)
-    
-    allocate(input(f_index:new_e_index), stat=error)
-    if(error /= 0) call alloc_error(ename, error, request)
-    
-    do i=f_index, new_e_index
-      input(i) = initial
-    end do
-    
-  else
-    
-    old_e_index = size(input)+f_index-1
-    request = (new_e_index-old_e_index) * storage_size(int16)
-    
-    allocate(buffer(f_index:new_e_index), stat=error)
-    if(error /= 0) call alloc_error(ename, error, request)
-    
-    do i=f_index,old_e_index
-      buffer(i) = input(i)
-    end do
-    
-    if(new_e_index > old_e_index) then
-      do i=old_e_index+1, new_e_index
-        buffer(i) = initial
-      end do
-    end if
-    
-    call move_alloc(buffer,input)
-    
-  end if
-  
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
-  
-end subroutine resize1di16
-
 
 !resize 1d int32 array
-subroutine resize1di32(input, new_e_index, initial, ename, f_index_in)
+subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
   integer(kind=int32), allocatable, intent(inout) :: input(:)
-  integer,                          intent(in)    :: new_e_index
+  integer,                          intent(in)    :: eIdx
   integer(kind=int32),              intent(in)    :: initial
   character(len=*),                 intent(in)    :: ename
-  integer,             optional,    intent(in)    :: f_index_in
+  integer,             optional,    intent(in)    :: fIdxIn
   
   integer(kind=int32), allocatable :: buffer(:)   ! Buffer array
-  integer                          :: f_index     ! First index
-  integer                          :: old_e_index ! Old end index
+  integer                          :: fIdx        ! First index
+  integer                          :: old_eIdx    ! Old end index
   integer(kind=int64)              :: request     ! Requested size addition
   
   integer i, error
   
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
   
   if(allocated(input) .neqv. .true.) then
     
     write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
     
-    request = (new_e_index-f_index+1) * storage_size(int32)
+    request = (eIdx-fIdx+1) * storage_size(int32)
     
-    allocate(input(f_index:new_e_index), stat=error)
+    allocate(input(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
     
-    do i=f_index, new_e_index
+    do i=fIdx, eIdx
       input(i) = initial
     end do
     
   else
     
-    old_e_index = size(input)+f_index-1
-    request = (new_e_index-old_e_index) * storage_size(int32)
+    old_eIdx = size(input)+fIdx-1
+    request = (eIdx-old_eIdx) * storage_size(int32)
     
-    allocate(buffer(f_index:new_e_index), stat=error)
+    allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
     
-    do i=f_index,old_e_index
+    do i=fIdx,old_eIdx
       buffer(i) = input(i)
     end do
     
-    if(new_e_index > old_e_index) then
-      do i=old_e_index+1, new_e_index
+    if(eIdx > old_eIdx) then
+      do i=old_eIdx+1, eIdx
         buffer(i) = initial
       end do
     end if
@@ -791,56 +728,56 @@ subroutine resize3di32(input, newsize1, newsize2, newsize3, initial, ename)
 end subroutine resize3di32
 
 !resize 1d int64 array
-subroutine resize1di64(input, new_e_index, initial, ename, f_index_in)
+subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
   integer(kind=int64), allocatable, intent(inout) :: input(:)
-  integer,                          intent(in)    :: new_e_index
+  integer,                          intent(in)    :: eIdx
   integer(kind=int64),              intent(in)    :: initial
   character(len=*),                 intent(in)    :: ename
-  integer,             optional,    intent(in)    :: f_index_in
+  integer,             optional,    intent(in)    :: fIdxIn
   
   integer(kind=int64), allocatable :: buffer(:)   ! Buffer array
-  integer                          :: f_index     ! First index
-  integer                          :: old_e_index ! Old end index
+  integer                          :: fIdx        ! First index
+  integer                          :: old_eIdx    ! Old end index
   integer(kind=int64)              :: request     ! Requested size addition
   
   integer i, error
   
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
   
   if(allocated(input) .neqv. .true.) then
     
     write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
     
-    request = (new_e_index-f_index+1) * storage_size(int64)
+    request = (eIdx-fIdx+1) * storage_size(int64)
     
-    allocate(input(f_index:new_e_index), stat=error)
+    allocate(input(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
     
-    do i=f_index, new_e_index
+    do i=fIdx, eIdx
       input(i) = initial
     end do
     
   else
     
-    old_e_index = size(input)+f_index-1
-    request = (new_e_index-old_e_index) * storage_size(int64)
+    old_eIdx = size(input)+fIdx-1
+    request = (eIdx-old_eIdx) * storage_size(int64)
     
-    allocate(buffer(f_index:new_e_index), stat=error)
+    allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
     
-    do i=f_index,old_e_index
+    do i=fIdx,old_eIdx
       buffer(i) = input(i)
     end do
     
-    if(new_e_index > old_e_index) then
-      do i=old_e_index+1, new_e_index
+    if(eIdx > old_eIdx) then
+      do i=old_eIdx+1, eIdx
         buffer(i) = initial
       end do
     end if
@@ -1238,7 +1175,7 @@ subroutine alloc4dr32(input, startsize1, startsize2, startsize3, startsize4, ini
 end subroutine alloc4dr32
 
 !alloc real64
-subroutine alloc1dr64(input, e_index, initial, ename, f_index_in)
+subroutine alloc1dr64(input, e_index, initial, ename, fIdxIn)
   implicit none
 
   !The name of the variable being assigned - for error printing
@@ -1254,8 +1191,8 @@ subroutine alloc1dr64(input, e_index, initial, ename, f_index_in)
   integer, intent(in) :: e_index
 
   !The initial index
-  integer, intent(in), optional :: f_index_in
-  integer :: f_index
+  integer, intent(in), optional :: fIdxIn
+  integer :: fIdx
 
   !Set to non-zero in case of an allocation error
   integer :: error
@@ -1266,13 +1203,13 @@ subroutine alloc1dr64(input, e_index, initial, ename, f_index_in)
   !Loop variable
   integer :: k
 
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
 
-  request = (e_index-f_index+1) * storage_size(real64)
+  request = (e_index-fIdx+1) * storage_size(real64)
 
   !Check that we are not already allocated
   if(allocated(input) .eqv. .TRUE.) then
@@ -1281,7 +1218,7 @@ subroutine alloc1dr64(input, e_index, initial, ename, f_index_in)
   end if
 
   !Do the allocation
-  allocate(input(f_index:e_index), stat=error)
+  allocate(input(fIdx:e_index), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -1292,7 +1229,7 @@ subroutine alloc1dr64(input, e_index, initial, ename, f_index_in)
   allocated_bits = allocated_bits + request
 
   !Initialise the array
-  do k=f_index, e_index
+  do k=fIdx, e_index
     input(k) = initial
   end do
 
@@ -1784,7 +1721,7 @@ end subroutine resize4dr32
 
 
 !resize 1d real64 array
-subroutine resize1dr64(input, newsize, initial, ename, f_index_in)
+subroutine resize1dr64(input, newsize, initial, ename, fIdxIn)
 
   implicit none
 
@@ -1804,8 +1741,8 @@ subroutine resize1dr64(input, newsize, initial, ename, f_index_in)
   integer, intent(in) :: newsize
 
   !The initial index
-  integer, intent(in), optional :: f_index_in
-  integer :: f_index
+  integer, intent(in), optional :: fIdxIn
+  integer :: fIdx
 
   !A variable to track the old size of the array
   integer :: oldsize
@@ -1819,15 +1756,15 @@ subroutine resize1dr64(input, newsize, initial, ename, f_index_in)
   !Set to non-zero in case of an allocation error
   integer :: error
 
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
 
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-    call alloc(input, newsize, initial, ename, f_index)
+    call alloc(input, newsize, initial, ename, fIdx)
     return
   end if
 
@@ -1838,7 +1775,7 @@ subroutine resize1dr64(input, newsize, initial, ename, f_index_in)
   request = (newsize-oldsize) * storage_size(real64)
 
   !Allocate a buffer with the new array size
-  allocate(buffer(f_index:newsize), stat=error)
+  allocate(buffer(fIdx:newsize), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -1846,7 +1783,7 @@ subroutine resize1dr64(input, newsize, initial, ename, f_index_in)
   end if
 
   !Copy the data over
-  do i=f_index,oldsize-(1-f_index)
+  do i=fIdx,oldsize-(1-fIdx)
     buffer(i) = input(i)
   end do
 
@@ -1855,7 +1792,7 @@ subroutine resize1dr64(input, newsize, initial, ename, f_index_in)
   call print_alloc(ename,request)
 
   !Set the initial values of the buffer
-  do i=(oldsize-(1-f_index)+1),newsize
+  do i=(oldsize-(1-fIdx)+1),newsize
     buffer(i) = initial
   end do
 
@@ -2653,7 +2590,7 @@ end subroutine resize4dr128
 
 
 !alloc char 1d
-subroutine alloc1dc(input, strlen, e_index, initial, ename, f_index_in)
+subroutine alloc1dc(input, strlen, e_index, initial, ename, fIdxIn)
   implicit none
 
   !The name of the variable being assigned - for error printing
@@ -2670,8 +2607,8 @@ subroutine alloc1dc(input, strlen, e_index, initial, ename, f_index_in)
   integer, intent(in) :: strlen
 
   !The initial index
-  integer, intent(in), optional :: f_index_in
-  integer :: f_index
+  integer, intent(in), optional :: fIdxIn
+  integer :: fIdx
 
   !Set to non-zero in case of an allocation error
   integer :: error
@@ -2682,13 +2619,13 @@ subroutine alloc1dc(input, strlen, e_index, initial, ename, f_index_in)
   !Loop variable
   integer :: k
 
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
 
-  request = (e_index-f_index+1) * strlen * CHARACTER_STORAGE_SIZE
+  request = (e_index-fIdx+1) * strlen * CHARACTER_STORAGE_SIZE
 
   !Check that we are not already allocated
   if(allocated(input) .eqv. .TRUE.) then
@@ -2697,7 +2634,7 @@ subroutine alloc1dc(input, strlen, e_index, initial, ename, f_index_in)
   end if
 
   !Do the allocation
-  allocate(character(strlen) :: input(f_index:e_index), stat=error)
+  allocate(character(strlen) :: input(fIdx:e_index), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -2708,7 +2645,7 @@ subroutine alloc1dc(input, strlen, e_index, initial, ename, f_index_in)
   allocated_bits = allocated_bits + request
 
   !Initialise the array
-  do k=f_index, e_index
+  do k=fIdx, e_index
     input(k) = initial
   end do
 
@@ -2773,7 +2710,7 @@ subroutine alloc2dc(input, strlen, startsize1, startsize2, initial, ename)
 end subroutine alloc2dc
 
 !resize 1d character array
-subroutine resize1dc(input, strlen, new_e_index, initial, ename, f_index_in)
+subroutine resize1dc(input, strlen, eIdx, initial, ename, fIdxIn)
 
   implicit none
 
@@ -2787,18 +2724,18 @@ subroutine resize1dc(input, strlen, new_e_index, initial, ename, f_index_in)
   character(len=*), intent(in) :: initial
 
   !The initial size to allocate
-  integer, intent(in) :: new_e_index
+  integer, intent(in) :: eIdx
   integer, intent(in) :: strlen
 
   !The initial index
-  integer, intent(in), optional :: f_index_in
-  integer :: f_index
+  integer, intent(in), optional :: fIdxIn
+  integer :: fIdx
 
   !A buffer used to expand the array
   character(len=:), allocatable :: buffer(:)
 
   !A variable to track the old size of the array
-  integer :: old_e_index
+  integer :: old_eIdx
 
   !To keep track of the requested allocation size
   integer(kind=int64) :: request
@@ -2809,27 +2746,27 @@ subroutine resize1dc(input, strlen, new_e_index, initial, ename, f_index_in)
   !Set to non-zero in case of an allocation error
   integer :: error
 
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
 
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-      call alloc(input, strlen, new_e_index, initial, ename, f_index)
+      call alloc(input, strlen, eIdx, initial, ename, fIdx)
     return
   end if
 
   !get the old size of the array
-  old_e_index = size(input)+f_index-1
-  ! write(lout,"(3(a,i4))") "Resize: old end is ",old_e_index,", new end is ",new_e_index,", first index is ",f_index
+  old_eIdx = size(input)+fIdx-1
+  ! write(lout,"(3(a,i4))") "Resize: old end is ",old_eIdx,", new end is ",eIdx,", first index is ",fIdx
 
   !log our request in size change
-  request = (new_e_index-old_e_index) * strlen * CHARACTER_STORAGE_SIZE
+  request = (eIdx-old_eIdx) * strlen * CHARACTER_STORAGE_SIZE
 
   !Allocate a buffer with the new array size
-  allocate(character(strlen) :: buffer(f_index:new_e_index), stat=error)
+  allocate(character(strlen) :: buffer(fIdx:eIdx), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -2841,13 +2778,13 @@ subroutine resize1dc(input, strlen, new_e_index, initial, ename, f_index_in)
   call print_alloc(ename,request)
 
  !copy old values across
-  do i=f_index,old_e_index
+  do i=fIdx,old_eIdx
     buffer(i) = input(i)
   end do
 
   !Set the initial values of the buffer
-  if(new_e_index > old_e_index) then
-    do i=old_e_index+1, new_e_index
+  if(eIdx > old_eIdx) then
+    do i=old_eIdx+1, eIdx
       buffer(i) = initial
     end do
   end if
@@ -2941,7 +2878,7 @@ end subroutine resize2dc
 !  STRINGS
 ! ==================================================================== !
 
-subroutine alloc1ds(input, e_index, initial, ename, f_index_in)
+subroutine alloc1ds(input, e_index, initial, ename, fIdxIn)
   
   use strings
   
@@ -2951,20 +2888,20 @@ subroutine alloc1ds(input, e_index, initial, ename, f_index_in)
   type(string),     allocatable, intent(inout) :: input(:)
   type(string),                  intent(in)    :: initial
   integer,                       intent(in)    :: e_index
-  integer,          optional,    intent(in)    :: f_index_in
+  integer,          optional,    intent(in)    :: fIdxIn
   
-  integer :: f_index
+  integer :: fIdx
   integer :: error
   integer(kind=int64) :: request
   integer :: k
 
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
   
-  request = (e_index-f_index+1) !*storage_size(type(string))
+  request = (e_index-fIdx+1) !*storage_size(type(string))
 
   ! Check that we are not already allocated
   if(allocated(input) .eqv. .TRUE.) then
@@ -2973,7 +2910,7 @@ subroutine alloc1ds(input, e_index, initial, ename, f_index_in)
   end if
   
   ! Do the allocation
-  allocate(input(f_index:e_index), stat=error)
+  allocate(input(fIdx:e_index), stat=error)
   
   ! Print and exit if we have an error
   if(error.ne.0) then
@@ -2984,7 +2921,7 @@ subroutine alloc1ds(input, e_index, initial, ename, f_index_in)
   allocated_bits = allocated_bits + request
   
   !Initialise the array
-  do k=f_index, e_index
+  do k=fIdx, e_index
     input(k) = initial
   end do
     
@@ -2992,7 +2929,7 @@ subroutine alloc1ds(input, e_index, initial, ename, f_index_in)
   
 end subroutine alloc1ds
 
-subroutine resize1ds(input, new_e_index, initial, ename, f_index_in)
+subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
   
   use strings
   
@@ -3002,35 +2939,35 @@ subroutine resize1ds(input, new_e_index, initial, ename, f_index_in)
   type(string),     allocatable, intent(inout) :: input(:)
   type(string),     allocatable                :: buffer(:)
   type(string),                  intent(in)    :: initial
-  integer,                       intent(in)    :: new_e_index
-  integer,          optional,    intent(in)    :: f_index_in
+  integer,                       intent(in)    :: eIdx
+  integer,          optional,    intent(in)    :: fIdxIn
 
-  integer :: f_index
-  integer :: old_e_index
+  integer :: fIdx
+  integer :: old_eIdx
   integer(kind=int64) :: request
   integer :: i
   integer :: error
   
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
   
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-    call alloc(input, new_e_index, initial, ename, f_index)
+    call alloc(input, eIdx, initial, ename, fIdx)
     return
   end if
   
   ! Get the old end index of the array
-  old_e_index = size(input)+f_index-1
+  old_eIdx = size(input)+fIdx-1
   
   !log our request in size change
-  request = (new_e_index-old_e_index) !*storage_size(type(string))
+  request = (eIdx-old_eIdx) !*storage_size(type(string))
   
   !Allocate a buffer with the new array size
-  allocate(buffer(f_index:new_e_index), stat=error)
+  allocate(buffer(fIdx:eIdx), stat=error)
   
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -3038,7 +2975,7 @@ subroutine resize1ds(input, new_e_index, initial, ename, f_index_in)
   end if
   
   !Copy the data over
-  do i=f_index,old_e_index
+  do i=fIdx,old_eIdx
     buffer(i) = input(i)
   end do
   
@@ -3047,8 +2984,8 @@ subroutine resize1ds(input, new_e_index, initial, ename, f_index_in)
   call print_alloc(ename,request)
   
   !Set the initial values of the buffer
-  if(new_e_index > old_e_index) then
-    do i=old_e_index+1,new_e_index
+  if(eIdx > old_eIdx) then
+    do i=old_eIdx+1,eIdx
       buffer(i) = initial
     end do
   end if
@@ -3067,7 +3004,7 @@ end subroutine resize1ds
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-subroutine alloc1dl(input, e_index, initial, ename, f_index_in)
+subroutine alloc1dl(input, e_index, initial, ename, fIdxIn)
   implicit none
 
   !The name of the variable being assigned - for error printing
@@ -3083,8 +3020,8 @@ subroutine alloc1dl(input, e_index, initial, ename, f_index_in)
   integer, intent(in) :: e_index
 
   !The initial index
-  integer, intent(in), optional :: f_index_in
-  integer :: f_index
+  integer, intent(in), optional :: fIdxIn
+  integer :: fIdx
 
   !Set to non-zero in case of an allocation error
   integer :: error
@@ -3095,13 +3032,13 @@ subroutine alloc1dl(input, e_index, initial, ename, f_index_in)
   !Loop variable
   integer :: k
 
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
 
-  request = e_index-f_index+1 !* storage_size(logical)
+  request = e_index-fIdx+1 !* storage_size(logical)
 
   !Check that we are not already allocated
   if(allocated(input) .eqv. .TRUE.) then
@@ -3110,7 +3047,7 @@ subroutine alloc1dl(input, e_index, initial, ename, f_index_in)
   end if
 
   !Do the allocation
-  allocate(input(f_index:e_index), stat=error)
+  allocate(input(fIdx:e_index), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -3121,7 +3058,7 @@ subroutine alloc1dl(input, e_index, initial, ename, f_index_in)
   allocated_bits = allocated_bits + request
 
   !Initialise the array
-  do k=f_index, e_index
+  do k=fIdx, e_index
     input(k) = initial
   end do
 
@@ -3182,7 +3119,7 @@ subroutine alloc2dl(input, startsize1, startsize2, initial, ename)
 end subroutine alloc2dl
 
 !resize 1d logical array
-subroutine resize1dl(input, new_e_index, initial, ename, f_index_in)
+subroutine resize1dl(input, eIdx, initial, ename, fIdxIn)
 
   implicit none
 
@@ -3199,14 +3136,14 @@ subroutine resize1dl(input, new_e_index, initial, ename, f_index_in)
   logical, intent(in) :: initial
 
   !The new size that the array should be set to
-  integer, intent(in) :: new_e_index
+  integer, intent(in) :: eIdx
 
   !The initial index
-  integer, intent(in), optional :: f_index_in
-  integer :: f_index
+  integer, intent(in), optional :: fIdxIn
+  integer :: fIdx
 
   !A variable to track the old size of the array
-  integer :: old_e_index
+  integer :: old_eIdx
 
   !To keep track of the requested allocation size
   integer(kind=int64) :: request
@@ -3217,26 +3154,26 @@ subroutine resize1dl(input, new_e_index, initial, ename, f_index_in)
   !Set to non-zero in case of an allocation error
   integer :: error
 
-  if(present(f_index_in)) then
-    f_index = f_index_in
+  if(present(fIdxIn)) then
+    fIdx = fIdxIn
   else
-    f_index = 1
+    fIdx = 1
   end if
 
   if(allocated(input) .neqv. .TRUE.) then
     write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-    call alloc(input, new_e_index, initial, ename, f_index)
+    call alloc(input, eIdx, initial, ename, fIdx)
     return
   end if
 
   !get the old size of the array
-  old_e_index = size(input)+f_index-1
+  old_eIdx = size(input)+fIdx-1
 
   !log our request in size change
-  request = (new_e_index-old_e_index) !* storage_size(logical)
+  request = (eIdx-old_eIdx) !* storage_size(logical)
 
   !Allocate a buffer with the new array size
-  allocate(buffer(f_index:new_e_index), stat=error)
+  allocate(buffer(fIdx:eIdx), stat=error)
 
   !Print and exit if we have an error
   if(error.ne.0) then
@@ -3244,7 +3181,7 @@ subroutine resize1dl(input, new_e_index, initial, ename, f_index_in)
   end if
 
   !Copy the data over
-  do i=f_index,old_e_index
+  do i=fIdx,old_eIdx
     buffer(i) = input(i)
   end do
 
@@ -3253,8 +3190,8 @@ subroutine resize1dl(input, new_e_index, initial, ename, f_index_in)
   call print_alloc(ename,request)
 
   !Set the initial values of the buffer
-  if(new_e_index > old_e_index) then
-    do i=old_e_index+1,new_e_index
+  if(eIdx > old_eIdx) then
+    do i=old_eIdx+1,eIdx
       buffer(i) = initial
     end do
   end if
