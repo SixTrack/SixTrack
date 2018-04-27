@@ -52,7 +52,6 @@ end subroutine zipf_parseInputLine
 subroutine zipf_parseInputDone
   
   use crcoall
-  use string_tools
   
   implicit none
   
@@ -97,13 +96,16 @@ end subroutine zipf_comnul
 subroutine zipf_dozip
   
   use crcoall
+  use mod_alloc
   
   implicit none
   
 #ifdef BOINC
-    character(stringzerotrim_maxlen) zipf_outFile_boinc
-    character(stringzerotrim_maxlen) zipf_fileNames_boinc(zipf_maxfiles)
-    integer ii
+  character(str_maxLen)            zipf_outFile_boinc
+  character(len=:), allocatable :: zipf_fileNames_boinc(:)
+  integer ii
+  
+  call alloc(zipf_fileNames_boinc, str_maxLen, zipf_numFiles, str_dZeros, "zipf_fileNames_boinc")
 #endif
   
 !+if libarchive
@@ -129,7 +131,7 @@ subroutine zipf_dozip
 #ifdef LIBARCHIVE
 #ifdef BOINC
   ! For BOINC, we may need to translate the filenames.
-  call boincrf(trim(stringzerotrim(zipf_outFile)), zipf_outFile_boinc )
+  call boincrf(trim(chr_trimZero(zipf_outFile)), zipf_outFile_boinc)
   
   do ii=1,zipf_numFiles
     call boincrf(trim(chr_trimZero(zipf_fileNames(ii))), zipf_fileNames_boinc(ii))
