@@ -43,17 +43,17 @@ interface alloc
   module procedure resize1dr32  ! 1D real32
   module procedure resize2dr32  ! 2D real32
   module procedure resize3dr32  ! 3D real32
-  module procedure alloc4dr32
+  module procedure resize4dr32  ! 4D real32
   
   module procedure resize1dr64  ! 1D real64
   module procedure resize2dr64  ! 2D real64
   module procedure resize3dr64  ! 3D real64
-  module procedure alloc4dr64
+  module procedure resize4dr64  ! 4D real64
   
   module procedure resize1dr128 ! 1D real128
   module procedure resize2dr128 ! 2D real128
   module procedure resize3dr128 ! 3D real128
-  module procedure alloc4dr128
+  module procedure resize4dr128 ! 4D real128
   
   module procedure alloc1dc
   module procedure alloc2dc
@@ -67,27 +67,29 @@ end interface alloc
 interface resize
   
   module procedure resize1di16  ! 1D int16
+  
   module procedure resize1di32  ! 1D int32
   module procedure resize2di32  ! 2D int32
   module procedure resize3di32  ! 3D int32
+  
   module procedure resize1di64  ! 1D int64
   module procedure resize2di64  ! 2D int64
   module procedure resize3di64  ! 3D int64
   
   module procedure resize1dr32  ! 1D real32
-  module procedure resize2dr32
-  module procedure resize3dr32
-  module procedure resize4dr32
+  module procedure resize2dr32  ! 2D real32
+  module procedure resize3dr32  ! 3D real32
+  module procedure resize4dr32  ! 4D real32
   
   module procedure resize1dr64  ! 1D real64
-  module procedure resize2dr64
-  module procedure resize3dr64
-  module procedure resize4dr64
+  module procedure resize2dr64  ! 2D real64
+  module procedure resize3dr64  ! 3D real64
+  module procedure resize4dr64  ! 4D real64
   
   module procedure resize1dr128 ! 1D real128
-  module procedure resize2dr128
-  module procedure resize3dr128
-  module procedure resize4dr128
+  module procedure resize2dr128 ! 2D real128
+  module procedure resize3dr128 ! 3D real128
+  module procedure resize4dr128 ! 4D real128
   
   module procedure resize1dc
   module procedure resize2dc
@@ -776,120 +778,6 @@ end subroutine resize3di64
 !  REALS
 ! ================================================================================================ !
 
-subroutine alloc4dr32(input, startsize1, startsize2, startsize3, startsize4, initial, ename)
-  implicit none
-
-  !The name of the variable being assigned - for error printing
-  character(len=*), intent(in) :: ename
-
-  !The input variable to allocated
-  real(kind=real32), allocatable, intent(inout) :: input(:,:,:,:)
-
-  !The inital value for the array to be set to
-  real(kind=real32), intent(in) :: initial
-
-  !The initial size to allocate
-  integer, intent(in) :: startsize1, startsize2, startsize3, startsize4
-
-  !Set to non-zero in case of an allocation error
-  integer :: error
-
-  !To keep track of the requested allocation size
-  integer(kind=int64) :: request
-
-  !Loop variable
-  integer :: k,l,m,n
-
-  request = startsize1 * startsize2 * startsize3 * startsize4 * storage_size(real32)
-
-  !Check that we are not already allocated
-  if(allocated(input) .eqv. .TRUE.) then
-    write(lout,*) 'ERROR: input array is already allocated for: ', ename
-    stop
-  end if
-
-  !Do the allocation
-  allocate(input(startsize1, startsize2, startsize3, startsize4), stat=error)
-
-  !Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
-  end if
-
-  !Log the number of allocated bits
-  allocated_bits = allocated_bits + request
-
-  !Initialise the array
-  do k=1, startsize1
-    do l=1, startsize2
-      do m=1, startsize3
-        do n=1, startsize4
-         input(k,l,m,n) = initial
-        end do
-      end do
-    end do
-  end do
-
-  call print_alloc(ename,"",request)
-end subroutine alloc4dr32
-
-subroutine alloc4dr64(input, startsize1, startsize2, startsize3, startsize4, initial, ename)
-  implicit none
-
-  !The name of the variable being assigned - for error printing
-  character(len=*), intent(in) :: ename
-
-  !The input variable to allocated
-  real(kind=real64), allocatable, intent(inout) :: input(:,:,:,:)
-
-  !The inital value for the array to be set to
-  real(kind=real64), intent(in) :: initial
-
-  !The initial size to allocate
-  integer, intent(in) :: startsize1, startsize2, startsize3, startsize4
-
-  !Set to non-zero in case of an allocation error
-  integer :: error
-
-  !To keep track of the requested allocation size
-  integer(kind=int64) :: request
-
-  !Loop variable
-  integer :: k,l,m,n
-
-  request = startsize1 * startsize2 * startsize3 * startsize4 * storage_size(real64)
-
-  !Check that we are not already allocated
-  if(allocated(input) .eqv. .TRUE.) then
-    write(lout,*) 'ERROR: input array is already allocated for: ', ename
-    stop
-  end if
-
-  !Do the allocation
-  allocate(input(startsize1, startsize2, startsize3, startsize4), stat=error)
-
-  !Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
-  end if
-
-  !Log the number of allocated bits
-  allocated_bits = allocated_bits + request
-
-  !Initialise the array
-  do k=1, startsize1
-    do l=1, startsize2
-      do m=1, startsize3
-        do n=1, startsize4
-         input(k,l,m,n) = initial
-        end do
-      end do
-    end do
-  end do
-
-  call print_alloc(ename,"",request)
-end subroutine alloc4dr64
-
 ! 1D real32 Array
 subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
   
@@ -1137,92 +1025,114 @@ subroutine resize3dr32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
 end subroutine resize3dr32
 
-!resize 4d real32 array
-subroutine resize4dr32(input, newsize1, newsize2, newsize3, newsize4, initial, ename)
-
+! 4D real32 Array
+subroutine resize4dr32(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
+  
   implicit none
-
-  !The name of the variable being assigned - for error printing
-  character(len=*), intent(in) :: ename
-
-  !The input variable to allocated
+  
   real(kind=real32), allocatable, intent(inout) :: input(:,:,:,:)
-
-  !A buffer used to expand the array
-  real(kind=real32), allocatable :: buffer(:,:,:,:)
-
-  !The inital value for the array to be set to
-  real(kind=real32), intent(in) :: initial
-
-  !The new size that the array should be set to
-  integer, intent(in) :: newsize1, newsize2, newsize3, newsize4
-
-  !A variable to track the old size of the array
-  integer :: oldsize1, oldsize2, oldsize3, oldsize4
-
-  !To keep track of the requested allocation size
-  integer(kind=int64) :: request
-
-  !Loop variable
-  integer :: i, j, k, l
-
-  !Set to non-zero in case of an allocation error
-  integer :: error
-
-  if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-    call alloc(input, newsize1, newsize2, newsize3, newsize4, initial, ename)
-    return
+  integer,                        intent(in)    :: eIdx1,eIdx2,eIdx3,eIdx4
+  real(kind=real32),              intent(in)    :: initial
+  character(len=*),               intent(in)    :: ename
+  integer,           optional,    intent(in)    :: fIdxIn1,fIdxIn2,fIdxIn3,fIdxIn4
+  
+  real(kind=real32), allocatable :: buffer(:,:,:,:)         ! Buffer array
+  integer                        :: fIdx1,fIdx2,fIdx3,fIdx4 ! First indices
+  integer                        :: oIdx1,oIdx2,oIdx3,oIdx4 ! Old end indices
+  integer(kind=int64)            :: request                 ! Requested size addition
+  
+  integer i, j, k, l, error
+  
+  if(present(fIdxIn1)) then
+    fIdx1 = fIdxIn1
+  else
+    fIdx1 = 1
   end if
-
-  !get the old size of the array
-  oldsize1 = size(input,1)
-  oldsize2 = size(input,2)
-  oldsize3 = size(input,3)
-  oldsize4 = size(input,4)
-
-  !log our request in size change
-  request = ((newsize1*newsize2*newsize3*newsize4) - (oldsize1*oldsize2*oldsize3*oldsize4)) * storage_size(real32)
-
-  !Allocate a buffer with the new array size
-  allocate(buffer(newsize1, newsize2, newsize3, newsize4), stat=error)
-
-  !Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
+  if(present(fIdxIn2)) then
+    fIdx2 = fIdxIn2
+  else
+    fIdx2 = 1
   end if
-
-  !Set the initial values of the buffer
-  do i=1,newsize4
-    do j=1,newsize3
-      do k=1,newsize2
-        do l=1,newsize1
-          buffer(l,k,j,i) = initial
+  if(present(fIdxIn3)) then
+    fIdx3 = fIdxIn3
+  else
+    fIdx3 = 1
+  end if
+  if(present(fIdxIn4)) then
+    fIdx4 = fIdxIn4
+  else
+    fIdx4 = 1
+  end if
+  
+  if(allocated(input) .neqv. .true.) then
+    
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    
+    request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1) * storage_size(real32)
+    
+    allocate(input(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3,fIdx4:eIdx4), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx4,eIdx4
+      do j=fIdx3,eIdx3
+        do k=fIdx2,eIdx2
+          do l=fIdx1,eIdx1
+            input(l,k,j,i) = initial
+          end do
         end do
       end do
     end do
-  end do
-
-  !Copy the data over
-  do i=1,oldsize4
-    do j=1,oldsize3
-      do k=1,oldsize2
-        do l=1,oldsize1
-          buffer(l,k,j,i)=input(l,k,j,i)
+    
+  else
+    
+    oIdx1   = size(input,1)+fIdx1-1
+    oIdx2   = size(input,2)+fIdx2-1
+    oIdx3   = size(input,3)+fIdx3-1
+    oIdx4   = size(input,4)+fIdx4-1
+    request = ((eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1)  - &
+               (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)*(oIdx4-fIdx4+1)) * storage_size(real32)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
+    
+    allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3,fIdx4:eIdx4), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx4,eIdx4
+      do j=fIdx3,eIdx3
+        do k=fIdx2,eIdx2
+          do l=fIdx1,eIdx1
+            buffer(l,k,j,i) = initial
+          end do
         end do
       end do
     end do
-  end do
-
-  !update the number of bits allocated (can be negative)
+    
+    if(oIdx1 > eIdx1) oIdx1 = eIdx1
+    if(oIdx2 > eIdx2) oIdx2 = eIdx2
+    if(oIdx3 > eIdx3) oIdx3 = eIdx3
+    if(oIdx4 > eIdx4) oIdx4 = eIdx4
+    
+    do i=fIdx4,oIdx4
+      do j=fIdx3,oIdx3
+        do k=fIdx2,oIdx2
+          do l=fIdx1,oIdx1
+            buffer(l,k,j,i) = input(l,k,j,i)
+          end do
+        end do
+      end do
+    end do
+    
+    call move_alloc(buffer,input)
+    
+  end if
+  
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,"",request)
-
-  !Do a pointer swap and deallocate the buffer
-  call move_alloc(buffer,input)
-
+  call print_alloc(ename,"4D real32",request)
+  
 end subroutine resize4dr32
-
 
 ! 1D real64 Array
 subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
@@ -1471,151 +1381,114 @@ subroutine resize3dr64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
 end subroutine resize3dr64
 
-
-!resize 4d real64 array
-subroutine resize4dr64(input, newsize1, newsize2, newsize3, newsize4, initial, ename)
-
+! 4d real64 array
+subroutine resize4dr64(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
+  
   implicit none
-
-  !The name of the variable being assigned - for error printing
-  character(len=*), intent(in) :: ename
-
-  !The input variable to allocated
+  
   real(kind=real64), allocatable, intent(inout) :: input(:,:,:,:)
-
-  !A buffer used to expand the array
-  real(kind=real64), allocatable :: buffer(:,:,:,:)
-
-  !The inital value for the array to be set to
-  real(kind=real64), intent(in) :: initial
-
-  !The new size that the array should be set to
-  integer, intent(in) :: newsize1, newsize2, newsize3, newsize4
-
-  !A variable to track the old size of the array
-  integer :: oldsize1, oldsize2, oldsize3, oldsize4
-
-  !To keep track of the requested allocation size
-  integer(kind=int64) :: request
-
-  !Loop variable
-  integer :: i, j, k, l
-
-  !Set to non-zero in case of an allocation error
-  integer :: error
-
-  if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-    call alloc(input, newsize1, newsize2, newsize3, newsize4, initial, ename)
-    return
+  integer,                        intent(in)    :: eIdx1,eIdx2,eIdx3,eIdx4
+  real(kind=real64),              intent(in)    :: initial
+  character(len=*),               intent(in)    :: ename
+  integer,           optional,    intent(in)    :: fIdxIn1,fIdxIn2,fIdxIn3,fIdxIn4
+  
+  real(kind=real64), allocatable :: buffer(:,:,:,:)         ! Buffer array
+  integer                        :: fIdx1,fIdx2,fIdx3,fIdx4 ! First indices
+  integer                        :: oIdx1,oIdx2,oIdx3,oIdx4 ! Old end indices
+  integer(kind=int64)            :: request                 ! Requested size addition
+  
+  integer i, j, k, l, error
+  
+  if(present(fIdxIn1)) then
+    fIdx1 = fIdxIn1
+  else
+    fIdx1 = 1
   end if
-
-  !get the old size of the array
-  oldsize1 = size(input,1)
-  oldsize2 = size(input,2)
-  oldsize3 = size(input,3)
-  oldsize4 = size(input,4)
-
-  !log our request in size change
-  request = ((newsize1*newsize2*newsize3*newsize4) - (oldsize1*oldsize2*oldsize3*oldsize4)) * storage_size(real64)
-
-  !Allocate a buffer with the new array size
-  allocate(buffer(newsize1, newsize2, newsize3, newsize4), stat=error)
-
-  !Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
+  if(present(fIdxIn2)) then
+    fIdx2 = fIdxIn2
+  else
+    fIdx2 = 1
   end if
-
-  !Set the initial values of the buffer
-  do i=1,newsize4
-    do j=1,newsize3
-      do k=1,newsize2
-        do l=1,newsize1
-          buffer(l,k,j,i) = initial
+  if(present(fIdxIn3)) then
+    fIdx3 = fIdxIn3
+  else
+    fIdx3 = 1
+  end if
+  if(present(fIdxIn4)) then
+    fIdx4 = fIdxIn4
+  else
+    fIdx4 = 1
+  end if
+  
+  if(allocated(input) .neqv. .true.) then
+    
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    
+    request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1) * storage_size(real64)
+    
+    allocate(input(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3,fIdx4:eIdx4), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx4,eIdx4
+      do j=fIdx3,eIdx3
+        do k=fIdx2,eIdx2
+          do l=fIdx1,eIdx1
+            input(l,k,j,i) = initial
+          end do
         end do
       end do
     end do
-  end do
-
-  !Copy the data over
-  do i=1,oldsize4
-    do j=1,oldsize3
-      do k=1,oldsize2
-        do l=1,oldsize1
-          buffer(l,k,j,i)=input(l,k,j,i)
+    
+  else
+    
+    oIdx1   = size(input,1)+fIdx1-1
+    oIdx2   = size(input,2)+fIdx2-1
+    oIdx3   = size(input,3)+fIdx3-1
+    oIdx4   = size(input,4)+fIdx4-1
+    request = ((eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1)  - &
+               (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)*(oIdx4-fIdx4+1)) * storage_size(real64)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
+    
+    allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3,fIdx4:eIdx4), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx4,eIdx4
+      do j=fIdx3,eIdx3
+        do k=fIdx2,eIdx2
+          do l=fIdx1,eIdx1
+            buffer(l,k,j,i) = initial
+          end do
         end do
       end do
     end do
-  end do
-
-  !update the number of bits allocated (can be negative)
+    
+    if(oIdx1 > eIdx1) oIdx1 = eIdx1
+    if(oIdx2 > eIdx2) oIdx2 = eIdx2
+    if(oIdx3 > eIdx3) oIdx3 = eIdx3
+    if(oIdx4 > eIdx4) oIdx4 = eIdx4
+    
+    do i=fIdx4,oIdx4
+      do j=fIdx3,oIdx3
+        do k=fIdx2,oIdx2
+          do l=fIdx1,oIdx1
+            buffer(l,k,j,i) = input(l,k,j,i)
+          end do
+        end do
+      end do
+    end do
+    
+    call move_alloc(buffer,input)
+    
+  end if
+  
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,"",request)
-
-  !Do a pointer swap and deallocate the buffer
-  call move_alloc(buffer,input)
-
+  call print_alloc(ename,"4D real64",request)
+  
 end subroutine resize4dr64
-
-!alloc real128
-
-subroutine alloc4dr128(input, startsize1, startsize2, startsize3, startsize4, initial, ename)
-  implicit none
-
-  !The name of the variable being assigned - for error printing
-  character(len=*), intent(in) :: ename
-
-  !The input variable to allocated
-  real(kind=real128), allocatable, intent(inout) :: input(:,:,:,:)
-
-  !The inital value for the array to be set to
-  real(kind=real128), intent(in) :: initial
-
-  !The initial size to allocate
-  integer, intent(in) :: startsize1, startsize2, startsize3, startsize4
-
-  !Set to non-zero in case of an allocation error
-  integer :: error
-
-  !To keep track of the requested allocation size
-  integer(kind=int64) :: request
-
-  !Loop variable
-  integer :: k,l,m,n
-
-  request = startsize1 * startsize2 * startsize3 * startsize4 * storage_size(real128)
-
-  !Check that we are not already allocated
-  if(allocated(input) .eqv. .TRUE.) then
-    write(lout,*) 'ERROR: input array is already allocated for: ', ename
-    stop
-  end if
-
-  !Do the allocation
-  allocate(input(startsize1, startsize2, startsize3, startsize4), stat=error)
-
-  !Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
-  end if
-
-  !Log the number of allocated bits
-  allocated_bits = allocated_bits + request
-
-  !Initialise the array
-  do k=1, startsize1
-    do l=1, startsize2
-      do m=1, startsize3
-        do n=1, startsize4
-         input(k,l,m,n) = initial
-        end do
-      end do
-    end do
-  end do
-
-  call print_alloc(ename,"",request)
-end subroutine alloc4dr128
 
 ! 1D real128 Array
 subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
@@ -1864,91 +1737,113 @@ subroutine resize3dr128(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fId
   
 end subroutine resize3dr128
 
-
-!resize 4d real128 array
-subroutine resize4dr128(input, newsize1, newsize2, newsize3, newsize4, initial, ename)
-
+! 4D real128 Array
+subroutine resize4dr128(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
+  
   implicit none
-
-  !The name of the variable being assigned - for error printing
-  character(len=*), intent(in) :: ename
-
-  !The input variable to allocated
+  
   real(kind=real128), allocatable, intent(inout) :: input(:,:,:,:)
-
-  !A buffer used to expand the array
-  real(kind=real128), allocatable :: buffer(:,:,:,:)
-
-  !The inital value for the array to be set to
-  real(kind=real128), intent(in) :: initial
-
-  !The new size that the array should be set to
-  integer, intent(in) :: newsize1, newsize2, newsize3, newsize4
-
-  !A variable to track the old size of the array
-  integer :: oldsize1, oldsize2, oldsize3, oldsize4
-
-  !To keep track of the requested allocation size
-  integer(kind=int64) :: request
-
-  !Loop variable
-  integer :: i, j, k, l
-
-  !Set to non-zero in case of an allocation error
-  integer :: error
-
-  if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-    call alloc(input, newsize1, newsize2, newsize3, newsize4, initial, ename)
-    return
+  integer,                         intent(in)    :: eIdx1,eIdx2,eIdx3,eIdx4
+  real(kind=real128),              intent(in)    :: initial
+  character(len=*),                intent(in)    :: ename
+  integer,            optional,    intent(in)    :: fIdxIn1,fIdxIn2,fIdxIn3,fIdxIn4
+  
+  real(kind=real128), allocatable :: buffer(:,:,:,:)         ! Buffer array
+  integer                         :: fIdx1,fIdx2,fIdx3,fIdx4 ! First indices
+  integer                         :: oIdx1,oIdx2,oIdx3,oIdx4 ! Old end indices
+  integer(kind=int64)             :: request                 ! Requested size addition
+  
+  integer i, j, k, l, error
+  
+  if(present(fIdxIn1)) then
+    fIdx1 = fIdxIn1
+  else
+    fIdx1 = 1
   end if
-
-  !get the old size of the array
-  oldsize1 = size(input,1)
-  oldsize2 = size(input,2)
-  oldsize3 = size(input,3)
-  oldsize4 = size(input,4)
-
-  !log our request in size change
-  request = ((newsize1*newsize2*newsize3*newsize4) - (oldsize1*oldsize2*oldsize3*oldsize4)) * storage_size(real128)
-
-  !Allocate a buffer with the new array size, and fill it with the old input
-  allocate(buffer(newsize1, newsize2, newsize3, newsize4), stat=error)
-
-  !Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
+  if(present(fIdxIn2)) then
+    fIdx2 = fIdxIn2
+  else
+    fIdx2 = 1
   end if
-
-  !Set the initial values of the buffer
-  do i=1,newsize4
-    do j=1,newsize3
-      do k=1,newsize2
-        do l=1,newsize1
-          buffer(l,k,j,i) = initial
+  if(present(fIdxIn3)) then
+    fIdx3 = fIdxIn3
+  else
+    fIdx3 = 1
+  end if
+  if(present(fIdxIn4)) then
+    fIdx4 = fIdxIn4
+  else
+    fIdx4 = 1
+  end if
+  
+  if(allocated(input) .neqv. .true.) then
+    
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    
+    request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1) * storage_size(real128)
+    
+    allocate(input(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3,fIdx4:eIdx4), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx4,eIdx4
+      do j=fIdx3,eIdx3
+        do k=fIdx2,eIdx2
+          do l=fIdx1,eIdx1
+            input(l,k,j,i) = initial
+          end do
         end do
       end do
     end do
-  end do
-
-  !Copy the data over
-  do i=1,oldsize4
-    do j=1,oldsize3
-      do k=1,oldsize2
-        do l=1,oldsize1
-          buffer(l,k,j,i)=input(l,k,j,i)
+    
+  else
+    
+    oIdx1   = size(input,1)+fIdx1-1
+    oIdx2   = size(input,2)+fIdx2-1
+    oIdx3   = size(input,3)+fIdx3-1
+    oIdx4   = size(input,4)+fIdx4-1
+    request = ((eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1)  - &
+               (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)*(oIdx4-fIdx4+1)) * storage_size(real128)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
+    
+    allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3,fIdx4:eIdx4), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx4,eIdx4
+      do j=fIdx3,eIdx3
+        do k=fIdx2,eIdx2
+          do l=fIdx1,eIdx1
+            buffer(l,k,j,i) = initial
+          end do
         end do
       end do
     end do
-  end do
-
-  !update the number of bits allocated (can be negative)
+    
+    if(oIdx1 > eIdx1) oIdx1 = eIdx1
+    if(oIdx2 > eIdx2) oIdx2 = eIdx2
+    if(oIdx3 > eIdx3) oIdx3 = eIdx3
+    if(oIdx4 > eIdx4) oIdx4 = eIdx4
+    
+    do i=fIdx4,oIdx4
+      do j=fIdx3,oIdx3
+        do k=fIdx2,oIdx2
+          do l=fIdx1,oIdx1
+            buffer(l,k,j,i) = input(l,k,j,i)
+          end do
+        end do
+      end do
+    end do
+    
+    call move_alloc(buffer,input)
+    
+  end if
+  
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,"",request)
-
-  !Do a pointer swap and deallocate the buffer
-  call move_alloc(buffer,input)
-
+  call print_alloc(ename,"4D real128",request)
+  
 end subroutine resize4dr128
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
