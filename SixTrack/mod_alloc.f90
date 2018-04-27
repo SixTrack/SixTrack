@@ -30,72 +30,70 @@ module mod_alloc
 !some arrays are fixed to a specific variable type, and therefore we are prevented from doing this :(
 interface alloc
   
-  module procedure resize1di16 ! 1D int16
-  module procedure resize1di32 ! 1D int32
-  module procedure resize2di32 ! 2D int32
-  module procedure resize3di32 ! 3D int32
-  module procedure resize1di64 ! 1D int64
-  module procedure resize2di64 ! 2D int64
-  module procedure resize3di64 ! 3D int64
+  module procedure resize1di16  ! 1D int16
   
-  module procedure resize1dr32 ! 1D real32
+  module procedure resize1di32  ! 1D int32
+  module procedure resize2di32  ! 2D int32
+  module procedure resize3di32  ! 3D int32
+  
+  module procedure resize1di64  ! 1D int64
+  module procedure resize2di64  ! 2D int64
+  module procedure resize3di64  ! 3D int64
+  
+  module procedure resize1dr32  ! 1D real32
   module procedure alloc2dr32
   module procedure alloc3dr32
   module procedure alloc4dr32
-
-  module procedure resize1dr64 ! 1D real64
+  
+  module procedure resize1dr64  ! 1D real64
   module procedure alloc2dr64
   module procedure alloc3dr64
   module procedure alloc4dr64
-
+  
   module procedure resize1dr128 ! 1D real128
   module procedure alloc2dr128
   module procedure alloc3dr128
   module procedure alloc4dr128
-
-!characters
+  
   module procedure alloc1dc
   module procedure alloc2dc
-
-  ! Strings
+  
   module procedure alloc1ds
-
-!logical
+  
   module procedure alloc1dl
   module procedure alloc2dl
 end interface alloc
 
 interface resize
   
-  module procedure resize1di16 ! 1D int16
-  module procedure resize1di32 ! 1D int32
-  module procedure resize2di32 ! 2D int32
-  module procedure resize3di32 ! 3D int32
-  module procedure resize1di64 ! 1D int64
-  module procedure resize2di64 ! 2D int64
-  module procedure resize3di64 ! 3D int64
+  module procedure resize1di16  ! 1D int16
+  module procedure resize1di32  ! 1D int32
+  module procedure resize2di32  ! 2D int32
+  module procedure resize3di32  ! 3D int32
+  module procedure resize1di64  ! 1D int64
+  module procedure resize2di64  ! 2D int64
+  module procedure resize3di64  ! 3D int64
   
-  module procedure resize1dr32
+  module procedure resize1dr32  ! 1D real32
   module procedure resize2dr32
   module procedure resize3dr32
   module procedure resize4dr32
-
-  module procedure resize1dr64
+  
+  module procedure resize1dr64  ! 1D real64
   module procedure resize2dr64
   module procedure resize3dr64
   module procedure resize4dr64
-
-  module procedure resize1dr128
+  
+  module procedure resize1dr128 ! 1D real128
   module procedure resize2dr128
   module procedure resize3dr128
   module procedure resize4dr128
-
+  
   module procedure resize1dc
   module procedure resize2dc
   
-  ! Strings
   module procedure resize1ds
-
+  
   module procedure resize1dl
   module procedure resize2dl
 end interface resize
@@ -144,43 +142,41 @@ subroutine alloc_error(ename, error, requested_bits)
   stop
 end subroutine alloc_error
 
-subroutine print_alloc(ename, requested_bits)
-
+subroutine print_alloc(ename, type, requested_bits)
+  
   use numerical_constants, only : one
-  use file_units
-
+  
   implicit none
-
-  character(len=*), intent(in) :: ename
+  
+  character(len=*), intent(in) :: ename, type
   integer(kind=int64) :: requested_bits
   
-#ifdef spammy
+#ifdef SPAMMY
   
-  write(lout,*) 'Memory allocation for array ', ename
-
-  if((real(allocated_bits,real64)/mbyte .lt. one) .and. (real(allocated_bits,real64)/kbyte .gt. one)) then
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/kbyte, ' kbytes'
-  else if(real(allocated_bits,real64)/mbyte .ge. one) then
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/mbyte, ' Mbytes'
+  write(lout,"(a)") "ALLOC> Memory allocation for "//type//" array '"//ename//"'"
+  
+  if((real(allocated_bits,real64)/mbyte < one) .and. (real(allocated_bits,real64)/kbyte > one)) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/kbyte," kb"
+  else if(real(allocated_bits,real64)/mbyte >= one) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/mbyte," Mb"
   else
-    write(lout,*) 'Current allocation is: ', real(allocated_bits,real64)/byte, ' bytes'
+    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/byte," b"
   end if
 
-  if((real(requested_bits,real64)/mbyte .lt. one) .and. (real(requested_bits,real64)/kbyte .gt. one)) then
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/kbyte, ' kbytes'
-  else if(real(requested_bits,real64)/mbyte .ge. one) then
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/mbyte, ' Mbytes'
+  if((real(requested_bits,real64)/mbyte < one) .and. (real(requested_bits,real64)/kbyte > one)) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/kbyte," kb"
+  else if(real(requested_bits,real64)/mbyte >= one) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/mbyte," Mb"
   else
-    write(lout,*) 'Requested allocation is: ', real(requested_bits,real64)/byte, ' bytes'
+    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/byte," b"
   end if
-  write(lout,*) ''
-
-  if(allocated_bits.gt.maximum_bits) then
+  write(lout,"(a)") ""
+#endif
+  
+  if(allocated_bits > maximum_bits) then
     maximum_bits = allocated_bits
   end if
-
-#endif
-
+  
 end subroutine print_alloc
 
 subroutine alloc_exit
@@ -241,7 +237,7 @@ subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(int16)
     
@@ -256,6 +252,11 @@ subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
     
     oeIdx = size(input)+fIdx-1
     request = (eIdx-oeIdx) * storage_size(int16)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -274,7 +275,7 @@ subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"1D int16",request)
   
 end subroutine resize1di16
 
@@ -304,7 +305,7 @@ subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(int32)
     
@@ -319,6 +320,11 @@ subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
     
     oeIdx = size(input)+fIdx-1
     request = (eIdx-oeIdx) * storage_size(int32)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -337,7 +343,7 @@ subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"1D int32",request)
   
 end subroutine resize1di32
 
@@ -372,7 +378,7 @@ subroutine resize2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(int32)
     
@@ -390,6 +396,11 @@ subroutine resize2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     oeIdx1 = size(input,1)+fIdx1-1
     oeIdx2 = size(input,2)+fIdx2-1
     request = (eIdx1-oeIdx1)*(eIdx2-oeIdx2) * storage_size(int32)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -414,7 +425,7 @@ subroutine resize2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"2D int32",request)
   
 end subroutine resize2di32
 
@@ -454,7 +465,7 @@ subroutine resize3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(int32)
     
@@ -475,6 +486,11 @@ subroutine resize3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
     oeIdx2 = size(input,2)+fIdx2-1
     oeIdx3 = size(input,3)+fIdx3-1
     request = (eIdx1-oeIdx1)*(eIdx2-oeIdx2)*(eIdx3-oeIdx3) * storage_size(int32)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -504,7 +520,7 @@ subroutine resize3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"3D int32",request)
   
 end subroutine resize3di32
 
@@ -534,7 +550,7 @@ subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(int64)
     
@@ -549,6 +565,11 @@ subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
     
     oeIdx = size(input)+fIdx-1
     request = (eIdx-oeIdx) * storage_size(int64)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -567,7 +588,7 @@ subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"1D int64",request)
   
 end subroutine resize1di64
 
@@ -602,7 +623,7 @@ subroutine resize2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(int64)
     
@@ -620,6 +641,11 @@ subroutine resize2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     oeIdx1 = size(input,1)+fIdx1-1
     oeIdx2 = size(input,2)+fIdx2-1
     request = (eIdx1-oeIdx1)*(eIdx2-oeIdx2) * storage_size(int64)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -644,7 +670,7 @@ subroutine resize2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"2D int64",request)
   
 end subroutine resize2di64
 
@@ -684,7 +710,7 @@ subroutine resize3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(int64)
     
@@ -705,6 +731,11 @@ subroutine resize3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
     oeIdx2 = size(input,2)+fIdx2-1
     oeIdx3 = size(input,3)+fIdx3-1
     request = (eIdx1-oeIdx1)*(eIdx2-oeIdx2)*(eIdx3-oeIdx3) * storage_size(int64)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -734,7 +765,7 @@ subroutine resize3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"3D int64",request)
   
 end subroutine resize3di64
 
@@ -792,7 +823,7 @@ subroutine alloc2dr32(input, startsize1, startsize2, initial, ename)
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc2dr32
 
 subroutine alloc3dr32(input, startsize1, startsize2, startsize3, initial, ename)
@@ -847,7 +878,7 @@ subroutine alloc3dr32(input, startsize1, startsize2, startsize3, initial, ename)
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc3dr32
 
 subroutine alloc4dr32(input, startsize1, startsize2, startsize3, startsize4, initial, ename)
@@ -904,7 +935,7 @@ subroutine alloc4dr32(input, startsize1, startsize2, startsize3, startsize4, ini
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc4dr32
 
 !alloc real64
@@ -959,7 +990,7 @@ subroutine alloc2dr64(input, startsize1, startsize2, initial, ename)
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc2dr64
 
 subroutine alloc3dr64(input, startsize1, startsize2, startsize3, initial, ename)
@@ -1014,7 +1045,7 @@ subroutine alloc3dr64(input, startsize1, startsize2, startsize3, initial, ename)
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc3dr64
 
 subroutine alloc4dr64(input, startsize1, startsize2, startsize3, startsize4, initial, ename)
@@ -1071,7 +1102,7 @@ subroutine alloc4dr64(input, startsize1, startsize2, startsize3, startsize4, ini
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc4dr64
 
 ! 1D real32 Array
@@ -1100,7 +1131,7 @@ subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(real32)
     
@@ -1115,6 +1146,11 @@ subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
     
     oeIdx = size(input)+fIdx-1
     request = (eIdx-oeIdx) * storage_size(real32)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -1133,7 +1169,7 @@ subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
   
 end subroutine resize1dr32
 
@@ -1206,7 +1242,7 @@ subroutine resize2dr32(input, newsize1, newsize2, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1288,7 +1324,7 @@ subroutine resize3dr32(input, newsize1, newsize2, newsize3, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1374,7 +1410,7 @@ subroutine resize4dr32(input, newsize1, newsize2, newsize3, newsize4, initial, e
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1408,7 +1444,7 @@ subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(real64)
     
@@ -1423,6 +1459,11 @@ subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
     
     oeIdx = size(input)+fIdx-1
     request = (eIdx-oeIdx) * storage_size(real64)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -1441,7 +1482,7 @@ subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
   
 end subroutine resize1dr64
 
@@ -1514,7 +1555,7 @@ subroutine resize2dr64(input, newsize1, newsize2, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1596,7 +1637,7 @@ subroutine resize3dr64(input, newsize1, newsize2, newsize3, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1683,7 +1724,7 @@ subroutine resize4dr64(input, newsize1, newsize2, newsize3, newsize4, initial, e
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -1742,7 +1783,7 @@ subroutine alloc2dr128(input, startsize1, startsize2, initial, ename)
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc2dr128
 
 subroutine alloc3dr128(input, startsize1, startsize2, startsize3, initial, ename)
@@ -1797,7 +1838,7 @@ subroutine alloc3dr128(input, startsize1, startsize2, startsize3, initial, ename
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc3dr128
 
 subroutine alloc4dr128(input, startsize1, startsize2, startsize3, startsize4, initial, ename)
@@ -1854,7 +1895,7 @@ subroutine alloc4dr128(input, startsize1, startsize2, startsize3, startsize4, in
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc4dr128
 
 ! 1D real128 Array
@@ -1883,7 +1924,7 @@ subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> INFO Allocating array '"//ename//"'"
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(real128)
     
@@ -1898,6 +1939,11 @@ subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
     
     oeIdx = size(input)+fIdx-1
     request = (eIdx-oeIdx) * storage_size(real128)
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
     
     allocate(buffer(fIdx:eIdx), stat=error)
     if(error /= 0) call alloc_error(ename, error, request)
@@ -1916,7 +1962,7 @@ subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
   end if
   
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
   
 end subroutine resize1dr128
 
@@ -1989,7 +2035,7 @@ subroutine resize2dr128(input, newsize1, newsize2, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -2071,7 +2117,7 @@ subroutine resize3dr128(input, newsize1, newsize2, newsize3, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -2158,7 +2204,7 @@ subroutine resize4dr128(input, newsize1, newsize2, newsize3, newsize4, initial, 
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
@@ -2234,7 +2280,7 @@ subroutine alloc1dc(input, strlen, e_index, initial, ename, fIdxIn)
     input(k) = initial
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc1dc
 
 
@@ -2291,7 +2337,7 @@ subroutine alloc2dc(input, strlen, startsize1, startsize2, initial, ename)
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc2dc
 
 !resize 1d character array
@@ -2360,7 +2406,7 @@ subroutine resize1dc(input, strlen, eIdx, initial, ename, fIdxIn)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
  !copy old values across
   do i=fIdx,oeIdx
@@ -2438,7 +2484,7 @@ subroutine resize2dc(input, strlen, newsize1, newsize2, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Set the initial values of the buffer
   do i=1,newsize2
@@ -2510,7 +2556,7 @@ subroutine alloc1ds(input, e_index, initial, ename, fIdxIn)
     input(k) = initial
   end do
     
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
   
 end subroutine alloc1ds
 
@@ -2566,7 +2612,7 @@ subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
   
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
   
   !Set the initial values of the buffer
   if(eIdx > oeIdx) then
@@ -2647,7 +2693,7 @@ subroutine alloc1dl(input, e_index, initial, ename, fIdxIn)
     input(k) = initial
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc1dl
 
 subroutine alloc2dl(input, startsize1, startsize2, initial, ename)
@@ -2700,7 +2746,7 @@ subroutine alloc2dl(input, startsize1, startsize2, initial, ename)
     end do
   end do
 
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 end subroutine alloc2dl
 
 !resize 1d logical array
@@ -2772,7 +2818,7 @@ subroutine resize1dl(input, eIdx, initial, ename, fIdxIn)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Set the initial values of the buffer
   if(eIdx > oeIdx) then
@@ -2855,7 +2901,7 @@ subroutine resize2dl(input, newsize1, newsize2, initial, ename)
 
   !update the number of bits allocated (can be negative)
   allocated_bits = allocated_bits + request
-  call print_alloc(ename,request)
+  call print_alloc(ename,"",request)
 
   !Do a pointer swap and deallocate the buffer
   call move_alloc(buffer,input)
