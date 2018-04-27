@@ -58,7 +58,7 @@ interface alloc
   module procedure resize1dc    ! 1D character
   module procedure resize2dc    ! 2D character
   
-  module procedure alloc1ds
+  module procedure resize1ds    ! 1D string
   
   module procedure resize1dl    ! 1D logical
   module procedure resize2dl    ! 2D logical
@@ -92,10 +92,10 @@ interface resize
   module procedure resize3dr128 ! 3D real128
   module procedure resize4dr128 ! 4D real128
   
-  module procedure resize1dc
-  module procedure resize2dc
+  module procedure resize1dc    ! 1D character
+  module procedure resize2dc    ! 2D character
   
-  module procedure resize1ds
+  module procedure resize1ds    ! 1D string
   
   module procedure resize1dl    ! 1D logical
   module procedure resize2dl    ! 2D logical
@@ -2009,75 +2009,24 @@ end subroutine resize2dc
 !  STRINGS
 ! ==================================================================== !
 
-subroutine alloc1ds(input, e_index, initial, ename, fIdxIn)
-  
-  use strings
-  
-  implicit none
-  
-  character(len=*),              intent(in)    :: ename
-  type(string),     allocatable, intent(inout) :: input(:)
-  type(string),                  intent(in)    :: initial
-  integer,                       intent(in)    :: e_index
-  integer,          optional,    intent(in)    :: fIdxIn
-  
-  integer :: fIdx
-  integer :: error
-  integer(kind=int64) :: request
-  integer :: k
-
-  if(present(fIdxIn)) then
-    fIdx = fIdxIn
-  else
-    fIdx = 1
-  end if
-  
-  request = (e_index-fIdx+1) !*storage_size(type(string))
-
-  ! Check that we are not already allocated
-  if(allocated(input) .eqv. .TRUE.) then
-    write(lout,*) 'ERROR: input array is already allocated for: ', ename
-    stop
-  end if
-  
-  ! Do the allocation
-  allocate(input(fIdx:e_index), stat=error)
-  
-  ! Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
-  end if
-  
-  ! Log the number of allocated bits
-  allocated_bits = allocated_bits + request
-  
-  !Initialise the array
-  do k=fIdx, e_index
-    input(k) = initial
-  end do
-    
-  call print_alloc(ename,"",request)
-  
-end subroutine alloc1ds
-
 subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
   
   use strings
   
   implicit none
   
-  character(len=*),              intent(in)    :: ename
-  type(string),     allocatable, intent(inout) :: input(:)
-  type(string),     allocatable                :: buffer(:)
-  type(string),                  intent(in)    :: initial
-  integer,                       intent(in)    :: eIdx
-  integer,          optional,    intent(in)    :: fIdxIn
-
-  integer :: fIdx
-  integer :: oIdx
-  integer(kind=int64) :: request
-  integer :: i
-  integer :: error
+  type(string), allocatable, intent(inout) :: input(:)
+  integer,                   intent(in)    :: eIdx
+  type(string),              intent(in)    :: initial
+  character(len=*),          intent(in)    :: ename
+  integer,      optional,    intent(in)    :: fIdxIn
+  
+  type(string), allocatable :: buffer(:)   ! Buffer array
+  integer                   :: fIdx        ! First index
+  integer                   :: oIdx        ! Old end index
+  integer(kind=int64)       :: request     ! Requested size addition
+  
+  integer i, error
   
   if(present(fIdxIn)) then
     fIdx = fIdxIn
@@ -2085,44 +2034,47 @@ subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
   
-  if(allocated(input) .neqv. .TRUE.) then
-    write(lout,*) 'INFO: array ', ename, ' is not allocated.'
-    call alloc(input, eIdx, initial, ename, fIdx)
-    return
-  end if
-  
-  ! Get the old end index of the array
-  oIdx = size(input)+fIdx-1
-  
-  !log our request in size change
-  request = (eIdx-oIdx) !*storage_size(type(string))
-  
-  !Allocate a buffer with the new array size
-  allocate(buffer(fIdx:eIdx), stat=error)
-  
-  !Print and exit if we have an error
-  if(error.ne.0) then
-    call alloc_error(ename, error, request)
-  end if
-  
-  !Copy the data over
-  do i=fIdx,oIdx
-    buffer(i) = input(i)
-  end do
-  
-  !update the number of bits allocated (can be negative)
-  allocated_bits = allocated_bits + request
-  call print_alloc(ename,"",request)
-  
-  !Set the initial values of the buffer
-  if(eIdx > oIdx) then
-    do i=oIdx+1,eIdx
+  if(allocated(input) .neqv. .true.) then
+    
+    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    
+    request = eIdx-fIdx+1
+    
+    allocate(input(fIdx:eIdx), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx,eIdx
+      input(i) = initial
+    end do
+    
+  else
+    
+    oIdx    = size(input)+fIdx-1
+    request = eIdx-oIdx
+    
+    if(request == 0.0) then
+      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
+    
+    allocate(buffer(fIdx:eIdx), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx,eIdx
       buffer(i) = initial
     end do
+    
+    if(oIdx > eIdx) oIdx = eIdx
+    do i=fIdx,oIdx
+      buffer(i) = input(i)
+    end do
+    
+    call move_alloc(buffer,input)
+    
   end if
   
-  !Do a pointer swap and deallocate the buffer
-  call move_alloc(buffer,input)
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,"1D string",request)
   
 end subroutine resize1ds
 
@@ -2280,16 +2232,12 @@ subroutine resize2dl(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
 end subroutine resize2dl
 
+! ================================================================================================ !
+!  DEALLOCTIONS
+! ~~~~~~~~~~~~~~
+!  These exist to keep track of the total allocated memory
+! ================================================================================================ !
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
-!                          DEALLOCATIONS
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!These exist to keep track of the total allocated memory
 subroutine dealloc1dr32(input, ename)
   implicit none
   character(len=*), intent(in) :: ename
@@ -2406,7 +2354,6 @@ subroutine dealloc3dr128(input, ename)
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real128))
   deallocate(input)
 end subroutine dealloc3dr128
-
 
 subroutine dealloc1di16(input, ename)
   implicit none
