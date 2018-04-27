@@ -228,7 +228,7 @@ public:
 	{
 	public:
 		virtual ~Method() {}
-		virtual double ValueAt(double x) const throw (BadRange) =0;
+		virtual double ValueAt(double x) const =0;
 	};
 
 	// Interpolation of equally spaced data points
@@ -239,7 +239,7 @@ public:
 
 	~Interpolation();
 
-	double operator()(double x) const throw (BadRange)
+	double operator()(double x) const
 	{
 		return itsMethod->ValueAt(x);
 	}
