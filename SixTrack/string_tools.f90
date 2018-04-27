@@ -18,11 +18,12 @@ module string_tools
   implicit none
   
   ! "Standard" string length, +1 for \0
-  integer, parameter :: str_maxLen = 161
+  integer, parameter :: str_maxLen    = 161
+  integer, parameter :: str_maxFields = 15
   
   ! Dummy empty strings
   character(len=str_maxLen), parameter :: str_dSpace = repeat(" ",str_maxLen)
-  character(len=str_maxLen), parameter :: str_dNull  = repeat(char(0),str_maxLen)
+  character(len=str_maxLen), parameter :: str_dZeros = repeat(char(0),str_maxLen)
   
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
@@ -34,9 +35,9 @@ module string_tools
   ! Old stuff added for backwards compatibility
   !
   
-  integer, parameter :: getfields_n_max_fields = 15         ! Max number of returned fields
-  integer, parameter :: getfields_l_max_string = str_maxLen ! Max string length
-  integer, parameter :: stringzerotrim_maxlen  = str_maxLen ! Max string length
+  integer, parameter :: getfields_n_max_fields = str_maxFields ! Max number of returned fields
+  integer, parameter :: getfields_l_max_string = str_maxLen    ! Max string length
+  integer, parameter :: stringzerotrim_maxlen  = str_maxLen    ! Max string length
   
   public stringzerotrim
   

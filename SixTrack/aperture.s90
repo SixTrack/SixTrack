@@ -847,7 +847,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
            sigmvlos = sigmv(j)
            dpsvlos = dpsvLast(j)
            naalos = naaLast(j)
-           nzzlos = naaLast(j)
+           nzzlos = nzzLast(j)
         else
            ejfvlos = ejfv(j)
            ejvlos = ejv(j)
@@ -855,7 +855,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
            sigmvlos = sigmv(j)
            dpsvlos = dpsv(j)
            naalos = naa(j)
-           nzzlos = naa(j)
+           nzzlos = nzz(j)
         endif
 
         ! ==============================================================

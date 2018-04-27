@@ -127,7 +127,6 @@ subroutine scatter_expand_arrays(neleNew)
   call resize(scatter_elemPointer,neleNew,0,"scatter_elemPointer")
 end subroutine scatter_expand_arrays
   
-
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
