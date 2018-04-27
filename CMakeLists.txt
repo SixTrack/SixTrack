@@ -327,7 +327,7 @@ if(FLUKA)
 endif(FLUKA)
 
 if(ROOT)
-	LIST(APPEND FORS_FREEFORM root_output)
+	LIST(APPEND FORS_F90 root_output)
 endif(ROOT)
 
 foreach(loop IN LISTS FORS_FREEFORM)
