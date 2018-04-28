@@ -1,4 +1,3 @@
-+dk ranecu
 ! Standard SixTrack RNG
 ! References:
 !

@@ -303,11 +303,11 @@ LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE 
 ###################################################################################################
 
 if(DA)
-	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump mainarrays parpro_scale bdex aperture ranecu wire elens hions)
-	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf)
+	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump mainarrays parpro_scale bdex aperture elens hions)
+	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf bouncy_castle plato_seq ranecu wire)
 else()
-	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump mainarrays parpro_scale bdex aperture ranecu wire elens hions)
-	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf)
+	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump mainarrays parpro_scale bdex aperture elens hions)
+	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf bouncy_castle plato_seq ranecu wire)
 endif()
 
 if(COLLIMAT)
@@ -327,7 +327,7 @@ if(FLUKA)
 endif(FLUKA)
 
 if(ROOT)
-	LIST(APPEND FORS_FREEFORM root_output)
+	LIST(APPEND FORS_F90 root_output)
 endif(ROOT)
 
 foreach(loop IN LISTS FORS_FREEFORM)
