@@ -3017,7 +3017,7 @@ subroutine collimate_exit()
 
     do i=1,iu
 !     RB: added printout of closed orbit and angle
-      write(betafunctions_unit,'(i4, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
+      write(betafunctions_unit,'(i5, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
  &    torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
     end do
   endif
