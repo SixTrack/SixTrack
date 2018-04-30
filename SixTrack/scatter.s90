@@ -145,9 +145,26 @@ subroutine scatter_initialise
   logical lopen
   
 #ifdef HDF5
+  
+  type(h5_dataField), allocatable :: setFields(:)
+  integer            setID
+
   if(h5_useForSCAT) then
+    
+    allocate(setFields(9))
+    
+    setFields(1) = h5_dataField(name="ID",    type=h5_typeInt,  size=16)
+    setFields(2) = h5_dataField(name="TURN",  type=h5_typeInt,  size=16)
+    setFields(3) = h5_dataField(name="BEZ",   type=h5_typeChar, size=max_name_len)
+    setFields(4) = h5_dataField(name="GEN",   type=h5_typeChar, size=max_name_len)
+    setFields(5) = h5_dataField(name="T",     type=h5_typeReal, size=0)
+    setFields(6) = h5_dataField(name="XI",    type=h5_typeReal, size=0)
+    setFields(7) = h5_dataField(name="THETA", type=h5_typeReal, size=0)
+    setFields(8) = h5_dataField(name="PHI",   type=h5_typeReal, size=0)
+    setFields(9) = h5_dataField(name="PROB",  type=h5_typeReal, size=0)
+    
     call h5_initForScatter()
-    ! h5dcreate_f(h5_scattID, "scatter_log", type_id, space_id, dset_id, hdferr)
+    call h5_createDataSet("scatter_log", h5_scatID, setFields, setID)
   else
 #endif
     

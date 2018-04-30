@@ -318,7 +318,7 @@ function chr_stripQuotes(theString) result(retString)
 end function chr_stripQuotes
 
 ! ================================================================================================ !
-!  Rounting Routines
+!  Rounding Routines
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-20
 !  A wrapper for round_near for strings and character arrays

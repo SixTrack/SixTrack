@@ -24,6 +24,7 @@ module hdf5_output
   logical,      public,  save :: h5_isActive    ! Existence of the HDF5 block
   logical,      public,  save :: h5_debugOn     ! HDF5 debug flag present
   logical,      public,  save :: h5_isReady     ! HDF5 file is open and ready for input
+  logical,      private, save :: h5_useDouble   ! Whether to use double precision or not
   logical,      private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
   type(string), private, save :: h5_fileName    ! The HDF5 output file name
   type(string), private, save :: h5_rootPath    ! The root group where the data for this session is stored
@@ -34,8 +35,9 @@ module hdf5_output
   logical, public, save :: h5_useForSCAT
   
   ! Runtime Variables
-  integer, public,  save :: h5_fileError
-  logical, private, save :: h5_fileIsOpen
+  logical, private, save :: h5_fileIsOpen  ! True if file is open.
+  integer, public,  save :: h5_fileError   ! For errors related to file essentials (critical)
+  integer, public,  save :: h5_dataError   ! For errors related to datasets
   
   ! HDF5 File/Group IDs
   integer(HID_T), public, save :: h5_fileID ! The internal ID of the file
@@ -46,13 +48,25 @@ module hdf5_output
   
   ! DataSet ID Mappings
   type(string),   allocatable, private, save :: h5_dataSetName(:)
-  type(string),   allocatable, private, save :: h5_dataSetPath(:)
+ !type(string),   allocatable, private, save :: h5_dataSetPath(:)
   integer(HID_T), allocatable, private, save :: h5_dataSetMap(:)
+  integer,                     private, save :: h5_nDataSets
   
   ! Default Group Names
   character(len=11), parameter :: h5_collGroup = "collimation"
   character(len=4),  parameter :: h5_dumpGroup = "dump"
   character(len=7),  parameter :: h5_scatGroup = "scatter"
+  
+  ! Field Definitions
+  type, public :: h5_dataField
+    character(len=:), allocatable, public  :: name
+    integer,                       public  :: type
+    integer,                       public  :: size
+  end type h5_dataField
+  
+  integer, parameter :: h5_typeInt  = 1 ! Size is fixed to fortran native integer
+  integer, parameter :: h5_typeReal = 2 ! Size is determined by fPrec
+  integer, parameter :: h5_typeChar = 3 ! Any size is valid
   
 contains
 
@@ -66,6 +80,7 @@ subroutine h5_comnul
   h5_isActive   = .false.
   h5_debugOn    = .false.
   h5_isReady    = .false.
+  h5_useDouble  = .true.
   h5_doTruncate = .false.
   h5_fileName   = ""
   h5_rootPath   = ""
@@ -74,14 +89,17 @@ subroutine h5_comnul
   h5_useForDUMP = .false.
   h5_useForSCAT = .false.
   
-  h5_fileError  = 0
   h5_fileIsOpen = .false.
+  h5_fileError  = 0
+  h5_dataError  = 0
   
   h5_fileID     = 0
   h5_rootID     = 0
   h5_collID     = 0
   h5_dumpID     = 0
   h5_scatID     = 0
+  
+  h5_nDataSets  = 0
   
 end subroutine h5_comnul
 
@@ -200,6 +218,99 @@ subroutine h5_initForScatter()
 end subroutine h5_initForScatter
 
 ! ================================================================================================ !
+!  Create DataSet
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-30
+! ================================================================================================ !
+subroutine h5_createDataSet(setName, setGroup, setFields, setID)
+  
+  use mod_alloc
+  use end_sixtrack
+  
+  implicit none
+  
+  ! Routine Variables
+  character(len=*) ,               intent(in)  :: setName
+  integer(HID_T),                  intent(in)  :: setGroup
+  type(h5_dataField), allocatable, intent(in)  :: setFields(:)
+  integer,                         intent(out) :: setID
+  
+  ! Internal Variables
+  integer(HID_T),  allocatable :: fieldType(:)
+  integer(SIZE_T), allocatable :: fieldSize(:)
+  
+  integer(HID_T)   spaceID, dtypeID, dataID, tmpID
+  integer(HSIZE_T) spaceSize(1)
+  integer(HSIZE_T) spaceMaxSize(1)
+  integer(SIZE_T)  memOffset, memSize, tmpSize
+  
+  integer i, nFields
+  
+  ! Init Variables
+  spaceSize    = (/0/)
+  spaceMaxSize = (/H5S_UNLIMITED_F/)
+  memOffset    = 0
+  memSize      = 0
+  
+  ! ***** Routine Code *****
+  
+  if(h5_debugOn) then
+    write(lout,"(a)") "HDF5> DEBUG Creating dataset '"//setName//"'"
+  end if
+  
+  h5_nDataSets = h5_nDataSets + 1
+  setID        = h5_nDataSets
+  
+  ! Translate data types
+  nFields = size(setFields)
+  allocate(fieldType(nFields))
+  allocate(fieldSize(nFields))
+  do i=1,nFields
+    select case (setFields(i)%type)
+    case(h5_typeInt)
+      fieldType(i) = H5T_NATIVE_INTEGER
+      call h5tget_size_f(fieldType(i), fieldSize(i), h5_dataError)
+    case(h5_typeReal)
+      if(h5_useDouble) then
+        fieldType(i) = H5T_NATIVE_DOUBLE
+      else
+        fieldType(i) = H5T_NATIVE_REAL
+      end if
+      call h5tget_size_f(fieldType(i), fieldSize(i), h5_dataError)
+    case(h5_typeChar)
+      tmpSize = setFields(i)%size
+      call h5tcopy_f(H5T_NATIVE_CHARACTER, tmpID, h5_dataError)
+      call h5tset_size_f(tmpID, tmpSize, h5_dataError)
+      call h5tget_size_f(tmpID, fieldSize(i), h5_dataError)
+      fieldType(i) = tmpID
+    end select
+    memSize = memSize + fieldSize(i)
+  end do
+  
+  if(h5_debugOn) then
+    write(lout,"(a,i0,a)") "HDF5> DEBUG Data set size is ",memSize," bytes per row."
+  end if
+  
+  ! Create the dataset
+  call h5screate_simple_f(1, spaceSize, spaceID, h5_dataError, spaceMaxSize)
+  call h5tcreate_f(H5T_COMPOUND_F, memSize, dtypeID, h5_dataError)
+  do i=1,nFields
+    call h5tinsert_f(dtypeID, setFields(i)%name, memOffset, fieldType(i), h5_dataError)
+    memOffset = memOffset + fieldSize(i)
+  end do
+  call h5dcreate_f(setGroup, setName, dtypeID, spaceID, dataID, h5_dataError)
+  
+  ! Save the new dataset
+  call resize(h5_dataSetName, h5_nDataSets, string(setName), "h5_dataSetName")
+  call resize(h5_dataSetMap,  h5_nDataSets, dataID,          "h5_dataSetMap")
+  
+  ! Clean up
+  deallocate(fieldType)
+  deallocate(fieldSize)
+  
+end subroutine h5_createDataSet
+
+! ================================================================================================ !
 !  HDF5 Input File Parsing
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-13
@@ -240,6 +351,14 @@ subroutine h5_parseInputLine(inLine)
   case("DEBUG")
     h5_debugOn = .true.
     write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
+  
+  case("SINGLE")
+    h5_useDouble = .false.
+    write(lout,"(a)") "HDF5> HDF5 will use single precision."
+  
+  case("DOUBLE")
+    h5_useDouble = .true.
+    write(lout,"(a)") "HDF5> HDF5 will use double precision."
   
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
