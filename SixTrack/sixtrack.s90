@@ -22940,15 +22940,15 @@ end interface
   if (zipf_numfiles.gt.0) then
     call zipf_dozip
   endif
-+if hdf5
-  call h5_closeHDF5()
-+ei
 +if root
   call RunTimeRootWrite(pretime, trtime, posttime)
   call SixTrackRootExit()
 +ei
   call alloc_exit
   call closeUnits ! Must be last as it also closes fort.6
++if hdf5
+  call h5_closeHDF5()
++ei
 ! ----------------------------------------------------------------------
 !   We're done in maincr, no error :)
 ! ----------------------------------------------------------------------

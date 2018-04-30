@@ -40,11 +40,14 @@ module hdf5_output
   integer, public,  save :: h5_dataError   ! For errors related to datasets
   
   ! HDF5 File/Group IDs
-  integer(HID_T), public, save :: h5_fileID ! The internal ID of the file
-  integer(HID_T), public, save :: h5_rootID ! The internal ID of the root group
-  integer(HID_T), public, save :: h5_collID ! The internal ID of the collimation group
-  integer(HID_T), public, save :: h5_dumpID ! The internal ID of the dump group
-  integer(HID_T), public, save :: h5_scatID ! The internal ID of the scatter group
+  integer(HID_T), public,  save :: h5_fileID  ! The internal ID of the file
+  integer(HID_T), public,  save :: h5_rootID  ! The internal ID of the root group
+  integer(HID_T), public,  save :: h5_collID  ! The internal ID of the collimation group
+  integer(HID_T), public,  save :: h5_dumpID  ! The internal ID of the dump group
+  integer(HID_T), public,  save :: h5_scatID  ! The internal ID of the scatter group
+  
+  ! HDF5 Internals
+  integer(HID_T), private, save :: h5_plistID ! Dataset transfer property
   
   ! DataSet ID Mappings
   type(string),   allocatable, private, save :: h5_dataSetName(:)
@@ -57,16 +60,34 @@ module hdf5_output
   character(len=4),  parameter :: h5_dumpGroup = "dump"
   character(len=7),  parameter :: h5_scatGroup = "scatter"
   
-  ! Field Definitions
-  type, public :: h5_dataField
-    character(len=:), allocatable, public  :: name
-    integer,                       public  :: type
-    integer,                       public  :: size
-  end type h5_dataField
-  
   integer, parameter :: h5_typeInt  = 1 ! Size is fixed to fortran native integer
   integer, parameter :: h5_typeReal = 2 ! Size is determined by fPrec
   integer, parameter :: h5_typeChar = 3 ! Any size is valid
+  
+  ! Field Definitions
+  type, public :: h5_dataField
+    character(len=:), allocatable, public :: name
+    integer,                       public :: type
+    integer,                       public :: size
+    integer(HID_T),                public :: typeH5 = 0
+    integer(HID_T),                public :: typeID = 0
+  end type h5_dataField
+  
+  ! Dataset Container
+  type, public :: h5_dataSet
+    character(len=:),   allocatable, public :: name
+    character(len=:),   allocatable, public :: path
+    integer(HID_T),                  public :: dataID  = 0
+    integer(HID_T),                  public :: spaceID = 0
+    integer(HID_T),                  public :: dtypeID = 0
+    type(h5_dataField), allocatable, public :: fields(:)
+  end type h5_dataSet
+  
+  interface h5_writeValue
+    module procedure h5_writeValue_real32
+    module procedure h5_writeValue_real64
+    module procedure h5_writeValue_int
+  end interface h5_writeValue
   
 contains
 
@@ -115,6 +136,8 @@ subroutine h5_initHDF5()
   implicit none
   
   call h5open_f(h5_fileError)
+  call h5pcreate_f(H5P_DATASET_XFER_F, h5_plistID, h5_fileError)
+  call h5pset_preserve_f(h5_plistID, .true., h5_fileError)
   if(h5_fileError == -1) then
     write(lout,"(a)") "HDF5> ERROR Failed to initialise Fortran HDF5."
     call prror(-1)
@@ -222,7 +245,7 @@ end subroutine h5_initForScatter
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-30
 ! ================================================================================================ !
-subroutine h5_createDataSet(setName, setGroup, setFields, setID)
+subroutine h5_createDataSet(setName, setGroup, setFields, dataSet)
   
   use mod_alloc
   use end_sixtrack
@@ -230,10 +253,10 @@ subroutine h5_createDataSet(setName, setGroup, setFields, setID)
   implicit none
   
   ! Routine Variables
-  character(len=*) ,               intent(in)  :: setName
-  integer(HID_T),                  intent(in)  :: setGroup
-  type(h5_dataField), allocatable, intent(in)  :: setFields(:)
-  integer,                         intent(out) :: setID
+  character(len=*) ,               intent(in)    :: setName
+  integer(HID_T),                  intent(in)    :: setGroup
+  type(h5_dataField), allocatable, intent(inout) :: setFields(:)
+  type(h5_dataSet),                intent(out)   :: dataSet
   
   ! Internal Variables
   integer(HID_T),  allocatable :: fieldType(:)
@@ -242,15 +265,18 @@ subroutine h5_createDataSet(setName, setGroup, setFields, setID)
   integer(HID_T)   spaceID, dtypeID, dataID, tmpID
   integer(HSIZE_T) spaceSize(1)
   integer(HSIZE_T) spaceMaxSize(1)
-  integer(SIZE_T)  memOffset, memSize, tmpSize
+  integer(SIZE_T)  memOffset, tmpOffset, memSize, tmpSize
   
   integer i, nFields
   
   ! Init Variables
-  spaceSize    = (/0/)
-  spaceMaxSize = (/H5S_UNLIMITED_F/)
+  spaceSize    = (/1000/)
+  ! spaceMaxSize = (/H5S_UNLIMITED_F/)
+  spaceMaxSize = (/1000/)
   memOffset    = 0
   memSize      = 0
+  tmpOffset    = 0
+  tmpSize      = 0
   
   ! ***** Routine Code *****
   
@@ -258,8 +284,7 @@ subroutine h5_createDataSet(setName, setGroup, setFields, setID)
     write(lout,"(a)") "HDF5> DEBUG Creating dataset '"//setName//"'"
   end if
   
-  h5_nDataSets = h5_nDataSets + 1
-  setID        = h5_nDataSets
+  ! h5_nDataSets = h5_nDataSets + 1
   
   ! Translate data types
   nFields = size(setFields)
@@ -294,21 +319,107 @@ subroutine h5_createDataSet(setName, setGroup, setFields, setID)
   ! Create the dataset
   call h5screate_simple_f(1, spaceSize, spaceID, h5_dataError, spaceMaxSize)
   call h5tcreate_f(H5T_COMPOUND_F, memSize, dtypeID, h5_dataError)
+  
   do i=1,nFields
+    
+    ! Create in File
     call h5tinsert_f(dtypeID, setFields(i)%name, memOffset, fieldType(i), h5_dataError)
+    if(h5_dataError /= 0) write(lout,"(a)") "ERROR!"
     memOffset = memOffset + fieldSize(i)
+    
+    ! Create in Memory
+    setFields(i)%typeH5 = fieldType(i)
+    call h5tcreate_f(H5T_COMPOUND_F, fieldSize(i), setFields(i)%typeID, h5_dataError)
+    call h5tinsert_f(setFields(i)%typeID, setFields(i)%name, tmpOffset, setFields(i)%typeH5, h5_dataError)
+    
   end do
+  
   call h5dcreate_f(setGroup, setName, dtypeID, spaceID, dataID, h5_dataError)
   
-  ! Save the new dataset
-  call resize(h5_dataSetName, h5_nDataSets, string(setName), "h5_dataSetName")
-  call resize(h5_dataSetMap,  h5_nDataSets, dataID,          "h5_dataSetMap")
+  dataSet%name    = setName
+  dataSet%path    = ""
+  dataSet%dataID  = dataID
+  dataSet%spaceID = spaceID
+  dataSet%dtypeID = dtypeID
+  dataSet%fields  = setFields
+  
+  ! ! Save the new dataset
+  ! call resize(h5_dataSetName, h5_nDataSets, string(setName), "h5_dataSetName")
+  ! call resize(h5_dataSetMap,  h5_nDataSets, dataID,          "h5_dataSetMap")
   
   ! Clean up
   deallocate(fieldType)
   deallocate(fieldSize)
   
 end subroutine h5_createDataSet
+
+! ================================================================================================ !
+!  Close DataSet
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-30
+! ================================================================================================ !
+subroutine h5_closeDataSet(dataSet)
+  
+  type(h5_dataSet), intent(inout) :: dataSet
+  
+  integer i
+  
+  if(h5_debugOn) then
+    write(lout,"(a)") "HDF5> DEBUG Closing dataset '"//dataSet%name//"'"
+  end if
+  
+  call h5dclose_f(dataSet%dataID, h5_dataError)
+  call h5sclose_f(dataSet%spaceID, h5_dataError)
+  call h5tclose_f(dataSet%dtypeID, h5_dataError)
+  do i=1,size(dataSet%fields)
+    call h5tclose_f(dataSet%fields(i)%typeID, h5_dataError)
+  end do
+  
+end subroutine h5_closeDataSet
+
+! ================================================================================================ !
+!  Write Single Value
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-30
+! ================================================================================================ !
+subroutine h5_writeValue_real32(dataSet, colID, theValue)
+
+  type(h5_dataSet),  intent(inout) :: dataSet
+  integer,           intent(in)    :: colID
+  real(kind=real32), intent(in)    :: theValue
+  
+  integer(HSIZE_T) dataSize(1)
+  dataSize(1) = 1
+  
+  call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, theValue, dataSize, h5_dataError, xfer_prp=h5_plistID)
+  
+end subroutine h5_writeValue_real32
+
+subroutine h5_writeValue_real64(dataSet, colID, theValue)
+
+  type(h5_dataSet),  intent(inout) :: dataSet
+  integer,           intent(in)    :: colID
+  real(kind=real64), intent(in)    :: theValue
+  
+  integer(HSIZE_T) dataSize(1)
+  dataSize(1) = 1
+  
+  call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, theValue, dataSize, h5_dataError, xfer_prp=h5_plistID)
+  
+end subroutine h5_writeValue_real64
+
+subroutine h5_writeValue_int(dataSet, colID, theValue)
+  
+  type(h5_dataSet),  intent(inout) :: dataSet
+  integer,           intent(in)    :: colID
+  integer,           intent(in)    :: theValue
+  
+  integer(HSIZE_T) dataSize(1)
+  dataSize(1) = 1
+  
+  call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, theValue, dataSize, h5_dataError, xfer_prp=h5_plistID)
+  
+end subroutine h5_writeValue_int
 
 ! ================================================================================================ !
 !  HDF5 Input File Parsing
