@@ -763,7 +763,7 @@ subroutine collimate_start_sample(nsample)
     call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
     call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
     call funit_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
-    call funit_requestUnit('coll_scatter.dat', coll_scatter_unit)
+    call funit_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
     call funit_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
 
     open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
@@ -1432,7 +1432,9 @@ subroutine collimate_start_collimator(stracki)
       if( db_length(j) .gt. zero ) then
         found = .true.
         icoll = j
-        write(CollPositions_unit,*) j, db_name1(j), totals
+        if(firstrun) then
+          write(CollPositions_unit,*) j, db_name1(j), totals
+        end if
       end if
     end if
   end do
