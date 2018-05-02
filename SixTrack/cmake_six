@@ -38,11 +38,11 @@ if [ -x "$(command -v gawk)" ]; then
     fi
     }
     astuce_linter sixtrack.s90
-    astuce_linter plato_seq.s90
+#    astuce_linter plato_seq.s90
     astuce_linter lielib.s90
     astuce_linter dabnew.s90
     astuce_linter beamgas.s90
-    astuce_linter bouncy_castle.s90
+#    astuce_linter bouncy_castle.s90
     astuce_linter collimation.s90
     astuce_linter dynk.s90
     astuce_linter fluka.s90
