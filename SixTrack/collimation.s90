@@ -117,7 +117,7 @@ module collimation
   integer, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
   integer, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit, efficiency_2d_unit
   integer, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
-  integer, save :: filename_dis_unit, coll_db_unit
+  integer, save :: filename_dis_unit, coll_db_unit, CollPositions_unit
   integer, save :: collsettings_unit, outlun
 
 contains
@@ -558,7 +558,11 @@ subroutine collimate_init()
     write (lout,*) "Value of napx00  = ", napx00
     write (lout,*) "********************************************"
     call prror(-1)
-  endif
+  end if
+
+
+  call funit_requestUnit('CollPositions.dat', CollPositions_unit)
+  open(unit=CollPositions_unit, file='CollPositions.dat')
 
 !++  Read collimator database
   call readcollimator
@@ -680,8 +684,11 @@ subroutine collimate_start_sample(nsample)
 ! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
   call funit_requestUnit('collsettings.dat', collsettings_unit)
   open(unit=collsettings_unit, file='collsettings.dat') !was 55
-  if(firstrun) write(collsettings_unit,*) &
-               '# name  slicenumber  halfgap[m]  gap_offset[m] tilt jaw1[rad]  tilt jaw2[rad] length[m] material'
+
+  if(firstrun) then
+    write(collsettings_unit,*) '# name  slicenumber  halfgap[m]  gap_offset[m] tilt jaw1[rad]  tilt jaw2[rad] length[m] material'
+    write(CollPositions_unit,*) '%Ind           Name   Pos[m]'
+  end if
 
   if(dowrite_impact) then
     call funit_requestUnit('impact.db', impact_unit)
@@ -1425,6 +1432,7 @@ subroutine collimate_start_collimator(stracki)
       if( db_length(j) .gt. zero ) then
         found = .true.
         icoll = j
+        write(CollPositions_unit,*) j, db_name1(j), totals
       end if
     end if
   end do
@@ -3070,6 +3078,7 @@ subroutine collimate_exit()
   end do
 
   close(orbitchecking_unit)
+  close(CollPositions_unit)
 
 +if g4collimat
   call g4_terminate()
