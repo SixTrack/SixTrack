@@ -1432,7 +1432,9 @@ subroutine collimate_start_collimator(stracki)
       if( db_length(j) .gt. zero ) then
         found = .true.
         icoll = j
-        write(CollPositions_unit,*) j, db_name1(j), totals
+        if(firstrun) then
+          write(CollPositions_unit,*) j, db_name1(j), totals
+        end if
       end if
     end if
   end do
