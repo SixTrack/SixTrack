@@ -2895,7 +2895,7 @@ subroutine collimate_end_sample(j)
 
   do icoll = 1, db_ncoll
     if(db_length(icoll).gt.zero) then
-      write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f3.1)') icoll, db_name1(icoll),cn_impact(icoll), &
+      write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, db_name1(icoll),cn_impact(icoll), &
             cn_absorbed(icoll), caverage(icoll), csigma(icoll),db_length(icoll)
     end if
   end do
