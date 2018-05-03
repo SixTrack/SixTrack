@@ -773,7 +773,7 @@ subroutine collimate_start_sample(nsample)
     open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
 ! RB: adding output files FLUKA_impacts_all.dat and coll_scatter.dat
     open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
-    open(unit=coll_scatter_unit, file='coll_scatter.dat') !was 3998
+    open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
     open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
 
     if (firstrun) then

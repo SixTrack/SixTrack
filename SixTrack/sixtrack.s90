@@ -25103,14 +25103,17 @@ subroutine thin6d(nthinerr)
     napxto = napxto + napx
 +ei
 
++if collimat
+!GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
+  firstrun = .false.
++ei
+
 660 continue !END loop over turns
 
 +if collimat
   close(99)
   close(53)
 
-!GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
-  firstrun = .false.
 +ei
   
   return
