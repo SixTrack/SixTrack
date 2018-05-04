@@ -916,7 +916,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   
   implicit none
   
-#ifdef COLIMAT
+#ifdef COLLIMAT
 +ca collpara ! Needed to define array sizes
 +ca dbcommon ! Get the arrays that we need to set to mark the particle as "dirty" for collimation
 #endif
@@ -1023,10 +1023,10 @@ subroutine scatter_thin(i_elem, ix, turn)
       scatter_filePos = scatter_filePos+1
 #endif
 
-#ifdef COLIMAT
+#ifdef COLLIMAT
       scatterhit(j) = 8
-      part_hit_pos = i_elem
-      part_hit_turn = turn
+      part_hit_pos(j) = i_elem
+      part_hit_turn(j) = turn
 #endif
     end do ! END Loop over particles
 #ifdef HDF5
