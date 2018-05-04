@@ -140,58 +140,69 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbthin6d
 !
-      integer ios,num_surhit,numbin,ibin,                               &
-     &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
-     &ipart(npart),totalelem,selelem,unitnumber,distnumber,turnnumber,  &
-     &jb,                                                               &
+  integer ios,num_surhit,numbin,ibin,                               &
+ &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
+ &ipart(npart),totalelem,selelem,unitnumber,distnumber,turnnumber,  &
+ &jb
+! SR, 29-08-2005: add the required variable for slicing collimators
+  integer jjj, ijk
+
+  real zbv
+
+  real(kind=fPrec) c_length    !length in m
+  real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
+  real(kind=fPrec) c_aperture  !aperture in m
+  real(kind=fPrec) c_offset    !offset in m
+  real(kind=fPrec) c_tilt(2)   !tilt in radian
+
+  real(kind=fPrec) c_x(npart),c_xp(npart),c_y(npart),c_yp(npart),       &
+ &c_p(npart),c_s(npart),rcx(npart),rcxp(npart),rcy(npart),rcyp(npart),&
+ &rcp(npart),rcs(npart),rcx0(npart),rcxp0(npart),rcy0(npart),rcyp0(npart),rcp0(npart)
+
+  real(kind=fPrec) :: xgrd(npart),xpgrd(npart)
+  real(kind=fPrec) :: ygrd(npart),ypgrd(npart)
+  real(kind=fPrec) :: pgrd(npart),ejfvgrd(npart),sigmvgrd(npart),rvvgrd(npart)
+  real(kind=fPrec) :: dpsvgrd(npart),oidpsvgrd(npart),dpsv1grd(npart)
+
 !MAY2005
-     &flukaname(npart)
+  integer :: flukaname(npart)
 !MAY2005
-!     SR, 29-08-2005: add the required variable for slicing collimators
-      integer jjj, ijk
-!
-      real zbv
-!
-      real(kind=fPrec) c_length    !length in m
-      real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-      real(kind=fPrec) c_aperture  !aperture in m
-      real(kind=fPrec) c_offset    !offset in m
-      real(kind=fPrec) c_tilt(2)   !tilt in radian
-      real(kind=fPrec) cx(npart),cxp(npart),cy(npart),cyp(npart),       &
-     &cp(npart),cs(npart),rcx(npart),rcxp(npart),rcy(npart),rcyp(npart),&
-     &rcp(npart),rcs(npart),rcx0(npart),rcxp0(npart),rcy0(npart),       &
-     &rcyp0(npart),rcp0(npart),enom_gev,betax,betay,xmax,ymax,          &
-     &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-     &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
-     &rxpjco,rypjco,c_rmstilt,                                          &
-     &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
-     &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
-     &nom_aperture,pencil_aperture,xp_pencil(max_ncoll),                &
-     &yp_pencil(max_ncoll),x_pencil0,y_pencil0,sum,sqsum,               &
-     &csum(max_ncoll),csqsum(max_ncoll),average,sigma,sigsecut,nspxd,   &
-     &xndisp,xgrd(npart),xpgrd(npart),ygrd(npart),ypgrd(npart),zpj,     &
-     &pgrd(npart),ejfvgrd(npart),sigmvgrd(npart),rvvgrd(npart),         &
-     &dpsvgrd(npart),oidpsvgrd(npart),dpsv1grd(npart),                  &
-     &dnormx,dnormy,driftx,drifty,                                      &
-     &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
-     &grdpiover2,grdpiover4,grd3piover4
+
+  real(kind=fPrec) :: xp_pencil(max_ncoll)
+  real(kind=fPrec) :: yp_pencil(max_ncoll)
+  real(kind=fPrec) :: csum(max_ncoll)
+  real(kind=fPrec) :: csqsum(max_ncoll)
+
+  real(kind=fPrec) enom_gev,betax,betay,xmax,ymax,          &
+ &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
+ &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
+ &rxpjco,rypjco,c_rmstilt,c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick, &
+ &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
+ &nom_aperture,pencil_aperture, x_pencil0,y_pencil0,sum,sqsum,      &
+ &average,sigma,sigsecut,nspxd,dnormx,dnormy,driftx,drifty,        &
+ &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4,xndisp,zpj
+
 
 !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-      real(kind=fPrec) x_sl(100),x1_sl(100),x2_sl(100),                 &
-     &     y1_sl(100), y2_sl(100),                                      &
-     &     angle1(100), angle2(100),                                    &
-     &     max_tmp,                                                     &
-     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
-     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
-     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
-     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
-     &     alphax1, alphax2,alphay1,alphay2,minAmpl
+  real(kind=fPrec) :: x_sl(100)
+  real(kind=fPrec) :: x1_sl(100)
+  real(kind=fPrec) :: x2_sl(100)
+  real(kind=fPrec) :: y1_sl(100)
+  real(kind=fPrec) :: y2_sl(100)
+  real(kind=fPrec) :: angle1(100)
+  real(kind=fPrec) :: angle2(100)
+
+  real(kind=fPrec) ::  max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, &
+ &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
+ &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
+ &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
+ &     alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 
-      character(len=4) c_material     !material
+  character(len=4) c_material     !material
 
-      common /dbthinc/ cx,cxp,cy,cyp,                                   &
-     &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
+  common /dbthinc/ c_x,c_xp,c_y,c_yp,                                   &
+     &c_p,c_s,rcx,rcxp,rcy,rcyp,                                        &
      &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
      &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
      &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
@@ -245,8 +256,8 @@
       real(kind=fPrec) xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),   &
            xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
 
-      common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
-     &ypineff
+      common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
+
       real(kind=fPrec) mux(nblz),muy(nblz)
       common /mu/ mux,muy
 
@@ -335,7 +346,8 @@
 !     INTEGER DB_NCOLL
       integer db_ncoll
 !
-      character(len=max_name_len) db_name1(max_ncoll),db_name2(max_ncoll)
+      character(len=max_name_len) db_name1(max_ncoll)
+      character(len=max_name_len) db_name2(max_ncoll)
       character(len=4) db_material(max_ncoll)
 !APRIL2005
       real(kind=fPrec) db_nsig(max_ncoll),db_length(max_ncoll),         &
@@ -417,8 +429,7 @@
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
 !
-      common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,  &
-     &nev
+      common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,nev
       common /materia/mat
       common /phase/x,xp,z,zp,dpop
       common /nommom/p0
@@ -429,10 +440,6 @@
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
 !     END BLOCK DBCOLLIM
-+cd collMatNum
-!     EQ 2016 added variables for collimator material numbers
-      integer nmat, nrmat
-      parameter(nmat=14,nrmat=12)
 
 +cd flukavars
 !     RB DM 2014 added variables for FLUKA output
@@ -467,97 +474,87 @@
 +cd funint
       real tftot
       common/funint/tftot
-+cd interac
-      integer mat,mcurr
-+ca collMatNum
-      real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
-     &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
-     &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
-     &pptco,ppeco,sdcoe,freeco,zatom,exenergy
-!electron density and plasma energy
-      real(kind=fPrec) edens, pleng
-!      parameter(fnavo=6.02214129e23_fPrec)
-      real cgen
-      character(4) mname(nmat)
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-      common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
-      common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
-      common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
-      common/scatu2/xintl(nmat),radl(nmat),mname
-      common/scatpp/pptot,ppel,ppsd
-      common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
-      common/phase/x,xp,z,zp,dpop
-      common/meanexen/exenergy(nmat)
-      common/nommom/p0
-      common/cjaw1/zlm
-      common/cmcs1/zlm1
-      common/materia/mat
-      common/sindif/xpsd,zpsd,psd
-      common/cdpodx/dpodx
-      common/cions/edens(nmat),pleng(nmat)
 
 +dk nwrtcoll
+
+module collimation
+
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use mod_hions
+  use mod_alloc
+  use end_sixtrack
+
+  use file_units
+
+  implicit none
+
+!+cd collpara
+  integer, parameter :: max_ncoll  = 100
+  integer, parameter :: maxn       = 20000
+  integer, parameter :: numeff     = 32
+  integer, parameter :: numeffdpop = 29
+  integer, parameter :: nc         = 32
+
+!+cd collMatNum
+!     EQ 2016 added variables for collimator material numbers
+  integer, parameter :: nmat  = 14
+  integer, parameter :: nrmat = 12
+
+!+cd interac
+!this has MANY conflicts
+  integer mat,mcurr
+  real(kind=fPrec) :: x_interac,xp_interac,z_interac,zp_interac,dpop_interac,p0_interac,zlm,zlm1,xpsd,zpsd, &
+                   psd,bpp,xln15s,ecmsq,pptot,ppel,ppsd
+
+!--------------------------------------------------------------------------------------------------------------------------------
 !>
 !! block data scdata
 !! Cross section inputs and material property database
 !! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
 !<
-block data scdata
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-  implicit none
-
-+ca interac
-
-  integer i
 ! Total number of materials are defined in nmat
 ! Number of real materials are defined in nrmat
 ! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
 
-! Reference data at pRef=450Gev
-  data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2','MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
+  character(len=4) :: mname(nmat) = &
+  [ 'Be  ','Al  ','Cu  ','W   ','Pb  ','C   ','C2  ','MoGR','CuCD', 'Mo  ', 'Glid', 'Iner', 'vacu', 'blac' ]
 
-  data mname(nmat-1), mname(nmat)/'vacu','blac'/
+! Reference data at pRef=450Gev
+! pp cross-sections and parameters for energy dependence
+  real(kind=fPrec), parameter :: pptref = 0.04d0
+  real(kind=fPrec), parameter :: pperef = 0.007d0
+  real(kind=fPrec), parameter :: sdcoe  = 0.00068d0
+  real(kind=fPrec), parameter :: pref   = 450.0d0
+  real(kind=fPrec), parameter :: pptco  = 0.05788d0
+  real(kind=fPrec), parameter :: ppeco  = 0.04792d0
+  real(kind=fPrec), parameter :: freeco = 1.618d0
 
 !GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
-  data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
-  data (anuc(i),i=6,7)/12.01d0,12.01d0/
-  data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
+  real(kind=fPrec), parameter :: anuc(nmat) = &
+  [ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0,12.01d0,12.01d0, 13.53d0,25.24d0,95.96d0,63.15d0,166.7d0, zero, zero ]
 
-  data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
-  data (zatom(i),i=6,7)/ 6d0, 6d0/
-  data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
+  real(kind=fPrec), parameter :: zatom(nmat) = &
+  [ 4d0, 13d0, 29d0, 74d0, 82d0, 6d0, 6d0, 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0, zero, zero ]
 
-  data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-  data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
-  data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
-
-  data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-  data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
-  data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, 0.00385d0/
-  data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
+  real(kind=fPrec), parameter :: rho(nmat) = &
+  [ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0, 1.67d0, 4.52d0, 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0, zero, 1d10 ]
 
 !MAY06-GRD value for Tungsten (W) not stated
-  data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
-  data (emr(i),i=6,7)/  0.25d0, 0.25d0/
-  data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0, 0.578d0/
+  real(kind=fPrec) :: emr(nmat) = &
+  [ 0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0, 0.25d0, 0.25d0, 0.25d0, 0.308d0, 0.481d0, 0.418d0, 0.578d0, zero, zero ]
 
-  data tlcut / 0.0009982d0/
-  data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
-  data (hcut(i),i=6,7)/0.02d0, 0.02d0/
-  data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
+  real(kind=fPrec), parameter :: hcut(nmat) = &
+  [ 0.02d0, 0.02d0, 0.01d0, 0.01d0, 0.01d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0, zero, zero ]
 
-  data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
-  data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
 
-!October 2013
-!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
-  data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9/
+  real(kind=fPrec), parameter :: tlcut = 0.0009982d0
 
+  real(kind=fPrec) :: cs(0:5,nmat)
+
+! These will be filled elsewhere in an init subroutine for now
+  real(kind=fPrec) :: csref(0:5,nmat)
 ! All cross-sections are in barns,nuclear values from RPP at 20geV
 ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
 
@@ -578,41 +575,41 @@ block data scdata
   data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
   data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
   data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
-
-! pp cross-sections and parameters for energy dependence
-  data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
-  data pptco,ppeco,freeco/0.05788d0,0.04792d0,1.618d0/
+  real(kind=fPrec) :: cprob(0:5,nmat)
 
 ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
 !MAY06-GRD value for Tungsten (W) not stated
-  data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
-  data (bnref(i),i=6,7)/70.d0, 70.d0/
-  data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0, 392.1d0/
+  real(kind=fPrec) :: bnref(nmat) = &
+  [ 74.7d0,120.3d0,217.8d0,440.3d0,455.3d0, 70.d0, 70.d0, 76.7d0, 115.0d0, 273.9d0, 208.7d0, 392.1d0, zero, zero ]
 !GRD LAST 2 ONES INTERPOLATED
 
-! Cprob to choose an interaction in iChoix
-  data (cprob(0,i),i=1,nmat)/nmat*zero/
-  data (cprob(5,i),i=1,nmat)/nmat*one/
-end block data scdata
+  real(kind=fPrec) :: freep(nmat)
 
-module collimation
+  real(kind=fPrec) :: bn(nmat)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use mod_hions
-  use mod_alloc
-  use end_sixtrack
+  real(kind=fPrec) :: xintl(nmat)
+  real(kind=fPrec), parameter :: radl(nmat) = &
+  [ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0, 0.2557d0, 0.094d0, 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, 0.00385d0, 1.d12, 1.d12 ]
 
-  use file_units
+!October 2013
+!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
+  real(kind=fPrec), parameter :: exenergy(nmat) = &
+  [ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9, 78e-9, 78.0e-9, 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9, 0.0, 0.0 ]
 
-  implicit none
+! These are not really used any more, empty spaces filled with zeros
+  real(kind=fPrec), parameter :: dpodx(nmat) = &
+  [ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0, .75d0, 1.5d0, zero, zero ,zero, zero, zero, zero, zero ]
 
-  integer, parameter :: max_ncoll  = 100
-  integer, parameter :: maxn       = 20000
-  integer, parameter :: numeff     = 32
-  integer, parameter :: numeffdpop = 29
-  integer, parameter :: nc         = 32
+!electron density and plasma energy
+  real(kind=fPrec) :: edens(nmat)
+  real(kind=fPrec) :: pleng(nmat)
+
+!  parameter(fnavo=6.02214129e23_fPrec)
+
+  real cgen(200,nmat)
+
+
+!--------------------------------------------------------------------------------------------------------------------------------
 
 ! file units
   integer, save :: dist0_unit, betatron_unit, beta_beat_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
@@ -694,6 +691,14 @@ subroutine collimate_init()
   real(kind=fPrec) g4_ecut
   integer g4_physics
 +ei
+
+! Cprob to choose an interaction in iChoix
+  do i=1, nmat
+!   data (cprob(0,i),i=1,nmat)/nmat*zero/
+!   data (cprob(5,i),i=1,nmat)/nmat*one/
+    cprob(0,i) = zero
+    cprob(5,i) = one
+  end do
 
   call requestFileUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
@@ -4322,7 +4327,6 @@ subroutine collimate_init_merlin()
   implicit none
 
   integer i
-+ca interac
 
 ! compute the electron densnity and plasma energy for each material
   do i=1, nmat
@@ -4391,7 +4395,6 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 +ca flukavars
 
 +ca database
-+ca collMatNum
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
 
@@ -5683,7 +5686,6 @@ end subroutine collimaterhic
 !<
 function ichoix(ma)
   implicit none
-+ca interac
   integer ma,i,ichoix
   real(kind=fPrec) aran
   aran=real(rndm4(),fPrec)
@@ -5707,7 +5709,6 @@ function gettran(inter,xmat,p)
 
   implicit none
 
-+ca interac
 
   integer inter,length,xmat
   real(kind=fPrec) p,gettran,t,xm2,bsd
@@ -5798,8 +5799,6 @@ function ruth(t)
 
   implicit none
 
-+ca interac
-
   real ruth,t
   real(kind=fPrec) cnorm,cnform
   parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
@@ -5821,8 +5820,6 @@ subroutine scatin(plab)
 +if merlinscatter
 +ca database
 +ei
-
-+ca interac
 
   integer ma,i
   real(kind=fPrec) plab
@@ -5936,7 +5933,6 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
   implicit none
 
-+ca interac
 +ca flukavars
   integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
   logical dowrite_impact
@@ -5949,7 +5945,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !++  Note that the input parameter is dpop. Here the momentum p is
 !++  constructed out of this input.
 
-  p=p0*(one+dpop)
+  p=p0_interac*(one+dpop_interac)
   nabs=0
   nabs_tmp=nabs
 
@@ -5967,8 +5963,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   else if(mat.eq.nmat-1) then
 !++  Collimator treated as drift
     s=zlm
-    x=x+s*xp
-    z=z+s*zp
+    x_interac=x_interac+s*xp_interac
+    z_interac=z_interac+s*zp_interac
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
@@ -5988,8 +5984,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
 10  zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))                          !hr09
   nabs_tmp=0 !! type of interaction reset before following scattering process
-  xpBef=xp ! save angles and momentum before scattering
-  zpBef=zp
+  xpBef=xp_interac ! save angles and momentum before scattering
+  zpBef=zp_interac
   pBef=p
 
 !++  If the monte-carlo interaction length is longer than the
@@ -6010,10 +6006,11 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     p=p-m_dpodx
 +ei
 
-    dpop=(p-p0)/p0
+    dpop_interac=(p-p0_interac)/p0_interac
     if(dowrite_impact) then
 ! write coll_scatter.dat for complete scattering histories
-      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp, &
+            (p-pBef)/pBef,xp_interac-xpBef,zp_interac-zpBef
     end if
     return
   end if
@@ -6026,7 +6023,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !++  MCS. If yes, calculate output longitudinal position (s),
 !++  reduce momentum (output as dpop) and return.
 !++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
-  if(x.le.zero) then
+  if(x_interac.le.zero) then
     s=(zlm-rlen)+s                                                    !hr09
 
 +if .not.merlinscatter
@@ -6037,11 +6034,12 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
 +ei
-    dpop=(p-p0)/p0
+    dpop_interac=(p-p0_interac)/p0_interac
 
     if(dowrite_impact) then
 ! write coll_scatter.dat for complete scattering histories
-      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp, &
+            (p-pBef)/pBef,xp_interac-xpBef,zp_interac-zpBef
     end if
 
     return
@@ -6057,10 +6055,10 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   nabs_tmp=nabs
 
 ! RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
-  xInt=x
-  xpInt=xp
-  yInt=z
-  ypInt=zp
+  xInt=x_interac
+  xpInt=xp_interac
+  yInt=z_interac
+  ypInt=zp_interac
   sInt=(zlm-rlen)+zlm1                                                 !hr09
 
   if(inter.eq.1) then
@@ -6075,7 +6073,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     p=p-m_dpodx
 +ei
 
-    dpop=(p-p0)/p0
+    dpop_interac=(p-p0_interac)/p0_interac
 
 ! write coll_scatter.dat for complete scattering histories
     write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
@@ -6103,8 +6101,8 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   call tetat(t,p,dxp,dzp)
 
 !++  Apply angle changes
-  xp=xp+dxp
-  zp=zp+dzp
+  xp_interac=xp_interac+dxp
+  zp_interac=zp_interac+dzp
 
 !++  Treat single-diffractive scattering.
   if(inter.eq.4) then
@@ -6117,13 +6115,14 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !
 !++  Add this code to get the momentum transfer also in the calling
 !++  routine...
-    dpop=(p-p0)/p0
+    dpop_interac=(p-p0_interac)/p0_interac
   end if
 
   if(dowrite_impact) then
 ! write coll_scatter.dat for complete scattering histories.
 ! Includes changes in angle from both
-     write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+     write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp, &
+           (p-pBef)/pBef,xp_interac-xpBef,zp_interac-zpBef
   end if
 
 !++  Calculate the remaining interaction length and close the iteration
@@ -6156,12 +6155,11 @@ subroutine jaw0(s,nabs)
 
       implicit none
 
-+ca interac
       integer nabs,inter,icoll,iturn,ipart
       real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
-      p=p0/(one-dpop)
+      p=p0_interac/(one-dpop_interac)
       nabs=0
       if(mat.eq.nmat) then
 !
@@ -6174,8 +6172,8 @@ subroutine jaw0(s,nabs)
 !
 !++  Collimator treated as drift
         s=zlm
-        x=x+s*xp
-        z=z+s*zp
+        x_interac=x_interac+s*xp_interac
+        z_interac=z_interac+s*zp_interac
         return
       end if
 !
@@ -6199,7 +6197,7 @@ subroutine jaw0(s,nabs)
        call mcs(s)
        s=(zlm-rlen)+s                                                    !hr09
        p=p-dpodx(mat)*s
-       dpop=one-p0/p
+       dpop_interac=one-p0_interac/p
        return
       end if
 !
@@ -6213,10 +6211,10 @@ subroutine jaw0(s,nabs)
 !++  reduce momentum (output as dpop) and return.
 !++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
 !
-      if(x.le.0.d0) then
+      if(x_interac.le.zero) then
        s=(zlm-rlen)+s                                                    !hr09
        p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
+       dpop_interac=one-p0_interac/p
        return
       end if
 !
@@ -6230,7 +6228,7 @@ subroutine jaw0(s,nabs)
        nabs=1
        s=(zlm-rlen)+zlm1                                                 !hr09
        p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
+       dpop_interac=one-p0_interac/p
 ! write coll_scatter.dat for complete scattering histories
        write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &
      & icoll,iturn,ipart,nabs,-1.d0,0.d0,0.d0
@@ -6262,8 +6260,8 @@ subroutine jaw0(s,nabs)
 !
 !++  Apply angle changes
 !
-      xp=xp+dxp
-      zp=zp+dzp
+      xp_interac=xp_interac+dxp
+      zp_interac=zp_interac+dzp
 !
 !++  Treat single-diffractive scattering.
 !
@@ -6295,7 +6293,6 @@ end subroutine jaw0
 subroutine mcs(s)
       implicit none
 !      save h,dh,bn
-+ca interac
       real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
       real(kind=fPrec) radl_mat,rad_len ! Claudia 2013 added variables
 
@@ -6304,21 +6301,21 @@ subroutine mcs(s)
       data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
 
       radl_mat=radl(mat)
-      theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
+      theta=13.6d-3/(p0_interac*(1.d0+dpop_interac))      !Claudia added log part
       rad_len=radl(mat)                    !Claudia
 
-      x=(x/theta)/radl(mat)                                              !hr09
-      xp=xp/theta
-      z=(z/theta)/radl(mat)                                              !hr09
-      zp=zp/theta
+      x_interac=(x_interac/theta)/radl(mat)                                              !hr09
+      xp_interac=xp_interac/theta
+      z_interac=(z_interac/theta)/radl(mat)                                              !hr09
+      zp_interac=zp_interac/theta
       rlen0=zlm1/radl(mat)
       rlen=rlen0
-10    ae=bn0*x
-      be=bn0*xp
+10    ae=bn0*x_interac
+      be=bn0*xp_interac
       call soln3(ae,be,dh,rlen,s)
       if(s.lt.h) s=h
-      call scamcs(x,xp,s,radl_mat)
-      if(x.le.0.d0) then
+      call scamcs(x_interac,xp_interac,s,radl_mat)
+      if(x_interac.le.zero) then
        s=(rlen0-rlen)+s                                                  !hr09
        goto 20
       end if
@@ -6328,12 +6325,12 @@ subroutine mcs(s)
       end if
       rlen=rlen-s
       goto 10
-20    call scamcs(z,zp,s,radl_mat)
+20    call scamcs(z_interac,zp_interac,s,radl_mat)
       s=s*radl(mat)
-      x=(x*theta)*radl(mat)                                              !hr09
-      xp=xp*theta
-      z=(z*theta)*radl(mat)                                              !hr09
-      zp=zp*theta
+      x_interac=(x_interac*theta)*radl(mat)                                              !hr09
+      xp_interac=xp_interac*theta
+      z_interac=(z_interac*theta)*radl(mat)                                              !hr09
+      zp_interac=zp_interac*theta
 end subroutine mcs
 
 !>
@@ -6448,7 +6445,6 @@ function get_dpodx(p,mat_i)          !Claudia
   implicit none
 
   integer mat
-+ca collMatNum
   common/materia/mat
   real(kind=fPrec) anuc,zatom,rho,emr,exenergy
   real(kind=fPrec) PE,K,gamma_p
@@ -6556,8 +6552,6 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 
   integer IS
 
-+ca collMatNum
-
   real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
   real(kind=fPrec) k !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
 !  real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
@@ -6626,7 +6620,7 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 
     EnLo = EnLo*rho(IS)*c1m1 ![GeV/m]
   else
-    ! if tial energy loss does not occur, just use the standard Bethe Bloch
+    ! if tail energy loss does not occur, just use the standard Bethe Bloch
     EnLo = EnLo/DZ  ![GeV/m]
   endif
 
@@ -8596,5 +8590,12 @@ subroutine collimation_comnul
   myemitx0_collgap = zero
   myemity0_collgap = zero
 end subroutine collimation_comnul
+
+
+subroutine collimate_crpoint()
+
+  implicit none
+
+end subroutine collimate_crpoint
 
 end module collimation
