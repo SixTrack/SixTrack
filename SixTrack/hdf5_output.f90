@@ -89,12 +89,14 @@ module hdf5_output
   interface h5_writeData
     module procedure h5_writeData_real32
     module procedure h5_writeData_real64
+    module procedure h5_writeData_real128
     module procedure h5_writeData_int
     module procedure h5_writeData_char
   end interface h5_writeData
   
   private :: h5_writeData_real32
   private :: h5_writeData_real64
+  private :: h5_writeData_real128
   private :: h5_writeData_int
   private :: h5_writeData_char
   
@@ -434,9 +436,14 @@ subroutine h5_closeDataSet(dataSet)
 end subroutine h5_closeDataSet
 
 ! ================================================================================================ !
-!  Routines for Writing to DataSet
+!  BEGIN WRITING TO DATASETS
+! ================================================================================================ !
+
+! ================================================================================================ !
+!  Prepare to Write
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-30
+!  Last Modified: 2018-05-03
+!  Creates the necessary memory and file space for writing a appendSize chunck of data.
 ! ================================================================================================ !
 subroutine h5_prepareWrite(dataSet, appendSize)
   
@@ -464,6 +471,19 @@ subroutine h5_prepareWrite(dataSet, appendSize)
   
 end subroutine h5_prepareWrite
 
+! ================================================================================================ !
+!  Interfaced Write Routines
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-04
+!  Handles writing of the differrent datatypes
+! ================================================================================================ !
+
+! ================================================================================================ !
+!  Single Precision Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-04
+!  Converted to double when file double precision is required.
+! ================================================================================================ !
 subroutine h5_writeData_real32(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
@@ -471,14 +491,29 @@ subroutine h5_writeData_real32(dataSet, colID, arrSize, arrData)
   integer,           intent(in)    :: arrSize
   real(kind=real32), intent(in)    :: arrData(arrSize)
   
+  real(kind=real64), allocatable   :: arrSave(:)
+  
   integer(HSIZE_T) h5_arrSize(1)
   h5_arrSize(1) = arrSize
   
-  call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  if(h5_useDouble) then
+    allocate(arrSave(arrSize), source=real(arrData, kind=real64))
+    call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrSave, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSave)
+  else
+    call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrData, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  end if
   
 end subroutine h5_writeData_real32
 
+! ================================================================================================ !
+!  Double Precision Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-04
+!  Converted to single when file single precision is required.
+! ================================================================================================ !
 subroutine h5_writeData_real64(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
@@ -486,14 +521,62 @@ subroutine h5_writeData_real64(dataSet, colID, arrSize, arrData)
   integer,           intent(in)    :: arrSize
   real(kind=real64), intent(in)    :: arrData(arrSize)
   
+  real(kind=real32), allocatable   :: arrSave(:)
+  
   integer(HSIZE_T) h5_arrSize(1)
   h5_arrSize(1) = arrSize
   
-  call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  if(h5_useDouble) then
+    call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrData, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  else
+    allocate(arrSave(arrSize), source=real(arrData, kind=real32))
+    call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrSave, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSave)
+  end if
   
 end subroutine h5_writeData_real64
 
+! ================================================================================================ !
+!  Quad Precision Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-04
+!  Converted to double or single depending on file precision.
+! ================================================================================================ !
+subroutine h5_writeData_real128(dataSet, colID, arrSize, arrData)
+  
+  type(h5_dataSet),   intent(inout) :: dataSet
+  integer,            intent(in)    :: colID
+  integer,            intent(in)    :: arrSize
+  real(kind=real128), intent(in)    :: arrData(arrSize)
+  
+  real(kind=real32),  allocatable   :: arrSaveS(:)
+  real(kind=real64),  allocatable   :: arrSaveD(:)
+  
+  integer(HSIZE_T) h5_arrSize(1)
+  h5_arrSize(1) = arrSize
+  
+  if(h5_useDouble) then
+    allocate(arrSaveD(arrSize), source=real(arrData, kind=real64))
+    call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(arrSize), source=real(arrData, kind=real32))
+    call h5dwrite_f(dataSet%dataID, dataSet%fields(colID)%typeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveS)
+  end if
+  
+end subroutine h5_writeData_real128
+
+! ================================================================================================ !
+!  Integer Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-30
+!  These are assumed to be the internal integer type, handled by HDF5 NATIVE_INT
+! ================================================================================================ !
 subroutine h5_writeData_int(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
@@ -509,6 +592,12 @@ subroutine h5_writeData_int(dataSet, colID, arrSize, arrData)
   
 end subroutine h5_writeData_int
 
+! ================================================================================================ !
+!  Character Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-03
+!  Handled as fixed length character arrays
+! ================================================================================================ !
 subroutine h5_writeData_char(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
@@ -524,8 +613,16 @@ subroutine h5_writeData_char(dataSet, colID, arrSize, arrData)
   
 end subroutine h5_writeData_char
 
+! ================================================================================================ !
+!  Finalise Writing
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-03
+!  Properly closes the file and memory dataspace.
+!  This should always be called after writng a new chunck of data to prevent memory leaks during
+!  executuion. Everything is properly cleaned up and closed at the end though with closeHDF5.
+! ================================================================================================ !
 subroutine h5_finaliseWrite(dataSet)
-
+  
   type(h5_dataSet), intent(inout) :: dataSet
   
   call h5sclose_f(dataSet%spaceID, h5_dataError)
@@ -535,6 +632,10 @@ subroutine h5_finaliseWrite(dataSet)
   dataSet%memID   = 0
   
 end subroutine h5_finaliseWrite
+
+! ================================================================================================ !
+!  END WRITING TO DATASETS
+! ================================================================================================ !
 
 ! ================================================================================================ !
 !  HDF5 Input File Parsing
