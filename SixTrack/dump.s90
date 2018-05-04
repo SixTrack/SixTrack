@@ -1,7 +1,8 @@
 +dk dump
 
-! A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
+! A. Mereghetti, D. Sinuela Pastor and P. Garcia Ortega, for the FLUKA Team
 ! K. Sjobak, BE-ABP/HSS, BE-ABP/LAT
+! V.K. Berglyd Olsen, BE-ABP-HSS
 !
 ! In case the DUMP input block is issued, the beam population is dumped
 !   at EACH occurence of the flagged SINGLE ELEMENT(s) in the accelerator structure
@@ -24,7 +25,7 @@ module dump
   use end_sixtrack
   use parpro ! For nele
   use mod_alloc
-  use string_tools, only : str_maxLen
+  use string_tools, only : str_maxLen, str_dZeros
 
   implicit none
 
@@ -57,10 +58,10 @@ module dump
   ! TODO: check units used in dumpclo; is x' or px used?
   real(kind=fPrec), save :: dumpclo (-1:nblz,6)
 
-+if cr
+#ifdef CR
   ! For resetting file positions
   integer, allocatable,save :: dumpfilepos(:), dumpfilepos_cr(:) !(-1:nele)
-+ei
+#endif
 
 ! ================================================================================================================================ !
 !  THE SUBROUTINES
@@ -72,9 +73,6 @@ subroutine dump_allocate_arrays
   use crcoall
   implicit none
   integer :: stat
-
-  character(len=str_maxLen) :: defaultstring
-  defaultstring = repeat(char(0),str_maxLen)
 
 !  allocate(ldump(-1:nele), ndumpt(-1:nele), dumpfirst(-1:nele), dumplast(-1:nele), &
 !       dumpunit(-1:nele), dumpfmt(-1:nele), dump_fname(-1:nele), STAT=stat)
@@ -88,9 +86,9 @@ subroutine dump_allocate_arrays
   call alloc(dumplast,nele,0,'dumplast',-1)
   call alloc(dumpunit,nele,0,'dumpunit',-1)
   call alloc(dumpfmt,nele,0,'dumpfmt',-1)
-  call alloc(dump_fname,str_maxLen,nele,defaultstring,'dump_fname',-1)
+  call alloc(dump_fname,str_maxLen,nele,str_dZeros,'dump_fname',-1)
 
-+if cr
+#ifdef CR
   call alloc(dumpfilepos,nele,0,'dumpfilepos',-1)
   call alloc(dumpfilepos_cr,nele,0,'dumpfilepos_cr',-1)
 !  allocate(dumpfilepos(-1:nele),dumpfilepos_cr(-1:nele), STAT=stat)
@@ -98,7 +96,7 @@ subroutine dump_allocate_arrays
 !     write(lout,'(A,I8)') "ERROR in SUBROUTINE DUMP_ALLOCATE_ARRAYS; stat=", stat
 !     call prror(-1)
 !  endif
-+ei
+#endif
 end subroutine dump_allocate_arrays
 
 subroutine dump_expand_arrays(nele_new)
@@ -106,21 +104,18 @@ subroutine dump_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
 
-  character(len=str_maxLen) :: defaultstring
-  defaultstring = repeat(char(0),str_maxLen)
-
   call resize(ldump,nele_new,.FALSE.,'ldump',-1)
   call resize(ndumpt,nele_new,0,'ndumpt',-1)
   call resize(dumpfirst,nele_new,0,'dumpfirst',-1)
   call resize(dumplast,nele_new,0,'dumplast',-1)
   call resize(dumpunit,nele_new,0,'dumpunit',-1)
   call resize(dumpfmt,nele_new,0,'dumpfmt',-1)
-  call resize(dump_fname,str_maxLen,nele_new,defaultstring,'dump_fname',-1)
+  call resize(dump_fname,str_maxLen,nele_new,str_dZeros,'dump_fname',-1)
 
-+if cr
+#ifdef CR
   call resize(dumpfilepos,nele_new,0,'dumpfilepos',-1)
   call resize(dumpfilepos_cr,nele_new,0,'dumpfilepos_cr',-1)
-+ei
+#endif
 end subroutine dump_expand_arrays
 
 subroutine dump_lines (n,i,ix)
@@ -333,7 +328,7 @@ subroutine dump_parseInputLine(ch)
   ndumpt(j)    = i1
   dumpunit(j)  = i2
   dumpfmt(j)   = i3
-  dump_fname(j) = repeat(char(0),str_maxLen) ! Zero the file name first, as there is a bug in mod_alloc
+  ! dump_fname(j) = repeat(char(0),str_maxLen) ! Zero the file name first, as there is a bug in mod_alloc
   dump_fname(j)(1:getfields_lfields(5)) = ch1(1:getfields_lfields(5))
   dumpfirst(j) = i4
   dumplast(j)  = i5
@@ -430,7 +425,7 @@ subroutine dump_initialize
   character(len=256) filename
   
   do i=-1,il
-+if cr
+#ifdef CR
     if (dumpfilepos(i).ge.0) then
       ! Expect the file to be opened already, in crcheck
       inquire( unit=dumpunit(i), opened=lopen )
@@ -441,7 +436,7 @@ subroutine dump_initialize
       end if
       cycle ! Everything OK, don't try to open the files again.
     end if
-+ei
+#endif
     if (ldump(i)) then
       ! The same file could be used by more than one SINGLE ELEMENT
       inquire( unit=dumpunit(i), opened=lopen )
@@ -455,25 +450,23 @@ subroutine dump_initialize
           end if
         end do
         if (dumpfmt(i).eq.3 .or. dumpfmt(i).eq.8) then ! Binary dump
-+if boinc
+#ifdef BOINC
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename,status='replace',form='unformatted')
-+ei
-+if .not.boinc
+#else
           open(dumpunit(i),file=trim(stringzerotrim(dump_fname(i))),status='replace',form='unformatted')
-+ei
+#endif
         else ! ASCII dump
-+if boinc
+#ifdef BOINC
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename,status='replace',form='formatted')
-+ei
-+if .not.boinc
+#else
           open(dumpunit(i),file=trim(stringzerotrim(dump_fname(i))),status='replace',form='formatted')
-+ei
+#endif
         end if
-+if cr
+#ifdef CR
         dumpfilepos(i) = 0
-+ei
+#endif
       else ! lopen was .TRUE.
 
         ! Sanity check: If file number i is already open, it should be by another DUMP
@@ -503,10 +496,10 @@ subroutine dump_initialize
               else
                 ! Everything is fine
                 lopen = .true.
-+if cr
+#ifdef CR
                 ! Dumpfilepos is separate for every element, even if they share files.
                 dumpfilepos(i) = 0
-+ei
+#endif
               end if
             end if ! IF file unit matches
           end if ! IF ldump(j)
@@ -527,9 +520,9 @@ subroutine dump_initialize
         ! Flush file
         endfile   (dumpunit(i))
         backspace (dumpunit(i))
-+if cr
+#ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 1
-+ei
+#endif
       else if (dumpfmt(i).eq.2 .or. dumpfmt(i).eq.4 .or. dumpfmt(i).eq.5 .or. &
                dumpfmt(i).eq.6 .or. dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9 ) then
         ! Write the general header
@@ -612,13 +605,13 @@ subroutine dump_initialize
         ! Flush file
         endfile   (dumpunit(i))
         backspace (dumpunit(i))
-+if cr
+#ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 2
         ! format 7 also writes clo, tas and tasinv
         if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then 
           dumpfilepos(i) = dumpfilepos(i) + 3
         end if
-+ei
+#endif
       end if ! END if format 2/4/5/6/7/9 -> General header
       
       ! Normalized DUMP
@@ -684,13 +677,12 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
 +ca commontr
 +ca dbdcum
 
-+if collimat
+#ifdef COLLIMAT
 +ca collpara
 +ca dbcommon
-+ei
-+if .not.collimat
+#else
   integer, parameter :: samplenumber = 1
-+ei
+#endif
   
   ! Temporary variables
   integer j,k,l,m,n
@@ -703,7 +695,7 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
   real(kind=fPrec) xyz(6)
   real(kind=fPrec) xyz2(6,6)
   
-+if cr      
+#ifdef CR
   ! For accessing dumpfilepos
   integer dumpIdx
   if (unit .eq. dumpunit(0)) then
@@ -715,7 +707,7 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
   else
     dumpIdx = ix
   end if
-+ei
+#endif
   ! General format
   if (fmt .eq. 0) then
     if (i.eq.0 .and. ix.eq.0) then
@@ -746,9 +738,9 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
     ! Flush
     endfile (unit,iostat=ierro)
     backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx+2
-+ei
+#endif
     
   ! Format for aperture check
   else if (fmt .eq. 1) then
@@ -772,9 +764,9 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
     ! Flush
     endfile (unit,iostat=ierro)
     backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
+#endif
   
   ! Same as fmt 1, but also include z (for crab cavities etc.)
   else if (fmt .eq. 2) then
@@ -800,9 +792,9 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
+#endif
   ! Same as fmt 2, but in Fortran binary
   else if (fmt .eq. 3) then
     if (i.eq.0 .and. ix.eq.0) then
@@ -820,9 +812,9 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
     ! Flush
     endfile (unit,iostat=ierro)
     backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
+#endif
   ! Average bunch position
   else if (fmt .eq. 4) then
     if (i.eq.0 .and. ix.eq.0) then
@@ -852,9 +844,9 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
     ! Flush
     endfile (unit,iostat=ierro)
     backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
-+ei
+#endif
   ! Average beam positon + beam matrix
   else if (fmt.eq.5 .or. fmt.eq.6) then
     if (i.eq.0 .and. ix.eq.0) then
@@ -988,9 +980,9 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
     ! Flush
     endfile (unit,iostat=ierro)
     backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
-+ei
+#endif
   ! fmt 7 same as fmt 2,   but in normalized coordinates
   ! fmt 8 same as fmt 3,   but in normalized coordinates
   ! fmt 9 same as fmt 5/6, but in normalized coordinates
@@ -1101,16 +1093,16 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
+#endif
     else if (fmt .eq. 8) then
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
-+ei
+#endif
     else if (fmt .eq. 9) then
       ! Normalize to get averages
       xyz = xyz/napx
@@ -1143,9 +1135,9 @@ subroutine dump_beam_population( nturn, i, ix, unit, fmt, lhighprec, loc_clo, ta
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
-+if cr
+#ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
-+ei
+#endif
     end if
     
   ! Unrecognized format fmt
@@ -1199,9 +1191,9 @@ subroutine dump_comnul
     dumplast(i)  = 0
     dumpunit(i) = 0
     dumpfmt(i)  = 0
-+if cr
+#ifdef CR
     dumpfilepos(i) = -1
-+ei
+#endif
   end do
   
 end subroutine dump_comnul
@@ -1209,7 +1201,7 @@ end subroutine dump_comnul
 ! ================================================================================================================================ !
 !  Begin Checkpoint Restart
 ! ================================================================================================================================ !
-+if cr
+#ifdef CR
 
 ! ================================================================================================================================ !
 subroutine dump_crcheck_readdata(fileunit, readerr)
@@ -1271,13 +1263,12 @@ subroutine dump_crcheck_positionFiles
       inquire( unit=dumpunit(i), opened=lopen )
       if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
         if (.not. lopen) then
-+if boinc
+#ifdef BOINC
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename, status='old',form='formatted',action='readwrite')
-+ei
-+if .not.boinc
+#else
           open(dumpunit(i),file=dump_fname(i), status='old',form='formatted',action='readwrite')
-+ei
+#endif
         end if
         
         dumpfilepos(i) = 0
@@ -1288,13 +1279,12 @@ subroutine dump_crcheck_positionFiles
         
       else                         ! BINARY (format = 3 & 8)
         if (.not. lopen) then
-+if boinc
+#ifdef BOINC
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename,status='old',form='unformatted',action='readwrite')
-+ei
-+if .not.boinc
+#else
           open(dumpunit(i),file=dump_fname(i),status='old',form='unformatted',action='readwrite')
-+ei
+#endif
         end if
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
@@ -1316,21 +1306,19 @@ subroutine dump_crcheck_positionFiles
       ! Change from 'readwrite' to 'write'
       close(dumpunit(i))
       if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
-+if boinc
+#ifdef BOINC
         call boincrf(dump_fname(i),filename)
         open(dumpunit(i),file=filename, status='old',position='append',form='formatted',action='write')
-+ei
-+if .not.boinc
+#else
         open(dumpunit(i),file=dump_fname(i), status='old',position='append',form='formatted',action='write')
-+ei
+#endif
       else ! Binary (format = 3)
-+if boinc
+#ifdef BOINC
         call boincrf(dump_fname(i),filename)
         open(dumpunit(i),file=filename, status='old',position='append',form='unformatted',action='write')
-+ei
-+if .not.boinc
+#else
         open(dumpunit(i),file=dump_fname(i), status='old',position='append',form='unformatted',action='write')
-+ei
+#endif
       end if
     end if
   end do
@@ -1367,7 +1355,7 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
 end subroutine dump_crpoint
 ! ================================================================================================================================ !
 
-+ei
+#endif
 ! ================================================================================================================================ !
 !  End Checkpoint Restart
 ! ================================================================================================================================ !

@@ -145,7 +145,7 @@ subroutine h5_initHDF5()
   call h5open_f(h5_fileError)
   call h5pcreate_f(H5P_DATASET_XFER_F, h5_plistID, h5_fileError)
   call h5pset_preserve_f(h5_plistID, .true., h5_fileError)
-  if(h5_fileError == -1) then
+  if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to initialise Fortran HDF5."
     call prror(-1)
   end if
@@ -234,14 +234,14 @@ subroutine h5_closeHDF5()
   
   ! This closes the file
   call h5fclose_f(h5_fileID, h5_fileError)
-  if(h5_fileError == -1) then
+  if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to close HDF5 file."
     call prror(-1)
   end if
   
   ! This cleans up everything left over
   call h5close_f(h5_fileError)
-  if(h5_fileError == -1) then
+  if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to close Fortran HDF5."
     call prror(-1)
   end if
@@ -258,15 +258,28 @@ end subroutine h5_closeHDF5
 subroutine h5_initForScatter()
   
   call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
-  if(h5_fileError == -1) then
+  if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
-    write(lout,"(a)") "HDF5> DEBUG Group initialised for scatter."
+    write(lout,"(a)") "HDF5> DEBUG Group created for SCATTER."
   end if
-
+  
 end subroutine h5_initForScatter
+
+subroutine h5_initForDump()
+  
+  call h5gcreate_f(h5_rootID, h5_dumpGroup, h5_dumpID, h5_fileError)
+  if(h5_fileError < 0) then
+    write(lout,"(a)") "HDF5> ERROR Failed to create dump group '"//h5_dumpGroup//"'."
+    call prror(-1)
+  end if
+  if(h5_debugOn) then
+    write(lout,"(a)") "HDF5> DEBUG Group created for DUMP."
+  end if
+  
+end subroutine h5_initForDump
 
 ! ================================================================================================ !
 !  Create DataSet
