@@ -164,34 +164,47 @@ subroutine h5_openFile()
   implicit none
   
   integer accessFlag
+  logical doesExist
   
   if(.not. h5_isActive) return
   
-  if(h5_doTruncate) then
-    accessFlag = H5F_ACC_TRUNC_F
-    if(h5_debugOn) then
-      write(lout,"(a)") "HDF5> DEBUG Truncating previous file if it exists."
+  inquire(file=h5_fileName%chr, exist=doesExist)
+  
+  if(doesExist) then
+    if(h5_doTruncate) then
+      call h5fcreate_f(h5_fileName%chr, H5F_ACC_TRUNC_F, h5_fileID, h5_fileError)
+      if(h5_fileError < 0) then
+        write(lout,"(a)") "HDF5> ERROR Failed to open HDF5 file '"//h5_fileName//"'."
+        call prror(-1)
+      end if
+      write(lout,"(a)") "HDF5> Truncated HDF5 file '"//h5_fileName//"'."
+    else
+      call h5fopen_f(h5_fileName%chr, H5F_ACC_RDWR_F, h5_fileID, h5_fileError)
+      if(h5_fileError < 0) then
+        write(lout,"(3a)") "HDF5> ERROR Failed to open HDF5 file '",h5_fileName%chr,"'."
+        call prror(-1)
+      end if
+      write(lout,"(a)") "HDF5> Opened HDF5 file '"//h5_fileName//"'."
     end if
   else
-    accessFlag = H5F_ACC_EXCL_F
+    call h5fcreate_f(h5_fileName%chr, H5F_ACC_EXCL_F, h5_fileID, h5_fileError)
+    if(h5_fileError < 0) then
+      write(lout,"(a)") "HDF5> ERROR Failed to create HDF5 file '"//h5_fileName//"'."
+      call prror(-1)
+    end if
+    write(lout,"(a)") "HDF5> Created HDF5 file '"//h5_fileName//"'."
   end if
-  
-  call h5fcreate_f(h5_fileName%chr, accessFlag, h5_fileID, h5_fileError)
-  if(h5_fileError == -1) then
-    write(lout,"(3a)") "HDF5> ERROR Failed to open HDF5 file '",h5_fileName%chr,"'."
-    call prror(-1)
-  end if
-  write(lout,"(3a)") "HDF5> Created/opened HDF5 file '",h5_fileName%chr,"'."
   
   ! If a root group was requested, create it and save the rootID
   ! Otherwise, use the fileID as the rootID
   if(h5_rootPath%chr /= "") then
     call h5gcreate_f(h5_fileID, h5_rootPath%chr, h5_rootID, h5_fileError)
-    if(h5_fileError == -1) then
-      write(lout,"(3a)") "HDF5> ERROR Failed to create root group '",h5_rootPath%chr,"'."
+    if(h5_fileError < 0) then
+      write(lout,"(a)") "HDF5> ERROR Failed to create root group '"//h5_rootPath//"'."
+      write(lout,"(a)") "HDF5>       If you are writing to an existing file, the root group must be unique."
       call prror(-1)
     end if
-    write(lout,"(3a)") "HDF5> Created root group '",h5_rootPath%chr,"'."
+    write(lout,"(a)") "HDF5> Created root group '"//h5_rootPath//"'."
   else
     h5_rootID = h5_fileID
   end if
