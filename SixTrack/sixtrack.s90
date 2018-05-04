@@ -45635,12 +45635,9 @@ subroutine crpoint
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
-        write(93,*)                                                     &
-     &'SIXTRACR CRPOINT CALLED numlmax=',numlmax,' numlcp=',numlcp
-        write(93,*)                                                     &
-     &'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
-        write(93,*)                                                     &
-     &'SIXTRACR CRPOINT CALLED binrec/sixrec ',binrec,sixrecs
+        write(93,*) 'SIXTRACR CRPOINT CALLED numlmax=',numlmax,' numlcp=',numlcp
+        write(93,*) 'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
+        write(93,*) 'SIXTRACR CRPOINT CALLED binrec/sixrec ',binrec,sixrecs
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
 +if .not.debug
@@ -45687,8 +45684,7 @@ subroutine crpoint
 +if .not.debug
         if (ncalls.le.5.or.numx.ge.numl) then
 +ei
-          write(93,*)                                                   &
-     &'SIXTRACR CRPOINT copied lout=',lout,'sixrecs=',sixrecs
+          write(93,*) 'SIXTRACR CRPOINT copied lout=',lout,'sixrecs=',sixrecs
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
 +if .not.debug
@@ -45868,8 +45864,7 @@ subroutine crpoint
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
-            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-     & ' for THICK to fort.95'
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars for THICK to fort.95'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
