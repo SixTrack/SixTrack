@@ -21,13 +21,15 @@ module hdf5_output
   implicit none
   
   ! Common Settings
-  logical,      public,  save :: h5_isActive    ! Existence of the HDF5 block
-  logical,      public,  save :: h5_debugOn     ! HDF5 debug flag present
-  logical,      public,  save :: h5_isReady     ! HDF5 file is open and ready for input
-  logical,      private, save :: h5_useDouble   ! Whether to use double precision or not
-  logical,      private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
-  type(string), private, save :: h5_fileName    ! The HDF5 output file name
-  type(string), private, save :: h5_rootPath    ! The root group where the data for this session is stored
+  logical,          public,  save :: h5_isActive    ! Existence of the HDF5 block
+  logical,          public,  save :: h5_debugOn     ! HDF5 debug flag present
+  logical,          public,  save :: h5_isReady     ! HDF5 file is open and ready for input
+  logical,          private, save :: h5_useDouble   ! Whether to use double precision or not
+  logical,          private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
+  type(string),     private, save :: h5_fileName    ! The HDF5 output file name
+  type(string),     private, save :: h5_rootPath    ! The root group where the data for this session is stored
+  integer,          private, save :: h5_gzipLevel   ! The level of compression used: 0 for none to 9 for maximum
+  integer(HSIZE_T), private, save :: h5_defChunk    ! The default size of chunks, used for mainly logging output
   
   ! Input Block Switches
   logical, public, save :: h5_useForCOLL
@@ -48,12 +50,6 @@ module hdf5_output
   
   ! HDF5 Internals
   integer(HID_T), private, save :: h5_plistID ! Dataset transfer property
-  
-  ! DataSet ID Mappings
- !type(string),   allocatable, private, save :: h5_dataSetName(:)
- !type(string),   allocatable, private, save :: h5_dataSetPath(:)
- !integer(HID_T), allocatable, private, save :: h5_dataSetMap(:)
- !integer,                     private, save :: h5_nDataSets
   
   ! Default Group Names
   character(len=11), parameter :: h5_collGroup = "collimation"
@@ -116,6 +112,8 @@ subroutine h5_comnul
   h5_doTruncate = .false.
   h5_fileName   = ""
   h5_rootPath   = ""
+  h5_gzipLevel  = -1
+  h5_defChunk   = 10
   
   h5_useForCOLL = .false.
   h5_useForDUMP = .false.
@@ -130,8 +128,6 @@ subroutine h5_comnul
   h5_collID     = 0
   h5_dumpID     = 0
   h5_scatID     = 0
-  
- !h5_nDataSets  = 0
   
 end subroutine h5_comnul
 
@@ -295,7 +291,7 @@ subroutine h5_createDataSet(setName, setGroup, setFields, dataSet, chunckSize)
   if(present(chunckSize)) then
     spaceSize(1) = int(chunckSize,kind=HSIZE_T)
   else
-    spaceSize(1) = 10
+    spaceSize(1) = h5_defChunk
   end if
   spaceMaxSize(1) = H5S_UNLIMITED_F
   
@@ -356,6 +352,9 @@ subroutine h5_createDataSet(setName, setGroup, setFields, dataSet, chunckSize)
     write(lout,"(a)") "HDF5> ERROR: Failed to set chunck size for '"//setName//"'"
     call prror(-1)
   end if
+  if(h5_gzipLevel > -1) then
+    call h5pset_deflate_f(propID, h5_gzipLevel, h5_dataError)
+  end if
   
   ! Create the compound DataType as laid out in setFields
   call h5tcreate_f(H5T_COMPOUND_F, memSize, dtypeID, h5_dataError)
@@ -393,7 +392,7 @@ subroutine h5_createDataSet(setName, setGroup, setFields, dataSet, chunckSize)
   dataSet%records = 0
   dataSet%dataID  = dataID
   dataSet%spaceID = 0
-  dataSet%memID    = 0
+  dataSet%memID   = 0
   dataSet%dtypeID = dtypeID
   dataSet%propID  = propID
   dataSet%fields  = setFields
@@ -686,6 +685,30 @@ subroutine h5_parseInputLine(inLine)
   case("DOUBLE")
     h5_useDouble = .true.
     write(lout,"(a)") "HDF5> HDF5 will use double precision."
+  
+  case("GZIP")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR: GZIP level takes 1 input parameter, ",(nSplit-1)," given."
+      call prror(-1)
+    end if
+    read(lnSplit(2)%chr,*) h5_gzipLevel
+    if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
+      write(lout,"(a,i2)") "HDF5> ERROR: Illegal value for GZIP: ",h5_gzipLevel
+      write(lout,"(a,i2)") "HDF5>        Allowed values are -1 for disabled, and 0-9 for none to max compression."
+      call prror(-1)
+    end if
+  
+  case("CHUNK")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR: CHUNK takes 1 input parameter, ",(nSplit-1)," given."
+      call prror(-1)
+    end if
+    read(lnSplit(2)%chr,*) h5_defChunk
+    if(h5_defChunk < 1) then
+      write(lout,"(a,i2)") "HDF5> ERROR: Illegal value for CHUNK: ",h5_gzipLevel
+      write(lout,"(a,i2)") "HDF5>        Value must be larger than 0."
+      call prror(-1)
+    end if
   
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
