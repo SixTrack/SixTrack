@@ -63,8 +63,8 @@ module hdf5_output
   ! Field Definitions
   type, public :: h5_dataField
     character(len=:), allocatable, public  :: name
-    integer,                       public  :: type
-    integer,                       public  :: size
+    integer,                       public  :: type   = 0
+    integer,                       public  :: size   = 0
     integer(HID_T),                private :: typeH5 = 0
     integer(HID_T),                private :: typeID = 0
   end type h5_dataField
@@ -294,7 +294,7 @@ subroutine h5_createDataSet(setName, setGroup, setFields, dataSet, chunckSize)
   implicit none
   
   ! Routine Variables
-  character(len=*) ,               intent(in)    :: setName
+  character(len=*),                intent(in)    :: setName
   integer(HID_T),                  intent(in)    :: setGroup
   type(h5_dataField), allocatable, intent(inout) :: setFields(:)
   type(h5_dataSet),                intent(out)   :: dataSet
@@ -428,6 +428,77 @@ subroutine h5_createDataSet(setName, setGroup, setFields, dataSet, chunckSize)
   deallocate(fieldSize)
   
 end subroutine h5_createDataSet
+
+! ================================================================================================ !
+!  Open DataSet
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-04
+! ================================================================================================ !
+subroutine h5_openDataSet(setName, setGroup, dataSet)
+  
+  use end_sixtrack
+  
+  character(len=*),   intent(in)  :: setName
+  integer(HID_T),     intent(in)  :: setGroup
+  type(h5_dataSet),   intent(out) :: dataSet
+  
+  type(h5_dataField), allocatable :: setFields(:)
+  ! integer(HID_T),     allocatable :: fieldType(:)
+  ! integer(HSIZE_T),   allocatable :: fieldSize(:)
+  
+  integer(HID_T)   :: dataID, dtypeID !, elemID
+  integer(HSIZE_T) :: memSize !, elemSize
+  
+  integer i, nameLen, dtClass, nTypes
+  ! character(len=:), allocatable :: elemName
+  
+  call h5dopen_f(setGroup, setName, dataID, h5_dataError)
+  call h5dget_type_f(dataID, dtypeID, h5_dataError)
+  
+  call h5tget_class_f(dtypeID, dtClass, h5_dataError)
+  if(dtClass == H5T_COMPOUND_F) then
+    call h5tget_size_f(dtypeID, memSize, h5_dataError)
+    call h5tget_nmembers_f(dtypeID, nTypes, h5_dataError)
+    if(h5_debugOn) then
+      write(lout,"(a)")      "HDF5> DEBUG Parsing data types of dataset '"//setName//"'"
+      write(lout,"(a,i0,a)") "HDF5> DEBUG   Memory size is: ",memSize," bytes"
+      write(lout,"(a,i0,a)") "HDF5> DEBUG   Data Type has:  ",nTypes," elements"
+    end if
+    
+    ! allocate(fieldType(nTypes))
+    ! allocate(fieldSize(nTypes))
+    allocate(setFields(nTypes))
+    
+    do i=1,nTypes
+      ! call h5tget_member_name_f(dtypeID, i-1, elemName,   nameLen, h5_dataError)
+      call h5tget_member_type_f(dtypeID, i-1, setFields(i)%typeID, h5_dataError)
+      ! call h5tget_member_offset_f(dtypeID, i-1, elemSize, h5_dataError)
+      if(h5_debugOn) then
+        ! write(lout,"(a,i3,a)") "HDF5> DEBUG     Element(",i,") = '"//elemName//"'"
+        ! write(lout,"(a,i3,a,i0)") "HDF5> DEBUG     Element(",i,") of size ",elemSize
+        write(lout,"(a,i3,a,i0)") "HDF5> DEBUG     Element(",i,") of type ",setFields(i)%typeID
+      end if
+    end do
+  else
+    write(lout,"(a)") "HDF5> ERROR Non-compound dataset encountered."
+    write(lout,"(a)") "HDF5>       Only compound datasets are used by SixTrack."
+    call prror(-1)
+  end if
+  
+  dataSet%name    = setName
+  dataSet%path    = ""
+  dataSet%records = 0
+  dataSet%dataID  = dataID
+  dataSet%spaceID = 0
+  dataSet%memID   = 0
+  dataSet%dtypeID = dtypeID
+  dataSet%propID  = 0
+  dataSet%fields  = setFields
+  
+  ! deallocate(fieldType)
+  ! deallocate(fieldSize)
+  
+end subroutine h5_openDataSet
 
 ! ================================================================================================ !
 !  Close DataSet
