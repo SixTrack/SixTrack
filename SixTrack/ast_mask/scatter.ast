@@ -1,5 +1,5 @@
 scatter.s90 sixtrack.s90 collimation.s90
 scattern.f
-df bignpart,hugenpart,collimat,bignblz,hugenblz,beamgas,crlibm,time,datamods,cr,boinc,hdf5
+df collimat
 e scatter
 ex

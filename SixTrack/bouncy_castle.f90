@@ -1,5 +1,9 @@
-+dk mathlib_bouncer
+! =================================================================================================
+!  Mathlib Bouncer
+!  Last modified: 2018-04-27
+! =================================================================================================
 module mathlib_bouncer
+
   use floatPrecision
   implicit none
 
@@ -7,7 +11,7 @@ module mathlib_bouncer
   public :: sin_mb, asin_mb, sinh_mb, cos_mb, acos_mb, cosh_mb, tan_mb, atan_mb, atan2_mb, exp_mb, log_mb, log10_mb
 
   !For linking with CRLIBM
-+if crlibm
+#ifdef CRLIBM
   private :: acos_rn, asin_rn, atan2_rn
   
   !Can't declare them private as they have BIND labels,
@@ -72,7 +76,7 @@ module mathlib_bouncer
      end function cosh_rn
      
   end interface
-+ei
+#endif
 
 contains
 
@@ -82,13 +86,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     sin_mb=sin(arg)
-+ei
-+if crlibm
+#else
     sin_mb=sin_rn(arg)
-+ei
+#endif
   end function sin_mb
 
   real(kind=fPrec) function asin_mb(arg)
@@ -96,13 +99,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     asin_mb=asin(arg)
-+ei
-+if crlibm
+#else
     asin_mb=asin_rn(arg)
-+ei
+#endif
   end function asin_mb
 
   real(kind=fPrec) function sinh_mb(arg)
@@ -110,13 +112,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     sinh_mb=sinh(arg)
-+ei
-+if crlibm
+#else
     sinh_mb=sinh_rn(arg)
-+ei
+#endif
   end function sinh_mb
   
   real(kind=fPrec) function cos_mb(arg)
@@ -124,13 +125,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     cos_mb=cos(arg)
-+ei
-+if crlibm
+#else
     cos_mb=cos_rn(arg)
-+ei
+#endif
   end function cos_mb
   
   real(kind=fPrec) function acos_mb(arg)
@@ -138,13 +138,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     acos_mb=acos(arg)
-+ei
-+if crlibm
+#else
     acos_mb=acos_rn(arg)
-+ei
+#endif
   end function acos_mb
   
   real(kind=fPrec) function cosh_mb(arg)
@@ -152,13 +151,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     cosh_mb=cosh(arg)
-+ei
-+if crlibm
+#else
     cosh_mb=cosh_rn(arg)
-+ei
+#endif
   end function cosh_mb
   
   real(kind=fPrec) function tan_mb(arg)
@@ -166,13 +164,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     tan_mb=tan(arg)
-+ei
-+if crlibm
+#else
     tan_mb=tan_rn(arg)
-+ei
+#endif
   end function tan_mb
   
   real(kind=fPrec) function atan_mb(arg)
@@ -180,13 +177,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     atan_mb=atan(arg)
-+ei
-+if crlibm
+#else
     atan_mb=atan_rn(arg)
-+ei
+#endif
   end function atan_mb
   
   real(kind=fPrec) function atan2_mb(y,x)
@@ -194,13 +190,12 @@ contains
     real(kind=fPrec) y,x
     intent(in) y,x
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     atan2_mb=atan2(y,x)
-+ei
-+if crlibm
+#else
     atan2_mb=atan2_rn(y,x)
-+ei
+#endif
   end function atan2_mb
 
   real(kind=fPrec) function exp_mb(arg)
@@ -208,13 +203,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     exp_mb=exp(arg)
-+ei
-+if crlibm
+#else
     exp_mb=exp_rn(arg)
-+ei
+#endif
   end function exp_mb
 
   real(kind=fPrec) function log_mb(arg)
@@ -222,13 +216,12 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     log_mb=log(arg)
-+ei
-+if crlibm
+#else
     log_mb=log_rn(arg)
-+ei
+#endif
   end function log_mb
 
   real(kind=fPrec) function log10_mb(arg)
@@ -236,16 +229,15 @@ contains
     real(kind=fPrec) arg
     intent(in) arg
     
-+if .not.crlibm
+#ifndef CRLIBM
     !Input KIND = output KIND
     log10_mb=log10(arg)
-+ei
-+if crlibm
+#else
     log10_mb=log10_rn(arg)
-+ei
+#endif
   end function log10_mb
   
-+if crlibm
+#ifdef CRLIBM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Functions moved from sixtrack.s, wrapping parts of crlibm !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -320,6 +312,6 @@ contains
        endif
     endif
   end function atan2_rn
-+ei
+#endif
 
 end module mathlib_bouncer

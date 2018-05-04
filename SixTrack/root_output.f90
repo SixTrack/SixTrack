@@ -1,5 +1,3 @@
-+dk root_output
-
 module root_output
   use, intrinsic :: iso_c_binding
   use crcoall

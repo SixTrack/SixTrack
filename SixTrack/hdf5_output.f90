@@ -20,10 +20,12 @@ module hdf5_output
   implicit none
   
   ! Common Settings
-  logical,      public,  save :: h5_isActive, h5_debugOn ! Main module switches
-  logical,      private, save :: h5_doTruncate           ! Whether or not to truncate previous file if exists
-  type(string), private, save :: h5_fileName             ! The HDF5 output file name
-  type(string), private, save :: h5_rootPath             ! The root group where the data for this session is stored
+  logical,      public,  save :: h5_isActive    ! Existence of the HDF5 block
+  logical,      public,  save :: h5_debugOn     ! HDF5 debug flag present
+  logical,      public,  save :: h5_isReady     ! HDF5 file is open and ready for input
+  logical,      private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
+  type(string), private, save :: h5_fileName    ! The HDF5 output file name
+  type(string), private, save :: h5_rootPath    ! The root group where the data for this session is stored
   
   ! Input Block Switches
   logical, public, save :: h5_useForCOLL
@@ -47,6 +49,35 @@ module hdf5_output
   character(len=7),  parameter :: h5_scatGroup = "scatter"
   
 contains
+
+! ================================================================================================ !
+!  Set Initial Values
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-20
+! ================================================================================================ !
+subroutine h5_comnul
+  
+  h5_isActive   = .false.
+  h5_debugOn    = .false.
+  h5_isReady    = .false.
+  h5_doTruncate = .false.
+  h5_fileName   = string("")
+  h5_rootPath   = string("")
+  
+  h5_useForCOLL = .false.
+  h5_useForDUMP = .false.
+  h5_useForSCAT = .false.
+  
+  h5_fileError  = 0
+  h5_fileIsOpen = .false.
+  
+  h5_fileID     = 0
+  h5_rootID     = 0
+  h5_collID     = 0
+  h5_dumpID     = 0
+  h5_scatID     = 0
+  
+end subroutine h5_comnul
 
 ! ================================================================================================ !
 !  HDF5 Initialisation
@@ -80,6 +111,8 @@ subroutine h5_openFile()
   
   integer accessFlag
   
+  if(.not. h5_isActive) return
+  
   if(h5_doTruncate) then
     accessFlag = H5F_ACC_TRUNC_F
     if(h5_debugOn) then
@@ -109,6 +142,8 @@ subroutine h5_openFile()
     h5_rootID = h5_fileID
   end if
   
+  h5_isReady = .true.
+  
 end subroutine h5_openFile
 
 ! ================================================================================================ !
@@ -121,6 +156,8 @@ subroutine h5_closeHDF5()
   use end_sixtrack
   
   implicit none
+  
+  if(.not. h5_isReady) return
   
   call h5fclose_f(h5_fileID, h5_fileError)
   if(h5_fileError == -1) then
@@ -135,7 +172,7 @@ subroutine h5_closeHDF5()
   end if
   
   write(lout,"(a)") "HDF5> Closed HDF5 file."
-    
+  
 end subroutine h5_closeHDF5
 
 ! ================================================================================================ !
@@ -147,7 +184,7 @@ subroutine h5_initForScatter()
   
   call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
   if(h5_fileError == -1) then
-    write(lout,"(3a)") "HDF5> ERROR Failed to create scatter group '",h5_scatGroup,"'."
+    write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
@@ -180,10 +217,16 @@ subroutine h5_parseInputLine(inLine)
   
   if(nSplit == 0) then
     if(h5_debugOn) then
-      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'."
+      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'."
       write (lout,"(a)")      "HDF5> DEBUG  * No fields found."
     end if
     return
+  end if
+  
+  ! Report if debugging is ON
+  if(h5_debugOn) then
+    write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'."
+    write (lout,"(a,i2,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
   end if
   
   select case(lnSplit(1)%chr)
@@ -204,7 +247,7 @@ subroutine h5_parseInputLine(inLine)
       h5_doTruncate = .false.
     end if
     h5_fileName = str_stripQuotes(lnSplit(2))
-    write(lout, "(3a)") "HDF5> Output file name set to: '",h5_fileName%chr,"'."
+    write(lout, "(a)") "HDF5> Output file name set to: '"//h5_fileName//"'."
   
   case("ROOT")
     if(nSplit /= 2) then
@@ -220,7 +263,7 @@ subroutine h5_parseInputLine(inLine)
       call prror(-1)
     end if
     h5_rootPath = str_stripQuotes(lnSplit(2))
-    write(lout, "(3a)") "HDF5> Root group set to: '",h5_rootPath%chr,"'."
+    write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
   
   case("ENABLE")
   
@@ -242,27 +285,17 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(3a)") "HDF5> HDF5 is enabled for DUMP."
     case("SCAT")
       h5_useForSCAT = .true.
-      write(lout,"(3a)") "HDF5> HDF5 is enabled for SCATTER."
+      write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
     case default
-      write(lout,"(3a)") "HDF5> ERROR HDF5 is not available for ",lnSplit(2)%chr(1:4)," blocks."
+      write(lout,"(a)") "HDF5> ERROR HDF5 is not available for "//lnSplit(2)%chr(1:4)//" blocks."
       call prror(-1)
     end select
   
   case default
-    write(lout,"(3a)") "HDF5> ERROR Unrecognised statement '",lnSplit(1)%chr,"'."
+    write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
     call prror(-1)
   
   end select
-  
-#ifdef HDF5
-    write(lout,"(a)") "HDF5> Hello Kitty!!"
-#endif
-  
-  ! Report if debugging is ON
-  if(h5_debugOn) then
-    write (lout,"(a,i3,3a)")  "HDF5> DEBUG Input line len=",len(inLine%chr),": '",chr_trim(inLine%chr),"'."
-    write (lout,"(a,i2,3a)") ("HDF5> DEBUG  * Field(",i,") = '",lnSplit(i)%chr,"'",i=1,nSplit)
-  end if
   
 end subroutine h5_parseInputLine
 

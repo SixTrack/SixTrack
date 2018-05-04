@@ -24,7 +24,7 @@ module dump
   use end_sixtrack
   use parpro ! For nele
   use mod_alloc
-  use string_tools, only : getfields_l_max_string
+  use string_tools, only : str_maxLen
 
   implicit none
 
@@ -46,7 +46,7 @@ module dump
   ! Flag the format of the dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
-  character(len=:), allocatable, save :: dump_fname(:) !(getfields_l_max_string)(-1:nele)
+  character(len=:), allocatable, save :: dump_fname(:) !(str_maxLen)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -73,11 +73,8 @@ subroutine dump_allocate_arrays
   implicit none
   integer :: stat
 
-  integer :: j
-  character(len=getfields_l_max_string) :: defaultstring
-  do j=1,getfields_l_max_string
-    defaultstring(j:j) = char(0)
-  end do
+  character(len=str_maxLen) :: defaultstring
+  defaultstring = repeat(char(0),str_maxLen)
 
 !  allocate(ldump(-1:nele), ndumpt(-1:nele), dumpfirst(-1:nele), dumplast(-1:nele), &
 !       dumpunit(-1:nele), dumpfmt(-1:nele), dump_fname(-1:nele), STAT=stat)
@@ -91,7 +88,7 @@ subroutine dump_allocate_arrays
   call alloc(dumplast,nele,0,'dumplast',-1)
   call alloc(dumpunit,nele,0,'dumpunit',-1)
   call alloc(dumpfmt,nele,0,'dumpfmt',-1)
-  call alloc(dump_fname,getfields_l_max_string,nele,defaultstring,'dump_fname',-1)
+  call alloc(dump_fname,str_maxLen,nele,defaultstring,'dump_fname',-1)
 
 +if cr
   call alloc(dumpfilepos,nele,0,'dumpfilepos',-1)
@@ -109,12 +106,8 @@ subroutine dump_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
 
-  integer :: j
-  character(len=getfields_l_max_string) :: defaultstring
-
-  do j=1,getfields_l_max_string
-    defaultstring(j:j) = char(0)
-  end do
+  character(len=str_maxLen) :: defaultstring
+  defaultstring = repeat(char(0),str_maxLen)
 
   call resize(ldump,nele_new,.FALSE.,'ldump',-1)
   call resize(ndumpt,nele_new,0,'ndumpt',-1)
@@ -122,7 +115,7 @@ subroutine dump_expand_arrays(nele_new)
   call resize(dumplast,nele_new,0,'dumplast',-1)
   call resize(dumpunit,nele_new,0,'dumpunit',-1)
   call resize(dumpfmt,nele_new,0,'dumpfmt',-1)
-  call resize(dump_fname,getfields_l_max_string,nele_new,defaultstring,'dump_fname',-1)
+  call resize(dump_fname,str_maxLen,nele_new,defaultstring,'dump_fname',-1)
 
 +if cr
   call resize(dumpfilepos,nele_new,0,'dumpfilepos',-1)
@@ -208,7 +201,7 @@ subroutine dump_parseInputLine(ch)
   implicit none
   
   character(len=*), intent(in) :: ch
-  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+  character getfields_fields(getfields_n_max_fields)*(str_maxLen) ! Array of fields
   integer   getfields_nfields                                                 ! Number of identified fields
   integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
   logical   getfields_lerr                                                    ! An error flag
@@ -217,7 +210,7 @@ subroutine dump_parseInputLine(ch)
   character(len=max_name_len) idat ! Synchronized with daten
   integer i1,i2,i3,i4,i5,kk,j
   
-  character(len=getfields_l_max_string) ch1
+  character(len=str_maxLen) ch1
   
   ! initialise reading variables, to avoid storing nonsense values
   idat = ' ' ! Name
@@ -340,13 +333,14 @@ subroutine dump_parseInputLine(ch)
   ndumpt(j)    = i1
   dumpunit(j)  = i2
   dumpfmt(j)   = i3
+  dump_fname(j) = repeat(char(0),str_maxLen) ! Zero the file name first, as there is a bug in mod_alloc
   dump_fname(j)(1:getfields_lfields(5)) = ch1(1:getfields_lfields(5))
   dumpfirst(j) = i4
   dumplast(j)  = i5
 
   if(ndumpt(j)   <=  0) ndumpt(j)=1
   if(dumpunit(j) == -1) then
-    call requestFileUnit(dump_fname(j),dumpunit(j))
+    call funit_requestUnit(dump_fname(j),dumpunit(j))
   end if
   
   return
@@ -364,7 +358,7 @@ subroutine dump_parseInputDone
 
   ! Temp variables
   integer ii,jj,kk
-  character(len=getfields_l_max_string) ch1
+  character(len=str_maxLen) ch1
   
   ! HEADER
   write(lout,10460) "DUMP"
@@ -1187,7 +1181,7 @@ subroutine dump_comnul
   
   implicit none
   
-  integer i1,i2,i3,i,j
+  integer i1,i2,i3,i
   
   ldumphighprec = .false.
   ldumpfront    = .false.
@@ -1208,9 +1202,6 @@ subroutine dump_comnul
     dumplast(i)  = 0
     dumpunit(i) = 0
     dumpfmt(i)  = 0
-    do j=1,getfields_l_max_string
-      dump_fname(i)(j:j) = char(0)
-    end do
 +if cr
     dumpfilepos(i) = -1
 +ei

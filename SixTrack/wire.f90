@@ -1,5 +1,3 @@
-+dk wiremodule
-
 module wire
   use floatPrecision
   use parpro, only : nele, nblz
