@@ -96,18 +96,28 @@ module hdf5_output
   integer,                       private, save :: h5_fmtCount
   
   interface h5_writeData
-    module procedure h5_writeData_real32
-    module procedure h5_writeData_real64
-    module procedure h5_writeData_real128
-    module procedure h5_writeData_int
-    module procedure h5_writeData_char
+    module procedure h5_writeArray_real32
+    module procedure h5_writeValue_real32
+    module procedure h5_writeArray_real64
+    module procedure h5_writeValue_real64
+    module procedure h5_writeArray_real128
+    module procedure h5_writeValue_real128
+    module procedure h5_writeArray_int
+    module procedure h5_writeValue_int
+    module procedure h5_writeArray_char
+    module procedure h5_writeValue_char
   end interface h5_writeData
   
-  private :: h5_writeData_real32
-  private :: h5_writeData_real64
-  private :: h5_writeData_real128
-  private :: h5_writeData_int
-  private :: h5_writeData_char
+  private :: h5_writeArray_real32
+  private :: h5_writeValue_real32
+  private :: h5_writeArray_real64
+  private :: h5_writeValue_real64
+  private :: h5_writeArray_real128
+  private :: h5_writeValue_real128
+  private :: h5_writeArray_int
+  private :: h5_writeValue_int
+  private :: h5_writeArray_char
+  private :: h5_writeValue_char
   
 contains
 
@@ -652,12 +662,12 @@ end subroutine h5_prepareWrite
 ! ================================================================================================ !
 
 ! ================================================================================================ !
-!  Single Precision Arrays
+!  Single Precision Arrays and Single Values
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-04
+!  Last Modified: 2018-05-07
 !  Converted to double when file double precision is required.
 ! ================================================================================================ !
-subroutine h5_writeData_real32(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_real32(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
   integer,           intent(in)    :: colID
@@ -681,15 +691,46 @@ subroutine h5_writeData_real32(dataSet, colID, arrSize, arrData)
       xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
   end if
   
-end subroutine h5_writeData_real32
+end subroutine h5_writeArray_real32
+
+subroutine h5_writeValue_real32(dataSet, colID, arrSize, valData)
+  
+  type(h5_dataSet),  intent(inout) :: dataSet
+  integer,           intent(in)    :: colID
+  integer,           intent(in)    :: arrSize
+  real(kind=real32), intent(in)    :: valData
+  
+  real(kind=real32), allocatable   :: arrSaveS(:)
+  real(kind=real64), allocatable   :: arrSaveD(:)
+  integer(HID_T)                   :: dtypeID
+  integer(HSIZE_T)                 :: h5_arrSize(1)
+  
+  h5_arrSize(1) = arrSize
+  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  
+  if(h5_useDouble) then
+    allocate(arrSaveD(arrSize))
+    arrSaveD(:) = real(valData, kind=real64)
+    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(arrSize))
+    arrSaveS(:) = real(valData, kind=real32)
+    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveS)
+  end if
+  
+end subroutine h5_writeValue_real32
 
 ! ================================================================================================ !
-!  Double Precision Arrays
+!  Double Precision Arrays and Single Values
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-04
+!  Last Modified: 2018-05-07
 !  Converted to single when file single precision is required.
 ! ================================================================================================ !
-subroutine h5_writeData_real64(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_real64(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
   integer,           intent(in)    :: colID
@@ -713,15 +754,46 @@ subroutine h5_writeData_real64(dataSet, colID, arrSize, arrData)
     deallocate(arrSave)
   end if
   
-end subroutine h5_writeData_real64
+end subroutine h5_writeArray_real64
+
+subroutine h5_writeValue_real64(dataSet, colID, arrSize, valData)
+
+  type(h5_dataSet),  intent(inout) :: dataSet
+  integer,           intent(in)    :: colID
+  integer,           intent(in)    :: arrSize
+  real(kind=real64), intent(in)    :: valData
+  
+  real(kind=real32), allocatable   :: arrSaveS(:)
+  real(kind=real64), allocatable   :: arrSaveD(:)
+  integer(HID_T)                   :: dtypeID
+  integer(HSIZE_T)                 :: h5_arrSize(1)
+  
+  h5_arrSize(1) = arrSize
+  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  
+  if(h5_useDouble) then
+    allocate(arrSaveD(arrSize))
+    arrSaveD(:) = real(valData, kind=real64)
+    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(arrSize))
+    arrSaveS(:) = real(valData, kind=real32)
+    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveS)
+  end if
+  
+end subroutine h5_writeValue_real64
 
 ! ================================================================================================ !
-!  Quad Precision Arrays
+!  Quad Precision Arrays and Single Values
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-04
+!  Last Modified: 2018-05-07
 !  Converted to double or single depending on file precision.
 ! ================================================================================================ !
-subroutine h5_writeData_real128(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_real128(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),   intent(inout) :: dataSet
   integer,            intent(in)    :: colID
@@ -748,15 +820,46 @@ subroutine h5_writeData_real128(dataSet, colID, arrSize, arrData)
     deallocate(arrSaveS)
   end if
   
-end subroutine h5_writeData_real128
+end subroutine h5_writeArray_real128
+
+subroutine h5_writeValue_real128(dataSet, colID, arrSize, valData)
+
+  type(h5_dataSet),   intent(inout) :: dataSet
+  integer,            intent(in)    :: colID
+  integer,            intent(in)    :: arrSize
+  real(kind=real128), intent(in)    :: valData
+  
+  real(kind=real32),  allocatable   :: arrSaveS(:)
+  real(kind=real64),  allocatable   :: arrSaveD(:)
+  integer(HID_T)                    :: dtypeID
+  integer(HSIZE_T)                  :: h5_arrSize(1)
+  
+  h5_arrSize(1) = arrSize
+  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  
+  if(h5_useDouble) then
+    allocate(arrSaveD(arrSize))
+    arrSaveD(:) = real(valData, kind=real64)
+    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(arrSize))
+    arrSaveS(:) = real(valData, kind=real32)
+    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    deallocate(arrSaveS)
+  end if
+  
+end subroutine h5_writeValue_real128
 
 ! ================================================================================================ !
-!  Integer Arrays
+!  Integer Arrays and Single Values
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-30
+!  Last Modified: 2018-05-07
 !  These are assumed to be the internal integer type, handled by HDF5 NATIVE_INT
 ! ================================================================================================ !
-subroutine h5_writeData_int(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_int(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
   integer,           intent(in)    :: colID
@@ -772,15 +875,35 @@ subroutine h5_writeData_int(dataSet, colID, arrSize, arrData)
   call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
     xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
   
-end subroutine h5_writeData_int
+end subroutine h5_writeArray_int
+
+subroutine h5_writeValue_int(dataSet, colID, arrSize, valData)
+  
+  type(h5_dataSet),  intent(inout) :: dataSet
+  integer,           intent(in)    :: colID
+  integer,           intent(in)    :: arrSize
+  integer,           intent(in)    :: valData
+  
+  integer                          :: arrData(arrSize)
+  integer(HID_T)                   :: dtypeID
+  integer(HSIZE_T)                 :: h5_arrSize(1)
+  
+  h5_arrSize(1) = arrSize
+  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  arrData(:)    = valData
+  
+  call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  
+end subroutine h5_writeValue_int
 
 ! ================================================================================================ !
 !  Character Arrays
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-03
+!  Last Modified: 2018-05-07
 !  Handled as fixed length character arrays
 ! ================================================================================================ !
-subroutine h5_writeData_char(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_char(dataSet, colID, arrSize, arrData)
   
   type(h5_dataSet),  intent(inout) :: dataSet
   integer,           intent(in)    :: colID
@@ -796,7 +919,29 @@ subroutine h5_writeData_char(dataSet, colID, arrSize, arrData)
   call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
     xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
   
-end subroutine h5_writeData_char
+end subroutine h5_writeArray_char
+
+subroutine h5_writeValue_char(dataSet, colID, arrSize, valData)
+  
+  type(h5_dataSet),  intent(inout) :: dataSet
+  integer,           intent(in)    :: colID
+  integer,           intent(in)    :: arrSize
+  character(len=*),  intent(in)    :: valData
+  
+  character(len=:),  allocatable   :: arrData(:)
+  integer(HID_T)                   :: dtypeID
+  integer(HSIZE_T)                 :: h5_arrSize(1)
+  
+  allocate(character(len=len(valData)) :: arrData(arrSize))
+  
+  h5_arrSize(1) = arrSize
+  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  arrData(:)    = valData
+  
+  call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  
+end subroutine h5_writeValue_char
 
 ! ================================================================================================ !
 !  Finalise Writing
