@@ -679,8 +679,8 @@ subroutine dump_initialise
         setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
         setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
         setFields(9)  = h5_dataField(name="KTRACK", type=h5_typeInt)
-        call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        call h5_closeDataSet(dataSet)
+        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
+        ! call h5_closeDataSet(dataSet)
         deallocate(setFields)
         
       case(2)
@@ -697,8 +697,8 @@ subroutine dump_initialise
         setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
         setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
         setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
-        call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        call h5_closeDataSet(dataSet)
+        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
+        ! call h5_closeDataSet(dataSet)
         deallocate(setFields)
         
       case(4)
@@ -714,8 +714,8 @@ subroutine dump_initialise
         setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
         setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
         setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
-        call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        call h5_closeDataSet(dataSet)
+        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
+        ! call h5_closeDataSet(dataSet)
         deallocate(setFields)
         
       case(5)
@@ -758,8 +758,8 @@ subroutine dump_initialise
         setFields(28) = h5_dataField(name="Z^2",       type=h5_typeReal)
         setFields(29) = h5_dataField(name="Z*(dE/E)",  type=h5_typeReal)
         setFields(30) = h5_dataField(name="(dE/E)^2",  type=h5_typeReal)
-        call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        call h5_closeDataSet(dataSet)
+        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
+        ! call h5_closeDataSet(dataSet)
         deallocate(setFields)
         
       end select
@@ -912,20 +912,20 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end if
 #ifdef HDF5
       if(h5_useForDUMP) then
-        call h5_openDataSet(trim(chr_trimZero(dump_fname(ix))), h5_dumpID, dataSet)
-        call h5_prepareWrite(dataSet, napx)
+        ! call h5_openDataSet(trim(chr_trimZero(dump_fname(ix))), h5_dumpID, dataSet)
+        ! call h5_prepareWrite(dataSet, napx)
         ! call h5_writeData(dataSet, 1,  napx, nlostp+(samplenumber-1)*npart)
         ! call h5_writeData(dataSet, 2,  napx, nturn)
         ! call h5_writeData(dataSet, 3,  napx, localDcum)
-        call h5_writeData(dataSet, 4,  napx, xv(1,:))
-        call h5_writeData(dataSet, 5,  napx, yv(1,:))
-        call h5_writeData(dataSet, 6,  napx, xv(2,:))
-        call h5_writeData(dataSet, 7,  napx, yv(2,:))
+        ! call h5_writeData(dataSet, 4,  napx, xv(1,:))
+        ! call h5_writeData(dataSet, 5,  napx, yv(1,:))
+        ! call h5_writeData(dataSet, 6,  napx, xv(2,:))
+        ! call h5_writeData(dataSet, 7,  napx, yv(2,:))
         ! call h5_writeData(dataSet, 8,  napx, sigmv)
         ! call h5_writeData(dataSet, 9,  napx, (ejv-e0)/e0)
         ! call h5_writeData(dataSet, 10, napx, localKtrack)
-        call h5_finaliseWrite(dataSet)
-        call h5_closeDataSet(dataSet)
+        ! call h5_finaliseWrite(dataSet)
+        ! call h5_closeDataSet(dataSet)
       else
 #endif
         if (lhighprec) then
