@@ -84,16 +84,18 @@ module hdf5_output
     character(len=:),   allocatable, public  :: path
     integer,                         private :: format  = 0
     integer(HSIZE_T),                private :: records = 0
+    integer(HID_T),                  private :: groupID = 0
     integer(HID_T),                  private :: dataID  = 0
     integer(HID_T),                  private :: spaceID = 0
     integer(HID_T),                  private :: memID   = 0
     integer(HID_T),                  private :: propID  = 0
-   !type(h5_dataField), allocatable, public  :: fields(:)
   end type h5_dataSet
   
   ! Storage Arrays
   type(h5_dataFmt), allocatable, private, save :: h5_fmtList(:)
   integer,                       private, save :: h5_fmtCount
+  type(h5_dataSet), allocatable, private, save :: h5_setList(:)
+  integer,                       private, save :: h5_setCount
   
   interface h5_writeData
     module procedure h5_writeArray_real32
@@ -153,6 +155,7 @@ subroutine h5_comnul
   h5_scatID     = 0
   
   h5_fmtCount   = 0
+  h5_setCount   = 0
   
 end subroutine h5_comnul
 
@@ -415,10 +418,11 @@ end subroutine h5_createFormat
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-30
 ! ================================================================================================ !
-subroutine h5_createDataSet(setName, groupID, formatID, dataSet, chunckSize)
+subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   
   use mod_alloc
   use end_sixtrack
+  use string_tools
   
   implicit none
   
@@ -426,40 +430,38 @@ subroutine h5_createDataSet(setName, groupID, formatID, dataSet, chunckSize)
   character(len=*),           intent(in)  :: setName
   integer(HID_T),             intent(in)  :: groupID
   integer,                    intent(in)  :: formatID
-  type(h5_dataSet),           intent(out) :: dataSet
+  integer,                    intent(out) :: setID
   integer,          optional, intent(in)  :: chunckSize
   
-  ! Internal Variables
-  ! integer(HID_T),   allocatable :: fieldType(:)
-  ! integer(HSIZE_T), allocatable :: fieldSize(:)
+  type(h5_dataSet), allocatable :: tmpSets(:)
+  character(len=:), allocatable :: cleanName
   
   integer(HSIZE_T) :: spaceSize(1)
   integer(HSIZE_T) :: spaceMaxSize(1)
-  ! integer(HSIZE_T) :: memOffset, tmpOffset
-  ! integer(HSIZE_T) :: memSize, tmpSize
-  
   integer(HID_T)   :: spaceID, dtypeID, dataID, propID
   
-  ! ***** Routine Code *****
+  ! First, extend the h5_setList array
+  if(allocated(h5_setList) .eqv. .false.) then
+    allocate(h5_setList(1))
+    h5_setCount = 1
+  else
+    allocate(tmpSets(h5_setCount + 1))
+    tmpSets(1:h5_setCount) = h5_setList(1:h5_setCount)
+    h5_setCount = h5_setCount + 1
+    call move_alloc(tmpSets, h5_setList)
+  end if
   
+  ! Determine the chuncking
   if(present(chunckSize)) then
     spaceSize(1) = int(chunckSize,kind=HSIZE_T)
   else
     spaceSize(1) = h5_defChunk
   end if
   spaceMaxSize(1) = H5S_UNLIMITED_F
-  
-  ! memOffset = 0
-  ! tmpOffset = 0
-  ! memSize   = 0
-  ! tmpSize   = 0
+  cleanName       = chr_strip(chr_trimZero(setName))
   
   if(h5_debugOn) then
-    write(lout,"(a)") "HDF5> DEBUG Creating dataset '"//setName//"'"
-    write(lout,"(a,i0)") "HDF5> H5T_NATIVE_INTEGER   = ",H5T_NATIVE_INTEGER
-    write(lout,"(a,i0)") "HDF5> H5T_NATIVE_REAL      = ",H5T_NATIVE_REAL
-    write(lout,"(a,i0)") "HDF5> H5T_NATIVE_DOUBLE    = ",H5T_NATIVE_DOUBLE
-    write(lout,"(a,i0)") "HDF5> H5T_NATIVE_CHARACTER = ",H5T_NATIVE_CHARACTER
+    write(lout,"(a)") "HDF5> DEBUG Creating dataset '"//cleanName//"'"
   end if
   
   ! Create a 1 by chunckSize DataSpace with a 1 by inf max size
@@ -469,7 +471,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, dataSet, chunckSize)
   call h5pcreate_f(H5P_DATASET_CREATE_F, propID, h5_dataError)
   call h5pset_chunk_f(propID, 1, spaceSize, h5_dataError)
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR: Failed to set chunck size for '"//setName//"'"
+    write(lout,"(a)") "HDF5> ERROR: Failed to set chunck size for '"//cleanName//"'"
     call prror(-1)
   end if
   if(h5_gzipLevel > -1) then
@@ -478,145 +480,28 @@ subroutine h5_createDataSet(setName, groupID, formatID, dataSet, chunckSize)
   
   ! Create the DataSet in-file
   dtypeID = h5_fmtList(formatID)%dtypeID
-  call h5dcreate_f(groupID, setName, dtypeID, spaceID, dataID, h5_dataError, propID)
+  call h5dcreate_f(groupID, cleanName, dtypeID, spaceID, dataID, h5_dataError, propID)
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR: Failed to create dataset '"//setName//"'"
+    write(lout,"(a)") "HDF5> ERROR: Failed to create dataset '"//cleanName//"'"
     call prror(-1)
   end if
   
   call h5sclose_f(spaceID, h5_dataError)
+  call h5dclose_f(dataID, h5_dataError)
   
-  dataSet%name    = setName
-  dataSet%path    = ""
-  dataSet%format  = formatID
-  dataSet%records = 0
-  dataSet%dataID  = dataID
-  dataSet%spaceID = 0
-  dataSet%memID   = 0
- !dataSet%dtypeID = dtypeID
-  dataSet%propID  = propID
- !dataSet%fields  = setFields
+  h5_setList(h5_setCount)%name    = cleanName
+  h5_setList(h5_setCount)%path    = ""
+  h5_setList(h5_setCount)%format  = formatID
+  h5_setList(h5_setCount)%records = 0
+  h5_setList(h5_setCount)%groupID = groupID
+  h5_setList(h5_setCount)%dataID  = 0
+  h5_setList(h5_setCount)%spaceID = 0
+  h5_setList(h5_setCount)%memID   = 0
+  h5_setList(h5_setCount)%propID  = propID
   
-  ! Clean up
-  ! deallocate(fieldType)
-  ! deallocate(fieldSize)
+  setID = h5_setCount
   
 end subroutine h5_createDataSet
-
-! ================================================================================================ !
-!  Open DataSet
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-04
-! ================================================================================================ !
-subroutine h5_openDataSet(setName, groupID, formatID, dataSet)
-  
-  use end_sixtrack
-  
-  character(len=*),   intent(in)  :: setName
-  integer(HID_T),     intent(in)  :: groupID
-  integer,            intent(in)  :: formatID
-  type(h5_dataSet),   intent(out) :: dataSet
-  
-  ! type(h5_dataField), allocatable :: setFields(:)
-  ! integer(HID_T),     allocatable :: fieldType(:)
-  ! integer(HSIZE_T),   allocatable :: fieldSize(:)
-  
-  integer(HID_T)   :: dataID, dtypeID, tmpTypeID, tmpNativeID !, elemID
-  integer(HSIZE_T) :: memSize, elemSize
-  
-  integer i, nameLen, dtClass, nTypes, tmpClassID
-  ! character(len=:), allocatable :: elemName
-  
-  dtypeID = h5_fmtList(formatID)%dtypeID
-  
-  call h5dopen_f(groupID, setName, dataID, h5_dataError)
-  call h5dget_type_f(dataID, dtypeID, h5_dataError)
-  ! call h5topen_f(groupID, dataSet%dtname, dtypeID, h5_dataError)
-  
-  ! call h5tget_class_f(dtypeID, dtClass, h5_dataError)
-  ! if(dtClass == H5T_COMPOUND_F) then
-  !   call h5tget_size_f(dtypeID, memSize, h5_dataError)
-  !   call h5tget_nmembers_f(dtypeID, nTypes, h5_dataError)
-  !   if(h5_debugOn) then
-  !     write(lout,"(a)")      "HDF5> DEBUG Parsing data types of dataset '"//setName//"'"
-  !     write(lout,"(a,i0,a)") "HDF5> DEBUG   Memory size is: ",memSize," bytes"
-  !     write(lout,"(a,i0,a)") "HDF5> DEBUG   Data Type has:  ",nTypes," elements"
-  !   end if
-    
-  !   ! allocate(fieldType(nTypes))
-  !   ! allocate(fieldSize(nTypes))
-  !   allocate(setFields(nTypes))
-    
-  !   do i=1,nTypes
-  !     ! call h5tget_member_name_f(dtypeID, i-1, elemName,   nameLen, h5_dataError)
-  !     call h5tget_member_type_f(dtypeID, i-1, tmpTypeID, h5_dataError)
-  !     call h5tget_class_f(tmpTypeID, tmpClassID, h5_dataError)
-  !     call h5tget_size_f(tmpTypeID, elemSize, h5_dataError)
-  !     ! call h5tcopy_f(tmpTypeID, setFields(i)%typeID, h5_dataError)
-  !     ! call h5tget_super_f(tmpTypeID, tmpNativeID, h5_dataError)
-  !     ! call h5tget_native_type_f(tmpTypeID, H5T_DIR_ASCEND_F, tmpNativeID, h5_dataError)
-  !     ! call h5tget_member_offset_f(dtypeID, i-1, elemSize, h5_dataError)
-  !     if(h5_debugOn) then
-  !       ! write(lout,"(a,i3,a)") "HDF5> DEBUG     Element(",i,") = '"//elemName//"'"
-  !       write(lout,"(a,i3,a,i0)") "HDF5> DEBUG     Element(",i,") of size        ",elemSize
-  !       write(lout,"(a,i3,a,i0)") "HDF5> DEBUG     Element(",i,") of file type   ",tmpTypeID
-  !       write(lout,"(a,i3,a,i0)") "HDF5> DEBUG     Element(",i,") of class type  ",tmpClassID
-  !       ! write(lout,"(a,i3,a,i0)") "HDF5> DEBUG     Element(",i,") of native type ",tmpNativeID
-  !     end if
-  !     call h5tclose_f(tmpTypeID, h5_dataError)
-  !   end do
-  ! else
-  !   write(lout,"(a)") "HDF5> ERROR Non-compound dataset encountered."
-  !   write(lout,"(a)") "HDF5>       Only compound datasets are used by SixTrack."
-  !   call prror(-1)
-  ! end if
-  
-  dataSet%name    = setName
-  dataSet%path    = ""
-  dataSet%format  = formatID
-  dataSet%records = 0
-  dataSet%dataID  = dataID
-  dataSet%spaceID = 0
-  dataSet%memID   = 0
- !dataSet%dtypeID = dtypeID
-  dataSet%propID  = 0
- !dataSet%fields  = setFields
-  
-  ! deallocate(fieldType)
-  ! deallocate(fieldSize)
-  
-end subroutine h5_openDataSet
-
-! ================================================================================================ !
-!  Close DataSet
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-30
-! ================================================================================================ !
-subroutine h5_closeDataSet(dataSet)
-  
-  type(h5_dataSet), intent(inout) :: dataSet
-  
-  integer i
-  
-  if(h5_debugOn) then
-    write(lout,"(a)") "HDF5> DEBUG Closing dataset '"//dataSet%name//"'"
-  end if
-  
-  if(dataSet%spaceID /= 0) call h5sclose_f(dataSet%spaceID, h5_dataError)
-  if(dataSet%memID   /= 0) call h5sclose_f(dataSet%memID,   h5_dataError)
- !if(dataSet%dtypeID /= 0) call h5tclose_f(dataSet%dtypeID, h5_dataError)
-  if(dataSet%dataID  /= 0) call h5dclose_f(dataSet%dataID,  h5_dataError)
-  if(dataSet%propID  /= 0) call h5pclose_f(dataSet%propID,  h5_dataError)
-  ! do i=1,size(dataSet%fields)
-  !   if(dataSet%fields(i)%typeID /= 0) call h5tclose_f(dataSet%fields(i)%typeID, h5_dataError)
-  ! end do
-  
-  if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> WARNING: Error encountered while closing dataset '"//dataSet%name//"'"
-    call prror(-1)
-  end if
-    
-end subroutine h5_closeDataSet
 
 ! ================================================================================================ !
 !  BEGIN WRITING TO DATASETS
@@ -625,39 +510,73 @@ end subroutine h5_closeDataSet
 ! ================================================================================================ !
 !  Prepare to Write
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-03
+!  Last Modified: 2018-05-07
 !  Creates the necessary memory and file space for writing a appendSize chunck of data.
 ! ================================================================================================ !
-subroutine h5_prepareWrite(dataSet, appendSize)
+subroutine h5_prepareWrite(setID, appendSize)
   
-  type(h5_dataSet), intent(inout) :: dataSet
-  integer,          intent(in)    :: appendSize
+  use end_sixtrack
   
-  integer(HID_T)   :: spaceID, memID
+  integer, intent(in) :: setID
+  integer, intent(in) :: appendSize
+  
+  integer(HID_T)   :: groupID, dataID, propID, spaceID, memID
   
   integer(HSIZE_T) :: oldSize(1)
   integer(HSIZE_T) :: addSize(1)
   integer(HSIZE_T) :: newSize(1)
   
-  oldSize(1) = dataSet%records
+  oldSize(1) = h5_setList(setID)%records
   addSize(1) = int(appendSize,kind=HSIZE_T)
   newSize(1) = oldSize(1) + addSize(1)
   
-  call h5dextend_f(dataSet%dataID, newSize, h5_dataError)
-  call h5dget_space_f(dataSet%dataID, spaceID, h5_dataError)
+  groupID = h5_setList(setID)%groupID
+  propID  = h5_setList(setID)%propID
+  
+  call h5dopen_f(groupID, h5_setList(setID)%name, dataID, h5_dataError)
+  call h5dextend_f(dataID, newSize, h5_dataError)
+  call h5dget_space_f(dataID, spaceID, h5_dataError)
   call h5sselect_hyperslab_f(spaceID, H5S_SELECT_SET_F, oldSize, addSize, h5_dataError) 
   call h5screate_simple_f(1, addSize, memID, h5_dataError)
   
-  dataSet%records = newSize(1)
-  dataSet%spaceID = spaceID
-  dataSet%memID   = memID
+  if(h5_dataError /= 0) then
+    write(lout,"(a)") "HDF5> ERROR: Failed to extend dataset '"//h5_setList(setID)%name//"'"
+    call prror(-1)
+  end if
+  
+  h5_setList(setID)%records = newSize(1)
+  h5_setList(setID)%dataID  = dataID
+  h5_setList(setID)%spaceID = spaceID
+  h5_setList(setID)%memID   = memID
   
 end subroutine h5_prepareWrite
 
 ! ================================================================================================ !
+!  Finalise Writing
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-07
+!  Properly closes the file and memory dataspace.
+!  This should always be called after writng a new chunck of data to prevent memory leaks during
+!  executuion. Everything is properly cleaned up and closed at the end though with closeHDF5.
+! ================================================================================================ !
+subroutine h5_finaliseWrite(setID)
+  
+  integer, intent(in) :: setID
+  
+  call h5dclose_f(h5_setList(setID)%dataID,  h5_dataError)
+  call h5sclose_f(h5_setList(setID)%spaceID, h5_dataError)
+  call h5sclose_f(h5_setList(setID)%memID,   h5_dataError)
+  
+  h5_setList(setID)%dataID  = 0
+  h5_setList(setID)%spaceID = 0
+  h5_setList(setID)%memID   = 0
+  
+end subroutine h5_finaliseWrite
+
+! ================================================================================================ !
 !  Interfaced Write Routines
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-04
+!  Last Modified: 2018-05-07
 !  Handles writing of the differrent datatypes
 ! ================================================================================================ !
 
@@ -667,58 +586,58 @@ end subroutine h5_prepareWrite
 !  Last Modified: 2018-05-07
 !  Converted to double when file double precision is required.
 ! ================================================================================================ !
-subroutine h5_writeArray_real32(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_real32(setID, colID, arrSize, arrData)
   
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  real(kind=real32), intent(in)    :: arrData(arrSize)
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  real(kind=real32), intent(in)  :: arrData(arrSize)
   
-  real(kind=real64), allocatable   :: arrSave(:)
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  real(kind=real64), allocatable :: arrSave(:)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSave(arrSize), source=real(arrData, kind=real64))
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSave)
   else
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
   end if
   
 end subroutine h5_writeArray_real32
 
-subroutine h5_writeValue_real32(dataSet, colID, arrSize, valData)
+subroutine h5_writeValue_real32(setID, colID, arrSize, valData)
   
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  real(kind=real32), intent(in)    :: valData
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  real(kind=real32), intent(in)  :: valData
   
-  real(kind=real32), allocatable   :: arrSaveS(:)
-  real(kind=real64), allocatable   :: arrSaveD(:)
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  real(kind=real32), allocatable :: arrSaveS(:)
+  real(kind=real64), allocatable :: arrSaveD(:)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize))
     arrSaveS(:) = real(valData, kind=real32)
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveS)
   end if
   
@@ -730,58 +649,58 @@ end subroutine h5_writeValue_real32
 !  Last Modified: 2018-05-07
 !  Converted to single when file single precision is required.
 ! ================================================================================================ !
-subroutine h5_writeArray_real64(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_real64(setID, colID, arrSize, arrData)
   
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  real(kind=real64), intent(in)    :: arrData(arrSize)
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  real(kind=real64), intent(in)  :: arrData(arrSize)
   
-  real(kind=real32), allocatable   :: arrSave(:)
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  real(kind=real32), allocatable :: arrSave(:)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
   if(h5_useDouble) then
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
   else
     allocate(arrSave(arrSize), source=real(arrData, kind=real32))
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSave)
   end if
   
 end subroutine h5_writeArray_real64
 
-subroutine h5_writeValue_real64(dataSet, colID, arrSize, valData)
+subroutine h5_writeValue_real64(setID, colID, arrSize, valData)
 
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  real(kind=real64), intent(in)    :: valData
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  real(kind=real64), intent(in)  :: valData
   
-  real(kind=real32), allocatable   :: arrSaveS(:)
-  real(kind=real64), allocatable   :: arrSaveD(:)
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  real(kind=real32), allocatable :: arrSaveS(:)
+  real(kind=real64), allocatable :: arrSaveD(:)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize))
     arrSaveS(:) = real(valData, kind=real32)
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveS)
   end if
   
@@ -793,61 +712,61 @@ end subroutine h5_writeValue_real64
 !  Last Modified: 2018-05-07
 !  Converted to double or single depending on file precision.
 ! ================================================================================================ !
-subroutine h5_writeArray_real128(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_real128(setID, colID, arrSize, arrData)
   
-  type(h5_dataSet),   intent(inout) :: dataSet
-  integer,            intent(in)    :: colID
-  integer,            intent(in)    :: arrSize
-  real(kind=real128), intent(in)    :: arrData(arrSize)
+  integer,            intent(in)  :: setID
+  integer,            intent(in)  :: colID
+  integer,            intent(in)  :: arrSize
+  real(kind=real128), intent(in)  :: arrData(arrSize)
   
-  real(kind=real32),  allocatable   :: arrSaveS(:)
-  real(kind=real64),  allocatable   :: arrSaveD(:)
-  integer(HID_T)                    :: dtypeID
-  integer(HSIZE_T)                  :: h5_arrSize(1)
+  real(kind=real32),  allocatable :: arrSaveS(:)
+  real(kind=real64),  allocatable :: arrSaveD(:)
+  integer(HID_T)                  :: dtypeID
+  integer(HSIZE_T)                :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize), source=real(arrData, kind=real64))
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize), source=real(arrData, kind=real32))
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveS)
   end if
   
 end subroutine h5_writeArray_real128
 
-subroutine h5_writeValue_real128(dataSet, colID, arrSize, valData)
+subroutine h5_writeValue_real128(setID, colID, arrSize, valData)
 
-  type(h5_dataSet),   intent(inout) :: dataSet
-  integer,            intent(in)    :: colID
-  integer,            intent(in)    :: arrSize
-  real(kind=real128), intent(in)    :: valData
+  integer,            intent(in)  :: setID
+  integer,            intent(in)  :: colID
+  integer,            intent(in)  :: arrSize
+  real(kind=real128), intent(in)  :: valData
   
-  real(kind=real32),  allocatable   :: arrSaveS(:)
-  real(kind=real64),  allocatable   :: arrSaveD(:)
-  integer(HID_T)                    :: dtypeID
-  integer(HSIZE_T)                  :: h5_arrSize(1)
+  real(kind=real32),  allocatable :: arrSaveS(:)
+  real(kind=real64),  allocatable :: arrSaveD(:)
+  integer(HID_T)                  :: dtypeID
+  integer(HSIZE_T)                :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize))
     arrSaveS(:) = real(valData, kind=real32)
-    call h5dwrite_f(dataSet%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
     deallocate(arrSaveS)
   end if
   
@@ -859,41 +778,41 @@ end subroutine h5_writeValue_real128
 !  Last Modified: 2018-05-07
 !  These are assumed to be the internal integer type, handled by HDF5 NATIVE_INT
 ! ================================================================================================ !
-subroutine h5_writeArray_int(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_int(setID, colID, arrSize, arrData)
   
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  integer,           intent(in)    :: arrData(arrSize)
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  integer,           intent(in)  :: arrData(arrSize)
   
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
-  call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
   
 end subroutine h5_writeArray_int
 
-subroutine h5_writeValue_int(dataSet, colID, arrSize, valData)
+subroutine h5_writeValue_int(setID, colID, arrSize, valData)
   
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  integer,           intent(in)    :: valData
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  integer,           intent(in)  :: valData
   
-  integer                          :: arrData(arrSize)
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  integer                        :: arrData(arrSize)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   arrData(:)    = valData
   
-  call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
   
 end subroutine h5_writeValue_int
 
@@ -903,65 +822,45 @@ end subroutine h5_writeValue_int
 !  Last Modified: 2018-05-07
 !  Handled as fixed length character arrays
 ! ================================================================================================ !
-subroutine h5_writeArray_char(dataSet, colID, arrSize, arrData)
+subroutine h5_writeArray_char(setID, colID, arrSize, arrData)
   
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  character(len=*),  intent(in)    :: arrData(arrSize)
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  character(len=*),  intent(in)  :: arrData(arrSize)
   
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   
-  call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
   
 end subroutine h5_writeArray_char
 
-subroutine h5_writeValue_char(dataSet, colID, arrSize, valData)
+subroutine h5_writeValue_char(setID, colID, arrSize, valData)
   
-  type(h5_dataSet),  intent(inout) :: dataSet
-  integer,           intent(in)    :: colID
-  integer,           intent(in)    :: arrSize
-  character(len=*),  intent(in)    :: valData
+  integer,           intent(in)  :: setID
+  integer,           intent(in)  :: colID
+  integer,           intent(in)  :: arrSize
+  character(len=*),  intent(in)  :: valData
   
-  character(len=:),  allocatable   :: arrData(:)
-  integer(HID_T)                   :: dtypeID
-  integer(HSIZE_T)                 :: h5_arrSize(1)
+  character(len=:),  allocatable :: arrData(:)
+  integer(HID_T)                 :: dtypeID
+  integer(HSIZE_T)               :: h5_arrSize(1)
   
   allocate(character(len=len(valData)) :: arrData(arrSize))
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(dataSet%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
   arrData(:)    = valData
   
-  call h5dwrite_f(dataSet%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=dataSet%memID, file_space_id=dataSet%spaceID)
+  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
   
 end subroutine h5_writeValue_char
-
-! ================================================================================================ !
-!  Finalise Writing
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-03
-!  Properly closes the file and memory dataspace.
-!  This should always be called after writng a new chunck of data to prevent memory leaks during
-!  executuion. Everything is properly cleaned up and closed at the end though with closeHDF5.
-! ================================================================================================ !
-subroutine h5_finaliseWrite(dataSet)
-  
-  type(h5_dataSet), intent(inout) :: dataSet
-  
-  call h5sclose_f(dataSet%spaceID, h5_dataError)
-  call h5sclose_f(dataSet%memID,   h5_dataError)
-  
-  dataSet%spaceID = 0
-  dataSet%memID   = 0
-  
-end subroutine h5_finaliseWrite
 
 ! ================================================================================================ !
 !  END WRITING TO DATASETS

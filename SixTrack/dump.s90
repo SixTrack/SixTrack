@@ -51,10 +51,6 @@ module dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
   character(len=:), allocatable, save :: dump_fname(:) !(str_maxLen)(-1:nele)
-! #ifdef HDF5
-!   type(h5_dataSet), allocatable, save :: dump_fHDF5(:)
-!   integer,          allocatable, save :: dump_iHDF5(:)
-! #endif
   
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -65,9 +61,15 @@ module dump
   ! TODO: check units used in dumpclo; is x' or px used?
   real(kind=fPrec), save :: dumpclo (-1:nblz,6)
   
+#ifdef HDF5
+  ! Array to save hdf5 formats for each dump format
+  integer, allocatable, save :: dump_hdf5Format(:)
+  integer, allocatable, save :: dump_hdf5DataSet(:)
+#endif
+  
 #ifdef CR
   ! For resetting file positions
-  integer, allocatable,save :: dumpfilepos(:), dumpfilepos_cr(:) !(-1:nele)
+  integer, allocatable, save :: dumpfilepos(:), dumpfilepos_cr(:) !(-1:nele)
 #endif
 
 ! ================================================================================================================================ !
@@ -95,9 +97,10 @@ subroutine dump_allocate_arrays
   call alloc(dumpfilepos_cr,nele,0,'dumpfilepos_cr',-1)
 #endif
   
-! #ifdef HDF5
-!   call alloc(dump_iHDF5,nele,0,"dump_iHDF5",-1)
-! #endif
+#ifdef HDF5
+  call alloc(dump_hdf5Format,9,0,"dump_hdf5Format")
+  call alloc(dump_hdf5DataSet,nele,0,"dump_hdf5Format",-1)
+#endif
   
 end subroutine dump_allocate_arrays
 
@@ -120,9 +123,9 @@ subroutine dump_expand_arrays(nele_new)
   call resize(dumpfilepos_cr,nele_new,0,'dumpfilepos_cr',-1)
 #endif
   
-! #ifdef HDF5
-!   call alloc(dump_iHDF5,nele_new,0,"dump_iHDF5",-1)
-! #endif
+#ifdef HDF5
+  call alloc(dump_hdf5DataSet,nele_new,0,"dump_hdf5Format",-1)
+#endif
   
 end subroutine dump_expand_arrays
 
@@ -434,10 +437,9 @@ subroutine dump_initialise
   
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
-  type(h5_dataSet)                :: dataSet
   if(h5_useForDUMP) then
     call h5_initForDump()
-    goto 3100 ! Skip the normal file initialisation, and do the HDF5 varation instead
+    goto 3100 ! Skip the normal file initialisation, and do the HDF5 version instead
   end if
 #endif
 
@@ -669,54 +671,57 @@ subroutine dump_initialise
       case(1)
         ! Format 1:
         ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack
-        allocate(setFields(9))
-        setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
-        setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
-        setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
-        setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
-        setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
-        setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
-        setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
-        setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
-        setFields(9)  = h5_dataField(name="KTRACK", type=h5_typeInt)
-        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        ! call h5_closeDataSet(dataSet)
-        deallocate(setFields)
+        if(dump_hdf5Format(1) == 0) then
+          allocate(setFields(9))
+          setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="KTRACK", type=h5_typeInt)
+        end if
+        call h5_createFormat("dumpFormat1", setFields, dump_hdf5Format(1))
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(1), dump_hdf5DataSet(i), napx)
         
       case(2)
         ! Format 2:
         ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
-        allocate(setFields(10))
-        setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
-        setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
-        setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
-        setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
-        setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
-        setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
-        setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
-        setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
-        setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
-        setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
-        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        ! call h5_closeDataSet(dataSet)
-        deallocate(setFields)
+        if(dump_hdf5Format(2) == 0) then
+          allocate(setFields(10))
+          setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
+          setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
+        end if
+        call h5_createFormat("dumpFormat2", setFields, dump_hdf5Format(2))
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(2), dump_hdf5DataSet(i), napx)
         
       case(4)
         ! Format 4:
         ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]
-        allocate(setFields(9))
-        setFields(1)  = h5_dataField(name="NAPX",   type=h5_typeInt)
-        setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
-        setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
-        setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
-        setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
-        setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
-        setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
-        setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
-        setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
-        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        ! call h5_closeDataSet(dataSet)
-        deallocate(setFields)
+        if(dump_hdf5Format(4) == 0) then
+          allocate(setFields(9))
+          setFields(1)  = h5_dataField(name="NAPX",   type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+        end if
+        call h5_createFormat("dumpFormat4", setFields, dump_hdf5Format(4))
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(4), dump_hdf5DataSet(i), napx)
         
       case(5)
         ! Format 5:
@@ -727,42 +732,45 @@ subroutine dump_initialise
         ! <yp^2> <yp*z> <yp*(dE/E)>
         ! <z^2> <z*(dE/E)>
         ! <(dE/E)^2>
-        allocate(setFields(30))
-        setFields(1)  = h5_dataField(name="NAPX",      type=h5_typeInt)
-        setFields(2)  = h5_dataField(name="TURN",      type=h5_typeInt)
-        setFields(3)  = h5_dataField(name="S",         type=h5_typeReal)
-        setFields(4)  = h5_dataField(name="X",         type=h5_typeReal)
-        setFields(5)  = h5_dataField(name="XP",        type=h5_typeReal)
-        setFields(6)  = h5_dataField(name="Y",         type=h5_typeReal)
-        setFields(7)  = h5_dataField(name="YP",        type=h5_typeReal)
-        setFields(8)  = h5_dataField(name="Z",         type=h5_typeReal)
-        setFields(9)  = h5_dataField(name="dE/E",      type=h5_typeReal)
-        setFields(10) = h5_dataField(name="X^2",       type=h5_typeReal)
-        setFields(11) = h5_dataField(name="X*XP",      type=h5_typeReal)
-        setFields(12) = h5_dataField(name="X*Y",       type=h5_typeReal)
-        setFields(13) = h5_dataField(name="X*YP",      type=h5_typeReal)
-        setFields(14) = h5_dataField(name="X*Z",       type=h5_typeReal)
-        setFields(15) = h5_dataField(name="X*(dE/E)",  type=h5_typeReal)
-        setFields(16) = h5_dataField(name="XP^2",      type=h5_typeReal)
-        setFields(17) = h5_dataField(name="XP*Y",      type=h5_typeReal)
-        setFields(18) = h5_dataField(name="XP*YP",     type=h5_typeReal)
-        setFields(19) = h5_dataField(name="XP*Z",      type=h5_typeReal)
-        setFields(20) = h5_dataField(name="XP*(dE/E)", type=h5_typeReal)
-        setFields(21) = h5_dataField(name="Y^2",       type=h5_typeReal)
-        setFields(22) = h5_dataField(name="Y*YP",      type=h5_typeReal)
-        setFields(23) = h5_dataField(name="Y*Z",       type=h5_typeReal)
-        setFields(24) = h5_dataField(name="Y*(dE/E)",  type=h5_typeReal)
-        setFields(25) = h5_dataField(name="YP^2",      type=h5_typeReal)
-        setFields(26) = h5_dataField(name="YP*Z",      type=h5_typeReal)
-        setFields(27) = h5_dataField(name="YP*(dE/E)", type=h5_typeReal)
-        setFields(28) = h5_dataField(name="Z^2",       type=h5_typeReal)
-        setFields(29) = h5_dataField(name="Z*(dE/E)",  type=h5_typeReal)
-        setFields(30) = h5_dataField(name="(dE/E)^2",  type=h5_typeReal)
-        ! call h5_createDataSet(trim(chr_trimZero(dump_fname(i))), h5_dumpID, setFields, dataSet, napx)
-        ! call h5_closeDataSet(dataSet)
-        deallocate(setFields)
+        if(dump_hdf5Format(5) == 0) then
+          allocate(setFields(30))
+          setFields(1)  = h5_dataField(name="NAPX",      type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",      type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",         type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",         type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",        type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",         type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",        type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="Z",         type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="dE/E",      type=h5_typeReal)
+          setFields(10) = h5_dataField(name="X^2",       type=h5_typeReal)
+          setFields(11) = h5_dataField(name="X*XP",      type=h5_typeReal)
+          setFields(12) = h5_dataField(name="X*Y",       type=h5_typeReal)
+          setFields(13) = h5_dataField(name="X*YP",      type=h5_typeReal)
+          setFields(14) = h5_dataField(name="X*Z",       type=h5_typeReal)
+          setFields(15) = h5_dataField(name="X*(dE/E)",  type=h5_typeReal)
+          setFields(16) = h5_dataField(name="XP^2",      type=h5_typeReal)
+          setFields(17) = h5_dataField(name="XP*Y",      type=h5_typeReal)
+          setFields(18) = h5_dataField(name="XP*YP",     type=h5_typeReal)
+          setFields(19) = h5_dataField(name="XP*Z",      type=h5_typeReal)
+          setFields(20) = h5_dataField(name="XP*(dE/E)", type=h5_typeReal)
+          setFields(21) = h5_dataField(name="Y^2",       type=h5_typeReal)
+          setFields(22) = h5_dataField(name="Y*YP",      type=h5_typeReal)
+          setFields(23) = h5_dataField(name="Y*Z",       type=h5_typeReal)
+          setFields(24) = h5_dataField(name="Y*(dE/E)",  type=h5_typeReal)
+          setFields(25) = h5_dataField(name="YP^2",      type=h5_typeReal)
+          setFields(26) = h5_dataField(name="YP*Z",      type=h5_typeReal)
+          setFields(27) = h5_dataField(name="YP*(dE/E)", type=h5_typeReal)
+          setFields(28) = h5_dataField(name="Z^2",       type=h5_typeReal)
+          setFields(29) = h5_dataField(name="Z*(dE/E)",  type=h5_typeReal)
+          setFields(30) = h5_dataField(name="(dE/E)^2",  type=h5_typeReal)
+        end if
+        call h5_createFormat("dumpFormat5", setFields, dump_hdf5Format(5))
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(5), dump_hdf5DataSet(i), napx)
         
       end select
+      
+      if(allocated(setFields) .eqv. .true.) deallocate(setFields)
     end if
   end do
 #endif
@@ -811,10 +819,6 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 +ca dbcommon
 #else
   integer, parameter :: samplenumber = 1
-#endif
-  
-#ifdef HDF5
-  type(h5_dataSet) :: dataSet
 #endif
   
   ! Temporary variables
@@ -912,20 +916,18 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end if
 #ifdef HDF5
       if(h5_useForDUMP) then
-        ! call h5_openDataSet(trim(chr_trimZero(dump_fname(ix))), h5_dumpID, dataSet)
-        ! call h5_prepareWrite(dataSet, napx)
-        ! call h5_writeData(dataSet, 1,  napx, nlostp+(samplenumber-1)*npart)
-        ! call h5_writeData(dataSet, 2,  napx, nturn)
-        ! call h5_writeData(dataSet, 3,  napx, localDcum)
-        ! call h5_writeData(dataSet, 4,  napx, xv(1,:))
-        ! call h5_writeData(dataSet, 5,  napx, yv(1,:))
-        ! call h5_writeData(dataSet, 6,  napx, xv(2,:))
-        ! call h5_writeData(dataSet, 7,  napx, yv(2,:))
-        ! call h5_writeData(dataSet, 8,  napx, sigmv)
-        ! call h5_writeData(dataSet, 9,  napx, (ejv-e0)/e0)
-        ! call h5_writeData(dataSet, 10, napx, localKtrack)
-        ! call h5_finaliseWrite(dataSet)
-        ! call h5_closeDataSet(dataSet)
+        call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
+        call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
+        call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
+        call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
+        call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
+        call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
+        call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
+        call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
+        call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
+        call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
+        call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
+        call h5_finaliseWrite(dump_hdf5DataSet(ix))
       else
 #endif
         if (lhighprec) then
