@@ -3,8 +3,8 @@
 ! ================================================================================================ !
 !  HDF5 Module
 ! ~~~~~~~~~~~~~
-!  Written by:    Veronica Berglyd Olsen, BE-ABP-HSS, 2018
-!  Last Modified: 2018-04-13
+!  Written by:    Veronica Berglyd Olsen, BE-ABP-HSS, May 2018
+!  Last Modified: 2018-05-08
 !
 !  Alternative output format.
 !  Controlled by the HDF5 input block.
@@ -59,7 +59,7 @@ module hdf5_output
   ! Atomic Data Type Constants
   integer, parameter :: h5_typeInt  = 1 ! Size is fixed to fortran native integer
   integer, parameter :: h5_typeReal = 2 ! Size is determined by fPrec
-  integer, parameter :: h5_typeChar = 3 ! Any size is valid
+  integer, parameter :: h5_typeChar = 3 ! Any size is valid, must be specified
   
   ! Field Definitions
   type, public :: h5_dataField
@@ -70,7 +70,7 @@ module hdf5_output
     integer(HID_T),                private :: typeID = 0
   end type h5_dataField
   
-  ! DataType Container
+  ! Format Container
   type, public :: h5_dataFmt
     character(len=:),   allocatable, public  :: name
     integer(HSIZE_T),                private :: memSize = 0
@@ -97,6 +97,7 @@ module hdf5_output
   type(h5_dataSet), allocatable, private, save :: h5_setList(:)
   integer,                       private, save :: h5_setCount
   
+  ! Interface for Data Writing
   interface h5_writeData
     module procedure h5_writeArray_real32
     module procedure h5_writeValue_real32
@@ -229,7 +230,7 @@ subroutine h5_openFile()
     call h5gcreate_f(h5_fileID, h5_rootPath%chr, h5_rootID, h5_fileError)
     if(h5_fileError < 0) then
       write(lout,"(a)") "HDF5> ERROR Failed to create root group '"//h5_rootPath//"'."
-      write(lout,"(a)") "HDF5>       If you are writing to an existing file, the root group must be unique."
+      write(lout,"(a)") "HDF5> ERROR   If you are writing to an existing file, the root group must be unique."
       call prror(-1)
     end if
     write(lout,"(a)") "HDF5> Created root group '"//h5_rootPath//"'."
@@ -308,6 +309,19 @@ subroutine h5_initForDump()
   end if
   
 end subroutine h5_initForDump
+
+subroutine h5_initForCollimation()
+  
+  call h5gcreate_f(h5_rootID, h5_collGroup, h5_collID, h5_fileError)
+  if(h5_fileError < 0) then
+    write(lout,"(a)") "HDF5> ERROR Failed to create collimation group '"//h5_collGroup//"'."
+    call prror(-1)
+  end if
+  if(h5_debugOn) then
+    write(lout,"(a)") "HDF5> DEBUG Group created for COLLIMATION."
+  end if
+  
+end subroutine h5_initForCollimation
 
 ! ================================================================================================ !
 !  Create DataType
