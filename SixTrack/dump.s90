@@ -682,8 +682,8 @@ subroutine dump_initialise
           setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
           setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
           setFields(9)  = h5_dataField(name="KTRACK", type=h5_typeInt)
+          call h5_createFormat("dumpFormat1", setFields, dump_hdf5Format(1))
         end if
-        call h5_createFormat("dumpFormat1", setFields, dump_hdf5Format(1))
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(1), dump_hdf5DataSet(i), napx)
         
       case(2)
@@ -701,8 +701,8 @@ subroutine dump_initialise
           setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
           setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
           setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
+          call h5_createFormat("dumpFormat2", setFields, dump_hdf5Format(2))
         end if
-        call h5_createFormat("dumpFormat2", setFields, dump_hdf5Format(2))
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(2), dump_hdf5DataSet(i), napx)
         
       case(4)
@@ -719,8 +719,8 @@ subroutine dump_initialise
           setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
           setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
           setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+          call h5_createFormat("dumpFormat4", setFields, dump_hdf5Format(4))
         end if
-        call h5_createFormat("dumpFormat4", setFields, dump_hdf5Format(4))
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(4), dump_hdf5DataSet(i), napx)
         
       case(5)
@@ -764,8 +764,8 @@ subroutine dump_initialise
           setFields(28) = h5_dataField(name="Z^2",       type=h5_typeReal)
           setFields(29) = h5_dataField(name="Z*(dE/E)",  type=h5_typeReal)
           setFields(30) = h5_dataField(name="(dE/E)^2",  type=h5_typeReal)
+          call h5_createFormat("dumpFormat5", setFields, dump_hdf5Format(5))
         end if
-        call h5_createFormat("dumpFormat5", setFields, dump_hdf5Format(5))
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(5), dump_hdf5DataSet(i), napx)
         
       end select

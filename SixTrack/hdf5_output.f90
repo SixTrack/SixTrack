@@ -314,9 +314,11 @@ end subroutine h5_initForDump
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-05-07
 ! ================================================================================================ !
-subroutine h5_createFormat(typeName, setFields, formatID)
+subroutine h5_createFormat(formatName, setFields, formatID)
   
-  character(len=*),                intent(in)    :: typeName
+  use end_sixtrack
+  
+  character(len=*),                intent(in)    :: formatName
   type(h5_dataField), allocatable, intent(inout) :: setFields(:)
   integer,                         intent(out)   :: formatID
   
@@ -327,6 +329,20 @@ subroutine h5_createFormat(typeName, setFields, formatID)
   integer(HID_T)   :: dtypeID, tmpID
   integer(HSIZE_T) :: memSize, memOffset
   integer          :: i, nFields
+  
+  ! Check inputs
+  if(len(formatName) == 0) then
+    write(lout,"(a)") "HDF5> ERROR Empty format name given. This is a bug."
+    call prror(-1)
+  end if
+  if(allocated(setFields) .eqv. .false.) then
+    write(lout,"(a)") "HDF5> ERROR Fields array not allocated. This is a bug."
+    call prror(-1)
+  end if
+  if(size(setFields) == 0) then
+    write(lout,"(a)") "HDF5> ERROR Fields array empty. This is a bug."
+    call prror(-1)
+  end if
   
   ! First, extend the h5_fmtList array
   if(allocated(h5_fmtList) .eqv. .false.) then
@@ -375,7 +391,8 @@ subroutine h5_createFormat(typeName, setFields, formatID)
   end do
   
   if(h5_debugOn) then
-    write(lout,"(a,i0,a)") "HDF5> DEBUG Data set size is ",memSize," bytes per record."
+    write(lout,"(a,i0)")   "HDF5> DEBUG Creating data format '"//formatName//"' with ID ",h5_fmtCount
+    write(lout,"(a,i0,a)") "HDF5> DEBUG   Format requires ",memSize," bytes per record."
   end if
   
   ! Create the compound DataType as laid out in setFields
@@ -395,12 +412,12 @@ subroutine h5_createFormat(typeName, setFields, formatID)
   end do
   
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR: Failed to create compund data record '"//typeName//"'"
+    write(lout,"(a)") "HDF5> ERROR Failed to create compund data record '"//formatName//"'"
     call prror(-1)
   end if
   
   ! Save the Resulting HDF5 DataType
-  h5_fmtList(h5_fmtCount)%name    = typeName
+  h5_fmtList(h5_fmtCount)%name    = formatName
   h5_fmtList(h5_fmtCount)%memSize = memSize
   h5_fmtList(h5_fmtCount)%dtypeID = dtypeID
   h5_fmtList(h5_fmtCount)%fields  = setFields
@@ -461,7 +478,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   cleanName       = chr_strip(chr_trimZero(setName))
   
   if(h5_debugOn) then
-    write(lout,"(a)") "HDF5> DEBUG Creating dataset '"//cleanName//"'"
+    write(lout,"(a,i0)") "HDF5> DEBUG Creating dataset '"//cleanName//"' with ID ",h5_setCount
   end if
   
   ! Create a 1 by chunckSize DataSpace with a 1 by inf max size
@@ -471,7 +488,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   call h5pcreate_f(H5P_DATASET_CREATE_F, propID, h5_dataError)
   call h5pset_chunk_f(propID, 1, spaceSize, h5_dataError)
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR: Failed to set chunck size for '"//cleanName//"'"
+    write(lout,"(a)") "HDF5> ERROR Failed to set chunck size for '"//cleanName//"'"
     call prror(-1)
   end if
   if(h5_gzipLevel > -1) then
@@ -482,7 +499,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   dtypeID = h5_fmtList(formatID)%dtypeID
   call h5dcreate_f(groupID, cleanName, dtypeID, spaceID, dataID, h5_dataError, propID)
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR: Failed to create dataset '"//cleanName//"'"
+    write(lout,"(a)") "HDF5> ERROR Failed to create dataset '"//cleanName//"'"
     call prror(-1)
   end if
   
@@ -540,7 +557,7 @@ subroutine h5_prepareWrite(setID, appendSize)
   call h5screate_simple_f(1, addSize, memID, h5_dataError)
   
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR: Failed to extend dataset '"//h5_setList(setID)%name//"'"
+    write(lout,"(a)") "HDF5> ERROR Failed to extend dataset '"//h5_setList(setID)%name//"'"
     call prror(-1)
   end if
   
@@ -918,32 +935,32 @@ subroutine h5_parseInputLine(inLine)
   
   case("GZIP")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR: GZIP level takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i2,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
     end if
     read(lnSplit(2)%chr,*) h5_gzipLevel
     if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
-      write(lout,"(a,i2)") "HDF5> ERROR: Illegal value for GZIP: ",h5_gzipLevel
-      write(lout,"(a,i2)") "HDF5>        Allowed values are -1 for disabled, and 0-9 for none to max compression."
+      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
+      write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
       call prror(-1)
     end if
   
   case("CHUNK")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR: CHUNK takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i2,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
     end if
     read(lnSplit(2)%chr,*) h5_defChunk
     if(h5_defChunk < 1) then
-      write(lout,"(a,i2)") "HDF5> ERROR: Illegal value for CHUNK: ",h5_gzipLevel
-      write(lout,"(a,i2)") "HDF5>        Value must be larger than 0."
+      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_gzipLevel
+      write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
       call prror(-1)
     end if
   
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR: FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
-      write(lout,"(a)")      "HDF5>        Valid input is FILE filename [truncate]"
+      write(lout,"(a,i2,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
+      write(lout,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
       call prror(-1)
     end if
     if(nSplit == 3) then
@@ -956,15 +973,15 @@ subroutine h5_parseInputLine(inLine)
   
   case("ROOT")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR: ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i2,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
     end if
     if(str_inStr(lnSplit(2)," ") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR: ROOT group name cannot contain a space."
+      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a space."
       call prror(-1)
     end if
     if(str_inStr(lnSplit(2),"/") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR: ROOT group name cannot contain a slash."
+      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a slash."
       call prror(-1)
     end if
     h5_rootPath = str_stripQuotes(lnSplit(2))
@@ -973,11 +990,11 @@ subroutine h5_parseInputLine(inLine)
   case("ENABLE")
   
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR: ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
     end if
     if(len(lnSplit(2)%chr) < 4) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR: ENABLE argument must be at least 4 characters."
+      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
       call prror(-1)
     end if
     
@@ -992,12 +1009,12 @@ subroutine h5_parseInputLine(inLine)
       h5_useForSCAT = .true.
       write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
     case default
-      write(lout,"(a)") "HDF5> ERROR: HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
+      write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
       call prror(-1)
     end select
   
   case default
-    write(lout,"(a)") "HDF5> ERROR: Unrecognised statement '"//lnSplit(1)//"'."
+    write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
     call prror(-1)
   
   end select
