@@ -98,7 +98,7 @@ subroutine dump_allocate_arrays
 #endif
   
 #ifdef HDF5
-  call alloc(dump_hdf5Format,9,0,"dump_hdf5Format")
+  call alloc(dump_hdf5Format,9,0,"dump_hdf5Format",0)
   call alloc(dump_hdf5DataSet,nele,0,"dump_hdf5Format",-1)
 #endif
   
@@ -341,14 +341,19 @@ subroutine dump_parseInputLine(ch)
   ndumpt(j)    = i1
   dumpunit(j)  = i2
   dumpfmt(j)   = i3
-  ! dump_fname(j) = repeat(char(0),str_maxLen) ! Zero the file name first, as there is a bug in mod_alloc
   dump_fname(j)(1:lFields(5)) = ch1(1:lFields(5))
   dumpfirst(j) = i4
   dumplast(j)  = i5
   if(ndumpt(j) <= 0) ndumpt(j) = 1
-  if(dumpunit(j) == -1) then
-    call funit_requestUnit(dump_fname(j),dumpunit(j))
+#ifdef HDF5
+  if(h5_useForDUMP .eqv. .false.) then
+#endif
+    if(dumpunit(j) == -1) then
+      call funit_requestUnit(dump_fname(j),dumpunit(j))
+    end if
+#ifdef HDF5
   end if
+#endif
   
   return
   
@@ -421,6 +426,10 @@ subroutine dump_parseInputDone
 
 end subroutine dump_parseInputDone
 
+! ================================================================================================================================ !
+!  A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
+!  K.Sjobak, A.Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-08
 ! ================================================================================================================================ !
 subroutine dump_initialise
   
@@ -705,6 +714,25 @@ subroutine dump_initialise
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(2), dump_hdf5DataSet(i), napx)
         
+      case(3)
+        ! Format 3:
+        ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+        if(dump_hdf5Format(3) == 0) then
+          allocate(setFields(10))
+          setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
+          setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
+          call h5_createFormat("dumpFormat3", setFields, dump_hdf5Format(3))
+        end if
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(3), dump_hdf5DataSet(i), napx)
+        
       case(4)
         ! Format 4:
         ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]
@@ -721,7 +749,7 @@ subroutine dump_initialise
           setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
           call h5_createFormat("dumpFormat4", setFields, dump_hdf5Format(4))
         end if
-        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(4), dump_hdf5DataSet(i), napx)
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(4), dump_hdf5DataSet(i), numl)
         
       case(5)
         ! Format 5:
@@ -766,7 +794,52 @@ subroutine dump_initialise
           setFields(30) = h5_dataField(name="(dE/E)^2",  type=h5_typeReal)
           call h5_createFormat("dumpFormat5", setFields, dump_hdf5Format(5))
         end if
-        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(5), dump_hdf5DataSet(i), napx)
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(5), dump_hdf5DataSet(i), numl)
+        
+      case(6)
+        ! Format 6:
+        ! # napx turn s[m] <x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1]
+        ! <x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma>
+        ! <px^2> <px*y> <px*py> <px*sigma> <px*psigma>
+        ! <y^2> <y*py> <y*sigma> <y*psigma>
+        ! <py^2> <py*sigma> <py*psigma>
+        ! <sigma^2> <sigma*psigma>
+        ! <psigma^2>
+        if(dump_hdf5Format(6) == 0) then
+          allocate(setFields(30))
+          setFields(1)  = h5_dataField(name="NAPX",         type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",         type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",            type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",            type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",           type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",            type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",           type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="Z",            type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="dE/E",         type=h5_typeReal)
+          setFields(10) = h5_dataField(name="X^2",          type=h5_typeReal)
+          setFields(11) = h5_dataField(name="X*PX",         type=h5_typeReal)
+          setFields(12) = h5_dataField(name="X*Y",          type=h5_typeReal)
+          setFields(13) = h5_dataField(name="X*PY",         type=h5_typeReal)
+          setFields(14) = h5_dataField(name="X*SIGMA",      type=h5_typeReal)
+          setFields(15) = h5_dataField(name="X*PSIGMA",     type=h5_typeReal)
+          setFields(16) = h5_dataField(name="PX^2",         type=h5_typeReal)
+          setFields(17) = h5_dataField(name="PX*Y",         type=h5_typeReal)
+          setFields(18) = h5_dataField(name="PX*PY",        type=h5_typeReal)
+          setFields(19) = h5_dataField(name="PX*SIGMA",     type=h5_typeReal)
+          setFields(20) = h5_dataField(name="PX*PSIGMA",    type=h5_typeReal)
+          setFields(21) = h5_dataField(name="Y^2",          type=h5_typeReal)
+          setFields(22) = h5_dataField(name="Y*PY",         type=h5_typeReal)
+          setFields(23) = h5_dataField(name="Y*SIGMA",      type=h5_typeReal)
+          setFields(24) = h5_dataField(name="Y*PSIGMA",     type=h5_typeReal)
+          setFields(25) = h5_dataField(name="PY^2",         type=h5_typeReal)
+          setFields(26) = h5_dataField(name="PY*SIGMA",     type=h5_typeReal)
+          setFields(27) = h5_dataField(name="PY*PSIGMA",    type=h5_typeReal)
+          setFields(28) = h5_dataField(name="SIGMA^2",      type=h5_typeReal)
+          setFields(29) = h5_dataField(name="SIGMA*PSIGMA", type=h5_typeReal)
+          setFields(30) = h5_dataField(name="PSIGMA^2",     type=h5_typeReal)
+          call h5_createFormat("dumpFormat6", setFields, dump_hdf5Format(6))
+        end if
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(6), dump_hdf5DataSet(i), numl)
         
       end select
       
@@ -778,9 +851,9 @@ subroutine dump_initialise
 end subroutine dump_initialise
 
 ! ================================================================================================================================ !
-!  By A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
-!  K.Sjobak, A.Santamaria, V.K. berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-04
+!  A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
+!  K.Sjobak, A.Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-08
 !  dump beam particles
 !  always in main code
 !
@@ -845,9 +918,13 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     dumpIdx = ix
   end if
 #endif
-  ! General format
-  if (fmt .eq. 0) then
-    if (i.eq.0 .and. ix.eq.0) then
+  
+  ! ------------------------------------------------------------------ !
+  !  Format #0
+  !  General format
+  ! ------------------------------------------------------------------ !
+  if (fmt == 0) then
+    if (i == 0 .and. ix == 0) then
       localDcum = 0.0
       localBez = "StartDUMP"
     else
@@ -878,34 +955,60 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx+2
 #endif
-    
-  ! Format for aperture check
-  else if (fmt .eq. 1) then
-    if (i.eq.0 .and. ix.eq.0) then
+  
+  ! ------------------------------------------------------------------ !
+  !  Format #1
+  !  Format for aperture check
+  ! ------------------------------------------------------------------ !
+  else if (fmt == 1) then
+    if (i == 0 .and. ix == 0) then
       localDcum = 0.0
       localKtrack = 0
     else
       localDcum = dcum(i)
       localKtrack = ktrack(i)
     end if
-    if (lhighprec) then
-      do j=1,napx
-        write(unit,1983) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
-      end do
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 2, napx, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4, napx, xv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5, napx, yv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6, napx, xv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7, napx, yv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 8, napx, (ejv-e0)/e0)
+      call h5_writeData(dump_hdf5DataSet(ix), 9, napx, localKtrack)
+      call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
-      do j=1,napx
-        write(unit,1984) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
-      end do
-    end if
-    
-    ! Flush
-    endfile (unit,iostat=ierro)
-    backspace (unit,iostat=ierro)
+#endif
+      if (lhighprec) then
+        do j=1,napx
+          write(unit,1983) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+            xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
+        end do
+      else
+        do j=1,napx
+          write(unit,1984) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+            xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
+        end do
+      end if
+      
+      ! Flush
+      endfile (unit,iostat=ierro)
+      backspace (unit,iostat=ierro)
 #ifdef CR
-    dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+#endif
+#ifdef HDF5
+    end if
 #endif
   
-  ! Same as fmt 1, but also include z (for crab cavities etc.)
+  ! ------------------------------------------------------------------ !
+  !  Format #2
+  !  Same as fmt 1, but also include z (for crab cavities etc.)
+  ! ------------------------------------------------------------------ !
   else if (fmt .eq. 2) then
     if (i.eq.0 .and. ix.eq.0) then
       localDcum = zero
@@ -915,35 +1018,32 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       localKtrack = ktrack(i)
     end if
 #ifdef HDF5
-      if(h5_useForDUMP) then
-        call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-        call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
-        call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
-        call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
-        call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
-        call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
-        call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
-        call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
-        call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
-        call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
-        call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
-        call h5_finaliseWrite(dump_hdf5DataSet(ix))
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
+      call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
+      call h5_finaliseWrite(dump_hdf5DataSet(ix))
+    else
+#endif
+      if (lhighprec) then
+        do j=1,napx
+          write(unit,1985) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+            sigmv(j),(ejv(j)-e0)/e0,localKtrack
+        end do
       else
-#endif
-        if (lhighprec) then
-          do j=1,napx
-            write(unit,1985) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
-              sigmv(j),(ejv(j)-e0)/e0,localKtrack
-          end do
-        else
-          do j=1,napx
-            write(unit,1986) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
-              sigmv(j),(ejv(j)-e0)/e0,localKtrack
-          end do
-        end if
-#ifdef HDF5
+        do j=1,napx
+          write(unit,1986) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+            sigmv(j),(ejv(j)-e0)/e0,localKtrack
+        end do
       end if
-#endif
       
       ! Flush
       endfile (unit,iostat=ierro)
@@ -951,27 +1051,57 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
-  ! Same as fmt 2, but in Fortran binary
-  else if (fmt .eq. 3) then
-    if (i.eq.0 .and. ix.eq.0) then
+#ifdef HDF5
+    end if
+#endif
+  
+  ! ------------------------------------------------------------------ !
+  !  Format #3
+  !  Same as fmt 2, but in Fortran binary
+  ! ------------------------------------------------------------------ !
+  else if (fmt == 3) then
+    if (i == 0 .and. ix == 0) then
       localDcum = zero
       localKtrack = 0
     else
       localDcum = dcum(i)
       localKtrack = ktrack(i)
     end if
-    do j=1,napx
-      write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
-        sigmv(j),(ejv(j)-e0)/e0,localKtrack
-    end do
-    
-    ! Flush
-    endfile (unit,iostat=ierro)
-    backspace (unit,iostat=ierro)
-#ifdef CR
-    dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
+      call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
+      call h5_finaliseWrite(dump_hdf5DataSet(ix))
+    else
 #endif
-  ! Average bunch position
+      do j=1,napx
+        write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+          sigmv(j),(ejv(j)-e0)/e0,localKtrack
+      end do
+      
+      ! Flush
+      endfile (unit,iostat=ierro)
+      backspace (unit,iostat=ierro)
+#ifdef CR
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+#endif
+#ifdef HDF5
+    end if
+#endif
+  
+  ! ------------------------------------------------------------------ !
+  !  Format #4
+  !  Average bunch position
+  ! ------------------------------------------------------------------ !
   else if (fmt .eq. 4) then
     if (i.eq.0 .and. ix.eq.0) then
       localDcum = zero
@@ -991,21 +1121,44 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end do
     
     xyz = xyz/napx
-    if (lhighprec) then
-      write(unit,1989) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
-    else
-      write(unit,1990) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
-    end if
     
-    ! Flush
-    endfile (unit,iostat=ierro)
-    backspace (unit,iostat=ierro)
-#ifdef CR
-    dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), 1)
+      call h5_writeData(dump_hdf5DataSet(ix), 1, 1, napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 2, 1, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3, 1, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4, 1, xyz(1))
+      call h5_writeData(dump_hdf5DataSet(ix), 5, 1, xyz(2))
+      call h5_writeData(dump_hdf5DataSet(ix), 6, 1, xyz(3))
+      call h5_writeData(dump_hdf5DataSet(ix), 7, 1, xyz(4))
+      call h5_writeData(dump_hdf5DataSet(ix), 8, 1, xyz(5))
+      call h5_writeData(dump_hdf5DataSet(ix), 9, 1, xyz(6))
+      call h5_finaliseWrite(dump_hdf5DataSet(ix))
+    else
 #endif
-  ! Average beam positon + beam matrix
-  else if (fmt.eq.5 .or. fmt.eq.6) then
-    if (i.eq.0 .and. ix.eq.0) then
+      if (lhighprec) then
+        write(unit,1989) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+      else
+        write(unit,1990) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+      end if
+    
+      ! Flush
+      endfile (unit,iostat=ierro)
+      backspace (unit,iostat=ierro)
+#ifdef CR
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
+#endif
+#ifdef HDF5
+    end if
+#endif
+  
+  ! ------------------------------------------------------------------ !
+  !  Format #5 or #6
+  !  Average beam positon + beam matrix
+  ! ------------------------------------------------------------------ !
+  else if (fmt == 5 .or. fmt == 6) then
+    if (i == 0 .and. ix == 0) then
       localDcum = zero
     else
       localDcum = dcum(i)
@@ -1018,7 +1171,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       end do
     end do
     
-    if(fmt.eq.5) then ! Raw
+    if(fmt == 5) then ! Raw
       do j=1,napx
         xyz_particle(6)=(ejv(j)-e0)/e0
         
@@ -1058,7 +1211,8 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         
         xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
       end do
-    else if (fmt.eq.6) then ! Canonical
+      
+    else if (fmt == 6) then ! Canonical
       do j=1,napx
         xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
         xyz_particle(2) = (yv(1,j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
@@ -1115,33 +1269,76 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     xyz2(5:,5) = xyz2(5:,5)/napx
     xyz2(6,6)  = xyz2(6,6) /napx
     
-    if (lhighprec) then
-      write(unit,1991) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
-        xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-                  xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-                            xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-                                      xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-                                                xyz2(5,5),xyz2(6,5),&
-                                                          xyz2(6,6)
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), 1)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  1, napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 2,  1, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3,  1, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  1, xyz(1))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  1, xyz(2))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  1, xyz(3))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  1, xyz(4))
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  1, xyz(5))
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  1, xyz(6))
+      call h5_writeData(dump_hdf5DataSet(ix), 10, 1, xyz2(1,1))
+      call h5_writeData(dump_hdf5DataSet(ix), 11, 1, xyz2(2,1))
+      call h5_writeData(dump_hdf5DataSet(ix), 12, 1, xyz2(3,1))
+      call h5_writeData(dump_hdf5DataSet(ix), 13, 1, xyz2(4,1))
+      call h5_writeData(dump_hdf5DataSet(ix), 14, 1, xyz2(5,1))
+      call h5_writeData(dump_hdf5DataSet(ix), 15, 1, xyz2(6,1))
+      call h5_writeData(dump_hdf5DataSet(ix), 16, 1, xyz2(2,2))
+      call h5_writeData(dump_hdf5DataSet(ix), 17, 1, xyz2(3,2))
+      call h5_writeData(dump_hdf5DataSet(ix), 18, 1, xyz2(4,2))
+      call h5_writeData(dump_hdf5DataSet(ix), 19, 1, xyz2(5,2))
+      call h5_writeData(dump_hdf5DataSet(ix), 20, 1, xyz2(6,2))
+      call h5_writeData(dump_hdf5DataSet(ix), 21, 1, xyz2(3,3))
+      call h5_writeData(dump_hdf5DataSet(ix), 22, 1, xyz2(4,3))
+      call h5_writeData(dump_hdf5DataSet(ix), 23, 1, xyz2(5,3))
+      call h5_writeData(dump_hdf5DataSet(ix), 24, 1, xyz2(6,3))
+      call h5_writeData(dump_hdf5DataSet(ix), 25, 1, xyz2(4,4))
+      call h5_writeData(dump_hdf5DataSet(ix), 26, 1, xyz2(5,4))
+      call h5_writeData(dump_hdf5DataSet(ix), 27, 1, xyz2(6,4))
+      call h5_writeData(dump_hdf5DataSet(ix), 28, 1, xyz2(5,5))
+      call h5_writeData(dump_hdf5DataSet(ix), 29, 1, xyz2(6,5))
+      call h5_writeData(dump_hdf5DataSet(ix), 30, 1, xyz2(6,6))
+call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
-      write(unit,1992) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
-        xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-                  xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-                            xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-                                      xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-                                                xyz2(5,5),xyz2(6,5),&
-                                                          xyz2(6,6)
-    end if
-    
-    ! Flush
-    endfile (unit,iostat=ierro)
-    backspace (unit,iostat=ierro)
-#ifdef CR
-    dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
-  ! fmt 7 same as fmt 2,   but in normalized coordinates
-  ! fmt 8 same as fmt 3,   but in normalized coordinates
-  ! fmt 9 same as fmt 5/6, but in normalized coordinates
+      if (lhighprec) then
+        write(unit,1991) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
+          xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
+                    xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
+                              xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
+                                        xyz2(4,4),xyz2(5,4),xyz2(6,4),&
+                                                  xyz2(5,5),xyz2(6,5),&
+                                                            xyz2(6,6)
+      else
+        write(unit,1992) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
+          xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
+                    xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
+                              xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
+                                        xyz2(4,4),xyz2(5,4),xyz2(6,4),&
+                                                  xyz2(5,5),xyz2(6,5),&
+                                                            xyz2(6,6)
+      end if
+      
+      ! Flush
+      endfile (unit,iostat=ierro)
+      backspace (unit,iostat=ierro)
+#ifdef CR
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
+#endif
+#ifdef HDF5
+    end if
+#endif
+  
+  ! ------------------------------------------------------------------ !
+  !  Format #7, #8 or #9
+  !  fmt 7 same as fmt 2,   but in normalized coordinates
+  !  fmt 8 same as fmt 3,   but in normalized coordinates
+  !  fmt 9 same as fmt 5/6, but in normalized coordinates
+  ! ------------------------------------------------------------------ !
   else if (fmt .eq. 7 .or. fmt .eq. 8 .or. fmt .eq. 9) then
     if (i.eq.0 .and. ix.eq.0) then
       localDcum = zero
