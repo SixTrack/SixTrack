@@ -389,9 +389,23 @@ subroutine h5_closeHDF5()
   
   use end_sixtrack
   
-  implicit none
+  integer i,j
   
-  if(.not. h5_isReady) return
+  ! Close all DataType IDs
+  do i=1, h5_fmtCount
+    do j=1, size(h5_fmtList(i)%fields)
+      if(h5_fmtList(i)%fields(j)%typeID  /= 0) call h5tclose_f(h5_fmtList(i)%fields(j)%typeID, h5_dataError)
+    end do
+    if(h5_fmtList(i)%dtypeID /= 0) call h5tclose_f(h5_fmtList(i)%dtypeID, h5_dataError)
+  end do
+  
+  ! Close all DataSet IDs
+  do i=1, h5_setCount
+    if(h5_setList(i)%dataID  /= 0) call h5dclose_f(h5_setList(i)%dataID,  h5_dataError)
+    if(h5_setList(i)%spaceID /= 0) call h5sclose_f(h5_setList(i)%spaceID, h5_dataError)
+    if(h5_setList(i)%memID   /= 0) call h5sclose_f(h5_setList(i)%memID,   h5_dataError)
+    if(h5_setList(i)%propID  /= 0) call h5pclose_f(h5_setList(i)%propID,  h5_dataError)
+  end do
   
   ! Close groups, if opened
   if(h5_rootID /= 0) call h5gclose_f(h5_rootID, h5_fileError)
