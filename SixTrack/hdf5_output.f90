@@ -161,6 +161,144 @@ subroutine h5_comnul
 end subroutine h5_comnul
 
 ! ================================================================================================ !
+!  HDF5 Input File Parsing
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-13
+! ================================================================================================ !
+subroutine h5_parseInputLine(inLine)
+  
+  use string_tools
+  use end_sixtrack
+  
+  implicit none
+  
+  type(string), intent(in)  :: inLine
+  
+  type(string), allocatable :: lnSplit(:)
+  integer nSplit
+  
+  integer i
+  
+  ! Split the input line
+  call str_split(inLine,lnSplit,nSplit)
+  
+  if(nSplit == 0) then
+    if(h5_debugOn) then
+      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
+      write (lout,"(a)")      "HDF5> DEBUG  * No fields found."
+    end if
+    return
+  end if
+  
+  ! Report if debugging is ON
+  if(h5_debugOn) then
+    write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
+    write (lout,"(a,i2,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
+  end if
+  
+  select case(lnSplit(1)%chr)
+  
+  case("DEBUG")
+    h5_debugOn = .true.
+    write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
+  
+  case("SINGLE")
+    h5_useDouble = .false.
+    write(lout,"(a)") "HDF5> HDF5 will use single precision."
+  
+  case("DOUBLE")
+    h5_useDouble = .true.
+    write(lout,"(a)") "HDF5> HDF5 will use double precision."
+  
+  case("GZIP")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
+      call prror(-1)
+    end if
+    read(lnSplit(2)%chr,*) h5_gzipLevel
+    if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
+      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
+      write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
+      call prror(-1)
+    end if
+  
+  case("CHUNK")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
+      call prror(-1)
+    end if
+    read(lnSplit(2)%chr,*) h5_defChunk
+    if(h5_defChunk < 1) then
+      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_gzipLevel
+      write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
+      call prror(-1)
+    end if
+  
+  case("FILE")
+    if(nSplit < 2 .or. nSplit > 3) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
+      write(lout,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
+      call prror(-1)
+    end if
+    if(nSplit == 3) then
+      read(lnSplit(3)%chr,*) h5_doTruncate
+    else
+      h5_doTruncate = .false.
+    end if
+    h5_fileName = str_stripQuotes(lnSplit(2))
+    write(lout, "(a)") "HDF5> Output file name set to: '"//h5_fileName//"'."
+  
+  case("ROOT")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
+      call prror(-1)
+    end if
+    if(str_inStr(lnSplit(2)," ") /= 0) then
+      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a space."
+      call prror(-1)
+    end if
+    if(str_inStr(lnSplit(2),"/") /= 0) then
+      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a slash."
+      call prror(-1)
+    end if
+    h5_rootPath = str_stripQuotes(lnSplit(2))
+    write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
+  
+  case("ENABLE")
+  
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
+      call prror(-1)
+    end if
+    if(len(lnSplit(2)%chr) < 4) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
+      call prror(-1)
+    end if
+    
+    select case(lnSplit(2)%chr(1:4))
+    case("COLL")
+      h5_useForCOLL = .true.
+      write(lout,"(3a)") "HDF5> HDF5 is enabled for COLLIMATION."
+    case("DUMP")
+      h5_useForDUMP = .true.
+      write(lout,"(3a)") "HDF5> HDF5 is enabled for DUMP."
+    case("SCAT")
+      h5_useForSCAT = .true.
+      write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
+    case default
+      write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
+      call prror(-1)
+    end select
+  
+  case default
+    write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
+    call prror(-1)
+  
+  end select
+  
+end subroutine h5_parseInputLine
+
+! ================================================================================================ !
 !  HDF5 Initialisation
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
@@ -896,144 +1034,6 @@ end subroutine h5_writeValue_char
 ! ================================================================================================ !
 !  END WRITING TO DATASETS
 ! ================================================================================================ !
-
-! ================================================================================================ !
-!  HDF5 Input File Parsing
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-13
-! ================================================================================================ !
-subroutine h5_parseInputLine(inLine)
-  
-  use string_tools
-  use end_sixtrack
-  
-  implicit none
-  
-  type(string), intent(in)  :: inLine
-  
-  type(string), allocatable :: lnSplit(:)
-  integer nSplit
-  
-  integer i
-  
-  ! Split the input line
-  call str_split(inLine,lnSplit,nSplit)
-  
-  if(nSplit == 0) then
-    if(h5_debugOn) then
-      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
-      write (lout,"(a)")      "HDF5> DEBUG  * No fields found."
-    end if
-    return
-  end if
-  
-  ! Report if debugging is ON
-  if(h5_debugOn) then
-    write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
-    write (lout,"(a,i2,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
-  end if
-  
-  select case(lnSplit(1)%chr)
-  
-  case("DEBUG")
-    h5_debugOn = .true.
-    write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
-  
-  case("SINGLE")
-    h5_useDouble = .false.
-    write(lout,"(a)") "HDF5> HDF5 will use single precision."
-  
-  case("DOUBLE")
-    h5_useDouble = .true.
-    write(lout,"(a)") "HDF5> HDF5 will use double precision."
-  
-  case("GZIP")
-    if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
-    end if
-    read(lnSplit(2)%chr,*) h5_gzipLevel
-    if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
-      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
-      write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
-      call prror(-1)
-    end if
-  
-  case("CHUNK")
-    if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
-    end if
-    read(lnSplit(2)%chr,*) h5_defChunk
-    if(h5_defChunk < 1) then
-      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_gzipLevel
-      write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
-      call prror(-1)
-    end if
-  
-  case("FILE")
-    if(nSplit < 2 .or. nSplit > 3) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
-      write(lout,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
-      call prror(-1)
-    end if
-    if(nSplit == 3) then
-      read(lnSplit(3)%chr,*) h5_doTruncate
-    else
-      h5_doTruncate = .false.
-    end if
-    h5_fileName = str_stripQuotes(lnSplit(2))
-    write(lout, "(a)") "HDF5> Output file name set to: '"//h5_fileName//"'."
-  
-  case("ROOT")
-    if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
-    end if
-    if(str_inStr(lnSplit(2)," ") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a space."
-      call prror(-1)
-    end if
-    if(str_inStr(lnSplit(2),"/") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a slash."
-      call prror(-1)
-    end if
-    h5_rootPath = str_stripQuotes(lnSplit(2))
-    write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
-  
-  case("ENABLE")
-  
-    if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
-    end if
-    if(len(lnSplit(2)%chr) < 4) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
-      call prror(-1)
-    end if
-    
-    select case(lnSplit(2)%chr(1:4))
-    case("COLL")
-      h5_useForCOLL = .true.
-      write(lout,"(3a)") "HDF5> HDF5 is enabled for COLLIMATION."
-    case("DUMP")
-      h5_useForDUMP = .true.
-      write(lout,"(3a)") "HDF5> HDF5 is enabled for DUMP."
-    case("SCAT")
-      h5_useForSCAT = .true.
-      write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
-    case default
-      write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
-      call prror(-1)
-    end select
-  
-  case default
-    write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
-    call prror(-1)
-  
-  end select
-  
-end subroutine h5_parseInputLine
 
 ! ================================================================================================ !
 end module hdf5_output
