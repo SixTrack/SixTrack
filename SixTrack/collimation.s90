@@ -112,23 +112,24 @@ module collimation
 #endif
 
   implicit none
-
-! file units
-  integer, save :: dist0_unit, betatron_unit, beta_beat_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
+  
+  ! file units
+  integer, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
   integer, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit, all_absorptions_unit
   integer, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
   integer, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit, efficiency_2d_unit
   integer, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
   integer, save :: filename_dis_unit, coll_db_unit, CollPositions_unit
   integer, save :: collsettings_unit, outlun
+  ! These are not in use
+  !integer, save :: betatron_unit, beta_beat_unit
 
   logical, save :: coll_found(100)
 
 #ifdef HDF5
   ! Variables to save hdf5 formats and datasets
   ! First index is data format, second is dataset
-  integer, private, save :: coll_hdf5_dist0(2)
-  integer, private, save :: coll_hdf5_distn(2)
+  integer, private, save :: coll_hdf5_survival(2)
 #endif
 
 contains
@@ -641,19 +642,23 @@ end subroutine collimate_init
 !! is injected into thin 6d
 !<
 subroutine collimate_start_sample(nsample)
-
+  
   use crcoall
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
-
+  
   implicit none
-
+  
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
+#ifdef HDF5
+  type(h5_dataField), allocatable :: setFields(:)
+#endif
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -689,17 +694,31 @@ subroutine collimate_start_sample(nsample)
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
   !FIXME : never used?
-  call funit_requestUnit('betatron.dat', betatron_unit)
-  open(unit=betatron_unit,file='betatron.dat') !was 99
+  ! call funit_requestUnit('betatron.dat', betatron_unit)
+  ! open(unit=betatron_unit,file='betatron.dat') !was 99
 
   !FIXME : never used?
-  call funit_requestUnit('beta_beat.dat', beta_beat_unit)
-  open(unit=beta_beat_unit, file='beta_beat.dat') !was 42
-  write(beta_beat_unit,*) '# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
+  ! call funit_requestUnit('beta_beat.dat', beta_beat_unit)
+  ! open(unit=beta_beat_unit, file='beta_beat.dat') !was 42
+  ! write(beta_beat_unit,*) '# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
 
-  call funit_requestUnit('survival.dat', survival_unit)
-  open(unit=survival_unit, file='survival.dat') ! RB, DM: 2014 bug fix !was 44
-  write(survival_unit,*) '# 1=turn 2=n_particle'
+  ! Survival Output
+#ifdef HDF5
+  if(h5_useForColl) then
+    allocate(setFields(2))
+    setFields(1) = h5_dataField(name="TURN",  type=h5_typeInt)
+    setFields(2) = h5_dataField(name="NSURV", type=h5_typeInt)
+    call h5_createFormat("collSurvival", setFields, coll_hdf5_survival(1))
+    call h5_createDataSet("survival", h5_collID, coll_hdf5_survival(1), coll_hdf5_survival(2), numl)
+    deallocate(setFields)
+  else
+#endif
+    call funit_requestUnit('survival.dat', survival_unit)
+    open(unit=survival_unit, file='survival.dat') ! RB, DM: 2014 bug fix !was 44
+    write(survival_unit,*) '# 1=turn 2=n_particle'
+#ifdef HDF5
+  end if
+#endif
 
   call funit_requestUnit('collgaps.dat', collgaps_unit)
   open(unit=collgaps_unit, file='collgaps.dat') !was 43
@@ -2815,7 +2834,7 @@ subroutine collimate_end_sample(j)
 +ei
 
 !++  Save particle offsets to a file
-  close(beta_beat_unit)
+  ! close(beta_beat_unit)
   close(survival_unit)
 
   if(dowrite_impact) close(impact_unit)
@@ -3543,7 +3562,18 @@ subroutine collimate_end_turn
       end if
     end do
 
-    write(survival_unit,'(2i7)') iturn, nsurvive
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(coll_hdf5_survival(2), 1)
+      call h5_writeData(coll_hdf5_survival(2), 1, 1, iturn)
+      call h5_writeData(coll_hdf5_survival(2), 2, 1, nsurvive)
+      call h5_finaliseWrite(coll_hdf5_survival(2))
+    else
+#endif
+      write(survival_unit,'(2i7)') iturn, nsurvive
+#ifdef HDF5
+    end if
+#endif
 +if root
     if(root_flag .and. root_Collimation.eq.1) then
       call SurvivalRootWrite(iturn, nsurvive)
