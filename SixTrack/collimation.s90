@@ -106,8 +106,10 @@ module collimation
   use mod_hions
   use mod_alloc
   use end_sixtrack
-
   use file_units
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   implicit none
 
@@ -121,6 +123,13 @@ module collimation
   integer, save :: collsettings_unit, outlun
 
   logical, save :: coll_found(100)
+
+#ifdef HDF5
+  ! Variables to save hdf5 formats and datasets
+  ! First index is data format, second is dataset
+  integer, private, save :: coll_hdf5_dist0(2)
+  integer, private, save :: coll_hdf5_distn(2)
+#endif
 
 contains
 
@@ -157,9 +166,13 @@ subroutine collimate_init()
   use mod_common
   use mod_commonmn
   use mod_commons
+  
   implicit none
-
-
+  
+#ifdef HDF5
+  type(h5_dataField), allocatable :: fldDist0(:)
+  integer                         :: fmtDist0, setDist0
+#endif
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
@@ -188,6 +201,10 @@ subroutine collimate_init()
 +if bnlelens
 +ca rhicelens
 +ei
+
+#ifdef HDF5
+  if(h5_useForColl) call h5_initForCollimation
+#endif
 
 +if g4collimat
 ! These should be configured in the scatter block when possible/enabled
@@ -284,7 +301,7 @@ subroutine collimate_init()
     write(lout,*) "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
 
     write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.", &
-   & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
+      "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
     write(lout,*) "ERR> EXAMPLE:"
     write(lout,*) "2.5 2.5 3.5 3.5"
     call prror(-1)
@@ -516,14 +533,39 @@ subroutine collimate_init()
   endif
 
 !++  Optionally write the generated particle distribution
-  call funit_requestUnit('dist0.dat', dist0_unit)
-  open(unit=dist0_unit,file='dist0.dat') !was 52
-  if(dowrite_dist) then
-    do j = 1, mynp
-      write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
-    end do
+#ifdef HDF5
+  if(h5_useForColl) then
+    allocate(fldDist0(6))
+    fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
+    fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
+    fldDist0(3)  = h5_dataField(name="Y",  type=h5_typeReal)
+    fldDist0(4)  = h5_dataField(name="YP", type=h5_typeReal)
+    fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
+    fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
+    call h5_createFormat("collDist0", fldDist0, fmtDist0)
+    call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, mynp)
+    call h5_prepareWrite(setDist0, mynp)
+    call h5_writeData(setDist0, 1, mynp, myx)
+    call h5_writeData(setDist0, 2, mynp, myxp)
+    call h5_writeData(setDist0, 3, mynp, myy)
+    call h5_writeData(setDist0, 4, mynp, myyp)
+    call h5_writeData(setDist0, 5, mynp, mys)
+    call h5_writeData(setDist0, 6, mynp, myp)
+    call h5_finaliseWrite(setDist0)
+    deallocate(fldDist0)
+else
+#endif
+    call funit_requestUnit('dist0.dat', dist0_unit)
+    open(unit=dist0_unit,file='dist0.dat') !was 52
+    if(dowrite_dist) then
+      do j = 1, mynp
+        write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+      end do
+    end if
+    close(dist0_unit)
+#ifdef HDF5
   end if
-  close(dist0_unit)
+#endif
 
 !++  Initialize efficiency array
   do i=1,iu
@@ -605,8 +647,8 @@ subroutine collimate_start_sample(nsample)
   use mod_common
   use mod_commonmn
   use mod_commons
-  implicit none
 
+  implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
