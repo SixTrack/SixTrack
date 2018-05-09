@@ -8171,9 +8171,9 @@ subroutine daten
   ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 +ei
-+if hdf5
+#ifdef HDF5
   use hdf5_output
-+ei
+#endif
 +if root
   use root_output
 +ei
@@ -20398,9 +20398,9 @@ program maincr
 
   use postprocessing, only : postpr, writebin_header, writebin
 
-+if hdf5
+#ifdef HDF5
   use hdf5_output
-+ei
+#endif
 +if root
   use root_output
 +ei
@@ -20587,10 +20587,10 @@ end interface
 +if cr
       stxt=''
 +ei
-+if hdf5
+#ifdef HDF5
   !  call INITHDF5()
   call h5_initHDF5()
-+ei
+#endif
 +if boinc
   call boinc_init()
 !  call boinc_init_graphics()
