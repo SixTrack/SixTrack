@@ -790,11 +790,14 @@ end module end_sixtrack
 ! ================================================================================================ !
 subroutine closeUnits
   
-  use scatter,    only : scatter_closeUnits
-  use dynk,       only : dynk_closeFiles
-  use dump,       only : dump_closeUnits
-  use bdex,       only : bdex_closeFiles
-  use file_units, only : funit_closeUnits, funit_minUnit
+  use scatter,     only : scatter_closeUnits
+  use dynk,        only : dynk_closeFiles
+  use dump,        only : dump_closeUnits
+  use bdex,        only : bdex_closeFiles
+  use file_units,  only : funit_closeUnits, funit_minUnit
+#ifdef HDF5
+  use hdf5_output, only : h5_closeHDF5
+#endif
 
   implicit none
 
