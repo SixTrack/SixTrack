@@ -127,7 +127,7 @@ contains
 ! ================================================================================================ !
 !  Set Initial Values
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-20
+!  Last Modified: 2018-05-08
 ! ================================================================================================ !
 subroutine h5_comnul
   
@@ -168,16 +168,11 @@ end subroutine h5_comnul
 subroutine h5_parseInputLine(inLine)
   
   use string_tools
-  use end_sixtrack
-  
-  implicit none
   
   type(string), intent(in)  :: inLine
   
   type(string), allocatable :: lnSplit(:)
-  integer nSplit
-  
-  integer i
+  integer i, nSplit
   
   ! Split the input line
   call str_split(inLine,lnSplit,nSplit)
@@ -305,10 +300,6 @@ end subroutine h5_parseInputLine
 ! ================================================================================================ !
 subroutine h5_initHDF5()
   
-  use end_sixtrack
-  
-  implicit none
-  
   call h5open_f(h5_fileError)
   call h5pcreate_f(H5P_DATASET_XFER_F, h5_plistID, h5_fileError)
   call h5pset_preserve_f(h5_plistID, .true., h5_fileError)
@@ -326,14 +317,13 @@ end subroutine h5_initHDF5
 ! ================================================================================================ !
 subroutine h5_openFile()
   
-  use end_sixtrack
-  
-  implicit none
-  
   integer accessFlag
   logical doesExist
   
-  if(.not. h5_isActive) return
+  if(.not. h5_isActive) then
+    write(lout,"(a)") "HDF5> ERROR HDF5 routine called, but HDF5 is not active. This is a bug."
+    call prror(-1)
+  end if
   
   inquire(file=h5_fileName%chr, exist=doesExist)
   
@@ -387,9 +377,12 @@ end subroutine h5_openFile
 ! ================================================================================================ !
 subroutine h5_closeHDF5()
   
-  use end_sixtrack
-  
   integer i,j
+  
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR There is no HDF5 file to close. This is a bug."
+    call prror(-1)
+  end if
   
   ! Close all DataType IDs
   do i=1, h5_fmtCount
@@ -438,6 +431,11 @@ end subroutine h5_closeHDF5
 ! ================================================================================================ !
 subroutine h5_initForScatter()
   
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
+  
   call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
@@ -451,6 +449,11 @@ end subroutine h5_initForScatter
 
 subroutine h5_initForDump()
   
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
+  
   call h5gcreate_f(h5_rootID, h5_dumpGroup, h5_dumpID, h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create dump group '"//h5_dumpGroup//"'."
@@ -463,6 +466,11 @@ subroutine h5_initForDump()
 end subroutine h5_initForDump
 
 subroutine h5_initForCollimation()
+  
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
   
   call h5gcreate_f(h5_rootID, h5_collGroup, h5_collID, h5_fileError)
   if(h5_fileError < 0) then
@@ -482,8 +490,6 @@ end subroutine h5_initForCollimation
 ! ================================================================================================ !
 subroutine h5_createFormat(formatName, setFields, formatID)
   
-  use end_sixtrack
-  
   character(len=*),                intent(in)    :: formatName
   type(h5_dataField), allocatable, intent(inout) :: setFields(:)
   integer,                         intent(out)   :: formatID
@@ -495,6 +501,11 @@ subroutine h5_createFormat(formatName, setFields, formatID)
   integer(HID_T)   :: dtypeID, tmpID
   integer(HSIZE_T) :: memSize, memOffset
   integer          :: i, nFields
+  
+  if(.not. h5_isActive) then
+    write(lout,"(a)") "HDF5> ERROR HDF5 routine called, but HDF5 is not active. This is a bug."
+    call prror(-1)
+  end if
   
   ! Check inputs
   if(len(formatName) == 0) then
@@ -604,10 +615,7 @@ end subroutine h5_createFormat
 subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   
   use mod_alloc
-  use end_sixtrack
   use string_tools
-  
-  implicit none
   
   ! Routine Variables
   character(len=*),           intent(in)  :: setName
@@ -622,6 +630,11 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   integer(HSIZE_T) :: spaceSize(1)
   integer(HSIZE_T) :: spaceMaxSize(1)
   integer(HID_T)   :: spaceID, dtypeID, dataID, propID
+  
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Dataset creation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
   
   ! First, extend the h5_setList array
   if(allocated(h5_setList) .eqv. .false.) then
@@ -698,8 +711,6 @@ end subroutine h5_createDataSet
 ! ================================================================================================ !
 subroutine h5_prepareWrite(setID, appendSize)
   
-  use end_sixtrack
-  
   integer, intent(in) :: setID
   integer, intent(in) :: appendSize
   
@@ -708,6 +719,11 @@ subroutine h5_prepareWrite(setID, appendSize)
   integer(HSIZE_T) :: oldSize(1)
   integer(HSIZE_T) :: addSize(1)
   integer(HSIZE_T) :: newSize(1)
+  
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
   
   oldSize(1) = h5_setList(setID)%records
   addSize(1) = int(appendSize,kind=HSIZE_T)
@@ -745,6 +761,11 @@ end subroutine h5_prepareWrite
 subroutine h5_finaliseWrite(setID)
   
   integer, intent(in) :: setID
+  
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
   
   call h5dclose_f(h5_setList(setID)%dataID,  h5_dataError)
   call h5sclose_f(h5_setList(setID)%spaceID, h5_dataError)
