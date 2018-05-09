@@ -468,7 +468,7 @@
 !     SR, 29-08-2005: add the required variable for slicing collimators
       integer jjj, ijk
 !
-      real zbv
+      real(kind=fPrec) zbv
 !
       real(kind=fPrec) c_length    !length in m
       real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -730,7 +730,7 @@
 !
       character(nc) filen,tit
 !
-      real   xlow,xhigh,xplow,xphigh,dx,dxp
+      real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
 !
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
@@ -783,7 +783,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd funint
-      real tftot
+      real(kind=fPrec) tftot
       common/funint/tftot
 +cd interac
       integer mat,mcurr
@@ -795,7 +795,7 @@
 !electron density and plasma energy
       real(kind=fPrec) edens, pleng
 !      parameter(fnavo=6.02214129e23_fPrec)
-      real cgen
+      real(kind=fPrec) cgen
       character(4) mname(nmat)
       common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
@@ -41350,7 +41350,7 @@ end subroutine kermtr
 
       integer idim,ifail,jfail,k,kprnt,n
       integer ir
-      real t1,t2,t3
+      real(kind=fPrec) t1,t2,t3
       real(kind=fPrec) a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
       character(len=6) name
       dimension ir(n),a(idim,n)

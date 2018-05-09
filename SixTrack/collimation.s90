@@ -520,7 +520,7 @@ subroutine collimate_init()
   open(unit=dist0_unit,file='dist0.dat') !was 52
   if(dowrite_dist) then
     do j = 1, mynp
-      write(dist0_unit,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+      write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
     end do
   end if
   close(dist0_unit)
@@ -2493,13 +2493,13 @@ subroutine collimate_end_collimator()
         ! CALL APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 ! +ei
 ! +if .not.hdf5
-        write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
-       &ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
-       &(rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
-       &rcxp0(j)*c1e3+torbxp(ie),                                          &
-       &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
-       &rcyp0(j)*c1e3+torbyp(ie),                                          &
-       &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+!!!        write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
+!!!       &ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
+!!!       &(rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
+!!!       &rcxp0(j)*c1e3+torbxp(ie),                                          &
+!!!       &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
+!!!       &rcyp0(j)*c1e3+torbyp(ie),                                          &
+!!!       &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 ! +ei
 
       !Here we've found a newly hit particle
@@ -3702,7 +3702,7 @@ subroutine collimate_end_turn
     write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
 
     do j = 1, napx
-      write(distn_unit,'(6(1X,E15.7))') (xgrd(j)-torbx(1))/c1e3, (xpgrd(j)-torbxp(1))/c1e3, (ygrd(j)-torby(1))/c1e3, &
+      write(distn_unit,'(6(1X,E23.15))') (xgrd(j)-torbx(1))/c1e3, (xpgrd(j)-torbxp(1))/c1e3, (ygrd(j)-torby(1))/c1e3, &
 &    (ypgrd(j)-torbyp(1))/c1e3, sigmvgrd(j), ejfvgrd(j)
     end do
 
@@ -5236,7 +5236,7 @@ function gettran(inter,xmat,p)
 
   integer inter,length,xmat
   real(kind=fPrec) p,gettran,t,xm2,bsd
-  real truth,xran(1)
+  real(kind=fPrec) truth,xran(1)
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 +if .not.merlinscatter
@@ -5325,7 +5325,7 @@ function ruth(t)
 
 +ca interac
 
-  real ruth,t
+  real(kind=fPrec) ruth,t
   real(kind=fPrec) cnorm,cnform
   parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
 
@@ -5351,7 +5351,7 @@ subroutine scatin(plab)
 
   integer ma,i
   real(kind=fPrec) plab
-  real tlow,thigh
+  real(kind=fPrec) tlow,thigh
 
   ecmsq = (two * pmap) * plab                                   !hr09
 +if .not.merlinscatter
@@ -5465,9 +5465,9 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 +ca flukavars
   integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
   logical dowrite_impact
-  real(kind=fPrec)  m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
+  real(kind=fPrec) m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
   real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
-  real get_dpodx
+  real(kind=fPrec) get_dpodx
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
 
@@ -7048,7 +7048,7 @@ function rndm4()
   implicit none
 
   integer len, in
-  real rndm4, a
+  real(kind=fPrec) rndm4, a
   save IN,a
   parameter ( len =  30000 )
   dimension a(len)
@@ -7081,7 +7081,7 @@ function rndm5(irnd)
   implicit none
 
   integer len, inn, irnd
-  real rndm5,a
+  real(kind=fPrec) rndm5,a
   save
 
   parameter( len =  30000 )
@@ -7200,7 +7200,7 @@ subroutine ranlux(rvec,lenv)
      &inseed,mkount,kount,in24,nskip,lxdflt,jsdflt,jseed,lp,i,k,icons,  &
      &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout2,ins,lux,ilx,&
      &iouter
-      real rvec,seeds,twop12,twom12,twom24,carry,uni
+      real(kind=fPrec) rvec,seeds,twop12,twom12,twom24,carry,uni
       dimension rvec(lenv)
       dimension seeds(24), iseeds(24), isdext(25)
       parameter (maxlev=4, lxdflt=3)
@@ -7470,7 +7470,7 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       implicit none
       external func
       integer ifunc,ierr
-      real x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
+      real(kind=fPrec) x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
 +ca funint
       dimension xfcum(200)
       parameter (rteps=0.0002)
@@ -7484,7 +7484,7 @@ subroutine funlxp (func,xfcum,x2low,x2high)
         write(lout,'(A,2G15.5)') ' FUNLXP finds function range .LE.0',xlow,xhigh
         go to 900
       endif
-      call radapt(func,xlow,xhigh,1,rteps,0.,tftot ,uncert)
+      call radapt(func,xlow,xhigh,1,rteps,zero,tftot ,uncert)
 !      WRITE(6,1003) IFUNC,XLOW,XHIGH,TFTOT
  1003 format(' FUNLXP: integral of USER FUNCTION', i3,' from ',e12.5,' to ',e12.5,' is ',e14.6)
 !
@@ -7493,11 +7493,11 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       call funpct(func,ifunc,xlow,xhigh,xfcum,1,99,tftot,ierr)
       if (ierr .gt. 0)  go to 900
       x2 = xfcum(3)
-      call radapt(func,xlow,x2,1,rteps,0.,tftot1 ,uncert)
+      call radapt(func,xlow,x2,1,rteps,zero,tftot1 ,uncert)
       call funpct(func,ifunc,xlow,x2 ,xfcum,101,49,tftot1,ierr)
       if (ierr .gt. 0)  go to 900
       x3 = xfcum(98)
-      call radapt(func,x3,xhigh,1,rteps,0.,tftot2 ,uncert)
+      call radapt(func,x3,xhigh,1,rteps,zero,tftot2 ,uncert)
       call funpct(func,ifunc,x3,xhigh,xfcum,151,49,tftot2,ierr)
       if (ierr .gt. 0)  go to 900
 !      WRITE(6,1001) IFUNC,XLOW,XHIGH
@@ -7514,7 +7514,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
       implicit none
       external func
       integer ierr,nbins,nlo,ifunc,nz,ibin,maxz,iz,nitmax,ihome
-      real tftot,xhigh,xlow,func,xfcum,rteps,tpctil,tz,tzmax,x,f,tcum,  &
+      real(kind=fPrec) tftot,xhigh,xlow,func,xfcum,rteps,tpctil,tz,tzmax,x,f,tcum,  &
      &x1,f1,dxmax,fmin,fminz,xincr,tincr,xbest,dtbest,tpart,x2,precis,  &
      &refx,uncert,tpart2,dtpar2,dtabs,aberr
       dimension xfcum(*)
@@ -7576,7 +7576,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
         go to 580
         endif
       refx = abs(x)+precis
-      call radapt(func,x1,x2,1,rteps,0.,tpart2,uncert)
+      call radapt(func,x1,x2,1,rteps,zero,tpart2,uncert)
       dtpar2 = tpart2-tpctil
       dtabs = abs(dtpar2)
       if(abs(xincr)/refx .lt. precis) goto 545
@@ -7602,7 +7602,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
 !         END OF LOOP OVER BINS
       x1 = xfcum((nlo+nbins)-1)                                          !hr09
       x2 = xhigh
-      call radapt(func,x1,x2,1,rteps,0.,tpart ,uncert)
+      call radapt(func,x1,x2,1,rteps,zero,tpart ,uncert)
       aberr = abs(tpart-tpctil)/tftot
 !      WRITE(6,1001) IFUNC,XLOW,XHIGH
       if(aberr .gt. rteps)  write(lout,1002) aberr
@@ -7627,7 +7627,7 @@ subroutine funlux(array,xran,len)
       implicit none
 +ca funint
       integer len,ibuf,j,j1
-      real array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
+      real(kind=fPrec) array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
       dimension array(200)
       dimension xran(len)
 !  Bin width for main sequence, and its inverse
@@ -7696,7 +7696,7 @@ subroutine funlz(func,x2low,x2high,xlow,xhigh)
       implicit none
       external func
       integer logn,nslice,i,k
-      real xhigh,xlow,x2high,x2low,func,xmid,xh,xl,xnew
+      real(kind=fPrec) xhigh,xlow,x2high,x2low,func,xmid,xh,xl,xnew
       xlow = x2low
       xhigh = x2high
 !         FIND OUT IF FUNCTION IS ZERO AT ONE END OR BOTH
@@ -7774,8 +7774,7 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
 
       external f
       integer nseg,ndim,nter,nsegd,i,iter,ibig
-      real err,res,abstol,reltol,b,a,xlo,xhi,tval,ters,te,root,xhib,    &
-     &bin,xlob,bige,hf,xnew,r1,f
+      real(kind=fPrec) err,res,abstol,reltol,b,a,xlo,xhi,tval,ters,te,root,xhib,bin,xlob,bige,hf,xnew,r1,f
       real(kind=fPrec) tvals,terss
 
       parameter (ndim=100)
@@ -7854,7 +7853,7 @@ subroutine rgs56p(f,a,b,res,err)
   implicit none
 
   integer i
-  real err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
+  real(kind=fPrec) err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
   real(kind=fPrec) e5,e6
 
   parameter (r1 = 1., hf = r1/2.)
