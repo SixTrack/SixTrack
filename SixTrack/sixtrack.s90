@@ -21016,9 +21016,9 @@ end interface
   
   call daten
   
-+if hdf5
-  call h5_openFile()
-+ei
+#ifdef HDF5
+  if(h5_isActive) call h5_openFile()
+#endif
 
   if (ithick.eq.1) call allocate_thickarrays
       

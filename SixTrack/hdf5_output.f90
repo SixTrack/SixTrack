@@ -321,7 +321,7 @@ subroutine h5_openFile()
   logical doesExist
   
   if(.not. h5_isActive) then
-    write(lout,"(a)") "HDF5> ERROR HDF5 routine called, but HDF5 is not active. This is a bug."
+    write(lout,"(a)") "HDF5> ERROR HDF5 file open called, but HDF5 is not active. This is a bug."
     call prror(-1)
   end if
   
@@ -380,8 +380,10 @@ subroutine h5_closeHDF5()
   integer i,j
   
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR There is no HDF5 file to close. This is a bug."
-    call prror(-1)
+    if(h5_debugOn) then
+      write(lout,"(a)") "HDF5> DEBUG closeHDF5 called, but no files are open. Nothing to do."
+    end if
+    return
   end if
   
   ! Close all DataType IDs
