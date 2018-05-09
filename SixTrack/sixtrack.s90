@@ -33270,6 +33270,7 @@ subroutine linopt(dpp)
 +ei
 #ifdef HDF5
   use hdf5_output
+  use hdf5_linopt
 #endif
   
   implicit none
@@ -33426,7 +33427,7 @@ subroutine linopt(dpp)
       if(nt.le.0.or.nt.gt.iu) nt=iu
       izu=0
 #ifdef HDF5
-      if(h5_writeOptics) call h5_initLinearOptics
+      if(h5_writeOptics) call h5lin_init
 #endif
       
       STRUCTLOOP: do k=1,nt
@@ -34202,7 +34203,7 @@ subroutine linopt(dpp)
       end do STRUCTLOOP ! END LOOP OVER ELEMENTS
       
 #ifdef HDF5
-      if(h5_writeOptics) call h5_saveLinearOptics
+      if(h5_writeOptics) call h5lin_saveData
 #endif
       
       call clorb(ded)
@@ -34245,15 +34246,15 @@ subroutine linopt(dpp)
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
 end subroutine linopt
 
+!-----------------------------------------------------------------------
+!  WRITE OUT LINEAR OPTICS PARAMETERS
+!-----------------------------------------------------------------------
 +if collimat.or.bnlelens
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ei
 +if .not.collimat.and..not.bnlelens
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
-!-----------------------------------------------------------------------
-!  WRITE OUT LINEAR OPTICS PARAMETERS
-!-----------------------------------------------------------------------
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
@@ -34267,6 +34268,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
 #ifdef HDF5
   use hdf5_output
+  use hdf5_linopt
 #endif
   
   implicit none
@@ -34330,9 +34332,11 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
     end if
 +ei
 #ifdef HDF5
-    if(h5_writeOptics) then
-      hdf5Data(:) = 0.0
-      call h5_writeLinearOpticsLine(nr, typ, hdf5Data)
+  if(h5_writeOptics) then
+      hdf5Data(:) = (/tl,&
+        p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1),&
+        p1(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),cp(2)/)
+      call h5lin_writeLine(nr, typ, hdf5Data)
     end if
 #endif
   

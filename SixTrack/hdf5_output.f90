@@ -36,18 +36,9 @@ module hdf5_output
   logical, public, save :: h5_useForDUMP
   logical, public, save :: h5_useForSCAT
   
-  ! Additional Write Flags: OPTICS
-  ! Write the linear optics parameters
-  logical,                       public,  save :: h5_writeOptics
-  integer,                       private, save :: h5_optElems(2)
-  integer,          allocatable, private, save :: h5_optInt(:)
-  character(len=:), allocatable, private, save :: h5_optChar(:)
-  real(kind=fPrec), allocatable, private, save :: h5_optReal(:,:)
-  
-  ! Additional Write Flags: TRACKS2
-  ! Backwards compatibility for old tracks2 format
-  logical, public,  save :: h5_writeTracks2
-  integer, private, save :: h5_tr2Param(2)
+  ! Additional Write Flags
+  logical, public,  save :: h5_writeOptics  ! Write the linear optics parameters
+  logical, public,  save :: h5_writeTracks2 ! For backwards compatibility for old tracks2 format
   
   ! Runtime Variables
   logical, private, save :: h5_fileIsOpen  ! True if file is open.
@@ -159,10 +150,7 @@ subroutine h5_comnul
   h5_useForSCAT   = .false.
   
   h5_writeOptics  = .false.
-  h5_optElems(:)  = 0
-  
   h5_writeTracks2 = .false.
-  h5_tr2Param(:)  = 0
   
   h5_fileIsOpen   = .false.
   h5_fileError    = 0
@@ -1112,95 +1100,6 @@ end subroutine h5_writeValue_char
 ! ================================================================================================ !
 !  END WRITING TO DATASETS
 ! ================================================================================================ !
-
-! ================================================================================================ !
-!  Special Write Routines for Linear Optics
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-09
-! ================================================================================================ !
-subroutine h5_initLinearOptics
-  
-  use mod_commons, only : max_name_len
-  
-  h5_optElems(1) = 0
-  h5_optElems(2) = 1000
-  
-  call alloc(h5_optInt,                h5_optElems(2), 0,                            "h5_optInt")
-  call alloc(h5_optChar, max_name_len, h5_optElems(2), repeat(char(0),max_name_len), "h5_optChar")
-  call alloc(h5_optReal, 17,           h5_optElems(2), 0.0_fPrec,                    "h5_optReal")
-
-end subroutine h5_initLinearOptics
-
-subroutine h5_writeLinearOpticsLine(lineNo, elemType, arrData)
-  
-  use mod_alloc
-  use mod_commons, only : max_name_len
-  
-  integer,          intent(in) :: lineNo
-  character(len=*), intent(in) :: elemType
-  real(kind=fPrec), intent(in) :: arrData(17)
-  
-  h5_optElems(1) = h5_optElems(1) + 1
-  
-  if(h5_optElems(1) > h5_optElems(2)) then
-    h5_optElems(2) = h5_optElems(2) + 1000
-    call resize(h5_optInt,                h5_optElems(2), 0,                            "h5_optInt")
-    call resize(h5_optChar, max_name_len, h5_optElems(2), repeat(char(0),max_name_len), "h5_optChar")
-    call resize(h5_optReal, 17,           h5_optElems(2), 0.0_fPrec,                    "h5_optReal")
-  end if
-  
-  h5_optInt(h5_optElems(1))    = lineNo
-  h5_optChar(h5_optElems(1))   = elemType
-  h5_optReal(:,h5_optElems(1)) = arrData
-  
-end subroutine h5_writeLinearOpticsLine
-
-subroutine h5_saveLinearOptics
-  
-  use mod_alloc
-  use mod_commons, only : max_name_len
-  
-  type(h5_dataField), allocatable :: setFields(:)
-  integer optFmt, optSet
-  
-  if(.not. h5_writeOptics) return
-  
-  allocate(setFields(19))
-  
-  setFields(1)  = h5_dataField(name="NR",     type=h5_typeInt)
-  setFields(2)  = h5_dataField(name="TYP",    type=h5_typeChar, size=max_name_len)
-  setFields(3)  = h5_dataField(name="LTOT",   type=h5_typeReal)
-  setFields(4)  = h5_dataField(name="PHIX",   type=h5_typeReal)
-  setFields(5)  = h5_dataField(name="BETAX",  type=h5_typeReal)
-  setFields(6)  = h5_dataField(name="ALPHAX", type=h5_typeReal)
-  setFields(7)  = h5_dataField(name="GAMMAX", type=h5_typeReal)
-  setFields(8)  = h5_dataField(name="DISX",   type=h5_typeReal)
-  setFields(9)  = h5_dataField(name="DISXP",  type=h5_typeReal)
-  setFields(10) = h5_dataField(name="CLOX",   type=h5_typeReal)
-  setFields(11) = h5_dataField(name="CLOXP",  type=h5_typeReal)
-  setFields(12) = h5_dataField(name="PHIY",   type=h5_typeReal)
-  setFields(13) = h5_dataField(name="BETAY",  type=h5_typeReal)
-  setFields(14) = h5_dataField(name="ALPHAY", type=h5_typeReal)
-  setFields(15) = h5_dataField(name="GAMMAY", type=h5_typeReal)
-  setFields(16) = h5_dataField(name="DISY",   type=h5_typeReal)
-  setFields(17) = h5_dataField(name="DISYP",  type=h5_typeReal)
-  setFields(18) = h5_dataField(name="CLOY",   type=h5_typeReal)
-  setFields(19) = h5_dataField(name="CLOYP",  type=h5_typeReal)
-  
-  call h5_createFormat("linearOptics", setFields, optFmt)
-  call h5_createDataSet("linopt", h5_rootID, optFmt, optSet, 2000)
-  
-  call h5_prepareWrite(optSet, h5_optElems(1))
-  call h5_writeData(optSet, 1, h5_optElems(1), h5_optInt)
-  call h5_writeData(optSet, 2, h5_optElems(1), h5_optChar)
-  call h5_finaliseWrite(optSet)
-  
-  deallocate(setFields)
-  call dealloc(h5_optInt,                "h5_optInt")
-  call dealloc(h5_optChar, max_name_len, "h5_optChar")
-  call dealloc(h5_optReal,               "h5_optReal")
-  
-end subroutine h5_saveLinearOptics
 
 ! ================================================================================================ !
 end module hdf5_output

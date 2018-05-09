@@ -535,7 +535,7 @@ subroutine collimate_init()
 
 !++  Optionally write the generated particle distribution
 #ifdef HDF5
-  if(h5_useForColl) then
+  if(h5_useForColl .and. dowrite_dist) then
     allocate(fldDist0(6))
     fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
     fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
@@ -554,7 +554,7 @@ subroutine collimate_init()
     call h5_writeData(setDist0, 6, mynp, myp)
     call h5_finaliseWrite(setDist0)
     deallocate(fldDist0)
-else
+  else
 #endif
     call funit_requestUnit('dist0.dat', dist0_unit)
     open(unit=dist0_unit,file='dist0.dat') !was 52
