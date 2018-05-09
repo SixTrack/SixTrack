@@ -468,7 +468,7 @@
 !     SR, 29-08-2005: add the required variable for slicing collimators
       integer jjj, ijk
 !
-      real zbv
+      real(kind=fPrec) zbv
 !
       real(kind=fPrec) c_length    !length in m
       real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -730,7 +730,7 @@
 !
       character(nc) filen,tit
 !
-      real   xlow,xhigh,xplow,xphigh,dx,dxp
+      real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
 !
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
@@ -783,7 +783,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd funint
-      real tftot
+      real(kind=fPrec) tftot
       common/funint/tftot
 +cd interac
       integer mat,mcurr
@@ -795,7 +795,7 @@
 !electron density and plasma energy
       real(kind=fPrec) edens, pleng
 !      parameter(fnavo=6.02214129e23_fPrec)
-      real cgen
+      real(kind=fPrec) cgen
       character(4) mname(nmat)
       common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
       common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
@@ -20673,26 +20673,20 @@ end interface
 +if boinc
       call boincrf('fort.6',filename)
 +if fio
-      open(output_unit,                                                 &
-     &file=filename,form='formatted',status='old',err=602,              &
-     &round='nearest')
+      open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
 +ei
 +if .not.fio
-      open(output_unit,                                                 &
-     &file=filename,form='formatted',status='old',err=602)
+      open(output_unit,file=filename,form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
 +ei
 +if .not.boinc
 +if fio
-      open(output_unit,                                                 &
-     &file='fort.6',form='formatted',status='old',err=602,              &
-     &round='nearest')
+      open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
 +ei
 +if .not.fio
-      open(output_unit,                                                 &
-     &file='fort.6',form='formatted',status='old',err=602)
+      open(output_unit,file='fort.6',form='formatted',status='old',err=602)
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
@@ -20722,26 +20716,20 @@ end interface
         go to 611
       endif
 +if fio
-      open(output_unit,                                                 &
-     &file=filename,form='formatted',status='unknown',                  &
-     &round='nearest')
+      open(output_unit,file=filename,form='formatted',status='unknown',round='nearest')
 +ei
 +if .not.fio
-      open(output_unit,                                                 &
-     &file=filename,form='formatted',status='unknown')
+      open(output_unit,file=filename,form='formatted',status='unknown')
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
 +ei
 +if .not.boinc
 +if fio
- 602  open(output_unit,                                                 &
-     &file='fort.6',form='formatted',status='new',                      &
-     &round='nearest')
+ 602  open(output_unit,file='fort.6',form='formatted',status='new',round='nearest')
 +ei
 +if .not.fio
- 602  open(output_unit,                                                 &
-     &file='fort.6',form='formatted',status='new')
+ 602  open(output_unit,file='fort.6',form='formatted',status='new')
 +ei
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
@@ -20782,8 +20770,7 @@ end interface
 +if boinc
   609 call boincrf('fort.91',filename)
 +if fio
-      open(91,file=filename,form='formatted',status='unknown',          &
-     &round='nearest')
+      open(91,file=filename,form='formatted',status='unknown',round='nearest')
 +ei
 +if .not.fio
       open(91,file=filename,form='formatted',status='unknown')
@@ -20791,8 +20778,7 @@ end interface
 +ei
 +if .not.boinc
 +if fio
-  609 open(91,file='fort.91',form='formatted',status='unknown',         &
-     &round='nearest')
+  609 open(91,file='fort.91',form='formatted',status='unknown',round='nearest')
 +ei
 +if .not.fio
   609 open(91,file='fort.91',form='formatted',status='unknown')
@@ -20855,8 +20841,7 @@ end interface
         else if(ctime(3:4).eq.'01') then
           runtim=day(1:44)//' one minute after '//ctime(1:2)//'.'
         else
-          runtim=day(1:44)//ctime(3:4)//' minutes after '//ctime(1:2)// &
-     &'.'
+          runtim=day(1:44)//ctime(3:4)//' minutes after '//ctime(1:2)//'.'
         endif
       else
         if(ctime(3:4).eq.'  ') then
@@ -21062,8 +21047,7 @@ end interface
 
 +if .not.fluka
 !--SETTING UP THE PLOTTING
-      if(ipos.eq.1.and.                                                 &
-     &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
+      if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
         call hlimit(nplo)
         call hplint(kwtype)
         call igmeta(-20,-111)
@@ -21105,8 +21089,7 @@ end interface
 +if .not.bnlelens
       call boincrf('fort.10',filename)
 +if fio
-      open(10,file=filename,form='formatted',status='unknown',          &
-     &round='nearest')
+      open(10,file=filename,form='formatted',status='unknown',round='nearest')
 +ei
 +if .not.fio
       open(10,file=filename,form='formatted',status='unknown')
@@ -21115,8 +21098,7 @@ end interface
 +ei ! END +if boinc
 +if .not.boinc
 +if fio
-      open(10,file='fort.10',form='formatted',status='unknown',         &
-     &round='nearest')
+      open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
 +ei
 +if .not.fio
       open(10,file='fort.10',form='formatted',status='unknown')
@@ -21214,27 +21196,15 @@ end interface
         call cadcum
         if(idp.ne.0.and.ition.ne.0) then !6D tracking
            if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
-              write(lout,'(1x,a)')                                        &
-     &             "WARNING: Problem with SYNC block detected"
-              write(lout,'(1x,a,f17.10)')                                 &
-     &             "TLEN in sync block =",tlen
-              write(lout,'(1x,a,f17.10)')                                 &
-     &             "Length from DCUM   =",dcum(iu+1)
-              write(lout,'(1x,a,f17.10)')                                 &
-     &             "Difference         =",dcum(iu+1)-tlen
-              write(lout,'(1x,a,e27.16,a)')                               &
-     &             "Relative error     =",                                &
-     &             2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
-              write(lout,'(1x,a,f17.10,a)')                               &
-     &             "Tolerance eps_dcum =", eps_dcum, " [m]"
-              write(lout,'(1x,a)')                                        &
-     &             "Please fix the TLEN parameter in your SYNC block"
-              write(lout,'(1x,a)')                                        &
-     &             "so that it matches the "//                            &
-     &             " calculated machine length from DCUM."
-              write(lout,'(1x,a)')                                        &
-     &             "If incorrect, the RF frequency"//                     &
-     &             " may be (slightly) wrong."
+              write(lout,'(1x,a)') "WARNING: Problem with SYNC block detected"
+              write(lout,'(1x,a,f17.10)') "TLEN in sync block =",tlen
+              write(lout,'(1x,a,f17.10)') "Length from DCUM   =",dcum(iu+1)
+              write(lout,'(1x,a,f17.10)') "Difference         =",dcum(iu+1)-tlen
+              write(lout,'(1x,a,e27.16,a)') "Relative error     =", 2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
+              write(lout,'(1x,a,f17.10,a)') "Tolerance eps_dcum =", eps_dcum, " [m]"
+              write(lout,'(1x,a)') "Please fix the TLEN parameter in your SYNC block"
+              write(lout,'(1x,a)') "so that it matches the calculated machine length from DCUM."
+              write(lout,'(1x,a)') "If incorrect, the RF frequency may be (slightly) wrong."
         
               !It's a warning not an error, and the consequences seem relatively small.
               !Ideally, tlen should be calculated automatically based on the sequence.
@@ -41380,7 +41350,7 @@ end subroutine kermtr
 
       integer idim,ifail,jfail,k,kprnt,n
       integer ir
-      real t1,t2,t3
+      real(kind=fPrec) t1,t2,t3
       real(kind=fPrec) a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
       character(len=6) name
       dimension ir(n),a(idim,n)
