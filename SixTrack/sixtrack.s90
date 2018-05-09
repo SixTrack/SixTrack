@@ -22916,9 +22916,6 @@ end interface
 +ei
   call alloc_exit
   call closeUnits ! Must be last as it also closes fort.6
-+if hdf5
-  call h5_closeHDF5()
-+ei
 ! ----------------------------------------------------------------------
 !   We're done in maincr, no error :)
 ! ----------------------------------------------------------------------

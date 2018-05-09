@@ -808,6 +808,9 @@ subroutine closeUnits
   call dynk_closeFiles
   call bdex_closeFiles
   call scatter_closeUnits
+#ifdef HDF5
+  call h5_closeHDF5
+#endif
   
   ! Then iterate through the first 1000 units
   do chkUnit=1, funit_minUnit-1
