@@ -20588,7 +20588,6 @@ end interface
       stxt=''
 +ei
 #ifdef HDF5
-  !  call INITHDF5()
   call h5_initHDF5()
 #endif
 +if boinc
@@ -34291,17 +34290,11 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
 
 #ifdef HDF5
-!   type(h5_dataField), allocatable :: fldOptics(:)
-!   integer                         :: fmtOptics, setOptics
     real(kind=fPrec) hdf5Data(17)
 #endif
   
   save
 !-----------------------------------------------------------------------
-! #ifdef HDF5
-!   fmtOptics = 0
-!   setOptics = 0
-! #endif
   iwrite=0
   if(nlin.eq.0) then
     iwrite=1
