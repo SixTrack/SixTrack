@@ -7,6 +7,7 @@
 * DUMP now accepts -1 as file unit input, in which case a unit will be assigned dynamically.
 * Added optional QUIET flag that will stop SixTrack from reporting initial and final values of particle pairs.
 * Fixed the previously broken DA version of the code. Still may have issues with naglib when compiled with gfortran.
+* Added HDF5 block for alternative ouptut for DUMP and Scatter
 
 **Code Internal Changes**
 

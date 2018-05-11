@@ -159,18 +159,18 @@ subroutine print_alloc(ename, type, requested_bits)
   
   write(lout,"(a)") "ALLOC> Memory allocation for "//type//" array '"//ename//"'"
   
-  if((real(allocated_bits,real64)/mbyte < one) .and. (real(allocated_bits,real64)/kbyte > one)) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/kbyte," kb"
-  else if(real(allocated_bits,real64)/mbyte >= one) then
+  if(real(allocated_bits,real64)/mbyte >= one) then
     write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/mbyte," Mb"
+  else if(real(allocated_bits,real64)/kbyte >= one) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/kbyte," kb"
   else
     write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/byte," b"
   end if
 
-  if((real(requested_bits,real64)/mbyte < one) .and. (real(requested_bits,real64)/kbyte > one)) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/kbyte," kb"
-  else if(real(requested_bits,real64)/mbyte >= one) then
+  if(real(requested_bits,real64)/mbyte >= one) then
     write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/mbyte," Mb"
+  else if(real(requested_bits,real64)/kbyte >= one) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/kbyte," kb"
   else
     write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/byte," b"
   end if

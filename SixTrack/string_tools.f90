@@ -318,7 +318,7 @@ function chr_stripQuotes(theString) result(retString)
 end function chr_stripQuotes
 
 ! ================================================================================================ !
-!  Rounting Routines
+!  Rounding Routines
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-20
 !  A wrapper for round_near for strings and character arrays
@@ -340,7 +340,7 @@ function str_toReal(theString) result(theValue)
   character(len=:), allocatable :: cString
   integer                       :: cLen, cErr
   
-  cLen     = len(theString%chr) + 1
+  cLen     = len(theString) + 1
   cString  = theString%chr//char(0)
   theValue = round_near(cErr,cLen,cString)
   
