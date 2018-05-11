@@ -205,7 +205,7 @@ subroutine collimate_init()
 +ei
 
 #ifdef HDF5
-  if(h5_useForColl) call h5_initForCollimation
+  if(h5_useForCOLL) call h5_initForCollimation
 #endif
 
 +if g4collimat
@@ -536,7 +536,7 @@ subroutine collimate_init()
 
 !++  Optionally write the generated particle distribution
 #ifdef HDF5
-  if(h5_useForColl .and. dowrite_dist) then
+  if(h5_useForCOLL .and. dowrite_dist) then
     allocate(fldDist0(6))
     fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
     fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
@@ -705,7 +705,7 @@ subroutine collimate_start_sample(nsample)
 
   ! Survival Output
 #ifdef HDF5
-  if(h5_useForColl) then
+  if(h5_useForCOLL) then
     allocate(setFields(2))
     setFields(1) = h5_dataField(name="TURN",  type=h5_typeInt)
     setFields(2) = h5_dataField(name="NSURV", type=h5_typeInt)
@@ -2845,7 +2845,9 @@ subroutine collimate_end_sample(j)
 
   if(dowritetracks) then
     if(cern) close(tracks2_unit)
-    if(cern .and. h5_writeTracks2) call h5tr2_saveData
+#ifdef HDF5
+    if(cern .and. h5_writeTracks2) call h5tr2_finalise
+#endif
   end if
 
 !------------------------------------------------------------------------
@@ -3039,7 +3041,9 @@ subroutine collimate_exit()
 
   if(dowritetracks) then
     if(.not. cern) close(tracks2_unit)
-    if(.not. cern .and. h5_writeTracks2) call h5tr2_saveData
+#ifdef HDF5
+    if(.not. cern .and. h5_writeTracks2) call h5tr2_finalise
+#endif
     if(name_sel(1:3).eq.'COL') close(RHIClosses_unit)
   endif
 
@@ -3349,7 +3353,6 @@ subroutine collimate_end_element
 +ei
 
 #ifdef HDF5
-  ! YIL: In order to make sure we are sending the correct data types to appendreading..
   integer hdfturn,hdfpid,hdftyp
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
@@ -3514,11 +3517,10 @@ subroutine collimate_end_turn
 +ca rhicelens
 +ei
 
-! +if hdf5
-!   YIL: In order to make sure we are sending the correct data types to appendreading..
-!   INTEGER hdfturn,hdfpid,hdftyp
-!   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
-! +ei
+#ifdef HDF5
+  integer hdfturn,hdfpid,hdftyp
+  real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+#endif
   integer n
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
@@ -3571,7 +3573,7 @@ subroutine collimate_end_turn
     end do
 
 #ifdef HDF5
-    if(h5_useForDUMP) then
+    if(h5_useForCOLL) then
       call h5_prepareWrite(coll_hdf5_survival(2), 1)
       call h5_writeData(coll_hdf5_survival(2), 1, 1, iturn)
       call h5_writeData(coll_hdf5_survival(2), 2, 1, nsurvive)
