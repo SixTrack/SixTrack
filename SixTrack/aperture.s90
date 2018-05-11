@@ -484,7 +484,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
 ! logical isnan
   logical myisnan
-  integer ib2,ib3,ilostch,j,jj,jj1,jjx,lnapx
+  integer ib2,ib3,ilostch,j,jj,jj1,jjx
 +ca common2
 +ca commont1
 +ca commondl
@@ -974,68 +974,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     ! flush loss particle file
     flush(999)
 
-    ! Compact array
-    if (.not.apflag) then
-      lnapx=napx
-      do j=napx,1,-1
-        if(llostp(j)) then
-          if(j.ne.lnapx) then
-            do jj=j,lnapx-1
-              jj1=jj+1
-              nlostp(jj)=nlostp(jj1)
-              xv(1,jj)=xv(1,jj1)
-              xv(2,jj)=xv(2,jj1)
-              yv(1,jj)=yv(1,jj1)
-              yv(2,jj)=yv(2,jj1)
-+if bnlelens
-              namepart(jj)=namepart(jj1)
-+ei
-              dpsv(jj)=dpsv(jj1)
-              sigmv(jj)=sigmv(jj1)
-              ejfv(jj)=ejfv(jj1)
-              ejv(jj)=ejv(jj1)
-              rvv(jj)=rvv(jj1)
-! ph: hisix
-              nzz(jj)=nzz(jj1)
-              naa(jj)=naa(jj1)
-              nucm(jj)=nucm(jj1)
-              mtc(jj)=mtc(jj1)
-              moidpsv(jj)=moidpsv(jj1)
-              omoidpsv(jj)=omoidpsv(jj1)
-! ph: hisix
-+if rvet
-              rvet(jj)=rvet(jj1)
-+ei
-              oidpsv(jj)=oidpsv(jj1)
-              dpsv1(jj)=dpsv1(jj1)
-              clo6v(1,jj)=clo6v(1,jj1)
-              clo6v(2,jj)=clo6v(2,jj1)
-              clo6v(3,jj)=clo6v(3,jj1)
-              clop6v(1,jj)=clop6v(1,jj1)
-              clop6v(2,jj)=clop6v(2,jj1)
-              clop6v(3,jj)=clop6v(3,jj1)
-  
-              !--beam-beam element
-              di0xs(jj)=di0xs(jj1)
-              dip0xs(jj)=dip0xs(jj1)
-              di0zs(jj)=di0zs(jj1)
-              dip0zs(jj)=dip0zs(jj1)
-              do ib2=1,6
-                do ib3=1,6
-                  tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
-                end do
-              end do
-            end do !do jj=j,lnapx-1
-+if fluka
-            if (fluka_enable) call fluka_lostpart(lnapx, j) ! Inform fluka
-+ei
-          end if !if(j.ne.lnapx) then
-          lnapx=lnapx-1
-        end if !if(llostp(j)) then
-      end do !do j=napx,1,-1
-      napx=lnapx
-    end if !(.not.apflag)
-    
+    call compactArrays(llostp)
+
   end if !if( llost ) then
 
   !-----------------------------------------------------------------------
@@ -2380,6 +2320,78 @@ subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk
   endif
   return
 end subroutine intersectTR
+
+subroutine compactArrays(llostp)
+
+  implicit none
+
+  integer j,jj,jj1,ib2,ib3,lnapx
+  logical llostp(npart)
+
++ca commontr
+
+    ! Compact array
+    if (.not.apflag) then
+      lnapx=napx
+      do j=napx,1,-1
+        if(llostp(j)) then
+          if(j.ne.lnapx) then
+            do jj=j,lnapx-1
+              jj1=jj+1
+              nlostp(jj)=nlostp(jj1)
+              xv(1,jj)=xv(1,jj1)
+              xv(2,jj)=xv(2,jj1)
+              yv(1,jj)=yv(1,jj1)
+              yv(2,jj)=yv(2,jj1)
++if bnlelens
+              namepart(jj)=namepart(jj1)
++ei
+              dpsv(jj)=dpsv(jj1)
+              sigmv(jj)=sigmv(jj1)
+              ejfv(jj)=ejfv(jj1)
+              ejv(jj)=ejv(jj1)
+              rvv(jj)=rvv(jj1)
+! ph: hisix
+              nzz(jj)=nzz(jj1)
+              naa(jj)=naa(jj1)
+              nucm(jj)=nucm(jj1)
+              mtc(jj)=mtc(jj1)
+              moidpsv(jj)=moidpsv(jj1)
+              omoidpsv(jj)=omoidpsv(jj1)
+! ph: hisix
++if rvet
+              rvet(jj)=rvet(jj1)
++ei
+              oidpsv(jj)=oidpsv(jj1)
+              dpsv1(jj)=dpsv1(jj1)
+              clo6v(1,jj)=clo6v(1,jj1)
+              clo6v(2,jj)=clo6v(2,jj1)
+              clo6v(3,jj)=clo6v(3,jj1)
+              clop6v(1,jj)=clop6v(1,jj1)
+              clop6v(2,jj)=clop6v(2,jj1)
+              clop6v(3,jj)=clop6v(3,jj1)
   
+              !--beam-beam element
+              di0xs(jj)=di0xs(jj1)
+              dip0xs(jj)=dip0xs(jj1)
+              di0zs(jj)=di0zs(jj1)
+              dip0zs(jj)=dip0zs(jj1)
+              do ib2=1,6
+                do ib3=1,6
+                  tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+                end do
+              end do
+            end do !do jj=j,lnapx-1
++if fluka
+            if (fluka_enable) call fluka_lostpart(lnapx, j) ! Inform fluka
++ei
+          end if !if(j.ne.lnapx) then
+          lnapx=lnapx-1
+        end if !if(llostp(j)) then
+      end do !do j=napx,1,-1
+      napx=lnapx
+    end if !(.not.apflag)
+end subroutine compactArrays
+
 end module aperture
 
