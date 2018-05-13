@@ -78,7 +78,7 @@ contains
     call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
   end subroutine bdex_expand_arrays
 
-  subroutine bdex_closefiles
+  subroutine bdex_closeFiles
     implicit none
 
     integer i
@@ -92,7 +92,7 @@ contains
           endif
        enddo
     endif
-  end subroutine bdex_closefiles
+  end subroutine bdex_closeFiles
 
   subroutine bdex_parseElem(ch)
     

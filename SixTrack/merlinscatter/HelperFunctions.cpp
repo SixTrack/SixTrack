@@ -21,7 +21,7 @@ public:
 	};
 
 	ArbSpacedData(const vector<double>& xvals, const vector<double>& yvals);
-	virtual double ValueAt(double) const throw(Interpolation::BadRange);
+	virtual double ValueAt(double) const;
 
 private:
 	vector<Data> itsData;
@@ -39,7 +39,7 @@ public:
 		assert(dx>0);
 	}
 
-	double ValueAt(double x) const throw(Interpolation::BadRange);
+	double ValueAt(double x) const;
 
 private:
 	vector<double> yvals;
@@ -69,7 +69,7 @@ ArbSpacedData::ArbSpacedData(const vector<double>& xvals, const vector<double>& 
 	sort(itsData.begin(),itsData.end(),sort_x);
 }
 
-double ArbSpacedData::ValueAt(double x) const throw (Interpolation::BadRange)
+double ArbSpacedData::ValueAt(double x) const
 {
 	if(x<itsData.front().x || x>itsData.back().x)
 	{
@@ -100,7 +100,7 @@ double ArbSpacedData::ValueAt(double x) const throw (Interpolation::BadRange)
 // Class EqualSpacedData implementation
 //
 
-double EqualSpacedData::ValueAt(double x) const throw(Interpolation::BadRange)
+double EqualSpacedData::ValueAt(double x) const
 {
 	// note that we use extrapolation here if x is out of range
 	size_t n;

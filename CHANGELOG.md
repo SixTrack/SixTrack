@@ -5,10 +5,15 @@
 **User Changes**
 
 * DUMP now accepts -1 as file unit input, in which case a unit will be assigned dynamically.
+* Added optional QUIET flag that will stop SixTrack from reporting initial and final values of particle pairs.
+* Fixed the previously broken DA version of the code. Still may have issues with naglib when compiled with gfortran.
+* Added HDF5 block for alternative ouptut for DUMP and Scatter
 
-**Code Internal Functionality**
+**Code Internal Changes**
 
-* File units can now dynamically allocated by the file_units module.
+* File units can now be dynamically allocated by the file_units module.
+* Added a strings tools module to do string manipulation.
+* Moved DA version core code to sixda.s90 and tshift_corr.s90.
 
 ### Version 5.0 RC1 [06.04.2018] - Release Candidate
 

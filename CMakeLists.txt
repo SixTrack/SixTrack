@@ -219,11 +219,9 @@ if(DEBUG)
 endif()
 if(SPAMMY)
 	SET(SIXTRACK_FEATURES "spammy_${SIXTRACK_FEATURES}")
-	add_definitions(-DSPAMMY)
 endif()
 if(HDF5)
 	SET(SIXTRACK_FEATURES "hdf5_${SIXTRACK_FEATURES}")
-	add_definitions(-DHDF5)
 endif()
 if(FIO)
 	SET(SIXTRACK_FEATURES "fio_${SIXTRACK_FEATURES}")
@@ -292,13 +290,24 @@ endif()
 # Create the sixtrack binary name string
 set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
+###################################################################################################
+# Setting the c pre-processor definitons
+###################################################################################################
+
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST DA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
+# LIST(APPEND PREPRO_FLAGS_PREC 32BITM 64BITM 128BITM)
+
+###################################################################################################
 # Select which fortran files to generate and compile
+###################################################################################################
+
 if(DA)
-	list(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 file_units string_tools)
+	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump mainarrays parpro_scale bdex aperture elens hions)
+	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf bouncy_castle plato_seq ranecu wire)
 else()
-	list(APPEND FORS_FREEFORM end_sixtrack scatter dynk floatprecision bouncy_castle plato_seq lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump zipf mainarrays parpro_scale bdex aperture ranecu wire elens hions mod_alloc)
-	list(APPEND FORS_F90 file_units string_tools)
+	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump mainarrays parpro_scale bdex aperture elens hions)
+	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf bouncy_castle plato_seq ranecu wire)
 endif()
 
 if(COLLIMAT)
@@ -306,7 +315,7 @@ if(COLLIMAT)
 endif(COLLIMAT)
 
 if(HDF5)
-	list(APPEND FORS_F90 file_units hdf5_output)
+	list(APPEND FORS_F90 hdf5_output)
 endif(HDF5)
 
 if(BEAMGAS)
@@ -318,7 +327,7 @@ if(FLUKA)
 endif(FLUKA)
 
 if(ROOT)
-	LIST(APPEND FORS_FREEFORM root_output)
+	LIST(APPEND FORS_F90 root_output)
 endif(ROOT)
 
 foreach(loop IN LISTS FORS_FREEFORM)
@@ -362,19 +371,19 @@ endif(HDF5)
 if(HDF5_FOUND)
 	#uncomment if you want more information
 	message(STATUS "HDF5_INCLUDE_DIRS: ${HDF5_INCLUDE_DIRS}")
-	##message(STATUS "HDF5_INCLUDE_DIR: ${HDF5_INCLUDE_DIR}")
-	message(STATUS "HDF5_DEFINITIONS: ${HDF5_DEFINITIONS}")
+	message(STATUS "HDF5_INCLUDE_DIR: ${HDF5_INCLUDE_DIR}")
+	#message(STATUS "HDF5_DEFINITIONS: ${HDF5_DEFINITIONS}")
 	message(STATUS "HDF5_Fortran_LIBRARIES: ${HDF5_Fortran_LIBRARIES}")
-	##message(STATUS "HDF5_Fortran_HL_LIBRARIES: ${HDF5_Fortran_HL_LIBRARIES}")
-	##message(STATUS "HDF5_HL_LIBRARIES: ${HDF5_HL_LIBRARIES}")
-	##message(STATUS "HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
-	##message(STATUS "HDF5_CXX_LIBRARIES: ${HDF5_CXX_LIBRARIES}")
+	message(STATUS "HDF5_Fortran_HL_LIBRARIES: ${HDF5_Fortran_HL_LIBRARIES}")
+	#message(STATUS "HDF5_HL_LIBRARIES: ${HDF5_HL_LIBRARIES}")
+	#message(STATUS "HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
+	#message(STATUS "HDF5_CXX_LIBRARIES: ${HDF5_CXX_LIBRARIES}")
 	message(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
-	##message(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
-	##message(STATUS "HDF5_VERSION: ${HDF5_VERSION}")
-	message(STATUS "HDF5_LIBRARY_DIRS: ${HDF5_LIBRARY_DIRS}")
-	##message(STATUS "HDF5_IS_PARALLEL: ${HDF5_IS_PARALLEL}")
-	##message(STATUS "HDF5_Fortran_COMPILER_EXECUTABLE: ${HDF5_Fortran_COMPILER_EXECUTABLE}")
+	message(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
+	message(STATUS "HDF5_VERSION: ${HDF5_VERSION}")
+	#message(STATUS "HDF5_LIBRARY_DIRS: ${HDF5_LIBRARY_DIRS}")
+	#message(STATUS "HDF5_IS_PARALLEL: ${HDF5_IS_PARALLEL}")
+	message(STATUS "HDF5_Fortran_COMPILER_EXECUTABLE: ${HDF5_Fortran_COMPILER_EXECUTABLE}")
 endif(HDF5_FOUND)
 
 if(G4COLLIMAT)
@@ -706,8 +715,10 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
-	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
+	# set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
+	# set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp -assume realloc-lhs")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp -assume realloc-lhs")
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -975,6 +986,14 @@ endif()
 #add the source files that will be used to build sixtrack
 add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
+
+# Pre-processor flags
+foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_PREC)
+	if(${loop})
+		message(STATUS "Adding compiler definition -D${loop} to target SixTrack")
+		target_compile_definitions(SixTrack PUBLIC -D${loop})
+	endif()
+endforeach()
 
 ##build astuce
 #add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
@@ -1409,16 +1428,24 @@ endif(G4COLLIMAT)
 
 #Again for naglib, I assume we are on lxplus or have CERN afs access.
 if(NAGLIB)
+	if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+		message(WARNING "Compiling with NAGLIB and gfortran may cause SixTrack to segfault.")
+	endif()
+	
 	if(64BIT)
 		if(STATIC)
-			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
+				find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			endif()
 			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
 		else()
-			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
+				find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
+			endif()
 			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
 			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
