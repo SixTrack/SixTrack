@@ -884,7 +884,8 @@
 !FOX  D V DA EXT ALDA NORD NVAR 2 6 ; D V DA EXT ASDA NORD NVAR 2 6 ;
 !FOX  D V DA EXT ALDAQ NORD NVAR 2 6 ; D V DA EXT ASDAQ NORD NVAR 2 6 ;
 !FOX  D V DA EXT SMIDA NORD NVAR MCOR ; D V DA EXT DELTAS NORD NVAR ;
-!FOX  D V DA EXT KCRABDA NORD NVAR ; D V DA EXT MOIDA NORD NVAR ;
+!FOX  D V DA EXT KCRABDA NORD NVAR ; D V DA EXT MOIDA NORD NVAR ; D V RE INT MTCDA ;
+
 +cd daini
 !FOX  B D ;
 !FOX  D V DA COM SIGMDA NORD NVAR ; D V DA COM DPDA NORD NVAR ;
@@ -897,7 +898,7 @@
 !FOX  D V DA COM SMIDA NORD NVAR MCOR ; D V DA COM MOIDA NORD NVAR ;
 !FOX  D V DA INT X NORD NVAR 2 ; D V DA INT Y NORD NVAR 2 ;
 !FOX  D V DA INT YP NORD NVAR 2 ; D V DA INT DKIP NORD NVAR ;
-!FOX  D V DA INT CORROLD NORD NVAR MCOP ; 
+!FOX  D V DA INT CORROLD NORD NVAR MCOP ;  D V RE INT MTCDA ;
 !FOX  D V DA INT CORRNEW NORD NVAR MCOP ;
 !FOX  D V DA INT CORRAU1 NORD NVAR MCOP ;
 !FOX  D V DA INT CORRAU2 NORD NVAR MCOP ;
@@ -1400,8 +1401,8 @@
 +ei
 +cd kickfdpe
 +if .not.tilt
-!FOX  Y(1)=Y(1)+ED(IX)*CRKVE*MOIDA ;
-!FOX  Y(2)=Y(2)+EK(IX)*CIKVE*MOIDA ;
+!FOX  Y(1)=Y(1)+ED(IX)*CRKVE*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+EK(IX)*CIKVE*MTCDA/(ONE+DPDA) ;
 +ei
 +if tilt
 !FOX  Y(1)=Y(1)+(ED(IX)*TILTC(I)*CRKVE-EK(IX)*TILTS(I)*CIKVE)/
@@ -3946,20 +3947,20 @@
 +cd beamr3f
       if(ibbc.eq.0) then
 !FOX   Y(1)=Y(1)+(CRAD*CRKVEBF/RHO2BF*
-!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)*MOIDA ;
+!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)*MTCDA/(ONE+DPDA) ;
 !FOX   Y(2)=Y(2)+(CRAD*CIKVEBF/RHO2BF*
-!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)*MOIDA ;
+!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)*MTCDA/(ONE+DPDA) ;
       else
 !FOX   CCCC=(CRAD*CRKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)*BBCU(IMBB(I),11)-
 !FOX   (CRAD*CIKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)*BBCU(IMBB(I),12) ;
-!FOX   Y(1)=Y(1)+CCCC*MOIDA ;
+!FOX   Y(1)=Y(1)+CCCC*MTCDA/(ONE+DPDA) ;
 !FOX   CCCC=(CRAD*CRKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)*BBCU(IMBB(I),12)+
 !FOX   (CRAD*CIKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)*BBCU(IMBB(I),11) ;
-!FOX   Y(2)=Y(2)+CCCC*MOIDA ;
+!FOX   Y(2)=Y(2)+CCCC*MTCDA/(ONE+DPDA) ;
       endif
 +cd beamr3s1
               qu1=((((crad*ptnfac(ix))*crkvebf)/                        &!hr03
@@ -4141,7 +4142,7 @@
 !       endif
 +ei
 !FOX  Y(1)=Y(1)+(RKBF*(CRZBF-EXP(-TKBF)*
-!FOX  CBZBF)*SCRKVEB-BEAMOFF4)*MOIDA ;
+!FOX  CBZBF)*SCRKVEB-BEAMOFF4)*MTCDA/(ONE+DPDA) ;
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('aexpy1',y(1),1,0,0,0)
@@ -4151,7 +4152,7 @@
 !     endif
 +ei
 !FOX  Y(2)=Y(2)+(RKBF*(CRXBF-EXP(-TKBF)*
-!FOX  CBXBF)*SCIKVEB-BEAMOFF5)*MOIDA ;
+!FOX  CBXBF)*SCIKVEB-BEAMOFF5)*MTCDA/(ONE+DPDA) ;
 +if debug
 !     call wda('a4f1 0 y1',y(1),1,0,0,0)
 !     call wda('a4f1 0 y2',y(2),2,0,0,0)
@@ -4161,12 +4162,12 @@
 !FOX  CBZBF)*SCRKVEB-BEAMOFF4)*BBCU(IMBB(I),11)-
 !FOX  (RKBF*(CRXBF-EXP(-TKBF)*
 !FOX  CBXBF)*SCIKVEB-BEAMOFF5)*BBCU(IMBB(I),12) ;
-!FOX   Y(1)=Y(1)+CCCC*MOIDA ;
+!FOX   Y(1)=Y(1)+CCCC*MTCDA/(ONE+DPDA) ;
 !FOX  CCCC=(RKBF*(CRZBF-EXP(-TKBF)*
 !FOX  CBZBF)*SCRKVEB-BEAMOFF4)*BBCU(IMBB(I),12)+
 !FOX  (RKBF*(CRXBF-EXP(-TKBF)*
 !FOX  CBXBF)*SCIKVEB-BEAMOFF5)*BBCU(IMBB(I),11) ;
-!FOX   Y(2)=Y(2)+CCCC*MOIDA ;
+!FOX   Y(2)=Y(2)+CCCC*MTCDA/(ONE+DPDA) ;
 +if debug
 !     call wda('a4f1 n y1',y(1),1,0,0,0)
 !     call wda('a4f1 n y2',y(2),2,0,0,0)
@@ -4357,12 +4358,12 @@
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
 !FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
-!FOX      YP(1)=Y(1)/MOIDA ;
+!FOX      YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
           dummy=dare(yp(1))
 !FOX      TRACKI(2)=(YP(1)-DUMMY)*C1M3 ;
           dummy=dare(x(2))
 !FOX      TRACKI(3)=(X(2)+PARBE(IX,6)-DUMMY)*C1M3 ;
-!FOX      YP(2)=Y(2)/MOIDA ;
+!FOX      YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
           dummy=dare(yp(2))
 !FOX      TRACKI(4)=(YP(2)-DUMMY)*C1M3 ;
           dummy=dare(sigmda)
@@ -4409,8 +4410,8 @@
 !FOX      DPDA=TRACKI(6)+DUMMY-BEAMOFF6 ;
 !FOX      DPDA1=DPDA*C1E3 ;
 !FOX      MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX      Y(1)=YP(1)*MOIDA ;
-!FOX      Y(2)=YP(2)*MOIDA ;
+!FOX      Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX      Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX      EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX      EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
@@ -4425,10 +4426,10 @@
 +if .not.tilt
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,1)*MOIDA ;
+!FOX  DKIP=DKI(IX,1)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1)-(DKI(IX,1)/DKI(IX,3)*XL+DPDA*C1E3)*DKIP ;
             else
-!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3*MOIDA ;
+!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3*MTCDA/(ONE+DPDA) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA+RV*DKI(IX,1)*XL ;
@@ -4436,10 +4437,10 @@
           endif
           if(abs(dki(ix,2)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,2)*MOIDA ;
+!FOX  DKIP=DKI(IX,2)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2)-(DKI(IX,2)/DKI(IX,3)*ZL-DPDA*C1E3)*DKIP ;
             else
-!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3*MOIDA ;
+!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3*MTCDA/(ONE+DPDA) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA-RV*DKI(IX,2)*ZL ;
@@ -4449,18 +4450,18 @@
 +if tilt
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,1)*MOIDA ;
+!FOX  DKIP=DKI(IX,1)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1)-(DKI(IX,1)/DKI(IX,3)*XL+DPDA*C1E3)*
 !FOX  TILTC(I)*DKIP
-!FOX  +C1E3*DKI(IX,1)*MOIDA*(ONE-TILTC(I)) ;
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
 !FOX  Y(2)=Y(2)-(DKI(IX,1)/DKI(IX,3)*XL+DPDA*C1E3)*
 !FOX  TILTS(I)*DKIP
-!FOX  +C1E3*DKI(IX,1)*MOIDA*TILTS(I) ;
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*TILTS(I) ;
             else
-!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3*MOIDA*TILTC(I)
-!FOX  +C1E3*DKI(IX,1)*MOIDA*(ONE-TILTC(I)) ;
-!FOX  Y(2)=Y(2)-DKI(IX,1)*DPDA*C1E3*MOIDA*TILTS(I)
-!FOX  +C1E3*DKI(IX,1)*MOIDA*TILTS(I) ;
+!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTC(I)
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
+!FOX  Y(2)=Y(2)-DKI(IX,1)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTS(I)
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*TILTS(I) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA+RV*DKI(IX,1)*XL ;
@@ -4468,18 +4469,18 @@
           endif
           if(abs(dki(ix,2)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,2)*MOIDA ;
+!FOX  DKIP=DKI(IX,2)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1)+(DKI(IX,2)/DKI(IX,3)*ZL-DPDA*C1E3)*
 !FOX  TILTS(I)*DKIP
-!FOX  +C1E3*DKI(IX,2)*MOIDA*TILTS(I) ;
+!FOX  +C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*TILTS(I) ;
 !FOX  Y(2)=Y(2)-(DKI(IX,2)/DKI(IX,3)*ZL-DPDA*C1E3)*
 !FOX  TILTC(I)*DKIP
-!FOX  -C1E3*DKI(IX,2)*MOIDA*(ONE-TILTC(I)) ;
+!FOX  -C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
             else
-!FOX  Y(1)=Y(1)-DKI(IX,2)*DPDA*C1E3*MOIDA*TILTS(I)
-!FOX  +C1E3*DKI(IX,2)*MOIDA*TILTS(I) ;
-!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3*MOIDA*TILTC(I)
-!FOX  -C1E3*DKI(IX,2)*MOIDA*(ONE-TILTC(I)) ;
+!FOX  Y(1)=Y(1)-DKI(IX,2)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTS(I)
+!FOX  +C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*TILTS(I) ;
+!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTC(I)
+!FOX  -C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA-RV*DKI(IX,2)*ZL ;
@@ -4499,21 +4500,21 @@
 !FOX  YV2J=YV2J-BBI(I,K)*CIKVE+AAI(I,K)*CRKVE ;
 +cd multf04
 +if .not.tilt
-!FOX  Y(1)=Y(1)+YV1J*MOIDA ;
-!FOX  Y(2)=Y(2)+YV2J*MOIDA ;
+!FOX  Y(1)=Y(1)+YV1J*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+YV2J*MTCDA/(ONE+DPDA) ;
 +ei
 +if tilt
-!FOX  Y(1)=Y(1)+(TILTC(I)*YV1J-TILTS(I)*YV2J)*MOIDA ;
-!FOX  Y(2)=Y(2)+(TILTC(I)*YV2J+TILTS(I)*YV1J)*MOIDA ;
+!FOX  Y(1)=Y(1)+(TILTC(I)*YV1J-TILTS(I)*YV2J)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+(TILTC(I)*YV2J+TILTS(I)*YV1J)*MTCDA/(ONE+DPDA) ;
 +ei
 +cd multf05
 +if .not.tilt
-!FOX  Y(1)=Y(1)+BBI(I,1)*MOIDA ;
-!FOX  Y(2)=Y(2)+AAI(I,1)*MOIDA ;
+!FOX  Y(1)=Y(1)+BBI(I,1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+AAI(I,1)*MTCDA/(ONE+DPDA) ;
 +ei
 +if tilt
-!FOX  Y(1)=Y(1)+(TILTC(I)*BBI(I,1)-TILTS(I)*AAI(I,1))*MOIDA ;
-!FOX  Y(2)=Y(2)+(TILTC(I)*AAI(I,1)+TILTS(I)*BBI(I,1))*MOIDA ;
+!FOX  Y(1)=Y(1)+(TILTC(I)*BBI(I,1)-TILTS(I)*AAI(I,1))*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+(TILTC(I)*AAI(I,1)+TILTS(I)*BBI(I,1))*MTCDA/(ONE+DPDA) ;
 +ei
 +cd mults01
 +if .not.tilt
@@ -5457,8 +5458,8 @@ cc2008
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,kz(jx))
 +cd sqrtfox0
 +if rvet
-!FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0*MOIDA ;
-!FOX  RVET=RVET/(E0/MOIDA+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+
+!FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0*MTCDA/(ONE+DPDA) ;
+!FOX  RVET=RVET/(E0*(ONE+DPDA)/MTCDA+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+
 !FOX  DPDA*DPDA))) ;
 +ei
 +if .not.rvet
@@ -5509,8 +5510,8 @@ cc2008
               if(typ.eq.bezl(ii)) iwrite=1
             enddo
           endif
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DPDA1=DPDA*C1E3 ;
 !FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
@@ -5714,8 +5715,8 @@ cc2008
           ibb=ibb+1
           if(ibb.gt.nbb) call prror(102)
           imbb(i)=ibb
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DPDA1=DPDA*C1E3 ;
 !FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
@@ -6099,8 +6100,8 @@ cc2008
         if(kzz.eq.22) then
           irrtr=imtr(ix)
 
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
 
 !FOX  TEMPI(1) = X(1) ;
@@ -6147,8 +6148,8 @@ cc2008
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)/(1+DPDA) ; 
-!FOX  Y(2)=YP(2)/(1+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 
       endif
 +cd trom30
@@ -6292,7 +6293,7 @@ cc2008
       END IF 
       
       do j=1, napx
-      chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight 
+      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight 
       yv(1,j) = yv(1,j) * c1m3 !SI
       yv(2,j) = yv(2,j) * c1m3 !SI
     
@@ -8503,8 +8504,8 @@ subroutine daten
       iskew=0
       preda=c1m38
 !hion
-      zz0 = one
-      aa0 = one
+      zz0 = 1
+      aa0 = 1
       nucm0 = pmap
 +if .not.collimat
       do_coll = .false.
@@ -16691,7 +16692,7 @@ subroutine envada
 !-----------------------------------------------------------------------
   100   continue
         if(abs(ek(i)).le.pieni) goto 20
-!FOX  FOK=EK(I)*MOIDA ;
+!FOX  FOK=EK(I)*MTCDA/(ONE+DPDA) ;
 !FOX  AEK=FOK ;
         if(dare(aek).lt.zero) then
 !FOX  AEK=-AEK ;
@@ -16818,7 +16819,7 @@ end subroutine envada
 !  FOCUSSING
 !-----------------------------------------------------------------------
       if(abs(ek(i)).le.pieni) goto 100
-!FOX  FOK=(SMIDA(IPCH)*RATIOE(I))*MOIDA ;
+!FOX  FOK=(SMIDA(IPCH)*RATIOE(I))*MTCDA/(ONE+DPDA) ;
 !FOX  AEK=FOK ;
       if(dare(aek).lt.zero) then
 !FOX  AEK=-AEK ;
@@ -16996,8 +16997,8 @@ subroutine runda
       end do
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MOIDA ;
-!FOX  Y(2)=YP(2)*MOIDA ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  SIGMDA=DELTAS*RV ;
       write(lout,*) ' ENTERING MAP '
       write(lout,*) 'INITIAL COORDINATES'
@@ -17043,8 +17044,8 @@ subroutine runda
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=SIGMDA/RV ;
             if(ithick.eq.1) then
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
               if(icav.eq.0) then
 !FOX  CORRNEW(1)=X(1) ;
 !FOX  CORRNEW(2)=YP(1) ;
@@ -17092,8 +17093,8 @@ subroutine runda
 !FOX  DPDA1=CORROLD(6)+DPDAV ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MOIDA ;
-!FOX  Y(2)=YP(2)*MOIDA ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
@@ -17224,8 +17225,8 @@ subroutine runda
           ixcav=ix
           iicav=i
           if(nsix.eq.2) then
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA*RV ;
             call dapri(x(1),19)
             call dapri(yp(1),19)
@@ -17405,8 +17406,8 @@ subroutine runda
 +ca trom20
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
             if(bez(ix).eq.'DAMAP') then
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
               if(icav.eq.0.or.ithick.ne.1) then
                 if(nvar2.ge.1) call dapri(x(1),17)
@@ -17489,7 +17490,7 @@ subroutine runda
            crabpht=crabph(ix)
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT))*MOIDA ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT))*MTCDA/(ONE+DPDA) ;
 
 !FOX  EJ1=EJ1-CRABAMP
 !FOX  *CRABFREQ*2D0*PI/(CLIGHT)*X(2)*
@@ -17523,10 +17524,10 @@ subroutine runda
         crabpht2=crabph2(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI 
-!FOX  + CRABPHT2)*MOIDA;
+!FOX  + CRABPHT2)*MTCDA/(ONE+DPDA);
 !FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI
-!FOX  + CRABPHT2)*MOIDA;
+!FOX  + CRABPHT2)*MTCDA/(ONE+DPDA);
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CRKVE*CRKVE-
 !FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
@@ -17555,10 +17556,10 @@ subroutine runda
              crabpht2=crabph2(ix)
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CIKVE*CRKVE)
 !FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
@@ -17585,9 +17586,9 @@ subroutine runda
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  Y(1)=Y(1) + 2D0*(1D0/2D0)*CRABAMP3*((CRKVE*CRKVE)-
-!FOX  (CIKVE*CIKVE))*C1M3*MOIDA*
+!FOX  (CIKVE*CIKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
-!FOX  Y(2)=Y(2) - 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3*MOIDA*
+!FOX  Y(2)=Y(2) - 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
 !FOX  EJ1=EJ1 - 2D0*(1/6D0)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
 !FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -17617,9 +17618,9 @@ subroutine runda
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  Y(2)=Y(2) - CRABAMP3*((CIKVE*CIKVE)-
-!FOX  (CRKVE*CRKVE))*C1M3*MOIDA*
+!FOX  (CRKVE*CRKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
-!FOX  Y(1)=Y(1) + 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3*MOIDA*
+!FOX  Y(1)=Y(1) + 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
 !FOX  EJ1=EJ1 + 2D0*(1D0/6D0)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
 !FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -17650,11 +17651,11 @@ subroutine runda
 !FOX  Y(1)=Y(1) + (CRABAMP4)*
 !FOX  (CRKVE*CRKVE*CRKVE-(3D0*CRKVE*CIKVE*CIKVE))*C1M6*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2) - (CRABAMP4)*
 !FOX  (3D0*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M6*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1-6D0*(1D0/24D0)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
 !FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
 !FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*
@@ -17678,9 +17679,9 @@ subroutine runda
             end do
           end if
           if(ipch.ne.0) then
-!FOX  EKK=(SMIDA(IPCH)+SMIZF(I))*MOIDA ;
+!FOX  EKK=(SMIDA(IPCH)+SMIZF(I))*MTCDA/(ONE+DPDA) ;
           else
-!FOX  EKK=SMI(I)*MOIDA ;
+!FOX  EKK=SMI(I)*MTCDA/(ONE+DPDA) ;
           end if
           xs=xsi(i)
           zs=zsi(i)
@@ -17908,8 +17909,8 @@ subroutine runda
         endif
   490 continue
   500 continue
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
       if(nsix.eq.2) nsix=0
       if(icav.eq.0.or.ithick.ne.1) then
@@ -18286,8 +18287,8 @@ subroutine umlauda
               dpdav=dare(corrold(kkk))
 !FOX  CORROLD(KKK)=CORROLD(KKK)-DPDAV ;
     5       continue
-!FOX  Y(1)=YP(1)*MOIDA ;
-!FOX  Y(2)=YP(2)*MOIDA ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 
       iflag=0
       iflag1=0
@@ -18354,8 +18355,8 @@ subroutine umlauda
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=SIGMDA/RV ;
           if(ithick.eq.1) then
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
             if(icav.eq.0) then
 !FOX  CORRNEW(1)=X(1) ;
 !FOX  CORRNEW(2)=YP(1) ;
@@ -18418,8 +18419,8 @@ subroutine umlauda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 
-!FOX  Y(1)=YP(1)*MOIDA ;
-!FOX  Y(2)=YP(2)*MOIDA ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
@@ -18589,8 +18590,8 @@ subroutine umlauda
             call prror(-1)
           endif
           wire_num(i) = wire_num_aux
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
 !FOX  DPDA1=DPDA*C1E3 ;
           call dacop(x(1),damap(1))
@@ -18771,7 +18772,7 @@ subroutine umlauda
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
                
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
-!FOX  SIN(KCRABDA)*MOIDA ;
+!FOX  SIN(KCRABDA)*MTCDA/(ONE+DPDA) ;
 
 !FOX  EJ1=EJ1-CRABAMP
 !FOX  *CRABFREQ*2D0*PI/(CLIGHT)*X(2)*
@@ -18810,7 +18811,7 @@ subroutine umlauda
 !FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
 !FOX  COS(KCRABDA);
 !FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
-!FOX  COS(KCRABDA)*MOIDA;
+!FOX  COS(KCRABDA)*MTCDA/(ONE+DPDA);
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CRKVE*CRKVE-
 !FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(KCRABDA) ;
@@ -18842,10 +18843,10 @@ subroutine umlauda
 
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
 !FOX  COS(KCRABDA)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
 !FOX  COS(KCRABDA)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CIKVE*CRKVE)
 !FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(KCRABDA) ;
@@ -18875,9 +18876,9 @@ subroutine umlauda
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
 
 !FOX  Y(1)=Y(1) + 2*(0.5D0)*CRABAMP3*((CRKVE*CRKVE)-
-!FOX  (CIKVE*CIKVE))*C1M3*MOIDA*
+!FOX  (CIKVE*CIKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
-!FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*MOIDA*
+!FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
 !FOX  EJ1=EJ1 - 2*(1/6.)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
 !FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -18889,7 +18890,7 @@ subroutine umlauda
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  MOIDA=MTCDA*MOIDA ;
+!FOX  MOIDA=MTCDA*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -18910,9 +18911,9 @@ subroutine umlauda
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
 
 !FOX  Y(2)=Y(2) - 2*(0.5D0)*CRABAMP3*((CIKVE*CIKVE)-
-!FOX  (CRKVE*CRKVE))*C1M3*MOIDA*
+!FOX  (CRKVE*CRKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
-!FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*MOIDA*
+!FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
 !FOX  EJ1=EJ1 + 2*(1D0/6D0)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
 !FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -18946,11 +18947,11 @@ subroutine umlauda
 !FOX  Y(1)=Y(1) + 6*(1D0/6D0)*(CRABAMP4)*
 !FOX  (CRKVE*CRKVE*CRKVE-(3*CRKVE*CIKVE*CIKVE))*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2) - 6*(1D0/6D0)*(CRABAMP4)*
 !FOX  (3*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1-6*(1D0/24D0)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
 !FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
 !FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*
@@ -18985,11 +18986,11 @@ subroutine umlauda
 !FOX  Y(1)=Y(1) + (CRABAMP4)*
 !FOX  (CIKVE*CIKVE*CIKVE-(3*CIKVE*CRKVE*CRKVE))*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2) + (CRABAMP4)*
 !FOX  (3*CRKVE*CIKVE*CIKVE-CRKVE*CRKVE*CRKVE)*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  *MOIDA ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1+(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CIKVE-
 !FOX  CIKVE*CIKVE*CIKVE*CRKVE)*E0F*
 !FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -19023,9 +19024,9 @@ subroutine umlauda
           endif
         endif
         if(ipch.ne.0) then
-!FOX  EKK=(SMIDA(IPCH)*RATIOE(IX)+SMIZF(I))*MOIDA ;
+!FOX  EKK=(SMIDA(IPCH)*RATIOE(IX)+SMIZF(I))*MTCDA/(ONE+DPDA) ;
         else
-!FOX  EKK=SMI(I)*MOIDA ;
+!FOX  EKK=SMI(I)*MTCDA/(ONE+DPDA) ;
         endif
         xs=xsi(i)
         zs=zsi(i)
@@ -19203,8 +19204,8 @@ subroutine umlauda
       endif
  430  continue ! END LOOP OVER SINGLE ELEMENTS IN UMLAUDA
 
-!FOX  YP(1)=Y(1)/MOIDA ;
-!FOX  YP(2)=Y(2)/MOIDA ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
 +if debug
 !     call wda('afox   ',0d0,2,0,0,0)
@@ -19269,8 +19270,8 @@ subroutine umlauda
 !FOX  DPDA1=CORRAU2(6) ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MOIDA ;
-!FOX  Y(2)=YP(2)*MOIDA ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  SIGMDA=DELTAS*RV;
         if(icoonly.eq.1) then
           xxtr(1,1) = dare(x(1))
@@ -19537,7 +19538,7 @@ subroutine wireda(ix,i)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
 
-      CHI = (sqrt(e0**2-nucm0**2)*c1e6)/clight
+      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight
       TX = wire_tiltx(ix) !tilt x [degrees] 
       TY = wire_tilty(ix) !tilt y [degrees]
       TX = TX*(pi/c180e0) ![rad]
@@ -19577,8 +19578,8 @@ subroutine wireda(ix,i)
 
 !-----------------------------------------------------------------------
 ! X' -> PX'; Y' -> PY
-!FOX  YY(1)=YY(1)/MOIDA ;
-!FOX  YY(2)=YY(2)/MOIDA ;
+!FOX  YY(1)=YY(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YY(2)=YY(2)*(ONE+DPDA)/MTCDA ;
 
 ! 1 SHIFT - see the part of the code were wireda is called ....
 
@@ -19673,8 +19674,8 @@ subroutine wireda(ix,i)
 !FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TX) ;
 
 ! PX -> X'; PY -> Y'
-!FOX  YY(1)=YY(1)*MOIDA ;
-!FOX  YY(2)=YY(2)*MOIDA ;
+!FOX  YY(1)=YY(1)*MTCDA/(ONE+DPDA) ;
+!FOX  YY(2)=YY(2)*MTCDA/(ONE+DPDA) ;
 
 !FOX  YY(1)=YY(1)*C1E3;
 !FOX  YY(2)=YY(2)*C1E3;
@@ -19741,8 +19742,8 @@ end subroutine wireda
         call synoda
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MOIDA ;
-!FOX  Y(2)=YP(2)*MOIDA ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 
       endif
