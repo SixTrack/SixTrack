@@ -464,14 +464,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
   use physical_constants
 
-+if fluka
+#ifdef FLUKA
   use mod_fluka
-+ei
+#endif
 
-+if root
+#ifdef ROOT
   use iso_c_binding
   use root_output
-+ei
+#endif
 
   implicit none
 
@@ -492,15 +492,15 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca commonta
 +ca commonm1
 +ca commontr
-+if bnlelens
+#ifdef BNLELENS
 +ca rhicelens
-+ei
-+if collimat
+#endif
+#ifdef COLLIMAT
 ! Module to access ipart array
 +ca collpara
 +ca dbthin6d
 +ca dbcommon
-+ei
+#endif
 +ca dbdcum
 
 ! temporary variables
@@ -509,9 +509,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
   real(kind=fPrec) xchk(2)
 
-+if root
+#ifdef ROOT
   character(len=max_name_len+1) this_name
-+ei
+#endif
 
 ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 ! last modified: 12-06-2014
@@ -522,8 +522,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   integer kapert      ! temporal integer for aperture type
   logical llos        ! temporal logic array for interpolation
   logical lback       ! actually perform backtracking
-  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, &
- & ejvlos, nucmlos, sigmvlos, dpsvlos
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
   integer naalos, nzzlos
   
   save
@@ -865,12 +864,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         if( apflag ) then
           lparID = .false.
           jjx=1
-+if collimat
+#ifdef COLLIMAT
           do jj=1,npart
-+ei
-+if .not.collimat
+#else
           do jj=1,napx
-+ei
+#endif
             if(plost(jj).ne.0) then
 +if fluka
               if( fluka_uid(j).eq.plost(jj).or. fluka_gen(j).eq.plost(jj) ) then
@@ -907,12 +905,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
 
         ! Print to unit 999 (fort.999)
-+if fluka
+#ifdef FLUKA
         write(999,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
-+ei
-+if .not.fluka
+#else
         write(999,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
-+ei
+#endif
 
      &         turn, i, ix, bez(ix), slos,                                     &
 +if fluka
@@ -981,10 +978,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   !-----------------------------------------------------------------------
   ! closing stuff
   !-----------------------------------------------------------------------
-  
-+if fluka
+
+#ifdef FLUKA
   napxo = napx
-+ei
+#endif
 
   if(napx.eq.0) then
     write(lout,*)
@@ -995,14 +992,13 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     write(lout,*) '************************'
     write(lout,*)
     write(lout,*)
-+if fluka
+#ifdef FLUKA
 !skip postpr
     nthinerr = 3000
-+ei
-+if .not.fluka
+#else
     nthinerr = 3001
     nnuml=numl
-+ei
+#endif
     return
   end if
 
@@ -1270,11 +1266,11 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 !     - lInsUp: if true, the new aperture marker is inserted upstream of iEl
 !     always in main code
 !-----------------------------------------------------------------------
-+if fluka
+#ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
-+ei
+#endif
 
   implicit none
 
@@ -1315,7 +1311,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       ixEl=ix
       bez(ixEl)='s.latt.aper'
       write(lout,*)' -> inserted empty marker at start of lattice'
-+if fluka
+#ifdef FLUKA
     else if( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
 ! A.Mereghetti
 ! last modified: 18-01-2017
@@ -1328,7 +1324,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       ixEl=ix
       bez(ixEl)='s.latt.aper'
       write(lout,*) ' -> inserted empty marker at start of lattice since first entry is a FLUKA element'
-+ei
+#endif
     end if
   else if( ixEl.le.0 ) then
     write(lout,*) 'ERROR - lattice element at: i=',iEl
@@ -1474,11 +1470,11 @@ subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
 !     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-24
 !     find aperture marker closest to iStart
 !-----------------------------------------------------------------------
-+if fluka
+#ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
-+ei
+#endif
   
   implicit none
   ! interface variables
@@ -1504,14 +1500,13 @@ subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
     ix=ic(i)-nblo
     if(ix.gt.0) then
 !   SINGLE ELEMENT 
-+if fluka
+#ifdef FLUKA
 !     inserted in main code by the 'fluka' compilation flag
 !     aperture markers should not coincide with a FLUKA element
       if( kape(ix).ne.0.and.fluka_type(ix).eq.FLUKA_NONE ) then
-+ei
-+if .not.fluka
+#else
       if( kape(ix).ne.0 ) then
-+ei
+#endif
         iEl=i
         ixEl=ix
         lfound=.true.
@@ -2343,9 +2338,9 @@ subroutine compactArrays(llostp)
               xv(2,jj)=xv(2,jj1)
               yv(1,jj)=yv(1,jj1)
               yv(2,jj)=yv(2,jj1)
-+if bnlelens
+#ifdef BNLELENS
               namepart(jj)=namepart(jj1)
-+ei
+#endif
               dpsv(jj)=dpsv(jj1)
               sigmv(jj)=sigmv(jj1)
               ejfv(jj)=ejfv(jj1)
@@ -2359,6 +2354,7 @@ subroutine compactArrays(llostp)
               moidpsv(jj)=moidpsv(jj1)
               omoidpsv(jj)=omoidpsv(jj1)
 ! ph: hisix
+
 +if rvet
               rvet(jj)=rvet(jj1)
 +ei
@@ -2382,9 +2378,9 @@ subroutine compactArrays(llostp)
                 end do
               end do
             end do !do jj=j,lnapx-1
-+if fluka
+#ifdef FLUKA
             if (fluka_enable) call fluka_lostpart(lnapx, j) ! Inform fluka
-+ei
+#endif
           end if !if(j.ne.lnapx) then
           lnapx=lnapx-1
         end if !if(llostp(j)) then
