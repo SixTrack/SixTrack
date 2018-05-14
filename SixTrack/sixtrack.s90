@@ -884,7 +884,8 @@
 !FOX  D V DA EXT ALDA NORD NVAR 2 6 ; D V DA EXT ASDA NORD NVAR 2 6 ;
 !FOX  D V DA EXT ALDAQ NORD NVAR 2 6 ; D V DA EXT ASDAQ NORD NVAR 2 6 ;
 !FOX  D V DA EXT SMIDA NORD NVAR MCOR ; D V DA EXT DELTAS NORD NVAR ;
-!FOX  D V DA EXT KCRABDA NORD NVAR ;
+!FOX  D V DA EXT KCRABDA NORD NVAR ; D V DA EXT MOIDA NORD NVAR ; D V RE INT MTCDA ;
+
 +cd daini
 !FOX  B D ;
 !FOX  D V DA COM SIGMDA NORD NVAR ; D V DA COM DPDA NORD NVAR ;
@@ -894,10 +895,10 @@
 !FOX  D V DA COM EJ1 NORD NVAR ; D V DA COM EJF1 NORD NVAR ;
 !FOX  D V DA COM ALDA NORD NVAR 2 6 ; D V DA COM ASDA NORD NVAR 2 6 ;
 !FOX  D V DA COM ALDAQ NORD NVAR 2 6 ; D V DA COM ASDAQ NORD NVAR 2 6 ;
-!FOX  D V DA COM SMIDA NORD NVAR MCOR ;
+!FOX  D V DA COM SMIDA NORD NVAR MCOR ; D V DA COM MOIDA NORD NVAR ;
 !FOX  D V DA INT X NORD NVAR 2 ; D V DA INT Y NORD NVAR 2 ;
 !FOX  D V DA INT YP NORD NVAR 2 ; D V DA INT DKIP NORD NVAR ;
-!FOX  D V DA INT CORROLD NORD NVAR MCOP ;
+!FOX  D V DA INT CORROLD NORD NVAR MCOP ;  D V RE INT MTCDA ;
 !FOX  D V DA INT CORRNEW NORD NVAR MCOP ;
 !FOX  D V DA INT CORRAU1 NORD NVAR MCOP ;
 !FOX  D V DA INT CORRAU2 NORD NVAR MCOP ;
@@ -935,7 +936,7 @@
 !FOX  D V RE INT ED1 ; D V RE INT ED2 ;
 !FOX  D V RE INT DPDAV2 6 ; D V RE INT RRTR NTR 6 6 ;
 !FOX  D V RE INT COTR NTR 6 ; D V RE INT DPDAV ; D V RE INT BETR0 ;
-!FOX  D V RE INT E0 ; D V RE INT E0F ; D V RE INT PMA ;
+!FOX  D V RE INT E0 ; D V RE INT E0F ;
 !FOX  D V RE INT XS ; D V RE INT ZS ; D V RE INT OX ; D V RE INT OXP ;
 !FOX  D V RE INT OZ ; D V RE INT OZP ; D V RE INT SIGM1 ;
 !FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ; D V RE INT BEAMOFF3 ;
@@ -946,10 +947,10 @@
 !FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 18 ;
 !FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
 !FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
-!FOX  D V RE INT PARBE14 ; D V RE INT PI ;
-!FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ;
+!FOX  D V RE INT PARBE14 ; D V RE INT PI ; D V RE INT NUCM0 ;
+!FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ; D V RE INT MTCDA ;
 !FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
-!FOX  D V RE INT WIRECLO0 ;
+!FOX  D V RE INT WIRECLO0 ;  D V RE INT NUCMDA ;
 +if .not.fast
 !FOX  D V RE INT C2E3 ; D V RE INT C1E6 ;
 +ei
@@ -964,7 +965,7 @@
 !FOX  D V RE INT CRABFREQ ; D V RE INT CRABPHT ;
 !FOX  D V RE INT CRABPHT2 ; D V RE INT CRABPHT3 ;
 !FOX  D V RE INT CRABPHT4 ; D V RE INT KCRAB ;
-!FOX  D V RE INT CLIGHT ;
+!FOX  D V RE INT CLIGHT ; D V RE INT ZZ0 ;
 !FOX  D V IN INT IDZ 2 ; D V IN INT KX ; D V IN INT IX ; D V IN INT JX ;
 !FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
 !FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
@@ -1400,8 +1401,8 @@
 +ei
 +cd kickfdpe
 +if .not.tilt
-!FOX  Y(1)=Y(1)+ED(IX)*CRKVE/(ONE+DPDA) ;
-!FOX  Y(2)=Y(2)+EK(IX)*CIKVE/(ONE+DPDA) ;
+!FOX  Y(1)=Y(1)+ED(IX)*CRKVE*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+EK(IX)*CIKVE*MTCDA/(ONE+DPDA) ;
 +ei
 +if tilt
 !FOX  Y(1)=Y(1)+(ED(IX)*TILTC(I)*CRKVE-EK(IX)*TILTS(I)*CIKVE)/
@@ -3299,8 +3300,8 @@
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
         cxzyi=cxzyr*cxzi+cxzyi*cxzr
         cxzyr=cxzyrr
-        tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-        tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
+        tiltck=tiltc(k)**2-tilts(k)**2                                    !hr08
+        tiltsk=(two*tiltc(k))*tilts(k)                                    !hr02
         qu=(nine*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
         qv=(-nine*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
         cxzyrr=cxzyr*cxzr-cxzyi*cxzi
@@ -3365,7 +3366,6 @@
     dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
     yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-  
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
   
   end do
@@ -3947,20 +3947,20 @@
 +cd beamr3f
       if(ibbc.eq.0) then
 !FOX   Y(1)=Y(1)+(CRAD*CRKVEBF/RHO2BF*
-!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)/(ONE+DPDA) ;
+!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)*MTCDA/(ONE+DPDA) ;
 !FOX   Y(2)=Y(2)+(CRAD*CIKVEBF/RHO2BF*
-!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)/(ONE+DPDA) ;
+!FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)*MTCDA/(ONE+DPDA) ;
       else
 !FOX   CCCC=(CRAD*CRKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)*BBCU(IMBB(I),11)-
 !FOX   (CRAD*CIKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)*BBCU(IMBB(I),12) ;
-!FOX   Y(1)=Y(1)+CCCC/(ONE+DPDA) ;
+!FOX   Y(1)=Y(1)+CCCC*MTCDA/(ONE+DPDA) ;
 !FOX   CCCC=(CRAD*CRKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF4)*BBCU(IMBB(I),12)+
 !FOX   (CRAD*CIKVEBF/RHO2BF*
 !FOX   PTNFAC(IX)*(ONE-EXP(-TKBF))-BEAMOFF5)*BBCU(IMBB(I),11) ;
-!FOX   Y(2)=Y(2)+CCCC/(ONE+DPDA) ;
+!FOX   Y(2)=Y(2)+CCCC*MTCDA/(ONE+DPDA) ;
       endif
 +cd beamr3s1
               qu1=((((crad*ptnfac(ix))*crkvebf)/                        &!hr03
@@ -4142,7 +4142,7 @@
 !       endif
 +ei
 !FOX  Y(1)=Y(1)+(RKBF*(CRZBF-EXP(-TKBF)*
-!FOX  CBZBF)*SCRKVEB-BEAMOFF4)/(ONE+DPDA) ;
+!FOX  CBZBF)*SCRKVEB-BEAMOFF4)*MTCDA/(ONE+DPDA) ;
 +if debug
 !     if (umcalls.eq.8) then
 !       call wda('aexpy1',y(1),1,0,0,0)
@@ -4152,7 +4152,7 @@
 !     endif
 +ei
 !FOX  Y(2)=Y(2)+(RKBF*(CRXBF-EXP(-TKBF)*
-!FOX  CBXBF)*SCIKVEB-BEAMOFF5)/(ONE+DPDA) ;
+!FOX  CBXBF)*SCIKVEB-BEAMOFF5)*MTCDA/(ONE+DPDA) ;
 +if debug
 !     call wda('a4f1 0 y1',y(1),1,0,0,0)
 !     call wda('a4f1 0 y2',y(2),2,0,0,0)
@@ -4162,12 +4162,12 @@
 !FOX  CBZBF)*SCRKVEB-BEAMOFF4)*BBCU(IMBB(I),11)-
 !FOX  (RKBF*(CRXBF-EXP(-TKBF)*
 !FOX  CBXBF)*SCIKVEB-BEAMOFF5)*BBCU(IMBB(I),12) ;
-!FOX   Y(1)=Y(1)+CCCC/(ONE+DPDA) ;
+!FOX   Y(1)=Y(1)+CCCC*MTCDA/(ONE+DPDA) ;
 !FOX  CCCC=(RKBF*(CRZBF-EXP(-TKBF)*
 !FOX  CBZBF)*SCRKVEB-BEAMOFF4)*BBCU(IMBB(I),12)+
 !FOX  (RKBF*(CRXBF-EXP(-TKBF)*
 !FOX  CBXBF)*SCIKVEB-BEAMOFF5)*BBCU(IMBB(I),11) ;
-!FOX   Y(2)=Y(2)+CCCC/(ONE+DPDA) ;
+!FOX   Y(2)=Y(2)+CCCC*MTCDA/(ONE+DPDA) ;
 +if debug
 !     call wda('a4f1 n y1',y(1),1,0,0,0)
 !     call wda('a4f1 n y2',y(2),2,0,0,0)
@@ -4358,12 +4358,12 @@
 !--Hirata's 6D beam-beam kick
           dummy=dare(x(1))
 !FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
-!FOX      YP(1)=Y(1)*(ONE+DPDA) ;
+!FOX      YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
           dummy=dare(yp(1))
 !FOX      TRACKI(2)=(YP(1)-DUMMY)*C1M3 ;
           dummy=dare(x(2))
 !FOX      TRACKI(3)=(X(2)+PARBE(IX,6)-DUMMY)*C1M3 ;
-!FOX      YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX      YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
           dummy=dare(yp(2))
 !FOX      TRACKI(4)=(YP(2)-DUMMY)*C1M3 ;
           dummy=dare(sigmda)
@@ -4406,14 +4406,16 @@
           dummy=dare(yp(2))
 !FOX      YP(2)=TRACKI(4)*C1E3+DUMMY-BEAMOFF5 ;
           dummy=dare(dpda)
+
 !FOX      DPDA=TRACKI(6)+DUMMY-BEAMOFF6 ;
 !FOX      DPDA1=DPDA*C1E3 ;
-!FOX      Y(1)=YP(1)/(ONE+DPDA) ;
-!FOX      Y(2)=YP(2)/(ONE+DPDA) ;
-!FOX      EJF1=E0F*(ONE+DPDA) ;
-!FOX      EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX      MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX      Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX      Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
+!FOX      EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX      EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX      RV=EJ1/E0*E0F/EJF1 ;
-          
+      
           !We want to go back to sixtrack variables (15.03.2018)
 !FOX      TRACKI(5) = TRACKI(5)*RV ;
 
@@ -4424,10 +4426,10 @@
 +if .not.tilt
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,1)/(ONE+DPDA) ;
+!FOX  DKIP=DKI(IX,1)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1)-(DKI(IX,1)/DKI(IX,3)*XL+DPDA*C1E3)*DKIP ;
             else
-!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3/(ONE+DPDA) ;
+!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3*MTCDA/(ONE+DPDA) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA+RV*DKI(IX,1)*XL ;
@@ -4435,10 +4437,10 @@
           endif
           if(abs(dki(ix,2)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,2)/(ONE+DPDA) ;
+!FOX  DKIP=DKI(IX,2)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2)-(DKI(IX,2)/DKI(IX,3)*ZL-DPDA*C1E3)*DKIP ;
             else
-!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3*MTCDA/(ONE+DPDA) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA-RV*DKI(IX,2)*ZL ;
@@ -4448,18 +4450,18 @@
 +if tilt
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,1)/(ONE+DPDA) ;
+!FOX  DKIP=DKI(IX,1)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1)-(DKI(IX,1)/DKI(IX,3)*XL+DPDA*C1E3)*
 !FOX  TILTC(I)*DKIP
-!FOX  +C1E3*DKI(IX,1)/(ONE+DPDA)*(ONE-TILTC(I)) ;
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
 !FOX  Y(2)=Y(2)-(DKI(IX,1)/DKI(IX,3)*XL+DPDA*C1E3)*
 !FOX  TILTS(I)*DKIP
-!FOX  +C1E3*DKI(IX,1)/(ONE+DPDA)*TILTS(I) ;
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*TILTS(I) ;
             else
-!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3/(ONE+DPDA)*TILTC(I)
-!FOX  +C1E3*DKI(IX,1)/(ONE+DPDA)*(ONE-TILTC(I)) ;
-!FOX  Y(2)=Y(2)-DKI(IX,1)*DPDA*C1E3/(ONE+DPDA)*TILTS(I)
-!FOX  +C1E3*DKI(IX,1)/(ONE+DPDA)*TILTS(I) ;
+!FOX  Y(1)=Y(1)-DKI(IX,1)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTC(I)
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
+!FOX  Y(2)=Y(2)-DKI(IX,1)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTS(I)
+!FOX  +C1E3*DKI(IX,1)*MTCDA/(ONE+DPDA)*TILTS(I) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA+RV*DKI(IX,1)*XL ;
@@ -4467,18 +4469,18 @@
           endif
           if(abs(dki(ix,2)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-!FOX  DKIP=DKI(IX,2)/(ONE+DPDA) ;
+!FOX  DKIP=DKI(IX,2)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1)+(DKI(IX,2)/DKI(IX,3)*ZL-DPDA*C1E3)*
 !FOX  TILTS(I)*DKIP
-!FOX  +C1E3*DKI(IX,2)/(ONE+DPDA)*TILTS(I) ;
+!FOX  +C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*TILTS(I) ;
 !FOX  Y(2)=Y(2)-(DKI(IX,2)/DKI(IX,3)*ZL-DPDA*C1E3)*
 !FOX  TILTC(I)*DKIP
-!FOX  -C1E3*DKI(IX,2)/(ONE+DPDA)*(ONE-TILTC(I)) ;
+!FOX  -C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
             else
-!FOX  Y(1)=Y(1)-DKI(IX,2)*DPDA*C1E3/(ONE+DPDA)*TILTS(I)
-!FOX  +C1E3*DKI(IX,2)/(ONE+DPDA)*TILTS(I) ;
-!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3/(ONE+DPDA)*TILTC(I)
-!FOX  -C1E3*DKI(IX,2)/(ONE+DPDA)*(ONE-TILTC(I)) ;
+!FOX  Y(1)=Y(1)-DKI(IX,2)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTS(I)
+!FOX  +C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*TILTS(I) ;
+!FOX  Y(2)=Y(2)+DKI(IX,2)*DPDA*C1E3*MTCDA/(ONE+DPDA)*TILTC(I)
+!FOX  -C1E3*DKI(IX,2)*MTCDA/(ONE+DPDA)*(ONE-TILTC(I)) ;
             endif
             if(idp.eq.1.and.iabs(ition).eq.1) then
 !FOX  SIGMDA=SIGMDA-RV*DKI(IX,2)*ZL ;
@@ -4498,21 +4500,21 @@
 !FOX  YV2J=YV2J-BBI(I,K)*CIKVE+AAI(I,K)*CRKVE ;
 +cd multf04
 +if .not.tilt
-!FOX  Y(1)=Y(1)+YV1J/(ONE+DPDA) ;
-!FOX  Y(2)=Y(2)+YV2J/(ONE+DPDA) ;
+!FOX  Y(1)=Y(1)+YV1J*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+YV2J*MTCDA/(ONE+DPDA) ;
 +ei
 +if tilt
-!FOX  Y(1)=Y(1)+(TILTC(I)*YV1J-TILTS(I)*YV2J)/(ONE+DPDA) ;
-!FOX  Y(2)=Y(2)+(TILTC(I)*YV2J+TILTS(I)*YV1J)/(ONE+DPDA) ;
+!FOX  Y(1)=Y(1)+(TILTC(I)*YV1J-TILTS(I)*YV2J)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+(TILTC(I)*YV2J+TILTS(I)*YV1J)*MTCDA/(ONE+DPDA) ;
 +ei
 +cd multf05
 +if .not.tilt
-!FOX  Y(1)=Y(1)+BBI(I,1)/(ONE+DPDA) ;
-!FOX  Y(2)=Y(2)+AAI(I,1)/(ONE+DPDA) ;
+!FOX  Y(1)=Y(1)+BBI(I,1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+AAI(I,1)*MTCDA/(ONE+DPDA) ;
 +ei
 +if tilt
-!FOX  Y(1)=Y(1)+(TILTC(I)*BBI(I,1)-TILTS(I)*AAI(I,1))/(ONE+DPDA) ;
-!FOX  Y(2)=Y(2)+(TILTC(I)*AAI(I,1)+TILTS(I)*BBI(I,1))/(ONE+DPDA) ;
+!FOX  Y(1)=Y(1)+(TILTC(I)*BBI(I,1)-TILTS(I)*AAI(I,1))*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=Y(2)+(TILTC(I)*AAI(I,1)+TILTS(I)*BBI(I,1))*MTCDA/(ONE+DPDA) ;
 +ei
 +cd mults01
 +if .not.tilt
@@ -5162,7 +5164,7 @@
                   yv(2,j)  = c1e3*myyp(j)+torbyp(1)
                   sigmv(j) = mys(j)
                   ejv(j)   = myp(j)
-                  ejfv(j)=sqrt(ejv(j)**2-pma**2)                         !hr03
+                  ejfv(j)=sqrt(ejv(j)**2-nucm0**2)                         !hr03
                   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
                   dpsv(j)=(ejfv(j)-e0f)/e0f
                   oidpsv(j)=one/(one+dpsv(j))
@@ -5456,8 +5458,8 @@
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,kz(jx))
 +cd sqrtfox0
 +if rvet
-!FOX  RVET=C1E3*PMA*PMA*(TWO+DPDA)*DPDA/E0/(ONE+DPDA) ;
-!FOX  RVET=RVET/(E0*(ONE+DPDA)+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+
+!FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0*MTCDA/(ONE+DPDA) ;
+!FOX  RVET=RVET/(E0*(ONE+DPDA)/MTCDA+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+
 !FOX  DPDA*DPDA))) ;
 +ei
 +if .not.rvet
@@ -5508,8 +5510,8 @@
               if(typ.eq.bezl(ii)) iwrite=1
             enddo
           endif
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DPDA1=DPDA*C1E3 ;
 !FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
@@ -5713,8 +5715,8 @@
           ibb=ibb+1
           if(ibb.gt.nbb) call prror(102)
           imbb(i)=ibb
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DPDA1=DPDA*C1E3 ;
 !FOX  DELTAS=SIGMDA/RV ;
           call dacop(x(1),damap(1))
@@ -6098,8 +6100,8 @@
         if(kzz.eq.22) then
           irrtr=imtr(ix)
 
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
 
 !FOX  TEMPI(1) = X(1) ;
@@ -6141,13 +6143,13 @@
 
 
 !FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
-
-!FOX  Y(1)=YP(1)/(1+DPDA) ; 
-!FOX  Y(2)=YP(2)/(1+DPDA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 
       endif
 +cd trom30
@@ -6159,15 +6161,18 @@
           irrtr=imtr(ix)
           do j=1,napx
 
+
+
+
 +cd trom41
 
             !The values are stored in the temp vector which are used for the multiplication.
             temptr(1)=xv(1,j)
-            temptr(2)=yv(1,j)*(one+dpsv(j))
+            temptr(2)=yv(1,j)/moidpsv(j)
             temptr(3)=xv(2,j)
-            temptr(4)=yv(2,j)*(one+dpsv(j))
+            temptr(4)=yv(2,j)/moidpsv(j)
             temptr(5)=sigmv(j)
-            temptr(6)=((ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+            temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
             ! Adding the closed orbit. The previous values are stored in the temptr vector.   
             xv(1,j)  = cotr(irrtr,1)
             yv(1,j)  = cotr(irrtr,2)
@@ -6186,16 +6191,22 @@
               pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
             enddo
             ! Transforming back to the tracked coordinates of Sixtrack...
-            ejv(j)  = e0f*pttemp/(c1e3*(e0/e0f))+e0
-            ejfv(j)=sqrt(ejv(j)**2-pma**2)
+            ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+            
+
+            ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
             rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-            dpsv(j)=(ejfv(j)-e0f)/e0f
+            dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
             oidpsv(j)=one/(one+dpsv(j))
-            dpsv1(j)=(dpsv(j)*c1m3)*oidpsv(j)
+            moidpsv(j)=mtc(j)/(one+dpsv(j))
+            dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+
             
             ! We have to go back to angles after we updated the energy. 
-            yv(j,1) = yv(j,1)/(one+dpsv(j))
-            yv(j,2) = yv(j,2)/(one+dpsv(j))
+            yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
+            yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+            !yv(j,1) = yv(j,1)*moidpsv(j)
+            !yv(j,2) = yv(j,2)*moidpsv(j)
           enddo
 +cd trom42
             temptr(1)=xv(1,j)
@@ -6247,8 +6258,8 @@
 !     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
-!     magnetic rigidity
-      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            
+
+                                
 
       tx = wire_tiltx(ix) !tilt x [degrees] 
       ty = wire_tilty(ix) !tilt y [degrees]
@@ -6269,7 +6280,7 @@
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
         call prror(-1)
       endif
-      NNORM=c1m7/chi
+      
 
       IF (wire_flagco(ix).eq.1) THEN
          dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
@@ -6280,7 +6291,8 @@
       END IF 
       
       do j=1, napx
-
+      chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight
+      NNORM=c1m7/chi  
       yv(1,j) = yv(1,j) * c1m3 !SI
       yv(2,j) = yv(2,j) * c1m3 !SI
     
@@ -6294,8 +6306,8 @@
       END IF 
 
 ! x'-> px; y'->py
-      yv(1,j) = yv(1,j)*(one + dpsv(j))
-      yv(2,j) = yv(2,j)*(one + dpsv(j))
+      yv(1,j) = yv(1,j)*(one + dpsv(j))/mtc(j)
+      yv(2,j) = yv(2,j)*(one + dpsv(j))/mtc(j)
 
 !ibeco = 0
       if(ibeco.eq.0) then
@@ -6392,8 +6404,8 @@
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
 
 ! px -> x'; py -> y'
-      yv(1,j) = yv(1,j)/(one + dpsv(j))
-      yv(2,j) = yv(2,j)/(one + dpsv(j))
+      yv(1,j) = yv(1,j)*mtc(j)/(one + dpsv(j))
+      yv(2,j) = yv(2,j)*mtc(j)/(one + dpsv(j))
 !-----------------------------------------------------------------------
 ! END OF WIRE MAP
 !-----------------------------------------------------------------------
@@ -7452,7 +7464,7 @@
 +cd rvet0
       e0f=sqrt(e0**2-pma**2)                                             !hr03
 +if rvet
-!FOX  RVET=C1E3*PMA*PMA*(TWO+DPDA)*DPDA/E0/DPD ;
+!FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0/DPD ;
 !FOX  RVET=RVET/(E0*DPD+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+DPDA*DPDA))) ;
 +ei
 +cd rvet1
@@ -8091,6 +8103,7 @@
       use parpro
       use mod_common
       use mod_commons
+      use mod_hions
       implicit none
       integer numx
       real(kind=fPrec) e0f
@@ -8108,7 +8121,7 @@
       if(numx.gt.nde(2)) return
       phas=phas0
       e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-pma**2)                                             !hr05
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
       return
       end
 
@@ -8123,6 +8136,7 @@ subroutine adib(e0f)
       use parpro
       use mod_common
       use mod_commons
+      use mod_hions
       implicit none
       real(kind=fPrec) e0f
 +ca commont1
@@ -8134,7 +8148,7 @@ subroutine adib(e0f)
 !-----------------------------------------------------------------------
       if(abs(phas0).le.pieni) return
       e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-pma**2)                                             !hr05
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
       return
 end subroutine adib
 
@@ -10128,7 +10142,7 @@ subroutine daten
         write(lout,*)
       endif
       if(pma.lt.pieni) call prror(27)
-      nucm0=pma
+      !nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
       if(ncy2.eq.0) then
@@ -14333,6 +14347,7 @@ subroutine daten
       
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
 
+
 ! ================================================================================================ !
 !  hisix heavy ion input block
 !  P. HERMES
@@ -14349,6 +14364,12 @@ subroutine daten
   ch1(:nchars+3)=ch(:nchars)//' / '
   read(ch1,*) aa0, zz0, nucm0
   nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+      !    do j=1,npart
+      !     naa   (j) = aa0
+      !     nzz   (j) = zz0
+      !     nucm  (j) = nucm0
+
+      !    enddo
   has_hion = .true.
   goto 110
 
@@ -16670,7 +16691,7 @@ subroutine envada
 !-----------------------------------------------------------------------
   100   continue
         if(abs(ek(i)).le.pieni) goto 20
-!FOX  FOK=EK(I)/(ONE+DPDA) ;
+!FOX  FOK=EK(I)*MTCDA/(ONE+DPDA) ;
 !FOX  AEK=FOK ;
         if(dare(aek).lt.zero) then
 !FOX  AEK=-AEK ;
@@ -16797,7 +16818,7 @@ end subroutine envada
 !  FOCUSSING
 !-----------------------------------------------------------------------
       if(abs(ek(i)).le.pieni) goto 100
-!FOX  FOK=(SMIDA(IPCH)*RATIOE(I))/(ONE+DPDA) ;
+!FOX  FOK=(SMIDA(IPCH)*RATIOE(I))*MTCDA/(ONE+DPDA) ;
 !FOX  AEK=FOK ;
       if(dare(aek).lt.zero) then
 !FOX  AEK=-AEK ;
@@ -16853,6 +16874,7 @@ subroutine runda
       use mod_common
       use mod_commons
       use mod_commond2
+      use mod_hions
       implicit none
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
@@ -16904,13 +16926,15 @@ subroutine runda
       do i=1,100
         jj(i)=0
       enddo
-      if(mout2.eq.1) write(7,*) e0,pma
-      e0f=sqrt(e0**2-pma**2)                                             !hr08
-      betr0=sqrt(one-(pma/e0)**2)
+
+      if(mout2.eq.1) write(7,*) e0,nucm0
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+      betr0=sqrt(one-(nucm0/e0)**2)
       do i=1,mcor
         iverg(i)=0
       end do
       do i=1,20
+
         fake(1,i)=zero
         fake(2,i)=zero
       end do
@@ -16947,10 +16971,13 @@ subroutine runda
       if(nvar2.eq.6) then
         call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
+
+
 !FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;        
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCM0*NUCM0) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=DELTAS+SIGM(1)/RV ;
 
@@ -16968,8 +16995,9 @@ subroutine runda
 !FOX  CORROLD(KKK)=CORROLD(KKK)-DPDAV ;
       end do
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  Y(1)=YP(1)/(ONE+DPDA) ;
-!FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  SIGMDA=DELTAS*RV ;
       write(lout,*) ' ENTERING MAP '
       write(lout,*) 'INITIAL COORDINATES'
@@ -16991,8 +17019,8 @@ subroutine runda
       if(niu(2).lt.niu(1)) nsto=nsto+iu
       do 490 n=1,numl
         numx=n-1
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
         ncyo=ncy
         if(ncy.eq.0) ncy=1
@@ -17010,13 +17038,13 @@ subroutine runda
           endif
           if(mout2.eq.1.and.i480.eq.nsta.and.n.eq.1) call write4
           if(iflag.eq.1) then
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=SIGMDA/RV ;
             if(ithick.eq.1) then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
               if(icav.eq.0) then
 !FOX  CORRNEW(1)=X(1) ;
 !FOX  CORRNEW(2)=YP(1) ;
@@ -17063,10 +17091,11 @@ subroutine runda
               dpdav=dare(dpda1)
 !FOX  DPDA1=CORROLD(6)+DPDAV ;
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  Y(1)=YP(1)/(ONE+DPDA) ;
-!FOX  Y(2)=YP(2)/(ONE+DPDA) ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  SIGMDA=DELTAS*RV ;
               icav=icav+1
@@ -17195,8 +17224,8 @@ subroutine runda
           ixcav=ix
           iicav=i
           if(nsix.eq.2) then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA*RV ;
             call dapri(x(1),19)
             call dapri(yp(1),19)
@@ -17237,9 +17266,11 @@ subroutine runda
               endif
             endif
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
+
           endif
           if(nvar2.eq.6.and.nsix.ne.2) then
             iflag=1
@@ -17374,8 +17405,8 @@ subroutine runda
 +ca trom20
           if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
             if(bez(ix).eq.'DAMAP') then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
               if(icav.eq.0.or.ithick.ne.1) then
                 if(nvar2.ge.1) call dapri(x(1),17)
@@ -17426,13 +17457,14 @@ subroutine runda
           pi=four*atan_mb(one)
 
         if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX) ;
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
+
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 
 !FOX  Y(1)=Y(1) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT))/(1+DPDA) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT))*MTCDA/(ONE+DPDA) ;
 
 !FOX  EJ1=EJ1-CRABAMP
 !FOX  *CRABFREQ*2D0*PI/(CLIGHT)*X(1)*
@@ -17440,23 +17472,24 @@ subroutine runda
 !FOX  *CRABFREQ*2D0*PI + CRABPHT)) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
 
           goto 440
       endif
         if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX) ;
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT))/(ONE+DPDA) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT))*MTCDA/(ONE+DPDA) ;
 
 !FOX  EJ1=EJ1-CRABAMP
 !FOX  *CRABFREQ*2D0*PI/(CLIGHT)*X(2)*
@@ -17464,11 +17497,12 @@ subroutine runda
 !FOX  *CRABFREQ*2D0*PI + CRABPHT)) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -17483,25 +17517,26 @@ subroutine runda
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf ! JBG Including misalignments
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
         crabpht2=crabph2(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI 
-!FOX  + CRABPHT2)/(ONE+DPDA);
+!FOX  + CRABPHT2)*MTCDA/(ONE+DPDA);
 !FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI
-!FOX  + CRABPHT2)/(ONE+DPDA);
+!FOX  + CRABPHT2)*MTCDA/(ONE+DPDA);
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CRKVE*CRKVE-
 !FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -17515,24 +17550,25 @@ subroutine runda
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT2)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CIKVE*CRKVE)
 !FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT2) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -17545,13 +17581,13 @@ subroutine runda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  Y(1)=Y(1) + 2D0*(1D0/2D0)*CRABAMP3*((CRKVE*CRKVE)-
-!FOX  (CIKVE*CIKVE))*C1M3/(ONE+DPDA)*
+!FOX  (CIKVE*CIKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
-!FOX  Y(2)=Y(2) - 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+!FOX  Y(2)=Y(2) - 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
 !FOX  EJ1=EJ1 - 2D0*(1/6D0)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
 !FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -17559,10 +17595,11 @@ subroutine runda
 !FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT3);
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -17576,13 +17613,13 @@ subroutine runda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  Y(2)=Y(2) - CRABAMP3*((CIKVE*CIKVE)-
-!FOX  (CRKVE*CRKVE))*C1M3/(ONE+DPDA)*
+!FOX  (CRKVE*CRKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
-!FOX  Y(1)=Y(1) + 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+!FOX  Y(1)=Y(1) + 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT3);
 !FOX  EJ1=EJ1 + 2D0*(1D0/6D0)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
 !FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -17590,10 +17627,11 @@ subroutine runda
 !FOX  SIN(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI+CRABPHT3);
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -17606,17 +17644,17 @@ subroutine runda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP4=ED(IX) ;
+!FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP4)*
 !FOX  (CRKVE*CRKVE*CRKVE-(3D0*CRKVE*CIKVE*CIKVE))*C1M6*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2) - (CRABAMP4)*
 !FOX  (3D0*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M6*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI + CRABPHT4)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1-6D0*(1D0/24D0)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
 !FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
 !FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*
@@ -17624,10 +17662,11 @@ subroutine runda
 
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
 
@@ -17639,9 +17678,9 @@ subroutine runda
             end do
           end if
           if(ipch.ne.0) then
-!FOX  EKK=(SMIDA(IPCH)+SMIZF(I))/(ONE+DPDA) ;
+!FOX  EKK=(SMIDA(IPCH)+SMIZF(I))*MTCDA/(ONE+DPDA) ;
           else
-!FOX  EKK=SMI(I)/(ONE+DPDA) ;
+!FOX  EKK=SMI(I)*MTCDA/(ONE+DPDA) ;
           end if
           xs=xsi(i)
           zs=zsi(i)
@@ -17869,8 +17908,8 @@ subroutine runda
         endif
   490 continue
   500 continue
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
       if(nsix.eq.2) nsix=0
       if(icav.eq.0.or.ithick.ne.1) then
@@ -17913,6 +17952,7 @@ subroutine runda
 !FOX  SIGMDA=CORRAU2(5)*RV ;
 !FOX  DPDA1=CORRAU2(6) ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
         call dapri(corrau2(1),18)
         call dapri(corrau2(2),18)
         call dapri(corrau2(3),18)
@@ -17979,6 +18019,7 @@ subroutine umlauda
       use mod_commons
       use wire
       use mod_commond2
+      use mod_hions
       
       implicit none
       
@@ -18100,14 +18141,19 @@ subroutine umlauda
       i4(9,2)=4
       i4(10,1)=4
       i4(10,2)=4
-      e0f=sqrt(e0**2-pma**2)                                             !hr05
-      betr0=sqrt(one-(pma/e0)**2)
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+      betr0=sqrt(one-(nucm0/e0)**2)
       ox=xxtr(1,1)
       oxp=yytr(1,1)
       oz=xxtr(1,2)
       ozp=yytr(1,2)
       sigm1=sigm(1)
       dps1=dps(1)
+      nucmda=nucm0 ! this is doen like this in case we want to change so we can run Ions designed for different optics. 
+      !mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j)) Again we keep this variable in case we want to change the implementation later. 
+      mtcda = one  
+
+
       if(iqmodc.eq.1) then
         if(el(iq(1)).le.pieni) then
           ed1=ed(iq(1))
@@ -18150,13 +18196,16 @@ subroutine umlauda
       elseif(nvar2.eq.6) then
         call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
+
 !FOX  DPDA1=DPDA1+DPS1*C1E3 ;        
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCM0*NUCM0) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=DELTAS+SIGM1/RV ;
 !FOX  SIGMDA=DELTAS*RV ;
+
         ivar=ivar+2
       else
 !FOX  DELTAS=SIGM1 ;
@@ -18237,14 +18286,14 @@ subroutine umlauda
               dpdav=dare(corrold(kkk))
 !FOX  CORROLD(KKK)=CORROLD(KKK)-DPDAV ;
     5       continue
-!FOX  Y(1)=YP(1)/(ONE+DPDA) ;
-!FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 
       iflag=0
       iflag1=0
       iflag2=0
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  SIGMDA=DELTAS*RV ;
       if(ithick.eq.1) call envada
@@ -18300,13 +18349,13 @@ subroutine umlauda
 !     endif
 +ei
         if(iflag.eq.1) then
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DELTAS=SIGMDA/RV ;
           if(ithick.eq.1) then
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
             if(icav.eq.0) then
 !FOX  CORRNEW(1)=X(1) ;
 !FOX  CORRNEW(2)=YP(1) ;
@@ -18367,12 +18416,16 @@ subroutine umlauda
             dpdav=dare(dpda1)
 !FOX  DPDA1=CORROLD(6)+DPDAV ;
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  Y(1)=YP(1)/(ONE+DPDA) ;
-!FOX  Y(2)=YP(2)/(ONE+DPDA) ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  SIGMDA=DELTAS*RV ;
+
+
             icav=icav+1
             call envada
           endif
@@ -18510,7 +18563,9 @@ subroutine umlauda
 !FOX  SIGMDA=SIGMDA-SIGMDAC ;
           endif
           call synoda
+
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
@@ -18534,8 +18589,8 @@ subroutine umlauda
             call prror(-1)
           endif
           wire_num(i) = wire_num_aux
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
 !FOX  DPDA1=DPDA*C1E3 ;
           call dacop(x(1),damap(1))
@@ -18678,9 +18733,12 @@ subroutine umlauda
         endif
           pi=four*atan_mb(one)
         if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX) ;
-           crabfreq=ek(ix)*c1e3
-           crabpht=crabph(ix)
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
+          
+          crabfreq=ek(ix)*c1e3
+          crabpht=crabph(ix)
+
+
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
                 
@@ -18694,36 +18752,38 @@ subroutine umlauda
 !FOX  *CRABFREQ*2D0*PI + CRABPHT)) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
-!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
+!FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
 
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
 
           goto 440
       endif
         if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX) ;
+!FOX  CRABAMP=ED(IX)*ZZ0 ;
            crabfreq=ek(ix)*c1e3
            crabpht=crabph(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
                
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
-!FOX  SIN(KCRABDA)/(ONE+DPDA) ;
+!FOX  SIN(KCRABDA)*MTCDA/(ONE+DPDA) ;
 
 !FOX  EJ1=EJ1-CRABAMP
 !FOX  *CRABFREQ*2D0*PI/(CLIGHT)*X(2)*
 !FOX  COS(KCRABDA) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -18739,7 +18799,7 @@ subroutine umlauda
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf ! JBG Including misalignments
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
 !       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
@@ -18750,16 +18810,17 @@ subroutine umlauda
 !FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
 !FOX  COS(KCRABDA);
 !FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
-!FOX  COS(KCRABDA)/(ONE+DPDA);
+!FOX  COS(KCRABDA)*MTCDA/(ONE+DPDA);
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CRKVE*CRKVE-
 !FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(KCRABDA) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -18773,7 +18834,7 @@ subroutine umlauda
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP2=ED(IX) ;
+!FOX  CRABAMP2=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -18781,19 +18842,20 @@ subroutine umlauda
 
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
 !FOX  COS(KCRABDA)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
 !FOX  COS(KCRABDA)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CIKVE*CRKVE)
 !FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(KCRABDA) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -18806,16 +18868,16 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
 
 !FOX  Y(1)=Y(1) + 2*(0.5D0)*CRABAMP3*((CRKVE*CRKVE)-
-!FOX  (CIKVE*CIKVE))*C1M3/(ONE+DPDA)*
+!FOX  (CIKVE*CIKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
-!FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+!FOX  Y(2)=Y(2) - 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
 !FOX  EJ1=EJ1 - 2*(1/6.)*(CRABAMP3)*(CRKVE*CRKVE*CRKVE-
 !FOX  3*CIKVE*CIKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -18823,10 +18885,11 @@ subroutine umlauda
 !FOX  SIN(KCRABDA);
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA*MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -18840,16 +18903,16 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP3=ED(IX) ;
+!FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
 
 !FOX  Y(2)=Y(2) - 2*(0.5D0)*CRABAMP3*((CIKVE*CIKVE)-
-!FOX  (CRKVE*CRKVE))*C1M3/(ONE+DPDA)*
+!FOX  (CRKVE*CRKVE))*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
-!FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3/(ONE+DPDA)*
+!FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
 !FOX  COS(KCRABDA);
 !FOX  EJ1=EJ1 + 2*(1D0/6D0)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
 !FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
@@ -18857,10 +18920,11 @@ subroutine umlauda
 !FOX  SIN(KCRABDA);
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -18873,7 +18937,7 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP4=ED(IX) ;
+!FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -18882,11 +18946,11 @@ subroutine umlauda
 !FOX  Y(1)=Y(1) + 6*(1D0/6D0)*(CRABAMP4)*
 !FOX  (CRKVE*CRKVE*CRKVE-(3*CRKVE*CIKVE*CIKVE))*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2) - 6*(1D0/6D0)*(CRABAMP4)*
 !FOX  (3*CIKVE*CRKVE*CRKVE-CIKVE*CIKVE*CIKVE)*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1-6*(1D0/24D0)*(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CRKVE-
 !FOX  6*CRKVE*CRKVE*CIKVE*CIKVE+CIKVE*CIKVE*CIKVE*CIKVE)*
 !FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*
@@ -18894,10 +18958,11 @@ subroutine umlauda
 
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           goto 440
@@ -18911,7 +18976,7 @@ subroutine umlauda
           xs=xsi(i)
           zs=zsi(i)
 +ca alignf
-!FOX  CRABAMP4=ED(IX) ;
+!FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -18920,21 +18985,22 @@ subroutine umlauda
 !FOX  Y(1)=Y(1) + (CRABAMP4)*
 !FOX  (CIKVE*CIKVE*CIKVE-(3*CIKVE*CRKVE*CRKVE))*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=Y(2) + (CRABAMP4)*
 !FOX  (3*CRKVE*CIKVE*CIKVE-CRKVE*CRKVE*CRKVE)*C1M6*
 !FOX  COS(KCRABDA)
-!FOX  /(ONE+DPDA) ;
+!FOX  *MTCDA/(ONE+DPDA) ;
 !FOX  EJ1=EJ1+(CRABAMP4)*(CRKVE*CRKVE*CRKVE*CIKVE-
 !FOX  CIKVE*CIKVE*CIKVE*CRKVE)*E0F*
 !FOX  C1M9*(((CRABFREQ*2D0)*PI)/CLIGHT)*
 !FOX  SIN(KCRABDA) ;
 
 !FOX  EJF0=EJF1 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
@@ -18957,9 +19023,9 @@ subroutine umlauda
           endif
         endif
         if(ipch.ne.0) then
-!FOX  EKK=(SMIDA(IPCH)*RATIOE(IX)+SMIZF(I))/(ONE+DPDA) ;
+!FOX  EKK=(SMIDA(IPCH)*RATIOE(IX)+SMIZF(I))*MTCDA/(ONE+DPDA) ;
         else
-!FOX  EKK=SMI(I)/(ONE+DPDA) ;
+!FOX  EKK=SMI(I)*MTCDA/(ONE+DPDA) ;
         endif
         xs=xsi(i)
         zs=zsi(i)
@@ -19137,8 +19203,8 @@ subroutine umlauda
       endif
  430  continue ! END LOOP OVER SINGLE ELEMENTS IN UMLAUDA
 
-!FOX  YP(1)=Y(1)*(ONE+DPDA) ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA) ;
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
 +if debug
 !     call wda('afox   ',0d0,2,0,0,0)
@@ -19202,8 +19268,9 @@ subroutine umlauda
 !FOX  DELTAS=CORRAU2(5) ;
 !FOX  DPDA1=CORRAU2(6) ;
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  Y(1)=YP(1)/(ONE+DPDA) ;
-!FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  SIGMDA=DELTAS*RV;
         if(icoonly.eq.1) then
           xxtr(1,1) = dare(x(1))
@@ -19433,6 +19500,7 @@ subroutine wireda(ix,i)
       use mod_common
       use mod_commons
       use wire
+      use mod_hions
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
@@ -19469,7 +19537,7 @@ subroutine wireda(ix,i)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
 
-      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight
+      CHI = (sqrt(e0**2-nucm0**2)*c1e6)/clight
       TX = wire_tiltx(ix) !tilt x [degrees] 
       TY = wire_tilty(ix) !tilt y [degrees]
       TX = TX*(pi/c180e0) ![rad]
@@ -19509,8 +19577,8 @@ subroutine wireda(ix,i)
 
 !-----------------------------------------------------------------------
 ! X' -> PX'; Y' -> PY
-!FOX  YY(1)=YY(1)*(ONE+DPDA) ;
-!FOX  YY(2)=YY(2)*(ONE+DPDA) ;
+!FOX  YY(1)=YY(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YY(2)=YY(2)*(ONE+DPDA)/MTCDA ;
 
 ! 1 SHIFT - see the part of the code were wireda is called ....
 
@@ -19605,14 +19673,15 @@ subroutine wireda(ix,i)
 !FOX  SQRT((ONE+DPDA)*(ONE+DPDA)-YY(1)*YY(1)-YY(2)*YY(2)))+TX) ;
 
 ! PX -> X'; PY -> Y'
-!FOX  YY(1)=YY(1)/(ONE+DPDA) ;
-!FOX  YY(2)=YY(2)/(ONE+DPDA) ;
+!FOX  YY(1)=YY(1)*MTCDA/(ONE+DPDA) ;
+!FOX  YY(2)=YY(2)*MTCDA/(ONE+DPDA) ;
 
 !FOX  YY(1)=YY(1)*C1E3;
 !FOX  YY(2)=YY(2)*C1E3;
 
 !     DADAL AUTOMATIC INCLUSION
 end subroutine wireda
+
 
 +dk runcav
       subroutine runcav
@@ -19641,7 +19710,7 @@ end subroutine wireda
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
 
-      betr0=sqrt(one-(pma/e0)**2)
+      betr0=sqrt(one-(nucm0/e0)**2)
       write(lout,*) ' REENTERING MAP '
       call davar(x(1),zero,1)
       call davar(yp(1),zero,2)
@@ -19659,10 +19728,11 @@ end subroutine wireda
 !Eric
         rewind 111
       if(ition.ne.0) then
-      e0f=sqrt(e0**2-pma**2)                                             !hr08
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  EJF1=E0F*(ONE+DPDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+PMA*PMA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
 !FOX  EJF0=EJF1 ;
         if(abs(dppoff).gt.pieni) then
           sigmdac=sigmoff(iicav)
@@ -19671,8 +19741,9 @@ end subroutine wireda
         endif
         call synoda
 !FOX  DPDA=DPDA1*C1M3 ;
-!FOX  Y(1)=YP(1)/(ONE+DPDA) ;
-!FOX  Y(2)=YP(2)/(ONE+DPDA) ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 
       endif
@@ -19730,6 +19801,7 @@ end subroutine wireda
       use parpro
       use mod_common
       use mod_commons
+      use mod_hions
       implicit none
       integer ix,idaa
 +ca commont1
@@ -19743,23 +19815,24 @@ end subroutine wireda
 !-----------------------------------------------------------------------
 !FOX  B D ;
 +ca dainicom
-!FOX  D V RE INT E0 ; D V RE INT PMA ; D V RE EXT E0F ;
+!FOX  D V RE INT E0 ; D V RE EXT E0F ;
 !FOX  D V RE INT HSY 3 ; D V RE INT PHAS ;
 !FOX  D V RE EXT ED NELE ; D V RE EXT HSYC NELE ;
-!FOX  D V RE EXT PHASC NELE ;
+!FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ; 
 !FOX  D V RE INT C1E3 ; D V RE INT ONE ;
 !FOX  D V IN EXT ITIONC NELE ; D V IN INT ITION ; D V IN INT IX ;
-!FOX  E D ;
+!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       ix=ixcav
+
       if(kz(ix).eq.12) then
-!FOX  EJ1=EJ1+ED(IX)*SIN(HSYC(IX)*SIGMDA/C1E3*
+!FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
 !FOX  ITIONC(IX)+PHASC(IX)) ;
       else
-!FOX  EJ1=EJ1+HSY(1)*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
+!FOX  EJ1=EJ1+HSY(1)*ZZ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
       endif
-!FOX  EJF1=SQRT(EJ1*EJ1-PMA*PMA) ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
 
       return
@@ -21728,7 +21801,7 @@ end interface
             endif
           endif
           write(lout,10080) dp1
-          e0f=sqrt(e0**2-pma**2)                                         !hr05
+          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
           if(iclo6.eq.0) then
             write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),     &
      &idz(2),                                                           &
@@ -21880,7 +21953,7 @@ end interface
           call prror(-1)
         endif
 
-!        e0f=sqrt(e0**2-pma**2)
+
         e0f=sqrt(e0**2-nucm0**2)       ! hisix
 
         call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
@@ -22096,8 +22169,8 @@ end interface
           endif
           ejfv(ia)=e0f*(one+dpsv(ia))
           ejfv(ia+1)=e0f*(one+dpsv(ia+1))
-          ejv(ia)=sqrt(ejfv(ia)**2+pma**2)                               !hr05
-          ejv(ia+1)=sqrt(ejfv(ia+1)**2+pma**2)                           !hr05
+          ejv(ia)=sqrt(ejfv(ia)**2+nucm0**2)                               !hr05
+          ejv(ia+1)=sqrt(ejfv(ia+1)**2+nucm0**2)                           !hr05
           epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
           epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
 
@@ -29615,6 +29688,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 
       return
 end subroutine envarsv
+
+
 
 +dk comnul
 !-----------------------------------------------------------------------
@@ -43869,7 +43944,7 @@ subroutine crstart
       napxo=crnapxo
       napx=crnapx
       e0=cre0
-      e0f=sqrt(e0**2-pma**2)                                             !hr08
+      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
       write(93,*) 'CRSTART doing binrecs'
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
