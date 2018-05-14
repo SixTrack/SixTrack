@@ -99,7 +99,7 @@ block data scdata
 end block data scdata
 
 module collimation
-
+  
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -111,7 +111,7 @@ module collimation
   use hdf5_output
   use hdf5_tracks2
 #endif
-
+  
   implicit none
   
   ! file units
@@ -162,7 +162,7 @@ contains
 !! can be used to do any initial configuration and/or file loading.
 !<
 subroutine collimate_init()
-
+  
   use crcoall
   use parpro
   use mod_common
@@ -178,7 +178,7 @@ subroutine collimate_init()
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -207,16 +207,16 @@ subroutine collimate_init()
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
 #endif
-
+  
 +if g4collimat
 ! These should be configured in the scatter block when possible/enabled
   real(kind=fPrec) g4_ecut
   integer g4_physics
 +ei
-
+  
   call funit_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
-
+  
   write(lout,*) '         -------------------------------'
   write(lout,*)
   write(lout,*) '          Program      C O L L T R A C K '
@@ -515,7 +515,7 @@ subroutine collimate_init()
         call readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay, &
      &           myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
       else
-        write(lout,*) 'INFO> review your distribution parameters !!'
+        write(lout,*) 'ERROR> review your distribution parameters !!'
         call prror(-1)
       end if
     end if
@@ -2804,9 +2804,6 @@ subroutine collimate_end_sample(j)
 #ifdef ROOT
   use root_output
 #endif
-#ifdef HDF5
-  use hdf5_output
-#endif
   
   implicit none
   
@@ -3061,7 +3058,7 @@ subroutine collimate_end_sample(j)
     do icoll = 1, db_ncoll
       if(db_length(icoll).gt.zero) then
         call CollimatorLossRootWrite(icoll, db_name1(icoll), len(db_name1(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
-&       caverage(icoll), csigma(icoll), db_length(icoll))
+          caverage(icoll), csigma(icoll), db_length(icoll))
       end if
     end do
   end if
@@ -3597,8 +3594,12 @@ subroutine collimate_end_turn
 +ei
 
 #ifdef HDF5
+  ! For tracks2
   integer hdfturn,hdfpid,hdftyp
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+  ! For other output
+  type(h5_dataField), allocatable :: fldHdf(:)
+  integer fmtHdf, setHdf
 #endif
   integer n
 !__________________________________________________________________
@@ -3855,19 +3856,41 @@ subroutine collimate_end_turn
     napx = imov
   endif
 
-!------------------------------------------------------------------------
-!++  Write final distribution
-  if(dowrite_dist.and.(ie.eq.iu).and.(iturn.eq.numl)) then
-    call funit_requestUnit('distn.dat', distn_unit)
-    open(unit=distn_unit, file='distn.dat') !was 9998
-    write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
-
-    do j = 1, napx
-      write(distn_unit,'(6(1X,E23.15))') (xgrd(j)-torbx(1))/c1e3, (xpgrd(j)-torbxp(1))/c1e3, (ygrd(j)-torby(1))/c1e3, &
-&    (ypgrd(j)-torbyp(1))/c1e3, sigmvgrd(j), ejfvgrd(j)
-    end do
-
-    close(distn_unit)
+  ! Write final distribution
+  if(dowrite_dist .and. ie == iu .and. iturn == numl) then
+#ifdef HDF5
+    if(h5_useForCOLL) then
+      allocate(fldHdf(6))
+      fldHdf(1) = h5_dataField(name="X",  type=h5_typeReal)
+      fldHdf(2) = h5_dataField(name="XP", type=h5_typeReal)
+      fldHdf(3) = h5_dataField(name="Y",  type=h5_typeReal)
+      fldHdf(4) = h5_dataField(name="YP", type=h5_typeReal)
+      fldHdf(5) = h5_dataField(name="Z",  type=h5_typeReal)
+      fldHdf(6) = h5_dataField(name="E",  type=h5_typeReal)
+      call h5_createFormat("collDistN", fldHdf, fmtHdf)
+      call h5_createDataSet("distn", h5_collID, fmtHdf, setHdf, napx)
+      call h5_prepareWrite(setHdf, napx)
+      call h5_writeData(setHdf, 1, napx, (xgrd(1:napx) -torbx(1)) /c1e3)
+      call h5_writeData(setHdf, 2, napx, (xpgrd(1:napx)-torbxp(1))/c1e3)
+      call h5_writeData(setHdf, 3, napx, (ygrd(1:napx) -torby(1)) /c1e3)
+      call h5_writeData(setHdf, 4, napx, (ypgrd(1:napx)-torbyp(1))/c1e3)
+      call h5_writeData(setHdf, 5, napx, sigmvgrd(1:napx))
+      call h5_writeData(setHdf, 6, napx, ejfvgrd(1:napx))
+      call h5_finaliseWrite(setHdf)
+      deallocate(fldHdf)
+    else
+#endif
+      call funit_requestUnit('distn.dat', distn_unit)
+      open(unit=distn_unit, file='distn.dat') !was 9998
+      write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
+      do j = 1, napx
+        write(distn_unit,'(6(1X,E23.15))') (xgrd(j)-torbx(1))/c1e3, (xpgrd(j)-torbxp(1))/c1e3, (ygrd(j)-torby(1))/c1e3, &
+          (ypgrd(j)-torbyp(1))/c1e3, sigmvgrd(j), ejfvgrd(j)
+      end do
+      close(distn_unit)
+#ifdef HDF5
+    end if
+#endif
   end if
 
 !GRD NOW ONE HAS TO COPY BACK THE NEW DISTRIBUTION TO ITS "ORIGINAL NAME"
