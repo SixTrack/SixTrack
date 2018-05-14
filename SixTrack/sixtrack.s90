@@ -5170,9 +5170,9 @@
                   oidpsv(j)=one/(one+dpsv(j))
                   moidpsv(j)=mtc(j)/(one+dpsv(j))
                   dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)*mtc(j)                      !hr03
-cc2008
+!cc2008
                   namepart(j) = samplenumber*100 + j
-cc2008
+!cc2008
                enddo
            endif
 !GRD-2007
