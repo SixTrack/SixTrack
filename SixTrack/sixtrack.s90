@@ -20596,18 +20596,17 @@ end interface
   integer idummy(6)
   character(len=10) cmonth
   character(len=4) cpto
-+if cr
+#ifdef CR
   character(len=80) day
-+ei
-+if .not.cr
+#else
   character(len=80) day,runtim
-+ei
+#endif
   character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
                                       !DANGER: If the len changes, CRCHECK will break.
-+if boinc
+#ifdef BOINC
   character(len=256) filename
-+ei
-+if crlibm
+#endif
+#ifdef CRLIBM
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -20621,11 +20620,11 @@ end interface
   real(kind=fPrec) fround
   real(kind=fPrec) round_near
   data lineno /0/
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !  integer umcalls,dapcalls,dokcalls,dumpl
 !  common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
+#endif
   logical lopen
   dimension cmonth(12)
   data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
@@ -20636,38 +20635,38 @@ end interface
   errout_status = 0         ! Set to nonzero before calling abend in case of error.
                             ! If prror is called, it will be set internally.
   lout=92
-+if .not.cr
+#ifndef CR
   lout=output_unit
-+ei
+#endif
   call allocate_arrays      ! Initial allocation of memory
-+if crlibm
+#ifdef CRLIBM
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
   call disable_xp()
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !     umcalls=0
 !     dapcalls=0
 !     dokcalls=0
 !     dumpl=0
-+ei
+#endif
 ! Set napx,napxo,trtime for error handling
   napx=0
   napxo=0
   trtime=0.0
   napxto=0
   runtim=''
-+if cr
+#ifdef CR
       stxt=''
-+ei
+#endif
 #ifdef HDF5
   call h5_initHDF5()
 #endif
-+if boinc
+#ifdef BOINC
   call boinc_init()
 !  call boinc_init_graphics()
-+ei
-+if cr
+#endif
+#ifdef CR
 ! Main start for Checkpoint/Restart
       sythckcr=.false.
       numlcr=1
@@ -20685,87 +20684,78 @@ end interface
         binrecs(i)=0
       enddo
       crtime3=0.
-+if debug
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
-+if boinc
+#endif
+#ifdef BOINC
  611  continue
-+ei
+#endif
 !--   Very first get rid of any previous partial output
-+if boinc
+#ifdef BOINC
       call boincrf('fort.92',filename)
-+if fio
+#ifdef FIO
       open(lout,file=filename,form='formatted',status='replace',round='nearest')
-+ei
-+if .not.fio
+#else
       open(lout,file=filename,form='formatted',status='replace')
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
       open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
-+ei
-+if .not.fio
+#else
       open(lout,file='fort.92',form='formatted',status='replace')
-+ei
-+ei
+#endif
+#endif
 !--   Now position the checkpoint/restart logfile=93
-+if boinc
+#ifdef BOINC
       call boincrf('fort.93',filename)
-+if fio
+#ifdef FIO
       open(93,file=filename,form='formatted',status='unknown', round='nearest')
-+ei
-+if .not.fio
+#else
       open(93,file=filename,form='formatted',status='unknown')
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
       open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
-+ei
-+if .not.fio
+#else
       open(93,file='fort.93',form='formatted',status='unknown')
-+ei
-+ei
+#endif
+#endif
   606 read(93,'(a1024)',end=607) arecord
       goto 606
   607 backspace (93,iostat=ierro)
 ! and if BOINC issue an informatory message
-+if boinc
+#ifdef BOINC
       if (start) then
         write(93,*) 'SIXTRACR starts very first time'
       else
         write(93,*) 'SIXTRACR retry after unzip of Sixin.zip'
       endif
-+ei
+#endif
 ! Now we see if we have a fort.6 which implies
 ! that we can perhaps just restart using all exisiting files
 ! including the last checkpoints
 ! if not, we just do a start (with an unzip for BOINC)
-+if boinc
+#ifdef BOINC
       call boincrf('fort.6',filename)
-+if fio
+#ifdef FIO
       open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
-+ei
-+if .not.fio
+#else
       open(output_unit,file=filename,form='formatted',status='old',err=602)
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
-+ei
-+if .not.boinc
-+if fio
+#else
+#ifdef FIO
       open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
-+ei
-+if .not.fio
+#else
       open(output_unit,file='fort.6',form='formatted',status='old',err=602)
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
-+ei
+#endif
       rerun=.true.
       goto 605
-+if boinc
+#ifdef BOINC
   602 continue
 ! No fort.6 so we do an unzip of Sixin.zip
 ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
@@ -20787,84 +20777,73 @@ end interface
         call f_read_archive(trim(filename),".")
         go to 611
       endif
-+if fio
+#ifdef FIO
       open(output_unit,file=filename,form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(output_unit,file=filename,form='formatted',status='unknown')
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
-+ei
-+if .not.boinc
-+if fio
+#else
+#ifdef FIO
  602  open(output_unit,file='fort.6',form='formatted',status='new',round='nearest')
-+ei
-+if .not.fio
+#else
  602  open(output_unit,file='fort.6',form='formatted',status='new')
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
-+ei
+#endif
 !--   Now check for restart files fort.95/96 and OPEN them
-+if boinc
+#ifdef BOINC
   605 call boincrf('fort.95',filename)
       open(95,file=filename,form='unformatted',status='old',err=600)
-+ei
-+if .not.boinc
+#else
   605 open(95,file='fort.95',form='unformatted',status='old',err=600)
-+ei
+#endif
       fort95=.true.
       goto 608
-+if boinc
+#ifdef BOINC
   600 call boincrf('fort.95',filename)
       open(95,file=filename,form='unformatted',status='new')
-+ei
-+if .not.boinc
+#else
   600 open(95,file='fort.95',form='unformatted',status='new')
-+ei
-+if boinc
+#endif
+#ifdef BOINC
   608 call boincrf('fort.96',filename)
       open(96,file=filename,form='unformatted',status='old',err=601)
-+ei
-+if .not.boinc
+#else
   608 open(96,file='fort.96',form='unformatted',status='old',err=601)
-+ei
+#endif
       fort96=.true.
       goto 609
-+if boinc
+#ifdef BOINC
   601 call boincrf('fort.96',filename)
       open(96,file=filename,form='unformatted',status='new')
-+ei
-+if .not.boinc
+#else
   601 open(96,file='fort.96',form='unformatted',status='new')
-+ei
-+if boinc
+#endif
+#ifdef BOINC
   609 call boincrf('fort.91',filename)
-+if fio
+#ifdef FIO
       open(91,file=filename,form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(91,file=filename,form='formatted',status='unknown')
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
   609 open(91,file='fort.91',form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
   609 open(91,file='fort.91',form='formatted',status='unknown')
-+ei
-+ei
-+ei ! END +if cr -- END of Main start for Checkpoint/Restart
-
-+if .not.cr
+#endif
+#endif
+! END +if cr -- END of Main start for Checkpoint/Restart
+#else
       lout=output_unit
-+ei
+#endif
       
-+if debug
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
+#endif
 !-----------------------------------------------------------------------
 +ca open
       write(lout,10010) version,moddate
@@ -20875,36 +20854,32 @@ end interface
       write(ctime,'(I4.4)') itime
       read(cdate(3:4),'(I2)') imonth
       if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'nd of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'nd of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'3'.and.cdate(5:5).ne.'1') then
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'rd of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'rd of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       else
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'th of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'th of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       endif
       if(ctime(1:2).ne.'  ') then
@@ -20925,16 +20900,16 @@ end interface
         endif
       endif
       write(lout,'(a80)') runtim
-+if cr
+#ifdef CR
 !     Log start messages
       write(93,*)
       write(93,*) 'SIXTRACR MAINCR ',runtim
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-+ei
-+if debug
+#endif
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
+#endif
 !     A normal start, time0 is beginning
       pretime=0.0
       trtime=0.0
@@ -21073,18 +21048,18 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
-+if fluka
+#ifdef FLUKA
 
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     initialise fluka module
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
-+ei
+#endif
 
-+if root
+#ifdef ROOT
       call SixTrackRootFortranInit
-+ei
+#endif
   
   call daten
   
