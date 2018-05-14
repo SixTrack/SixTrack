@@ -6258,8 +6258,8 @@ cc2008
 !     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
-!     magnetic rigidity
-      chi = (sqrt(e0**2-pmap**2)*c1e6)/clight                            
+
+                                
 
       tx = wire_tiltx(ix) !tilt x [degrees] 
       ty = wire_tilty(ix) !tilt y [degrees]
@@ -6280,7 +6280,7 @@ cc2008
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
         call prror(-1)
       endif
-      NNORM=c1m7/chi
+      
 
       IF (wire_flagco(ix).eq.1) THEN
          dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
@@ -6291,7 +6291,8 @@ cc2008
       END IF 
       
       do j=1, napx
-
+      chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight
+      NNORM=c1m7/chi  
       yv(1,j) = yv(1,j) * c1m3 !SI
       yv(2,j) = yv(2,j) * c1m3 !SI
     
@@ -19536,7 +19537,7 @@ subroutine wireda(ix,i)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 !     magnetic rigidity
 
-      CHI = (sqrt(e0**2-pmap**2)*c1e6)/clight
+      CHI = (sqrt(e0**2-nucm0**2)*c1e6)/clight
       TX = wire_tiltx(ix) !tilt x [degrees] 
       TY = wire_tilty(ix) !tilt y [degrees]
       TX = TX*(pi/c180e0) ![rad]
