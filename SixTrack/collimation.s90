@@ -3227,7 +3227,7 @@ subroutine collimate_exit()
   write(orbitchecking_unit,*) '# 1=s 2=torbitx 3=torbity'
 
   do j=1,iu
-    write(orbitchecking_unit,'(i4, 3(1x,e15.7))') j, sampl(j),torbx(j), torby(j)
+    write(orbitchecking_unit,'(i5, 3(1x,e15.7))') j, sampl(j),torbx(j), torby(j)
   end do
 
   close(orbitchecking_unit)
@@ -7868,16 +7868,16 @@ subroutine funlux(array,xran,len)
 end subroutine funlux
 
 subroutine funlz(func,x2low,x2high,xlow,xhigh)
-!         FIND RANGE WHERE FUNC IS NON-ZERO.
-!         WRITTEN 1980, F. JAMES
-!         MODIFIED, NOV. 1985, TO FIX BUG AND GENERALIZE
-!         TO FIND SIMPLY-CONNECTED NON-ZERO REGION (XLOW,XHIGH)
-!         ANYWHERE WITHIN THE GIVEN REGION (X2LOW,H2HIGH).
-!            WHERE 'ANYWHERE' MEANS EITHER AT THE LOWER OR UPPER
-!            EDGE OF THE GIVEN REGION, OR, IF IN THE MIDDLE,
-!            COVERING AT LEAST 1% OF THE GIVEN REGION.
-!         OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
-!         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
+! FIND RANGE WHERE FUNC IS NON-ZERO.
+! WRITTEN 1980, F. JAMES
+! MODIFIED, NOV. 1985, TO FIX BUG AND GENERALIZE
+! TO FIND SIMPLY-CONNECTED NON-ZERO REGION (XLOW,XHIGH)
+! ANYWHERE WITHIN THE GIVEN REGION (X2LOW,H2HIGH).
+!    WHERE 'ANYWHERE' MEANS EITHER AT THE LOWER OR UPPER
+!    EDGE OF THE GIVEN REGION, OR, IF IN THE MIDDLE,
+!    COVERING AT LEAST 1% OF THE GIVEN REGION.
+! OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
+! IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
       use crcoall
       implicit none
       external func
@@ -7943,18 +7943,18 @@ end subroutine funlz
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
 
-!     RES = Estimated Integral of F from A to B,
-!     ERR = Estimated absolute error on RES.
-!     NSEG  specifies how the adaptation is to be done:
-!        =0   means use previous binning,
-!        =1   means fully automatic, adapt until tolerance attained.
-!        =n>1 means first split interval into n equal segments,
-!             then adapt as necessary to attain tolerance.
-!     The specified tolerances are:
-!            relative: RELTOL ;  absolute: ABSTOL.
-!        It stop s when one OR the other is satisfied, or number of
-!        segments exceeds NDIM.  Either TOLA or TOLR (but not both!)
-!        can be set to zero, in which case only the other is used.
+! RES = Estimated Integral of F from A to B,
+! ERR = Estimated absolute error on RES.
+! NSEG  specifies how the adaptation is to be done:
+!    =0   means use previous binning,
+!    =1   means fully automatic, adapt until tolerance attained.
+!    =n>1 means first split interval into n equal segments,
+!         then adapt as necessary to attain tolerance.
+! The specified tolerances are:
+!        relative: RELTOL ;  absolute: ABSTOL.
+!    It stop s when one OR the other is satisfied, or number of
+!    segments exceeds NDIM.  Either TOLA or TOLR (but not both!)
+!    can be set to zero, in which case only the other is used.
 
       implicit none
 
@@ -7975,20 +7975,20 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
         nsegd=1
         go to 2
        endif
-       tvals=0d0
-       terss=0d0
+       tvals=zero
+       terss=zero
        do 1 i = 1,nter
        call rgs56p(f,xlo(i),xhi(i),tval(i),te)
        ters(i)=te**2
-       tvals=tvals+dble(tval(i))                                         !hr09
-       terss=terss+dble(ters(i))
+       tvals=tvals+tval(i)                                         !hr09
+       terss=terss+ters(i)
     1  continue
-       root= real(sqrt(2.d0*terss))                                      !hr09
+       root= sqrt(two*terss)                                      !hr09
        go to 9
       endif
       nsegd=min(nseg,ndim)
     2 xhib=a
-      bin=(b-a)/real(nsegd)                                              !hr09
+      bin=(b-a)/real(nsegd,fPrec)                                              !hr09
       do 3 i = 1,nsegd
       xlo(i)=xhib
       xlob=xlo(i)
@@ -8000,15 +8000,18 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
     3 continue
       nter=nsegd
       do 4 iter = 1,ndim
-      tvals=dble(tval(1))                                                !hr09
-      terss=dble(ters(1))                                                !hr09
+      tvals=tval(1)                                                !hr09
+      terss=ters(1)                                                !hr09
       do 5 i = 2,nter
-      tvals=tvals+dble(tval(i))                                          !hr09
-      terss=terss+dble(ters(i))                                          !hr09
+      tvals=tvals+tval(i)                                          !hr09
+      terss=terss+ters(i)                                          !hr09
     5 continue
-      root= real(sqrt(2.d0*terss))                                       !hr09
-      if(root .le. abstol .or. root .le. real(dble(reltol)*abs(tvals))) &!hr09
-     &go to 9                                                            !hr09
+      root=sqrt(two*terss)                                       !hr09
+
+      if(root .le. abstol .or. root .le. reltol*abs(tvals)) then
+        goto 9
+      end if
+
       if(nter .eq. ndim) go to 9
       bige=ters(1)
       ibig=1
@@ -8028,7 +8031,7 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
       call rgs56p(f,xlo(nter),xhi(nter),tval(nter),te)
       ters(nter)=te**2
     4 continue
-    9 res=real(tvals)                                                    !hr09
+    9 res=tvals                                                    !hr09
       err=root
       return
 end subroutine radapt
@@ -8061,8 +8064,8 @@ subroutine rgs56p(f,a,b,res,err)
  &9.6623475710157601e-01, 8.5662246189585178e-02/
 
   rang=b-a
-  e5=0d0
-  e6=0d0
+  e5=zero
+  e6=zero
   do i = 1,5
     e5=e5+dble(w5(i)*f(a+rang*x5(i)))                                  !hr09
     e6=e6+dble(w6(i)*f(a+rang*x6(i)))                                  !hr09

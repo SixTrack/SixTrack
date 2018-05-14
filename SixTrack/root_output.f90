@@ -1,6 +1,8 @@
 module root_output
   use, intrinsic :: iso_c_binding
   use crcoall
+  use end_sixtrack
+
   implicit none
 
   logical root_flag                                      !ROOT input block exists
@@ -261,14 +263,12 @@ subroutine daten_root(ch)
   root_flag = .true.
 
   !Read filenames
-  call getfields_split( ch, getfields_fields, getfields_lfields,    &
-       getfields_nfields, getfields_lerr )
-  if ( getfields_lerr ) call prror(-1)
+  call getfields_split( ch, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr )
+  if( getfields_lerr ) call prror(-1)
 
-  if (getfields_nfields .ne. 2) then
+  if(getfields_nfields .ne. 2) then
      write(lout,'(a)')         "ERROR in ROOT input:"
-     write(lout,'(a,1x,i3,a)') "Expected 2 entries per line, got", &
-          getfields_nfields, ", line=",ch
+     write(lout,'(a,1x,i3,a)') "Expected 2 entries per line, got", getfields_nfields, ", line=",ch
      call prror(-1)
   end if
 
