@@ -8093,64 +8093,66 @@
 !
       end
 +dk adia
-      subroutine adia(numx,e0f)
-!-----------------------------------------------------------------------
-!  ADIABATIC ENERGY-INCREASE
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_hions
-      implicit none
-      integer numx
-      real(kind=fPrec) e0f
-+ca commont1
-+ca commondl
-+if bnlelens
-+ca rhicelens
-+ei
-      save
-!-----------------------------------------------------------------------
-      if(numx.eq.1) phas0=phas
-      if(numx.le.nde(1)) phas=zero
-      if(numx.le.nde(1)) return
-      if(numx.gt.nde(2)) phas=zero
-      if(numx.gt.nde(2)) return
-      phas=phas0
-      e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
-      return
-      end
+! Only called from thin6dua, which is also commented out
+!       subroutine adia(numx,e0f)
+! !-----------------------------------------------------------------------
+! !  ADIABATIC ENERGY-INCREASE
+! !-----------------------------------------------------------------------
+!       use floatPrecision
+!       use numerical_constants
+!       use mathlib_bouncer
+!       use parpro
+!       use mod_common
+!       use mod_commons
+!       use mod_hions
+!       implicit none
+!       integer numx
+!       real(kind=fPrec) e0f
+! +ca commont1
+! +ca commondl
+! +if bnlelens
+! +ca rhicelens
+! +ei
+!       save
+! !-----------------------------------------------------------------------
+!       if(numx.eq.1) phas0=phas
+!       if(numx.le.nde(1)) phas=zero
+!       if(numx.le.nde(1)) return
+!       if(numx.gt.nde(2)) phas=zero
+!       if(numx.gt.nde(2)) return
+!       phas=phas0
+!       e0=e0+hsy(1)*sin_mb(phas)
+!       e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+!       return
+!       end
 
 +dk adib
-subroutine adib(e0f)
-!-----------------------------------------------------------------------
-!  ADIABATIC ENERGY-DECREASE
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_hions
-      implicit none
-      real(kind=fPrec) e0f
-+ca commont1
-+ca commondl
-+if bnlelens
-+ca rhicelens
-+ei
-      save
-!-----------------------------------------------------------------------
-      if(abs(phas0).le.pieni) return
-      e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
-      return
-end subroutine adib
+! This subroutine is not called from anywhere
+! subroutine adib(e0f)
+! !-----------------------------------------------------------------------
+! !  ADIABATIC ENERGY-DECREASE
+! !-----------------------------------------------------------------------
+!       use floatPrecision
+!       use numerical_constants
+!       use mathlib_bouncer
+!       use parpro
+!       use mod_common
+!       use mod_commons
+!       use mod_hions
+!       implicit none
+!       real(kind=fPrec) e0f
+! +ca commont1
+! +ca commondl
+! +if bnlelens
+! +ca rhicelens
+! +ei
+!       save
+! !-----------------------------------------------------------------------
+!       if(abs(phas0).le.pieni) return
+!       e0=e0+hsy(1)*sin_mb(phas)
+!       e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+!       return
+! end subroutine adib
 
 +dk daten
 ! ================================================================================================ !
