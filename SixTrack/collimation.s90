@@ -2795,24 +2795,30 @@ end subroutine collimate_end_collimator
 !! has been tracked by thin6d
 !<
 subroutine collimate_end_sample(j)
-
+  
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
   use crcoall
-
-+if root
+#ifdef ROOT
   use root_output
-+ei
-
+#endif
+#ifdef HDF5
+  use hdf5_output
+#endif
+  
   implicit none
-
-
+  
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
+#ifdef HDF5
+  type(h5_dataField), allocatable :: fldHdf(:)
+  integer fmtHdf, setHdf
+#endif
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -2820,8 +2826,8 @@ subroutine collimate_end_sample(j)
 +ca commonm1
 +ca commontr
 +ca beamdim
-      dimension nbeaux(nbb)
-
+  dimension nbeaux(nbb)
+  
 +if collimat
 +ca collpara
 +ca dbtrthin
@@ -2832,24 +2838,24 @@ subroutine collimate_end_sample(j)
 +ca info
 +ca dbcolcom
 +ei
-
+  
 +if bnlelens
 +ca rhicelens
 +ei
-
+  
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
   close(survival_unit)
-
+  
   if(dowrite_impact) close(impact_unit)
-
+  
   if(dowritetracks) then
     if(cern) close(tracks2_unit)
 #ifdef HDF5
     if(cern .and. h5_writeTracks2) call h5tr2_finalise
 #endif
   end if
-
+  
 !------------------------------------------------------------------------
 !++  Write the number of absorbed particles
   write(outlun,*) 'INFO>  Number of impacts             : ', n_tot_absorbed+nsurvive_end
@@ -2857,7 +2863,7 @@ subroutine collimate_end_sample(j)
   write(outlun,*) 'INFO>  Number of surviving particles : ', nsurvive_end
   write(outlun,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
   write(outlun,*)
-
+  
   if(n_tot_absorbed.ne.0) then                                       !hr08
     write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
     write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
@@ -2868,14 +2874,14 @@ subroutine collimate_end_sample(j)
   else
     write(lout,*) 'NO PARTICLE ABSORBED'
   endif
-
+  
   write(lout,*)
   write(lout,*) 'INFO>  Number of impacts             : ', n_tot_absorbed+nsurvive_end
   write(lout,*) 'INFO>  Number of impacts at selected : ', num_selhit
   write(lout,*) 'INFO>  Number of surviving particles : ', nsurvive_end
   write(lout,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
   write(lout,*)
-
+  
   if(n_tot_absorbed.ne.0) then                                       !hr08
     write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/dble(n_tot_absorbed))/c1m4            !hr08
     write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/dble(n_tot_absorbed))/c1m4            !hr08
@@ -2884,99 +2890,173 @@ subroutine collimate_end_sample(j)
   else
      write(lout,*) 'NO PARTICLE ABSORBED'
   endif
-
-!------------------------------------------------------------------------
-!++  Write efficiency file
-!
-!  inquire( unit=1991, opened=lopen)
-!  if(lopen) then
-!    write(lout,*) "ERROR in efficiency.dat: FILE 1991 already taken"
-!    call prror(-1)
-!  endif
-
-  call funit_requestUnit('efficiency.dat', efficiency_unit)
-  open(unit=efficiency_unit, file='efficiency.dat') !was 1991
-
-  if(n_tot_absorbed.ne.0) then
-    write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r'
-
-    do k=1,numeff
-      write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/dble(n_tot_absorbed),neffy(k)/dble(n_tot_absorbed), &
-  &    neff(k)/dble(n_tot_absorbed), neffx(k), neffy(k), neff(k), n_tot_absorbed
-    end do
+  
+! Write efficiency file
+#ifdef HDF5
+  if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
+    allocate(fldHdf(8))
+    fldHdf(1) = h5_dataField(name="RAD_SIGMA",  type=h5_typeReal)
+    fldHdf(2) = h5_dataField(name="NEFFX/NTOT", type=h5_typeReal)
+    fldHdf(3) = h5_dataField(name="NEFFY/NTOT", type=h5_typeReal)
+    fldHdf(4) = h5_dataField(name="NEFF/NTOT",  type=h5_typeReal)
+    fldHdf(5) = h5_dataField(name="NEFFX",      type=h5_typeReal)
+    fldHdf(6) = h5_dataField(name="NEFFY",      type=h5_typeReal)
+    fldHdf(7) = h5_dataField(name="NEFF",       type=h5_typeReal)
+    fldHdf(8) = h5_dataField(name="NTOT",       type=h5_typeInt)
+    call h5_createFormat("collEfficiency", fldHdf, fmtHdf)
+    call h5_createDataSet("efficiency", h5_collID, fmtHdf, setHdf, numeff)
+    call h5_prepareWrite(setHdf, numeff)
+    call h5_writeData(setHdf, 1, numeff, rsig(1:numeff))
+    call h5_writeData(setHdf, 2, numeff, neffx(1:numeff)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 3, numeff, neffy(1:numeff)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 4, numeff, neff(1:numeff)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 5, numeff, neffx(1:numeff))
+    call h5_writeData(setHdf, 6, numeff, neffy(1:numeff))
+    call h5_writeData(setHdf, 7, numeff, neff(1:numeff))
+    call h5_writeData(setHdf, 8, numeff, n_tot_absorbed)
+    call h5_finaliseWrite(setHdf)
+    deallocate(fldHdf)
   else
-    write(lout,*) 'NO PARTICLE ABSORBED'
-  end if
-
-  close(efficiency_unit)
-
-!!------------------------------------------------------------------------
-!++  Write efficiency vs dp/p file
-
-!  inquire( unit=1992, opened=lopen )
-!  if(lopen) then
-!    write(lout,*) "ERROR in efficiency_dpop.dat: FILE 1992 already taken"
-!    call prror(-1)
-!  end if
-
-  call funit_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
-  open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
-
-  if(n_tot_absorbed.ne.0) then
-    write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
-
-    do k=1,numeffdpop
-      write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/dble(n_tot_absorbed), neffdpop(k), &
-           n_tot_absorbed, npartdpop(k)
-    end do
-  else
-    write(lout,*) 'NO PARTICLE ABSORBED'
-  end if
-
-  close(efficiency_dpop_unit)
-
-!!------------------------------------------------------------------------
-!++  Write 2D efficiency file (eff vs. A_r and dp/p)
-!  inquire( unit=1993, opened=lopen )
-!  if(lopen) then
-!    write(lout,*) "ERROR in efficiency_2d.dat:FILE 1993 already taken"
-!    call prror(-1)
-!  end if
-
-  call funit_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
-  open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
-  if(n_tot_absorbed.ne.0) then
-    write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
-    do i=1,numeff
-      do k=1,numeffdpop
-        write(efficiency_2d_unit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
-              neff2d(i,k), n_tot_absorbed
+#endif
+    call funit_requestUnit('efficiency.dat', efficiency_unit)
+    open(unit=efficiency_unit, file='efficiency.dat') !was 1991
+    if(n_tot_absorbed /= 0) then
+      write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
+      do k=1,numeff
+        write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/dble(n_tot_absorbed),neffy(k)/dble(n_tot_absorbed), &
+          neff(k)/dble(n_tot_absorbed), neffx(k), neffy(k), neff(k), n_tot_absorbed
       end do
-    end do
-  else
-    write(lout,*) 'NO PARTICLE ABSORBED'
-  end if
-
-  close(efficiency_2d_unit)
-
-!!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!++  Write collimation summary file
-!
-  call funit_requestUnit('coll_summary.dat', coll_summary_unit)
-  open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
-  write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
-
-  do icoll = 1, db_ncoll
-    if(db_length(icoll).gt.zero.and.coll_found(icoll).eqv..TRUE.) then
-      write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, db_name1(icoll),cn_impact(icoll), &
-            cn_absorbed(icoll), caverage(icoll), csigma(icoll),db_length(icoll)
+    else
+      write(lout,*) 'NO PARTICLE ABSORBED'
     end if
-  end do
-
-  close(coll_summary_unit)
-
-+if root
+    close(efficiency_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+! Write efficiency vs dp/p file
+#ifdef HDF5
+  if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
+    allocate(fldHdf(5))
+    fldHdf(1) = h5_dataField(name="DP/P",        type=h5_typeReal)
+    fldHdf(2) = h5_dataField(name="NDPOP/TNABS", type=h5_typeReal)
+    fldHdf(3) = h5_dataField(name="NDPOP",       type=h5_typeReal)
+    fldHdf(4) = h5_dataField(name="TNABS",       type=h5_typeInt)
+    fldHdf(5) = h5_dataField(name="NPART",       type=h5_typeInt)
+    call h5_createFormat("collEfficiencyDPOP", fldHdf, fmtHdf)
+    call h5_createDataSet("efficiency_dpop", h5_collID, fmtHdf, setHdf, numeffdpop)
+    call h5_prepareWrite(setHdf, numeffdpop)
+    call h5_writeData(setHdf, 1, numeffdpop, dpopbins(1:numeffdpop))
+    call h5_writeData(setHdf, 2, numeffdpop, neffdpop(1:numeffdpop)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 3, numeffdpop, neffdpop(1:numeffdpop))
+    call h5_writeData(setHdf, 4, numeffdpop, n_tot_absorbed)
+    call h5_writeData(setHdf, 5, numeffdpop, npartdpop(1:numeffdpop))
+    call h5_finaliseWrite(setHdf)
+    deallocate(fldHdf)
+  else
+#endif
+    call funit_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
+    open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
+    if(n_tot_absorbed /= 0) then
+      write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
+      do k=1,numeffdpop
+        write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/dble(n_tot_absorbed), neffdpop(k), &
+            n_tot_absorbed, npartdpop(k)
+      end do
+    else
+      write(lout,*) 'NO PARTICLE ABSORBED'
+    end if
+    close(efficiency_dpop_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+! Write 2D efficiency file (eff vs. A_r and dp/p)
+#ifdef HDF5
+  if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
+    allocate(fldHdf(5))
+    fldHdf(1) = h5_dataField(name="RAD_SIGMA", type=h5_typeReal)
+    fldHdf(2) = h5_dataField(name="DP/P",      type=h5_typeReal)
+    fldHdf(3) = h5_dataField(name="N/TNABS",   type=h5_typeReal)
+    fldHdf(4) = h5_dataField(name="N",         type=h5_typeReal)
+    fldHdf(5) = h5_dataField(name="TNABS",     type=h5_typeInt)
+    call h5_createFormat("collEfficiency2D", fldHdf, fmtHdf)
+    call h5_createDataSet("efficiency_2d", h5_collID, fmtHdf, setHdf, numeffdpop)
+    do i=1,numeff
+      call h5_prepareWrite(setHdf, numeffdpop)
+      call h5_writeData(setHdf, 1, numeffdpop, rsig(i))
+      call h5_writeData(setHdf, 2, numeffdpop, dpopbins(1:numeffdpop))
+      call h5_writeData(setHdf, 3, numeffdpop, neff2d(i,1:numeffdpop)/real(n_tot_absorbed,fPrec))
+      call h5_writeData(setHdf, 4, numeffdpop, neff2d(i,1:numeffdpop))
+      call h5_writeData(setHdf, 5, numeffdpop, n_tot_absorbed)
+      call h5_finaliseWrite(setHdf)
+    end do
+    deallocate(fldHdf)
+  else
+#endif
+    call funit_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
+    open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
+    if(n_tot_absorbed /= 0) then
+      write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
+      do i=1,numeff
+        do k=1,numeffdpop
+          write(efficiency_2d_unit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
+                neff2d(i,k), n_tot_absorbed
+        end do
+      end do
+    else
+      write(lout,*) 'NO PARTICLE ABSORBED'
+    end if
+    close(efficiency_2d_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+! Write collimation summary file
+#ifdef HDF5
+  if(h5_useForCOLL) then
+    allocate(fldHdf(7))
+    fldHdf(1) = h5_dataField(name="ICOLL",    type=h5_typeInt)
+    fldHdf(2) = h5_dataField(name="COLLNAME", type=h5_typeChar, size=max_name_len)
+    fldHdf(3) = h5_dataField(name="NIMP",     type=h5_typeInt)
+    fldHdf(4) = h5_dataField(name="NABS",     type=h5_typeInt)
+    fldHdf(5) = h5_dataField(name="IMP_AV",   type=h5_typeReal)
+    fldHdf(6) = h5_dataField(name="IMP_SIG",  type=h5_typeReal)
+    fldHdf(7) = h5_dataField(name="LENGTH",   type=h5_typeReal)
+    call h5_createFormat("collSummary", fldHdf, fmtHdf)
+    call h5_createDataSet("coll_summary", h5_collID, fmtHdf, setHdf)
+    ! There is a lot of overhead in writing line by line, but this is a small log file anyway.
+    do i=1, db_ncoll
+      if(db_length(i) > zero .and. coll_found(i)) then
+        call h5_prepareWrite(setHdf, 1)
+        call h5_writeData(setHdf, 1, 1, i)
+        call h5_writeData(setHdf, 2, 1, db_name1(i))
+        call h5_writeData(setHdf, 3, 1, cn_impact(i))
+        call h5_writeData(setHdf, 4, 1, cn_absorbed(i))
+        call h5_writeData(setHdf, 5, 1, caverage(i))
+        call h5_writeData(setHdf, 6, 1, csigma(i))
+        call h5_writeData(setHdf, 7, 1, db_length(i))
+        call h5_finaliseWrite(setHdf)
+      end if
+    end do
+    deallocate(fldHdf)
+  else
+#endif
+    call funit_requestUnit('coll_summary.dat', coll_summary_unit)
+    open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
+    write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
+    do icoll = 1, db_ncoll
+      if(db_length(icoll) > zero .and. coll_found(icoll)) then
+        write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, db_name1(icoll), cn_impact(icoll), &
+          cn_absorbed(icoll), caverage(icoll), csigma(icoll),db_length(icoll)
+      end if
+    end do
+    close(coll_summary_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+#ifdef ROOT
   if(root_flag .and. root_Collimation.eq.1) then
     do icoll = 1, db_ncoll
       if(db_length(icoll).gt.zero) then
@@ -2985,12 +3065,11 @@ subroutine collimate_end_sample(j)
       end if
     end do
   end if
-+ei
-
-+if root
-! flush the root file
+  
+  ! flush the root file
 !  call SixTrackRootWrite()
-+ei
+#endif
+  
 end subroutine collimate_end_sample
 
 !>
