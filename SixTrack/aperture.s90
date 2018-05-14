@@ -930,7 +930,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         -c1m3 * (sigmvlos/clight) * (e0/e0f),                           &
      &         naalos, nzzlos
 
-+if root
++if root.and.collimat
 ! root output
         if(root_flag .and. root_ApertureCheck.eq.1) then
           this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
