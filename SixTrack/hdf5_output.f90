@@ -32,6 +32,7 @@ module hdf5_output
   integer(HSIZE_T), private, save :: h5_defChunk    ! The default size of chunks, used for mainly logging output
   
   ! Input Block Switches
+  logical, public, save :: h5_useForAPER
   logical, public, save :: h5_useForCOLL
   logical, public, save :: h5_useForDUMP
   logical, public, save :: h5_useForSCAT
@@ -48,6 +49,7 @@ module hdf5_output
   ! HDF5 File/Group IDs
   integer(HID_T), public,  save :: h5_fileID  ! The internal ID of the file
   integer(HID_T), public,  save :: h5_rootID  ! The internal ID of the root group
+  integer(HID_T), public,  save :: h5_aperID  ! The internal ID of the aperture group
   integer(HID_T), public,  save :: h5_collID  ! The internal ID of the collimation group
   integer(HID_T), public,  save :: h5_dumpID  ! The internal ID of the dump group
   integer(HID_T), public,  save :: h5_scatID  ! The internal ID of the scatter group
@@ -56,6 +58,7 @@ module hdf5_output
   integer(HID_T), private, save :: h5_plistID ! Dataset transfer property
   
   ! Default Group Names
+  character(len=8),  parameter :: h5_aperGroup = "aperture"
   character(len=11), parameter :: h5_collGroup = "collimation"
   character(len=4),  parameter :: h5_dumpGroup = "dump"
   character(len=7),  parameter :: h5_scatGroup = "scatter"
@@ -278,6 +281,9 @@ subroutine h5_parseInputLine(inLine)
     end if
     
     select case(lnSplit(2)%chr(1:4))
+    case("APER")
+      h5_useForAPER = .true.
+      write(lout,"(3a)") "HDF5> HDF5 is enabled for APERTURE."
     case("COLL")
       h5_useForCOLL = .true.
       write(lout,"(3a)") "HDF5> HDF5 is enabled for COLLIMATION."
@@ -287,9 +293,6 @@ subroutine h5_parseInputLine(inLine)
     case("SCAT")
       h5_useForSCAT = .true.
       write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
-    case("OPTI")
-      h5_writeOptics = .true.
-      write(lout,"(a)") "HDF5> Writing Linear Optics."
     case default
       write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
       call prror(-1)
@@ -460,25 +463,43 @@ end subroutine h5_closeHDF5
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
-subroutine h5_initForScatter()
+subroutine h5_initForAperture
   
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
   
-  call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
+  call h5gcreate_f(h5_rootID, h5_aperGroup, h5_aperID, h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
+    write(lout,"(a)") "HDF5> ERROR Failed to create aperture group '"//h5_aperGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
-    write(lout,"(a)") "HDF5> DEBUG Group created for SCATTER."
+    write(lout,"(a)") "HDF5> DEBUG Group created for APERTURE."
   end if
   
-end subroutine h5_initForScatter
+end subroutine h5_initForAperture
 
-subroutine h5_initForDump()
+subroutine h5_initForCollimation
+  
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
+  
+  call h5gcreate_f(h5_rootID, h5_collGroup, h5_collID, h5_fileError)
+  if(h5_fileError < 0) then
+    write(lout,"(a)") "HDF5> ERROR Failed to create collimation group '"//h5_collGroup//"'."
+    call prror(-1)
+  end if
+  if(h5_debugOn) then
+    write(lout,"(a)") "HDF5> DEBUG Group created for COLLIMATION."
+  end if
+  
+end subroutine h5_initForCollimation
+
+subroutine h5_initForDump
   
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
@@ -496,23 +517,23 @@ subroutine h5_initForDump()
   
 end subroutine h5_initForDump
 
-subroutine h5_initForCollimation()
+subroutine h5_initForScatter
   
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
   
-  call h5gcreate_f(h5_rootID, h5_collGroup, h5_collID, h5_fileError)
+  call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create collimation group '"//h5_collGroup//"'."
+    write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
-    write(lout,"(a)") "HDF5> DEBUG Group created for COLLIMATION."
+    write(lout,"(a)") "HDF5> DEBUG Group created for SCATTER."
   end if
   
-end subroutine h5_initForCollimation
+end subroutine h5_initForScatter
 
 ! ================================================================================================ !
 !  Create DataType
