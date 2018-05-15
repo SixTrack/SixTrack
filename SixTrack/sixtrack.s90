@@ -7415,12 +7415,6 @@
 +ei
 +ei ! END +if debug
 
-!     A.Mereghetti, D.Sinuela Pastor and P.G.Ortega, for the FLUKA Team
-!     last modified: 04-07-2014
-!     open unit where lostpart will dump lost particles
-!     allways in main code
-      open(999)
-
 !     P. HERMES - hisix
 !     heavy-ion specific output
       open(208)                  ! collimator losses (energy)
@@ -21069,25 +21063,26 @@ end interface
 #ifdef HDF5
   if(h5_isActive) call h5_openFile()
 #endif
+  call aperture_init
 
   if (ithick.eq.1) call allocate_thickarrays
       
-+if debug
+#ifdef DEBUG
 !     call dumpbin('adaten',999,9999)
 !     call abend('after  daten                                      ')
-+ei
-+if debug.and.cr
+#endif
+#if defined(DEBUG) && defined(CR)
 !     write(93,*) 'ERIC IL= ',il
 !     endfile (93,iostat=ierro)
 !     backspace (93,iostat=ierro)
-+ei
-+if cr
+#endif
+#ifdef CR
       checkp=.true.
-+if debug
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
+#endif
       call crcheck
-+ei
+#endif
       if(ithick.eq.1) write(lout,10030)
       if(ithick.eq.0) write(lout,10040)
       if(ibidu.eq.2) then
@@ -21095,7 +21090,7 @@ end interface
         goto 550
       endif
 
-+if .not.fluka
+#ifndef FLUKA
 !--SETTING UP THE PLOTTING
       if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
         call hlimit(nplo)
@@ -21114,84 +21109,77 @@ end interface
 ! and now we open fort.10 unless already opened for
 ! BOINC AND BNLELENS
 
-+if nagfor
-+if boinc
-+if .not.bnlelens
+#ifdef NAGFOR
+#ifdef BOINC
+#ifndef BNLELENS
       call boincrf('fort.10',filename)
-      open(10,file=filename,form='formatted',status='unknown',          &
-+if fio
-     &round='nearest',                                                  &
-+ei
-     &recl=8195)
-+ei
-+ei
-+if .not.boinc
-      open(10,file='fort.10',form='formatted',status='unknown',         &
-+if fio
-     &round='nearest',                                                  &
-+ei
-     &recl=8195)
-+ei
-+ei ! END +if nagfor
-
-+if .not.nagfor
-+if boinc
-+if .not.bnlelens
+#ifdef FIO
+      open(10,file=filename,form='formatted',status='unknown',round='nearest',recl=8195)
+#else
+      open(10,file=filename,form='formatted',status='unknown',recl=8195)
+#endif
+#endif
+#else
+#ifdef FIO
+      open(10,file='fort.10',form='formatted',status='unknown',round='nearest',recl=8195)
+#else
+      open(10,file='fort.10',form='formatted',status='unknown',recl=8195)
+#endif
+#endif
+#else
+#ifdef BOINC
+#ifndef BNLELENS
       call boincrf('fort.10',filename)
-+if fio
+#ifdef FIO
       open(10,file=filename,form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(10,file=filename,form='formatted',status='unknown')
-+ei
-+ei ! END +if .not.bnlelens
-+ei ! END +if boinc
-+if .not.boinc
-+if fio
+#endif
+#endif
+#else
+#ifdef FIO
       open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(10,file='fort.10',form='formatted',status='unknown')
-+ei
-+ei ! END +if .not.boinc
-+ei ! END +if .not.nagfor
+#endif
+#endif
+#endif
 
-+if .not.stf
+#ifndef STF
       do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
-+if .not.cr
+#ifndef CR
          call postpr(91-i)
-+ei
-+if cr
+#else
          write(93,*) 'Calling POSTPR nnuml=',nnuml
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          call postpr(91-i,nnuml)
-+ei
+#endif
       end do
-+ei ! END +if .not.stf
-+if stf
+#else
 !--   ndafi normally set in fort.3 to be "number of files to postprocess"
 !--   Inside the postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
 !--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
       do i=1,(2*ndafi),2
-+if .not.cr
+#ifndef CR
          call postpr(i)
-+ei
-+if cr
+#else
          write(93,*) 'Calling POSTPR nnuml=',nnuml
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          call postpr(i,nnuml)
-+ei
+#endif
       end do
-+ei ! END +if stf
+#endif
+! END ifndef STF
 
       call sumpos
       goto 520 !Jump to after particle&optics initialization,
                ! and also after tracking.
       endif !if(ipos.eq.1.and.napx.eq.0)
-+ei ! END +if .not.fluka
+#endif
+! END ifndef FLUKA
 
       do i=1,20
         fake(1,i)=zero
