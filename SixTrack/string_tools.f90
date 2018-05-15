@@ -399,7 +399,7 @@ end function chr_toReal
 ! ================================================================================================ !
 !  A.Mereghetti, for the FLUKA Team
 !  K.Sjobak and A.Santamaria, BE-ABP-HSS
-!  Last modified: 2018-04-13
+!  Last modified: 2018-05-14
 !
 !  Parse a line and split it into its fields fields are returned as 0-terminated and padded string.
 !
@@ -407,10 +407,10 @@ end function chr_toReal
 !    inLine: usually line read in from fort.2 or fort.3. Values must be separated by spaces
 !  Output:
 !    Array of values with 
-!      gFields(i):  (char) value of field
+!      gFields(i): (char) value of field
 !      lFields(i): (int) length of field
 !      nFields:    (int) number of fields
-!      errFields:       (logical)
+!      errFields:  (logical)
 ! ================================================================================================ !
 subroutine getfields_split(inLine, gFields, lFields, nFields, errFields)
   
