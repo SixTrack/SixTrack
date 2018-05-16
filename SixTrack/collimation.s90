@@ -128,9 +128,12 @@ module collimation
   logical, save :: coll_found(100)
 
 #ifdef HDF5
-  ! Variables to save hdf5 formats and datasets
-  ! First index is data format, second is dataset
-  integer, private, save :: coll_hdf5_survival(2)
+  ! Variables to save hdf5 dataset indices
+  integer, private, save :: coll_hdf5_survival
+  integer, private, save :: coll_hdf5_allImpacts
+  integer, private, save :: coll_hdf5_fstImpacts
+  integer, private, save :: coll_hdf5_allAbsorb
+  integer, private, save :: coll_hdf5_collScatter
 #endif
 
 contains
@@ -658,6 +661,7 @@ subroutine collimate_start_sample(nsample)
   
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
+  integer fmtHdf
 #endif
   
 +ca commont1
@@ -709,8 +713,8 @@ subroutine collimate_start_sample(nsample)
     allocate(setFields(2))
     setFields(1) = h5_dataField(name="TURN",  type=h5_typeInt)
     setFields(2) = h5_dataField(name="NSURV", type=h5_typeInt)
-    call h5_createFormat("collSurvival", setFields, coll_hdf5_survival(1))
-    call h5_createDataSet("survival", h5_collID, coll_hdf5_survival(1), coll_hdf5_survival(2), numl)
+    call h5_createFormat("collSurvival", setFields, fmtHdf)
+    call h5_createDataSet("survival", h5_collID, fmtHdf, coll_hdf5_survival, numl)
     deallocate(setFields)
   else
 #endif
@@ -825,6 +829,54 @@ subroutine collimate_start_sample(nsample)
   end if
 
   if(dowrite_impact) then
+#ifdef HDF5
+    if(h5_useForCOLL .and. firstrun) then
+      
+      ! All Impacts and All Absorbtions
+      allocate(setFields(3))
+      setFields(1) = h5_dataField(name="ID",   type=h5_typeInt)
+      setFields(2) = h5_dataField(name="TURN", type=h5_typeInt)
+      setFields(3) = h5_dataField(name="S",    type=h5_typeReal)
+      call h5_createFormat("collAllImpactAbsorb", setFields, fmtHdf)
+      call h5_createDataSet("all_impacts",     h5_collID, fmtHdf, coll_hdf5_allImpacts)
+      call h5_createDataSet("all_absorptions", h5_collID, fmtHdf, coll_hdf5_allAbsorb)
+      deallocate(setFields)
+      
+      ! First Impacts
+      allocate(setFields(14))
+      setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+      setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+      setFields(3)  = h5_dataField(name="ICOLL",  type=h5_typeInt)
+      setFields(4)  = h5_dataField(name="NABS",   type=h5_typeInt)
+      setFields(5)  = h5_dataField(name="S_IMP",  type=h5_typeReal)
+      setFields(6)  = h5_dataField(name="S_OUT",  type=h5_typeReal)
+      setFields(7)  = h5_dataField(name="X_IN",   type=h5_typeReal)
+      setFields(8)  = h5_dataField(name="XP_IN",  type=h5_typeReal)
+      setFields(9)  = h5_dataField(name="Y_IN",   type=h5_typeReal)
+      setFields(10) = h5_dataField(name="YP_IN",  type=h5_typeReal)
+      setFields(11) = h5_dataField(name="X_OUT",  type=h5_typeReal)
+      setFields(12) = h5_dataField(name="XP_OUT", type=h5_typeReal)
+      setFields(13) = h5_dataField(name="Y_OUT",  type=h5_typeReal)
+      setFields(14) = h5_dataField(name="YP_OUT", type=h5_typeReal)
+      call h5_createFormat("collFirstImpacts", setFields, fmtHdf)
+      call h5_createDataSet("first_impacts", h5_collID, fmtHdf, coll_hdf5_fstImpacts)
+      deallocate(setFields)
+      
+      ! Coll Scatter
+      allocate(setFields(7))
+      setFields(1) = h5_dataField(name="ID",    type=h5_typeInt)
+      setFields(2) = h5_dataField(name="TURN",  type=h5_typeInt)
+      setFields(3) = h5_dataField(name="ICOLL", type=h5_typeInt)
+      setFields(4) = h5_dataField(name="NABS",  type=h5_typeInt)
+      setFields(5) = h5_dataField(name="DP",    type=h5_typeReal)
+      setFields(6) = h5_dataField(name="DX",    type=h5_typeReal)
+      setFields(7) = h5_dataField(name="DY",    type=h5_typeReal)
+      call h5_createFormat("collScatter", setFields, fmtHdf)
+      call h5_createDataSet("coll_scatter", h5_collID, fmtHdf, coll_hdf5_collScatter)
+      deallocate(setFields)
+      
+    else
+#endif
     call funit_requestUnit('all_impacts.dat', all_impacts_unit)
     call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
     call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
@@ -855,6 +907,9 @@ subroutine collimate_start_sample(nsample)
  &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)" &
  &     ,", 5=dp, 6=dx', 7=dy'"
     end if ! if (firstrun) then
+#ifdef HDF5
+    end if
+#endif
   end if ! if(dowrite_impact) then
 
   if(name_sel(1:3).eq.'COL') then
@@ -2349,19 +2404,19 @@ end subroutine collimate_do_collimator
 !! This routine is called at the exit of a collimator
 !<
 subroutine collimate_end_collimator()
-
+  
   use crcoall
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
+  
   implicit none
-
-
+  
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -2371,8 +2426,8 @@ subroutine collimate_end_collimator()
 +ca beamdim
 +ca commonex
   dimension nbeaux(nbb)
-
-+if collimat
+  
+#ifdef COLLIMAT
 +ca collpara
 +ca dbtrthin
 +ca database
@@ -2382,22 +2437,23 @@ subroutine collimate_end_collimator()
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
+#endif
 
-+if bnlelens
+#ifdef BNLELENS
 +ca rhicelens
-+ei
+#endif
 
 #ifdef HDF5
+  ! For tracks2
   integer hdfturn,hdfpid,hdftyp
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
   real(kind=fPrec) c5m4,stracki
 
-+if fast
+#ifdef FAST
   c5m4=5.0e-4_fPrec
-+ei
+#endif
 
 !++  Output information:
 !++
@@ -2535,36 +2591,39 @@ subroutine collimate_end_collimator()
 
 !++  Fill the change in particle angle into histogram
       if(dowrite_impact) then
-        write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+        if(h5_useForSCAT) then
+          call h5_prepareWrite(coll_hdf5_allImpacts, 1)
+          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j)+100*samplenumber)
+          call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
+          call h5_writeData(coll_hdf5_allImpacts, 3, 1, sampl(ie))
+          call h5_finaliseWrite(coll_hdf5_allImpacts)
+        else
+#endif
+          write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+        end if
+#endif
       end if
 
       ! Particle has impacted
       if(part_abs_pos(j) .ne.0 .and. part_abs_turn(j).ne.0) then
         if(dowrite_impact) then
-          write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+          if(h5_useForSCAT) then
+            call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
+            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j)+100*samplenumber)
+            call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
+            call h5_writeData(coll_hdf5_allAbsorb, 3, 1, sampl(ie))
+            call h5_finaliseWrite(coll_hdf5_allAbsorb)
+          else
+#endif
+            write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+          end if
+#endif
         end if
-! +if hdf5
-        ! hdfpid  = ipart(j)+100*samplenumber
-        ! hdfturn = iturn
-        ! hdfs    = sampl(ie)-half*c_length
-        ! hdfx    = (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
-        ! hdfxp   = rcxp0(j)*c1e3+torbxp(ie)
-        ! hdfy    = (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
-        ! hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
-        ! hdfdee  = (ejv(j)-myenom)/myenom
-        ! hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-        ! CALL APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
-! +ei
-! +if .not.hdf5
-!!!        write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
-!!!       &ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
-!!!       &(rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
-!!!       &rcxp0(j)*c1e3+torbxp(ie),                                          &
-!!!       &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
-!!!       &rcyp0(j)*c1e3+torbyp(ie),                                          &
-!!!       &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-! +ei
-
+        
       !Here we've found a newly hit particle
       else if(part_abs_pos (j).eq.0 .and.  part_abs_turn(j).eq.0) then
         xkick = rcxp(j) - rcxp0(j)
@@ -3654,10 +3713,10 @@ subroutine collimate_end_turn
 
 #ifdef HDF5
     if(h5_useForCOLL) then
-      call h5_prepareWrite(coll_hdf5_survival(2), 1)
-      call h5_writeData(coll_hdf5_survival(2), 1, 1, iturn)
-      call h5_writeData(coll_hdf5_survival(2), 2, 1, nsurvive)
-      call h5_finaliseWrite(coll_hdf5_survival(2))
+      call h5_prepareWrite(coll_hdf5_survival, 1)
+      call h5_writeData(coll_hdf5_survival, 1, 1, iturn)
+      call h5_writeData(coll_hdf5_survival, 2, 1, nsurvive)
+      call h5_finaliseWrite(coll_hdf5_survival)
     else
 #endif
       write(survival_unit,'(2i7)') iturn, nsurvive
@@ -4463,12 +4522,35 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
       if(dowrite_impact) then
         if(flagsec(j).eq.0) then
-         write(FirstImpacts_unit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')      &
-&               name(j),iturn,icoll,nabs,                               &
-&               s_impact + (real(j_slices,fPrec)-one) * c_length,       &!hr09
-&               s+sp + (real(j_slices,fPrec)-one) * c_length,           &!hr09
-&               xinn,xpinn,yinn,ypinn,                                  &
-&               x,xp,z,zp
+#ifdef HDF5
+          if(h5_useForCOLL) then
+            call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
+            call h5_writeData(coll_hdf5_fstImpacts, 1,  1, name(j))
+            call h5_writeData(coll_hdf5_fstImpacts, 2,  1, iturn)
+            call h5_writeData(coll_hdf5_fstImpacts, 3,  1, icoll)
+            call h5_writeData(coll_hdf5_fstImpacts, 4,  1, nabs)
+            call h5_writeData(coll_hdf5_fstImpacts, 5,  1, s_impact + (real(j_slices,fPrec)-one) * c_length)
+            call h5_writeData(coll_hdf5_fstImpacts, 6,  1, s+sp + (real(j_slices,fPrec)-one) * c_length)
+            call h5_writeData(coll_hdf5_fstImpacts, 7,  1, xinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 8,  1, xpinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 9,  1, yinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 10, 1, ypinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 11, 1, x)
+            call h5_writeData(coll_hdf5_fstImpacts, 12, 1, xp)
+            call h5_writeData(coll_hdf5_fstImpacts, 13, 1, z)
+            call h5_writeData(coll_hdf5_fstImpacts, 14, 1, zp)
+            call h5_finaliseWrite(coll_hdf5_fstImpacts)
+          else
+#endif
+            write(FirstImpacts_unit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))') &
+                name(j),iturn,icoll,nabs,                               &
+                s_impact + (real(j_slices,fPrec)-one) * c_length,       &
+                s+sp + (real(j_slices,fPrec)-one) * c_length,           &
+                xinn,xpinn,yinn,ypinn,                                  &
+                x,xp,z,zp
+#ifdef HDF5
+          end if
+#endif
         end if
       end if
 !!     SR, 18-08-2005: add also the initial coordinates of the
@@ -5672,7 +5754,15 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+#ifdef HDF5
+      endif
+#endif
     end if
     return
   else if(mat.eq.nmat-1) then
@@ -5683,7 +5773,15 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+#ifdef HDF5
+      endif
+#endif
     end if
 
     return
@@ -5723,8 +5821,16 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     dpop=(p-p0)/p0
     if(dowrite_impact) then
-! write coll_scatter.dat for complete scattering histories
+      ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+#ifdef HDF5
+      endif
+#endif
     end if
     return
   end if
@@ -5751,8 +5857,16 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     dpop=(p-p0)/p0
 
     if(dowrite_impact) then
-! write coll_scatter.dat for complete scattering histories
+      ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+#ifdef HDF5
+      endif
+#endif
     end if
 
     return
@@ -5788,8 +5902,16 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     dpop=(p-p0)/p0
 
-! write coll_scatter.dat for complete scattering histories
-    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+    ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+    if(h5_useForCOLL) then
+      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
+    else
+#endif
+    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
+#ifdef HDF5
+    endif
+#endif
     return
   end if
 
@@ -5832,9 +5954,17 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   end if
 
   if(dowrite_impact) then
-! write coll_scatter.dat for complete scattering histories.
-! Includes changes in angle from both
-     write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+    ! write coll_scatter.dat for complete scattering histories.
+    ! Includes changes in angle from both
+#ifdef HDF5
+    if(h5_useForCOLL) then
+      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+    else
+#endif
+    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+#ifdef HDF5
+    endif
+#endif
   end if
 
 !++  Calculate the remaining interaction length and close the iteration
@@ -5844,6 +5974,24 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
 end subroutine jaw
 
+#ifdef HDF5
+subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
+  
+  integer,          intent(in) :: icoll,iturn,ipart,nabs
+  real(kind=fPrec), intent(in) :: dp,dx,dy
+  
+  call h5_prepareWrite(coll_hdf5_collScatter, 1)
+  call h5_writeData(coll_hdf5_collScatter, 1, 1, ipart)
+  call h5_writeData(coll_hdf5_collScatter, 2, 1, iturn)
+  call h5_writeData(coll_hdf5_collScatter, 3, 1, icoll)
+  call h5_writeData(coll_hdf5_collScatter, 4, 1, nabs)
+  call h5_writeData(coll_hdf5_collScatter, 5, 1, dp)
+  call h5_writeData(coll_hdf5_collScatter, 6, 1, dx)
+  call h5_writeData(coll_hdf5_collScatter, 7, 1, dy)
+  call h5_finaliseWrite(coll_hdf5_collScatter)
+  
+end subroutine coll_hdf5_writeCollScatter
+#endif
 !>
 !! jaw0(s,nabs)
 !! ???
@@ -5938,14 +6086,21 @@ subroutine jaw0(s,nabs)
 !
       inter=ichoix(mat)
       if(inter.eq.1) then
-       nabs=1
-       s=(zlm-rlen)+zlm1                                                 !hr09
-       p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
-! write coll_scatter.dat for complete scattering histories
-       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &
-     & icoll,iturn,ipart,nabs,-1.d0,0.d0,0.d0
-       return
+        nabs=1
+        s=(zlm-rlen)+zlm1                                                 !hr09
+        p=p-dpodx(mat)*s
+        dpop=1.d0-p0/p
+        ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+        if(h5_useForCOLL) then
+          call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,-one,zero,zero)
+        else
+#endif
+        write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs,-one,zero,zero
+#ifdef HDF5
+        end if
+#endif
+        return
       end if
 !
 !++  Now treat the other types of interaction, as determined by ICHOIX:
