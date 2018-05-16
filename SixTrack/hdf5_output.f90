@@ -78,7 +78,7 @@ module hdf5_output
   end type h5_dataField
   
   ! Format Container
-  type, public :: h5_dataFmt
+  type, private :: h5_dataFmt
     character(len=:),   allocatable, public  :: name
     integer(HSIZE_T),                private :: memSize = 0
     integer(HID_T),                  private :: dtypeID = 0
@@ -86,10 +86,11 @@ module hdf5_output
   end type h5_dataFmt
   
   ! Dataset Container
-  type, public :: h5_dataSet
+  type, private :: h5_dataSet
     character(len=:),   allocatable, public  :: name
     character(len=:),   allocatable, public  :: path
     integer,                         private :: format  = 0
+    integer,                         private :: buffer  = 0
     integer(HSIZE_T),                private :: records = 0
     integer(HID_T),                  private :: groupID = 0
     integer(HID_T),                  private :: dataID  = 0
@@ -98,13 +99,31 @@ module hdf5_output
     integer(HID_T),                  private :: propID  = 0
   end type h5_dataSet
   
+  ! Data Buffer Container
+  type, private :: h5_dataBuf
+    integer,                       public  :: nInt  = 0
+    integer,                       public  :: nReal = 0
+    integer,                       public  :: nChar = 0
+    integer,                       public  :: nCols = 0
+    integer,                       public  :: nRows = 0
+    integer,                       public  :: bSize = 0
+    integer,                       public  :: cSize = 0
+    integer,          allocatable, public  :: colMap(:,:)
+    integer,          allocatable, private :: iData(:,:)
+    real(kind=fPrec), allocatable, private :: rData(:,:)
+    character(len=:), allocatable, private :: cData(:,:)
+  end type h5_dataBuf
+  
   ! Storage Arrays
   type(h5_dataFmt), allocatable, private, save :: h5_fmtList(:)
   integer,                       private, save :: h5_fmtCount
   type(h5_dataSet), allocatable, private, save :: h5_setList(:)
   integer,                       private, save :: h5_setCount
+  type(h5_dataBuf), allocatable, private, save :: h5_bufList(:)
+  integer,                       private, save :: h5_bufCount
   
   ! Interface for Data Writing
+  
   interface h5_writeData
     module procedure h5_writeArray_real32
     module procedure h5_writeValue_real32
@@ -118,6 +137,12 @@ module hdf5_output
     module procedure h5_writeValue_char
   end interface h5_writeData
   
+  interface h5_writeBuffer
+    module procedure h5_writeBuffer_real
+    module procedure h5_writeBuffer_int
+    module procedure h5_writeBuffer_char
+  end interface h5_writeBuffer
+  
   private :: h5_writeArray_real32
   private :: h5_writeValue_real32
   private :: h5_writeArray_real64
@@ -128,6 +153,10 @@ module hdf5_output
   private :: h5_writeValue_int
   private :: h5_writeArray_char
   private :: h5_writeValue_char
+  
+  private :: h5_writeBuffer_real
+  private :: h5_writeBuffer_int
+  private :: h5_writeBuffer_char
   
 contains
 
@@ -167,6 +196,7 @@ subroutine h5_comnul
   
   h5_fmtCount     = 0
   h5_setCount     = 0
+  h5_bufCount     = 0
   
 end subroutine h5_comnul
 
@@ -750,6 +780,219 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   setID = h5_setCount
   
 end subroutine h5_createDataSet
+  
+! ================================================================================================ !
+!  Create DataSet
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-04-30
+! ================================================================================================ !
+subroutine h5_createBuffer(bufName, formatID, setID, bufSize)
+  
+  use mod_alloc
+  
+  ! Routine Variables
+  character(len=*), intent(in)  :: bufName
+  integer,          intent(in)  :: formatID
+  integer,          intent(in)  :: setID
+  integer,          intent(in)  :: bufSize
+  
+  type(h5_dataBuf), allocatable :: tmpBufs(:)
+  
+  ! Temp Variables
+  integer, allocatable :: colMap(:,:)
+  integer              :: nInt, nReal, nChar, nCols, iCol, cSize
+  
+  if(.not. h5_isReady) then
+    write(lout,"(a)") "HDF5> ERROR Buffer creation requested, but no HDF5 file is open. This is a bug."
+    call prror(-1)
+  end if
+  
+  ! First, extend the h5_setList array
+  if(allocated(h5_bufList) .eqv. .false.) then
+    allocate(h5_bufList(1))
+    h5_bufCount = 1
+  else
+    allocate(tmpBufs(h5_bufCount + 1))
+    tmpBufs(1:h5_bufCount) = h5_bufList(1:h5_bufCount)
+    h5_bufCount = h5_bufCount + 1
+    call move_alloc(tmpBufs, h5_bufList)
+  end if
+  
+  ! Iterate through the fields to set up the buffer
+  nCols = size(h5_fmtList(formatID)%fields)
+  allocate(colMap(2,nCols))
+  colMap(:,:) = 0
+  nInt        = 0
+  nReal       = 0
+  nChar       = 0
+  cSize       = 0
+  
+  do iCol=1,nCols
+    select case(h5_fmtList(formatID)%fields(iCol)%type)
+    case(h5_typeInt)
+      nInt           = nInt + 1
+      colMap(1,iCol) = nInt
+      colMap(2,iCol) = h5_typeInt
+    case(h5_typeReal)
+      nReal          = nReal + 1
+      colMap(1,iCol) = nReal
+      colMap(2,iCol) = h5_typeReal
+    case(h5_typeChar)
+      nChar          = nChar + 1
+      colMap(1,iCol) = nChar
+      colMap(2,iCol) = h5_typeChar
+      if(h5_fmtList(formatID)%fields(iCol)%size > cSize) then
+        cSize = h5_fmtList(formatID)%fields(iCol)%size
+      end if
+    end select
+  end do
+  
+  h5_bufList(h5_bufCount)%nInt   = nInt
+  h5_bufList(h5_bufCount)%nReal  = nReal
+  h5_bufList(h5_bufCount)%nChar  = nChar
+  h5_bufList(h5_bufCount)%nCols  = nCols
+  h5_bufList(h5_bufCount)%nRows  = 0
+  h5_bufList(h5_bufCount)%bSize  = bufSize
+  h5_bufList(h5_bufCount)%cSize  = cSize
+  h5_bufList(h5_bufCount)%colMap = colMap
+  
+  if(nInt  > 0) then
+    call alloc(h5_bufList(h5_bufCount)%iData,nInt,bufSize,0,"hdf5_iDataBuffer")
+  end if
+  if(nReal > 0) then
+    call alloc(h5_bufList(h5_bufCount)%rData,nReal,bufSize,0.0_fPrec,"hdf5_rDataBuffer")
+  end if
+  if(nChar > 0) then
+    call alloc(h5_bufList(h5_bufCount)%cData,cSize,nChar,bufSize,repeat(char(0),cSize),"hdf5_cDataBuffer")
+  end if
+  
+  if(h5_debugOn) then
+    write(lout,"(a,i0,a)") "HDF5> DEBUG Created data buffer of size ",bufSize," '"//bufName//"' with:"
+    write(lout,"(a,i2,a)") "HDF5> DEBUG  ",nInt, " integer columns"
+    write(lout,"(a,i2,a)") "HDF5> DEBUG  ",nReal," real columns"
+    write(lout,"(a,i2,a)") "HDF5> DEBUG  ",nChar," character columns"
+  end if
+  
+end subroutine h5_createBuffer
+
+! ================================================================================================ !
+!  BEGIN WRITING TO BUFFER
+! ================================================================================================ !
+
+! ================================================================================================ !
+!  Check Buffer
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-16
+!  This subroutine checks if it is necessary to flush the buffer.
+!  It should be called after all columns of a buffered dataset has been written to.
+! ================================================================================================ !
+subroutine h5_checkBuffer(setID)
+  
+  integer, intent(in) :: setID
+  
+  integer bufID
+  
+  bufID = h5_setList(setID)%buffer
+  if(h5_bufList(bufID)%nRows >= h5_bufList(bufID)%bSize) then
+    call h5_flushBuffer(setID)
+  end if
+  
+end subroutine h5_checkBuffer
+
+! ================================================================================================ !
+!  Flush Buffer
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-16
+!  This subroutine flushes the buffer for a given dataset, and resets it.
+! ================================================================================================ !
+subroutine h5_flushBuffer(setID)
+  
+  integer, intent(in) :: setID
+  
+  integer bufID, nCols, nRows, iCol, cSize, bufCol
+  
+  bufID = h5_setList(setID)%buffer
+  nCols = h5_bufList(bufID)%nCols
+  nRows = h5_bufList(bufID)%nRows
+  
+  call h5_prepareWrite(setID,nRows)
+  do iCol=1,nCols
+    bufCol = h5_bufList(bufID)%colMap(1,iCol)
+    select case(h5_bufList(bufID)%colMap(2,iCol))
+    case(h5_typeInt)
+      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID)%iData(bufCol,1:nRows))
+      h5_bufList(bufID)%iData(bufCol,1:nRows) = 0
+    case(h5_typeReal)
+      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID)%rData(bufCol,1:nRows))
+      h5_bufList(bufID)%rData(bufCol,1:nRows) = 0.0_fPrec
+    case(h5_typeChar)
+      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID)%cData(bufCol,1:nRows))
+      h5_bufList(bufID)%cData(bufCol,1:nRows) = repeat(char(0),h5_bufList(bufID)%cSize)
+    end select
+  end do
+  call h5_finaliseWrite(setID)
+  
+end subroutine h5_flushBuffer
+
+! ================================================================================================ !
+!  Interfaced Buffer Write Routines
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-16
+! ================================================================================================ !
+subroutine h5_writeBuffer_real(setID, colID, valData)
+  
+  integer,          intent(in) :: setID
+  integer,          intent(in) :: colID
+  real(kind=fPrec), intent(in) :: valData
+  
+  integer bufID, bufCol, nRows
+  
+  bufID  = h5_setList(setID)%buffer
+  nRows  = h5_bufList(bufID)%nRows + 1
+  bufCol = h5_bufList(bufID)%colMap(1,colID)
+  
+  h5_bufList(bufID)%rData(bufCol,nRows) = valData
+  h5_bufList(bufID)%nRows               = nRows
+  
+end subroutine h5_writeBuffer_real
+
+subroutine h5_writeBuffer_int(setID, colID, valData)
+  
+  integer, intent(in) :: setID
+  integer, intent(in) :: colID
+  integer, intent(in) :: valData
+  
+  integer bufID, bufCol, nRows
+  
+  bufID  = h5_setList(setID)%buffer
+  nRows  = h5_bufList(bufID)%nRows + 1
+  bufCol = h5_bufList(bufID)%colMap(1,colID)
+  
+  h5_bufList(bufID)%iData(bufCol,nRows) = valData
+  h5_bufList(bufID)%nRows               = nRows
+  
+end subroutine h5_writeBuffer_int
+
+subroutine h5_writeBuffer_char(setID, colID, valData)
+  
+  integer,          intent(in) :: setID
+  integer,          intent(in) :: colID
+  character(len=*), intent(in) :: valData
+  
+  integer bufID, bufCol, nRows
+  
+  bufID  = h5_setList(setID)%buffer
+  nRows  = h5_bufList(bufID)%nRows + 1
+  bufCol = h5_bufList(bufID)%colMap(1,colID)
+  
+  h5_bufList(bufID)%cData(bufCol,nRows) = valData
+  h5_bufList(bufID)%nRows               = nRows
+  
+end subroutine h5_writeBuffer_char
+
+! ================================================================================================ !
+!  END WRITING TO BUFFER
+! ================================================================================================ !
 
 ! ================================================================================================ !
 !  BEGIN WRITING TO DATASETS
