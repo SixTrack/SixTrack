@@ -186,13 +186,19 @@ subroutine dump_closeUnits
   logical lopen
   integer i
   
-  do i=0,il
-    if (ldump(i)) then
-      ! The same file could be used by more than one SINGLE ELEMENT
-      inquire( unit=dumpunit(i), opened=lopen )
-      if (lopen) close(dumpunit(i))
-    end if
-  end do
+#ifdef HDF5
+  if(.not. h5_useForDUMP) then
+#endif
+    do i=0,il
+      if (ldump(i)) then
+        ! The same file could be used by more than one SINGLE ELEMENT
+        inquire( unit=dumpunit(i), opened=lopen )
+        if (lopen) close(dumpunit(i))
+      end if
+    end do
+#ifdef HDF5
+  end if
+#endif
   
 end subroutine dump_closeUnits
 

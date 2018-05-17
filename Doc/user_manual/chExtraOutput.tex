@@ -481,7 +481,15 @@ The \texttt{blockname} takes the four first characters of the block for which to
 An further characters are ignored, but may be used for clarity like for othe rblock declarations.
 In other words, \texttt{ENABLE SCAT} and \texttt{ENABLE SCATTER} are equally valid.
 
-HDF5 output is currently available only for \texttt{SCATTER}, \texttt{DUMP} and \texttt{COLLIMATION}.
+HDF5 output is currently available only for \texttt{SCATTER}, \texttt{DUMP}, \texttt{APERTURE} and \texttt{COLLIMATION}.
+
+\paragraph{Write Flag} \texttt{WRITE type}\\
+
+Certain special outputs are possible through the \texttt{WRITE} flag:
+\begin{description}
+    \item[\texttt{OPTICS}] Dumps the linear optics to the root group of the file.
+    \item[\texttt{TRACKS2}] Writes the collimation tracks2 output to the root group of the file.
+\end{description}
 
 \paragraph{Example:}~\\
 
@@ -497,5 +505,6 @@ HDF5
     ROOT test
     ENABLE SCATTER
     ENABLE DUMP
+    WRITE OPTICS
 NEXT
 \end{cverbatim}
