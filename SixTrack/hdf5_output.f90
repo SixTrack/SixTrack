@@ -8,6 +8,27 @@
 !
 !  Alternative output format.
 !  Controlled by the HDF5 input block.
+!
+!   Usage:
+!  ~~~~~~~~
+!   Format:  A format is created from an array of type(h5_dataField). Each entry represents a column
+!            with a name and a type, where the type is either h5_typeInt, h5_typeReal or
+!            h5_typeChar. In the latter case, a size has to be set as well.
+!            The format is created with the h5_createFormat routine, which returns a formatID.
+!   DataSet: A dataset is created from a formatID, and returns a setID. Many datasets can use the
+!            same formatID, but each dataset is unique.
+!   Writing: Before writing, the number of lines one intend to write needs to be declared. This is
+!            because a memory map of the data structure needs to be set up. After this, each data
+!            type can be written to this map either as full arrays (fastest) or a single value in
+!            the case of 1 record being declared. This is done by the h5_prepareWrite and
+!            h5_writeData routines. After all the columns have been written, the h5_finaliseWrite
+!            routine needs to be called to flush the memory map to file.
+!   Buffers: In the case where the size of the dataset is not known before a loop, the option is to
+!            either buffer the data locally, or write sets of single records. The latter has a small
+!            overhead that may be significant if a large number of lines are written. There are
+!            buffering routines in the module tht can handle this at this end, but they seem to have
+!            some issues when buffering character arrays, at least for the gfortran 7.3 compiler.
+!            The buffers seem to work just fine for integers and reals though.
 ! ================================================================================================ !
 module hdf5_output
   
@@ -895,6 +916,9 @@ end subroutine h5_createBuffer
 
 ! ================================================================================================ !
 !  BEGIN WRITING TO BUFFER
+!  Note: The buffering routines seem to work fine for integers and reals, but due to what possibly
+!        is compiler related issues (testing on gfortran 7.3), the buffer for character values
+!        produces garbage output to the hdf5 file.
 ! ================================================================================================ !
 
 ! ================================================================================================ !
