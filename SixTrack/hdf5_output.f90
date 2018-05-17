@@ -342,12 +342,12 @@ subroutine h5_parseInputLine(inLine)
     select case(lnSplit(2)%chr)
     case("OPTICS")
       h5_writeOptics = .true.
-      write(lout,"(a)") "HDF5> Writing Linear Optics."
+      write(lout,"(a)") "HDF5> Will write linear optics."
     case("TRACKS2")
       h5_writeTracks2 = .true.
-      write(lout,"(a)") "HDF5> Writing Linear Optics."
+      write(lout,"(a)") "HDF5> Will write tracks2."
     case default
-      write(lout,"(a)") "HDF5> ERROR Unreckognised WRITE option '"//lnSplit(2)//"'"
+      write(lout,"(a)") "HDF5> ERROR Unrecognised WRITE option '"//lnSplit(2)//"'"
       call prror(-1)
     end select
   
@@ -806,6 +806,10 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
   integer, allocatable :: colMap(:,:)
   integer              :: nInt, nReal, nChar, nCols, iCol, cSize
   
+  integer,          allocatable :: iDataBuffer(:,:)
+  real(kind=fPrec), allocatable :: rDataBuffer(:,:)
+  character(len=:), allocatable :: cDataBuffer(:,:)
+  
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Buffer creation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
@@ -856,28 +860,35 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
   h5_bufList(h5_bufCount)%nReal  = nReal
   h5_bufList(h5_bufCount)%nChar  = nChar
   h5_bufList(h5_bufCount)%nCols  = nCols
-  h5_bufList(h5_bufCount)%nRows  = 0
+  h5_bufList(h5_bufCount)%nRows  = 1
   h5_bufList(h5_bufCount)%bSize  = bufSize
   h5_bufList(h5_bufCount)%cSize  = cSize
   h5_bufList(h5_bufCount)%colMap = colMap
   
   if(nInt  > 0) then
-    call alloc(h5_bufList(h5_bufCount)%iData,nInt,bufSize,0,"hdf5_iDataBuffer")
+    call alloc(iDataBuffer,nInt,bufSize,0,"hdf5_iDataBuffer")
+    h5_bufList(h5_bufCount)%iData = iDataBuffer
   end if
   if(nReal > 0) then
-    call alloc(h5_bufList(h5_bufCount)%rData,nReal,bufSize,0.0_fPrec,"hdf5_rDataBuffer")
+    call alloc(rDataBuffer,nReal,bufSize,0.0_fPrec,"hdf5_rDataBuffer")
+    h5_bufList(h5_bufCount)%rData = rDataBuffer
   end if
   if(nChar > 0) then
-    call alloc(h5_bufList(h5_bufCount)%cData,cSize,nChar,bufSize,repeat(char(0),cSize),"hdf5_cDataBuffer")
+    call alloc(cDataBuffer,cSize,nChar,bufSize,repeat(" ",cSize),"hdf5_cDataBuffer")
+    h5_bufList(h5_bufCount)%cData = cDataBuffer
+    write(lout,"(a,i0)") "HDF5-ALLOC> Size 1 = ",size(h5_bufList(h5_bufCount)%cData,1)
+    write(lout,"(a,i0)") "HDF5-ALLOC> Size 2 = ",size(h5_bufList(h5_bufCount)%cData,2)
+    write(lout,"(a,i0)") "HDF5-ALLOC> Size 3 = ",len(h5_bufList(h5_bufCount)%cData(1,1))
   end if
   
   h5_setList(setID-h5_setOff)%buffer = h5_bufCount+h5_bufOff
   
   if(h5_debugOn) then
-    write(lout,"(a,i0,a)") "HDF5> DEBUG Created data buffer of size ",bufSize," '"//bufName//"' with:"
-    write(lout,"(a,i2,a)") "HDF5> DEBUG  ",nInt, " integer columns"
-    write(lout,"(a,i2,a)") "HDF5> DEBUG  ",nReal," real columns"
-    write(lout,"(a,i2,a)") "HDF5> DEBUG  ",nChar," character columns"
+    write(lout,"(a,i0,a)")    "HDF5> DEBUG Created data buffer '"//bufName//"' with ID ",(h5_bufCount+h5_bufOff)," containing:"
+    write(lout,"(a,i2,a)")    "HDF5> DEBUG  ",nInt, " integer columns"
+    write(lout,"(a,i2,a)")    "HDF5> DEBUG  ",nReal," real columns"
+    write(lout,"(a,i2,a,i0)") "HDF5> DEBUG  ",nChar," character columns of length ",cSize
+    write(lout,"(a,i0,a)")    "HDF5> DEBUG Buffer length is ",bufSize," rows"
   end if
   
 end subroutine h5_createBuffer
@@ -887,13 +898,13 @@ end subroutine h5_createBuffer
 ! ================================================================================================ !
 
 ! ================================================================================================ !
-!  Check Buffer
+!  Increment Buffer Index
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-05-16
-!  This subroutine checks if it is necessary to flush the buffer.
-!  It should be called after all columns of a buffered dataset has been written to.
+!  This subroutine also checks if it is necessary to flush the buffer.
+!  It must be called after all columns of a buffered dataset has been written to.
 ! ================================================================================================ !
-subroutine h5_checkBuffer(setID)
+subroutine h5_incrBuffer(setID)
   
   integer, intent(in) :: setID
   
@@ -901,10 +912,12 @@ subroutine h5_checkBuffer(setID)
   
   bufID = h5_setList(setID-h5_setOff)%buffer
   if(h5_bufList(bufID-h5_bufOff)%nRows >= h5_bufList(bufID-h5_bufOff)%bSize) then
-    call h5_flushBuffer(setID-h5_setOff)
+    call h5_flushBuffer(setID)
+  else
+    h5_bufList(bufID-h5_bufOff)%nRows = h5_bufList(bufID-h5_bufOff)%nRows + 1
   end if
   
-end subroutine h5_checkBuffer
+end subroutine h5_incrBuffer
 
 ! ================================================================================================ !
 !  Flush Buffer
@@ -916,7 +929,7 @@ subroutine h5_flushBuffer(setID)
   
   integer, intent(in) :: setID
   
-  integer bufID, nCols, nRows, iCol, cSize, bufCol
+  integer bufID, nCols, nRows, iCol, bufCol
   
   bufID = h5_setList(setID-h5_setOff)%buffer
   nCols = h5_bufList(bufID-h5_bufOff)%nCols
@@ -927,17 +940,23 @@ subroutine h5_flushBuffer(setID)
     bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,iCol)
     select case(h5_bufList(bufID-h5_bufOff)%colMap(2,iCol))
     case(h5_typeInt)
-      call h5_writeData(setID-h5_setOff, iCol, nRows, h5_bufList(bufID-h5_bufOff)%iData(bufCol,1:nRows))
+      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID-h5_bufOff)%iData(bufCol,1:nRows))
       h5_bufList(bufID-h5_bufOff)%iData(bufCol,1:nRows) = 0
     case(h5_typeReal)
-      call h5_writeData(setID-h5_setOff, iCol, nRows, h5_bufList(bufID-h5_bufOff)%rData(bufCol,1:nRows))
+      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID-h5_bufOff)%rData(bufCol,1:nRows))
       h5_bufList(bufID-h5_bufOff)%rData(bufCol,1:nRows) = 0.0_fPrec
     case(h5_typeChar)
-      call h5_writeData(setID-h5_setOff, iCol, nRows, h5_bufList(bufID-h5_bufOff)%cData(bufCol,1:nRows))
-      h5_bufList(bufID-h5_bufOff)%cData(bufCol,1:nRows) = repeat(char(0),h5_bufList(bufID-h5_bufOff)%cSize)
+      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID-h5_bufOff)%cData(bufCol,1:nRows))
+      h5_bufList(bufID-h5_bufOff)%cData(bufCol,1:nRows) = repeat(" ",h5_bufList(bufID-h5_bufOff)%cSize)
     end select
   end do
   call h5_finaliseWrite(setID)
+  
+  h5_bufList(bufID-h5_bufOff)%nRows = 1
+  
+  if(h5_debugOn) then
+    write(lout,"(a,i0,a)") "HDF5> DEBUG ",nRows," records were flushed from buffer '"//h5_bufList(bufID-h5_bufOff)%name//"'"
+  end if
   
 end subroutine h5_flushBuffer
 
@@ -955,11 +974,10 @@ subroutine h5_writeBuffer_real(setID, colID, valData)
   integer bufID, bufCol, nRows
   
   bufID  = h5_setList(setID-h5_setOff)%buffer
-  nRows  = h5_bufList(bufID-h5_bufOff)%nRows + 1
+  nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   
   h5_bufList(bufID-h5_bufOff)%rData(bufCol,nRows) = valData
-  h5_bufList(bufID-h5_bufOff)%nRows               = nRows
   
 end subroutine h5_writeBuffer_real
 
@@ -972,28 +990,47 @@ subroutine h5_writeBuffer_int(setID, colID, valData)
   integer bufID, bufCol, nRows
   
   bufID  = h5_setList(setID-h5_setOff)%buffer
-  nRows  = h5_bufList(bufID-h5_bufOff)%nRows + 1
+  nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   
   h5_bufList(bufID-h5_bufOff)%iData(bufCol,nRows) = valData
-  h5_bufList(bufID-h5_bufOff)%nRows               = nRows
   
 end subroutine h5_writeBuffer_int
 
 subroutine h5_writeBuffer_char(setID, colID, valData)
   
+  use string_tools
+  
   integer,          intent(in) :: setID
   integer,          intent(in) :: colID
   character(len=*), intent(in) :: valData
   
-  integer bufID, bufCol, nRows
+  integer bufID, bufCol, nRows, cSize, inSize
+  character(len=:), allocatable :: tmpData
   
   bufID  = h5_setList(setID-h5_setOff)%buffer
-  nRows  = h5_bufList(bufID-h5_bufOff)%nRows + 1
+  nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
+  cSize  = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%size
+  inSize = len_trim(chr_trimZero(valData))
   
-  h5_bufList(bufID-h5_bufOff)%cData(bufCol,nRows) = valData
-  h5_bufList(bufID-h5_bufOff)%nRows               = nRows
+  if(inSize > cSize) then
+    inSize = cSize
+    write(lout,"(a,2(i0,a))") "HDF5> WARNING Trying to write a ",inSize," length string to a ",cSize," length buffer."
+  end if
+  
+  allocate(character(len=cSize) :: tmpData)
+  tmpData = repeat(" ",cSize)
+  tmpData(1:inSize) = valData(1:inSize)
+  h5_bufList(bufID-h5_bufOff)%cData(bufCol,nRows) = tmpData
+  
+  ! write(lout,"(a)")    "HDF5> Writing string: '"//tmpData//"'"
+  ! write(lout,"(a)")    "HDF5> Buffer holds:   '"//h5_bufList(bufID-h5_bufOff)%cData(bufCol,nRows)//"'"
+  ! write(lout,"(a,i0)") "HDF5>   Size 1: ",size(h5_bufList(bufID-h5_bufOff)%cData,1)
+  ! write(lout,"(a,i0)") "HDF5>   Size 2: ",size(h5_bufList(bufID-h5_bufOff)%cData,2)
+  ! write(lout,"(a,i0)") "HDF5>   Size 3: ",len(h5_bufList(bufID-h5_bufOff)%cData(1,1))
+  
+  deallocate(tmpData)
   
 end subroutine h5_writeBuffer_char
 
