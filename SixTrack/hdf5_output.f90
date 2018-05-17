@@ -101,6 +101,7 @@ module hdf5_output
   
   ! Data Buffer Container
   type, private :: h5_dataBuf
+    character(len=:), allocatable, public  :: name
     integer,                       public  :: nInt  = 0
     integer,                       public  :: nReal = 0
     integer,                       public  :: nChar = 0
@@ -117,10 +118,13 @@ module hdf5_output
   ! Storage Arrays
   type(h5_dataFmt), allocatable, private, save :: h5_fmtList(:)
   integer,                       private, save :: h5_fmtCount
+  integer,          parameter,   private       :: h5_fmtOff = 1000
   type(h5_dataSet), allocatable, private, save :: h5_setList(:)
   integer,                       private, save :: h5_setCount
+  integer,          parameter,   private       :: h5_setOff = 2000
   type(h5_dataBuf), allocatable, private, save :: h5_bufList(:)
   integer,                       private, save :: h5_bufCount
+  integer,          parameter,   private       :: h5_bufOff = 3000
   
   ! Interface for Data Writing
   
@@ -570,11 +574,11 @@ end subroutine h5_initForScatter
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-05-07
 ! ================================================================================================ !
-subroutine h5_createFormat(formatName, setFields, formatID)
+subroutine h5_createFormat(formatName, setFields, fmtID)
   
   character(len=*),                intent(in)    :: formatName
   type(h5_dataField), allocatable, intent(inout) :: setFields(:)
-  integer,                         intent(out)   :: formatID
+  integer,                         intent(out)   :: fmtID
   
   type(h5_dataFmt), allocatable :: tmpTypes(:)
   integer(HID_T),   allocatable :: fieldType(:)
@@ -650,7 +654,7 @@ subroutine h5_createFormat(formatName, setFields, formatID)
   end do
   
   if(h5_debugOn) then
-    write(lout,"(a,i0)")   "HDF5> DEBUG Creating data format '"//formatName//"' with ID ",h5_fmtCount
+    write(lout,"(a,i0)")   "HDF5> DEBUG Creating data format '"//formatName//"' with ID ",(h5_fmtCount+h5_fmtOff)
     write(lout,"(a,i0,a)") "HDF5> DEBUG   Format requires ",memSize," bytes per record."
   end if
   
@@ -681,7 +685,7 @@ subroutine h5_createFormat(formatName, setFields, formatID)
   h5_fmtList(h5_fmtCount)%dtypeID = dtypeID
   h5_fmtList(h5_fmtCount)%fields  = setFields
   
-  formatID = h5_fmtCount
+  fmtID = h5_fmtCount + h5_fmtOff
   
   ! Clean up
   deallocate(fieldType)
@@ -694,7 +698,7 @@ end subroutine h5_createFormat
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-30
 ! ================================================================================================ !
-subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
+subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   
   use mod_alloc
   use string_tools
@@ -702,7 +706,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   ! Routine Variables
   character(len=*),           intent(in)  :: setName
   integer(HID_T),             intent(in)  :: groupID
-  integer,                    intent(in)  :: formatID
+  integer,                    intent(in)  :: fmtID
   integer,                    intent(out) :: setID
   integer,          optional, intent(in)  :: chunckSize
   
@@ -739,7 +743,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   cleanName       = chr_strip(chr_trimZero(setName))
   
   if(h5_debugOn) then
-    write(lout,"(a,i0)") "HDF5> DEBUG Creating dataset '"//cleanName//"' with ID ",h5_setCount
+    write(lout,"(a,i0)") "HDF5> DEBUG Creating dataset '"//cleanName//"' with ID ",(h5_setCount+h5_setOff)
   end if
   
   ! Create a 1 by chunckSize DataSpace with a 1 by inf max size
@@ -757,7 +761,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   end if
   
   ! Create the DataSet in-file
-  dtypeID = h5_fmtList(formatID)%dtypeID
+  dtypeID = h5_fmtList(fmtID-h5_fmtOff)%dtypeID
   call h5dcreate_f(groupID, cleanName, dtypeID, spaceID, dataID, h5_dataError, propID)
   if(h5_dataError /= 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create dataset '"//cleanName//"'"
@@ -769,7 +773,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   
   h5_setList(h5_setCount)%name    = cleanName
   h5_setList(h5_setCount)%path    = ""
-  h5_setList(h5_setCount)%format  = formatID
+  h5_setList(h5_setCount)%format  = fmtID
   h5_setList(h5_setCount)%records = 0
   h5_setList(h5_setCount)%groupID = groupID
   h5_setList(h5_setCount)%dataID  = 0
@@ -777,7 +781,7 @@ subroutine h5_createDataSet(setName, groupID, formatID, setID, chunckSize)
   h5_setList(h5_setCount)%memID   = 0
   h5_setList(h5_setCount)%propID  = propID
   
-  setID = h5_setCount
+  setID = h5_setCount + h5_setOff
   
 end subroutine h5_createDataSet
   
@@ -786,13 +790,13 @@ end subroutine h5_createDataSet
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-30
 ! ================================================================================================ !
-subroutine h5_createBuffer(bufName, formatID, setID, bufSize)
+subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
   
   use mod_alloc
   
   ! Routine Variables
   character(len=*), intent(in)  :: bufName
-  integer,          intent(in)  :: formatID
+  integer,          intent(in)  :: fmtID
   integer,          intent(in)  :: setID
   integer,          intent(in)  :: bufSize
   
@@ -819,7 +823,7 @@ subroutine h5_createBuffer(bufName, formatID, setID, bufSize)
   end if
   
   ! Iterate through the fields to set up the buffer
-  nCols = size(h5_fmtList(formatID)%fields)
+  nCols = size(h5_fmtList(fmtID-h5_fmtOff)%fields)
   allocate(colMap(2,nCols))
   colMap(:,:) = 0
   nInt        = 0
@@ -828,7 +832,7 @@ subroutine h5_createBuffer(bufName, formatID, setID, bufSize)
   cSize       = 0
   
   do iCol=1,nCols
-    select case(h5_fmtList(formatID)%fields(iCol)%type)
+    select case(h5_fmtList(fmtID-h5_fmtOff)%fields(iCol)%type)
     case(h5_typeInt)
       nInt           = nInt + 1
       colMap(1,iCol) = nInt
@@ -841,12 +845,13 @@ subroutine h5_createBuffer(bufName, formatID, setID, bufSize)
       nChar          = nChar + 1
       colMap(1,iCol) = nChar
       colMap(2,iCol) = h5_typeChar
-      if(h5_fmtList(formatID)%fields(iCol)%size > cSize) then
-        cSize = h5_fmtList(formatID)%fields(iCol)%size
+      if(h5_fmtList(fmtID-h5_fmtOff)%fields(iCol)%size > cSize) then
+        cSize = h5_fmtList(fmtID-h5_fmtOff)%fields(iCol)%size
       end if
     end select
   end do
   
+  h5_bufList(h5_bufCount)%name   = bufName
   h5_bufList(h5_bufCount)%nInt   = nInt
   h5_bufList(h5_bufCount)%nReal  = nReal
   h5_bufList(h5_bufCount)%nChar  = nChar
@@ -865,6 +870,8 @@ subroutine h5_createBuffer(bufName, formatID, setID, bufSize)
   if(nChar > 0) then
     call alloc(h5_bufList(h5_bufCount)%cData,cSize,nChar,bufSize,repeat(char(0),cSize),"hdf5_cDataBuffer")
   end if
+  
+  h5_setList(setID-h5_setOff)%buffer = h5_bufCount+h5_bufOff
   
   if(h5_debugOn) then
     write(lout,"(a,i0,a)") "HDF5> DEBUG Created data buffer of size ",bufSize," '"//bufName//"' with:"
@@ -892,9 +899,9 @@ subroutine h5_checkBuffer(setID)
   
   integer bufID
   
-  bufID = h5_setList(setID)%buffer
-  if(h5_bufList(bufID)%nRows >= h5_bufList(bufID)%bSize) then
-    call h5_flushBuffer(setID)
+  bufID = h5_setList(setID-h5_setOff)%buffer
+  if(h5_bufList(bufID-h5_bufOff)%nRows >= h5_bufList(bufID-h5_bufOff)%bSize) then
+    call h5_flushBuffer(setID-h5_setOff)
   end if
   
 end subroutine h5_checkBuffer
@@ -911,23 +918,23 @@ subroutine h5_flushBuffer(setID)
   
   integer bufID, nCols, nRows, iCol, cSize, bufCol
   
-  bufID = h5_setList(setID)%buffer
-  nCols = h5_bufList(bufID)%nCols
-  nRows = h5_bufList(bufID)%nRows
+  bufID = h5_setList(setID-h5_setOff)%buffer
+  nCols = h5_bufList(bufID-h5_bufOff)%nCols
+  nRows = h5_bufList(bufID-h5_bufOff)%nRows
   
   call h5_prepareWrite(setID,nRows)
   do iCol=1,nCols
-    bufCol = h5_bufList(bufID)%colMap(1,iCol)
-    select case(h5_bufList(bufID)%colMap(2,iCol))
+    bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,iCol)
+    select case(h5_bufList(bufID-h5_bufOff)%colMap(2,iCol))
     case(h5_typeInt)
-      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID)%iData(bufCol,1:nRows))
-      h5_bufList(bufID)%iData(bufCol,1:nRows) = 0
+      call h5_writeData(setID-h5_setOff, iCol, nRows, h5_bufList(bufID-h5_bufOff)%iData(bufCol,1:nRows))
+      h5_bufList(bufID-h5_bufOff)%iData(bufCol,1:nRows) = 0
     case(h5_typeReal)
-      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID)%rData(bufCol,1:nRows))
-      h5_bufList(bufID)%rData(bufCol,1:nRows) = 0.0_fPrec
+      call h5_writeData(setID-h5_setOff, iCol, nRows, h5_bufList(bufID-h5_bufOff)%rData(bufCol,1:nRows))
+      h5_bufList(bufID-h5_bufOff)%rData(bufCol,1:nRows) = 0.0_fPrec
     case(h5_typeChar)
-      call h5_writeData(setID, iCol, nRows, h5_bufList(bufID)%cData(bufCol,1:nRows))
-      h5_bufList(bufID)%cData(bufCol,1:nRows) = repeat(char(0),h5_bufList(bufID)%cSize)
+      call h5_writeData(setID-h5_setOff, iCol, nRows, h5_bufList(bufID-h5_bufOff)%cData(bufCol,1:nRows))
+      h5_bufList(bufID-h5_bufOff)%cData(bufCol,1:nRows) = repeat(char(0),h5_bufList(bufID-h5_bufOff)%cSize)
     end select
   end do
   call h5_finaliseWrite(setID)
@@ -935,7 +942,7 @@ subroutine h5_flushBuffer(setID)
 end subroutine h5_flushBuffer
 
 ! ================================================================================================ !
-!  Interfaced Buffer Write Routines
+!  Interface Buffer Write Routines
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-05-16
 ! ================================================================================================ !
@@ -947,12 +954,12 @@ subroutine h5_writeBuffer_real(setID, colID, valData)
   
   integer bufID, bufCol, nRows
   
-  bufID  = h5_setList(setID)%buffer
-  nRows  = h5_bufList(bufID)%nRows + 1
-  bufCol = h5_bufList(bufID)%colMap(1,colID)
+  bufID  = h5_setList(setID-h5_setOff)%buffer
+  nRows  = h5_bufList(bufID-h5_bufOff)%nRows + 1
+  bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   
-  h5_bufList(bufID)%rData(bufCol,nRows) = valData
-  h5_bufList(bufID)%nRows               = nRows
+  h5_bufList(bufID-h5_bufOff)%rData(bufCol,nRows) = valData
+  h5_bufList(bufID-h5_bufOff)%nRows               = nRows
   
 end subroutine h5_writeBuffer_real
 
@@ -964,12 +971,12 @@ subroutine h5_writeBuffer_int(setID, colID, valData)
   
   integer bufID, bufCol, nRows
   
-  bufID  = h5_setList(setID)%buffer
-  nRows  = h5_bufList(bufID)%nRows + 1
-  bufCol = h5_bufList(bufID)%colMap(1,colID)
+  bufID  = h5_setList(setID-h5_setOff)%buffer
+  nRows  = h5_bufList(bufID-h5_bufOff)%nRows + 1
+  bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   
-  h5_bufList(bufID)%iData(bufCol,nRows) = valData
-  h5_bufList(bufID)%nRows               = nRows
+  h5_bufList(bufID-h5_bufOff)%iData(bufCol,nRows) = valData
+  h5_bufList(bufID-h5_bufOff)%nRows               = nRows
   
 end subroutine h5_writeBuffer_int
 
@@ -981,12 +988,12 @@ subroutine h5_writeBuffer_char(setID, colID, valData)
   
   integer bufID, bufCol, nRows
   
-  bufID  = h5_setList(setID)%buffer
-  nRows  = h5_bufList(bufID)%nRows + 1
-  bufCol = h5_bufList(bufID)%colMap(1,colID)
+  bufID  = h5_setList(setID-h5_setOff)%buffer
+  nRows  = h5_bufList(bufID-h5_bufOff)%nRows + 1
+  bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   
-  h5_bufList(bufID)%cData(bufCol,nRows) = valData
-  h5_bufList(bufID)%nRows               = nRows
+  h5_bufList(bufID-h5_bufOff)%cData(bufCol,nRows) = valData
+  h5_bufList(bufID-h5_bufOff)%nRows               = nRows
   
 end subroutine h5_writeBuffer_char
 
@@ -1020,28 +1027,28 @@ subroutine h5_prepareWrite(setID, appendSize)
     call prror(-1)
   end if
   
-  oldSize(1) = h5_setList(setID)%records
+  oldSize(1) = h5_setList(setID-h5_setOff)%records
   addSize(1) = int(appendSize,kind=HSIZE_T)
   newSize(1) = oldSize(1) + addSize(1)
   
-  groupID = h5_setList(setID)%groupID
-  propID  = h5_setList(setID)%propID
+  groupID = h5_setList(setID-h5_setOff)%groupID
+  propID  = h5_setList(setID-h5_setOff)%propID
   
-  call h5dopen_f(groupID, h5_setList(setID)%name, dataID, h5_dataError)
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
   call h5dextend_f(dataID, newSize, h5_dataError)
   call h5dget_space_f(dataID, spaceID, h5_dataError)
   call h5sselect_hyperslab_f(spaceID, H5S_SELECT_SET_F, oldSize, addSize, h5_dataError) 
   call h5screate_simple_f(1, addSize, memID, h5_dataError)
   
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to extend dataset '"//h5_setList(setID)%name//"'"
+    write(lout,"(a)") "HDF5> ERROR Failed to extend dataset '"//h5_setList(setID-h5_setOff)%name//"'"
     call prror(-1)
   end if
   
-  h5_setList(setID)%records = newSize(1)
-  h5_setList(setID)%dataID  = dataID
-  h5_setList(setID)%spaceID = spaceID
-  h5_setList(setID)%memID   = memID
+  h5_setList(setID-h5_setOff)%records = newSize(1)
+  h5_setList(setID-h5_setOff)%dataID  = dataID
+  h5_setList(setID-h5_setOff)%spaceID = spaceID
+  h5_setList(setID-h5_setOff)%memID   = memID
   
 end subroutine h5_prepareWrite
 
@@ -1062,18 +1069,18 @@ subroutine h5_finaliseWrite(setID)
     call prror(-1)
   end if
   
-  call h5dclose_f(h5_setList(setID)%dataID,  h5_dataError)
-  call h5sclose_f(h5_setList(setID)%spaceID, h5_dataError)
-  call h5sclose_f(h5_setList(setID)%memID,   h5_dataError)
+  call h5dclose_f(h5_setList(setID-h5_setOff)%dataID,  h5_dataError)
+  call h5sclose_f(h5_setList(setID-h5_setOff)%spaceID, h5_dataError)
+  call h5sclose_f(h5_setList(setID-h5_setOff)%memID,   h5_dataError)
   
-  h5_setList(setID)%dataID  = 0
-  h5_setList(setID)%spaceID = 0
-  h5_setList(setID)%memID   = 0
+  h5_setList(setID-h5_setOff)%dataID  = 0
+  h5_setList(setID-h5_setOff)%spaceID = 0
+  h5_setList(setID-h5_setOff)%memID   = 0
   
 end subroutine h5_finaliseWrite
 
 ! ================================================================================================ !
-!  Interfaced Write Routines
+!  Interface Write Routines
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-05-07
 !  Handles writing of the differrent datatypes
@@ -1097,16 +1104,16 @@ subroutine h5_writeArray_real32(setID, colID, arrSize, arrData)
   integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSave(arrSize), source=real(arrData, kind=real64))
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSave)
   else
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
   end if
   
 end subroutine h5_writeArray_real32
@@ -1124,19 +1131,19 @@ subroutine h5_writeValue_real32(setID, colID, arrSize, valData)
   integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize))
     arrSaveS(:) = real(valData, kind=real32)
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
   
@@ -1160,15 +1167,15 @@ subroutine h5_writeArray_real64(setID, colID, arrSize, arrData)
   integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
   if(h5_useDouble) then
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
   else
     allocate(arrSave(arrSize), source=real(arrData, kind=real32))
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSave)
   end if
   
@@ -1187,19 +1194,19 @@ subroutine h5_writeValue_real64(setID, colID, arrSize, valData)
   integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize))
     arrSaveS(:) = real(valData, kind=real32)
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
   
@@ -1224,17 +1231,17 @@ subroutine h5_writeArray_real128(setID, colID, arrSize, arrData)
   integer(HSIZE_T)                :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize), source=real(arrData, kind=real64))
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize), source=real(arrData, kind=real32))
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
   
@@ -1253,19 +1260,19 @@ subroutine h5_writeValue_real128(setID, colID, arrSize, valData)
   integer(HSIZE_T)                :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveD)
   else
     allocate(arrSaveS(arrSize))
     arrSaveS(:) = real(valData, kind=real32)
-    call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
-      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+    call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveS, h5_arrSize, h5_dataError, &
+      xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
   
@@ -1288,10 +1295,10 @@ subroutine h5_writeArray_int(setID, colID, arrSize, arrData)
   integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
-  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+  call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
   
 end subroutine h5_writeArray_int
 
@@ -1307,11 +1314,11 @@ subroutine h5_writeValue_int(setID, colID, arrSize, valData)
   integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   arrData(:)    = valData
   
-  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+  call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
   
 end subroutine h5_writeValue_int
 
@@ -1332,10 +1339,10 @@ subroutine h5_writeArray_char(setID, colID, arrSize, arrData)
   integer(HSIZE_T)               :: h5_arrSize(1)
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   
-  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+  call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
   
 end subroutine h5_writeArray_char
 
@@ -1353,11 +1360,11 @@ subroutine h5_writeValue_char(setID, colID, arrSize, valData)
   allocate(character(len=len(valData)) :: arrData(arrSize))
   
   h5_arrSize(1) = arrSize
-  dtypeID       = h5_fmtList(h5_setList(setID)%format)%fields(colID)%typeID
+  dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   arrData(:)    = valData
   
-  call h5dwrite_f(h5_setList(setID)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
-    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID)%memID, file_space_id=h5_setList(setID)%spaceID)
+  call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
+    xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
   
 end subroutine h5_writeValue_char
 
