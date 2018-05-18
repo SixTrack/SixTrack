@@ -103,25 +103,31 @@ interface resize
 end interface resize
 
 interface dealloc
+  
   module procedure dealloc1dr32
   module procedure dealloc1dr64
   module procedure dealloc1dr128
-
+  
   module procedure dealloc2dr32
   module procedure dealloc2dr64
   module procedure dealloc2dr128
-
+  
   module procedure dealloc3dr32
   module procedure dealloc3dr64
   module procedure dealloc3dr128
-
+  
   module procedure dealloc1di16
   module procedure dealloc1di32
   module procedure dealloc1di64
-
+  
+  module procedure dealloc2di16
+  module procedure dealloc2di32
+  module procedure dealloc2di64
+  
   module procedure dealloc1dl
-
+  
   module procedure dealloc1dc
+  
 end interface dealloc
 
 contains
@@ -2393,6 +2399,45 @@ subroutine dealloc1di64(input, ename)
   allocated_bits = allocated_bits - (size(input)*storage_size(int64))
   deallocate(input)
 end subroutine dealloc1di64
+
+subroutine dealloc2di16(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int16), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int16))
+  deallocate(input)
+end subroutine dealloc2di16
+  
+subroutine dealloc2di32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int32), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int32))
+  deallocate(input)
+end subroutine dealloc2di32
+  
+subroutine dealloc2di64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int64), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int64))
+  deallocate(input)
+end subroutine dealloc2di64
 
 subroutine dealloc1dl(input, ename)
   implicit none

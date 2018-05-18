@@ -874,8 +874,8 @@
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
-+cd timefct
-          expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
+! +cd timefct
+!           expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
 +cd dainicom
 !FOX  D V DA EXT SIGMDA NORD NVAR ; D V DA EXT DPDA NORD NVAR ;
 !FOX  D V DA EXT DPDA1 NORD NVAR ; D V DA EXT RV NORD NVAR ;
@@ -984,9 +984,9 @@
 !  numl,niu,amp0,amp(2),damp,chi0,chid,rat,exz(2,6),time0,time1
 !
 !
-+if time
-     &tcnst35,exterr35,icext35,zfz35,                                   &
-+ei
+! +if time
+!      &tcnst35,exterr35,icext35,zfz35,                                   &
+! +ei
      &ierro,erbez,pi,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic, &
      &ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
      &idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
@@ -1131,15 +1131,15 @@
       do k=1,nmz
          izu=izu+1
          aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-+if time
-         aaiv35(k,m,i)=(ed(ix)*(ak0(im,k)+zfz35(izu)*aka(im,k)))/r0a !hr05
-+ei
+! +if time
+!          aaiv35(k,m,i)=(ed(ix)*(ak0(im,k)+zfz35(izu)*aka(im,k)))/r0a !hr05
+! +ei
          aai(i,k)=aaiv(k,m,i)
          izu=izu+1
          bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-+if time
-         bbiv35(k,m,i)=(ed(ix)*(bk0(im,k)+zfz35(izu)*bka(im,k)))/r0a !hr05
-+ei
+! +if time
+!          bbiv35(k,m,i)=(ed(ix)*(bk0(im,k)+zfz35(izu)*bka(im,k)))/r0a !hr05
+! +ei
          bbi(i,k)=bbiv(k,m,i)
          
          r0a=r0a*r0
@@ -4736,16 +4736,16 @@
      &-((c1e3*dki(ix,2))*moidpsv(j))*(one-tiltc(i))                      !hisix
 +ei
 +cd mul4v05
-+if time
-              yv1j=(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt))          &!hr03
-     &+(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*xlvj                 &!hr03
-     &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*zlvj                  !hr03
-              yv2j=(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt))          &!hr03
-     &-(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*zlvj                 &!hr03
-     &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*xlvj                  !hr03
-              crkve=xlvj
-              cikve=zlvj
-+ei
+! +if time
+!               yv1j=(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt))          &!hr03
+!      &+(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*xlvj                 &!hr03
+!      &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*zlvj                  !hr03
+!               yv2j=(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt))          &!hr03
+!      &-(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*zlvj                 &!hr03
+!      &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*xlvj                  !hr03
+!               crkve=xlvj
+!               cikve=zlvj
+! +ei
 +if .not.time
               yv1j=(bbiv(1,1,i)+bbiv(2,1,i)*xlvj)+aaiv(2,1,i)*zlvj       !hr03
               yv2j=(aaiv(1,1,i)-bbiv(2,1,i)*zlvj)+aaiv(2,1,i)*xlvj       !hr03
@@ -4753,26 +4753,26 @@
               cikve=zlvj
 +ei
 +cd mul4v06
-+if time
-                  crkveuk=crkve*xlvj-cikve*zlvj
-                  cikve=crkve*zlvj+cikve*xlvj
-                  crkve=crkveuk
-                  yv1j=(yv1j+(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
-     &*crkve)                                                           &!hr03
-     &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
-     &*cikve                                                             !hr03
-                  yv2j=(yv2j-(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
-     &*cikve)                                                           &!hr03
-     &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
-     &*crkve                                                             !hr03
-+ei
-+if .not.time
+! +if time
+!                   crkveuk=crkve*xlvj-cikve*zlvj
+!                   cikve=crkve*zlvj+cikve*xlvj
+!                   crkve=crkveuk
+!                   yv1j=(yv1j+(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
+!      &*crkve)                                                           &!hr03
+!      &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
+!      &*cikve                                                             !hr03
+!                   yv2j=(yv2j-(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
+!      &*cikve)                                                           &!hr03
+!      &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
+!      &*crkve                                                             !hr03
+! +ei
+! +if .not.time
                   crkveuk=crkve*xlvj-cikve*zlvj
                   cikve=crkve*zlvj+cikve*xlvj
                   crkve=crkveuk
                   yv1j=(yv1j+bbiv(k,1,i)*crkve)+aaiv(k,1,i)*cikve        !hr03
                   yv2j=(yv2j-bbiv(k,1,i)*cikve)+aaiv(k,1,i)*crkve        !hr03
-+ei
+! +ei
 +cd mul4v07
 +if .not.tilt
               yv(1,j)=yv(1,j)+yv1j*moidpsv(j)   ! hisix
@@ -4784,32 +4784,32 @@
 +ei
 +cd mul4v08
 +if .not.tilt
-+if time
-              yv(1,j)=yv(1,j)+(bbiv(1,1,i)*expt                         &
-     &+bbiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
-              yv(2,j)=yv(2,j)+(aaiv(1,1,i)                              &
-     &+aaiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
-+ei
-+if .not.time
+! +if time
+!               yv(1,j)=yv(1,j)+(bbiv(1,1,i)*expt                         &
+!      &+bbiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
+!               yv(2,j)=yv(2,j)+(aaiv(1,1,i)                              &
+!      &+aaiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
+! +ei
+! +if .not.time
               yv(1,j)=yv(1,j)+bbiv(1,1,i)*moidpsv(j) ! hisix
               yv(2,j)=yv(2,j)+aaiv(1,1,i)*moidpsv(j) ! hisix
-+ei
+! +ei
 +ei
 +if tilt
-+if time
-              yv(1,j)=yv(1,j)+(tiltc(i)*(bbiv(1,1,i)*expt               &
-     &+bbiv35(1,1,i)*(one-expt))-                                       &!hisix
-     &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hisix
-     &*moidpsv(j)
-              yv(2,j)=yv(2,j)+(tiltc(i)*(aaiv(1,1,i)*expt               &
-     &+aaiv35(1,1,i)*(one-expt))+                                       &!hisix
-     &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hisix
-     &*moidpsv(j)
-+ei
-+if .not.time
+! +if time
+!               yv(1,j)=yv(1,j)+(tiltc(i)*(bbiv(1,1,i)*expt               &
+!      &+bbiv35(1,1,i)*(one-expt))-                                       &!hisix
+!      &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hisix
+!      &*moidpsv(j)
+!               yv(2,j)=yv(2,j)+(tiltc(i)*(aaiv(1,1,i)*expt               &
+!      &+aaiv35(1,1,i)*(one-expt))+                                       &!hisix
+!      &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hisix
+!      &*moidpsv(j)
+! +ei
+! +if .not.time
               yv(1,j)=yv(1,j)+(tiltc(i)*bbiv(1,1,i)-tilts(i)*aaiv(1,1,i))*moidpsv(j)
               yv(2,j)=yv(2,j)+(tiltc(i)*aaiv(1,1,i)+tilts(i)*bbiv(1,1,i))*moidpsv(j)
-+ei
+! +ei
 +ei
 +cd mul6v01
             sigmv(j)=sigmv(j)+(rvv(j)*dki(ix,1))*xlvj                    !hr03
@@ -7415,12 +7415,6 @@
 +ei
 +ei ! END +if debug
 
-!     A.Mereghetti, D.Sinuela Pastor and P.G.Ortega, for the FLUKA Team
-!     last modified: 04-07-2014
-!     open unit where lostpart will dump lost particles
-!     allways in main code
-      open(999)
-
 !     P. HERMES - hisix
 !     heavy-ion specific output
       open(208)                  ! collimator losses (energy)
@@ -8093,64 +8087,66 @@
 !
       end
 +dk adia
-      subroutine adia(numx,e0f)
-!-----------------------------------------------------------------------
-!  ADIABATIC ENERGY-INCREASE
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_hions
-      implicit none
-      integer numx
-      real(kind=fPrec) e0f
-+ca commont1
-+ca commondl
-+if bnlelens
-+ca rhicelens
-+ei
-      save
-!-----------------------------------------------------------------------
-      if(numx.eq.1) phas0=phas
-      if(numx.le.nde(1)) phas=zero
-      if(numx.le.nde(1)) return
-      if(numx.gt.nde(2)) phas=zero
-      if(numx.gt.nde(2)) return
-      phas=phas0
-      e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
-      return
-      end
+! Only called from thin6dua, which is also commented out
+!       subroutine adia(numx,e0f)
+! !-----------------------------------------------------------------------
+! !  ADIABATIC ENERGY-INCREASE
+! !-----------------------------------------------------------------------
+!       use floatPrecision
+!       use numerical_constants
+!       use mathlib_bouncer
+!       use parpro
+!       use mod_common
+!       use mod_commons
+!       use mod_hions
+!       implicit none
+!       integer numx
+!       real(kind=fPrec) e0f
+! +ca commont1
+! +ca commondl
+! +if bnlelens
+! +ca rhicelens
+! +ei
+!       save
+! !-----------------------------------------------------------------------
+!       if(numx.eq.1) phas0=phas
+!       if(numx.le.nde(1)) phas=zero
+!       if(numx.le.nde(1)) return
+!       if(numx.gt.nde(2)) phas=zero
+!       if(numx.gt.nde(2)) return
+!       phas=phas0
+!       e0=e0+hsy(1)*sin_mb(phas)
+!       e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+!       return
+!       end
 
 +dk adib
-subroutine adib(e0f)
-!-----------------------------------------------------------------------
-!  ADIABATIC ENERGY-DECREASE
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_hions
-      implicit none
-      real(kind=fPrec) e0f
-+ca commont1
-+ca commondl
-+if bnlelens
-+ca rhicelens
-+ei
-      save
-!-----------------------------------------------------------------------
-      if(abs(phas0).le.pieni) return
-      e0=e0+hsy(1)*sin_mb(phas)
-      e0f=sqrt(e0**2-nucm0**2)                                             !hr05
-      return
-end subroutine adib
+! This subroutine is not called from anywhere
+! subroutine adib(e0f)
+! !-----------------------------------------------------------------------
+! !  ADIABATIC ENERGY-DECREASE
+! !-----------------------------------------------------------------------
+!       use floatPrecision
+!       use numerical_constants
+!       use mathlib_bouncer
+!       use parpro
+!       use mod_common
+!       use mod_commons
+!       use mod_hions
+!       implicit none
+!       real(kind=fPrec) e0f
+! +ca commont1
+! +ca commondl
+! +if bnlelens
+! +ca rhicelens
+! +ei
+!       save
+! !-----------------------------------------------------------------------
+!       if(abs(phas0).le.pieni) return
+!       e0=e0+hsy(1)*sin_mb(phas)
+!       e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+!       return
+! end subroutine adib
 
 +dk daten
 ! ================================================================================================ !
@@ -8212,10 +8208,10 @@ subroutine daten
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
-+if time
-  integer ifiend35
-  real(kind=fPrec) tcnst
-+ei
+! +if time
+!   integer ifiend35
+!   real(kind=fPrec) tcnst
+! +ei
   real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,cosy,dummy,    &
     emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,qbet,qigam,    &
     r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,xang,xstr,xpl0,xplane,xrms0,  &
@@ -10601,257 +10597,258 @@ subroutine daten
      &' values read in.'
         write(lout,*)
       endif
-+if time
-      if(mout1.eq.1) then
-        write(lout,*)
-        write(lout,*) '  Time-d  Multipole errors read in ' ,           &
-     &'from external file'
-        write(lout,*)
-        iexread=0
-        ifiend35=0
-        iexnum=0
-        read(35,10020,end=1861)
-        rewind 35
-        do 1860 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(iexread.eq.0) then
-              ilm0(1)=' '
-! READ IN REGULAR MULTIPOLES FIRST AND THEN THE SKEW COMPONENTS
-              if(ifiend35.eq.0) then
-                read(35,10020,end=1820,iostat=ierro) ch
-                lineno35=lineno35+1
-              else
-                goto 1820
-              endif
-              call intepr(1,1,ch,ch1)
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-              read(ch1,*,round='nearest')                               &
-     & ilm0(1),tcnst
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-              read(ch1,*) ilm0(1),tcnst
-+ei
-+if crlibm
-              call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-              if (nf.gt.0) then
-                read(fields(1),*) ilm0(1)
-                nf=nf-1
-              endif
-              if (nf.gt.0) then
-                tcnst=fround(errno,fields,2)
-                nf=nf-1
-              endif
-+ei
-+ei
-              iexnum=iexnum+1
-              bezext(iexnum)=ilm0(1)
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(1),&
-     &extaux(2),                                                        &
-     &extaux(3)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(4),&
-     &extaux(5),                                                        &
-     &extaux(6)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(7),&
-     &extaux(8),                                                        &
-     &extaux(9)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(10)&
-     &,extaux(11),                                                      &
-     &extaux(12)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(13)&
-     &,extaux(14),                                                      &
-     &extaux(15)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(16)&
-     &,extaux(17),                                                      &
-     &extaux(18)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(19)&
-     &,extaux(20)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(21)&
-     &,extaux(22),                                                      &
-     &extaux(23)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(24)&
-     &,extaux(25),                                                      &
-     &extaux(26)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(27)&
-     &,extaux(28),                                                      &
-     &extaux(29)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(30)&
-     &,extaux(31),                                                      &
-     &extaux(32)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(33)&
-     &,extaux(34),                                                      &
-     &extaux(35)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(36)&
-     &,extaux(37),                                                      &
-     &extaux(38)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro,round='nearest') extaux(39)&
-     &,extaux(40)
-              lineno35=lineno35+1
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-              read(35,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
-     &extaux(3)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
-     &extaux(6)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
-     &extaux(9)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
-     &extaux(12)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
-     &extaux(15)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
-     &extaux(18)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(19),extaux(20)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
-     &extaux(23)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
-     &extaux(26)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
-     &extaux(29)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
-     &extaux(32)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
-     &extaux(35)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
-     &extaux(38)
-              lineno35=lineno35+1
-              read(35,*,end=870,iostat=ierro) extaux(39),extaux(40)
-              lineno35=lineno35+1
-+ei
-+if crlibm
-! Now my new loops for splitfld and fround (round_near)
-      do k=1,16,3
-        read(35,10020,end=870,iostat=ierro) ch
-        lineno35=lineno35+1
-        ch1(:nchars+3)=ch(:nchars)//' / '
-!             write (*,*) 'ch:'//ch//':'
-!             write (*,*) 'ch1:'//ch1//':'
-        call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          extaux(k)=fround(errno,fields,1)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+2)=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      enddo
-      read(35,10020,end=870,iostat=ierro) ch
-      lineno35=lineno35+1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-          extaux(19)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-          extaux(20)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      do k=21,36,3
-        read(35,10020,end=870,iostat=ierro) ch
-        lineno35=lineno35+1
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          extaux(k)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+2)=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      enddo
-      read(35,10020,end=870,iostat=ierro) ch
-      lineno35=lineno35+1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        extaux(39)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        extaux(40)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-+ei
-+ei
-              if(ierro.gt.0) call prror(80)
-              iexread=1
-              goto 1840
- 1820        ifiend35=1
-              if(iexnum.eq.0) call prror(80)
-              do 1830 j=1,iexnum
-                if(bez(ix).eq.bezext(j)) call prror(80)
- 1830        continue
- 1840        continue
-            endif
-            if(ilm0(1).eq.bez(ix)) then
-              icext35(i)=ix
-                tcnst35(i)=tcnst
-               do 1850 k=1,40
-                exterr35(i,k)=extaux(k)
-1850        continue
-              iexread=0
-              goto 1860
-            endif
-          endif
- 1860  continue
- 1861  continue
-        write(lout,*) '        From file fort.35 :',iexnum,             &
-     &' values read in.'
-        write(lout,*)
-      endif
-+ei
+! +if time
+!       if(mout1.eq.1) then
+!         write(lout,*)
+!         write(lout,*) '  Time-d  Multipole errors read in ' ,           &
+!      &'from external file'
+!         write(lout,*)
+!         iexread=0
+!         ifiend35=0
+!         iexnum=0
+!         read(35,10020,end=1861)
+!         rewind 35
+!         do 1860 i=1,mper*mbloz
+!           ix=ic(i)
+!           if(ix.gt.nblo) then
+!             ix=ix-nblo
+!             if(iexread.eq.0) then
+!               ilm0(1)=' '
+! ! READ IN REGULAR MULTIPOLES FIRST AND THEN THE SKEW COMPONENTS
+!               if(ifiend35.eq.0) then
+!                 read(35,10020,end=1820,iostat=ierro) ch
+!                 lineno35=lineno35+1
+!               else
+!                 goto 1820
+!               endif
+!               call intepr(1,1,ch,ch1)
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!               read(ch1,*,round='nearest')                               &
+!      & ilm0(1),tcnst
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!               read(ch1,*) ilm0(1),tcnst
+! +ei
+! +if crlibm
+!               call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+!               if (nf.gt.0) then
+!                 read(fields(1),*) ilm0(1)
+!                 nf=nf-1
+!               endif
+!               if (nf.gt.0) then
+!                 tcnst=fround(errno,fields,2)
+!                 nf=nf-1
+!               endif
+! +ei
+! +ei
+!               iexnum=iexnum+1
+!               bezext(iexnum)=ilm0(1)
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(1),&
+!      &extaux(2),                                                        &
+!      &extaux(3)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(4),&
+!      &extaux(5),                                                        &
+!      &extaux(6)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(7),&
+!      &extaux(8),                                                        &
+!      &extaux(9)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(10)&
+!      &,extaux(11),                                                      &
+!      &extaux(12)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(13)&
+!      &,extaux(14),                                                      &
+!      &extaux(15)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(16)&
+!      &,extaux(17),                                                      &
+!      &extaux(18)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(19)&
+!      &,extaux(20)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(21)&
+!      &,extaux(22),                                                      &
+!      &extaux(23)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(24)&
+!      &,extaux(25),                                                      &
+!      &extaux(26)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(27)&
+!      &,extaux(28),                                                      &
+!      &extaux(29)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(30)&
+!      &,extaux(31),                                                      &
+!      &extaux(32)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(33)&
+!      &,extaux(34),                                                      &
+!      &extaux(35)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(36)&
+!      &,extaux(37),                                                      &
+!      &extaux(38)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(39)&
+!      &,extaux(40)
+!               lineno35=lineno35+1
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!               read(35,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
+!      &extaux(3)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
+!      &extaux(6)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
+!      &extaux(9)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
+!      &extaux(12)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
+!      &extaux(15)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
+!      &extaux(18)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(19),extaux(20)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
+!      &extaux(23)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
+!      &extaux(26)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
+!      &extaux(29)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
+!      &extaux(32)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
+!      &extaux(35)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
+!      &extaux(38)
+!               lineno35=lineno35+1
+!               read(35,*,end=870,iostat=ierro) extaux(39),extaux(40)
+!               lineno35=lineno35+1
+! +ei
+! +if crlibm
+! ! Now my new loops for splitfld and fround (round_near)
+!       do k=1,16,3
+!         read(35,10020,end=870,iostat=ierro) ch
+!         lineno35=lineno35+1
+!         ch1(:nchars+3)=ch(:nchars)//' / '
+! !             write (*,*) 'ch:'//ch//':'
+! !             write (*,*) 'ch1:'//ch1//':'
+!         call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           extaux(k)=fround(errno,fields,1)
+!         nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+1)=fround(errno,fields,2)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+2)=fround(errno,fields,3)
+!           nf=nf-1
+!         endif
+!       enddo
+!       read(35,10020,end=870,iostat=ierro) ch
+!       lineno35=lineno35+1
+!       ch1(:nchars+3)=ch(:nchars)//' / '
+!       call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+!       if (nf.gt.0) then
+!           extaux(19)=fround(errno,fields,1)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!           extaux(20)=fround(errno,fields,2)
+!         nf=nf-1
+!       endif
+!       do k=21,36,3
+!         read(35,10020,end=870,iostat=ierro) ch
+!         lineno35=lineno35+1
+!         ch1(:nchars+3)=ch(:nchars)//' / '
+!         call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           extaux(k)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+1)=fround(errno,fields,2)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+2)=fround(errno,fields,3)
+!           nf=nf-1
+!         endif
+!       enddo
+!       read(35,10020,end=870,iostat=ierro) ch
+!       lineno35=lineno35+1
+!       ch1(:nchars+3)=ch(:nchars)//' / '
+!       call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
+!       if (nf.gt.0) then
+!         extaux(39)=fround(errno,fields,1)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         extaux(40)=fround(errno,fields,2)
+!         nf=nf-1
+!       endif
+! +ei
+! +ei
+!               if(ierro.gt.0) call prror(80)
+!               iexread=1
+!               goto 1840
+!  1820        ifiend35=1
+!               if(iexnum.eq.0) call prror(80)
+!               do 1830 j=1,iexnum
+!                 if(bez(ix).eq.bezext(j)) call prror(80)
+!  1830        continue
+!  1840        continue
+!             endif
+!             if(ilm0(1).eq.bez(ix)) then
+!               icext35(i)=ix
+!                 tcnst35(i)=tcnst
+!                do 1850 k=1,40
+!                 exterr35(i,k)=extaux(k)
+! 1850        continue
+!               iexread=0
+!               goto 1860
+!             endif
+!           endif
+!  1860  continue
+!  1861  continue
+!         write(lout,*) '        From file fort.35 :',iexnum,             &
+!      &' values read in.'
+!         write(lout,*)
+!       endif
+! +ei
+! End of time!
       if(mout3.eq.1) then
         write(lout,*)
         write(lout,*) '          Alignment errors read in ' ,           &
@@ -20596,18 +20593,17 @@ end interface
   integer idummy(6)
   character(len=10) cmonth
   character(len=4) cpto
-+if cr
+#ifdef CR
   character(len=80) day
-+ei
-+if .not.cr
+#else
   character(len=80) day,runtim
-+ei
+#endif
   character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
                                       !DANGER: If the len changes, CRCHECK will break.
-+if boinc
+#ifdef BOINC
   character(len=256) filename
-+ei
-+if crlibm
+#endif
+#ifdef CRLIBM
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -20621,11 +20617,11 @@ end interface
   real(kind=fPrec) fround
   real(kind=fPrec) round_near
   data lineno /0/
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !  integer umcalls,dapcalls,dokcalls,dumpl
 !  common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
+#endif
   logical lopen
   dimension cmonth(12)
   data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
@@ -20636,39 +20632,38 @@ end interface
   errout_status = 0         ! Set to nonzero before calling abend in case of error.
                             ! If prror is called, it will be set internally.
   lout=92
-+if .not.cr
+#ifndef CR
   lout=output_unit
-+ei
+#endif
   call allocate_arrays      ! Initial allocation of memory
-+if crlibm
+#ifdef CRLIBM
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
   call disable_xp()
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !     umcalls=0
 !     dapcalls=0
 !     dokcalls=0
 !     dumpl=0
-+ei
+#endif
 ! Set napx,napxo,trtime for error handling
   napx=0
   napxo=0
   trtime=0.0
   napxto=0
   runtim=''
-+if cr
+#ifdef CR
       stxt=''
-+ei
+#endif
 #ifdef HDF5
-  !  call INITHDF5()
   call h5_initHDF5()
 #endif
-+if boinc
+#ifdef BOINC
   call boinc_init()
 !  call boinc_init_graphics()
-+ei
-+if cr
+#endif
+#ifdef CR
 ! Main start for Checkpoint/Restart
       sythckcr=.false.
       numlcr=1
@@ -20686,87 +20681,78 @@ end interface
         binrecs(i)=0
       enddo
       crtime3=0.
-+if debug
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
-+if boinc
+#endif
+#ifdef BOINC
  611  continue
-+ei
+#endif
 !--   Very first get rid of any previous partial output
-+if boinc
+#ifdef BOINC
       call boincrf('fort.92',filename)
-+if fio
+#ifdef FIO
       open(lout,file=filename,form='formatted',status='replace',round='nearest')
-+ei
-+if .not.fio
+#else
       open(lout,file=filename,form='formatted',status='replace')
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
       open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
-+ei
-+if .not.fio
+#else
       open(lout,file='fort.92',form='formatted',status='replace')
-+ei
-+ei
+#endif
+#endif
 !--   Now position the checkpoint/restart logfile=93
-+if boinc
+#ifdef BOINC
       call boincrf('fort.93',filename)
-+if fio
+#ifdef FIO
       open(93,file=filename,form='formatted',status='unknown', round='nearest')
-+ei
-+if .not.fio
+#else
       open(93,file=filename,form='formatted',status='unknown')
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
       open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
-+ei
-+if .not.fio
+#else
       open(93,file='fort.93',form='formatted',status='unknown')
-+ei
-+ei
+#endif
+#endif
   606 read(93,'(a1024)',end=607) arecord
       goto 606
   607 backspace (93,iostat=ierro)
 ! and if BOINC issue an informatory message
-+if boinc
+#ifdef BOINC
       if (start) then
         write(93,*) 'SIXTRACR starts very first time'
       else
         write(93,*) 'SIXTRACR retry after unzip of Sixin.zip'
       endif
-+ei
+#endif
 ! Now we see if we have a fort.6 which implies
 ! that we can perhaps just restart using all exisiting files
 ! including the last checkpoints
 ! if not, we just do a start (with an unzip for BOINC)
-+if boinc
+#ifdef BOINC
       call boincrf('fort.6',filename)
-+if fio
+#ifdef FIO
       open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
-+ei
-+if .not.fio
+#else
       open(output_unit,file=filename,form='formatted',status='old',err=602)
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
-+ei
-+if .not.boinc
-+if fio
+#else
+#ifdef FIO
       open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
-+ei
-+if .not.fio
+#else
       open(output_unit,file='fort.6',form='formatted',status='old',err=602)
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR reruns on: '
-+ei
+#endif
       rerun=.true.
       goto 605
-+if boinc
+#ifdef BOINC
   602 continue
 ! No fort.6 so we do an unzip of Sixin.zip
 ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
@@ -20788,84 +20774,73 @@ end interface
         call f_read_archive(trim(filename),".")
         go to 611
       endif
-+if fio
+#ifdef FIO
       open(output_unit,file=filename,form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(output_unit,file=filename,form='formatted',status='unknown')
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
-+ei
-+if .not.boinc
-+if fio
+#else
+#ifdef FIO
  602  open(output_unit,file='fort.6',form='formatted',status='new',round='nearest')
-+ei
-+if .not.fio
+#else
  602  open(output_unit,file='fort.6',form='formatted',status='new')
-+ei
+#endif
 !--   Set up start message depending on fort.6 or not
       stxt='SIXTRACR starts on: '
-+ei
+#endif
 !--   Now check for restart files fort.95/96 and OPEN them
-+if boinc
+#ifdef BOINC
   605 call boincrf('fort.95',filename)
       open(95,file=filename,form='unformatted',status='old',err=600)
-+ei
-+if .not.boinc
+#else
   605 open(95,file='fort.95',form='unformatted',status='old',err=600)
-+ei
+#endif
       fort95=.true.
       goto 608
-+if boinc
+#ifdef BOINC
   600 call boincrf('fort.95',filename)
       open(95,file=filename,form='unformatted',status='new')
-+ei
-+if .not.boinc
+#else
   600 open(95,file='fort.95',form='unformatted',status='new')
-+ei
-+if boinc
+#endif
+#ifdef BOINC
   608 call boincrf('fort.96',filename)
       open(96,file=filename,form='unformatted',status='old',err=601)
-+ei
-+if .not.boinc
+#else
   608 open(96,file='fort.96',form='unformatted',status='old',err=601)
-+ei
+#endif
       fort96=.true.
       goto 609
-+if boinc
+#ifdef BOINC
   601 call boincrf('fort.96',filename)
       open(96,file=filename,form='unformatted',status='new')
-+ei
-+if .not.boinc
+#else
   601 open(96,file='fort.96',form='unformatted',status='new')
-+ei
-+if boinc
+#endif
+#ifdef BOINC
   609 call boincrf('fort.91',filename)
-+if fio
+#ifdef FIO
       open(91,file=filename,form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(91,file=filename,form='formatted',status='unknown')
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
   609 open(91,file='fort.91',form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
   609 open(91,file='fort.91',form='formatted',status='unknown')
-+ei
-+ei
-+ei ! END +if cr -- END of Main start for Checkpoint/Restart
-
-+if .not.cr
+#endif
+#endif
+! END +if cr -- END of Main start for Checkpoint/Restart
+#else
       lout=output_unit
-+ei
+#endif
       
-+if debug
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
+#endif
 !-----------------------------------------------------------------------
 +ca open
       write(lout,10010) version,moddate
@@ -20876,36 +20851,32 @@ end interface
       write(ctime,'(I4.4)') itime
       read(cdate(3:4),'(I2)') imonth
       if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'nd of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'nd of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'3'.and.cdate(5:5).ne.'1') then
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'rd of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'rd of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       else
-+if cr
+#ifdef CR
         day=stxt//cdate(5:6)//'th of' //cmonth(imonth)                  &
-+ei
-+if .not.cr
+#else
         day='SIXTRACK starts on: '//cdate(5:6)//'th of' //cmonth(imonth)&
-+ei
+#endif
      &//' 20'//cdate(1:2)//', '
       endif
       if(ctime(1:2).ne.'  ') then
@@ -20926,16 +20897,16 @@ end interface
         endif
       endif
       write(lout,'(a80)') runtim
-+if cr
+#ifdef CR
 !     Log start messages
       write(93,*)
       write(93,*) 'SIXTRACR MAINCR ',runtim
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-+ei
-+if debug
+#endif
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
+#endif
 !     A normal start, time0 is beginning
       pretime=0.0
       trtime=0.0
@@ -21074,43 +21045,44 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
-+if fluka
+#ifdef FLUKA
 
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     initialise fluka module
 !     inserted in main code by the 'fluka' compilation flag
       call fluka_mod_init(npart, nele, clight)
-+ei
+#endif
 
-+if root
+#ifdef ROOT
       call SixTrackRootFortranInit
-+ei
+#endif
   
   call daten
   
 #ifdef HDF5
   if(h5_isActive) call h5_openFile()
 #endif
+  call aperture_init
 
   if (ithick.eq.1) call allocate_thickarrays
       
-+if debug
+#ifdef DEBUG
 !     call dumpbin('adaten',999,9999)
 !     call abend('after  daten                                      ')
-+ei
-+if debug.and.cr
+#endif
+#if defined(DEBUG) && defined(CR)
 !     write(93,*) 'ERIC IL= ',il
 !     endfile (93,iostat=ierro)
 !     backspace (93,iostat=ierro)
-+ei
-+if cr
+#endif
+#ifdef CR
       checkp=.true.
-+if debug
+#ifdef DEBUG
                    !call system('../crmain  >> crlog')
-+ei
+#endif
       call crcheck
-+ei
+#endif
       if(ithick.eq.1) write(lout,10030)
       if(ithick.eq.0) write(lout,10040)
       if(ibidu.eq.2) then
@@ -21118,7 +21090,7 @@ end interface
         goto 550
       endif
 
-+if .not.fluka
+#ifndef FLUKA
 !--SETTING UP THE PLOTTING
       if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
         call hlimit(nplo)
@@ -21137,84 +21109,77 @@ end interface
 ! and now we open fort.10 unless already opened for
 ! BOINC AND BNLELENS
 
-+if nagfor
-+if boinc
-+if .not.bnlelens
+#ifdef NAGFOR
+#ifdef BOINC
+#ifndef BNLELENS
       call boincrf('fort.10',filename)
-      open(10,file=filename,form='formatted',status='unknown',          &
-+if fio
-     &round='nearest',                                                  &
-+ei
-     &recl=8195)
-+ei
-+ei
-+if .not.boinc
-      open(10,file='fort.10',form='formatted',status='unknown',         &
-+if fio
-     &round='nearest',                                                  &
-+ei
-     &recl=8195)
-+ei
-+ei ! END +if nagfor
-
-+if .not.nagfor
-+if boinc
-+if .not.bnlelens
+#ifdef FIO
+      open(10,file=filename,form='formatted',status='unknown',round='nearest',recl=8195)
+#else
+      open(10,file=filename,form='formatted',status='unknown',recl=8195)
+#endif
+#endif
+#else
+#ifdef FIO
+      open(10,file='fort.10',form='formatted',status='unknown',round='nearest',recl=8195)
+#else
+      open(10,file='fort.10',form='formatted',status='unknown',recl=8195)
+#endif
+#endif
+#else
+#ifdef BOINC
+#ifndef BNLELENS
       call boincrf('fort.10',filename)
-+if fio
+#ifdef FIO
       open(10,file=filename,form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(10,file=filename,form='formatted',status='unknown')
-+ei
-+ei ! END +if .not.bnlelens
-+ei ! END +if boinc
-+if .not.boinc
-+if fio
+#endif
+#endif
+#else
+#ifdef FIO
       open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
-+ei
-+if .not.fio
+#else
       open(10,file='fort.10',form='formatted',status='unknown')
-+ei
-+ei ! END +if .not.boinc
-+ei ! END +if .not.nagfor
+#endif
+#endif
+#endif
 
-+if .not.stf
+#ifndef STF
       do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
-+if .not.cr
+#ifndef CR
          call postpr(91-i)
-+ei
-+if cr
+#else
          write(93,*) 'Calling POSTPR nnuml=',nnuml
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          call postpr(91-i,nnuml)
-+ei
+#endif
       end do
-+ei ! END +if .not.stf
-+if stf
+#else
 !--   ndafi normally set in fort.3 to be "number of files to postprocess"
 !--   Inside the postpr subroutine ndafi is modified as:
 !--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
 !--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
       do i=1,(2*ndafi),2
-+if .not.cr
+#ifndef CR
          call postpr(i)
-+ei
-+if cr
+#else
          write(93,*) 'Calling POSTPR nnuml=',nnuml
          endfile (93,iostat=ierro)
          backspace (93,iostat=ierro)
          call postpr(i,nnuml)
-+ei
+#endif
       end do
-+ei ! END +if stf
+#endif
+! END ifndef STF
 
       call sumpos
       goto 520 !Jump to after particle&optics initialization,
                ! and also after tracking.
       endif !if(ipos.eq.1.and.napx.eq.0)
-+ei ! END +if .not.fluka
+#endif
+! END ifndef FLUKA
 
       do i=1,20
         fake(1,i)=zero
@@ -23678,9 +23643,9 @@ subroutine thin4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+if time
-  real(kind=fPrec) expt
-+ei
+! +if time
+!   real(kind=fPrec) expt
+! +ei
 
 +ca common2
 +ca commont1
@@ -23796,9 +23761,9 @@ subroutine thin4d(nthinerr)
         call dump_lines(n,i,ix)
       end if
 
-+if time
-+ca timefct
-+ei
+! +if time
+! +ca timefct
+! +ei
 
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -24329,9 +24294,9 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab
 +ca wiretracktmp
   logical llost
-+if time
-  real(kind=fPrec) expt
-+ei
+! +if time
+!   real(kind=fPrec) expt
+! +ei
 +ca common2
 +ca commont1
 +ca commondl
@@ -24476,9 +24441,9 @@ subroutine thin6d(nthinerr)
         call dump_lines(n,i,ix)
       end if
       
-+if time
-+ca timefct
-+ei
+! +if time
+! +ca timefct
+! +ei
 
 +if fluka
 !         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -26607,9 +26572,9 @@ subroutine thck4d(nthinerr)
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
 +ca wiretracktmp
   logical llost
-+if time
-  real(kind=fPrec) expt
-+ei
+! +if time
+!   real(kind=fPrec) expt
+! +ei
 +ca common2
 +ca commont1
 +ca commondl
@@ -26743,9 +26708,9 @@ subroutine thck4d(nthinerr)
 !+ca dumplines
         end if
       
-+if time
-+ca timefct
-+ei
+! +if time
+! +ca timefct
+! +ei
       end if
 
 +if fluka
@@ -27304,9 +27269,9 @@ subroutine thck6d(nthinerr)
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
 +ca wiretracktmp
   logical llost
-+if time
-  real(kind=fPrec) expt
-+ei
+! +if time
+!   real(kind=fPrec) expt
+! +ei
 +ca common2
 +ca commont1
 +ca commondl
@@ -27463,9 +27428,9 @@ subroutine thck6d(nthinerr)
 !+ca dumplines
       end if
 
-+if time
-+ca timefct
-+ei
+! +if time
+! +ca timefct
+! +ei
 
 +if fluka
 
@@ -30145,9 +30110,9 @@ subroutine comnul
         ic(i)=0
         mzu(i)=0
         icext(i)=0
-+if time
-        icext35(i)=0
-+ei
+! +if time
+!         icext35(i)=0
+! +ei
         icextal(i)=0
         extalign(i,1)=zero
         extalign(i,2)=zero
@@ -30162,9 +30127,9 @@ subroutine comnul
 !--Other stuff (not beam-beam)...
         do j=1,40
           exterr(i,j)=zero
-+if time
-          exterr35(i,j)=zero
-+ei
+! +if time
+!           exterr35(i,j)=zero
+! +ei
           xsi(i)=zero
           zsi(i)=zero
           smi(i)=zero
@@ -30192,10 +30157,10 @@ subroutine comnul
 !-- RANDOM NUMBERS-------------------------------------------------------
       do 200 i=1,nzfz
         zfz(i)=zero
-+if time
-        zfz35(i)=zero
-        tcnst35(i)=zero
-+ei
+! +if time
+!         zfz35(i)=zero
+!         tcnst35(i)=zero
+! +ei
   200 continue
 !--# OF TRAJECTORIES----------------------------------------------------
       do 220 i=1,mpa
@@ -30490,9 +30455,9 @@ subroutine STRNUL( iel )
       ic(iel)=0
       mzu(iel)=0
       icext(iel)=0
-+if time
-      icext35(iel)=0
-+ei
+! +if time
+!       icext35(iel)=0
+! +ei
       icextal(iel)=0
       extalign(iel,1)=zero
       extalign(iel,2)=zero
@@ -30505,9 +30470,9 @@ subroutine STRNUL( iel )
       imbb(iel)=0
       do j=1,40
          exterr(iel,j)=zero
-+if time
-         exterr35(iel,j)=zero
-+ei
+! +if time
+!          exterr35(iel,j)=zero
+! +ei
       enddo
       xsi(iel)=zero
       zsi(iel)=zero
@@ -30579,13 +30544,13 @@ integer function INEELS( iEl )
             extalign(i,3)=extalign(i-1,3)
             do ii=1,40
                exterr(i,ii)=exterr(i-1,ii)
-+if time
-               exterr35(i,ii)=exterr35(i-1,ii)
-+ei
+! +if time
+!                exterr35(i,ii)=exterr35(i-1,ii)
+! +ei
             enddo
-+if time
-            tcnst35(i)=tcnst35(i-1)
-+ei
+! +if time
+!             tcnst35(i)=tcnst35(i-1)
+! +ei
             dcum(i)=dcum(i-1)
          enddo
       endif
@@ -33251,7 +33216,7 @@ end subroutine dist_readdis
 !-----------------------------------------------------------------------
 !
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use crcoall
       use parpro
       use mod_common
@@ -33326,54 +33291,58 @@ end subroutine dist_readdis
       end subroutine
 !
 +dk linopt
-subroutine linopt(dpp)
 !-----------------------------------------------------------------------
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use end_sixtrack
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commons
-
+subroutine linopt(dpp)
+  
+  use floatPrecision
+  use end_sixtrack
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+  
 +if root
-      use root_output
+  use root_output
 +ei
-
-      implicit none
-
-      integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,        &
-     &nmz,nr,dj
-      real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,&
-     &ci,cikve,clo0,clop0,cr,crkve,crkveuk,di00,dip00,dphi,dpp,dpp1,    &
-     &dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,pie,puf,qu,qv,qw,qwc,r0,r0a, &
-     &t,xl,xs,zl,zs,quz,qvz
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_linopt
+#endif
+  
+  implicit none
+  
+  integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,nmz,nr,dj
+  real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,ci,cikve,clo0,clop0,cr,crkve, &
+    crkveuk,di00,dip00,dphi,dpp,dpp1,dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,pie,puf,qu,qv,qw,qwc,r0,&
+    r0a,t,xl,xs,zl,zs,quz,qvz
 +if tilt
-      real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
+  real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-      character(len=max_name_len) idum
+  character(len=max_name_len) idum
 +ca commont1
-!
+  
 +if collimat
 +ca collpara
 +ca dblinopt
 +ei
-!
-      dimension t(6,4)
-      dimension beta(2),alfa(2),phibf(2),phi(2)
-      dimension clo0(2),clop0(2),di00(2),dip00(2),qw(2),qwc(3)
-      dimension aa(mmul),bb(mmul),dpr(6)
-      dimension cr(mmul),ci(mmul)
-      dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-      data dpr/6*zero/
+  
+  dimension t(6,4)
+  dimension beta(2),alfa(2),phibf(2),phi(2)
+  dimension clo0(2),clop0(2),di00(2),dip00(2),qw(2),qwc(3)
+  dimension aa(mmul),bb(mmul),dpr(6)
+  dimension cr(mmul),ci(mmul)
+  dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+  data dpr/6*zero/
 +if bnlelens
 +ca rhicelens
 +ei
-      save
+  save
 !-----------------------------------------------------------------------
+  
       nhmoni=0
       nvmoni=0
       nhcorr=0
@@ -33497,6 +33466,9 @@ subroutine linopt(dpp)
 !--STRUCTURE ELEMENT LOOP
       if(nt.le.0.or.nt.gt.iu) nt=iu
       izu=0
+#ifdef HDF5
+      if(h5_writeOptics) call h5lin_init
+#endif
       
       STRUCTLOOP: do k=1,nt
         ix=ic(k)
@@ -34270,6 +34242,10 @@ subroutine linopt(dpp)
         
       end do STRUCTLOOP ! END LOOP OVER ELEMENTS
       
+#ifdef HDF5
+      if(h5_writeOptics) call h5lin_saveData
+#endif
+      
       call clorb(ded)
       do 510 l=1,2
         clo0(l)=clo(l)
@@ -34310,137 +34286,151 @@ subroutine linopt(dpp)
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
 end subroutine linopt
 
+!-----------------------------------------------------------------------
+!  WRITE OUT LINEAR OPTICS PARAMETERS
+!-----------------------------------------------------------------------
 +if collimat.or.bnlelens
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ei
 +if .not.collimat.and..not.bnlelens
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 +ei
-!-----------------------------------------------------------------------
-!  WRITE OUT LINEAR OPTICS PARAMETERS
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commons
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
 +if root
-      use iso_c_binding, only: C_NULL_CHAR
-      use root_output
+  use iso_c_binding, only: C_NULL_CHAR
+  use root_output
 +ei
-      implicit none
-
-      integer i,iwrite,ixwl,l,ll,nr
-      real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
-      character(len=max_name_len) typ
-      ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
-      logical isBLOC
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_linopt
+#endif
+  
+  implicit none
+  
+  integer i,iwrite,ixwl,l,ll,nr
+  real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
+  character(len=max_name_len) typ
+  ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
+  logical isBLOC
 +ca commont1
-      dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
-      dimension d(2),dp(2),c(2),cp(2)
+  dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
+  dimension d(2),dp(2),c(2),cp(2)
 +if collimat
 +ca collpara
 +ca dblinopt
-      integer ielem
+  integer ielem
 +ei
 +if bnlelens
 +ca rhicelens
 +ei
-      save
+
+#ifdef HDF5
+    real(kind=fPrec) hdf5Data(17)
+#endif
+  
+  save
 !-----------------------------------------------------------------------
-      iwrite=0
-      if(nlin.eq.0) then
-        iwrite=1
-      else
-        do i=1,nlin
-          if(typ.eq.bezl(i)) iwrite=1
-        end do
-      endif
-      if(iwrite.eq.1) then
-        do l=1,2
-          ll=2*l
-          b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
-          b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
-          al1(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))      !hr06
-          al2(l)=-one*(t(6-ll,ll-1)*t(6-ll,ll)+t(7-ll,ll-1)*t(7-ll,ll))  !hr06
-          g1(l)=t(ll,ll)**2+t(ll+1,ll)**2                                !hr06
-          g2(l)=t(6-ll,ll)**2+t(7-ll,ll)**2                              !hr06
-          d(l)=t(6,ll-1)*c1m3
-          dp(l)=t(6,ll)*c1m3
-          c(l)=t(1,ll-1)
-          cp(l)=t(1,ll)
-        end do
-
+  iwrite=0
+  if(nlin.eq.0) then
+    iwrite=1
+  else
+    do i=1,nlin
+      if(typ.eq.bezl(i)) iwrite=1
+    end do
+  end if
+  if(iwrite.eq.1) then
+    do l=1,2
+      ll=2*l
+      b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
+      b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
+      al1(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))      !hr06
+      al2(l)=-one*(t(6-ll,ll-1)*t(6-ll,ll)+t(7-ll,ll-1)*t(7-ll,ll))  !hr06
+      g1(l)=t(ll,ll)**2+t(ll+1,ll)**2                                !hr06
+      g2(l)=t(6-ll,ll)**2+t(7-ll,ll)**2                              !hr06
+      d(l)=t(6,ll-1)*c1m3
+      dp(l)=t(6,ll)*c1m3
+      c(l)=t(1,ll-1)
+      cp(l)=t(1,ll)
+    end do
+    
 +if root
-      if(root_flag .and. root_Optics.eq.1) then
-        call OpticsRootWriteLin(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),b1(1),b1(2),al1(1),al1(2),d(1),d(2), &
-&       dp(1), dp(2))
-      end if
+    if(root_flag .and. root_Optics.eq.1) then
+      call OpticsRootWriteLin(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),&
+        b1(1),b1(2),al1(1),al1(2),d(1),d(2),dp(1),dp(2))
+    end if
 +ei
-
+#ifdef HDF5
+  if(h5_writeOptics) then
+      hdf5Data(:) = (/tl,&
+        p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1),&
+        p1(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),cp(2)/)
+      call h5lin_writeLine(nr, typ, hdf5Data)
+    end if
+#endif
+  
 +if collimat.or.bnlelens
 +if .not.collimat.and.bnlelens
-        if (lhc.eq.9) then
+    if (lhc.eq.9) then
 +ei
-          tbetax(max(ielem,1))  = b1(1)
-          tbetay(max(ielem,1))  = b1(2)
-          talphax(max(ielem,1)) = al1(1)
-          talphay(max(ielem,1)) = al1(2)
-          torbx(max(ielem,1))   = c(1)
-          torbxp(max(ielem,1))  = cp(1)
-          torby(max(ielem,1))   = c(2)
-          torbyp(max(ielem,1))  = cp(2)
-          tdispx(max(ielem,1))  = d(1)
-          tdispy(max(ielem,1))  = d(2)
+      tbetax(max(ielem,1))  = b1(1)
+      tbetay(max(ielem,1))  = b1(2)
+      talphax(max(ielem,1)) = al1(1)
+      talphay(max(ielem,1)) = al1(2)
+      torbx(max(ielem,1))   = c(1)
+      torbxp(max(ielem,1))  = cp(1)
+      torby(max(ielem,1))   = c(2)
+      torbyp(max(ielem,1))  = cp(2)
+      tdispx(max(ielem,1))  = d(1)
+      tdispy(max(ielem,1))  = d(2)
 +if .not.collimat.and.bnlelens
-        endif
+    end if
 +ei
 +ei
-
-      if(ncorru.eq.0) then
-          write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),&
-     &dp(1),c(1),cp(1)
-          write(lout,10010) b2(1),al2(1),g2(1)
-          write(lout,10030) typ(9:16)
-          write(lout,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),        &
-     &c(2),cp(2)
-          write(lout,10010) b2(2),al2(2),g2(2)
-          write(lout,10040)
-        else
-           if(.not.isBLOC) then
-              if(kp(ixwl).eq.3) then
-                 nhmoni=nhmoni+1
-                 betam(nhmoni,1)=b1(1)
-                 pam(nhmoni,1)=(p1(1)*two)*pi
-                 bclorb(nhmoni,1)=c(1)
-              else if(kp(ixwl).eq.4) then
-                 nhcorr=nhcorr+1
-                 betac(nhcorr,1)=b1(1)
-                 pac(nhcorr,1)=(p1(1)*two)*pi
-              else if(kp(ixwl).eq.-3) then
-                 nvmoni=nvmoni+1
-                 betam(nvmoni,2)=b1(2)
-                 pam(nvmoni,2)=(p1(2)*two)*pi
-                 bclorb(nvmoni,2)=c(2)
-              else if(kp(ixwl).eq.-4) then
-                 nvcorr=nvcorr+1
-                 betac(nvcorr,2)=b1(2)
-                 pac(nvcorr,2)=(p1(2)*two)*pi
-              endif
-           endif
-        endif
-      endif
+    if(ncorru == 0) then
+      if(iquiet == 0) then
+        write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1)
+        write(lout,10010) b2(1),al2(1),g2(1)
+        write(lout,10030) typ(9:16)
+        write(lout,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),cp(2)
+        write(lout,10010) b2(2),al2(2),g2(2)
+        write(lout,10040)
+      end if
+    else
+      if(.not.isBLOC) then
+        if(kp(ixwl).eq.3) then
+          nhmoni=nhmoni+1
+          betam(nhmoni,1)=b1(1)
+          pam(nhmoni,1)=(p1(1)*two)*pi
+          bclorb(nhmoni,1)=c(1)
+        else if(kp(ixwl).eq.4) then
+          nhcorr=nhcorr+1
+          betac(nhcorr,1)=b1(1)
+          pac(nhcorr,1)=(p1(1)*two)*pi
+        else if(kp(ixwl).eq.-3) then
+          nvmoni=nvmoni+1
+          betam(nvmoni,2)=b1(2)
+          pam(nvmoni,2)=(p1(2)*two)*pi
+          bclorb(nvmoni,2)=c(2)
+        else if(kp(ixwl).eq.-4) then
+          nvcorr=nvcorr+1
+          betac(nvcorr,2)=b1(2)
+          pac(nvcorr,2)=(p1(2)*two)*pi
+        end if
+      end if
+    end if
+  end if
 !-----------------------------------------------------------------------
-      return
-10010 format('|',6x,'|',8x,'|',12x,'|',1x,'|',12x,'|',f12.6,'|', f13.7, &
-     &'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10020 format('|',6x,'|',8x,'|',12x,'|','Y','|',f12.7,'|',f12.6,'|', f13.&
-     &7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
+  return
+10010 format('|',6x,'|',8x,'|',12x,'|',1x,'|',12x,'|',f12.6,'|', f13.7,'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
+10020 format('|',6x,'|',8x,'|',12x,'|','Y','|',f12.7,'|',f12.6,'|', f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10040 format(132('-'))
-10000 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',   &
-     &f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
+10000 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10030 format('|',6x,'|',a8,'|',12x,'|',102('-'))
 end subroutine writelin
 
@@ -35742,14 +35732,14 @@ subroutine ord
           do j=1,mmul
             izu=izu+1
             zfz(izu)=exterr(i,20+j)
-+if time
-            zfz35(izu)=exterr35(i,20+j)
-+ei
+! +if time
+!             zfz35(izu)=exterr35(i,20+j)
+! +ei
             izu=izu+1
             zfz(izu)=exterr(i,j)
-+if time
-            zfz35(izu)=exterr35(i,j)
-+ei
+! +if time
+!             zfz35(izu)=exterr35(i,j)
+! +ei
           end do
         else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).eq.0) then
           izu=izu+2*mmul
@@ -35779,10 +35769,10 @@ subroutine orglat
       dimension ilf(nblz),ilfr(nblz)
       dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
      &icextal1(nblz)
-+if time
-      real(kind=fPrec) exterr2,tcnst2
-      dimension exterr2(nblz,40),tcnst2(nblz)
-+ei
+! +if time
+!       real(kind=fPrec) exterr2,tcnst2
+!       dimension exterr2(nblz,40),tcnst2(nblz)
+! +ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -35819,13 +35809,13 @@ subroutine orglat
             enddo
             do ii=1,40
                exterr1(i,ii)=zero
-+if time
-               exterr2(i,ii)=zero
-+ei
+! +if time
+!                exterr2(i,ii)=zero
+! +ei
             enddo
-+if time
-            tcnst35(i)=zero
-+ei
+! +if time
+!             tcnst35(i)=zero
+! +ei
         enddo
 
         !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
@@ -35840,13 +35830,13 @@ subroutine orglat
           extalig1(i,3)=extalign(i,3)
           do ii=1,40
             exterr1(i,ii)=exterr(i,ii)
-+if time
-            exterr2(i,ii)=exterr35(i,ii)
-+ei
+! +if time
+!             exterr2(i,ii)=exterr35(i,ii)
+! +ei
           end do
-+if time
-          tcnst2(i)=tcnst35(i)
-+ei
+! +if time
+!           tcnst2(i)=tcnst35(i)
+! +ei
         end do
         do i=kanf,iu
           if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
@@ -35858,13 +35848,13 @@ subroutine orglat
           extalign(i-kanf1,3)=extalign(i,3)
           do ii=1,40
             exterr(i-kanf1,ii)=exterr(i,ii)
-+if time
-            exterr35(i-kanf1,ii)=exterr35(i,ii)
-+ei
+! +if time
+!             exterr35(i-kanf1,ii)=exterr35(i,ii)
+! +ei
           end do
-+if time
-          tcnst35(i-kanf1)=tcnst2(i)
-+ei
+! +if time
+!           tcnst35(i-kanf1)=tcnst2(i)
+! +ei
         end do
         do i=1,kanf1
           if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
@@ -35876,13 +35866,13 @@ subroutine orglat
           extalign(iu-kanf1+i,3)=extalig1(i,3)
           do ii=1,40
             exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-+if time
-            exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
-+ei
+! +if time
+!             exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
+! +ei
           end do
-+if time
-          tcnst35(iu-kanf1+i)=tcnst35(i)
-+ei
+! +if time
+!           tcnst35(iu-kanf1+i)=tcnst35(i)
+! +ei
         end do
       endif
       

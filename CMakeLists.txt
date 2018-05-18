@@ -296,6 +296,7 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST DA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
+LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 # LIST(APPEND PREPRO_FLAGS_PREC 32BITM 64BITM 128BITM)
 
 ###################################################################################################
@@ -315,7 +316,7 @@ if(COLLIMAT)
 endif(COLLIMAT)
 
 if(HDF5)
-	list(APPEND FORS_F90 hdf5_output)
+	list(APPEND FORS_F90 hdf5_output hdf5_sixtrack)
 endif(HDF5)
 
 if(BEAMGAS)
@@ -988,9 +989,9 @@ add_executable(SixTrack ${SIXTRACK_SOURCES})
 SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 
 # Pre-processor flags
-foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_PREC)
+foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_PREC PREPRO_FLAGS_COMPILE)
 	if(${loop})
-		message(STATUS "Adding compiler definition -D${loop} to target SixTrack")
+		message(STATUS "Adding preprocessor definition -D${loop} to target SixTrack")
 		target_compile_definitions(SixTrack PUBLIC -D${loop})
 	endif()
 endforeach()
