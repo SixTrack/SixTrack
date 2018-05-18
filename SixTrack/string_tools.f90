@@ -28,8 +28,10 @@ module string_tools
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub
+  public chr_padZero
   public str_inStr, chr_inStr
   public str_toReal, chr_toReal
+  public str_toInt, chr_toInt
   
   !
   ! Old stuff added for backwards compatibility
@@ -46,7 +48,7 @@ contains
 ! ================================================================================================ !
 !  String Split Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-14
+!  Last modified: 2018-05-18
 !  Splits a string into an array of strings by one or more space,
 !    but not within a pair of single our double quotes.
 !  Note: Copying data from one string to another string, by slicing the char array, does not work
@@ -61,21 +63,22 @@ subroutine str_split(toSplit, returnArray, nArray)
   integer,                   intent(out) :: nArray
   
   integer ch, newBit
-  logical sngQuote, dblQuote
+  logical sngQ, dblQ
   
-  newBit   = 0
-  nArray   = 0
-  sngQuote = .false.
-  dblQuote = .false.
+  if(allocated(returnArray)) deallocate(returnArray)
+  
+  newBit = 0
+  nArray = 0
+  sngQ   = .false.
+  dblQ   = .false.
   do ch=1, len(toSplit%chr)
-    if(toSplit%chr(ch:ch) == "'") sngQuote = .not. sngQuote
-    if(toSplit%chr(ch:ch) == '"') dblQuote = .not. dblQuote
-    if(toSplit%chr(ch:ch) == " " .and. .not. sngQuote .and. .not. dblQuote) then
+    if(toSplit%chr(ch:ch) == "'") sngQ = .not. sngQ
+    if(toSplit%chr(ch:ch) == '"') dblQ = .not. dblQ
+    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
         call str_arrAppend(returnArray, str_sub(toSplit, newBit, ch-1))
-        ! call str_arrAppend(returnArray, string(toSplit%chr(newBit:ch-1)))
         newBit = 0
         nArray = nArray + 1
       end if
@@ -86,10 +89,45 @@ subroutine str_split(toSplit, returnArray, nArray)
   
 end subroutine str_split
 
+subroutine chr_split(toSplit, returnArray, nArray)
+  
+  implicit none
+  
+  character(len=*),              intent(in)  :: toSplit
+  character(len=:), allocatable, intent(out) :: returnArray(:)
+  integer,                       intent(out) :: nArray
+  
+  integer ch, newBit
+  logical sngQ, dblQ
+  
+  if(allocated(returnArray)) deallocate(returnArray)
+  
+  newBit = 0
+  nArray = 0
+  sngQ   = .false.
+  dblQ   = .false.
+  do ch=1, len(toSplit)
+    if(toSplit(ch:ch) == "'") sngQ = .not. sngQ
+    if(toSplit(ch:ch) == '"') dblQ = .not. dblQ
+    if((toSplit(ch:ch) == " " .or. toSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
+      if(newBit == 0) then
+        cycle
+      else
+        call chr_arrAppend(returnArray, toSplit(newBit:ch-1))
+        newBit = 0
+        nArray = nArray + 1
+      end if
+    else
+      if(newBit == 0) newBit = ch
+    end if
+  end do
+  
+end subroutine chr_split
+
 ! ================================================================================================ !
 !  Safe Append to Array
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-14
+!  Last modified: 2018-05-18
 !  Appends a string to a string array.
 ! ================================================================================================ !
 subroutine str_arrAppend(theArray, theString)
@@ -110,7 +148,7 @@ subroutine str_arrAppend(theArray, theString)
     arrSize = size(theArray,1)
     allocate(tmpArray(arrSize + 1), stat=allocErr)
     if(allocErr /= 0) then
-      write(lout,"(a)") "ERROR Allocation of string array failed."
+      write(lout,"(a)") "STRING_TOOLS> ERROR Appending of string array failed."
       stop 1
     end if
     
@@ -125,7 +163,7 @@ subroutine str_arrAppend(theArray, theString)
     
     allocate(theArray(1), stat=allocErr)
     if(allocErr /= 0) then
-      write(lout,"(a)") "ERROR Allocation of string array failed."
+      write(lout,"(a)") "STRING_TOOLS> ERROR Allocation of string array failed."
       stop 1
     end if
     theArray(1) = theString
@@ -133,6 +171,60 @@ subroutine str_arrAppend(theArray, theString)
   end if
   
 end subroutine str_arrAppend
+
+subroutine chr_arrAppend(theArray, theString)
+  
+  use crcoall
+  
+  implicit none
+  
+  character(len=:), allocatable, intent(inout) :: theArray(:)
+  character(len=*),              intent(in)    :: theString
+  
+  character(len=:), allocatable :: tmpArray(:)
+  integer :: allocErr
+  integer :: arrSize, arrElem
+  integer :: inLen, maxLen, elemLen
+  
+  inLen = len(theString)
+  
+  if(allocated(theArray)) then
+    
+    maxLen = inLen
+    do arrElem=1, len(theArray)
+      elemLen = len(theArray(arrElem))
+      if(elemLen > maxLen) maxLen = elemLen
+    end do
+    
+    arrSize = size(theArray,1)
+    allocate(character(len=maxLen) :: tmpArray(arrSize + 1), stat=allocErr)
+    if(allocErr /= 0) then
+      write(lout,"(a)") "STRING_TOOLS> ERROR Appending of string array failed."
+      stop 1
+    end if
+    
+    do arrElem=1, arrSize
+      elemLen = len(theArray(arrElem))
+      tmpArray(arrElem)            = repeat(char(0),maxLen)
+      tmpArray(arrElem)(1:elemLen) = theArray(arrElem)(1:elemLen)
+    end do
+    tmpArray(arrSize + 1)          = repeat(char(0),maxLen)
+    tmpArray(arrSize + 1)(1:inLen) = theString(1:inLen)
+    
+    call move_alloc(tmpArray,theArray)
+    
+  else
+    
+    allocate(character(len=inLen) :: theArray(1), stat=allocErr)
+    if(allocErr /= 0) then
+      write(lout,"(a)") "STRING_TOOLS> ERROR Allocation of character array failed."
+      stop 1
+    end if
+    theArray(1) = theString
+    
+  end if
+  
+end subroutine chr_arrAppend
 
 ! ================================================================================================ !
 !  SubString Routine
@@ -186,6 +278,24 @@ function chr_strip(theString) result(retString)
   character(len=:), allocatable :: retString
   retString = trim(adjustl(theString))
 end function chr_strip
+
+! ================================================================================================ !
+!  Pad String with Zeros
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-18
+! ================================================================================================ !
+function chr_padZero(theString, theSize) result(retString)
+  character(len=*), intent(in)  :: theString
+  integer,          intent(in)  :: theSize
+  character(len=:), allocatable :: retString
+  integer                       :: inSize
+  inSize = len(theString)
+  if(inSize > 0 .and. inSize < theSize) then
+    retString = theString(1:inSize)//repeat(char(0),theSize-inSize)
+  else
+    retString = theString
+  end if
+end function chr_padZero
 
 ! ================================================================================================ !
 !  Trim Zero String Routine
@@ -351,7 +461,17 @@ function str_toReal(theString) result(theValue)
     stop 1
   end if
 #else
+#ifdef FIO
+#ifdef CRLIBM
+  call enable_xp()
+#endif
+  read(theString%chr,*,round="nearest") theValue
+#ifdef CRLIBM
+  call disable_xp()
+#endif
+#else
   read(theString%chr,*) theValue
+#endif
 #endif
   
 end function str_toReal
@@ -387,10 +507,38 @@ function chr_toReal(theString) result(theValue)
     stop -1
   end if
 #else
+#ifdef FIO
+#ifdef CRLIBM
+  call enable_xp()
+#endif
+  read(theString,*,round="nearest") theValue
+#ifdef CRLIBM
+  call disable_xp()
+#endif
+#else
   read(theString,*) theValue
+#endif
 #endif
   
 end function chr_toReal
+
+! ================================================================================================ !
+!  String to Integer
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-18
+! ================================================================================================ !
+
+function str_toInt(theString) result(theValue)
+  type(string), intent(in) :: theString
+  integer                  :: theValue
+  read(theString%chr,*) theValue
+end function str_toInt
+
+function chr_toInt(theString) result(theValue)
+  character(len=*), intent(in) :: theString
+  integer                      :: theValue
+  read(theString,*) theValue
+end function chr_toInt
 
 ! ================================================================================================ !
 !  HERE FOLLOWS THE OLD ROUTINES
