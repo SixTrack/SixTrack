@@ -8157,6 +8157,7 @@ subroutine daten
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
+  use sixtrack_input
   
   use scatter, only : scatter_active, scatter_debug, scatter_seed1, scatter_seed2, scatter_dumpdata, &
     scatter_parseInputLine, scatter_allocate
