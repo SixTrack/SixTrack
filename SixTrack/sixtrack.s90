@@ -8208,7 +8208,8 @@ subroutine daten
   integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,    &
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
-    ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
+    ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ndum,nfb,nft,i4,i5
+  ! integer ncy2
 ! +if time
 !   integer ifiend35
 !   real(kind=fPrec) tcnst
@@ -8230,7 +8231,7 @@ subroutine daten
   character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
-  character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
+  ! character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
   character(len=60) ihead
   integer nchars
   parameter (nchars=160)
@@ -8401,7 +8402,8 @@ subroutine daten
       iclr=0
       icy=0
       ncy=0
-      ncy2=0
+      ! ncy2=0
+      stin_ncy2 = 0
       ndum=0
       numl=1
 
@@ -8656,101 +8658,104 @@ subroutine daten
           endif
         endif
       enddo
- 165  if(i1.gt.72) call prror(104)
-      call intepr(1,1,ch,ch1) ! read in single element
-!     write (*,*) 'ch1:'//ch1//':'
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      ! read fort.2 (or fort.3), idat -> bez = single element name,
-      ! kz = type of element,
-      ! ed,ek,el = strength, random error on strenght, length (can be anything)
-      ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
-      read(ch1,*,round='nearest')                                       &
-     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-!     write (*,*) 'ERIC'
-      ! read fort.2 (or fort.3), idat -> bez = single element name,
-      ! kz = type of element,
-      ! ed,ek,el = strength, random error on strenght, length (can be anything)
-      ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
-      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-+ei
-+if crlibm
-!     write(*,*) 'eric'
-      if (nunit.eq.2) then
-        call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields) !fort.2 input
-      elseif (nunit.eq.3) then
-        call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields) !fort.3 input
-      else
-         write(lout,*) 'ERROR in DATEN: nunit NOT 2 nor 3!'
-         write(lout,*) 'Almost certainly a bug.'
-         call prror(-1)
-      endif
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) kz(i)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ed(i)=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ek(i)=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        el(i)=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbbx(i)=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbby(i)=fround(errno,fields,7)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbbs(i)=fround(errno,fields,8)
-        nf=nf-1
-      endif
-+ei
-+ei
-      !Check that the name is unique
-      do j=1,i-1! i = index of current line
-         if ( bez(j).eq.idat ) then
-            write(lout,*) "ERROR in DATEN:"
-            write(lout,*) "Got multiple copies of element ", bez(j)
-            call prror(-1)
-         endif
-      enddo
+ 165  continue
+!       if(i1.gt.72) call prror(104)
+!       call intepr(1,1,ch,ch1) ! read in single element
+      call stin_parseInputLineSING(ch,i)
+! !     write (*,*) 'ch1:'//ch1//':'
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       ! read fort.2 (or fort.3), idat -> bez = single element name,
+!       ! kz = type of element,
+!       ! ed,ek,el = strength, random error on strenght, length (can be anything)
+!       ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
+!       read(ch1,*,round='nearest')                                       &
+!      & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+! !     write (*,*) 'ERIC'
+!       ! read fort.2 (or fort.3), idat -> bez = single element name,
+!       ! kz = type of element,
+!       ! ed,ek,el = strength, random error on strenght, length (can be anything)
+!       ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
+!       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
+! +ei
+! +if crlibm
+! !     write(*,*) 'eric'
+!       if (nunit.eq.2) then
+!         call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields) !fort.2 input
+!       elseif (nunit.eq.3) then
+!         call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields) !fort.3 input
+!       else
+!          write(lout,*) 'ERROR in DATEN: nunit NOT 2 nor 3!'
+!          write(lout,*) 'Almost certainly a bug.'
+!          call prror(-1)
+!       endif
+!       if (nf.gt.0) then
+!         read(fields(1),*) idat
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         read(fields(2),*) kz(i)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         ed(i)=fround(errno,fields,3)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         ek(i)=fround(errno,fields,4)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         el(i)=fround(errno,fields,5)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         bbbx(i)=fround(errno,fields,6)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         bbby(i)=fround(errno,fields,7)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         bbbs(i)=fround(errno,fields,8)
+!         nf=nf-1
+!       endif
+! +ei
+! +ei
+!       !Check that the name is unique
+!       do j=1,i-1! i = index of current line
+!          if ( bez(j).eq.idat ) then
+!             write(lout,*) "ERROR in DATEN:"
+!             write(lout,*) "Got multiple copies of element ", bez(j)
+!             call prror(-1)
+!          endif
+!       enddo
+      idat=bez(i)
 
-      if(kz(i).eq.25) then
-        ed(i)=ed(i)/two
-        ek(i)=ek(i)/two
-      endif
-!--CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-      if((kz(i).eq.4.or.kz(i).eq.5).and.abs(el(i)).gt.pieni)            &
-     &ed(i)=-one*ed(i)                                                   !hr05
-!--CAVITIES
-      if(abs(kz(i)).eq.12) then
-        if(abs(ed(i)).gt.pieni.and.abs(ek(i)).gt.pieni) then
-          ncy2=ncy2+1
-          itionc(i)=kz(i)/abs(kz(i))
-          kp(i)=6
-        endif
-      endif
+!       if(kz(i).eq.25) then
+!         ed(i)=ed(i)/two
+!         ek(i)=ek(i)/two
+!       endif
+! !--CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
+!       if((kz(i).eq.4.or.kz(i).eq.5).and.abs(el(i)).gt.pieni)            &
+!      &ed(i)=-one*ed(i)                                                   !hr05
+! !--CAVITIES
+!       if(abs(kz(i)).eq.12) then
+!         if(abs(ed(i)).gt.pieni.and.abs(ek(i)).gt.pieni) then
+!           ncy2=ncy2+1
+!           itionc(i)=kz(i)/abs(kz(i))
+!           kp(i)=6
+!         endif
+!       endif
 !----------------------------------------
 ! Handled by initialize_element subroutine:
 !-----------------------------------------
@@ -8760,47 +8765,47 @@ subroutine daten
 !-- CAVITY (+/- 12)
 !-- CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
 !-- ELECTRON LENSE (29)
-      call initialize_element(i,.true.)
+!      call initialize_element(i,.true.)
 
-!--ACDIPOLE
-      if(abs(kz(i)).eq.16) then
-        if(abs(ed(i)).le.pieni) then
-           kz(i)=0
-           ed(i)=zero                                                     !hr05
-           ek(i)=zero                                                    !hr05
-           el(i)=zero                                                    !hr05
-        else
-           acdipph(i)=el(i)
-           el(i)=zero                                                    !hr05
-        endif
-      endif
-!--General
-      if(abs(el(i)).gt.pieni.and.kz(i).ne.0) then
-        ithick=1
-      end if
+! !--ACDIPOLE
+!       if(abs(kz(i)).eq.16) then
+!         if(abs(ed(i)).le.pieni) then
+!            kz(i)=0
+!            ed(i)=zero                                                     !hr05
+!            ek(i)=zero                                                    !hr05
+!            el(i)=zero                                                    !hr05
+!         else
+!            acdipph(i)=el(i)
+!            el(i)=zero                                                    !hr05
+!         endif
+!       endif
+! !--General
+!       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) then
+!         ithick=1
+!       end if
 
 !      if(i.gt.nele-1) call prror(16)
       !Changed to nele-2 to handle resizing correctly
-      if(i.gt.nele-2) then
-        call expand_arrays(nele+50, npart, nblz, nblo)
+!       if(i.gt.nele-2) then
+!         call expand_arrays(nele+50, npart, nblz, nblo)
 
-        !The value of nele will have been updated here
-        call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
-!+if vvector
-!        if (ithick.eq.1) then
-!          call expand_thickarrays(nele+10, npart, nblz, nblo )
-!        end if
-!+ei
-      end if
+!         !The value of nele will have been updated here
+!         call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
+! !+if vvector
+! !        if (ithick.eq.1) then
+! !          call expand_thickarrays(nele+10, npart, nblz, nblo )
+! !        end if
+! !+ei
+!       end if
 
-      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) ) then
-        kp(i)=0
-      end if
+!      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.stin_ncy2.eq.0) ) then
+!        kp(i)=0
+!      end if
 
 ! set element name
-      bez(i)=idat
-      bez0(i)=idat
-      if(ncy2.eq.0) then
+      ! bez(i)=idat
+      ! bez0(i)=idat
+      if(stin_ncy2.eq.0) then
         !If no active RF cavities are seen so far in the single element list,
         ! add a CAV element to the end of the list.
         ! This is then overwritten when reading the next element, so that if
@@ -10142,7 +10147,7 @@ subroutine daten
       !nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
-      if(ncy2.eq.0) then
+      if(stin_ncy2.eq.0) then
         ncy=icy*mper
         idp=1
         if(ncy.ne.0) goto 720
@@ -14545,7 +14550,7 @@ subroutine daten
       write(lout,10050)
       write(lout,10060)
       il1=il
-      if(ncy2.eq.0) il1=il-1
+      if(stin_ncy2.eq.0) il1=il-1
       do 1435 k=1,il1
       if(abs(kz(k)).eq.12) then
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
@@ -14710,7 +14715,7 @@ subroutine daten
       else !No beam beam
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
-      if(ncy2.eq.0) then
+      if(stin_ncy2.eq.0) then
         write(lout,10143) harm,u0,phag,qs,alc
       else
         write(lout,*)
