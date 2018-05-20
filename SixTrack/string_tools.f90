@@ -442,36 +442,46 @@ function str_toReal(theString) result(theValue)
   
   implicit none
   
-  type(string), intent(in) :: theString
-  real(kind=fPrec)         :: theValue
+  type(string), intent(in)      :: theString
+  real(kind=fPrec)              :: theValue
+  character(len=:), allocatable :: tmpString
   
-#ifdef CRLIBM
+#if !defined(FIO) && defined(CRLIBM)
   real(kind=fPrec)              :: round_near
   character(len=:), allocatable :: cString
   integer                       :: cLen, cErr
   
-  cLen     = len(theString) + 1
-  cString  = theString%chr//char(0)
-  theValue = round_near(cErr,cLen,cString)
+  tmpString = chr_trimZero(theString%chr)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
-    write (lout,"(a)")    "ERROR Data Input Error"
-    write (lout,"(a)")    "Overfow/Underflow in string_tools->str_toReal"
+    write (lout,"(a)")    "++++++++++++++++++++++++"
+    write (lout,"(a)")    "+    ERROR DETECTED    +"
+    write (lout,"(a)")    "++++++++++++++++++++++++"
+    write (lout,"(a)")    "Data Input Error"
+    write (lout,"(a)")    "Overfow/Underflow in string_tools->chr_toReal"
     write (lout,"(a,i2)") "Errno: ",cErr
-    stop 1
+    stop -1
   end if
-#else
-#ifdef FIO
-#ifdef CRLIBM
-  call enable_xp()
 #endif
-  read(theString%chr,*,round="nearest") theValue
-#ifdef CRLIBM
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,round="nearest") theValue
   call disable_xp()
 #endif
-#else
-  read(theString%chr,*) theValue
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,round="nearest") theValue
 #endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*) theValue
 #endif
   
 end function str_toReal
@@ -485,17 +495,19 @@ function chr_toReal(theString) result(theValue)
   
   implicit none
   
-  character(len=*), intent(in) :: theString
-  real(kind=fPrec)             :: theValue
+  character(len=*), intent(in)  :: theString
+  real(kind=fPrec)              :: theValue
+  character(len=:), allocatable :: tmpString
   
-#ifdef CRLIBM
+#if !defined(FIO) && defined(CRLIBM)
   real(kind=fPrec)              :: round_near
   character(len=:), allocatable :: cString
   integer                       :: cLen, cErr
   
-  cLen     = len(theString) + 1
-  cString  = theString//char(0)
-  theValue = round_near(cErr,cLen,cString)
+  tmpString = chr_trimZero(theString)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
     write (lout,"(a)")    "++++++++++++++++++++++++"
@@ -506,18 +518,23 @@ function chr_toReal(theString) result(theValue)
     write (lout,"(a,i2)") "Errno: ",cErr
     stop -1
   end if
-#else
-#ifdef FIO
-#ifdef CRLIBM
-  call enable_xp()
 #endif
-  read(theString,*,round="nearest") theValue
-#ifdef CRLIBM
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest") theValue
   call disable_xp()
 #endif
-#else
-  read(theString,*) theValue
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest") theValue
 #endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*) theValue
 #endif
   
 end function chr_toReal
@@ -529,15 +546,19 @@ end function chr_toReal
 ! ================================================================================================ !
 
 function str_toInt(theString) result(theValue)
-  type(string), intent(in) :: theString
-  integer                  :: theValue
-  read(theString%chr,*) theValue
+  type(string), intent(in)      :: theString
+  integer                       :: theValue
+  character(len=:), allocatable :: tmpString
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*) theValue
 end function str_toInt
 
 function chr_toInt(theString) result(theValue)
-  character(len=*), intent(in) :: theString
-  integer                      :: theValue
-  read(theString,*) theValue
+  character(len=*), intent(in)  :: theString
+  integer                       :: theValue
+  character(len=:), allocatable :: tmpString
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*) theValue
 end function chr_toInt
 
 ! ================================================================================================ !
