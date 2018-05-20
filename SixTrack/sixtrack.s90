@@ -8231,7 +8231,7 @@ subroutine daten
   character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
-  ! character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
+  ! character(len=:), allocatable :: sixin_bez0(:) !(max_name_len)(nele)
   character(len=60) ihead
   integer nchars
   parameter (nchars=160)
@@ -8338,8 +8338,11 @@ subroutine daten
   logical lerr1
   logical lexist
   
-  character(len=max_name_len) :: defaultstring
-  integer str_int
+  ! character(len=max_name_len) :: defaultstring
+  ! integer str_int
+  
+  ! New variables for sixtrack_input module
+  logical inErr
   
   save
   
@@ -8354,13 +8357,13 @@ subroutine daten
         iqq(i)=' '
       end do
 
-      do str_int=1,max_name_len
-        defaultstring(str_int:str_int) = char(0)
-      end do
+      ! do str_int=1,max_name_len
+      !   defaultstring(str_int:str_int) = char(0)
+      ! end do
 
-      call alloc(bez0, max_name_len, nele, defaultstring, 'bez0')
+      call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), 'sixin_bez0')
 !      do i=1,nele
-!        bez0(i)=' '
+!        sixin_bez0(i)=' '
 !      end do
 
       do i=1,nblo
@@ -8403,9 +8406,12 @@ subroutine daten
       icy=0
       ncy=0
       ! ncy2=0
-      stin_ncy2 = 0
       ndum=0
       numl=1
+  
+  ! New variables for sixtrack_input module
+  inErr      = .false.
+  sixin_ncy2 = 0
 
 !  Initialise new input parameters
       numlmax=1000000
@@ -8661,7 +8667,8 @@ subroutine daten
  165  continue
 !       if(i1.gt.72) call prror(104)
 !       call intepr(1,1,ch,ch1) ! read in single element
-      call stin_parseInputLineSING(ch,i)
+      call sixin_parseInputLineSING(ch,i,inErr)
+      if(inErr) goto 9999
 ! !     write (*,*) 'ch1:'//ch1//':'
 ! +if fio
 ! +if crlibm
@@ -8790,7 +8797,7 @@ subroutine daten
 !         call expand_arrays(nele+50, npart, nblz, nblo)
 
 !         !The value of nele will have been updated here
-!         call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
+!         call resize(sixin_bez0, max_name_len, nele, defaultstring, 'sixin_bez0')
 ! !+if vvector
 ! !        if (ithick.eq.1) then
 ! !          call expand_thickarrays(nele+10, npart, nblz, nblo )
@@ -8798,14 +8805,14 @@ subroutine daten
 ! !+ei
 !       end if
 
-!      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.stin_ncy2.eq.0) ) then
+!      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.sixin_ncy2.eq.0) ) then
 !        kp(i)=0
 !      end if
 
 ! set element name
       ! bez(i)=idat
-      ! bez0(i)=idat
-      if(stin_ncy2.eq.0) then
+      ! sixin_bez0(i)=idat
+      if(sixin_ncy2.eq.0) then
         !If no active RF cavities are seen so far in the single element list,
         ! add a CAV element to the end of the list.
         ! This is then overwritten when reading the next element, so that if
@@ -8815,7 +8822,7 @@ subroutine daten
         i=i+1
         il=i
         bez(i)=cavi
-        bez0(i)=cavi
+        sixin_bez0(i)=cavi
         kp(i)=6
       else
         il=i
@@ -8969,7 +8976,7 @@ subroutine daten
         mel(i)=l         ! Number of single elements in this block
         beze(i,l)=ilm(l) ! Name of the current single element
         do 280 j=1,il    ! Search for the single element idx j
-          if(bez0(j).eq.ilm(l)) goto 290
+          if(sixin_bez0(j).eq.ilm(l)) goto 290
   280   continue
         erbez=ilm(l)
         call prror(19)
@@ -9048,7 +9055,7 @@ subroutine daten
           if(bezb(j).eq.ilm0(k)) goto 470
   440   continue
         do 450 l=1,il   !is it a SINGLE ELEMENT?
-          if(bez0(l).eq.ilm0(k)) goto 460
+          if(sixin_bez0(l).eq.ilm0(k)) goto 460
   450   continue
         ! It was neither BLOC or SINGLE ELEMENT! ERROR!
         erbez=ilm0(k)
@@ -9057,7 +9064,7 @@ subroutine daten
         ! Handle SINGLE ELEMENT
   460   continue
         ic(i)=l+nblo
-        if(bez0(l).eq.cavi) icy=icy+1
+        if(sixin_bez0(l).eq.cavi) icy=icy+1
         goto 490
 
         !Handle BLOC
@@ -10147,7 +10154,7 @@ subroutine daten
       !nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
-      if(stin_ncy2.eq.0) then
+      if(sixin_ncy2.eq.0) then
         ncy=icy*mper
         idp=1
         if(ncy.ne.0) goto 720
@@ -14550,7 +14557,7 @@ subroutine daten
       write(lout,10050)
       write(lout,10060)
       il1=il
-      if(stin_ncy2.eq.0) il1=il-1
+      if(sixin_ncy2.eq.0) il1=il-1
       do 1435 k=1,il1
       if(abs(kz(k)).eq.12) then
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
@@ -14601,7 +14608,7 @@ subroutine daten
         if(icc.gt.nblo) goto 1460
         ic0(l)=bezb(icc)
         goto 1470
- 1460   ic0(l)=bez0(icc-nblo)
+ 1460   ic0(l)=sixin_bez0(icc-nblo)
  1470 continue
       k11=k10+1
       write(lout,10280) k11,(ic0(l),l=1,5)
@@ -14715,7 +14722,7 @@ subroutine daten
       else !No beam beam
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
-      if(stin_ncy2.eq.0) then
+      if(sixin_ncy2.eq.0) then
         write(lout,10143) harm,u0,phag,qs,alc
       else
         write(lout,*)
@@ -14816,11 +14823,22 @@ subroutine daten
          call parseChebyFile(tmpi1)
       end do
 
-      call dealloc(bez0,max_name_len,'bez0')
+      call dealloc(sixin_bez0,max_name_len,'sixin_bez0')
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
       return
+      
+9999  continue
+      ! Error handling for sixtrack_input module
+      if(imod == 1) then
+        write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineno3
+      elseif(imod == 2) then
+        write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineno2
+      end if
+      call prror(-1)
+      return
+      
 10000 format(11(a4,1x))
 10010 format(a4,8x,a60)
 10020 format(a)

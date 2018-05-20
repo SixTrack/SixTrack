@@ -7,7 +7,6 @@
 module sixtrack_input
   
   use crcoall
-  use end_sixtrack
   use numerical_constants
   use mod_alloc
   use string_tools
@@ -16,22 +15,23 @@ module sixtrack_input
   implicit none
   
   ! Single Element Variables
-  integer,                       public, save :: stin_ncy2
-  character(len=:), allocatable, public, save :: bez0(:)   ! (max_name_len)(nele)
+  integer,                       public, save :: sixin_ncy2
+  character(len=:), allocatable, public, save :: sixin_bez0(:) ! (max_name_len)(nele)
   
 contains
 
-subroutine stin_parseInputLineSING(inLine, iElem)
+subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   
   use parpro_scale
   
   implicit none
   
-  character(len=*), intent(in)  :: inLine
-  integer,          intent(in)  :: iElem
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iElem
+  logical,          intent(inout) :: iErr
   
-  character(len=:), allocatable :: lnSplit(:)
-  character(len=:), allocatable :: elemName
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: elemName
   integer nSplit
   
   integer i
@@ -45,20 +45,23 @@ subroutine stin_parseInputLineSING(inLine, iElem)
   
   if(nSplit < 2) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must be at least 2 values, got ",nSplit
-    call prror(-1)
+    iErr = .true.
+    return
   end if
   
   elemName = chr_trimZero(lnSplit(1))
   if(len(elemName) > max_name_len) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",max_name_len
-    call prror(-1)
+    iErr = .true.
+    return
   end if
   
   ! Check that the name is unique
   do i=1,iElem-1
     if(bez(i) == elemName) then
       write(lout,"(a,i0)") "GEOMETRY> ERROR Single element '"//elemName//"' is not unique."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
   end do
   
@@ -84,7 +87,7 @@ subroutine stin_parseInputLineSING(inLine, iElem)
   ! CAVITIES
   if(abs(kz(iElem)) == 12) then
     if(abs(ed(iElem)) > pieni .and. abs(ek(iElem)) > pieni) then
-      stin_ncy2     = stin_ncy2 + 1
+      sixin_ncy2    = sixin_ncy2 + 1
       itionc(iElem) = kz(iElem)/abs(kz(iElem))
       kp(iElem)     = 6
     end if
@@ -123,16 +126,16 @@ subroutine stin_parseInputLineSING(inLine, iElem)
   if(iElem  > nele-2) then
     call expand_arrays(nele+50, npart, nblz, nblo)
     ! The value of nele will have been updated here
-    call resize(bez0, max_name_len, nele, repeat(char(0),max_name_len), "bez0")
+    call resize(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
   end if
   
-  if(abs(kz(iElem)) /= 12 .or. (abs(kz(iElem)) == 12 .and. stin_ncy2 == 0)) then
+  if(abs(kz(iElem)) /= 12 .or. (abs(kz(iElem)) == 12 .and. sixin_ncy2 == 0)) then
     kp(iElem) = 0
   end if
   
-  bez(iElem)  = elemName
-  bez0(iElem) = elemName
+  bez(iElem)        = elemName
+  sixin_bez0(iElem) = elemName
   
-end subroutine stin_parseInputLineSING
+end subroutine sixin_parseInputLineSING
 
 end module sixtrack_input
