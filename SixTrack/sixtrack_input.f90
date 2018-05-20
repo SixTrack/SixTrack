@@ -28,18 +28,19 @@ contains
 
 subroutine sixin_checkBlock(blockName, blockOpened, blockClosed, blockLine)
   
-  character(len=*), intent(in)    :: blockName
-  logical,          intent(inout) :: blockOpened
-  logical,          intent(inout) :: blockClosed
-  integer,          intent(out)   :: blockLine
+  character(len=*), intent(in)  :: blockName
+  logical,          intent(out) :: blockOpened
+  logical,          intent(out) :: blockClosed
+  integer,          intent(out) :: blockLine
   
   integer i
   
+  blockLine   = 0
   blockOpened = .false.
   blockClosed = .false.
   
   if(len(blockName) < 4) then
-    write(lout,"(a)") "SIXIN> WARNING Unknown blockname '"//blockName//"'"
+    write(lout,"(a)") "INPUT> WARNING Unknown blockname '"//blockName//"'"
     return
   end if
   
@@ -72,7 +73,11 @@ subroutine sixin_checkBlock(blockName, blockOpened, blockClosed, blockLine)
   
   sixin_cBlock(sixin_nBlock)(1:4) = blockName(1:4)
   sixin_iBlock(sixin_nBlock)      = 0
-  sixin_lBlock(sixin_nBlock)      = .true.
+  sixin_lBlock(sixin_nBlock)      = .false.
+  
+  blockOpened = .true.
+  
+  write(lout,"(a)") "INPUT> Opened block '"//blockName//"'"
   
 end subroutine sixin_checkBlock
 
@@ -89,16 +94,18 @@ subroutine sixin_closeBlock(blockName)
     end if
   end do
   
+  write(lout,"(a)") "INPUT> Closed block '"//blockName//"'"
+  
 end subroutine sixin_closeBlock
 
 subroutine sixin_blockReport
   
   integer i
   
-  write(lout,"(a)") "SIXIN> Finished parsing input file(s)."
-  write(lout,"(a)") "SIXIN> Parsed the following blocks:"
+  write(lout,"(a)") "INPUT> Finished parsing input file(s)."
+  write(lout,"(a)") "INPUT> Parsed the following blocks:"
   do i=1,sixin_nBlock
-    write(lout,"(a,i3,a)") "SIXIN> * "//sixin_cBlock(i)//" block with ",sixin_iBlock(i)," lines"
+    write(lout,"(a,i0,a)") "INPUT> * "//sixin_cBlock(i)//" block with ",sixin_iBlock(i)," lines"
   end do
   
 end subroutine sixin_blockReport

@@ -8343,6 +8343,12 @@ subroutine daten
   
   ! New variables for sixtrack_input module
   logical inErr
+  character(len=4) currBlock
+  logical blockOpened, blockClosed
+  logical openBlock, closeBlock
+  integer blockLine
+  
+  logical newParsing
   
   save
   
@@ -8519,43 +8525,52 @@ subroutine daten
 +ei
       has_hion = .false.
 
-   90 read(3,10010,end=1530,iostat=ierro) idat,ihead
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(idat(1:1).eq.'/') goto 90
-      if(idat.ne.free.and.idat.ne.geom) call prror(1)
-      imod=1
-! imod=1: free, definition of elements in fort.3
-! imod=2: geom, definition of elements in fort.2
-      if(idat.eq.geom) imod=2
-      write(lout,10130)
-      write(lout,10030)
-      write(lout,10180) ihead
-      sixtit(1:60)=ihead
-      if(imod.eq.1) write(lout,10190)
-      if(imod.eq.2) write(lout,10200)
-      write(lout,10130)
-      if(imod.eq.2) then
-  100   read(2,10000,end=1520,iostat=ierro) idat
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(idat(1:1).eq.'/') goto 100
-! single elements
-        if(idat.eq.sing) goto 120
-          write(lout,*) "idat = '"//idat//"'"
-          call prror(15)
-        endif
+  ! ================================================================== !
+  !  READ FORT.3 HEADER
+  ! ================================================================== !
+90 continue
+  read(3,10010,end=1530,iostat=ierro) idat,ihead
+  if(ierro > 0) call prror(58)
+  lineNo3 = lineNo3+1
+  if(idat(1:1) == "/") goto 90
+
+  ! imod=1: free, definition of elements in fort.3
+  ! imod=2: geom, definition of elements in fort.2
+  select case(idat)
+  case("FREE")
+    iMod = 1
+  case("GEOM")
+    iMod = 2
+  case default
+    call prror(1)
+  end select
   
-110 continue
-  read(3, 10020, end=1530, iostat=iErro) ch
-  if(iErro > 0) call prror(58)
-
-  nUnit   = 3
-  lineNo3 = lineNo3 + 1
-
-  if(len(ch) == 0)   goto 110 ! Empty line, ignore
-  if(ch(1:1) == "/") goto 110 ! Comment line, ignore
+  write(lout,10130)
+  write(lout,10030)
+  write(lout,10180) ihead
+  sixtit(1:60)=ihead
+  if(imod.eq.1) write(lout,10190)
+  if(imod.eq.2) write(lout,10200)
+  write(lout,10130)
+  
+  if(imod == 1) goto 110 ! Not reading fort.2
+  
+  ! ================================================================== !
+  !  PARSE FORT.2
+  ! ================================================================== !
+  currBlock   = "NONE"
+  blockOpened = .false.
+  blockClosed = .false.
+  
+100 continue
+  read(2,10000,end=1520,iostat=ierro) ch
+  if(iErro > 0) call prror(57)
+  
+  nUnit   = 2
+  lineNo2 = lineNo2 + 1
+  
+  if(len(ch) == 0)   goto 100 ! Empty line, ignore
+  if(ch(1:1) == "/") goto 100 ! Comment line, ignore
   if(len(ch) >= 4)   idat = ch(1:4)
   
   select case(idat)
@@ -8565,10 +8580,59 @@ subroutine daten
     goto 190
   case("STRU")
     goto 320
-  case("PRIN")
-    goto 550
-  case("QUIE")
-    goto 552
+  end select
+  
+  ! ================================================================== !
+  !  PARSE FORT.3
+  ! ================================================================== !
+  
+  currBlock   = "NONE"  ! The current block being parsed
+  openBlock   = .false. ! Whether the current block was opened on this pass
+  blockOpened = .false. ! Whether the current block is open
+  closeBlock  = .false. ! Whether the current block should be closed after the pass
+  blockClosed = .false. ! Whether the current block is now closed, and should not be opened again
+  
+110 continue
+  read(3, 10020, end=1530, iostat=iErro) ch
+  if(iErro > 0) call prror(58)
+  
+  nUnit   = 3
+  lineNo3 = lineNo3 + 1
+  
+  if(len(ch) == 0)   goto 110 ! Empty line, ignore
+  if(ch(1:1) == "/") goto 110 ! Comment line, ignore
+  if(len(ch) >= 4)   idat = ch(1:4)
+  
+  ! Parse non-block flags
+  select case(idat)
+  case("PRIN") ! Enable the PRINT flag
+    iOut = 1
+    goto 110
+  case("QUIE") ! Enable the QUIET flag
+    iQuiet = 1
+    goto 110
+  case("NEXT") ! Close the current block
+    ! Actual close check is done after a last pass so
+    !  each block can finalise any necessary initialisation
+    if(newParsing) then
+      closeBlock = .true.
+    else
+      goto 110
+    end if
+  case("ENDE") ! End of fort.3 input
+    call sixin_blockReport
+    goto 771
+  end select
+  
+  ! Old style block parsing
+  newParsing = .false.
+  select case(idat)
+  case("SING")
+    goto 120
+  case("BLOC")
+    goto 190
+  case("STRU")
+    goto 320
   case("DISP")
     goto 170
   case("TUNE")
@@ -8641,22 +8705,83 @@ subroutine daten
     goto 2500
   case("HION")
     goto 2700
-  case("ZIPF")
-    goto 2800
-  case("SCAT")
-    goto 2900
   case("ROOT")
     goto 3000
-  case("HDF5")
-    goto 3100
-  case("NEXT")
-    goto 110
-  case("ENDE")
-    goto 771
+  end select
+  
+  ! If we've reached this point, the old style block parsing has not been executed.
+  newParsing = .true. ! This decides how blocks are closed
+  
+  ! No active block, but there should be a new one
+  if(currBlock == "NONE") then
+    currBlock = idat
+    openBlock = .true.
+  end if
+  
+  call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
+  write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+    "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  
+  if(blockClosed) then
+    write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
+    goto 9999
+  end if
+  
+  select case(currBlock)
+  
+  case("ZIPF") ! ZIPF Input
+    if(closeBlock) then
+      call zipf_parseInputDone
+    else
+      call zipf_parseInputline(ch)
+    end if
+  
+  case("SCAT") ! SCATTER Input
+    if(openBlock) then
+      scatter_active = .true.
+      call scatter_allocate
+    elseif(closeBlock) then
+      if(scatter_debug) call scatter_dumpData
+    else
+      call scatter_parseInputLine(string(adjustl(ch)))
+    end if
+  
+  case("HDF5") ! HDF5 Input
+#ifndef HDF5
+    write(lout,*) "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
+    goto 9999
+#else
+    if(openBlock) then
+      h5_isActive = .true.
+    else
+      call h5_parseInputLine(string(ch))
+    end if
+#endif
+  
   case default
     write(lout,*) "idat = '"//idat//"'"
     call prror(15)
+  
   end select
+  
+  if(openBlock) then
+    ! Nothing to do other than switch off the flag
+    openBlock = .false.
+  end if
+  
+  if(closeBlock) then
+    ! Close the block and check that everything is normal.
+    if(blockClosed) then
+      write(lout,"(a)") "INPUT> Trying to close block '"//currBlock//"', which is already closed."
+      goto 9999
+    end if
+    call sixin_closeBlock(currBlock)
+    currBlock  = "NONE"  ! No active blocks
+    closeBlock = .false. ! Switch off the flag
+  end if
+
+  goto 110
+  
 !-----------------------------------------------------------------------
 !  DATENBLOCK SINGLE ELEMENTS
 !  ELLEMENTLISTE
@@ -9598,13 +9723,6 @@ subroutine daten
       nvar=nvar2+ncor
       goto 110
       endif
-!-----------------------------------------------------------------------
-!  PRINTOUT INPUT PARAMETERS
-!-----------------------------------------------------------------------
-  550 iout=1
-      goto 110
-  552 iquiet=1
-      goto 110
 !-----------------------------------------------------------------------
 !  CHROMATCITY ADJUSTMENT
 !-----------------------------------------------------------------------
@@ -14264,57 +14382,6 @@ subroutine daten
   goto 110
 
 ! ================================================================================================ !
-!  ZIPF Input
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 2017-02-07
-! ================================================================================================ !
-2800 continue
-  read(3, 10020, end=1530,iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-  
-  if(ch(1:1).eq.'/') goto 2800 ! Skip comment line
-  if(ch(:4).eq.next) then
-    call zipf_parseInputDone
-    goto 110 ! Read next block or ENDE
-  end if
-  call zipf_parseInputline(ch)
-  goto 2800  ! Read the next line of the ZIPF block
-
-! ================================================================================================ !
-!  SCATTER Input
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-20
-! ================================================================================================ !
-2900 continue
-  ! We have a SCATTER block; let's allocate the memory for it!
-  if (scatter_active) then
-    write(lout,*) "ERROR while parsing SCATTER in fort.3"
-    write(lout,*) "More than one SCATTER block encountered?"
-    call prror(-1)
-  end if
-  call scatter_allocate
-  
-2901 continue
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-  
-  if(ch(1:1) == "/") goto 2901 ! skip comment line
-  if (ch(:4) == next) then
-    scatter_active = .true.
-    if(scatter_seed1 == -1 .and. scatter_seed2 == -1) then
-      write(lout,"(a)") "SCATTER> ERROR while parsing SCATTER in fort.3: No SEED sets were specified"
-      call prror(-1)
-    end if
-    if (scatter_debug) call scatter_dumpData
-    goto 110 ! Read next block or ENDE
-  end if
-  call scatter_parseInputLine(string(adjustl(ch)))
-  
-  goto 2901  ! Read the next line of the SCATTER block
-
-! ================================================================================================ !
 !  ROOT Input Block
 ! ================================================================================================ !
 3000 continue
@@ -14336,39 +14403,6 @@ subroutine daten
   call daten_root(ch)
   
   goto 3000  ! Read the next line of the ROOT block
-#endif
-
-! ================================================================================================ !
-!  HDF5 Input Block
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-14
-! ================================================================================================ !
-3100  continue
-#ifndef HDF5
-  write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-  write(lout,*) "SixTrack was not compiled with the HDF5 flag."
-  call prror(-1)
-#else
-  ! Check if an HDF5 block has already been encountered
-  if (h5_isActive) then
-    write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-    write(lout,*) "More than one HDF5 block encountered."
-    call prror(-1)
-  end if
-  
-3110  continue
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro > 0) call prror(58)
-  lineno3 = lineno3 + 1
-      
-  if(ch(1:1) == "/") goto 3110 ! Comment line encountered
-  if(ch(1:4) == next) then
-    h5_isActive = .true.
-    goto 110 ! Read next block or ENDE
-  end if
-  call h5_parseInputLine(string(ch))
-  
-  goto 3110 ! Read the next line of the block
 #endif
 
 ! ================================================================================================ !
