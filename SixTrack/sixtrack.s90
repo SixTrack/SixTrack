@@ -8546,77 +8546,117 @@ subroutine daten
           write(lout,*) "idat = '"//idat//"'"
           call prror(15)
         endif
-  110 read(3,10000,end=1530,iostat=ierro) idat
-      if(ierro.gt.0) call prror(58)
-      nunit=3
-      lineno3=lineno3+1
-      if(idat(1:1).eq.'/') goto 110
-      if(idat.eq.sing) goto 120
-      if(idat.eq.bloc) goto 190
-      if(idat.eq.stru) goto 320
-      if(idat.eq.prin) goto 550
-      if(idat.eq.quie) goto 552
-      if(idat.eq.disp) goto 170
-      if(idat.eq.tune) goto 600
-      if(idat.eq.sync) goto 710
-      if(idat.eq.iter) goto 940
-      if(idat.eq.fluc) goto 790
-      if(idat.eq.mult) goto 740
-      if(idat.eq.chro) goto 560
-      if(idat.eq.trac) goto 510
-      if(idat.eq.diff) goto 520
-      if(idat.eq.line) goto 660
-      if(idat.eq.limi) goto 950
-      if(idat.eq.orbi) goto 980
-      if(idat.eq.init) goto 500
-      if(idat.eq.comb) goto 1030
-      if(idat.eq.subr) goto 1110
-      if(idat.eq.reso) goto 1120
-      if(idat.eq.sear) goto 1200
-      if(idat.eq.orga) goto 880
-      if(idat.eq.post) goto 1280
-      if(idat.eq.ripp) goto 1290
-      if(idat.eq.deco) goto 1320
-      if(idat.eq.comm) goto 1390
-      if(idat.eq.norm) goto 1400
-      if(idat.eq.corr) goto 1410
-      if(idat.eq.beam) goto 1600
-      if(idat.eq.trom) goto 1700
-!GRD
-      if(idat.eq.coll) goto 1285
-!GRD
+  
+110 continue
+  read(3, 10020, end=1530, iostat=iErro) ch
+  if(iErro > 0) call prror(58)
 
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     brand new input blocks
-!     always in main code
-!     - coupling:
-      if(idat.eq.fluk) goto 1800
+  nUnit   = 3
+  lineNo3 = lineNo3 + 1
 
-!     - read particle distribution:
-      if(idat.eq.dist) goto 1900
-
-      if(idat.eq."DUMP") goto 2000 !Hard-coded name, as variable name "dump" conflicted with module name
-      if(idat.eq."DYNK") goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
-      if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
-      if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
-      if(idat.eq.'ELEN') goto 2400 !Hard-coded name, as variable name "elens" conflicted with module name
-      if(idat.eq."WIRE") goto 2500 !Hard-coded name, as variable name "elens" conflicted with module name
-      !Reserved:
-      !DIST = 2600
-      !HION = 2700
-!     hisix heavy ion input block
-      if(idat.eq.hion) goto 2700
-
-      if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
-      if(idat.eq.scat) goto 2900
-      if(idat.eq.root) goto 3000
-      if(idat.eq.h5out) goto 3100
-
-      if(idat.eq.next) goto 110
-      if(idat.eq.ende) goto 771
-      write(lout,*) "idat = '"//idat//"'"
-      call prror(15)
+  if(len(ch) == 0)   goto 110 ! Empty line, ignore
+  if(ch(1:1) == "/") goto 110 ! Comment line, ignore
+  if(len(ch) >= 4)   idat = ch(1:4)
+  
+  select case(idat)
+  case("SING")
+    goto 120
+  case("BLOC")
+    goto 190
+  case("STRU")
+    goto 320
+  case("PRIN")
+    goto 550
+  case("QUIE")
+    goto 552
+  case("DISP")
+    goto 170
+  case("TUNE")
+    goto 600
+  case("SYNC")
+    goto 710
+  case("ITER")
+    goto 940
+  case("FLUC")
+    goto 790
+  case("MULT")
+    goto 740
+  case("CHRO")
+    goto 560
+  case("TRAC")
+    goto 510
+  case("DIFF")
+    goto 520
+  case("LINE")
+    goto 660
+  case("LIMI")
+    goto 950
+  case("ORBI")
+    goto 980
+  case("INIT")
+    goto 500
+  case("COMB")
+    goto 1030
+  case("SUBR")
+    goto 1110
+  case("RESO")
+    goto 1120
+  case("SEAR")
+    goto 1200
+  case("ORGA")
+    goto 880
+  case("POST")
+    goto 1280
+  case("RIPP")
+    goto 1290
+  case("DECO")
+    goto 1320
+  case("COMM")
+    goto 1390
+  case("NORM")
+    goto 1400
+  case("CORR")
+    goto 1410
+  case("BEAM")
+    goto 1600
+  case("TROM")
+    goto 1700
+  case("COLL")
+    goto 1285
+  case("FLUK")
+    goto 1800
+  case("DIST")
+    goto 1900
+  case("DUMP")
+    goto 2000
+  case("DYNK")
+    goto 2200
+  case("BDEX")
+    goto 2250
+  case("FMA")
+    goto 2300
+  case("ELEN")
+    goto 2400
+  case("WIRE")
+    goto 2500
+  case("HION")
+    goto 2700
+  case("ZIPF")
+    goto 2800
+  case("SCAT")
+    goto 2900
+  case("ROOT")
+    goto 3000
+  case("HDF5")
+    goto 3100
+  case("NEXT")
+    goto 110
+  case("ENDE")
+    goto 771
+  case default
+    write(lout,*) "idat = '"//idat//"'"
+    call prror(15)
+  end select
 !-----------------------------------------------------------------------
 !  DATENBLOCK SINGLE ELEMENTS
 !  ELLEMENTLISTE
@@ -8649,169 +8689,8 @@ subroutine daten
           goto 190
         endif
       endif
-!      if(ch(17:17).ne." ") call prror(104)
-      i2=0
-      do i1=1,80
-        if(ch(i1:i1).ne." ".and.i2.eq.0) then
-          i2=i1
-        elseif(i2.gt.0) then
-          if(ch(i1:i1).eq." ") then
-            if(i1-i2.gt.max_name_len) then
-              call prror(104)
-            else
-              goto 165
-            endif
-          endif
-        endif
-      enddo
- 165  continue
-!       if(i1.gt.72) call prror(104)
-!       call intepr(1,1,ch,ch1) ! read in single element
       call sixin_parseInputLineSING(ch,i,inErr)
       if(inErr) goto 9999
-! !     write (*,*) 'ch1:'//ch1//':'
-! +if fio
-! +if crlibm
-!       call enable_xp()
-! +ei
-!       ! read fort.2 (or fort.3), idat -> bez = single element name,
-!       ! kz = type of element,
-!       ! ed,ek,el = strength, random error on strenght, length (can be anything)
-!       ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
-!       read(ch1,*,round='nearest')                                       &
-!      & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-! +if crlibm
-!       call disable_xp()
-! +ei
-! +ei
-! +if .not.fio
-! +if .not.crlibm
-! !     write (*,*) 'ERIC'
-!       ! read fort.2 (or fort.3), idat -> bez = single element name,
-!       ! kz = type of element,
-!       ! ed,ek,el = strength, random error on strenght, length (can be anything)
-!       ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
-!       read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-! +ei
-! +if crlibm
-! !     write(*,*) 'eric'
-!       if (nunit.eq.2) then
-!         call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields) !fort.2 input
-!       elseif (nunit.eq.3) then
-!         call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields) !fort.3 input
-!       else
-!          write(lout,*) 'ERROR in DATEN: nunit NOT 2 nor 3!'
-!          write(lout,*) 'Almost certainly a bug.'
-!          call prror(-1)
-!       endif
-!       if (nf.gt.0) then
-!         read(fields(1),*) idat
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         read(fields(2),*) kz(i)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         ed(i)=fround(errno,fields,3)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         ek(i)=fround(errno,fields,4)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         el(i)=fround(errno,fields,5)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         bbbx(i)=fround(errno,fields,6)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         bbby(i)=fround(errno,fields,7)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         bbbs(i)=fround(errno,fields,8)
-!         nf=nf-1
-!       endif
-! +ei
-! +ei
-!       !Check that the name is unique
-!       do j=1,i-1! i = index of current line
-!          if ( bez(j).eq.idat ) then
-!             write(lout,*) "ERROR in DATEN:"
-!             write(lout,*) "Got multiple copies of element ", bez(j)
-!             call prror(-1)
-!          endif
-!       enddo
-      idat=bez(i)
-
-!       if(kz(i).eq.25) then
-!         ed(i)=ed(i)/two
-!         ek(i)=ek(i)/two
-!       endif
-! !--CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-!       if((kz(i).eq.4.or.kz(i).eq.5).and.abs(el(i)).gt.pieni)            &
-!      &ed(i)=-one*ed(i)                                                   !hr05
-! !--CAVITIES
-!       if(abs(kz(i)).eq.12) then
-!         if(abs(ed(i)).gt.pieni.and.abs(ek(i)).gt.pieni) then
-!           ncy2=ncy2+1
-!           itionc(i)=kz(i)/abs(kz(i))
-!           kp(i)=6
-!         endif
-!       endif
-!----------------------------------------
-! Handled by initialize_element subroutine:
-!-----------------------------------------
-!-- CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-!-- THIN LENS (+/- 1-10)
-!-- MULTIPOLES (11)
-!-- CAVITY (+/- 12)
-!-- CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
-!-- ELECTRON LENSE (29)
-!      call initialize_element(i,.true.)
-
-! !--ACDIPOLE
-!       if(abs(kz(i)).eq.16) then
-!         if(abs(ed(i)).le.pieni) then
-!            kz(i)=0
-!            ed(i)=zero                                                     !hr05
-!            ek(i)=zero                                                    !hr05
-!            el(i)=zero                                                    !hr05
-!         else
-!            acdipph(i)=el(i)
-!            el(i)=zero                                                    !hr05
-!         endif
-!       endif
-! !--General
-!       if(abs(el(i)).gt.pieni.and.kz(i).ne.0) then
-!         ithick=1
-!       end if
-
-!      if(i.gt.nele-1) call prror(16)
-      !Changed to nele-2 to handle resizing correctly
-!       if(i.gt.nele-2) then
-!         call expand_arrays(nele+50, npart, nblz, nblo)
-
-!         !The value of nele will have been updated here
-!         call resize(sixin_bez0, max_name_len, nele, defaultstring, 'sixin_bez0')
-! !+if vvector
-! !        if (ithick.eq.1) then
-! !          call expand_thickarrays(nele+10, npart, nblz, nblo )
-! !        end if
-! !+ei
-!       end if
-
-!      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.sixin_ncy2.eq.0) ) then
-!        kp(i)=0
-!      end if
-
-! set element name
-      ! bez(i)=idat
-      ! sixin_bez0(i)=idat
       if(sixin_ncy2.eq.0) then
         !If no active RF cavities are seen so far in the single element list,
         ! add a CAV element to the end of the list.
@@ -8923,10 +8802,11 @@ subroutine daten
         lineno2=lineno2+1
         if(ch(1:1).eq.'/') goto 210
       endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      read(ch1,*) mper,(msym(k),k=1,mper)
-      if(mper.gt.nper) call prror(17)
+      ch1(:nchars+3)=ch(:nchars)//' / ' ! What is this for?
+      ! read(ch1,*) mper,(msym(k),k=1,mper)
+      ! if(mper.gt.nper) call prror(17)
       i=0
+      call sixin_parseInputLineBLOC(ch,i,inErr)
 
   220 do m=1,40
         ilm0(m)=idum
@@ -14829,15 +14709,17 @@ subroutine daten
 !-----------------------------------------------------------------------
       return
       
+9998  continue
+  ! Error handling for sixtrack_input module
+  write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineno2
+  call prror(-1)
+  return
+
 9999  continue
-      ! Error handling for sixtrack_input module
-      if(imod == 1) then
-        write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineno3
-      elseif(imod == 2) then
-        write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineno2
-      end if
-      call prror(-1)
-      return
+  ! Error handling for sixtrack_input module
+  write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineno3
+  call prror(-1)
+  return
       
 10000 format(11(a4,1x))
 10010 format(a4,8x,a60)

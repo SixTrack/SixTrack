@@ -219,6 +219,23 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   bez(iElem)        = elemName
   sixin_bez0(iElem) = elemName
   
+  !If no active RF cavities are seen so far in the single element list,
+  ! add a CAV element to the end of the list.
+  ! This is then overwritten when reading the next element, so that if
+  ! and only if no active RF cavities are found, a CAV element can be
+  ! used in the structure to enable 6D tracking using the parameters
+  ! from the SYNC block.
+  ! if(sixin_ncy2 == 0) then
+  !   ! iElem = iElem + 1
+  !   ! il=i
+  !   bez(iElem+1)        = "CAV"
+  !   sixin_bez0(iElem+1) = "CAV"
+  !   kp(iElem+1)         = 6
+  ! ! else
+  ! !   il=i
+  ! !   i=i+1
+  ! end if
+  
 end subroutine sixin_parseInputLineSING
 
 subroutine sixin_parseInputLineBLOC(inLine, iElem, iErr)
