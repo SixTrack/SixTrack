@@ -14,11 +14,94 @@ module sixtrack_input
   
   implicit none
   
+  ! Record of encountered blocks
+  character(len=:), allocatable, public, save :: sixin_cBlock(:) ! Name of block
+  integer,          allocatable, public, save :: sixin_iBlock(:) ! Line of block
+  logical,          allocatable, public, save :: sixin_lBlock(:) ! Block closed
+  integer,                       public, save :: sixin_nBlock    ! Number of blocks
+  
   ! Single Element Variables
   integer,                       public, save :: sixin_ncy2
   character(len=:), allocatable, public, save :: sixin_bez0(:) ! (max_name_len)(nele)
   
 contains
+
+subroutine sixin_checkBlock(blockName, blockOpened, blockClosed, blockLine)
+  
+  character(len=*), intent(in)    :: blockName
+  logical,          intent(inout) :: blockOpened
+  logical,          intent(inout) :: blockClosed
+  integer,          intent(out)   :: blockLine
+  
+  integer i
+  
+  blockOpened = .false.
+  blockClosed = .false.
+  
+  if(len(blockName) < 4) then
+    write(lout,"(a)") "SIXIN> WARNING Unknown blockname '"//blockName//"'"
+    return
+  end if
+  
+  ! We should of course not try to open a block "NEXT"
+  if(blockName == "NEXT") return
+  
+  if(allocated(sixin_cBlock)) then ! Assuming the others are allocated too
+    ! Check status of block, and increment line number if it exists
+    do i=1,sixin_nBlock
+      if(sixin_cBlock(i) == blockName) then
+        ! Block already opened, so don't add it to the list.
+        ! Just increment line number and return.
+        blockOpened     = .true.
+        blockClosed     = sixin_lBlock(i)
+        blockLine       = sixin_iBlock(i) + 1
+        sixin_iBlock(i) = blockLine
+        return
+      end if
+    end do
+    sixin_nBlock = sixin_nBlock + 1
+  else
+    ! If the array isn't allocated, it obviously doesn't contain anything
+    sixin_nBlock = 1
+  end if
+  
+  ! New block. Expand the arrays.
+  call alloc(sixin_cBlock,4,sixin_nBlock,"    ", "sixin_cBlock")
+  call alloc(sixin_iBlock,  sixin_nBlock,0,      "sixin_iBlock")
+  call alloc(sixin_lBlock,  sixin_nBlock,.false.,"sixin_lBlock")
+  
+  sixin_cBlock(sixin_nBlock)(1:4) = blockName(1:4)
+  sixin_iBlock(sixin_nBlock)      = 0
+  sixin_lBlock(sixin_nBlock)      = .true.
+  
+end subroutine sixin_checkBlock
+
+subroutine sixin_closeBlock(blockName)
+  
+  character(len=*), intent(in) :: blockName
+  
+  integer i
+  
+  do i=1,sixin_nBlock
+    if(sixin_cBlock(i) == blockName) then
+      sixin_lBlock(i) = .true.
+      return
+    end if
+  end do
+  
+end subroutine sixin_closeBlock
+
+subroutine sixin_blockReport
+  
+  integer i
+  
+  write(lout,"(a)") "SIXIN> Finished parsing input file(s)."
+  write(lout,"(a)") "SIXIN> Parsed the following blocks:"
+  do i=1,sixin_nBlock
+    write(lout,"(a,i3,a)") "SIXIN> * "//sixin_cBlock(i)//" block with ",sixin_iBlock(i)," lines"
+  end do
+  
+end subroutine sixin_blockReport
 
 subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   
@@ -66,13 +149,13 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   end do
   
   ! Save Values
-  if(nSplit > 1) kz(iElem)   = chr_toInt(chr_trimZero(lnSplit(2)))
-  if(nSplit > 2) ed(iElem)   = chr_toReal(chr_trimZero(lnSplit(3)))
-  if(nSplit > 3) ek(iElem)   = chr_toReal(chr_trimZero(lnSplit(4)))
-  if(nSplit > 4) el(iElem)   = chr_toReal(chr_trimZero(lnSplit(5)))
-  if(nSplit > 5) bbbx(iElem) = chr_toReal(chr_trimZero(lnSplit(6)))
-  if(nSplit > 6) bbby(iElem) = chr_toReal(chr_trimZero(lnSplit(7)))
-  if(nSplit > 7) bbbs(iElem) = chr_toReal(chr_trimZero(lnSplit(8)))
+  if(nSplit > 1) kz(iElem)   = chr_toInt(lnSplit(2))
+  if(nSplit > 2) ed(iElem)   = chr_toReal(lnSplit(3))
+  if(nSplit > 3) ek(iElem)   = chr_toReal(lnSplit(4))
+  if(nSplit > 4) el(iElem)   = chr_toReal(lnSplit(5))
+  if(nSplit > 5) bbbx(iElem) = chr_toReal(lnSplit(6))
+  if(nSplit > 6) bbby(iElem) = chr_toReal(lnSplit(7))
+  if(nSplit > 7) bbbs(iElem) = chr_toReal(lnSplit(8))
  
   if(kz(iElem) == 25) then
     ed(iElem) = ed(iElem)/two
@@ -137,5 +220,52 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   sixin_bez0(iElem) = elemName
   
 end subroutine sixin_parseInputLineSING
+
+subroutine sixin_parseInputLineBLOC(inLine, iElem, iErr)
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iElem
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: elemName
+  integer nSplit
+  
+  integer i
+  
+  call chr_split(inLine, lnSplit, nSplit)
+  
+  if(nSplit < 2) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
+    iErr = .true.
+    return
+  end if
+  
+  ! If first line, read super period information
+  if(iElem == 0) then
+    mper = chr_toInt(lnSplit(1))
+    if(mper > nper) then
+      write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition number of super periods is too large. Max value is ",nper
+      iErr = .true.
+      return
+    end if
+    if(mper > nSplit+1) then
+      write(lout,"(a)") "GEOMETRY> ERROR Block definition number of super periods does not match the number of values."
+      iErr = .true.
+      return
+    end if
+    do i=1,mper
+      msym(i) = chr_toInt(lnSplit(i+1))
+    end do
+    ! No need to parse anything more for this line
+    return
+  end if
+  
+  ! Parse normal line, iElem > 0
+  
+  
+end subroutine sixin_parseInputLineBLOC
 
 end module sixtrack_input
