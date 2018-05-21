@@ -133,8 +133,8 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   !   write(lout,"(a,i3,a)") "SING> ",i,": '"//chr_trimZero(lnSplit(i))//"'"
   ! end do
   
-  if(nSplit < 2) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must be at least 2 values, got ",nSplit
+  if(nSplit /= 5 .and. nSplit /= 8) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must be either 5 ot 8 values, got ",nSplit
     iErr = .true.
     return
   end if
@@ -283,8 +283,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iElem, iErr)
     do i=1,mper
       msym(i) = chr_toInt(lnSplit(i+1))
     end do
-    ! No need to parse anything more for this line
-    return
+    return ! No need to parse anything more for this line
   end if
   
   ! Parse normal line, iElem > 0
