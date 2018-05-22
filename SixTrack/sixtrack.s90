@@ -8205,11 +8205,11 @@ subroutine daten
   
   implicit none
   
-  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,    &
+  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,idi,iexnum,iexread,    &
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ndum,nfb,nft,i4,i5
-  ! integer ncy2
+  ! integer ncy2,icy
 ! +if time
 !   integer ifiend35
 !   real(kind=fPrec) tcnst
@@ -8351,7 +8351,7 @@ subroutine daten
   logical parseFort2
   integer nGeom
   
-  logical newParsing
+  logical newParsing, oneLine
   
   save
   
@@ -8404,7 +8404,6 @@ subroutine daten
       iclo6=0
       iclo6r=0
       iclr=0
-      icy=0
       ncy=0
       ! ncy2=0
       ndum=0
@@ -8518,7 +8517,9 @@ subroutine daten
 
   ! New variables for sixtrack_input module
   inErr      = .false.
+  oneLine    = .false.
   sixin_ncy2 = 0
+  sixin_icy  = 0
   
   nGeom = 0
   
@@ -8589,13 +8590,15 @@ subroutine daten
   ! Parse non-block flags
   select case(idat)
   case("PRIN") ! Enable the PRINT flag
-    iOut = 1
+    iOut    = 1
+    oneLine = .true.
     goto 110
   case("QUIE") ! Enable the QUIET flag
-    iQuiet = 1
+    iQuiet  = 1
+    oneLine = .true.
     goto 110
   case("NEXT") ! Close the current block
-    if(newParsing) then
+    if(newParsing .and. .not. oneLine) then
       ! Actual close check is done after a last pass so
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
@@ -8609,12 +8612,11 @@ subroutine daten
     goto 771
   end select
   
+  oneLine = .false.
+  
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("STRU")
-    nGeom = nGeom + 1
-    goto 320
   case("TUNE")
     goto 600
   case("SYNC")
@@ -8697,8 +8699,13 @@ subroutine daten
   
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
-  write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
-    "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  if(nUnit == 2) then
+    write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+      "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  else
+    write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+      "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  end if
   
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't.
@@ -8729,11 +8736,21 @@ subroutine daten
     
   case("BLOC") ! Block Definitions
     if(openBlock) then
-      continue
+      sixin_nBloc = 1
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
       call sixin_parseInputLineBLOC(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("STRU") ! Structure Input
+    if(openBlock) then
+      sixin_nStru = 0
+    elseif(closeBlock) then
+      nGeom = nGeom + 1
+    else
+      call sixin_parseInputLineSTRU(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -8839,92 +8856,92 @@ subroutine daten
 !  STRUCTURE INPUT
 !  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
 !-----------------------------------------------------------------------
-  320 i=0
+!   320 i=0
 
-  330 do k=1,40
-        ilm0(k)=idum
-      end do
+!   330 do k=1,40
+!         ilm0(k)=idum
+!       end do
 
-      if(imod.eq.1) then
-  350   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 350
-      endif
-      if(imod.eq.2) then
-  360   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 360
-      endif
-      if(ch(:4).eq.next) goto 110
-      i2=1
-      ! Look for repetition with syntax N( ... )
-      do 420 ii=1,80
-        if(ch(ii:ii).eq.kl) then !kl='('
-          if(ii.gt.1) then
+!       if(imod.eq.1) then
+!   350   read(3,10020,end=1530,iostat=ierro) ch
+!         if(ierro.gt.0) call prror(58)
+!         nunit=3
+!         lineno3=lineno3+1
+!         if(ch(1:1).eq.'/') goto 350
+!       endif
+!       if(imod.eq.2) then
+!   360   read(2,10020,end=1520,iostat=ierro) ch
+!         if(ierro.gt.0) call prror(57)
+!         nunit=2
+!         lineno2=lineno2+1
+!         if(ch(1:1).eq.'/') goto 360
+!       endif
+!       if(ch(:4).eq.next) goto 110
+!       i2=1
+!       ! Look for repetition with syntax N( ... )
+!       do 420 ii=1,80
+!         if(ch(ii:ii).eq.kl) then !kl='('
+!           if(ii.gt.1) then
 
-            do jj=1,ii-1
-              if(ch(jj:jj).ne.' ') goto 380
-            end do
+!             do jj=1,ii-1
+!               if(ch(jj:jj).ne.' ') goto 380
+!             end do
 
-          endif
-          iw=1
-          goto 390
-  380     read(ch(:ii-1),*) iw
-  390     ia=i
-          iw0=iw-1
-          i2=ii+1
-          goto 430
-        endif
-        if(ch(ii:ii).eq.kr) then !kr=')'
-          if(iw0.le.0) goto 330
-          idi=i-ia
-          do 410 k=1,iw0
-            do j=1,idi
-              ic(i+j)=ic(i+j-idi)
-            end do
-            i=i+idi
-  410     continue
-          mbloz=i
-          goto 330
-        endif
-  420 continue
-      ! Create the structure
-  430 call intepr(3,i2,ch,ch1)
-! reading character strings so OK
-      read(ch1,*) (ilm0(k),k=1,40)
-      do 490 k=1,40
-        if(ilm0(k).eq.idum) goto 490
-        if(ilm0(k).eq.go) goto 480
-        i=i+1
-        do 440 j=1,mblo !is it a BLOC?
-          if(bezb(j).eq.ilm0(k)) goto 470
-  440   continue
-        do 450 l=1,il   !is it a SINGLE ELEMENT?
-          if(sixin_bez0(l).eq.ilm0(k)) goto 460
-  450   continue
-        ! It was neither BLOC or SINGLE ELEMENT! ERROR!
-        erbez=ilm0(k)
-        call prror(20)
+!           endif
+!           iw=1
+!           goto 390
+!   380     read(ch(:ii-1),*) iw
+!   390     ia=i
+!           iw0=iw-1
+!           i2=ii+1
+!           goto 430
+!         endif
+!         if(ch(ii:ii).eq.kr) then !kr=')'
+!           if(iw0.le.0) goto 330
+!           idi=i-ia
+!           do 410 k=1,iw0
+!             do j=1,idi
+!               ic(i+j)=ic(i+j-idi)
+!             end do
+!             i=i+idi
+!   410     continue
+!           mbloz=i
+!           goto 330
+!         endif
+!   420 continue
+!       ! Create the structure
+!   430 call intepr(3,i2,ch,ch1)
+! ! reading character strings so OK
+!       read(ch1,*) (ilm0(k),k=1,40)
+!       do 490 k=1,40
+!         if(ilm0(k).eq.idum) goto 490
+!         if(ilm0(k).eq.go) goto 480
+!         i=i+1
+!         do 440 j=1,mblo !is it a BLOC?
+!           if(bezb(j).eq.ilm0(k)) goto 470
+!   440   continue
+!         do 450 l=1,il   !is it a SINGLE ELEMENT?
+!           if(sixin_bez0(l).eq.ilm0(k)) goto 460
+!   450   continue
+!         ! It was neither BLOC or SINGLE ELEMENT! ERROR!
+!         erbez=ilm0(k)
+!         call prror(20)
         
-        ! Handle SINGLE ELEMENT
-  460   continue
-        ic(i)=l+nblo
-        if(sixin_bez0(l).eq.cavi) icy=icy+1
-        goto 490
+!         ! Handle SINGLE ELEMENT
+!   460   continue
+!         ic(i)=l+nblo
+!         if(sixin_bez0(l).eq.cavi) sixin_icy=sixin_icy+1
+!         goto 490
 
-        !Handle BLOC
-  470   ic(i)=j
-        goto 490
-        !Handle GO
-  480   kanf=i+1
-  490 continue
-      mbloz=i
-      if(mbloz.gt.nblz-2) call prror(21)
-      goto 330
+!         !Handle BLOC
+!   470   ic(i)=j
+!         goto 490
+!         !Handle GO
+!   480   kanf=i+1
+!   490 continue
+!       mbloz=i
+!       if(mbloz.gt.nblz-2) call prror(21)
+!       goto 330
 !-----------------------------------------------------------------------
 !  INITIAL COORDINATES
 !-----------------------------------------------------------------------
@@ -9997,7 +10014,7 @@ subroutine daten
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
       if(sixin_ncy2.eq.0) then
-        ncy=icy*mper
+        ncy=sixin_icy*mper
         idp=1
         if(ncy.ne.0) goto 720
         idp=0

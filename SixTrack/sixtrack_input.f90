@@ -24,13 +24,18 @@ module sixtrack_input
   integer,                       public, save :: sixin_nSing
   integer,                       public, save :: sixin_ncy2
   character(len=:), allocatable, public, save :: sixin_bez0(:) ! (str_maxName)(nele)
-! character(len=3), parameter,   public,      :: sixin_cavity = "CAV"
+  character(len=3), parameter,   public       :: sixin_cavity = "CAV"
   
   ! Block Definition Variables
   integer,                       public, save :: sixin_nBloc
   character(len=:), allocatable, public, save :: sixin_beze(:,:)
   character(len=:), allocatable, public, save :: sixin_ilm(:)
   integer,                       public, save :: sixin_k0
+  
+  ! Structure Input Variables
+  integer,                       public, save :: sixin_nStru
+  integer,                       public, save :: sixin_icy
+  character(len=2), parameter,   public       :: sixin_go = "GO"
   
 contains
 
@@ -243,8 +248,8 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   if(sixin_ncy2 == 0) then
     iElem = iElem + 1
     il    = iElem
-    bez(iElem)        = "CAV"
-    sixin_bez0(iElem) = "CAV"
+    bez(iElem)        = sixin_cavity
+    sixin_bez0(iElem) = sixin_cavity
     kp(iElem)         = 6
   else
     il    = iElem
@@ -279,6 +284,12 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     return
   end if
   
+  if(nSplit > 40) then
+    write(lout,"(a)") "GEOMETRY> ERROR Block definition cannot have more then 40 elements."
+    iErr = .true.
+    return
+  end if
+  
   ! If first line, read super period information
   if(iLine == 1) then
     mper = chr_toInt(lnSplit(1))
@@ -297,7 +308,6 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     end do
     
     ! Init variables
-    sixin_nBloc = 0
     call alloc(sixin_ilm,  str_maxName,       nelb, str_nmSpace, "sixin_ilm")
     call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
     
@@ -386,81 +396,56 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
   
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=:), allocatable   :: blocName
+  character(len=:), allocatable   :: expLine
   integer nSplit
   
-  integer i
+  integer i, j
   character(len=str_maxName) ilm0(40)
-  
-  call chr_split(inLine, lnSplit, nSplit)
   
   do i=1,40
     ilm0(i) = str_nmSpace
   end do
   
-!     i2=1
-!     ! Look for repetition with syntax N( ... )
-!     do 420 ii=1,80
-!       if(ch(ii:ii).eq.kl) then !kl='('
-!         if(ii.gt.1) then
-
-!           do jj=1,ii-1
-!             if(ch(jj:jj).ne.' ') goto 380
-!           end do
-
-!         endif
-!         iw=1
-!         goto 390
-! 380     read(ch(:ii-1),*) iw
-! 390     ia=i
-!         iw0=iw-1
-!         i2=ii+1
-!         goto 430
-!       endif
-!       if(ch(ii:ii).eq.kr) then !kr=')'
-!         if(iw0.le.0) goto 330
-!         idi=i-ia
-!         do 410 k=1,iw0
-!           do j=1,idi
-!             ic(i+j)=ic(i+j-idi)
-!           end do
-!           i=i+idi
-! 410     continue
-!         mbloz=i
-!         goto 330
-!       endif
-! 420 continue
-!     ! Create the structure
-! 430 call intepr(3,i2,ch,ch1)
-! ! reading character strings so OK
-!     read(ch1,*) (ilm0(k),k=1,40)
-!     do 490 k=1,40
-!       if(ilm0(k).eq.idum) goto 490
-!       if(ilm0(k).eq.go) goto 480
-!       i=i+1
-!       do 440 j=1,mblo !is it a BLOC?
-!         if(bezb(j).eq.ilm0(k)) goto 470
-! 440   continue
-!       do 450 l=1,il   !is it a SINGLE ELEMENT?
-!         if(sixin_bez0(l).eq.ilm0(k)) goto 460
-! 450   continue
-!       ! It was neither BLOC or SINGLE ELEMENT! ERROR!
-!       erbez=ilm0(k)
-!       call prror(20)
-      
-!       ! Handle SINGLE ELEMENT
-! 460   continue
-!       ic(i)=l+nblo
-!       if(sixin_bez0(l).eq.cavi) icy=icy+1
-!       goto 490
-
-!       !Handle BLOC
-! 470   ic(i)=j
-!       goto 490
-!       !Handle GO
-! 480   kanf=i+1
-! 490 continue
-!     mbloz=i
+  expLine = chr_expandBrackets(inLine)
+  call chr_split(expLine, lnSplit, nSplit)
+  
+  if(nSplit > 40) then
+    write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have more then 40 elements."
+    iErr = .true.
+    return
+  end if
+  
+  do i=1,nSplit
+    ilm0(i) = chr_trimZero(lnSplit(i))
+  end do
+  
+  do i=1,40
+    
+    if(ilm0(i) == str_nmSpace) cycle
+    if(ilm0(i) == sixin_go) then
+      kanf = sixin_nStru + 1
+      cycle
+    end if
+    
+    sixin_nStru = sixin_nStru + 1
+    
+    do j=1,mblo ! is it a BLOC?
+      if(bezb(j) == ilm0(i)) then
+        ic(sixin_nStru) = j
+        cycle
+      end if
+    end do
+    
+    do j=1,il ! is it a SINGLE ELEMENT?
+      if(sixin_bez0(j) == ilm0(i)) then
+        ic(sixin_nStru) = j+nblo
+        if(sixin_bez0(j) == sixin_cavity) sixin_icy = sixin_icy+1
+        cycle
+      end if
+    end do
+  end do
+  
+  mbloz = sixin_nStru
 !     if(mbloz.gt.nblz-2) call prror(21)
   
 end subroutine sixin_parseInputLineSTRU

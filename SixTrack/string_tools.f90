@@ -152,11 +152,11 @@ function chr_expandBrackets(theString) result(theResult)
   
   implicit none
   
-  character(len=*), intent(inout) :: theString
-  character(len=:), allocatable   :: theResult, theBuffer
+  character(len=*), intent(in)  :: theString
+  character(len=:), allocatable :: theResult, theBuffer
   
   integer, allocatable :: bPos(:,:)
-  integer ch, nLB, nRB, nB, lSP, lLB, iSet, nSet, iPos, iMult
+  integer ch, nLB, nRB, nB, tSP, lSP, lLB, iSet, nSet, iPos, iMult
   
   ! Count the brackets
   nLB = 0
@@ -180,8 +180,11 @@ function chr_expandBrackets(theString) result(theResult)
   lLB  = 0
   iSet = 0
   do ch=1,len(theBuffer)
-    if(theBuffer(ch:ch) == " ") lSP = ch
-    if(theBuffer(ch:ch) == "(") lLB = ch
+    if(theBuffer(ch:ch) == " ") tSP = ch
+    if(theBuffer(ch:ch) == "(") then
+      lSP = tSP
+      lLB = ch
+    end if
     if(theBuffer(ch:ch) == ")") then
       if(lSP > 0 .and. lLB > 0 .and. lLB-lSP > 1 .and. ch-lSP > 2) then
         iSet = iSet + 1
