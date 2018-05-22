@@ -8633,8 +8633,6 @@ subroutine daten
     goto 190
   case("STRU")
     goto 320
-  case("DISP")
-    goto 170
   case("TUNE")
     goto 600
   case("SYNC")
@@ -8724,6 +8722,16 @@ subroutine daten
   end if
   
   select case(currBlock)
+  
+  case("DISP") ! Displacement of Elements
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineDISP(ch,inErr)
+      if(inErr) goto 9999
+    end if
   
   case("HION") ! Hisix heavy ion input block
     if(openBlock) then
@@ -8841,99 +8849,7 @@ subroutine daten
       endif
       call sixin_parseInputLineSING(ch,i,inErr)
       if(inErr) goto 9999
-      if(sixin_ncy2.eq.0) then
-        !If no active RF cavities are seen so far in the single element list,
-        ! add a CAV element to the end of the list.
-        ! This is then overwritten when reading the next element, so that if
-        ! and only if no active RF cavities are found, a CAV element can be
-        ! used in the structure to enable 6D tracking using the parameters
-        ! from the SYNC block.
-        i=i+1
-        il=i
-        bez(i)=cavi
-        sixin_bez0(i)=cavi
-        kp(i)=6
-      else
-        il=i
-        i=i+1
-      endif
       goto 130
-!-----------------------------------------------------------------------
-!  DATENBLOCK DISPLACEMENT OF ELEMENTS
-!-----------------------------------------------------------------------
-  170 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 170
-      if(ch(:4).eq.next) goto 110
-      call intepr(1,1,ch,ch1)
-      xpl0=zero
-      xrms0=zero
-      zpl0=zero
-      zrms0=zero
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,xpl0,xrms0,zpl0,zrms0
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      read(ch1,*) idat,xpl0,xrms0,zpl0,zrms0
-+ei
-+if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xpl0=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xrms0=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        zpl0=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        zrms0=fround(errno,fields,5)
-        nf=nf-1
-      endif
-+ei
-+ei
-      do 180 j=1,il
-        if(idat.ne.bez(j)) goto 180
-        xpl(j)=xpl0
-        xrms(j)=xrms0
-        zpl(j)=zpl0
-        zrms(j)=zrms0
-!----Insertion for AC dipole
-        if(abs(kz(j)).eq.16) then
-          nturn1(j)=int(xpl0)
-          nturn2(j)=int(xrms0)
-          nturn3(j)=int(zpl0)
-          nturn4(j)=int(zrms0)
-          xpl(j)=zero
-          xrms(j)=zero
-          zpl(j)=zero
-          zrms(j)=zero
-          if(xrms0.eq.zero.and.zpl0.eq.zero.and.zrms0.eq.zero) then         !hr05
-            write(lout,*) "ac dipole disregarded (0 length)"
-            kz(j)=0
-            ed(j)=zero                                                   !hr05
-            ek(j)=zero                                                   !hr05
-          endif
-        endif
-  180 continue
-      goto 170
 !-----------------------------------------------------------------------
 !  BLOCK DEFINITIONS
 !  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)

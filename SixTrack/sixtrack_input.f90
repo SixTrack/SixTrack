@@ -117,7 +117,7 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   implicit none
   
   character(len=*), intent(in)    :: inLine
-  integer,          intent(in)    :: iElem
+  integer,          intent(inout) :: iElem
   logical,          intent(inout) :: iErr
   
   character(len=:), allocatable   :: lnSplit(:)
@@ -133,8 +133,8 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   !   write(lout,"(a,i3,a)") "SING> ",i,": '"//chr_trimZero(lnSplit(i))//"'"
   ! end do
   
-  if(nSplit /= 5 .and. nSplit /= 8) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must be either 5 ot 8 values, got ",nSplit
+  if(nSplit <= 2) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must have more than 2 values, got ",nSplit
     iErr = .true.
     return
   end if
@@ -232,16 +232,16 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   ! and only if no active RF cavities are found, a CAV element can be
   ! used in the structure to enable 6D tracking using the parameters
   ! from the SYNC block.
-  ! if(sixin_ncy2 == 0) then
-  !   ! iElem = iElem + 1
-  !   ! il=i
-  !   bez(iElem+1)        = "CAV"
-  !   sixin_bez0(iElem+1) = "CAV"
-  !   kp(iElem+1)         = 6
-  ! ! else
-  ! !   il=i
-  ! !   i=i+1
-  ! end if
+  if(sixin_ncy2 == 0) then
+    iElem = iElem + 1
+    il    = iElem
+    bez(iElem)        = "CAV"
+    sixin_bez0(iElem) = "CAV"
+    kp(iElem)         = 6
+  else
+    il    = iElem
+    iElem = iElem + 1
+  end if
   
 end subroutine sixin_parseInputLineSING
 
@@ -290,5 +290,75 @@ subroutine sixin_parseInputLineBLOC(inLine, iElem, iErr)
   
   
 end subroutine sixin_parseInputLineBLOC
+
+subroutine sixin_parseInputLineDISP(inLine, iErr)
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: elemName
+  integer nSplit
+  
+  integer i
+  real(kind=fPrec) xpl0, xrms0, zpl0, zrms0
+  
+  call chr_split(inLine, lnSplit, nSplit)
+  
+  xpl0  = zero
+  xrms0 = zero
+  zpl0  = zero
+  zrms0 = zero
+  
+  if(nSplit < 2) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Displacement of element line must have more than 1 values, got ",nSplit
+    iErr = .true.
+    return
+  end if
+  
+  elemName = chr_trimZero(lnSplit(1))
+  if(len(elemName) > max_name_len) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Displacement of element name too long. Max length is ",max_name_len
+    iErr = .true.
+    return
+  end if
+  
+  ! Save Values
+  if(nSplit > 1) xpl0  = chr_toReal(lnSplit(2))
+  if(nSplit > 2) xrms0 = chr_toReal(lnSplit(3))
+  if(nSplit > 3) zpl0  = chr_toReal(lnSplit(4))
+  if(nSplit > 4) zrms0 = chr_toReal(lnSplit(5))
+  
+  do i=1,il
+    if(elemName /= bez(i)) cycle
+    
+    xpl(i)  = xpl0
+    xrms(i) = xrms0
+    zpl(i)  = zpl0
+    zrms(i) = zrms0
+    
+    ! Insertion for AC dipole
+    if(abs(kz(i)) == 16) then
+      nturn1(i) = int(xpl0)
+      nturn2(i) = int(xrms0)
+      nturn3(i) = int(zpl0)
+      nturn4(i) = int(zrms0)
+      xpl(i)    = zero
+      xrms(i)   = zero
+      zpl(i)    = zero
+      zrms(i)   = zero
+      if(xrms0 == zero .and. zpl0 == zero .and. zrms0 == zero) then
+        write(lout,"(a)") "INPUT> INFO DISP Block: AC dipole disregarded, 0-length."
+        kz(i) = 0
+        ed(i) = zero
+        ek(i) = zero
+      end if
+    end if
+    
+  end do
+  
+end subroutine sixin_parseInputLineDISP
 
 end module sixtrack_input
