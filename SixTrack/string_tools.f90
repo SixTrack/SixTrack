@@ -153,102 +153,62 @@ function chr_expandBrackets(theString) result(theResult)
   implicit none
   
   character(len=*), intent(inout) :: theString
+  character(len=:), allocatable   :: theResult, theBuffer
   
-  character(len=:), allocatable :: theResult
-  character(len=:), allocatable :: tmpRep, tmpMult, tmpRes
-  integer ch, bk, rp
-  integer iMult, mPos, rLen, tLen, iClear, iSp
-  logical bOpen
+  integer, allocatable :: bPos(:,:)
+  integer ch, nLB, nRB, nB, lSP, lLB, iSet, nSet, iPos, iMult
   
-  bOpen   = .false.
-  iMult   = 1
-  tmpMult = ""
-  tmpRep  = ""
-  tmpRes  = ""
-  
+  ! Count the brackets
+  nLB = 0
+  nRB = 0
   do ch=1,len(theString)
-    
-    ! First, just append everything
-    tmpRes = tmpRes//theString(ch:ch)
-    rLen   = len(tmpRes)
-    
-    ! Register entering a bracket region
-    if(theString(ch:ch) == "(" .and. .not. bOpen) then
-      mPos  = ch
-      bOpen = .true.
-    end if
-    
-    ! While in a bracket region, buffer all new chars
-    if(bOpen) then
-      tmpRep = tmpRep//theString(ch:ch)
-    end if
-    
-    ! Exiting a bracket region is when all the fun stuff happens
-    if(theString(ch:ch) == ")" .and. bOpen) then
-      
-      tLen = len(tmpRep)
-      
-      ! If it's empty, don't bother.
-      if(tLen < 3) goto 10
-      
-      ! Look backwards for integers, and buffer them
-      do bk=1,mPos-1
-        if(.not. chr_isInt(theString(mPos-bk:mPos-bk))) exit
-        tmpMult = theString(mPos-bk:mPos-bk)//tmpMult
-      end do
-      
-      ! If integer was found, convert it, otherwise, meh.
-      if(len(tmpMult) > 0) then
-        iMult = chr_toInt(tmpMult)
-      else
-        goto 10
-      end if
-      
-      ! Clear out all the bracket related stuff in the return buffer
-      iClear = rLen - tlen - len(tmpMult) + 1
-      if(iClear > 0) then
-        tmpRes(iClear:rLen) = repeat(" ",rLen-iClear+1)
-      end if
-      
-      ! Append all the repeated bits
-      do rp=1,iMult
-        tmpRes = tmpRes//tmpRep(2:tLen-1)//" "
-      end do
-      
-      ! Rince and repeat, or give up if it's one of those days
-  10  continue
-      bOpen   = .false.
-      tmpRep  = ""
-      tmpMult = ""
-      iMult   = 1
-    end if
+    if(theString(ch:ch) == "(") nLB = nLB + 1
+    if(theString(ch:ch) == ")") nRB = nRB + 1
   end do
   
-  ! Comapct the result
-  iSp       = 1
-  theResult = ""
-  do ch=1,len(tmpRes)
-    if(tmpRes(ch:ch) == " ") then
-      iSp = iSp + 1
-    else
-      iSp = 0
-    end if
-    if(iSp < 2) then
-      theResult = theResult//tmpres(ch:ch)
+  ! If there are none, then just return
+  if(nLB == 0 .or. nLB /= nRB) then
+    theResult = theString
+    return
+  end if
+  
+  ! Otherwise, Get all the positions for slicing
+  allocate(bPos(3,nLB))
+  theBuffer = " "//theString//" "
+  bPos(:,:) = 0
+  lSP  = 0
+  lLB  = 0
+  iSet = 0
+  do ch=1,len(theBuffer)
+    if(theBuffer(ch:ch) == " ") lSP = ch
+    if(theBuffer(ch:ch) == "(") lLB = ch
+    if(theBuffer(ch:ch) == ")") then
+      if(lSP > 0 .and. lLB > 0 .and. lLB-lSP > 1 .and. ch-lSP > 2) then
+        iSet = iSet + 1
+        bPos(1,iSet) = lSP
+        bPos(2,iSet) = lLB
+        bPos(3,iSet) = ch
+        lSP = 0
+        lLB = 0
+      end if
     end if
   end do
+  nSet = iSet
+  
+  ! Then combine all the pieces
+  iPos      = 1
+  theResult = ""
+  do iSet=1,nSet
+    theResult = theResult//theBuffer(iPos:bPos(1,iSet))
+    iMult     = chr_toInt(theBuffer(bPos(1,iSet)+1:bPos(2,iSet)-1))
+    theResult = theResult//repeat(theBuffer(bPos(2,iSet)+1:bPos(3,iSet)-1)//" ",iMult)
+    iPos      = bPos(3,iSet)+1
+  end do
+  theResult = trim(adjustl(theResult//theBuffer(iPos:)))
+  
+  deallocate(bPos)
   
 end function chr_expandBrackets
-
-logical elemental function chr_isInt(theChar)
-  character, intent(in) :: theChar
-  select case(theChar)
-  case("0","1","2","3","4","5","6","7","8","9")
-    chr_isInt = .true.
-  case default
-    chr_isInt = .false.
-  end select
-end function chr_isInt
 
 ! ================================================================================================ !
 !  Safe Append to Array
