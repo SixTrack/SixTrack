@@ -23,6 +23,7 @@ module sixtrack_input
   ! Single Element Variables
   integer,                       public, save :: sixin_ncy2
   character(len=:), allocatable, public, save :: sixin_bez0(:) ! (max_name_len)(nele)
+  ! character(len=3), parameter,   public,      :: sixin_cavity = "CAV"
   
 contains
 
@@ -163,7 +164,7 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   if(nSplit > 5) bbbx(iElem) = chr_toReal(lnSplit(6))
   if(nSplit > 6) bbby(iElem) = chr_toReal(lnSplit(7))
   if(nSplit > 7) bbbs(iElem) = chr_toReal(lnSplit(8))
- 
+  
   if(kz(iElem) == 25) then
     ed(iElem) = ed(iElem)/two
     ek(iElem) = ek(iElem)/two
@@ -213,7 +214,7 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   end if
   
   ! Expand Arrays
-  if(iElem  > nele-2) then
+  if(iElem > nele-2) then
     call expand_arrays(nele+50, npart, nblz, nblo)
     ! The value of nele will have been updated here
     call resize(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")

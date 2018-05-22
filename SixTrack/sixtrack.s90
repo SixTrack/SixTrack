@@ -8346,7 +8346,10 @@ subroutine daten
   character(len=4) currBlock
   logical blockOpened, blockClosed
   logical openBlock, closeBlock
-  integer blockLine
+  integer blockLine, iElem
+  
+  logical parseFort2
+  integer nGeom
   
   logical newParsing
   
@@ -8414,11 +8417,7 @@ subroutine daten
       ! ncy2=0
       ndum=0
       numl=1
-  
-  ! New variables for sixtrack_input module
-  inErr      = .false.
-  sixin_ncy2 = 0
-
+        
 !  Initialise new input parameters
       numlmax=1000000
       numlcp=0
@@ -8525,22 +8524,29 @@ subroutine daten
 +ei
       has_hion = .false.
 
-  ! ================================================================== !
-  !  READ FORT.3 HEADER
-  ! ================================================================== !
+  ! New variables for sixtrack_input module
+  inErr      = .false.
+  sixin_ncy2 = 0
+  
+  nGeom = 0
+  
+! ================================================================================================ !
+!  READ FORT.3 HEADER
+! ================================================================================================ !
+  
 90 continue
   read(3,10010,end=1530,iostat=ierro) idat,ihead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(idat(1:1) == "/") goto 90
-
-  ! imod=1: free, definition of elements in fort.3
-  ! imod=2: geom, definition of elements in fort.2
+  
   select case(idat)
-  case("FREE")
-    iMod = 1
-  case("GEOM")
-    iMod = 2
+  case("FREE") ! Mode FREE. Elements in fort.3
+    iMod       = 1
+    parseFort2 = .false.
+  case("GEOM") ! Mode GEOM. Elements in fort.2
+    iMod       = 2
+    parseFort2 = .true.
   case default
     call prror(1)
   end select
@@ -8553,38 +8559,9 @@ subroutine daten
   if(imod.eq.2) write(lout,10200)
   write(lout,10130)
   
-  if(imod == 1) goto 110 ! Not reading fort.2
-  
-  ! ================================================================== !
-  !  PARSE FORT.2
-  ! ================================================================== !
-  currBlock   = "NONE"
-  blockOpened = .false.
-  blockClosed = .false.
-  
-100 continue
-  read(2,10000,end=1520,iostat=ierro) ch
-  if(iErro > 0) call prror(57)
-  
-  nUnit   = 2
-  lineNo2 = lineNo2 + 1
-  
-  if(len(ch) == 0)   goto 100 ! Empty line, ignore
-  if(ch(1:1) == "/") goto 100 ! Comment line, ignore
-  if(len(ch) >= 4)   idat = ch(1:4)
-  
-  select case(idat)
-  case("SING")
-    goto 120
-  case("BLOC")
-    goto 190
-  case("STRU")
-    goto 320
-  end select
-  
-  ! ================================================================== !
-  !  PARSE FORT.3
-  ! ================================================================== !
+! ================================================================================================ !
+!  BEGIN PARSING FORT.2 AND FORT.3
+! ================================================================================================ !
   
   currBlock   = "NONE"  ! The current block being parsed
   openBlock   = .false. ! Whether the current block was opened on this pass
@@ -8592,12 +8569,25 @@ subroutine daten
   closeBlock  = .false. ! Whether the current block should be closed after the pass
   blockClosed = .false. ! Whether the current block is now closed, and should not be opened again
   
-110 continue
-  read(3, 10020, end=1530, iostat=iErro) ch
-  if(iErro > 0) call prror(58)
+100 continue ! fort.2 loop
+110 continue ! fort.3 loop
   
-  nUnit   = 3
-  lineNo3 = lineNo3 + 1
+  ! We have our three geometry blocks, stop parsing fort.2
+  if(nGeom >= 3) parseFort2 = .false.
+  
+  if(parseFort2) then
+    read(2, 10020, end=1530, iostat=iErro) ch
+    nUnit   = 2
+    lineNo2 = lineNo2 + 1
+  else
+    read(3, 10020, end=1530, iostat=iErro) ch
+    nUnit   = 3
+    lineNo3 = lineNo3 + 1
+  end if
+  if(iErro > 0) then
+    write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
+    call prror(-1)
+  end if
   
   if(len(ch) == 0)   goto 110 ! Empty line, ignore
   if(ch(1:1) == "/") goto 110 ! Comment line, ignore
@@ -8627,11 +8617,11 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("SING")
-    goto 120
   case("BLOC")
+    nGeom = nGeom + 1
     goto 190
   case("STRU")
+    nGeom = nGeom + 1
     goto 320
   case("TUNE")
     goto 600
@@ -8723,6 +8713,16 @@ subroutine daten
   
   select case(currBlock)
   
+  case("SING") ! Single Elements Block
+    if(openBlock) then
+      iElem = 1
+    elseif(closeBlock) then
+      nGeom = nGeom + 1
+    else
+      call sixin_parseInputLineSING(ch,iElem,inErr)
+      if(inErr) goto 9999
+    end if
+    
   case("DISP") ! Displacement of Elements
     if(openBlock) then
       continue
@@ -8813,43 +8813,12 @@ subroutine daten
     closeBlock = .false. ! Switch off the flag
   end if
   
-  goto 110
+  goto 110 ! Get next line
   
-!-----------------------------------------------------------------------
-!  DATENBLOCK SINGLE ELEMENTS
-!  ELLEMENTLISTE
-!  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
-!-----------------------------------------------------------------------
-  120 i=1
-  130 if(imod.eq.1) then
-  140   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 140
-        if(ch(:4).eq.next) goto 110
-      else if(imod.eq.2) then
-  150   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 150
-        if(ch(:4).eq.next) then
-  160     read(2,10000,end=1520,iostat=ierro) idat
-          if(ierro.gt.0) call prror(57)
-          nunit=2
-          lineno2=lineno2+1
-          if(idat(1:1).eq.'/') goto 160
-          if(idat.ne.bloc) then
-            write(lout,*) "idat = '"//idat//"'"
-            call prror(15)
-          endif
-          goto 190
-        endif
-      endif
-      call sixin_parseInputLineSING(ch,i,inErr)
-      if(inErr) goto 9999
-      goto 130
+! ================================================================================================ !
+!  DONE PARSING FORT.2 AND FORT.3
+! ================================================================================================ !
+
 !-----------------------------------------------------------------------
 !  BLOCK DEFINITIONS
 !  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
@@ -8891,18 +8860,19 @@ subroutine daten
         nunit=2
         lineno2=lineno2+1
         if(ch(1:1).eq.'/') goto 250
-        if(ch(:4).eq.next) then
-  260     read(2,10000,end=1520,iostat=ierro) idat
-          if(ierro.gt.0) call prror(57)
-          nunit=2
-          lineno2=lineno2+1
-          if(idat(1:1).eq.'/') goto 260
-          if(idat.ne.stru) then
-            write(lout,*) "idat = '"//idat//"'"
-            call prror(15)
-          endif
-          goto 320
-        endif
+        if(ch(:4).eq.next) goto 110
+  !       if(ch(:4).eq.next) then
+  ! 260     read(2,10000,end=1520,iostat=ierro) idat
+  !         if(ierro.gt.0) call prror(57)
+  !         nunit=2
+  !         lineno2=lineno2+1
+  !         if(idat(1:1).eq.'/') goto 260
+  !         if(idat.ne.stru) then
+  !           write(lout,*) "idat = '"//idat//"'"
+  !           call prror(15)
+  !         endif
+  !         goto 320
+  !       endif
       endif
       call intepr(2,1,ch,ch1)
 ! reading character strings so OK
@@ -14633,17 +14603,15 @@ subroutine daten
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-      return
-      
-9998  continue
-  ! Error handling for sixtrack_input module
-  write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineno2
-  call prror(-1)
   return
-
-9999  continue
+  
+9999 continue
   ! Error handling for sixtrack_input module
-  write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineno3
+  if(nUnit == 2) then
+    write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineNo2
+  else
+    write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineNo3
+  end if
   call prror(-1)
   return
       
