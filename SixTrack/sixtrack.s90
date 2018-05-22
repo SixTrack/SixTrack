@@ -8228,7 +8228,7 @@ subroutine daten
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
+  character(len=max_name_len) iss,iqq,iele,ilm0,idum,corr,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
   ! character(len=:), allocatable :: sixin_bez0(:) !(max_name_len)(nele)
@@ -8301,7 +8301,7 @@ subroutine daten
   real(kind=fPrec) eLensTheta
   
   dimension icel(ncom,20),iss(2),iqq(5)
-  dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
+  dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
   data sing,stru,prin,quie,sync,ende,next,comm /'SING','STRU','PRIN','QUIE','SYNC','ENDE','NEXT','COMM'/
   data fluc,mult,chro,iter,tune,line,trac,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
@@ -8375,11 +8375,6 @@ subroutine daten
 !        sixin_bez0(i)=' '
 !      end do
 
-      do i=1,nblo
-        do j=1,nelb
-          beze(i,j)=' '
-        end do
-      end do
 
       do i=1,40
         ilm0(i)=' '
@@ -8400,9 +8395,6 @@ subroutine daten
         ic0(i)=' '
       end do
 
-      do i=1,nelb
-        ilm(i)=' '
-      end do
 
       emitnx=zero
       emitny=zero
@@ -8620,9 +8612,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("BLOC")
-    nGeom = nGeom + 1
-    goto 190
   case("STRU")
     nGeom = nGeom + 1
     goto 320
@@ -8718,8 +8707,8 @@ subroutine daten
     goto 9999
   end if
   
-  ! Block-wise parsing code.
-  !==========================
+  ! Block-Wise Parsing Code
+  !=========================
   ! These are parsed one line at a time, including the block declaration and the NEXT.
   ! When the block is first encountered, the 'openBlock' flag is .true. for one pass.
   ! When the block is closed, the 'closeBlock' flag is .true. for the final pass.
@@ -8735,6 +8724,16 @@ subroutine daten
       nGeom = nGeom + 1
     else
       call sixin_parseInputLineSING(ch,iElem,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("BLOC") ! Block Definitions
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      nGeom = nGeom + 1
+    else
+      call sixin_parseInputLineBLOC(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -8835,89 +8834,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  BLOCK DEFINITIONS
-!  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
-!-----------------------------------------------------------------------
-  190 if(imod.eq.1) then
-  200   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 200
-      endif
-      if(imod.eq.2) then
-  210   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 210
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / ' ! What is this for?
-      ! read(ch1,*) mper,(msym(k),k=1,mper)
-      ! if(mper.gt.nper) call prror(17)
-      i=0
-      call sixin_parseInputLineBLOC(ch,i,inErr)
-
-  220 do m=1,40
-        ilm0(m)=idum
-      end do
-
-      if(imod.eq.1) then
-  240   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 240
-        if(ch(:4).eq.next) goto 110
-      else if(imod.eq.2) then
-  250   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 250
-        if(ch(:4).eq.next) goto 110
-  !       if(ch(:4).eq.next) then
-  ! 260     read(2,10000,end=1520,iostat=ierro) idat
-  !         if(ierro.gt.0) call prror(57)
-  !         nunit=2
-  !         lineno2=lineno2+1
-  !         if(idat(1:1).eq.'/') goto 260
-  !         if(idat.ne.stru) then
-  !           write(lout,*) "idat = '"//idat//"'"
-  !           call prror(15)
-  !         endif
-  !         goto 320
-  !       endif
-      endif
-      call intepr(2,1,ch,ch1)
-! reading character strings so OK
-      read(ch1,*) idat,(ilm0(m),m=1,40)
-      if(idat.eq.idum) goto 270
-      i=i+1 ! Current BLOC number
-      if(i.gt.nblo-1) call prror(18)
-      bezb(i)=idat
-      k0=0
-      mblo=i ! Update total number of BLOCs
-  270 ka=k0+1
-      ke=k0+40
-      do 300 l=ka,ke
-        if(l.gt.nelb) call prror(26)
-        ilm(l)=ilm0(l-k0)
-        if(ilm(l).eq.idum) goto 310
-        mel(i)=l         ! Number of single elements in this block
-        beze(i,l)=ilm(l) ! Name of the current single element
-        do 280 j=1,il    ! Search for the single element idx j
-          if(sixin_bez0(j).eq.ilm(l)) goto 290
-  280   continue
-        erbez=ilm(l)
-        call prror(19)
-  290   mtyp(i,l)=j ! Block i / sub-element l has single element index j
-        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j) ! Count block length (kz=8 -> edge focusing->skip!)
-  300 continue
-  310 k0=l-1
-      goto 220
 
 !-----------------------------------------------------------------------
 !  STRUCTURE INPUT
@@ -14376,17 +14292,17 @@ subroutine daten
           l2=(l1-1)*6+1
           l3=l2+5
           if(l2.eq.1) then
-            write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,6)
+            write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
           else
-            write(lout,10270) (beze(l,k),k=l2,l3)
+            write(lout,10270) (sixin_beze(l,k),k=l2,l3)
           endif
  1440   continue
         if(mod(kk,6).ne.0) then
           l4=ll*6+1
-          write(lout,10270) (beze(l,k),k=l4,kk)
+          write(lout,10270) (sixin_beze(l,k),k=l4,kk)
         endif
       else
-        write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,kk)
+        write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
       endif
  1450 continue
       write(lout,10120)

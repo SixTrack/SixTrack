@@ -17,13 +17,16 @@ module string_tools
   
   implicit none
   
-  ! "Standard" string length, +1 for \0
+  ! "Standard" string and name length, +1 for \0
+  integer, parameter :: str_maxName   = 48
   integer, parameter :: str_maxLen    = 161
   integer, parameter :: str_maxFields = 15
   
   ! Dummy empty strings
-  character(len=str_maxLen), parameter :: str_dSpace = repeat(" ",str_maxLen)
-  character(len=str_maxLen), parameter :: str_dZeros = repeat(char(0),str_maxLen)
+  character(len=str_maxLen),  parameter :: str_dSpace  = repeat(" ",str_maxLen)
+  character(len=str_maxLen),  parameter :: str_dZeros  = repeat(char(0),str_maxLen)
+  character(len=str_maxName), parameter :: str_nmSpace = repeat(" ",str_maxName)
+  character(len=str_maxName), parameter :: str_nmZeros = repeat(char(0),str_maxName)
   
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
@@ -89,31 +92,45 @@ subroutine str_split(toSplit, returnArray, nArray)
   
 end subroutine str_split
 
-subroutine chr_split(toSplit, returnArray, nArray)
+subroutine chr_split(toSplit, returnArray, nArray, isCont)
   
   implicit none
   
   character(len=*),              intent(in)  :: toSplit
   character(len=:), allocatable, intent(out) :: returnArray(:)
   integer,                       intent(out) :: nArray
+  logical,          optional,    intent(out) :: isCont
   
   integer ch, newBit
-  logical sngQ, dblQ
+  logical sngQ, dblQ, allCont
+  character(len=:), allocatable :: tmpSplit
   
   if(allocated(returnArray)) deallocate(returnArray)
+  
+  ! Check indentattion:
+  ! A line can be indented up to 4 spaces.
+  ! If the indentation is 5 or more, it is a continuation from the previous line
+  ! and the isCont flag is .true.
+  if(present(isCont)) then
+    isCont = .false.
+    if(len(toSplit) >= 5) then
+      if(toSplit(1:5) == "     ") isCont = .true.
+    end if
+  end if
+  tmpSplit = adjustl(toSplit)
   
   newBit = 0
   nArray = 0
   sngQ   = .false.
   dblQ   = .false.
-  do ch=1, len(toSplit)
-    if(toSplit(ch:ch) == "'") sngQ = .not. sngQ
-    if(toSplit(ch:ch) == '"') dblQ = .not. dblQ
-    if((toSplit(ch:ch) == " " .or. toSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
+  do ch=1, len(tmpSplit)
+    if(tmpSplit(ch:ch) == "'") sngQ = .not. sngQ
+    if(tmpSplit(ch:ch) == '"') dblQ = .not. dblQ
+    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
-        call chr_arrAppend(returnArray, toSplit(newBit:ch-1))
+        call chr_arrAppend(returnArray, tmpSplit(newBit:ch-1))
         newBit = 0
         nArray = nArray + 1
       end if

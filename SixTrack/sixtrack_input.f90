@@ -21,9 +21,17 @@ module sixtrack_input
   integer,                       public, save :: sixin_nBlock    ! Number of blocks
   
   ! Single Element Variables
-  integer,                       public, save :: sixin_ncy2
-  character(len=:), allocatable, public, save :: sixin_bez0(:) ! (max_name_len)(nele)
-  ! character(len=3), parameter,   public,      :: sixin_cavity = "CAV"
+  integer,                                 public, save :: sixin_nSing
+  integer,                                 public, save :: sixin_ncy2
+  character(len=:),           allocatable, public, save :: sixin_bez0(:) ! (str_maxName)(nele)
+! character(len=3),           parameter,   public,      :: sixin_cavity = "CAV"
+  
+  ! Block Definition Variables
+  integer,                                 public, save :: sixin_nBloc
+  character(len=str_maxName),              public, save :: sixin_idum
+  character(len=:),           allocatable, public, save :: sixin_beze(:,:)
+  character(len=:),           allocatable, public, save :: sixin_ilm(:)
+  integer,                                 public, save :: sixin_k0
   
 contains
 
@@ -141,8 +149,8 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   end if
   
   elemName = chr_trimZero(lnSplit(1))
-  if(len(elemName) > max_name_len) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",max_name_len
+  if(len(elemName) > str_maxName) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",str_maxName
     iErr = .true.
     return
   end if
@@ -217,7 +225,7 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   if(iElem > nele-2) then
     call expand_arrays(nele+50, npart, nblz, nblo)
     ! The value of nele will have been updated here
-    call resize(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
+    call resize(sixin_bez0, str_maxName, nele, str_nmZeros, "sixin_bez0")
   end if
   
   if(abs(kz(iElem)) /= 12 .or. (abs(kz(iElem)) == 12 .and. sixin_ncy2 == 0)) then
@@ -246,30 +254,32 @@ subroutine sixin_parseInputLineSING(inLine, iElem, iErr)
   
 end subroutine sixin_parseInputLineSING
 
-subroutine sixin_parseInputLineBLOC(inLine, iElem, iErr)
+subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   
   implicit none
   
   character(len=*), intent(in)    :: inLine
-  integer,          intent(in)    :: iElem
+  integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
   
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=:), allocatable   :: elemName
+  character(len=:), allocatable   :: blocName
   integer nSplit
   
-  integer i
+  integer i, j, ka, ke
+  logical eFound, isCont
+  character(len=str_maxName) ilm0(40)
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, isCont)
   
-  if(nSplit < 2) then
+  if(nSplit < 2 .and. .not. isCont) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
     iErr = .true.
     return
   end if
   
   ! If first line, read super period information
-  if(iElem == 0) then
+  if(iLine == 1) then
     mper = chr_toInt(lnSplit(1))
     if(mper > nper) then
       write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition number of super periods is too large. Max value is ",nper
@@ -284,11 +294,85 @@ subroutine sixin_parseInputLineBLOC(inLine, iElem, iErr)
     do i=1,mper
       msym(i) = chr_toInt(lnSplit(i+1))
     end do
-    return ! No need to parse anything more for this line
+    
+    ! Init variables
+    sixin_nBloc = 0
+    sixin_idum  = str_nmSpace
+    call alloc(sixin_ilm,  str_maxName,       nelb, str_nmSpace, "sixin_ilm")
+    call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
+    
+    ! No need to parse anything more for this line
+    return
   end if
   
-  ! Parse normal line, iElem > 0
+  ! Parse normal line, iLine > 1
+  do i=1,40
+    ilm0(i) = sixin_idum
+  end do
   
+  if(isCont) then
+    ! This line continues the previous block
+    blocName = str_nmSpace
+    do i=1,nSplit
+      ilm0(i) = chr_trimZero(lnSplit(i))
+    end do
+  else
+    blocName = chr_trimZero(lnSplit(1))
+    do i=1,nSplit-1
+      ilm0(i) = chr_trimZero(lnSplit(i+1))
+    end do
+  end if
+  
+  if(blocName /= sixin_idum) then
+    sixin_nBloc = sixin_nBloc + 1 ! Current BLOC number
+    if(sixin_nBloc > nblo-1) then
+      iErr = .true.
+      return
+      ! call prror(18)
+    end if
+    bezb(sixin_nBloc) = blocName
+    sixin_k0          = 0
+    mblo              = sixin_nBloc ! Update total number of BLOCs
+  end if
+  
+  ka = sixin_k0 + 1
+  ke = sixin_k0 + 40
+  
+  do i=ka, ke
+    if(i > nelb) then
+      write(lout,"(a,2(i0,a))") "GEOMETRY> ERROR Block definitions can only have ",nelb," elements. ",i," given."
+      iErr = .true.
+      return
+    end if
+    sixin_ilm(i) = ilm0(i-sixin_k0)
+    if(sixin_ilm(i) == sixin_idum) exit
+    
+    mel(sixin_nBloc)          = i            ! Number of single elements in this block
+    sixin_beze(sixin_nBloc,i) = sixin_ilm(i) ! Name of the current single element
+    
+    ! Search for the single element idx j
+    eFound = .false.
+    do j=1,il 
+      if(sixin_bez0(j) == sixin_ilm(i)) then
+        eFound = .true.
+        exit
+      end if
+    end do
+    if(eFound) then
+      ! Block sixin_nBloc / sub-element i has single element index j
+      mtyp(sixin_nBloc,i) = j
+      if(kz(j) /= 8) then
+        ! Count block length (kz=8 -> edge focusing->skip!)
+        elbe(sixin_nBloc) = elbe(sixin_nBloc) + el(j)
+      end if
+    else
+      write(lout,"(a)") "GEOMETRY> ERROR Unknown element '"//sixin_ilm(i)//"' in block definitions."
+      iErr = .true.
+      return
+    end if
+  end do
+  
+  sixin_k0 = i-1
   
 end subroutine sixin_parseInputLineBLOC
 
@@ -320,8 +404,8 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   end if
   
   elemName = chr_trimZero(lnSplit(1))
-  if(len(elemName) > max_name_len) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Displacement of element name too long. Max length is ",max_name_len
+  if(len(elemName) > str_maxName) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Displacement of element name too long. Max length is ",str_maxName
     iErr = .true.
     return
   end if
