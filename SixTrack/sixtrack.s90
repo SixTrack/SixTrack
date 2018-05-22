@@ -8575,15 +8575,16 @@ subroutine daten
   ! We have our three geometry blocks, stop parsing fort.2
   if(nGeom >= 3) parseFort2 = .false.
   
+  ! Select unit, and increment line number for error output
   if(parseFort2) then
-    read(2, 10020, end=1530, iostat=iErro) ch
     nUnit   = 2
     lineNo2 = lineNo2 + 1
   else
-    read(3, 10020, end=1530, iostat=iErro) ch
     nUnit   = 3
     lineNo3 = lineNo3 + 1
   end if
+  
+  read(nUnit, 10020, end=1530, iostat=iErro) ch
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror(-1)
@@ -8602,11 +8603,13 @@ subroutine daten
     iQuiet = 1
     goto 110
   case("NEXT") ! Close the current block
-    ! Actual close check is done after a last pass so
-    !  each block can finalise any necessary initialisation
     if(newParsing) then
+      ! Actual close check is done after a last pass so
+      ! each block can finalise any necessary initialisation
       closeBlock = .true.
     else
+      ! Most old block parsing code handles NEXT locally, but
+      ! some end up here. Send them back to start.
       goto 110
     end if
   case("ENDE") ! End of fort.3 input
@@ -8694,22 +8697,34 @@ subroutine daten
   end select
   
   ! If we've reached this point, the old style block parsing has not been executed.
-  newParsing = .true. ! This decides how blocks are closed
+  ! Switch to new type of parsing.
+  newParsing = .true.
   
-  ! No active block, but there should be a new one
+  ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
     currBlock = idat
     openBlock = .true.
   end if
   
+  ! Check the status of the current block
   call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
   
+  ! Check if the current block has already been seen and closed.
+  ! If so, the block exists more than once in the input files. It shouldn't.
   if(blockClosed) then
     write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
     goto 9999
   end if
+  
+  ! Block-wise parsing code.
+  !==========================
+  ! These are parsed one line at a time, including the block declaration and the NEXT.
+  ! When the block is first encountered, the 'openBlock' flag is .true. for one pass.
+  ! When the block is closed, the 'closeBlock' flag is .true. for the final pass.
+  ! Otherwise, we have an input line that should be parsed by a single subroutine call.
+  ! The in-block line number is available as the variable 'blockLine' if needed.
   
   select case(currBlock)
   
@@ -8723,7 +8738,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("DISP") ! Displacement of Elements
+  case("DISP") ! Displacement of Elements Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -8733,7 +8748,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
   
-  case("HION") ! Hisix heavy ion input block
+  case("HION") ! Heavy Ion Input Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -8744,7 +8759,7 @@ subroutine daten
       has_hion = .true.
     end if
     
-  case("ZIPF") ! ZIPF Input
+  case("ZIPF") ! ZIPF Input Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -8753,7 +8768,7 @@ subroutine daten
       call zipf_parseInputline(ch)
     end if
   
-  case("SCAT") ! SCATTER Input
+  case("SCAT") ! SCATTER Input Block
     if(openBlock) then
       scatter_active = .true.
       call scatter_allocate
@@ -8763,7 +8778,7 @@ subroutine daten
       call scatter_parseInputLine(string(adjustl(ch)))
     end if
   
-  case("HDF5") ! HDF5 Input
+  case("HDF5") ! HDF5 Input Block
 #ifndef HDF5
     write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
     goto 9999
@@ -8791,11 +8806,13 @@ subroutine daten
   end if
 #endif
   
-  case default
-    write(lout,*) "idat = '"//idat//"'"
-    call prror(15)
+  case default ! Unknown Block, Time to Panic
+    write(lout,"(a)") "INPUT> ERROR Unknown block encountered. Check your input file."
+    goto 9999
   
   end select
+  
+  ! Some cleanup and record keeping
   
   if(openBlock) then
     ! Nothing to do other than switch off the flag
