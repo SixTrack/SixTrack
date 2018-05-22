@@ -256,6 +256,8 @@ end subroutine sixin_parseInputLineSING
 
 subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   
+  use parpro_scale
+  
   implicit none
   
   character(len=*), intent(in)    :: inLine
@@ -326,9 +328,8 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   if(blocName /= sixin_idum) then
     sixin_nBloc = sixin_nBloc + 1 ! Current BLOC number
     if(sixin_nBloc > nblo-1) then
-      iErr = .true.
-      return
-      ! call prror(18)
+      call expand_arrays(nele, npart, nblz, nblo+50)
+      call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
     end if
     bezb(sixin_nBloc) = blocName
     sixin_k0          = 0

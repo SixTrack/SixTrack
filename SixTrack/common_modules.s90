@@ -144,7 +144,7 @@ module parpro
   
   implicit none
   
-  integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblo,nblz,ncom,ncor1, &
+  integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblz,ncom,ncor1, &
        nelb,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran, &
        nrco,ntr,nzfz
 
@@ -166,44 +166,39 @@ module parpro
   parameter(npart = 65536,nmac = 1)
 +ei
 
-  integer, parameter :: nele_initial = 50 !Must be at least 1
+  integer, parameter :: nele_initial = 50 ! Must be at least 1
+  integer, parameter :: nblo_initial = 2500
   integer :: nele = -1
-  
+  integer :: nblo = -1
+
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
 ! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
 ! 6000/20000 -> 30% multipoles
 +if .not.collimat
 +if bignblz
-  parameter(nblo=2500,nper=16,nelb=140,nblz=200000,        &
-       nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
+  parameter(nper=16,nelb=140,nblz=200000,nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 +ei
 +if hugenblz
-  parameter(nblo=2500,nper=16,nelb=280,nblz=400000,        &
-       nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
+  parameter(nper=16,nelb=280,nblz=400000,nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 +ei
 +if .not.bignblz.and..not.hugenblz
-  parameter(nblo=2500,nper=16,nelb=140,nblz=20000,         &
-       nzfz = 300000,mmul = 20) !up to 6'000 multipoles
+  parameter(nper=16,nelb=140,nblz=20000,nzfz = 300000,mmul = 20) !up to 6'000 multipoles
 +ei
 +ei ! / not collimat
 +if collimat
 +if beamgas
-  parameter(nblo=10000,nper=16,nelb=140,nblz=200000,     &
-       nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
+  parameter(nper=16,nelb=140,nblz=200000,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / beamgas
 +if .not.beamgas
 +if bignblz
-  parameter(nblo=2500,nper=16,nelb=140,nblz=200000,        &
-       nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
+  parameter(nper=16,nelb=140,nblz=200000,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 +ei ! / bignblz
 +if hugenblz
-  parameter(nblo=2500,nper=16,nelb=140,nblz=400000,        &
-       nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
+  parameter(nper=16,nelb=140,nblz=400000,nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
 +ei ! / hugenblz
 +if .not.bignblz.and..not.hugenblz
-  parameter(nblo=2500,nper=16,nelb=140,nblz=15000,         &
-       nzfz = 144000,mmul = 11) !up to 4500 multipoles
+  parameter(nper=16,nelb=140,nblz=15000,nzfz = 144000,mmul = 11) !up to 4500 multipoles
 +ei ! / not bignblz
 +ei ! / not beamgas
 +ei ! / collimat
@@ -255,33 +250,36 @@ module parpro_scale
   implicit none
 contains
 
-  subroutine allocate_arrays
-    ! Allocate arrays scaling with the main memory parameters nele, npart, etc.
-    implicit none
+! Allocate arrays scaling with the main memory parameters nele, npart, etc.
+subroutine allocate_arrays
+  
+  implicit none
+  
+  ! Set initial values
+  nele = nele_initial
+  nblo = nblo_initial
+  
+  !Call subroutines to actually allocate
+  call mod_common_allocate_arrays
+  call mod_commonmn_allocate_arrays
+  call mod_commons_allocate_arrays
+  call mod_commond2_allocate_arrays
+  call aperture_allocate_arrays
+  call elens_allocate_arrays
+  call dump_allocate_arrays
+  call scatter_allocate_arrays
+  call bdex_allocate_arrays
+  call dynk_allocate_arrays
+  call wire_allocate_arrays
+  call mod_hions_allocate_arrays
+  
+end subroutine allocate_arrays
 
-    !Set nele etc.
-    nele = nele_initial
-
-    !Call subroutines to actually allocate
-    call mod_common_allocate_arrays
-    call mod_commonmn_allocate_arrays
-    call mod_commons_allocate_arrays
-    call mod_commond2_allocate_arrays
-    call aperture_allocate_arrays
-    call elens_allocate_arrays
-    call dump_allocate_arrays
-    call scatter_allocate_arrays
-    call bdex_allocate_arrays
-    call dynk_allocate_arrays
-    call wire_allocate_arrays
-
-
-    call mod_hions_allocate_arrays
-  end subroutine allocate_arrays
-
+  ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
   subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request)
-    ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
+    
     implicit none
+    
     integer, intent(in) :: nele_request, npart_request, nblz_request, nblo_request
     integer             :: nele_new, npart_new, nblz_new, nblo_new
 
@@ -291,10 +289,10 @@ contains
     nblz_new = nblz_request
     nblo_new = nblo_request
 
-    write(lout,*) 'Expanding - (nele,npart,nblz): ', nele_new, npart_new, nblz_new 
+    write(lout,"(a,4(1x,i0))") "Expanding - (nele,npart,nblz,nblo):", nele_new, npart_new, nblz_new, nblo_new
 
     !Call sub-subroutines to actually expand
-    call mod_common_expand_arrays(nele_new)
+    call mod_common_expand_arrays(nele_new, nblo_new)
     call mod_commonmn_expand_arrays(nele_new)
     call mod_commons_expand_arrays(nele_new)
     call mod_commond2_expand_arrays(nele_new)
@@ -395,11 +393,14 @@ module mod_common
   real(kind=fPrec), allocatable, save :: xpl(:),xrms(:),zpl(:),zrms(:) ! (nele)
   
   !common /str2/
-  integer, save :: mel(nblo),mtyp(nblo,nelb),mstr(nblo)
+  integer, allocatable, save :: mel(:)    ! (nblo)
+  integer, allocatable, save :: mtyp(:,:) ! (nblo,nelb)
+  integer, allocatable, save :: mstr(:)   ! (nblo)
 
   ! common /mat/
-  real(kind=fPrec), allocatable, save :: a(:,:,:) !(nele,2,6)
-  real(kind=fPrec), save :: bl1(nblo,2,6),bl2(nblo,2,6)
+  real(kind=fPrec), allocatable, save :: a(:,:,:)   ! (nele,2,6)
+  real(kind=fPrec), allocatable, save :: bl1(:,:,:) ! (nblo,2,6)
+  real(kind=fPrec), allocatable, save :: bl2(:,:,:) ! (nblo,2,6)
   
   ! common /syos2/
   real(kind=fPrec), save :: rvf(mpa)
@@ -450,10 +451,11 @@ module mod_common
   integer, allocatable, save :: kpa(:) !(nele)
   
   ! common /linop/
-  character(len=:), allocatable, save :: bez(:), bezl(:) !(nele)
-  character(len=max_name_len), save :: bezb(nblo) !(nblo)
-  real(kind=fPrec),  save :: elbe(nblo),eui,euii
-  integer, save :: ilin,nt,iprint,ntco,nlin
+  character(len=:), allocatable, save :: bez(:), bezl(:) ! (nele)
+  character(len=:), allocatable, save :: bezb(:)         ! (nblo)
+  real(kind=fPrec), allocatable, save :: elbe(:)         ! (nblo)
+  real(kind=fPrec),              save :: eui,euii
+  integer,                       save :: ilin,nt,iprint,ntco,nlin
   
   ! common /cororb/
   real(kind=fPrec), save :: betam(nmon1,2),pam(nmon1,2),betac(ncor1,2), &
@@ -547,209 +549,150 @@ subroutine mod_common_allocate_arrays
   
   implicit none
   
-!    integer stat
-
-!    allocate(ed(nele),el(nele),ek(nele),sm(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-
-    call alloc(ed,nele,zero,'ed')
-    call alloc(el,nele,zero,'el')
-    call alloc(ek,nele,zero,'ek')
-    call alloc(sm,nele,zero,'sm')
-
-!    allocate(kz(nele),kp(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-
-    call alloc(kz,nele,0,'kz')
-    call alloc(kp,nele,0,'kp')
-
-!    allocate(bbbx(nele),bbby(nele),bbbs(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(bbbx,nele,zero,'bbbx')
-    call alloc(bbby,nele,zero,'bbby')
-    call alloc(bbbs,nele,zero,'bbbs')
-
-!    allocate(xpl(nele),xrms(nele),zpl(nele),zrms(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(xpl,nele,zero,'xpl')
-    call alloc(zpl,nele,zero,'zpl')
-    call alloc(xrms,nele,zero,'xrms')
-    call alloc(zrms,nele,zero,'zrms')
-
-!    allocate(a(nele,2,6), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(a,nele,2,6,zero,'a')
-
-!    allocate(hsyc(nele),phasc(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(hsyc,nele,zero,'hsyc')
-    call alloc(phasc,nele,zero,'phasc')
-
-!    allocate(itionc(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(itionc,nele,0,'itionc')
-
-!    allocate(bk0(nele,mmul),ak0(nele,mmul), bka(nele,mmul),aka(nele,mmul), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(bk0,nele,mmul,zero,'bk0')
-    call alloc(ak0,nele,mmul,zero,'ak0')
-    call alloc(bka,nele,mmul,zero,'bka')
-    call alloc(aka,nele,mmul,zero,'aka')
-
-!    allocate(benkc(nele),r00(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(benkc,nele,zero,'benkc')
-    call alloc(r00,nele,zero,'r00')
-
-!    allocate(irm(nele),nmu(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(irm,nele,0,'irm')
-    call alloc(nmu,nele,0,'nmu')
-
-!    allocate(bezr(3,nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(bezr, max_name_len, 3, nele, str_dZeros, 'bezr')
-
-!    allocate(kpa(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(kpa,nele,0,'kpa')
-
-!    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-
-    call alloc(bez, max_name_len, nele, str_dZeros, 'bez')
-!    call alloc(bezb, max_name_len, nele, ' ', 'bezb')
-    call alloc(bezl, max_name_len, nele, str_dZeros, 'bezl')
-
-!    allocate(ncororb(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(ncororb,nele,0,'ncororb')
-
-!    allocate(ratioe(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(ratioe,nele,zero,'ratioe')
-
-!    allocate(iratioe(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(iratioe,nele,0,'iratioe')
-
-!    allocate(isea(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(isea,nele,0,'isea')
-
-!    allocate(dki(nele,3), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(dki,nele,3,zero,'dki')
-
-!    allocate(parbe(nele,18), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(parbe,nele,18,zero,'parbe')
-
-!    allocate(ptnfac(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(ptnfac,nele,zero,'ptnfac')
-
-!    allocate(imtr(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(imtr,nele,0,'imtr')
-
-!    allocate(acdipph(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(acdipph,nele,zero,'acdipph')
-
-!    allocate(nturn1(nele), nturn2(nele), nturn3(nele), nturn4(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(nturn1,nele,0,'nturn1')
-    call alloc(nturn2,nele,0,'nturn2')
-    call alloc(nturn3,nele,0,'nturn3')
-    call alloc(nturn4,nele,0,'nturn4')
-
-!    allocate(crabph(nele),crabph2(nele),crabph3(nele),crabph4(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call alloc(crabph,nele,zero,'crabph')
-    call alloc(crabph2,nele,zero,'crabph2')
-    call alloc(crabph3,nele,zero,'crabph3')
-    call alloc(crabph4,nele,zero,'crabph4')
-
-    !TODO: Certain "COMNUL" functionality should probably be done here as well.
-
-    return !Finished successfully
-    
-!42  continue
-!    write(lout,'(A,I8,1x,A)') "ERROR in SUBROUTINE MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat
-!    call prror(-1)
-
+  call alloc(ed,nele,zero,'ed')
+  call alloc(el,nele,zero,'el')
+  call alloc(ek,nele,zero,'ek')
+  call alloc(sm,nele,zero,'sm')
+  call alloc(kz,nele,0,'kz')
+  call alloc(kp,nele,0,'kp')
+  call alloc(bbbx,nele,zero,'bbbx')
+  call alloc(bbby,nele,zero,'bbby')
+  call alloc(bbbs,nele,zero,'bbbs')
+  call alloc(xpl,nele,zero,'xpl')
+  call alloc(zpl,nele,zero,'zpl')
+  call alloc(xrms,nele,zero,'xrms')
+  call alloc(zrms,nele,zero,'zrms')
+  call alloc(a,nele,2,6,zero,'a')
+  call alloc(hsyc,nele,zero,'hsyc')
+  call alloc(phasc,nele,zero,'phasc')
+  call alloc(itionc,nele,0,'itionc')
+  call alloc(bk0,nele,mmul,zero,'bk0')
+  call alloc(ak0,nele,mmul,zero,'ak0')
+  call alloc(bka,nele,mmul,zero,'bka')
+  call alloc(aka,nele,mmul,zero,'aka')
+  call alloc(benkc,nele,zero,'benkc')
+  call alloc(r00,nele,zero,'r00')
+  call alloc(irm,nele,0,'irm')
+  call alloc(nmu,nele,0,'nmu')
+  call alloc(bezr, max_name_len, 3, nele, str_dZeros, 'bezr')
+  call alloc(kpa,nele,0,'kpa')
+  call alloc(bez, max_name_len, nele, str_dZeros, 'bez')
+! call alloc(bezb, max_name_len, nele, ' ', 'bezb')
+  call alloc(bezl, max_name_len, nele, str_dZeros, 'bezl')
+  call alloc(ncororb,nele,0,'ncororb')
+  call alloc(ratioe,nele,zero,'ratioe')
+  call alloc(iratioe,nele,0,'iratioe')
+  call alloc(isea,nele,0,'isea')
+  call alloc(dki,nele,3,zero,'dki')
+  call alloc(parbe,nele,18,zero,'parbe')
+  call alloc(ptnfac,nele,zero,'ptnfac')
+  call alloc(imtr,nele,0,'imtr')
+  call alloc(acdipph,nele,zero,'acdipph')
+  call alloc(nturn1,nele,0,'nturn1')
+  call alloc(nturn2,nele,0,'nturn2')
+  call alloc(nturn3,nele,0,'nturn3')
+  call alloc(nturn4,nele,0,'nturn4')
+  call alloc(crabph,nele,zero,'crabph')
+  call alloc(crabph2,nele,zero,'crabph2')
+  call alloc(crabph3,nele,zero,'crabph3')
+  call alloc(crabph4,nele,zero,'crabph4')
+  
+  ! linopt
+  call alloc(bezb,max_name_len,nblo,str_nmZeros,"bezb")
+  call alloc(elbe,nblo,zero,"elbe")
+  
+  ! str2
+  call alloc(mel,nblo,0,"mel")
+  call alloc(mtyp,nblo,nelb,0,"mtyp")
+  call alloc(mstr,nblo,0,"mstr")
+  
+  ! mat
+  call alloc(bl1,nblo,2,6,zero,"bl1")
+  call alloc(bl2,nblo,2,6,zero,"bl2")
+  
+  ! TODO: Certain "COMNUL" functionality should probably be done here as well.
+  return !Finished successfully
+  
 end subroutine mod_common_allocate_arrays
 
-subroutine mod_common_expand_arrays(nele_new)
+subroutine mod_common_expand_arrays(nele_new, nblo_new)
   
   use string_tools
   
   implicit none
 
   integer, intent(in) :: nele_new
-!    integer stat
-
-    !TODO: Do the thing. This will be long and fugly
-    call resize(ed,nele_new,zero,'ed')
-    call resize(el,nele_new,zero,'el')
-    call resize(ek,nele_new,zero,'ek')
-    call resize(sm,nele_new,zero,'sm')
-    call resize(kz,nele_new,0,'kz')
-    call resize(kp,nele_new,0,'kp')
-    call resize(bbbx,nele_new,zero,'bbbx')
-    call resize(bbby,nele_new,zero,'bbby')
-    call resize(bbbs,nele_new,zero,'bbbs')
-    call resize(xpl,nele_new,zero,'xpl')
-    call resize(zpl,nele_new,zero,'zpl')
-    call resize(xrms,nele_new,zero,'xrms')
-    call resize(zrms,nele_new,zero,'zrms')
-    call resize(a,nele_new,2,6,zero,'a')
-    call resize(hsyc,nele_new,zero,'hsyc')
-    call resize(phasc,nele_new,zero,'phasc')
-    call resize(itionc,nele_new,0,'itionc')
-    call resize(bk0,nele_new,mmul,zero,'bk0')
-    call resize(ak0,nele_new,mmul,zero,'ak0')
-    call resize(bka,nele_new,mmul,zero,'bka')
-    call resize(aka,nele_new,mmul,zero,'aka')
-    call resize(benkc,nele_new,zero,'benkc')
-    call resize(r00,nele_new,zero,'r00')
-    call resize(irm,nele_new,0,'irm')
-    call resize(nmu,nele_new,0,'nmu')
-
-!    allocate(bezr(3,nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call resize(bezr, max_name_len, 3, nele_new, str_dZeros, 'bezr')
-
-    call resize(kpa,nele_new,0,'kpa')
-
-!    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
-!    if (stat.ne.0) goto 42
-    call resize(bez,  max_name_len, nele_new, str_dZeros, 'bez')
-!    call resize(bezb, max_name_len, nele_new, ' ', 'bezb')
-    call resize(bezl, max_name_len, nele_new, str_dZeros, 'bezl')
-
-    call resize(ncororb,nele_new,0,'ncororb')
-    call resize(ratioe,nele_new,zero,'ratioe')
-    call resize(iratioe,nele_new,0,'iratioe')
-    call resize(isea,nele_new,0,'isea')
-    call resize(dki,nele_new,3,zero,'dki')
-    call resize(parbe,nele_new,18,zero,'parbe')
-    call resize(ptnfac,nele_new,zero,'ptnfac')
-    call resize(imtr,nele_new,0,'imtr')
-    call resize(acdipph,nele_new,zero,'acdipph')
-    call resize(nturn1,nele_new,0,'nturn1')
-    call resize(nturn2,nele_new,0,'nturn2')
-    call resize(nturn3,nele_new,0,'nturn3')
-    call resize(nturn4,nele_new,0,'nturn4')
-    call resize(crabph,nele_new,zero,'crabph')
-    call resize(crabph2,nele_new,zero,'crabph2')
-    call resize(crabph3,nele_new,zero,'crabph3')
-    call resize(crabph4,nele_new,zero,'crabph4')
-
-    !Note: One should probably here check the allocation status of the arrays, i.e. that they all actually are allocated...
+  integer, intent(in) :: nblo_new
+  
+  !TODO: Do the thing. This will be long and fugly
+  call resize(ed,nele_new,zero,'ed')
+  call resize(el,nele_new,zero,'el')
+  call resize(ek,nele_new,zero,'ek')
+  call resize(sm,nele_new,zero,'sm')
+  call resize(kz,nele_new,0,'kz')
+  call resize(kp,nele_new,0,'kp')
+  call resize(bbbx,nele_new,zero,'bbbx')
+  call resize(bbby,nele_new,zero,'bbby')
+  call resize(bbbs,nele_new,zero,'bbbs')
+  call resize(xpl,nele_new,zero,'xpl')
+  call resize(zpl,nele_new,zero,'zpl')
+  call resize(xrms,nele_new,zero,'xrms')
+  call resize(zrms,nele_new,zero,'zrms')
+  call resize(a,nele_new,2,6,zero,'a')
+  call resize(hsyc,nele_new,zero,'hsyc')
+  call resize(phasc,nele_new,zero,'phasc')
+  call resize(itionc,nele_new,0,'itionc')
+  call resize(bk0,nele_new,mmul,zero,'bk0')
+  call resize(ak0,nele_new,mmul,zero,'ak0')
+  call resize(bka,nele_new,mmul,zero,'bka')
+  call resize(aka,nele_new,mmul,zero,'aka')
+  call resize(benkc,nele_new,zero,'benkc')
+  call resize(r00,nele_new,zero,'r00')
+  call resize(irm,nele_new,0,'irm')
+  call resize(nmu,nele_new,0,'nmu')
+  
+  call resize(bezr, max_name_len, 3, nele_new, str_dZeros, 'bezr')
+  call resize(kpa,nele_new,0,'kpa')
+  
+  call resize(bez,  max_name_len, nele_new, str_dZeros, 'bez')
+! call resize(bezb, max_name_len, nele_new, ' ', 'bezb')
+  call resize(bezl, max_name_len, nele_new, str_dZeros, 'bezl')
+  
+  call resize(ncororb,nele_new,0,'ncororb')
+  call resize(ratioe,nele_new,zero,'ratioe')
+  call resize(iratioe,nele_new,0,'iratioe')
+  call resize(isea,nele_new,0,'isea')
+  call resize(dki,nele_new,3,zero,'dki')
+  call resize(parbe,nele_new,18,zero,'parbe')
+  call resize(ptnfac,nele_new,zero,'ptnfac')
+  call resize(imtr,nele_new,0,'imtr')
+  call resize(acdipph,nele_new,zero,'acdipph')
+  call resize(nturn1,nele_new,0,'nturn1')
+  call resize(nturn2,nele_new,0,'nturn2')
+  call resize(nturn3,nele_new,0,'nturn3')
+  call resize(nturn4,nele_new,0,'nturn4')
+  call resize(crabph,nele_new,zero,'crabph')
+  call resize(crabph2,nele_new,zero,'crabph2')
+  call resize(crabph3,nele_new,zero,'crabph3')
+  call resize(crabph4,nele_new,zero,'crabph4')
+  
+  ! linopt
+  call alloc(bezb,max_name_len,nblo_new,str_nmZeros,"bezb")
+  call alloc(elbe,nblo_new,zero,"elbe")
+  
+  ! str2
+  call alloc(mel,nblo_new,0,"mel")
+  call alloc(mtyp,nblo_new,nelb,0,"mtyp")
+  call alloc(mstr,nblo_new,0,"mstr")
+  
+  ! mat
+  call alloc(bl1,nblo_new,2,6,zero,"bl1")
+  call alloc(bl2,nblo_new,2,6,zero,"bl2")
+  
+  ! Note: One should probably here check the allocation status of the arrays, i.e. that they all actually are allocated...
     
-  end subroutine mod_common_expand_arrays
+end subroutine mod_common_expand_arrays
+
 end module mod_common
 
 +dk mod_commonmn
