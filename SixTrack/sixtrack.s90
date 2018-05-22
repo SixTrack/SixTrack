@@ -8726,11 +8726,11 @@ subroutine daten
   
   case("SING") ! Single Elements Block
     if(openBlock) then
-      iElem = 1
+      sixin_nSing = 1
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
-      call sixin_parseInputLineSING(ch,iElem,inErr)
+      call sixin_parseInputLineSING(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
