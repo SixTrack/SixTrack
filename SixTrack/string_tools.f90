@@ -31,7 +31,7 @@ module string_tools
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub
-  public chr_padZero
+  public chr_padZero, chr_expandBrackets
   public str_inStr, chr_inStr
   public str_toReal, chr_toReal
   public str_toInt, chr_toInt
@@ -140,6 +140,115 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   end do
   
 end subroutine chr_split
+
+! ================================================================================================ !
+!  Expand Brackets
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-18
+!  Will return a string with the content of brackets N(something something) repeated N times.
+!  This routine is NOT recursive.
+! ================================================================================================ !
+function chr_expandBrackets(theString) result(theResult)
+  
+  implicit none
+  
+  character(len=*), intent(inout) :: theString
+  
+  character(len=:), allocatable :: theResult
+  character(len=:), allocatable :: tmpRep, tmpMult, tmpRes
+  integer ch, bk, rp
+  integer iMult, mPos, rLen, tLen, iClear, iSp
+  logical bOpen
+  
+  bOpen   = .false.
+  iMult   = 1
+  tmpMult = ""
+  tmpRep  = ""
+  tmpRes  = ""
+  
+  do ch=1,len(theString)
+    
+    ! First, just append everything
+    tmpRes = tmpRes//theString(ch:ch)
+    rLen   = len(tmpRes)
+    
+    ! Register entering a bracket region
+    if(theString(ch:ch) == "(" .and. .not. bOpen) then
+      mPos  = ch
+      bOpen = .true.
+    end if
+    
+    ! While in a bracket region, buffer all new chars
+    if(bOpen) then
+      tmpRep = tmpRep//theString(ch:ch)
+    end if
+    
+    ! Exiting a bracket region is when all the fun stuff happens
+    if(theString(ch:ch) == ")" .and. bOpen) then
+      
+      tLen = len(tmpRep)
+      
+      ! If it's empty, don't bother.
+      if(tLen < 3) goto 10
+      
+      ! Look backwards for integers, and buffer them
+      do bk=1,mPos-1
+        if(.not. chr_isInt(theString(mPos-bk:mPos-bk))) exit
+        tmpMult = theString(mPos-bk:mPos-bk)//tmpMult
+      end do
+      
+      ! If integer was found, convert it, otherwise, meh.
+      if(len(tmpMult) > 0) then
+        iMult = chr_toInt(tmpMult)
+      else
+        goto 10
+      end if
+      
+      ! Clear out all the bracket related stuff in the return buffer
+      iClear = rLen - tlen - len(tmpMult) + 1
+      if(iClear > 0) then
+        tmpRes(iClear:rLen) = repeat(" ",rLen-iClear+1)
+      end if
+      
+      ! Append all the repeated bits
+      do rp=1,iMult
+        tmpRes = tmpRes//tmpRep(2:tLen-1)//" "
+      end do
+      
+      ! Rince and repeat, or give up if it's one of those days
+  10  continue
+      bOpen   = .false.
+      tmpRep  = ""
+      tmpMult = ""
+      iMult   = 1
+    end if
+  end do
+  
+  ! Comapct the result
+  iSp       = 1
+  theResult = ""
+  do ch=1,len(tmpRes)
+    if(tmpRes(ch:ch) == " ") then
+      iSp = iSp + 1
+    else
+      iSp = 0
+    end if
+    if(iSp < 2) then
+      theResult = theResult//tmpres(ch:ch)
+    end if
+  end do
+  
+end function chr_expandBrackets
+
+logical elemental function chr_isInt(theChar)
+  character, intent(in) :: theChar
+  select case(theChar)
+  case("0","1","2","3","4","5","6","7","8","9")
+    chr_isInt = .true.
+  case default
+    chr_isInt = .false.
+  end select
+end function chr_isInt
 
 ! ================================================================================================ !
 !  Safe Append to Array

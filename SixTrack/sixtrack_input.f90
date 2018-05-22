@@ -21,17 +21,16 @@ module sixtrack_input
   integer,                       public, save :: sixin_nBlock    ! Number of blocks
   
   ! Single Element Variables
-  integer,                                 public, save :: sixin_nSing
-  integer,                                 public, save :: sixin_ncy2
-  character(len=:),           allocatable, public, save :: sixin_bez0(:) ! (str_maxName)(nele)
-! character(len=3),           parameter,   public,      :: sixin_cavity = "CAV"
+  integer,                       public, save :: sixin_nSing
+  integer,                       public, save :: sixin_ncy2
+  character(len=:), allocatable, public, save :: sixin_bez0(:) ! (str_maxName)(nele)
+! character(len=3), parameter,   public,      :: sixin_cavity = "CAV"
   
   ! Block Definition Variables
-  integer,                                 public, save :: sixin_nBloc
-  character(len=str_maxName),              public, save :: sixin_idum
-  character(len=:),           allocatable, public, save :: sixin_beze(:,:)
-  character(len=:),           allocatable, public, save :: sixin_ilm(:)
-  integer,                                 public, save :: sixin_k0
+  integer,                       public, save :: sixin_nBloc
+  character(len=:), allocatable, public, save :: sixin_beze(:,:)
+  character(len=:), allocatable, public, save :: sixin_ilm(:)
+  integer,                       public, save :: sixin_k0
   
 contains
 
@@ -299,7 +298,6 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     
     ! Init variables
     sixin_nBloc = 0
-    sixin_idum  = str_nmSpace
     call alloc(sixin_ilm,  str_maxName,       nelb, str_nmSpace, "sixin_ilm")
     call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
     
@@ -309,7 +307,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   
   ! Parse normal line, iLine > 1
   do i=1,40
-    ilm0(i) = sixin_idum
+    ilm0(i) = str_nmSpace
   end do
   
   if(isCont) then
@@ -325,7 +323,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     end do
   end if
   
-  if(blocName /= sixin_idum) then
+  if(blocName /= str_nmSpace) then
     sixin_nBloc = sixin_nBloc + 1 ! Current BLOC number
     if(sixin_nBloc > nblo-1) then
       call expand_arrays(nele, npart, nblz, nblo+50)
@@ -346,7 +344,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
       return
     end if
     sixin_ilm(i) = ilm0(i-sixin_k0)
-    if(sixin_ilm(i) == sixin_idum) exit
+    if(sixin_ilm(i) == str_nmSpace) exit
     
     mel(sixin_nBloc)          = i            ! Number of single elements in this block
     sixin_beze(sixin_nBloc,i) = sixin_ilm(i) ! Name of the current single element
@@ -376,6 +374,96 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   sixin_k0 = i-1
   
 end subroutine sixin_parseInputLineBLOC
+
+subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
+
+  use parpro_scale
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: blocName
+  integer nSplit
+  
+  integer i
+  character(len=str_maxName) ilm0(40)
+  
+  call chr_split(inLine, lnSplit, nSplit)
+  
+  do i=1,40
+    ilm0(i) = str_nmSpace
+  end do
+  
+!     i2=1
+!     ! Look for repetition with syntax N( ... )
+!     do 420 ii=1,80
+!       if(ch(ii:ii).eq.kl) then !kl='('
+!         if(ii.gt.1) then
+
+!           do jj=1,ii-1
+!             if(ch(jj:jj).ne.' ') goto 380
+!           end do
+
+!         endif
+!         iw=1
+!         goto 390
+! 380     read(ch(:ii-1),*) iw
+! 390     ia=i
+!         iw0=iw-1
+!         i2=ii+1
+!         goto 430
+!       endif
+!       if(ch(ii:ii).eq.kr) then !kr=')'
+!         if(iw0.le.0) goto 330
+!         idi=i-ia
+!         do 410 k=1,iw0
+!           do j=1,idi
+!             ic(i+j)=ic(i+j-idi)
+!           end do
+!           i=i+idi
+! 410     continue
+!         mbloz=i
+!         goto 330
+!       endif
+! 420 continue
+!     ! Create the structure
+! 430 call intepr(3,i2,ch,ch1)
+! ! reading character strings so OK
+!     read(ch1,*) (ilm0(k),k=1,40)
+!     do 490 k=1,40
+!       if(ilm0(k).eq.idum) goto 490
+!       if(ilm0(k).eq.go) goto 480
+!       i=i+1
+!       do 440 j=1,mblo !is it a BLOC?
+!         if(bezb(j).eq.ilm0(k)) goto 470
+! 440   continue
+!       do 450 l=1,il   !is it a SINGLE ELEMENT?
+!         if(sixin_bez0(l).eq.ilm0(k)) goto 460
+! 450   continue
+!       ! It was neither BLOC or SINGLE ELEMENT! ERROR!
+!       erbez=ilm0(k)
+!       call prror(20)
+      
+!       ! Handle SINGLE ELEMENT
+! 460   continue
+!       ic(i)=l+nblo
+!       if(sixin_bez0(l).eq.cavi) icy=icy+1
+!       goto 490
+
+!       !Handle BLOC
+! 470   ic(i)=j
+!       goto 490
+!       !Handle GO
+! 480   kanf=i+1
+! 490 continue
+!     mbloz=i
+!     if(mbloz.gt.nblz-2) call prror(21)
+  
+end subroutine sixin_parseInputLineSTRU
 
 subroutine sixin_parseInputLineDISP(inLine, iErr)
   
