@@ -8703,10 +8703,6 @@ subroutine daten
     goto 2400
   case("WIRE")
     goto 2500
-  case("HION")
-    goto 2700
-  case("ROOT")
-    goto 3000
   end select
   
   ! If we've reached this point, the old style block parsing has not been executed.
@@ -8729,8 +8725,21 @@ subroutine daten
   
   select case(currBlock)
   
+  case("HION") ! Hisix heavy ion input block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      read(ch,*) aa0, zz0, nucm0
+      nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+      has_hion = .true.
+    end if
+    
   case("ZIPF") ! ZIPF Input
-    if(closeBlock) then
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
       call zipf_parseInputDone
     else
       call zipf_parseInputline(ch)
@@ -8748,14 +8757,30 @@ subroutine daten
   
   case("HDF5") ! HDF5 Input
 #ifndef HDF5
-    write(lout,*) "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
     goto 9999
 #else
     if(openBlock) then
       h5_isActive = .true.
+    elseif(closeBlock) then
+      continue
     else
       call h5_parseInputLine(string(ch))
     end if
+#endif
+  
+  case("ROOT") ! ROOT Input Block
+#ifndef ROOT
+    write(lout,"(a)") "INPUT> ERROR ROOT output requested but this exe does not have ROOT support compiled in"
+    goto 9999
+#else
+  if(openBlock) then
+    continue
+  elseif(closeBlock) then
+    call root_parseInputDone
+  else
+    call daten_root(ch)
+  end if
 #endif
   
   case default
@@ -8779,7 +8804,7 @@ subroutine daten
     currBlock  = "NONE"  ! No active blocks
     closeBlock = .false. ! Switch off the flag
   end if
-
+  
   goto 110
   
 !-----------------------------------------------------------------------
@@ -14355,55 +14380,6 @@ subroutine daten
       
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
 
-
-! ================================================================================================ !
-!  hisix heavy ion input block
-!  P. HERMES
-!  Last modified: 2015-07-01
-! ================================================================================================ !
-2700 continue
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-
-  if(ch(1:1).eq.'/') goto 2700 ! Skip comment line
-  if(ch(:4).eq.next) goto 110
-  
-  ch1(:nchars+3)=ch(:nchars)//' / '
-  read(ch1,*) aa0, zz0, nucm0
-  nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
-      !    do j=1,npart
-      !     naa   (j) = aa0
-      !     nzz   (j) = zz0
-      !     nucm  (j) = nucm0
-
-      !    enddo
-  has_hion = .true.
-  goto 110
-
-! ================================================================================================ !
-!  ROOT Input Block
-! ================================================================================================ !
-3000 continue
-#ifndef ROOT
-  write(lout,*) "ERROR: ROOT output requested in fort.3"
-  write(lout,*) "but this exe does not have ROOT support compiled in"
-  call prror(-1)
-#else
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-  
-  if(ch(1:1).eq.'/') goto 3000 ! Skip comment line
-  if(ch(:4).eq.next) then
-    call root_parseInputDone
-    goto 110 ! Read next block or ENDE
-  end if
-  
-  call daten_root(ch)
-  
-  goto 3000  ! Read the next line of the ROOT block
-#endif
 
 ! ================================================================================================ !
 !  ENDE was reached; we're done parsing fort.3, now do some postprocessing.
