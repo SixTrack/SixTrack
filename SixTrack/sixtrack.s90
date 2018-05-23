@@ -8699,13 +8699,13 @@ subroutine daten
   
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
-  if(nUnit == 2) then
-    write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
-      "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
-  else
-    write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
-      "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
-  end if
+  ! if(nUnit == 2) then
+  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  ! else
+  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  ! end if
   
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't.
@@ -8736,7 +8736,7 @@ subroutine daten
     
   case("BLOC") ! Block Definitions
     if(openBlock) then
-      sixin_nBloc = 1
+      sixin_nBloc = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
@@ -8823,7 +8823,7 @@ subroutine daten
 #endif
   
   case default ! Unknown Block, Time to Panic
-    write(lout,"(a)") "INPUT> ERROR Unknown block encountered. Check your input file."
+    write(lout,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
     goto 9999
   
   end select

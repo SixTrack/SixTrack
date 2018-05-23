@@ -30,8 +30,8 @@ module string_tools
   
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
-  public str_sub
-  public chr_padZero, chr_expandBrackets
+  public str_sub, chr_expandBrackets
+  public chr_padZero, chr_padSpace
   public str_inStr, chr_inStr
   public str_toReal, chr_toReal
   public str_toInt, chr_toInt
@@ -369,7 +369,7 @@ function chr_strip(theString) result(retString)
 end function chr_strip
 
 ! ================================================================================================ !
-!  Pad String with Zeros
+!  Pad String with Zeros or Spaces
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-05-18
 ! ================================================================================================ !
@@ -385,6 +385,19 @@ function chr_padZero(theString, theSize) result(retString)
     retString = theString
   end if
 end function chr_padZero
+
+function chr_padSpace(theString, theSize) result(retString)
+  character(len=*), intent(in)  :: theString
+  integer,          intent(in)  :: theSize
+  character(len=:), allocatable :: retString
+  integer                       :: inSize
+  inSize = len(theString)
+  if(inSize > 0 .and. inSize < theSize) then
+    retString = theString(1:inSize)//repeat(" ",theSize-inSize)
+  else
+    retString = theString
+  end if
+end function chr_padSpace
 
 ! ================================================================================================ !
 !  Trim Zero String Routine

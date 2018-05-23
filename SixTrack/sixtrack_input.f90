@@ -160,7 +160,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
     return
   end if
   
-  elemName = chr_trimZero(lnSplit(1))
+  elemName = chr_padSpace(chr_trimZero(lnSplit(1)),str_maxName)
   if(len(elemName) > str_maxName) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",str_maxName
     iErr = .true.
@@ -334,28 +334,27 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     ilm0(i) = str_nmSpace
   end do
   
-  if(isCont) then
-    ! This line continues the previous block
-    blocName = str_nmSpace
-    do i=1,nSplit
-      ilm0(i) = chr_trimZero(lnSplit(i))
+  if(isCont) then                             ! This line continues the previous BLOC
+    blocName = str_nmSpace                    ! No name returned, set an empty BLOC name
+    do i=1,nSplit                             ! All elements are sub-elements. Save to buffer.
+      ilm0(i) = chr_padSpace(chr_trimZero(lnSplit(i)),str_maxName)
     end do
-  else
-    blocName = chr_trimZero(lnSplit(1))
-    do i=1,nSplit-1
-      ilm0(i) = chr_trimZero(lnSplit(i+1))
+  else                                        ! This is a new BLOC
+    blocName = chr_padSpace(chr_trimZero(lnSplit(1)),str_maxName)
+    do i=1,nSplit-1                           ! Save the rest to buffer
+      ilm0(i) = chr_padSpace(chr_trimZero(lnSplit(i+1)),str_maxName)
     end do
   end if
   
-  if(blocName /= str_nmSpace) then
-    sixin_nBloc = sixin_nBloc + 1 ! Current BLOC number
-    if(sixin_nBloc > nblo-1) then
+  if(blocName /= str_nmSpace) then            ! We have a new BLOC
+    sixin_nBloc = sixin_nBloc + 1             ! Increment the BLOC number
+    if(sixin_nBloc > nblo-1) then             ! Expand arrays if needed
       call expand_arrays(nele, npart, nblz, nblo+50)
       call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
     end if
-    bezb(sixin_nBloc) = blocName
-    sixin_k0          = 0
-    mblo              = sixin_nBloc ! Update total number of BLOCs
+    bezb(sixin_nBloc) = blocName              ! Set the BLOC name in bezb
+    sixin_k0          = 0                     ! Reset the single element counter
+    mblo              = sixin_nBloc           ! Update total number of BLOCs
   end if
   
   ka = sixin_k0 + 1
@@ -363,33 +362,31 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   
   do i=ka, ke
     if(i > nelb) then
-      write(lout,"(a,2(i0,a))") "GEOMETRY> ERROR Block definitions can only have ",nelb," elements. ",i," given."
+      write(lout,"(a,2(i0,a))") "GEOMETRY> ERROR Block definitions can only have ",&
+        nelb," elements. ",i," given."
       iErr = .true.
       return
     end if
-    sixin_ilm(i) = ilm0(i-sixin_k0)
-    if(sixin_ilm(i) == str_nmSpace) exit
+    sixin_ilm(i) = ilm0(i-sixin_k0)           ! Append to sub-element buffer
+    if(sixin_ilm(i) == str_nmSpace) exit      ! No more sub-elements to append
+    mel(sixin_nBloc)          = i             ! Update number of single elements in this block
+    sixin_beze(sixin_nBloc,i) = sixin_ilm(i)  ! Name of the current single element
     
-    mel(sixin_nBloc)          = i            ! Number of single elements in this block
-    sixin_beze(sixin_nBloc,i) = sixin_ilm(i) ! Name of the current single element
-    
-    ! Search for the single element idx j
     eFound = .false.
-    do j=1,il 
+    do j=1,il                                 ! Search for the single element index
       if(sixin_bez0(j) == sixin_ilm(i)) then
         eFound = .true.
         exit
       end if
     end do
-    if(eFound) then
-      ! Block sixin_nBloc / sub-element i has single element index j
-      mtyp(sixin_nBloc,i) = j
-      if(kz(j) /= 8) then
-        ! Count block length (kz=8 -> edge focusing->skip!)
+    if(eFound) then                           ! Handle element found
+      mtyp(sixin_nBloc,i) = j                 ! Save single element index
+      if(kz(j) /= 8) then                     ! Count block length (kz=8 - edge focusing: skip)
         elbe(sixin_nBloc) = elbe(sixin_nBloc) + el(j)
       end if
-    else
-      write(lout,"(a)") "GEOMETRY> ERROR Unknown element '"//sixin_ilm(i)//"' in block definitions."
+    else                                      ! If not, the input is invalid
+      write(lout,"(a)") "GEOMETRY> ERROR Unknown single element '"//&
+        chr_strip(sixin_ilm(i))//"' in block definitions."
       iErr = .true.
       return
     end if
@@ -436,7 +433,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end if
   
   do i=1,nSplit
-    ilm0(i) = chr_trimZero(lnSplit(i))
+    ilm0(i) = chr_padSpace(chr_trimZero(lnSplit(i)),str_maxName)
   end do
   
   do i=1,40
