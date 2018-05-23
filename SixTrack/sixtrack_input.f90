@@ -39,6 +39,9 @@ module sixtrack_input
   
 contains
 
+! ================================================================================================ !
+!  BLOCK PARSING RECORD
+! ================================================================================================ !
 subroutine sixin_checkBlock(blockName, blockOpened, blockClosed, blockLine)
   
   character(len=*), intent(in)  :: blockName
@@ -123,6 +126,16 @@ subroutine sixin_blockReport
   
 end subroutine sixin_blockReport
 
+! ================================================================================================ !
+!  LINE PARSIN G ROUTINES
+! ================================================================================================ !
+
+! ================================================================================================ !
+!  Parse Single Element Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-22
+!  Rewritten from code from DATEN
+! ================================================================================================ !
 subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   
   use parpro_scale
@@ -253,6 +266,12 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   
 end subroutine sixin_parseInputLineSING
 
+! ================================================================================================ !
+!  Parse Block Definitions Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-22
+!  Rewritten from code from DATEN
+! ================================================================================================ !
 subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   
   use parpro_scale
@@ -380,6 +399,12 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   
 end subroutine sixin_parseInputLineBLOC
 
+! ================================================================================================ !
+!  Parse Structure Input Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-22
+!  Rewritten from code from DATEN
+! ================================================================================================ !
 subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
 
   use parpro_scale
@@ -441,10 +466,21 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end do
   
   mbloz = sixin_nStru
-!     if(mbloz.gt.nblz-2) call prror(21)
+  if(mbloz > nblz-2) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Structure input block has too many elements. Max is ",(nblz-2)
+    iErr = .true.
+    return
+    ! call prror(21)
+  end if
   
 end subroutine sixin_parseInputLineSTRU
 
+! ================================================================================================ !
+!  Parse Displacement Block Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-22
+!  Rewritten from code from DATEN
+! ================================================================================================ !
 subroutine sixin_parseInputLineDISP(inLine, iErr)
   
   implicit none
@@ -504,7 +540,7 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
       zpl(i)    = zero
       zrms(i)   = zero
       if(xrms0 == zero .and. zpl0 == zero .and. zrms0 == zero) then
-        write(lout,"(a)") "INPUT> INFO DISP Block: AC dipole disregarded, 0-length."
+        write(lout,"(a)") "INPUT> INFO DISP Block: AC dipole disregarded, 0 length."
         kz(i) = 0
         ed(i) = zero
         ek(i) = zero
