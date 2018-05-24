@@ -708,6 +708,9 @@ module mod_commont
   real(kind=fPrec), save :: cro(2)
   integer,          save :: is(2),ichrom
   
+  ! common /tasm/
+  real(kind=fPrec), save :: tasm(6,6)
+  
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2),yytr(mpa,2)
   integer,          save :: issss(2)

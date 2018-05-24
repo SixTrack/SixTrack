@@ -563,7 +563,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonta
 +ca commonm1
 +ca commontr
 #ifdef BNLELENS
