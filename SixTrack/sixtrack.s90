@@ -8783,11 +8783,9 @@ subroutine daten
 
         !The value of nele will have been updated here
         call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
-!+if vvector
 !        if (ithick.eq.1) then
 !          call expand_thickarrays(nele+10, npart, nblz, nblo )
 !        end if
-!+ei
       end if
 
       if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) ) then
@@ -10327,9 +10325,7 @@ subroutine daten
       read(ch1,*) izu0, mmac, mout, mcut
 +ei
       mcut=iabs(mcut)
-! +if vvector
       if(mmac.gt.nmac) call prror(55)
-! +ei
       !Generate normal distributed random numbers into zfz
       call recuin(izu0,irecuin)
       call ranecu(zfz,nzfz,mcut)
@@ -14784,10 +14780,8 @@ subroutine daten
  1520 call prror(41)
  1530 call prror(42)
  1540 continue
-! +if vvector
       !Check that the number of particles is OK
       if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
-! +ei
 !     compute elens theta at R2, if requested by user
       do j=1,melens
          if ( elens_lThetaR2(j) ) then
@@ -30585,11 +30579,9 @@ integer function INEESE()
   il=il+1
   if( il.gt.nele-2 ) then
     call expand_arrays(nele+50, npart, nblz, nblo )
-! +if vvector
     if (ithick.eq.1) then
       call expand_thickarrays(nele, npart, nblz, nblo )
     end if
-! +ei
   end if
 
 ! initialise element to empty
