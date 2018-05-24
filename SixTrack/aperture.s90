@@ -19,6 +19,7 @@ module aperture
   use mod_common
   use mod_commons
   use mod_commont
+  use mod_commond
 
   use mod_hions
   use mod_alloc
@@ -561,7 +562,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
 +ca common2
-+ca commondl
 +ca commonxz
 #ifdef BNLELENS
 +ca rhicelens

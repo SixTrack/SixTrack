@@ -731,7 +731,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 5) nwr(4) = chr_toInt(lnSplit(6)) ! Every nth turn coordinates are written to unit 6.
     if(nSplit > 6) ntwin  = chr_toInt(lnSplit(7)) ! Flag for calculated distance of phase space
     if(nSplit > 7) ibidu  = chr_toInt(lnSplit(8)) ! Switch to create or read binary dump
-    ! if(nSplit > 8) iexact = chr_toInt(lnSplit(9)) ! Switch to enable exact solution of the equation of motion
+    if(nSplit > 8) iexact = chr_toInt(lnSplit(9)) ! Switch to enable exact solution of the equation of motion
     
   case default
     write(lout,"(a,i0,a)") "PARAM> ERROR Unexpected line number ",iLine," in TRAC block."

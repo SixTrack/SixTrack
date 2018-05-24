@@ -183,11 +183,11 @@ subroutine dump(dumpname,n,i)
   use mod_commonmn
   use mod_commons
   use mod_commont
+  use mod_commond
   
   implicit none
   
 +ca common2
-+ca commondl
 +ca commonxz
 +ca crco
   integer n,i
@@ -681,11 +681,11 @@ subroutine dumpbin(dumpname,n,i)
   use mod_commonmn
   use mod_commons
   use mod_commont
+  use mod_commond
   
   implicit none
   
 +ca common2
-+ca commondl
 +ca commonxz
 +ca crco
   integer n,i
@@ -1183,11 +1183,11 @@ subroutine dumphex(dumpname,n,i)
   use mod_commonmn
   use mod_commons
   use mod_commont
+  use mod_commond
   
   implicit none
   
 +ca common2
-+ca commondl
 +ca commonxz
 +ca crco
   integer n,i
