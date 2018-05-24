@@ -443,6 +443,7 @@ contains
     use parpro
     use string_tools
     use mod_common
+    use mod_commont
     use mod_commonmn
     
     implicit none
@@ -453,7 +454,6 @@ contains
     integer i, ix,n
     intent(in) i, ix, n
 
-+ca commontr
 
 +if crlibm
     !Needed for string conversions for BDEX

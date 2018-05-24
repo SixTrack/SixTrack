@@ -222,11 +222,6 @@
 +if .not.cr
       common/main4/ e0f,numx
 +ei
-+cd commontr
-      integer ktrack,nwri
-      real(kind=fPrec) dpsv1,strack,strackc,stracks,strackx,strackz
-      common/track/ ktrack(nblz),strack(nblz),strackc(nblz),            &
-     &stracks(nblz),strackx(nblz),strackz(nblz),dpsv1(npart),nwri
 +cd commonc
       integer ichromc,ilinc,iqmodc
       real(kind=fPrec) clon,chromc,corr,wxys
@@ -14531,6 +14526,7 @@ subroutine initialize_element(ix,lfirst)
       use string_tools
       use parpro !Needed for common
       use mod_common
+      use mod_commont
       use mod_commonmn
       use elens
       use wire
@@ -14541,7 +14537,6 @@ subroutine initialize_element(ix,lfirst)
 
       integer im, izu, k, m, nmz, r0, r0a !needed to use multini
 
-+ca commontr
 +ca commonxz
 
       !Temp variables
@@ -19813,7 +19808,6 @@ end interface
 +ca commonl
 +ca commonm1
 ! Eric needs nwri (clean up new variables and common blocks!)
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -22388,7 +22382,6 @@ subroutine trauthin(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -22897,7 +22890,6 @@ subroutine thin4d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
 
 +if cr
@@ -23547,7 +23539,6 @@ subroutine thin6d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
 
 +if collimat
@@ -25104,7 +25095,6 @@ subroutine callcrp()
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +if cr
 +ca crco
 +ei
@@ -25189,7 +25179,6 @@ end subroutine callcrp
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -25261,7 +25250,6 @@ subroutine write6(n)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -25375,7 +25363,6 @@ subroutine trauthck(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -25820,7 +25807,6 @@ subroutine thck4d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
 +if cr
 +ca crco
@@ -26516,7 +26502,6 @@ subroutine thck6d(nthinerr)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
 +if cr
 +ca crco
@@ -28076,7 +28061,6 @@ subroutine synuthck
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -29743,10 +29727,10 @@ integer function INEELS( iEl )
       use crcoall
       use parpro
       use mod_common
+      use mod_commont
       use mod_commonmn
       implicit none
 
-+ca commontr
 +ca dbdcum
 
 !     interface variables
@@ -29815,10 +29799,9 @@ integer function INEESE()
   use parpro
   use parpro_scale
   use mod_common
+  use mod_commont
   use mod_commonmn
   implicit none
-
-+ca commontr
 
   il=il+1
   if( il.gt.nele-2 ) then
@@ -29853,10 +29836,10 @@ integer function check_SE_unique( iEl, ixEl )
 
   use parpro
   use mod_common
+  use mod_commont
   use mod_commonmn
   implicit none
 
-+ca commontr
 +ca dbdcum
 
 ! interface variables
@@ -41675,7 +41658,6 @@ subroutine crcheck
 +ca commonxz
 +ca commonl
 +ca commonm1
-+ca commontr
 +ca commonc
 +if bnlelens
 +ca rhicelens
@@ -42562,7 +42544,6 @@ subroutine crpoint
 +ca commonxz
 +ca commonl
 +ca commonm1
-+ca commontr
 +ca commonc
 
 +if bnlelens
@@ -43139,7 +43120,6 @@ subroutine crstart
 +ca commonxz
 +ca commonl
 +ca commonm1
-+ca commontr
 +ca commonc
 +if bnlelens
 +ca rhicelens

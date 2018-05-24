@@ -186,7 +186,6 @@ subroutine collimate_init()
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -667,7 +666,6 @@ subroutine collimate_start_sample(nsample)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -1371,7 +1369,6 @@ subroutine collimate_start_collimator(stracki)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
 +ca commonex
   dimension nbeaux(nbb)
@@ -1587,7 +1584,6 @@ subroutine collimate_do_collimator(stracki)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
 +ca commonex
   dimension nbeaux(nbb)
@@ -2417,7 +2413,6 @@ subroutine collimate_end_collimator()
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
 +ca commonex
   dimension nbeaux(nbb)
@@ -2874,7 +2869,6 @@ subroutine collimate_end_sample(j)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
   
@@ -3145,7 +3139,6 @@ subroutine collimate_exit()
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3311,7 +3304,6 @@ subroutine collimate_start_turn(n)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -3351,7 +3343,6 @@ subroutine collimate_start_element(i)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3459,7 +3450,6 @@ subroutine collimate_end_element
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3624,7 +3614,6 @@ subroutine collimate_end_turn
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat

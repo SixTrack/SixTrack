@@ -77,11 +77,11 @@ subroutine dumpxy(dumpname,n,i,k)
   use floatPrecision
   use parpro
   use mod_common
+  use mod_commont
   use mod_commonmn
   
   implicit none
   
-+ca commontr
   integer n,i,j,k
   character(len=*) dumpname
   save
@@ -190,7 +190,6 @@ subroutine dump(dumpname,n,i)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca crco
   integer n,i
   character(len=*) dumpname
@@ -690,7 +689,6 @@ subroutine dumpbin(dumpname,n,i)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca crco
   integer n,i
   character(len=*) dumpname
@@ -1194,7 +1192,6 @@ subroutine dumphex(dumpname,n,i)
 +ca commondl
 +ca commonxz
 +ca commonm1
-+ca commontr
 +ca crco
   integer n,i
   character(len=*) dumpname

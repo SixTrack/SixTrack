@@ -711,6 +711,10 @@ module mod_commont
   ! common /tasm/
   real(kind=fPrec), save :: tasm(6,6)
   
+  ! common /track/
+  integer,          save :: ktrack(nblz),nwri
+  real(kind=fPrec), save :: strack(nblz),strackc(nblz),stracks(nblz),strackx(nblz),strackz(nblz),dpsv1(npart)
+  
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2),yytr(mpa,2)
   integer,          save :: issss(2)
