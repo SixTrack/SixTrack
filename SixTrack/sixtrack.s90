@@ -8639,8 +8639,6 @@ subroutine daten
     goto 950
   case("ORBI")
     goto 980
-  case("INIT")
-    goto 500
   case("COMB")
     goto 1030
   case("SUBR")
@@ -8761,6 +8759,18 @@ subroutine daten
       continue
     else
       call sixin_parseInputLineDISP(ch,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("INIT")
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      dp1   = exz(1,6)
+      iclr  = 0
+      nbidu = 1
+    else
+      call sixin_parseInputLineINIT(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
   
@@ -9310,422 +9320,423 @@ subroutine daten
 !-----------------------------------------------------------------------
 !  INITIAL COORDINATES
 !-----------------------------------------------------------------------
-  500 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then !iclr = line number in initial coordinate block
-        iclr=iclr+1
-      else
-        goto 500
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      if(iclr.eq.1) then
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-        read(ch1,*,round='nearest')                                     &
-     & itra,chi0,chid,rat,iver
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-        read(ch1,*) itra,chi0,chid,rat,iver
-+ei
-+if crlibm
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itra
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          chi0=fround(errno,fields,2)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          chid=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          rat=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-            read (fields(5),*) iver
-            nf=nf-1
-        endif
-+ei
-+ei
-        if(itra.gt.2) call prror(40)
-      endif
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & exz(1,1)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.2) read(ch1,*) exz(1,1)
-+ei
-+if crlibm
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,1)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
-     & exz(1,2)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.3) read(ch1,*) exz(1,2)
-+ei
-+if crlibm
-      if(iclr.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,2)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & exz(1,3)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.4) read(ch1,*) exz(1,3)
-+ei
-+if crlibm
-      if(iclr.eq.4) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,3)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
-     & exz(1,4)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.5) read(ch1,*) exz(1,4)
-+ei
-+if crlibm
-      if(iclr.eq.5) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,4)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
-     & exz(1,5)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.6) read(ch1,*) exz(1,5)
-+ei
-+if crlibm
-      if(iclr.eq.6) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,5)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
-     & exz(1,6)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.7) read(ch1,*) exz(1,6)
-+ei
-+if crlibm
-      if(iclr.eq.7) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,6)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
-     & exz(2,1)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.8) read(ch1,*) exz(2,1)
-+ei
-+if crlibm
-      if(iclr.eq.8) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,1)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-     & exz(2,2)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.9) read(ch1,*) exz(2,2)
-+ei
-+if crlibm
-      if(iclr.eq.9) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,2)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
-     & exz(2,3)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.10) read(ch1,*) exz(2,3)
-+ei
-+if crlibm
-      if(iclr.eq.10) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,3)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
-     & exz(2,4)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.11) read(ch1,*) exz(2,4)
-+ei
-+if crlibm
-      if(iclr.eq.11) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,4)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
-     & exz(2,5)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.12) read(ch1,*) exz(2,5)
-+ei
-+if crlibm
-      if(iclr.eq.12) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,5)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
-     & exz(2,6)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.13) read(ch1,*) exz(2,6)
-+ei
-+if crlibm
-      if(iclr.eq.13) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,6)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
-     & e0
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.14) read(ch1,*) e0
-+ei
-+if crlibm
-      if(iclr.eq.14) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          e0=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.15) read(ch1,*,round='nearest')                        &
-     & ej(1)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.15) read(ch1,*) ej(1)
-+ei
-+if crlibm
-      if(iclr.eq.15) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          ej(1)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.16) read(ch1,*,round='nearest')                        &
-     & ej(2)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.16) read(ch1,*) ej(2)
-+ei
-+if crlibm
-      if(iclr.eq.16) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          ej(2)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-      if(iclr.ne.16) goto 500
-      dp1=exz(1,6)
-      iclr=0
-      if(iver.ne.0.and.iver.ne.1) iver=0
-      nbidu=1
-      goto 110
+! 500 read(3,10020,end=1530,iostat=ierro) ch
+!     if(ierro.gt.0) call prror(58)
+!     lineno3=lineno3+1
+!     if(ch(1:1).ne.'/') then !iclr = line number in initial coordinate block
+!       iclr=iclr+1
+!     else
+!       goto 500
+!     endif
+!     ch1(:nchars+3)=ch(:nchars)//' / '
+!     call sixin_parseInputLineINIT(ch,iclr,inErr)
+!     ! if(iclr.eq.1) then
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!         read(ch1,*,round='nearest')                                     &
+!      & itra,chi0,chid,rat,iver
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!         read(ch1,*) itra,chi0,chid,rat,iver
+! +ei
+! +if crlibm
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           read(fields(1),*) itra
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           chi0=fround(errno,fields,2)
+!         nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           chid=fround(errno,fields,3)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           rat=fround(errno,fields,4)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!             read (fields(5),*) iver
+!             nf=nf-1
+!         endif
+! +ei
+! +ei
+!         if(itra.gt.2) call prror(40)
+!       endif
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+!      & exz(1,1)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.2) read(ch1,*) exz(1,1)
+! +ei
+! +if crlibm
+!       if(iclr.eq.2) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(1,1)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
+!      & exz(1,2)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.3) read(ch1,*) exz(1,2)
+! +ei
+! +if crlibm
+!       if(iclr.eq.3) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(1,2)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
+!      & exz(1,3)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.4) read(ch1,*) exz(1,3)
+! +ei
+! +if crlibm
+!       if(iclr.eq.4) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(1,3)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.5) read(ch1,*,round='nearest')                         &
+!      & exz(1,4)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.5) read(ch1,*) exz(1,4)
+! +ei
+! +if crlibm
+!       if(iclr.eq.5) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(1,4)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.6) read(ch1,*,round='nearest')                         &
+!      & exz(1,5)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.6) read(ch1,*) exz(1,5)
+! +ei
+! +if crlibm
+!       if(iclr.eq.6) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(1,5)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.7) read(ch1,*,round='nearest')                         &
+!      & exz(1,6)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.7) read(ch1,*) exz(1,6)
+! +ei
+! +if crlibm
+!       if(iclr.eq.7) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(1,6)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.8) read(ch1,*,round='nearest')                         &
+!      & exz(2,1)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.8) read(ch1,*) exz(2,1)
+! +ei
+! +if crlibm
+!       if(iclr.eq.8) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(2,1)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.9) read(ch1,*,round='nearest')                         &
+!      & exz(2,2)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.9) read(ch1,*) exz(2,2)
+! +ei
+! +if crlibm
+!       if(iclr.eq.9) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(2,2)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.10) read(ch1,*,round='nearest')                        &
+!      & exz(2,3)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.10) read(ch1,*) exz(2,3)
+! +ei
+! +if crlibm
+!       if(iclr.eq.10) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(2,3)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.11) read(ch1,*,round='nearest')                        &
+!      & exz(2,4)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.11) read(ch1,*) exz(2,4)
+! +ei
+! +if crlibm
+!       if(iclr.eq.11) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(2,4)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.12) read(ch1,*,round='nearest')                        &
+!      & exz(2,5)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.12) read(ch1,*) exz(2,5)
+! +ei
+! +if crlibm
+!       if(iclr.eq.12) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(2,5)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.13) read(ch1,*,round='nearest')                        &
+!      & exz(2,6)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.13) read(ch1,*) exz(2,6)
+! +ei
+! +if crlibm
+!       if(iclr.eq.13) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           exz(2,6)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.14) read(ch1,*,round='nearest')                        &
+!      & e0
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.14) read(ch1,*) e0
+! +ei
+! +if crlibm
+!       if(iclr.eq.14) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           e0=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.15) read(ch1,*,round='nearest')                        &
+!      & ej(1)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.15) read(ch1,*) ej(1)
+! +ei
+! +if crlibm
+!       if(iclr.eq.15) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           ej(1)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.16) read(ch1,*,round='nearest')                        &
+!      & ej(2)
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+! +if .not.crlibm
+!       if(iclr.eq.16) read(ch1,*) ej(2)
+! +ei
+! +if crlibm
+!       if(iclr.eq.16) then
+!         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           ej(2)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!       endif
+! +ei
+! +ei
+!       if(iclr.ne.16) goto 500
+!       dp1=exz(1,6)
+!       iclr=0
+!       if(iver.ne.0.and.iver.ne.1) iver=0
+!       nbidu=1
+!       goto 110
 !-----------------------------------------------------------------------
 !  TRACKING PARAMETERS
 !-----------------------------------------------------------------------

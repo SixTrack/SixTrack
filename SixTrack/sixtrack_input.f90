@@ -11,6 +11,7 @@ module sixtrack_input
   use mod_alloc
   use string_tools
   use mod_common
+  use mod_commons
   
   implicit none
   
@@ -132,8 +133,6 @@ end subroutine sixin_blockReport
 
 ! ================================================================================================ !
 !  Parse Single Element Line
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-22
 !  Rewritten from code from DATEN
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
@@ -268,8 +267,6 @@ end subroutine sixin_parseInputLineSING
 
 ! ================================================================================================ !
 !  Parse Block Definitions Line
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-22
 !  Rewritten from code from DATEN
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
@@ -402,8 +399,6 @@ end subroutine sixin_parseInputLineBLOC
 
 ! ================================================================================================ !
 !  Parse Structure Input Line
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-22
 !  Rewritten from code from DATEN
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
@@ -478,8 +473,6 @@ end subroutine sixin_parseInputLineSTRU
 
 ! ================================================================================================ !
 !  Parse Displacement Block Line
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-22
 !  Rewritten from code from DATEN
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDISP(inLine, iErr)
@@ -551,5 +544,88 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   end do
   
 end subroutine sixin_parseInputLineDISP
+
+! ================================================================================================ !
+!  Parse Initial Coordinates Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
+
+  use parpro_scale
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: expLine
+  integer nSplit
+  
+  integer i
+  
+  call chr_split(inLine, lnSplit, nSplit)
+  
+  if(nSplit < 1) then
+    write(lout,"(a,i0,a)") "PARAM> ERROR INIT block line ",iLine," did not receive any values."
+    iErr = .true.
+    return
+  end if
+  
+  select case(iLine)
+  case(1) ! Line One
+    if(nSplit > 0) itra = chr_toInt(lnSplit(1))  ! Number of particles
+    if(nSplit > 1) chi0 = chr_toReal(lnSplit(2)) ! Starting phase of the initial coordinate
+    if(nSplit > 2) chid = chr_toReal(lnSplit(3)) ! Phase difference between particles
+    if(nSplit > 3) rat  = chr_toReal(lnSplit(4)) ! Emittance ratio
+    if(nSplit > 4) iver = chr_toInt(lnSplit(5))  ! Vertical coordinates switch
+    if(itra < 0 .or. itra > 2) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR INIT First value (itra) can only be 0, 1 or 2, but ",itra," given."
+      iErr = .true.
+      return
+    end if
+    if(iver < 0 .or. iver > 1) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR INIT Fifth value (iver) can only be 0 or 1, but ",iver," given."
+      iErr = .true.
+      return
+    end if
+  case(2)  ! x [mm] coordinate of particle 1
+    exz(1,1) = chr_toReal(lnSplit(1))
+  case(3)  ! xp [mrad] coordinate of particle 1
+    exz(1,2) = chr_toReal(lnSplit(1))
+  case(4)  ! y [mm] coordinate of particle 1
+    exz(1,3) = chr_toReal(lnSplit(1))
+  case(5)  ! yp [mrad] coordinate of particle 1
+    exz(1,4) = chr_toReal(lnSplit(1))
+  case(6)  ! Path length difference 1(sigma = s−v0*t) [mm] of particle 1
+    exz(1,5) = chr_toReal(lnSplit(1))
+  case(7)  ! dp/p0 of particle 1
+    exz(1,6) = chr_toReal(lnSplit(1))
+  case(8)  ! x [mm] coordinate of particle 2
+    exz(2,1) = chr_toReal(lnSplit(1))
+  case(9)  ! xp [mrad] coordinate of particle 2
+    exz(2,2) = chr_toReal(lnSplit(1))
+  case(10) ! y [mm] coordinate of particle 2
+    exz(2,3) = chr_toReal(lnSplit(1))
+  case(11) ! yp [mrad] coordinate of particle 2
+    exz(2,4) = chr_toReal(lnSplit(1))
+  case(12) ! Path length difference 1(sigma = s−v0*t) [mm] of particle 2
+    exz(2,5) = chr_toReal(lnSplit(1))
+  case(13) ! dp/p0 of particle 2
+    exz(2,6) = chr_toReal(lnSplit(1))
+  case(14) ! energy [MeV] of the reference particle
+    e0       = chr_toReal(lnSplit(1))
+  case(15) ! energy [MeV] of particle 1
+    ej(1)    = chr_toReal(lnSplit(1))
+  case(16) ! energy [MeV] of particle 2
+    ej(2)    = chr_toReal(lnSplit(1))
+  case default
+    write(lout,"(a,i0,a)") "PARAM> ERROR Unexpected line number ",iLine," in INIT block."
+    iErr = .true.
+    return
+  end select
+  
+end subroutine sixin_parseInputLineINIT
 
 end module sixtrack_input
