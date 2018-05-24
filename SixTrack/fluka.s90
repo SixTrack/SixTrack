@@ -150,8 +150,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
 
       implicit none
 
-+ca commonm1
-
 !     interface variables:
       integer nturn, i, ix
 
@@ -370,8 +368,6 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       use end_sixtrack
 
       implicit none
-
-+ca commonm1
 
 !     interface variables:
       integer nturn, i, ix

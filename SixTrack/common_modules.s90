@@ -778,12 +778,16 @@ module mod_commonmn
   integer, save :: iv(npart),ixv(npart)
   
   !common /main3/
-  real(kind=fPrec), save :: clo6v(3,npart),clop6v(3,npart),              &
-       tas(npart,6,6),qwcs(npart,3),di0xs(npart),                        &
-       di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6),       &
-       di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
+  real(kind=fPrec), save :: clo6v(3,npart),clop6v(3,npart),tas(npart,6,6),qwcs(npart,3),di0xs(npart)
+  real(kind=fPrec), save :: di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6)
+  real(kind=fPrec), save :: di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
   real(kind=fPrec), allocatable, save :: hv(:,:,:,:),bl1v(:,:,:,:) !(6,2,npart,nblo)
-
+  
+  ! common /main4/
+  integer,          save :: numx
+  real(kind=fPrec), save :: e0f
+  logical,          save :: sythckcr ! Only used for CR
+  
 contains
   subroutine mod_commonmn_allocate_arrays
   use mod_alloc

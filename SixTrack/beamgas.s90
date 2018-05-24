@@ -85,9 +85,6 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
 !YIL: COMMONMN
 
-!~: commonm1
-+ca commonm1
-
 !YIL: INFO
 +ca info
 

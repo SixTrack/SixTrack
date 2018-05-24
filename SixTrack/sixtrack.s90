@@ -212,16 +212,6 @@
       common/dial/preda,idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
       common/norf/nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
       common/tcorr/icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel(10)
-+cd commonm1
-      integer numx
-      real(kind=fPrec) e0f
-+if cr
-      logical sythckcr
-      common/main4/ e0f,numx,sythckcr
-+ei
-+if .not.cr
-      common/main4/ e0f,numx
-+ei
 +cd commonc
       integer ichromc,ilinc,iqmodc
       real(kind=fPrec) clon,chromc,corr,wxys
@@ -16102,6 +16092,7 @@ subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn, only : e0f,numx
       use mod_commons
       use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
       use mod_commond2
@@ -16119,7 +16110,6 @@ subroutine runda
       character(len=300) ch
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca commond1
 +ca commonc
       dimension zfeld1(100),zfeld2(100)
@@ -17248,6 +17238,7 @@ subroutine umlauda
       use string_tools
       use parpro
       use mod_common
+      use mod_commonmn, only : e0f
       use mod_commons
       use mod_commont, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
       use wire
@@ -17273,7 +17264,6 @@ subroutine umlauda
 +ca commondl
 +ca commonl
 +ca commonxz
-+ca commonm1
 +ca commond1
 +ca commonc
       dimension damap(6),damapi(6),damap1(6)
@@ -18930,6 +18920,7 @@ end subroutine wireda
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn, only : e0f
       use mod_commons
       use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
       use mod_hions
@@ -18938,7 +18929,6 @@ end subroutine wireda
       real(kind=fPrec) betr0,dare,sigmdac
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca commond1
       save
 !-----------------------------------------------------------------------
@@ -19037,6 +19027,7 @@ end subroutine wireda
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn, only : e0f
       use mod_commons
       use mod_commont
       use mod_hions
@@ -19044,7 +19035,6 @@ end subroutine wireda
       integer ix,idaa
 +ca commondl
 +ca commond1
-+ca commonm1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19806,7 +19796,6 @@ end interface
 +ca commondl
 +ca commonxz
 +ca commonl
-+ca commonm1
 ! Eric needs nwri (clean up new variables and common blocks!)
 +if bnlelens
 +ca rhicelens
@@ -22381,7 +22370,6 @@ subroutine trauthin(nthinerr)
       logical lopen
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -22889,7 +22877,6 @@ subroutine thin4d(nthinerr)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca beamdim
 
 +if cr
@@ -23538,7 +23525,6 @@ subroutine thin6d(nthinerr)
 
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca beamdim
 
 +if collimat
@@ -25094,7 +25080,6 @@ subroutine callcrp()
       implicit none
 +ca commondl
 +ca commonxz
-+ca commonm1
 +if cr
 +ca crco
 +ei
@@ -25178,7 +25163,6 @@ end subroutine callcrp
       real(kind=fPrec) dam1
 +ca commondl
 +ca commonxz
-+ca commonm1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -25249,7 +25233,6 @@ subroutine write6(n)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonm1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -25362,7 +25345,6 @@ subroutine trauthck(nthinerr)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -25806,7 +25788,6 @@ subroutine thck4d(nthinerr)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca beamdim
 +if cr
 +ca crco
@@ -26501,7 +26482,6 @@ subroutine thck6d(nthinerr)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca beamdim
 +if cr
 +ca crco
@@ -28060,7 +28040,6 @@ subroutine synuthck
       real(kind=fPrec) fokm
 +ca commondl
 +ca commonxz
-+ca commonm1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -30573,7 +30552,6 @@ subroutine blocksv
 +ca commondl
 +ca commonxz
 +ca commonl
-+ca commonm1
 +ca commonc
       integer n, ia, ikk, j, jm, k, lkk, mkk
       real(kind=fPrec) dpoff
@@ -41657,7 +41635,6 @@ subroutine crcheck
 +ca commondl
 +ca commonxz
 +ca commonl
-+ca commonm1
 +ca commonc
 +if bnlelens
 +ca rhicelens
@@ -42543,7 +42520,6 @@ subroutine crpoint
 +ca commondl
 +ca commonxz
 +ca commonl
-+ca commonm1
 +ca commonc
 
 +if bnlelens
@@ -43119,7 +43095,6 @@ subroutine crstart
 +ca commondl
 +ca commonxz
 +ca commonl
-+ca commonm1
 +ca commonc
 +if bnlelens
 +ca rhicelens

@@ -189,7 +189,6 @@ subroutine dump(dumpname,n,i)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca crco
   integer n,i
   character(len=*) dumpname
@@ -688,7 +687,6 @@ subroutine dumpbin(dumpname,n,i)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca crco
   integer n,i
   character(len=*) dumpname
@@ -1191,7 +1189,6 @@ subroutine dumphex(dumpname,n,i)
 +ca common2
 +ca commondl
 +ca commonxz
-+ca commonm1
 +ca crco
   integer n,i
   character(len=*) dumpname

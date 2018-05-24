@@ -3013,8 +3013,6 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     use elens
     implicit none
 
-+ca commonm1
-
     character(maxstrlen_dynk) element_name, att_name
     real(kind=fPrec) newValue
     intent (in) element_name, att_name, newValue
