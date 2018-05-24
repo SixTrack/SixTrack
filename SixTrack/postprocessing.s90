@@ -45,9 +45,9 @@ subroutine postpr(posi,nnuml)
 +ei
       implicit none
 
-+if vvector
+! +if vvector
 +ca common2
-+ei
+! +ei
 +ca commonc
 +ca commphin
 +if cr
@@ -1944,7 +1944,7 @@ subroutine postpr(posi,nnuml)
 !--PRINTING
 !----------------------------------------------------------------------
       if(nstop.lt.ia.and.(ia.lt.numl.or.ia.lt.nint(dnumlr))) nlost=1
-+if vvector
+! +if vvector
       if(nnumxv(ifipa).eq.0.and.nnumxv(ilapa).eq.0) then
         sumda(22)=real(ia,fPrec)                                         !hr06
         sumda(23)=real(ia,fPrec)                                         !hr06
@@ -1952,11 +1952,11 @@ subroutine postpr(posi,nnuml)
         sumda(22)=real(nnumxv(ifipa),fPrec)                              !hr06
         sumda(23)=real(nnumxv(ilapa),fPrec)                              !hr06
       endif
-+ei
-+if .not.vvector
-      sumda(22)=real(ia,fPrec)                                           !hr06
-      sumda(23)=real(ia,fPrec)                                           !hr06
-+ei
+! +ei
+! +if .not.vvector
+!       sumda(22)=real(ia,fPrec)                                           !hr06
+!       sumda(23)=real(ia,fPrec)                                           !hr06
+! +ei
 +if cr
 ! TRY a FIX for nnuml
 ! should be redumdant now
