@@ -628,4 +628,58 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   
 end subroutine sixin_parseInputLineINIT
 
+! ================================================================================================ !
+!  Parse Tracking Parameters Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
+
+  use parpro_scale
+  use mod_commont
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: expLine
+  integer nSplit
+  
+  call chr_split(inLine, lnSplit, nSplit)
+  
+  select case(iLine)
+  case(1) ! Line One
+    if(nSplit < 7) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC block line 1 should be at least 7 values, but ",nSplit," given."
+      iErr = .true.
+      return
+    end if
+    !numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
+    if(nSplit > 0)  numl    = chr_toInt(lnSplit(1))  ! Number of turns in the forward direction
+    if(nSplit > 1)  numlr   = chr_toInt(lnSplit(2))  ! Number of turns in the backward direction
+    if(nSplit > 2)  napx    = chr_toInt(lnSplit(3))  ! Number of amplitude variations (i.e. particle pairs)
+    if(nSplit > 3)  amp(1)  = chr_toReal(lnSplit(4)) ! End amplitude
+    if(nSplit > 4)  amp0    = chr_toReal(lnSplit(5)) ! Start amplitude
+    if(nSplit > 5)  ird     = chr_toInt(lnSplit(6))  ! Ignored
+    if(nSplit > 6)  imc     = chr_toInt(lnSplit(7))  ! Number of variations of the relative momentum deviation dp/p
+    if(nSplit > 7)  niu(1)  = chr_toInt(lnSplit(8))  ! Unknown
+    if(nSplit > 8)  niu(2)  = chr_toInt(lnSplit(9))  ! Unknown
+    if(nSplit > 9)  numlcp  = chr_toInt(lnSplit(10)) ! CR: How often to write checkpointing files
+    if(nSplit > 10) numlmax = chr_toInt(lnSplit(11)) ! CR: Maximum amount of turns; default is 1e6
+    
+    ! Default nnmul to numl
+    nnuml = numl
+    ! Defualt numlcp to 1000
+    if(numlcp == 0) numlcp = 1000
+    
+  case default
+    write(lout,"(a,i0,a)") "PARAM> ERROR Unexpected line number ",iLine," in TRAC block."
+    iErr = .true.
+    return
+  end select
+  
+end subroutine sixin_parseInputLineTRAC
+
 end module sixtrack_input

@@ -182,11 +182,11 @@ subroutine dump(dumpname,n,i)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
   
   implicit none
   
 +ca common2
-+ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
@@ -683,11 +683,11 @@ subroutine dumpbin(dumpname,n,i)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
   
   implicit none
   
 +ca common2
-+ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
@@ -1188,11 +1188,11 @@ subroutine dumphex(dumpname,n,i)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
   
   implicit none
   
 +ca common2
-+ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta

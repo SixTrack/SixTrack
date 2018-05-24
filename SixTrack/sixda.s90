@@ -30,6 +30,7 @@ program mainda
   use parpro_scale
   use mod_common
   use mod_commons
+  use mod_commont
   
   implicit none
   
@@ -42,7 +43,6 @@ program mainda
 +ei
     tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
   
-+ca commont1
 +ca commondl
 +ca commonxz
 +ca commonta
