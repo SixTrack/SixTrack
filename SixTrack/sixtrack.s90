@@ -217,12 +217,6 @@
       real(kind=fPrec) clon,chromc,corr,wxys
       common/correct/ corr(3,3),chromc(2),wxys(3),clon(6),iqmodc,       &
      &ichromc,ilinc
-+cd commonex
-!-----------------------------------------------------------------------
-!  COMMON FOR EXACT VERSION
-!-----------------------------------------------------------------------
-      integer iexact
-      common/exact/iexact
 +cd exactvars
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
@@ -8237,7 +8231,6 @@ subroutine daten
   data lineno16 /0/
   data lineno30 /0/
   data lineno35 /0/
-+ca commonex
 +ca commondl
   
 +if collimat
@@ -8846,6 +8839,7 @@ subroutine daten
       endif
       ch1(:nchars+3)=ch(:nchars)//' / '
       if(iclr.eq.1) call sixin_parseInputLineTRAC(ch,iclr,inErr)
+      if(iclr.eq.2) call sixin_parseInputLineTRAC(ch,iclr,inErr)
 ! +if fio
 ! +if crlibm
 !       call enable_xp()
@@ -8918,19 +8912,19 @@ subroutine daten
 !       nnuml=numl
 !       ! and numlcp to 1000
 !       if(numlcp.eq.0) numlcp=1000
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & idz(1),idz(2),idfor,irew,iclo6
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-      if(iclr.eq.2) read(ch1,*) idz(1),idz(2),idfor,irew,iclo6
-+ei
+! +if fio
+! +if crlibm
+!       call enable_xp()
+! +ei
+!       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+!      & idz(1),idz(2),idfor,irew,iclo6
+! +if crlibm
+!       call disable_xp()
+! +ei
+! +ei
+! +if .not.fio
+!       if(iclr.eq.2) read(ch1,*) idz(1),idz(2),idfor,irew,iclo6
+! +ei
 +if fio
 +if crlibm
       call enable_xp()
@@ -17260,7 +17254,6 @@ subroutine umlauda
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=max_name_len) typ
-+ca commonex
 +ca commondl
 +ca commonl
 +ca commonxz
@@ -19791,7 +19784,6 @@ end interface
 !  TEMPORARY SCRATCH FILE for C/R           : UNIT 94
 +ei
 !-----------------------------------------------------------------------
-+ca commonex
 +ca common2
 +ca commondl
 +ca commonxz
@@ -22860,7 +22852,6 @@ subroutine thin4d(nthinerr)
   implicit none
 
 +ca exactvars
-+ca commonex
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,&
           r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
@@ -23509,7 +23500,6 @@ subroutine thin6d(nthinerr)
   implicit none
 
 +ca exactvars
-+ca commonex
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr,dotrack
   real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,&
           dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
@@ -28889,7 +28879,6 @@ subroutine comnul
   implicit none
   
   integer i,i1,i2,i3,i4,j
-+ca commonex
 +ca commondl
 +ca commd1da
 +ca commonc

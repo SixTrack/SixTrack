@@ -1367,7 +1367,6 @@ subroutine collimate_start_collimator(stracki)
 +ca commondl
 +ca commonxz
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
 
 +if collimat
@@ -1581,7 +1580,6 @@ subroutine collimate_do_collimator(stracki)
 +ca commondl
 +ca commonxz
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
 
 +if collimat
@@ -2409,7 +2407,6 @@ subroutine collimate_end_collimator()
 +ca commondl
 +ca commonxz
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
   
 #ifdef COLLIMAT
@@ -4117,10 +4114,10 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
   use crcoall
   use parpro
+  use common, only : iexact
   implicit none
 
 
-+ca commonex
 +ca collpara
 +ca dbpencil
 +ca info

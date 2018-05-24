@@ -636,6 +636,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
   use parpro_scale
   use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -650,13 +651,12 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   call chr_split(inLine, lnSplit, nSplit)
   
   select case(iLine)
-  case(1) ! Line One
+  case(1)
     if(nSplit < 7) then
       write(lout,"(a,i0,a)") "PARAM> ERROR TRAC block line 1 should be at least 7 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
-    !numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
     if(nSplit > 0)  numl    = chr_toInt(lnSplit(1))  ! Number of turns in the forward direction
     if(nSplit > 1)  numlr   = chr_toInt(lnSplit(2))  ! Number of turns in the backward direction
     if(nSplit > 2)  napx    = chr_toInt(lnSplit(3))  ! Number of amplitude variations (i.e. particle pairs)
@@ -673,6 +673,65 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     nnuml = numl
     ! Defualt numlcp to 1000
     if(numlcp == 0) numlcp = 1000
+    
+  case(2)
+    if(nSplit < 4) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC block line 2 should be at least 4 values, but ",nSplit," given."
+      iErr = .true.
+      return
+    end if
+    if(nSplit > 0) idz(1) = chr_toInt(lnSplit(1)) ! Coupling on/off
+    if(nSplit > 1) idz(2) = chr_toInt(lnSplit(2)) ! Coupling on/off
+    if(nSplit > 2) idfor  = chr_toInt(lnSplit(3)) ! Closed orbit and initial coordinates
+    if(nSplit > 3) irew   = chr_toInt(lnSplit(4)) ! Disable rewind
+    if(nSplit > 4) iclo6  = chr_toInt(lnSplit(5)) ! Calculate the 6D closed orbit
+    if(idz(1) < 0 .or. idz(1) > 1) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC first value (idz(1)) can only be 0 or 1, but ",idz(1)," given."
+      iErr = .true.
+      return
+    end if
+    if(idz(2) < 0 .or. idz(2) > 1) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC second value (idz(2)) can only be 0 or 1, but ",idz(2)," given."
+      iErr = .true.
+      return
+    end if
+    if(idfor < 0 .or. idfor > 2) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC third value (idfor) can only be 0, 1 or 2, but ",idfor," given."
+      iErr = .true.
+      return
+    end if
+    if(irew < 0 .or. irew > 1) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC fourth value (irew) can only be 0 or 1, but ",irew," given."
+      iErr = .true.
+      return
+    end if
+    if(iclo6 /= 0 .and. iclo6 /= 1 .and. iclo6 /= 2 .and. iclo6 /= 5 .and. iclo6 /= 6) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC fifth value (iclo6) can only be 0, 1, 2, 5 or 6, but ",iclo6," given."
+      iErr = .true.
+      return
+    end if
+    if(iclo6 == 5 .or. iclo6 == 6) then
+      iclo6  = iclo6-4
+      iclo6r = 1
+    end if
+    if(iclo6 == 2 .and. idfor == 0) idfor = 1
+    if(iclo6 == 1 .or.  iclo6 == 2) nsix  = 0
+    
+  case(3)
+    if(nSplit < 7) then
+      write(lout,"(a,i0,a)") "PARAM> ERROR TRAC block line 3 should be at least 7 values, but ",nSplit," given."
+      iErr = .true.
+      return
+    end if
+    if(nSplit > 0) nde(1) = chr_toInt(lnSplit(1)) ! Number of turns at flat bottom
+    if(nSplit > 1) nde(2) = chr_toInt(lnSplit(2)) ! Number of turns for the energy ramping
+    if(nSplit > 2) nwr(1) = chr_toInt(lnSplit(3)) ! Every nth turn coordinates will be written
+    if(nSplit > 3) nwr(2) = chr_toInt(lnSplit(4)) ! Every nth turn coordinates in the ramping region will be written
+    if(nSplit > 4) nwr(3) = chr_toInt(lnSplit(5)) ! Every nth turn at the flat top a write out of the coordinates
+    if(nSplit > 5) nwr(4) = chr_toInt(lnSplit(6)) ! Every nth turn coordinates are written to unit 6.
+    if(nSplit > 6) ntwin  = chr_toInt(lnSplit(7)) ! Flag for calculated distance of phase space
+    if(nSplit > 7) ibidu  = chr_toInt(lnSplit(8)) ! Switch to create or read binary dump
+    ! if(nSplit > 8) iexact = chr_toInt(lnSplit(9)) ! Switch to enable exact solution of the equation of motion
     
   case default
     write(lout,"(a,i0,a)") "PARAM> ERROR Unexpected line number ",iLine," in TRAC block."
