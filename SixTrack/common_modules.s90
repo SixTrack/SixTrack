@@ -366,14 +366,6 @@ module mod_common
   
   implicit none
 
-+if time
-  !To be deleted
-  real(kind=fPrec) tcnst35,exterr35,zfz35
-  integer icext35
-  common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
-       tcnst35(nblz)
-+ei
-
   ! common /erro/
   integer, save :: ierro
   character(len=max_name_len), save :: erbez
@@ -411,7 +403,7 @@ module mod_common
   
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
-       crad,dppoff,sigmoff(nblz),tlen
+       crad,dppoff,sigmoff(nblz),tlen,mtcda
   real(kind=fPrec), allocatable, save ::  hsyc(:), phasc(:) !(nele)
   integer, save :: iicav,ition,idp,ncy,ixcav
   integer, allocatable, save :: itionc(:) !(nele)
@@ -442,7 +434,7 @@ module mod_common
   
   ! common /clo/
   real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
-  integer, save :: itco,itcro,itqv,iout
+  integer, save :: itco,itcro,itqv,iout,iquiet
   
   ! common /qmodi/
   real(kind=fPrec), save :: qw0(3),amp0
@@ -540,16 +532,13 @@ module mod_common
   real(kind=fPrec), allocatable, save :: crabph(:),crabph2(:),crabph3(:),crabph4(:) !(nele)
 contains
 
-  subroutine mod_common_allocate_arrays
-    use crcoall
-
-    implicit none
-
-    integer j
-    character(len=max_name_len) :: defaultstring
-    do j=1,max_name_len
-      defaultstring(j:j) = char(0)
-    end do
+subroutine mod_common_allocate_arrays
+  
+  use crcoall
+  use string_tools
+  
+  implicit none
+  
 !    integer stat
 
 !    allocate(ed(nele),el(nele),ek(nele),sm(nele), STAT=stat)
@@ -611,7 +600,7 @@ contains
 
 !    allocate(bezr(3,nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call alloc(bezr, max_name_len, 3, nele, defaultstring, 'bezr')
+    call alloc(bezr, max_name_len, 3, nele, str_dZeros, 'bezr')
 
 !    allocate(kpa(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
@@ -620,9 +609,9 @@ contains
 !    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
 
-    call alloc(bez, max_name_len, nele, defaultstring, 'bez')
+    call alloc(bez, max_name_len, nele, str_dZeros, 'bez')
 !    call alloc(bezb, max_name_len, nele, ' ', 'bezb')
-    call alloc(bezl, max_name_len, nele, defaultstring, 'bezl')
+    call alloc(bezl, max_name_len, nele, str_dZeros, 'bezl')
 
 !    allocate(ncororb(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
@@ -682,19 +671,16 @@ contains
 !    write(lout,'(A,I8,1x,A)') "ERROR in SUBROUTINE MOD_COMMON_ALLOCATE_ARRAYS; stat=", stat
 !    call prror(-1)
 
-  end subroutine mod_common_allocate_arrays
+end subroutine mod_common_allocate_arrays
 
-  subroutine mod_common_expand_arrays(nele_new)
-    implicit none
+subroutine mod_common_expand_arrays(nele_new)
+  
+  use string_tools
+  
+  implicit none
 
-    integer, intent(in) :: nele_new
+  integer, intent(in) :: nele_new
 !    integer stat
-
-    integer j
-    character(len=max_name_len) :: defaultstring
-    do j=1,max_name_len
-      defaultstring(j:j) = char(0)
-    end do
 
     !TODO: Do the thing. This will be long and fugly
     call resize(ed,nele_new,zero,'ed')
@@ -725,15 +711,15 @@ contains
 
 !    allocate(bezr(3,nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call resize(bezr, max_name_len, 3, nele_new, defaultstring, 'bezr')
+    call resize(bezr, max_name_len, 3, nele_new, str_dZeros, 'bezr')
 
     call resize(kpa,nele_new,0,'kpa')
 
 !    allocate(bez(nele),bezb(nele),bezl(nele), STAT=stat)
 !    if (stat.ne.0) goto 42
-    call resize(bez,  max_name_len, nele_new, defaultstring, 'bez')
+    call resize(bez,  max_name_len, nele_new, str_dZeros, 'bez')
 !    call resize(bezb, max_name_len, nele_new, ' ', 'bezb')
-    call resize(bezl, max_name_len, nele_new, defaultstring, 'bezl')
+    call resize(bezl, max_name_len, nele_new, str_dZeros, 'bezl')
 
     call resize(ncororb,nele_new,0,'ncororb')
     call resize(ratioe,nele_new,zero,'ratioe')
@@ -764,12 +750,6 @@ module mod_commonmn
   use floatPrecision
   implicit none
   
-+if time
-  !To be deleted
-  real(kind=fPrec) aaiv35,bbiv35
-  common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
-+ei
-
   ! common /main1/
   real(kind=fPrec), allocatable, save :: ekv(:,:) !(npart,nele)
   real(kind=fPrec), save :: fokqv(npart),aaiv(mmul,nmac,nblz),           &
@@ -967,7 +947,7 @@ module mod_hions
   logical, save :: has_hion
 
 ! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0
+  real(kind=fPrec), save :: nucm0,nucmda
 
   real(kind=fPrec), save :: brhono
 
@@ -1023,6 +1003,7 @@ contains
 
 ! Charge multiplicity of the tracked ion
   call alloc(nzz,npart,zz0,'nzz') !(npart)
+  print*, "nzzzzz", nzz(1)
 
 ! SixTrack particle IDs
   call alloc(pids,npart,0,'pids') !(npart)

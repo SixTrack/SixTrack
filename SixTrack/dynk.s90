@@ -11,6 +11,7 @@ module dynk
     use parpro, only : nele, max_name_len
 
     use mod_alloc
+    use string_tools
 
     implicit none
 
@@ -18,10 +19,6 @@ module dynk
     ! Therefore, we always need to import the DYNK module using "only",
     ! or else it will bring the contents of parpro, comgetfields,
     ! and stringzerotrim along with it...
-
-!For the string length stuff
-+ca comgetfields
-+ca stringzerotrim !Note: Must include this again if linking to stringzerotrim to work.
 
     ! A.Mereghetti, for the FLUKA Team,
     ! K.Sjobak, A. Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
@@ -221,8 +218,8 @@ subroutine dynk_allocate
     write(lout,*) "maxstrlen_dynk=",maxstrlen_dynk
     
     ! Set file units for i/o files
-    call requestFileUnit("dynksets.dat",ldynkfileunit)
-    call requestFileUnit("dynk_parseFUN_IO",ldynkFUNfileunit)
+    call funit_requestUnit("dynksets.dat",ldynkfileunit)
+    call funit_requestUnit("dynk_parseFUN_IO",ldynkFUNfileunit)
     
 end subroutine dynk_allocate
 
@@ -236,11 +233,10 @@ subroutine dynk_parseFUN(getfields_fields, getfields_lfields, getfields_nfields)
     use crcoall
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
-    intent(in) getfields_fields, getfields_lfields, getfields_nfields
-
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
+  
     ! Temp variables
     integer ii, stat, t, nlines
     real(kind=fPrec) x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
@@ -1941,9 +1937,9 @@ subroutine dynk_parseSET(getfields_fields,getfields_lfields,getfields_nfields)
     use crcoall
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
+    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer,   intent(in) :: getfields_nfields
+    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
 
     integer ii
 
@@ -2238,11 +2234,8 @@ end subroutine dynk_inputsanitycheck
 ! ================================================================================================ !
 subroutine dynk_dumpdata
 
-      use crcoall
+    use crcoall
     implicit none
-
-+ca comgetfields
-+ca stringzerotrim
 
     integer ii
     write (lout,*) "**************** DYNK parser knows: ****************"
@@ -2300,8 +2293,6 @@ subroutine dynk_pretrack
     use mod_common
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
 +ca commondl
 
     ! Temp variables
@@ -2458,8 +2449,6 @@ subroutine dynk_apply(turn)
     implicit none
 
 +ca commontr
-+ca comgetfields
-+ca stringzerotrim
 +if boinc
     character(len=256) filename
 +ei
@@ -2705,11 +2694,14 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     use crcoall
     use mod_common
     use mod_ranecu
+    
     implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
+    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
+    integer   getfields_nfields
+    integer   getfields_lfields(getfields_n_max_fields)
+    logical   getfields_lerr
+  
     integer funNum, turn
     intent (in) funNum, turn
 
@@ -3022,8 +3014,6 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
 +ca commonm1
 +ca commontr
-+ca comgetfields
-+ca stringzerotrim
 
     character(maxstrlen_dynk) element_name, att_name
     real(kind=fPrec) newValue
@@ -3033,6 +3023,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     integer el_type, ii, j
     character(maxstrlen_dynk) element_name_stripped
     character(maxstrlen_dynk) att_name_stripped
+
+    !Original energies before energy update
+    real(kind=fPrec) e0fo, e0o
 
     ! For sanity check
     logical ldoubleElement
@@ -3053,6 +3046,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     if (element_name_stripped .eq. "GLOBAL-VARS") then
         if (att_name_stripped .eq. "E0" ) then
             ! Modify the reference particle
+
+            e0o  = e0
+            e0fo = e0f
+
             e0     = newValue
             e0f    = sqrt(e0**2 - nucm0**2)
             gammar = nucm0/e0
@@ -3066,7 +3063,14 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
                 oidpsv(j) = one/(one + dpsv(j))
                 moidpsv(j) = mtc(j)/(one + dpsv(j))
                 rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
-            end do
+
+                !Also update sigmv with the new beta0 = e0f/e0
+                sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j)
+              end do
+! FIXME: This is a dirty fix for DA version to make it compile.
+#ifndef DA
+              if(ithick.eq.1) call synuthck
+#endif
         end if
         ldoubleElement = .true.
     end if
@@ -3238,9 +3242,6 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
     implicit none
 
 +ca commontr
-+ca comgetfields
-+ca stringzerotrim
-
 
     character(maxstrlen_dynk) element_name, att_name
     intent(in) element_name, att_name
@@ -3485,12 +3486,9 @@ end function dynk_lininterp
 ! ================================================================================================ !
 logical function dynk_isused(i)
 
-      use crcoall
+    use crcoall
     use mod_common
     implicit none
-
-+ca comgetfields
-+ca stringzerotrim
 
     integer, intent(in) :: i
     integer ix,k
@@ -3583,6 +3581,37 @@ subroutine dynk_comnul
     dynkfilepos = -1 ! This line counter becomes >= 0 once the file is opened.
 +ei
 end subroutine dynk_comnul
+
+! =================================================================================================
+!  A. Mereghetti, for the FLUKA Team
+!  Last Modified: 2018-04-17
+!  Close units for logging dynks
+! =================================================================================================
+subroutine dynk_closeFiles
+    
+    implicit none
+    
+    integer i
+    logical lopen
+    
+    if(.not. ldynk) return
+         
+    do i=1,nfuncs_dynk
+        if (funcs_dynk(i,2) == 3) then ! PIPE FUN
+            ! InPipe
+            inquire(unit=iexpr_dynk(funcs_dynk(i,3)), opened=lopen)
+            if(lopen) close(iexpr_dynk(funcs_dynk(i,3)))
+            
+            ! OutPipe
+            inquire(unit=iexpr_dynk(funcs_dynk(i,3)+1), opened=lopen)
+            if(lopen) then
+                write(iexpr_dynk(funcs_dynk(i,3))+1,"(a)") "CLOSEUNITS"
+                close(iexpr_dynk(funcs_dynk(i,3))+1)
+            end if
+        end if
+    end do
+    
+end subroutine dynk_closeFiles
 
 ! ================================================================================================ !
 !  BEGIN Checkpoint Restart

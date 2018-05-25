@@ -1,5 +1,5 @@
 sixtrack.s90 collimation.s90
 collimationn.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,merlinscatter,g4collimat,root
+df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bnlelens,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,merlinscatter,g4collimat,root
 e nwrtcoll
 ex

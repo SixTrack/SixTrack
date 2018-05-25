@@ -1,8 +1,8 @@
-+dk root_output
-
 module root_output
   use, intrinsic :: iso_c_binding
   use crcoall
+  use end_sixtrack
+
   implicit none
 
   logical root_flag                                      !ROOT input block exists
@@ -248,25 +248,27 @@ subroutine SixTrackRootFortranInit
 end subroutine SixTrackRootFortranInit
 
 subroutine daten_root(ch)
+  
+  use string_tools
+  
   implicit none
 
-+ca comgetfields
-+ca stringzerotrim
-
   character(len=*), intent(in) :: ch
+  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+  integer   getfields_nfields                                                 ! Number of identified fields
+  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+  logical   getfields_lerr                                                    ! An error flag
 
 !ROOT is enabled
   root_flag = .true.
 
   !Read filenames
-  call getfields_split( ch, getfields_fields, getfields_lfields,    &
-       getfields_nfields, getfields_lerr )
-  if ( getfields_lerr ) call prror(-1)
+  call getfields_split( ch, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr )
+  if( getfields_lerr ) call prror(-1)
 
-  if (getfields_nfields .ne. 2) then
+  if(getfields_nfields .ne. 2) then
      write(lout,'(a)')         "ERROR in ROOT input:"
-     write(lout,'(a,1x,i3,a)') "Expected 2 entries per line, got", &
-          getfields_nfields, ", line=",ch
+     write(lout,'(a,1x,i3,a)') "Expected 2 entries per line, got", getfields_nfields, ", line=",ch
      call prror(-1)
   end if
 

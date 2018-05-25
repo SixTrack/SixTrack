@@ -1,5 +1,20 @@
 # SixTrack Changelog
 
+### List of Changes in Development Branch
+
+**User Changes**
+
+* DUMP now accepts -1 as file unit input, in which case a unit will be assigned dynamically.
+* Added optional QUIET flag that will stop SixTrack from reporting initial and final values of particle pairs.
+* Fixed the previously broken DA version of the code. Still may have issues with naglib when compiled with gfortran.
+* Added HDF5 block for alternative ouptut for DUMP and Scatter
+
+**Code Internal Changes**
+
+* File units can now be dynamically allocated by the file_units module.
+* Added a strings tools module to do string manipulation.
+* Moved DA version core code to sixda.s90 and tshift_corr.s90.
+
 ### Version 5.0 RC1 [06.04.2018] - Release Candidate
 
 Following is only a few key points. Full changelog will be included in final release.
@@ -7,23 +22,22 @@ Following is only a few key points. Full changelog will be included in final rel
 **Code**
 
 * SixTrack is now Fortran 2008 Free Form, and depcrecated syntax has been converted or removed.
-* Significant portions of the code has been split out into Fortran modules, including many common blocks
-* SixTrack can now be compiled in single, double or quad precision
+* Significant portions of the code has been split out into Fortran modules, including many common blocks.
+* SixTrack can now be compiled in single, double or quad precision.
 * Partially completed:
-  * Autoscaling of arrays (Will replace BIGNPART/NELE and HUGENPART/NELE flags eventually)
-  * Dynamic file unit assignment
+  * Autoscaling of arrays. Will replace BIGNPART, HUGENPART, etc. flags eventually.
+  * Dynamic file unit assignment.
 * Fixed:
-  * Closed orbit search
+  * Closed orbit search.
 * Removed:
   * thin/thck6dua. Replacd by DYNK. See documenttaion.
 * Currently broken:
-  * Electron lens
+  * Electron lens.
 
 **Documentation**
 
 * Manual has been completely reformatted and restructured.
 * Documentation still missing or incomplete for several modules.
-
 ### Version 4.7.18 [21.12.2017]
 
 * Fixing the RF multipole elements

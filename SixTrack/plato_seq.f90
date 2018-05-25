@@ -1,5 +1,3 @@
-+dk plato_seq
-
 module platoFMA
       use floatPrecision
       use end_sixtrack
@@ -647,13 +645,12 @@ module platoFMA
         ZD(ND)=(ZU*ND)*Z(ND)
       ENDDO
 !C............................................................  
-+if crlibm
+#ifdef CRLIBM
       ! EXP_MB expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
       ZTUNE1=cos_mb(DUEPI*TUNEA1) + ZU*sin_mb(DUEPI*TUNEA1)
-+ei
-+if .not.crlibm
+#else
       ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
-+ei
+#endif
       CALL CALC(ZTUNE1,ZF,Z,MAXN)
       CALL CALC(ZTUNE1,ZFD,ZD,MAXN)
       DTUNEA1=REAL(ZF)*REAL(ZFD)+AIMAG(ZF)*AIMAG(ZFD)
@@ -1045,17 +1042,16 @@ module platoFMA
         DO J=1,JMAX
           OME=OMEMIN+((OMEMAX-OMEMIN)/(JMAX-ONE))*(J-ONE)
           DO N=1,MAX
-+if crlibm
+#ifdef CRLIBM
             ZC=(X(N)-(ZERO,ONE)*PX(N))*(ONE+COS_MB(STEP*(2*N-MAX1)))
             TMPR=REAL((-(ZERO,ONE)*OME)*N)
             TMPI=AIMAG((-(ZERO,ONE)*OME)*N)
             !exp_mb is only defined for real numbers -> decompose in real and imaginary part
             Z(N)=ZC*(EXP_MB(TMPR)*CMPLX(COS_MB(TMPI),SIN_MB(TMPI),fPrec))
-+ei
-+if .not.crlibm
+#else
             ZC=(X(N)-(ZERO,ONE)*PX(N))*(ONE+COS(STEP*(2*N-MAX1)))
             Z(N)=ZC*EXP(-(ZERO,ONE)*OME*N)
-+ei
+#endif
           ENDDO
 !C..COMPUTATION OF SCALAR PRODUCT WITH ITERATED BODE ALGORITHM
           FOME=(ZERO,ZERO)

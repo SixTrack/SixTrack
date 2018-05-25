@@ -1,5 +1,0 @@
-mod_alloc.s90
-mod_allocn.f
-df debug 
-e mod_alloc
-ex

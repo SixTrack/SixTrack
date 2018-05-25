@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 
 	//Set defaults:
 	//Set to true if we have a CR build
-	bool CR = false;
+	bool CRon = false;
 
 	//How long to wait in seconds before killing the CR run
 	std::vector<int> KillTimes;
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 
 	if(atoi(argv[8]) != 0)
 	{
-		CR = true;
+		CRon = true;
 		KillTimes = ParseKillTimes(argv[9]);
 	}
 	
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
 	* The following code is *really* ugly.
 	*
 	*/
-	if(CR)
+	if(CRon)
 	{
 
 		std::cout << "Starting CR run loop - will clear out any files from a previous run" << std::endl;

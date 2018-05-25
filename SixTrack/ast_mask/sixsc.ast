@@ -1,7 +1,7 @@
-sixtrack.s90
+sixtrack.s90 tshift_corr.s90 debug_dump.s90
 sixscn.f
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods,naff
-e ADIA,ADIB,DATEN,ENVARS,ERRF
+e DATEN,ENVARS,ERRF
 e COMNUL
 e ANFB,BETALF,BLOCK,BLOCKDIS
 e CHROMA,CLORB,CLORB2
@@ -15,5 +15,4 @@ e myrinv
 e aux
 e nagdumy
 e dumps
-e stringhandling
 ex

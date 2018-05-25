@@ -386,3 +386,125 @@ IP3_DUMP_1
 fort.90
 NEXT
 \end{cverbatim}
+
+% ================================================================================================================================ %
+\section{HDF5 Output} \label{sec:HDF5}
+
+The \texttt{HDF5} block allows for writing certain outputs to a HDF5 file instead of regular text or binary files.
+HDF5 files can be easily read and manipulated with for instance MATLAB or Python.
+MATLAB has native support, while Python support is available through h5py.
+
+The SixTrack HDF5 option is enabled through the \texttt{HDF5} compiler flag, and controlled via the \texttt{HDF5} block.
+
+\bigskip
+\noindent Note: SixTrack HDF5 support is experimental.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{HDF5} \\
+    \textbf{Data lines} & Variable, see below. \\
+    \textbf{Format}     & This module uses a keyword, value format. See below.
+\end{tabular}
+
+\bigskip
+\noindent Lines starting with ``/'' are treated as a comment and ignored.
+
+\paragraph{Debugging} \texttt{DEBUG}\\
+
+This statement switches on extra ``debugging'' output for the \texttt{HDF5} module.
+This can be useful if debugging the code or if debugging the input.
+
+\paragraph{Precision} \texttt{SINGLE}, \texttt{DOUBLE}\\
+
+The precision of float numbers for the file. If omitted, the value defaults to \texttt{DOUBLE}.
+
+The output precision is independent of the internal precision of SixTrack set at compile time.
+If necessary, the float values will be converted on the fly.
+Quad precision is currently not available.
+
+The precision of integers is the same as the internal Fortran precision defined by the compiler.
+Generally, this is 32 bits.
+
+\paragraph{Output File} \texttt{FILE filename truncate}\\
+
+The name of the file to write to.
+Spaces are allowed as long as quote marks are used.
+The truncate flag is optional, either \texttt{.true.} or \texttt{.false.}.
+If true, any existing file will be truncated.
+If false, any existing file will throw an error.
+Default value is \texttt{.false.}.
+If truncation is disabled, and the file exists, the root group must be unique for the current run.
+This allows the option to write multiple simulation runs to the same file with different root groups.
+
+\paragraph{Root Group} \texttt{ROOT groupname}\\
+
+The name of the root group (folder) for where to write the simulation data.
+The default value is ``/'', that is, all data is written into block specific groups at the root of the file.
+Setting root group allows several runs to use the same output file as long as the root group is unique.
+
+For further information on how HDF5 uses groups and datasets, see the HDF5 manual \cite{h5_doc}.
+
+\paragraph{Chunking} \texttt{CHUNK chunksize}\\
+
+HDF5 files written by SixTrack uses data chunking.
+Chunking allows for writing data into related block.
+For instance, for \texttt{DUMP}, the chunck size is hard coded to the nuber of particles.
+This can improve read performance as the particle data will then be written in a single chunk per turn.
+For non-predictable outputs, like log files, a default chunk value can be set.
+The chunk size should be close to the number of entries expected to be written per turn.
+If none is specified, the defualt value is $10$.
+
+For further information on HDF5 chunking, see the HDF5 manual \cite{h5_doc}.
+
+\paragraph{Compression} \texttt{GZIP level}\\
+
+The level of compression to use for data chunks written to the HDF5 file.
+Allowed values are $-1$ to disable gzip compression, and $0$ to $9$ for none to maximum compression.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{0}   & No compression \\
+    \texttt{1}   & Best compression speed; least compression \\
+    \texttt{2-8} & Compression improves; speed degrades \\
+    \texttt{9}   & Best compression ratio; slowest speed
+\end{tabular}
+
+\bigskip
+Note that $0$ does not turn off use of the gzip, it just instructs the filter to perform no action.\
+To disable GZIP, either ommit the line, or set the level to $-1$.
+For more detail, see the HDF5 manual~\cite{h5_doc}.
+
+\paragraph{Enable HDF5} \texttt{ENABLE blockname}\\
+
+HDF5 output needs to be specifically enabled for the blocks where it is to be used instead of ASCII or binary data dumps.
+The \texttt{blockname} takes the four first characters of the block for which to enable HDF5.
+An further characters are ignored, but may be used for clarity like for othe rblock declarations.
+In other words, \texttt{ENABLE SCAT} and \texttt{ENABLE SCATTER} are equally valid.
+
+HDF5 output is currently available only for \texttt{SCATTER}, \texttt{DUMP}, \texttt{APERTURE} and \texttt{COLLIMATION}.
+
+\paragraph{Write Flag} \texttt{WRITE type}\\
+
+Certain special outputs are possible through the \texttt{WRITE} flag:
+\begin{description}
+    \item[\texttt{OPTICS}] Dumps the linear optics to the root group of the file.
+    \item[\texttt{TRACKS2}] Writes the collimation tracks2 output to the root group of the file.
+\end{description}
+
+\paragraph{Example:}~\\
+
+The following is an example of a valid \texttt{HDF5} block:
+
+\begin{cverbatim}
+HDF5
+    DEBUG
+    DOUBLE
+    GZIP 1
+    CHUNK 50
+    FILE data.hdf5 .true.
+    ROOT test
+    ENABLE SCATTER
+    ENABLE DUMP
+    WRITE OPTICS
+NEXT
+\end{cverbatim}
