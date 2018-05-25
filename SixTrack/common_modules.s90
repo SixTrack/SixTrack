@@ -8,15 +8,15 @@ module floatPrecision
   
   implicit none
   
-+if 32bitm
+#ifdef P32BITM
   integer, parameter :: fPrec = real32
-+ei
-+if 64bitm
+#endif
+#ifdef P64BITM
   integer, parameter :: fPrec = real64
-+ei
-+if 128bitm
+#endif
+#ifdef P128BITM
   integer, parameter :: fPrec = real128
-+ei
+#endif
 
 end module floatPrecision
 
