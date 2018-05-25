@@ -3774,7 +3774,137 @@ end subroutine join
       return
       end subroutine writebin
 
-    end module postprocessing
+! These routines have been moved from sixtrack.s90 because they are only
+! use here. VKBO 2018-05-25
+subroutine lfitwd(x,y,w,l,key,a,b,e)
+!-----------------------------------------------------------------------
+!
+!     TO PERFORM A WEIGHTED STRAIGHT LINE FIT
+!
+!     FOR FORMULAE USED SEE MENZEL, FORMULAS OF PHYSICS P.116
+!
+!     FIT IS OF Y=AX+B , WITH S**2 ESTIMATOR E. WEIGHTS ARE IN W.
+!     IF KEY=0, POINTS WITH Y=0 ARE IGNORED
+!     L IS NO. OF POINTS
+!
+!-----------------------------------------------------------------------
+!Eric made DOUBLE PRECISION
+  use floatPrecision
+  use mathlib_bouncer
+  implicit none
+  integer icnt,j,key,l
+  real(kind=fPrec) a,b,e,x,y,w
+  real(kind=fPrec) w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
+  dimension x(l),y(l),w(l)                                           !hr07
+  save
+!-----------------------------------------------------------------------
+!
+!     CALCULATE SUMS
+!
+!-----------------------------------------------------------------------
+  if(l.le.1) goto 1
+  w2=0.
+  w2x=0.
+  w2y=0.
+  w2xy=0.
+  w2x2=0.
+  w2y2=0.
+  icnt=0
+  do 2 j=1,l
+  if(y(j).eq.0..and.key.eq.0) goto 2
+  ww=w(j)**2                                                         !hr07
+  w2=ww+w2
+  wwf=ww*x(j)
+  w2x=wwf+w2x
+  w2x2=wwf*x(j)+w2x2
+  w2xy=wwf*y(j)+w2xy
+  wwfi=ww*y(j)
+  w2y=wwfi+w2y
+  w2y2=wwfi*y(j)+w2y2
+  icnt=icnt+1
+2 continue
+!
+!     FIT PARAMETERS
+  a=(w2xy-(w2x*w2y)/w2)/(w2x2-w2x**2/w2)
+  b=(w2y-a*w2x)/w2
+  if(icnt.le.2) goto 3
+!Eric
+  e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &!hr07
+  &real(icnt-2,fPrec)
+  goto 4
+!
+!     ISUFFICIENT POINTS
+1 a=0.
+  b=0.
+3 e=0.
+4 return
+end subroutine lfitwd
+
+subroutine lfitd(x,y,l,key,a,b,e)
+!-----------------------------------------------------------------------
+!
+!     TO FIT A STRAIGHT LINE    Y=A*X+B    TO L POINTS WITH ERROR E
+!     SEE MENZEL , FORMULAS OF PHYSICS P.116
+!     POINTS WITH Y=0 ARE IGNOERD IF KEY=0
+!     L IS NO. OF POINTS
+!
+!-----------------------------------------------------------------------
+!Eric made DOUBLE PRECISION
+  use floatPrecision
+  use mathlib_bouncer
+  implicit none
+  integer j,key,l
+  real(kind=fPrec) a,b,count,e,scartx,scarty
+  real(kind=fPrec) sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
+  dimension x(l),y(l)                                                !hr07
+  save
+!-----------------------------------------------------------------------
+!
+!     CALCULATE SUMS
+!
+!-----------------------------------------------------------------------
+  if(l-2.lt.0) goto 25
+  if(l-2.ge.0) goto 1
+1 count=0.0
+  sumx=0.0
+  sumy=0.0
+  sumxy=0.0
+  sumxx=0.0
+  sumyy=0.0
+  do 10 j=1,l
+  if(y(j).eq.0..and.key.eq.0) goto 10
+  sumx=sumx+x(j)
+  sumy=sumy+y(j)
+  count=count+1.0
+10 continue
+  if(count.le.1.) goto 25
+  ymed=sumy/count
+  xmed=sumx/count
+  do 20 j=1,l
+  if(y(j).eq.0..and.key.eq.0) goto 20
+  scartx=x(j)-xmed
+  scarty=y(j)-ymed
+  sumxy=sumxy+scartx   *scarty
+  sumxx=sumxx+scartx   *scartx
+  sumyy=sumyy+scarty   *scarty
+20 continue
+!
+!     FIT PARAMETERS
+  if(sumxx.eq.0.) goto 25
+  a=sumxy/sumxx
+  b=ymed-a*xmed
+  if(count.lt.3.) goto 101
+  e=(sumyy-sumxy*a          )/(count-2.0)
+  goto 100
+!
+!     ISUFFICIENT POINTS
+25 a=0.0
+  b=0.0
+101 e=0.0
+100 return
+end subroutine lfitd
+
+end module postprocessing
 
 +dk plotdumy
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
