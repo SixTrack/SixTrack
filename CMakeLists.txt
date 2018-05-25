@@ -309,7 +309,7 @@ list(APPEND FORS_FREEFORM
 	lielib dabnew fma
 	postprocessing dump
 	mainarrays parpro_scale
-	bdex aperture elens hions
+	bdex aperture elens
 )
 
 list(APPEND FORS_F90
@@ -317,7 +317,7 @@ list(APPEND FORS_F90
 	strings string_tools
 	file_units mod_alloc zipf
 	bouncy_castle plato_seq
-	ranecu wire
+	ranecu wire hions
 )
 
 if(DA)

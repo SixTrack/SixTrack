@@ -16,22 +16,22 @@ module parpro
 
   !Maximum length of element names
   integer, parameter :: max_name_len = 48
-
+  
   !Max number of particles
-+if .not.bignpart.and..not.hugenpart
+#if !defined(BIGNPART) && !defined(HUGENPART)
   parameter(npart = 64,nmac = 1)
-+ei
-+if bignpart.and..not.hugenpart
+#endif
+#if defined(BIGNPART) && !defined(HUGENPART)
   !See also:
   ! - subroutine wzsubv
   parameter(npart = 2048,nmac = 1)
-+ei
-+if hugenpart.and..not.bignpart
+#endif
+#if !defined(BIGNPART) && defined(HUGENPART)
   !See also:
   ! - subroutine wzsubv
   parameter(npart = 65536,nmac = 1)
-+ei
-
+#endif
+  
   integer, parameter :: nele_initial = 50   ! Must be at least 1
   integer, parameter :: nblo_initial = 2500 ! Setting to 2500 (old value) for now as it blows up when scaling.
   integer :: nele = -1
@@ -41,35 +41,32 @@ module parpro
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
 ! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
 ! 6000/20000 -> 30% multipoles
-+if .not.collimat
-+if bignblz
+#ifndef COLLIMAT
+#ifdef BIGNBLZ
   parameter(nper=16,nelb=140,nblz=200000,nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
-+ei
-+if hugenblz
+#endif
+#ifdef HUGENBLZ
   parameter(nper=16,nelb=280,nblz=400000,nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
-+ei
-+if .not.bignblz.and..not.hugenblz
+#endif
+#if !defined(BIGNBLZ) && !defined(HUGENBLZ)
   parameter(nper=16,nelb=140,nblz=20000,nzfz = 300000,mmul = 20) !up to 6'000 multipoles
-+ei
-+ei ! / not collimat
-+if collimat
-+if beamgas
+#endif
+#else
+#ifdef BEAMGAS
   parameter(nper=16,nelb=140,nblz=200000,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
-+ei ! / beamgas
-+if .not.beamgas
-+if bignblz
+#else
+#ifdef BIGNBLZ
   parameter(nper=16,nelb=140,nblz=200000,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
-+ei ! / bignblz
-+if hugenblz
+#endif
+#ifdef HUGENBLZ
   parameter(nper=16,nelb=140,nblz=400000,nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
-+ei ! / hugenblz
-+if .not.bignblz.and..not.hugenblz
+#endif
+#if !defined(BIGNBLZ) && !defined(HUGENBLZ)
   parameter(nper=16,nelb=140,nblz=15000,nzfz = 144000,mmul = 11) !up to 4500 multipoles
-+ei ! / not bignblz
-+ei ! / not beamgas
-+ei ! / collimat
-
-
+#endif
+#endif
+#endif
+  
   parameter(nran = 2000000,ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
   parameter(mcor = 10,mcop = mcor+6, mbea = 99)
   parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
@@ -77,13 +74,13 @@ module parpro
   parameter(ntr = 20)
   
   ! Beam-beam lenses
-+if .not.bignblz.and..not.hugenblz
+#if !defined(BIGNBLZ) && !defined(HUGENBLZ)
   parameter(nbb = 350)
-+ei
-+if bignblz.or.hugenblz
+#endif
+#if defined(BIGNBLZ) || defined(HUGENBLZ)
   parameter(nbb = 500)
-+ei
-
+#endif
+  
 end module parpro
 
 +dk parpro_scale
@@ -94,7 +91,7 @@ module parpro_scale
   ! in order to avoid circular dependencies.
   use parpro
   use crcoall
-
+  
   use mod_common,   only : mod_common_allocate_arrays,   mod_common_expand_arrays
   use mod_commonmn, only : mod_commonmn_allocate_arrays, mod_commonmn_expand_arrays
   use mod_commons,  only : mod_commons_allocate_arrays,  mod_commons_expand_arrays
@@ -106,13 +103,13 @@ module parpro_scale
   use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
   use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
   use wire,         only : wire_allocate_arrays,         wire_expand_arrays
-
+  
   use mod_hions,    only : mod_hions_allocate_arrays,    mod_hions_expand_arrays
-
-+if fluka
+  
+#ifdef FLUKA
   use mod_fluka,    only : fluka_mod_expand_arrays
-+ei
-
+#endif
+  
   implicit none
 contains
 
@@ -172,9 +169,9 @@ end subroutine allocate_arrays
 
     call mod_hions_expand_arrays(npart_new)
 
-+if fluka
+#ifdef FLUKA
     call fluka_mod_expand_arrays(npart_new, nele_new)
-+ei
+#endif
 
     !Update nele etc.
     nele = nele_new
@@ -635,9 +632,9 @@ module mod_commonmn
        yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
        dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
        xlv(npart),zlv(npart),rvv(npart),pttemp,temptr(6),                &
-+if rvet
-       rvet(npart),                                                      &
-+ei
+! +if rvet
+!        rvet(npart),                                                      &
+! +ei
        ejf0v(npart)
   integer, save :: numxv(npart),nms(npart),nlostp(npart),kxxa
   logical, save :: pstop(npart)
@@ -810,111 +807,6 @@ contains
 
   end subroutine mod_commons_expand_thickarrays
 end module mod_commons
-
-+dk mod_hions
-module mod_hions
-  use floatPrecision
-  use parpro
-  use, intrinsic :: iso_fortran_env, only : int16, int32, int64
-  use mod_alloc
-  use numerical_constants, only : zero, one
-  implicit none
-
-! P. Hermes for Heavy Ion SixTrack (hiSix)
-! initialize the variables for ion tracking
-
-! Checking for the HION block
-  logical, save :: has_hion
-
-! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0,nucmda
-
-  real(kind=fPrec), save :: brhono
-
-! ien0,ien1: ion energy entering/leaving the collimator
-  real(kind=fPrec), save :: ien0, ien1
-
-! Rest mass of the tracked ion
-  real(kind=fPrec), allocatable, save :: nucm(:) !(npart)
-
-! Relative rigidity offset
-  real(kind=fPrec), allocatable, save :: moidpsv(:) !(npart)
-  real(kind=fPrec), allocatable, save :: omoidpsv(:) !(npart)
-
-! Relative mass to charge ratio
-  real(kind=fPrec), allocatable, save :: mtc(:) !(npart)
-
-! Nucleon number of the reference ion species
-  integer(kind=int16), save :: aa0
-
-! Charge multiplicity of the reference ion species
-  integer(kind=int16), save :: zz0
-
-  integer(kind=int16), save :: nnuc0
-  integer(kind=int16), save :: nnuc1
-
-! Nucleon number of the tracked ion
-  integer(kind=int16), allocatable, save :: naa(:) !(npart)
-
-! Charge multiplicity of the tracked ion
-  integer(kind=int16), allocatable, save :: nzz(:) !(npart)
-
-! SixTrack particle IDs
-  integer, allocatable, save :: pids(:) !(npart)
-
-!  common/hions/zz0,aa0,nucm0,naa(npart),nzz(npart),nucm(npart),moidpsv(npart),omoidpsv(npart),mtc(npart),nnuc0,nnuc1,brhono,ien0,&
-! &ien1,pids(npart)
-contains
-  subroutine mod_hions_allocate_arrays
-    implicit none
-
-! Rest mass of the tracked ion
-  call alloc(nucm,npart,nucm0,'nucm') !(npart)
-
-! Relative rigidity offset
-  call alloc(moidpsv,npart,one,'moidpsv') !(npart)
-  call alloc(omoidpsv,npart,zero,'omoidpsv') !(npart)
-
-! Relative mass to charge ratio
-  call alloc(mtc,npart,one,'mtc') !(npart)
-
-! Nucleon number of the tracked ion
-  call alloc(naa,npart,aa0,'naa') !(npart)
-
-! Charge multiplicity of the tracked ion
-  call alloc(nzz,npart,zz0,'nzz') !(npart)
-  print*, "nzzzzz", nzz(1)
-
-! SixTrack particle IDs
-  call alloc(pids,npart,0,'pids') !(npart)
-
-  end subroutine mod_hions_allocate_arrays
-
-  subroutine mod_hions_expand_arrays(npart_new)
-    implicit none
-    integer, intent(in) :: npart_new
-
-! Rest mass of the tracked ion
-  call resize(nucm,npart_new,nucm0,'nucm') !(npart)
-
-! Relative rigidity offset
-  call resize(moidpsv,npart_new,one,'moidpsv') !(npart)
-  call resize(omoidpsv,npart_new,zero,'omoidpsv') !(npart)
-
-! Relative mass to charge ratio
-  call resize(mtc,npart_new,one,'mtc') !(npart)
-
-! Nucleon number of the tracked ion
-  call resize(naa,npart_new,aa0,'naa') !(npart)
-
-! Charge multiplicity of the tracked ion
-  call resize(nzz,npart_new,zz0,'nzz') !(npart)
-
-! SixTrack particle IDs
-  call resize(pids,npart_new,0,'pids') !(npart)
-
-  end subroutine mod_hions_expand_arrays
-end module mod_hions
 
 module mod_commond2
   use floatPrecision
