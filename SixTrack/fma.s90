@@ -166,7 +166,6 @@ contains
     
     implicit none
     
-+ca commonc
     integer :: i,j,k,l,m,n                    ! for do loops
     integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
     integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files

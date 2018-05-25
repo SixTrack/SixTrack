@@ -268,6 +268,10 @@ module mod_common
   ! common /postr2/
   integer,          save :: nnumxv(npart)
   
+  ! common /correct/
+  integer,          save :: ichromc,ilinc,iqmodc
+  real(kind=fPrec), save :: corr(3,3),chromc(2),wxys(3),clon(6)
+  
 contains
 
 subroutine mod_common_allocate_arrays

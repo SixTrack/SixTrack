@@ -45,7 +45,6 @@ program mainda
     tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
   
 +ca commonxz
-+ca commonc
 
   character(len=10) cmonth
   character(len=80) day,runtim
@@ -713,13 +712,13 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_commond
+  use mod_common, only : iqmodc,ichromc,ilinc
   
   implicit none
   
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
   real(kind=fPrec) am
 +ca commonas
-+ca commonc
   dimension am(6,6),idummy(6)
   save
   

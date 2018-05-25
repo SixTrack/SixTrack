@@ -197,20 +197,6 @@
       integer          iscrda
       real(kind=fPrec) rscrri
       common/dascr/iscrda(100),rscrri(100),iscrri(100),idao
-! +cd commondl
-!       integer icorr,idial,idptr,imod1,imod2,inorm,ipar,namp,ncor,nctype,&
-!      &ndimf,nmom,nmom1,nmom2,nord,nord1,nordf,nsix,nvar,nvar2,nvarf
-!       real(kind=fPrec) dpmax,preda,weig1,weig2
-!       ! FIXME: The len below should be max_name_len, but that doesn't compile at the moment.
-!       character(len=48) coel
-!       common/dial/preda,idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
-!       common/norf/nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
-!       common/tcorr/icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel(10)
-+cd commonc
-      integer ichromc,ilinc,iqmodc
-      real(kind=fPrec) clon,chromc,corr,wxys
-      common/correct/ corr(3,3),chromc(2),wxys(3),clon(6),iqmodc,       &
-     &ichromc,ilinc
 +cd exactvars
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
@@ -8067,9 +8053,10 @@ subroutine daten
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iss,iqq,iele,ilm0,idum,corr,norm
+  character(len=max_name_len) iss,iqq,iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
+  ! character(len=max_name_len) corr
   ! character(len=:), allocatable :: sixin_bez0(:) !(max_name_len)(nele)
   character(len=60) ihead
   integer nchars
@@ -8144,7 +8131,8 @@ subroutine daten
   data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco &
     /'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR','RESO','DISP','POST','RIPP','DECO'/
   data comb,free,geom,cavi,beam,trom /'COMB','FREE','GEOM','CAV','BEAM','TROM'/
-  data idum,kl,kr,orga,norm,corr /' ','(',')','ORGA','NORM','CORR'/
+  data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
+  ! data corr /'CORR'/
   data coll /'COLL'/
   !  scatter
   character(len=4) scat
@@ -15605,7 +15593,6 @@ subroutine runda
       character(len=300) ch
 +ca commonxz
 +ca commond1
-+ca commonc
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
       dimension fake(2,20),dpdav2(6),jj(100)
@@ -16757,7 +16744,6 @@ subroutine umlauda
       character(len=max_name_len) typ
 +ca commonxz
 +ca commond1
-+ca commonc
       dimension damap(6),damapi(6),damap1(6)
       dimension aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6)
       dimension zfeld1(100),zfeld2(100)
@@ -19177,7 +19163,6 @@ end interface
 +if bnlelens
 +ca rhicelens
 +ei
-+ca commonc
 +if cr
 +ca crco
 +ei
@@ -26729,7 +26714,6 @@ subroutine comnul
   
   integer i,i1,i2,i3,i4,j
 +ca commd1da
-+ca commonc
 +ca commonxz
 
 +if bnlelens
@@ -28131,7 +28115,6 @@ subroutine blocksv
   implicit none
 
 +ca commonxz
-+ca commonc
       integer n, ia, ikk, j, jm, k, lkk, mkk
       real(kind=fPrec) dpoff
 !     integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
@@ -28367,9 +28350,7 @@ subroutine chroma
       use mod_commont
       implicit none
       integer i,ii,isl,j,jj,l,n
-      real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
-     &sm0,su2,suxy,suzy,xi,zi
-+ca commonc
+      real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens,sm0,su2,suxy,suzy,xi,zi
       dimension dsm(2,4),sens(2,4),xi(2),zi(2),dm(2),sm0(2)
       dimension qwc(3),cro0(2)
 +if bnlelens
@@ -28491,7 +28472,7 @@ end subroutine chroma
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -28503,7 +28484,6 @@ end subroutine chroma
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
 +ca commonxz
-+ca commonc
       dimension qw(2),qwc(3)
 +if bnlelens
 +ca rhicelens
@@ -29053,13 +29033,12 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
       use mathlib_bouncer
       use crcoall
       use parpro
+      use mod_common, only : ichromc,ilinc,iqmodc
       use mod_commond
       implicit none
-      integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
-     &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
+      integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
 +ca commonas
-+ca commonc
       dimension am(6,6),idummy(6)
       save
 !-----------------------------------------------------------------------
@@ -33318,7 +33297,7 @@ end subroutine qmod0
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -33330,7 +33309,6 @@ end subroutine qmod0
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
 +ca commonxz
-+ca commonc
       dimension intwq(3),qwc(3)
 +if bnlelens
 +ca rhicelens
@@ -39106,7 +39084,6 @@ subroutine crcheck
       use mod_commond
       implicit none
 +ca commonxz
-+ca commonc
 +if bnlelens
 +ca rhicelens
 +ei
@@ -39989,7 +39966,6 @@ subroutine crpoint
       use mod_commond
       implicit none
 +ca commonxz
-+ca commonc
 
 +if bnlelens
 +ca rhicelens
@@ -40562,7 +40538,6 @@ subroutine crstart
 
       implicit none
 +ca commonxz
-+ca commonc
 +if bnlelens
 +ca rhicelens
 +ei
