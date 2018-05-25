@@ -1,5 +1,5 @@
 common_modules.s90
 parpro_scalen.f
-df bignpart,hugenpart,bignblz,hugenblz,beamgas,collimat,vvector,datamods,fluka
+df bignpart,hugenpart,bignblz,hugenblz,beamgas,collimat,datamods,fluka
 e parpro_scale
 ex
