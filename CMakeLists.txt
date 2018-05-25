@@ -308,13 +308,12 @@ list(APPEND FORS_FREEFORM
 	scatter dynk
 	lielib dabnew fma
 	postprocessing dump
-	mainarrays parpro_scale
 	bdex aperture elens
 )
 
 list(APPEND FORS_F90
 	core_tools constants sixtrack_input
-	strings string_tools
+	strings string_tools common_modules mainarrays
 	file_units mod_alloc zipf
 	bouncy_castle plato_seq
 	ranecu wire hions
