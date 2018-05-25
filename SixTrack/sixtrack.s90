@@ -983,10 +983,6 @@
 !  left out to do tracking
 !  numl,niu,amp0,amp(2),damp,chi0,chid,rat,exz(2,6),time0,time1
 !
-!
-! +if time
-!      &tcnst35,exterr35,icext35,zfz35,                                   &
-! +ei
      &ierro,erbez,pi,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic, &
      &ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
      &idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
@@ -1129,15 +1125,9 @@
       do k=1,nmz
          izu=izu+1
          aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-! +if time
-!          aaiv35(k,m,i)=(ed(ix)*(ak0(im,k)+zfz35(izu)*aka(im,k)))/r0a !hr05
-! +ei
          aai(i,k)=aaiv(k,m,i)
          izu=izu+1
          bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-! +if time
-!          bbiv35(k,m,i)=(ed(ix)*(bk0(im,k)+zfz35(izu)*bka(im,k)))/r0a !hr05
-! +ei
          bbi(i,k)=bbiv(k,m,i)
          
          r0a=r0a*r0
@@ -4734,16 +4724,6 @@
      &-((c1e3*dki(ix,2))*moidpsv(j))*(one-tiltc(i))                      !hisix
 +ei
 +cd mul4v05
-! +if time
-!               yv1j=(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt))          &!hr03
-!      &+(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*xlvj                 &!hr03
-!      &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*zlvj                  !hr03
-!               yv2j=(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt))          &!hr03
-!      &-(bbiv(2,1,i)*expt+bbiv35(2,1,i)*(one-expt))*zlvj                 &!hr03
-!      &+(aaiv(2,1,i)*expt+aaiv35(2,1,i)*(one-expt))*xlvj                  !hr03
-!               crkve=xlvj
-!               cikve=zlvj
-! +ei
 +if .not.time
               yv1j=(bbiv(1,1,i)+bbiv(2,1,i)*xlvj)+aaiv(2,1,i)*zlvj       !hr03
               yv2j=(aaiv(1,1,i)-bbiv(2,1,i)*zlvj)+aaiv(2,1,i)*xlvj       !hr03
@@ -4751,26 +4731,11 @@
               cikve=zlvj
 +ei
 +cd mul4v06
-! +if time
-!                   crkveuk=crkve*xlvj-cikve*zlvj
-!                   cikve=crkve*zlvj+cikve*xlvj
-!                   crkve=crkveuk
-!                   yv1j=(yv1j+(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
-!      &*crkve)                                                           &!hr03
-!      &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
-!      &*cikve                                                             !hr03
-!                   yv2j=(yv2j-(bbiv(k,1,i)*expt+bbiv35(k,1,i)*(one-expt))&!hr03
-!      &*cikve)                                                           &!hr03
-!      &+(aaiv(k,1,i)*expt+aaiv35(k,1,i)*(one-expt))                      &!hr03
-!      &*crkve                                                             !hr03
-! +ei
-! +if .not.time
                   crkveuk=crkve*xlvj-cikve*zlvj
                   cikve=crkve*zlvj+cikve*xlvj
                   crkve=crkveuk
                   yv1j=(yv1j+bbiv(k,1,i)*crkve)+aaiv(k,1,i)*cikve        !hr03
                   yv2j=(yv2j-bbiv(k,1,i)*cikve)+aaiv(k,1,i)*crkve        !hr03
-! +ei
 +cd mul4v07
 +if .not.tilt
               yv(1,j)=yv(1,j)+yv1j*moidpsv(j)   ! hisix
@@ -4782,32 +4747,12 @@
 +ei
 +cd mul4v08
 +if .not.tilt
-! +if time
-!               yv(1,j)=yv(1,j)+(bbiv(1,1,i)*expt                         &
-!      &+bbiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
-!               yv(2,j)=yv(2,j)+(aaiv(1,1,i)                              &
-!      &+aaiv35(1,1,i)*(one-expt))*moidpsv(j)         ! hisix
-! +ei
-! +if .not.time
               yv(1,j)=yv(1,j)+bbiv(1,1,i)*moidpsv(j) ! hisix
               yv(2,j)=yv(2,j)+aaiv(1,1,i)*moidpsv(j) ! hisix
-! +ei
 +ei
 +if tilt
-! +if time
-!               yv(1,j)=yv(1,j)+(tiltc(i)*(bbiv(1,1,i)*expt               &
-!      &+bbiv35(1,1,i)*(one-expt))-                                       &!hisix
-!      &tilts(i)*(aaiv(1,1,i)*expt+aaiv35(1,1,i)*(one-expt)))             &!hisix
-!      &*moidpsv(j)
-!               yv(2,j)=yv(2,j)+(tiltc(i)*(aaiv(1,1,i)*expt               &
-!      &+aaiv35(1,1,i)*(one-expt))+                                       &!hisix
-!      &tilts(i)*(bbiv(1,1,i)*expt+bbiv35(1,1,i)*(one-expt)))             &!hisix
-!      &*moidpsv(j)
-! +ei
-! +if .not.time
               yv(1,j)=yv(1,j)+(tiltc(i)*bbiv(1,1,i)-tilts(i)*aaiv(1,1,i))*moidpsv(j)
               yv(2,j)=yv(2,j)+(tiltc(i)*aaiv(1,1,i)+tilts(i)*bbiv(1,1,i))*moidpsv(j)
-! +ei
 +ei
 +cd mul6v01
             sigmv(j)=sigmv(j)+(rvv(j)*dki(ix,1))*xlvj                    !hr03
@@ -8145,10 +8090,7 @@ subroutine daten
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
-! +if time
-!   integer ifiend35
-!   real(kind=fPrec) tcnst
-! +ei
+    
   real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,cosy,dummy,    &
     emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,qbet,qigam,    &
     r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,xang,xstr,xpl0,xplane,xrms0,  &
@@ -10530,258 +10472,6 @@ subroutine daten
      &' values read in.'
         write(lout,*)
       endif
-! +if time
-!       if(mout1.eq.1) then
-!         write(lout,*)
-!         write(lout,*) '  Time-d  Multipole errors read in ' ,           &
-!      &'from external file'
-!         write(lout,*)
-!         iexread=0
-!         ifiend35=0
-!         iexnum=0
-!         read(35,10020,end=1861)
-!         rewind 35
-!         do 1860 i=1,mper*mbloz
-!           ix=ic(i)
-!           if(ix.gt.nblo) then
-!             ix=ix-nblo
-!             if(iexread.eq.0) then
-!               ilm0(1)=' '
-! ! READ IN REGULAR MULTIPOLES FIRST AND THEN THE SKEW COMPONENTS
-!               if(ifiend35.eq.0) then
-!                 read(35,10020,end=1820,iostat=ierro) ch
-!                 lineno35=lineno35+1
-!               else
-!                 goto 1820
-!               endif
-!               call intepr(1,1,ch,ch1)
-! +if fio
-! +if crlibm
-!       call enable_xp()
-! +ei
-!               read(ch1,*,round='nearest')                               &
-!      & ilm0(1),tcnst
-! +if crlibm
-!       call disable_xp()
-! +ei
-! +ei
-! +if .not.fio
-! +if .not.crlibm
-!               read(ch1,*) ilm0(1),tcnst
-! +ei
-! +if crlibm
-!               call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-!               if (nf.gt.0) then
-!                 read(fields(1),*) ilm0(1)
-!                 nf=nf-1
-!               endif
-!               if (nf.gt.0) then
-!                 tcnst=fround(errno,fields,2)
-!                 nf=nf-1
-!               endif
-! +ei
-! +ei
-!               iexnum=iexnum+1
-!               bezext(iexnum)=ilm0(1)
-! +if fio
-! +if crlibm
-!       call enable_xp()
-! +ei
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(1),&
-!      &extaux(2),                                                        &
-!      &extaux(3)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(4),&
-!      &extaux(5),                                                        &
-!      &extaux(6)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(7),&
-!      &extaux(8),                                                        &
-!      &extaux(9)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(10)&
-!      &,extaux(11),                                                      &
-!      &extaux(12)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(13)&
-!      &,extaux(14),                                                      &
-!      &extaux(15)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(16)&
-!      &,extaux(17),                                                      &
-!      &extaux(18)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(19)&
-!      &,extaux(20)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(21)&
-!      &,extaux(22),                                                      &
-!      &extaux(23)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(24)&
-!      &,extaux(25),                                                      &
-!      &extaux(26)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(27)&
-!      &,extaux(28),                                                      &
-!      &extaux(29)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(30)&
-!      &,extaux(31),                                                      &
-!      &extaux(32)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(33)&
-!      &,extaux(34),                                                      &
-!      &extaux(35)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(36)&
-!      &,extaux(37),                                                      &
-!      &extaux(38)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro,round='nearest') extaux(39)&
-!      &,extaux(40)
-!               lineno35=lineno35+1
-! +if crlibm
-!       call disable_xp()
-! +ei
-! +ei
-! +if .not.fio
-! +if .not.crlibm
-!               read(35,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
-!      &extaux(3)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
-!      &extaux(6)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
-!      &extaux(9)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
-!      &extaux(12)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
-!      &extaux(15)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
-!      &extaux(18)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(19),extaux(20)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
-!      &extaux(23)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
-!      &extaux(26)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
-!      &extaux(29)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
-!      &extaux(32)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
-!      &extaux(35)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
-!      &extaux(38)
-!               lineno35=lineno35+1
-!               read(35,*,end=870,iostat=ierro) extaux(39),extaux(40)
-!               lineno35=lineno35+1
-! +ei
-! +if crlibm
-! ! Now my new loops for splitfld and fround (round_near)
-!       do k=1,16,3
-!         read(35,10020,end=870,iostat=ierro) ch
-!         lineno35=lineno35+1
-!         ch1(:nchars+3)=ch(:nchars)//' / '
-! !             write (*,*) 'ch:'//ch//':'
-! !             write (*,*) 'ch1:'//ch1//':'
-!         call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-!         if (nf.gt.0) then
-!           extaux(k)=fround(errno,fields,1)
-!         nf=nf-1
-!         endif
-!         if (nf.gt.0) then
-!           extaux(k+1)=fround(errno,fields,2)
-!           nf=nf-1
-!         endif
-!         if (nf.gt.0) then
-!           extaux(k+2)=fround(errno,fields,3)
-!           nf=nf-1
-!         endif
-!       enddo
-!       read(35,10020,end=870,iostat=ierro) ch
-!       lineno35=lineno35+1
-!       ch1(:nchars+3)=ch(:nchars)//' / '
-!       call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-!       if (nf.gt.0) then
-!           extaux(19)=fround(errno,fields,1)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!           extaux(20)=fround(errno,fields,2)
-!         nf=nf-1
-!       endif
-!       do k=21,36,3
-!         read(35,10020,end=870,iostat=ierro) ch
-!         lineno35=lineno35+1
-!         ch1(:nchars+3)=ch(:nchars)//' / '
-!         call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-!         if (nf.gt.0) then
-!           extaux(k)=fround(errno,fields,1)
-!           nf=nf-1
-!         endif
-!         if (nf.gt.0) then
-!           extaux(k+1)=fround(errno,fields,2)
-!           nf=nf-1
-!         endif
-!         if (nf.gt.0) then
-!           extaux(k+2)=fround(errno,fields,3)
-!           nf=nf-1
-!         endif
-!       enddo
-!       read(35,10020,end=870,iostat=ierro) ch
-!       lineno35=lineno35+1
-!       ch1(:nchars+3)=ch(:nchars)//' / '
-!       call splitfld(errno,35,lineno35,nofields,nf,ch1,fields)
-!       if (nf.gt.0) then
-!         extaux(39)=fround(errno,fields,1)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         extaux(40)=fround(errno,fields,2)
-!         nf=nf-1
-!       endif
-! +ei
-! +ei
-!               if(ierro.gt.0) call prror(80)
-!               iexread=1
-!               goto 1840
-!  1820        ifiend35=1
-!               if(iexnum.eq.0) call prror(80)
-!               do 1830 j=1,iexnum
-!                 if(bez(ix).eq.bezext(j)) call prror(80)
-!  1830        continue
-!  1840        continue
-!             endif
-!             if(ilm0(1).eq.bez(ix)) then
-!               icext35(i)=ix
-!                 tcnst35(i)=tcnst
-!                do 1850 k=1,40
-!                 exterr35(i,k)=extaux(k)
-! 1850        continue
-!               iexread=0
-!               goto 1860
-!             endif
-!           endif
-!  1860  continue
-!  1861  continue
-!         write(lout,*) '        From file fort.35 :',iexnum,             &
-!      &' values read in.'
-!         write(lout,*)
-!       endif
-! +ei
-! End of time!
       if(mout3.eq.1) then
         write(lout,*)
         write(lout,*) '          Alignment errors read in ' ,           &
@@ -23560,10 +23250,6 @@ subroutine thin4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-! +if time
-!   real(kind=fPrec) expt
-! +ei
-
 +ca common2
 +ca commont1
 +ca commondl
@@ -23677,10 +23363,6 @@ subroutine thin4d(nthinerr)
       if (ldumpfront) then
         call dump_lines(n,i,ix)
       end if
-
-! +if time
-! +ca timefct
-! +ei
 
 +if fluka
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -24211,9 +23893,7 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab
 +ca wiretracktmp
   logical llost
-! +if time
-!   real(kind=fPrec) expt
-! +ei
+  
 +ca common2
 +ca commont1
 +ca commondl
@@ -24358,10 +24038,6 @@ subroutine thin6d(nthinerr)
         call dump_lines(n,i,ix)
       end if
       
-! +if time
-! +ca timefct
-! +ei
-
 +if fluka
 !         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !         last modified: 17-07-2013
@@ -25769,9 +25445,7 @@ subroutine thck4d(nthinerr)
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
 +ca wiretracktmp
   logical llost
-! +if time
-!   real(kind=fPrec) expt
-! +ei
+  
 +ca common2
 +ca commont1
 +ca commondl
@@ -25905,9 +25579,6 @@ subroutine thck4d(nthinerr)
 !+ca dumplines
         end if
       
-! +if time
-! +ca timefct
-! +ei
       end if
 
 +if fluka
@@ -26466,9 +26137,7 @@ subroutine thck6d(nthinerr)
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
 +ca wiretracktmp
   logical llost
-! +if time
-!   real(kind=fPrec) expt
-! +ei
+  
 +ca common2
 +ca commont1
 +ca commondl
@@ -26624,10 +26293,6 @@ subroutine thck6d(nthinerr)
         call prror(-1)
 !+ca dumplines
       end if
-
-! +if time
-! +ca timefct
-! +ei
 
 +if fluka
 
@@ -28535,9 +28200,6 @@ subroutine comnul
         ic(i)=0
         mzu(i)=0
         icext(i)=0
-! +if time
-!         icext35(i)=0
-! +ei
         icextal(i)=0
         extalign(i,1)=zero
         extalign(i,2)=zero
@@ -28552,9 +28214,6 @@ subroutine comnul
 !--Other stuff (not beam-beam)...
         do j=1,40
           exterr(i,j)=zero
-! +if time
-!           exterr35(i,j)=zero
-! +ei
           xsi(i)=zero
           zsi(i)=zero
           smi(i)=zero
@@ -28582,10 +28241,6 @@ subroutine comnul
 !-- RANDOM NUMBERS-------------------------------------------------------
       do 200 i=1,nzfz
         zfz(i)=zero
-! +if time
-!         zfz35(i)=zero
-!         tcnst35(i)=zero
-! +ei
   200 continue
 !--# OF TRAJECTORIES----------------------------------------------------
       do 220 i=1,mpa
@@ -28880,9 +28535,6 @@ subroutine STRNUL( iel )
       ic(iel)=0
       mzu(iel)=0
       icext(iel)=0
-! +if time
-!       icext35(iel)=0
-! +ei
       icextal(iel)=0
       extalign(iel,1)=zero
       extalign(iel,2)=zero
@@ -28895,9 +28547,6 @@ subroutine STRNUL( iel )
       imbb(iel)=0
       do j=1,40
          exterr(iel,j)=zero
-! +if time
-!          exterr35(iel,j)=zero
-! +ei
       enddo
       xsi(iel)=zero
       zsi(iel)=zero
@@ -28969,13 +28618,7 @@ integer function INEELS( iEl )
             extalign(i,3)=extalign(i-1,3)
             do ii=1,40
                exterr(i,ii)=exterr(i-1,ii)
-! +if time
-!                exterr35(i,ii)=exterr35(i-1,ii)
-! +ei
             enddo
-! +if time
-!             tcnst35(i)=tcnst35(i-1)
-! +ei
             dcum(i)=dcum(i-1)
          enddo
       endif
@@ -34155,14 +33798,8 @@ subroutine ord
           do j=1,mmul
             izu=izu+1
             zfz(izu)=exterr(i,20+j)
-! +if time
-!             zfz35(izu)=exterr35(i,20+j)
-! +ei
             izu=izu+1
             zfz(izu)=exterr(i,j)
-! +if time
-!             zfz35(izu)=exterr35(i,j)
-! +ei
           end do
         else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).eq.0) then
           izu=izu+2*mmul
@@ -34192,10 +33829,6 @@ subroutine orglat
       dimension ilf(nblz),ilfr(nblz)
       dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
      &icextal1(nblz)
-! +if time
-!       real(kind=fPrec) exterr2,tcnst2
-!       dimension exterr2(nblz,40),tcnst2(nblz)
-! +ei
 +if bnlelens
 +ca rhicelens
 +ei
@@ -34232,13 +33865,7 @@ subroutine orglat
             enddo
             do ii=1,40
                exterr1(i,ii)=zero
-! +if time
-!                exterr2(i,ii)=zero
-! +ei
             enddo
-! +if time
-!             tcnst35(i)=zero
-! +ei
         enddo
 
         !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
@@ -34253,13 +33880,7 @@ subroutine orglat
           extalig1(i,3)=extalign(i,3)
           do ii=1,40
             exterr1(i,ii)=exterr(i,ii)
-! +if time
-!             exterr2(i,ii)=exterr35(i,ii)
-! +ei
           end do
-! +if time
-!           tcnst2(i)=tcnst35(i)
-! +ei
         end do
         do i=kanf,iu
           if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
@@ -34271,13 +33892,7 @@ subroutine orglat
           extalign(i-kanf1,3)=extalign(i,3)
           do ii=1,40
             exterr(i-kanf1,ii)=exterr(i,ii)
-! +if time
-!             exterr35(i-kanf1,ii)=exterr35(i,ii)
-! +ei
           end do
-! +if time
-!           tcnst35(i-kanf1)=tcnst2(i)
-! +ei
         end do
         do i=1,kanf1
           if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
@@ -34289,13 +33904,7 @@ subroutine orglat
           extalign(iu-kanf1+i,3)=extalig1(i,3)
           do ii=1,40
             exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-! +if time
-!             exterr35(iu-kanf1+i,ii)=exterr2(i,ii)
-! +ei
           end do
-! +if time
-!           tcnst35(iu-kanf1+i)=tcnst35(i)
-! +ei
         end do
       endif
       
