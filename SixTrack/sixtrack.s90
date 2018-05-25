@@ -1010,12 +1010,10 @@
      &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
      &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
-! +if vvector
-!      &as,al,sigm,dps,idz,dp1,itra,                                      &
-! +ei
-! +if .not.vvector
-     &as,at,a2,al,sigm,dps,idz,dp1,itra,                                &
-! +ei
+     &as,al,sigm,dps,idz,dp1,itra,                                      &
+#ifdef DA
+     &at,a2,                                                            &
+#endif
      &x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
      &bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
      &nvar2,nsix,ncor,ipar,nordf,                                       &
@@ -8785,11 +8783,9 @@ subroutine daten
 
         !The value of nele will have been updated here
         call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
-!+if vvector
 !        if (ithick.eq.1) then
 !          call expand_thickarrays(nele+10, npart, nblz, nblo )
 !        end if
-!+ei
       end if
 
       if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) ) then
@@ -10329,9 +10325,7 @@ subroutine daten
       read(ch1,*) izu0, mmac, mout, mcut
 +ei
       mcut=iabs(mcut)
-+if vvector
       if(mmac.gt.nmac) call prror(55)
-+ei
       !Generate normal distributed random numbers into zfz
       call recuin(izu0,irecuin)
       call ranecu(zfz,nzfz,mcut)
@@ -14786,10 +14780,8 @@ subroutine daten
  1520 call prror(41)
  1530 call prror(42)
  1540 continue
-+if vvector
       !Check that the number of particles is OK
       if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
-+ei
 !     compute elens theta at R2, if requested by user
       do j=1,melens
          if ( elens_lThetaR2(j) ) then
@@ -16029,9 +16021,9 @@ subroutine envars(j,dpp,rv)
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
                    hp,hs,rho,rhoc,rhoi,rv,si,siq,sm1,sm12,sm2,sm23,sm3,sm5,sm6,wf,wfa,wfhi
-+if .not.vvector
+#ifdef DA
   integer jm,k,m,na,ne
-+ei
+#endif
 +ca commont1
 +ca commondl
 +if bnlelens
@@ -16046,10 +16038,10 @@ subroutine envars(j,dpp,rv)
       do l=1,2
         al(ll,l,j,i) = zero
         as(ll,l,j,i) = zero
-+if .not.vvector
+#ifdef DA
         at(ll,l,j,i) = zero
         a2(ll,l,j,i) = zero
-+ei
+#endif
       end do
     end do
     
@@ -16339,7 +16331,7 @@ subroutine envars(j,dpp,rv)
     end select
   end do
   
-+if .not.vvector
+#ifdef DA
   do k=1,mblo
     jm=mel(k)
     do m=1,jm
@@ -16361,7 +16353,7 @@ subroutine envars(j,dpp,rv)
       end do
     end do
   end do
-+ei
+#endif
   return
   
 end subroutine envars
@@ -19693,6 +19685,7 @@ end subroutine wireda
       use parpro
       use mod_common
       use mod_commons
+      use mod_hions
       implicit none
       integer idaa
       real(kind=fPrec) betr0,dare,sigmdac
@@ -30586,11 +30579,9 @@ integer function INEESE()
   il=il+1
   if( il.gt.nele-2 ) then
     call expand_arrays(nele+50, npart, nblz, nblo )
-! +if vvector
     if (ithick.eq.1) then
       call expand_thickarrays(nele, npart, nblz, nblo )
     end if
-! +ei
   end if
 
 ! initialise element to empty
