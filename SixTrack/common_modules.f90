@@ -306,6 +306,9 @@ module mod_common
   integer,          save :: napxto
   real,             save :: tlim,time0,time1,time2,time3,trtime,pretime,posttime,tottime
   
+  ! common /mytimes/
+  real,             save :: timestart
+  
   ! common /xz/
   real(kind=fPrec), save :: xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),aai(nblz,mmul),bbi(nblz,mmul)
   

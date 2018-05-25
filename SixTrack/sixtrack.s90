@@ -72,9 +72,6 @@
       integer errno,l1,l2
       integer dtostr
 +ei
-+cd commtim
-      real r1,timestart,timenow
-      common /mytimes/timestart
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
       logical rerun,start,restart,checkp,fort95,fort96,read95,read96
@@ -40937,26 +40934,28 @@ subroutine datime(nd,nt)
 end subroutine datime
 
 subroutine timest(r1)
-      implicit none
-+ca commtim
-      logical start
-      data start /.false./
-      save
-      if (.not.start) then
-        start=.true.
-        call cpu_time(timestart)
-      endif
-      return
+  use mod_common, only : timestart
+  implicit none
+  real r1
+  logical start
+  data start /.false./
+  save
+  if (.not.start) then
+    start=.true.
+    call cpu_time(timestart)
+  endif
+  return
 end subroutine timest
 
 subroutine timex(r1)
-      implicit none
-+ca commtim
-      save
-      call timest(0.0)
-      call cpu_time(timenow)
-      r1=timenow-timestart
-      return
+  use mod_common, only : timestart
+  implicit none
+  real r1,timenow
+  save
+  call timest(0.0)
+  call cpu_time(timenow)
+  r1=timenow-timestart
+  return
 end subroutine timex
 
 +dk plotdumy
