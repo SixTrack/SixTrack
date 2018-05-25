@@ -424,7 +424,6 @@ subroutine abend(cstring)
   
   implicit none
   
-+ca commonxz
 +ca crco
 +ca version
   

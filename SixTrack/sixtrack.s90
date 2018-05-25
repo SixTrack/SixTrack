@@ -164,39 +164,20 @@
      &r2b(npart),rb(npart),rkb(npart),                                  &
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
      &crzb(npart),cbxb(npart),cbzb(npart)
-+cd commonxz
-      real(kind=fPrec) aai,ampt,bbi,damp,smi,smizf,xsi,                 &
-     &zsi
-      integer napxto
-      real tlim,time0,time1,time2,time3,trtime
-! fixes for CPU time (for all versions, not just crlibm).
-      real pretime,posttime,tottime
-+if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     status of connection
-!     inserted in main code by the 'fluka' compilation flag
-      integer fluka_con
-+ei
-      common/xz/xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),              &
-     &aai(nblz,mmul),bbi(nblz,mmul)
-      common/damp/damp,ampt
-      common/ttime/tlim,time0,time1,time2,time3,trtime,napxto,          &
-     &pretime,posttime,tottime
 +cd commond1
-      common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda, &
-     &ej1,ejf1,rv
+  ! This and the next block just have different variable names, and seem to be FOX related?
+  ! Could in principle go into mod_commont where the DA / non-DA copy logic lives
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
 +cd commd1da
-      integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,         &
-     &yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
-      common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),             &
-     &asdaq_da(2,6),smida_da(mcor),xx_da(2),yy_da(2),dpda_da,dpda1_da,  &
-     &sigmda_da,ej1_da,ejf1_da,rv_da
+  integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
+  common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),asdaq_da(2,6),smida_da(mcor),xx_da(2), &
+    yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
 +cd commonas
-      integer idao,iscrri
-      integer          iscrda
-      real(kind=fPrec) rscrri
-      common/dascr/iscrda(100),rscrri(100),iscrri(100),idao
+  ! Tried to move this to a module, but for some FOX-related reason, iscrda cannot be moved.
+  integer idao,iscrri
+  integer          iscrda
+  real(kind=fPrec) rscrri
+  common/dascr/iscrda(100),rscrri(100),iscrri(100),idao
 +cd exactvars
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
@@ -14009,8 +13990,6 @@ subroutine initialize_element(ix,lfirst)
 
       integer im, izu, k, m, nmz, r0, r0a !needed to use multini
 
-+ca commonxz
-
       !Temp variables
       integer i
 
@@ -15591,7 +15570,6 @@ subroutine runda
      &zfeld1,zfeld2,zrb,zs, crabfreq, crabpht, crabpht2, crabpht3,      &
      &crabpht4
       character(len=300) ch
-+ca commonxz
 +ca commond1
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
@@ -16742,7 +16720,6 @@ subroutine umlauda
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=max_name_len) typ
-+ca commonxz
 +ca commond1
       dimension damap(6),damapi(6),damap1(6)
       dimension aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6)
@@ -18209,7 +18186,6 @@ subroutine wireda(ix,i)
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
 +ca commond1
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -18461,7 +18437,6 @@ end subroutine wireda
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19158,7 +19133,6 @@ end interface
 !  TEMPORARY SCRATCH FILE for C/R           : UNIT 94
 +ei
 !-----------------------------------------------------------------------
-+ca commonxz
 ! Eric needs nwri (clean up new variables and common blocks!)
 +if bnlelens
 +ca rhicelens
@@ -21719,19 +21693,18 @@ subroutine trauthin(nthinerr)
   use collimation
 +ei
 
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-      use mod_commont
-      use mod_commond
-      implicit none
-      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
-     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-      logical lopen
-+ca commonxz
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use mod_commont
+  use mod_commond
+  implicit none
+  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+    r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+  logical lopen
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -22217,7 +22190,6 @@ subroutine thin4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca commonxz
 +ca beamdim
 
 +if cr
@@ -22857,7 +22829,6 @@ subroutine thin6d(nthinerr)
   logical llost
   
 
-+ca commonxz
 +ca beamdim
 
 +if collimat
@@ -23694,7 +23665,6 @@ subroutine callcrp()
       use mod_commont
       use mod_commond
       implicit none
-+ca commonxz
 +if cr
 +ca crco
 +ei
@@ -23777,7 +23747,6 @@ end subroutine callcrp
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -23846,7 +23815,6 @@ subroutine write6(n)
       use mod_commond
       implicit none
       integer ia,ia2,id,ie,ig,n
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -23958,7 +23926,6 @@ subroutine trauthck(nthinerr)
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -24392,7 +24359,6 @@ subroutine thck4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca commonxz
 +ca beamdim
 +if cr
 +ca crco
@@ -25080,7 +25046,6 @@ subroutine thck6d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca commonxz
 +ca beamdim
 +if cr
 +ca crco
@@ -25862,7 +25827,6 @@ subroutine synuthck
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -26302,7 +26266,6 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       
       real(kind=fPrec) fokm
       
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -26714,7 +26677,6 @@ subroutine comnul
   
   integer i,i1,i2,i3,i4,j
 +ca commd1da
-+ca commonxz
 
 +if bnlelens
 +ca rhicelens
@@ -27458,8 +27420,6 @@ subroutine STRNUL( iel )
       use mod_commonmn
       implicit none
       
-+ca commonxz
-
 !     local variables
       integer iel, i1, i2, i3, j
 
@@ -28114,7 +28074,6 @@ subroutine blocksv
   use mod_commond
   implicit none
 
-+ca commonxz
       integer n, ia, ikk, j, jm, k, lkk, mkk
       real(kind=fPrec) dpoff
 !     integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
@@ -28483,7 +28442,6 @@ end subroutine chroma
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
-+ca commonxz
       dimension qw(2),qwc(3)
 +if bnlelens
 +ca rhicelens
@@ -33308,7 +33266,6 @@ end subroutine qmod0
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
-+ca commonxz
       dimension intwq(3),qwc(3)
 +if bnlelens
 +ca rhicelens
@@ -39083,7 +39040,6 @@ subroutine crcheck
       use mod_commont
       use mod_commond
       implicit none
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -39965,7 +39921,6 @@ subroutine crpoint
       use mod_commont
       use mod_commond
       implicit none
-+ca commonxz
 
 +if bnlelens
 +ca rhicelens
@@ -40537,7 +40492,6 @@ subroutine crstart
       use mod_hions
 
       implicit none
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei

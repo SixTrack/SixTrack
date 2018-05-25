@@ -272,6 +272,21 @@ module mod_common
   integer,          save :: ichromc,ilinc,iqmodc
   real(kind=fPrec), save :: corr(3,3),chromc(2),wxys(3),clon(6)
   
+  ! common /damp/
+  real(kind=fPrec), save :: damp,ampt
+  
+  ! common /ttime/
+  integer,          save :: napxto
+  real,             save :: tlim,time0,time1,time2,time3,trtime,pretime,posttime,tottime
+  
+  ! common /xz/
+  real(kind=fPrec), save :: xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),aai(nblz,mmul),bbi(nblz,mmul)
+  
+#ifdef FLUKA
+  ! This was not in a common block, just defined in +cd commonxz as integer fluka_con
+  integer,          save :: fluka_con
+#endif
+  
 contains
 
 subroutine mod_common_allocate_arrays
