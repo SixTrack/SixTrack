@@ -82,7 +82,34 @@ module parpro
   
 end module parpro
 
+module parbeam
+  
+  use floatPrecision
+  
+  implicit none
+  
+  real(kind=fPrec), parameter :: xcut = 7.77_fPrec
+  real(kind=fPrec), parameter :: ycut = 7.46_fPrec
+  real(kind=fPrec), parameter :: h    =  1.0_fPrec/63.0_fPrec
+  integer,          parameter :: nx   = 490
+  integer,          parameter :: ny   = 470
+  integer,          parameter :: idim = (nx+2)*(ny+2)
+  
+  ! common /wzcom1/
+  real(kind=fPrec), save :: hrecip
+  integer,          save :: kstep
+  
+  ! common /wzcom2/
+  real(kind=fPrec), save :: wtreal(idim),wtimag(idim)
+  
+  ! common /beam_exp/
+  integer,          save :: beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
+  logical,          save :: beam_expfile_open ! Have we opened the file 'beam_expert.txt'?
+  
+end module parbeam
+
 module mod_common
+  
   use parpro
   use floatPrecision
   use mod_alloc

@@ -142,19 +142,6 @@
 !GRD-042008
 +ei
 
-+cd parbeam
-      integer idim,kstep,nx,ny
-      real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
-      parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
-      parameter ( h = 1.0_fPrec/63.0_fPrec )
-      parameter ( nx = 490, ny = 470 )
-      parameter ( idim = (nx+2)*(ny+2) )
-      common /wzcom1/ hrecip, kstep
-      common /wzcom2/ wtreal(idim), wtimag(idim)
-+cd parbeam_exp
-      integer beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
-      logical beam_expfile_open ! have we opened the file 'beam_expert.txt'?
-      common /beam_exp/ beam_expflag, beam_expfile_open
 +cd beamdim
       real(kind=fPrec) cc,xlim,ylim
       parameter(cc = 1.12837916709551_fPrec)
@@ -7868,13 +7855,13 @@
       use numerical_constants
       use mathlib_bouncer
       use parpro
+      use parbeam
       implicit none
       integer k,mu,nu
       real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,     &
      &q,qsq,r,simag,sreal,t,tdd13i,tdd13r,tdd24i,tdd24r,tdddi,tdddr,ti, &
      &tr,u,usum,usum3,v,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,x,xh,&
      &xhrel,y,yh,yhrel
-+ca parbeam
       parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
       parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
       save
@@ -8002,6 +7989,7 @@ subroutine daten
   use crcoall
   use parpro
   use parpro_scale
+  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commons
   use mod_commont
@@ -8088,7 +8076,6 @@ subroutine daten
 +if bnlelens
 +ca rhicelens
 +ei
-+ca parbeam_exp
 +ca dbreaddis
   
   ! Fluka related, might be best to lock to real64
@@ -14595,10 +14582,10 @@ end function dtostr
       use mathlib_bouncer
       use numerical_constants
       use parpro
+      use parbeam
       implicit none
       integer i,j,k
       real(kind=fPrec) wi,wr,x,y
-+ca parbeam
       save
 !-----------------------------------------------------------------------
       hrecip = one/h
@@ -16696,6 +16683,7 @@ subroutine umlauda
       use crcoall
       use string_tools
       use parpro
+      use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
       use mod_commonmn, only : e0f
       use mod_commons
@@ -16741,7 +16729,6 @@ subroutine umlauda
 +ei
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format
-+ca parbeam_exp
 +if crlibm
       character(len=1000) ch
       character(len=25) ch1
@@ -18555,6 +18542,7 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
       use mod_commond
       use crcoall
       use parpro
+      use parbeam, only : beam_expflag,beam_expfile_open
       implicit none
       integer ibb,ibbc,ne,nsli,idaa
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
@@ -18563,7 +18551,6 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
 +if bnlelens
 +ca rhicelens
 +ei
-+ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -21695,6 +21682,7 @@ subroutine trauthin(nthinerr)
 
   use crcoall
   use parpro
+  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commonmn
   use mod_commons
@@ -21720,7 +21708,6 @@ subroutine trauthin(nthinerr)
 +if bnlelens
 +ca rhicelens
 +ei
-+ca parbeam_exp
   save
 
   do i=1,npart
@@ -23917,6 +23904,7 @@ subroutine trauthck(nthinerr)
 
   use crcoall
   use parpro
+  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commonmn
   use mod_commons
@@ -23931,7 +23919,6 @@ subroutine trauthck(nthinerr)
 +if collimat
 +ca database
 +ei
-+ca parbeam_exp
   save
 
 +if collimat
@@ -26663,6 +26650,7 @@ subroutine comnul
   use hdf5_output, only : h5_comnul
 #endif
   use parpro
+  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commonmn
   use mod_commons
@@ -26683,8 +26671,6 @@ subroutine comnul
 +ei
 
 +ca dbdcum
-
-+ca parbeam_exp
 
   save
 !-----------------------------------------------------------------------
@@ -37302,6 +37288,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 
       use crcoall
       use parpro
+      use parbeam, only : beam_expflag,beam_expfile_open
       implicit none
 
       integer ibb,ibbc,ibtyp,ne,np,nsli
@@ -37310,7 +37297,6 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
       dimension track(6,npart)
       dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
-+ca parbeam_exp
       save
 !-----------------------------------------------------------------------
       if (beam_expflag .eq. 0) then
