@@ -303,6 +303,15 @@ LIST(APPEND PREPRO_FLAGS_PREC P32BITM P64BITM P128BITM)
 # Select which fortran files to generate and compile
 ###################################################################################################
 
+list(APPEND FORS_FREEFORM
+	end_sixtrack close
+	scatter dynk
+	lielib dabnew fma
+	postprocessing dump
+	mainarrays parpro_scale
+	bdex aperture elens hions
+)
+
 list(APPEND FORS_F90
 	core_tools constants sixtrack_input
 	strings string_tools
@@ -312,9 +321,9 @@ list(APPEND FORS_F90
 )
 
 if(DA)
-	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk lielib dabnew fma postprocessing sixsc sixda sixscfox dump mainarrays parpro_scale bdex aperture elens hions)
+	list(APPEND FORS_FREEFORM sixsc sixda sixscfox)
 else()
-	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk lielib dabnews fma postprocessing track sixve sixvefox dump mainarrays parpro_scale bdex aperture elens hions)
+	list(APPEND FORS_FREEFORM track sixve sixvefox)
 endif()
 
 if(COLLIMAT)
