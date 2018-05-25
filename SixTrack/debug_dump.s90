@@ -187,7 +187,6 @@ subroutine dump(dumpname,n,i)
   
   implicit none
   
-+ca common2
 +ca commonxz
 +ca crco
   integer n,i
@@ -685,7 +684,6 @@ subroutine dumpbin(dumpname,n,i)
   
   implicit none
   
-+ca common2
 +ca commonxz
 +ca crco
   integer n,i
@@ -1187,7 +1185,6 @@ subroutine dumphex(dumpname,n,i)
   
   implicit none
   
-+ca common2
 +ca commonxz
 +ca crco
   integer n,i

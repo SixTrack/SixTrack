@@ -264,6 +264,10 @@ module mod_common
   
   ! common /sixdim/
   real(kind=fPrec), save :: aml6(6,6),edcor(2)
+  
+  ! common /postr2/
+  integer,          save :: nnumxv(npart)
+  
 contains
 
 subroutine mod_common_allocate_arrays

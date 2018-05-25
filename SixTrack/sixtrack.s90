@@ -164,9 +164,6 @@
      &r2b(npart),rb(npart),rkb(npart),                                  &
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
      &crzb(npart),cbxb(npart),cbzb(npart)
-+cd common2
-      integer nnumxv
-      common/postr2/nnumxv(npart)
 +cd commonxz
       real(kind=fPrec) aai,ampt,bbi,damp,smi,smizf,xsi,                 &
      &zsi
@@ -19175,7 +19172,6 @@ end interface
 !  TEMPORARY SCRATCH FILE for C/R           : UNIT 94
 +ei
 !-----------------------------------------------------------------------
-+ca common2
 +ca commonxz
 ! Eric needs nwri (clean up new variables and common blocks!)
 +if bnlelens
@@ -22236,7 +22232,6 @@ subroutine thin4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
 +ca commonxz
 +ca beamdim
 
@@ -22876,7 +22871,6 @@ subroutine thin6d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
 
 +ca commonxz
 +ca beamdim
@@ -23867,7 +23861,6 @@ subroutine write6(n)
       use mod_commond
       implicit none
       integer ia,ia2,id,ie,ig,n
-+ca common2
 +ca commonxz
 +if bnlelens
 +ca rhicelens
@@ -24414,7 +24407,6 @@ subroutine thck4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
 +ca commonxz
 +ca beamdim
 +if cr
@@ -25103,7 +25095,6 @@ subroutine thck6d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
 +ca commonxz
 +ca beamdim
 +if cr
@@ -28139,7 +28130,6 @@ subroutine blocksv
   use mod_commond
   implicit none
 
-+ca common2
 +ca commonxz
 +ca commonc
       integer n, ia, ikk, j, jm, k, lkk, mkk
@@ -39115,7 +39105,6 @@ subroutine crcheck
       use mod_commont
       use mod_commond
       implicit none
-+ca common2
 +ca commonxz
 +ca commonc
 +if bnlelens
@@ -39999,7 +39988,6 @@ subroutine crpoint
       use mod_commont
       use mod_commond
       implicit none
-+ca common2
 +ca commonxz
 +ca commonc
 
@@ -40573,7 +40561,6 @@ subroutine crstart
       use mod_hions
 
       implicit none
-+ca common2
 +ca commonxz
 +ca commonc
 +if bnlelens
