@@ -167,9 +167,6 @@
 +cd common2
       integer nnumxv
       common/postr2/nnumxv(npart)
-+cd commonl
-      real(kind=fPrec) aml6,edcor
-      common/sixdim/aml6(6,6),edcor(2)
 +cd commonxz
       real(kind=fPrec) aai,ampt,bbi,damp,smi,smizf,xsi,                 &
      &zsi
@@ -16761,7 +16758,6 @@ subroutine umlauda
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=max_name_len) typ
-+ca commonl
 +ca commonxz
 +ca commond1
 +ca commonc
@@ -18230,7 +18226,6 @@ subroutine wireda(ix,i)
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
 +ca commond1
-+ca commonl
 +ca commonxz
 +if bnlelens
 +ca rhicelens
@@ -18483,7 +18478,6 @@ end subroutine wireda
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
-+ca commonl
 +ca commonxz
 +if bnlelens
 +ca rhicelens
@@ -19183,7 +19177,6 @@ end interface
 !-----------------------------------------------------------------------
 +ca common2
 +ca commonxz
-+ca commonl
 ! Eric needs nwri (clean up new variables and common blocks!)
 +if bnlelens
 +ca rhicelens
@@ -28148,7 +28141,6 @@ subroutine blocksv
 
 +ca common2
 +ca commonxz
-+ca commonl
 +ca commonc
       integer n, ia, ikk, j, jm, k, lkk, mkk
       real(kind=fPrec) dpoff
@@ -28520,7 +28512,6 @@ end subroutine chroma
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
-+ca commonl
 +ca commonxz
 +ca commonc
       dimension qw(2),qwc(3)
@@ -28747,7 +28738,6 @@ end subroutine chroma
       implicit none
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
       real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
-+ca commonl
       integer idummy(nn)
       character(len=6) chp(3),chd(3)
       dimension xx(6),dlo(6),cloc(6),dd(6),dc(6),am(nn,nn)
@@ -33349,7 +33339,6 @@ end subroutine qmod0
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
-+ca commonl
 +ca commonxz
 +ca commonc
       dimension intwq(3),qwc(3)
@@ -39128,7 +39117,6 @@ subroutine crcheck
       implicit none
 +ca common2
 +ca commonxz
-+ca commonl
 +ca commonc
 +if bnlelens
 +ca rhicelens
@@ -40013,7 +40001,6 @@ subroutine crpoint
       implicit none
 +ca common2
 +ca commonxz
-+ca commonl
 +ca commonc
 
 +if bnlelens
@@ -40588,7 +40575,6 @@ subroutine crstart
       implicit none
 +ca common2
 +ca commonxz
-+ca commonl
 +ca commonc
 +if bnlelens
 +ca rhicelens

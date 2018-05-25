@@ -45,7 +45,6 @@ program mainda
     tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
   
 +ca commonxz
-+ca commonl
 +ca commonc
 
   character(len=10) cmonth

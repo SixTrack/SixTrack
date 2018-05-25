@@ -262,6 +262,8 @@ module mod_common
   ! common /exact/
   integer, save :: iexact
   
+  ! common /sixdim/
+  real(kind=fPrec), save :: aml6(6,6),edcor(2)
 contains
 
 subroutine mod_common_allocate_arrays
