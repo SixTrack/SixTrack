@@ -2,24 +2,6 @@
 !     parts of the code, such as lout and crlibm functions, accelerator structure,
 !     particle arrays etc.
 
-+dk fPrec
-module floatPrecision
-  use, intrinsic :: iso_fortran_env, only : real32, real64, real128
-  
-  implicit none
-  
-#ifdef P32BITM
-  integer, parameter :: fPrec = real32
-#endif
-#ifdef P64BITM
-  integer, parameter :: fPrec = real64
-#endif
-#ifdef P128BITM
-  integer, parameter :: fPrec = real128
-#endif
-
-end module floatPrecision
-
 +dk physical_constants
 
 module physical_constants
