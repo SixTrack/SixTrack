@@ -4103,7 +4103,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
   use crcoall
   use parpro
-  use common, only : iexact
+  use mod_common, only : iexact
   implicit none
 
 
