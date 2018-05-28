@@ -38708,8 +38708,7 @@ subroutine crpoint
       use end_sixtrack
       use numerical_constants
 
-      use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
-     &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
+      use dynk, only : ldynk,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynkfilepos,dynk_crpoint
 
       use dump, only : dump_crpoint
       
@@ -38813,23 +38812,23 @@ subroutine crpoint
 +if .not.debug
          if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
-            write(93,*) 'SIXTRACR CRPOINT filling fsets_dynk_cr'
+            write(93,*) 'SIXTRACR CRPOINT filling dynk_fSets_cr'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
          endif
 +ei
-         do j=1,nsets_unique_dynk
-            fsets_dynk_cr(j) =                                          &
-     &           dynk_getvalue(csets_unique_dynk(j,1),                  &
-     &                         csets_unique_dynk(j,2))
+         do j=1,dynk_nSets_unique
+            dynk_fSets_cr(j) =                                          &
+     &           dynk_getvalue(dynk_cSets_unique(j,1),                  &
+     &                         dynk_cSets_unique(j,2))
          end do
 
-!c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-!c$$$     &        nsets_unique_dynk,")"
-!c$$$         do j=1,nsets_unique_dynk
-!c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-!c$$$     &                  fsets_dynk_cr(j)
+!c$$$         write (93,*) "Contents: (dynk_nSets_unique=",
+!c$$$     &        dynk_nSets_unique,")"
+!c$$$         do j=1,dynk_nSets_unique
+!c$$$            write(93,*) dynk_cSets_unique(j,1),dynk_cSets_unique(j,2),
+!c$$$     &                  dynk_fSets_cr(j)
 !c$$$         enddo
 !c$$$         write(93,*) "DONE"
 !c$$$         endfile (93,iostat=ierro)
