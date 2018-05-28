@@ -103,25 +103,31 @@ interface resize
 end interface resize
 
 interface dealloc
+  
   module procedure dealloc1dr32
   module procedure dealloc1dr64
   module procedure dealloc1dr128
-
+  
   module procedure dealloc2dr32
   module procedure dealloc2dr64
   module procedure dealloc2dr128
-
+  
   module procedure dealloc3dr32
   module procedure dealloc3dr64
   module procedure dealloc3dr128
-
+  
   module procedure dealloc1di16
   module procedure dealloc1di32
   module procedure dealloc1di64
-
+  
+  module procedure dealloc2di16
+  module procedure dealloc2di32
+  module procedure dealloc2di64
+  
   module procedure dealloc1dl
-
+  
   module procedure dealloc1dc
+  
 end interface dealloc
 
 contains
@@ -159,18 +165,18 @@ subroutine print_alloc(ename, type, requested_bits)
   
   write(lout,"(a)") "ALLOC> Memory allocation for "//type//" array '"//ename//"'"
   
-  if((real(allocated_bits,real64)/mbyte < one) .and. (real(allocated_bits,real64)/kbyte > one)) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/kbyte," kb"
-  else if(real(allocated_bits,real64)/mbyte >= one) then
+  if(real(allocated_bits,real64)/mbyte >= one) then
     write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/mbyte," Mb"
+  else if(real(allocated_bits,real64)/kbyte >= one) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/kbyte," kb"
   else
     write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/byte," b"
   end if
 
-  if((real(requested_bits,real64)/mbyte < one) .and. (real(requested_bits,real64)/kbyte > one)) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/kbyte," kb"
-  else if(real(requested_bits,real64)/mbyte >= one) then
+  if(real(requested_bits,real64)/mbyte >= one) then
     write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/mbyte," Mb"
+  else if(real(requested_bits,real64)/kbyte >= one) then
+    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/kbyte," kb"
   else
     write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/byte," b"
   end if
@@ -2393,6 +2399,45 @@ subroutine dealloc1di64(input, ename)
   allocated_bits = allocated_bits - (size(input)*storage_size(int64))
   deallocate(input)
 end subroutine dealloc1di64
+
+subroutine dealloc2di16(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int16), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int16))
+  deallocate(input)
+end subroutine dealloc2di16
+  
+subroutine dealloc2di32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int32), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int32))
+  deallocate(input)
+end subroutine dealloc2di32
+  
+subroutine dealloc2di64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int64), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int64))
+  deallocate(input)
+end subroutine dealloc2di64
 
 subroutine dealloc1dl(input, ename)
   implicit none

@@ -3026,6 +3026,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     character(maxstrlen_dynk) element_name_stripped
     character(maxstrlen_dynk) att_name_stripped
 
+    !Original energies before energy update
+    real(kind=fPrec) e0fo, e0o
+
     ! For sanity check
     logical ldoubleElement
     ldoubleElement = .false.
@@ -3045,6 +3048,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     if (element_name_stripped .eq. "GLOBAL-VARS") then
         if (att_name_stripped .eq. "E0" ) then
             ! Modify the reference particle
+
+            e0o  = e0
+            e0fo = e0f
+
             e0     = newValue
             e0f    = sqrt(e0**2 - nucm0**2)
             gammar = nucm0/e0
@@ -3058,7 +3065,14 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
                 oidpsv(j) = one/(one + dpsv(j))
                 moidpsv(j) = mtc(j)/(one + dpsv(j))
                 rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
-            end do
+
+                !Also update sigmv with the new beta0 = e0f/e0
+                sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j)
+              end do
+! FIXME: This is a dirty fix for DA version to make it compile.
+#ifndef DA
+              if(ithick.eq.1) call synuthck
+#endif
         end if
         ldoubleElement = .true.
     end if

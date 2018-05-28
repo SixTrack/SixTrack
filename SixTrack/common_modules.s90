@@ -366,14 +366,6 @@ module mod_common
   
   implicit none
 
-+if time
-  !To be deleted
-  real(kind=fPrec) tcnst35,exterr35,zfz35
-  integer icext35
-  common/rand35/exterr35(nblz,40),icext35(nblz),zfz35(nzfz),        &
-       tcnst35(nblz)
-+ei
-
   ! common /erro/
   integer, save :: ierro
   character(len=max_name_len), save :: erbez
@@ -411,7 +403,7 @@ module mod_common
   
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3), &
-       crad,dppoff,sigmoff(nblz),tlen
+       crad,dppoff,sigmoff(nblz),tlen,mtcda
   real(kind=fPrec), allocatable, save ::  hsyc(:), phasc(:) !(nele)
   integer, save :: iicav,ition,idp,ncy,ixcav
   integer, allocatable, save :: itionc(:) !(nele)
@@ -758,12 +750,6 @@ module mod_commonmn
   use floatPrecision
   implicit none
   
-+if time
-  !To be deleted
-  real(kind=fPrec) aaiv35,bbiv35
-  common/timemain/aaiv35(mmul,nmac,nblz),bbiv35(mmul,nmac,nblz)
-+ei
-
   ! common /main1/
   real(kind=fPrec), allocatable, save :: ekv(:,:) !(npart,nele)
   real(kind=fPrec), save :: fokqv(npart),aaiv(mmul,nmac,nblz),           &
@@ -961,7 +947,7 @@ module mod_hions
   logical, save :: has_hion
 
 ! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0
+  real(kind=fPrec), save :: nucm0,nucmda
 
   real(kind=fPrec), save :: brhono
 
@@ -1017,6 +1003,7 @@ contains
 
 ! Charge multiplicity of the tracked ion
   call alloc(nzz,npart,zz0,'nzz') !(npart)
+  print*, "nzzzzz", nzz(1)
 
 ! SixTrack particle IDs
   call alloc(pids,npart,0,'pids') !(npart)

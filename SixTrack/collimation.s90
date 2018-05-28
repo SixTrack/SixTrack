@@ -147,7 +147,7 @@
 ! SR, 29-08-2005: add the required variable for slicing collimators
   integer jjj, ijk
 
-  real zbv
+  real(kind=fPrec) zbv
 
   real(kind=fPrec) c_length    !length in m
   real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -424,7 +424,7 @@
 !
       character(nc) filen,tit
 !
-      real   xlow,xhigh,xplow,xphigh,dx,dxp
+      real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
 !
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
@@ -472,7 +472,7 @@
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd funint
-      real tftot
+      real(kind=fPrec) tftot
       common/funint/tftot
 
 +dk nwrtcoll
@@ -488,24 +488,29 @@ module collimation
 
   use file_units
 
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
+
   implicit none
 
 !+cd collpara
-  integer, parameter :: max_ncoll  = 100
-  integer, parameter :: maxn       = 20000
-  integer, parameter :: numeff     = 32
-  integer, parameter :: numeffdpop = 29
-  integer, parameter :: nc         = 32
+  integer, parameter, save :: max_ncoll  = 100
+  integer, parameter, save :: maxn       = 20000
+  integer, parameter, save :: numeff     = 32
+  integer, parameter, save :: numeffdpop = 29
+  integer, parameter, save :: nc         = 32
 
 !+cd collMatNum
 !     EQ 2016 added variables for collimator material numbers
-  integer, parameter :: nmat  = 14
-  integer, parameter :: nrmat = 12
+  integer, parameter, save :: nmat  = 14
+  integer, parameter, save :: nrmat = 12
 
 !+cd interac
 !this has MANY conflicts
   integer mat,mcurr
-  real(kind=fPrec) :: x_interac,xp_interac,z_interac,zp_interac,dpop_interac,p0_interac,zlm,zlm1,xpsd,zpsd, &
+  real(kind=fPrec), save :: x_interac,xp_interac,z_interac,zp_interac,dpop_interac,p0_interac,zlm,zlm1,xpsd,zpsd, &
                    psd,bpp,xln15s,ecmsq,pptot,ppel,ppsd
 
 !--------------------------------------------------------------------------------------------------------------------------------
@@ -523,13 +528,13 @@ module collimation
 
 ! Reference data at pRef=450Gev
 ! pp cross-sections and parameters for energy dependence
-  real(kind=fPrec), parameter :: pptref = 0.04d0
-  real(kind=fPrec), parameter :: pperef = 0.007d0
-  real(kind=fPrec), parameter :: sdcoe  = 0.00068d0
-  real(kind=fPrec), parameter :: pref   = 450.0d0
-  real(kind=fPrec), parameter :: pptco  = 0.05788d0
-  real(kind=fPrec), parameter :: ppeco  = 0.04792d0
-  real(kind=fPrec), parameter :: freeco = 1.618d0
+  real(kind=fPrec), parameter, save :: pptref = 0.04d0
+  real(kind=fPrec), parameter, save :: pperef = 0.007d0
+  real(kind=fPrec), parameter, save :: sdcoe  = 0.00068d0
+  real(kind=fPrec), parameter, save :: pref   = 450.0d0
+  real(kind=fPrec), parameter, save :: pptco  = 0.05788d0
+  real(kind=fPrec), parameter, save :: ppeco  = 0.04792d0
+  real(kind=fPrec), parameter, save :: freeco = 1.618d0
 
 !GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
   real(kind=fPrec), parameter :: anuc(nmat) = &
@@ -579,34 +584,34 @@ module collimation
 
 ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
 !MAY06-GRD value for Tungsten (W) not stated
-  real(kind=fPrec) :: bnref(nmat) = &
+  real(kind=fPrec), save :: bnref(nmat) = &
   [ 74.7d0,120.3d0,217.8d0,440.3d0,455.3d0, 70.d0, 70.d0, 76.7d0, 115.0d0, 273.9d0, 208.7d0, 392.1d0, zero, zero ]
 !GRD LAST 2 ONES INTERPOLATED
 
-  real(kind=fPrec) :: freep(nmat)
+  real(kind=fPrec), save :: freep(nmat)
 
-  real(kind=fPrec) :: bn(nmat)
+  real(kind=fPrec), save :: bn(nmat)
 
-  real(kind=fPrec) :: xintl(nmat)
+  real(kind=fPrec), save :: xintl(nmat)
   real(kind=fPrec), parameter :: radl(nmat) = &
   [ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0, 0.2557d0, 0.094d0, 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, 0.00385d0, 1.d12, 1.d12 ]
 
 !October 2013
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  real(kind=fPrec), parameter :: exenergy(nmat) = &
+  real(kind=fPrec), parameter, save :: exenergy(nmat) = &
   [ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9, 78e-9, 78.0e-9, 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9, 0.0, 0.0 ]
 
 ! These are not really used any more, empty spaces filled with zeros
-  real(kind=fPrec), parameter :: dpodx(nmat) = &
+  real(kind=fPrec), parameter, save :: dpodx(nmat) = &
   [ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0, .75d0, 1.5d0, zero, zero ,zero, zero, zero, zero, zero ]
 
 !electron density and plasma energy
-  real(kind=fPrec) :: edens(nmat)
-  real(kind=fPrec) :: pleng(nmat)
+  real(kind=fPrec), save :: edens(nmat)
+  real(kind=fPrec), save :: pleng(nmat)
 
 !  parameter(fnavo=6.02214129e23_fPrec)
 
-  real cgen(200,nmat)
+  real(kind=fPrec), save :: cgen(200,nmat)
 
 
 !--------------------------------------------------------------------------------------------------------------------------------
@@ -619,8 +624,21 @@ module collimation
   integer, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
   integer, save :: filename_dis_unit, coll_db_unit, CollPositions_unit
   integer, save :: collsettings_unit, outlun
+  ! These are not in use
+  !integer, save :: betatron_unit, beta_beat_unit
 
   logical, save :: coll_found(100)
+
+#ifdef HDF5
+  ! Variables to save hdf5 dataset indices
+  integer, private, save :: coll_hdf5_survival
+  integer, private, save :: coll_hdf5_allImpacts
+  integer, private, save :: coll_hdf5_fstImpacts
+  integer, private, save :: coll_hdf5_allAbsorb
+  integer, private, save :: coll_hdf5_collScatter
+#endif
+
+  save
 
 contains
 
@@ -651,19 +669,23 @@ contains
 !! can be used to do any initial configuration and/or file loading.
 !<
 subroutine collimate_init()
-
+  
   use crcoall
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
+  
   implicit none
-
-
+  
+#ifdef HDF5
+  type(h5_dataField), allocatable :: fldDist0(:)
+  integer                         :: fmtDist0, setDist0
+#endif
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -688,6 +710,10 @@ subroutine collimate_init()
 +ca rhicelens
 +ei
 
+#ifdef HDF5
+  if(h5_useForCOLL) call h5_initForCollimation
+#endif
+  
 +if g4collimat
 ! These should be configured in the scatter block when possible/enabled
   real(kind=fPrec) g4_ecut
@@ -704,7 +730,7 @@ subroutine collimate_init()
 
   call funit_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
-
+  
   write(lout,*) '         -------------------------------'
   write(lout,*)
   write(lout,*) '          Program      C O L L T R A C K '
@@ -791,7 +817,7 @@ subroutine collimate_init()
     write(lout,*) "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
 
     write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.", &
-   & "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
+      "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
     write(lout,*) "ERR> EXAMPLE:"
     write(lout,*) "2.5 2.5 3.5 3.5"
     call prror(-1)
@@ -1003,7 +1029,7 @@ subroutine collimate_init()
         call readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay, &
      &           myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
       else
-        write(lout,*) 'INFO> review your distribution parameters !!'
+        write(lout,*) 'ERROR> review your distribution parameters !!'
         call prror(-1)
       end if
     end if
@@ -1023,14 +1049,39 @@ subroutine collimate_init()
   endif
 
 !++  Optionally write the generated particle distribution
-  call funit_requestUnit('dist0.dat', dist0_unit)
-  open(unit=dist0_unit,file='dist0.dat') !was 52
-  if(dowrite_dist) then
-    do j = 1, mynp
-      write(dist0_unit,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
-    end do
+#ifdef HDF5
+  if(h5_useForCOLL .and. dowrite_dist) then
+    allocate(fldDist0(6))
+    fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
+    fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
+    fldDist0(3)  = h5_dataField(name="Y",  type=h5_typeReal)
+    fldDist0(4)  = h5_dataField(name="YP", type=h5_typeReal)
+    fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
+    fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
+    call h5_createFormat("collDist0", fldDist0, fmtDist0)
+    call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, mynp)
+    call h5_prepareWrite(setDist0, mynp)
+    call h5_writeData(setDist0, 1, mynp, myx(1:mynp))
+    call h5_writeData(setDist0, 2, mynp, myxp(1:mynp))
+    call h5_writeData(setDist0, 3, mynp, myy(1:mynp))
+    call h5_writeData(setDist0, 4, mynp, myyp(1:mynp))
+    call h5_writeData(setDist0, 5, mynp, mys(1:mynp))
+    call h5_writeData(setDist0, 6, mynp, myp(1:mynp))
+    call h5_finaliseWrite(setDist0)
+    deallocate(fldDist0)
+  else
+#endif
+    call funit_requestUnit('dist0.dat', dist0_unit)
+    open(unit=dist0_unit,file='dist0.dat') !was 52
+    if(dowrite_dist) then
+      do j = 1, mynp
+        write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+      end do
+    end if
+    close(dist0_unit)
+#ifdef HDF5
   end if
-  close(dist0_unit)
+#endif
 
 !++  Initialize efficiency array
   do i=1,iu
@@ -1106,19 +1157,24 @@ end subroutine collimate_init
 !! is injected into thin 6d
 !<
 subroutine collimate_start_sample(nsample)
-
+  
   use crcoall
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
+  
   implicit none
-
-
+  
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
+#ifdef HDF5
+  type(h5_dataField), allocatable :: setFields(:)
+  integer fmtHdf
+#endif
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -1153,17 +1209,31 @@ subroutine collimate_start_sample(nsample)
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
   !FIXME : never used?
-  call funit_requestUnit('betatron.dat', betatron_unit)
-  open(unit=betatron_unit,file='betatron.dat') !was 99
+  ! call funit_requestUnit('betatron.dat', betatron_unit)
+  ! open(unit=betatron_unit,file='betatron.dat') !was 99
 
   !FIXME : never used?
-  call funit_requestUnit('beta_beat.dat', beta_beat_unit)
-  open(unit=beta_beat_unit, file='beta_beat.dat') !was 42
-  write(beta_beat_unit,*) '# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
+  ! call funit_requestUnit('beta_beat.dat', beta_beat_unit)
+  ! open(unit=beta_beat_unit, file='beta_beat.dat') !was 42
+  ! write(beta_beat_unit,*) '# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
 
-  call funit_requestUnit('survival.dat', survival_unit)
-  open(unit=survival_unit, file='survival.dat') ! RB, DM: 2014 bug fix !was 44
-  write(survival_unit,*) '# 1=turn 2=n_particle'
+  ! Survival Output
+#ifdef HDF5
+  if(h5_useForCOLL) then
+    allocate(setFields(2))
+    setFields(1) = h5_dataField(name="TURN",  type=h5_typeInt)
+    setFields(2) = h5_dataField(name="NSURV", type=h5_typeInt)
+    call h5_createFormat("collSurvival", setFields, fmtHdf)
+    call h5_createDataSet("survival", h5_collID, fmtHdf, coll_hdf5_survival, numl)
+    deallocate(setFields)
+  else
+#endif
+    call funit_requestUnit('survival.dat', survival_unit)
+    open(unit=survival_unit, file='survival.dat') ! RB, DM: 2014 bug fix !was 44
+    write(survival_unit,*) '# 1=turn 2=n_particle'
+#ifdef HDF5
+  end if
+#endif
 
   call funit_requestUnit('collgaps.dat', collgaps_unit)
   open(unit=collgaps_unit, file='collgaps.dat') !was 43
@@ -1254,7 +1324,9 @@ subroutine collimate_start_sample(nsample)
     call funit_requestUnit('pencilbeam_distr.dat', pencilbeam_distr_unit)
     open(unit=pencilbeam_distr_unit, file='pencilbeam_distr.dat') !was 9997
     if(firstrun) write(pencilbeam_distr_unit,*) 'x    xp    y      yp'
-
+#ifdef HDF5
+    if(h5_writeTracks2) call h5tr2_init
+#endif
   end if !end if (dowritetracks) then
 
 !GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
@@ -1267,6 +1339,54 @@ subroutine collimate_start_sample(nsample)
   end if
 
   if(dowrite_impact) then
+#ifdef HDF5
+    if(h5_useForCOLL .and. firstrun) then
+      
+      ! All Impacts and All Absorbtions
+      allocate(setFields(3))
+      setFields(1) = h5_dataField(name="ID",   type=h5_typeInt)
+      setFields(2) = h5_dataField(name="TURN", type=h5_typeInt)
+      setFields(3) = h5_dataField(name="S",    type=h5_typeReal)
+      call h5_createFormat("collAllImpactAbsorb", setFields, fmtHdf)
+      call h5_createDataSet("all_impacts",     h5_collID, fmtHdf, coll_hdf5_allImpacts)
+      call h5_createDataSet("all_absorptions", h5_collID, fmtHdf, coll_hdf5_allAbsorb)
+      deallocate(setFields)
+      
+      ! First Impacts
+      allocate(setFields(14))
+      setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+      setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+      setFields(3)  = h5_dataField(name="ICOLL",  type=h5_typeInt)
+      setFields(4)  = h5_dataField(name="NABS",   type=h5_typeInt)
+      setFields(5)  = h5_dataField(name="S_IMP",  type=h5_typeReal)
+      setFields(6)  = h5_dataField(name="S_OUT",  type=h5_typeReal)
+      setFields(7)  = h5_dataField(name="X_IN",   type=h5_typeReal)
+      setFields(8)  = h5_dataField(name="XP_IN",  type=h5_typeReal)
+      setFields(9)  = h5_dataField(name="Y_IN",   type=h5_typeReal)
+      setFields(10) = h5_dataField(name="YP_IN",  type=h5_typeReal)
+      setFields(11) = h5_dataField(name="X_OUT",  type=h5_typeReal)
+      setFields(12) = h5_dataField(name="XP_OUT", type=h5_typeReal)
+      setFields(13) = h5_dataField(name="Y_OUT",  type=h5_typeReal)
+      setFields(14) = h5_dataField(name="YP_OUT", type=h5_typeReal)
+      call h5_createFormat("collFirstImpacts", setFields, fmtHdf)
+      call h5_createDataSet("first_impacts", h5_collID, fmtHdf, coll_hdf5_fstImpacts)
+      deallocate(setFields)
+      
+      ! Coll Scatter
+      allocate(setFields(7))
+      setFields(1) = h5_dataField(name="ID",    type=h5_typeInt)
+      setFields(2) = h5_dataField(name="TURN",  type=h5_typeInt)
+      setFields(3) = h5_dataField(name="ICOLL", type=h5_typeInt)
+      setFields(4) = h5_dataField(name="NABS",  type=h5_typeInt)
+      setFields(5) = h5_dataField(name="DP",    type=h5_typeReal)
+      setFields(6) = h5_dataField(name="DX",    type=h5_typeReal)
+      setFields(7) = h5_dataField(name="DY",    type=h5_typeReal)
+      call h5_createFormat("collScatter", setFields, fmtHdf)
+      call h5_createDataSet("coll_scatter", h5_collID, fmtHdf, coll_hdf5_collScatter)
+      deallocate(setFields)
+      
+    else
+#endif
     call funit_requestUnit('all_impacts.dat', all_impacts_unit)
     call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
     call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
@@ -1297,6 +1417,9 @@ subroutine collimate_start_sample(nsample)
  &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)" &
  &     ,", 5=dp, 6=dx', 7=dy'"
     end if ! if (firstrun) then
+#ifdef HDF5
+    end if
+#endif
   end if ! if(dowrite_impact) then
 
   if(name_sel(1:3).eq.'COL') then
@@ -2789,19 +2912,19 @@ end subroutine collimate_do_collimator
 !! This routine is called at the exit of a collimator
 !<
 subroutine collimate_end_collimator()
-
+  
   use crcoall
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
+  
   implicit none
-
-
+  
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -2812,7 +2935,7 @@ subroutine collimate_end_collimator()
 +ca commonex
   dimension nbeaux(nbb)
 
-+if collimat
+#ifdef COLLIMAT
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -2821,23 +2944,23 @@ subroutine collimate_end_collimator()
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
+#endif
 
-+if bnlelens
+#ifdef BNLELENS
 +ca rhicelens
-+ei
+#endif
 
-! +if hdf5
-! YIL: In order to make sure we are sending the correct data types to appendreading..
-  ! INTEGER hdfturn,hdfpid,hdftyp
-  ! real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
-! +ei
+#ifdef HDF5
+  ! For tracks2
+  integer hdfturn,hdfpid,hdftyp
+  real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+#endif
 
   real(kind=fPrec) c5m4,stracki
 
-+if fast
+#ifdef FAST
   c5m4=5.0e-4_fPrec
-+ei
+#endif
 
 !++  Output information:
 !++
@@ -2975,36 +3098,39 @@ subroutine collimate_end_collimator()
 
 !++  Fill the change in particle angle into histogram
       if(dowrite_impact) then
-        write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+        if(h5_useForSCAT) then
+          call h5_prepareWrite(coll_hdf5_allImpacts, 1)
+          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j)+100*samplenumber)
+          call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
+          call h5_writeData(coll_hdf5_allImpacts, 3, 1, sampl(ie))
+          call h5_finaliseWrite(coll_hdf5_allImpacts)
+        else
+#endif
+          write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+        end if
+#endif
       end if
 
       ! Particle has impacted
       if(part_abs_pos(j) .ne.0 .and. part_abs_turn(j).ne.0) then
         if(dowrite_impact) then
-          write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+          if(h5_useForSCAT) then
+            call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
+            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j)+100*samplenumber)
+            call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
+            call h5_writeData(coll_hdf5_allAbsorb, 3, 1, sampl(ie))
+            call h5_finaliseWrite(coll_hdf5_allAbsorb)
+          else
+#endif
+            write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+#ifdef HDF5
+          end if
+#endif
         end if
-! +if hdf5
-        ! hdfpid  = ipart(j)+100*samplenumber
-        ! hdfturn = iturn
-        ! hdfs    = sampl(ie)-half*c_length
-        ! hdfx    = (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
-        ! hdfxp   = rcxp0(j)*c1e3+torbxp(ie)
-        ! hdfy    = (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
-        ! hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
-        ! hdfdee  = (ejv(j)-myenom)/myenom
-        ! hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-        ! CALL APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
-! +ei
-! +if .not.hdf5
-        write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
-       &ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
-       &(rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
-       &rcxp0(j)*c1e3+torbxp(ie),                                          &
-       &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
-       &rcyp0(j)*c1e3+torbyp(ie),                                          &
-       &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-! +ei
-
+        
       !Here we've found a newly hit particle
       else if(part_abs_pos (j).eq.0 .and.  part_abs_turn(j).eq.0) then
         xkick = rcxp(j) - rcxp0(j)
@@ -3055,42 +3181,44 @@ subroutine collimate_end_collimator()
             yj  = (xv(2,j)-torby(ie))  /c1e3
             ypj = (yv(2,j)-torbyp(ie)) /c1e3
 
-! +if hdf5
-!       We write trajectories before and after element in this case.
-            ! hdfpid  = ipart(j)+100*samplenumber
-            ! hdfturn = iturn
-            ! hdfs    = sampl(ie)-half*c_length
-            ! hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
-            ! hdfxp   = rcxp0(j)*c1e3+torbxp(ie)
-            ! hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
-            ! hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
-            ! hdfdee  = (ejv(j)-myenom)/myenom
-            ! hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-            ! call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+#ifdef HDF5
+            if(h5_writeTracks2) then
+              ! We write trajectories before and after element in this case.
+              hdfpid  = ipart(j)+100*samplenumber
+              hdfturn = iturn
+              hdfs    = sampl(ie)-half*c_length
+              hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
+              hdfxp   = rcxp0(j)*c1e3+torbxp(ie)
+              hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
+              hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
+              hdfdee  = (ejv(j)-myenom)/myenom
+              hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+              call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 
-            ! hdfs  = sampl(ie)+half*c_length
-            ! hdfx  = xv(1,j) + half*c_length*yv(1,j)
-            ! hdfxp = yv(1,j)
-            ! hdfy  = xv(2,j) + half*c_length*yv(2,j)
-            ! hdfyp = yv(2,j)
-            ! call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
-
-! +ei
-! +if .not.hdf5
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
-           &ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
-           &(rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
-           &rcxp0(j)*c1e3+torbxp(ie),                                          &
-           &(rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
-           &rcyp0(j)*c1e3+torbyp(ie),                                          &
-           &(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)')      &
-           &ipart(j)+100*samplenumber,iturn,sampl(ie)+half*c_length,           &
-           &xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
-           &xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
-           &secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-! +ei
+              hdfs  = sampl(ie)+half*c_length
+              hdfx  = xv(1,j) + half*c_length*yv(1,j)
+              hdfxp = yv(1,j)
+              hdfy  = xv(2,j) + half*c_length*yv(2,j)
+              hdfyp = yv(2,j)
+              call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+            else
+#endif
+              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
+                ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
+                (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
+                rcxp0(j)*c1e3+torbxp(ie),                                          &
+                (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
+                rcyp0(j)*c1e3+torbyp(ie),                                          &
+                (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+              
+              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
+                ipart(j)+100*samplenumber,iturn,sampl(ie)+half*c_length,           &
+                xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
+                xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
+                secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+#ifdef HDF5
+            end if
+#endif
           end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and.
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
       end if !if(dowritetracks) then
@@ -3233,24 +3361,27 @@ end subroutine collimate_end_collimator
 !! has been tracked by thin6d
 !<
 subroutine collimate_end_sample(j)
-
+  
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
   use crcoall
-
-+if root
+#ifdef ROOT
   use root_output
-+ei
-
+#endif
+  
   implicit none
-
-
+  
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
+  
+#ifdef HDF5
+  type(h5_dataField), allocatable :: fldHdf(:)
+  integer fmtHdf, setHdf
+#endif
+  
 +ca commont1
 +ca commondl
 +ca commonxz
@@ -3258,8 +3389,8 @@ subroutine collimate_end_sample(j)
 +ca commonm1
 +ca commontr
 +ca beamdim
-      dimension nbeaux(nbb)
-
+  dimension nbeaux(nbb)
+  
 +if collimat
 +ca dbtrthin
 +ca database
@@ -3269,21 +3400,24 @@ subroutine collimate_end_sample(j)
 +ca info
 +ca dbcolcom
 +ei
-
+  
 +if bnlelens
 +ca rhicelens
 +ei
-
+  
 !++  Save particle offsets to a file
-  close(beta_beat_unit)
+  ! close(beta_beat_unit)
   close(survival_unit)
-
+  
   if(dowrite_impact) close(impact_unit)
-
+  
   if(dowritetracks) then
     if(cern) close(tracks2_unit)
+#ifdef HDF5
+    if(cern .and. h5_writeTracks2) call h5tr2_finalise
+#endif
   end if
-
+  
 !------------------------------------------------------------------------
 !++  Write the number of absorbed particles
   write(outlun,*) 'INFO>  Number of impacts             : ', n_tot_absorbed+nsurvive_end
@@ -3291,7 +3425,7 @@ subroutine collimate_end_sample(j)
   write(outlun,*) 'INFO>  Number of surviving particles : ', nsurvive_end
   write(outlun,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
   write(outlun,*)
-
+  
   if(n_tot_absorbed.ne.0) then                                       !hr08
     write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
     write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
@@ -3302,14 +3436,14 @@ subroutine collimate_end_sample(j)
   else
     write(lout,*) 'NO PARTICLE ABSORBED'
   endif
-
+  
   write(lout,*)
   write(lout,*) 'INFO>  Number of impacts             : ', n_tot_absorbed+nsurvive_end
   write(lout,*) 'INFO>  Number of impacts at selected : ', num_selhit
   write(lout,*) 'INFO>  Number of surviving particles : ', nsurvive_end
   write(lout,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
   write(lout,*)
-
+  
   if(n_tot_absorbed.ne.0) then                                       !hr08
     write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/dble(n_tot_absorbed))/c1m4            !hr08
     write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/dble(n_tot_absorbed))/c1m4            !hr08
@@ -3318,113 +3452,186 @@ subroutine collimate_end_sample(j)
   else
      write(lout,*) 'NO PARTICLE ABSORBED'
   endif
-
-!------------------------------------------------------------------------
-!++  Write efficiency file
-!
-!  inquire( unit=1991, opened=lopen)
-!  if(lopen) then
-!    write(lout,*) "ERROR in efficiency.dat: FILE 1991 already taken"
-!    call prror(-1)
-!  endif
-
-  call funit_requestUnit('efficiency.dat', efficiency_unit)
-  open(unit=efficiency_unit, file='efficiency.dat') !was 1991
-
-  if(n_tot_absorbed.ne.0) then
-    write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r'
-
-    do k=1,numeff
-      write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/dble(n_tot_absorbed),neffy(k)/dble(n_tot_absorbed), &
-  &    neff(k)/dble(n_tot_absorbed), neffx(k), neffy(k), neff(k), n_tot_absorbed
-    end do
+  
+! Write efficiency file
+#ifdef HDF5
+  if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
+    allocate(fldHdf(8))
+    fldHdf(1) = h5_dataField(name="RAD_SIGMA",  type=h5_typeReal)
+    fldHdf(2) = h5_dataField(name="NEFFX/NTOT", type=h5_typeReal)
+    fldHdf(3) = h5_dataField(name="NEFFY/NTOT", type=h5_typeReal)
+    fldHdf(4) = h5_dataField(name="NEFF/NTOT",  type=h5_typeReal)
+    fldHdf(5) = h5_dataField(name="NEFFX",      type=h5_typeReal)
+    fldHdf(6) = h5_dataField(name="NEFFY",      type=h5_typeReal)
+    fldHdf(7) = h5_dataField(name="NEFF",       type=h5_typeReal)
+    fldHdf(8) = h5_dataField(name="NTOT",       type=h5_typeInt)
+    call h5_createFormat("collEfficiency", fldHdf, fmtHdf)
+    call h5_createDataSet("efficiency", h5_collID, fmtHdf, setHdf, numeff)
+    call h5_prepareWrite(setHdf, numeff)
+    call h5_writeData(setHdf, 1, numeff, rsig(1:numeff))
+    call h5_writeData(setHdf, 2, numeff, neffx(1:numeff)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 3, numeff, neffy(1:numeff)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 4, numeff, neff(1:numeff)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 5, numeff, neffx(1:numeff))
+    call h5_writeData(setHdf, 6, numeff, neffy(1:numeff))
+    call h5_writeData(setHdf, 7, numeff, neff(1:numeff))
+    call h5_writeData(setHdf, 8, numeff, n_tot_absorbed)
+    call h5_finaliseWrite(setHdf)
+    deallocate(fldHdf)
   else
-    write(lout,*) 'NO PARTICLE ABSORBED'
-  end if
-
-  close(efficiency_unit)
-
-!!------------------------------------------------------------------------
-!++  Write efficiency vs dp/p file
-
-!  inquire( unit=1992, opened=lopen )
-!  if(lopen) then
-!    write(lout,*) "ERROR in efficiency_dpop.dat: FILE 1992 already taken"
-!    call prror(-1)
-!  end if
-
-  call funit_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
-  open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
-
-  if(n_tot_absorbed.ne.0) then
-    write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
-
-    do k=1,numeffdpop
-      write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/dble(n_tot_absorbed), neffdpop(k), &
-           n_tot_absorbed, npartdpop(k)
-    end do
-  else
-    write(lout,*) 'NO PARTICLE ABSORBED'
-  end if
-
-  close(efficiency_dpop_unit)
-
-!!------------------------------------------------------------------------
-!++  Write 2D efficiency file (eff vs. A_r and dp/p)
-!  inquire( unit=1993, opened=lopen )
-!  if(lopen) then
-!    write(lout,*) "ERROR in efficiency_2d.dat:FILE 1993 already taken"
-!    call prror(-1)
-!  end if
-
-  call funit_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
-  open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
-  if(n_tot_absorbed.ne.0) then
-    write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
-    do i=1,numeff
-      do k=1,numeffdpop
-        write(efficiency_2d_unit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
-              neff2d(i,k), n_tot_absorbed
+#endif
+    call funit_requestUnit('efficiency.dat', efficiency_unit)
+    open(unit=efficiency_unit, file='efficiency.dat') !was 1991
+    if(n_tot_absorbed /= 0) then
+      write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
+      do k=1,numeff
+        write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/dble(n_tot_absorbed),neffy(k)/dble(n_tot_absorbed), &
+          neff(k)/dble(n_tot_absorbed), neffx(k), neffy(k), neff(k), n_tot_absorbed
       end do
-    end do
-  else
-    write(lout,*) 'NO PARTICLE ABSORBED'
-  end if
-
-  close(efficiency_2d_unit)
-
-!!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!++  Write collimation summary file
-!
-  call funit_requestUnit('coll_summary.dat', coll_summary_unit)
-  open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
-  write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
-
-  do icoll = 1, db_ncoll
-    if(db_length(icoll).gt.zero.and.coll_found(icoll).eqv..TRUE.) then
-      write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, db_name1(icoll),cn_impact(icoll), &
-            cn_absorbed(icoll), caverage(icoll), csigma(icoll),db_length(icoll)
+    else
+      write(lout,*) 'NO PARTICLE ABSORBED'
     end if
-  end do
-
-  close(coll_summary_unit)
-
-+if root
+    close(efficiency_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+! Write efficiency vs dp/p file
+#ifdef HDF5
+  if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
+    allocate(fldHdf(5))
+    fldHdf(1) = h5_dataField(name="DP/P",        type=h5_typeReal)
+    fldHdf(2) = h5_dataField(name="NDPOP/TNABS", type=h5_typeReal)
+    fldHdf(3) = h5_dataField(name="NDPOP",       type=h5_typeReal)
+    fldHdf(4) = h5_dataField(name="TNABS",       type=h5_typeInt)
+    fldHdf(5) = h5_dataField(name="NPART",       type=h5_typeInt)
+    call h5_createFormat("collEfficiencyDPOP", fldHdf, fmtHdf)
+    call h5_createDataSet("efficiency_dpop", h5_collID, fmtHdf, setHdf, numeffdpop)
+    call h5_prepareWrite(setHdf, numeffdpop)
+    call h5_writeData(setHdf, 1, numeffdpop, dpopbins(1:numeffdpop))
+    call h5_writeData(setHdf, 2, numeffdpop, neffdpop(1:numeffdpop)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 3, numeffdpop, neffdpop(1:numeffdpop))
+    call h5_writeData(setHdf, 4, numeffdpop, n_tot_absorbed)
+    call h5_writeData(setHdf, 5, numeffdpop, npartdpop(1:numeffdpop))
+    call h5_finaliseWrite(setHdf)
+    deallocate(fldHdf)
+  else
+#endif
+    call funit_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
+    open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
+    if(n_tot_absorbed /= 0) then
+      write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
+      do k=1,numeffdpop
+        write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/dble(n_tot_absorbed), neffdpop(k), &
+            n_tot_absorbed, npartdpop(k)
+      end do
+    else
+      write(lout,*) 'NO PARTICLE ABSORBED'
+    end if
+    close(efficiency_dpop_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+! Write 2D efficiency file (eff vs. A_r and dp/p)
+#ifdef HDF5
+  if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
+    allocate(fldHdf(5))
+    fldHdf(1) = h5_dataField(name="RAD_SIGMA", type=h5_typeReal)
+    fldHdf(2) = h5_dataField(name="DP/P",      type=h5_typeReal)
+    fldHdf(3) = h5_dataField(name="N/TNABS",   type=h5_typeReal)
+    fldHdf(4) = h5_dataField(name="N",         type=h5_typeReal)
+    fldHdf(5) = h5_dataField(name="TNABS",     type=h5_typeInt)
+    call h5_createFormat("collEfficiency2D", fldHdf, fmtHdf)
+    call h5_createDataSet("efficiency_2d", h5_collID, fmtHdf, setHdf, numeffdpop)
+    do i=1,numeff
+      call h5_prepareWrite(setHdf, numeffdpop)
+      call h5_writeData(setHdf, 1, numeffdpop, rsig(i))
+      call h5_writeData(setHdf, 2, numeffdpop, dpopbins(1:numeffdpop))
+      call h5_writeData(setHdf, 3, numeffdpop, neff2d(i,1:numeffdpop)/real(n_tot_absorbed,fPrec))
+      call h5_writeData(setHdf, 4, numeffdpop, neff2d(i,1:numeffdpop))
+      call h5_writeData(setHdf, 5, numeffdpop, n_tot_absorbed)
+      call h5_finaliseWrite(setHdf)
+    end do
+    deallocate(fldHdf)
+  else
+#endif
+    call funit_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
+    open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
+    if(n_tot_absorbed /= 0) then
+      write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
+      do i=1,numeff
+        do k=1,numeffdpop
+          write(efficiency_2d_unit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
+                neff2d(i,k), n_tot_absorbed
+        end do
+      end do
+    else
+      write(lout,*) 'NO PARTICLE ABSORBED'
+    end if
+    close(efficiency_2d_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+! Write collimation summary file
+#ifdef HDF5
+  if(h5_useForCOLL) then
+    allocate(fldHdf(7))
+    fldHdf(1) = h5_dataField(name="ICOLL",    type=h5_typeInt)
+    fldHdf(2) = h5_dataField(name="COLLNAME", type=h5_typeChar, size=max_name_len)
+    fldHdf(3) = h5_dataField(name="NIMP",     type=h5_typeInt)
+    fldHdf(4) = h5_dataField(name="NABS",     type=h5_typeInt)
+    fldHdf(5) = h5_dataField(name="IMP_AV",   type=h5_typeReal)
+    fldHdf(6) = h5_dataField(name="IMP_SIG",  type=h5_typeReal)
+    fldHdf(7) = h5_dataField(name="LENGTH",   type=h5_typeReal)
+    call h5_createFormat("collSummary", fldHdf, fmtHdf)
+    call h5_createDataSet("coll_summary", h5_collID, fmtHdf, setHdf)
+    ! There is a lot of overhead in writing line by line, but this is a small log file anyway.
+    do i=1, db_ncoll
+      if(db_length(i) > zero .and. coll_found(i)) then
+        call h5_prepareWrite(setHdf, 1)
+        call h5_writeData(setHdf, 1, 1, i)
+        call h5_writeData(setHdf, 2, 1, db_name1(i))
+        call h5_writeData(setHdf, 3, 1, cn_impact(i))
+        call h5_writeData(setHdf, 4, 1, cn_absorbed(i))
+        call h5_writeData(setHdf, 5, 1, caverage(i))
+        call h5_writeData(setHdf, 6, 1, csigma(i))
+        call h5_writeData(setHdf, 7, 1, db_length(i))
+        call h5_finaliseWrite(setHdf)
+      end if
+    end do
+    deallocate(fldHdf)
+  else
+#endif
+    call funit_requestUnit('coll_summary.dat', coll_summary_unit)
+    open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
+    write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
+    do icoll = 1, db_ncoll
+      if(db_length(icoll) > zero .and. coll_found(icoll)) then
+        write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, db_name1(icoll), cn_impact(icoll), &
+          cn_absorbed(icoll), caverage(icoll), csigma(icoll),db_length(icoll)
+      end if
+    end do
+    close(coll_summary_unit)
+#ifdef HDF5
+  end if
+#endif
+  
+#ifdef ROOT
   if(root_flag .and. root_Collimation.eq.1) then
     do icoll = 1, db_ncoll
       if(db_length(icoll).gt.zero) then
         call CollimatorLossRootWrite(icoll, db_name1(icoll), len(db_name1(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
-&       caverage(icoll), csigma(icoll), db_length(icoll))
+          caverage(icoll), csigma(icoll), db_length(icoll))
       end if
     end do
   end if
-+ei
-
-+if root
-! flush the root file
+  
+  ! flush the root file
 !  call SixTrackRootWrite()
-+ei
+#endif
+  
 end subroutine collimate_end_sample
 
 !>
@@ -3474,6 +3681,9 @@ subroutine collimate_exit()
 
   if(dowritetracks) then
     if(.not. cern) close(tracks2_unit)
+#ifdef HDF5
+    if(.not. cern .and. h5_writeTracks2) call h5tr2_finalise
+#endif
     if(name_sel(1:3).eq.'COL') close(RHIClosses_unit)
   endif
 
@@ -3581,7 +3791,7 @@ subroutine collimate_exit()
   write(orbitchecking_unit,*) '# 1=s 2=torbitx 3=torbity'
 
   do j=1,iu
-    write(orbitchecking_unit,'(i4, 3(1x,e15.7))') j, sampl(j),torbx(j), torby(j)
+    write(orbitchecking_unit,'(i5, 3(1x,e15.7))') j, sampl(j),torbx(j), torby(j)
   end do
 
   close(orbitchecking_unit)
@@ -3779,12 +3989,10 @@ subroutine collimate_end_element
 +ca rhicelens
 +ei
 
-! +if hdf5
-!   YIL: In order to make sure we are sending the correct
-!        data types to appendreading..
-!   INTEGER hdfturn,hdfpid,hdftyp
-!   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
-! +ei
+#ifdef HDF5
+  integer hdfturn,hdfpid,hdftyp
+  real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+#endif
 
   if(firstrun) then
     if(rselect.gt.0 .and. rselect.lt.65) then
@@ -3874,22 +4082,25 @@ subroutine collimate_end_element
           xpj = (yv(1,j)-torbxp(ie))/c1e3
           yj  = (xv(2,j)-torby(ie)) /c1e3
           ypj = (yv(2,j)-torbyp(ie))/c1e3
-! +if hdf5
-!           hdfpid=ipart(j)+100*samplenumber
-!           hdfturn=iturn
-!           hdfs=sampl(ie)
-!           hdfx=xv(1,j)
-!           hdfxp=yv(1,j)
-!           hdfy=xv(2,j)
-!           hdfyp=yv(2,j)
-!           hdfdee=(ejv(j)-myenom)/myenom
-!           hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-!           call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
-! +ei
-! +if .not.hdf5
-          write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber, iturn, sampl(ie), &
- &              xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-! +ei
+#ifdef HDF5
+          if(h5_writeTracks2) then
+            hdfpid=ipart(j)+100*samplenumber
+            hdfturn=iturn
+            hdfs=sampl(ie)
+            hdfx=xv(1,j)
+            hdfxp=yv(1,j)
+            hdfy=xv(2,j)
+            hdfyp=yv(2,j)
+            hdfdee=(ejv(j)-myenom)/myenom
+            hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+            call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+          else
+#endif
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber, iturn, sampl(ie), &
+              xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+#ifdef HDF5
+          end if
+#endif
         end if
       end if
     end do
@@ -3942,11 +4153,14 @@ subroutine collimate_end_turn
 +ca rhicelens
 +ei
 
-! +if hdf5
-!   YIL: In order to make sure we are sending the correct data types to appendreading..
-!   INTEGER hdfturn,hdfpid,hdftyp
-!   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
-! +ei
+#ifdef HDF5
+  ! For tracks2
+  integer hdfturn,hdfpid,hdftyp
+  real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
+  ! For other output
+  type(h5_dataField), allocatable :: fldHdf(:)
+  integer fmtHdf, setHdf
+#endif
   integer n
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
@@ -3998,7 +4212,18 @@ subroutine collimate_end_turn
       end if
     end do
 
-    write(survival_unit,'(2i7)') iturn, nsurvive
+#ifdef HDF5
+    if(h5_useForCOLL) then
+      call h5_prepareWrite(coll_hdf5_survival, 1)
+      call h5_writeData(coll_hdf5_survival, 1, 1, iturn)
+      call h5_writeData(coll_hdf5_survival, 2, 1, nsurvive)
+      call h5_finaliseWrite(coll_hdf5_survival)
+    else
+#endif
+      write(survival_unit,'(2i7)') iturn, nsurvive
+#ifdef HDF5
+    end if
+#endif
 +if root
     if(root_flag .and. root_Collimation.eq.1) then
       call SurvivalRootWrite(iturn, nsurvive)
@@ -4191,19 +4416,41 @@ subroutine collimate_end_turn
     napx = imov
   endif
 
-!------------------------------------------------------------------------
-!++  Write final distribution
-  if(dowrite_dist.and.(ie.eq.iu).and.(iturn.eq.numl)) then
-    call funit_requestUnit('distn.dat', distn_unit)
-    open(unit=distn_unit, file='distn.dat') !was 9998
-    write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
-
-    do j = 1, napx
-      write(distn_unit,'(6(1X,E15.7))') (xgrd(j)-torbx(1))/c1e3, (xpgrd(j)-torbxp(1))/c1e3, (ygrd(j)-torby(1))/c1e3, &
-&    (ypgrd(j)-torbyp(1))/c1e3, sigmvgrd(j), ejfvgrd(j)
-    end do
-
-    close(distn_unit)
+  ! Write final distribution
+  if(dowrite_dist .and. ie == iu .and. iturn == numl) then
+#ifdef HDF5
+    if(h5_useForCOLL) then
+      allocate(fldHdf(6))
+      fldHdf(1) = h5_dataField(name="X",  type=h5_typeReal)
+      fldHdf(2) = h5_dataField(name="XP", type=h5_typeReal)
+      fldHdf(3) = h5_dataField(name="Y",  type=h5_typeReal)
+      fldHdf(4) = h5_dataField(name="YP", type=h5_typeReal)
+      fldHdf(5) = h5_dataField(name="Z",  type=h5_typeReal)
+      fldHdf(6) = h5_dataField(name="E",  type=h5_typeReal)
+      call h5_createFormat("collDistN", fldHdf, fmtHdf)
+      call h5_createDataSet("distn", h5_collID, fmtHdf, setHdf, napx)
+      call h5_prepareWrite(setHdf, napx)
+      call h5_writeData(setHdf, 1, napx, (xgrd(1:napx) -torbx(1)) /c1e3)
+      call h5_writeData(setHdf, 2, napx, (xpgrd(1:napx)-torbxp(1))/c1e3)
+      call h5_writeData(setHdf, 3, napx, (ygrd(1:napx) -torby(1)) /c1e3)
+      call h5_writeData(setHdf, 4, napx, (ypgrd(1:napx)-torbyp(1))/c1e3)
+      call h5_writeData(setHdf, 5, napx, sigmvgrd(1:napx))
+      call h5_writeData(setHdf, 6, napx, ejfvgrd(1:napx))
+      call h5_finaliseWrite(setHdf)
+      deallocate(fldHdf)
+    else
+#endif
+      call funit_requestUnit('distn.dat', distn_unit)
+      open(unit=distn_unit, file='distn.dat') !was 9998
+      write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
+      do j = 1, napx
+        write(distn_unit,'(6(1X,E23.15))') (xgrd(j)-torbx(1))/c1e3, (xpgrd(j)-torbxp(1))/c1e3, (ygrd(j)-torby(1))/c1e3, &
+          (ypgrd(j)-torbyp(1))/c1e3, sigmvgrd(j), ejfvgrd(j)
+      end do
+      close(distn_unit)
+#ifdef HDF5
+    end if
+#endif
   end if
 
 !GRD NOW ONE HAS TO COPY BACK THE NEW DISTRIBUTION TO ITS "ORIGINAL NAME"
@@ -4304,27 +4551,29 @@ subroutine collimate_end_turn
             ((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
             then
            
-           xj     = (xv(1,j)-torbx(ie))/c1e3
-           xpj    = (yv(1,j)-torbxp(ie))/c1e3
-           yj     = (xv(2,j)-torby(ie))/c1e3
-           ypj    = (yv(2,j)-torbyp(ie))/c1e3
-! +if hdf5
-!            hdfpid=ipart(j)+100*samplenumber
-!            hdfturn=iturn
-!            hdfs=sampl(ie)
-!            hdfx=xv(1,j)
-!            hdfxp=yv(1,j)
-!            hdfy=xv(2,j)
-!            hdfyp=yv(2,j)
-!            hdfdee=(ejv(j)-myenom)/myenom
-!            hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-!            call APPENDREADING(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
-! +ei
-
-! +if .not.hdf5
-           write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber,iturn,sampl(ie), &
-&          xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-! +ei
+          xj     = (xv(1,j)-torbx(ie))/c1e3
+          xpj    = (yv(1,j)-torbxp(ie))/c1e3
+          yj     = (xv(2,j)-torby(ie))/c1e3
+          ypj    = (yv(2,j)-torbyp(ie))/c1e3
+#ifdef HDF5
+          if(h5_writeTracks2) then
+            hdfpid=ipart(j)+100*samplenumber
+            hdfturn=iturn
+            hdfs=sampl(ie)
+            hdfx=xv(1,j)
+            hdfxp=yv(1,j)
+            hdfy=xv(2,j)
+            hdfyp=yv(2,j)
+            hdfdee=(ejv(j)-myenom)/myenom
+            hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+            call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+          else
+#endif
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber,iturn,sampl(ie), &
+              xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+#ifdef HDF5
+          end if
+#endif
         end if !if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4.or.scatterhit(j).eq.8
       end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
     end do ! do j = 1, napx
@@ -4771,12 +5020,35 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
       if(dowrite_impact) then
         if(flagsec(j).eq.0) then
-         write(FirstImpacts_unit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')      &
-&               name(j),iturn,icoll,nabs,                               &
-&               s_impact + (real(j_slices,fPrec)-one) * c_length,       &!hr09
-&               s+sp + (real(j_slices,fPrec)-one) * c_length,           &!hr09
-&               xinn,xpinn,yinn,ypinn,                                  &
-&               x,xp,z,zp
+#ifdef HDF5
+          if(h5_useForCOLL) then
+            call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
+            call h5_writeData(coll_hdf5_fstImpacts, 1,  1, name(j))
+            call h5_writeData(coll_hdf5_fstImpacts, 2,  1, iturn)
+            call h5_writeData(coll_hdf5_fstImpacts, 3,  1, icoll)
+            call h5_writeData(coll_hdf5_fstImpacts, 4,  1, nabs)
+            call h5_writeData(coll_hdf5_fstImpacts, 5,  1, s_impact + (real(j_slices,fPrec)-one) * c_length)
+            call h5_writeData(coll_hdf5_fstImpacts, 6,  1, s+sp + (real(j_slices,fPrec)-one) * c_length)
+            call h5_writeData(coll_hdf5_fstImpacts, 7,  1, xinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 8,  1, xpinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 9,  1, yinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 10, 1, ypinn)
+            call h5_writeData(coll_hdf5_fstImpacts, 11, 1, x)
+            call h5_writeData(coll_hdf5_fstImpacts, 12, 1, xp)
+            call h5_writeData(coll_hdf5_fstImpacts, 13, 1, z)
+            call h5_writeData(coll_hdf5_fstImpacts, 14, 1, zp)
+            call h5_finaliseWrite(coll_hdf5_fstImpacts)
+          else
+#endif
+            write(FirstImpacts_unit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))') &
+                name(j),iturn,icoll,nabs,                               &
+                s_impact + (real(j_slices,fPrec)-one) * c_length,       &
+                s+sp + (real(j_slices,fPrec)-one) * c_length,           &
+                xinn,xpinn,yinn,ypinn,                                  &
+                x,xp,z,zp
+#ifdef HDF5
+          end if
+#endif
         end if
       end if
 !!     SR, 18-08-2005: add also the initial coordinates of the
@@ -5727,7 +5999,7 @@ function gettran(inter,xmat,p)
 
   integer inter,length,xmat
   real(kind=fPrec) p,gettran,t,xm2,bsd
-  real truth,xran(1)
+  real(kind=fPrec) truth,xran(1)
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 +if .not.merlinscatter
@@ -5814,7 +6086,7 @@ function ruth(t)
 
   implicit none
 
-  real ruth,t
+  real(kind=fPrec) ruth,t
   real(kind=fPrec) cnorm,cnform
   parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
 
@@ -5838,7 +6110,7 @@ subroutine scatin(plab)
 
   integer ma,i
   real(kind=fPrec) plab
-  real tlow,thigh
+  real(kind=fPrec) tlow,thigh
 
   ecmsq = (two * pmap) * plab                                   !hr09
 +if .not.merlinscatter
@@ -5951,9 +6223,9 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 +ca flukavars
   integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
   logical dowrite_impact
-  real(kind=fPrec)  m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
+  real(kind=fPrec) m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
   real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
-  real get_dpodx
+  real(kind=fPrec) get_dpodx
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
 
@@ -5972,7 +6244,15 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+#ifdef HDF5
+      endif
+#endif
     end if
     return
   else if(mat.eq.nmat-1) then
@@ -5983,7 +6263,15 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+#ifdef HDF5
+      endif
+#endif
     end if
 
     return
@@ -6023,9 +6311,18 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     dpop_interac=(p-p0_interac)/p0_interac
     if(dowrite_impact) then
-! write coll_scatter.dat for complete scattering histories
+
+      ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp, &
             (p-pBef)/pBef,xp_interac-xpBef,zp_interac-zpBef
+#ifdef HDF5
+      endif
+#endif
     end if
     return
   end if
@@ -6052,9 +6349,18 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     dpop_interac=(p-p0_interac)/p0_interac
 
     if(dowrite_impact) then
-! write coll_scatter.dat for complete scattering histories
+
+      ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+      else
+#endif
       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp, &
             (p-pBef)/pBef,xp_interac-xpBef,zp_interac-zpBef
+#ifdef HDF5
+      endif
+#endif
     end if
 
     return
@@ -6090,8 +6396,16 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
     dpop_interac=(p-p0_interac)/p0_interac
 
-! write coll_scatter.dat for complete scattering histories
-    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-1.d0,0.d0,0.d0
+    ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+    if(h5_useForCOLL) then
+      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
+    else
+#endif
+    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
+#ifdef HDF5
+    endif
+#endif
     return
   end if
 
@@ -6134,10 +6448,18 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   end if
 
   if(dowrite_impact) then
-! write coll_scatter.dat for complete scattering histories.
-! Includes changes in angle from both
-     write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp, &
+    ! write coll_scatter.dat for complete scattering histories.
+    ! Includes changes in angle from both
+#ifdef HDF5
+    if(h5_useForCOLL) then
+      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+    else
+#endif
+      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp, &
            (p-pBef)/pBef,xp_interac-xpBef,zp_interac-zpBef
+#ifdef HDF5
+    endif
+#endif
   end if
 
 !++  Calculate the remaining interaction length and close the iteration
@@ -6147,6 +6469,24 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
 end subroutine jaw
 
+#ifdef HDF5
+subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
+  
+  integer,          intent(in) :: icoll,iturn,ipart,nabs
+  real(kind=fPrec), intent(in) :: dp,dx,dy
+  
+  call h5_prepareWrite(coll_hdf5_collScatter, 1)
+  call h5_writeData(coll_hdf5_collScatter, 1, 1, ipart)
+  call h5_writeData(coll_hdf5_collScatter, 2, 1, iturn)
+  call h5_writeData(coll_hdf5_collScatter, 3, 1, icoll)
+  call h5_writeData(coll_hdf5_collScatter, 4, 1, nabs)
+  call h5_writeData(coll_hdf5_collScatter, 5, 1, dp)
+  call h5_writeData(coll_hdf5_collScatter, 6, 1, dx)
+  call h5_writeData(coll_hdf5_collScatter, 7, 1, dy)
+  call h5_finaliseWrite(coll_hdf5_collScatter)
+  
+end subroutine coll_hdf5_writeCollScatter
+#endif
 !>
 !! jaw0(s,nabs)
 !! ???
@@ -6240,14 +6580,21 @@ subroutine jaw0(s,nabs)
 !
       inter=ichoix(mat)
       if(inter.eq.1) then
-       nabs=1
-       s=(zlm-rlen)+zlm1                                                 !hr09
-       p=p-dpodx(mat)*s
-       dpop_interac=one-p0_interac/p
-! write coll_scatter.dat for complete scattering histories
-       write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))')               &
-     & icoll,iturn,ipart,nabs,-1.d0,0.d0,0.d0
-       return
+        nabs=1
+        s=(zlm-rlen)+zlm1                                                 !hr09
+        p=p-dpodx(mat)*s
+        dpop_interac=one-p0_interac/p
+        ! write coll_scatter.dat for complete scattering histories
+#ifdef HDF5
+        if(h5_useForCOLL) then
+          call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,-one,zero,zero)
+        else
+#endif
+        write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs,-one,zero,zero
+#ifdef HDF5
+        end if
+#endif
+        return
       end if
 !
 !++  Now treat the other types of interaction, as determined by ICHOIX:
@@ -7524,7 +7871,7 @@ function rndm4()
   implicit none
 
   integer len, in
-  real rndm4, a
+  real(kind=fPrec) rndm4, a
   save IN,a
   parameter ( len =  30000 )
   dimension a(len)
@@ -7557,7 +7904,7 @@ function rndm5(irnd)
   implicit none
 
   integer len, inn, irnd
-  real rndm5,a
+  real(kind=fPrec) rndm5,a
   save
 
   parameter( len =  30000 )
@@ -7676,7 +8023,7 @@ subroutine ranlux(rvec,lenv)
      &inseed,mkount,kount,in24,nskip,lxdflt,jsdflt,jseed,lp,i,k,icons,  &
      &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout2,ins,lux,ilx,&
      &iouter
-      real rvec,seeds,twop12,twom12,twom24,carry,uni
+      real(kind=fPrec) rvec,seeds,twop12,twom12,twom24,carry,uni
       dimension rvec(lenv)
       dimension seeds(24), iseeds(24), isdext(25)
       parameter (maxlev=4, lxdflt=3)
@@ -7946,7 +8293,7 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       implicit none
       external func
       integer ifunc,ierr
-      real x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
+      real(kind=fPrec) x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
 +ca funint
       dimension xfcum(200)
       parameter (rteps=0.0002)
@@ -7960,7 +8307,7 @@ subroutine funlxp (func,xfcum,x2low,x2high)
         write(lout,'(A,2G15.5)') ' FUNLXP finds function range .LE.0',xlow,xhigh
         go to 900
       endif
-      call radapt(func,xlow,xhigh,1,rteps,0.,tftot ,uncert)
+      call radapt(func,xlow,xhigh,1,rteps,zero,tftot ,uncert)
 !      WRITE(6,1003) IFUNC,XLOW,XHIGH,TFTOT
  1003 format(' FUNLXP: integral of USER FUNCTION', i3,' from ',e12.5,' to ',e12.5,' is ',e14.6)
 !
@@ -7969,11 +8316,11 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       call funpct(func,ifunc,xlow,xhigh,xfcum,1,99,tftot,ierr)
       if (ierr .gt. 0)  go to 900
       x2 = xfcum(3)
-      call radapt(func,xlow,x2,1,rteps,0.,tftot1 ,uncert)
+      call radapt(func,xlow,x2,1,rteps,zero,tftot1 ,uncert)
       call funpct(func,ifunc,xlow,x2 ,xfcum,101,49,tftot1,ierr)
       if (ierr .gt. 0)  go to 900
       x3 = xfcum(98)
-      call radapt(func,x3,xhigh,1,rteps,0.,tftot2 ,uncert)
+      call radapt(func,x3,xhigh,1,rteps,zero,tftot2 ,uncert)
       call funpct(func,ifunc,x3,xhigh,xfcum,151,49,tftot2,ierr)
       if (ierr .gt. 0)  go to 900
 !      WRITE(6,1001) IFUNC,XLOW,XHIGH
@@ -7990,7 +8337,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
       implicit none
       external func
       integer ierr,nbins,nlo,ifunc,nz,ibin,maxz,iz,nitmax,ihome
-      real tftot,xhigh,xlow,func,xfcum,rteps,tpctil,tz,tzmax,x,f,tcum,  &
+      real(kind=fPrec) tftot,xhigh,xlow,func,xfcum,rteps,tpctil,tz,tzmax,x,f,tcum,  &
      &x1,f1,dxmax,fmin,fminz,xincr,tincr,xbest,dtbest,tpart,x2,precis,  &
      &refx,uncert,tpart2,dtpar2,dtabs,aberr
       dimension xfcum(*)
@@ -8052,7 +8399,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
         go to 580
         endif
       refx = abs(x)+precis
-      call radapt(func,x1,x2,1,rteps,0.,tpart2,uncert)
+      call radapt(func,x1,x2,1,rteps,zero,tpart2,uncert)
       dtpar2 = tpart2-tpctil
       dtabs = abs(dtpar2)
       if(abs(xincr)/refx .lt. precis) goto 545
@@ -8078,7 +8425,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
 !         END OF LOOP OVER BINS
       x1 = xfcum((nlo+nbins)-1)                                          !hr09
       x2 = xhigh
-      call radapt(func,x1,x2,1,rteps,0.,tpart ,uncert)
+      call radapt(func,x1,x2,1,rteps,zero,tpart ,uncert)
       aberr = abs(tpart-tpctil)/tftot
 !      WRITE(6,1001) IFUNC,XLOW,XHIGH
       if(aberr .gt. rteps)  write(lout,1002) aberr
@@ -8103,7 +8450,7 @@ subroutine funlux(array,xran,len)
       implicit none
 +ca funint
       integer len,ibuf,j,j1
-      real array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
+      real(kind=fPrec) array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
       dimension array(200)
       dimension xran(len)
 !  Bin width for main sequence, and its inverse
@@ -8158,21 +8505,21 @@ subroutine funlux(array,xran,len)
 end subroutine funlux
 
 subroutine funlz(func,x2low,x2high,xlow,xhigh)
-!         FIND RANGE WHERE FUNC IS NON-ZERO.
-!         WRITTEN 1980, F. JAMES
-!         MODIFIED, NOV. 1985, TO FIX BUG AND GENERALIZE
-!         TO FIND SIMPLY-CONNECTED NON-ZERO REGION (XLOW,XHIGH)
-!         ANYWHERE WITHIN THE GIVEN REGION (X2LOW,H2HIGH).
-!            WHERE 'ANYWHERE' MEANS EITHER AT THE LOWER OR UPPER
-!            EDGE OF THE GIVEN REGION, OR, IF IN THE MIDDLE,
-!            COVERING AT LEAST 1% OF THE GIVEN REGION.
-!         OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
-!         IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
+! FIND RANGE WHERE FUNC IS NON-ZERO.
+! WRITTEN 1980, F. JAMES
+! MODIFIED, NOV. 1985, TO FIX BUG AND GENERALIZE
+! TO FIND SIMPLY-CONNECTED NON-ZERO REGION (XLOW,XHIGH)
+! ANYWHERE WITHIN THE GIVEN REGION (X2LOW,H2HIGH).
+!    WHERE 'ANYWHERE' MEANS EITHER AT THE LOWER OR UPPER
+!    EDGE OF THE GIVEN REGION, OR, IF IN THE MIDDLE,
+!    COVERING AT LEAST 1% OF THE GIVEN REGION.
+! OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
+! IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
       use crcoall
       implicit none
       external func
       integer logn,nslice,i,k
-      real xhigh,xlow,x2high,x2low,func,xmid,xh,xl,xnew
+      real(kind=fPrec) xhigh,xlow,x2high,x2low,func,xmid,xh,xl,xnew
       xlow = x2low
       xhigh = x2high
 !         FIND OUT IF FUNCTION IS ZERO AT ONE END OR BOTH
@@ -8233,25 +8580,24 @@ end subroutine funlz
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
 
-!     RES = Estimated Integral of F from A to B,
-!     ERR = Estimated absolute error on RES.
-!     NSEG  specifies how the adaptation is to be done:
-!        =0   means use previous binning,
-!        =1   means fully automatic, adapt until tolerance attained.
-!        =n>1 means first split interval into n equal segments,
-!             then adapt as necessary to attain tolerance.
-!     The specified tolerances are:
-!            relative: RELTOL ;  absolute: ABSTOL.
-!        It stop s when one OR the other is satisfied, or number of
-!        segments exceeds NDIM.  Either TOLA or TOLR (but not both!)
-!        can be set to zero, in which case only the other is used.
+! RES = Estimated Integral of F from A to B,
+! ERR = Estimated absolute error on RES.
+! NSEG  specifies how the adaptation is to be done:
+!    =0   means use previous binning,
+!    =1   means fully automatic, adapt until tolerance attained.
+!    =n>1 means first split interval into n equal segments,
+!         then adapt as necessary to attain tolerance.
+! The specified tolerances are:
+!        relative: RELTOL ;  absolute: ABSTOL.
+!    It stop s when one OR the other is satisfied, or number of
+!    segments exceeds NDIM.  Either TOLA or TOLR (but not both!)
+!    can be set to zero, in which case only the other is used.
 
       implicit none
 
       external f
       integer nseg,ndim,nter,nsegd,i,iter,ibig
-      real err,res,abstol,reltol,b,a,xlo,xhi,tval,ters,te,root,xhib,    &
-     &bin,xlob,bige,hf,xnew,r1,f
+      real(kind=fPrec) err,res,abstol,reltol,b,a,xlo,xhi,tval,ters,te,root,xhib,bin,xlob,bige,hf,xnew,r1,f
       real(kind=fPrec) tvals,terss
 
       parameter (ndim=100)
@@ -8266,20 +8612,20 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
         nsegd=1
         go to 2
        endif
-       tvals=0d0
-       terss=0d0
+       tvals=zero
+       terss=zero
        do 1 i = 1,nter
        call rgs56p(f,xlo(i),xhi(i),tval(i),te)
        ters(i)=te**2
-       tvals=tvals+dble(tval(i))                                         !hr09
-       terss=terss+dble(ters(i))
+       tvals=tvals+tval(i)                                         !hr09
+       terss=terss+ters(i)
     1  continue
-       root= real(sqrt(2.d0*terss))                                      !hr09
+       root= sqrt(two*terss)                                      !hr09
        go to 9
       endif
       nsegd=min(nseg,ndim)
     2 xhib=a
-      bin=(b-a)/real(nsegd)                                              !hr09
+      bin=(b-a)/real(nsegd,fPrec)                                              !hr09
       do 3 i = 1,nsegd
       xlo(i)=xhib
       xlob=xlo(i)
@@ -8291,15 +8637,18 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
     3 continue
       nter=nsegd
       do 4 iter = 1,ndim
-      tvals=dble(tval(1))                                                !hr09
-      terss=dble(ters(1))                                                !hr09
+      tvals=tval(1)                                                !hr09
+      terss=ters(1)                                                !hr09
       do 5 i = 2,nter
-      tvals=tvals+dble(tval(i))                                          !hr09
-      terss=terss+dble(ters(i))                                          !hr09
+      tvals=tvals+tval(i)                                          !hr09
+      terss=terss+ters(i)                                          !hr09
     5 continue
-      root= real(sqrt(2.d0*terss))                                       !hr09
-      if(root .le. abstol .or. root .le. real(dble(reltol)*abs(tvals))) &!hr09
-     &go to 9                                                            !hr09
+      root=sqrt(two*terss)                                       !hr09
+
+      if(root .le. abstol .or. root .le. reltol*abs(tvals)) then
+        goto 9
+      end if
+
       if(nter .eq. ndim) go to 9
       bige=ters(1)
       ibig=1
@@ -8319,7 +8668,7 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
       call rgs56p(f,xlo(nter),xhi(nter),tval(nter),te)
       ters(nter)=te**2
     4 continue
-    9 res=real(tvals)                                                    !hr09
+    9 res=tvals                                                    !hr09
       err=root
       return
 end subroutine radapt
@@ -8330,7 +8679,7 @@ subroutine rgs56p(f,a,b,res,err)
   implicit none
 
   integer i
-  real err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
+  real(kind=fPrec) err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
   real(kind=fPrec) e5,e6
 
   parameter (r1 = 1., hf = r1/2.)
@@ -8352,8 +8701,8 @@ subroutine rgs56p(f,a,b,res,err)
  &9.6623475710157601e-01, 8.5662246189585178e-02/
 
   rang=b-a
-  e5=0d0
-  e6=0d0
+  e5=zero
+  e6=zero
   do i = 1,5
     e5=e5+dble(w5(i)*f(a+rang*x5(i)))                                  !hr09
     e6=e6+dble(w6(i)*f(a+rang*x6(i)))                                  !hr09

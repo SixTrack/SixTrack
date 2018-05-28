@@ -318,7 +318,7 @@ function chr_stripQuotes(theString) result(retString)
 end function chr_stripQuotes
 
 ! ================================================================================================ !
-!  Rounting Routines
+!  Rounding Routines
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-20
 !  A wrapper for round_near for strings and character arrays
@@ -340,7 +340,7 @@ function str_toReal(theString) result(theValue)
   character(len=:), allocatable :: cString
   integer                       :: cLen, cErr
   
-  cLen     = len(theString%chr) + 1
+  cLen     = len(theString) + 1
   cString  = theString%chr//char(0)
   theValue = round_near(cErr,cLen,cString)
   
@@ -399,33 +399,33 @@ end function chr_toReal
 ! ================================================================================================ !
 !  A.Mereghetti, for the FLUKA Team
 !  K.Sjobak and A.Santamaria, BE-ABP-HSS
-!  Last modified: 2018-04-13
+!  Last modified: 2018-05-14
 !
 !  Parse a line and split it into its fields fields are returned as 0-terminated and padded string.
 !
 !  input:
-!    tmpline: usually line read in from fort.2 or fort.3. Values must be separated by spaces
+!    inLine: usually line read in from fort.2 or fort.3. Values must be separated by spaces
 !  Output:
 !    Array of values with 
-!      getfields_fields(i):  (char) value of field
-!      getfields_lfields(i): (int) length of field
-!      getfields_nfields:    (int) number of fields
-!      getfields_lerr:       (logical)
+!      gFields(i): (char) value of field
+!      lFields(i): (int) length of field
+!      nFields:    (int) number of fields
+!      errFields:  (logical)
 ! ================================================================================================ !
-subroutine getfields_split(tmpline, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr)
+subroutine getfields_split(inLine, gFields, lFields, nFields, errFields)
   
   use crcoall
   
   implicit none
   
-  character tmpline*(getfields_l_max_string-1)                                ! nchars in daten is 160
-  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-  integer   getfields_nfields                                                 ! Number of identified fields
-  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-  logical   getfields_lerr                                                    ! An error flag
+  character inLine*(str_maxLen-1)               ! nchars in daten is 160
+  character gFields(str_maxFields)*(str_maxLen) ! Array of fields
+  integer   nFields                             ! Number of identified fields
+  integer   lFields(str_maxFields)              ! Length of each what:
+  logical   errFields                           ! An error flag
   
-  intent(in) tmpline
-  intent(out) getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr
+  intent(in)  inLine
+  intent(out) gFields, lFields, nFields, errFields
   
   ! Runtime variables
   integer ii, jj
@@ -433,44 +433,46 @@ subroutine getfields_split(tmpline, getfields_fields, getfields_lfields, getfiel
   integer lenstr, istart
   
   ! Initialise output variables
-  getfields_lerr    = .false.
-  getfields_nfields = 0
+  errFields = .false.
+  nFields   = 0
+  lenstr    = 0
+  istart    = 0
   
-  do ii=1,getfields_n_max_fields
-    do jj=1,getfields_l_max_string
-      getfields_fields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
+  do ii=1,str_maxFields
+    do jj=1,str_maxLen
+      gFields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
     end do
-    getfields_lfields(ii) = 0
+    lFields(ii) = 0
   end do
   
   ! Parse the line
   lchar = .false.
-  do ii=1, getfields_l_max_string-1 ! For \0 termination
-    if(tmpline(ii:ii) == " ") then
+  do ii=1, str_maxLen-1 ! For \0 termination
+    if(inLine(ii:ii) == " ") then
       ! Blank char
       if(lchar) then
         ! End of a string: record it
-        getfields_lfields(getfields_nfields) = lenstr
-        getfields_fields(getfields_nfields)(1:lenstr) = tmpline(istart:istart+lenstr)
+        lFields(nFields) = lenstr
+        gFields(nFields)(1:lenstr) = inLine(istart:istart+lenstr)
         lchar = .false.
       end if
     else
       ! Non-blank char
       if(.not.lchar) then
         ! A new what starts
-        getfields_nfields = getfields_nfields +1
-        if(getfields_nfields > getfields_n_max_fields) then
-          write (lout,*) "ERROR: Too many fields in line:"
-          write (lout,*) tmpline
-          write (lout,*) "please increase getfields_n_max_fields"
-          getfields_lerr = .true.
+        nFields = nFields + 1
+        if(nFields > str_maxFields) then
+          write (lout,"(a)") "ERROR: Too many fields in line:"
+          write (lout,"(a)") inLine
+          write (lout,"(a)") "please increase str_maxFields"
+          errFields = .true.
           exit ! Break do
         end if
         istart = ii
         lchar  = .true.
         lenstr = 0
       end if
-      lenstr = lenstr+1
+      lenstr = lenstr + 1
     end if
   end do
   
