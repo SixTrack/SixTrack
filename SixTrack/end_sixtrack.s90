@@ -33,6 +33,7 @@ subroutine prror(ier)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   
 +if fluka
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -45,7 +46,6 @@ subroutine prror(ier)
   implicit none
   
   integer ier
-+ca commont1
 +if bnlelens
 +ca rhicelens
 +ei

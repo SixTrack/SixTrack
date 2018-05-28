@@ -69,6 +69,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use crcoall
   use parpro
   use mod_common
+  use mod_commont
   use mod_commonmn
   implicit none
 
@@ -84,17 +85,11 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
 !YIL: COMMONMN
 
-!~: commonm1
-+ca commonm1
-
 !YIL: INFO
 +ca info
 
 !YIL: DBCOMMON
 +ca dbcommon
-
-!YIL: commontr
-+ca commontr
 
 
 !YIL: This is leftovers that does not have a cd-block

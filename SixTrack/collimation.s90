@@ -171,6 +171,8 @@ subroutine collimate_init()
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -182,12 +184,7 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -652,6 +649,8 @@ subroutine collimate_start_sample(nsample)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -664,12 +663,7 @@ subroutine collimate_start_sample(nsample)
   integer fmtHdf
 #endif
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -1362,21 +1356,17 @@ subroutine collimate_start_collimator(stracki)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
 
 +if collimat
@@ -1579,21 +1569,17 @@ subroutine collimate_do_collimator(stracki)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
 
 +if collimat
@@ -2410,6 +2396,8 @@ subroutine collimate_end_collimator()
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -2417,14 +2405,8 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
   
 #ifdef COLLIMAT
@@ -2859,6 +2841,8 @@ subroutine collimate_end_sample(j)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use crcoall
 #ifdef ROOT
   use root_output
@@ -2875,12 +2859,7 @@ subroutine collimate_end_sample(j)
   integer fmtHdf, setHdf
 #endif
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
   
@@ -3140,19 +3119,16 @@ subroutine collimate_exit()
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3308,17 +3284,15 @@ subroutine collimate_start_turn(n)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -3347,18 +3321,16 @@ subroutine collimate_start_element(i)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3455,19 +3427,16 @@ subroutine collimate_end_element
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3616,6 +3585,8 @@ subroutine collimate_end_turn
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use crcoall
 
 +if root
@@ -3624,17 +3595,11 @@ subroutine collimate_end_turn
 
   implicit none
 
-
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -4149,10 +4114,10 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
   use crcoall
   use parpro
+  use common, only : iexact
   implicit none
 
 
-+ca commonex
 +ca collpara
 +ca dbpencil
 +ca info
@@ -7272,14 +7237,13 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
   use crcoall
   use parpro
+  use mod_commont
+  
   implicit none
-
 
 +ca collpara
 +ca dbmkdist
 
-! !YIL debug july 2010
-+ca commont1
 
   real(kind=fPrec) pi
 !YIL march2010 edit: was missing enerror, bunchlength etc...

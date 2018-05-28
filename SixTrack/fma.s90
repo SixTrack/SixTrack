@@ -162,10 +162,10 @@ contains
     use crcoall
     use parpro
     use mod_common
+    use mod_commont
     
     implicit none
     
-+ca commonta !normalisation matrix tasm -> remove later
 +ca commonc
     integer :: i,j,k,l,m,n                    ! for do loops
     integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
