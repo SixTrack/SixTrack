@@ -8358,10 +8358,11 @@ subroutine daten
       has_hion = .false.
 
   ! New variables for sixtrack_input module
-  inErr      = .false.
-  oneLine    = .false.
-  sixin_ncy2 = 0
-  sixin_icy  = 0
+  inErr       = .false.
+  oneLine     = .false.
+  sixin_ncy2  = 0
+  sixin_icy   = 0
+  sixin_debug = .false.
   
   nGeom = 0
   
@@ -8438,6 +8439,11 @@ subroutine daten
   case("QUIE") ! Enable the QUIET flag
     iQuiet  = 1
     oneLine = .true.
+    goto 110
+  case("DEBU") ! Enable the SEBUG flag
+    sixin_debug = .true.
+    oneLine     = .true.
+    call sixin_debugInfo
     goto 110
   case("NEXT") ! Close the current block
     if(newParsing .and. .not. oneLine) then
