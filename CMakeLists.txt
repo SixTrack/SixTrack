@@ -338,7 +338,7 @@ if(BEAMGAS)
 endif(BEAMGAS)
 
 if(FLUKA)
-	LIST(APPEND FORS_FREEFORM fluka)
+	LIST(APPEND FORS_F90 fluka)
 endif(FLUKA)
 
 if(ROOT)

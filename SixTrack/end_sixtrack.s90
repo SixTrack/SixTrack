@@ -35,13 +35,9 @@ subroutine prror(ier)
   use mod_commons
   use mod_commont
   
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! import mod_fluka
-  ! inserted in main code by the 'fluka' compilation flag
+#ifdef FLUKA
   use mod_fluka
-+ei
+#endif
 
   implicit none
   
@@ -50,13 +46,9 @@ subroutine prror(ier)
 +ca rhicelens
 +ei
 
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! status of connection
-  ! inserted in main code by the 'fluka' compilation flag
+#ifdef FLUKA
   integer fluka_con
-+ei
+#endif
 
   save
 

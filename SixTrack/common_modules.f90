@@ -312,11 +312,6 @@ module mod_common
   ! common /xz/
   real(kind=fPrec), save :: xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),aai(nblz,mmul),bbi(nblz,mmul)
   
-#ifdef FLUKA
-  ! This was not in a common block, just defined in +cd commonxz as integer fluka_con
-  integer,          save :: fluka_con
-#endif
-  
 contains
 
 subroutine mod_common_allocate_arrays

@@ -1,5 +1,4 @@
-+dk flukadeck
-+if fluka
+#ifdef FLUKA
 
 subroutine check_coupling_integrity
 !
@@ -479,5 +478,4 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       return
 end subroutine kernel_fluka_exit
 
-+ei
-
+#endif
