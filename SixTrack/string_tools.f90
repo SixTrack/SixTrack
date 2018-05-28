@@ -157,6 +157,7 @@ function chr_expandBrackets(theString) result(theResult)
   
   integer, allocatable :: bPos(:,:)
   integer ch, nLB, nRB, nB, tSP, lSP, lLB, iSet, nSet, iPos, iMult
+  logical iErr
   
   ! Count the brackets
   nLB = 0
@@ -203,7 +204,7 @@ function chr_expandBrackets(theString) result(theResult)
   theResult = ""
   do iSet=1,nSet
     theResult = theResult//theBuffer(iPos:bPos(1,iSet))
-    iMult     = chr_toInt(theBuffer(bPos(1,iSet)+1:bPos(2,iSet)-1))
+    call chr_toInt(theBuffer(bPos(1,iSet)+1:bPos(2,iSet)-1),iMult,iErr)
     theResult = theResult//repeat(theBuffer(bPos(2,iSet)+1:bPos(3,iSet)-1)//" ",iMult)
     iPos      = bPos(3,iSet)+1
   end do
@@ -535,23 +536,24 @@ end function chr_stripQuotes
 !  Last modified: 2018-04-20
 !  A wrapper for round_near for strings and character arrays
 ! ================================================================================================ !
-function str_toReal(theString) result(theValue)
+subroutine str_toReal(theString, theValue, rErr)
   
   use floatPrecision
-#ifdef CRLIBM
   use crcoall
-#endif
   
   implicit none
   
-  type(string), intent(in)      :: theString
-  real(kind=fPrec)              :: theValue
-  character(len=:), allocatable :: tmpString
+  type(string), intent(in)        :: theString
+  real(kind=fPrec), intent(out)   :: theValue
+  logical,          intent(inout) :: rErr
+  
+  character(len=:), allocatable   :: tmpString
+  integer                         :: readErr
   
 #if !defined(FIO) && defined(CRLIBM)
-  real(kind=fPrec)              :: round_near
-  character(len=:), allocatable :: cString
-  integer                       :: cLen, cErr
+  real(kind=fPrec)                :: round_near
+  character(len=:), allocatable   :: cString
+  integer                         :: cLen, cErr
   
   tmpString = chr_trimZero(theString%chr)
   cLen      = len(tmpString) + 1
@@ -559,52 +561,68 @@ function str_toReal(theString) result(theValue)
   theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
-    write (lout,"(a)")    "++++++++++++++++++++++++"
-    write (lout,"(a)")    "+    ERROR DETECTED    +"
-    write (lout,"(a)")    "++++++++++++++++++++++++"
-    write (lout,"(a)")    "Data Input Error"
-    write (lout,"(a)")    "Overfow/Underflow in string_tools->chr_toReal"
-    write (lout,"(a,i2)") "Errno: ",cErr
-    stop -1
+    write (lout,"(a)")    "TOREAL> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TOREAL> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TOREAL> Error value: ",cErr
+    rErr = .true.
   end if
 #endif
   
 #if defined(FIO) && defined(CRLIBM)
   call enable_xp()
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,round="nearest") theValue
+  read(tmpString,*,round="nearest",iostat=readErr) theValue
   call disable_xp()
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    rErr = .true.
+  end if
 #endif
   
 #if defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,round="nearest") theValue
+  read(tmpString,*,round="nearest",iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    rErr = .true.
+  end if
 #endif
   
 #if !defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*) theValue
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TOREAL> ERROR Data Input"
+    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    rErr = .true.
+  end if
 #endif
   
-end function str_toReal
+end subroutine str_toReal
 
-function chr_toReal(theString) result(theValue)
+subroutine chr_toReal(theString, theValue, rErr)
   
   use floatPrecision
-#ifdef CRLIBM
   use crcoall
-#endif
   
   implicit none
   
-  character(len=*), intent(in)  :: theString
-  real(kind=fPrec)              :: theValue
-  character(len=:), allocatable :: tmpString
+  character(len=*), intent(in)    :: theString
+  real(kind=fPrec), intent(out)   :: theValue
+  logical,          intent(inout) :: rErr
+  
+  character(len=:), allocatable   :: tmpString
+  integer                         :: readErr
   
 #if !defined(FIO) && defined(CRLIBM)
-  real(kind=fPrec)              :: round_near
-  character(len=:), allocatable :: cString
-  integer                       :: cLen, cErr
+  real(kind=fPrec)                :: round_near
+  character(len=:), allocatable   :: cString
+  integer                         :: cLen, cErr
   
   tmpString = chr_trimZero(theString)
   cLen      = len(tmpString) + 1
@@ -612,34 +630,49 @@ function chr_toReal(theString) result(theValue)
   theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
-    write (lout,"(a)")    "++++++++++++++++++++++++"
-    write (lout,"(a)")    "+    ERROR DETECTED    +"
-    write (lout,"(a)")    "++++++++++++++++++++++++"
-    write (lout,"(a)")    "Data Input Error"
-    write (lout,"(a)")    "Overfow/Underflow in string_tools->chr_toReal"
-    write (lout,"(a,i2)") "Errno: ",cErr
-    stop -1
+    write (lout,"(a)")    "TOREAL> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TOREAL> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TOREAL> Error value: ",cErr
+    rErr = .true.
   end if
 #endif
   
 #if defined(FIO) && defined(CRLIBM)
   call enable_xp()
   tmpString = chr_trimZero(theString)
-  read(tmpString,*,round="nearest") theValue
+  read(tmpString,*,round="nearest",iostat=readErr) theValue
   call disable_xp()
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    rErr = .true.
+  end if
 #endif
   
 #if defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString)
-  read(tmpString,*,round="nearest") theValue
+  read(tmpString,*,round="nearest",iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    rErr = .true.
+  end if
 #endif
   
 #if !defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString)
-  read(tmpString,*) theValue
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TOREAL> ERROR Data Input"
+    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    rErr = .true.
+  end if
 #endif
   
-end function chr_toReal
+end subroutine chr_toReal
 
 ! ================================================================================================ !
 !  String to Integer
@@ -655,13 +688,14 @@ function str_toInt(theString) result(theValue)
   read(tmpString,*) theValue
 end function str_toInt
 
-function chr_toInt(theString) result(theValue)
-  character(len=*), intent(in)  :: theString
-  integer                       :: theValue
-  character(len=:), allocatable :: tmpString
+subroutine chr_toInt(theString, theValue, iErr)
+  character(len=*), intent(in)    :: theString
+  integer,          intent(out)   :: theValue
+  logical,          intent(inout) :: iErr
+  character(len=:), allocatable   :: tmpString
   tmpString = chr_trimZero(theString)
   read(tmpString,*) theValue
-end function chr_toInt
+end subroutine chr_toInt
 
 ! ================================================================================================ !
 !  HERE FOLLOWS THE OLD ROUTINES
