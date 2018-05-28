@@ -8440,11 +8440,13 @@ subroutine daten
     iQuiet  = 1
     oneLine = .true.
     goto 110
-  case("DEBU") ! Enable the SEBUG flag
-    sixin_debug = .true.
-    oneLine     = .true.
-    call sixin_debugInfo
-    goto 110
+  case("DEBU") ! Enable the DEBUG flag
+    if(currBlock == "NONE") then
+      sixin_debug = .true.
+      oneLine     = .true.
+      call sixin_debugInfo
+      goto 110
+    end if
   case("NEXT") ! Close the current block
     if(newParsing .and. .not. oneLine) then
       ! Actual close check is done after a last pass so
