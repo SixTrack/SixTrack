@@ -308,7 +308,7 @@ list(APPEND FORS_FREEFORM
 	scatter dynk
 	lielib dabnew fma
 	postprocessing dump
-	bdex aperture elens
+	bdex aperture
 )
 
 list(APPEND FORS_F90
@@ -316,7 +316,7 @@ list(APPEND FORS_F90
 	strings string_tools common_modules mainarrays
 	file_units mod_alloc zipf matrix_inv
 	bouncy_castle plato_seq
-	ranecu wire hions
+	ranecu wire hions elens
 )
 
 if(DA)
