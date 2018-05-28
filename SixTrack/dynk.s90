@@ -1,5 +1,10 @@
 +dk dynk
-
+! ================================================================================================ !
+!  DYNAMIC KICKS
+!  A.Mereghetti, for the FLUKA Team
+!  K.Sjobak, A. Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-28
+! ================================================================================================ !
 module dynk
   
   use floatPrecision
@@ -21,16 +26,16 @@ module dynk
   integer, save :: ldynkFUNfileunit ! File unit for parseFUN files
   
   ! Store the FUN statements
-  integer, parameter :: dynk_maxFuncs = 100
-  integer, save      :: dynk_maxiData
-  integer, save      :: dynk_maxfData
-  integer, save      :: dynk_maxcData
+  integer, save :: dynk_maxFuncs
+  integer, save :: dynk_maxiData
+  integer, save :: dynk_maxfData
+  integer, save :: dynk_maxcData
   
   ! 1 row/FUN, cols are:
   ! (1) = function name in fort.3 (points within dynk_cData),
   ! (2) = indicates function type
   ! (3,4,5) = arguments (often pointing within other arrays {i|f|c}expr_dynk)
-  integer, save :: dynk_funcs(dynk_maxFuncs,5)
+  integer, allocatable, save :: dynk_funcs(:,:) ! (dynk_maxFuncs,5)
   
   ! Data for DYNK FUNs
   integer,          allocatable, save :: dynk_iData(:)
@@ -101,14 +106,11 @@ module dynk
 contains
 
 subroutine dynk_allocate_arrays
-  use crcoall
-  integer stat
   call alloc(dynk_izuIndex,nele,0,'dynk_izuIndex')
   call alloc(dynk_elemdata,nele,3,zero,'dynk_elemdata')
 end subroutine dynk_allocate_arrays
 
 subroutine dynk_expand_arrays(nele_new)
-  use crcoall
   integer, intent(in) :: nele_new
   call alloc(dynk_izuIndex,nele_new,0,'dynk_izuIndex')
   call alloc(dynk_elemdata,nele_new,3,zero,'dynk_elemdata')
@@ -128,16 +130,83 @@ subroutine dynk_allocate
   dynk_maxiData = 500
   dynk_maxfData = 500
   dynk_maxcData = 100
+  dynk_maxFuncs = 10
   
-  call alloc(dynk_iData,           dynk_maxiData,0,         "dynk_iData")
-  call alloc(dynk_fData,           dynk_maxfData,0.0_fPrec, "dynk_fData")
+  call alloc(dynk_iData,dynk_maxiData,0,"dynk_iData")
+  call alloc(dynk_fData,dynk_maxfData,zero,"dynk_fData")
   call alloc(dynk_cData,str_maxLen,dynk_maxcData,str_dZeros,"dynk_cData")
+  call alloc(dynk_funcs,dynk_maxFuncs,5,0,"dynk_funcs")
   
   ! Set file units for I/O files
   call funit_requestUnit("dynksets.dat",ldynkfileunit)
   call funit_requestUnit("dynk_parseFUN_IO",ldynkFUNfileunit)
   
 end subroutine dynk_allocate
+
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-28
+!  Parse input line
+! =================================================================================================
+subroutine dynk_parseInputLine(inLine,iErr)
+  
+  use string_tools
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable :: lnSplit(:)
+  integer i, nSplit
+  
+  character gFields(str_maxFields)*(str_maxlen)
+  integer   nFields
+  integer   lFields(str_maxFields)
+  logical   eFields
+  
+  call chr_split(inLine,lnSplit,nSplit)
+  
+  if(nSplit == 0) then
+    if(ldynkdebug) then
+      write (lout,"(a,i3,a)") "DYNK> DEBUG Input line len=",len(inLine),": '"//chr_strip(inLine)//"'."
+      write (lout,"(a)")      "DYNK> DEBUG  * No fields found."
+    end if
+    return
+  end if
+  
+  ! Report if debugging is ON
+  if(ldynkdebug) then
+    write (lout,"(a,i3,a)")  "DYNK> DEBUG Input line len=",len(inLine),": '"//chr_strip(inLine)//"'."
+    write (lout,"(a,i3,a)") ("DYNK> DEBUG  * Field(",i,") = '"//chr_trimZero(lnSplit(i))//"'",i=1,nSplit)
+  end if
+  
+  select case(chr_trimZero(lnSplit(1)))
+  
+  case("DEBUG")
+    ldynkdebug = .true.
+    write(lout,"(a)") "DYNK> DYNK block debugging is ON."
+  
+  case("NOFILE")
+    ldynkfiledisable = .true.
+    write (lout,*) "DYNK> Disabled writing dynksets.dat"
+  
+  case("FUN")
+    call getfields_split(inLine,gFields,lFields,nFields,eFields)
+    call dynk_parseFUN(gFields,lFields,nFields)
+    
+  case("SET")
+    call getfields_split(inLine,gFields,lFields,nFields,eFields)
+    call dynk_parseSET(gFields,lFields,nFields)
+    
+  case default
+    write(lout,"(a)") "DYNK> ERROR Unrecognised statement '"//chr_trimZero(lnSplit(1))//"'."
+    iErr = .true.
+    return
+    
+  end select
+  
+end subroutine dynk_parseInputLine
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
@@ -163,38 +232,29 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
   logical isFIR ! FIR/IIR
   logical lopen
   
-+if crlibm
+#ifdef CRLIBM
+  integer nchars
+  parameter(nchars=160) ! Same as in daten
+  character(len=nchars) ch
 
-    integer nchars
-    parameter(nchars=160) ! Same as in daten
-    character(len=nchars) ch
+  character filefields_fields(str_maxFields)*(str_maxlen)
+  integer filefields_nfields
+  integer filefields_lfields(str_maxFields)
+  logical filefields_lerr
 
-    character filefields_fields(str_maxFields)*(str_maxlen)
-    integer filefields_nfields
-    integer filefields_lfields(str_maxFields)
-    logical filefields_lerr
-
-    real(kind=fPrec) round_near
-    integer errno
-+ei
-
-+if boinc
-    character(len=256) filename
-+ei
-
-+if fio
-    ! Do not support FIO, it is not supported by any compilers.
-    write (lout,*) "FIO not supported in DYNK!"
-    call prror(-1)
-+ei
-
-    if (dynk_nFuncs+1 .gt. dynk_maxFuncs) then
-        write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-        write (lout,*) "Maximum number of FUN exceeded, please change parameter dynk_maxFuncs."
-        write (lout,*) "Current value of dynk_maxFuncs:",dynk_maxFuncs
-        call prror(51)
-    end if
-
+  real(kind=fPrec) round_near
+  integer errno
+#endif
+  
+#ifdef BOINC
+  character(len=256) filename
+#endif
+  
+  if(dynk_nFuncs+1 > dynk_maxFuncs) then
+    dynk_maxFuncs = dynk_maxFuncs + 10
+    call alloc(dynk_funcs,dynk_maxFuncs,5,0,"dynk_funcs")
+  end if
+  
     if (lFields(2).gt.str_maxLen-1 .or. lFields(2) .gt. 20) then
         write(lout,*) "ERROR in DYNK block parsing (fort.3):"
         write(lout,*) "Max length of a FUN name is the smallest of", str_maxLen-1, "and", 20, "."

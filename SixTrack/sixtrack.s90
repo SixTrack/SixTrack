@@ -7953,8 +7953,7 @@ subroutine daten
   
   use scatter, only : scatter_active, scatter_debug, scatter_seed1, scatter_seed2, scatter_dumpdata, &
     scatter_parseInputLine, scatter_allocate
-  use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_parseFUN,dynk_parseSET,dynk_dumpdata,&
-    dynk_inputsanitycheck,dynk_allocate
+  use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,fma_first,fma_last,&
     fma_max,fma_flag,fma_writeNormDUMP,fma_parseInputLine
   use dump, only : dump_parseInputLine, dump_parseInputDone
@@ -7967,19 +7966,15 @@ subroutine daten
   use string_tools
   use strings
   
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! import mod_fluka
-  ! inserted in main code by the 'fluka' compilation flag
+#ifdef FLUKA
   use mod_fluka
-+ei
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
-+if root
+#ifdef ROOT
   use root_output
-+ei
+#endif
   
   use mod_ranecu
   
@@ -8038,7 +8033,7 @@ subroutine daten
   integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
   logical   getfields_lerr                                                    ! An error flag
   
-+if crlibm
+#ifdef CRLIBM
   ! MAXF be kept in sync with value in function fround
   integer maxf,nofields
   parameter (maxf=30)
@@ -8046,10 +8041,9 @@ subroutine daten
   character(len=maxf) fields(nofields)
   integer errno,nfields,nunit,nf
   real(kind=fPrec) fround
-+ei
-+if .not.crlibm
+#else
   integer nunit
-+ei
+#endif
   integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
   data lineno2 /0/
   data lineno3 /0/
@@ -8058,21 +8052,20 @@ subroutine daten
   data lineno30 /0/
   data lineno35 /0/
   
-+if collimat
+#ifdef COLLIMAT
 +ca collpara
 +ca dbdaten
 +ca dbpencil
 +ca database
 +ca dbcolcom
   logical has_coll
-+ei
-+if .not.collimat
+#else
   logical do_coll
-+ei
-  
-+if bnlelens
+#endif
+
+#ifdef BNLELENS
 +ca rhicelens
-+ei
+#endif
 +ca dbreaddis
   
   ! Fluka related, might be best to lock to real64
@@ -8100,28 +8093,28 @@ subroutine daten
   ! data corr /'CORR'/
   data coll /'COLL'/
   !  scatter
-  character(len=4) scat
-  data scat /'SCAT'/
+  ! character(len=4) scat
+  ! data scat /'SCAT'/
   ! HDF5
-  character(len=4) h5out
-  data h5out /'HDF5'/
+  ! character(len=4) h5out
+  ! data h5out /'HDF5'/
   ! coupling:
   character(len=4) fluk
   data fluk /'FLUK'/
   ! read particle distribution for FLUKA:
-  character(len=4) dist
-  data dist /'DIST'/
+  ! character(len=4) dist
+  ! data dist /'DIST'/
   ! root output:
-  character(len=4) root
-  data root /'ROOT'/
+  ! character(len=4) root
+  ! data root /'ROOT'/
   ! hisix
   ! add block for input of heavy-ion properties
-  character(len=4) hion
-  data hion /'HION'/
+  ! character(len=4) hion
+  ! data hion /'HION'/
   
-+if crlibm
+#ifdef CRLIBM
   real(kind=fPrec) round_near
-+ei
+#endif
   
   logical lapefound
   logical lerr1
@@ -8296,12 +8289,11 @@ subroutine daten
       zz0 = 1
       aa0 = 1
       nucm0 = pmap
-+if .not.collimat
-      do_coll = .false.
-+ei
-+if collimat
+#ifdef COLLIMAT
       has_coll = .false.
-+ei
+#else
+      do_coll = .false.
+#endif
       has_hion = .false.
 
   ! New variables for sixtrack_input module
@@ -8389,6 +8381,7 @@ subroutine daten
     goto 110
   case("DEBU") ! Enable the DEBUG flag
     if(currBlock == "NONE") then
+      ! Only when not in a block, otherwise in-block DEBUG will trigger this as well
       sixin_debug = .true.
       oneLine     = .true.
       call sixin_debugInfo
@@ -8468,8 +8461,6 @@ subroutine daten
     goto 1900
   case("DUMP")
     goto 2000
-  case("DYNK")
-    goto 2200
   case("BDEX")
     goto 2250
   case("FMA")
@@ -8576,6 +8567,18 @@ subroutine daten
       nbidu = 1
     else
       call sixin_parseInputLineTRAC(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DYNK") ! Dynamic Kick Block
+    if(openBlock) then
+      call dynk_allocate
+    elseif(closeBlock) then
+      if(ldynkdebug) call dynk_dumpdata
+      ldynk = .true.
+      call dynk_inputsanitycheck
+    else
+      call dynk_parseInputLine(ch,inErr)
       if(inErr) goto 9999
     end if
     
@@ -12429,106 +12432,6 @@ subroutine daten
       
       ! Go to next line
       goto 2000
-
-!-----------------------------------------------------------------------
-!  DYNAMIC KICKS
-!  A.Mereghetti, for the FLUKA Team
-!  K.Sjobak & A. Santamaria, BE-ABP/HSS
-!  last modified: 21-01-2014
-!  always in main code
-!-----------------------------------------------------------------------
- 2200 continue
-      !We have a DYNK block; let's allocate the memory for it!
-      if (ldynk) then
-         write (lout,*)
-         write (lout,*) "******************************************"
-         write (lout,*) "** More than one DYNK block encountered **"
-         write (lout,*) "******************************************"
-         call prror(51)
-      endif
-      call dynk_allocate
-      
- 2201 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2201 ! skip comment line
-
-      ! Which type of block? Look at start of string (no leading blanks allowed)
-
-      if (ch(:4).eq."DEBU") then
-         ldynkdebug = .true.
-         write (lout,*) "DYNK> DYNK block debugging is ON"
-         goto 2201 !loop DYNK
-         
-      else if (ch(:6).eq."NOFILE") then
-         ldynkfiledisable = .true.
-         write (lout,*) "DYNK> Disabled writing dynksets.dat"
-         goto 2201 !loop DYNK
-         
-      else if (ch(:3).eq."FUN") then
-         call getfields_split( ch, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-         if ( getfields_lerr ) call prror(51)
-         if (ldynkdebug) then
-            write (lout,'(1x,A,I4,A)')                                  &
-     &           "DYNKDEBUG> Got a FUN block, len=",                    &
-     &           len(ch), ": '"// trim(ch)// "'"
-            do ii=1,getfields_nfields
-               write (lout,*)                                           &
-     &              "DYNKDEBUG> Field(",ii,") ='"//                     &
-     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-            enddo
-         endif
-         call dynk_parseFUN(getfields_fields,                           &
-     &        getfields_lfields, getfields_nfields)
-         goto 2201 !loop DYNK
-
-      else if (ch(:3).eq."SET") then
-         call getfields_split( ch, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-         if ( getfields_lerr ) call prror(51)
-         if (ldynkdebug) then
-            write (lout,'(1x,A,I4,A)')                                  &
-     &           "DYNKDEBUG> Got a SET block, len=",                    &
-     &           len(ch), ": '"//trim(ch)//"'"
-            do ii=1,getfields_nfields
-               write (lout,*)                                           &
-     &              "DYNKDEBUG> Field(",ii,") ='"//                     &
-     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-            enddo
-         endif
-         call dynk_parseSET(getfields_fields,                           &
-     &        getfields_lfields, getfields_nfields)
-         goto 2201 !loop DYNK
-
-      else if (ch(:4).eq.next) then
-         if (ldynkdebug) then
-            write (lout,*) "DYNKDEBUG> Finished parsing DYNK block"
-            call dynk_dumpdata
-         endif
-         
-         ldynk = .true.
-         
-         call dynk_inputsanitycheck
-         goto 110 ! Read next block or ENDE
-
-      else
-         write (lout,*)
-         write (lout,*) "*******************************************"
-         write (lout,*) "ERROR while parsing DYNK block in fort.3"
-         write (lout,*)                                                 &
-     &        "Expected keywords FUN, SET, DEBU, NOFILE or NEXT"
-         write (lout,*) "Got ch:"
-         write (lout,*) "'"//ch//"'"
-         write (lout,*) "*******************************************"
-         call prror(51)
-      endif
-      ! Should never arrive here
-      write (lout,*) "*****************************"
-      write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
-      write (lout,*) "*****************************"
-      call prror(51)
 
 !-----------------------------------------------------------------------
 !  BDEX = Beam Distribution EXchange
