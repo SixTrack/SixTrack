@@ -8017,8 +8017,6 @@ subroutine daten
   character(len=max_name_len) iss,iqq,iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
-  ! character(len=max_name_len) corr
-  ! character(len=:), allocatable :: sixin_bez0(:) !(max_name_len)(nele)
   character(len=60) ihead
   integer nchars
   parameter (nchars=160)
@@ -8084,33 +8082,16 @@ subroutine daten
   dimension icel(ncom,20),iss(2),iqq(5)
   dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
-  data sing,stru,prin,quie,sync,ende,next,comm /'SING','STRU','PRIN','QUIE','SYNC','ENDE','NEXT','COMM'/
-  data fluc,mult,chro,iter,tune,line,trac,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
-  data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco &
-    /'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR','RESO','DISP','POST','RIPP','DECO'/
-  data comb,free,geom,cavi,beam,trom /'COMB','FREE','GEOM','CAV','BEAM','TROM'/
+  data sync,ende,next,comm /'SYNC','ENDE','NEXT','COMM'/
+  data fluc,mult,chro,iter,tune,line,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','DIFF'/
+  data limi,orbi,go,sear,subr,reso,post,ripp,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','RIPP','DECO'/
+  data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
-  ! data corr /'CORR'/
+  ! data corr,sing,stru,prin,quie,bloc,init,trac,disp /'CORR','SING','STRU','PRIN','QUIE','BLOC','INIT','TRAC','DISP'/
+  ! data free,geom /'FREE','GEOM'/
   data coll /'COLL'/
-  !  scatter
-  ! character(len=4) scat
-  ! data scat /'SCAT'/
-  ! HDF5
-  ! character(len=4) h5out
-  ! data h5out /'HDF5'/
-  ! coupling:
   character(len=4) fluk
   data fluk /'FLUK'/
-  ! read particle distribution for FLUKA:
-  ! character(len=4) dist
-  ! data dist /'DIST'/
-  ! root output:
-  ! character(len=4) root
-  ! data root /'ROOT'/
-  ! hisix
-  ! add block for input of heavy-ion properties
-  ! character(len=4) hion
-  ! data hion /'HION'/
   
 #ifdef CRLIBM
   real(kind=fPrec) round_near
@@ -8119,9 +8100,6 @@ subroutine daten
   logical lapefound
   logical lerr1
   logical lexist
-  
-  ! character(len=max_name_len) :: defaultstring
-  ! integer str_int
   
   ! New variables for sixtrack_input module
   logical inErr
@@ -8148,15 +8126,7 @@ subroutine daten
         iqq(i)=' '
       end do
 
-      ! do str_int=1,max_name_len
-      !   defaultstring(str_int:str_int) = char(0)
-      ! end do
-
-      call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), 'sixin_bez0')
-!      do i=1,nele
-!        sixin_bez0(i)=' '
-!      end do
-
+      call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
 
       do i=1,40
         ilm0(i)=' '
@@ -8176,7 +8146,6 @@ subroutine daten
       do i=1,10
         ic0(i)=' '
       end do
-
 
       emitnx=zero
       emitny=zero
