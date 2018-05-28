@@ -776,9 +776,9 @@
 !FOX  D V DA INT CRABAMP3 NORD NVAR ;
 !FOX  D V DA INT CRABAMP4 NORD NVAR ;
 
-+if rvet
-!FOX  D V DA INT RVET NORD NVAR ;
-+ei
+! +if rvet
+! !FOX  D V DA INT RVET NORD NVAR ;
+! +ei
 !FOX  D V RE INT AAI NBLZ MMUL ; D V RE INT BBI NBLZ MMUL ;
 !FOX  D V RE INT TILTC NBLZ ; D V RE INT TILTS NBLZ ;
 !FOX  D V RE INT DPS MPA ; D V RE INT SIGM MPA ;
@@ -826,10 +826,6 @@
 !FOX  D F RE DARE 1 ;
 !FOX  D V DA INT PZ NORD NVAR ;
 !FOX  E D ;
-+cd dump1
-      write(32)                                                         &
-+cd dump2
-      read(32)                                                          &
 +cd dump3
 !
 !  left out to do tracking
@@ -870,9 +866,9 @@
      &ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
      &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
      &dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
-+if rvet
-     &rvet,                                                             &
-+ei
+! +if rvet
+!      &rvet,                                                             &
+! +ei
      &ejf0v,numxv,nms,nlostp,dpd,                                       &
      &dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
      &rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
@@ -1458,18 +1454,6 @@
                yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens          &
      &                 *yelens/rrelens * oidpsv(j)
             endif
-+cd scat_tck
-      !Thick scattering
-      if (scatter_debug) then
-         write(lout,*) "SCATTER> In scat_tck, ix=",                     &
-     &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
-      endif
-!     TODO
-+cd scat_thi
-      !Thin scattering
-      ! It is already checked that scatter_elemPointer != 0
-      call scatter_thin(i, ix,n)
-      
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+(strack(i)*oidpsv(j))*mtc(j)
@@ -20250,7 +20234,7 @@ end interface
 +ei
       napxo=napx
       if(ibidu.eq.1) then
-+ca dump1 !write(32)
+        write(32) &
 +ca dump3 !list of variables
       endif
   550 continue
@@ -20275,7 +20259,7 @@ end interface
       
 !!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
-+ca dump2 !read(32)
+        read(32) &
 +ca dump3 !list of variables
         damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
       endif
@@ -23391,10 +23375,16 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (64) ! Scatter (thin)
-+ca scat_thi
+        !Thin scattering
+        ! It is already checked that scatter_elemPointer != 0
+        call scatter_thin(i, ix,n)
         goto 640
       case (65) ! Scatter (thick)
-+ca scat_tck
+        !Thick scattering
+        if (scatter_debug) then
+          write(lout,*) "SCATTER> In scat_tck, ix=",ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
+        endif
+        !     TODO
         goto 640
       case default
         write (lout,*) "WARNING: Non-handled element in thin6d()!",  &
