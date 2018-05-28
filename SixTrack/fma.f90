@@ -1,4 +1,3 @@
-+dk fma
 
 module FMA
   
@@ -105,9 +104,9 @@ contains
      .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"  &
      .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"   &
      .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1" &
-+if naff
+#ifdef NAFF
      .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"      &
-+ei
+#endif
        )      ) then
        write(lout,*) &
             "ERROR in DATEN::FMA: The FMA method '"// &
@@ -116,9 +115,9 @@ contains
        write(lout,*) &
             "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//        &
             "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1"// &
-+if naff
+#ifdef NAFF
             ", NAFF"// &
-+ei
+#endif
             "."
        write(lout,*)  "Note that it is case-sensitive, so use uppercase only."
        call prror(-1)
@@ -192,7 +191,7 @@ contains
                                                                  ! normalized phase space variables [sqrt(m) 1.e-3]
     real(kind=fPrec), dimension(:,:,:),allocatable :: epsnxyzv   ! normalized emittances
     integer :: dump_last_turn                                    ! auxiliary variable for loop over turns
-+if naff
+#ifdef NAFF
     interface
        REAL(C_DOUBLE) function tunenaff (x,xp,maxn,plane_idx,norm_flag) BIND(C)
          use, intrinsic :: ISO_C_BINDING
@@ -207,7 +206,7 @@ contains
     ! (We can't interpret the struct that Fortran is passing us;
     !  see the naff_interface.cpp for more info                 )
     real(kind=fPrec), dimension(:), allocatable :: naff_xyzv1,naff_xyzv2
-+ei
+#endif
     ! dummy variables for readin + normalisation + loops
     integer :: id,kt,counter,thisturn
     real(kind=fPrec) :: pos
@@ -216,15 +215,15 @@ contains
     real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max,eps123_avg !initial,minimum,maximum,average emittance
     real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
       
-+if boinc
+#ifdef BOINC
     character(len=256) filename
-+ei
+#endif
 
-+if fio
+#ifdef FIO
     ! Do not support FIO, it is not supported by any compilers.
     write (lout,*) "FIO not supported in FMA!"
     call prror(-1)
-+ei
+#endif
 
     allocate(turn(napx,fma_nturn_max),   &
          xyzv(napx,fma_nturn_max,6),     &
@@ -243,9 +242,9 @@ contains
        call prror(-1)
     endif
     
-+if naff
+#ifdef NAFF
     allocate(naff_xyzv1(fma_nturn_max), naff_xyzv2(fma_nturn_max), STAT=i )
-+ei
+#endif
     if (i.ne.0) then
        write(lout,*) "Error in fma_postpr: Cannot ALLOCATE arrays 'naff_xyzv1,naff_xyzv2' of size fma_nturn_max."
        call prror(-1)
@@ -262,13 +261,12 @@ contains
        write(lout,*) "ERROR in FMA: Tried to open unit 2001001 for file 'fma_sixtrack', but it was already taken?"
        call prror(-1)
     endif
-+if boinc
+#ifdef BOINC
     call boincrf("fma_sixtrack",filename)
     open(2001001,file=filename,      status='replace',iostat=ierro,action='write',form='formatted')
-+ei
-+if .not.boinc
+#else
     open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,action='write',form='formatted')
-+ei
+#endif
     call fma_error(ierro,'cannot open file fma_sixtrack for writing!','fma_postpr')
     
     if (idp.eq.0 .or. ition.eq.0) then
@@ -309,25 +307,23 @@ contains
              endif
              
              if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then
-+if boinc
+#ifdef BOINC
                 call boincrf(dump_fname(j),filename)
                 open(dumpunit(j),file=filename,status='old',iostat=ierro,action='read')
-+ei
-+if .not.boinc
+#else
                 open(dumpunit(j),file=dump_fname(j),status='old',iostat=ierro,action='read')
-+ei
+#endif
                 !Create error message to be used in case ierro.ne.0
                 write(ch,'(a,1x,I5,1x,a)') "cannot open file '"//trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=",dumpfmt(j),')'
                   
                 call fma_error(ierro, ch, 'fma_postpr')
              else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then
-+if boinc
+#ifdef BOINC
                 call boincrf(dump_fname(j),filename)
                 open(dumpunit(j),file=filename,status='old',iostat=ierro,action='read',form='unformatted')
-+ei
-+if .not.boinc
+#else
                 open(dumpunit(j),file=dump_fname(j),status='old',iostat=ierro,action='read',form='unformatted')
-+ei
+#endif
              else
                 write(lout,*) 'Error in fma_postpr, got dumpfmt=',dumpfmt(j),'expected 2,3,7 or 8.'
                 call prror(-1)
@@ -450,13 +446,12 @@ contains
                         "for file 'NORM_"//dump_fname(j)//"', but it was already taken?!?"
                    call prror(-1)
                 endif
-+if boinc
+#ifdef BOINC
                 call boincrf('NORM_'//dump_fname(j),filename)
                 open(200101+i*10,file=filename,              status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
-+ei
-+if .not.boinc
+#else
                 open(200101+i*10,file='NORM_'//dump_fname(j),status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
-+ei
+#endif
                 !  units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
                 !  note: closed orbit dumpclo already converted in linopt part to [mm,mrad,mm,mrad,1]
                 !        tas matrix in linopt part in [mm,mrad,mm,mrad,1.e-3]
@@ -523,7 +518,7 @@ contains
                 !loop over particles
                 do l=1,napx
                    if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then  ! Read an ASCII dump
-+if .not.crlibm
+#ifndef CRLIBM
                       read(dumpunit(j),*,iostat=ierro) &
                            id,thisturn,pos,xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),xyzvdummy(6),kt
                       if(ierro.gt.0) then
@@ -532,8 +527,7 @@ contains
                               "' (dumpfmt=",dumpfmt(j),')'
                          call fma_error(ierro,ch,'fma_postpr') !read error
                       endif
-+ei
-+if crlibm
+#else
                       read(dumpunit(j),'(a)', iostat=ierro) ch
                       if(ierro.gt.0) then
                          ! read error
@@ -572,7 +566,7 @@ contains
                       xyzvdummy(6) = round_near(ierro, filefields_lfields(9)+1, filefields_fields(9) )
                       if (ierro.ne.0) call rounderr(ierro,filefields_fields,9, xyzvdummy(6))
                       read(filefields_fields(10) (1:filefields_lfields(10)),*) kt
-+ei !END IF crlibm
+#endif
 
                    else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then ! Read a binary dump
                       read(dumpunit(j),iostat=ierro) &
@@ -745,7 +739,7 @@ contains
                          q123(m) = tunenewt1(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
                         
-+if naff
+#ifdef NAFF
                    case("NAFF")
                       ! write(lout,*) "DBG", fma_nturn(i),l
                       ! write(lout,*) "DBG", nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
@@ -776,7 +770,7 @@ contains
                       
                       flush(lout)
                       ! stop
-+ei
+#endif
 
                    case default
                       call fma_error(-1,'FMA method '//trim(stringzerotrim(fma_method(i)))// &
@@ -825,27 +819,25 @@ contains
              ! resume initial position of dumpfile = end of file
              close(dumpunit(j))
              if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq. 7) then !ASCII
-+if boinc
+#ifdef BOINC
                 call boincrf(dump_fname(j),filename)
                 open(dumpunit(j),file=filename,      status='old', form='formatted', &
                      action='readwrite', position='append', iostat=ierro)
-+ei
-+if .not.boinc
+#else
                 open(dumpunit(j),file=dump_fname(j), status='old', form='formatted', &
                      action='readwrite', position='append', iostat=ierro)
-+ei
+#endif
                 call fma_error(ierro, "while resuming file '"// &
                      trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=2)", 'fma_postpr')
              elseif (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then !BINARY
-+if boinc
+#ifdef BOINC
                 call boincrf(dump_fname(j),filename)
                 open(dumpunit(j),file=filename,      status='old', form='unformatted', &
                      action='readwrite', position='append', iostat=ierro)
-+ei
-+if .not.boinc
+#else
                 open(dumpunit(j),file=dump_fname(j), status='old', form='unformatted', &
                      action='readwrite', position='append', iostat=ierro)
-+ei
+#endif
                 call fma_error(ierro, "while resuming file '"// &
                      trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=3)", 'fma_postpr')
              endif
@@ -864,9 +856,9 @@ contains
     close(2001001) !filename: fma_sixtrack
     
     deallocate(turn, nturns, xyzv, nxyzv, epsnxyzv)
-+if naff
+#ifdef NAFF
     deallocate(naff_xyzv1, naff_xyzv2)
-+ei
+#endif
   end subroutine fma_postpr
 
   subroutine fma_comnul
