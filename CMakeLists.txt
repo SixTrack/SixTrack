@@ -314,7 +314,7 @@ list(APPEND FORS_FREEFORM
 list(APPEND FORS_F90
 	core_tools constants sixtrack_input
 	strings string_tools common_modules mainarrays
-	file_units mod_alloc zipf
+	file_units mod_alloc zipf matrix_inv
 	bouncy_castle plato_seq
 	ranecu wire hions
 )

@@ -33,6 +33,7 @@ subroutine postpr(posi,nnuml)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use matrix_inv
       use crcoall
       use parpro
       use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
