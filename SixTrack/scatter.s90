@@ -169,6 +169,9 @@ subroutine scatter_initialise
     call h5_initForScatter()
     call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
     call h5_createDataSet("scatter_log", h5_scatID, scatter_logFormat, scatter_logDataSet)
+    
+    ! Write Attributes
+    call h5_writeAttr(h5_scatID,"SEED",(/scatter_seed1,scatter_seed2/))
   else
 #endif
     
@@ -212,26 +215,14 @@ end subroutine scatter_initialise
 ! =================================================================================================
 subroutine scatter_closeUnits
   
-#ifdef HDF5
-  use hdf5_output
-#endif
-
   implicit none
   
   logical lopen
   
-! #ifdef HDF5
-!   if(h5_useForSCAT) then
-!     call h5_closeDataSet(scatter_logDataSet)
-!   else
-! #endif
-    if (scatter_active) then
-      inquire(unit=scatter_logFile, opened=lopen)
-      if(lopen) close(scatter_logFile)
-    end if
-! #ifdef HDF5
-!   end if
-! #endif
+  if (scatter_active) then
+    inquire(unit=scatter_logFile, opened=lopen)
+    if(lopen) close(scatter_logFile)
+  end if
   
 end subroutine scatter_closeUnits
 
@@ -871,7 +862,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
     call prror(-1)
     
   end select
-    
+  
 end subroutine scatter_parseGenerator
 
 ! =================================================================================================
@@ -879,7 +870,7 @@ end subroutine scatter_parseGenerator
 !  Last modified: 09-2017
 ! =================================================================================================
 subroutine scatter_parseSeed(lnSplit, nSplit)
-
+  
   use crcoall
   use strings
   use string_tools
@@ -888,18 +879,18 @@ subroutine scatter_parseSeed(lnSplit, nSplit)
   
   type(string), allocatable, intent(in) :: lnSplit(:)
   integer,                   intent(in) :: nSplit
-
+  
   ! Check the number of arguments
   if(nSplit /= 3) then
     write(lout,"(a)") "SCATTER> ERROR SEED expected 2 arguments:"
     write(lout,"(a)") "         GEN seed1 seed2"
     call prror(-1)
   end if
-
+  
   ! Read the seeds
   read(lnSplit(2)%chr,*) scatter_seed1
   read(lnSplit(3)%chr,*) scatter_seed2
-
+  
 end subroutine scatter_parseSeed
 ! =================================================================================================
 ! END Input Parser Functions
