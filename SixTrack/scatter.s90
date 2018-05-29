@@ -580,6 +580,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   
   ! Temporary Variables
   integer ii, j
+  logical iErr
   
   ! Check number of arguments
   if(nSplit < 5) then
@@ -647,7 +648,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   end if
   
   ! Store the scaling
-  scatter_ELEM_scale(scatter_nELEM) = str_toReal(lnSplit(4))
+  call str_toReal(lnSplit(4),scatter_ELEM_scale(scatter_nELEM),iErr)
 
   ! Find the generator(s) referenced
   if(nSplit-4 > 3) then
@@ -701,6 +702,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   
   ! Temporary Variables
   integer ii, tmpIdx
+  logical iErr
   
   ! Check number of arguments
   if(nSplit < 3) then
@@ -744,9 +746,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     scatter_nfData = scatter_nfData + 3
     call resize(scatter_fData, scatter_nfData, zero, "scatter_fData")
     
-    scatter_fData(tmpIdx)   = str_toReal(lnSplit(4)) ! Density
-    scatter_fData(tmpIdx+1) = str_toReal(lnSplit(5)) ! Mass
-    scatter_fData(tmpIdx+2) = str_toReal(lnSplit(6)) ! Momentum
+    call str_toReal(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Density
+    call str_toReal(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Mass
+    call str_toReal(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Momentum
     
   case("GAUSS1")
     scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
@@ -762,11 +764,11 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     scatter_nfData = scatter_nfData + 5
     call resize(scatter_fData, scatter_nfData, zero, "scatter_fData")
     
-    scatter_fData(tmpIdx)   = str_toReal(lnSplit(4)) ! Beam Charge
-    scatter_fData(tmpIdx+1) = str_toReal(lnSplit(5)) ! Sigma X
-    scatter_fData(tmpIdx+2) = str_toReal(lnSplit(6)) ! Sigma Y
-    scatter_fData(tmpIdx+3) = str_toReal(lnSplit(7)) ! Offset X
-    scatter_fData(tmpIdx+4) = str_toReal(lnSplit(8)) ! Offset Y
+    call str_toReal(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Beam Charge
+    call str_toReal(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Sigma X
+    call str_toReal(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Sigma Y
+    call str_toReal(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! Offset X
+    call str_toReal(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! Offset Y
     
   case default
     write(lout,"(a)") "SCATTER> ERROR, PRO name '"//lnSplit(3)//"' not recognized."
@@ -793,6 +795,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
   
   ! Temporary Variables
   integer ii, tmpIdx
+  logical iErr
   
   ! Check number of arguments
   if(nSplit < 3) then
@@ -842,14 +845,14 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
     scatter_nfData = scatter_nfData + nSplit - 3
     call resize(scatter_fData, scatter_nfData, zero, "scatter_fData")
 
-    scatter_fData(tmpIdx)   = str_toReal(lnSplit(4)) ! PPBEAMELASTIC a
-    scatter_fData(tmpIdx+1) = str_toReal(lnSplit(5)) ! PPBEAMELASTIC b1
-    scatter_fData(tmpIdx+2) = str_toReal(lnSplit(6)) ! PPBEAMELASTIC b2
-    scatter_fData(tmpIdx+3) = str_toReal(lnSplit(7)) ! PPBEAMELASTIC phi
-    scatter_fData(tmpIdx+4) = str_toReal(lnSplit(8)) ! PPBEAMELASTIC tmin
+    call str_toReal(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! PPBEAMELASTIC a
+    call str_toReal(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! PPBEAMELASTIC b1
+    call str_toReal(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! PPBEAMELASTIC b2
+    call str_toReal(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! PPBEAMELASTIC phi
+    call str_toReal(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! PPBEAMELASTIC tmin
     
     if(nSplit == 9) then
-      scatter_fData(tmpIdx+5) = str_toReal(lnSplit(9)) ! PPBEAMELASTIC crossSection
+      call str_toReal(lnSplit(9),scatter_fData(tmpIdx+5),iErr) ! PPBEAMELASTIC crossSection
     end if
     
     ! Check sanity of input values

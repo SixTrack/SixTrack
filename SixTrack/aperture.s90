@@ -565,8 +565,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! logical isnan
   logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
-+ca common2
-+ca commonxz
 
 #ifdef BNLELENS
 +ca rhicelens
@@ -2425,7 +2423,11 @@ subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk
 end subroutine intersectTR
 
 subroutine compactArrays(llostp)
-
+  
+#ifdef FLUKA
+  use mod_fluka
+#endif
+  
   implicit none
 
   integer j,jj,jj1,ib2,ib3,lnapx
@@ -2462,9 +2464,9 @@ subroutine compactArrays(llostp)
               omoidpsv(jj)=omoidpsv(jj1)
 ! ph: hisix
 
-+if rvet
-              rvet(jj)=rvet(jj1)
-+ei
+! +if rvet
+!               rvet(jj)=rvet(jj1)
+! +ei
               oidpsv(jj)=oidpsv(jj1)
               dpsv1(jj)=dpsv1(jj1)
               clo6v(1,jj)=clo6v(1,jj1)

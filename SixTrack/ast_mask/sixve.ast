@@ -12,10 +12,8 @@ e MATRIX,ORBIT,ORD,PHASAD,QMOD,UMLAUF
 e DISTANCE,DECOUP
 e RESEX,RMOD,SEARCH,SUBRE,SUBSEA
 e SUMPOS,UTILS
-e myrinv
 e beam6d
 e aux
-e plotdumy
 e checkpt
 e dumps
 e cadcum

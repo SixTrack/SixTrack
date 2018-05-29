@@ -1,5 +1,0 @@
-common_modules.s90
-hionsn.f
-df bignpart,hugenpart,bignblz,hugenblz,beamgas,collimat,datamods
-e mod_hions
-ex

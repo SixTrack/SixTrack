@@ -686,7 +686,6 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
   
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -1172,7 +1171,6 @@ subroutine collimate_start_sample(nsample)
   integer fmtHdf
 #endif
   
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -1873,7 +1871,6 @@ subroutine collimate_start_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -2085,7 +2082,6 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -2911,7 +2907,6 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
   
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3364,7 +3359,6 @@ subroutine collimate_end_sample(j)
   integer fmtHdf, setHdf
 #endif
   
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
   
@@ -3632,7 +3626,6 @@ subroutine collimate_exit()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3795,7 +3788,6 @@ subroutine collimate_start_turn(n)
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -3832,7 +3824,6 @@ subroutine collimate_start_element(i)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3937,7 +3928,6 @@ subroutine collimate_end_element
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -4099,7 +4089,6 @@ subroutine collimate_end_turn
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commonxz
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
