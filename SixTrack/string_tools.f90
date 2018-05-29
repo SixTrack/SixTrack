@@ -295,10 +295,10 @@ subroutine chr_arrAppend(theArray, theString)
     
     do arrElem=1, arrSize
       elemLen = len(theArray(arrElem))
-      tmpArray(arrElem)            = repeat(char(0),maxLen)
+      tmpArray(arrElem)            = repeat(" ",maxLen)
       tmpArray(arrElem)(1:elemLen) = theArray(arrElem)(1:elemLen)
     end do
-    tmpArray(arrSize + 1)          = repeat(char(0),maxLen)
+    tmpArray(arrSize + 1)          = repeat(" ",maxLen)
     tmpArray(arrSize + 1)(1:inLen) = theString(1:inLen)
     
     call move_alloc(tmpArray,theArray)
@@ -404,26 +404,24 @@ end function chr_padSpace
 !  Trim Zero String Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
-!  Cuts the string at first char(0)
+!  Removes zero chars from any length string
 ! ================================================================================================ !
 function chr_trimZero(theString) result(retString)
   
   character(len=*), intent(in)  :: theString
   character(len=:), allocatable :: retString
   
-  integer ch, cut
+  integer ch
+  
+  allocate(character(len=len(theString)) :: retString)
   do ch=1, len(theString)
     if(theString(ch:ch) == char(0)) then
-      cut = ch-1
-      exit
+      retString(ch:ch) = " "
+    else
+      retString(ch:ch) = theString(ch:ch)
     end if
   end do
-  
-  if(cut > 0 .and. cut < len(theString)) then
-    retString = theString(1:cut)
-  else
-    retString = theString
-  end if
+  retString = trim(retString)
   
 end function chr_trimZero
 

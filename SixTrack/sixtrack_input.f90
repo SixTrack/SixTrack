@@ -182,7 +182,7 @@ subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
 end subroutine sixin_echoVal_real64
 
 ! ================================================================================================ !
-!  LINE PARSIN G ROUTINES
+!  LINE PARSING ROUTINES
 ! ================================================================================================ !
 
 ! ================================================================================================ !
@@ -213,7 +213,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
     return
   end if
   
-  elemName = chr_padSpace(chr_trimZero(lnSplit(1)),str_maxName)
+  elemName = chr_padSpace(lnSplit(1),str_maxName)
   if(len(elemName) > str_maxName) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",str_maxName
     iErr = .true.
@@ -344,6 +344,9 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   character(len=str_maxName) ilm0(40)
   
   call chr_split(inLine, lnSplit, nSplit, isCont)
+  ! do i=1,nSplit
+  !   write(lout,"(a,i2,a)") "SPLIT> lnSplit(",i,") = '"//lnSplit(i)//"'"
+  ! end do
   
   if(nSplit < 2 .and. .not. isCont) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
@@ -391,12 +394,12 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   if(isCont) then                             ! This line continues the previous BLOC
     blocName = str_nmSpace                    ! No name returned, set an empty BLOC name
     do i=1,nSplit                             ! All elements are sub-elements. Save to buffer.
-      ilm0(i) = chr_padSpace(chr_trimZero(lnSplit(i)),str_maxName)
+      ilm0(i) = chr_padSpace(lnSplit(i),str_maxName)
     end do
   else                                        ! This is a new BLOC
-    blocName = chr_padSpace(chr_trimZero(lnSplit(1)),str_maxName)
+    blocName = chr_padSpace(lnSplit(1),str_maxName)
     do i=1,nSplit-1                           ! Save the rest to buffer
-      ilm0(i) = chr_padSpace(chr_trimZero(lnSplit(i+1)),str_maxName)
+      ilm0(i) = chr_padSpace(lnSplit(i+1),str_maxName)
     end do
   end if
   
@@ -489,7 +492,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end if
   
   do i=1,nSplit
-    ilm0(i) = chr_padSpace(chr_trimZero(lnSplit(i)),str_maxName)
+    ilm0(i) = chr_padSpace(lnSplit(i),str_maxName)
   end do
   
   do i=1,40
@@ -559,7 +562,7 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
     return
   end if
   
-  elemName = chr_trimZero(lnSplit(1))
+  elemName = trim(lnSplit(1))
   if(len(elemName) > str_maxName) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Displacement of element name too long. Max length is ",str_maxName
     iErr = .true.

@@ -73,7 +73,6 @@ subroutine mod_hions_allocate_arrays
   
   ! Charge multiplicity of the tracked ion
   call alloc(nzz,npart,zz0,'nzz') !(npart)
-  print*, "nzzzzz", nzz(1)
   
   ! SixTrack particle IDs
   call alloc(pids,npart,0,'pids') !(npart)
