@@ -68,31 +68,15 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   use crcoall
   use parpro
+  use parbeam
   use mod_common
   use mod_commont
   use mod_commonmn
   implicit none
 
-!YIL: parpro
-
-!YIL: parbeam
-+ca parbeam
-
-!YIL: collpara
 +ca collpara
-
-!YIL: COMMON
-
-!YIL: COMMONMN
-
-!YIL: INFO
 +ca info
-
-!YIL: DBCOMMON
 +ca dbcommon
-
-
-!YIL: This is leftovers that does not have a cd-block
 
 !YIL need to save, this is input variable
   real(kind=fPrec) myenom
