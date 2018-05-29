@@ -496,16 +496,16 @@ module collimation
   implicit none
 
 !+cd collpara
-  integer, parameter, save :: max_ncoll  = 100
-  integer, parameter, save :: maxn       = 20000
-  integer, parameter, save :: numeff     = 32
-  integer, parameter, save :: numeffdpop = 29
-  integer, parameter, save :: nc         = 32
+  integer, parameter :: max_ncoll  = 100
+  integer, parameter :: maxn       = 20000
+  integer, parameter :: numeff     = 32
+  integer, parameter :: numeffdpop = 29
+  integer, parameter :: nc         = 32
 
 !+cd collMatNum
 !     EQ 2016 added variables for collimator material numbers
-  integer, parameter, save :: nmat  = 14
-  integer, parameter, save :: nrmat = 12
+  integer, parameter :: nmat  = 14
+  integer, parameter :: nrmat = 12
 
 !+cd interac
 !this has MANY conflicts
@@ -528,13 +528,13 @@ module collimation
 
 ! Reference data at pRef=450Gev
 ! pp cross-sections and parameters for energy dependence
-  real(kind=fPrec), parameter, save :: pptref = 0.04d0
-  real(kind=fPrec), parameter, save :: pperef = 0.007d0
-  real(kind=fPrec), parameter, save :: sdcoe  = 0.00068d0
-  real(kind=fPrec), parameter, save :: pref   = 450.0d0
-  real(kind=fPrec), parameter, save :: pptco  = 0.05788d0
-  real(kind=fPrec), parameter, save :: ppeco  = 0.04792d0
-  real(kind=fPrec), parameter, save :: freeco = 1.618d0
+  real(kind=fPrec), parameter :: pptref = 0.04d0
+  real(kind=fPrec), parameter :: pperef = 0.007d0
+  real(kind=fPrec), parameter :: sdcoe  = 0.00068d0
+  real(kind=fPrec), parameter :: pref   = 450.0d0
+  real(kind=fPrec), parameter :: pptco  = 0.05788d0
+  real(kind=fPrec), parameter :: ppeco  = 0.04792d0
+  real(kind=fPrec), parameter :: freeco = 1.618d0
 
 !GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
   real(kind=fPrec), parameter :: anuc(nmat) = &
@@ -598,11 +598,11 @@ module collimation
 
 !October 2013
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  real(kind=fPrec), parameter, save :: exenergy(nmat) = &
+  real(kind=fPrec), parameter :: exenergy(nmat) = &
   [ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9, 78e-9, 78.0e-9, 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9, 0.0, 0.0 ]
 
 ! These are not really used any more, empty spaces filled with zeros
-  real(kind=fPrec), parameter, save :: dpodx(nmat) = &
+  real(kind=fPrec), parameter :: dpodx(nmat) = &
   [ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0, .75d0, 1.5d0, zero, zero ,zero, zero, zero, zero, zero ]
 
 !electron density and plasma energy
@@ -637,8 +637,6 @@ module collimation
   integer, private, save :: coll_hdf5_allAbsorb
   integer, private, save :: coll_hdf5_collScatter
 #endif
-
-  save
 
 contains
 
@@ -675,6 +673,8 @@ subroutine collimate_init()
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -686,12 +686,7 @@ subroutine collimate_init()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -1163,6 +1158,8 @@ subroutine collimate_start_sample(nsample)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -1175,12 +1172,7 @@ subroutine collimate_start_sample(nsample)
   integer fmtHdf
 #endif
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -1872,21 +1864,17 @@ subroutine collimate_start_collimator(stracki)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
 
 +if collimat
@@ -2088,21 +2076,17 @@ subroutine collimate_do_collimator(stracki)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
 
 +if collimat
@@ -2918,6 +2902,8 @@ subroutine collimate_end_collimator()
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -2925,14 +2911,8 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
-+ca commonex
   dimension nbeaux(nbb)
 
 #ifdef COLLIMAT
@@ -3366,6 +3346,8 @@ subroutine collimate_end_sample(j)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use crcoall
 #ifdef ROOT
   use root_output
@@ -3382,12 +3364,7 @@ subroutine collimate_end_sample(j)
   integer fmtHdf, setHdf
 #endif
   
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
   
@@ -3646,19 +3623,16 @@ subroutine collimate_exit()
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3813,17 +3787,15 @@ subroutine collimate_start_turn(n)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -3851,18 +3823,16 @@ subroutine collimate_start_element(i)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -3958,19 +3928,16 @@ subroutine collimate_end_element
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
+  
   implicit none
-
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 
@@ -4118,6 +4085,8 @@ subroutine collimate_end_turn
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use crcoall
 
 +if root
@@ -4126,17 +4095,11 @@ subroutine collimate_end_turn
 
   implicit none
 
-
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca commont1
-+ca commondl
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -4649,10 +4612,9 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
   use crcoall
   use parpro
+  use mod_common, only : iexact
   implicit none
 
-
-+ca commonex
 +ca dbpencil
 +ca info
 +ca dbcollim
@@ -7755,13 +7717,12 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
   use crcoall
   use parpro
+  use mod_commont
+  
   implicit none
-
 
 +ca dbmkdist
 
-! !YIL debug july 2010
-+ca commont1
 
   real(kind=fPrec) pi
 !YIL march2010 edit: was missing enerror, bunchlength etc...

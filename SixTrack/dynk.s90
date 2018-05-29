@@ -2291,9 +2291,8 @@ subroutine dynk_pretrack
 
     use crcoall
     use mod_common
+    use mod_commond
     implicit none
-
-+ca commondl
 
     ! Temp variables
     integer ii,jj
@@ -2444,6 +2443,7 @@ subroutine dynk_apply(turn)
 
     use crcoall
     use mod_common
+    use mod_commont
     use mod_commonmn
     
 +if collimat
@@ -2451,7 +2451,6 @@ subroutine dynk_apply(turn)
 +ei
     implicit none
 
-+ca commontr
 +if boinc
     character(len=256) filename
 +ei
@@ -3010,12 +3009,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
     use crcoall
     use mod_common
+    use mod_commont
     use mod_commonmn
     use elens
     implicit none
-
-+ca commonm1
-+ca commontr
 
     character(maxstrlen_dynk) element_name, att_name
     real(kind=fPrec) newValue
@@ -3239,12 +3236,11 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
     use scatter, only : scatter_ELEM_scale, scatter_elemPointer
     use crcoall
     use mod_common
+    use mod_commont
     use mod_commonmn
     use elens
     implicit none
-
-+ca commontr
-
+    
     character(maxstrlen_dynk) element_name, att_name
     intent(in) element_name, att_name
 

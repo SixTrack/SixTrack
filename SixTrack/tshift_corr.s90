@@ -33,6 +33,7 @@ subroutine coruord
   use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
+  use mod_commond, only : ncor,namp,nmom,coel
   use crcoall
   
   implicit none
@@ -44,7 +45,6 @@ subroutine coruord
   external e04udm,objfun1
   parameter(mcor = 10)
   parameter(ndim2 = 6)
-+ca commondl
 +ca commadha
 +ca commadh1
   dimension a(2,10),cjac(1,1),c(1)
@@ -787,6 +787,7 @@ subroutine coruglo
   use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
+  use mod_commond, only : ncor,dpmax,nmom1,nmom2,weig1,weig2,coel
   use crcoall
   
   implicit none
@@ -799,7 +800,6 @@ subroutine coruglo
   parameter(mcor = 10)
   parameter(ndim2 = 6)
   
-+ca commondl
 +ca commadha
 +ca commadh2
 

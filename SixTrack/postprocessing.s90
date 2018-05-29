@@ -3541,13 +3541,11 @@ end subroutine join
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
-+ca commont1
-+ca commondl
+
 +ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +if cr
 +ca crco
 +ei

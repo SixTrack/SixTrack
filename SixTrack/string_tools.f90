@@ -17,19 +17,24 @@ module string_tools
   
   implicit none
   
-  ! "Standard" string length, +1 for \0
+  ! "Standard" string and name length, +1 for \0
+  integer, parameter :: str_maxName   = 48
   integer, parameter :: str_maxLen    = 161
   integer, parameter :: str_maxFields = 15
   
   ! Dummy empty strings
-  character(len=str_maxLen), parameter :: str_dSpace = repeat(" ",str_maxLen)
-  character(len=str_maxLen), parameter :: str_dZeros = repeat(char(0),str_maxLen)
+  character(len=str_maxLen),  parameter :: str_dSpace  = repeat(" ",str_maxLen)
+  character(len=str_maxLen),  parameter :: str_dZeros  = repeat(char(0),str_maxLen)
+  character(len=str_maxName), parameter :: str_nmSpace = repeat(" ",str_maxName)
+  character(len=str_maxName), parameter :: str_nmZeros = repeat(char(0),str_maxName)
   
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
-  public str_sub
+  public str_sub, chr_expandBrackets
+  public chr_padZero, chr_padSpace
   public str_inStr, chr_inStr
   public str_toReal, chr_toReal
+  public str_toInt, chr_toInt
   
   !
   ! Old stuff added for backwards compatibility
@@ -46,7 +51,7 @@ contains
 ! ================================================================================================ !
 !  String Split Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-14
+!  Last modified: 2018-05-18
 !  Splits a string into an array of strings by one or more space,
 !    but not within a pair of single our double quotes.
 !  Note: Copying data from one string to another string, by slicing the char array, does not work
@@ -61,21 +66,22 @@ subroutine str_split(toSplit, returnArray, nArray)
   integer,                   intent(out) :: nArray
   
   integer ch, newBit
-  logical sngQuote, dblQuote
+  logical sngQ, dblQ
   
-  newBit   = 0
-  nArray   = 0
-  sngQuote = .false.
-  dblQuote = .false.
+  if(allocated(returnArray)) deallocate(returnArray)
+  
+  newBit = 0
+  nArray = 0
+  sngQ   = .false.
+  dblQ   = .false.
   do ch=1, len(toSplit%chr)
-    if(toSplit%chr(ch:ch) == "'") sngQuote = .not. sngQuote
-    if(toSplit%chr(ch:ch) == '"') dblQuote = .not. dblQuote
-    if(toSplit%chr(ch:ch) == " " .and. .not. sngQuote .and. .not. dblQuote) then
+    if(toSplit%chr(ch:ch) == "'") sngQ = .not. sngQ
+    if(toSplit%chr(ch:ch) == '"') dblQ = .not. dblQ
+    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
         call str_arrAppend(returnArray, str_sub(toSplit, newBit, ch-1))
-        ! call str_arrAppend(returnArray, string(toSplit%chr(newBit:ch-1)))
         newBit = 0
         nArray = nArray + 1
       end if
@@ -86,10 +92,131 @@ subroutine str_split(toSplit, returnArray, nArray)
   
 end subroutine str_split
 
+subroutine chr_split(toSplit, returnArray, nArray, isCont)
+  
+  implicit none
+  
+  character(len=*),              intent(in)  :: toSplit
+  character(len=:), allocatable, intent(out) :: returnArray(:)
+  integer,                       intent(out) :: nArray
+  logical,          optional,    intent(out) :: isCont
+  
+  integer ch, newBit
+  logical sngQ, dblQ, allCont
+  character(len=:), allocatable :: tmpSplit
+  
+  if(allocated(returnArray)) deallocate(returnArray)
+  
+  ! Check indentattion:
+  ! A line can be indented up to 4 spaces.
+  ! If the indentation is 5 or more, it is a continuation from the previous line
+  ! and the isCont flag is .true.
+  if(present(isCont)) then
+    isCont = .false.
+    if(len(toSplit) >= 5) then
+      if(toSplit(1:5) == "     ") isCont = .true.
+    end if
+  end if
+  tmpSplit = adjustl(toSplit)
+  
+  newBit = 0
+  nArray = 0
+  sngQ   = .false.
+  dblQ   = .false.
+  do ch=1, len(tmpSplit)
+    if(tmpSplit(ch:ch) == "'") sngQ = .not. sngQ
+    if(tmpSplit(ch:ch) == '"') dblQ = .not. dblQ
+    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
+      if(newBit == 0) then
+        cycle
+      else
+        call chr_arrAppend(returnArray, tmpSplit(newBit:ch-1))
+        newBit = 0
+        nArray = nArray + 1
+      end if
+    else
+      if(newBit == 0) newBit = ch
+    end if
+  end do
+  
+end subroutine chr_split
+
+! ================================================================================================ !
+!  Expand Brackets
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-18
+!  Will return a string with the content of brackets N(something something) repeated N times.
+!  This routine is NOT recursive.
+! ================================================================================================ !
+function chr_expandBrackets(theString) result(theResult)
+  
+  implicit none
+  
+  character(len=*), intent(in)  :: theString
+  character(len=:), allocatable :: theResult, theBuffer
+  
+  integer, allocatable :: bPos(:,:)
+  integer ch, nLB, nRB, nB, tSP, lSP, lLB, iSet, nSet, iPos, iMult
+  
+  ! Count the brackets
+  nLB = 0
+  nRB = 0
+  do ch=1,len(theString)
+    if(theString(ch:ch) == "(") nLB = nLB + 1
+    if(theString(ch:ch) == ")") nRB = nRB + 1
+  end do
+  
+  ! If there are none, then just return
+  if(nLB == 0 .or. nLB /= nRB) then
+    theResult = theString
+    return
+  end if
+  
+  ! Otherwise, Get all the positions for slicing
+  allocate(bPos(3,nLB))
+  theBuffer = " "//theString//" "
+  bPos(:,:) = 0
+  lSP  = 0
+  lLB  = 0
+  iSet = 0
+  do ch=1,len(theBuffer)
+    if(theBuffer(ch:ch) == " ") tSP = ch
+    if(theBuffer(ch:ch) == "(") then
+      lSP = tSP
+      lLB = ch
+    end if
+    if(theBuffer(ch:ch) == ")") then
+      if(lSP > 0 .and. lLB > 0 .and. lLB-lSP > 1 .and. ch-lSP > 2) then
+        iSet = iSet + 1
+        bPos(1,iSet) = lSP
+        bPos(2,iSet) = lLB
+        bPos(3,iSet) = ch
+        lSP = 0
+        lLB = 0
+      end if
+    end if
+  end do
+  nSet = iSet
+  
+  ! Then combine all the pieces
+  iPos      = 1
+  theResult = ""
+  do iSet=1,nSet
+    theResult = theResult//theBuffer(iPos:bPos(1,iSet))
+    iMult     = chr_toInt(theBuffer(bPos(1,iSet)+1:bPos(2,iSet)-1))
+    theResult = theResult//repeat(theBuffer(bPos(2,iSet)+1:bPos(3,iSet)-1)//" ",iMult)
+    iPos      = bPos(3,iSet)+1
+  end do
+  theResult = trim(adjustl(theResult//theBuffer(iPos:)))
+  
+  deallocate(bPos)
+  
+end function chr_expandBrackets
+
 ! ================================================================================================ !
 !  Safe Append to Array
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-14
+!  Last modified: 2018-05-18
 !  Appends a string to a string array.
 ! ================================================================================================ !
 subroutine str_arrAppend(theArray, theString)
@@ -110,7 +237,7 @@ subroutine str_arrAppend(theArray, theString)
     arrSize = size(theArray,1)
     allocate(tmpArray(arrSize + 1), stat=allocErr)
     if(allocErr /= 0) then
-      write(lout,"(a)") "ERROR Allocation of string array failed."
+      write(lout,"(a)") "STRING_TOOLS> ERROR Appending of string array failed."
       stop 1
     end if
     
@@ -125,7 +252,7 @@ subroutine str_arrAppend(theArray, theString)
     
     allocate(theArray(1), stat=allocErr)
     if(allocErr /= 0) then
-      write(lout,"(a)") "ERROR Allocation of string array failed."
+      write(lout,"(a)") "STRING_TOOLS> ERROR Allocation of string array failed."
       stop 1
     end if
     theArray(1) = theString
@@ -133,6 +260,60 @@ subroutine str_arrAppend(theArray, theString)
   end if
   
 end subroutine str_arrAppend
+
+subroutine chr_arrAppend(theArray, theString)
+  
+  use crcoall
+  
+  implicit none
+  
+  character(len=:), allocatable, intent(inout) :: theArray(:)
+  character(len=*),              intent(in)    :: theString
+  
+  character(len=:), allocatable :: tmpArray(:)
+  integer :: allocErr
+  integer :: arrSize, arrElem
+  integer :: inLen, maxLen, elemLen
+  
+  inLen = len(theString)
+  
+  if(allocated(theArray)) then
+    
+    maxLen = inLen
+    do arrElem=1, len(theArray)
+      elemLen = len(theArray(arrElem))
+      if(elemLen > maxLen) maxLen = elemLen
+    end do
+    
+    arrSize = size(theArray,1)
+    allocate(character(len=maxLen) :: tmpArray(arrSize + 1), stat=allocErr)
+    if(allocErr /= 0) then
+      write(lout,"(a)") "STRING_TOOLS> ERROR Appending of string array failed."
+      stop 1
+    end if
+    
+    do arrElem=1, arrSize
+      elemLen = len(theArray(arrElem))
+      tmpArray(arrElem)            = repeat(char(0),maxLen)
+      tmpArray(arrElem)(1:elemLen) = theArray(arrElem)(1:elemLen)
+    end do
+    tmpArray(arrSize + 1)          = repeat(char(0),maxLen)
+    tmpArray(arrSize + 1)(1:inLen) = theString(1:inLen)
+    
+    call move_alloc(tmpArray,theArray)
+    
+  else
+    
+    allocate(character(len=inLen) :: theArray(1), stat=allocErr)
+    if(allocErr /= 0) then
+      write(lout,"(a)") "STRING_TOOLS> ERROR Allocation of character array failed."
+      stop 1
+    end if
+    theArray(1) = theString
+    
+  end if
+  
+end subroutine chr_arrAppend
 
 ! ================================================================================================ !
 !  SubString Routine
@@ -186,6 +367,37 @@ function chr_strip(theString) result(retString)
   character(len=:), allocatable :: retString
   retString = trim(adjustl(theString))
 end function chr_strip
+
+! ================================================================================================ !
+!  Pad String with Zeros or Spaces
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-18
+! ================================================================================================ !
+function chr_padZero(theString, theSize) result(retString)
+  character(len=*), intent(in)  :: theString
+  integer,          intent(in)  :: theSize
+  character(len=:), allocatable :: retString
+  integer                       :: inSize
+  inSize = len(theString)
+  if(inSize > 0 .and. inSize < theSize) then
+    retString = theString(1:inSize)//repeat(char(0),theSize-inSize)
+  else
+    retString = theString
+  end if
+end function chr_padZero
+
+function chr_padSpace(theString, theSize) result(retString)
+  character(len=*), intent(in)  :: theString
+  integer,          intent(in)  :: theSize
+  character(len=:), allocatable :: retString
+  integer                       :: inSize
+  inSize = len(theString)
+  if(inSize > 0 .and. inSize < theSize) then
+    retString = theString(1:inSize)//repeat(" ",theSize-inSize)
+  else
+    retString = theString
+  end if
+end function chr_padSpace
 
 ! ================================================================================================ !
 !  Trim Zero String Routine
@@ -332,26 +544,46 @@ function str_toReal(theString) result(theValue)
   
   implicit none
   
-  type(string), intent(in) :: theString
-  real(kind=fPrec)         :: theValue
+  type(string), intent(in)      :: theString
+  real(kind=fPrec)              :: theValue
+  character(len=:), allocatable :: tmpString
   
-#ifdef CRLIBM
+#if !defined(FIO) && defined(CRLIBM)
   real(kind=fPrec)              :: round_near
   character(len=:), allocatable :: cString
   integer                       :: cLen, cErr
   
-  cLen     = len(theString) + 1
-  cString  = theString%chr//char(0)
-  theValue = round_near(cErr,cLen,cString)
+  tmpString = chr_trimZero(theString%chr)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
-    write (lout,"(a)")    "ERROR Data Input Error"
-    write (lout,"(a)")    "Overfow/Underflow in string_tools->str_toReal"
+    write (lout,"(a)")    "++++++++++++++++++++++++"
+    write (lout,"(a)")    "+    ERROR DETECTED    +"
+    write (lout,"(a)")    "++++++++++++++++++++++++"
+    write (lout,"(a)")    "Data Input Error"
+    write (lout,"(a)")    "Overfow/Underflow in string_tools->chr_toReal"
     write (lout,"(a,i2)") "Errno: ",cErr
-    stop 1
+    stop -1
   end if
-#else
-  read(theString%chr,*) theValue
+#endif
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,round="nearest") theValue
+  call disable_xp()
+#endif
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,round="nearest") theValue
+#endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*) theValue
 #endif
   
 end function str_toReal
@@ -365,17 +597,19 @@ function chr_toReal(theString) result(theValue)
   
   implicit none
   
-  character(len=*), intent(in) :: theString
-  real(kind=fPrec)             :: theValue
+  character(len=*), intent(in)  :: theString
+  real(kind=fPrec)              :: theValue
+  character(len=:), allocatable :: tmpString
   
-#ifdef CRLIBM
+#if !defined(FIO) && defined(CRLIBM)
   real(kind=fPrec)              :: round_near
   character(len=:), allocatable :: cString
   integer                       :: cLen, cErr
   
-  cLen     = len(theString) + 1
-  cString  = theString//char(0)
-  theValue = round_near(cErr,cLen,cString)
+  tmpString = chr_trimZero(theString)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
     write (lout,"(a)")    "++++++++++++++++++++++++"
@@ -386,11 +620,48 @@ function chr_toReal(theString) result(theValue)
     write (lout,"(a,i2)") "Errno: ",cErr
     stop -1
   end if
-#else
-  read(theString,*) theValue
+#endif
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest") theValue
+  call disable_xp()
+#endif
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest") theValue
+#endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*) theValue
 #endif
   
 end function chr_toReal
+
+! ================================================================================================ !
+!  String to Integer
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-18
+! ================================================================================================ !
+
+function str_toInt(theString) result(theValue)
+  type(string), intent(in)      :: theString
+  integer                       :: theValue
+  character(len=:), allocatable :: tmpString
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*) theValue
+end function str_toInt
+
+function chr_toInt(theString) result(theValue)
+  character(len=*), intent(in)  :: theString
+  integer                       :: theValue
+  character(len=:), allocatable :: tmpString
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*) theValue
+end function chr_toInt
 
 ! ================================================================================================ !
 !  HERE FOLLOWS THE OLD ROUTINES
