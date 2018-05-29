@@ -476,7 +476,7 @@
       common/funint/tftot
 
 +dk nwrtcoll
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module collimation
 
   use floatPrecision
@@ -523,7 +523,7 @@ module collimation
 ! Number of real materials are defined in nrmat
 ! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
 
-  character(len=4) :: mname(nmat) = &
+  character(len=4), parameter :: mname(nmat) = &
   [ 'Be  ','Al  ','Cu  ','W   ','Pb  ','C   ','C2  ','MoGR','CuCD', 'Mo  ', 'Glid', 'Iner', 'vacu', 'blac' ]
 
 ! Reference data at pRef=450Gev
@@ -556,10 +556,10 @@ module collimation
 
   real(kind=fPrec), parameter :: tlcut = 0.0009982d0
 
-  real(kind=fPrec) :: cs(0:5,nmat)
+  real(kind=fPrec), save :: cs(0:5,nmat)
 
 ! These will be filled elsewhere in an init subroutine for now
-  real(kind=fPrec) :: csref(0:5,nmat)
+  real(kind=fPrec), save :: csref(0:5,nmat)
 ! All cross-sections are in barns,nuclear values from RPP at 20geV
 ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
 
@@ -605,8 +605,10 @@ module collimation
   real(kind=fPrec), parameter :: dpodx(nmat) = &
   [ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0, .75d0, 1.5d0, zero, zero ,zero, zero, zero, zero, zero ]
 
-!electron density and plasma energy
+!electron density
   real(kind=fPrec), save :: edens(nmat)
+
+!plasma energy
   real(kind=fPrec), save :: pleng(nmat)
 
 !  parameter(fnavo=6.02214129e23_fPrec)
