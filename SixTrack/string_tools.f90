@@ -66,18 +66,16 @@ subroutine str_split(toSplit, returnArray, nArray)
   integer,                   intent(out) :: nArray
   
   integer ch, newBit
-  logical sngQ, dblQ
+  logical dblQ
   
   if(allocated(returnArray)) deallocate(returnArray)
   
   newBit = 0
   nArray = 0
-  sngQ   = .false.
   dblQ   = .false.
   do ch=1, len(toSplit%chr)
-    if(toSplit%chr(ch:ch) == "'") sngQ = .not. sngQ
     if(toSplit%chr(ch:ch) == '"') dblQ = .not. dblQ
-    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
+    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -102,7 +100,7 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   logical,          optional,    intent(out) :: isCont
   
   integer ch, newBit
-  logical sngQ, dblQ, allCont
+  logical dblQ, allCont
   character(len=:), allocatable :: tmpSplit
   
   if(allocated(returnArray)) deallocate(returnArray)
@@ -121,12 +119,10 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   
   newBit = 0
   nArray = 0
-  sngQ   = .false.
   dblQ   = .false.
   do ch=1, len(tmpSplit)
-    if(tmpSplit(ch:ch) == "'") sngQ = .not. sngQ
     if(tmpSplit(ch:ch) == '"') dblQ = .not. dblQ
-    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
+    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -173,7 +169,7 @@ function chr_expandBrackets(theString) result(theResult)
     return
   end if
   
-  ! Otherwise, Get all the positions for slicing
+  ! Otherwise, get all the positions for slicing
   allocate(bPos(3,nLB))
   theBuffer = " "//theString//" "
   bPos(:,:) = 0
@@ -468,7 +464,7 @@ end function chr_inStr
 !  Strip Quotes Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
-!  Removes a matching pair of single or double quotes at the beginning or end of a string
+!  Removes a matching pair of double quotes at the beginning and end of a string
 ! ================================================================================================ !
 function str_stripQuotes(theString) result(retString)
   
@@ -487,9 +483,6 @@ function str_stripQuotes(theString) result(retString)
   end if
   
   if(tmpString%chr(1:1) == '"' .and. tmpString%chr(strLen:strLen) == '"') then
-    retString = str_sub(tmpString,2,strLen-1)
-    return
-  elseif(tmpString%chr(1:1) == "'" .and. tmpString%chr(strLen:strLen) == "'") then
     retString = str_sub(tmpString,2,strLen-1)
     return
   else
@@ -516,9 +509,6 @@ function chr_stripQuotes(theString) result(retString)
   end if
   
   if(tmpString(1:1) == '"' .and. tmpString(strLen:strLen) == '"') then
-    retString = tmpString(2:strLen-1)
-    return
-  elseif(tmpString(1:1) == "'" .and. tmpString(strLen:strLen) == "'") then
     retString = tmpString(2:strLen-1)
     return
   else
