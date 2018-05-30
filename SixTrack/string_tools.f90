@@ -75,7 +75,7 @@ subroutine str_split(toSplit, returnArray, nArray)
   dblQ   = .false.
   do ch=1, len(toSplit%chr)
     if(toSplit%chr(ch:ch) == '"') dblQ = .not. dblQ
-    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. dblQ) then
+    if((toSplit%chr(ch:ch) == char(32) .or. toSplit%chr(ch:ch) == char(9)) .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -122,7 +122,7 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   dblQ   = .false.
   do ch=1, len(tmpSplit)
     if(tmpSplit(ch:ch) == '"') dblQ = .not. dblQ
-    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. dblQ) then
+    if((tmpSplit(ch:ch) == char(32) .or. tmpSplit(ch:ch) == char(9)) .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -278,8 +278,7 @@ subroutine chr_arrAppend(theArray, theString)
     
     maxLen = inLen
     do arrElem=1, len(theArray)
-      elemLen = len(theArray(arrElem))
-      if(elemLen > maxLen) maxLen = elemLen
+      maxLen = max(maxLen,len(theArray(arrElem)))
     end do
     
     arrSize = size(theArray,1)
