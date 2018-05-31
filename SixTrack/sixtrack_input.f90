@@ -230,13 +230,13 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   end do
   
   ! Save Values
-  if(nSplit > 1) call chr_toInt(lnSplit(2),kz(sixin_nSing),iErr)
-  if(nSplit > 2) call chr_toReal(lnSplit(3),ed(sixin_nSing),iErr)
-  if(nSplit > 3) call chr_toReal(lnSplit(4),ek(sixin_nSing),iErr)
-  if(nSplit > 4) call chr_toReal(lnSplit(5),el(sixin_nSing),iErr)
-  if(nSplit > 5) call chr_toReal(lnSplit(6),bbbx(sixin_nSing),iErr)
-  if(nSplit > 6) call chr_toReal(lnSplit(7),bbby(sixin_nSing),iErr)
-  if(nSplit > 7) call chr_toReal(lnSplit(8),bbbs(sixin_nSing),iErr)
+  if(nSplit > 1) call chr_cast(lnSplit(2),kz(sixin_nSing),  iErr)
+  if(nSplit > 2) call chr_cast(lnSplit(3),ed(sixin_nSing),  iErr)
+  if(nSplit > 3) call chr_cast(lnSplit(4),ek(sixin_nSing),  iErr)
+  if(nSplit > 4) call chr_cast(lnSplit(5),el(sixin_nSing),  iErr)
+  if(nSplit > 5) call chr_cast(lnSplit(6),bbbx(sixin_nSing),iErr)
+  if(nSplit > 6) call chr_cast(lnSplit(7),bbby(sixin_nSing),iErr)
+  if(nSplit > 7) call chr_cast(lnSplit(8),bbbs(sixin_nSing),iErr)
   
   if(iErr) return
   
@@ -362,7 +362,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   
   ! If first line, read super period information
   if(iLine == 1) then
-    call chr_toInt(lnSplit(1),mper,iErr)
+    call chr_cast(lnSplit(1),mper,iErr)
     if(mper > nper) then
       write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition number of super periods is too large. Max value is ",nper
       iErr = .true.
@@ -374,7 +374,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
       return
     end if
     do i=1,mper
-      call chr_toInt(lnSplit(i+1),msym(i),iErr)
+      call chr_cast(lnSplit(i+1),msym(i),iErr)
     end do
     if(iErr) return
     
@@ -570,16 +570,16 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   end if
   
   ! Save Values
-  if(nSplit > 1) call chr_toReal(lnSplit(2),xpl0,iErr)
-  if(nSplit > 2) call chr_toReal(lnSplit(3),xrms0,iErr)
-  if(nSplit > 3) call chr_toReal(lnSplit(4),zpl0,iErr)
-  if(nSplit > 4) call chr_toReal(lnSplit(5),zrms0,iErr)
+  if(nSplit > 1) call chr_cast(lnSplit(2),xpl0, iErr)
+  if(nSplit > 2) call chr_cast(lnSplit(3),xrms0,iErr)
+  if(nSplit > 3) call chr_cast(lnSplit(4),zpl0, iErr)
+  if(nSplit > 4) call chr_cast(lnSplit(5),zrms0,iErr)
   if(iErr) return
   
   if(sixin_debug) then
-    call sixin_echoVal("xpl0",xpl0,"DISP",0)
+    call sixin_echoVal("xpl0", xpl0, "DISP",0)
     call sixin_echoVal("xrms0",xrms0,"DISP",0)
-    call sixin_echoVal("zpl0",zpl0,"DISP",0)
+    call sixin_echoVal("zpl0", zpl0, "DISP",0)
     call sixin_echoVal("zrms0",zrms0,"DISP",0)
   end if
   
@@ -643,11 +643,11 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   
   select case(iLine)
   case(1) ! Line One
-    if(nSplit > 0) call chr_toInt(lnSplit(1),itra,iErr)  ! Number of particles
-    if(nSplit > 1) call chr_toReal(lnSplit(2),chi0,iErr) ! Starting phase of the initial coordinate
-    if(nSplit > 2) call chr_toReal(lnSplit(3),chid,iErr) ! Phase difference between particles
-    if(nSplit > 3) call chr_toReal(lnSplit(4),rat,iErr)  ! Emittance ratio
-    if(nSplit > 4) call chr_toInt(lnSplit(5),iver,iErr)  ! Vertical coordinates switch
+    if(nSplit > 0) call chr_cast(lnSplit(1),itra,iErr) ! Number of particles
+    if(nSplit > 1) call chr_cast(lnSplit(2),chi0,iErr) ! Starting phase of the initial coordinate
+    if(nSplit > 2) call chr_cast(lnSplit(3),chid,iErr) ! Phase difference between particles
+    if(nSplit > 3) call chr_cast(lnSplit(4),rat, iErr) ! Emittance ratio
+    if(nSplit > 4) call chr_cast(lnSplit(5),iver,iErr) ! Vertical coordinates switch
     if(sixin_debug) then
       call sixin_echoVal("itra",itra,"INIT",iLine)
       call sixin_echoVal("chi0",chi0,"INIT",iLine)
@@ -668,77 +668,77 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
     end if
     
   case(2)  ! x [mm] coordinate of particle 1
-    call chr_toReal(lnSplit(1),exz(1,1),iErr)
+    call chr_cast(lnSplit(1),exz(1,1),iErr)
     if(sixin_debug) call sixin_echoVal("exz(1,1)",exz(1,1),"INIT",iLine)
     if(iErr) return
     
   case(3)  ! xp [mrad] coordinate of particle 1
-    call chr_toReal(lnSplit(1),exz(1,2),iErr)
+    call chr_cast(lnSplit(1),exz(1,2),iErr)
     if(sixin_debug) call sixin_echoVal("exz(1,2)",exz(1,2),"INIT",iLine)
     if(iErr) return
     
   case(4)  ! y [mm] coordinate of particle 1
-    call chr_toReal(lnSplit(1),exz(1,3),iErr)
+    call chr_cast(lnSplit(1),exz(1,3),iErr)
     if(sixin_debug) call sixin_echoVal("exz(1,3)",exz(1,3),"INIT",iLine)
     if(iErr) return
     
   case(5)  ! yp [mrad] coordinate of particle 1
-    call chr_toReal(lnSplit(1),exz(1,4),iErr)
+    call chr_cast(lnSplit(1),exz(1,4),iErr)
     if(sixin_debug) call sixin_echoVal("exz(1,4)",exz(1,4),"INIT",iLine)
     if(iErr) return
     
   case(6)  ! Path length difference 1(sigma = s−v0*t) [mm] of particle 1
-    call chr_toReal(lnSplit(1),exz(1,5),iErr)
+    call chr_cast(lnSplit(1),exz(1,5),iErr)
     if(sixin_debug) call sixin_echoVal("exz(1,5)",exz(1,5),"INIT",iLine)
     if(iErr) return
     
   case(7)  ! dp/p0 of particle 1
-    call chr_toReal(lnSplit(1),exz(1,6),iErr)
+    call chr_cast(lnSplit(1),exz(1,6),iErr)
     if(sixin_debug) call sixin_echoVal("exz(1,6)",exz(1,6),"INIT",iLine)
     if(iErr) return
     
   case(8)  ! x [mm] coordinate of particle 2
-    call chr_toReal(lnSplit(1),exz(2,1),iErr)
+    call chr_cast(lnSplit(1),exz(2,1),iErr)
     if(sixin_debug) call sixin_echoVal("exz(2,1)",exz(2,1),"INIT",iLine)
     if(iErr) return
     
   case(9)  ! xp [mrad] coordinate of particle 2
-    call chr_toReal(lnSplit(1),exz(2,2),iErr)
+    call chr_cast(lnSplit(1),exz(2,2),iErr)
     if(sixin_debug) call sixin_echoVal("exz(2,2)",exz(2,2),"INIT",iLine)
     if(iErr) return
     
   case(10) ! y [mm] coordinate of particle 2
-    call chr_toReal(lnSplit(1),exz(2,3),iErr)
+    call chr_cast(lnSplit(1),exz(2,3),iErr)
     if(sixin_debug) call sixin_echoVal("exz(2,3)",exz(2,3),"INIT",iLine)
     if(iErr) return
     
   case(11) ! yp [mrad] coordinate of particle 2
-    call chr_toReal(lnSplit(1),exz(2,4),iErr)
+    call chr_cast(lnSplit(1),exz(2,4),iErr)
     if(sixin_debug) call sixin_echoVal("exz(2,4)",exz(2,4),"INIT",iLine)
     if(iErr) return
     
   case(12) ! Path length difference 1(sigma = s−v0*t) [mm] of particle 2
-    call chr_toReal(lnSplit(1),exz(2,5),iErr)
+    call chr_cast(lnSplit(1),exz(2,5),iErr)
     if(sixin_debug) call sixin_echoVal("exz(2,5)",exz(2,5),"INIT",iLine)
     if(iErr) return
     
   case(13) ! dp/p0 of particle 2
-    call chr_toReal(lnSplit(1),exz(2,6),iErr)
+    call chr_cast(lnSplit(1),exz(2,6),iErr)
     if(sixin_debug) call sixin_echoVal("exz(2,6)",exz(2,6),"INIT",iLine)
     if(iErr) return
     
   case(14) ! energy [MeV] of the reference particle
-    call chr_toReal(lnSplit(1),e0,iErr)
+    call chr_cast(lnSplit(1),e0,iErr)
     if(sixin_debug) call sixin_echoVal("e0",e0,"INIT",iLine)
     if(iErr) return
     
   case(15) ! energy [MeV] of particle 1
-    call chr_toReal(lnSplit(1),ej(1),iErr)
+    call chr_cast(lnSplit(1),ej(1),iErr)
     if(sixin_debug) call sixin_echoVal("ej(1)",ej(1),"INIT",iLine)
     if(iErr) return
     
   case(16) ! energy [MeV] of particle 2
-    call chr_toReal(lnSplit(1),ej(2),iErr)
+    call chr_cast(lnSplit(1),ej(2),iErr)
     if(sixin_debug) call sixin_echoVal("ej(2)",ej(2),"INIT",iLine)
     if(iErr) return
     
@@ -780,17 +780,17 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_toInt(lnSplit(1),numl,iErr)     ! Number of turns in the forward direction
-    if(nSplit > 1)  call chr_toInt(lnSplit(2),numlr,iErr)    ! Number of turns in the backward direction
-    if(nSplit > 2)  call chr_toInt(lnSplit(3),napx,iErr)     ! Number of amplitude variations (i.e. particle pairs)
-    if(nSplit > 3)  call chr_toReal(lnSplit(4),amp(1),iErr)  ! End amplitude
-    if(nSplit > 4)  call chr_toReal(lnSplit(5),amp0,iErr)    ! Start amplitude
-    if(nSplit > 5)  call chr_toInt(lnSplit(6),ird,iErr)      ! Ignored
-    if(nSplit > 6)  call chr_toInt(lnSplit(7),imc,iErr)      ! Number of variations of the relative momentum deviation dp/p
-    if(nSplit > 7)  call chr_toInt(lnSplit(8),niu(1),iErr)   ! Unknown
-    if(nSplit > 8)  call chr_toInt(lnSplit(9),niu(2),iErr)   ! Unknown
-    if(nSplit > 9)  call chr_toInt(lnSplit(10),numlcp,iErr)  ! CR: How often to write checkpointing files
-    if(nSplit > 10) call chr_toInt(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
+    if(nSplit > 0)  call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
+    if(nSplit > 1)  call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
+    if(nSplit > 2)  call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
+    if(nSplit > 4)  call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
+    if(nSplit > 5)  call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
+    if(nSplit > 6)  call chr_cast(lnSplit(7), imc,    iErr) ! Number of variations of the relative momentum deviation dp/p
+    if(nSplit > 7)  call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
+    if(nSplit > 8)  call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
+    if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
+    if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
     
     ! Default nnmul to numl
     nnuml = numl
@@ -798,16 +798,16 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(numlcp == 0) numlcp = 1000
     
     if(sixin_debug) then
-      call sixin_echoVal("numl",numl,"TRAC",iLine)
-      call sixin_echoVal("numlr",numlr,"TRAC",iLine)
-      call sixin_echoVal("napx",napx,"TRAC",iLine)
-      call sixin_echoVal("amp(1)",amp(1),"TRAC",iLine)
-      call sixin_echoVal("amp0",amp0,"TRAC",iLine)
-      call sixin_echoVal("ird",ird,"TRAC",iLine)
-      call sixin_echoVal("imc",imc,"TRAC",iLine)
-      call sixin_echoVal("niu(1)",niu(1),"TRAC",iLine)
-      call sixin_echoVal("niu(2)",niu(2),"TRAC",iLine)
-      call sixin_echoVal("numlcp",numlcp,"TRAC",iLine)
+      call sixin_echoVal("numl",   numl,   "TRAC",iLine)
+      call sixin_echoVal("numlr",  numlr,  "TRAC",iLine)
+      call sixin_echoVal("napx",   napx,   "TRAC",iLine)
+      call sixin_echoVal("amp(1)", amp(1), "TRAC",iLine)
+      call sixin_echoVal("amp0",   amp0,   "TRAC",iLine)
+      call sixin_echoVal("ird",    ird,    "TRAC",iLine)
+      call sixin_echoVal("imc",    imc,    "TRAC",iLine)
+      call sixin_echoVal("niu(1)", niu(1), "TRAC",iLine)
+      call sixin_echoVal("niu(2)", niu(2), "TRAC",iLine)
+      call sixin_echoVal("numlcp", numlcp, "TRAC",iLine)
       call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
@@ -818,11 +818,11 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0) call chr_toInt(lnSplit(1),idz(1),iErr) ! Coupling on/off
-    if(nSplit > 1) call chr_toInt(lnSplit(2),idz(2),iErr) ! Coupling on/off
-    if(nSplit > 2) call chr_toInt(lnSplit(3),idfor,iErr)  ! Closed orbit and initial coordinates
-    if(nSplit > 3) call chr_toInt(lnSplit(4),irew,iErr)   ! Disable rewind
-    if(nSplit > 4) call chr_toInt(lnSplit(5),iclo6,iErr)  ! Calculate the 6D closed orbit
+    if(nSplit > 0) call chr_cast(lnSplit(1),idz(1),iErr) ! Coupling on/off
+    if(nSplit > 1) call chr_cast(lnSplit(2),idz(2),iErr) ! Coupling on/off
+    if(nSplit > 2) call chr_cast(lnSplit(3),idfor, iErr) ! Closed orbit and initial coordinates
+    if(nSplit > 3) call chr_cast(lnSplit(4),irew,  iErr) ! Disable rewind
+    if(nSplit > 4) call chr_cast(lnSplit(5),iclo6, iErr) ! Calculate the 6D closed orbit
     if(idz(1) < 0 .or. idz(1) > 1) then
       write(lout,"(a,i0,a)") "PARAM> ERROR TRAC first value (idz(1)) can only be 0 or 1, but ",idz(1)," given."
       iErr = .true.
@@ -852,9 +852,9 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(sixin_debug) then
       call sixin_echoVal("idz(1)",idz(1),"TRAC",iLine)
       call sixin_echoVal("idz(2)",idz(2),"TRAC",iLine)
-      call sixin_echoVal("idfor",idfor,"TRAC",iLine)
-      call sixin_echoVal("irew",irew,"TRAC",iLine)
-      call sixin_echoVal("iclo6",iclo6,"TRAC",iLine)
+      call sixin_echoVal("idfor", idfor, "TRAC",iLine)
+      call sixin_echoVal("irew",  irew,  "TRAC",iLine)
+      call sixin_echoVal("iclo6", iclo6, "TRAC",iLine)
     end if
     if(iErr) return
     
@@ -871,15 +871,15 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0) call chr_toInt(lnSplit(1),nde(1),iErr) ! Number of turns at flat bottom
-    if(nSplit > 1) call chr_toInt(lnSplit(2),nde(2),iErr) ! Number of turns for the energy ramping
-    if(nSplit > 2) call chr_toInt(lnSplit(3),nwr(1),iErr) ! Every nth turn coordinates will be written
-    if(nSplit > 3) call chr_toInt(lnSplit(4),nwr(2),iErr) ! Every nth turn coordinates in the ramping region will be written
-    if(nSplit > 4) call chr_toInt(lnSplit(5),nwr(3),iErr) ! Every nth turn at the flat top a write out of the coordinates
-    if(nSplit > 5) call chr_toInt(lnSplit(6),nwr(4),iErr) ! Every nth turn coordinates are written to unit 6.
-    if(nSplit > 6) call chr_toInt(lnSplit(7),ntwin,iErr)  ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_toInt(lnSplit(8),ibidu,iErr)  ! Switch to create or read binary dump
-    if(nSplit > 8) call chr_toInt(lnSplit(9),iexact,iErr) ! Switch to enable exact solution of the equation of motion
+    if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),iErr) ! Number of turns at flat bottom
+    if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),iErr) ! Number of turns for the energy ramping
+    if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),iErr) ! Every nth turn coordinates will be written
+    if(nSplit > 3) call chr_cast(lnSplit(4),nwr(2),iErr) ! Every nth turn coordinates in the ramping region will be written
+    if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),iErr) ! Every nth turn at the flat top a write out of the coordinates
+    if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),iErr) ! Every nth turn coordinates are written to unit 6.
+    if(nSplit > 6) call chr_cast(lnSplit(7),ntwin, iErr) ! Flag for calculated distance of phase space
+    if(nSplit > 7) call chr_cast(lnSplit(8),ibidu, iErr) ! Switch to create or read binary dump
+    if(nSplit > 8) call chr_cast(lnSplit(9),iexact,iErr) ! Switch to enable exact solution of the equation of motion
     
     if(sixin_debug) then
       call sixin_echoVal("nde(1)",nde(1),"TRAC",iLine)
@@ -888,8 +888,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("nwr(2)",nwr(2),"TRAC",iLine)
       call sixin_echoVal("nwr(3)",nwr(3),"TRAC",iLine)
       call sixin_echoVal("nwr(4)",nwr(4),"TRAC",iLine)
-      call sixin_echoVal("ntwin",ntwin,"TRAC",iLine)
-      call sixin_echoVal("ibidu",ibidu,"TRAC",iLine)
+      call sixin_echoVal("ntwin", ntwin, "TRAC",iLine)
+      call sixin_echoVal("ibidu", ibidu, "TRAC",iLine)
       call sixin_echoVal("iexact",iexact,"TRAC",iLine)
     end if
     if(iErr) return
