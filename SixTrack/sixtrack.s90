@@ -19431,7 +19431,10 @@ end interface
   call daten
   
 #ifdef HDF5
-  if(h5_isActive) call h5_openFile()
+  if(h5_isActive) then
+    call h5_openFile()
+    call h5_writeSimInfo()
+  end if
 #endif
   call aperture_init
 

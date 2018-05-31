@@ -35,6 +35,19 @@ module string_tools
   public str_inStr, chr_inStr
   public str_toReal, chr_toReal
   public str_toInt, chr_toInt
+  public str_toLog, chr_toLog
+  
+  interface str_cast
+    module procedure str_toReal
+    module procedure str_toInt
+    module procedure str_toLog
+  end interface str_cast
+  
+  interface chr_cast
+    module procedure chr_toReal
+    module procedure chr_toInt
+    module procedure chr_toLog
+  end interface chr_cast
   
   !
   ! Old stuff added for backwards compatibility
@@ -66,18 +79,16 @@ subroutine str_split(toSplit, returnArray, nArray)
   integer,                   intent(out) :: nArray
   
   integer ch, newBit
-  logical sngQ, dblQ
+  logical dblQ
   
   if(allocated(returnArray)) deallocate(returnArray)
   
   newBit = 0
   nArray = 0
-  sngQ   = .false.
   dblQ   = .false.
   do ch=1, len(toSplit%chr)
-    if(toSplit%chr(ch:ch) == "'") sngQ = .not. sngQ
     if(toSplit%chr(ch:ch) == '"') dblQ = .not. dblQ
-    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
+    if((toSplit%chr(ch:ch) == char(32) .or. toSplit%chr(ch:ch) == char(9)) .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -102,7 +113,7 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   logical,          optional,    intent(out) :: isCont
   
   integer ch, newBit
-  logical sngQ, dblQ, allCont
+  logical dblQ, allCont
   character(len=:), allocatable :: tmpSplit
   
   if(allocated(returnArray)) deallocate(returnArray)
@@ -121,12 +132,10 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   
   newBit = 0
   nArray = 0
-  sngQ   = .false.
   dblQ   = .false.
   do ch=1, len(tmpSplit)
-    if(tmpSplit(ch:ch) == "'") sngQ = .not. sngQ
     if(tmpSplit(ch:ch) == '"') dblQ = .not. dblQ
-    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
+    if((tmpSplit(ch:ch) == char(32) .or. tmpSplit(ch:ch) == char(9)) .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -173,7 +182,7 @@ function chr_expandBrackets(theString) result(theResult)
     return
   end if
   
-  ! Otherwise, Get all the positions for slicing
+  ! Otherwise, get all the positions for slicing
   allocate(bPos(3,nLB))
   theBuffer = " "//theString//" "
   bPos(:,:) = 0
@@ -282,8 +291,7 @@ subroutine chr_arrAppend(theArray, theString)
     
     maxLen = inLen
     do arrElem=1, len(theArray)
-      elemLen = len(theArray(arrElem))
-      if(elemLen > maxLen) maxLen = elemLen
+      maxLen = max(maxLen,len(theArray(arrElem)))
     end do
     
     arrSize = size(theArray,1)
@@ -468,7 +476,7 @@ end function chr_inStr
 !  Strip Quotes Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14
-!  Removes a matching pair of single or double quotes at the beginning or end of a string
+!  Removes a matching pair of double quotes at the beginning and end of a string
 ! ================================================================================================ !
 function str_stripQuotes(theString) result(retString)
   
@@ -487,9 +495,6 @@ function str_stripQuotes(theString) result(retString)
   end if
   
   if(tmpString%chr(1:1) == '"' .and. tmpString%chr(strLen:strLen) == '"') then
-    retString = str_sub(tmpString,2,strLen-1)
-    return
-  elseif(tmpString%chr(1:1) == "'" .and. tmpString%chr(strLen:strLen) == "'") then
     retString = str_sub(tmpString,2,strLen-1)
     return
   else
@@ -516,9 +521,6 @@ function chr_stripQuotes(theString) result(retString)
   end if
   
   if(tmpString(1:1) == '"' .and. tmpString(strLen:strLen) == '"') then
-    retString = tmpString(2:strLen-1)
-    return
-  elseif(tmpString(1:1) == "'" .and. tmpString(strLen:strLen) == "'") then
     retString = tmpString(2:strLen-1)
     return
   else
@@ -559,9 +561,9 @@ subroutine str_toReal(theString, theValue, rErr)
   theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TOREAL> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TOREAL> Error value: ",cErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
     rErr = .true.
   end if
 #endif
@@ -572,9 +574,9 @@ subroutine str_toReal(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) theValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
     rErr = .true.
   end if
 #endif
@@ -583,9 +585,9 @@ subroutine str_toReal(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
     rErr = .true.
   end if
 #endif
@@ -594,9 +596,9 @@ subroutine str_toReal(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input"
-    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
     rErr = .true.
   end if
 #endif
@@ -628,9 +630,9 @@ subroutine chr_toReal(theString, theValue, rErr)
   theValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TOREAL> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TOREAL> Error value: ",cErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
     rErr = .true.
   end if
 #endif
@@ -641,9 +643,9 @@ subroutine chr_toReal(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) theValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
     rErr = .true.
   end if
 #endif
@@ -652,9 +654,9 @@ subroutine chr_toReal(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,round="nearest",iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
     rErr = .true.
   end if
 #endif
@@ -663,9 +665,9 @@ subroutine chr_toReal(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TOREAL> ERROR Data Input"
-    write (lout,"(a)")    "TOREAL> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TOREAL> iostat value: ",readErr
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
     rErr = .true.
   end if
 #endif
@@ -678,22 +680,99 @@ end subroutine chr_toReal
 !  Last modified: 2018-05-18
 ! ================================================================================================ !
 
-function str_toInt(theString) result(theValue)
-  type(string), intent(in)      :: theString
-  integer                       :: theValue
-  character(len=:), allocatable :: tmpString
+subroutine str_toInt(theString, theValue, rErr)
+  
+  use crcoall
+  
+  type(string),     intent(in)    :: theString
+  integer,          intent(out)   :: theValue
+  logical,          intent(inout) :: rErr
+  
+  character(len=:), allocatable   :: tmpString
+  integer                         :: readErr
+  
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*) theValue
-end function str_toInt
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
+end subroutine str_toInt
 
-subroutine chr_toInt(theString, theValue, iErr)
+subroutine chr_toInt(theString, theValue, rErr)
+  
+  use crcoall
+  
   character(len=*), intent(in)    :: theString
   integer,          intent(out)   :: theValue
-  logical,          intent(inout) :: iErr
+  logical,          intent(inout) :: rErr
+  
   character(len=:), allocatable   :: tmpString
+  integer                         :: readErr
+  
   tmpString = chr_trimZero(theString)
-  read(tmpString,*) theValue
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
 end subroutine chr_toInt
+
+! ================================================================================================ !
+!  String to Logical
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-18
+! ================================================================================================ !
+
+subroutine str_toLog(theString, theValue, rErr)
+  
+  use crcoall
+  
+  type(string),     intent(in)    :: theString
+  logical,          intent(out)   :: theValue
+  logical,          intent(inout) :: rErr
+  
+  character(len=:), allocatable   :: tmpString
+  integer                         :: readErr
+  
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to logical"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
+end subroutine str_toLog
+
+subroutine chr_toLog(theString, theValue, rErr)
+  
+  use crcoall
+  
+  character(len=*), intent(in)    :: theString
+  logical,          intent(out)   :: theValue
+  logical,          intent(inout) :: rErr
+  
+  character(len=:), allocatable   :: tmpString
+  integer                         :: readErr
+  
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to logical"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
+end subroutine chr_toLog
 
 ! ================================================================================================ !
 !  HERE FOLLOWS THE OLD ROUTINES
