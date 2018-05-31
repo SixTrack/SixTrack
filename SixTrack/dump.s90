@@ -93,8 +93,8 @@ subroutine dump_allocate_arrays
   call alloc(dump_fname,str_maxLen,nele,str_dZeros,'dump_fname',-1)
 
 #ifdef CR
-  call alloc(dumpfilepos,nele,0,'dumpfilepos',-1)
-  call alloc(dumpfilepos_cr,nele,0,'dumpfilepos_cr',-1)
+  call alloc(dumpfilepos,nele,-1,'dumpfilepos',-1)
+  call alloc(dumpfilepos_cr,nele,-1,'dumpfilepos_cr',-1)
 #endif
   
 #ifdef HDF5
@@ -119,8 +119,8 @@ subroutine dump_expand_arrays(nele_new)
   call resize(dump_fname,str_maxLen,nele_new,str_dZeros,'dump_fname',-1)
   
 #ifdef CR
-  call resize(dumpfilepos,nele_new,0,'dumpfilepos',-1)
-  call resize(dumpfilepos_cr,nele_new,0,'dumpfilepos_cr',-1)
+  call resize(dumpfilepos,nele_new,-1,'dumpfilepos',-1)
+  call resize(dumpfilepos_cr,nele_new,-1,'dumpfilepos_cr',-1)
 #endif
   
 #ifdef HDF5
