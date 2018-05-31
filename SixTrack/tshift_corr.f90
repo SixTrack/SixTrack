@@ -1,23 +1,36 @@
-+cd commadha
-  integer iamp
-  real x
-  real(kind=fPrec) ham,hama,hamp
-  common/hamil1/ham(0:3),x(10)
-  common/hamil2/hama(0:4),hamp(0:1),iamp
-+cd commadh1
-  integer jeltot,maxa,maxp
-  real(kind=fPrec) hda
-  common/ad1/hda(0:3,3,0:3,0:4000),jeltot,maxa,maxp
-+cd commadh2
-  integer jeltot,nordp,nordm,norda
-  real(kind=fPrec) hda,hdp
-  common/ad2/hda(0:4,5,0:8000),hdp(0:1,5,0:8000),jeltot,nordp,nordm,norda
 
-
-+dk cor_ord
-
-! This needs to be converted to a module whenever the DA version actually works
-! There are a few routines in sixtrack.s90 that can be moved here as well
+! ================================================================================================ !
+!  TUNESHIFT CORRECTIONS MODULE
+!  Used by SixDA (mainda)
+!  Last modified: 2018-06-01
+!  
+!  Moved from main code into module June 2018, by VKBO.
+! ================================================================================================ !
+module tuneshift_corr
+  
+  use floatPrecision
+  
+  implicit none
+  
+  integer,          private, save :: iamp
+  integer,          private, save :: x(10)
+  real(kind=fPrec), private, save :: ham(0:3)
+  real(kind=fPrec), private, save :: hama(0:4)
+  real(kind=fPrec), private, save :: hamp(0:1)
+  
+  integer,          private, save :: jeltot1
+  integer,          private, save :: maxa
+  integer,          private, save :: maxp
+  real(kind=fPrec), private, save :: hda1(0:3,3,0:3,0:4000)
+  
+  integer,          private, save :: jeltot2
+  integer,          private, save :: nordp
+  integer,          private, save :: nordm
+  integer,          private, save :: norda
+  real(kind=fPrec), private, save :: hda2(0:4,5,0:8000)
+  real(kind=fPrec), private, save :: hdp(0:1,5,0:8000)
+  
+contains
 
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
@@ -29,7 +42,6 @@
 !-----------------------------------------------------------------------
 subroutine coruord
   
-  use floatPrecision
   use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
@@ -40,13 +52,11 @@ subroutine coruord
   
   integer i,ifail,istate,iter,iuser,iwork,j,jaord,jbound,jcol,jcomp,jconf,jord,jpord,jrow,jsex,jvar,&
     k,kcol,l,liwork,lwork,mcor,n,nclin,ncnln,nconf,ndim2,nout,nrel,nrowa,nrowj,nrowr
-  real(kind=fPrec) a,bl,bu,c,cjac,clamda,objf,objgrd,r,user,work
+  real a,bl,bu,c,cjac,clamda,objf,objgrd,r,work,user
   real(kind=fPrec) ainv,bmat,chia,chib,cmat,cvec,det,detinv,dvec,pi2in,sex,sgn
-  external e04udm,objfun1
+  external e04udm !,objfun1
   parameter(mcor = 10)
   parameter(ndim2 = 6)
-+ca commadha
-+ca commadh1
   dimension a(2,10),cjac(1,1),c(1)
   dimension r(10,10),bu(20),bl(20),clamda(20),objgrd(10)
   dimension ainv(2,2),bmat(2,10),cmat(2,10),cvec(2),dvec(2)
@@ -62,7 +72,7 @@ subroutine coruord
     do j=1,3
       do k=0,3
         do l=0,4000
-          hda(i,j,k,l)=zero
+          hda1(i,j,k,l)=zero
         end do
       end do
     end do
@@ -75,7 +85,7 @@ subroutine coruord
   nout=26
   call x04abf(1,nout)
   
-  jeltot=ncor
+  jeltot1=ncor
   jaord=namp
   jpord=nmom
   
@@ -85,13 +95,13 @@ subroutine coruord
 
   ! DEFINES THE MATRIX WITH THE LINEAR CONSTRAINTS
   do jrow=1,2
-    do jcol=1,jeltot
-      a(jrow,jcol)=hda(jrow-1,1,1,3**(jcol-1))
+    do jcol=1,jeltot1
+      a(jrow,jcol)=hda1(jrow-1,1,1,3**(jcol-1))
     end do
-    do jcol=1,jeltot-2
+    do jcol=1,jeltot1-2
       bmat(jrow,jcol)=-one*a(jrow,jcol+2)
     end do
-    cvec(jrow)=-one*hda(jrow-1,1,1,0)
+    cvec(jrow)=-one*hda1(jrow-1,1,1,0)
   end do
 
   ! DEFINES THE RELATION BETWEEN THE FIRST TWO SEXTUPOLES AND THE OTHERS
@@ -103,7 +113,7 @@ subroutine coruord
   ainv(2,2)=detinv*a(1,1)
   
   do jrow=1,2
-    do jcol=1,jeltot
+    do jcol=1,jeltot1
       do kcol=1,2
         cmat(jrow,jcol)=cmat(jrow,jcol)+ainv(jrow,kcol) *bmat(kcol,jcol)
       end do
@@ -116,19 +126,19 @@ subroutine coruord
   ! WRITES ON THE EXIT FILE
 130 write(lout,10000)
     write(lout,10010)
-    write(lout,10020) jeltot,jaord,jpord
+    write(lout,10020) jeltot1,jaord,jpord
     write(lout,10030)
     
   nrel=2
-  nconf=jeltot-2
+  nconf=jeltot1-2
   if(jaord.eq.2.or.jpord.eq.3) then
     nrel=0
     nconf=1
   end if
   
   ! DEFINES EXTRA PARAMETERS
-  do jconf=1,jeltot
-    n=jeltot
+  do jconf=1,jeltot1
+    n=jeltot1
     nclin=nrel
     ncnln=0
     nrowa=2
@@ -141,7 +151,7 @@ subroutine coruord
       bl(jbound)=-c1e10
     end do
     do jbound=1,nclin
-      bu(n+jbound)=-hda(jbound-1,1,1,0)
+      bu(n+jbound)=-hda1(jbound-1,1,1,0)
       bl(n+jbound)=bu(n+jbound)
     end do
     do jvar=1,n
@@ -174,7 +184,7 @@ subroutine coruord
       call prror(-1)
     end if
     
-    do jsex=1,jeltot
+    do jsex=1,jeltot1
       sex(jsex)=x(jsex)
       write(lout,10050) coel(jsex),sex(jsex)
     end do
@@ -185,7 +195,7 @@ subroutine coruord
       ! WRITES THE VALUES OF THE HAMILTONIAN
       write(lout,10060) jord
       write(lout,10070)
-      write(lout,10080) hda(1,1,jord,0),hda(0,1,jord,0)
+      write(lout,10080) hda1(1,1,jord,0),hda1(0,1,jord,0)
       write(lout,10090)
       write(lout,10080) ham(1),ham(0)
       write(lout,10100)
@@ -196,13 +206,13 @@ subroutine coruord
       call hamilton1(jord,0)
       ! COMPUTES THE FUNCTION CHI
       if(jord.eq.2) then
-        chib=(pi2in/sqrt(three))*sqrt((((two*hda(0,2,0,0)**2 &
-          +hda(1,2,0,0)**2)+two*hda(2,2,0,0)**2)+hda(0,2,0,0) *hda(1,2,0,0))+hda(1,2,0,0)*hda(2,2,0,0))
+        chib=(pi2in/sqrt(three))*sqrt((((two*hda1(0,2,0,0)**2 &
+          +hda1(1,2,0,0)**2)+two*hda1(2,2,0,0)**2)+hda1(0,2,0,0) *hda1(1,2,0,0))+hda1(1,2,0,0)*hda1(2,2,0,0))
         chia=(pi2in/sqrt(three))*sqrt((((two*ham(0)**2+ham(1)**2)+two *ham(2)**2)+ham(0)*ham(1))+ham(1)*ham(2))
       else if(jord.eq.3) then
-        chib=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*hda(3,3,0,0)**2 +5.d0*hda(2,3,0,0)**2)+5.d0*hda(1,3,0,0)**2)&
-          +27.d0*hda(0,3,0,0)**2)+(9.d0*hda(3,3,0,0))*hda(2,3,0,0))+(9.d0*hda(1,3,0,0))*hda(0,3,0,0))+(6.d0*   &
-          hda(2,3,0,0))*hda(1,3,0,0))+(3.d0*hda(3,3,0,0))*hda(1,3,0,0)) +(3.d0*hda(2,3,0,0))*hda(0,3,0,0))
+        chib=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*hda1(3,3,0,0)**2 +5.d0*hda1(2,3,0,0)**2)+5.d0*hda1(1,3,0,0)**2)&
+          +27.d0*hda1(0,3,0,0)**2)+(9.d0*hda1(3,3,0,0))*hda1(2,3,0,0))+(9.d0*hda1(1,3,0,0))*hda1(0,3,0,0))+(6.d0*   &
+          hda1(2,3,0,0))*hda1(1,3,0,0))+(3.d0*hda1(3,3,0,0))*hda1(1,3,0,0)) +(3.d0*hda1(2,3,0,0))*hda1(0,3,0,0))
         chia=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*ham(3)**2 +5.d0*ham(2)**2)+5.d0*ham(1)**2)+27.d0*ham(0)**2) &
           +(9.d0*ham(3))*ham(2))+(9.d0*ham(1))*ham(0))+(6.d0*ham(2))*ham(1))+(3.d0*ham(3))*ham(1))+(3.d0*ham(2))*ham(0))
       end if
@@ -211,7 +221,7 @@ subroutine coruord
       write(lout,10110) jord
       write(lout,10120)
       do jcomp=0,jord
-        write(lout,10130)jcomp,jord-jcomp,hda(jcomp,jord,0,0),jcomp,jord-jcomp,ham(jcomp)
+        write(lout,10130)jcomp,jord-jcomp,hda1(jcomp,jord,0,0),jcomp,jord-jcomp,ham(jcomp)
       end do
       write(lout,10140) jord-1,chib,jord-1,chia
       write(lout,10100)
@@ -249,7 +259,6 @@ end subroutine coruord
 !-----------------------------------------------------------------------
 subroutine readd1(user,jaord,jpord)
   
-  use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
   use crcoall
@@ -259,12 +268,8 @@ subroutine readd1(user,jaord,jpord)
   integer icont,ind,j,j1,j2,j3,j4,j5,j6,jaord,jcomp,jel,jord,jpord,maxcomp,njx,njx1,njz,njz1,nmax,np,ncoef,nord,point,kointer
   real user
   real(kind=fPrec) cc
-  
-+ca commadha
-+ca commadh1
-
   dimension ind(10),user(500)
-+if crlibm
+#ifdef CRLIBM
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -277,7 +282,7 @@ subroutine readd1(user,jaord,jpord)
   integer errno,nfields,nunit,lineno,nf
   real(kind=fPrec) fround
   data lineno /0/
-+ei
+#endif
 
   save
   
@@ -295,12 +300,11 @@ subroutine readd1(user,jaord,jpord)
   rewind 23
 
   ! Unit 23 is opened with round='nearest' if fio is selected
-+if .not.crlibm
+#ifndef CRLIBM
 10  continue
-  read(23,'(I6,2X,G21.14,I5,4X,18(2I2,1X))',end=30) ncoef,cc,nord,njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot)
+  read(23,'(I6,2X,G21.14,I5,4X,18(2I2,1X))',end=30) ncoef,cc,nord,njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot1)
   read(23,*,end=30) cc
-+ei
-+if crlibm
+#else
 10  continue
   read(23,*,end=30) ch
   ch1(:nchars+3)=ch(:nchars)//' / '
@@ -338,7 +342,7 @@ subroutine readd1(user,jaord,jpord)
     read (fields(8),*) np
     nf=nf-1
   end if
-  do jel=1,jeltot
+  do jel=1,jeltot1
     if (nf.gt.0) then
       read (fields(8+jel),*) ind(jel)
       nf=nf-1
@@ -352,12 +356,12 @@ subroutine readd1(user,jaord,jpord)
     cc=fround(errno,fields,1)
     nf=nf-1
   end if
-+ei
+#endif
 
   ! CODING IND IN BASE 3
   if(njx.eq.njx1.and.njz.eq.njz1.and.(njx+njz).le.maxa.and. np.le.maxp) then
     point=0
-    do j=1,jeltot
+    do j=1,jeltot1
       point=point+ind(j)*3**(j-1)
     end do
     if(point.gt.4000) then
@@ -367,23 +371,23 @@ subroutine readd1(user,jaord,jpord)
     end if
     
     ! DATA PROCESSING
-    hda(njx,njx+njz,np,point)=cc+hda(njx,njx+njz,np,point)
+    hda1(njx,njx+njz,np,point)=cc+hda1(njx,njx+njz,np,point)
   end if
   goto 10
 
   ! DEFINES DATA FOR THE ROUTINE OBJFUN
 30 continue
-  if(jeltot.eq.1) then
+  if(jeltot1.eq.1) then
     do jcomp=0,maxcomp
       icont=0
       do jord=0,2
         j1=jord
         icont=icont+1
         kointer=j1
-        user(jcomp*nmax+icont)=hda(jcomp,jaord+1,jpord,kointer)
+        user(jcomp*nmax+icont)=hda1(jcomp,jaord+1,jpord,kointer)
       end do
     end do
-  else if(jeltot.eq.2) then
+  else if(jeltot1.eq.2) then
     do jcomp=0,maxcomp
       icont=0
       do jord=0,2
@@ -391,11 +395,11 @@ subroutine readd1(user,jaord,jpord)
           j2=jord-j1
           icont=icont+1
           kointer=j1+j2*3
-          user(jcomp*nmax+icont)=hda(jcomp,jaord+1,jpord,kointer)
+          user(jcomp*nmax+icont)=hda1(jcomp,jaord+1,jpord,kointer)
         end do
       end do
     end do
-  else if(jeltot.eq.3) then
+  else if(jeltot1.eq.3) then
     do jcomp=0,maxcomp
       icont=0
       do jord=0,2
@@ -404,12 +408,12 @@ subroutine readd1(user,jaord,jpord)
             j3=jord-j1-j2
             icont=icont+1
             kointer=(j1+j2*3)+j3*3**2
-            user(jcomp*nmax+icont)=hda(jcomp,jaord+1,jpord, kointer)
+            user(jcomp*nmax+icont)=hda1(jcomp,jaord+1,jpord, kointer)
           end do
         end do
       end do
     end do
-  else if(jeltot.eq.4) then
+  else if(jeltot1.eq.4) then
     do jcomp=0,maxcomp
       icont=0
       do jord=0,2
@@ -419,13 +423,13 @@ subroutine readd1(user,jaord,jpord)
               j4=jord-j1-j2-j3
               icont=icont+1
               kointer=((j1+j2*3)+j3*3**2)+j4*3**3
-              user(jcomp*nmax+icont)=hda(jcomp,jaord+1,jpord,kointer)
+              user(jcomp*nmax+icont)=hda1(jcomp,jaord+1,jpord,kointer)
             end do
           end do
         end do
       end do
     end do
-  else if(jeltot.eq.5) then
+  else if(jeltot1.eq.5) then
     do jcomp=0,maxcomp
       icont=0
       do jord=0,2
@@ -436,14 +440,14 @@ subroutine readd1(user,jaord,jpord)
                 j5=jord-j1-j2-j3-j4
                 icont=icont+1
                 kointer=(((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4
-                user(jcomp*nmax+icont)=hda(jcomp,jaord+1, jpord,kointer)
+                user(jcomp*nmax+icont)=hda1(jcomp,jaord+1, jpord,kointer)
               end do
             end do
           end do
         end do
       end do
     end do
-  else if(jeltot.eq.6) then
+  else if(jeltot1.eq.6) then
     do jcomp=0,maxcomp
       icont=0
       do jord=0,2
@@ -455,7 +459,7 @@ subroutine readd1(user,jaord,jpord)
                   j6=jord-j1-j2-j3-j4-j5
                   icont=icont+1
                   kointer=((((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4)+j6*3**5
-                  user(jcomp*nmax+icont)=hda(jcomp,jaord+1, jpord,kointer)
+                  user(jcomp*nmax+icont)=hda1(jcomp,jaord+1, jpord,kointer)
                 end do
               end do
             end do
@@ -476,7 +480,6 @@ end subroutine readd1
 !-----------------------------------------------------------------------
 subroutine hamilton1(ja,jp)
   
-  use floatPrecision
   use numerical_constants
   use mathlib_bouncer
   
@@ -485,8 +488,6 @@ subroutine hamilton1(ja,jp)
   integer j1,j2,j3,j4,j5,j6,ja,jcomp,jel,jord,jp,l,ncoef,kointer
   real(kind=fPrec) tham
   dimension tham(0:3)
-+ca commadha
-+ca commadh1
   save
 
   do jcomp=0,3
@@ -499,13 +500,13 @@ subroutine hamilton1(ja,jp)
     ncoef=1
   end if
 
-  select case (jeltot)
+  select case (jeltot1)
     case (1)
       do jord=0,2
         j1=jord
         kointer=j1
         do l=0,ncoef
-          tham(l)=tham(l)+hda(l,ja,jp,kointer)*(x(1)**j1)
+          tham(l)=tham(l)+hda1(l,ja,jp,kointer)*(x(1)**j1)
         end do
       end do
     
@@ -515,7 +516,7 @@ subroutine hamilton1(ja,jp)
           j2=jord-j1
           kointer=j1+j2*3
           do l=0,ncoef
-            tham(l)=tham(l)+(hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2) !hr04
+            tham(l)=tham(l)+(hda1(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2) !hr04
           end do
         end do
       end do
@@ -527,7 +528,7 @@ subroutine hamilton1(ja,jp)
             j3=jord-j1-j2
             kointer=(j1+j2*3)+j3*3**2 ! hr04
             do l=0,ncoef
-              tham(l)=tham(l)+((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3) ! hr04
+              tham(l)=tham(l)+((hda1(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3) ! hr04
             end do
           end do
         end do
@@ -541,7 +542,7 @@ subroutine hamilton1(ja,jp)
               j4=jord-j1-j2-j3
               kointer=((j1+j2*3)+j3*3**2)+j4*3**3 ! hr04
               do l=0,ncoef
-                tham(l) = tham(l)+(((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
+                tham(l) = tham(l)+(((hda1(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4) ! hr04
               end do
             end do
           end do
@@ -557,7 +558,7 @@ subroutine hamilton1(ja,jp)
                 j5=jord-j1-j2-j3-j4
                 kointer=(((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4 ! hr04
                 do l=0,ncoef
-                  tham(l)=tham(l)+((((hda(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5) ! hr04
+                  tham(l)=tham(l)+((((hda1(l,ja,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5) ! hr04
                 end do
               end do
             end do
@@ -575,7 +576,7 @@ subroutine hamilton1(ja,jp)
                   j6=jord-j1-j2-j3-j4-j5
                   kointer=((((j1+j2*3)+j3*3**2)+j4*3**3)+j5*3**4)+j6*3**5 ! hr04
                   do l=0,ncoef
-                    tham(l)=tham(l)+(((((hda(l,ja,jp,kointer)*&
+                    tham(l)=tham(l)+(((((hda1(l,ja,jp,kointer)*&
                             (x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))*(x(6)**j6) ! hr04
                   end do
                 end do
@@ -601,7 +602,6 @@ end subroutine hamilton1
 !-----------------------------------------------------------------------
 subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
   
-  use floatPrecision
   use mathlib_bouncer
   use numerical_constants
   
@@ -773,7 +773,6 @@ subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
   
 end subroutine objfun1
 
-+dk cor_glo
 !-----------------------------------------------------------------------
 !---- PROGRAM FOR THE TUNESHIFT CORRECTIONS
 !----
@@ -783,7 +782,6 @@ end subroutine objfun1
 !-----------------------------------------------------------------------
 subroutine coruglo
   
-  use floatPrecision
   use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
@@ -796,13 +794,10 @@ subroutine coruglo
       liwork,lwork,mcor,n,nclin,ncnln,ndim2,nout,nrowa,nrowj,nrowr
   real a,bl,bu,c,cjac,clamda,objf,objgrd,r,user,work
   real(kind=fPrec) ainv,bmat,chia,chib,cmat,cvec,delta,detinv,dvec,pi2in,sex,sgn,value
-  external e04udm,objfun2
+  external e04udm !,objfun2
   parameter(mcor = 10)
   parameter(ndim2 = 6)
   
-+ca commadha
-+ca commadh2
-
   dimension a(2,10),cjac(1,1),c(1)
   dimension r(10,10),bu(20),bl(20),clamda(20),objgrd(10)
   dimension ainv(2,2),bmat(2,10),cmat(2,10),cvec(2),dvec(2)
@@ -817,7 +812,7 @@ subroutine coruglo
   do i=0,4
     do j=1,5
       do l=0,8000
-        hda(i,j,l)=zero
+        hda2(i,j,l)=zero
         if(i.le.1) hdp(i,j,l)=zero
       end do
     end do
@@ -829,7 +824,7 @@ subroutine coruglo
   ! SPECIFIES THE I/O UNITS FOR THE NAG ROUTINES
   nout=26
   call x04abf(1,nout)
-  jeltot=ncor
+  jeltot2=ncor
   delta=dpmax
   nordm=nmom1
   nordp=nmom2
@@ -839,10 +834,10 @@ subroutine coruglo
 
   ! DEFINES THE MATRIX WITH THE LINEAR CONSTRAINTS
   do jrow=1,2
-    do jcol=1,jeltot
+    do jcol=1,jeltot2
       a(jrow,jcol)=hdp(jrow-1,1,(nordp+1)**(jcol-1))
     end do
-    do jcol=1,jeltot-2
+    do jcol=1,jeltot2-2
       bmat(jrow,jcol)=-one*a(jrow,jcol+2)
     end do
     cvec(jrow)=-one*hdp(jrow-1,1,0)
@@ -856,7 +851,7 @@ subroutine coruglo
   ainv(2,2)=detinv*a(1,1)
 
   do jrow=1,2
-    do jcol=1,jeltot
+    do jcol=1,jeltot2
       do kcol=1,2
         cmat(jrow,jcol)=cmat(jrow,jcol)+ainv(jrow,kcol) *bmat(kcol,jcol)
       end do
@@ -869,10 +864,10 @@ subroutine coruglo
   ! WRITES ON THE EXIT FILE
   write(lout,10000)
   write(lout,10010)
-  write(lout,10020) jeltot,nordm,nordp,delta,weig1,weig2,value
+  write(lout,10020) jeltot2,nordm,nordp,delta,weig1,weig2,value
   write(lout,10030)
   
-  do jconf=1,jeltot-2
+  do jconf=1,jeltot2-2
     ! INITIALIZATION
     iuser(1)=nordp
     iuser(2)=nordm
@@ -883,7 +878,7 @@ subroutine coruglo
     user(5)=one/(user(4)**(2*nordm+1))
     
     ! DEFINES EXTRA PARAMETERS
-    n=jeltot
+    n=jeltot2
     nclin=2
     ncnln=0
     nrowa=2
@@ -924,7 +919,7 @@ subroutine coruglo
       call prror(-1)
     end if
 
-    do jsex=1,jeltot
+    do jsex=1,jeltot2
       sex(jsex)=x(jsex)
       write(lout,10050) coel(jsex),sex(jsex)
     end do
@@ -950,15 +945,15 @@ subroutine coruglo
 
       ! COMPUTES THE FUNCTION CHI
       if(jord.eq.2) then
-        chib=(pi2in/sqrt(3.d0))*sqrt((((2.d0*hda(0,2,0)**2 +hda(1,2,0)**2)+2.d0*&
-          hda(2,2,0)**2)+hda(0,2,0) *hda(1,2,0))+hda(1,2,0)*hda(2,2,0))
+        chib=(pi2in/sqrt(3.d0))*sqrt((((2.d0*hda2(0,2,0)**2 +hda2(1,2,0)**2)+2.d0*&
+          hda2(2,2,0)**2)+hda2(0,2,0) *hda2(1,2,0))+hda2(1,2,0)*hda2(2,2,0))
         chia=(pi2in/sqrt(3.d0))*sqrt((((2.d0*hama(0)**2+hama(1)**2)+2.d0*hama(2)**2)+hama(0)*hama(1))+hama(1)*hama(2))
       else if(jord.eq.3) then
-        chib=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*hda(3,3,0)**2 +5.d0*hda &
-          (2,3,0)**2)+5.d0*hda(1,3,0)**2)+27.d0*hda(0,3,0)**2)+9.d0*hda    &
-          (3,3,0)*hda(2,3,0))+9.d0*hda(1,3,0)*hda(0,3,0))+6.d0*hda         &
-          (2,3,0)*hda(1,3,0))+3.d0*hda(3,3,0)*hda(1,3,0))+3.d0*hda         &
-          (2,3,0)*hda(0,3,0))
+        chib=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*hda2(3,3,0)**2 +5.d0*hda2 &
+          (2,3,0)**2)+5.d0*hda2(1,3,0)**2)+27.d0*hda2(0,3,0)**2)+9.d0*hda2    &
+          (3,3,0)*hda2(2,3,0))+9.d0*hda2(1,3,0)*hda2(0,3,0))+6.d0*hda2         &
+          (2,3,0)*hda2(1,3,0))+3.d0*hda2(3,3,0)*hda2(1,3,0))+3.d0*hda2         &
+          (2,3,0)*hda2(0,3,0))
         chia=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*hama(3)**2 +5.d0*hama(2)&
           **2)+5.d0*hama(1)**2)+27.d0*hama(0)**2)+9.d0*hama(3)*hama(2))    &
           +9.d0*hama(1)*hama(0))+6.d0*hama(2)*hama(1))+3.d0*hama(3)        &
@@ -969,7 +964,7 @@ subroutine coruglo
       write(lout,10110) jord
       write(lout,10120)
       do jcomp=0,jord
-        write(lout,10130) jcomp, jord-jcomp, hda(jcomp,jord,0), jcomp, jord-jcomp, hama(jcomp)
+        write(lout,10130) jcomp, jord-jcomp, hda2(jcomp,jord,0), jcomp, jord-jcomp, hama(jcomp)
       end do
       write(lout,10140) jord-1,chib,jord-1,chia
       write(lout,10100)
@@ -1011,7 +1006,6 @@ end subroutine coruglo
 !-----------------------------------------------------------------------
 subroutine readd2(user)
   
-  use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
   use crcoall
@@ -1021,13 +1015,9 @@ subroutine readd2(user)
   integer icont,ind,j,j1,j2,j3,j4,j5,j6,jcomp,jel,jord,jp,ncoef,njx,njx1,njz,njz1,nor,np,point,kointer
   real user
   real(kind=fPrec) cc
-  
-+ca commadha
-+ca commadh2
-
   dimension ind(10),user(500)
   
-+if crlibm
+#ifdef CRLIBM
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -1038,19 +1028,18 @@ subroutine readd2(user)
   integer errno,nfields,nunit,lineno,maxf,nf
   real(kind=fPrec) fround
   data lineno /0/
-+ei
+#endif
 
   save
 
   rewind 23
 
   ! Unit 23 is opened round='nearest' if fio is selected
-+if .not.crlibm
+#ifndef CRLIBM
 10 continue
-  read(23,*,end=40) ncoef,cc,nor,njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot)
+  read(23,*,end=40) ncoef,cc,nor,njx,njx1,njz,njz1,np,(ind(jel),jel=1,jeltot2)
   read(23,*,end=40) cc
-+ei
-+if crlibm
+#else
 10 continue
   nunit=23
   read(23,*,end=40) ch
@@ -1089,7 +1078,7 @@ subroutine readd2(user)
     read (fields(8),*) np
     nf=nf-1
   end if
-  do jel=1,jeltot
+  do jel=1,jeltot2
     if (nf.gt.0) then
       read (fields(8+jel),*) ind(jel)
       nf=nf-1
@@ -1103,12 +1092,12 @@ subroutine readd2(user)
     cc=fround(errno,fields,1)
     nf=nf-1
   end if
-+ei
+#endif
 
   ! CODING IND IN BASE NORDP+1
   if(njx.eq.njx1.and.njz.eq.njz1.and.(njx+njz).eq.1.and. np.gt.0.and.np.le.nordp) then
     point=0
-    do j=1,jeltot
+    do j=1,jeltot2
       point=point+ind(j)*(nordp+1)**(j-1)
     end do
     if(point.gt.8000) then
@@ -1121,7 +1110,7 @@ subroutine readd2(user)
   else if(njx.eq.njx1.and.njz.eq.njz1.and.(njx+njz).lt.10.and. np.eq.0) then
     point=0
     norda=njx+njz
-    do j=1,jeltot
+    do j=1,jeltot2
       point=point+ind(j)*(nordp+1)**(j-1)
     end do
     if(point.gt.8000) then
@@ -1130,7 +1119,7 @@ subroutine readd2(user)
     end if
 
     ! DATA PROCESSING
-    hda(njx,njx+njz,point)=cc+hda(njx,njx+njz,point)
+    hda2(njx,njx+njz,point)=cc+hda2(njx,njx+njz,point)
   end if
   
   goto 10
@@ -1138,7 +1127,7 @@ subroutine readd2(user)
   ! DEFINES DATA FOR THE ROUTINE OBJFUN
 40 continue
   icont=5
-  if(jeltot.eq.1) then
+  if(jeltot2.eq.1) then
     do jcomp=0,1
       do jp=nordm,nordp
         do jord=0,jp
@@ -1149,7 +1138,7 @@ subroutine readd2(user)
         end do
       end do
     end do
-  else if(jeltot.eq.2) then
+  else if(jeltot2.eq.2) then
     do jcomp=0,1
       do jp=nordm,nordp
         do jord=0,jp
@@ -1162,7 +1151,7 @@ subroutine readd2(user)
         end do
       end do
     end do
-  else if(jeltot.eq.3) then
+  else if(jeltot2.eq.3) then
     do jcomp=0,1
       do jp=nordm,nordp
         do jord=0,jp
@@ -1177,7 +1166,7 @@ subroutine readd2(user)
         end do
       end do
     end do
-  else if(jeltot.eq.4) then
+  else if(jeltot2.eq.4) then
     do jcomp=0,1
       do jp=nordm,nordp
         do jord=0,jp
@@ -1194,7 +1183,7 @@ subroutine readd2(user)
         end do
       end do
     end do
-  else if(jeltot.eq.5) then
+  else if(jeltot2.eq.5) then
     do jcomp=0,1
       do jp=nordm,nordp
         do jord=0,jp
@@ -1213,7 +1202,7 @@ subroutine readd2(user)
         end do
       end do
     end do
-  else if(jeltot.eq.6) then
+  else if(jeltot2.eq.6) then
     do jcomp=0,1
       do jp=nordm,nordp
         do jord=0,jp
@@ -1247,7 +1236,6 @@ end subroutine readd2
 !-----------------------------------------------------------------------
 subroutine hamilton2(jp)
   
-  use floatPrecision
   use numerical_constants
   use mathlib_bouncer
   
@@ -1256,16 +1244,13 @@ subroutine hamilton2(jp)
   integer j,j1,j2,j3,j4,j5,j6,jel,jord,jp,l,kointer
   real(kind=fPrec) thama,thamp
   
-+ca commadha
-+ca commadh2
-
   dimension thamp(0:1),thama(0:4)
   save
 
   if(iamp.eq.0) then
     thamp(0)=zero
     thamp(1)=zero
-    if(jeltot.eq.1) then
+    if(jeltot2.eq.1) then
       do jord=0,jp
         j1=jord
         kointer=j1
@@ -1273,7 +1258,7 @@ subroutine hamilton2(jp)
           thamp(l)=thamp(l)+hdp(l,jp,kointer)*(x(1)**j1)
         end do
       end do
-    else if(jeltot.eq.2) then
+    else if(jeltot2.eq.2) then
       do jord=0,jp
         do j1=0,jord
           j2=jord-j1
@@ -1283,7 +1268,7 @@ subroutine hamilton2(jp)
           end do
         end do
       end do
-    else if(jeltot.eq.3) then
+    else if(jeltot2.eq.3) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
@@ -1295,7 +1280,7 @@ subroutine hamilton2(jp)
           end do
         end do
       end do
-    else if(jeltot.eq.4) then
+    else if(jeltot2.eq.4) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
@@ -1309,7 +1294,7 @@ subroutine hamilton2(jp)
           end do
         end do
       end do
-    else if(jeltot.eq.5) then
+    else if(jeltot2.eq.5) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
@@ -1325,7 +1310,7 @@ subroutine hamilton2(jp)
           end do
         end do
       end do
-    else if(jeltot.eq.6) then
+    else if(jeltot2.eq.6) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
@@ -1351,37 +1336,37 @@ subroutine hamilton2(jp)
     do j=0,4
       thama(j)=0.d0
     end do
-    if(jeltot.eq.1) then
+    if(jeltot2.eq.1) then
       do jord=0,jp
         j1=jord
         kointer=j1
         do l=0,jp
-          thama(l)=thama(l)+hda(l,jp,kointer)*(x(1)**j1)
+          thama(l)=thama(l)+hda2(l,jp,kointer)*(x(1)**j1)
         end do
       end do
-    else if(jeltot.eq.2) then
+    else if(jeltot2.eq.2) then
       do jord=0,jp
         do j1=0,jord
           j2=jord-j1
           kointer=j1+j2*(nordp+1)
           do l=0,jp
-            thama(l)=thama(l)+hda(l,jp,kointer)*(x(1)**j1)*(x(2)**j2)
+            thama(l)=thama(l)+hda2(l,jp,kointer)*(x(1)**j1)*(x(2)**j2)
           end do
         end do
       end do
-    else if(jeltot.eq.3) then
+    else if(jeltot2.eq.3) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
             j3=jord-j1-j2
             kointer=(j1+j2*(nordp+1))+j3*(nordp+1)**2
             do l=0,jp
-              thama(l)=thama(l)+((hda(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3)
+              thama(l)=thama(l)+((hda2(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3)
             end do
           end do
         end do
       end do
-    else if(jeltot.eq.4) then
+    else if(jeltot2.eq.4) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
@@ -1389,13 +1374,13 @@ subroutine hamilton2(jp)
               j4=jord-j1-j2-j3
               kointer=((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4*(nordp+1)**3
               do l=0,jp
-                thama(l)=thama(l)+(((hda(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)
+                thama(l)=thama(l)+(((hda2(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4)
               end do
             end do
           end do
         end do
       end do
-    else if(jeltot.eq.5) then
+    else if(jeltot2.eq.5) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
@@ -1404,14 +1389,14 @@ subroutine hamilton2(jp)
                 j5=jord-j1-j2-j3-j4
                 kointer=(((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4*(nordp+1)**3)+j5*(nordp+1)**4
                 do l=0,jp
-                  thama(l)=thama(l)+((((hda(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)
+                  thama(l)=thama(l)+((((hda2(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)
                 end do
               end do
             end do
           end do
         end do
       end do
-    else if(jeltot.eq.6) then
+    else if(jeltot2.eq.6) then
       do jord=0,jp
         do j1=0,jord
           do j2=0,jord-j1
@@ -1421,7 +1406,7 @@ subroutine hamilton2(jp)
                   j6=jord-j1-j2-j3-j4-j5
                   kointer=((((j1+j2*(nordp+1))+j3*(nordp+1)**2)+j4*(nordp+1)**3)+j5*(nordp+1)**4)+j6*(nordp+1)**5
                   do l=0,jp
-                    thama(l)=thama(l)+(((((hda(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)
+                    thama(l)=thama(l)+(((((hda2(l,jp,kointer)*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5))*(x(6)**j6)
                   end do
                 end do
               end do
@@ -1445,7 +1430,6 @@ end subroutine hamilton2
 !-----------------------------------------------------------------------
 subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
   
-  use floatPrecision
   use numerical_constants
   use mathlib_bouncer
   
@@ -1631,14 +1615,13 @@ subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
 
 end subroutine objfun2
 
-+dk nagdumy
+#ifndef NAGLIB
 subroutine e04ucf(n,nclin,ncnln,lda,ldcj,ldr,a,bl,bu,confun,objfun,iter,ierroe,c,cjac,clamda,objf,  &
                   objgrd,r,x,iwork,liwork,work,lwork,iuser,user,ifail)
-  use floatPrecision
   implicit none
-  integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe,istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,iuser(*),ifail
-  real(kind=fPrec) a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),c(*),cjac(ldcj,*),clamda(n+nclin+ncnln),objf,&
-    objgrd(n),r(ldr,n),x(n),work(lwork),user(*)
+  integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe(*),istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,iuser(*),ifail,x(n)
+  real a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),c(*),cjac(ldcj,*),clamda(n+nclin+ncnln),objf,&
+    objgrd(n),r(ldr,n),work(lwork),user(*)
   external confun,objfun
   save
   return
@@ -1664,3 +1647,6 @@ subroutine x04abf(n1,n2)
   save
   return
 end subroutine x04abf
+#endif
+
+end module tuneshift_corr

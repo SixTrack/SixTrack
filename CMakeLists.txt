@@ -316,7 +316,7 @@ list(APPEND FORS_F90
 	strings string_tools common_modules mainarrays
 	file_units mod_alloc zipf matrix_inv
 	bouncy_castle plato_seq bdex fma
-	ranecu wire hions elens
+	ranecu wire hions elens tshift_corr
 )
 
 if(DA)
@@ -1331,9 +1331,9 @@ foreach(loop IN LISTS FORS_FREEFORM)
 	if(CERNLIB)
 		ast_masks_deck(plotdumy ${loop})
 	endif()
-	if(NAGLIB)
-		ast_masks_deck(nagdumy ${loop})
-	endif()
+	# if(NAGLIB)
+	# 	ast_masks_deck(nagdumy ${loop})
+	# endif()
 endforeach(loop)
 
 add_custom_target(generate_input)
