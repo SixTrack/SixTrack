@@ -428,11 +428,8 @@ end subroutine h5_initHDF5
 ! ================================================================================================ !
 subroutine h5_openFile()
   
-  character(len=23) timeStamp
-  character(len=8)  cDate
-  character(len=10) cTime
-  integer           accessFlag
-  logical           doesExist
+  integer accessFlag
+  logical doesExist
   
   if(.not. h5_isActive) then
     write(lout,"(a)") "HDF5> ERROR HDF5 file open called, but HDF5 is not active. This is a bug."
@@ -480,13 +477,33 @@ subroutine h5_openFile()
     h5_rootID = h5_fileID
   end if
   
+  h5_isReady = .true.
+  
+end subroutine h5_openFile
+
+! ================================================================================================ !
+!  Write Simulation Info
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-31
+! ================================================================================================ !
+subroutine h5_writeSimInfo()
+  
+  use mod_common, only : napx, numl
+  
+  character(len=23) timeStamp
+  character(len=8)  cDate
+  character(len=10) cTime
+  
+  ! TimeStamp
   call date_and_time(cDate,cTime)
   timeStamp = cDate(1:4)//"-"//cDate(5:6)//"-"//cDate(7:8)//"T"//cTime(1:2)//":"//cTime(3:4)//":"//cTime(5:10)
   call h5_writeAttr(h5_rootID,"TimeStamp",timeStamp)
   
-  h5_isReady = .true.
+  ! Simulation info
+  call h5_writeAttr(h5_rootID,"Particles",napx*2)
+  call h5_writeAttr(h5_rootID,"Turns",numl)
   
-end subroutine h5_openFile
+end subroutine h5_writeSimInfo
 
 ! ================================================================================================ !
 !  HDF5 Finalise
