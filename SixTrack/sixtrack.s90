@@ -20213,6 +20213,7 @@ end interface
     tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
     taus,x11,x13
   integer idummy(6)
+  logical isOpen
   character(len=10) cmonth
   character(len=4) cpto
 #ifdef CR
@@ -20310,6 +20311,8 @@ end interface
  611  continue
 #endif
 !--   Very first get rid of any previous partial output
+      inquire(unit=lout, opened=isOpen)
+      if(isOpen) close(lout)
 #ifdef BOINC
       call boincrf('fort.92',filename)
 #ifdef FIO
