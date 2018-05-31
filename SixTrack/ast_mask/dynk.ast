@@ -1,4 +1,4 @@
-dynk.s90 sixtrack.s90
+dynk.s90 sixtrack.s90 collimation.s90
 dynkn.f
 df cr,crlibm,boinc,fio,collimat,bignpart,hugenpart,bignblz,hugenblz,beamgas,datamods
 e dynk

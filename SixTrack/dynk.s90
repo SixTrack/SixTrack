@@ -2280,15 +2280,18 @@ subroutine dynk_apply(turn)
     use mod_common
     use mod_commont
     use mod_commonmn
-    
+
+#ifdef COLLIMAT    
+    use collimation
+#endif
+
     implicit none
 
-#ifdef BOIN
+#ifdef BOINC
     character(len=256) filename
 #endif
 
 #ifdef COLLIMAT
-+ca collpara
 +ca dbcommon
 #endif
 

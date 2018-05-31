@@ -165,506 +165,6 @@
 +cd commphin
       common/phasecom/ phase(3,npos+1)
       common/invari/ dani(ninv+1)
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!-----                                                                   -----
-!-----    NEW BLOCKS PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
-!-----                                                                   -----
-!-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
-!-----                                                                   -----
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-+cd collpara
-      integer max_ncoll,maxn,numeff,numeffdpop,nc
-      parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
-     &numeffdpop=29)
-+cd database
-!GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
-      logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
-     &dowrite_impact,dowrite_secondary,dowrite_amplitude,radial,        &
-     &systilt_antisymm,dowritetracks,cern,do_nsig,do_mingap
-
-!SEPT2005 for slicing process
-      integer nloop,rnd_seed,c_offsettilt_seed,ibeam,jobnumber,         &
-     &do_thisdis,n_slices,pencil_distr
-
-      real(kind=fPrec) myenom,mynex,mdex,myney,mdey,                    &
-     &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
-     &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-     &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-     &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
-!SEPT2005 add these lines for the slicing procedure
-     &smin_slices,smax_slices,recenter1,recenter2,                      &
-     &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
-     &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-!SEPT2005,OCT2006 added offset
-     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
-     &xbeat,xbeatphase,ybeat,ybeatphase,                                &
-     &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
-     &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
-     &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
-     &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
-     &sigsecut3,sigsecut2,enerror,bunchlength
-
-      character(len=max_name_len) name_sel
-      character(len=80) coll_db
-      character(len=16) castordir
-      character(len=80) filename_dis
-
-      common /grd/ myenom,mynex,mdex,myney,mdey,                        &
-     &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
-     &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-     &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-     &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
-     &smin_slices,smax_slices,recenter1,recenter2,                      &
-     &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
-     &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-     &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
-     &xbeat,xbeatphase,ybeat,ybeatphase,                                &
-     &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
-     &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
-     &c_sysoffset_sec,c_rmserror_gap,nr,                                &
-     &ndr,driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,        &
-     &sigsecut3,sigsecut2,enerror,                                      &
-     &bunchlength,coll_db,name_sel,                                     &
-     &castordir,filename_dis,nloop,rnd_seed,c_offsettilt_seed,          &
-     &ibeam,jobnumber,do_thisdis,n_slices,pencil_distr,                 &
-     &do_coll,                                                          &
-     &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
-     &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
-     &dowritetracks,cern,do_nsig,do_mingap
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbtrthin
-
-      integer   mynp
-      common /mynp/ mynp
-
-!++ Vectors of coordinates
-
-      real(kind=fPrec) mygammax,mygammay
-!
-      character(len=80) dummy
-!
-      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-!      real(kind=fPrec) remitx_dist,remity_dist,
-!     &     remitx_collgap,remity_collgap
-!      common  /remit/ remitx_dist, remity_dist,
-!     &     remitx_collgap,remity_collgap
-!
-
-      real(kind=fPrec) ielem,iclr,grd
-      character(len=160) ch
-      character(len=320) ch1
-      logical flag
-!
-      integer k,np0
-!
-      character(len=160) cmd
-      character(len=160) cmd2
-      character(len=1) ch0
-      character(len=2) ch00
-      character(len=3) ch000
-      character(len=4) ch0000
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbdaten
-
-      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-!      logical cut_input
-!      common /cut/ cut_input
-
-      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-      real(kind=fPrec) remitx_dist,remity_dist,                         &
-     &     remitx_collgap,remity_collgap
-      common  /remit/ remitx_dist, remity_dist,                         &
-     &     remitx_collgap,remity_collgap
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dblinopt
-!
-! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
-!
-      real(kind=fPrec) tbetax(nblz),tbetay(nblz),talphax(nblz),         &
-     &talphay(nblz),torbx(nblz),torbxp(nblz),torby(nblz),torbyp(nblz),  &
-     &tdispx(nblz),tdispy(nblz)
-!
-      common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,       &
-     &torby,torbyp,tdispx,tdispy
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-! Variables for finding the collimator with the smallest gap
-! and defining, stroring the gap rms error
-!
-      character(len=max_name_len) coll_mingap1, coll_mingap2
-      real(kind=fPrec) gap_rms_error(max_ncoll), nsig_err, sig_offset
-      real(kind=fPrec) mingap,gap_h1,gap_h2,gap_h3,gap_h4
-      integer coll_mingap_id
-
-      common /gap_err/ gap_rms_error
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbthin6d
-!
-      integer ios,num_surhit,numbin,ibin,                               &
-     &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
-     &ipart(npart),totalelem,selelem,unitnumber,distnumber,turnnumber,  &
-     &jb,                                                               &
-!MAY2005
-     &flukaname(npart)
-!MAY2005
-!     SR, 29-08-2005: add the required variable for slicing collimators
-      integer jjj, ijk
-!
-      real(kind=fPrec) zbv
-!
-      real(kind=fPrec) c_length    !length in m
-      real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-      real(kind=fPrec) c_aperture  !aperture in m
-      real(kind=fPrec) c_offset    !offset in m
-      real(kind=fPrec) c_tilt(2)   !tilt in radian
-      real(kind=fPrec) cx(npart),cxp(npart),cy(npart),cyp(npart),       &
-     &cp(npart),cs(npart),rcx(npart),rcxp(npart),rcy(npart),rcyp(npart),&
-     &rcp(npart),rcs(npart),rcx0(npart),rcxp0(npart),rcy0(npart),       &
-     &rcyp0(npart),rcp0(npart),enom_gev,betax,betay,xmax,ymax,          &
-     &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-     &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
-     &rxpjco,rypjco,c_rmstilt,                                          &
-     &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
-     &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
-     &nom_aperture,pencil_aperture,xp_pencil(max_ncoll),                &
-     &yp_pencil(max_ncoll),x_pencil0,y_pencil0,sum,sqsum,               &
-     &csum(max_ncoll),csqsum(max_ncoll),average,sigma,sigsecut,nspxd,   &
-     &xndisp,xgrd(npart),xpgrd(npart),ygrd(npart),ypgrd(npart),zpj,     &
-     &pgrd(npart),ejfvgrd(npart),sigmvgrd(npart),rvvgrd(npart),         &
-     &dpsvgrd(npart),oidpsvgrd(npart),dpsv1grd(npart),                  &
-     &dnormx,dnormy,driftx,drifty,                                      &
-     &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
-     &grdpiover2,grdpiover4,grd3piover4
-
-!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-      real(kind=fPrec) x_sl(100),x1_sl(100),x2_sl(100),                 &
-     &     y1_sl(100), y2_sl(100),                                      &
-     &     angle1(100), angle2(100),                                    &
-     &     max_tmp,                                                     &
-     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
-     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
-     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
-     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
-     &     alphax1, alphax2,alphay1,alphay2,minAmpl
-!SEPT2005
-
-      character(len=4) c_material     !material
-
-      common /dbthinc/ cx,cxp,cy,cyp,                                   &
-     &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
-     &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
-     &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
-     &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-     &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
-     &rxpjco,rypjco,c_rmstilt,                                          &
-     &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
-     &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
-     &nom_aperture,pencil_aperture,xp_pencil,                           &
-     &yp_pencil,x_pencil0,y_pencil0,sum,sqsum,                          &
-     &csum,csqsum,average,sigma,sigsecut,nspxd,                         &
-     &xndisp,xgrd,xpgrd,ygrd,ypgrd,zpj,                                 &
-     &pgrd,ejfvgrd,sigmvgrd,rvvgrd,                                     &
-     &dpsvgrd,oidpsvgrd,dpsv1grd,                                       &
-     &dnormx,dnormy,driftx,drifty,                                      &
-     &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
-     &grdpiover2,grdpiover4,grd3piover4,                                &
-     &x_sl,x1_sl,x2_sl,                                                 &
-     &     y1_sl, y2_sl,                                                &
-     &     angle1, angle2,                                              &
-     &     max_tmp,                                                     &
-     &     a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
-     &     Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
-     &     tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
-     &     beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
-     &     alphax1, alphax2,alphay1,alphay2,minAmpl,                    &
-     &ios,num_surhit,numbin,ibin,                                       &
-     &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
-     &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
-     &jb,flukaname,                                                     &
-     &jjj,ijk,zbv,c_length,c_rotation,                                  &
-     &c_aperture,c_offset,c_tilt,c_material
-
-! myran_gauss,rndm5,
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbcolcom
-      logical firstcoll,found,onesided
-      integer rnd_lux,rnd_k1,rnd_k2
-
-      integer myix,myktrack
-
-      real(kind=fPrec) nspx,nspy,mux0,muy0
-      real(kind=fPrec) ax0,ay0,bx0,by0
-      real(kind=fPrec) totals
-
-      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-      logical cut_input
-      common /cut/ cut_input
-
-      real(kind=fPrec) xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),   &
-           xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
-
-      common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,      &
-     &ypineff
-      real(kind=fPrec) mux(nblz),muy(nblz)
-      common /mu/ mux,muy
-
-      common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbcommon
-!
-! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
-!
-      integer ieff,ieffdpop
-!
-      real(kind=fPrec) myemitx0_dist,myemity0_dist,                     &
-     &     myemitx0_collgap,myemity0_collgap,                           &
-     &     myemitx,myalphay,mybetay,myalphax,                           &
-     &     mybetax,rselect
-      common /ralph/ myemitx0_dist,myemity0_dist,                       &
-     &     myemitx0_collgap,myemity0_collgap,                           &
-     &     myalphax,myalphay,mybetax,                                   &
-     &     mybetay,rselect
-
-
-! M. Fiascaris for the collimation team
-! variables for global inefficiencies studies
-! of normalized and off-momentum halo
-! Last modified: July 2016
-
-      real(kind=fPrec) neff(numeff),rsig(numeff)
-      common  /eff/ neff,rsig
-
-      integer counteddpop(npart,numeffdpop)
-      integer counted2d(npart,numeff,numeffdpop)
-      real(kind=fPrec) neffdpop(numeffdpop),dpopbins(numeffdpop)
-      integer npartdpop(numeffdpop)
-      common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
-      real(kind=fPrec) dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
-      common /eff2d/ neff2d
-!
-      integer  nimpact(50)
-      real(kind=fPrec) sumimpact(50),sqsumimpact(50)
-      common  /rimpact/ sumimpact,sqsumimpact,nimpact
-!
-      integer  nampl(nblz)
-      character(len=max_name_len) ename(nblz)
-      real(kind=fPrec) sum_ax(nblz),sqsum_ax(nblz),sum_ay(nblz),sqsum_ay(nblz),sampl(nblz)
-      common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
-!
-      real(kind=fPrec) neffx(numeff),neffy(numeff)
-      common /efficiency/ neffx,neffy
-
-
-      integer secondary(npart),tertiary(npart),other(npart),scatterhit(npart), &
-           part_hit_before_pos(npart), part_hit_before_turn(npart)
-      real(kind=fPrec) part_indiv(npart),part_linteract(npart)
-
-      integer part_hit_pos(npart),part_hit_turn(npart),                 &
-     &     part_abs_pos(npart),part_abs_turn(npart),                    &
-     &     n_tot_absorbed,n_absorbed,                                   &
-     &     part_select(npart),nabs_type(npart)
-      real(kind=fPrec) part_impact(npart)
-      common /stats/ part_impact,                                       &
-     &     part_hit_pos,part_hit_turn,                                  &
-     &     part_hit_before_pos, part_hit_before_turn,                   &
-     &     part_abs_pos,part_abs_turn,                                  &
-     &     nabs_type,part_indiv,                                        &
-     &     part_linteract,secondary,tertiary,other,scatterhit
-      common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
-      common /part_select/ part_select
-!
-!      real(kind=fPrec) x00(maxn),xp00(maxn),y00(maxn),yp00(maxn)
-!      common   /beam00/ x00,xp00,y00,yp00
-!
-      logical firstrun
-      common /firstrun/ firstrun
-!
-      integer nsurvive,nsurvive_end,num_selhit,n_impact
-      common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
-!
-      integer napx00
-      common /napx00/ napx00
-!
-      integer  icoll
-      common  /icoll/  icoll
-!
-!UPGRADE January 2005
-!     INTEGER DB_NCOLL
-      integer db_ncoll
-!
-      character(len=max_name_len) db_name1(max_ncoll),db_name2(max_ncoll)
-      character(len=4) db_material(max_ncoll)
-!APRIL2005
-      real(kind=fPrec) db_nsig(max_ncoll),db_length(max_ncoll),         &
-     &db_offset(max_ncoll),db_rotation(max_ncoll),                      &
-     &db_bx(max_ncoll),db_by(max_ncoll),db_tilt(max_ncoll,2)
-      common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,    &
-     &db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
-!      real(kind=fPrec) db_length(max_ncoll),db_rotation(max_ncoll),     &
-!     &db_offset(max_ncoll),                                             &
-!     &db_bx(max_ncoll),db_by(max_ncoll),db_tilt(max_ncoll,2)
-!      common /colldatabase/ db_length,db_rotation,db_offset,db_bx,db_by,&
-!!     &DB_TILT,DB_NAME1,DB_NAME2,DB_MATERIAL,DB_NCOLL
-!     &db_tilt,db_name1,db_name2,db_material,db_ncoll,db_nabs,db_ntot,   &
-!     &db_startabs
-!APRIL2005
-!
-      integer cn_impact(max_ncoll),cn_absorbed(max_ncoll)
-      real(kind=fPrec) caverage(max_ncoll),csigma(max_ncoll)
-      common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
-!
-      real(kind=fPrec) myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn)
-      common /coord/ myx,myxp,myy,myyp,myp,mys
-!
-      integer counted_r(npart,numeff),counted_x(npart,numeff),          &
-     &counted_y(npart,numeff)
-      common /counting/ counted_r,counted_x,counted_y
-
-      integer   samplenumber
-      character(len=4) smpl
-      character(len=80) pfile
-      common /samplenumber/ pfile,smpl,samplenumber
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbpencil
-!
-! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
-!
-      integer ipencil
-      real(kind=fPrec) xp_pencil0,yp_pencil0,x_pencil(max_ncoll),       &
-     &y_pencil(max_ncoll),pencil_dx(max_ncoll)
-      common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
-      common  /pencil2/ x_pencil, y_pencil
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbcollim
-!     BLOCK DBCOLLIM
-!     This block is common to collimaterhic and collimate2
-!     It is NOT compatible with block DBCOMMON, as some variable names overlap...
-      
-
-      logical onesided,hit
-      integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-      
-      integer lhit_pos(npart),lhit_turn(npart),                         &
-     &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
-     &     name(npart),nabs_type(npart)
-!MAY2005
-      real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
-     &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
-     &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
-     &indiv(npart),lint(npart),                                         &
-     &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
-     &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
-!
-      real(kind=fPrec) c_length    !length in m
-      real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-      real(kind=fPrec) c_aperture  !aperture in m
-      real(kind=fPrec) c_offset    !offset in m
-      real(kind=fPrec) c_tilt(2)   !tilt in radian
-      character(len=4) c_material  !material
-!
-      character(nc) filen,tit
-!
-      real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
-!
-!AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
-!           sheet beam distribution  (smear in x and y)
-!
-      common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,  &
-     &nev
-      common /materia/mat
-      common /phase/x,xp,z,zp,dpop
-      common /nommom/p0
-      common /cjaw1/zlm
-      common /other/mybetax,mybetaz,mymux,mymuz,atdi
-      common /icoll/  icoll
-!
-      data   dx,dxp/.5e-4,20.e-4/                                        !hr09
-!
-!     END BLOCK DBCOLLIM
-+cd collMatNum
-!     EQ 2016 added variables for collimator material numbers
-      integer nmat, nrmat
-      parameter(nmat=14,nrmat=12)
-
-+cd flukavars
-!     RB DM 2014 added variables for FLUKA output
-      real(kind=fPrec) xInt,xpInt,yInt,ypInt,sInt
-      common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
-!
-!
-+cd info
-      integer ie,iturn,nabs_total
-      common  /info/ ie,iturn,nabs_total
-!
-!
-+cd dbmkdist
-!
-!++ Vectors of coordinates
-!
-      integer i,j,mynp,nloop
-      real(kind=fPrec) myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-     &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-     &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-     &xsigmax,ysigmay,myenom,nr,ndr
-!
-!
-      character(len=80)   dummy
-!
-      ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
-      logical cut_input
-      common /cut/ cut_input
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd funint
-      real(kind=fPrec) tftot
-      common/funint/tftot
-+cd interac
-      integer mat,mcurr
-+ca collMatNum
-      real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
-     &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
-     &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
-     &pptco,ppeco,sdcoe,freeco,zatom,exenergy
-!electron density and plasma energy
-      real(kind=fPrec) edens, pleng
-!      parameter(fnavo=6.02214129e23_fPrec)
-      real(kind=fPrec) cgen
-      character(4) mname(nmat)
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-      common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
-      common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
-      common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
-      common/scatu2/xintl(nmat),radl(nmat),mname
-      common/scatpp/pptot,ppel,ppsd
-      common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
-      common/phase/x,xp,z,zp,dpop
-      common/meanexen/exenergy(nmat)
-      common/nommom/p0
-      common/cjaw1/zlm
-      common/cmcs1/zlm1
-      common/materia/mat
-      common/sindif/xpsd,zpsd,psd
-      common/cdpodx/dpodx
-      common/cions/edens(nmat),pleng(nmat)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -7912,7 +7412,11 @@ subroutine daten
   
   use elens
   use wire
-  
+
++if collimat
+  use collimation
++ei
+ 
   implicit none
   
   integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,idi,iexnum,iexread,    &
@@ -7971,7 +7475,6 @@ subroutine daten
   data lineno35 /0/
   
 #ifdef COLLIMAT
-+ca collpara
 +ca dbdaten
 +ca dbpencil
 +ca database
@@ -9085,7 +8588,11 @@ subroutine daten
         write(lout,*) 'pmap: ', pmap
         write(lout,*)
       endif
-      if(pma.lt.pieni) call prror(27)
+      if(pma.lt.pieni) then 
+        write(lout,*) 'pma: ', pma
+        write(lout,*) 'pieni: ', pieni
+        call prror(27)
+      end if
       !nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
@@ -21514,7 +21021,6 @@ subroutine trauthin(nthinerr)
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -22654,7 +22160,6 @@ subroutine thin6d(nthinerr)
 +ca beamdim
 
 +if collimat
-+ca collpara
 +ca dbcommon
 +ca dbthin6d
 +ca database
@@ -29795,6 +29300,11 @@ subroutine linopt(dpp)
 +if root
   use root_output
 +ei
+
+#ifdef COLLIMAT
+      use collimation
+#endif
+
 #ifdef HDF5
   use hdf5_output
   use hdf5_linopt
@@ -29806,13 +29316,13 @@ subroutine linopt(dpp)
   real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,ci,cikve,clo0,clop0,cr,crkve, &
     crkveuk,di00,dip00,dphi,dpp,dpp1,dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,pie,puf,qu,qv,qw,qwc,r0,&
     r0a,t,xl,xs,zl,zs,quz,qvz
+
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
   character(len=max_name_len) idum
   
 +if collimat
-+ca collpara
 +ca dblinopt
 +ei
   
@@ -30793,6 +30303,11 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
   use iso_c_binding, only: C_NULL_CHAR
   use root_output
 +ei
+
+#ifdef COLLIMAT
+      use collimation
+#endif
+
 #ifdef HDF5
   use hdf5_output
   use hdf5_linopt
@@ -30805,10 +30320,10 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
   character(len=max_name_len) typ
   ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
   logical isBLOC
+
   dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
   dimension d(2),dp(2),c(2),cp(2)
 +if collimat
-+ca collpara
 +ca dblinopt
   integer ielem
 +ei
@@ -38719,12 +38234,9 @@ subroutine crpoint
 +if .not.debug
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
 +ei
-        write(93,*)                                                     &
-     &'SIXTRACR CRPOINT CALLED numlmax=',numlmax,' numlcp=',numlcp
-        write(93,*)                                                     &
-     &'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
-        write(93,*)                                                     &
-     &'SIXTRACR CRPOINT CALLED binrec/sixrec ',binrec,sixrecs
+        write(93,*) 'SIXTRACR CRPOINT CALLED numlmax=',numlmax,' numlcp=',numlcp
+        write(93,*) 'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
+        write(93,*) 'SIXTRACR CRPOINT CALLED binrec/sixrec ',binrec,sixrecs
         endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
 +if .not.debug
@@ -38771,8 +38283,7 @@ subroutine crpoint
 +if .not.debug
         if (ncalls.le.5.or.numx.ge.numl) then
 +ei
-          write(93,*)                                                   &
-     &'SIXTRACR CRPOINT copied lout=',lout,'sixrecs=',sixrecs
+          write(93,*) 'SIXTRACR CRPOINT copied lout=',lout,'sixrecs=',sixrecs
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
 +if .not.debug
@@ -38952,8 +38463,7 @@ subroutine crpoint
 +if .not.debug
           if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
-            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-     & ' for THICK to fort.95'
+            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars for THICK to fort.95'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
