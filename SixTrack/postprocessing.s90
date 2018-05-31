@@ -33,25 +33,23 @@ subroutine postpr(posi,nnuml)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use matrix_inv
       use crcoall
       use parpro
       use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
            dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
            ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
            kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi, &
-           hmal
+           hmal,nnumxv,chromc,tlim,trtime
 +if root
       use root_output
 +ei
       implicit none
 
-+ca common2
-+ca commonc
 +ca commphin
 +if cr
 +ca crco
 +ei
-+ca commonxz
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
@@ -3541,13 +3539,10 @@ end subroutine join
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
+
 +if cr
 +ca crco
 +ei
@@ -3780,4 +3775,304 @@ end subroutine join
       return
       end subroutine writebin
 
-    end module postprocessing
+! These routines have been moved from sixtrack.s90 because they are only
+! use here. VKBO 2018-05-25
+subroutine lfitwd(x,y,w,l,key,a,b,e)
+!-----------------------------------------------------------------------
+!
+!     TO PERFORM A WEIGHTED STRAIGHT LINE FIT
+!
+!     FOR FORMULAE USED SEE MENZEL, FORMULAS OF PHYSICS P.116
+!
+!     FIT IS OF Y=AX+B , WITH S**2 ESTIMATOR E. WEIGHTS ARE IN W.
+!     IF KEY=0, POINTS WITH Y=0 ARE IGNORED
+!     L IS NO. OF POINTS
+!
+!-----------------------------------------------------------------------
+!Eric made DOUBLE PRECISION
+  use floatPrecision
+  use mathlib_bouncer
+  implicit none
+  integer icnt,j,key,l
+  real(kind=fPrec) a,b,e,x,y,w
+  real(kind=fPrec) w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
+  dimension x(l),y(l),w(l)                                           !hr07
+  save
+!-----------------------------------------------------------------------
+!
+!     CALCULATE SUMS
+!
+!-----------------------------------------------------------------------
+  if(l.le.1) goto 1
+  w2=0.
+  w2x=0.
+  w2y=0.
+  w2xy=0.
+  w2x2=0.
+  w2y2=0.
+  icnt=0
+  do 2 j=1,l
+  if(y(j).eq.0..and.key.eq.0) goto 2
+  ww=w(j)**2                                                         !hr07
+  w2=ww+w2
+  wwf=ww*x(j)
+  w2x=wwf+w2x
+  w2x2=wwf*x(j)+w2x2
+  w2xy=wwf*y(j)+w2xy
+  wwfi=ww*y(j)
+  w2y=wwfi+w2y
+  w2y2=wwfi*y(j)+w2y2
+  icnt=icnt+1
+2 continue
+!
+!     FIT PARAMETERS
+  a=(w2xy-(w2x*w2y)/w2)/(w2x2-w2x**2/w2)
+  b=(w2y-a*w2x)/w2
+  if(icnt.le.2) goto 3
+!Eric
+  e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &!hr07
+  &real(icnt-2,fPrec)
+  goto 4
+!
+!     ISUFFICIENT POINTS
+1 a=0.
+  b=0.
+3 e=0.
+4 return
+end subroutine lfitwd
+
+subroutine lfitd(x,y,l,key,a,b,e)
+!-----------------------------------------------------------------------
+!
+!     TO FIT A STRAIGHT LINE    Y=A*X+B    TO L POINTS WITH ERROR E
+!     SEE MENZEL , FORMULAS OF PHYSICS P.116
+!     POINTS WITH Y=0 ARE IGNOERD IF KEY=0
+!     L IS NO. OF POINTS
+!
+!-----------------------------------------------------------------------
+!Eric made DOUBLE PRECISION
+  use floatPrecision
+  use mathlib_bouncer
+  implicit none
+  integer j,key,l
+  real(kind=fPrec) a,b,count,e,scartx,scarty
+  real(kind=fPrec) sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
+  dimension x(l),y(l)                                                !hr07
+  save
+!-----------------------------------------------------------------------
+!
+!     CALCULATE SUMS
+!
+!-----------------------------------------------------------------------
+  if(l-2.lt.0) goto 25
+  if(l-2.ge.0) goto 1
+1 count=0.0
+  sumx=0.0
+  sumy=0.0
+  sumxy=0.0
+  sumxx=0.0
+  sumyy=0.0
+  do 10 j=1,l
+  if(y(j).eq.0..and.key.eq.0) goto 10
+  sumx=sumx+x(j)
+  sumy=sumy+y(j)
+  count=count+1.0
+10 continue
+  if(count.le.1.) goto 25
+  ymed=sumy/count
+  xmed=sumx/count
+  do 20 j=1,l
+  if(y(j).eq.0..and.key.eq.0) goto 20
+  scartx=x(j)-xmed
+  scarty=y(j)-ymed
+  sumxy=sumxy+scartx   *scarty
+  sumxx=sumxx+scartx   *scartx
+  sumyy=sumyy+scarty   *scarty
+20 continue
+!
+!     FIT PARAMETERS
+  if(sumxx.eq.0.) goto 25
+  a=sumxy/sumxx
+  b=ymed-a*xmed
+  if(count.lt.3.) goto 101
+  e=(sumyy-sumxy*a          )/(count-2.0)
+  goto 100
+!
+!     ISUFFICIENT POINTS
+25 a=0.0
+  b=0.0
+101 e=0.0
+100 return
+end subroutine lfitd
+
+end module postprocessing
+
++dk plotdumy
+subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
+  use floatPrecision
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1,i2,i3
+  real r1,r2,r3,r4,r5
+  character c1
+  save
+  return
+end subroutine hbook2
+
+subroutine hdelet(i1)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  save
+  return
+end subroutine hdelet
+
+subroutine hlimit(i1)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  save
+  return
+end subroutine hlimit
+
+subroutine hplax(c1,c2)
+  implicit none
+  integer lout
+  common /crflags/lout
+  character c1,c2
+  save
+  return
+end subroutine hplax
+
+subroutine hplcap(i1)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  save
+  return
+end subroutine hplcap
+
+subroutine hplend()
+  implicit none
+  integer lout
+  common /crflags/lout
+  save
+  return
+end subroutine hplend
+
+subroutine hplint(i1)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  save
+  return
+end subroutine hplint
+
+subroutine hplopt(c1,i1)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  character c1
+  save
+  return
+end subroutine hplopt
+
+subroutine hplot(i1,c1,c2,i2)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1,i2
+  character c1,c2
+  save
+  return
+end subroutine hplot
+
+subroutine hplset(c1,r1)
+  use floatPrecision
+  implicit none
+  integer lout
+  common /crflags/lout
+  real r1
+  character c1
+  save
+  return
+end subroutine hplset
+
+subroutine hplsiz(r1,r2,c1)
+  use floatPrecision
+  implicit none
+  integer lout
+  common /crflags/lout
+  real r1,r2
+  character c1
+  save
+  return
+end subroutine hplsiz
+
+subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
+  use floatPrecision
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  real r1,r2,r3,r4,r5
+  character c1
+  save
+  return
+end subroutine hplsof
+
+subroutine htitle(c1)
+  use floatPrecision
+  implicit none
+  integer lout
+  common /crflags/lout
+  character c1
+  save
+  return
+end subroutine htitle
+
+subroutine ipl(i1,r1,r2)
+  use floatPrecision
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  real r1(*),r2(*)
+  save
+  return
+end subroutine ipl
+
+subroutine ipm(i1,r1,r2)
+  use floatPrecision
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  real r1,r2
+  save
+  return
+end subroutine ipm
+
+subroutine iselnt(i1)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1
+  save
+  return
+end subroutine iselnt
+
+subroutine igmeta(i1,i2)
+  implicit none
+  integer lout
+  common /crflags/lout
+  integer i1,i2
+  save
+  return
+end subroutine igmeta

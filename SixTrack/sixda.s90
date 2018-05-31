@@ -30,6 +30,8 @@ program mainda
   use parpro_scale
   use mod_common
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   implicit none
   
@@ -37,18 +39,11 @@ program mainda
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,e0f,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,&
     gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,&
-+if rvet
-    rvet,&
-+ei
+! +if rvet
+!     rvet,&
+! +ei
     tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
   
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonc
-
   character(len=10) cmonth
   character(len=80) day,runtim
   character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
@@ -543,3 +538,425 @@ program mainda
 10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,'RELATIVE MOMENTUM DEVIATION')
 
 end program mainda
+
++dk daliesix
+subroutine daliesix
+  
+  use floatPrecision
+  use end_sixtrack
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_commond
+  
+  implicit none
+  
+  integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
+  real tlim,time0,time1,time
+  real(kind=fPrec) angle,coe,rad,x2pi
+  dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
+  dimension rot(6),xy(6),df(6)
+  dimension angle(3),rad(3)
++ca commonas
+  
+  save
+  
+  tlim=1e7
+  call timest(tlim)
+  time0=0.
+  call timex(time0)
+  
+  ! Initialization
+  x2pi=atan_mb(one)*eight
+  coe=(-one*two)/x2pi
+  no=nordf
+  if(nord1.gt.no) nord1=no
+  ndim=nvar2/2
+  if(nvarf/2.lt.ndim) ndim=nvarf/2
+  if(ndim.eq.0) call prror(94)
+  nv=nvarf
+  nd2=2*ndim
+  ndpt=idptr
+  nis=0
+  mfile=18
+  mf1=21
+  mf2=22
+  mf3=23
+  mf4=24
+  mf5=25
+  call idprset(-102)
+  call lieinit(no,nv,ndim,ndpt,0,nis)
+  call etall(damap,nd2)
+  call etall(xy,nd2)
+  call etall(bb1,1)
+  call etall(bb2,1)
+  call etall(haux,1)
+  call etallnom(a1,nd2,'A1        ')
+  call etallnom(a1i,nd2,'A1I       ')
+  call etallnom(a2,nd2,'A2        ')
+  call etallnom(a2i,nd2,'A2I       ')
+  call etallnom(f,1,'F         ')
+  call etallnom(fc,1,'FC        ')
+  call etallnom(fs,1,'FS        ')
+  call etallnom(rot,nd2,'ROT       ')
+  call etallnom(h,1,'H         ')
+  call etallnom(h4,1,'H4        ')
+  call etallnom(hc,1,'HC        ')
+  call etallnom(hs,1,'HS        ')
+  call etallnom(df,nd2,'DF        ')
+  rewind mfile
+  rewind 111
+  rewind mf1
+  rewind mf2
+  rewind mf3
+  rewind mf4
+  rewind mf5
+  call daread(damap,nd2,mfile,zero)
+  
+  ! Normal Form Analysis
+  call mapnorm(damap,f,a2,a1,xy,h,nord1)
+  call dainv(a1,nv,a1i,nv)
+  call dainv(a2,nv,a2i,nv)
+  call ctor(f,fc,fs)
+  call gettura(angle,rad)
+  call taked(xy,1,rot)
+  call take(h,2,haux)
+  call dasub(h,haux,h4)
+  call ctor(h,hc,hs)
+  call dhdj(h,df)
+  
+  ! Printing
+  call daprid(a1i,1,nd2,mf1)
+  call daprid(a2i,1,nd2,mf1)
+  call dapri(f,mf1)
+  call daprid(rot,1,nd2,mf1)
+  call dapri(h4,mf1)
+  call dapri(f,mf1)
+  call daprid(a2,1,nd2,mf1)
+  call daprid(a1,1,nd2,mf1)
+  call dapri(h,mf2)
+  call dapri(hc,mf2)
+  call dapri(hs,mf2)
+  call dapri(fc,mf2)
+  call dapri(fs,mf2)
+  call daprimax(hc,mf3)
+  call daprid(df,ndim+1,nd2,mf4)
+  call daprid(df,1,ndim,mf5)
+  write(lout,10060)
+  if(imod1.eq.0) then
+    write(lout,10020) nordf
+  else
+    write(lout,10010) nordf
+  endif
+  write(lout,10025) nord1
+  if(imod2.eq.0) then
+    write(lout,10040) nvarf
+  else
+    write(lout,10030) nvarf
+  endif
+  write(lout,10050)
+  angle(3)=angle(3)*(-one)
+  write(lout,*) (angle(i),i=1,ndim)
+  
+  ! Clean-Up
+  call dadal(damap,nd2)
+  call dadal(a1,nd2)
+  call dadal(a1i,nd2)
+  call dadal(a2,nd2)
+  call dadal(a2i,nd2)
+  call dadal(f,1)
+  call dadal(fc,1)
+  call dadal(fs,1)
+  call dadal(rot,nd2)
+  call dadal(xy,nd2)
+  call dadal(h,1)
+  call dadal(h4,1)
+  call dadal(hc,1)
+  call dadal(hs,1)
+  call dadal(df,nd2)
+  call dadal(bb1,1)
+  call dadal(bb2,1)
+  call dadal(haux,1)
+  time1=0.
+  call timex(time1)
+  time = time1-time0
+  write(lout,10000) no,time
+  
+  return
+  
+10000 format(/10x,'DA-CALCULATION OF ORDER : ',i7,' TAKES ', f12.3,' SECONDS OF CPU TIME'//131('-')//)
+10010 format(t10,'THE ORDER IS GREATER THAN THE ONE SPECIFIED IN THE'/t10,'DIFFERENTIAL ALGEBRA BLOCK.'// t10,'NEW ORDER---> ',i3)
+10020 format(t10,'ORDER FOR THE NORMAL FORM CALCULATIONS---> ',i3/)
+10025 format(/t10,'CLOSED ORBIT ORDER OF THE NORMAL FORM ---> ',i3/)
+10030 format(t10,'THE NUMBER OF VARIABLES IS GREATER THAN THE ONE SPECIFIED IN THE'/ &
+             t10,'DIFFERENTIAL ALGEBRA BLOCK.'// t10,'NEW NUMBER OF VARIABLES---> ',i3/)
+10040 format(t10,'NUMBER OF VARIABLES FOR THE NORMAL FORM CALCULATIONS---> ',i3//)
+10050 format(t10,'LINEAR TUNES USED IN THE NORMAL FORM CALCULATIONS:'//)
+10060 format(//131('-')//t10,20('O')/t10,2('O'),16x,2('O')/t10,'OO  NORMAL FORMS  OO', /&
+             t10,2('O'),16x,2('O')/t10,20('O')//130('-')//)
+
+end subroutine daliesix
+  
++dk mydainf
+!-----------------------------------------------------------------------
+!  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
+!-----------------------------------------------------------------------
+subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
+  
+  use floatPrecision
+  use end_sixtrack
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_commond
+  use mod_common, only : iqmodc,ichromc,ilinc
+  
+  implicit none
+  
+  integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
+  real(kind=fPrec) am
++ca commonas
+  dimension am(6,6),idummy(6)
+  save
+  
+  if(nndim.lt.2.or.nndim.gt.3) call prror(95)
+  
+  nordo=nord
+  nvaro=nvar
+  ndimfo=ndimf
+  nvar2o=nvar2
+  nord1o=nord1
+  
+  nord=nnord
+  nvar=nnvar
+  ndimf=nndim
+  nvar2=nnvar2
+  nord1=nnord1
+  
+  ndpt=0
+  nis=0
+  
+  call daeps(preda)
+  call idprset(-102)
+  call lieinit(nord,nvar,ndimf,ndpt,0,nis)
+  write(lout,10000) nord,nvar,nndim
+  call daall(iscrda,100,'$$IS      ',nord,nvar)
+  
+  ! closed orbit
+  if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
+  
+  ! tune variation
+  if(ncase.eq.2) call umlauda
+  rewind 18
+  rewind 111
+  
+  ! main map calculation
+  if(ncase.eq.3) call runda
+  
+  ! %*6 map calculation
+  if(ncase.eq.4) call runcav
+  iqmodc=0
+  ichromc=0
+  ilinc=0
+  call dadal(iscrda,100)
+  
+  nord=nordo
+  nvar=nvaro
+  nvar2=nvar2o
+  ndimf=ndimfo
+  nord1=nord1o
+  
+  return
+10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
+end subroutine mydaini
+
++dk runcav
+!-----------------------------------------------------------------------
+!               DIFFERENTIAL ALGEBRA FOR CAVITY
+!                          AUGUST 1994
+!-----------------------------------------------------------------------
+subroutine runcav
+  
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn, only : e0f
+  use mod_commons
+  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_commond
+  use mod_hions
+  
+  implicit none
+  
+  integer idaa
+  real(kind=fPrec) betr0,dare,sigmdac
++ca commond1
+  save
+!-----------------------------------------------------------------------
++ca daini
+!FOX  1 if(1.eq.1) then
+!-----------------------------------------------------------------------
+  call comt_daStart
+  betr0=sqrt(one-(nucm0/e0)**2)
+  write(lout,*) ' REENTERING MAP '
+  call davar(x(1),zero,1)
+  call davar(yp(1),zero,2)
+  call davar(x(2),zero,3)
+  call davar(yp(2),zero,4)
+  call davar(deltas,zero,5)
+  call davar(dpda1,zero,6)
+  call darea(x(1),18)
+  call darea(yp(1),18)
+  call darea(x(2),18)
+  call darea(yp(2),18)
+  call darea(deltas,18)
+  call darea(dpda1,18)
+  rewind 18
+!Eric
+    rewind 111
+  if(ition.ne.0) then
+  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
+!FOX  EJF0=EJF1 ;
+    if(abs(dppoff).gt.pieni) then
+      sigmdac=sigmoff(iicav)
+!FOX  DELTAS=DELTAS-SIGMDAC ;
+
+    endif
+    call synoda
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+
+  endif
+  if(nvar2.ge.1) call dapri(x(1),18)
+  if(nvar2.ge.2) call dapri(yp(1),18)
+  if(nvar2.ge.3) call dapri(x(2),18)
+  if(nvar2.ge.4) call dapri(yp(2),18)
+  if(nvar2.eq.5) call dapri(dpda1,18)
+  if(nvar2.eq.6) call dapri(deltas,18)
+  if(nvar2.eq.6) call dapri(dpda1,18)
+  
+  write(lout,*) 'END COORDINATES'
+  write(lout,*) dare(x(1)),dare(y(1))
+  write(lout,*) dare(x(2)),dare(y(2))
+  write(lout,*) dare(sigmda),dare(dpda)
+  
+  write(12,'(E22.15)') dare(x(1))
+  write(12,'(E22.15)') dare(y(1))
+  write(12,'(E22.15)') dare(x(2))
+  write(12,'(E22.15)') dare(y(2))
+  write(12,'(E22.15)') dare(sigmda)
+  write(12,'(E22.15)') dare(dpda)
+  
+  write(lout,10010)
+!-----------------------------------------------------------------------
+!     DADAL AUTOMATIC INCLUSION
+  time2=0.
+  call timex(time2)
+!     time=time2-time1
+  write(lout,10020) time1-time0
+  write(lout,10030) nord,time2-time1
+  call comt_daEnd
+  return
+10000 format(/t10,'TRACKING ENDED ABNORMALLY'&
+             /t10,'PARTICLE NO. ',i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4&
+             /t10,'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3&
+             /t10,'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3&
+             /t10,'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
+10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30('*')/)
+10020 format(/10x,'The Preparating Calculations took',f12.3,' second(s) of Computing Time')
+10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,' second(s) of CPU Time'//131('-')//)
+end subroutine runcav
+
++dk umschr
+!-----------------------------------------------------------------------
+!           UMSCHR    DIFFERENTIAL ALGEBRA 5 -> 6
+!                          AUGUST 1994
+!-----------------------------------------------------------------------
+subroutine umschr(iu1,iu2)
+  
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  
+  implicit none
+  
+  integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
+  real(kind=fPrec) c,c1
+  character(len=80) aaa
+  character(len=18) a18
+  character(len=58) a58
+  dimension jj(100)
+  save
+  
+  do i=1,100
+    jj(i)=0
+  enddo
+  do j=1,6
+    iplus=0
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    read(iu1,'(A18,I4,A58)') a18,nno,a58
+    write(iu2,'(A18,I4,A58)') a18,nno,a58
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    
+    if(nno.eq.1) then
+      do i=1,5
+        read(iu1,'(6X,2X,G21.14,I5)') c,ii
+        write(iu2,'(6X,2X,G21.14,I5)') c,ii
+      end do
+      if (j.eq.5) then
+        write(iu2,'(6X,2X,G21.14,I5)') one,5
+      else
+        write(iu2,'(6X,2X,G21.14,I5)') zero,5
+      endif
+      read(iu1,'(6X,2X,G21.14,I5)') c,ii
+      write(iu2,'(6X,2X,G21.14,I5)') c,ii+1
+      read(iu1,'(6X,2X,G21.14,I5)') c,ii
+      if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
+    else
+20     read(iu1,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
+      if(ii.eq.0) then
+        if(j.eq.5.and.ioo.lt.2) then
+          write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iio+1,one,1, 0,0,0,0,1,0
+          write(iu2,*) one
+        endif
+        goto 30
+      endif
+      ioo=io
+      iio=ii
+      read(iu1,*) c1
+      if(j.eq.5.and.(io.eq.2.or.jj(5).eq.1).and.iplus.eq.0) then
+        iplus=1
+        write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,one,io,0,0,0,0,1,0
+        write(iu2,*) one
+      endif
+      write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj(i),i=1,4),0,jj(5)
+      write(iu2,*) c1
+      goto 20
+    endif
+30   write(iu2,*)
+  end do
+  rewind iu1
+  rewind iu2
+  return
+  
+end subroutine umschr
+
+  

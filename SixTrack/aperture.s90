@@ -18,6 +18,8 @@ module aperture
   use crcoall
   use mod_common
   use mod_commons
+  use mod_commont
+  use mod_commond
 
   use mod_hions
   use mod_alloc
@@ -559,13 +561,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! logical isnan
   logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 #ifdef BNLELENS
 +ca rhicelens
 #endif
@@ -1302,8 +1297,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
   implicit none
 
-+ca commontr
-
 ! interface variables
   integer itElUp, itElDw
   logical lInsUp
@@ -1387,7 +1380,6 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
   implicit none
 
-+ca commontr
 +ca dbdcum
 ! interface variables
   integer iEl
@@ -1681,7 +1673,6 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 !-----------------------------------------------------------------------
   implicit none
 
-+ca commontr
 +ca dbdcum
 
 ! interface variables
@@ -1725,7 +1716,6 @@ subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 !-----------------------------------------------------------------------
   implicit none
 
-+ca commontr
 +ca dbdcum
 
 ! interface variables
@@ -1759,7 +1749,6 @@ subroutine dump_aperture_model
 !-----------------------------------------------------------------------
   implicit none
 
-+ca commontr
 +ca dbdcum
 
 ! temporary variables
@@ -1829,7 +1818,6 @@ end subroutine dump_aperture_model
 subroutine dumpMe
   implicit none
 
-+ca commontr
 +ca dbdcum
 
 ! temporary variables
@@ -1907,7 +1895,6 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 !-----------------------------------------------------------------------
   implicit none
 
-+ca commontr
 +ca dbdcum
 
 ! interface variables
@@ -2430,13 +2417,16 @@ subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk
 end subroutine intersectTR
 
 subroutine compactArrays(llostp)
-
+  
+#ifdef FLUKA
+  use mod_fluka
+#endif
+  
   implicit none
 
   integer j,jj,jj1,ib2,ib3,lnapx
   logical llostp(npart)
 
-+ca commontr
 
     ! Compact array
     if (.not.apflag) then
@@ -2468,9 +2458,9 @@ subroutine compactArrays(llostp)
               omoidpsv(jj)=omoidpsv(jj1)
 ! ph: hisix
 
-+if rvet
-              rvet(jj)=rvet(jj1)
-+ei
+! +if rvet
+!               rvet(jj)=rvet(jj1)
+! +ei
               oidpsv(jj)=oidpsv(jj1)
               dpsv1(jj)=dpsv1(jj1)
               clo6v(1,jj)=clo6v(1,jj1)

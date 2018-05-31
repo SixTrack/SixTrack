@@ -125,9 +125,9 @@ OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction s
 
 OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
-OPTION(32BITM "Floats are 32bit (single precision)" OFF)
-OPTION(64BITM "Floats are 64bit (double precision)" ON)
-OPTION(128BITM "Floats are 128bit (quad precision)" OFF)
+OPTION(P32BITM "Floats are 32bit (single precision)" OFF)
+OPTION(P64BITM "Floats are 64bit (double precision)" ON)
+OPTION(P128BITM "Floats are 128bit (quad precision)" OFF)
 
 OPTION(ROUND_NEAR "Always round to the nearest number after floating point operations" ON)
 OPTION(ROUND_UP "Always round up after floating point operations" OFF)
@@ -277,13 +277,13 @@ if(64BIT)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_64bit")
 endif()
 
-if(32BITM)
+if(P32BITM)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_single")
 endif()
-if(64BITM)
+if(P64BITM)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_double")
 endif()
-if(128BITM)
+if(P128BITM)
 	SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_quad")
 endif()
 
@@ -297,18 +297,32 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST DA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
-# LIST(APPEND PREPRO_FLAGS_PREC 32BITM 64BITM 128BITM)
+LIST(APPEND PREPRO_FLAGS_PREC P32BITM P64BITM P128BITM)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
 ###################################################################################################
 
+list(APPEND FORS_FREEFORM
+	end_sixtrack close
+	scatter dynk
+	lielib dabnew
+	postprocessing dump
+	aperture
+)
+
+list(APPEND FORS_F90
+	core_tools constants sixtrack_input
+	strings string_tools common_modules mainarrays
+	file_units mod_alloc zipf matrix_inv
+	bouncy_castle plato_seq bdex fma
+	ranecu wire hions elens
+)
+
 if(DA)
-	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision lielib dabnew fma physical_constants postprocessing sixsc sixda sixscfox dump mainarrays parpro_scale bdex aperture elens hions)
-	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf bouncy_castle plato_seq ranecu wire)
+	list(APPEND FORS_FREEFORM sixsc sixda sixscfox)
 else()
-	list(APPEND FORS_FREEFORM end_sixtrack close scatter dynk floatprecision lielib dabnews fma physical_constants postprocessing track sixve sixvefox dump mainarrays parpro_scale bdex aperture elens hions)
-	list(APPEND FORS_F90 core_tools strings string_tools file_units mod_alloc zipf bouncy_castle plato_seq ranecu wire)
+	list(APPEND FORS_FREEFORM track sixve sixvefox)
 endif()
 
 if(COLLIMAT)
@@ -324,7 +338,7 @@ if(BEAMGAS)
 endif(BEAMGAS)
 
 if(FLUKA)
-	LIST(APPEND FORS_FREEFORM fluka)
+	LIST(APPEND FORS_F90 fluka)
 endif(FLUKA)
 
 if(ROOT)
@@ -612,38 +626,38 @@ if(AVX2)
 	endif(NOT AVX)
 endif(AVX2)
 
-if(32BITM)
-	if(64BITM)
+if(P32BITM)
+	if(P64BITM)
 		message(FATAL_ERROR "Cannot use both single and double precision math.")
-	endif(64BITM)
-	if(128BITM)
+	endif(P64BITM)
+	if(P128BITM)
 		message(FATAL_ERROR "Cannot use both single and quad precision math.")
-	endif(128BITM)
+	endif(P128BITM)
 	if(FLUKA)
 		message(FATAL_ERROR "Cannot use FLUKA with single precision math.")
 	endif(FLUKA)
-endif(32BITM)
+endif(P32BITM)
 
-if(64BITM)
-	if(32BITM)
+if(P64BITM)
+	if(P32BITM)
 		message(FATAL_ERROR "Cannot use both double and single precision math.")
-	endif(32BITM)
-	if(128BITM)
+	endif(P32BITM)
+	if(P128BITM)
 		message(FATAL_ERROR "Cannot use both double and quad precision math.")
-	endif(128BITM)
-endif(64BITM)
+	endif(P128BITM)
+endif(P64BITM)
 
-if(128BITM)
-	if(32BITM)
+if(P128BITM)
+	if(P32BITM)
 		message(FATAL_ERROR "Cannot use both quad and single precision math.")
-	endif(32BITM)
-	if(64BITM)
+	endif(P32BITM)
+	if(P64BITM)
 		message(FATAL_ERROR "Cannot use both quad and double precision math.")
-	endif(64BITM)
+	endif(P64BITM)
 	if(FLUKA)
 		message(FATAL_ERROR "Cannot use FLUKA with quad precision math.")
 	endif(FLUKA)
-endif(128BITM)
+endif(P128BITM)
 
 ###################################################################################################
 # Settings for compiler build flags
@@ -1282,15 +1296,15 @@ foreach(loop IN LISTS FORS_FREEFORM)
 		ast_masks_flag(fluka ${loop})
 	endif(NOT FLUKA)
 
-	if(NOT 32BITM)
-		ast_masks_flag(32bitm ${loop})
-	endif(NOT 32BITM)
-	if(NOT 64BITM)
-		ast_masks_flag(64bitm ${loop})
-	endif(NOT 64BITM)
-	if(NOT 128BITM)
-		ast_masks_flag(128bitm ${loop})
-	endif(NOT 128BITM)
+	if(NOT P32BITM)
+		ast_masks_flag(P32BITM ${loop})
+	endif(NOT P32BITM)
+	if(NOT P64BITM)
+		ast_masks_flag(P64BITM ${loop})
+	endif(NOT P64BITM)
+	if(NOT P128BITM)
+		ast_masks_flag(P128BITM ${loop})
+	endif(NOT P128BITM)
 
 	if(NOT ROOT)
 		ast_masks_flag(root ${loop})

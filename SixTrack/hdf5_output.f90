@@ -168,6 +168,19 @@ module hdf5_output
     module procedure h5_writeBuffer_char
   end interface h5_writeBuffer
   
+  interface h5_writeAttr
+    module procedure h5_writeAttr_char
+    module procedure h5_writeAttr_char_arr
+    module procedure h5_writeAttr_int
+    module procedure h5_writeAttr_int_arr
+    module procedure h5_writeAttr_real32
+    module procedure h5_writeAttr_real32_arr
+    module procedure h5_writeAttr_real64
+    module procedure h5_writeAttr_real64_arr
+    module procedure h5_writeAttr_real128
+    module procedure h5_writeAttr_real128_arr
+  end interface h5_writeAttr
+  
   private :: h5_writeArray_real32
   private :: h5_writeValue_real32
   private :: h5_writeArray_real64
@@ -182,6 +195,17 @@ module hdf5_output
   private :: h5_writeBuffer_real
   private :: h5_writeBuffer_int
   private :: h5_writeBuffer_char
+  
+  private :: h5_writeAttr_char
+  private :: h5_writeAttr_char_arr
+  private :: h5_writeAttr_int
+  private :: h5_writeAttr_int_arr
+  private :: h5_writeAttr_real32
+  private :: h5_writeAttr_real32_arr
+  private :: h5_writeAttr_real64
+  private :: h5_writeAttr_real64_arr
+  private :: h5_writeAttr_real128
+  private :: h5_writeAttr_real128_arr
   
 contains
 
@@ -458,6 +482,30 @@ subroutine h5_openFile()
 end subroutine h5_openFile
 
 ! ================================================================================================ !
+!  Write Simulation Info
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-31
+! ================================================================================================ !
+subroutine h5_writeSimInfo()
+  
+  use mod_common, only : napx, numl
+  
+  character(len=23) timeStamp
+  character(len=8)  cDate
+  character(len=10) cTime
+  
+  ! TimeStamp
+  call date_and_time(cDate,cTime)
+  timeStamp = cDate(1:4)//"-"//cDate(5:6)//"-"//cDate(7:8)//"T"//cTime(1:2)//":"//cTime(3:4)//":"//cTime(5:10)
+  call h5_writeAttr(h5_rootID,"TimeStamp",timeStamp)
+  
+  ! Simulation info
+  call h5_writeAttr(h5_rootID,"Particles",napx*2)
+  call h5_writeAttr(h5_rootID,"Turns",numl)
+  
+end subroutine h5_writeSimInfo
+
+! ================================================================================================ !
 !  HDF5 Finalise
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
@@ -490,10 +538,13 @@ subroutine h5_closeHDF5()
   end do
   
   ! Close groups, if opened
-  if(h5_rootID /= 0) call h5gclose_f(h5_rootID, h5_fileError)
+  if(h5_aperID /= 0) call h5gclose_f(h5_aperID, h5_fileError)
   if(h5_collID /= 0) call h5gclose_f(h5_collID, h5_fileError)
   if(h5_dumpID /= 0) call h5gclose_f(h5_dumpID, h5_fileError)
   if(h5_scatID /= 0) call h5gclose_f(h5_scatID, h5_fileError)
+  if(h5_rootID /= h5_fileID) then
+    if(h5_rootID /= 0) call h5gclose_f(h5_rootID, h5_fileError)
+  end if
   
   ! This closes the file
   call h5fclose_f(h5_fileID, h5_fileError)
@@ -805,7 +856,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   setID = h5_setCount + h5_setOff
   
 end subroutine h5_createDataSet
-  
+
 ! ================================================================================================ !
 !  Create DataSet
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -1432,6 +1483,307 @@ end subroutine h5_writeValue_char
 ! ================================================================================================ !
 !  END WRITING TO DATASETS
 ! ================================================================================================ !
+
+! ================================================================================================ !
+!  Write Attribute
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-29
+! ================================================================================================ !
+
+! Real 32bit Attributes
+subroutine h5_writeAttr_real32(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),    intent(in)  :: attrTarget
+  character(len=*),  intent(in)  :: attrName
+  real(kind=real32), intent(in)  :: attrValue
+  real(kind=real32), allocatable :: arrSaveS(:)
+  real(kind=real64), allocatable :: arrSaveD(:)
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = 1
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  if(h5_useDouble) then
+    allocate(arrSaveD(1))
+    arrSaveD(:) = real(attrValue, kind=real64)
+    call h5tcopy_f(H5T_NATIVE_DOUBLE, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveD, attrDim, h5_dataError)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(1))
+    arrSaveS(:) = real(attrValue, kind=real32)
+    call h5tcopy_f(H5T_NATIVE_REAL, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveS, attrDim, h5_dataError)
+    deallocate(arrSaveS)
+  end if
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_real32
+
+subroutine h5_writeAttr_real32_arr(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),    intent(in)  :: attrTarget
+  character(len=*),  intent(in)  :: attrName
+  real(kind=real32), intent(in)  :: attrValue(:)
+  real(kind=real32), allocatable :: arrSaveS(:)
+  real(kind=real64), allocatable :: arrSaveD(:)
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = size(attrValue,1)
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  if(h5_useDouble) then
+    allocate(arrSaveD(size(attrValue,1)))
+    arrSaveD(:) = real(attrValue, kind=real64)
+    call h5tcopy_f(H5T_NATIVE_DOUBLE, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveD, attrDim, h5_dataError)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(size(attrValue,1)))
+    arrSaveS(:) = real(attrValue, kind=real32)
+    call h5tcopy_f(H5T_NATIVE_REAL, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveS, attrDim, h5_dataError)
+    deallocate(arrSaveS)
+  end if
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_real32_arr
+
+! Real 64bit Attributes
+subroutine h5_writeAttr_real64(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),    intent(in)  :: attrTarget
+  character(len=*),  intent(in)  :: attrName
+  real(kind=real64), intent(in)  :: attrValue
+  real(kind=real32), allocatable :: arrSaveS(:)
+  real(kind=real64), allocatable :: arrSaveD(:)
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = 1
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  if(h5_useDouble) then
+    allocate(arrSaveD(1))
+    arrSaveD(:) = real(attrValue, kind=real64)
+    call h5tcopy_f(H5T_NATIVE_DOUBLE, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveD, attrDim, h5_dataError)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(1))
+    arrSaveS(:) = real(attrValue, kind=real32)
+    call h5tcopy_f(H5T_NATIVE_REAL, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveS, attrDim, h5_dataError)
+    deallocate(arrSaveS)
+  end if
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_real64
+
+subroutine h5_writeAttr_real64_arr(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),    intent(in)  :: attrTarget
+  character(len=*),  intent(in)  :: attrName
+  real(kind=real64), intent(in)  :: attrValue(:)
+  real(kind=real32), allocatable :: arrSaveS(:)
+  real(kind=real64), allocatable :: arrSaveD(:)
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = size(attrValue,1)
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  if(h5_useDouble) then
+    allocate(arrSaveD(size(attrValue,1)))
+    arrSaveD(:) = real(attrValue, kind=real64)
+    call h5tcopy_f(H5T_NATIVE_DOUBLE, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveD, attrDim, h5_dataError)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(size(attrValue,1)))
+    arrSaveS(:) = real(attrValue, kind=real32)
+    call h5tcopy_f(H5T_NATIVE_REAL, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveS, attrDim, h5_dataError)
+    deallocate(arrSaveS)
+  end if
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_real64_arr
+
+! Real 128bit Attributes
+subroutine h5_writeAttr_real128(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),     intent(in)  :: attrTarget
+  character(len=*),   intent(in)  :: attrName
+  real(kind=real128), intent(in)  :: attrValue
+  real(kind=real32),  allocatable :: arrSaveS(:)
+  real(kind=real64),  allocatable :: arrSaveD(:)
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = 1
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  if(h5_useDouble) then
+    allocate(arrSaveD(1))
+    arrSaveD(:) = real(attrValue, kind=real64)
+    call h5tcopy_f(H5T_NATIVE_DOUBLE, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveD, attrDim, h5_dataError)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(1))
+    arrSaveS(:) = real(attrValue, kind=real32)
+    call h5tcopy_f(H5T_NATIVE_REAL, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveS, attrDim, h5_dataError)
+    deallocate(arrSaveS)
+  end if
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_real128
+
+subroutine h5_writeAttr_real128_arr(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),     intent(in)  :: attrTarget
+  character(len=*),   intent(in)  :: attrName
+  real(kind=real128), intent(in)  :: attrValue(:)
+  real(kind=real32),  allocatable :: arrSaveS(:)
+  real(kind=real64),  allocatable :: arrSaveD(:)
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = size(attrValue,1)
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  if(h5_useDouble) then
+    allocate(arrSaveD(size(attrValue,1)))
+    arrSaveD(:) = real(attrValue, kind=real64)
+    call h5tcopy_f(H5T_NATIVE_DOUBLE, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveD, attrDim, h5_dataError)
+    deallocate(arrSaveD)
+  else
+    allocate(arrSaveS(size(attrValue,1)))
+    arrSaveS(:) = real(attrValue, kind=real32)
+    call h5tcopy_f(H5T_NATIVE_REAL, typeID, h5_dataError)
+    call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+    call h5awrite_f(attrID, typeID, arrSaveS, attrDim, h5_dataError)
+    deallocate(arrSaveS)
+  end if
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_real128_arr
+
+! Integer Attributes
+subroutine h5_writeAttr_int(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),   intent(in) :: attrTarget
+  character(len=*), intent(in) :: attrName
+  integer,          intent(in) :: attrValue
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = 1
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  call h5tcopy_f(H5T_NATIVE_INTEGER, typeID, h5_dataError)
+  call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+  call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_int
+
+subroutine h5_writeAttr_int_arr(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),   intent(in) :: attrTarget
+  character(len=*), intent(in) :: attrName
+  integer,          intent(in) :: attrValue(:)
+  
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrDim(1) = size(attrValue,1)
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  call h5tcopy_f(H5T_NATIVE_INTEGER, typeID, h5_dataError)
+  call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+  call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_int_arr
+
+! Character Attributes
+subroutine h5_writeAttr_char(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),   intent(in) :: attrTarget
+  character(len=*), intent(in) :: attrName
+  character(len=*), intent(in) :: attrValue
+  
+  integer(HSIZE_T) :: attrLen
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrLen    = len(attrValue,kind=HSIZE_T)
+  attrDim(1) = 1
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  call h5tcopy_f(H5T_NATIVE_CHARACTER, typeID, h5_dataError)
+  call h5tset_size_f(typeID, attrLen, h5_dataError)
+  call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+  call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_char
+
+subroutine h5_writeAttr_char_arr(attrTarget, attrName, attrValue)
+  
+  integer(HID_T),   intent(in) :: attrTarget
+  character(len=*), intent(in) :: attrName
+  character(len=*), intent(in) :: attrValue(:)
+  
+  integer(HSIZE_T) :: attrLen
+  integer(HSIZE_T) :: attrDim(1)
+  integer(HID_T)   :: spaceID, typeID, attrID
+  
+  attrLen    = len(attrValue,kind=HSIZE_T)
+  attrDim(1) = size(attrValue,1)
+  
+  call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
+  call h5tcopy_f(H5T_NATIVE_CHARACTER, typeID, h5_dataError)
+  call h5tset_size_f(typeID, attrLen, h5_dataError)
+  call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
+  call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
+  call h5aclose_f(attrID, h5_dataError)
+  call h5sclose_f(spaceID, h5_dataError)
+  
+end subroutine h5_writeAttr_char_arr
 
 ! ================================================================================================ !
 end module hdf5_output

@@ -72,9 +72,6 @@
       integer errno,l1,l2
       integer dtostr
 +ei
-+cd commtim
-      real r1,timestart,timenow
-      common /mytimes/timestart
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
       logical rerun,start,restart,checkp,fort95,fort96,read95,read96
@@ -142,19 +139,6 @@
 !GRD-042008
 +ei
 
-+cd parbeam
-      integer idim,kstep,nx,ny
-      real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
-      parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
-      parameter ( h = 1.0_fPrec/63.0_fPrec )
-      parameter ( nx = 490, ny = 470 )
-      parameter ( idim = (nx+2)*(ny+2) )
-      common /wzcom1/ hrecip, kstep
-      common /wzcom2/ wtreal(idim), wtimag(idim)
-+cd parbeam_exp
-      integer beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
-      logical beam_expfile_open ! have we opened the file 'beam_expert.txt'?
-      common /beam_exp/ beam_expflag, beam_expfile_open
 +cd beamdim
       real(kind=fPrec) cc,xlim,ylim
       parameter(cc = 1.12837916709551_fPrec)
@@ -164,152 +148,20 @@
      &r2b(npart),rb(npart),rkb(npart),                                  &
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
      &crzb(npart),cbxb(npart),cbzb(npart)
-+cd commont1 !Note: Same variables as commont2 but different names
-      integer ichrom,is
-      real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,x,y
-      common/tra/x(mpa,2),y(mpa,2),amp(2),bet0(2),alf0(2),clo(2),clop(2)
-      common/chrom/cro(2),is(2),ichrom
-+cd commont2 !Note: Same variables as commont1 but different names
-      integer ichrom,issss
-      real(kind=fPrec) alf0,amp,bet0,clo,clop,cro,xxtr,yytr
-      common/tra/xxtr(mpa,2),yytr(mpa,2),amp(2),                        &
-     &bet0(2),alf0(2),clo(2),clop(2)
-      common/chrom/cro(2),issss(2),ichrom
-+cd common2
-      integer nnumxv
-      common/postr2/nnumxv(npart)
-+cd commonl
-      real(kind=fPrec) aml6,edcor
-      common/sixdim/aml6(6,6),edcor(2)
-+cd commonxz
-      real(kind=fPrec) aai,ampt,bbi,damp,smi,smizf,xsi,                 &
-     &zsi
-      integer napxto
-      real tlim,time0,time1,time2,time3,trtime
-! fixes for CPU time (for all versions, not just crlibm).
-      real pretime,posttime,tottime
-+if fluka
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     status of connection
-!     inserted in main code by the 'fluka' compilation flag
-      integer fluka_con
-+ei
-      common/xz/xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),              &
-     &aai(nblz,mmul),bbi(nblz,mmul)
-      common/damp/damp,ampt
-      common/ttime/tlim,time0,time1,time2,time3,trtime,napxto,          &
-     &pretime,posttime,tottime
-+cd commonta
-      real(kind=fPrec) tasm
-      common/tasm/tasm(6,6)
 +cd commond1
-      common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda, &
-     &ej1,ejf1,rv
+  ! This and the next block just have different variable names, and seem to be FOX related?
+  ! Could in principle go into mod_commont where the DA / non-DA copy logic lives
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
 +cd commd1da
-      integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,         &
-     &yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
-      common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),             &
-     &asdaq_da(2,6),smida_da(mcor),xx_da(2),yy_da(2),dpda_da,dpda1_da,  &
-     &sigmda_da,ej1_da,ejf1_da,rv_da
+  integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
+  common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),asdaq_da(2,6),smida_da(mcor),xx_da(2), &
+    yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
 +cd commonas
-      integer idao,iscrri
-      integer          iscrda
-      real(kind=fPrec) rscrri
-      common/dascr/iscrda(100),rscrri(100),iscrri(100),idao
-+cd commondl
-      integer icorr,idial,idptr,imod1,imod2,inorm,ipar,namp,ncor,nctype,&
-     &ndimf,nmom,nmom1,nmom2,nord,nord1,nordf,nsix,nvar,nvar2,nvarf
-      real(kind=fPrec) dpmax,preda,weig1,weig2
-      ! FIXME: The len below should be max_name_len, but that doesn't compile at the moment.
-      character(len=48) coel
-      common/dial/preda,idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
-      common/norf/nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
-      common/tcorr/icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel(10)
-+cd commonm1
-      integer numx
-      real(kind=fPrec) e0f
-+if cr
-      logical sythckcr
-      common/main4/ e0f,numx,sythckcr
-+ei
-+if .not.cr
-      common/main4/ e0f,numx
-+ei
-+cd commontr
-      integer ktrack,nwri
-      real(kind=fPrec) dpsv1,strack,strackc,stracks,strackx,strackz
-      common/track/ ktrack(nblz),strack(nblz),strackc(nblz),            &
-     &stracks(nblz),strackx(nblz),strackz(nblz),dpsv1(npart),nwri
-+cd commonc
-      integer ichromc,ilinc,iqmodc
-      real(kind=fPrec) clon,chromc,corr,wxys
-      common/correct/ corr(3,3),chromc(2),wxys(3),clon(6),iqmodc,       &
-     &ichromc,ilinc
-+cd commonex
-!-----------------------------------------------------------------------
-!  COMMON FOR EXACT VERSION
-!-----------------------------------------------------------------------
-      integer iexact
-      common/exact/iexact
-+cd exactvars
-!-----------------------------------------------------------------------
-!  EXACT DRIFT
-!-----------------------------------------------------------------------
-      real(kind=fPrec) pz
-+cd ex4Ddrift
-            do j=1,napx
-              xv(1,j)=xv(1,j)*c1m3
-              xv(2,j)=xv(2,j)*c1m3
-              yv(1,j)=yv(1,j)*c1m3
-              yv(2,j)=yv(2,j)*c1m3
-              pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
-              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
-              xv(1,j)=xv(1,j)*c1e3
-              xv(2,j)=xv(2,j)*c1e3
-              yv(1,j)=yv(1,j)*c1e3
-              yv(2,j)=yv(2,j)*c1e3
-            enddo
-+cd ex6Ddrift
-!-----------------------------------------------------------------------
-!  EXACT DRIFT
-!-----------------------------------------------------------------------
-            do j=1,napx
-              xv(1,j)=xv(1,j)*c1m3
-              xv(2,j)=xv(2,j)*c1m3
-              yv(1,j)=yv(1,j)*c1m3
-              yv(2,j)=yv(2,j)*c1m3
-              sigmv(j)=sigmv(j)*c1m3
-              pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
-              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
-              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
-              xv(1,j)=xv(1,j)*c1e3
-              xv(2,j)=xv(2,j)*c1e3
-              yv(1,j)=yv(1,j)*c1e3
-              yv(2,j)=yv(2,j)*c1e3
-              sigmv(j)=sigmv(j)*c1e3
-            enddo
-+cd exDAdrift
-!-----------------------------------------------------------------------
-!  EXACT DRIFT
-!-----------------------------------------------------------------------
-!FOX  X(1)=X(1)*C1M3 ;
-!FOX  X(2)=X(2)*C1M3 ;
-!FOX  Y(1)=Y(1)*C1M3 ;
-!FOX  Y(2)=Y(2)*C1M3 ;
-!FOX  SIGMDA=SIGMDA*C1M3 ;
-!FOX  PZ=SQRT(ONE-Y(1)*Y(1)-Y(2)*Y(2)) ;
-!FOX  X(1)=X(1)+EL(JX)*(Y(1)/PZ) ;
-!FOX  X(2)=X(2)+EL(JX)*(Y(2)/PZ) ;
-!FOX  SIGMDA=SIGMDA+(ONE-(RV/PZ))*EL(JX) ;
-!FOX  X(1)=X(1)*C1E3 ;
-!FOX  X(2)=X(2)*C1E3 ;
-!FOX  Y(1)=Y(1)*C1E3 ;
-!FOX  Y(2)=Y(2)*C1E3 ;
-!FOX  SIGMDA=SIGMDA*C1E3 ;
-!-----------------------------------------------------------------------
+  ! Tried to move this to a module, but for some FOX-related reason, iscrda cannot be moved.
+  integer idao,iscrri
+  integer          iscrda
+  real(kind=fPrec) rscrri
+  common/dascr/iscrda(100),rscrri(100),iscrri(100),idao
 +cd commphin
       common/phasecom/ phase(3,npos+1)
       common/invari/ dani(ninv+1)
@@ -924,9 +776,9 @@
 !FOX  D V DA INT CRABAMP3 NORD NVAR ;
 !FOX  D V DA INT CRABAMP4 NORD NVAR ;
 
-+if rvet
-!FOX  D V DA INT RVET NORD NVAR ;
-+ei
+! +if rvet
+! !FOX  D V DA INT RVET NORD NVAR ;
+! +ei
 !FOX  D V RE INT AAI NBLZ MMUL ; D V RE INT BBI NBLZ MMUL ;
 !FOX  D V RE INT TILTC NBLZ ; D V RE INT TILTS NBLZ ;
 !FOX  D V RE INT DPS MPA ; D V RE INT SIGM MPA ;
@@ -974,10 +826,6 @@
 !FOX  D F RE DARE 1 ;
 !FOX  D V DA INT PZ NORD NVAR ;
 !FOX  E D ;
-+cd dump1
-      write(32)                                                         &
-+cd dump2
-      read(32)                                                          &
 +cd dump3
 !
 !  left out to do tracking
@@ -1018,9 +866,9 @@
      &ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
      &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
      &dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
-+if rvet
-     &rvet,                                                             &
-+ei
+! +if rvet
+!      &rvet,                                                             &
+! +ei
      &ejf0v,numxv,nms,nlostp,dpd,                                       &
      &dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
      &rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
@@ -1606,18 +1454,6 @@
                yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens          &
      &                 *yelens/rrelens * oidpsv(j)
             endif
-+cd scat_tck
-      !Thick scattering
-      if (scatter_debug) then
-         write(lout,*) "SCATTER> In scat_tck, ix=",                     &
-     &        ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
-      endif
-!     TODO
-+cd scat_thi
-      !Thin scattering
-      ! It is already checked that scatter_elemPointer != 0
-      call scatter_thin(i, ix,n)
-      
 +cd kickv01v
 +if .not.tilt
             yv(2,j)=yv(2,j)+(strack(i)*oidpsv(j))*mtc(j)
@@ -3842,12 +3678,6 @@
           goto 290
         endif
 +cd scatter
-! SCATTER block
-       if (kzz.eq.40 .and. scatter_elemPointer(ix).ne.0) then
-          ! FOR NOW, ASSUME THIN SCATTER; ktrack(i)=65 RESERVED FOR THICK SCATTER
-          ktrack(i)=64
-          goto 290
-        endif
 +cd crab1
         if(kzz.eq.23) then
           ktrack(i)=53
@@ -7942,13 +7772,13 @@
       use numerical_constants
       use mathlib_bouncer
       use parpro
+      use parbeam
       implicit none
       integer k,mu,nu
       real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,     &
      &q,qsq,r,simag,sreal,t,tdd13i,tdd13r,tdd24i,tdd24r,tdddi,tdddr,ti, &
      &tr,u,usum,usum3,v,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,x,xh,&
      &xhrel,y,yh,yhrel
-+ca parbeam
       parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
       parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
       save
@@ -8039,11 +7869,11 @@ subroutine daten
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
+  use sixtrack_input
   
   use scatter, only : scatter_active, scatter_debug, scatter_seed1, scatter_seed2, scatter_dumpdata, &
     scatter_parseInputLine, scatter_allocate
-  use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_parseFUN,dynk_parseSET,dynk_dumpdata,&
-    dynk_inputsanitycheck,dynk_allocate
+  use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma, only : fma_fname,fma_method,fma_numfiles,fma_norm_flag,fma_first,fma_last,&
     fma_max,fma_flag,fma_writeNormDUMP,fma_parseInputLine
   use dump, only : dump_parseInputLine, dump_parseInputDone
@@ -8056,27 +7886,26 @@ subroutine daten
   use string_tools
   use strings
   
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 17-07-2013
-  ! import mod_fluka
-  ! inserted in main code by the 'fluka' compilation flag
+#ifdef FLUKA
   use mod_fluka
-+ei
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
-+if root
+#ifdef ROOT
   use root_output
-+ei
+#endif
   
   use mod_ranecu
   
   use crcoall
   use parpro
   use parpro_scale
+  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commons
+  use mod_commont
+  use mod_commond
   
   use mod_hions
   use mod_alloc
@@ -8086,7 +7915,7 @@ subroutine daten
   
   implicit none
   
-  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,icy,idi,iexnum,iexread,    &
+  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,idi,iexnum,iexread,    &
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
@@ -8105,10 +7934,9 @@ subroutine daten
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iss,iqq,iele,ilm,ilm0,idum,corr,norm
+  character(len=max_name_len) iss,iqq,iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
-  character(len=:), allocatable :: bez0(:) !(max_name_len)(nele)
   character(len=60) ihead
   integer nchars
   parameter (nchars=160)
@@ -8123,7 +7951,7 @@ subroutine daten
   integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
   logical   getfields_lerr                                                    ! An error flag
   
-+if crlibm
+#ifdef CRLIBM
   ! MAXF be kept in sync with value in function fround
   integer maxf,nofields
   parameter (maxf=30)
@@ -8131,10 +7959,9 @@ subroutine daten
   character(len=maxf) fields(nofields)
   integer errno,nfields,nunit,nf
   real(kind=fPrec) fround
-+ei
-+if .not.crlibm
+#else
   integer nunit
-+ei
+#endif
   integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
   data lineno2 /0/
   data lineno3 /0/
@@ -8142,26 +7969,21 @@ subroutine daten
   data lineno16 /0/
   data lineno30 /0/
   data lineno35 /0/
-+ca commonex
-+ca commont1
-+ca commondl
   
-+if collimat
+#ifdef COLLIMAT
 +ca collpara
 +ca dbdaten
 +ca dbpencil
 +ca database
 +ca dbcolcom
   logical has_coll
-+ei
-+if .not.collimat
+#else
   logical do_coll
-+ei
-  
-+if bnlelens
+#endif
+
+#ifdef BNLELENS
 +ca rhicelens
-+ei
-+ca parbeam_exp
+#endif
 +ca dbreaddis
   
   ! Fluka related, might be best to lock to real64
@@ -8178,45 +8000,38 @@ subroutine daten
   real(kind=fPrec) eLensTheta
   
   dimension icel(ncom,20),iss(2),iqq(5)
-  dimension beze(nblo,nelb),ilm(nelb),ilm0(40),ic0(10)
+  dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
-  data sing,stru,prin,quie,sync,ende,next,comm /'SING','STRU','PRIN','QUIE','SYNC','ENDE','NEXT','COMM'/
-  data fluc,mult,chro,iter,tune,line,trac,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','TRAC','DIFF'/
-  data limi,orbi,bloc,init,go,sear,subr,reso,disp,post,ripp,deco &
-    /'LIMI','ORBI','BLOC','INIT','GO','SEAR','SUBR','RESO','DISP','POST','RIPP','DECO'/
-  data comb,free,geom,cavi,beam,trom /'COMB','FREE','GEOM','CAV','BEAM','TROM'/
-  data idum,kl,kr,orga,norm,corr /' ','(',')','ORGA','NORM','CORR'/
+  data sync,ende,next,comm /'SYNC','ENDE','NEXT','COMM'/
+  data fluc,mult,chro,iter,tune,line,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','DIFF'/
+  data limi,orbi,go,sear,subr,reso,post,ripp,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','RIPP','DECO'/
+  data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
+  data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
+  ! data corr,sing,stru,prin,quie,bloc,init,trac,disp /'CORR','SING','STRU','PRIN','QUIE','BLOC','INIT','TRAC','DISP'/
+  ! data free,geom /'FREE','GEOM'/
   data coll /'COLL'/
-  !  scatter
-  character(len=4) scat
-  data scat /'SCAT'/
-  ! HDF5
-  character(len=4) h5out
-  data h5out /'HDF5'/
-  ! coupling:
   character(len=4) fluk
   data fluk /'FLUK'/
-  ! read particle distribution for FLUKA:
-  character(len=4) dist
-  data dist /'DIST'/
-  ! root output:
-  character(len=4) root
-  data root /'ROOT'/
-  ! hisix
-  ! add block for input of heavy-ion properties
-  character(len=4) hion
-  data hion /'HION'/
   
-+if crlibm
+#ifdef CRLIBM
   real(kind=fPrec) round_near
-+ei
+#endif
   
   logical lapefound
   logical lerr1
   logical lexist
   
-  character(len=max_name_len) :: defaultstring
-  integer str_int
+  ! New variables for sixtrack_input module
+  logical inErr
+  character(len=4) currBlock
+  logical blockOpened, blockClosed
+  logical openBlock, closeBlock
+  integer blockLine, iElem
+  
+  logical parseFort2
+  integer nGeom
+  
+  logical newParsing, oneLine
   
   save
   
@@ -8231,20 +8046,7 @@ subroutine daten
         iqq(i)=' '
       end do
 
-      do str_int=1,max_name_len
-        defaultstring(str_int:str_int) = char(0)
-      end do
-
-      call alloc(bez0, max_name_len, nele, defaultstring, 'bez0')
-!      do i=1,nele
-!        bez0(i)=' '
-!      end do
-
-      do i=1,nblo
-        do j=1,nelb
-          beze(i,j)=' '
-        end do
-      end do
+      call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
 
       do i=1,40
         ilm0(i)=' '
@@ -8265,10 +8067,6 @@ subroutine daten
         ic0(i)=' '
       end do
 
-      do i=1,nelb
-        ilm(i)=' '
-      end do
-
       emitnx=zero
       emitny=zero
       ihead=' '
@@ -8277,12 +8075,11 @@ subroutine daten
       iclo6=0
       iclo6r=0
       iclr=0
-      icy=0
       ncy=0
-      ncy2=0
+      ! ncy2=0
       ndum=0
       numl=1
-
+        
 !  Initialise new input parameters
       numlmax=1000000
       numlcp=0
@@ -8381,1106 +8178,387 @@ subroutine daten
       zz0 = 1
       aa0 = 1
       nucm0 = pmap
-+if .not.collimat
-      do_coll = .false.
-+ei
-+if collimat
+#ifdef COLLIMAT
       has_coll = .false.
-+ei
+#else
+      do_coll = .false.
+#endif
       has_hion = .false.
 
-   90 read(3,10010,end=1530,iostat=ierro) idat,ihead
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(idat(1:1).eq.'/') goto 90
-      if(idat.ne.free.and.idat.ne.geom) call prror(1)
-      imod=1
-! imod=1: free, definition of elements in fort.3
-! imod=2: geom, definition of elements in fort.2
-      if(idat.eq.geom) imod=2
-      write(lout,10130)
-      write(lout,10030)
-      write(lout,10180) ihead
-      sixtit(1:60)=ihead
-      if(imod.eq.1) write(lout,10190)
-      if(imod.eq.2) write(lout,10200)
-      write(lout,10130)
-      if(imod.eq.2) then
-  100   read(2,10000,end=1520,iostat=ierro) idat
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(idat(1:1).eq.'/') goto 100
-! single elements
-        if(idat.eq.sing) goto 120
-          write(lout,*) "idat = '"//idat//"'"
-          call prror(15)
-        endif
-  110 read(3,10000,end=1530,iostat=ierro) idat
-      if(ierro.gt.0) call prror(58)
-      nunit=3
-      lineno3=lineno3+1
-      if(idat(1:1).eq.'/') goto 110
-      if(idat.eq.sing) goto 120
-      if(idat.eq.bloc) goto 190
-      if(idat.eq.stru) goto 320
-      if(idat.eq.prin) goto 550
-      if(idat.eq.quie) goto 552
-      if(idat.eq.disp) goto 170
-      if(idat.eq.tune) goto 600
-      if(idat.eq.sync) goto 710
-      if(idat.eq.iter) goto 940
-      if(idat.eq.fluc) goto 790
-      if(idat.eq.mult) goto 740
-      if(idat.eq.chro) goto 560
-      if(idat.eq.trac) goto 510
-      if(idat.eq.diff) goto 520
-      if(idat.eq.line) goto 660
-      if(idat.eq.limi) goto 950
-      if(idat.eq.orbi) goto 980
-      if(idat.eq.init) goto 500
-      if(idat.eq.comb) goto 1030
-      if(idat.eq.subr) goto 1110
-      if(idat.eq.reso) goto 1120
-      if(idat.eq.sear) goto 1200
-      if(idat.eq.orga) goto 880
-      if(idat.eq.post) goto 1280
-      if(idat.eq.ripp) goto 1290
-      if(idat.eq.deco) goto 1320
-      if(idat.eq.comm) goto 1390
-      if(idat.eq.norm) goto 1400
-      if(idat.eq.corr) goto 1410
-      if(idat.eq.beam) goto 1600
-      if(idat.eq.trom) goto 1700
-!GRD
-      if(idat.eq.coll) goto 1285
-!GRD
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     brand new input blocks
-!     always in main code
-!     - coupling:
-      if(idat.eq.fluk) goto 1800
-
-!     - read particle distribution:
-      if(idat.eq.dist) goto 1900
-
-      if(idat.eq."DUMP") goto 2000 !Hard-coded name, as variable name "dump" conflicted with module name
-      if(idat.eq."DYNK") goto 2200 !Hard-coded name, as variable name "dynk" conflicted with module name
-      if(idat.eq."BDEX") goto 2250 !Hard-coded name, as variable name "bdex" conflicted with module name
-      if(idat.eq."FMA")  goto 2300 !Hard-coded name, as variable name "fma" conflicted with module name
-      if(idat.eq.'ELEN') goto 2400 !Hard-coded name, as variable name "elens" conflicted with module name
-      if(idat.eq."WIRE") goto 2500 !Hard-coded name, as variable name "elens" conflicted with module name
-      !Reserved:
-      !DIST = 2600
-      !HION = 2700
-!     hisix heavy ion input block
-      if(idat.eq.hion) goto 2700
-
-      if(idat.eq."ZIPF") goto 2800 !Hard-coded name, as variable name "zipf" conflicted with module name
-      if(idat.eq.scat) goto 2900
-      if(idat.eq.root) goto 3000
-      if(idat.eq.h5out) goto 3100
-
-      if(idat.eq.next) goto 110
-      if(idat.eq.ende) goto 771
-      write(lout,*) "idat = '"//idat//"'"
-      call prror(15)
-!-----------------------------------------------------------------------
-!  DATENBLOCK SINGLE ELEMENTS
-!  ELLEMENTLISTE
-!  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
-!-----------------------------------------------------------------------
-  120 i=1
-  130 if(imod.eq.1) then
-  140   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 140
-        if(ch(:4).eq.next) goto 110
-      else if(imod.eq.2) then
-  150   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 150
-        if(ch(:4).eq.next) then
-  160     read(2,10000,end=1520,iostat=ierro) idat
-          if(ierro.gt.0) call prror(57)
-          nunit=2
-          lineno2=lineno2+1
-          if(idat(1:1).eq.'/') goto 160
-          if(idat.ne.bloc) then
-            write(lout,*) "idat = '"//idat//"'"
-            call prror(15)
-          endif
-          goto 190
-        endif
-      endif
-!      if(ch(17:17).ne." ") call prror(104)
-      i2=0
-      do i1=1,80
-        if(ch(i1:i1).ne." ".and.i2.eq.0) then
-          i2=i1
-        elseif(i2.gt.0) then
-          if(ch(i1:i1).eq." ") then
-            if(i1-i2.gt.max_name_len) then
-              call prror(104)
-            else
-              goto 165
-            endif
-          endif
-        endif
-      enddo
- 165  if(i1.gt.72) call prror(104)
-      call intepr(1,1,ch,ch1) ! read in single element
-!     write (*,*) 'ch1:'//ch1//':'
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      ! read fort.2 (or fort.3), idat -> bez = single element name,
-      ! kz = type of element,
-      ! ed,ek,el = strength, random error on strenght, length (can be anything)
-      ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
-      read(ch1,*,round='nearest')                                       &
-     & idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-!     write (*,*) 'ERIC'
-      ! read fort.2 (or fort.3), idat -> bez = single element name,
-      ! kz = type of element,
-      ! ed,ek,el = strength, random error on strenght, length (can be anything)
-      ! bbbx,bbby,bbbs = beam-beam, beam-beam parameters (will be removed soon)
-      read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-+ei
-+if crlibm
-!     write(*,*) 'eric'
-      if (nunit.eq.2) then
-        call splitfld(errno,nunit,lineno2,nofields,nf,ch1,fields) !fort.2 input
-      elseif (nunit.eq.3) then
-        call splitfld(errno,nunit,lineno3,nofields,nf,ch1,fields) !fort.3 input
-      else
-         write(lout,*) 'ERROR in DATEN: nunit NOT 2 nor 3!'
-         write(lout,*) 'Almost certainly a bug.'
-         call prror(-1)
-      endif
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) kz(i)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ed(i)=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ek(i)=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        el(i)=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbbx(i)=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbby(i)=fround(errno,fields,7)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bbbs(i)=fround(errno,fields,8)
-        nf=nf-1
-      endif
-+ei
-+ei
-      !Check that the name is unique
-      do j=1,i-1! i = index of current line
-         if ( bez(j).eq.idat ) then
-            write(lout,*) "ERROR in DATEN:"
-            write(lout,*) "Got multiple copies of element ", bez(j)
-            call prror(-1)
-         endif
-      enddo
-
-      if(kz(i).eq.25) then
-        ed(i)=ed(i)/two
-        ek(i)=ek(i)/two
-      endif
-!--CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-      if((kz(i).eq.4.or.kz(i).eq.5).and.abs(el(i)).gt.pieni)            &
-     &ed(i)=-one*ed(i)                                                   !hr05
-!--CAVITIES
-      if(abs(kz(i)).eq.12) then
-        if(abs(ed(i)).gt.pieni.and.abs(ek(i)).gt.pieni) then
-          ncy2=ncy2+1
-          itionc(i)=kz(i)/abs(kz(i))
-          kp(i)=6
-        endif
-      endif
-!----------------------------------------
-! Handled by initialize_element subroutine:
-!-----------------------------------------
-!-- CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-!-- THIN LENS (+/- 1-10)
-!-- MULTIPOLES (11)
-!-- CAVITY (+/- 12)
-!-- CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
-!-- ELECTRON LENSE (29)
-      call initialize_element(i,.true.)
-
-!--ACDIPOLE
-      if(abs(kz(i)).eq.16) then
-        if(abs(ed(i)).le.pieni) then
-           kz(i)=0
-           ed(i)=zero                                                     !hr05
-           ek(i)=zero                                                    !hr05
-           el(i)=zero                                                    !hr05
-        else
-           acdipph(i)=el(i)
-           el(i)=zero                                                    !hr05
-        endif
-      endif
-!--General
-      if(abs(el(i)).gt.pieni.and.kz(i).ne.0) then
-        ithick=1
-      end if
-
-!      if(i.gt.nele-1) call prror(16)
-      !Changed to nele-2 to handle resizing correctly
-      if(i.gt.nele-2) then
-        call expand_arrays(nele+50, npart, nblz, nblo)
-
-        !The value of nele will have been updated here
-        call resize(bez0, max_name_len, nele, defaultstring, 'bez0')
-!        if (ithick.eq.1) then
-!          call expand_thickarrays(nele+10, npart, nblz, nblo )
-!        end if
-      end if
-
-      if(abs(kz(i)).ne.12 .or. (abs(kz(i)).eq.12.and.ncy2.eq.0) ) then
-        kp(i)=0
-      end if
-
-! set element name
-      bez(i)=idat
-      bez0(i)=idat
-      if(ncy2.eq.0) then
-        !If no active RF cavities are seen so far in the single element list,
-        ! add a CAV element to the end of the list.
-        ! This is then overwritten when reading the next element, so that if
-        ! and only if no active RF cavities are found, a CAV element can be
-        ! used in the structure to enable 6D tracking using the parameters
-        ! from the SYNC block.
-        i=i+1
-        il=i
-        bez(i)=cavi
-        bez0(i)=cavi
-        kp(i)=6
-      else
-        il=i
-        i=i+1
-      endif
-      goto 130
-!-----------------------------------------------------------------------
-!  DATENBLOCK DISPLACEMENT OF ELEMENTS
-!-----------------------------------------------------------------------
-  170 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 170
-      if(ch(:4).eq.next) goto 110
-      call intepr(1,1,ch,ch1)
-      xpl0=zero
-      xrms0=zero
-      zpl0=zero
-      zrms0=zero
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      read(ch1,*,round='nearest')                                       &
-     & idat,xpl0,xrms0,zpl0,zrms0
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      read(ch1,*) idat,xpl0,xrms0,zpl0,zrms0
-+ei
-+if crlibm
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xpl0=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        xrms0=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        zpl0=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        zrms0=fround(errno,fields,5)
-        nf=nf-1
-      endif
-+ei
-+ei
-      do 180 j=1,il
-        if(idat.ne.bez(j)) goto 180
-        xpl(j)=xpl0
-        xrms(j)=xrms0
-        zpl(j)=zpl0
-        zrms(j)=zrms0
-!----Insertion for AC dipole
-        if(abs(kz(j)).eq.16) then
-          nturn1(j)=int(xpl0)
-          nturn2(j)=int(xrms0)
-          nturn3(j)=int(zpl0)
-          nturn4(j)=int(zrms0)
-          xpl(j)=zero
-          xrms(j)=zero
-          zpl(j)=zero
-          zrms(j)=zero
-          if(xrms0.eq.zero.and.zpl0.eq.zero.and.zrms0.eq.zero) then         !hr05
-            write(lout,*) "ac dipole disregarded (0 length)"
-            kz(j)=0
-            ed(j)=zero                                                   !hr05
-            ek(j)=zero                                                   !hr05
-          endif
-        endif
-  180 continue
-      goto 170
-!-----------------------------------------------------------------------
-!  BLOCK DEFINITIONS
-!  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
-!-----------------------------------------------------------------------
-  190 if(imod.eq.1) then
-  200   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 200
-      endif
-      if(imod.eq.2) then
-  210   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 210
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      read(ch1,*) mper,(msym(k),k=1,mper)
-      if(mper.gt.nper) call prror(17)
-      i=0
-
-  220 do m=1,40
-        ilm0(m)=idum
-      end do
-
-      if(imod.eq.1) then
-  240   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 240
-        if(ch(:4).eq.next) goto 110
-      else if(imod.eq.2) then
-  250   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 250
-        if(ch(:4).eq.next) then
-  260     read(2,10000,end=1520,iostat=ierro) idat
-          if(ierro.gt.0) call prror(57)
-          nunit=2
-          lineno2=lineno2+1
-          if(idat(1:1).eq.'/') goto 260
-          if(idat.ne.stru) then
-            write(lout,*) "idat = '"//idat//"'"
-            call prror(15)
-          endif
-          goto 320
-        endif
-      endif
-      call intepr(2,1,ch,ch1)
-! reading character strings so OK
-      read(ch1,*) idat,(ilm0(m),m=1,40)
-      if(idat.eq.idum) goto 270
-      i=i+1 ! Current BLOC number
-      if(i.gt.nblo-1) call prror(18)
-      bezb(i)=idat
-      k0=0
-      mblo=i ! Update total number of BLOCs
-  270 ka=k0+1
-      ke=k0+40
-      do 300 l=ka,ke
-        if(l.gt.nelb) call prror(26)
-        ilm(l)=ilm0(l-k0)
-        if(ilm(l).eq.idum) goto 310
-        mel(i)=l         ! Number of single elements in this block
-        beze(i,l)=ilm(l) ! Name of the current single element
-        do 280 j=1,il    ! Search for the single element idx j
-          if(bez0(j).eq.ilm(l)) goto 290
-  280   continue
-        erbez=ilm(l)
-        call prror(19)
-  290   mtyp(i,l)=j ! Block i / sub-element l has single element index j
-        if(kz(j).ne.8) elbe(i)=elbe(i)+el(j) ! Count block length (kz=8 -> edge focusing->skip!)
-  300 continue
-  310 k0=l-1
-      goto 220
-
-!-----------------------------------------------------------------------
-!  STRUCTURE INPUT
-!  imod = 1 if geometry in fort.3 (FREE), imod = 2 if in fort.2 (GEOM)
-!-----------------------------------------------------------------------
-  320 i=0
-
-  330 do k=1,40
-        ilm0(k)=idum
-      end do
-
-      if(imod.eq.1) then
-  350   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        nunit=3
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 350
-      endif
-      if(imod.eq.2) then
-  360   read(2,10020,end=1520,iostat=ierro) ch
-        if(ierro.gt.0) call prror(57)
-        nunit=2
-        lineno2=lineno2+1
-        if(ch(1:1).eq.'/') goto 360
-      endif
-      if(ch(:4).eq.next) goto 110
-      i2=1
-      ! Look for repetition with syntax N( ... )
-      do 420 ii=1,80
-        if(ch(ii:ii).eq.kl) then !kl='('
-          if(ii.gt.1) then
-
-            do jj=1,ii-1
-              if(ch(jj:jj).ne.' ') goto 380
-            end do
-
-          endif
-          iw=1
-          goto 390
-  380     read(ch(:ii-1),*) iw
-  390     ia=i
-          iw0=iw-1
-          i2=ii+1
-          goto 430
-        endif
-        if(ch(ii:ii).eq.kr) then !kr=')'
-          if(iw0.le.0) goto 330
-          idi=i-ia
-          do 410 k=1,iw0
-            do j=1,idi
-              ic(i+j)=ic(i+j-idi)
-            end do
-            i=i+idi
-  410     continue
-          mbloz=i
-          goto 330
-        endif
-  420 continue
-      ! Create the structure
-  430 call intepr(3,i2,ch,ch1)
-! reading character strings so OK
-      read(ch1,*) (ilm0(k),k=1,40)
-      do 490 k=1,40
-        if(ilm0(k).eq.idum) goto 490
-        if(ilm0(k).eq.go) goto 480
-        i=i+1
-        do 440 j=1,mblo !is it a BLOC?
-          if(bezb(j).eq.ilm0(k)) goto 470
-  440   continue
-        do 450 l=1,il   !is it a SINGLE ELEMENT?
-          if(bez0(l).eq.ilm0(k)) goto 460
-  450   continue
-        ! It was neither BLOC or SINGLE ELEMENT! ERROR!
-        erbez=ilm0(k)
-        call prror(20)
-        
-        ! Handle SINGLE ELEMENT
-  460   continue
-        ic(i)=l+nblo
-        if(bez0(l).eq.cavi) icy=icy+1
-        goto 490
-
-        !Handle BLOC
-  470   ic(i)=j
-        goto 490
-        !Handle GO
-  480   kanf=i+1
-  490 continue
-      mbloz=i
-      if(mbloz.gt.nblz-2) call prror(21)
-      goto 330
-!-----------------------------------------------------------------------
-!  INITIAL COORDINATES
-!-----------------------------------------------------------------------
-  500 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then !iclr = line number in initial coordinate block
-        iclr=iclr+1
-      else
-        goto 500
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      if(iclr.eq.1) then
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-        read(ch1,*,round='nearest')                                     &
-     & itra,chi0,chid,rat,iver
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-        read(ch1,*) itra,chi0,chid,rat,iver
-+ei
-+if crlibm
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itra
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          chi0=fround(errno,fields,2)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          chid=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          rat=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-            read (fields(5),*) iver
-            nf=nf-1
-        endif
-+ei
-+ei
-        if(itra.gt.2) call prror(40)
-      endif
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & exz(1,1)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.2) read(ch1,*) exz(1,1)
-+ei
-+if crlibm
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,1)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
-     & exz(1,2)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.3) read(ch1,*) exz(1,2)
-+ei
-+if crlibm
-      if(iclr.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,2)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & exz(1,3)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.4) read(ch1,*) exz(1,3)
-+ei
-+if crlibm
-      if(iclr.eq.4) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,3)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
-     & exz(1,4)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.5) read(ch1,*) exz(1,4)
-+ei
-+if crlibm
-      if(iclr.eq.5) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,4)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
-     & exz(1,5)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.6) read(ch1,*) exz(1,5)
-+ei
-+if crlibm
-      if(iclr.eq.6) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,5)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
-     & exz(1,6)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.7) read(ch1,*) exz(1,6)
-+ei
-+if crlibm
-      if(iclr.eq.7) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(1,6)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
-     & exz(2,1)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.8) read(ch1,*) exz(2,1)
-+ei
-+if crlibm
-      if(iclr.eq.8) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,1)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-     & exz(2,2)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.9) read(ch1,*) exz(2,2)
-+ei
-+if crlibm
-      if(iclr.eq.9) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,2)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
-     & exz(2,3)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.10) read(ch1,*) exz(2,3)
-+ei
-+if crlibm
-      if(iclr.eq.10) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,3)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
-     & exz(2,4)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.11) read(ch1,*) exz(2,4)
-+ei
-+if crlibm
-      if(iclr.eq.11) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,4)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
-     & exz(2,5)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.12) read(ch1,*) exz(2,5)
-+ei
-+if crlibm
-      if(iclr.eq.12) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,5)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
-     & exz(2,6)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.13) read(ch1,*) exz(2,6)
-+ei
-+if crlibm
-      if(iclr.eq.13) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          exz(2,6)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
-     & e0
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.14) read(ch1,*) e0
-+ei
-+if crlibm
-      if(iclr.eq.14) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          e0=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.15) read(ch1,*,round='nearest')                        &
-     & ej(1)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.15) read(ch1,*) ej(1)
-+ei
-+if crlibm
-      if(iclr.eq.15) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          ej(1)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.16) read(ch1,*,round='nearest')                        &
-     & ej(2)
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.16) read(ch1,*) ej(2)
-+ei
-+if crlibm
-      if(iclr.eq.16) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          ej(2)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-      if(iclr.ne.16) goto 500
-      dp1=exz(1,6)
-      iclr=0
-      if(iver.ne.0.and.iver.ne.1) iver=0
-      nbidu=1
+  ! New variables for sixtrack_input module
+  inErr       = .false.
+  oneLine     = .false.
+  sixin_ncy2  = 0
+  sixin_icy   = 0
+  sixin_debug = .false.
+  
+  nGeom = 0
+  
+! ================================================================================================ !
+!  READ FORT.3 HEADER
+! ================================================================================================ !
+  
+90 continue
+  read(3,10010,end=1530,iostat=ierro) idat,ihead
+  if(ierro > 0) call prror(58)
+  lineNo3 = lineNo3+1
+  if(idat(1:1) == "/") goto 90
+  
+  select case(idat)
+  case("FREE") ! Mode FREE. Elements in fort.3
+    iMod       = 1
+    parseFort2 = .false.
+  case("GEOM") ! Mode GEOM. Elements in fort.2
+    iMod       = 2
+    parseFort2 = .true.
+  case default
+    call prror(1)
+  end select
+  
+  write(lout,10130)
+  write(lout,10030)
+  write(lout,10180) ihead
+  sixtit(1:60)=ihead
+  if(imod.eq.1) write(lout,10190)
+  if(imod.eq.2) write(lout,10200)
+  write(lout,10130)
+  
+! ================================================================================================ !
+!  BEGIN PARSING FORT.2 AND FORT.3
+! ================================================================================================ !
+  
+  currBlock   = "NONE"  ! The current block being parsed
+  openBlock   = .false. ! Whether the current block was opened on this pass
+  blockOpened = .false. ! Whether the current block is open
+  closeBlock  = .false. ! Whether the current block should be closed after the pass
+  blockClosed = .false. ! Whether the current block is now closed, and should not be opened again
+  
+100 continue ! fort.2 loop
+110 continue ! fort.3 loop
+  
+  ! We have our three geometry blocks, stop parsing fort.2
+  if(nGeom >= 3) parseFort2 = .false.
+  
+  ! Select unit, and increment line number for error output
+  if(parseFort2) then
+    nUnit   = 2
+    lineNo2 = lineNo2 + 1
+  else
+    nUnit   = 3
+    lineNo3 = lineNo3 + 1
+  end if
+  
+  read(nUnit, 10020, end=1530, iostat=iErro) ch
+  if(iErro > 0) then
+    write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
+    call prror(-1)
+  end if
+  
+  if(len(ch) == 0)   goto 110 ! Empty line, ignore
+  if(ch(1:1) == "/") goto 110 ! Comment line, ignore
+  if(len(ch) >= 4)   idat = ch(1:4)
+  
+  ! Parse non-block flags
+  select case(idat)
+  case("PRIN") ! Enable the PRINT flag
+    iOut    = 1
+    oneLine = .true.
+    goto 110
+  case("QUIE") ! Enable the QUIET flag
+    iQuiet  = 1
+    oneLine = .true.
+    goto 110
+  case("DEBU") ! Enable the DEBUG flag
+    if(currBlock == "NONE") then
+      ! Only when not in a block, otherwise in-block DEBUG will trigger this as well
+      sixin_debug = .true.
+      oneLine     = .true.
+      call sixin_debugInfo
       goto 110
-!-----------------------------------------------------------------------
-!  TRACKING PARAMETERS
-!-----------------------------------------------------------------------
-  510 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-        iclr=iclr+1
-      else
-        goto 510
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-! Two new options for Turns to checkpoint and max turns/job.
-      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-      if(iclr.eq.1) then
-        read(ch1,*)                                                     &
-     &numl,numlr,napx,amp(1),amp0,ird,imc,niu(1),niu(2),numlcp,numlmax
-      endif
-+ei
-+if crlibm
-      if(iclr.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) numl
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(2),*) numlr
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) napx
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          amp(1)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          amp0=fround(errno,fields,5)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(6),*) ird
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(7),*) imc
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(8),*) niu(1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(9),*) niu(2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(10),*) numlcp
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(11),*) numlmax
-          nf=nf-1
-        endif
-      endif
-+ei
-+ei
-      ! and default nnmul to numl
-      nnuml=numl
-      ! and numlcp to 1000
-      if(numlcp.eq.0) numlcp=1000
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & idz(1),idz(2),idfor,irew,iclo6
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-      if(iclr.eq.2) read(ch1,*) idz(1),idz(2),idfor,irew,iclo6
-+ei
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
-     & nde(1),nde(2),                                                   &
-     &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu,iexact
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-      if(iclr.eq.3) read(ch1,*) nde(1),nde(2),                          &
-     &nwr(1),nwr(2),nwr(3),nwr(4),ntwin,ibidu,iexact
-+ei
-      if(iclo6.eq.5.or.iclo6.eq.6) then
-        iclo6=iclo6-4
-        iclo6r=1
-      endif
-      if(iclo6.eq.2.and.idfor.eq.0) idfor=1
-      if(iclo6.eq.1.or.iclo6.eq.2) nsix=0
-      if(iclr.ne.3) goto 510
-      iclr=0
-      nbidu=1
+    end if
+  case("NEXT") ! Close the current block
+    if(newParsing .and. .not. oneLine) then
+      ! Actual close check is done after a last pass so
+      ! each block can finalise any necessary initialisation
+      closeBlock = .true.
+    else
+      ! Most old block parsing code handles NEXT locally, but
+      ! some end up here. Send them back to start.
       goto 110
+    end if
+  case("ENDE") ! End of fort.3 input
+    call sixin_blockReport
+    goto 771
+  end select
+  
+  oneLine = .false.
+  
+  ! Old style block parsing
+  newParsing = .false.
+  select case(idat)
+  case("TUNE")
+    goto 600
+  case("SYNC")
+    goto 710
+  case("ITER")
+    goto 940
+  case("FLUC")
+    goto 790
+  case("MULT")
+    goto 740
+  case("CHRO")
+    goto 560
+  case("DIFF")
+    goto 520
+  case("LINE")
+    goto 660
+  case("LIMI")
+    goto 950
+  case("ORBI")
+    goto 980
+  case("COMB")
+    goto 1030
+  case("SUBR")
+    goto 1110
+  case("RESO")
+    goto 1120
+  case("SEAR")
+    goto 1200
+  case("ORGA")
+    goto 880
+  case("POST")
+    goto 1280
+  case("RIPP")
+    goto 1290
+  case("DECO")
+    goto 1320
+  case("COMM")
+    goto 1390
+  case("NORM")
+    goto 1400
+  case("CORR")
+    goto 1410
+  case("BEAM")
+    goto 1600
+  case("TROM")
+    goto 1700
+  case("COLL")
+    goto 1285
+  case("FLUK")
+    goto 1800
+  case("DIST")
+    goto 1900
+  case("DUMP")
+    goto 2000
+  case("BDEX")
+    goto 2250
+  case("FMA")
+    goto 2300
+  case("ELEN")
+    goto 2400
+  case("WIRE")
+    goto 2500
+  end select
+  
+  ! If we've reached this point, the old style block parsing has not been executed.
+  ! Switch to new type of parsing.
+  newParsing = .true.
+  
+  ! Check if no block is active. If so, there should be a new one if input is sane.
+  if(currBlock == "NONE") then
+    currBlock = idat
+    openBlock = .true.
+  end if
+  
+  ! Check the status of the current block
+  call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
+  ! if(nUnit == 2) then
+  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  ! else
+  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  ! end if
+  
+  ! Check if the current block has already been seen and closed.
+  ! If so, the block exists more than once in the input files. It shouldn't.
+  if(blockClosed) then
+    write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
+    goto 9999
+  end if
+  
+  ! Block-Wise Parsing Code
+  !=========================
+  ! These are parsed one line at a time, including the block declaration and the NEXT.
+  ! When the block is first encountered, the 'openBlock' flag is .true. for one pass.
+  ! When the block is closed, the 'closeBlock' flag is .true. for the final pass.
+  ! Otherwise, we have an input line that should be parsed by a single subroutine call.
+  ! The in-block line number is available as the variable 'blockLine' if needed.
+  
+  select case(currBlock)
+  
+  case("SING") ! Single Elements Block
+    if(openBlock) then
+      sixin_nSing = 1
+    elseif(closeBlock) then
+      nGeom = nGeom + 1
+    else
+      call sixin_parseInputLineSING(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("BLOC") ! Block Definitions
+    if(openBlock) then
+      sixin_nBloc = 0
+    elseif(closeBlock) then
+      nGeom = nGeom + 1
+    else
+      call sixin_parseInputLineBLOC(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("STRU") ! Structure Input
+    if(openBlock) then
+      sixin_nStru = 0
+    elseif(closeBlock) then
+      nGeom = nGeom + 1
+    else
+      call sixin_parseInputLineSTRU(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DISP") ! Displacement of Elements Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineDISP(ch,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("INIT")
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      dp1   = exz(1,6)
+      iclr  = 0
+      nbidu = 1
+    else
+      call sixin_parseInputLineINIT(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+  
+  case("TRAC")
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      nbidu = 1
+    else
+      call sixin_parseInputLineTRAC(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DYNK") ! Dynamic Kick Block
+    if(openBlock) then
+      call dynk_allocate
+    elseif(closeBlock) then
+      if(ldynkdebug) call dynk_dumpdata
+      ldynk = .true.
+      call dynk_inputsanitycheck
+    else
+      call dynk_parseInputLine(ch,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("HION") ! Heavy Ion Input Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      read(ch,*) aa0, zz0, nucm0
+      nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
+      has_hion = .true.
+    end if
+    
+  case("ZIPF") ! ZIPF Input Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call zipf_parseInputDone
+    else
+      call zipf_parseInputline(ch)
+    end if
+  
+  case("SCAT") ! SCATTER Input Block
+    if(openBlock) then
+      scatter_active = .true.
+      call scatter_allocate
+    elseif(closeBlock) then
+      if(scatter_debug) call scatter_dumpData
+    else
+      call scatter_parseInputLine(string(adjustl(ch)))
+    end if
+  
+  case("HDF5") ! HDF5 Input Block
+#ifndef HDF5
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
+    goto 9999
+#else
+    if(openBlock) then
+      h5_isActive = .true.
+    elseif(closeBlock) then
+      continue
+    else
+      call h5_parseInputLine(string(ch))
+    end if
+#endif
+  
+  case("ROOT") ! ROOT Input Block
+#ifndef ROOT
+    write(lout,"(a)") "INPUT> ERROR ROOT output requested but this exe does not have ROOT support compiled in"
+    goto 9999
+#else
+  if(openBlock) then
+    continue
+  elseif(closeBlock) then
+    call root_parseInputDone
+  else
+    call daten_root(ch)
+  end if
+#endif
+  
+  case default ! Unknown Block, Time to Panic
+    write(lout,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
+    goto 9999
+  
+  end select
+  
+  ! Some cleanup and record keeping
+  
+  if(openBlock) then
+    ! Nothing to do other than switch off the flag
+    openBlock = .false.
+  end if
+  
+  if(closeBlock) then
+    ! Close the block and check that everything is normal.
+    if(blockClosed) then
+      write(lout,"(a)") "INPUT> Trying to close block '"//currBlock//"', which is already closed."
+      goto 9999
+    end if
+    call sixin_closeBlock(currBlock)
+    currBlock  = "NONE"  ! No active blocks
+    closeBlock = .false. ! Switch off the flag
+  end if
+  
+  goto 110 ! Get next line
+  
+! ================================================================================================ !
+!  DONE PARSING FORT.2 AND FORT.3
+! ================================================================================================ !
+
 !-----------------------------------------------------------------------
 !  DIFFERENTIAL ALGEBRA
 !-----------------------------------------------------------------------
@@ -9582,13 +8660,6 @@ subroutine daten
       nvar=nvar2+ncor
       goto 110
       endif
-!-----------------------------------------------------------------------
-!  PRINTOUT INPUT PARAMETERS
-!-----------------------------------------------------------------------
-  550 iout=1
-      goto 110
-  552 iquiet=1
-      goto 110
 !-----------------------------------------------------------------------
 !  CHROMATCITY ADJUSTMENT
 !-----------------------------------------------------------------------
@@ -10018,8 +9089,8 @@ subroutine daten
       !nucm0=pma
       crad=(crade*pmae)/pma                                              !hr05
       if(abs(tlen).le.pieni) call prror(25)
-      if(ncy2.eq.0) then
-        ncy=icy*mper
+      if(sixin_ncy2.eq.0) then
+        ncy=sixin_icy*mper
         idp=1
         if(ncy.ne.0) goto 720
         idp=0
@@ -13252,106 +12323,6 @@ subroutine daten
       goto 2000
 
 !-----------------------------------------------------------------------
-!  DYNAMIC KICKS
-!  A.Mereghetti, for the FLUKA Team
-!  K.Sjobak & A. Santamaria, BE-ABP/HSS
-!  last modified: 21-01-2014
-!  always in main code
-!-----------------------------------------------------------------------
- 2200 continue
-      !We have a DYNK block; let's allocate the memory for it!
-      if (ldynk) then
-         write (lout,*)
-         write (lout,*) "******************************************"
-         write (lout,*) "** More than one DYNK block encountered **"
-         write (lout,*) "******************************************"
-         call prror(51)
-      endif
-      call dynk_allocate
-      
- 2201 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2201 ! skip comment line
-
-      ! Which type of block? Look at start of string (no leading blanks allowed)
-
-      if (ch(:4).eq."DEBU") then
-         ldynkdebug = .true.
-         write (lout,*) "DYNK> DYNK block debugging is ON"
-         goto 2201 !loop DYNK
-         
-      else if (ch(:6).eq."NOFILE") then
-         ldynkfiledisable = .true.
-         write (lout,*) "DYNK> Disabled writing dynksets.dat"
-         goto 2201 !loop DYNK
-         
-      else if (ch(:3).eq."FUN") then
-         call getfields_split( ch, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-         if ( getfields_lerr ) call prror(51)
-         if (ldynkdebug) then
-            write (lout,'(1x,A,I4,A)')                                  &
-     &           "DYNKDEBUG> Got a FUN block, len=",                    &
-     &           len(ch), ": '"// trim(ch)// "'"
-            do ii=1,getfields_nfields
-               write (lout,*)                                           &
-     &              "DYNKDEBUG> Field(",ii,") ='"//                     &
-     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-            enddo
-         endif
-         call dynk_parseFUN(getfields_fields,                           &
-     &        getfields_lfields, getfields_nfields)
-         goto 2201 !loop DYNK
-
-      else if (ch(:3).eq."SET") then
-         call getfields_split( ch, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-         if ( getfields_lerr ) call prror(51)
-         if (ldynkdebug) then
-            write (lout,'(1x,A,I4,A)')                                  &
-     &           "DYNKDEBUG> Got a SET block, len=",                    &
-     &           len(ch), ": '"//trim(ch)//"'"
-            do ii=1,getfields_nfields
-               write (lout,*)                                           &
-     &              "DYNKDEBUG> Field(",ii,") ='"//                     &
-     &              getfields_fields(ii)(1:getfields_lfields(ii))//"'"
-            enddo
-         endif
-         call dynk_parseSET(getfields_fields,                           &
-     &        getfields_lfields, getfields_nfields)
-         goto 2201 !loop DYNK
-
-      else if (ch(:4).eq.next) then
-         if (ldynkdebug) then
-            write (lout,*) "DYNKDEBUG> Finished parsing DYNK block"
-            call dynk_dumpdata
-         endif
-         
-         ldynk = .true.
-         
-         call dynk_inputsanitycheck
-         goto 110 ! Read next block or ENDE
-
-      else
-         write (lout,*)
-         write (lout,*) "*******************************************"
-         write (lout,*) "ERROR while parsing DYNK block in fort.3"
-         write (lout,*)                                                 &
-     &        "Expected keywords FUN, SET, DEBU, NOFILE or NEXT"
-         write (lout,*) "Got ch:"
-         write (lout,*) "'"//ch//"'"
-         write (lout,*) "*******************************************"
-         call prror(51)
-      endif
-      ! Should never arrive here
-      write (lout,*) "*****************************"
-      write (lout,*) "*LOGIC ERROR IN PARSING DYNK*"
-      write (lout,*) "*****************************"
-      call prror(51)
-
-!-----------------------------------------------------------------------
 !  BDEX = Beam Distribution EXchange
 !  K.Sjobak, BE/ABP-HSS 2016
 !  Based on FLUKA coupling version by
@@ -13969,139 +12940,6 @@ subroutine daten
 
 
 ! ================================================================================================ !
-!  hisix heavy ion input block
-!  P. HERMES
-!  Last modified: 2015-07-01
-! ================================================================================================ !
-2700 continue
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-
-  if(ch(1:1).eq.'/') goto 2700 ! Skip comment line
-  if(ch(:4).eq.next) goto 110
-  
-  ch1(:nchars+3)=ch(:nchars)//' / '
-  read(ch1,*) aa0, zz0, nucm0
-  nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
-      !    do j=1,npart
-      !     naa   (j) = aa0
-      !     nzz   (j) = zz0
-      !     nucm  (j) = nucm0
-
-      !    enddo
-  has_hion = .true.
-  goto 110
-
-! ================================================================================================ !
-!  ZIPF Input
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 2017-02-07
-! ================================================================================================ !
-2800 continue
-  read(3, 10020, end=1530,iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-  
-  if(ch(1:1).eq.'/') goto 2800 ! Skip comment line
-  if(ch(:4).eq.next) then
-    call zipf_parseInputDone
-    goto 110 ! Read next block or ENDE
-  end if
-  call zipf_parseInputline(ch)
-  goto 2800  ! Read the next line of the ZIPF block
-
-! ================================================================================================ !
-!  SCATTER Input
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-20
-! ================================================================================================ !
-2900 continue
-  ! We have a SCATTER block; let's allocate the memory for it!
-  if (scatter_active) then
-    write(lout,*) "ERROR while parsing SCATTER in fort.3"
-    write(lout,*) "More than one SCATTER block encountered?"
-    call prror(-1)
-  end if
-  call scatter_allocate
-  
-2901 continue
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-  
-  if(ch(1:1) == "/") goto 2901 ! skip comment line
-  if (ch(:4) == next) then
-    scatter_active = .true.
-    if(scatter_seed1 == -1 .and. scatter_seed2 == -1) then
-      write(lout,"(a)") "SCATTER> ERROR while parsing SCATTER in fort.3: No SEED sets were specified"
-      call prror(-1)
-    end if
-    if (scatter_debug) call scatter_dumpData
-    goto 110 ! Read next block or ENDE
-  end if
-  call scatter_parseInputLine(string(adjustl(ch)))
-  
-  goto 2901  ! Read the next line of the SCATTER block
-
-! ================================================================================================ !
-!  ROOT Input Block
-! ================================================================================================ !
-3000 continue
-#ifndef ROOT
-  write(lout,*) "ERROR: ROOT output requested in fort.3"
-  write(lout,*) "but this exe does not have ROOT support compiled in"
-  call prror(-1)
-#else
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro.gt.0) call prror(58)
-  lineno3 = lineno3+1 ! Line number used for some crash output
-  
-  if(ch(1:1).eq.'/') goto 3000 ! Skip comment line
-  if(ch(:4).eq.next) then
-    call root_parseInputDone
-    goto 110 ! Read next block or ENDE
-  end if
-  
-  call daten_root(ch)
-  
-  goto 3000  ! Read the next line of the ROOT block
-#endif
-
-! ================================================================================================ !
-!  HDF5 Input Block
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-14
-! ================================================================================================ !
-3100  continue
-#ifndef HDF5
-  write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-  write(lout,*) "SixTrack was not compiled with the HDF5 flag."
-  call prror(-1)
-#else
-  ! Check if an HDF5 block has already been encountered
-  if (h5_isActive) then
-    write(lout,*) "ERROR while parsing HDF5 in fort.3:"
-    write(lout,*) "More than one HDF5 block encountered."
-    call prror(-1)
-  end if
-  
-3110  continue
-  read(3, 10020, end=1530, iostat=ierro) ch
-  if(ierro > 0) call prror(58)
-  lineno3 = lineno3 + 1
-      
-  if(ch(1:1) == "/") goto 3110 ! Comment line encountered
-  if(ch(1:4) == next) then
-    h5_isActive = .true.
-    goto 110 ! Read next block or ENDE
-  end if
-  call h5_parseInputLine(string(ch))
-  
-  goto 3110 ! Read the next line of the block
-#endif
-
-! ================================================================================================ !
 !  ENDE was reached; we're done parsing fort.3, now do some postprocessing.
 ! ================================================================================================ !
 771 if(napx.ge.1) then
@@ -14167,7 +13005,7 @@ subroutine daten
       write(lout,10050)
       write(lout,10060)
       il1=il
-      if(ncy2.eq.0) il1=il-1
+      if(sixin_ncy2.eq.0) il1=il-1
       do 1435 k=1,il1
       if(abs(kz(k)).eq.12) then
         write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
@@ -14193,17 +13031,17 @@ subroutine daten
           l2=(l1-1)*6+1
           l3=l2+5
           if(l2.eq.1) then
-            write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,6)
+            write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
           else
-            write(lout,10270) (beze(l,k),k=l2,l3)
+            write(lout,10270) (sixin_beze(l,k),k=l2,l3)
           endif
  1440   continue
         if(mod(kk,6).ne.0) then
           l4=ll*6+1
-          write(lout,10270) (beze(l,k),k=l4,kk)
+          write(lout,10270) (sixin_beze(l,k),k=l4,kk)
         endif
       else
-        write(lout,10260) l,bezb(l),kk,(beze(l,k),k=1,kk)
+        write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
       endif
  1450 continue
       write(lout,10120)
@@ -14218,7 +13056,7 @@ subroutine daten
         if(icc.gt.nblo) goto 1460
         ic0(l)=bezb(icc)
         goto 1470
- 1460   ic0(l)=bez0(icc-nblo)
+ 1460   ic0(l)=sixin_bez0(icc-nblo)
  1470 continue
       k11=k10+1
       write(lout,10280) k11,(ic0(l),l=1,5)
@@ -14332,7 +13170,7 @@ subroutine daten
       else !No beam beam
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
-      if(ncy2.eq.0) then
+      if(sixin_ncy2.eq.0) then
         write(lout,10143) harm,u0,phag,qs,alc
       else
         write(lout,*)
@@ -14431,11 +13269,22 @@ subroutine daten
          call parseChebyFile(tmpi1)
       end do
 
-      call dealloc(bez0,max_name_len,'bez0')
+      call dealloc(sixin_bez0,max_name_len,'sixin_bez0')
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-      return
+  return
+  
+9999 continue
+  ! Error handling for sixtrack_input module
+  if(nUnit == 2) then
+    write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineNo2
+  else
+    write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineNo3
+  end if
+  call prror(-1)
+  return
+      
 10000 format(11(a4,1x))
 10010 format(a4,8x,a60)
 10020 format(a)
@@ -14914,6 +13763,7 @@ subroutine initialize_element(ix,lfirst)
       use string_tools
       use parpro !Needed for common
       use mod_common
+      use mod_commont
       use mod_commonmn
       use elens
       use wire
@@ -14923,9 +13773,6 @@ subroutine initialize_element(ix,lfirst)
       logical, intent(in) :: lfirst
 
       integer im, izu, k, m, nmz, r0, r0a !needed to use multini
-
-+ca commontr
-+ca commonxz
 
       !Temp variables
       integer i
@@ -15532,10 +14379,10 @@ end function dtostr
       use mathlib_bouncer
       use numerical_constants
       use parpro
+      use parbeam
       implicit none
       integer i,j,k
       real(kind=fPrec) wi,wr,x,y
-+ca parbeam
       save
 !-----------------------------------------------------------------------
       hrecip = one/h
@@ -15646,6 +14493,8 @@ subroutine envars(j,dpp,rv)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
+  use mod_commond
   implicit none
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
@@ -15653,8 +14502,6 @@ subroutine envars(j,dpp,rv)
 #ifdef DA
   integer jm,k,m,na,ne
 #endif
-+ca commont1
-+ca commondl
 +if bnlelens
 +ca rhicelens
 +ei
@@ -16001,12 +14848,12 @@ subroutine envada
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
+  use mod_commond
   use mod_commond2
   implicit none
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
-+ca commont1
-+ca commondl
 +ca commond1
 +if bnlelens
 +ca rhicelens
@@ -16388,10 +15235,10 @@ end subroutine envada
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commond
       implicit none
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
-+ca commondl
 +ca commond1
 +if bnlelens
 +ca rhicelens
@@ -16490,7 +15337,10 @@ subroutine runda
       use crcoall
       use parpro
       use mod_common
+      use mod_commonmn, only : e0f,numx
       use mod_commons
+      use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+      use mod_commond
       use mod_commond2
       use mod_hions
       implicit none
@@ -16504,12 +15354,7 @@ subroutine runda
      &zfeld1,zfeld2,zrb,zs, crabfreq, crabpht, crabpht2, crabpht3,      &
      &crabpht4
       character(len=300) ch
-+ca commont2
-+ca commondl
-+ca commonxz
-+ca commonm1
 +ca commond1
-+ca commonc
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
       dimension fake(2,20),dpdav2(6),jj(100)
@@ -16518,6 +15363,7 @@ subroutine runda
 +ca daini
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
+      call comt_daStart
 +if fast
       c5m4=5.0e-4_fPrec
 +ei
@@ -17605,6 +16451,7 @@ subroutine runda
       write(lout,10020) time1-time0
       write(lout,10030) nord,time2-time1
 !-----------------------------------------------------------------------
+call comt_daEnd
       return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
      &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
@@ -17633,10 +16480,14 @@ subroutine umlauda
       use crcoall
       use string_tools
       use parpro
+      use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
+      use mod_commonmn, only : e0f
       use mod_commons
-      use wire
+      use mod_commont, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
+      use mod_commond
       use mod_commond2
+      use wire
       use mod_hions
       
       implicit none
@@ -17654,15 +16505,7 @@ subroutine umlauda
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=max_name_len) typ
-+ca commonex
-+ca commont2
-+ca commondl
-+ca commonl
-+ca commonxz
-+ca commonm1
 +ca commond1
-+ca commonc
-+ca commonta
       dimension damap(6),damapi(6),damap1(6)
       dimension aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6)
       dimension zfeld1(100),zfeld2(100)
@@ -17683,7 +16526,6 @@ subroutine umlauda
 +ei
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format
-+ca parbeam_exp
 +if crlibm
       character(len=1000) ch
       character(len=25) ch1
@@ -17698,6 +16540,7 @@ subroutine umlauda
 +ca daini
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
+      call comt_daStart
 +if debug
 !     umcalls=umcalls+1
 !     call wda('umcalls',0d0,1,umcalls,0,0)
@@ -18130,7 +16973,24 @@ subroutine umlauda
               endif
             else
               if(iexact.eq.1) then
-+ca exDAdrift
+!-----------------------------------------------------------------------
+!  EXACT DRIFT
+!-----------------------------------------------------------------------
+!FOX  X(1)=X(1)*C1M3 ;
+!FOX  X(2)=X(2)*C1M3 ;
+!FOX  Y(1)=Y(1)*C1M3 ;
+!FOX  Y(2)=Y(2)*C1M3 ;
+!FOX  SIGMDA=SIGMDA*C1M3 ;
+!FOX  PZ=SQRT(ONE-Y(1)*Y(1)-Y(2)*Y(2)) ;
+!FOX  X(1)=X(1)+EL(JX)*(Y(1)/PZ) ;
+!FOX  X(2)=X(2)+EL(JX)*(Y(2)/PZ) ;
+!FOX  SIGMDA=SIGMDA+(ONE-(RV/PZ))*EL(JX) ;
+!FOX  X(1)=X(1)*C1E3 ;
+!FOX  X(2)=X(2)*C1E3 ;
+!FOX  Y(1)=Y(1)*C1E3 ;
+!FOX  Y(2)=Y(2)*C1E3 ;
+!FOX  SIGMDA=SIGMDA*C1E3 ;
+!-----------------------------------------------------------------------
               else
 ! Regular drift
 +ca dalin6
@@ -19033,6 +17893,7 @@ subroutine umlauda
       call dadal(h,1)
       call dadal(df,6)
 !     DADAL AUTOMATIC INCLUSION
+      call comt_daEnd
       return
 !-----------------------------------------------------------------------
 10000 format(/t5 ,'---- ENTRY ',i1,'D LINOPT ----')
@@ -19117,17 +17978,15 @@ subroutine wireda(ix,i)
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+      use mod_commond
       use wire
       use mod_hions
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
-+ca commont2
 +ca commond1
-+ca commondl
-+ca commonl
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19149,6 +18008,7 @@ subroutine wireda(ix,i)
 !FOX  D V RE INT NNORM_ ;
 !FOX  E D ;
 !FOX  1 if(1.eq.1) then
+call comt_daStart
 !-----------------------------------------------------------------------
 !-- WIRE
 !     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
@@ -19298,115 +18158,8 @@ subroutine wireda(ix,i)
 !FOX  YY(2)=YY(2)*C1E3;
 
 !     DADAL AUTOMATIC INCLUSION
+      call comt_daEnd
 end subroutine wireda
-
-
-+dk runcav
-      subroutine runcav
-!-----------------------------------------------------------------------
-!               DIFFERENTIAL ALGEBRA FOR CAVITY
-!                          AUGUST 1994
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_hions
-      implicit none
-      integer idaa
-      real(kind=fPrec) betr0,dare,sigmdac
-+ca commont2
-+ca commondl
-+ca commonxz
-+ca commonm1
-+ca commond1
-      save
-!-----------------------------------------------------------------------
-+ca daini
-!FOX  1 if(1.eq.1) then
-!-----------------------------------------------------------------------
-
-      betr0=sqrt(one-(nucm0/e0)**2)
-      write(lout,*) ' REENTERING MAP '
-      call davar(x(1),zero,1)
-      call davar(yp(1),zero,2)
-      call davar(x(2),zero,3)
-      call davar(yp(2),zero,4)
-      call davar(deltas,zero,5)
-      call davar(dpda1,zero,6)
-      call darea(x(1),18)
-      call darea(yp(1),18)
-      call darea(x(2),18)
-      call darea(yp(2),18)
-      call darea(deltas,18)
-      call darea(dpda1,18)
-      rewind 18
-!Eric
-        rewind 111
-      if(ition.ne.0) then
-      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
-!FOX  DPDA=DPDA1*C1M3 ;
-!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
-!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
-!FOX  EJF0=EJF1 ;
-        if(abs(dppoff).gt.pieni) then
-          sigmdac=sigmoff(iicav)
-!FOX  DELTAS=DELTAS-SIGMDAC ;
-
-        endif
-        call synoda
-!FOX  DPDA=DPDA1*C1M3 ;
-!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
-!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
-!FOX  RV=EJ1/E0*E0F/EJF1 ;
-
-      endif
-      if(nvar2.ge.1) call dapri(x(1),18)
-      if(nvar2.ge.2) call dapri(yp(1),18)
-      if(nvar2.ge.3) call dapri(x(2),18)
-      if(nvar2.ge.4) call dapri(yp(2),18)
-      if(nvar2.eq.5) call dapri(dpda1,18)
-      if(nvar2.eq.6) call dapri(deltas,18)
-      if(nvar2.eq.6) call dapri(dpda1,18)
-      
-      write(lout,*) 'END COORDINATES'
-      write(lout,*) dare(x(1)),dare(y(1))
-      write(lout,*) dare(x(2)),dare(y(2))
-      write(lout,*) dare(sigmda),dare(dpda)
-      
-      write(12,'(E22.15)') dare(x(1))
-      write(12,'(E22.15)') dare(y(1))
-      write(12,'(E22.15)') dare(x(2))
-      write(12,'(E22.15)') dare(y(2))
-      write(12,'(E22.15)') dare(sigmda)
-      write(12,'(E22.15)') dare(dpda)
-      
-      write(lout,10010)
-!-----------------------------------------------------------------------
-!     DADAL AUTOMATIC INCLUSION
-      time2=0.
-      call timex(time2)
-!     time=time2-time1
-      write(lout,10020) time1-time0
-      write(lout,10030) nord,time2-time1
-      return
-10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
-     &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
-     &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,        &
-     &'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,        &
-     &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
-10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30(  &
-     &'*')/)
-10020 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
-     &,' of Computing Time')
-10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,      &
-     &' second(s) of CPU Time'//131('-')//)
-      end
 
 +dk synoda
       subroutine synoda
@@ -19419,14 +18172,14 @@ end subroutine wireda
       use numerical_constants
       use parpro
       use mod_common
+      use mod_commonmn, only : e0f
       use mod_commons
+      use mod_commont
+      use mod_commond
       use mod_hions
       implicit none
       integer ix,idaa
-+ca commont1
-+ca commondl
 +ca commond1
-+ca commonm1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19477,16 +18230,14 @@ end subroutine wireda
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+      use mod_commond
       implicit none
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
-+ca commont2
-+ca commondl
-+ca commonl
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19511,6 +18262,7 @@ end subroutine wireda
 !FOX  D F RE DARE 1 ;
 !FOX  E D ;
 !FOX  1 if(1.eq.1) then
+call comt_daStart
 !-----------------------------------------------------------------------
 !FOX  X=XX ;
 !FOX  Y=YY ;
@@ -19584,6 +18336,7 @@ end subroutine wireda
         endif
       endif
 !     DADAL AUTOMATIC INCLUSION
+      call comt_daEnd
       return
       end
 
@@ -19600,18 +18353,18 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
+      use mod_commond
       use crcoall
       use parpro
+      use parbeam, only : beam_expflag,beam_expfile_open
       implicit none
       integer ibb,ibbc,ne,nsli,idaa
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
      &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
-+ca commondl
       dimension param(nele,18),bcu(nbb,12),star(3,mbea)
 +if bnlelens
 +ca rhicelens
 +ei
-+ca parbeam_exp
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -19670,10 +18423,10 @@ end subroutine beaminf
       use mathlib_bouncer
       use numerical_constants
       use parpro
+      use mod_commond
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
-+ca commondl
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19731,10 +18484,10 @@ end subroutine beaminf
       use mathlib_bouncer
       use numerical_constants
       use parpro
+      use mod_commond
       implicit none
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
-+ca commondl
       dimension star(3,mbea),bcu(nbb,12)
 +if bnlelens
 +ca rhicelens
@@ -19877,10 +18630,10 @@ end subroutine beaminf
       use mathlib_bouncer
       use numerical_constants
       use parpro
+      use mod_commond
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
-+ca commondl
 +if bnlelens
 +ca rhicelens
 +ei
@@ -19947,14 +18700,13 @@ end subroutine beaminf
       use mathlib_bouncer
       use numerical_constants
       use parpro
-
+      use mod_commond
       use mod_ranecu
 
       implicit none
       integer idaa
       real(kind=fPrec) dare,hundred,sqrpi2
       parameter(sqrpi2 = 3.544907701811032_fPrec,hundred = c1e2)
-+ca commondl
 +if bnlelens
 +ca rhicelens
 +ei
@@ -20103,8 +18855,10 @@ program maincr
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
   
   use mod_hions
+  use matrix_inv
   use aperture
   use wire
   
@@ -20117,6 +18871,7 @@ interface
     use floatPrecision
     use parpro
     use parpro_scale
+    use mod_commond
     
     implicit none
 
@@ -20180,20 +18935,10 @@ end interface
 !  TEMPORARY SCRATCH FILE for C/R           : UNIT 94
 +ei
 !-----------------------------------------------------------------------
-+ca commonex
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonm1
 ! Eric needs nwri (clean up new variables and common blocks!)
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
-+ca commonc
 +if cr
 +ca crco
 +ei
@@ -20244,6 +18989,9 @@ end interface
 #ifdef DEBUG
 !  integer umcalls,dapcalls,dokcalls,dumpl
 !  common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
+#endif
+#ifdef FLUKA
+  integer fluka_con
 #endif
   logical lopen
   dimension cmonth(12)
@@ -20686,7 +19434,10 @@ end interface
   call daten
   
 #ifdef HDF5
-  if(h5_isActive) call h5_openFile()
+  if(h5_isActive) then
+    call h5_openFile()
+    call h5_writeSimInfo()
+  end if
 #endif
   call aperture_init
 
@@ -21486,7 +20237,7 @@ end interface
 +ei
       napxo=napx
       if(ibidu.eq.1) then
-+ca dump1 !write(32)
+        write(32) &
 +ca dump3 !list of variables
       endif
   550 continue
@@ -21511,7 +20262,7 @@ end interface
       
 !!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
-+ca dump2 !read(32)
+        read(32) &
 +ca dump3 !list of variables
         damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
       endif
@@ -22362,7 +21113,7 @@ end interface
         write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
         write(lout,*)
         do ia=1,napxo
-          if(not.pstop(ia)) then
+          if(.not.pstop(ia)) then
             write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
               xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3, &
               ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
@@ -22753,22 +21504,19 @@ subroutine trauthin(nthinerr)
   use collimation
 +ei
 
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-      implicit none
-      integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-      real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
-     &r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-      logical lopen
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
+  use crcoall
+  use parpro
+  use parbeam, only : beam_expflag,beam_expfile_open
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use mod_commont
+  use mod_commond
+  implicit none
+  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
+  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
+    r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+  logical lopen
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
@@ -22784,7 +21532,6 @@ subroutine trauthin(nthinerr)
 +if bnlelens
 +ca rhicelens
 +ei
-+ca parbeam_exp
   save
 
   do i=1,npart
@@ -22874,7 +21621,12 @@ subroutine trauthin(nthinerr)
 +ca crab1
 +ca crab_mult
 +ca elens
-+ca scatter
+        ! SCATTER block
+        if (kzz.eq.40 .and. scatter_elemPointer(ix).ne.0) then
+          ! FOR NOW, ASSUME THIN SCATTER; ktrack(i)=65 RESERVED FOR THICK SCATTER
+          ktrack(i)=64
+          goto 290
+        endif
 +ca trom30
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
@@ -23235,6 +21987,8 @@ subroutine thin4d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use bdex, only : bdex_enable
   use aperture
   use elens
@@ -23242,8 +21996,7 @@ subroutine thin4d(nthinerr)
   
   implicit none
 
-+ca exactvars
-+ca commonex
+  real(kind=fPrec) pz
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
   real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,&
           r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
@@ -23253,13 +22006,6 @@ subroutine thin4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
 
 +if cr
@@ -23422,7 +22168,19 @@ subroutine thin4d(nthinerr)
             xv(2,j)=xv(2,j)+stracki*yv(2,j)
           end do
         else
-+ca ex4Ddrift
+          do j=1,napx
+            xv(1,j)=xv(1,j)*c1m3
+            xv(2,j)=xv(2,j)*c1m3
+            yv(1,j)=yv(1,j)*c1m3
+            yv(2,j)=yv(2,j)*c1m3
+            pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
+            xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
+            xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
+            xv(1,j)=xv(1,j)*c1e3
+            xv(2,j)=xv(2,j)*c1e3
+            yv(1,j)=yv(1,j)*c1e3
+            yv(2,j)=yv(2,j)*c1e3
+          enddo
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
@@ -23881,13 +22639,14 @@ subroutine thin6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use aperture
   use elens
   use wire
   implicit none
 
-+ca exactvars
-+ca commonex
+  real(kind=fPrec) pz
   integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr,dotrack
   real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,&
           dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
@@ -23897,13 +22656,7 @@ subroutine thin6d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
+
 +ca beamdim
 
 +if collimat
@@ -24206,7 +22959,23 @@ subroutine thin6d(nthinerr)
 +ca sqrtv
             end do
           else
-+ca ex6Ddrift
+            ! EXACT DRIFT
+            do j=1,napx
+              xv(1,j)=xv(1,j)*c1m3
+              xv(2,j)=xv(2,j)*c1m3
+              yv(1,j)=yv(1,j)*c1m3
+              yv(2,j)=yv(2,j)*c1m3
+              sigmv(j)=sigmv(j)*c1m3
+              pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
+              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
+              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
+              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
+              xv(1,j)=xv(1,j)*c1e3
+              xv(2,j)=xv(2,j)*c1e3
+              yv(1,j)=yv(1,j)*c1e3
+              yv(2,j)=yv(2,j)*c1e3
+              sigmv(j)=sigmv(j)*c1e3
+            enddo
           end if
 +ei ! if .not.collimat
           ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -24614,10 +23383,16 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (64) ! Scatter (thin)
-+ca scat_thi
+        !Thin scattering
+        ! It is already checked that scatter_elemPointer != 0
+        call scatter_thin(i, ix,n)
         goto 640
       case (65) ! Scatter (thick)
-+ca scat_tck
+        !Thick scattering
+        if (scatter_debug) then
+          write(lout,*) "SCATTER> In scat_tck, ix=",ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
+        endif
+        !     TODO
         goto 640
       case default
         write (lout,*) "WARNING: Non-handled element in thin6d()!",  &
@@ -24737,13 +23512,9 @@ subroutine callcrp()
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +if cr
 +ca crco
 +ei
@@ -24821,15 +23592,11 @@ end subroutine callcrp
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -24894,15 +23661,10 @@ subroutine write6(n)
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
       integer ia,ia2,id,ie,ig,n
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -25005,25 +23767,21 @@ subroutine trauthck(nthinerr)
 
   use crcoall
   use parpro
+  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
 +ca database
 +ei
-+ca parbeam_exp
   save
 
 +if collimat
@@ -25436,6 +24194,8 @@ subroutine thck4d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use elens
   use wire
   implicit none
@@ -25449,13 +24209,6 @@ subroutine thck4d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
 +if cr
 +ca crco
@@ -26126,6 +24879,8 @@ subroutine thck6d(nthinerr)
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use aperture
   use elens
   use wire
@@ -26141,13 +24896,6 @@ subroutine thck6d(nthinerr)
 +ca wiretracktmp
   logical llost
   
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +ca beamdim
 +if cr
 +ca crco
@@ -26924,15 +25672,11 @@ subroutine synuthck
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonm1
-+ca commontr
 +if bnlelens
 +ca rhicelens
 +ei
@@ -27344,6 +26088,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
+      use mod_commond
 
       use mod_alloc
 
@@ -27370,9 +26116,6 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       
       real(kind=fPrec) fokm
       
-+ca commont1
-+ca commondl
-+ca commonxz
 +if bnlelens
 +ca rhicelens
 +ei
@@ -27770,9 +26513,12 @@ subroutine comnul
   use hdf5_output, only : h5_comnul
 #endif
   use parpro
+  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   use bdex, only : bdex_comnul
   use aperture
   use elens
@@ -27781,20 +26527,13 @@ subroutine comnul
   implicit none
   
   integer i,i1,i2,i3,i4,j
-+ca commonex
-+ca commont1
-+ca commondl
 +ca commd1da
-+ca commonc
-+ca commonxz
 
 +if bnlelens
 +ca rhicelens
 +ei
 
 +ca dbdcum
-
-+ca parbeam_exp
 
   save
 !-----------------------------------------------------------------------
@@ -28530,8 +27269,6 @@ subroutine STRNUL( iel )
       use mod_commonmn
       implicit none
       
-+ca commonxz
-
 !     local variables
       integer iel, i1, i2, i3, j
 
@@ -28583,10 +27320,10 @@ integer function INEELS( iEl )
       use crcoall
       use parpro
       use mod_common
+      use mod_commont
       use mod_commonmn
       implicit none
 
-+ca commontr
 +ca dbdcum
 
 !     interface variables
@@ -28649,10 +27386,9 @@ integer function INEESE()
   use parpro
   use parpro_scale
   use mod_common
+  use mod_commont
   use mod_commonmn
   implicit none
-
-+ca commontr
 
   il=il+1
   if( il.gt.nele-2 ) then
@@ -28685,10 +27421,10 @@ integer function check_SE_unique( iEl, ixEl )
 
   use parpro
   use mod_common
+  use mod_commont
   use mod_commonmn
   implicit none
 
-+ca commontr
 +ca dbdcum
 
 ! interface variables
@@ -28797,238 +27533,6 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
       
 end subroutine find_entry_at_s
 
-+dk umschr
-subroutine umschr(iu1,iu2)
-!-----------------------------------------------------------------------
-!           UMSCHR    DIFFERENTIAL ALGEBRA 5 -> 6
-!                          AUGUST 1994
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      implicit none
-      integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
-      real(kind=fPrec) c,c1
-      character(len=80) aaa
-      character(len=18) a18
-      character(len=58) a58
-      dimension jj(100)
-      save
-!-----------------------------------------------------------------------
-      do i=1,100
-        jj(i)=0
-      enddo
-      do j=1,6
-        iplus=0
-        read(iu1,'(A80)') aaa
-        write(iu2,'(A80)') aaa
-        read(iu1,'(A18,I4,A58)') a18,nno,a58
-        write(iu2,'(A18,I4,A58)') a18,nno,a58
-        read(iu1,'(A80)') aaa
-        write(iu2,'(A80)') aaa
-        read(iu1,'(A80)') aaa
-        write(iu2,'(A80)') aaa
-        read(iu1,'(A80)') aaa
-        write(iu2,'(A80)') aaa
-
-        if(nno.eq.1) then
-          do i=1,5
-            read(iu1,'(6X,2X,G21.14,I5)') c,ii
-            write(iu2,'(6X,2X,G21.14,I5)') c,ii
-          end do
-          if (j.eq.5) then
-            write(iu2,'(6X,2X,G21.14,I5)') one,5
-          else
-            write(iu2,'(6X,2X,G21.14,I5)') zero,5
-          endif
-          read(iu1,'(6X,2X,G21.14,I5)') c,ii
-          write(iu2,'(6X,2X,G21.14,I5)') c,ii+1
-          read(iu1,'(6X,2X,G21.14,I5)') c,ii
-          if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
-        else
-   20     read(iu1,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
-          if(ii.eq.0) then
-            if(j.eq.5.and.ioo.lt.2) then
-              write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iio+1,one,1, 0,0,0,0,1,0
-              write(iu2,*) one
-            endif
-            goto 30
-          endif
-          ioo=io
-          iio=ii
-          read(iu1,*) c1
-          if(j.eq.5.and.(io.eq.2.or.jj(5).eq.1).and.iplus.eq.0) then
-            iplus=1
-            write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,one,io,0,0,0,0,1,0
-            write(iu2,*) one
-          endif
-          write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj(i),i=1,4),0,jj(5)
-          write(iu2,*) c1
-          goto 20
-        endif
-   30   write(iu2,*)
-      end do
-      rewind iu1
-      rewind iu2
-      return
-end subroutine umschr
-
-+dk daliesix
-subroutine daliesix
-      use floatPrecision
-      use end_sixtrack
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      implicit none
-      integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
-      real tlim,time0,time1,time
-      real(kind=fPrec) angle,coe,rad,x2pi
-+ca commondl
-+ca commonas
-      dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
-      dimension rot(6),xy(6),df(6)
-      dimension angle(3),rad(3)
-      save
-!-----------------------------------------------------------------------
-      tlim=1e7
-      call timest(tlim)
-      time0=0.
-      call timex(time0)
-!--Initialization
-      x2pi=atan_mb(one)*eight
-      coe=(-one*two)/x2pi                                                !hr08
-      no=nordf
-      if(nord1.gt.no) nord1=no
-      ndim=nvar2/2
-      if(nvarf/2.lt.ndim) ndim=nvarf/2
-      if(ndim.eq.0) call prror(94)
-      nv=nvarf
-      nd2=2*ndim
-      ndpt=idptr
-      nis=0
-      mfile=18
-      mf1=21
-      mf2=22
-      mf3=23
-      mf4=24
-      mf5=25
-      call idprset(-102)
-      call lieinit(no,nv,ndim,ndpt,0,nis)
-      call etall(damap,nd2)
-      call etall(xy,nd2)
-      call etall(bb1,1)
-      call etall(bb2,1)
-      call etall(haux,1)
-      call etallnom(a1,nd2,'A1        ')
-      call etallnom(a1i,nd2,'A1I       ')
-      call etallnom(a2,nd2,'A2        ')
-      call etallnom(a2i,nd2,'A2I       ')
-      call etallnom(f,1,'F         ')
-      call etallnom(fc,1,'FC        ')
-      call etallnom(fs,1,'FS        ')
-      call etallnom(rot,nd2,'ROT       ')
-      call etallnom(h,1,'H         ')
-      call etallnom(h4,1,'H4        ')
-      call etallnom(hc,1,'HC        ')
-      call etallnom(hs,1,'HS        ')
-      call etallnom(df,nd2,'DF        ')
-      rewind mfile
-!Eric
-      rewind 111
-      rewind mf1
-      rewind mf2
-      rewind mf3
-      rewind mf4
-      rewind mf5
-      call daread(damap,nd2,mfile,zero)
-!--Normal Form Analysis
-      call mapnorm(damap,f,a2,a1,xy,h,nord1)
-      call dainv(a1,nv,a1i,nv)
-      call dainv(a2,nv,a2i,nv)
-      call ctor(f,fc,fs)
-      call gettura(angle,rad)
-      call taked(xy,1,rot)
-      call take(h,2,haux)
-      call dasub(h,haux,h4)
-      call ctor(h,hc,hs)
-      call dhdj(h,df)
-!--Printing
-      call daprid(a1i,1,nd2,mf1)
-      call daprid(a2i,1,nd2,mf1)
-      call dapri(f,mf1)
-      call daprid(rot,1,nd2,mf1)
-      call dapri(h4,mf1)
-      call dapri(f,mf1)
-      call daprid(a2,1,nd2,mf1)
-      call daprid(a1,1,nd2,mf1)
-      call dapri(h,mf2)
-      call dapri(hc,mf2)
-      call dapri(hs,mf2)
-      call dapri(fc,mf2)
-      call dapri(fs,mf2)
-      call daprimax(hc,mf3)
-      call daprid(df,ndim+1,nd2,mf4)
-      call daprid(df,1,ndim,mf5)
-      write(lout,10060)
-      if(imod1.eq.0) then
-        write(lout,10020) nordf
-      else
-        write(lout,10010) nordf
-      endif
-      write(lout,10025) nord1
-      if(imod2.eq.0) then
-        write(lout,10040) nvarf
-      else
-        write(lout,10030) nvarf
-      endif
-      write(lout,10050)
-      angle(3)=angle(3)*(-one)
-      write(lout,*) (angle(i),i=1,ndim)
-!--Clean-Up
-      call dadal(damap,nd2)
-      call dadal(a1,nd2)
-      call dadal(a1i,nd2)
-      call dadal(a2,nd2)
-      call dadal(a2i,nd2)
-      call dadal(f,1)
-      call dadal(fc,1)
-      call dadal(fs,1)
-      call dadal(rot,nd2)
-      call dadal(xy,nd2)
-      call dadal(h,1)
-      call dadal(h4,1)
-      call dadal(hc,1)
-      call dadal(hs,1)
-      call dadal(df,nd2)
-      call dadal(bb1,1)
-      call dadal(bb2,1)
-      call dadal(haux,1)
-      time1=0.
-      call timex(time1)
-      time = time1-time0
-      write(lout,10000) no,time
-      return
-!-----------------------------------------------------------------------
-10000 format(/10x,'DA-CALCULATION OF ORDER : ',i7,' TAKES ', f12.3,     &
-     &' SECONDS OF CPU TIME'//131('-')//)
-10010 format(t10,'THE ORDER IS GREATER THAN THE ONE SPECIFIED IN THE'/  &
-     &t10,'DIFFERENTIAL ALGEBRA BLOCK.'// t10,'NEW ORDER---> ',i3)
-10020 format(t10,'ORDER FOR THE NORMAL FORM CALCULATIONS---> ',i3/)
-10025 format(/t10,'CLOSED ORBIT ORDER OF THE NORMAL FORM ---> ',i3/)
-10030 format(t10,'THE NUMBER OF VARIABLES IS GREATER THAN THE ONE ',    &
-     &'SPECIFIED IN THE'/ t10,'DIFFERENTIAL ALGEBRA BLOCK.'// t10,      &
-     &'NEW NUMBER OF VARIABLES---> ',i3/)
-10040 format(t10,'NUMBER OF VARIABLES FOR THE NORMAL FORM ' ,           &
-     &'CALCULATIONS---> ',i3//)
-10050 format(t10,'LINEAR TUNES USED IN THE NORMAL FORM CALCULATIONS:'//)
-10060 format(//131('-')//t10,20('O')/t10,2('O'),16x,2('O')/t10,         &
-     &'OO  NORMAL FORMS  OO', /t10,2('O'),16x,2('O')/t10,20('O')//130(  &
-     &'-')//)
-end subroutine daliesix
-
 +dk distance
 subroutine distance(x,clo,di0,t,dam)
 !-----------------------------------------------------------------------
@@ -29109,11 +27613,11 @@ end subroutine distance
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,ii,jj,l,ll
       real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si, &
      &tas,tas56,x1,x11,x13,x2
-+ca commont1
       dimension tas(6,6),x1(6),x2(6)
       save
 !-----------------------------------------------------------------------
@@ -29218,12 +27722,12 @@ end subroutine distance
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
      &fak2,qw,rca1,rca2,rclam1,rclam2,rcw1(4),rcw2(4),rn1,rn2,spa,spd,  &
      &sqrn,yca1,yca2,yclam1,yclam2,ycw1(4),ycw2(4)
-+ca commont1
       dimension am(4,4)
       dimension qw(2)
 +if bnlelens
@@ -29415,16 +27919,10 @@ subroutine blocksv
   use mod_common
   use mod_commonmn
   use mod_commons
+  use mod_commont
+  use mod_commond
   implicit none
 
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonm1
-+ca commonc
       integer n, ia, ikk, j, jm, k, lkk, mkk
       real(kind=fPrec) dpoff
 !     integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
@@ -29518,10 +28016,10 @@ subroutine blocksv
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
-+ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
 +if bnlelens
 +ca rhicelens
@@ -29584,10 +28082,10 @@ subroutine blocksv
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
-+ca commont1
       dimension h(nblo,2,6),g(nblo,2,6)
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
 +if bnlelens
@@ -29657,12 +28155,10 @@ subroutine chroma
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,ii,isl,j,jj,l,n
-      real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens, &
-     &sm0,su2,suxy,suzy,xi,zi
-+ca commont1
-+ca commonc
+      real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens,sm0,su2,suxy,suzy,xi,zi
       dimension dsm(2,4),sens(2,4),xi(2),zi(2),dm(2),sm0(2)
       dimension qwc(3),cro0(2)
 +if bnlelens
@@ -29784,20 +28280,17 @@ end subroutine chroma
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
-+ca commont1
-+ca commonl
-+ca commonxz
-+ca commonc
-+ca commondl
       dimension qw(2),qwc(3)
 +if bnlelens
 +ca rhicelens
@@ -29927,11 +28420,11 @@ end subroutine chroma
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
      &dy,x0,x1,y0,y1
-+ca commont1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
@@ -30011,18 +28504,18 @@ end subroutine chroma
 !  CALCULATION OF THE SIX-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
+      use matrix_inv
       use crcoall
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
       integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
       real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
-+ca commont1
-+ca commonl
-+ca commondl
       integer idummy(nn)
       character(len=6) chp(3),chd(3)
       dimension xx(6),dlo(6),cloc(6),dd(6),dc(6),am(nn,nn)
@@ -30348,13 +28841,12 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
       use mathlib_bouncer
       use crcoall
       use parpro
+      use mod_common, only : ichromc,ilinc,iqmodc
+      use mod_commond
       implicit none
-      integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
-     &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
+      integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
-+ca commondl
 +ca commonas
-+ca commonc
       dimension am(6,6),idummy(6)
       save
 !-----------------------------------------------------------------------
@@ -30420,75 +28912,6 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
       return
 end subroutine mydaini
 
-+dk mydainf
-subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
-!-----------------------------------------------------------------------
-!  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use end_sixtrack
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      implicit none
-      integer idummy,ncase,ndimfo,ndpt,nis,nndim,                       &
-     &nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
-      real(kind=fPrec) am
-+ca commondl
-+ca commonas
-+ca commonc
-      dimension am(6,6),idummy(6)
-      save
-!-----------------------------------------------------------------------
-      if(nndim.lt.2.or.nndim.gt.3) call prror(95)
-!--------------------
-      nordo=nord
-      nvaro=nvar
-      ndimfo=ndimf
-      nvar2o=nvar2
-      nord1o=nord1
-!--------------------
-      nord=nnord
-      nvar=nnvar
-      ndimf=nndim
-      nvar2=nnvar2
-      nord1=nnord1
-!--------------------
-      ndpt=0
-      nis=0
-!--------------------
-      call daeps(preda)
-      call idprset(-102)
-      call lieinit(nord,nvar,ndimf,ndpt,0,nis)
-      write(lout,10000) nord,nvar,nndim
-      call daall(iscrda,100,'$$IS      ',nord,nvar)
-!--closed orbit
-      if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
-!--tune variation
-      if(ncase.eq.2) call umlauda
-      rewind 18
-!Eric
-        rewind 111
-!--main map calculation
-      if(ncase.eq.3) call runda
-!--%*6 map calculation
-      if(ncase.eq.4) call runcav
-      iqmodc=0
-      ichromc=0
-      ilinc=0
-      call dadal(iscrda,100)
-!--------------------
-      nord=nordo
-      nvar=nvaro
-      nvar2=nvar2o
-      ndimf=ndimfo
-      nord1=nord1o
-!-----------------------------------------------------------------------
-10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,            &
-     &', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
-      return
-end subroutine mydaini
-
 +dk clorb2
 subroutine clorb2(dpp)
 !-----------------------------------------------------------------------
@@ -30501,11 +28924,11 @@ subroutine clorb2(dpp)
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
      &x1,y0,y1
-+ca commont1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
@@ -30576,9 +28999,9 @@ subroutine combel(iql)
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer ico,ico0,iql,j,m
-+ca commont1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -30625,11 +29048,11 @@ subroutine envar(dpp)
     use parpro
     use mod_common
     use mod_commons
+    use mod_commont
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     
-+ca commont1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -30872,10 +29295,10 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     use parpro
     use mod_common
     use mod_commons
+    use mod_commont
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
-+ca commont1
     dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
 +if bnlelens
 +ca rhicelens
@@ -31373,6 +29796,7 @@ subroutine linopt(dpp)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   
 +if root
   use root_output
@@ -31392,7 +29816,6 @@ subroutine linopt(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
   character(len=max_name_len) idum
-+ca commont1
   
 +if collimat
 +ca collpara
@@ -32371,6 +30794,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
 +if root
   use iso_c_binding, only: C_NULL_CHAR
   use root_output
@@ -32387,7 +30811,6 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
   character(len=max_name_len) typ
   ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
   logical isBLOC
-+ca commont1
   dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
   dimension d(2),dp(2),c(2),cp(2)
 +if collimat
@@ -32524,13 +30947,13 @@ subroutine cpltwis(typ,t,etl,phi)
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,iwrite
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
       character(len=max_name_len) typ
-+ca commont1
       dimension t(6,4),phi(2)
 +if bnlelens
 +ca rhicelens
@@ -32692,10 +31115,10 @@ subroutine matrix(dpp,am)
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,ierr,l
       real(kind=fPrec) am,dpp
-+ca commont1
       dimension am(4,4)
 +if bnlelens
 +ca rhicelens
@@ -32747,6 +31170,7 @@ subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
      &nlino,ntcoo,nto,nx
@@ -32755,7 +31179,6 @@ subroutine corrorb
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
       real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
       character(len=max_name_len) bezlo(nele)
-+ca commont1
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
 +if bnlelens
@@ -33082,12 +31505,12 @@ end subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
 
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
       real(kind=fPrec) xinc(ncor1)
       real(kind=fPrec) ckicknew,ckickold,r0,r0a
-+ca commont1
       dimension nx(ncor1)
 +if bnlelens
 +ca rhicelens
@@ -33185,10 +31608,10 @@ end subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
-+ca commont1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -33644,9 +32067,9 @@ subroutine ord
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
-+ca commont1
       dimension jra(nele,5),iran(nele),inz(nele)
 +if bnlelens
 +ca rhicelens
@@ -33825,10 +32248,10 @@ subroutine orglat
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
       real(kind=fPrec) extalig1,exterr1
-+ca commont1
       dimension ilf(nblz),ilfr(nblz)
       dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
      &icextal1(nblz)
@@ -33928,6 +32351,7 @@ subroutine phasad(dpp,qwc)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
@@ -33935,7 +32359,6 @@ subroutine phasad(dpp,qwc)
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-+ca commont1
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
   dimension qw(2),qwc(3)
@@ -34431,11 +32854,11 @@ subroutine qmod0
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
-+ca commont1
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
 +if bnlelens
@@ -34682,20 +33105,17 @@ end subroutine qmod0
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
-+ca commont1
-+ca commonl
-+ca commonxz
-+ca commonc
-+ca commondl
       dimension intwq(3),qwc(3)
 +if bnlelens
 +ca rhicelens
@@ -34987,13 +33407,13 @@ subroutine umlauf(dpp,ium,ierr)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   implicit none
   integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
   real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 +ei
-+ca commont1
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
 +if bnlelens
@@ -35406,6 +33826,7 @@ subroutine resex(dpp)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   implicit none
   integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,&
           mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -35417,7 +33838,6 @@ subroutine resex(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,&
           tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
-+ca commont1
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
   dimension qw(2)
@@ -36154,10 +34574,10 @@ subroutine rmod(dppr)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   implicit none
   integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
-+ca commont1
       dimension aa(10,10),bb(10),dsm(10),sn(10),sen(10),ss(10)
       dimension qwc(3),d1(10),irr(12)
 +if bnlelens
@@ -36482,11 +34902,11 @@ end subroutine rmod
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=max_name_len) ref
-+ca commont1
 +if bnlelens
 +ca rhicelens
 +ei
@@ -36571,6 +34991,7 @@ subroutine subre(dpp)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   implicit none
   
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
@@ -36584,7 +35005,6 @@ subroutine subre(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltck6,tiltck8,tiltck10,&
           tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
 +ei
-+ca commont1
       dimension t(6,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
       dimension clo0(2),clop0(2)
@@ -37528,7 +35948,7 @@ end subroutine subre
 !  USED FOR SUBRE - CALCULATES DETUNING
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -37599,6 +36019,7 @@ subroutine subsea(dpp)
   use parpro
   use mod_common
   use mod_commons
+  use mod_commont
   implicit none
   integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,&
           nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -37608,7 +36029,6 @@ subroutine subsea(dpp)
 +if tilt
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
 +ei
-+ca commont1
       dimension t(5,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
       dimension aa(mmul),bb(mmul)
@@ -38328,10 +36748,10 @@ subroutine decoup
       use parpro
       use mod_common
       use mod_commons
+      use mod_commont
       implicit none
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
-+ca commont1
       dimension aa(6,6),bb(6),dsm(6),sn(6),sen(6),ss(6)
       dimension qwc(3),qw(2),d1(6)
 +if bnlelens
@@ -38524,10 +36944,11 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
       use floatPrecision
       use end_sixtrack
       use numerical_constants
+      use matrix_inv
+      use mod_commont
       use crcoall
       implicit none
-+ca commonta
-
+      
       integer :: i,j            !iterators
       real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
       real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
@@ -38732,6 +37153,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 
       use crcoall
       use parpro
+      use parbeam, only : beam_expflag,beam_expfile_open
       implicit none
 
       integer ibb,ibbc,ibtyp,ne,np,nsli
@@ -38740,7 +37162,6 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
       dimension track(6,npart)
       dimension param(nele,18),bcu(nbb,12)
       dimension star(3,mbea)
-+ca parbeam_exp
       save
 !-----------------------------------------------------------------------
       if (beam_expflag .eq. 0) then
@@ -39204,1070 +37625,6 @@ function gauinv(p0)
       call prror(-1)
 end function gauinv
 
-+dk myrinv
-! Changed by Veronica Berglyd Olsen, March 2018
-! kerset is never called anywhere, so I changed the soubroutine to replace the entry point and commented
-! out the unused code. The entry functionality is deprecated, so this kills a warning.
-! It appears the routine itself has been copied from MadX touschek.f90
-
-! subroutine kerset(ercode,lgfile,limitm,limitr)
-subroutine kermtr(ercode,log,mflag,rflag)
-      use floatPrecision
-      use end_sixtrack
-      use mathlib_bouncer
-      use crcoall
-      implicit none
-      integer i,kounte,l,lgfile,limitm,limitr,log,logf
-      parameter(kounte = 27)
-      character(len=6)    ercode,   code(kounte)
-      logical             mflag,    rflag
-      integer             kntm(kounte),       kntr(kounte)
-!-----------------------------------------------------------------------
-      data      logf      /  0  /
-      data      code(1), kntm(1), kntr(1)  / 'C204.1', 255, 255 /
-      data      code(2), kntm(2), kntr(2)  / 'C204.2', 255, 255 /
-      data      code(3), kntm(3), kntr(3)  / 'C204.3', 255, 255 /
-      data      code(4), kntm(4), kntr(4)  / 'C205.1', 255, 255 /
-      data      code(5), kntm(5), kntr(5)  / 'C205.2', 255, 255 /
-      data      code(6), kntm(6), kntr(6)  / 'C305.1', 255, 255 /
-      data      code(7), kntm(7), kntr(7)  / 'C308.1', 255, 255 /
-      data      code(8), kntm(8), kntr(8)  / 'C312.1', 255, 255 /
-      data      code(9), kntm(9), kntr(9)  / 'C313.1', 255, 255 /
-      data      code(10),kntm(10),kntr(10) / 'C336.1', 255, 255 /
-      data      code(11),kntm(11),kntr(11) / 'C337.1', 255, 255 /
-      data      code(12),kntm(12),kntr(12) / 'C341.1', 255, 255 /
-      data      code(13),kntm(13),kntr(13) / 'D103.1', 255, 255 /
-      data      code(14),kntm(14),kntr(14) / 'D106.1', 255, 255 /
-      data      code(15),kntm(15),kntr(15) / 'D209.1', 255, 255 /
-      data      code(16),kntm(16),kntr(16) / 'D509.1', 255, 255 /
-      data      code(17),kntm(17),kntr(17) / 'E100.1', 255, 255 /
-      data      code(18),kntm(18),kntr(18) / 'E104.1', 255, 255 /
-      data      code(19),kntm(19),kntr(19) / 'E105.1', 255, 255 /
-      data      code(20),kntm(20),kntr(20) / 'E208.1', 255, 255 /
-      data      code(21),kntm(21),kntr(21) / 'E208.2', 255, 255 /
-      data      code(22),kntm(22),kntr(22) / 'F010.1', 255,   0 /
-      data      code(23),kntm(23),kntr(23) / 'F011.1', 255,   0 /
-      data      code(24),kntm(24),kntr(24) / 'F012.1', 255,   0 /
-      data      code(25),kntm(25),kntr(25) / 'F406.1', 255,   0 /
-      data      code(26),kntm(26),kntr(26) / 'G100.1', 255, 255 /
-      data      code(27),kntm(27),kntr(27) / 'G100.2', 255, 255 /
-      save
-!-----------------------------------------------------------------------
-!       logf  =  lgfile
-!          l  =  0
-!       if(ercode .ne. ' ')  then
-!          do 10  l = 1, 6
-!             if(ercode(1:l) .eq. ercode)  goto 12
-!   10        continue
-!   12     continue
-!       endif
-!       do 14     i  =  1, kounte
-!          if(l .eq. 0)  goto 13
-!          if(code(i)(1:l) .ne. ercode(1:l))  goto 14
-!   13     if(limitm.ge.0) kntm(i)  =  limitm
-!          if(limitr.ge.0) kntr(i)  =  limitr
-!   14     continue
-!       return
-!       entry kermtr(ercode,log,mflag,rflag)
-!-----------------------------------------------------------------------
-      log  =  logf
-      do 20     i  =  1, kounte
-         if(ercode .eq. code(i))  goto 21
-  20     continue
-      write(lout,1000)  ercode
-      write(lout,*) 'KERNLIB Library Error'
-      call prror(-1)
-      return
-      
-  21  rflag  =  kntr(i) .ge. 1
-      if(rflag  .and.  (kntr(i) .lt. 255))  kntr(i)  =  kntr(i) - 1
-      mflag  =  kntm(i) .ge. 1
-      if(mflag  .and.  (kntm(i) .lt. 255))  kntm(i)  =  kntm(i) - 1
-      if(.not. rflag)  then
-         if(logf .lt. 1)  then
-            write(lout,1001)  code(i)
-         else
-            write(logf,1001)  code(i)
-         endif
-      endif
-      if(mflag .and. rflag)  then
-         if(logf .lt. 1)  then
-            write(lout,1002)  code(i)
-         else
-            write(logf,1002)  code(i)
-         endif
-      endif
-      return
-1000  format(' KERNLIB LIBRARY ERROR. ' /                               &
-     &' ERROR CODE ',a6,' NOT RECOGNIZED BY KERMTR',                    &
-     &' ERROR MONITOR. RUN ABORTED.')
-1001  format(/' ***** RUN TERMINATED BY CERN LIBRARY ERROR ',           &
-     &'CONDITION ',a6)
-1002  format(/' ***** CERN LIBRARY ERROR CONDITION ',a6)
-end subroutine kermtr
-
-      subroutine rinv(n,a,idim,ir,ifail)
-!-----------------------------------------------------------------------
-!
-!     ******************************************************************
-!
-!     REPLACES A BY ITS INVERSE.
-!
-!     (PARAMETERS AS FOR REQINV.)
-!
-!     CALLS ... RFACT, RFINV, F010PR, ABEND.
-!
-!     ******************************************************************
-!-----------------------------------------------------------------------
-      use floatPrecision
-  use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer idim,ifail,ir,jfail,k,kprnt,n
-      real(kind=fPrec) t1,t2,t3,a,det,temp,s,                           &
-     &c11,c12,c13,c21,c22,c23,c31,c32,c33
-
-      character(len=6) name
-      dimension ir(n),a(idim,n)
-      data name/'RINV'/,kprnt/0/
-      save
-!-----------------------------------------------------------------------
-!
-!  TEST FOR PARAMETER ERRORS.
-!
-      if((n.lt.1).or.(n.gt.idim)) goto 7
-!
-!  TEST FOR N.LE.3.
-!
-      if(n.gt.3) goto 6
-      ifail=0
-      if(n.lt.3) goto 4
-!
-!  N=3 CASE.
-!
-!     COMPUTE COFACTORS.
-      c11=a(2,2)*a(3,3)-a(2,3)*a(3,2)
-      c12=a(2,3)*a(3,1)-a(2,1)*a(3,3)
-      c13=a(2,1)*a(3,2)-a(2,2)*a(3,1)
-      c21=a(3,2)*a(1,3)-a(3,3)*a(1,2)
-      c22=a(3,3)*a(1,1)-a(3,1)*a(1,3)
-      c23=a(3,1)*a(1,2)-a(3,2)*a(1,1)
-      c31=a(1,2)*a(2,3)-a(1,3)*a(2,2)
-      c32=a(1,3)*a(2,1)-a(1,1)*a(2,3)
-      c33=a(1,1)*a(2,2)-a(1,2)*a(2,1)
-      t1=abs(a(1,1))
-      t2=abs(a(2,1))
-      t3=abs(a(3,1))
-!
-!     (SET TEMP=PIVOT AND DET=PIVOT*DET.)
-      if(t1.ge.t2) goto 1
-         if(t3.ge.t2) goto 2
-!        (PIVOT IS A21)
-            temp=a(2,1)
-            det=c13*c32-c12*c33
-            goto 3
-    1 if(t3.ge.t1) goto 2
-!     (PIVOT IS A11)
-         temp=a(1,1)
-         det=c22*c33-c23*c32
-         goto 3
-!     (PIVOT IS A31)
-    2    temp=a(3,1)
-         det=c23*c12-c22*c13
-!
-!     SET ELEMENTS OF INVERSE IN A.
-    3 if(det.eq.zero) goto 8
-      s=temp/det
-      a(1,1)=s*c11
-      a(1,2)=s*c21
-      a(1,3)=s*c31
-      a(2,1)=s*c12
-      a(2,2)=s*c22
-      a(2,3)=s*c32
-      a(3,1)=s*c13
-      a(3,2)=s*c23
-      a(3,3)=s*c33
-      return
-!
-    4 if(n.lt.2) goto 5
-!
-!  N=2 CASE BY CRAMERS RULE.
-!
-      det=a(1,1)*a(2,2)-a(1,2)*a(2,1)
-      if(det.eq.zero) goto 8
-      s=one/det                                                          !hr07
-      c11   =s*a(2,2)
-      a(1,2)=(-one*s)*a(1,2)                                             !hr07
-      a(2,1)=(-one*s)*a(2,1)                                             !hr07
-      a(2,2)=s*a(1,1)
-      a(1,1)=c11
-      return
-!
-!  N=1 CASE.
-!
-    5 if(a(1,1).eq.zero) goto 8
-      a(1,1)=one/a(1,1)                                                  !hr07
-      return
-!
-!  N.GT.3 CASES.  FACTORIZE MATRIX AND INVERT.
-!
-    6 call rfact(n,a,idim,ir,ifail,det,jfail)
-      if(ifail.ne.0) return
-      call rfinv(n,a,idim,ir)
-      return
-!
-!  ERROR EXITS.
-!
-    7 ifail=+1
-      call f010pr(name,n,idim,k,kprnt)
-      return
-!
-    8 ifail=-1
-      return
-!
-      end
-
-      subroutine dinv(n,a,idim,ir,ifail)
-!-----------------------------------------------------------------------
-!
-!     ******************************************************************
-!
-!     REPLACES A BY ITS INVERSE.
-!
-!     (PARAMETERS AS FOR DEQINV.)
-!
-!     CALLS ... DFACT, DFINV, F010PR, ABEND.
-!
-!     ******************************************************************
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      implicit none
-
-      integer idim,ifail,jfail,k,kprnt,n
-      integer ir
-      real(kind=fPrec) t1,t2,t3
-      real(kind=fPrec) a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
-      character(len=6) name
-      dimension ir(n),a(idim,n)
-      data name/'DINV'/,kprnt/0/
-      save
-!-----------------------------------------------------------------------
-!
-!  TEST FOR PARAMETER ERRORS.
-!
-      if((n.lt.1).or.(n.gt.idim)) goto 7
-!
-!  TEST FOR N.LE.3.
-!
-      if(n.gt.3) goto 6
-      ifail=0
-      if(n.lt.3) goto 4
-!
-!  N=3 CASE.
-!
-!     COMPUTE COFACTORS.
-      c11=a(2,2)*a(3,3)-a(2,3)*a(3,2)
-      c12=a(2,3)*a(3,1)-a(2,1)*a(3,3)
-      c13=a(2,1)*a(3,2)-a(2,2)*a(3,1)
-      c21=a(3,2)*a(1,3)-a(3,3)*a(1,2)
-      c22=a(3,3)*a(1,1)-a(3,1)*a(1,3)
-      c23=a(3,1)*a(1,2)-a(3,2)*a(1,1)
-      c31=a(1,2)*a(2,3)-a(1,3)*a(2,2)
-      c32=a(1,3)*a(2,1)-a(1,1)*a(2,3)
-      c33=a(1,1)*a(2,2)-a(1,2)*a(2,1)
-      t1=abs(a(1,1))                                               !hr07
-      t2=abs(a(2,1))                                               !hr07
-      t3=abs(a(3,1))                                               !hr07
-!
-!     (SET TEMP=PIVOT AND DET=PIVOT*DET.)
-      if(t1.ge.t2) goto 1
-         if(t3.ge.t2) goto 2
-!        (PIVOT IS A21)
-            temp=a(2,1)
-            det=c13*c32-c12*c33
-            goto 3
-    1 if(t3.ge.t1) goto 2
-!     (PIVOT IS A11)
-         temp=a(1,1)
-         det=c22*c33-c23*c32
-         goto 3
-!     (PIVOT IS A31)
-    2    temp=a(3,1)
-         det=c23*c12-c22*c13
-!
-!     SET ELEMENTS OF INVERSE IN A.
-    3 if(det.eq.zero) goto 8
-      s=temp/det
-      a(1,1)=s*c11
-      a(1,2)=s*c21
-      a(1,3)=s*c31
-      a(2,1)=s*c12
-      a(2,2)=s*c22
-      a(2,3)=s*c32
-      a(3,1)=s*c13
-      a(3,2)=s*c23
-      a(3,3)=s*c33
-      return
-!
-    4 if(n.lt.2) goto 5
-!
-!  N=2 CASE BY CRAMERS RULE.
-!
-      det=a(1,1)*a(2,2)-a(1,2)*a(2,1)
-      if(det.eq.zero) goto 8
-      s=one/det
-      c11   =s*a(2,2)
-      a(1,2)=(-one*s)*a(1,2)                                             !hr07
-      a(2,1)=(-one*s)*a(2,1)                                             !hr07
-      a(2,2)=s*a(1,1)
-      a(1,1)=c11
-      return
-!
-!  N=1 CASE.
-!
-    5 if(a(1,1).eq.zero) goto 8
-      a(1,1)=one/a(1,1)
-      return
-!
-!  N.GT.3 CASES.  FACTORIZE MATRIX AND INVERT.
-!
-    6 call dfact(n,a,idim,ir,ifail,det,jfail)
-      if(ifail.ne.0) return
-      call dfinv(n,a,idim,ir)
-      return
-!
-!  ERROR EXITS.
-!
-    7 ifail=+1
-      call f010pr(name,n,idim,k,kprnt)
-      return
-!
-    8 ifail=-1
-      return
-!
-      end
-
-subroutine f010pr(name,n,idim,k,kprnt)
-!     ******************************************************************
-!
-!     PRINT ROUTINE FOR PARAMETER ERRORS IN MATRIX SUBROUTINES $EQINV,
-!     $EQN, $INV (WHERE $ IS A LETTER SPECIFYING THE ARITHMETIC TYPE).
-!
-!     NAME         (CHARACTER(6)) NAME OF THE CALLING ROUTINE.
-!
-!     N,IDIM,K     PARAMETERS OF THE CALLING ROUTINE (WITH K=0 IF K IS
-!                  NOT TO BE PRINTED).
-!
-!     KPRNT        PRINT FLAG FOR K (K IS NOT PRINTED IF KPRNT=0).
-!
-!     ******************************************************************
-      use floatPrecision
-      use end_sixtrack
-      use mathlib_bouncer
-      use crcoall
-      implicit none
-      integer idim,k,kprnt,lgfile,n
-      character(len=6) name
-      logical mflag,rflag
-      save
-!-----------------------------------------------------------------------
-      call kermtr('F010.1',lgfile,mflag,rflag)
-      if(mflag) then
-         if(lgfile.eq.0)  then
-            if(kprnt.eq.0) write(lout,2000) name,n,idim
-            if(kprnt.ne.0) write(lout,2001) name,n,idim,k
-         else
-            if(kprnt.eq.0) write(lgfile,2000) name,n,idim
-            if(kprnt.ne.0) write(lgfile,2001) name,n,idim,k
-         endif
-      endif
-      if(.not. rflag) then
-         write(lout,*) 'KERNLIB F010PR: '//name
-         call prror(-1)
-      end if
-      return
-!
- 2000 format( 7x, 'subroutine ', a6,' ... parameter',                   &
-     &' error (n.lt.1 or n.gt.idim).',                                  &
-     &6x,'n =', i4, 6x,'idim =', i4,'.')
- 2001 format( 7x, 'subroutine ', a6,' ... parameter',                   &
-     &' error (n.lt.1 or n.gt.idim or k.lt.1).',                        &
-     &6x,'n =', i4, 6x,'idim =', i4, 6x,'k =', i4,'.')
-end subroutine f010pr
-
-      subroutine rfact(n,a,idim,ir,ifail,det,jfail)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-
-      implicit none
-
-      integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,      &
-     &jrange,junder,k,l,n,normal,nxch
-
-      real(kind=fPrec) a,det,g1,g2,p,q,t,tf,x,y
-      real(kind=fPrec) s11,s12
-
-      character(len=6) hname
-
-      dimension ir(*),a(idim,*)
-!      data      g1, g2              /  1.e-37,  1.e37  /
-      data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
-      data      hname               /  ' RFACT'  /
-      data      normal, imposs      /  0, -1  /
-      data      jrange, jover, junder  /  0, +1, -1  /
-      save
-!-----------------------------------------------------------------------
-
-      if(idim .ge. n  .and.  n .gt. 0)  goto 110
-         call tmprnt(hname,n,idim,0)
-         return
- 110  ifail  =  normal
-      jfail  =  jrange
-      nxch   =  0
-      det    =  one
-      do 144    j  =  1, n
- 120     k  =  j
-         p  =  pivotf(a(j,j))
-         if(j .eq. n)  goto 122
-         jp1  =  j+1
-         do 121    i  =  jp1, n
-            q = pivotf(a(i,j))
-            if(q .le. p)  goto 121
-               k  =  i
-               p  =  q
- 121        continue
-         if(k .ne. j)  goto 123
- 122     if(p .gt. zero)  goto 130
-            det    =  zero
-            ifail  =  imposs
-            jfail  =  jrange
-            return
- 123     do 124    l  =  1, n
-            tf      =  a(j,l)
-            a(j,l)  =  a(k,l)
-            a(k,l)  =  tf
- 124        continue
-         nxch      =  nxch + 1
-         ir(nxch)  =  ipairf(j,k)
- 130     det     =  det * a(j,j)
-         a(j,j)  =  one / a(j,j)
-         t  =  sizef(det)
-         if(t .lt. g1)  then
-            det    =  zero
-            if(jfail .eq. jrange)  jfail  =  junder
-         elseif(t .gt. g2)  then
-            det    =  one
-            if(jfail .eq. jrange)  jfail  =  jover
-         endif
-         if(j .eq. n)  goto 144
-         jm1  =  j-1
-         jp1  =  j+1
-         do 143   k  =  jp1, n
-            s11  =  -one*a(j,k)                                          !hr07
-            s12  =  -one*a(k,j+1)                                        !hr07
-            if(j .eq. 1)  goto 142
-            do 141  i  =  1, jm1
-               s11  =  dotf(a(i,k),a(j,i),s11)
-               s12  =  dotf(a(i,j+1),a(k,i),s12)
- 141           continue
- 142        a(j,k)   =  (-one*s11) * a(j,j)                              !hr07
-            a(k,j+1) =   -one*dotf(a(j,j+1),a(k,j),s12)                  !hr07
- 143        continue
- 144     continue
- 150  if(mod(nxch,2) .ne. 0)  det  =  -one*det
-      if(jfail .ne. jrange)   det  =  zero
-      ir(n)  =  nxch
-      return
-
-      contains
-
-        real(kind=fPrec) function dotf(x,y,s11)
-          real(kind=fPrec), intent(in) :: x, y, s11
-          dotf = x * y + s11
-        end function dotf
-
-        integer function ipairf(j,k)
-          integer, intent(in) :: j, k
-          ipairf = j*2**12 + k
-        end function ipairf
-
-        real(kind=fPrec) function pivotf(x)
-          real(kind=fPrec), intent(in) :: x
-          pivotf = abs(x)
-        end function pivotf
-
-        real(kind=fPrec) function sizef(x)
-          real(kind=fPrec), intent(in) :: x
-          sizef = abs(x)
-        end function sizef
-
-      end subroutine rfact
-
-      subroutine dfact(n,a,idim,ir,ifail,det,jfail)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-
-      implicit none
-
-      integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,      &
-     &jrange,junder,k,l,n,normal,nxch
-      real(kind=fPrec) g1,g2,p,q,t
-      real(kind=fPrec) a,det,s11,s12,x,y,tf
-      character(len=6)         hname
-      dimension ir(*),a(idim,*)
-
-!      data      g1, g2              /  1.e-37,  1.e37  /
-      data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
-      data      hname               /  ' DFACT'  /
-      data      normal, imposs      /  0, -1  /
-      data      jrange, jover, junder  /  0, +1, -1  /
-      save
-!-----------------------------------------------------------------------
-      if(idim .ge. n  .and.  n .gt. 0)  goto 110
-      call tmprnt(hname,n,idim,0)
-      return
- 110  ifail  =  normal
-      jfail  =  jrange
-      nxch   =  0
-      det    =  one
-      do 144    j  =  1, n
- 120     k  =  j
-         p  =  pivotf(a(j,j))
-         if(j .eq. n)  goto 122
-         jp1  =  j+1
-         do 121    i  =  jp1, n
-            q  =  pivotf(a(i,j))
-            if(q .le. p)  goto 121
-               k  =  i
-               p  =  q
- 121        continue
-         if(k .ne. j)  goto 123
- 122     if(p .gt. 0.)  goto 130
-            det    =  zero
-            ifail  =  imposs
-            jfail  =  jrange
-            return
- 123     do 124    l  =  1, n
-            tf      =  a(j,l)
-            a(j,l)  =  a(k,l)
-            a(k,l)  =  tf
- 124        continue
-         nxch      =  nxch + 1
-         ir(nxch)  =  ipairf(j,k)
- 130     det     =  det * a(j,j)
-         a(j,j)  =  one / a(j,j)
-         t  =  sizef(det)
-         if(t .lt. g1)  then
-            det    =  zero
-            if(jfail .eq. jrange)  jfail  =  junder
-         elseif(t .gt. g2)  then
-            det    =  one
-            if(jfail .eq. jrange)  jfail  =  jover
-         endif
-         if(j .eq. n)  goto 144
-         jm1  =  j-1
-         jp1  =  j+1
-         do 143   k  =  jp1, n
-            s11  =  -one*a(j,k)                                          !hr07
-            s12  =  -one*a(k,j+1)                                        !hr07
-            if(j .eq. 1)  goto 142
-            do 141  i  =  1, jm1
-               s11  =  dotf(a(i,k),a(j,i),s11)
-               s12  =  dotf(a(i,j+1),a(k,i),s12)
- 141           continue
- 142        a(j,k)    =  (-one*s11) * a(j,j)                             !hr07
-            a(k,j+1)  =  -one*dotf(a(j,j+1),a(k,j),s12)                  !hr07
- 143        continue
- 144     continue
- 150  if(mod(nxch,2) .ne. 0)  det  =  -one*det                           !hr07
-      if(jfail .ne. jrange)   det  =  zero
-      ir(n)  =  nxch
-      return
-
-      contains
-
-        real(kind=fPrec) function dotf(x,y,s11)
-          real(kind=fPrec), intent(in) :: x, y, s11
-          dotf = x * y + s11
-        end function dotf
-
-        integer function ipairf(j,k)
-          integer, intent(in) :: j, k
-          ipairf = j*2**12 + k
-        end function ipairf
-
-        real(kind=fPrec) function pivotf(x)
-          real(kind=fPrec), intent(in) :: x
-          pivotf = abs(x)
-        end function pivotf
-
-        real(kind=fPrec) function sizef(x)
-          real(kind=fPrec), intent(in) :: x
-          sizef = abs(x)
-        end function sizef
-
-      end subroutine dfact
-
-      subroutine rfeqn(n,a,idim,ir,k,b)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-
-      implicit none
-
-      integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
-      real(kind=fPrec) a,b,te,x,y
-      real(kind=fPrec) s21,s22
-      character(len=6) hname
-      dimension ir(*),a(idim,*),b(idim,*)
-      data      hname               /  ' RFEQN'  /
-      save
-!-----------------------------------------------------------------------
-      if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
-      call tmprnt(hname,n,idim,k)
-      return
- 210  nxch  =  ir(n)
-      if(nxch .eq. 0)  goto 220
-      do 212    m  =  1, nxch
-         ij  =  ir(m)
-         i   =  ij / 4096
-         j   =  mod(ij,4096)
-         do 211   l  =  1, k
-            te      =  b(i,l)
-            b(i,l)  =  b(j,l)
-            b(j,l)  =  te
- 211        continue
- 212     continue
- 220  do 221    l  =  1, k
-         b(1,l)  =  a(1,1)*b(1,l)
- 221     continue
-      if(n .eq. 1)  goto 299
-      do 243    l  =  1, k
-         do 232   i  =  2, n
-            im1  =  i-1
-            s21  =  -one*b(i,l)                                          !hr07
-            do 231   j  =  1, im1
-               s21  =  dotf(a(i,j),b(j,l),s21)
- 231           continue
-            b(i,l)  = (-one*a(i,i))*s21                                  !hr07
- 232        continue
-         nm1  =  n-1
-         do 242   i  =  1, nm1
-            nmi  =  n-i
-            s22  =  -one*b(nmi,l)                                        !hr07
-            do 241   j  =  1, i
-               nmjp1  =  n - j+1
-               s22    =  dotf(a(nmi,nmjp1),b(nmjp1,l),s22)
- 241           continue
-            b(nmi,l) = -one*s22
- 242        continue
- 243     continue
- 299  continue
-      return
-
-      contains
-
-        real(kind=fPrec) function dotf(x,y,s21)
-          real(kind=fPrec), intent(in) :: x, y, s21
-          dotf = x * y + s21
-        end function dotf
-
-      end subroutine rfeqn
-
-      subroutine dfeqn(n,a,idim,ir,k,b)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      implicit none
-
-      integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
-      real(kind=fPrec) a,b,x,y,te
-      real(kind=fPrec) s21,s22
-      character(len=6) hname
-      dimension ir(*),a(idim,*),b(idim,*)
-      data      hname               /  ' DFEQN'  /
-      save
-!-----------------------------------------------------------------------
-      if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0)  goto 210
-      call tmprnt(hname,n,idim,k)
-      return
- 210  nxch  =  ir(n)
-      if(nxch .eq. 0)  goto 220
-      do 212    m  =  1, nxch
-         ij  =  ir(m)
-         i   =  ij / 4096
-         j   =  mod(ij,4096)
-         do 211   l  =  1, k
-            te      =  b(i,l)
-            b(i,l)  =  b(j,l)
-            b(j,l)  =  te
- 211        continue
- 212     continue
- 220  do 221    l  =  1, k
-         b(1,l)  =  a(1,1)*b(1,l)
- 221     continue
-      if(n .eq. 1)  goto 299
-      do 243    l  =  1, k
-         do 232   i  =  2, n
-            im1  =  i-1
-            s21  =  - b(i,l)
-            do 231   j  =  1, im1
-               s21  =  dotf(a(i,j),b(j,l),s21)
- 231           continue
-            b(i,l)  =  (-one*a(i,i))*s21                                 !hr07
- 232        continue
-         nm1  =  n-1
-         do 242   i  =  1, nm1
-            nmi  =  n-i
-            s22  =  -one*b(nmi,l)                                        !hr07
-            do 241   j  =  1, i
-               nmjp1  =  n - j+1
-               s22    =  dotf(a(nmi,nmjp1),b(nmjp1,l),s22)
- 241           continue
-            b(nmi,l)  =  -one*s22                                        !hr07
- 242        continue
- 243     continue
- 299  continue
-      return
-
-      contains
-
-        real(kind=fPrec) function dotf(x,y,s21)
-          real(kind=fPrec), intent(in) :: x, y, s21
-          dotf = x * y + s21
-        end function dotf
-
-      end subroutine dfeqn
-
-      subroutine rfinv(n,a,idim,ir)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-
-      implicit none
-
-      integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
-      real(kind=fPrec) a,ti,x,y
-      real(kind=fPrec) s31,s32,s33,s34
-      character(len=6) hname
-      dimension ir(*),a(idim,*)
-      data      hname               /  ' RFINV'  /
-      save
-!-----------------------------------------------------------------------
-      if(idim .ge. n  .and.  n .gt. 0)  goto 310
-         call tmprnt(hname,n,idim,0)
-         return
- 310  if(n .eq. 1)  return
-      a(2,1)  = (-one*a(2,2)) * dotf(a(1,1),a(2,1),zero)     !hr07
-      a(1,2)  =  -one*a(1,2)                                             !hr07
-      if(n .eq. 2)  goto 330
-      do 314    i  =  3, n
-         im2  =  i-2
-         do 312 j  =  1, im2
-            s31  =  zero
-            s32  =  a(j,i)                                               !hr07
-            do 311  k  =  j, im2
-               s31  =  dotf(a(k,j),a(i,k),s31)
-               s32  =  dotf(a(j,k+1),a(k+1,i),s32)
- 311           continue
-            a(i,j) = (-one*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)        !hr07
-            a(j,i) =  -one*s32                                            !hr07
- 312        continue
-         a(i,i-1) = (-one*a(i,i))*dotf(a(i-1,i-1),a(i,i-1),zero)         !hr07
-         a(i-1,i) =  -one*a(i-1,i)                                       !hr07
- 314     continue
- 330  nm1  =  n-1
-      do 335   i  =  1, nm1
-         nmi  =  n-i
-         do 332   j  =  1, i
-            s33  =  a(i,j)                                               !hr07
-            do 331   k  =  1, nmi
-               s33  =  dotf(a(i+k,j),a(i,i+k),s33)
- 331           continue
-            a(i,j)  =  s33
- 332        continue
-         do 334   j  =  1, nmi
-            s34  =  zero
-            do 333   k  =  j, nmi
-               s34  =  dotf(a(i+k,i+j),a(i,i+k),s34)
- 333           continue
-            a(i,i+j) = s34                                               !hr07
- 334        continue
- 335     continue
-      nxch  =  ir(n)
-      if(nxch .eq. 0)  return
-        do 342 m  =  1, nxch
-         k   =  nxch - m+1
-         ij  =  ir(k)
-         i   =  ij / 4096
-         j   =  mod(ij,4096)
-         do 341 k  = 1, n
-            ti     = a(k,i)
-            a(k,i) = a(k,j)
-            a(k,j) = ti
- 341        continue
- 342     continue
-      return
-
-      contains
-
-        real(kind=fPrec) function dotf(x,y,s31)
-          real(kind=fPrec), intent(in) :: x, y, s31
-          dotf = x * y + s31
-        end function dotf
-
-      end subroutine rfinv
-
-      subroutine dfinv(n,a,idim,ir)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      implicit none
-
-      integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
-      real(kind=fPrec) a,s31,s32,s33,s34,ti,x,y
-      character(len=6) hname
-      dimension ir(*),a(idim,*)
-      data      hname               /  ' DFINV'  /
-      save
-!-----------------------------------------------------------------------
-      if(idim .ge. n  .and.  n .gt. 0)  goto 310
-         call tmprnt(hname,n,idim,0)
-         return
- 310  if(n .eq. 1)  return
-      a(2,1)  =  (-one*a(2,2)) * dotf(a(1,1),a(2,1),zero)                !hr07
-      a(1,2)  =  -one*a(1,2)
-      if(n .eq. 2)  goto 330
-      do 314    i  =  3, n
-         im2  =  i-2
-         do 312 j  =  1, im2
-            s31  =  zero
-            s32  =  a(j,i)
-            do 311  k  =  j, im2
-               s31  =  dotf(a(k,j),a(i,k),s31)
-               s32  =  dotf(a(j,k+1),a(k+1,i),s32)
- 311           continue
-            a(i,j)  =  (-one*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)       !hr07
-            a(j,i)  =  -one*s32                                          !hr07
- 312        continue
-         a(i,i-1)  =  (-one*a(i,i)) * dotf(a(i-1,i-1),a(i,i-1),zero)     !hr07
-         a(i-1,i)  =  -one*a(i-1,i)                                      !hr07
- 314     continue
- 330  nm1  =  n-1
-      do 335   i  =  1, nm1
-         nmi  =  n-i
-         do 332   j  =  1, i
-            s33  =  a(i,j)
-            do 331   k  =  1, nmi
-               s33  =  dotf(a(i+k,j),a(i,i+k),s33)
- 331           continue
-            a(i,j)  =  s33
- 332        continue
-         do 334   j  =  1, nmi
-            s34  =  zero
-            do 333   k  =  j, nmi
-               s34  =  dotf(a(i+k,i+j),a(i,i+k),s34)
- 333           continue
-            a(i,i+j)  =  s34
- 334        continue
- 335     continue
-      nxch  =  ir(n)
-      if(nxch .eq. 0)  return
-        do 342 m  =  1, nxch
-         k   =  nxch - m+1
-         ij  =  ir(k)
-         i   =  ij / 4096
-         j   =  mod(ij,4096)
-         do 341  k  =  1, n
-            ti      =  a(k,i)
-            a(k,i)  =  a(k,j)
-            a(k,j)  =  ti
- 341        continue
- 342     continue
-      return
-
-      contains
-
-        real(kind=fPrec) function dotf(x,y,s31)
-          real(kind=fPrec), intent(in) :: x, y, s31
-          dotf = x * y + s31
-        end function dotf
-      end subroutine dfinv
-
-subroutine tmprnt(name,n,idim,k)
-      use floatPrecision
-      use end_sixtrack
-      use mathlib_bouncer
-      use crcoall
-      implicit none
-      integer idim,k,lgfile,n
-      character(len=6) name
-      logical mflag,rflag
-      save
-!-----------------------------------------------------------------------
-      if(name(2:2) .eq. 'S') then
-         call kermtr('F012.1',lgfile,mflag,rflag)
-      else
-         call kermtr('F011.1',lgfile,mflag,rflag)
-      endif
-      if(mflag) then
-         if(lgfile .eq. 0) then
-            if(name(3:6) .eq. 'FEQN') then
-               write(lout,1002) name, n, idim, k
-            else
-               write(lout,1001) name, n, idim
-            endif
-         else
-            if(name(3:6) .eq. 'FEQN') then
-               write(lgfile,1002) name, n, idim, k
-            else
-               write(lgfile,1001) name, n, idim
-            endif
-         endif
-      endif
-      if(.not. rflag) then
-         write(lout,*) 'KERNLIB TMPRNT: '//name
-         call prror(-1)
-      endif
-      return
-1001  format(7x,' parameter error in subroutine ', a6,                  &
-     &' ... (n.lt.1 or idim.lt.n).',                                    &
-     &5x,'n =', i4, 5x,'idim =', i4,'.')
-1002  format(7x,' parameter error in subroutine ', a6,                  &
-     &' ... (n.lt.1 or idim.lt.n or k.lt.1).',                          &
-     &5x,'n =', i4, 5x,'idim =', i4, 5x,'k =', i4,'.')
-end subroutine tmprnt
-
-      subroutine lfitd(x,y,l,key,a,b,e)
-!-----------------------------------------------------------------------
-!
-!     TO FIT A STRAIGHT LINE    Y=A*X+B    TO L POINTS WITH ERROR E
-!     SEE MENZEL , FORMULAS OF PHYSICS P.116
-!     POINTS WITH Y=0 ARE IGNOERD IF KEY=0
-!     L IS NO. OF POINTS
-!
-!-----------------------------------------------------------------------
-!Eric made DOUBLE PRECISION
-      use floatPrecision
-      use mathlib_bouncer
-      implicit none
-      integer j,key,l
-      real(kind=fPrec) a,b,count,e,scartx,scarty
-      real(kind=fPrec) sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
-      dimension x(l),y(l)                                                !hr07
-      save
-!-----------------------------------------------------------------------
-!
-!     CALCULATE SUMS
-!
-!-----------------------------------------------------------------------
-      if(l-2.lt.0) goto 25
-      if(l-2.ge.0) goto 1
-    1 count=0.0
-      sumx=0.0
-      sumy=0.0
-      sumxy=0.0
-      sumxx=0.0
-      sumyy=0.0
-      do 10 j=1,l
-      if(y(j).eq.0..and.key.eq.0) goto 10
-      sumx=sumx+x(j)
-      sumy=sumy+y(j)
-      count=count+1.0
-   10 continue
-      if(count.le.1.) goto 25
-      ymed=sumy/count
-      xmed=sumx/count
-      do 20 j=1,l
-      if(y(j).eq.0..and.key.eq.0) goto 20
-      scartx=x(j)-xmed
-      scarty=y(j)-ymed
-      sumxy=sumxy+scartx   *scarty
-      sumxx=sumxx+scartx   *scartx
-      sumyy=sumyy+scarty   *scarty
-   20 continue
-!
-!     FIT PARAMETERS
-      if(sumxx.eq.0.) goto 25
-      a=sumxy/sumxx
-      b=ymed-a*xmed
-      if(count.lt.3.) goto 101
-      e=(sumyy-sumxy*a          )/(count-2.0)
-      goto 100
-!
-!     ISUFFICIENT POINTS
-   25 a=0.0
-      b=0.0
-  101 e=0.0
-  100 return
-      end
-      subroutine lfitwd(x,y,w,l,key,a,b,e)
-!-----------------------------------------------------------------------
-!
-!     TO PERFORM A WEIGHTED STRAIGHT LINE FIT
-!
-!     FOR FORMULAE USED SEE MENZEL, FORMULAS OF PHYSICS P.116
-!
-!     FIT IS OF Y=AX+B , WITH S**2 ESTIMATOR E. WEIGHTS ARE IN W.
-!     IF KEY=0, POINTS WITH Y=0 ARE IGNORED
-!     L IS NO. OF POINTS
-!
-!-----------------------------------------------------------------------
-!Eric made DOUBLE PRECISION
-      use floatPrecision
-      use mathlib_bouncer
-      implicit none
-      integer icnt,j,key,l
-      real(kind=fPrec) a,b,e,x,y,w
-      real(kind=fPrec) w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
-      dimension x(l),y(l),w(l)                                           !hr07
-      save
-!-----------------------------------------------------------------------
-!
-!     CALCULATE SUMS
-!
-!-----------------------------------------------------------------------
-      if(l.le.1) goto 1
-      w2=0.
-      w2x=0.
-      w2y=0.
-      w2xy=0.
-      w2x2=0.
-      w2y2=0.
-      icnt=0
-      do 2 j=1,l
-      if(y(j).eq.0..and.key.eq.0) goto 2
-      ww=w(j)**2                                                         !hr07
-      w2=ww+w2
-      wwf=ww*x(j)
-      w2x=wwf+w2x
-      w2x2=wwf*x(j)+w2x2
-      w2xy=wwf*y(j)+w2xy
-      wwfi=ww*y(j)
-      w2y=wwfi+w2y
-      w2y2=wwfi*y(j)+w2y2
-      icnt=icnt+1
-    2 continue
-!
-!     FIT PARAMETERS
-      a=(w2xy-(w2x*w2y)/w2)/(w2x2-w2x**2/w2)
-      b=(w2y-a*w2x)/w2
-      if(icnt.le.2) goto 3
-!Eric
-      e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &!hr07
-     &real(icnt-2,fPrec)
-      goto 4
-!
-!     ISUFFICIENT POINTS
-    1 a=0.
-      b=0.
-    3 e=0.
-    4 return
-      end
 +dk nwrtbnl
 !GRDRHIC
 !GRD-042008
@@ -40467,16 +37824,9 @@ subroutine crcheck
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonm1
-+ca commontr
-+ca commonc
 +if bnlelens
 +ca rhicelens
 +ei
@@ -41343,8 +38693,7 @@ subroutine crpoint
       use end_sixtrack
       use numerical_constants
 
-      use dynk, only : ldynk, dynk_getvalue, fsets_dynk_cr,             &
-     &csets_unique_dynk, nsets_unique_dynk, dynkfilepos, dynk_crpoint
+      use dynk, only : ldynk,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynkfilepos,dynk_crpoint
 
       use dump, only : dump_crpoint
       
@@ -41355,16 +38704,9 @@ subroutine crpoint
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
       implicit none
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonm1
-+ca commontr
-+ca commonc
 
 +if bnlelens
 +ca rhicelens
@@ -41455,23 +38797,23 @@ subroutine crpoint
 +if .not.debug
          if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
-            write(93,*) 'SIXTRACR CRPOINT filling fsets_dynk_cr'
+            write(93,*) 'SIXTRACR CRPOINT filling dynk_fSets_cr'
             endfile (93,iostat=ierro)
             backspace (93,iostat=ierro)
 +if .not.debug
          endif
 +ei
-         do j=1,nsets_unique_dynk
-            fsets_dynk_cr(j) =                                          &
-     &           dynk_getvalue(csets_unique_dynk(j,1),                  &
-     &                         csets_unique_dynk(j,2))
+         do j=1,dynk_nSets_unique
+            dynk_fSets_cr(j) =                                          &
+     &           dynk_getvalue(dynk_cSets_unique(j,1),                  &
+     &                         dynk_cSets_unique(j,2))
          end do
 
-!c$$$         write (93,*) "Contents: (nsets_unique_dynk=",
-!c$$$     &        nsets_unique_dynk,")"
-!c$$$         do j=1,nsets_unique_dynk
-!c$$$            write(93,*) csets_unique_dynk(j,1),csets_unique_dynk(j,2),
-!c$$$     &                  fsets_dynk_cr(j)
+!c$$$         write (93,*) "Contents: (dynk_nSets_unique=",
+!c$$$     &        dynk_nSets_unique,")"
+!c$$$         do j=1,dynk_nSets_unique
+!c$$$            write(93,*) dynk_cSets_unique(j,1),dynk_cSets_unique(j,2),
+!c$$$     &                  dynk_fSets_cr(j)
 !c$$$         enddo
 !c$$$         write(93,*) "DONE"
 !c$$$         endfile (93,iostat=ierro)
@@ -41929,20 +39271,13 @@ subroutine crstart
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_commont
+      use mod_commond
 
       use mod_alloc
       use mod_hions
 
       implicit none
-+ca common2
-+ca commont1
-+ca commondl
-+ca commonxz
-+ca commonta
-+ca commonl
-+ca commonm1
-+ca commontr
-+ca commonc
 +if bnlelens
 +ca rhicelens
 +ei
@@ -42402,194 +39737,26 @@ subroutine datime(nd,nt)
 end subroutine datime
 
 subroutine timest(r1)
-      implicit none
-+ca commtim
-      logical start
-      data start /.false./
-      save
-      if (.not.start) then
-        start=.true.
-        call cpu_time(timestart)
-      endif
-      return
+  use mod_common, only : timestart
+  implicit none
+  real r1
+  logical start
+  data start /.false./
+  save
+  if (.not.start) then
+    start=.true.
+    call cpu_time(timestart)
+  endif
+  return
 end subroutine timest
 
 subroutine timex(r1)
-      implicit none
-+ca commtim
-      save
-      call timest(0.0)
-      call cpu_time(timenow)
-      r1=timenow-timestart
-      return
+  use mod_common, only : timestart
+  implicit none
+  real r1,timenow
+  save
+  call timest(0.0)
+  call cpu_time(timenow)
+  r1=timenow-timestart
+  return
 end subroutine timex
-
-+dk plotdumy
-      subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
-      use floatPrecision
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1,i2,i3
-      real r1,r2,r3,r4,r5
-      character c1
-      save
-      return
-      end
-
-      subroutine hdelet(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      save
-      return
-      end
-
-      subroutine hlimit(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      save
-      return
-      end
-
-      subroutine hplax(c1,c2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      character c1,c2
-      save
-      return
-      end
-
-      subroutine hplcap(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      save
-      return
-      end
-
-      subroutine hplend()
-      implicit none
-      integer lout
-      common /crflags/lout
-      save
-      return
-      end
-
-      subroutine hplint(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      save
-      return
-      end
-
-      subroutine hplopt(c1,i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      character c1
-      save
-      return
-      end
-
-      subroutine hplot(i1,c1,c2,i2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1,i2
-      character c1,c2
-      save
-      return
-      end
-
-      subroutine hplset(c1,r1)
-      use floatPrecision
-      implicit none
-      integer lout
-      common /crflags/lout
-      real r1
-      character c1
-      save
-      return
-      end
-
-      subroutine hplsiz(r1,r2,c1)
-      use floatPrecision
-      implicit none
-      integer lout
-      common /crflags/lout
-      real r1,r2
-      character c1
-      save
-      return
-      end
-
-      subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
-      use floatPrecision
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      real r1,r2,r3,r4,r5
-      character c1
-      save
-      return
-      end
-
-      subroutine htitle(c1)
-      use floatPrecision
-      implicit none
-      integer lout
-      common /crflags/lout
-      character c1
-      save
-      return
-      end
-
-      subroutine ipl(i1,r1,r2)
-      use floatPrecision
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      real r1(*),r2(*)
-      save
-      return
-      end
-
-      subroutine ipm(i1,r1,r2)
-      use floatPrecision
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      real r1,r2
-      save
-      return
-      end
-
-      subroutine iselnt(i1)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1
-      save
-      return
-      end
-
-      subroutine igmeta(i1,i2)
-      implicit none
-      integer lout
-      common /crflags/lout
-      integer i1,i2
-      save
-      return
-      end

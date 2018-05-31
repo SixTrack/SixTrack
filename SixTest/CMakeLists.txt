@@ -54,6 +54,7 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
+  geometry
   collimation_k2_fcc_2017_h1_collision
   dump_all_highprec
   dump_2_all_ele_highprec
@@ -138,6 +139,7 @@ if(NOT COLLIMAT)
           dump5
           dump6
           fileunits_DYNK_DUMP
+          geometry
           elensidealthin6d_DYNK_RANDU
           elensidealthin6d_DYNK_RANDON
           elensidealthin6d_DYNK_ONOFF
@@ -333,6 +335,7 @@ SET(FAST_TESTS
   dump8_fma
   dump9
   fileunits_DYNK_DUMP
+  geometry
   fcc
   elensidealthin6d_DYNK_RANDU
   elensidealthin6d_DYNK_RANDON

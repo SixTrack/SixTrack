@@ -12,3 +12,21 @@ module crcoall
   save lout
   
 end module crcoall
+
+! =================================================================================================
+!  FLOAT PRECISION MODULE
+!  Last modified: 2018-05-25
+! =================================================================================================
+module floatPrecision
+  use, intrinsic :: iso_fortran_env, only : real32, real64, real128
+  implicit none
+#ifdef P32BITM
+  integer, parameter :: fPrec = real32
+#endif
+#ifdef P64BITM
+  integer, parameter :: fPrec = real64
+#endif
+#ifdef P128BITM
+  integer, parameter :: fPrec = real128
+#endif
+end module floatPrecision

@@ -1,18 +1,17 @@
-+dk bdex
+! ================================================================================================ !
+! Beam Distribution EXchange
+! At one or more elements, exchange the current beam distribution
+! for one given by an external program.
+! K. Sjobak BE/ABP-HSS, 2016
+! Based on FLUKA coupling version by
+! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
+! ================================================================================================ !
 module bdex
-  !     Beam Distribution EXchange
-  !     At one or more elements, exchange the current beam distribution
-  !     for one given by an external program.
-  !     K. Sjobak BE/ABP-HSS, 2016
-  !     Based on FLUKA coupling version by
-  !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
-  !     
 
   use floatPrecision
   use end_sixtrack
   use crcoall
   use numerical_constants
-!For nele
   use parpro
 
   use mod_alloc
@@ -443,6 +442,7 @@ contains
     use parpro
     use string_tools
     use mod_common
+    use mod_commont
     use mod_commonmn
     
     implicit none
@@ -453,13 +453,11 @@ contains
     integer i, ix,n
     intent(in) i, ix, n
 
-+ca commontr
-
-+if crlibm
+#ifdef CRLIBM
     !Needed for string conversions for BDEX
     character(len=8192) ch
     integer dtostr
-+ei
+#endif
     !Temp variables
     integer j, k, ii
     
@@ -475,7 +473,7 @@ contains
                "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx
           
           !Write out particles
-+if crlibm
+#ifdef CRLIBM
           do j=1,napx
              do k=1,8192
                 ch(k:k)=' '
@@ -504,15 +502,14 @@ contains
              write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') ch(1:ii+24)
              
           enddo
-+ei
-+if .not.crlibm
+#else
           do j=1,napx
              write(bdex_channels(bdex_elementChannel(ix),4)+1,*) &
                   xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j), &
                   ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
                   dpsv1(j),nlostp(j)
           enddo
-+ei
+#endif
           write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') "BDEX WAITING..."
           
           !Read back particles
@@ -551,4 +548,3 @@ contains
   end subroutine bdex_track
   
 end module bdex
-

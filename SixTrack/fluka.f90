@@ -1,5 +1,4 @@
-+dk flukadeck
-+if fluka
+#ifdef FLUKA
 
 subroutine check_coupling_integrity
 !
@@ -16,12 +15,11 @@ subroutine check_coupling_integrity
       use crcoall
       use parpro
       use mod_common
+      use mod_commont
       use aperture
       use end_sixtrack
       implicit none
-
-+ca commontr
-
+      
 !     temporary variables
       integer i1 , i2
       integer ix1, ix2
@@ -143,15 +141,13 @@ subroutine kernel_fluka_element( nturn, i, ix )
       use crcoall
       use parpro
       use mod_common
+      use mod_commont
       use mod_commonmn
 
       use mod_hions
       use end_sixtrack
 
       implicit none
-
-+ca commonm1
-+ca commontr
 
 !     interface variables:
       integer nturn, i, ix
@@ -364,15 +360,13 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       use crcoall
       use parpro
       use mod_common
+      use mod_commont
       use mod_commonmn
 
       use mod_hions
       use end_sixtrack
 
       implicit none
-
-+ca commonm1
-+ca commontr
 
 !     interface variables:
       integer nturn, i, ix
@@ -484,5 +478,4 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       return
 end subroutine kernel_fluka_exit
 
-+ei
-
+#endif
