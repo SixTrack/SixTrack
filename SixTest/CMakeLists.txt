@@ -37,6 +37,7 @@ SET(TESTS_NOFORT10
   orbit6d-element-trombone
   orbit6d-element-quadrupole
   orbit6d-ions
+  orbit6d-ions-long
   exact
   thick6dblocks
   elensidealthck6d
@@ -113,6 +114,7 @@ if(NOT COLLIMAT)
           orbit6d-element-quadrupole
           orbit6d-element-trombone
           orbit6d-ions
+          orbit6d-ions-long
           prob1
           prob3
           s316
@@ -377,6 +379,7 @@ SET(MEDIUM_TESTS
   bbe52
   javier_bignpart
   collimation_k2_fcc_2017_h1_collision
+  orbit6d-ions-long
   )
 
 #Slow is everything longer
