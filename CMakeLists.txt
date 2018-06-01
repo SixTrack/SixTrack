@@ -316,11 +316,12 @@ list(APPEND FORS_F90
 	strings string_tools common_modules mainarrays
 	file_units mod_alloc zipf matrix_inv
 	bouncy_castle plato_seq bdex fma
-	ranecu wire hions elens tshift_corr
+	ranecu wire hions elens
 )
 
 if(DA)
 	list(APPEND FORS_FREEFORM sixsc sixda sixscfox)
+	list(APPEND FORS_F90 tshift_corr)
 else()
 	list(APPEND FORS_FREEFORM track sixve sixvefox)
 endif()

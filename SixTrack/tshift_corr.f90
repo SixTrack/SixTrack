@@ -1,4 +1,4 @@
-
+#ifdef DA
 ! ================================================================================================ !
 !  TUNESHIFT CORRECTIONS MODULE
 !  Used by SixDA (mainda)
@@ -1615,38 +1615,39 @@ subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
 
 end subroutine objfun2
 
-#ifndef NAGLIB
-subroutine e04ucf(n,nclin,ncnln,lda,ldcj,ldr,a,bl,bu,confun,objfun,iter,ierroe,c,cjac,clamda,objf,  &
-                  objgrd,r,x,iwork,liwork,work,lwork,iuser,user,ifail)
-  implicit none
-  integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe(*),istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,iuser(*),ifail,x(n)
-  real a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),c(*),cjac(ldcj,*),clamda(n+nclin+ncnln),objf,&
-    objgrd(n),r(ldr,n),work(lwork),user(*)
-  external confun,objfun
-  save
-  return
-end subroutine e04ucf
+! #ifndef NAGLIB
+! subroutine e04ucf(n,nclin,ncnln,lda,ldcj,ldr,a,bl,bu,confun,objfun,iter,ierroe,c,cjac,clamda,objf,  &
+!                   objgrd,r,x,iwork,liwork,work,lwork,iuser,user,ifail)
+!   implicit none
+!   integer n,nclin,ncnln,lda,ldcj,ldr,iter,ierroe(*),istate(n+nclin+ncnln),liwork,iwork(liwork),lwork,iuser(*),ifail,x(n)
+!   real a(lda,*),bl(n+nclin+ncnln),bu(n+nclin+ncnln),c(*),cjac(ldcj,*),clamda(n+nclin+ncnln),objf,&
+!     objgrd(n),r(ldr,n),work(lwork),user(*)
+!   external confun,objfun
+!   save
+!   return
+! end subroutine e04ucf
 
-subroutine e04uef(c1)
-  implicit none
-  character c1
-  save
-  return
-end subroutine e04uef
+! subroutine e04uef(c1)
+!   implicit none
+!   character c1
+!   save
+!   return
+! end subroutine e04uef
 
-subroutine e04udm(c1)
-  implicit none
-  character c1
-  save
-  return
-end subroutine e04udm
+! subroutine e04udm(c1)
+!   implicit none
+!   character c1
+!   save
+!   return
+! end subroutine e04udm
 
-subroutine x04abf(n1,n2)
-  implicit none
-  integer n1,n2
-  save
-  return
-end subroutine x04abf
-#endif
+! subroutine x04abf(n1,n2)
+!   implicit none
+!   integer n1,n2
+!   save
+!   return
+! end subroutine x04abf
+! #endif
 
 end module tuneshift_corr
+#endif
