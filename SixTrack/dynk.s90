@@ -159,13 +159,19 @@ subroutine dynk_parseInputLine(inLine,iErr)
   
   character(len=:), allocatable :: lnSplit(:)
   integer i, nSplit
+  logical spErr
   
   character gFields(str_maxFields)*(str_maxlen)
   integer   nFields
   integer   lFields(str_maxFields)
   logical   eFields
   
-  call chr_split(inLine,lnSplit,nSplit)
+  call chr_split(inLine,lnSplit,nSplit,spErr)
+  if(spErr) then
+    write(lout,"(a)") "DYNK> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   if(nSplit == 0) then
     if(ldynkdebug) then

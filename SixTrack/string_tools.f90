@@ -70,109 +70,118 @@ contains
 !  Note: Copying data from one string to another string, by slicing the char array, does not work
 !        with the intel compiler unless -assume realloc-lhs is enabled.
 ! ================================================================================================ !
-subroutine str_split(toSplit, returnArray, nArray)
+subroutine str_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
   
-  implicit none
+  use crcoall
   
-  type(string),              intent(in)  :: toSplit
-  type(string), allocatable, intent(out) :: returnArray(:)
-  integer,                   intent(out) :: nArray
+  type(string),               intent(in)  :: toSplit
+  type(string), allocatable,  intent(out) :: sArray(:)
+  integer,                    intent(out) :: nArray
+  logical,                    intent(out) :: hasErr
+  integer,      optional,     intent(in)  :: fixLen
+  integer,      optional,     intent(out) :: nIndent
   
-  integer ch, newBit
-  logical sngQ, dblQ
+  character(len=:), allocatable :: mskSplit, tVal
+  integer mLen, nVal, nInd
+  integer i, iVal, iSt
+  logical hErr
   
-  if(allocated(returnArray)) deallocate(returnArray)
+  call chr_scanString(toSplit%chr, mskSplit, mLen, nVal, nInd, hErr)
+  if(present(fixLen))  mLen    = fixLen
+  if(present(nIndent)) nIndent = nInd
+  nArray = nVal
+  hasErr = hErr
   
-  newBit = 0
-  nArray = 0
-  sngQ   = .false.
-  dblQ   = .false.
-  do ch=1, len(toSplit%chr)
-    if(toSplit%chr(ch:ch) == "'") sngQ = .not. sngQ
-    if(toSplit%chr(ch:ch) == '"') dblQ = .not. dblQ
-    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
-      if(newBit == 0) then
-        cycle
-      else
-        call str_arrAppend(returnArray, str_sub(toSplit, newBit, ch-1))
-        newBit = 0
-        nArray = nArray + 1
+  if(allocated(sArray)) deallocate(sArray)
+  allocate(sArray(nVal))
+  
+  iVal = 0
+  iSt  = 0
+  tVal = ""
+  do i=1,len(mskSplit)
+    if(mskSplit(i:i) == "X") then
+      iSt = iSt + 1
+      if(iSt > mLen) then
+        write(lout,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
+        hasErr = .true.
+        exit
       end if
+      tVal = tVal//toSplit%chr(i:i)
     else
-      if(newBit == 0) newBit = ch
+      if(iSt > 0) then
+        iSt  = 0
+        iVal = iVal + 1
+        if(iVal > nVal) exit
+        sArray(iVal) = tVal
+        tVal = ""
+      end if
     end if
   end do
   
 end subroutine str_split
 
-subroutine chr_split(toSplit, returnArray, nArray, isCont)
+subroutine chr_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
   
-  implicit none
+  use crcoall
   
   character(len=*),              intent(in)  :: toSplit
-  character(len=:), allocatable, intent(out) :: returnArray(:)
+  character(len=:), allocatable, intent(out) :: sArray(:)
   integer,                       intent(out) :: nArray
-  logical,          optional,    intent(out) :: isCont
+  logical,                       intent(out) :: hasErr
+  integer,          optional,    intent(in)  :: fixLen
+  integer,          optional,    intent(out) :: nIndent
   
-  integer ch, newBit
-  logical sngQ, dblQ, allCont
-  character(len=:), allocatable :: tmpSplit
+  character(len=:), allocatable :: mskSplit
+  integer mLen, nVal, nInd
+  integer i, iVal, iSt
+  logical hErr
   
-  if(allocated(returnArray)) deallocate(returnArray)
+  call chr_scanString(toSplit, mskSplit, mLen, nVal, nInd, hErr)
+  if(present(fixLen))  mLen    = fixLen
+  if(present(nIndent)) nIndent = nInd
+  nArray = nVal
+  hasErr = hErr
   
-  ! Check indentattion:
-  ! A line can be indented up to 4 spaces.
-  ! If the indentation is 5 or more, it is a continuation from the previous line
-  ! and the isCont flag is .true.
-  if(present(isCont)) then
-    isCont = .false.
-    if(len(toSplit) >= 5) then
-      if(toSplit(1:5) == "     ") isCont = .true.
-    end if
-  end if
-  tmpSplit = adjustl(toSplit)
+  if(allocated(sArray)) deallocate(sArray)
+  allocate(character(len=mLen) :: sArray(nVal))
+  do i=1,nVal
+    sArray(i) = repeat(" ",mLen)
+  end do
   
-  newBit = 0
-  nArray = 0
-  sngQ   = .false.
-  dblQ   = .false.
-  do ch=1, len(tmpSplit)
-    if(tmpSplit(ch:ch) == "'") sngQ = .not. sngQ
-    if(tmpSplit(ch:ch) == '"') dblQ = .not. dblQ
-    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
-      if(newBit == 0) then
-        cycle
-      else
-        call chr_arrAppend(returnArray, tmpSplit(newBit:ch-1))
-        newBit = 0
-        nArray = nArray + 1
+  iVal = 1
+  iSt  = 0
+  do i=1,len(mskSplit)
+    if(mskSplit(i:i) == "X") then
+      iSt = iSt + 1
+      if(iSt > mLen) then
+        write(lout,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
+        hasErr = .true.
+        exit
       end if
+      sArray(iVal)(iSt:iSt) = toSplit(i:i)
     else
-      if(newBit == 0) newBit = ch
+      if(iSt > 0) then
+        iSt  = 0
+        iVal = iVal + 1
+        if(iVal > nVal) exit
+      end if
     end if
   end do
   
 end subroutine chr_split
 
-subroutine chr_split_test(toSplit, sArray, nArray, nInd)
-  
-  implicit none
-  
-  character(len=*),              intent(in)  :: toSplit
-  character(len=:), allocatable, intent(out) :: sArray(:)
-  integer,                       intent(out) :: nArray
-  integer,          optional,    intent(out) :: nInd
-  
-  
-end subroutine chr_split_test
-
-subroutine chr_scanString(theString, theResult, maxLen, nValues, nIndent, hasErr)
+! ================================================================================================ !
+!  Scan a String and Mark it for Splitting
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-06-01
+! ================================================================================================ !
+subroutine chr_scanString(theString, theResult, maxlen, nValues, nIndent, hasErr)
   
   use crcoall
   
   character(len=*),              intent(in)  :: theString
   character(len=:), allocatable, intent(out) :: theResult
-  integer,                       intent(out) :: maxLen
+  integer,                       intent(out) :: maxlen
   integer,                       intent(out) :: nValues
   integer,                       intent(out) :: nIndent
   logical,                       intent(out) :: hasErr
@@ -185,6 +194,7 @@ subroutine chr_scanString(theString, theResult, maxLen, nValues, nIndent, hasErr
   allocate(character(len=nCh) :: theResult)
   theResult = repeat(" ",nCh)
   hasErr    = .false.
+  maxLen    = 0
   
   nIn = 0         ! Counter for indents
   vSt = 0         ! 0 = no value, 1 = in value, 2 = comment char
@@ -231,11 +241,11 @@ subroutine chr_scanString(theString, theResult, maxLen, nValues, nIndent, hasErr
   do i=1,nCh
     ch = theResult(i:i)
     if(ch == "X") then                   ! This index is part of a value
-      vLn    = vLn + 1                   ! Increment the value length
-      maxLen = max(maxLen, vLn)          ! Updated maxLen
+      vLn    = vLn + 1                     ! Increment the value length
+      maxlen = max(maxlen, vLn)          ! Update max length
       if(pCh == " ") nVl = nVl + 1       ! If previous char was space, count the edge
     else                                 ! This index is not part of a value
-      vLn    = 0                         ! Reset the value length counter
+      vLn = 0                            ! Reset the value length counter
     end if
     pCh = ch                             ! Record the current char for next round
   end do

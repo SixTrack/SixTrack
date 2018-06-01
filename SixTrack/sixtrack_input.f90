@@ -202,10 +202,16 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: elemName
   integer nSplit
+  logical spErr
   
   integer i
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   if(nSplit <= 2) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must have more than 2 values, got ",nSplit
@@ -338,15 +344,19 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: blocName
   integer nSplit
+  logical spErr
   
-  integer i, j, ka, ke
+  integer i, j, ka, ke, nInd
   logical eFound, isCont
   character(len=str_maxName) ilm0(40)
   
-  call chr_split(inLine, lnSplit, nSplit, isCont)
-  ! do i=1,nSplit
-  !   write(lout,"(a,i2,a)") "SPLIT> lnSplit(",i,") = '"//lnSplit(i)//"'"
-  ! end do
+  call chr_split(inLine, lnSplit, nSplit, spErr, nIndent=nInd)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  isCont = (nInd >= 5)
   
   if(nSplit < 2 .and. .not. isCont) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
@@ -474,6 +484,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
+  logical spErr
   
   integer i, j
   character(len=str_maxName) ilm0(40)
@@ -483,7 +494,12 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end do
   
   expLine = chr_expandBrackets(inLine)
-  call chr_split(expLine, lnSplit, nSplit)
+  call chr_split(expLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   if(nSplit > 40) then
     write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have more then 40 elements."
@@ -545,11 +561,17 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: elemName
   integer nSplit
+  logical spErr
   
   integer i
   real(kind=fPrec) xpl0, xrms0, zpl0, zrms0
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   xpl0  = zero
   xrms0 = zero
@@ -630,10 +652,16 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
+  logical spErr
   
   integer i
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   if(nSplit < 1) then
     write(lout,"(a,i0,a)") "PARAM> ERROR INIT block line ",iLine," did not receive any values."
@@ -770,8 +798,14 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
+  logical spErr
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   select case(iLine)
   case(1)
