@@ -40467,6 +40467,7 @@ subroutine crcheck
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_hions
       implicit none
 +ca common2
 +ca commont1
@@ -40613,6 +40614,11 @@ subroutine crcheck
       write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
       flush(93)
       call dump_crcheck_readdata(95,lerror)
+      if (lerror) goto 100
+      
+      write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5.5 HION'
+      flush(93)
+      call hions_crcheck_readdata(95,lerror)
       if (lerror) goto 100
 
       if (ldynk) then
@@ -41355,6 +41361,7 @@ subroutine crpoint
       use mod_common
       use mod_commonmn
       use mod_commons
+      use mod_hions
       implicit none
 +ca common2
 +ca commont1
@@ -41572,6 +41579,20 @@ subroutine crpoint
       if (lerror) then
          goto 100
       endif
+      
++if .not.debug
+      if (ncalls.le.20.or.numx.ge.numl-20) then
++ei
+        write(93,*) 'SIXTRACR CRPOINT writing HION vars fort.95'
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
++if .not.debug
+      end if
++ei
+      call hions_crpoint(95,lerror,ierro)
+      if (lerror) then
+        goto 100
+      end if
       
       if (ldynk) then
 +if .not.debug
@@ -42068,6 +42089,8 @@ subroutine crstart
       if (scatter_active) then
          call scatter_crstart
       endif
+      
+      call hions_crstart
       
       if (crsythck) then
 !ERICVARS now read the extended vars from fort.95/96.
