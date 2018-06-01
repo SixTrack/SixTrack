@@ -33,9 +33,9 @@ module string_tools
   public str_sub, chr_expandBrackets
   public chr_padZero, chr_padSpace
   public str_inStr, chr_inStr
-  public str_toReal, chr_toReal
-  public str_toInt, chr_toInt
-  public str_toLog, chr_toLog
+  ! public str_toReal, chr_toReal
+  ! public str_toInt, chr_toInt
+  ! public str_toLog, chr_toLog
   
   interface str_cast
     module procedure str_toReal
@@ -79,16 +79,18 @@ subroutine str_split(toSplit, returnArray, nArray)
   integer,                   intent(out) :: nArray
   
   integer ch, newBit
-  logical dblQ
+  logical sngQ, dblQ
   
   if(allocated(returnArray)) deallocate(returnArray)
   
   newBit = 0
   nArray = 0
+  sngQ   = .false.
   dblQ   = .false.
   do ch=1, len(toSplit%chr)
+    if(toSplit%chr(ch:ch) == "'") sngQ = .not. sngQ
     if(toSplit%chr(ch:ch) == '"') dblQ = .not. dblQ
-    if((toSplit%chr(ch:ch) == char(32) .or. toSplit%chr(ch:ch) == char(9)) .and. .not. dblQ) then
+    if((toSplit%chr(ch:ch) == " " .or. toSplit%chr(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -113,7 +115,7 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   logical,          optional,    intent(out) :: isCont
   
   integer ch, newBit
-  logical dblQ, allCont
+  logical sngQ, dblQ, allCont
   character(len=:), allocatable :: tmpSplit
   
   if(allocated(returnArray)) deallocate(returnArray)
@@ -132,10 +134,12 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   
   newBit = 0
   nArray = 0
+  sngQ   = .false.
   dblQ   = .false.
   do ch=1, len(tmpSplit)
+    if(tmpSplit(ch:ch) == "'") sngQ = .not. sngQ
     if(tmpSplit(ch:ch) == '"') dblQ = .not. dblQ
-    if((tmpSplit(ch:ch) == char(32) .or. tmpSplit(ch:ch) == char(9)) .and. .not. dblQ) then
+    if((tmpSplit(ch:ch) == " " .or. tmpSplit(ch:ch) == char(9)) .and. .not. sngQ .and. .not. dblQ) then
       if(newBit == 0) then
         cycle
       else
@@ -149,6 +153,95 @@ subroutine chr_split(toSplit, returnArray, nArray, isCont)
   end do
   
 end subroutine chr_split
+
+subroutine chr_split_test(toSplit, sArray, nArray, nInd)
+  
+  implicit none
+  
+  character(len=*),              intent(in)  :: toSplit
+  character(len=:), allocatable, intent(out) :: sArray(:)
+  integer,                       intent(out) :: nArray
+  integer,          optional,    intent(out) :: nInd
+  
+  
+end subroutine chr_split_test
+
+subroutine chr_scanString(theString, theResult, maxLen, nValues, nIndent, hasErr)
+  
+  use crcoall
+  
+  character(len=*),              intent(in)  :: theString
+  character(len=:), allocatable, intent(out) :: theResult
+  integer,                       intent(out) :: maxLen
+  integer,                       intent(out) :: nValues
+  integer,                       intent(out) :: nIndent
+  logical,                       intent(out) :: hasErr
+  
+  character ch, pCh
+  integer   i, nCh, qSt, nIn, vSt, vLn, nVl
+  logical   isI
+  
+  nCh = len(theString)
+  allocate(character(len=nCh) :: theResult)
+  theResult = repeat(" ",nCh)
+  hasErr    = .false.
+  
+  nIn = 0         ! Counter for indents
+  vSt = 0         ! 0 = no value, 1 = in value, 2 = comment char
+  isI = .true.    ! If we are in the beginning of the line (no values yet)
+  qSt = 0         ! 0 = not in quote, 1 = in single quote, 2 = in double quote
+  
+  do i=1,nCh
+    ch  = theString(i:i)
+    vSt = 0                               ! Default to treat everything as not a value
+    if(ch == " " .and. isI) nIn = nIn + 1 ! Count indents, but only spaces
+    if(ch /= " ") isI = .false.           ! Stop counting indents
+    if(ch == char(0)) ch = " "            ! Treat null as space
+    if(ch == char(9)) ch = " "            ! Treat tab as space
+    if(ch == "'" .and. qSt == 0) qSt = 1  ! Entering single quoted region
+    if(ch == '"' .and. qSt == 0) qSt = 3  ! Entering double quoted region
+    if(ch /= " " .and. qSt == 0) vSt = 1  ! This is a value if it is not in quotes
+    if(ch /= "'" .and. qSt == 2) vSt = 1  ! This is a value in single quotes
+    if(ch /= '"' .and. qSt == 4) vSt = 1  ! This is a value in double quotes
+    if(ch == "'" .and. qSt == 2) qSt = 0  ! Exiting single quoted region
+    if(ch == '"' .and. qSt == 4) qSt = 0  ! Exiting double quoted region
+    if(ch == "!" .and. qSt == 0) vSt = 2  ! Comment character encountered
+    if(qSt == 1) qSt = 2                  ! Flag the newly entered quote region for saving values
+    if(qSt == 3) qSt = 4                  ! Flag the newly entered quote region for saving values
+    if(vSt == 1) theResult(i:i) = "X"     ! Mark character as a value
+    if(vSt == 2) exit                     ! We've reached a comment character, exit
+    if(ichar(ch) < 32) then               ! This is a control character, we don't want those
+      write(lout,"(2(a,i0))") "SPLIT> ERROR Control character char(",ichar(ch),") encountered at position ",i
+      hasErr = .true.
+      return
+    end if
+  end do
+  nIndent = nIn
+  
+  ! Report errors
+  if(qSt > 0) then
+    write(lout,"(a,i0,a)") "SPLIT> ERROR Reached end of line with quotes still open."
+    hasErr = .true.
+    return
+  end if
+  
+  vLn = 0
+  nVl = 0
+  pCh = " "
+  do i=1,nCh
+    ch = theResult(i:i)
+    if(ch == "X") then                   ! This index is part of a value
+      vLn    = vLn + 1                   ! Increment the value length
+      maxLen = max(maxLen, vLn)          ! Updated maxLen
+      if(pCh == " ") nVl = nVl + 1       ! If previous char was space, count the edge
+    else                                 ! This index is not part of a value
+      vLn    = 0                         ! Reset the value length counter
+    end if
+    pCh = ch                             ! Record the current char for next round
+  end do
+  nValues = nVl
+  
+end subroutine chr_scanString
 
 ! ================================================================================================ !
 !  Expand Brackets
