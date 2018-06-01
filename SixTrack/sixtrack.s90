@@ -41580,20 +41580,18 @@ subroutine crpoint
          goto 100
       endif
       
-      if(has_hion) then
 +if .not.debug
-        if (ncalls.le.20.or.numx.ge.numl-20) then
+      if (ncalls.le.20.or.numx.ge.numl-20) then
 +ei
-          write(93,*) 'SIXTRACR CRPOINT writing HION vars fort.95'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+        write(93,*) 'SIXTRACR CRPOINT writing HION vars fort.95'
+        endfile (93,iostat=ierro)
+        backspace (93,iostat=ierro)
 +if .not.debug
-        end if
+      end if
 +ei
-        call hions_crpoint(95,lerror,ierro)
-        if (lerror) then
-          goto 100
-        end if
+      call hions_crpoint(95,lerror,ierro)
+      if (lerror) then
+        goto 100
       end if
       
       if (ldynk) then
@@ -42092,7 +42090,7 @@ subroutine crstart
          call scatter_crstart
       endif
       
-      if(has_hion) call hions_crstart
+      call hions_crstart
       
       if (crsythck) then
 !ERICVARS now read the extended vars from fort.95/96.
