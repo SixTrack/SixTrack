@@ -79,6 +79,7 @@ OPTION(NAGLIB "Link to external NAGLIB library, used in subroutine coruglo and c
 #SSE="NULL"
 # and we have OFF
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
+OPTION(DA "Deprecated. Replaced by SIXDA." OFF)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" OFF)
 OPTION(COLLIMAT "Collimation code" OFF)
 OPTION(CPSS "CERN physics screensaver support" OFF)
@@ -140,6 +141,10 @@ SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc b
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
 SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
 
+if(DA)
+	message(STATUS "The DA flag is deprecated due to conflicts with preprocessor and FOX. Please use SIXDA instead.")
+	SET(SIXDA ON)
+endif()
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -354,7 +359,6 @@ foreach(loop IN LISTS FORS_FREEFORM)
 endforeach()
 
 foreach(loop IN LISTS FORS_F90)
-	# set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
 endforeach()
 
@@ -1096,15 +1100,6 @@ file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
 endforeach()
-add_custom_target(pre_pro)
-add_dependencies(pre_pro ast_mkdir)
-foreach(loop IN ITEMS ${FORS_F90})
-	add_custom_command(
-		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-		COMMAND ${CMAKE_Fortran_COMPILER} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-		DEPENDS pre_pro
-	)
-endforeach()
 
 if(BOINC)
 	if(API)
@@ -1203,7 +1198,7 @@ add_dependencies(SixTrack copy_input_files generate_input)
 add_custom_target(run_astuce)
 
 #make running astuce depend on astuce being built and the input files being in place
-add_dependencies(run_astuce pre_pro astuce astuce_clean_define_flags astuce_clean_decks)
+add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
 
 #This target cleans the define flags
 add_custom_target(astuce_clean_define_flags)
@@ -1357,6 +1352,15 @@ add_custom_target(generate_input)
 add_custom_target(run_prepro)
 add_dependencies(run_prepro run_astuce dafor)
 add_dependencies(generate_input run_astuce run_prepro)
+
+## Run the preprocessor on all .f90 files and output them to the build directory
+foreach(loop IN ITEMS ${FORS_F90})
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		COMMAND ${CMAKE_Fortran_COMPILER} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		DEPENDS run_prepro
+	)
+endforeach()
 
 ## Run ASTUCE and DAFOR to generate Fortran source files ##
 foreach(loop IN LISTS FORS_FREEFORM)
