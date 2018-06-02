@@ -92,6 +92,8 @@ subroutine str_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
   nArray = nVal
   hasErr = hErr
   
+  if(nVal == 0) return
+  
   if(allocated(sArray)) deallocate(sArray)
   allocate(sArray(nVal))
   
@@ -142,6 +144,8 @@ subroutine chr_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
   nArray = nVal
   hasErr = hErr
   
+  if(nVal == 0) return
+  
   if(allocated(sArray)) deallocate(sArray)
   allocate(character(len=mLen) :: sArray(nVal))
   do i=1,nVal
@@ -175,13 +179,13 @@ end subroutine chr_split
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-06-01
 ! ================================================================================================ !
-subroutine chr_scanString(theString, theResult, maxlen, nValues, nIndent, hasErr)
+subroutine chr_scanString(theString, theMask, maxLen, nValues, nIndent, hasErr)
   
   use crcoall
   
   character(len=*),              intent(in)  :: theString
-  character(len=:), allocatable, intent(out) :: theResult
-  integer,                       intent(out) :: maxlen
+  character(len=:), allocatable, intent(out) :: theMask
+  integer,                       intent(out) :: maxLen
   integer,                       intent(out) :: nValues
   integer,                       intent(out) :: nIndent
   logical,                       intent(out) :: hasErr
@@ -191,10 +195,10 @@ subroutine chr_scanString(theString, theResult, maxlen, nValues, nIndent, hasErr
   logical   isI
   
   nCh = len(theString)
-  allocate(character(len=nCh) :: theResult)
-  theResult = repeat(" ",nCh)
-  hasErr    = .false.
-  maxLen    = 0
+  allocate(character(len=nCh) :: theMask)
+  theMask = repeat(" ",nCh)
+  hasErr  = .false.
+  maxLen  = 0
   
   nIn = 0         ! Counter for indents
   vSt = 0         ! 0 = no value, 1 = in value, 2 = comment char
@@ -216,9 +220,9 @@ subroutine chr_scanString(theString, theResult, maxlen, nValues, nIndent, hasErr
     if(ch == "'" .and. qSt == 2) qSt = 0  ! Exiting single quoted region
     if(ch == '"' .and. qSt == 4) qSt = 0  ! Exiting double quoted region
     if(ch == "!" .and. qSt == 0) vSt = 2  ! Comment character encountered
-    if(qSt == 1) qSt = 2                  ! Flag the newly entered quote region for saving values
-    if(qSt == 3) qSt = 4                  ! Flag the newly entered quote region for saving values
-    if(vSt == 1) theResult(i:i) = "X"     ! Mark character as a value
+    if(qSt == 1) qSt = 2                  ! Flag the newly entered quoted region for saving values next time
+    if(qSt == 3) qSt = 4                  ! Flag the newly entered quoted region for saving values next time
+    if(vSt == 1) theMask(i:i) = "X"       ! Mark character as a value
     if(vSt == 2) exit                     ! We've reached a comment character, exit
     if(ichar(ch) < 32) then               ! This is a control character, we don't want those
       write(lout,"(2(a,i0))") "SPLIT> ERROR Control character char(",ichar(ch),") encountered at position ",i
@@ -228,22 +232,23 @@ subroutine chr_scanString(theString, theResult, maxlen, nValues, nIndent, hasErr
   end do
   nIndent = nIn
   
-  ! Report errors
+  ! Report un-closed quotes
   if(qSt > 0) then
     write(lout,"(a,i0,a)") "SPLIT> ERROR Reached end of line with quotes still open."
     hasErr = .true.
     return
   end if
   
+  ! Sum everything up
   vLn = 0
   nVl = 0
   pCh = " "
   do i=1,nCh
-    ch = theResult(i:i)
+    ch = theMask(i:i)
     if(ch == "X") then                   ! This index is part of a value
-      vLn    = vLn + 1                     ! Increment the value length
-      maxlen = max(maxlen, vLn)          ! Update max length
-      if(pCh == " ") nVl = nVl + 1       ! If previous char was space, count the edge
+      vLn    = vLn + 1                   ! Increment the value length
+      maxLen = max(maxLen, vLn)          ! Update max value length
+      if(pCh == " ") nVl = nVl + 1       ! If previous char was space, count the "edge" as a new value
     else                                 ! This index is not part of a value
       vLn = 0                            ! Reset the value length counter
     end if
@@ -325,107 +330,6 @@ function chr_expandBrackets(theString) result(theResult)
   deallocate(bPos)
   
 end function chr_expandBrackets
-
-! ================================================================================================ !
-!  Safe Append to Array
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-18
-!  Appends a string to a string array.
-! ================================================================================================ !
-subroutine str_arrAppend(theArray, theString)
-  
-  use crcoall
-  
-  implicit none
-  
-  type(string), allocatable, intent(inout) :: theArray(:)
-  type(string),              intent(in)    :: theString
-  
-  type(string), allocatable :: tmpArray(:)
-  integer                   :: allocErr
-  integer                   :: arrSize, arrElem
-  
-  if(allocated(theArray)) then
-    
-    arrSize = size(theArray,1)
-    allocate(tmpArray(arrSize + 1), stat=allocErr)
-    if(allocErr /= 0) then
-      write(lout,"(a)") "STRING_TOOLS> ERROR Appending of string array failed."
-      stop 1
-    end if
-    
-    do arrElem=1, arrSize
-      tmpArray(arrElem) = theArray(arrElem)
-    end do
-    tmpArray(arrSize + 1) = theString
-    
-    call move_alloc(tmpArray,theArray)
-    
-  else
-    
-    allocate(theArray(1), stat=allocErr)
-    if(allocErr /= 0) then
-      write(lout,"(a)") "STRING_TOOLS> ERROR Allocation of string array failed."
-      stop 1
-    end if
-    theArray(1) = theString
-    
-  end if
-  
-end subroutine str_arrAppend
-
-subroutine chr_arrAppend(theArray, theString)
-  
-  use crcoall
-  
-  implicit none
-  
-  character(len=:), allocatable, intent(inout) :: theArray(:)
-  character(len=*),              intent(in)    :: theString
-  
-  character(len=:), allocatable :: tmpArray(:)
-  integer :: allocErr
-  integer :: arrSize, arrElem
-  integer :: inLen, maxLen, elemLen
-  
-  inLen = len(theString)
-  
-  if(allocated(theArray)) then
-    
-    maxLen = inLen
-    do arrElem=1, len(theArray)
-      maxLen = max(maxLen,len(theArray(arrElem)))
-    end do
-    
-    arrSize = size(theArray,1)
-    allocate(character(len=maxLen) :: tmpArray(arrSize + 1), stat=allocErr)
-    if(allocErr /= 0) then
-      write(lout,"(a)") "STRING_TOOLS> ERROR Appending of string array failed."
-      stop 1
-    end if
-    
-    do arrElem=1, arrSize
-      elemLen = len(theArray(arrElem))
-      tmpArray(arrElem)            = repeat(" ",maxLen)
-      tmpArray(arrElem)(1:elemLen) = theArray(arrElem)(1:elemLen)
-    end do
-    tmpArray(arrSize + 1)          = repeat(" ",maxLen)
-    tmpArray(arrSize + 1)(1:inLen) = theString(1:inLen)
-    
-    call move_alloc(tmpArray,theArray)
-    
-  else
-    
-    allocate(character(len=inLen) :: theArray(1), stat=allocErr)
-    if(allocErr /= 0) then
-      write(lout,"(a)") "STRING_TOOLS> ERROR Allocation of character array failed."
-      stop 1
-    end if
-    theArray(1) = theString
-    
-  end if
-  
-end subroutine chr_arrAppend
 
 ! ================================================================================================ !
 !  SubString Routine
