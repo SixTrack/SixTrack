@@ -669,5 +669,44 @@ module mod_fluka
 
   end function fluka_is_running
 
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 17-07-2013
+!     clean closure of communication with fluka and un-set mod_fluka
+!     inserted in main code by the 'fluka' compilation flag
+subroutine fluka_close
+  
+  use crcoall
+  
+  implicit none
+  
+  integer fluka_con
+  
+  fluka_con = fluka_is_running()
+  if(fluka_con.eq.0) then
+    if( .not. fluka_connected ) then
+!         temporarily connect to fluka, to properly terminate the run
+      fluka_con = fluka_connect()
+      if(fluka_con.eq.-1) then
+!           no hope to properly close the run
+        write(lout,*) '[Fluka] unable to connect to fluka while'
+        write(lout,*) '        closing the simulation: please,'
+        write(lout,*) '        manually kill all its instances'
+        write(fluka_log_unit,*) '# unable to connect to fluka while'
+        write(fluka_log_unit,*) '#  closing the simulation: please,'
+        write(fluka_log_unit,*) '#  manually kill all its instances'
+        goto 1982
+      endif
+      write(lout,*) '[Fluka] Successfully connected to Fluka server'
+      write(lout,*) '[Fluka]     (only temporarily)'
+      write(fluka_log_unit,*) '# Successfully connected to Fluka server'
+      write(fluka_log_unit,*) '#     (only temporarily)'
+    end if
+    call fluka_end
+  end if
+1982 call fluka_mod_end
+  flush(lout)
+!      flush(fluka_log_unit)
+end subroutine fluka_close
+
 end module mod_fluka
 
