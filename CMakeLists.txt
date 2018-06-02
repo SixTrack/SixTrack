@@ -353,7 +353,8 @@ foreach(loop IN LISTS FORS_FREEFORM)
 endforeach()
 
 foreach(loop IN LISTS FORS_F90)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90)
+	# set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
 endforeach()
 
 # List of files that must be treated by DAFOR
@@ -676,6 +677,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008 -cpp")
+	set(PREPRO_FLAGS -cpp -E)
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
@@ -735,6 +737,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
 	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp -assume realloc-lhs")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp -assume realloc-lhs")
+	set(PREPRO_FLAGS -fpp -E)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -770,6 +773,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
+	set(PREPRO_FLAGS -fpp -E)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -802,6 +806,7 @@ else()
 	message ("No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
+	set(PREPRO_FLAGS -cpp -E)
 endif ()
 
 #Now for C flags (crlibm for now)
@@ -1008,6 +1013,7 @@ foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_PREC PREP
 	if(${loop})
 		message(STATUS "Adding preprocessor definition -D${loop} to target SixTrack")
 		target_compile_definitions(SixTrack PUBLIC -D${loop})
+		list(APPEND PREPRO_FLAGS -D${loop})
 	endif()
 endforeach()
 
@@ -1083,12 +1089,28 @@ endif()
 
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
+file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
 endforeach()
+add_custom_target(pre_pro)
+add_dependencies(pre_pro ast_mkdir)
+foreach(loop IN ITEMS ${FORS_F90})
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		COMMAND ${CMAKE_Fortran_COMPILER} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		DEPENDS pre_pro
+	)
+endforeach()
+# foreach(loop IN ITEMS ${FORS_FREEFORM})
+# 	add_custom_command(
+# 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.s90
+# 		COMMAND ${CMAKE_Fortran_COMPILER} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.s90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.s90
+# 		DEPENDS copy_input_files
+# 	)
+# endforeach()
 
 if(BOINC)
 	if(API)
@@ -1187,7 +1209,7 @@ add_dependencies(SixTrack copy_input_files generate_input)
 add_custom_target(run_astuce)
 
 #make running astuce depend on astuce being built and the input files being in place
-add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
+add_dependencies(run_astuce pre_pro astuce astuce_clean_define_flags astuce_clean_decks)
 
 #This target cleans the define flags
 add_custom_target(astuce_clean_define_flags)
