@@ -324,6 +324,7 @@ if(DA)
 	list(APPEND FORS_F90 tshift_corr)
 else()
 	list(APPEND FORS_FREEFORM track sixve sixvefox)
+	list(APPEND FORS_F90 mod_dist)
 endif()
 
 if(COLLIMAT)
