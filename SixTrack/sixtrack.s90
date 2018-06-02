@@ -835,7 +835,7 @@
      &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
      &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
      &as,al,sigm,dps,idz,dp1,itra,                                      &
-#ifdef DA
+#ifdef SIXDA
      &at,a2,                                                            &
 #endif
      &x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
@@ -14336,7 +14336,7 @@ subroutine envars(j,dpp,rv)
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
                    hp,hs,rho,rhoc,rhoi,rv,si,siq,sm1,sm12,sm2,sm23,sm3,sm5,sm6,wf,wfa,wfhi
-#ifdef DA
+#ifdef SIXDA
   integer jm,k,m,na,ne
 #endif
 +if bnlelens
@@ -14351,7 +14351,7 @@ subroutine envars(j,dpp,rv)
       do l=1,2
         al(ll,l,j,i) = zero
         as(ll,l,j,i) = zero
-#ifdef DA
+#ifdef SIXDA
         at(ll,l,j,i) = zero
         a2(ll,l,j,i) = zero
 #endif
@@ -14644,7 +14644,7 @@ subroutine envars(j,dpp,rv)
     end select
   end do
   
-#ifdef DA
+#ifdef SIXDA
   do k=1,mblo
     jm=mel(k)
     do m=1,jm
