@@ -29570,10 +29570,11 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, a
 !       all other variables in the interface (6D tracking variables);
 !
 !-----------------------------------------------------------------------
+  use crcoall
   use floatPrecision
   use end_sixtrack
   use numerical_constants
-  use crcoall
+  use, intrinsic :: iso_fortran_env, only : int16
   implicit none
 
 +ca dbreaddis
@@ -29586,7 +29587,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, a
 
 ! temporary variables:
   integer id, gen
-  integer aa, zz
+  integer(kind=int16) aa, zz
   real(kind=fPrec) weight, z, zp, m, dt
   integer jj
   character(240) tmp_line

@@ -14,6 +14,7 @@
 module string_tools
   
   use strings
+  use, intrinsic :: iso_fortran_env, only : int16, int32, int64, real32, real64, real128
   
   implicit none
   
@@ -35,16 +36,40 @@ module string_tools
   public str_inStr, chr_inStr
   
   interface str_cast
-    module procedure str_toReal
-    module procedure str_toInt
+    module procedure str_toReal32
+    module procedure str_toReal64
+    module procedure str_toReal128
+    module procedure str_toInt16
+    module procedure str_toInt32
+    module procedure str_toInt64
     module procedure str_toLog
   end interface str_cast
   
   interface chr_cast
-    module procedure chr_toReal
-    module procedure chr_toInt
+    module procedure chr_toReal32
+    module procedure chr_toReal64
+    module procedure chr_toReal128
+    module procedure chr_toInt16
+    module procedure chr_toInt32
+    module procedure chr_toInt64
     module procedure chr_toLog
   end interface chr_cast
+  
+  private :: str_toReal32
+  private :: str_toReal64
+  private :: str_toReal128
+  private :: str_toInt16
+  private :: str_toInt32
+  private :: str_toInt64
+  private :: str_toLog
+  
+  private :: chr_toReal32
+  private :: chr_toReal64
+  private :: chr_toReal128
+  private :: chr_toInt16
+  private :: chr_toInt32
+  private :: chr_toInt64
+  private :: chr_toLog
   
   !
   ! Old stuff added for backwards compatibility
@@ -318,7 +343,7 @@ function chr_expandBrackets(theString) result(theResult)
   theResult = ""
   do iSet=1,nSet
     theResult = theResult//theBuffer(iPos:bPos(1,iSet))
-    call chr_toInt(theBuffer(bPos(1,iSet)+1:bPos(2,iSet)-1),iMult,iErr)
+    call chr_cast(theBuffer(bPos(1,iSet)+1:bPos(2,iSet)-1),iMult,iErr)
     theResult = theResult//repeat(theBuffer(bPos(2,iSet)+1:bPos(3,iSet)-1)//" ",iMult)
     iPos      = bPos(3,iSet)+1
   end do
@@ -540,29 +565,30 @@ end function chr_stripQuotes
 !  Last modified: 2018-04-20
 !  A wrapper for round_near for strings and character arrays
 ! ================================================================================================ !
-subroutine str_toReal(theString, theValue, rErr)
+subroutine str_toReal32(theString, theValue, rErr)
   
   use floatPrecision
   use crcoall
   
   implicit none
   
-  type(string), intent(in)        :: theString
-  real(kind=fPrec), intent(out)   :: theValue
-  logical,          intent(inout) :: rErr
+  type(string),      intent(in)    :: theString
+  real(kind=real32), intent(out)   :: theValue
+  logical,           intent(inout) :: rErr
   
-  character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
+  character(len=:),  allocatable   :: tmpString
+  real(kind=real64)                :: tmpValue
+  integer                          :: readErr
   
 #if !defined(FIO) && defined(CRLIBM)
-  real(kind=fPrec)                :: round_near
-  character(len=:), allocatable   :: cString
-  integer                         :: cLen, cErr
+  real(kind=fPrec)                 :: round_near
+  character(len=:),  allocatable   :: cString
+  integer                          :: cLen, cErr
   
   tmpString = chr_trimZero(theString%chr)
   cLen      = len(tmpString) + 1
   cString   = tmpString//char(0)
-  theValue  = round_near(cErr,cLen,cString)
+  tmpValue  = round_near(cErr,cLen,cString)
   
   if(cErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
@@ -575,7 +601,7 @@ subroutine str_toReal(theString, theValue, rErr)
 #if defined(FIO) && defined(CRLIBM)
   call enable_xp()
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,round="nearest",iostat=readErr) theValue
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
@@ -587,7 +613,7 @@ subroutine str_toReal(theString, theValue, rErr)
   
 #if defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,round="nearest",iostat=readErr) theValue
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
     write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
@@ -598,7 +624,7 @@ subroutine str_toReal(theString, theValue, rErr)
   
 #if !defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,iostat=readErr) theValue
+  read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input"
     write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
@@ -607,28 +633,247 @@ subroutine str_toReal(theString, theValue, rErr)
   end if
 #endif
   
-end subroutine str_toReal
+  theValue = real(tmpValue,kind=real32)
+  
+end subroutine str_toReal32
 
-subroutine chr_toReal(theString, theValue, rErr)
+subroutine chr_toReal32(theString, theValue, rErr)
   
   use floatPrecision
   use crcoall
   
   implicit none
   
-  character(len=*), intent(in)    :: theString
-  real(kind=fPrec), intent(out)   :: theValue
-  logical,          intent(inout) :: rErr
+  character(len=*),  intent(in)    :: theString
+  real(kind=real32), intent(out)   :: theValue
+  logical,           intent(inout) :: rErr
   
-  character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
+  character(len=:),  allocatable   :: tmpString
+  real(kind=real64)                :: tmpValue
+  integer                          :: readErr
   
 #if !defined(FIO) && defined(CRLIBM)
-  real(kind=fPrec)                :: round_near
-  character(len=:), allocatable   :: cString
-  integer                         :: cLen, cErr
+  real(kind=fPrec)                 :: round_near
+  character(len=:),  allocatable   :: cString
+  integer                          :: cLen, cErr
   
   tmpString = chr_trimZero(theString)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  tmpValue  = round_near(cErr,cLen,cString)
+  
+  if(cErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  call disable_xp()
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+  theValue = real(tmpValue,kind=real32)
+  
+end subroutine chr_toReal32
+
+subroutine str_toReal64(theString, theValue, rErr)
+  
+  use floatPrecision
+  use crcoall
+  
+  implicit none
+  
+  type(string),      intent(in)    :: theString
+  real(kind=real64), intent(out)   :: theValue
+  logical,           intent(inout) :: rErr
+  
+  character(len=:),  allocatable   :: tmpString
+  real(kind=real64)                :: tmpValue
+  integer                          :: readErr
+  
+#if !defined(FIO) && defined(CRLIBM)
+  real(kind=fPrec)                 :: round_near
+  character(len=:),  allocatable   :: cString
+  integer                          :: cLen, cErr
+  
+  tmpString = chr_trimZero(theString%chr)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  tmpValue  = round_near(cErr,cLen,cString)
+  
+  if(cErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  call disable_xp()
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+  theValue = real(tmpValue,kind=real64)
+  
+end subroutine str_toReal64
+
+subroutine chr_toReal64(theString, theValue, rErr)
+  
+  use floatPrecision
+  use crcoall
+  
+  implicit none
+  
+  character(len=*),  intent(in)    :: theString
+  real(kind=real64), intent(out)   :: theValue
+  logical,           intent(inout) :: rErr
+  
+  character(len=:),  allocatable   :: tmpString
+  real(kind=real64)                :: tmpValue
+  integer                          :: readErr
+  
+#if !defined(FIO) && defined(CRLIBM)
+  real(kind=fPrec)                 :: round_near
+  character(len=:),  allocatable   :: cString
+  integer                          :: cLen, cErr
+  
+  tmpString = chr_trimZero(theString)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  tmpValue  = round_near(cErr,cLen,cString)
+  
+  if(cErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  call disable_xp()
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+  theValue = real(tmpValue,kind=real64)
+  
+end subroutine chr_toReal64
+
+subroutine str_toReal128(theString, theValue, rErr)
+  
+  use floatPrecision
+  use crcoall
+  
+  implicit none
+  
+  type(string),       intent(in)    :: theString
+  real(kind=real128), intent(out)   :: theValue
+  logical,            intent(inout) :: rErr
+  
+  character(len=:),   allocatable   :: tmpString
+  real(kind=real64)                 :: tmpValue
+  integer                           :: readErr
+  
+#if !defined(FIO) && defined(CRLIBM)
+  real(kind=fPrec)                  :: round_near
+  character(len=:),   allocatable   :: cString
+  integer                           :: cLen, cErr
+  
+  tmpString = chr_trimZero(theString%chr)
   cLen      = len(tmpString) + 1
   cString   = tmpString//char(0)
   theValue  = round_near(cErr,cLen,cString)
@@ -643,7 +888,7 @@ subroutine chr_toReal(theString, theValue, rErr)
   
 #if defined(FIO) && defined(CRLIBM)
   call enable_xp()
-  tmpString = chr_trimZero(theString)
+  tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) theValue
   call disable_xp()
   if(readErr /= 0) then
@@ -655,7 +900,7 @@ subroutine chr_toReal(theString, theValue, rErr)
 #endif
   
 #if defined(FIO) && !defined(CRLIBM)
-  tmpString = chr_trimZero(theString)
+  tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) theValue
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
@@ -666,7 +911,7 @@ subroutine chr_toReal(theString, theValue, rErr)
 #endif
   
 #if !defined(FIO) && !defined(CRLIBM)
-  tmpString = chr_trimZero(theString)
+  tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input"
@@ -676,7 +921,81 @@ subroutine chr_toReal(theString, theValue, rErr)
   end if
 #endif
   
-end subroutine chr_toReal
+  theValue = real(tmpValue,kind=real128)
+  
+end subroutine str_toReal128
+
+subroutine chr_toReal128(theString, theValue, rErr)
+  
+  use floatPrecision
+  use crcoall
+  
+  implicit none
+  
+  character(len=*),   intent(in)    :: theString
+  real(kind=real128), intent(out)   :: theValue
+  logical,            intent(inout) :: rErr
+  
+  character(len=:),   allocatable   :: tmpString
+  real(kind=real64)                 :: tmpValue
+  integer                           :: readErr
+  
+#if !defined(FIO) && defined(CRLIBM)
+  real(kind=fPrec)                  :: round_near
+  character(len=:),   allocatable   :: cString
+  integer                           :: cLen, cErr
+  
+  tmpString = chr_trimZero(theString)
+  cLen      = len(tmpString) + 1
+  cString   = tmpString//char(0)
+  tmpValue  = round_near(cErr,cLen,cString)
+  
+  if(cErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
+    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && defined(CRLIBM)
+  call enable_xp()
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  call disable_xp()
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+#if !defined(FIO) && !defined(CRLIBM)
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,iostat=readErr) tmpValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+#endif
+  
+  theValue = real(tmpValue,kind=real128)
+  
+end subroutine chr_toReal128
 
 ! ================================================================================================ !
 !  String to Integer
@@ -684,16 +1003,16 @@ end subroutine chr_toReal
 !  Last modified: 2018-05-18
 ! ================================================================================================ !
 
-subroutine str_toInt(theString, theValue, rErr)
+subroutine str_toInt16(theString, theValue, rErr)
   
   use crcoall
   
-  type(string),     intent(in)    :: theString
-  integer,          intent(out)   :: theValue
-  logical,          intent(inout) :: rErr
+  type(string),        intent(in)    :: theString
+  integer(kind=int16), intent(out)   :: theValue
+  logical,             intent(inout) :: rErr
   
-  character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
+  character(len=:),    allocatable   :: tmpString
+  integer                            :: readErr
   
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
@@ -704,18 +1023,18 @@ subroutine str_toInt(theString, theValue, rErr)
     rErr = .true.
   end if
   
-end subroutine str_toInt
+end subroutine str_toInt16
 
-subroutine chr_toInt(theString, theValue, rErr)
+subroutine chr_toInt16(theString, theValue, rErr)
   
   use crcoall
   
-  character(len=*), intent(in)    :: theString
-  integer,          intent(out)   :: theValue
-  logical,          intent(inout) :: rErr
+  character(len=*),    intent(in)    :: theString
+  integer(kind=int16), intent(out)   :: theValue
+  logical,             intent(inout) :: rErr
   
-  character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
+  character(len=:),    allocatable   :: tmpString
+  integer                            :: readErr
   
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) theValue
@@ -726,7 +1045,95 @@ subroutine chr_toInt(theString, theValue, rErr)
     rErr = .true.
   end if
   
-end subroutine chr_toInt
+end subroutine chr_toInt16
+
+subroutine str_toInt32(theString, theValue, rErr)
+  
+  use crcoall
+  
+  type(string),        intent(in)    :: theString
+  integer(kind=int32), intent(out)   :: theValue
+  logical,             intent(inout) :: rErr
+  
+  character(len=:),    allocatable   :: tmpString
+  integer                            :: readErr
+  
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
+end subroutine str_toInt32
+
+subroutine chr_toInt32(theString, theValue, rErr)
+  
+  use crcoall
+  
+  character(len=*),    intent(in)    :: theString
+  integer(kind=int32), intent(out)   :: theValue
+  logical,             intent(inout) :: rErr
+  
+  character(len=:),    allocatable   :: tmpString
+  integer                            :: readErr
+  
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
+end subroutine chr_toInt32
+
+subroutine str_toInt64(theString, theValue, rErr)
+  
+  use crcoall
+  
+  type(string),        intent(in)    :: theString
+  integer(kind=int64), intent(out)   :: theValue
+  logical,             intent(inout) :: rErr
+  
+  character(len=:),    allocatable   :: tmpString
+  integer                            :: readErr
+  
+  tmpString = chr_trimZero(theString%chr)
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
+end subroutine str_toInt64
+
+subroutine chr_toInt64(theString, theValue, rErr)
+  
+  use crcoall
+  
+  character(len=*),    intent(in)    :: theString
+  integer(kind=int64), intent(out)   :: theValue
+  logical,             intent(inout) :: rErr
+  
+  character(len=:),    allocatable   :: tmpString
+  integer                            :: readErr
+  
+  tmpString = chr_trimZero(theString)
+  read(tmpString,*,iostat=readErr) theValue
+  if(readErr /= 0) then
+    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
+    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
+    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    rErr = .true.
+  end if
+  
+end subroutine chr_toInt64
 
 ! ================================================================================================ !
 !  String to Logical

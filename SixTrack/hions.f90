@@ -9,6 +9,7 @@ module mod_hions
   use parpro
   use mod_alloc
   use numerical_constants, only : zero, one, c1e3
+  use, intrinsic :: iso_fortran_env, only : int16
   
   implicit none
   
@@ -33,19 +34,19 @@ module mod_hions
   real(kind=fPrec), allocatable, save :: mtc(:) !(npart)
   
   ! Nucleon number of the reference ion species
-  integer, save :: aa0
+  integer(kind=int16), save :: aa0
   
   ! Charge multiplicity of the reference ion species
-  integer, save :: zz0
+  integer(kind=int16), save :: zz0
   
-  integer, save :: nnuc0
-  integer, save :: nnuc1
+  integer(kind=int16), save :: nnuc0
+  integer(kind=int16), save :: nnuc1
   
   ! Nucleon number of the tracked ion
-  integer, allocatable, save :: naa(:) !(npart)
+  integer(kind=int16), allocatable, save :: naa(:) !(npart)
   
   ! Charge multiplicity of the tracked ion
-  integer, allocatable, save :: nzz(:) !(npart)
+  integer(kind=int16), allocatable, save :: nzz(:) !(npart)
   
   ! SixTrack particle IDs
   integer, allocatable, save :: pids(:) !(npart)

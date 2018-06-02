@@ -643,7 +643,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   end if
   
   ! Store the scaling
-  call str_toReal(lnSplit(4),scatter_ELEM_scale(scatter_nELEM),iErr)
+  call str_cast(lnSplit(4),scatter_ELEM_scale(scatter_nELEM),iErr)
 
   ! Find the generator(s) referenced
   if(nSplit-4 > 3) then
@@ -741,9 +741,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     scatter_nfData = scatter_nfData + 3
     call resize(scatter_fData, scatter_nfData, zero, "scatter_fData")
     
-    call str_toReal(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Density
-    call str_toReal(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Mass
-    call str_toReal(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Momentum
+    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Density
+    call str_cast(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Mass
+    call str_cast(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Momentum
     
   case("GAUSS1")
     scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
@@ -759,11 +759,11 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     scatter_nfData = scatter_nfData + 5
     call resize(scatter_fData, scatter_nfData, zero, "scatter_fData")
     
-    call str_toReal(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Beam Charge
-    call str_toReal(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Sigma X
-    call str_toReal(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Sigma Y
-    call str_toReal(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! Offset X
-    call str_toReal(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! Offset Y
+    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Beam Charge
+    call str_cast(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Sigma X
+    call str_cast(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Sigma Y
+    call str_cast(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! Offset X
+    call str_cast(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! Offset Y
     
   case default
     write(lout,"(a)") "SCATTER> ERROR, PRO name '"//lnSplit(3)//"' not recognized."
@@ -840,14 +840,14 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
     scatter_nfData = scatter_nfData + nSplit - 3
     call resize(scatter_fData, scatter_nfData, zero, "scatter_fData")
 
-    call str_toReal(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! PPBEAMELASTIC a
-    call str_toReal(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! PPBEAMELASTIC b1
-    call str_toReal(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! PPBEAMELASTIC b2
-    call str_toReal(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! PPBEAMELASTIC phi
-    call str_toReal(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! PPBEAMELASTIC tmin
+    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! PPBEAMELASTIC a
+    call str_cast(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! PPBEAMELASTIC b1
+    call str_cast(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! PPBEAMELASTIC b2
+    call str_cast(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! PPBEAMELASTIC phi
+    call str_cast(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! PPBEAMELASTIC tmin
     
     if(nSplit == 9) then
-      call str_toReal(lnSplit(9),scatter_fData(tmpIdx+5),iErr) ! PPBEAMELASTIC crossSection
+      call str_cast(lnSplit(9),scatter_fData(tmpIdx+5),iErr) ! PPBEAMELASTIC crossSection
     end if
     
     ! Check sanity of input values

@@ -39,6 +39,8 @@ module hdf5_output
   use strings
   use mod_alloc
   
+  use, intrinsic :: iso_fortran_env, only : real32, real64, real128
+  
   implicit none
   
   ! Common Settings
