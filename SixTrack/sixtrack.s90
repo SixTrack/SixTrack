@@ -8306,8 +8306,6 @@ subroutine daten
     goto 1290
   case("DECO")
     goto 1320
-  case("COMM")
-    goto 1390
   case("NORM")
     goto 1400
   case("CORR")
@@ -8377,6 +8375,19 @@ subroutine daten
     else
       call sixin_parseInputLineINFO(ch,blockLine,inErr)
       if(inErr) goto 9999
+    end if
+    
+  case("COMM")
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      if(len(ch) > 80) then
+        commen = ch(1:80)
+      else
+        commen = ch
+      end if
     end if
     
   case("SING") ! Single Elements Block
@@ -11344,17 +11355,6 @@ subroutine daten
       if(iclr.ne.17) goto 1285
  1287 continue
       iclr=0
-      goto 110
-!-----------------------------------------------------------------------
-!  COMMENT LINE
-!-----------------------------------------------------------------------
- 1390 read(3,10020,end=1530,iostat=ierro) commen
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(commen(1:1).eq.'/') goto 1390
-      if(commen(:4).eq.next) then
-      commen=' '
-      endif
       goto 110
 !-----------------------------------------------------------------------
 !  NORMAL FORMS
