@@ -8203,6 +8203,7 @@ subroutine daten
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(idat(1:1) == "/") goto 90
+  if(idat(1:1) == "!") goto 90
   
   select case(idat)
   case("FREE") ! Mode FREE. Elements in fort.3
@@ -8256,6 +8257,7 @@ subroutine daten
   
   if(len(ch) == 0)   goto 110 ! Empty line, ignore
   if(ch(1:1) == "/") goto 110 ! Comment line, ignore
+  if(ch(1:1) == "!") goto 110 ! Comment line, ignore
   if(len(ch) >= 4)   idat = ch(1:4)
   
   ! Parse non-block flags
@@ -8268,14 +8270,6 @@ subroutine daten
     iQuiet  = 1
     oneLine = .true.
     goto 110
-  case("DEBU") ! Enable the DEBUG flag
-    if(currBlock == "NONE") then
-      ! Only when not in a block, otherwise in-block DEBUG will trigger this as well
-      sixin_debug = .true.
-      oneLine     = .true.
-      call sixin_debugInfo
-      goto 110
-    end if
   case("NEXT") ! Close the current block
     if(newParsing .and. .not. oneLine) then
       ! Actual close check is done after a last pass so
@@ -8397,6 +8391,16 @@ subroutine daten
   
   select case(currBlock)
   
+  case("INFO") ! Information Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineINFO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
   case("SING") ! Single Elements Block
     if(openBlock) then
       sixin_nSing = 1
@@ -8475,11 +8479,10 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      continue
-    else
-      read(ch,*) aa0, zz0, nucm0
-      nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
       has_hion = .true.
+    else
+      call hions_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
     end if
     
   case("ZIPF") ! ZIPF Input Block
@@ -29570,7 +29573,6 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, a
   use floatPrecision
   use end_sixtrack
   use numerical_constants
-  use, intrinsic :: iso_fortran_env, only : int16
   use crcoall
   implicit none
 
@@ -29584,7 +29586,7 @@ subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, a
 
 ! temporary variables:
   integer id, gen
-  integer(kind=int16) aa, zz
+  integer aa, zz
   real(kind=fPrec) weight, z, zp, m, dt
   integer jj
   character(240) tmp_line

@@ -33,9 +33,6 @@ module string_tools
   public str_sub, chr_expandBrackets
   public chr_padZero, chr_padSpace
   public str_inStr, chr_inStr
-  ! public str_toReal, chr_toReal
-  ! public str_toInt, chr_toInt
-  ! public str_toLog, chr_toLog
   
   interface str_cast
     module procedure str_toReal

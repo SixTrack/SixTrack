@@ -135,24 +135,6 @@ subroutine sixin_blockReport
   
 end subroutine sixin_blockReport
 
-subroutine sixin_debugInfo
-  
-  if(.not. sixin_debug) return
-  
-  write(lout,"(a)") "INPUT> SixTrack Input Debugging ENABLED"
-#ifdef CRLIBM
-  write(lout,"(a)") "INPUT> DEBUG CRLIBM is ON"
-#else
-  write(lout,"(a)") "INPUT> DEBUG CRLIBM is OFF"
-#endif
-#ifdef FIO
-  write(lout,"(a)") "INPUT> DEBUG FIO is ON"
-#else
-  write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
-#endif
-  
-end subroutine sixin_debugInfo
-
 subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
   character(len=*), intent(in) :: varName
   integer,          intent(in) :: varVal
@@ -184,6 +166,48 @@ end subroutine sixin_echoVal_real64
 ! ================================================================================================ !
 !  LINE PARSING ROUTINES
 ! ================================================================================================ !
+
+! ================================================================================================ !
+!  Parse Information Block Line
+! ================================================================================================ !
+subroutine sixin_parseInputLineINFO(inLine, iLine, iErr)
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  if(nSplit == 0) return
+  
+  select case(lnSplit(1))
+  case("DEBUG")
+    sixin_debug = .true.
+    write(lout,"(a)") "INPUT> SixTrack Input Debugging ENABLED"
+#ifdef CRLIBM
+    write(lout,"(a)") "INPUT> DEBUG CRLIBM is ON"
+#else
+    write(lout,"(a)") "INPUT> DEBUG CRLIBM is OFF"
+#endif
+#ifdef FIO
+    write(lout,"(a)") "INPUT> DEBUG FIO is ON"
+#else
+    write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
+#endif
+  end select
+  
+end subroutine sixin_parseInputLineINFO
 
 ! ================================================================================================ !
 !  Parse Single Element Line
@@ -229,7 +253,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! Check that the name is unique
   do i=1,sixin_nSing-1
     if(bez(i) == elemName) then
-      write(lout,"(a,i0)") "GEOMETRY> ERROR Single element '"//elemName//"' is not unique."
+      write(lout,"(a,i0)") "GEOMETRY> ERROR Single element '"//trim(elemName)//"' is not unique."
       iErr = .true.
       return
     end if
