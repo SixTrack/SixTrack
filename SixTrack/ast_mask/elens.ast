@@ -1,5 +1,5 @@
 elens.s90
-elensn.f
+elensn.f90
 df cr,boinc,collimat,datamods,bignblz,hugenblz,bignpart,hugenpart
 e elens
 ex

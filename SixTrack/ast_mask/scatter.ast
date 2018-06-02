@@ -1,5 +1,5 @@
 scatter.s90 sixtrack.s90
-scattern.f
+scattern.f90
 df collimat
 e scatter
 ex

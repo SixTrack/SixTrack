@@ -1,5 +1,5 @@
 sixtrack.s90 sixda.s90 debug_dump.s90
-sixdan.f
+sixdan.f90
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods
 e mainda
 e RUNDA

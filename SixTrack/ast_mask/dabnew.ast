@@ -1,5 +1,5 @@
 dabnew.s90
-dabnewn.f
+dabnewn.f90
 df big,crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95,bignpart,hugenpart,datamods
 e daini
 e daexter
