@@ -8282,8 +8282,6 @@ subroutine daten
     goto 740
   case("CHRO")
     goto 560
-  case("DIFF")
-    goto 520
   case("LINE")
     goto 660
   case("LIMI")
@@ -8430,7 +8428,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("INIT")
+  case("INIT") ! Initial Coordinates
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -8442,7 +8440,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
   
-  case("TRAC")
+  case("TRAC") ! Tracking Parameters
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -8452,7 +8450,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("DIST")
+  case("DIFF") ! Differential Algebra
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineDIFF(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -8561,107 +8569,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  DIFFERENTIAL ALGEBRA
-!-----------------------------------------------------------------------
-  520 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 520
-      ndum=ndum+1
-      if(ch(:4).eq.next) then
-        ndum=0
-        goto 110
-      endif
-      if(ndum.eq.1) then
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        idial=1
-        numlr=0
-        napx=1
-        imc=1
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-        read(ch1,*,round='nearest')                                     &
-     & nord,nvar,preda,nsix,ncor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-        read(ch1,*) nord,nvar,preda,nsix,ncor
-+ei
-+if crlibm
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read (fields(1),*) nord
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(2),*) nvar
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          preda=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(4),*) nsix
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(5),*) ncor
-          nf=nf-1
-        endif
-+ei
-+ei
-        if(nvar.le.4) ition=0
-        if(nord.le.0.or.nvar.le.0) call prror(91)
-      else
-        call intepr(3,1,ch,ch1)
-! ilm0 are character strings so should be OK
-        read(ch1,*) (ilm0(i),i=1,ncor)
-      endif
-      if(iclo6.eq.1.or.iclo6.eq.2) nsix=0
-      if(nvar.ne.6) then
-      nsix=0
-      iclo6=0
-      endif
-      if(nvar.eq.5) then
-        idp=1
-        ition=1
-        hsy(1)=zero
-      endif
-      if(ndum.eq.1) then
-      if(nsix.ne.1) nsix=0
-      if(nord.gt.nema) call prror(52)
-      nvar2=nvar
-      goto 520
-      else
-      if(ncor.gt.mcor) call prror(65)
-      if(ncor.gt.0) then
-        do 540 j1=1,ncor
-          do 530 j2=1,il
-            if(ilm0(j1).eq.bez(j2)) then
-              if(el(j2).ne.zero.or.kz(j2).gt.10) call prror(67)
-              ipar(j1)=j2
-              goto 540
-            endif
-  530     continue
-          call prror(66)
-  540   continue
-      else
-        ncor=0
-        write(lout,*)' '
-        write(lout,*)'NO EXTRA PARAMETERS FOR THE MAP SPECIFIED'
-        write(lout,*)' '
-      endif
-      ndum=0
-      nvar=nvar2+ncor
-      goto 110
-      endif
 !-----------------------------------------------------------------------
 !  CHROMATCITY ADJUSTMENT
 !-----------------------------------------------------------------------

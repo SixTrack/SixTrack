@@ -960,4 +960,127 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   
 end subroutine sixin_parseInputLineTRAC
 
+! ================================================================================================ !
+!  Parse Differential Algebra Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
+  
+  use string_tools
+  use mod_commond
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=str_maxName) ilm0(40)
+  integer i, j1, j2, nSplit
+  logical spErr
+  
+  do i=1,40
+    ilm0(i) = str_nmSpace
+  end do
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "DIFF> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  if(iLine == 1) then
+    
+    idial = 1
+    numlr = 0
+    napx  = 1
+    imc   = 1
+    
+    if(nSplit > 0) call chr_cast(lnSplit(1),nord, iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nvar, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),preda,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),nsix, iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),ncor, iErr)
+    
+    if(sixin_debug) then
+      call sixin_echoVal("nord", nord, "DIFF",iLine)
+      call sixin_echoVal("nvar", nvar, "DIFF",iLine)
+      call sixin_echoVal("preda",preda,"DIFF",iLine)
+      call sixin_echoVal("nsix", nsix, "DIFF",iLine)
+      call sixin_echoVal("ncor", ncor, "DIFF",iLine)
+    end if
+    if(iErr) return
+    
+    if(nvar <= 4) ition = 0
+    if(nord <= 0 .or. nvar <= 0) then
+      write(lout,"(a)") "DIFF> ERROR Order and number of variables have to be larger than zero to "//&
+        "calculate a differential algebra map."
+      iErr = .true.
+      return
+    end if
+  
+  else
+    
+    if(nSplit /= ncor) then
+      write(lout,"(2(a,i0))") "DIFF> ERROR Expected line > 1 to have ",ncor," elements, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    do i=1,ncor
+      ilm0(i) = chr_padSpace(lnSplit(i),str_maxName)
+    end do
+    
+  end if
+  
+  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
+  if(nvar /= 6) then
+    nsix  = 0
+    iclo6 = 0
+  end if
+  if(nvar == 5) then
+    idp    = 1
+    ition  = 1
+    hsy(1) = zero
+  end if
+  
+  if(iLine == 1) then
+    if(nsix /= 1) nsix = 0
+    if(nord > nema) then
+      write(lout,"(2(a,i0))") "DIFF> ERROR Maximum order of the one turn map is  ",nema,", got ",nord
+      iErr = .true.
+      return
+    end if
+    nvar2 = nvar
+    return
+  else
+    if(ncor > mcor) then
+      write(lout,"(2(a,i0))") "DIFF> ERROR Maximum number of extra parameters is  ",mcor,", got ",ncor
+      iErr = .true.
+      return
+    end if
+    if(ncor > 0) then
+      OUTER: do j1=1,ncor
+        INNER: do j2=1,il
+          if(ilm0(j1) == bez(j2)) then
+            if(el(j2) /= zero .or. kz(j2) > 10) then
+              write(lout,"(a)") "DIFF> ERROR Only single kick elements allowed for map calculation"
+              iErr = .true.
+              return
+            end if
+            ipar(j1) = j2
+            exit OUTER
+          end if
+        end do INNER
+      end do OUTER
+    else
+      ncor = 0
+      write(lout,"(a)") "DIFF> INFOR No extra parameters for the map specified"
+    end if
+    nvar = nvar2+ncor
+  end if
+  
+end subroutine sixin_parseInputLineDIFF
+
 end module sixtrack_input
