@@ -18660,31 +18660,25 @@ program maincr
   use numerical_constants
   
   use scatter, only : scatter_active, scatter_initialise
-  use dynk, only : dynk_izuIndex
-  use fma, only : fma_postpr, fma_flag
-  use dump, only : dump_initialise, dumpclo,dumptas,dumptasinv
-  use zipf, only : zipf_numfiles, zipf_dozip
+  use dynk,    only : dynk_izuIndex
+  use fma,     only : fma_postpr, fma_flag
+  use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
+  use zipf,    only : zipf_numfiles, zipf_dozip
   
   use, intrinsic :: iso_fortran_env, only : output_unit
   use aperture
   use mod_ranecu
-      
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! Last modified: 17-07-2013
-  ! import mod_fluka
-  ! inserted in main code by the 'fluka' compilation flag
-   use mod_fluka
-+ei
-
   use postprocessing, only : postpr, writebin_header, writebin
 
+#ifdef FLUKA
+  use mod_fluka
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
-+if root
+#ifdef ROOT
   use root_output
-+ei
+#endif
 
   use crcoall
   use parpro

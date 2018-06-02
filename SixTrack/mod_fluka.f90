@@ -32,6 +32,8 @@ module mod_fluka
   public :: fluka_init_max_uid
   public :: fluka_is_running
   public :: fluka_init_brhono
+  
+  public :: fluka_close
 
   ! FlukaIO Connection parameters
   character(len = 255), public  :: fluka_host

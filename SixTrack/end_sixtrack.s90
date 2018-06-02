@@ -274,7 +274,7 @@ subroutine prror(ier)
   end select
 
 #ifdef FLUKA
-  call gluka_close
+  call fluka_close
 #endif
   
   call closeUnits
