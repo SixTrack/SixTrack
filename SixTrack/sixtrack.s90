@@ -8049,7 +8049,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)             ! Also done in envar() which is called from clorb()
                  smiv(1,i)=sm(ix)+smizf(i) ! Also done in program maincr
                  smi(i)=smiv(1,i)          ! Also done in program maincr
-#include "include/stra01.f90"                                 ! Also done in trauthin()/trauthck()
+#include "include/stra01.f90"
                endif
             enddo
          endif
@@ -10400,7 +10400,7 @@ subroutine runda
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
-#include "include/alignf.f90" ! JBG Including misalignments
+#include "include/alignf.f90"
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
@@ -11811,7 +11811,7 @@ subroutine umlauda
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
-#include "include/alignf.f90" ! JBG Including misalignments
+#include "include/alignf.f90"
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
 !       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
@@ -16244,22 +16244,22 @@ subroutine trauthin(nthinerr)
 #include "include/beam13.f90"
 #include "include/beama4o.f90"
             else if(ibtyp.eq.1) then
-#include "include/beam11.f90"   !do j=1,napx
+#include "include/beam11.f90"
 #include "include/beama1.f90"
 #include "include/beamcoo.f90"
 #include "include/beama2.f90"
 #include "include/beama3.f90"
-#include "include/beamwzf1.f90" !end do; do j=1,napx
-#include "include/beama4o.f90"  !end do
-#include "include/beams23.f90"  !end if; end if; end if;    if;if;if
-#include "include/beam21.f90"   !do
+#include "include/beamwzf1.f90"
+#include "include/beama4o.f90"
+#include "include/beams23.f90"
+#include "include/beam21.f90"
 #include "include/beama1.f90"
 #include "include/beamcoo.f90"
 #include "include/beama2.f90"
 #include "include/beam22.f90"
 #include "include/beama3.f90"
 #include "include/beam23.f90"
-#include "include/beama4o.f90" !end do
+#include "include/beama4o.f90"
             else if(ibtyp.eq.1) then
 #include "include/beam21.f90"
 #include "include/beama1.f90"
@@ -16268,7 +16268,7 @@ subroutine trauthin(nthinerr)
 #include "include/beama3.f90"
 #include "include/beamwzf2.f90"
 #include "include/beama4o.f90"
-#include "include/beams24.f90" !end if; end if; end if; goto 290
+#include "include/beams24.f90"
 
         ! wire
         if(kzz.eq.15) then
@@ -16937,7 +16937,7 @@ subroutine thin4d(nthinerr)
         goto 630
       case (11) ! HORIZONTAL DIPOLE
         do j=1,napx
-#include "include/kickv01h.f90" ! astuce block with kick for element
+#include "include/kickv01h.f90"
         end do
         goto 620
       case (12) ! NORMAL QUADRUPOLE
@@ -18062,7 +18062,7 @@ subroutine thin6d(nthinerr)
 #include "include/beamr1.f90"
        &goto 690 !The radius was too small -> Skip
 #include "include/beamr2.f90"
-#include "include/beamr3.f90"     !Kick the particles
+#include "include/beamr3.f90"
 690     continue
         goto 640
       case (42)
