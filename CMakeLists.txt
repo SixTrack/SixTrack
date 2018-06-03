@@ -1093,12 +1093,19 @@ endif()
 
 
 add_custom_target(copy_input_files)
-add_dependencies(copy_input_files ast_mkdir)
+add_dependencies(copy_input_files ast_mkdir track_mkdir)
 file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
+file(GLOB SIXTRACK_TRACK ${CMAKE_SOURCE_DIR}/SixTrack/track/*.f90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
+endforeach()
+
+add_custom_target(track_mkdir)
+add_custom_command(TARGET track_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/track/)
+foreach(loop IN ITEMS ${SIXTRACK_TRACK})
+	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/track/)
 endforeach()
 
 if(BOINC)

@@ -5777,211 +5777,9 @@
               bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
             enddo
           endif
-+cd trom01
-        if(kzz.eq.22) then
-          do l=1,2
-            ll=2*l
-            if(abs(t(ll,ll-1)).gt.pieni) then
-              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-            else
-              phibf(l)=zero
-            endif
-            do i=1,ium
-              puf=t(i,ll-1)
-              t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+                  &!hr03
-     &t(i,ll)*rrtr(imtr(ix),ll-1,ll))+                                  &!hr03
-     &dpr(i)*rrtr(imtr(ix),ll-1,6)                                       !hr03
-              t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+                       &
-     &t(i,ll)*rrtr(imtr(ix),ll,ll))+                                     &
-     &dpr(i)*rrtr(imtr(ix),ll,6)
-            enddo
-            t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
-            t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
-+cd trom02
-            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr03
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr03
-+cd trom03
-            if(abs(t(ll,ll-1)).gt.pieni) then
-              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-            else
-              dphi=-one*phibf(l)                                         !hr08
-            endif
-            if(-one*dphi.gt.pieni) dphi=dphi+pi                          !hr03
-+cd trom04
-            phi(l)=phi(l)+dphi/pie
-          enddo
-        endif
-+cd trom05
-            phi(l)=phi(l)+dphi
-          enddo
-        endif
-+cd trom06
-            phi(l)=phi(l)+dphi/pie
-          enddo
-
-!          nr=nr+1
-!+if .not.collimat.and..not.bnlelens
-!          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-!+ei
-!+if collimat.or.bnlelens
-!          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-!+ei
-!          if(ntco.ne.0) then
-!            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-!          endif
-!          goto 500
-        endif
-+cd trom10
-        if(kzz.eq.22) then
-          do j=1,ium
-            do kx=1,2
-              ll=kx*2
-              puf=x(j,kx)
-           x(j,kx)=((cotr(imtr(ix),ll-1)+rrtr(imtr(ix),ll-1,ll-1)*puf)+ &!hr03
-     &rrtr(imtr(ix),ll-1,ll)*y(j,kx))+dpr(j)*                           &!hr03
-     &rrtr(imtr(ix),ll-1,6)                                              !hr03
-           y(j,kx)=((cotr(imtr(ix),ll)+rrtr(imtr(ix),ll,ll-1)*puf)+     &!hr03
-     &rrtr(imtr(ix),ll,ll)*y(j,kx))+dpr(j)*                             &!hr03
-     &rrtr(imtr(ix),ll,6)                                                !hr03
-            enddo
-          enddo
-        endif
-                
-
-
-+cd trom20
-        if(kzz.eq.22) then
-          irrtr=imtr(ix)
-
-!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
-!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
-
-!FOX  TEMPI(1) = X(1) ;
-!FOX  TEMPI(2) = YP(1) ;
-!FOX  TEMPI(3) = X(2) ;
-!FOX  TEMPI(4) = YP(2) ;
-!FOX  TEMPI(5) = SIGMDA ;
-!FOX  TEMPI(6) = PUSIG ;
-
-!FOX  X(1)=COTR(IRRTR,1) +
-!FOX  RRTR(IRRTR,1,1)*TEMPI(1)+RRTR(IRRTR,1,2)*TEMPI(2)+
-!FOX  RRTR(IRRTR,1,3)*TEMPI(3)+RRTR(IRRTR,1,4)*TEMPI(4)+
-!FOX  RRTR(IRRTR,1,5)*TEMPI(5)+RRTR(IRRTR,1,6)*TEMPI(6) ;
-
-!FOX  YP(1)=COTR(IRRTR,2) +
-!FOX  RRTR(IRRTR,2,1)*TEMPI(1)+RRTR(IRRTR,2,2)*TEMPI(2)+
-!FOX  RRTR(IRRTR,2,3)*TEMPI(3)+RRTR(IRRTR,2,4)*TEMPI(4)+
-!FOX  RRTR(IRRTR,2,5)*TEMPI(5)+RRTR(IRRTR,2,6)*TEMPI(6) ;
-
-!FOX  X(2)=COTR(IRRTR,3) +
-!FOX  RRTR(IRRTR,3,1)*TEMPI(1)+RRTR(IRRTR,3,2)*TEMPI(2)+
-!FOX  RRTR(IRRTR,3,3)*TEMPI(3)+RRTR(IRRTR,3,4)*TEMPI(4)+
-!FOX  RRTR(IRRTR,3,5)*TEMPI(5)+RRTR(IRRTR,3,6)*TEMPI(6) ;
-
-!FOX  YP(2)=COTR(IRRTR,4) +
-!FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
-!FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
-!FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
-
-!FOX  SIGMDA=COTR(IRRTR,5)+ 
-!FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
-!FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
-!FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
-
-!FOX  PUSIG=COTR(IRRTR,6)+ 
-!FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
-!FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
-!FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
-
-
-!FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
-!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
-!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
-!FOX  RV=EJ1/E0*E0F/EJF1 ;
-!FOX  DPDA=DPDA1*C1M3 ;
-!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
-!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
-
-      endif
-+cd trom30
-        if(kzz.eq.22) then
-          ktrack(i)=3
-          goto 290
-        endif
-+cd trom40
-          irrtr=imtr(ix)
-          do j=1,napx
-
-
-
-
-+cd trom41
-
-            !The values are stored in the temp vector which are used for the multiplication.
-            temptr(1)=xv(1,j)
-            temptr(2)=yv(1,j)/moidpsv(j)
-            temptr(3)=xv(2,j)
-            temptr(4)=yv(2,j)/moidpsv(j)
-            temptr(5)=sigmv(j)
-            temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-            ! Adding the closed orbit. The previous values are stored in the temptr vector.   
-            xv(1,j)  = cotr(irrtr,1)
-            yv(1,j)  = cotr(irrtr,2)
-            xv(2,j)  = cotr(irrtr,3)
-            yv(2,j)  = cotr(irrtr,4)
-            sigmv(j) = cotr(irrtr,5)
-            pttemp   = cotr(irrtr,6)
-
-            ! Multiplying the arbitrary matrix to the coordinates. 
-            do kxxa=1,6
-              xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-              yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
-              xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
-              yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
-              sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
-              pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
-            enddo
-            ! Transforming back to the tracked coordinates of Sixtrack...
-            ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-            
-
-            ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-            rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-            dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-            oidpsv(j)=one/(one+dpsv(j))
-            moidpsv(j)=mtc(j)/(one+dpsv(j))
-            dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-
-            
-            ! We have to go back to angles after we updated the energy. 
-            yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
-            yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
-            !yv(j,1) = yv(j,1)*moidpsv(j)
-            !yv(j,2) = yv(j,2)*moidpsv(j)
-          enddo
-+cd trom42
-            temptr(1)=xv(1,j)
-            temptr(2)=yv(1,j)
-            temptr(3)=xv(2,j)
-            temptr(4)=yv(2,j)
-
-            xv(1,j)  = cotr(irrtr,1)
-            yv(1,j)  = cotr(irrtr,2)
-            xv(2,j)  = cotr(irrtr,3)
-            yv(2,j)  = cotr(irrtr,4)
-
-            do kxxa=1,6
-              xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-              yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
-              xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
-              yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)      
-            enddo
-          enddo
+          
 !----------------------------------------------------------------------
 ! Wire element.
-
 +cd wirekick
 ! MODEL OF STRAIGHT CURRENT WIRE
 !
@@ -15703,8 +15501,51 @@ subroutine runda
 +ca beam6dfi
             goto 480
           endif
-+ca trom20
-          if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
+          if(kzz.eq.22) then
+            irrtr=imtr(ix)
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
+!FOX  TEMPI(1) = X(1) ;
+!FOX  TEMPI(2) = YP(1) ;
+!FOX  TEMPI(3) = X(2) ;
+!FOX  TEMPI(4) = YP(2) ;
+!FOX  TEMPI(5) = SIGMDA ;
+!FOX  TEMPI(6) = PUSIG ;
+!FOX  X(1)=COTR(IRRTR,1) +
+!FOX  RRTR(IRRTR,1,1)*TEMPI(1)+RRTR(IRRTR,1,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,1,3)*TEMPI(3)+RRTR(IRRTR,1,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,1,5)*TEMPI(5)+RRTR(IRRTR,1,6)*TEMPI(6) ;
+!FOX  YP(1)=COTR(IRRTR,2) +
+!FOX  RRTR(IRRTR,2,1)*TEMPI(1)+RRTR(IRRTR,2,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,2,3)*TEMPI(3)+RRTR(IRRTR,2,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,2,5)*TEMPI(5)+RRTR(IRRTR,2,6)*TEMPI(6) ;
+!FOX  X(2)=COTR(IRRTR,3) +
+!FOX  RRTR(IRRTR,3,1)*TEMPI(1)+RRTR(IRRTR,3,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,3,3)*TEMPI(3)+RRTR(IRRTR,3,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,3,5)*TEMPI(5)+RRTR(IRRTR,3,6)*TEMPI(6) ;
+!FOX  YP(2)=COTR(IRRTR,4) +
+!FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
+!FOX  SIGMDA=COTR(IRRTR,5)+ 
+!FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
+!FOX  PUSIG=COTR(IRRTR,6)+ 
+!FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
+!FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
+!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
+            end if
+            if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
             if(bez(ix).eq.'DAMAP') then
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
@@ -17319,7 +17160,50 @@ subroutine umlauda
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
           endif
-+ca trom20
+          if(kzz.eq.22) then
+            irrtr=imtr(ix)
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
+!FOX  TEMPI(1) = X(1) ;
+!FOX  TEMPI(2) = YP(1) ;
+!FOX  TEMPI(3) = X(2) ;
+!FOX  TEMPI(4) = YP(2) ;
+!FOX  TEMPI(5) = SIGMDA ;
+!FOX  TEMPI(6) = PUSIG ;
+!FOX  X(1)=COTR(IRRTR,1) +
+!FOX  RRTR(IRRTR,1,1)*TEMPI(1)+RRTR(IRRTR,1,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,1,3)*TEMPI(3)+RRTR(IRRTR,1,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,1,5)*TEMPI(5)+RRTR(IRRTR,1,6)*TEMPI(6) ;
+!FOX  YP(1)=COTR(IRRTR,2) +
+!FOX  RRTR(IRRTR,2,1)*TEMPI(1)+RRTR(IRRTR,2,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,2,3)*TEMPI(3)+RRTR(IRRTR,2,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,2,5)*TEMPI(5)+RRTR(IRRTR,2,6)*TEMPI(6) ;
+!FOX  X(2)=COTR(IRRTR,3) +
+!FOX  RRTR(IRRTR,3,1)*TEMPI(1)+RRTR(IRRTR,3,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,3,3)*TEMPI(3)+RRTR(IRRTR,3,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,3,5)*TEMPI(5)+RRTR(IRRTR,3,6)*TEMPI(6) ;
+!FOX  YP(2)=COTR(IRRTR,4) +
+!FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
+!FOX  SIGMDA=COTR(IRRTR,5)+ 
+!FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
+!FOX  PUSIG=COTR(IRRTR,6)+ 
+!FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
+!FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
+!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
+        end if
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
         if(kzz.eq.15) goto 440
         ipch=0
@@ -21457,7 +21341,10 @@ subroutine trauthin(nthinerr)
           ktrack(i)=64
           goto 290
         endif
-+ca trom30
+        if(kzz.eq.22) then
+          ktrack(i)=3
+          goto 290
+        endif
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
         end if
@@ -22018,9 +21905,51 @@ subroutine thin4d(nthinerr)
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
       case (3)
-+ca trom40
-+ca trom41
-        goto 620
+        irrtr=imtr(ix)
+        do j=1,napx
+            !The values are stored in the temp vector which are used for the multiplication.
+          temptr(1)=xv(1,j)
+          temptr(2)=yv(1,j)/moidpsv(j)
+          temptr(3)=xv(2,j)
+          temptr(4)=yv(2,j)/moidpsv(j)
+          temptr(5)=sigmv(j)
+          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+          ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+          xv(1,j)  = cotr(irrtr,1)
+          yv(1,j)  = cotr(irrtr,2)
+          xv(2,j)  = cotr(irrtr,3)
+          yv(2,j)  = cotr(irrtr,4)
+          sigmv(j) = cotr(irrtr,5)
+          pttemp   = cotr(irrtr,6)
+
+          ! Multiplying the arbitrary matrix to the coordinates. 
+          do kxxa=1,6
+            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
+            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
+            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+          enddo
+          ! Transforming back to the tracked coordinates of Sixtrack...
+          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+          
+
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+
+          
+          ! We have to go back to angles after we updated the energy. 
+          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
+          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+          !yv(j,1) = yv(j,1)*moidpsv(j)
+          !yv(j,2) = yv(j,2)*moidpsv(j)
+        enddo
+      goto 620
       case (2,4,5,6,7,8,9,10)
         goto 630
       case (11) ! HORIZONTAL DIPOLE
@@ -22843,8 +22772,50 @@ subroutine thin6d(nthinerr)
         if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),j=1,napx)
         goto 640
       case (3)
-+ca trom40
-+ca trom41
+        irrtr=imtr(ix)
+        do j=1,napx
+            !The values are stored in the temp vector which are used for the multiplication.
+          temptr(1)=xv(1,j)
+          temptr(2)=yv(1,j)/moidpsv(j)
+          temptr(3)=xv(2,j)
+          temptr(4)=yv(2,j)/moidpsv(j)
+          temptr(5)=sigmv(j)
+          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+          ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+          xv(1,j)  = cotr(irrtr,1)
+          yv(1,j)  = cotr(irrtr,2)
+          xv(2,j)  = cotr(irrtr,3)
+          yv(2,j)  = cotr(irrtr,4)
+          sigmv(j) = cotr(irrtr,5)
+          pttemp   = cotr(irrtr,6)
+
+          ! Multiplying the arbitrary matrix to the coordinates. 
+          do kxxa=1,6
+            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
+            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
+            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+          enddo
+          ! Transforming back to the tracked coordinates of Sixtrack...
+          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+          
+
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+
+          
+          ! We have to go back to angles after we updated the energy. 
+          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
+          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+          !yv(j,1) = yv(j,1)*moidpsv(j)
+          !yv(j,2) = yv(j,2)*moidpsv(j)
+        enddo
         goto 640
       case (4,5,6,7,8,9,10)
         goto 650
@@ -23708,7 +23679,10 @@ subroutine trauthck(nthinerr)
 +ca acdip1
 +ca crab1
 +ca crab_mult
-+ca trom30
+    if(kzz.eq.22) then
+      ktrack(i)=3
+      goto 290
+    endif
     if(mout2.eq.1.and.icextal(i).ne.0) then
       write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
     end if
@@ -24247,8 +24221,25 @@ subroutine thck4d(nthinerr)
       case (2)
         goto 480
       case (3)
-+ca trom40
-+ca trom42
+        irrtr=imtr(ix)
+        do j=1,napx
+          temptr(1)=xv(1,j)
+          temptr(2)=yv(1,j)
+          temptr(3)=xv(2,j)
+          temptr(4)=yv(2,j)
+
+          xv(1,j)  = cotr(irrtr,1)
+          yv(1,j)  = cotr(irrtr,2)
+          xv(2,j)  = cotr(irrtr,3)
+          yv(2,j)  = cotr(irrtr,4)
+
+          do kxxa=1,6
+            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)      
+          enddo
+        enddo
         goto 470
       case (4,5,6,7,8,9,10)
         goto 480
@@ -25001,8 +24992,50 @@ subroutine thck6d(nthinerr)
 +ei
         goto 490
       case (3)
-+ca trom40
-+ca trom41
+        irrtr=imtr(ix)
+        do j=1,napx
+            !The values are stored in the temp vector which are used for the multiplication.
+          temptr(1)=xv(1,j)
+          temptr(2)=yv(1,j)/moidpsv(j)
+          temptr(3)=xv(2,j)
+          temptr(4)=yv(2,j)/moidpsv(j)
+          temptr(5)=sigmv(j)
+          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+          ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+          xv(1,j)  = cotr(irrtr,1)
+          yv(1,j)  = cotr(irrtr,2)
+          xv(2,j)  = cotr(irrtr,3)
+          yv(2,j)  = cotr(irrtr,4)
+          sigmv(j) = cotr(irrtr,5)
+          pttemp   = cotr(irrtr,6)
+
+          ! Multiplying the arbitrary matrix to the coordinates. 
+          do kxxa=1,6
+            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
+            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
+            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+          enddo
+          ! Transforming back to the tracked coordinates of Sixtrack...
+          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+          
+
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+
+          
+          ! We have to go back to angles after we updated the energy. 
+          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
+          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+          !yv(j,1) = yv(j,1)*moidpsv(j)
+          !yv(j,2) = yv(j,2)*moidpsv(j)
+        enddo
         goto 490
       case (4,5,6,7,8,9,10)
         goto 500
@@ -29971,10 +30004,31 @@ subroutine linopt(dpp)
 +ei
           cycle STRUCTLOOP
         endif
-
-+ca trom01 !if kzz==22, starts a do over l; Update t matrix
-+ca trom03
-+ca trom06 !endif, ends the do over l; (commented out: increase nr, call writelin and cpltwis)
+        ! if kzz==22, starts a do over l; Update t matrix
+        if(kzz == 22) then
+          do l=1,2
+            ll=2*l
+            if(abs(t(ll,ll-1)).gt.pieni) then
+              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
+            else
+              phibf(l)=zero
+            end if
+            do i=1,ium
+              puf=t(i,ll-1)
+              t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+t(i,ll)*rrtr(imtr(ix),ll-1,ll))+dpr(i)*rrtr(imtr(ix),ll-1,6)
+              t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+t(i,ll)*rrtr(imtr(ix),ll,ll))+dpr(i)*rrtr(imtr(ix),ll,6)
+            end do
+            t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
+            t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
+            if(abs(t(ll,ll-1)) > pieni) then
+              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
+            else
+              dphi=-one*phibf(l)
+            end if
+            if(-one*dphi.gt.pieni) dphi=dphi+pi
+            phi(l)=phi(l)+dphi/pie
+          enddo
+        endif
 
 !+if collimat.or.bnlelens
         ! Marker, beam-beam, phase-trombone, crab cavity (incl. multipole), or wire
@@ -32194,10 +32248,32 @@ subroutine phasad(dpp,qwc)
         qxse=phi(1)
         ikpv=1
   160   continue
-+ca trom01
-+ca trom02
-+ca trom03
-+ca trom04
+        if(kzz == 22) then
+          do l=1,2
+            ll=2*l
+            if(abs(t(ll,ll-1)).gt.pieni) then
+              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
+            else
+              phibf(l)=zero
+            end if
+            do i=1,ium
+              puf=t(i,ll-1)
+              t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+t(i,ll)*rrtr(imtr(ix),ll-1,ll))+dpr(i)*rrtr(imtr(ix),ll-1,6)
+              t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+t(i,ll)*rrtr(imtr(ix),ll,ll))+dpr(i)*rrtr(imtr(ix),ll,6)
+            end do
+            t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
+            t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
+            if(abs(t(ll,ll-1)) > pieni) then
+              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
+            else
+              dphi=-one*phibf(l)
+            end if
+            if(-one*dphi.gt.pieni) dphi=dphi+pi
+            phi(l)=phi(l)+dphi/pie
+          end do
+        end if
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
         if(kzz.eq.15) goto 450
 ! JBG RF CC Multipoles to 450
@@ -33143,7 +33219,16 @@ subroutine umlauf(dpp,ium,ierr)
     return
 
 70  continue
-+ca trom10
+    if(kzz.eq.22) then
+      do j=1,ium
+        do kx=1,2
+          ll=kx*2
+          puf=x(j,kx)
+          x(j,kx)=((cotr(imtr(ix),ll-1)+rrtr(imtr(ix),ll-1,ll-1)*puf)+rrtr(imtr(ix),ll-1,ll)*y(j,kx))+dpr(j)*rrtr(imtr(ix),ll-1,6)
+          y(j,kx)=((cotr(imtr(ix),ll)+rrtr(imtr(ix),ll,ll-1)*puf)+rrtr(imtr(ix),ll,ll)*y(j,kx))+dpr(j)*rrtr(imtr(ix),ll,6)
+        end do
+      end do
+    end if
     if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
     if(kzz.eq.15) goto 350
 ! JBG RF CC Multipoles to 350
@@ -33697,10 +33782,32 @@ subroutine resex(dpp)
         kpz=kp(ix)
         if(kpz.eq.6) goto 770
         kzz=kz(ix)
-+ca trom01
-+ca trom02
-+ca trom03
-+ca trom05
+        if(kzz == 22) then
+          do l=1,2
+            ll=2*l
+            if(abs(t(ll,ll-1)).gt.pieni) then
+              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
+            else
+              phibf(l)=zero
+            end if
+            do i=1,ium
+              puf=t(i,ll-1)
+              t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+t(i,ll)*rrtr(imtr(ix),ll-1,ll))+dpr(i)*rrtr(imtr(ix),ll-1,6)
+              t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+t(i,ll)*rrtr(imtr(ix),ll,ll))+dpr(i)*rrtr(imtr(ix),ll,6)
+            end do
+            t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
+            t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
+            if(abs(t(ll,ll-1)) > pieni) then
+              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
+            else
+              dphi=-one*phibf(l)
+            end if
+            if(-one*dphi.gt.pieni) dphi=dphi+pi
+                        phi(l)=phi(l)+dphi
+          enddo
+        endif
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 770
         if(kzz.eq.15) goto 770
 ! JBG RF CC Multipoles to 770
@@ -34944,10 +35051,32 @@ subroutine subre(dpp)
           kpz=kp(ix)
           if(kpz.eq.6) goto 790
           kzz=kz(ix)
-+ca trom01
-+ca trom02
-+ca trom03
-+ca trom05
+          if(kzz == 22) then
+            do l=1,2
+              ll=2*l
+              if(abs(t(ll,ll-1)).gt.pieni) then
+                phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
+              else
+                phibf(l)=zero
+              end if
+              do i=1,ium
+                puf=t(i,ll-1)
+                t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+t(i,ll)*rrtr(imtr(ix),ll-1,ll))+dpr(i)*rrtr(imtr(ix),ll-1,6)
+                t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+t(i,ll)*rrtr(imtr(ix),ll,ll))+dpr(i)*rrtr(imtr(ix),ll,6)
+              end do
+              t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
+              t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
+              beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+              alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
+              if(abs(t(ll,ll-1)) > pieni) then
+                dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
+              else
+                dphi=-one*phibf(l)
+              end if
+              if(-one*dphi.gt.pieni) dphi=dphi+pi
+                          phi(l)=phi(l)+dphi
+          enddo
+        endif
           clo0(1)=t(1,1)
           clop0(1)=t(1,2)
           clo0(2)=t(2,3)
@@ -35888,10 +36017,32 @@ subroutine subsea(dpp)
         kpz=kp(ix)
         if(kpz.eq.6) goto 740
         kzz=kz(ix)
-+ca trom01
-+ca trom02
-+ca trom03
-+ca trom05
+        if(kzz == 22) then
+          do l=1,2
+            ll=2*l
+            if(abs(t(ll,ll-1)).gt.pieni) then
+              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
+            else
+              phibf(l)=zero
+            end if
+            do i=1,ium
+              puf=t(i,ll-1)
+              t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+t(i,ll)*rrtr(imtr(ix),ll-1,ll))+dpr(i)*rrtr(imtr(ix),ll-1,6)
+              t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+t(i,ll)*rrtr(imtr(ix),ll,ll))+dpr(i)*rrtr(imtr(ix),ll,6)
+            end do
+            t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
+            t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
+            if(abs(t(ll,ll-1)) > pieni) then
+              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
+            else
+              dphi=-one*phibf(l)
+            end if
+            if(-one*dphi.gt.pieni) dphi=dphi+pi
+                        phi(l)=phi(l)+dphi
+          enddo
+        endif
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 740
         if(kzz.eq.15) goto 740
 ! JBG RF CC Multipoles to 740
