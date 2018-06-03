@@ -706,106 +706,6 @@
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
-! +cd timefct
-!           expt =  exp_mb(-real(n,fPrec)/tcnst35(i))
-+cd dainicom
-!FOX  D V DA EXT SIGMDA NORD NVAR ; D V DA EXT DPDA NORD NVAR ;
-!FOX  D V DA EXT DPDA1 NORD NVAR ; D V DA EXT RV NORD NVAR ;
-!FOX  D V DA EXT XX NORD NVAR 2 ; D V DA EXT YY NORD NVAR 2 ;
-!FOX  D V DA EXT EJ1 NORD NVAR ; D V DA EXT EJF1 NORD NVAR ;
-!FOX  D V DA EXT ALDA NORD NVAR 2 6 ; D V DA EXT ASDA NORD NVAR 2 6 ;
-!FOX  D V DA EXT ALDAQ NORD NVAR 2 6 ; D V DA EXT ASDAQ NORD NVAR 2 6 ;
-!FOX  D V DA EXT SMIDA NORD NVAR MCOR ; D V DA EXT DELTAS NORD NVAR ;
-!FOX  D V DA EXT KCRABDA NORD NVAR ; D V DA EXT MOIDA NORD NVAR ; D V RE INT MTCDA ;
-
-+cd daini
-!FOX  B D ;
-!FOX  D V DA COM SIGMDA NORD NVAR ; D V DA COM DPDA NORD NVAR ;
-!FOX  D V DA COM KCRABDA NORD NVAR ; D V DA COM DELTAS NORD NVAR ;
-!FOX  D V DA COM DPDA1 NORD NVAR ; D V DA COM RV NORD NVAR ;
-!FOX  D V DA COM XX NORD NVAR 2 ; D V DA COM YY NORD NVAR 2 ;
-!FOX  D V DA COM EJ1 NORD NVAR ; D V DA COM EJF1 NORD NVAR ;
-!FOX  D V DA COM ALDA NORD NVAR 2 6 ; D V DA COM ASDA NORD NVAR 2 6 ;
-!FOX  D V DA COM ALDAQ NORD NVAR 2 6 ; D V DA COM ASDAQ NORD NVAR 2 6 ;
-!FOX  D V DA COM SMIDA NORD NVAR MCOR ; D V DA COM MOIDA NORD NVAR ;
-!FOX  D V DA INT X NORD NVAR 2 ; D V DA INT Y NORD NVAR 2 ;
-!FOX  D V DA INT YP NORD NVAR 2 ; D V DA INT DKIP NORD NVAR ;
-!FOX  D V DA INT CORROLD NORD NVAR MCOP ;  D V RE INT MTCDA ;
-!FOX  D V DA INT CORRNEW NORD NVAR MCOP ;
-!FOX  D V DA INT CORRAU1 NORD NVAR MCOP ;
-!FOX  D V DA INT CORRAU2 NORD NVAR MCOP ;
-!FOX  D V DA INT AA NORD NVAR 11 ;  D V DA INT BB NORD NVAR 11 ;
-!FOX  D V DA INT TRACKI NORD NVAR 6 ;
-!FOX  D V DA INT TEMPI NORD NVAR 6 ;
-!FOX  D V DA INT PUX NORD NVAR ; D V DA INT PUZ NORD NVAR ;
-!FOX  D V DA INT PUSIG NORD NVAR ;
-!FOX  D V DA INT EJF0 NORD NVAR ; D V DA INT EKK NORD NVAR ;
-!FOX  D V DA INT XL NORD NVAR ; D V DA INT ZL NORD NVAR ;
-!FOX  D V DA INT CRKVE NORD NVAR ; D V DA INT CIKVE NORD NVAR ;
-!FOX  D V DA INT CRKVEUK NORD NVAR ; D V DA INT CBZBF NORD NVAR ;
-!FOX  D V DA INT YV1J NORD NVAR ; D V DA INT YV2J NORD NVAR ;
-!FOX  D V DA INT CRKVEBF NORD NVAR ; D V DA INT CIKVEBF NORD NVAR ;
-!FOX  D V DA INT RHO2BF NORD NVAR ; D V DA INT TKBF NORD NVAR ;
-!FOX  D V DA INT XRBF NORD NVAR ; D V DA INT CCCC NORD NVAR ;
-!FOX  D V DA INT ZRBF NORD NVAR ; D V DA INT XBBF NORD NVAR ;
-!FOX  D V DA INT ZBBF NORD NVAR ; D V DA INT CRXBF NORD NVAR ;
-!FOX  D V DA INT CBXBF NORD NVAR ; D V DA INT CRZBF NORD NVAR ;
-!FOX  D V DA INT WX NORD NVAR ; D V DA INT WY NORD NVAR ;
-!FOX  D V DA INT CRABAMP NORD NVAR ;
-!FOX  D V DA INT CRABAMP2 NORD NVAR ;
-!FOX  D V DA INT CRABAMP3 NORD NVAR ;
-!FOX  D V DA INT CRABAMP4 NORD NVAR ;
-
-! +if rvet
-! !FOX  D V DA INT RVET NORD NVAR ;
-! +ei
-!FOX  D V RE INT AAI NBLZ MMUL ; D V RE INT BBI NBLZ MMUL ;
-!FOX  D V RE INT TILTC NBLZ ; D V RE INT TILTS NBLZ ;
-!FOX  D V RE INT DPS MPA ; D V RE INT SIGM MPA ;
-!FOX  D V RE INT DKI NELE 3 ; D V RE INT BL1 NBLO 2 6 ;
-!FOX  D V RE INT EL NELE ; D V RE INT EJ MPA ; D V RE INT EJF MPA ;
-!FOX  D V RE INT SMI NBLZ ; D V RE INT SMIZF NBLZ ;
-!FOX  D V RE INT ED1 ; D V RE INT ED2 ;
-!FOX  D V RE INT DPDAV2 6 ; D V RE INT RRTR NTR 6 6 ;
-!FOX  D V RE INT COTR NTR 6 ; D V RE INT DPDAV ; D V RE INT BETR0 ;
-!FOX  D V RE INT E0 ; D V RE INT E0F ;
-!FOX  D V RE INT XS ; D V RE INT ZS ; D V RE INT OX ; D V RE INT OXP ;
-!FOX  D V RE INT OZ ; D V RE INT OZP ; D V RE INT SIGM1 ;
-!FOX  D V RE INT BEAMOFF1 ; D V RE INT BEAMOFF2 ; D V RE INT BEAMOFF3 ;
-!FOX  D V RE INT BEAMOFF4 ; D V RE INT BEAMOFF5 ; D V RE INT BEAMOFF6 ;
-!FOX  D V RE INT DPS1 ; D V RE INT RKBF ; D V RE INT RBF ;
-!FOX  D V RE INT R2BF ; D V RE INT BBCU NBB 12 ;
-!FOX  D V RE INT SIGMAN 2 NBB ; D V RE INT PTNFAC NELE ;
-!FOX  D V RE INT CRAD ; D V RE INT GAMMAR ; D V RE INT PARBE NELE 18 ;
-!FOX  D V RE INT PARTNUM ; D V RE INT PISQRT ; D V RE INT SCRKVEB ;
-!FOX  D V RE INT SCIKVEB ; D V RE INT STARTCO ; D V RE INT RATIOE NELE ;
-!FOX  D V RE INT PARBE14 ; D V RE INT PI ; D V RE INT NUCM0 ;
-!FOX  D V RE INT SIGMDAC ; D V RE INT DUMMY ; D V RE INT MTCDA ;
-!FOX  D V RE INT ED NELE ; D V RE INT EK NELE ;
-!FOX  D V RE INT WIRECLO0 ;  D V RE INT NUCMDA ;
-+if .not.fast
-!FOX  D V RE INT C2E3 ; D V RE INT C1E6 ;
-+ei
-+if fast
-!FOX  D V RE INT C5M4 ; D V RE INT C2E3 ; D V RE INT C1E6 ;
-+ei
-!FOX  D V RE INT C1E3 ; D V RE INT C1M3 ; D V RE INT C1M6 ;
-!FOX  D V RE INT C1M9 ; D V RE INT C1M12 ; D V RE INT C1M15 ;
-!FOX  D V RE INT C1M18 ; D V RE INT C1M21 ; D V RE INT C1M24 ;
-!FOX  D V RE INT ONE ; D V RE INT TWO ; D V RE INT THREE ;
-!FOX  D V RE INT FOUR ; D V RE INT ZERO ; D V RE INT HALF ;
-!FOX  D V RE INT CRABFREQ ; D V RE INT CRABPHT ;
-!FOX  D V RE INT CRABPHT2 ; D V RE INT CRABPHT3 ;
-!FOX  D V RE INT CRABPHT4 ; D V RE INT KCRAB ;
-!FOX  D V RE INT CLIGHT ; D V RE INT ZZ0 ;
-!FOX  D V IN INT IDZ 2 ; D V IN INT KX ; D V IN INT IX ; D V IN INT JX ;
-!FOX  D V IN INT I ; D V IN INT IPCH ; D V IN INT K ; D V IN INT KKK ;
-!FOX  D V IN INT IVAR ; D V IN INT IRRTR ; D V IN INT KK ;
-!FOX  D V IN INT IMBB NBLZ ;
-!FOX  D V IN INT WIRE_NUM NBLZ ;
-!FOX  D F RE DARE 1 ;
-!FOX  D V DA INT PZ NORD NVAR ;
-!FOX  E D ;
 +cd dump3
 !
 !  left out to do tracking
@@ -855,832 +755,10 @@
      &ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
      &clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
      &di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
-+cd clor6
-              if(iclo6r.eq.0) then
-                clo6(1)=clo(1)
-                clop6(1)=clop(1)
-                clo6(2)=clo(2)
-                clop6(2)=clop(2)
-                clo6(3)=zero
-                clop6(3)=zero
-              else
-+if fio
-+if crlibm
-                call enable_xp()
-+ei
-                read(33,*,round='nearest') (clo6(l),clop6(l), l=1,3)
-+if crlibm
-                call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-                read(33,*) (clo6(l),clop6(l), l=1,3)
-+ei
-+if crlibm
-                read(33,*) ch 
-                lineno=lineno+1
-                ch1(:nchars+3)=ch(:nchars)//' / '
-                call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
-                do l=1,3
-                  if (nf.gt.0) then
-                    clo6(l)=fround(errno,fields,l*2-1)
-                    nf=nf-1
-                  endif
-                  if (nf.gt.0) then
-                    clop6(l)=fround(errno,fields,l*2)
-                    nf=nf-1
-                  endif
-                enddo
-+ei
-+ei
-              endif
-              call clorb(zero)
-              call betalf(zero,qw)
-              call phasad(zero,qwc)
-              sigm(1)=clo6(3)
-              dps(1)=clop6(3)
-+if debug 
-!     call dumpbin('bqmodda',1,3)
-!     call abend('before qmodda 1 3                                 ')
-!     write(*,*) '1st call qmodda'
-+ei
-              call qmodda(3,qwc)
-+if debug 
-!     call dumpbin('aqmodda',1,3)
-!     call abend('after  qmodda 1 3                                 ')
-+ei
-              if(ilin.ge.2) then
-                nlinoo=nlin
-                nlin=nlino
-                ilinc=1
-                call mydaini(2,2,6,3,6,1)
-                nlin=nlinoo
-              endif
-              dp1=dp10+clop6(3)
-+if debug 
-!     call dumpbin('ecdclor6',1,3)
-!     call abend('end cd clor6                                      ')
-+ei
-+cd multini
-!-- Initialize multipoles, combining settings from fort.2 with
-!-- coefficients from MULT and random values from FLUC.
-!-- Used in program maincr and from initialize_element.
-      r0=ek(ix)
-      if(abs(r0).le.pieni) goto 150 ! label 150 - just after this code
-      nmz=nmu(ix)
-      if(nmz.eq.0) then
-         izu=izu+2*mmul
-         goto 150
-      endif
-      im=irm(ix)
-      r0a=one
-      do k=1,nmz
-         izu=izu+1
-         aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-         aai(i,k)=aaiv(k,m,i)
-         izu=izu+1
-         bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-         bbi(i,k)=bbiv(k,m,i)
-         
-         r0a=r0a*r0
-      enddo
-      
-      izu=izu+2*mmul-2*nmz
-!------------------------------------------------------------------------------------
-
-+cd alignf
-+if .not.tilt
-!FOX  XL=X(1)-XS ;
-!FOX  ZL=X(2)-ZS ;
-!FOX  CRKVE=XL ;
-!FOX  CIKVE=ZL ;
-+ei
-+if tilt
-!FOX  XL=(X(1)-XS)*TILTC(I)+(X(2)-ZS)*TILTS(I) ;
-!FOX  ZL=-(X(1)-XS)*TILTS(I)+(X(2)-ZS)*TILTC(I) ;
-!FOX  CRKVE=XL ;
-!FOX  CIKVE=ZL ;
-+ei
-+cd alignu
-+if .not.tilt
-        xl=x(1,1)-xs
-        zl=x(1,2)-zs
-        crkve=xl
-        cikve=zl
-+ei
-+if tilt
-        xl=(x(1,1)-xs)*tiltc(k)+(x(1,2)-zs)*tilts(k)
-        zl=(x(1,2)-zs)*tiltc(k)-(x(1,1)-xs)*tilts(k)                     !hr02
-        crkve=xl
-        cikve=zl
-+ei
-+cd alignsa
-+if .not.tilt
-                        xl=x(j,1)-xs
-                        zl=x(j,2)-zs
-                        crkve=xl
-                        cikve=zl
-+ei
-+if tilt
-                        xl=(x(j,1)-xs)*tiltc(i)+(x(j,2)-zs)*tilts(i)
-                        zl=(x(j,2)-zs)*tiltc(i)-(x(j,1)-xs)*tilts(i)     !hr08
-                        crkve=xl
-                        cikve=zl
-+ei
-+cd alignsb
-+if .not.tilt
-                      xl=x(j,1)-xs
-                      zl=x(j,2)-zs
-+ei
-+if tilt
-                      xl=(x(j,1)-xs)*tiltc(i)+(x(j,2)-zs)*tilts(i)
-                      zl=(x(j,2)-zs)*tiltc(i)-(x(j,1)-xs)*tilts(i)       !hr08
-+ei
-+cd alignl
-+if .not.tilt
-        xl=t(1,1)-xs
-        zl=t(1,3)-zs
-        crkve=xl
-        cikve=zl
-+ei
-+if tilt
-        xl=(t(1,1)-xs)*tiltc(k)+(t(1,3)-zs)*tilts(k)
-        zl=(t(1,3)-zs)*tiltc(k)-(t(1,1)-xs)*tilts(k)                    !hr02
-        crkve=xl
-        cikve=zl
-+ei
-+cd alignva
-+if .not.tilt
-            xlv(j)=xv(1,j)-xsiv(1,i)
-            zlv(j)=xv(2,j)-zsiv(1,i)
-            crkve=xlv(j)
-            cikve=zlv(j)
-+ei
-+if tilt
-            xlv(j)=(xv(1,j)-xsiv(1,i))*tiltc(i)+                        &
-     &(xv(2,j)-zsiv(1,i))*tilts(i)
-            zlv(j)=(xv(2,j)-zsiv(1,i))*tiltc(i)-                        &!hr02
-     &(xv(1,j)-xsiv(1,i))*tilts(i)                                       !hr02
-            crkve=xlv(j)
-            cikve=zlv(j)
-+ei
-+cd alignvb
-+if .not.tilt
-            xlvj=xv(1,j)-xsiv(1,i)
-            zlvj=xv(2,j)-zsiv(1,i)
-+ei
-+if tilt
-            xlvj=(xv(1,j)-xsiv(1,i))*tiltc(i)+                          &
-     &(xv(2,j)-zsiv(1,i))*tilts(i)
-            zlvj=(xv(2,j)-zsiv(1,i))*tiltc(i)-                          &!hr02
-     &(xv(1,j)-xsiv(1,i))*tilts(i)                                       !hr02
-+ei
-+cd stra01
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1e3
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1e3
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra02
-+if .not.tilt
-        strack(i)=smiv(1,i)
-+ei
-+if tilt
-        strack(i)=smiv(1,i)
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra2dpe
-+if .not.tilt
-        strack(i)=zero
-        strackx(i)=ed(IX)
-        strackz(i)=ek(IX)
-+ei
-+if tilt
-        strack(i)=zero
-        strackx(i)=ed(IX)*tiltc(i)
-        stracks(i)=ed(IX)*tilts(i)
-        strackz(i)=ek(IX)*tiltc(i)
-        strackc(i)=ek(IX)*tilts(i)
-+ei
-+cd solenoid
-        strack(i)=zero
-        strackx(i)=ed(IX)
-        strackz(i)=ek(IX)
-+cd stra03
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m3
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m3
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra04
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m6
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m6
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra05
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m9
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m9
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra06
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m12
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m12
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra07
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m15
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m15
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra08
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m18
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m18
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra09
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m21
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m21
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra10
-+if .not.tilt
-        strack(i)=smiv(1,i)*c1m24
-+ei
-+if tilt
-        strack(i)=smiv(1,i)*c1m24
-        strackc(i)=strack(i)*tiltc(i)
-        stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra11
-+if .not.tilt
-              strack(i)=dki(ix,1)/dki(ix,3)
-+ei
-+if tilt
-              strack(i)=dki(ix,1)/dki(ix,3)
-              strackc(i)=strack(i)*tiltc(i)
-              stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra12
-+if .not.tilt
-              strack(i)=dki(ix,1)
-+ei
-+if tilt
-              strack(i)=dki(ix,1)
-              strackc(i)=strack(i)*tiltc(i)
-              stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra13
-+if .not.tilt
-              strack(i)=dki(ix,2)/dki(ix,3)
-+ei
-+if tilt
-              strack(i)=dki(ix,2)/dki(ix,3)
-              strackc(i)=strack(i)*tiltc(i)
-              stracks(i)=strack(i)*tilts(i)
-+ei
-+cd stra14
-+if .not.tilt
-              strack(i)=dki(ix,2)
-+ei
-+if tilt
-              strack(i)=dki(ix,2)
-              strackc(i)=strack(i)*tiltc(i)
-              stracks(i)=strack(i)*tilts(i)
-+ei
-+cd ccmul2
-! JBG RF CC Multipoles
-  pi=four*atan_mb(one)
-  crabfreq=ek(ix)*c1e3
-! write(*,*) ''
-! write(*,*) '-------------------'
-! write(*,*) 'CRAB AMP 2', ed(ix)
-! write(*,*) 'FREQ',  crabfreq
-! write(*,*) 'PHASE', crabph2(ix)
-! write(*,*) '-------------------'
-  do j=1,napx
-    crabamp2 = ed(ix)*nzz(j)
-    kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
-   
-+ca alignva
-    yv(1,j)=yv(1,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
-    yv(2,j)=yv(2,j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
-    ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-    ejf0v(j)=ejfv(j)
-  
-    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-    oidpsv(j)=one/(one+dpsv(j))
-    moidpsv(j)=mtc(j)/(one+dpsv(j))
-    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-    if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-  
-  end do
-+cd ccmul2s
-! JBG RF CC Multipoles 2
-  pi=four*atan_mb(one)
-  crabfreq=ek(ix)*c1e3
-  do j=1,napx
-  crabamp2 = ed(ix)*nzz(j)
-  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
-+ca alignva
-  yv(2,j)=yv(2,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
-  yv(1,j)=yv(1,j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
-  ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-  ejf0v(j)=ejfv(j)
-  
-  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-  oidpsv(j)=one/(one+dpsv(j))
-  moidpsv(j)=mtc(j)/(one+dpsv(j))
-  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-  
-  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-  
-  end do
-+cd ccmul3
-! JBG RF CC Multipoles
-  pi=four*atan_mb(one)
-  crabfreq=ek(ix)*c1e3
-
-!  write(*,*) ''
-!  write(*,*) '-------------------'
-!  write(*,*) 'CRAB AMP 3', crabamp3
-!  write(*,*) 'FREQ',  crabfreq
-!  write(*,*) 'PHASE', crabph3(ix)
-!  write(*,*) '-------------------'
-  do j=1,napx
-  crabamp3 = ed(ix)*nzz(j)
-  kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
-
-+ca alignva
-  yv(1,j)=yv(1,j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
-  yv(2,j)=yv(2,j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
-  ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))*(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
-  ejf0v(j)=ejfv(j)
-      
-  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-  oidpsv(j)=one/(one+dpsv(j))
-  moidpsv(j)=mtc(j)/(one+dpsv(j))
-  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-      
-  end do
-+cd ccmul3s
-! JBG RF CC Multipoles 2
-  pi=four*atan_mb(one)
-  crabfreq=ek(ix)*c1e3
-  do j=1,napx
-   crabamp3 = ed(ix)*nzz(j)
-   kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
-+ca alignva
-  yv(2,j)=yv(2,j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
-  yv(1,j)=yv(1,j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
-  ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
-         ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
-  ejf0v(j)=ejfv(j)
-      
-  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-  oidpsv(j)=one/(one+dpsv(j))
-  moidpsv(j)=mtc(j)/(one+dpsv(j))
-  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-      
-  end do
-+cd ccmul4
-! JBG RF CC Multipoles
-  pi=four*atan_mb(one)
-  crabfreq=ek(ix)*c1e3
-! Sixtrack uses mm and mrad, input m^{-n+1}
-!  write(*,*) ''
-!  write(*,*) '-------------------'
-!  write(*,*) 'CRAB AMP 4', crabamp4
-!  write(*,*) 'FREQ',  crabfreq
-!  write(*,*) 'PHASE', crabph4(ix)
-!  write(*,*) '-------------------'
-  do j=1,napx
-  crabamp4 = ed(ix)*nzz(j)
-  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
-+ca alignva
-  yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
-  yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
-  ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))*(((crabfreq*two)*pi)/clight))*c1m9)*&
- &       (sin_mb(kcrab)*e0f)
-  ejf0v(j)=ejfv(j)
-  
-  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-  oidpsv(j)=one/(one+dpsv(j))
-  moidpsv(j)=mtc(j)/(one+dpsv(j))
-  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-  
-  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-  
-  end do
-+cd ccmul4s
-! JBG RF CC Multipoles
-  pi=four*atan_mb(one)
-  crabfreq=ek(ix)*c1e3
-  ! Sixtrack uses mm and mrad, input m^{-n+1}
-  do j=1,napx
-  crabamp4 = ed(ix)*nzz(j)
-  kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
-+ca alignva
-  yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
-  yv(2,j)=yv(2,j) + (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
-  ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-  ejf0v(j)=ejfv(j)
-      
-  ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-  dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-  oidpsv(j)=one/(one+dpsv(j))
-  moidpsv(j)=mtc(j)/(one+dpsv(j))
-  dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
-  yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-  yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
-      
-  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-      
-  end do
 +cd bnlin
-!GRDRHIC
-!GRD-2007
-!GRD-2007 REQUIRED FOR RHIC BEAM-BEAM STUDIES
-!GRD-2007 OPTION IS ACTIVATED IF "LHC" PARAMETER IN BEAM-BEAM
-!GRD-2007 BLOCK IN FORT.3 IS SET TO 9
-!GRD-042008
-           if(lhc.eq.9) then
-! Write a line to fort.10 for all platforms (including LSF)
-+if boinc
-             if (.not.restart) then
-               write(10,'(a10,a60)') 'title     ',sixtit(1:60)
-               endfile (10,iostat=ierro)
-               backspace (10,iostat=ierro)
-               bnlrec=bnlrec+1
-             endif
-+ei
-+if .not.boinc
-             write(10,'(a60)') sixtit(1:60)
-             endfile (10,iostat=ierro)
-             backspace (10,iostat=ierro)
-+ei
-             call bnlrdis(20000)
-               write(lout,*) 'Sample number 1'
-!TEST
-!ERIC              napx=napx00
-               do j = 1, napx
-                 pstop(nlostp(j))=.false.
-               enddo
-               do j = 1, napx
-                  xv(1,j)  = c1e3*myx(j) +torbx(1)
-                  yv(1,j)  = c1e3*myxp(j)+torbxp(1)
-                  xv(2,j)  = c1e3*myy(j) +torby(1)
-                  yv(2,j)  = c1e3*myyp(j)+torbyp(1)
-                  sigmv(j) = mys(j)
-                  ejv(j)   = myp(j)
-                  ejfv(j)=sqrt(ejv(j)**2-nucm0**2)                         !hr03
-                  rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-                  dpsv(j)=(ejfv(j)-e0f)/e0f
-                  oidpsv(j)=one/(one+dpsv(j))
-                  moidpsv(j)=mtc(j)/(one+dpsv(j))
-                  dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)*mtc(j)                      !hr03
-!cc2008
-                  namepart(j) = samplenumber*100 + j
-!cc2008
-               enddo
-           endif
-!GRD-2007
-!GRD-042008
-!GRDRHIC
 +cd bnlout
-!GRD-042008
-!GRDRHIC
-!GRD-2007
-!GRD-2007 ADDITIONAL OUTPUT FILE FOR MULTI-PARTICLES BEAM-BEAM STUDIES
-!GRD-2007
-          do j=1,napx
-            if(pstop(nlostp(j))) goto 599
-!GRD-042008
-+if debug
-!           if (n.ge.990) then
-!             write(99,*) 'before j ',j,xv(1,j),xv(2,j),yv(1,j),yv(2,j)
-!             endfile (99,iostat=ierro)
-!             backspace (99,iostat=ierro)
-!           endif
-+ei
-            x_temp=(xv(1,j)-torbx(i-1))*c1m3                             !hr03
-            y_temp=(xv(2,j)-torby(i-1))*c1m3                             !hr03
-            xp_temp=(yv(1,j)-torbxp(i-1))*c1m3                           !hr03
-            yp_temp=(yv(2,j)-torbyp(i-1))*c1m3                           !hr03
-            twojx = (tbetax(i-1)*(xp_temp**2)+                          &!hr03
-     &               ((two*talphax(i-1))*x_temp)*xp_temp)+              &!hr03
-     &               ((one+talphax(i-1)**2)/tbetax(i-1))*(x_temp**2)     !hr03
-            twojy = (tbetay(i-1)*(yp_temp**2)+                          &!hr03
-     &               ((two*talphay(i-1))*y_temp)*yp_temp)+              &!hr03
-     &               ((one+talphay(i-1)**2)/tbetay(i-1))*(y_temp**2)     !hr03
-            twojr = sqrt(twojx**2+twojy**2)
-            if(n.eq.1) then
-               if(j.eq.1) then
-+if debug
-!                 write(*,*) 'coucou'
-+ei
-                  limit_twojx = 25.0_fPrec*(2.5e-6_fPrec/(e0/pma))                   !hr03
-                  limit_twojy = 25.0_fPrec*(2.5e-6_fPrec/(e0/pma))                   !hr03
-                  limit_twojr = 25.0_fPrec*(2.5e-6_fPrec/(e0/pma))                   !hr03
-               endif
-            endif
-            if(twojr.le.limit_twojr) then
-              sumtwojx=sumtwojx+twojx
-              sumtwojy=sumtwojy+twojy
-              sumsquarex=sumsquarex+x_temp**2
-              sumsquarey=sumsquarey+y_temp**2
-              n_nocut=n_nocut +1
-            else
-              n_cut=n_cut+1
-+if .not.boinc
-              write(53,'(i8,1x,i8)') n,namepart(j)
-+ei
-+if boinc
-              write(10,'(a10,i8,1x,i8)') 'lostID    ',n,namepart(j)
-+ei
-+if cr
-+if .not.boinc
-              endfile (53,iostat=ierro)
-              backspace (53,iostat=ierro)
-              bllrec=bllrec+1
-+ei
-+if boinc
-              endfile (10,iostat=ierro)
-              backspace (10,iostat=ierro)
-              bnlrec=bnlrec+1
-+ei
-+ei
-            endif
-!GRD-042008
- 599        continue
-          enddo
-+if debug
-!     write(99,*) 'after  update bnl n ',n
-!     write(99,*)                                                       &
-!    &n_cut,                                                            &
-!    &n_nocut,                                                          &
-!    &sumsquarex,                                                       &
-!    &sumsquarey,                                                       &
-!    &sumtwojx,                                                         &
-!    &sumtwojy,                                                         &
-!    &limit_twojx,limit_twojy,limit_twojr,                              &
-!    &totals,                                                           &
-!    &(namepart(j),j=1,napx)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-+ei
-!GRD-042008
-          if(mod(n,nwr(3)).eq.0) then
-            write(lout,*) 'dumping stats at turn number ',n
-+if crlibm
-! Use dtostr for correct binary decimal conversion
-           l1=1
-+if .not.boinc
-! use Unit 52 
-+ei 
-+if boinc
-! use Unit 10 and initialise string with header
-            ch(l1:l1+10)='output    '           
-            l1=l1+11
-+ei
-! Now do conversions
-! First the 3 integers using internal read
-            write(ch(l1:l1+8),'(i8)') n
-            l1=l1+9
-            write(ch(l1:l1+9),'(1x,i8)') n_cut
-            l1=l1+10
-            write(ch(l1:l1+9),'(1x,i8)') n_nocut
-            l1=l1+10
-! and now the four real(kind=fPrec)
-! We return the length of the string (always 24)
-            errno=dtostr(sumsquarex,ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(sumsquarey,ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(sumtwojx,ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(sumtwojy,ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-+if .not.boinc
-! write string to 52
-            write(52,'(a)') ch(1:l1-1)
-+ei
-+if boinc 
-! write string to 10
-            write(10,'(a)') ch(1:l1-1)
-+ei
-+ei
-+if .not.crlibm
-+if .not.boinc
-            write(52,'(i8,2(1x,i8),4(1x,e15.8))')                       &
-+ei
-+if boinc
-            write(10,'(a10,i8,2(1x,i8),4(1x,e15.8))')                   &
-     &'output    ',                                                     &
-+ei
-     &n,n_cut,n_nocut,                                                  &
-     &sumsquarex,                                                       &
-     &sumsquarey,                                                       &
-     &sumtwojx,                                                         &
-     &sumtwojy
-+ei
-+if cr
-+if .not.boinc
-      endfile (52,iostat=ierro)
-      backspace (52,iostat=ierro)
-+ei
-+if boinc
-      endfile (10,iostat=ierro)
-      backspace (10,iostat=ierro)
-+ei
-            bnlrec=bnlrec+1
-+ei
-            sumsquarex=zero
-            sumsquarey=zero
-            sumtwojx=zero
-            sumtwojy=zero
-            n_cut=0
-            n_nocut=0
-!05-2008
-!
-          endif
-!GRD-042008
-!GRD-2007
-!GRD-042008
-!GRDRHIC
 +cd bnltwiss
-!GRDRHIC
-!GRD-042008
-!GRD-2007
-            if(n.eq.1.and.lhc.eq.9) then
-               totals=totals+strack(i)
-               sampl(i)=totals
-+if crlibm
-! Use dtostr for correct binary decimal conversion
-               l1=1
-+if .not.boinc
-! Use Unit 51
-+ei
-+if boinc
-! Use Unit 10 and initialise string with header
-               ch(l1:l1+10)='SixTwiss  '
-               l1=l1+11
-+ei
-! Now do the conversions
-! A 5-digit integer, followed by 7 real(kind=fPrec) numbers
-               write(ch(l1:l1+5),'(i5)') i
-               l1=l1+6
-! and now the 7 real(kind=fPrec)
-! We return the length of the string (always 24)
-            errno=dtostr(sampl(i),ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(tbetax(i),ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(tbetay(i),ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(talphax(i),ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(talphay(i),ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(torbx(i),ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-            errno=dtostr(torby(i),ch1)
-            ch(l1:l1+errno)=' '//ch1(1:errno)
-            l1=l1+errno+1
-+if .not.boinc
-! write string to 51
-            write(51,'(a)') ch(1:l1-1)
-+ei
-+if boinc
-! write string to 10
-            write(10,'(a)') ch(1:l1-1)
-+ei
-+ei
-+if .not.crlibm
-+if .not.boinc
-               write(51,'(i5,(1x,f15.10),6(1x,f20.13))')                &
-+ei
-+if boinc
-                 write(10,'(a10,i5,(1x,f15.10),6(1x,f20.13))')          &
-     &'SixTwiss  ',                                                     &
-+ei
-     &i,sampl(i),tbetax(i),tbetay(i),talphax(i),talphay(i),torbx(i),    &
-     &torby(i)
-+ei
-+if boinc
-               bnlrec=bnlrec+1
-               endfile (10,iostat=ierro)
-               backspace (10,iostat=ierro)
-+ei
-+if .not.boinc
-               endfile (51,iostat=ierro)
-               backspace (51,iostat=ierro)
-+ei
-            endif
-!GRDRHIC
-!GRD-042008
-!GRD-2007
 +cd thcklin
-+if debug
-!     if (i.ge.673.and.j.le.2) then
-!       call warr('bl30 i j',xv(1,2),i,j,0,0)
-!       call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
-!     endif
-+ei
-                puxve1=xv(1,j)
-                puzve1=yv(1,j)
-                puxve2=xv(2,j)
-                puzve2=yv(2,j)
-         sigmv(j)=(((((sigmv(j)+as(1,1,j,jx))+puxve1*((as(2,1,j,jx)+ as &!hr03
-     &(4,1,j,jx)*puzve1)+as(5,1,j,jx)*puxve1))+ puzve1*(as              &!hr03
-     &(3,1,j,jx)+as(6,1,j,jx)*puzve1))                                  &!hr03
-     &+as(1,2,j,jx))+puxve2*(as(2,2,j,jx)+ as                           &!hr03
-     &(4,2,j,jx)*puzve2+as(5,2,j,jx)*puxve2))+ puzve2*(as               &!hr03
-     &(3,2,j,jx)+as(6,2,j,jx)*puzve2)                                    !hr03
-        xv(1,j)=(al(1,1,j,jx)*puxve1+ al(2,1,j,jx)*puzve1)+             &
-     &real(idz1,fPrec)*al(5,1,j,jx)                                      !hr03
-        xv(2,j)=(al(1,2,j,jx)*puxve2+ al(2,2,j,jx)*puzve2)+             &
-     &real(idz2,fPrec)*al(5,2,j,jx)                                      !hr03
-        yv(1,j)=(al(3,1,j,jx)*puxve1+ al(4,1,j,jx)*puzve1)+             &
-     &real(idz1,fPrec)*al(6,1,j,jx)                                      !hr03
-        yv(2,j)=(al(3,2,j,jx)*puxve2+ al(4,2,j,jx)*puzve2)+             &
-     &real(idz2,fPrec)*al(6,2,j,jx)                                      !hr03
-+if debug
-!     if (i.ge.673.and.j.le.2) then
-!       call warr('al30 i j',xv(1,2),i,j,0,0)
-!       call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
-!     endif
-+ei
-        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-        ! last modified: 07-03-2018
-        ! store old particle coordinates
-        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,kz(jx))
 +cd sqrtfox0
 +if rvet
 !FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0*MTCDA/(ONE+DPDA) ;
@@ -9894,7 +8972,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)             ! Also done in envar() which is called from clorb()
                  smiv(1,i)=sm(ix)+smizf(i) ! Also done in program maincr
                  smi(i)=smiv(1,i)          ! Also done in program maincr
-+ca stra01                                 ! Also done in trauthin()/trauthck()
+#include "include/stra01.f90"                                 ! Also done in trauthin()/trauthck()
                endif
             enddo
          endif
@@ -9907,7 +8985,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra02
+#include "include/stra02.f90"
                endif
             enddo
          endif
@@ -9919,7 +8997,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra03
+#include "include/stra03.f90"
                endif
             enddo
          endif
@@ -9932,7 +9010,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra04
+#include "include/stra04.f90"
                endif
             enddo
          endif
@@ -9945,7 +9023,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra05
+#include "include/stra05.f90"
                endif
             enddo
          endif
@@ -9958,7 +9036,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra06
+#include "include/stra06.f90"
                endif
             enddo
          endif
@@ -9971,7 +9049,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra07
+#include "include/stra07.f90"
                endif
             enddo
          endif
@@ -9984,7 +9062,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra08
+#include "include/stra08.f90"
                endif
             enddo
          endif
@@ -9997,7 +9075,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra09
+#include "include/stra09.f90"
                endif
             enddo
          endif
@@ -10010,7 +9088,7 @@ subroutine initialize_element(ix,lfirst)
                  sm(ix)=ed(ix)
                  smiv(1,i)=sm(ix)+smizf(i)
                  smi(i)=smiv(1,i)
-+ca stra10
+#include "include/stra10.f90"
                endif
             enddo
          endif
@@ -10967,7 +10045,7 @@ subroutine envada
 +ei
   save
 !FOX  B D ;
-+ca dainicom
+#include "include/dainicom.f90"
 !FOX  D V DA INT FOKQ NORD NVAR ; D V DA INT WFHI NORD NVAR ;
 !FOX  D V DA INT DPD NORD NVAR ; D V DA INT DPSQ NORD NVAR ;
 !FOX  D V DA INT FOK NORD NVAR ; D V DA INT RHO NORD NVAR ;
@@ -11353,7 +10431,7 @@ end subroutine envada
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
-+ca dainicom
+#include "include/dainicom.f90"
 !FOX  D V DA INT FOKQ NORD NVAR ; D V DA INT WFHI NORD NVAR ;
 !FOX  D V DA INT DPD NORD NVAR ; D V DA INT DPSQ NORD NVAR ;
 !FOX  D V DA INT FOK NORD NVAR ; D V DA INT RHO NORD NVAR ;
@@ -11467,7 +10545,7 @@ subroutine runda
       dimension fake(2,20),dpdav2(6),jj(100)
       save
 !-----------------------------------------------------------------------
-+ca daini
+#include "include/daini.f90"
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       call comt_daStart
@@ -11931,7 +11009,7 @@ subroutine runda
                     beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
                   endif
                 endif
-#include "track/beamcof.f90"
+#include "include/beamcof.f90"
 !FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
                 if(abs(dare(rho2bf)).gt.pieni) then
                   if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
@@ -11982,7 +11060,7 @@ subroutine runda
                 r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
                 rbf=sqrt(r2bf)
                 rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
-#include "track/beamcof.f90"
+#include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
                 if(dare(xrbf).lt.zero) then
 !FOX  XRBF=-XRBF ;
@@ -12045,7 +11123,7 @@ subroutine runda
                 r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2) !hr08
                 rbf=sqrt(r2bf)
                 rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
-#include "track/beamcof.f90"
+#include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
                 if(dare(xrbf).lt.zero) then
 !FOX  XRBF=-XRBF ;
@@ -12086,7 +11164,7 @@ subroutine runda
             goto 480
           endif
           if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                      !hr08
-#include "track/beam6dfi.f90"
+#include "include/beam6dfi.f90"
             goto 480
           endif
           if(kzz.eq.22) then
@@ -12246,7 +11324,7 @@ subroutine runda
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
-+ca alignf ! JBG Including misalignments
+#include "include/alignf.f90" ! JBG Including misalignments
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
@@ -12279,7 +11357,7 @@ subroutine runda
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
@@ -12310,7 +11388,7 @@ subroutine runda
             endif 
           xs=xsi(i)
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
@@ -12342,7 +11420,7 @@ subroutine runda
             endif 
           xs=xsi(i)
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
@@ -12373,7 +11451,7 @@ subroutine runda
             endif
           xs=xsi(i)
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
@@ -12418,77 +11496,77 @@ subroutine runda
             write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),               &
      &extalign(i,1),extalign(i,2),extalign(i,3)
           end if
-+ca alignf
+#include "include/alignf.f90"
           select case (kzz)
           case (1)  ! HORIZONTAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
-#include "track/kickf01h.f90"
+#include "include/kickf01h.f90"
           case (2)  ! NORMAL QUADRUPOLE
-#include "track/kickfxxh.f90"
+#include "include/kickfxxh.f90"
           case (3)  ! NORMAL SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (4)  ! NORMAL OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (5)  ! NORMAL DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (6)  ! NORMAL DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (7)  ! NORMAL 14-POL
 !FOX  EKK=EKK*C1M15 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (8)  ! NORMAL 16-POL
 !FOX  EKK=EKK*C1M18 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (9)  ! NORMAL 18-POL
 !FOX  EKK=EKK*C1M21 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (10) ! NORMAL 20-POL
 !FOX  EKK=EKK*C1M24 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
           case (11)
             r0  = ek(ix)
             nmz = nmu(ix)
-#include "track/multf01.f90"
+#include "include/multf01.f90"
             if (abs(r0).le.pieni.or.nmz.eq.0) goto 480
             if(mout2.eq.1.and.n.eq.1) then
               benkcc = ed(ix)*benkc(irm(ix))
@@ -12522,101 +11600,101 @@ subroutine runda
               end do
             end if
             if(nmz.ge.2) then
-#include "track/multf02.f90"
+#include "include/multf02.f90"
               do k=3,nmz
-#include "track/multf03.f90"
+#include "include/multf03.f90"
               end do
-#include "track/multf04.f90"
+#include "include/multf04.f90"
             else
-#include "track/multf05.f90"
+#include "include/multf05.f90"
             end if
           case (12,13,14,15,16,17,18,19,20,21,22,23)
             goto 480
           case (24) ! DIPEDGE ELEMENT
-#include "track/kickfdpe.f90"
+#include "include/kickfdpe.f90"
           case (25) ! Solenoid
-#include "track/kickfso1.f90"
+#include "include/kickfso1.f90"
           
           !-----------------
           !--SKEW ELEMENTS--
           !-----------------
           case (-1)  ! VERTICAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
-#include "track/kickf01v.f90"
+#include "include/kickf01v.f90"
           case (-2)  ! SKEW QUADRUPOLE
-#include "track/kickfxxv.f90"
+#include "include/kickfxxv.f90"
           case (-3)  ! SKEW SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           case (-4)  ! SKEW OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           case (-5)  ! SKEW DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           case (-6)  ! SKEW DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           case (-7)  ! SKEW 14-POL
 !FOX  EKK=EKK*C1M15 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           case (-8)  ! SKEW 16-POL
 !FOX  EKK=EKK*C1M18 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           case (-9)  ! SKEW 18-POL
 !FOX  EKK=EKK*C1M21 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           case (-10) ! SKEW 20-POL
 !FOX  EKK=EKK*C1M24 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
           end select
 ! ----------------------------------------------------------------------
 ! This is a repeat of the case for SKEW 14-POL because it is called by
 ! a number of gotos in the DA version
   440   continue
 !FOX  EKK=EKK*C1M15 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
 ! ----------------------------------------------------------------------
   480   continue
         if(mout2.eq.1) then
@@ -12803,7 +11881,7 @@ subroutine umlauda
       integer wire_num_aux ! auxiliary variable to count number of wires
       save
 !-----------------------------------------------------------------------
-+ca daini
+#include "include/daini.f90"
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
       call comt_daStart
@@ -13423,7 +12501,7 @@ subroutine umlauda
                   beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
                 endif
               endif
-#include "track/beamcof.f90"
+#include "include/beamcof.f90"
 !FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
               if(abs(dare(rho2bf)).gt.pieni) then
                 if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
@@ -13474,7 +12552,7 @@ subroutine umlauda
               r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
               rbf=sqrt(r2bf)
               rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
-#include "track/beamcof.f90"
+#include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
                 if(dare(xrbf).lt.zero) then
 !FOX  XRBF=-XRBF ;
@@ -13537,7 +12615,7 @@ subroutine umlauda
               r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2) !hr08
               rbf=sqrt(r2bf)
               rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
-#include "track/beamcof.f90"
+#include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
                 if(dare(xrbf).lt.zero) then
 !FOX  XRBF=-XRBF ;
@@ -13588,7 +12666,7 @@ subroutine umlauda
               clobeam(6,imbb(i))=dare(dpda)
             endif
           endif
-#include "track/beam6dfi.f90"
+#include "include/beam6dfi.f90"
           goto 440
         endif
           pi=four*atan_mb(one)
@@ -13658,7 +12736,7 @@ subroutine umlauda
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
-+ca alignf ! JBG Including misalignments
+#include "include/alignf.f90" ! JBG Including misalignments
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
 !       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
@@ -13693,7 +12771,7 @@ subroutine umlauda
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht2=crabph2(ix)
@@ -13727,7 +12805,7 @@ subroutine umlauda
             endif 
           xs=xsi(i)
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
@@ -13762,7 +12840,7 @@ subroutine umlauda
             endif 
           xs=xsi(i)
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP3=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht3=crabph3(ix)
@@ -13796,7 +12874,7 @@ subroutine umlauda
             endif
           xs=xsi(i)
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
@@ -13835,7 +12913,7 @@ subroutine umlauda
             endif
           xs=xsi(i)
           zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
 !FOX  CRABAMP4=ED(IX)*ZZ0 ;
              crabfreq=ek(ix)*c1e3
              crabpht4=crabph4(ix)
@@ -13932,163 +13010,163 @@ subroutine umlauda
         endif
         xs=xsi(i)
         zs=zsi(i)
-+ca alignf
+#include "include/alignf.f90"
         
         select case (kzz)
         case (1)  ! HORIZONTAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
-#include "track/kickf01h.f90"
+#include "include/kickf01h.f90"
         case (2)  ! NORMAL QUADRUPOLE
-#include "track/kickfxxh.f90"
+#include "include/kickfxxh.f90"
         case (3)  ! NORMAL SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (4)  ! NORMAL OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (5)  ! NORMAL DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (6)  ! NORMAL DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (7)  ! NORMAL 14-POL
 !FOX  EKK=EKK*C1M15 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (8)  ! NORMAL 16-POL
 !FOX  EKK=EKK*C1M18 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (9)  ! NORMAL 18-POL
 !FOX  EKK=EKK*C1M21 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (10) ! NORMAL 20-POL
 !FOX  EKK=EKK*C1M24 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxh.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxh.f90"
         case (11)
           r0  = ek(ix)
           nmz = nmu(ix)
-#include "track/multf01.f90"
+#include "include/multf01.f90"
           if(abs(r0).le.pieni.or.nmz.eq.0) goto 440
           if(nmz.ge.2) then
-#include "track/multf02.f90"
+#include "include/multf02.f90"
             do k=3,nmz
-#include "track/multf03.f90"
+#include "include/multf03.f90"
             end do
-#include "track/multf04.f90"
+#include "include/multf04.f90"
           else
-#include "track/multf05.f90"
+#include "include/multf05.f90"
           end if
         case (12,13,14,15,16,17,18,19,20,21,22,23)
           goto 440
         case (24) ! DIPEDGE ELEMENT
-#include "track/kickfdpe.f90"
+#include "include/kickfdpe.f90"
         case (25) ! Solenoid
-#include "track/kickfso1.f90"
+#include "include/kickfso1.f90"
 
         !-----------------
         !--SKEW ELEMENTS--
         !-----------------
         case (-1)  ! VERTICAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
-#include "track/kickf01v.f90"
+#include "include/kickf01v.f90"
         case (-2)  ! SKEW QUADRUPOLE
-#include "track/kickfxxv.f90"
+#include "include/kickfxxv.f90"
         case (-3)  ! SKEW SEXTUPOLE
 !FOX  EKK=EKK*C1M3 ;
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         case (-4)  ! SKEW OCTUPOLE
 !FOX  EKK=EKK*C1M6 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         case (-5)  ! SKEW DECAPOLE
 !FOX  EKK=EKK*C1M9 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         case (-6)  ! SKEW DODECAPOL
 !FOX  EKK=EKK*C1M12 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         case (-7)  ! SKEW 14-POL
 !FOX  EKK=EKK*C1M15 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         case (-8)  ! SKEW 16-POL
 !FOX  EKK=EKK*C1M18 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         case (-9)  ! SKEW 18-POL
 !FOX  EKK=EKK*C1M21 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         case (-10) ! SKEW 20-POL
 !FOX  EKK=EKK*C1M24 ;
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfho.f90"
-#include "track/kickfxxv.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfho.f90"
+#include "include/kickfxxv.f90"
         end select
         
  440  continue
@@ -14418,7 +13496,7 @@ subroutine wireda(ix,i)
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
-+ca dainicom
+#include "include/dainicom.f90"
 !FOX  D V DA INT XI NORD NVAR ; D V DA INT YI NORD NVAR ;
 !FOX  D V DA INT DXI NORD NVAR ; D V DA INT DYI NORD NVAR ;
 !FOX  D V RE INT EMBL ; D V RE INT TX ; D V RE INT TY ;
@@ -14611,7 +13689,7 @@ end subroutine wireda
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
-+ca dainicom
+#include "include/dainicom.f90"
 !FOX  D V RE INT E0 ; D V RE EXT E0F ;
 !FOX  D V RE INT HSY 3 ; D V RE INT PHAS ;
 !FOX  D V RE EXT ED NELE ; D V RE EXT HSYC NELE ;
@@ -16196,7 +15274,31 @@ end interface
 !-- MULTIPOLE BLOCK
           if(kzz.eq.11) then
              dynk_izuIndex(ix)=izu
-+ca multini
+!-- Initialize multipoles, combining settings from fort.2 with
+!-- coefficients from MULT and random values from FLUC.
+!-- Used in program maincr and from initialize_element.
+             r0=ek(ix)
+             if(abs(r0).le.pieni) goto 150 ! label 150 - just after this code
+             nmz=nmu(ix)
+             if(nmz.eq.0) then
+                izu=izu+2*mmul
+                goto 150
+             endif
+             im=irm(ix)
+             r0a=one
+             do k=1,nmz
+                izu=izu+1
+                aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
+                aai(i,k)=aaiv(k,m,i)
+                izu=izu+1
+                bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
+                bbi(i,k)=bbiv(k,m,i)
+                
+                r0a=r0a*r0
+             enddo
+             
+             izu=izu+2*mmul-2*nmz
+       !------------------------------------------------------------------------------------
           endif
  150   continue
 +if debug
@@ -16233,11 +15335,70 @@ end interface
           if(idp.ne.1.or.iation.ne.1) iclo6=0
           if (iclo6.eq.1.or.iclo6.eq.2) then
             if(ib.eq.1) then
-+ca clor6
-+if debug
-!     call dumpbin('aclor6',1,1)
-!     call abend('after  clor6                                      ')
-+ei
+              if(iclo6r.eq.0) then
+                clo6(1)=clo(1)
+                clop6(1)=clop(1)
+                clo6(2)=clo(2)
+                clop6(2)=clop(2)
+                clo6(3)=zero
+                clop6(3)=zero
+              else
+#ifdef FIO
+#ifdef CRLIBM
+              call enable_xp()
+#endif
+              read(33,*,round='nearest') (clo6(l),clop6(l), l=1,3)
+#ifdef CRLIBM
+              call disable_xp()
+#endif
+#else
+#ifndef CRLIBM
+              read(33,*) (clo6(l),clop6(l), l=1,3)
+#else
+              read(33,*) ch 
+              lineno=lineno+1
+              ch1(:nchars+3)=ch(:nchars)//' / '
+              call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
+              do l=1,3
+                if (nf.gt.0) then
+                  clo6(l)=fround(errno,fields,l*2-1)
+                  nf=nf-1
+                endif
+                if (nf.gt.0) then
+                  clop6(l)=fround(errno,fields,l*2)
+                  nf=nf-1
+                endif
+              enddo
+#endif
+#endif
+            endif
+            call clorb(zero)
+            call betalf(zero,qw)
+            call phasad(zero,qwc)
+            sigm(1)=clo6(3)
+            dps(1)=clop6(3)
+#ifdef DEBUG
+!     call dumpbin('bqmodda',1,3)
+!     call abend('before qmodda 1 3                                 ')
+!     write(*,*) '1st call qmodda'
+#endif
+            call qmodda(3,qwc)
+#ifdef DEBUG
+!     call dumpbin('aqmodda',1,3)
+!     call abend('after  qmodda 1 3                                 ')
+#endif
+            if(ilin.ge.2) then
+              nlinoo=nlin
+              nlin=nlino
+              ilinc=1
+              call mydaini(2,2,6,3,6,1)
+              nlin=nlinoo
+            endif
+            dp1=dp10+clop6(3)
+#ifdef DEBUG
+!     call dumpbin('ecdclor6',1,3)
+!     call abend('end cd clor6                                      ')
+#endif
             endif
             if(iqmod6.eq.1) then
               do ncrr=1,iu
@@ -16294,7 +15455,7 @@ end interface
               if(nbeam.ge.1) then
               nd=3
               nd2=6
-#include "track/beamcou.f90"
+#include "include/beamcou.f90"
               endif
               ncorru=ncorruo
               iqmodc=3
@@ -17961,7 +17122,7 @@ subroutine trauthin(nthinerr)
     strackc(i)=zero
     stracks(i)=zero
   end do
-#include "track/beams1.f90"
+#include "include/beams1.f90"
 
       do 290 i=1,iu
         if(mout2.eq.1.and.i.eq.1) call write4
@@ -17992,47 +17153,47 @@ subroutine trauthin(nthinerr)
           ktrack(i)=31
           goto 290
         endif
-#include "track/beams21.f90"
-#include "track/beamcoo.f90"
-#include "track/beamr1.f90"
+#include "include/beams21.f90"
+#include "include/beamcoo.f90"
+#include "include/beamr1.f90"
      &goto 42
-#include "track/beamr2.f90"
-#include "track/beamr3o.f90"
-#include "track/beams22.f90"
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beam12.f90"
-#include "track/beama3.f90"
-#include "track/beam13.f90"
-#include "track/beama4o.f90"
+#include "include/beamr2.f90"
+#include "include/beamr3o.f90"
+#include "include/beams22.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beam12.f90"
+#include "include/beama3.f90"
+#include "include/beam13.f90"
+#include "include/beama4o.f90"
             else if(ibtyp.eq.1) then
-#include "track/beam11.f90"   !do j=1,napx
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf1.f90" !end do; do j=1,napx
-#include "track/beama4o.f90"  !end do
-#include "track/beams23.f90"  !end if; end if; end if;    if;if;if
-#include "track/beam21.f90"   !do
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beam22.f90"
-#include "track/beama3.f90"
-#include "track/beam23.f90"
-#include "track/beama4o.f90" !end do
+#include "include/beam11.f90"   !do j=1,napx
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf1.f90" !end do; do j=1,napx
+#include "include/beama4o.f90"  !end do
+#include "include/beams23.f90"  !end if; end if; end if;    if;if;if
+#include "include/beam21.f90"   !do
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beam22.f90"
+#include "include/beama3.f90"
+#include "include/beam23.f90"
+#include "include/beama4o.f90" !end do
             else if(ibtyp.eq.1) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf2.f90"
-#include "track/beama4o.f90"
-#include "track/beams24.f90" !end if; end if; end if; goto 290
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf2.f90"
+#include "include/beama4o.f90"
+#include "include/beams24.f90" !end if; end if; end if; goto 290
 
         ! wire
         if(kzz.eq.15) then
@@ -18102,70 +17263,70 @@ subroutine trauthin(nthinerr)
             ktrack(i) = 31
           else
             ktrack(i) = 11
-+ca stra01
+#include "include/stra01.f90"
           end if
         case (2)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i)=12
-+ca stra02
+#include "include/stra02.f90"
           end if
         case (3)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 13
-+ca stra03
+#include "include/stra03.f90"
           end if
         case (4)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 14
-+ca stra04
+#include "include/stra04.f90"
           end if
         case (5)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 15
-+ca stra05
+#include "include/stra05.f90"
           end if
         case (6)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 16
-+ca stra06
+#include "include/stra06.f90"
           end if
         case (7)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 17
-+ca stra07
+#include "include/stra07.f90"
           end if
         case (8)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 18
-+ca stra08
+#include "include/stra08.f90"
           end if
         case (9)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 19
-+ca stra09
+#include "include/stra09.f90"
           end if
         case (10)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 20
-+ca stra10
+#include "include/stra10.f90"
           end if
         case (11) ! Multipole block (also in initialize_element)
           r0  = ek(ix)
@@ -18180,18 +17341,18 @@ subroutine trauthin(nthinerr)
             else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
               if(abs(dki(ix,3)).gt.pieni) then
                 ktrack(i) = 33
-+ca stra11
+#include "include/stra11.f90"
               else
                 ktrack(i) = 35
-+ca stra12
+#include "include/stra12.f90"
               end if
             else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
               if(abs(dki(ix,3)).gt.pieni) then
                 ktrack(i) = 37
-+ca stra13
+#include "include/stra13.f90"
               else
                 ktrack(i) = 39
-+ca stra14
+#include "include/stra14.f90"
               end if
             end if
           else
@@ -18200,18 +17361,18 @@ subroutine trauthin(nthinerr)
             else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
               if(abs(dki(ix,3)).gt.pieni) then
                 ktrack(i) = 34
-+ca stra11
+#include "include/stra11.f90"
               else
                 ktrack(i) = 36
-+ca stra12
+#include "include/stra12.f90"
               end if
             else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
               if(abs(dki(ix,3)).gt.pieni) then
                 ktrack(i) = 38
-+ca stra13
+#include "include/stra13.f90"
               else
                 ktrack(i) = 40
-+ca stra14
+#include "include/stra14.f90"
               end if
             end if
           end if
@@ -18251,10 +17412,10 @@ subroutine trauthin(nthinerr)
         case (12,13,14,15,16,17,18,19,20,21,22,23)
           goto 290
         case (24) ! DIPEDGE ELEMENT
-+ca stra2dpe
+#include "include/stra2dpe.f90"
           ktrack(i) = 55
         case (25) ! Solenoid
-+ca solenoid
+#include "include/solenoid.f90"
           ktrack(i) = 56
           
         !----------------
@@ -18265,70 +17426,70 @@ subroutine trauthin(nthinerr)
             ktrack(i) = 31
           else
             ktrack(i) = 21
-+ca stra01
+#include "include/stra01.f90"
           end if
         case (-2)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 22
-+ca stra02
+#include "include/stra02.f90"
           end if
         case (-3)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 23
-+ca stra03
+#include "include/stra03.f90"
           end if
         case (-4)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 24
-+ca stra04
+#include "include/stra04.f90"
           end if
         case (-5)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 25
-+ca stra05
+#include "include/stra05.f90"
           end if
         case (-6)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 26
-+ca stra06
+#include "include/stra06.f90"
           end if
         case (-7)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 27
-+ca stra07
+#include "include/stra07.f90"
           end if
         case (-8)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 28
-+ca stra08
+#include "include/stra08.f90"
           end if
         case (-9)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 29
-+ca stra09
+#include "include/stra09.f90"
           end if
         case (-10)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
             ktrack(i) = 31
           else
             ktrack(i) = 30
-+ca stra10
+#include "include/stra10.f90"
           end if
         case default
           ktrack(i)=31
@@ -18494,7 +17655,7 @@ subroutine thin4d(nthinerr)
 !GRDRHIC
 !GRD-042008
   totals=zero
-+ca bnlin
+#include "include/bnlin.f90"
 !GRDRHIC
 !GRD-042008
 +ei
@@ -18566,7 +17727,7 @@ subroutine thin4d(nthinerr)
     ! structure element = order of single elements/blocks
     do 630 i=1,iu
 +if bnlelens
-+ca bnltwiss
+#include "include/bnltwiss.f90"
 +ei
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
@@ -18701,192 +17862,192 @@ subroutine thin4d(nthinerr)
         goto 630
       case (11) ! HORIZONTAL DIPOLE
         do j=1,napx
-#include "track/kickv01h.f90" ! astuce block with kick for element
+#include "include/kickv01h.f90" ! astuce block with kick for element
         end do
         goto 620
       case (12) ! NORMAL QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (14) ! NORMAL OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (15) ! NORMAL DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (16) ! NORMAL DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (17) ! NORMAL 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (18) ! NORMAL 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (19) ! NORMAL 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (20) ! NORMAL 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 620
       case (21) ! VERTICAL DIPOLE
         do j=1,napx
-#include "track/kickv01v.f90"
+#include "include/kickv01v.f90"
         end do
         goto 620
       case (22) ! SKEW QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (23) ! SKEW SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (24) ! SKEW OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (25) ! SKEW DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (26) ! SKEW DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (27) ! SKEW 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (28) ! SKEW 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (29) ! SKEW 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (30) ! SKEW 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 620
       case (31)
@@ -18895,88 +18056,88 @@ subroutine thin4d(nthinerr)
         goto 390
       case (33)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
         end do
         goto 620
       case (34)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
         end do
         goto 390
       case (35)
         do j=1,napx
-#include "track/mul4v02.f90"
+#include "include/mul4v02.f90"
         end do
         goto 620
       case (36)
         do j=1,napx
-#include "track/mul4v02.f90"
+#include "include/mul4v02.f90"
         end do
         goto 390
       case (37)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
         end do
         goto 620
       case (38)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
         end do
         goto 390
       case (39)
         do j=1,napx
-#include "track/mul4v04.f90"
+#include "include/mul4v04.f90"
         end do
         goto 620
       case (40)
         do j=1,napx
-#include "track/mul4v04.f90"
+#include "include/mul4v04.f90"
         end do
         goto 390
       case (41)
         goto 680
       case (42)
         if(ibtyp.eq.0) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam12.f90"
-#include "track/beama3.f90"
-#include "track/beam13.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam12.f90"
+#include "include/beama3.f90"
+#include "include/beam13.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf1.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf1.f90"
+#include "include/beama4.f90"
         end if
         goto 620
       case (43)
         if(ibtyp.eq.0) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam22.f90"
-#include "track/beama3.f90"
-#include "track/beam23.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam22.f90"
+#include "include/beama3.f90"
+#include "include/beam23.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf2.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf2.f90"
+#include "include/beama4.f90"
         end if
         goto 620
       case (44,46,47,48,49,50,57,58,59,60,61,62)
@@ -18986,34 +18147,34 @@ subroutine thin4d(nthinerr)
         goto 620
       case (51)
         xory=1
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 620
       case (52)
         xory=2
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 620
       case (53)
         xory=1
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 620
       case (54)
         xory=2
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 620
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
-+ca alignva
-#include "track/kickvdpe.f90"
+#include "include/alignva.f90"
+#include "include/kickvdpe.f90"
         end do
         goto 620
       case (56) ! Solenoid
         do j=1,napx
-#include "track/kickvso1.f90"
+#include "include/kickvso1.f90"
         end do
         goto 620
       case (63) ! Elens
         do j=1,napx
-#include "track/kickelens.f90"
+#include "include/kickelens.f90"
         end do
         goto 620
       end select
@@ -19023,27 +18184,27 @@ subroutine thin4d(nthinerr)
       nmz=nmu(ix)
       if(nmz.ge.2) then
         do j=1,napx
-+ca alignvb
-#include "track/mul4v05.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v05.f90"
           do k=3,nmz
-#include "track/mul4v06.f90"
+#include "include/mul4v06.f90"
           end do
-#include "track/mul4v07.f90"
+#include "include/mul4v07.f90"
         end do
       else
         do j=1,napx
-#include "track/mul4v08.f90"
+#include "include/mul4v08.f90"
         end do
       end if
       goto 620
 
 680   continue
       do 690 j=1,napx
-#include "track/beamco.f90"
-#include "track/beamr1.f90"
+#include "include/beamco.f90"
+#include "include/beamr1.f90"
      &goto 690
-#include "track/beamr2.f90"
-#include "track/beamr3.f90"
+#include "include/beamr2.f90"
+#include "include/beamr3.f90"
 690   continue
       goto 620
         
@@ -19079,7 +18240,7 @@ subroutine thin4d(nthinerr)
 !GRDRHIC
 !GRD-042008
     if (lhc.eq.9) then
-+ca bnlout
+#include "include/bnlout.f90"
     end if
 !GRDRHIC
 !GRD-042008
@@ -19198,7 +18359,7 @@ subroutine thin6d(nthinerr)
 !GRDRHIC
 !GRD-042008
   totals=zero
-+ca bnlin
+#include "include/bnlin.f90"
 !GRDRHIC
 !GRD-042008
 +ei
@@ -19278,7 +18439,7 @@ subroutine thin6d(nthinerr)
       call collimate_start_element(i)
 +ei
 +if bnlelens
-+ca bnltwiss
+#include "include/bnltwiss.f90"
 +ei
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
@@ -19568,192 +18729,192 @@ subroutine thin6d(nthinerr)
         goto 650
       case (11) ! HORIZONTAL DIPOLE
         do j=1,napx
-#include "track/kickv01h.f90"
+#include "include/kickv01h.f90"
         end do
         goto 640
       case (12) ! NORMAL QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (14) ! NORMAL OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (15) ! NORMAL DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (16) ! NORMAL DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (17) ! NORMAL 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (18) ! NORMAL 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (19) ! NORMAL 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (20) ! NORMAL 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 640
       case (21) ! VERTICAL DIPOLE
         do j=1,napx
-#include "track/kickv01v.f90"
+#include "include/kickv01v.f90"
         end do
         goto 640
       case (22) ! SKEW QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (23) ! SKEW SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (24) ! SKEW OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (25) ! SKEW DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (26) ! SKEW DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (27) ! SKEW 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (28) ! SKEW 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (29) ! SKEW 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (30) ! SKEW 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 640
       case (31)
@@ -19762,111 +18923,111 @@ subroutine thin6d(nthinerr)
         goto 410
       case (33)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
+#include "include/mul6v01.f90"
         end do
         goto 640
       case (34)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
+#include "include/mul6v01.f90"
         end do
         goto 410
       case (35)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v02.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v02.f90"
+#include "include/mul6v01.f90"
         end do
         goto 640
       case (36)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v02.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v02.f90"
+#include "include/mul6v01.f90"
         end do
         goto 410
       case (37)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
+#include "include/mul6v02.f90"
         end do
         goto 640
       case (38)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
+#include "include/mul6v02.f90"
         end do
         goto 410
       case (39)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v04.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v04.f90"
+#include "include/mul6v02.f90"
         end do
         goto 640
       case (40)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v04.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v04.f90"
+#include "include/mul6v02.f90"
         end do
         goto 410
       case (41) ! 4D BB kick
         do 690 j=1,napx
-#include "track/beamco.f90"
-#include "track/beamr1.f90"
+#include "include/beamco.f90"
+#include "include/beamr1.f90"
        &goto 690 !The radius was too small -> Skip
-#include "track/beamr2.f90"
-#include "track/beamr3.f90"     !Kick the particles
+#include "include/beamr2.f90"
+#include "include/beamr3.f90"     !Kick the particles
 690     continue
         goto 640
       case (42)
         if(ibtyp.eq.0) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam12.f90"
-#include "track/beama3.f90"
-#include "track/beam13.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam12.f90"
+#include "include/beama3.f90"
+#include "include/beam13.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then ! fast kick
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf1.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf1.f90"
+#include "include/beama4.f90"
         end if
         goto 640
       case (43)
         if(ibtyp.eq.0) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam22.f90"
-#include "track/beama3.f90"
-#include "track/beam23.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam22.f90"
+#include "include/beama3.f90"
+#include "include/beam23.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf2.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf2.f90"
+#include "include/beama4.f90"
         end if
         goto 640
       case (44)
-#include "track/beam6d.f90"
+#include "include/beam6d.f90"
         goto 640
       case (45) ! Wire
 +ca wirekick
@@ -19875,59 +19036,176 @@ subroutine thin6d(nthinerr)
         goto 650
       case (51)
         xory=1
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 640
       case (52)
         xory=2
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 640
       case (53)
         xory=1
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 640
       case (54)
         xory=2
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 640
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
-+ca alignva
-#include "track/kickvdpe.f90"
+#include "include/alignva.f90"
+#include "include/kickvdpe.f90"
         end do
         goto 640
       case (56) ! Solenoid
         do j=1,napx
-#include "track/kickvso1.f90"
-#include "track/kickvso2.f90"
+#include "include/kickvso1.f90"
+#include "include/kickvso2.f90"
         end do
         goto 640
       case (57) ! JBG RF CC Multipoles
         xory=1
-+ca ccmul2
+        pi=four*atan_mb(one)
+        crabfreq=ek(ix)*c1e3
+        do j=1,napx
+          crabamp2 = ed(ix)*nzz(j)
+          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
+#include "include/alignva.f90"
+          yv(1,j)=yv(1,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+          yv(2,j)=yv(2,j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+          ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+          ejf0v(j)=ejfv(j)
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+        end do
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
-+ca ccmul2s
+        pi=four*atan_mb(one)
+        crabfreq=ek(ix)*c1e3
+        do j=1,napx
+          crabamp2 = ed(ix)*nzz(j)
+          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
+#include "include/alignva.f90"
+          yv(2,j)=yv(2,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+          yv(1,j)=yv(1,j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+          ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
+          ejf0v(j)=ejfv(j)
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+        end do
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
-+ca ccmul3
+        pi=four*atan_mb(one)
+        crabfreq=ek(ix)*c1e3
+        do j=1,napx
+          crabamp3 = ed(ix)*nzz(j)
+          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
+#include "include/alignva.f90"
+          yv(1,j)=yv(1,j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
+          yv(2,j)=yv(2,j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
+          ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))&
+                *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
+          ejf0v(j)=ejfv(j)
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+        end do
         goto 640 
       case (60) ! JBG RF CC Multipoles
         xory=1
-+ca ccmul3s
+        pi=four*atan_mb(one)
+        crabfreq=ek(ix)*c1e3
+        do j=1,napx
+          crabamp3 = ed(ix)*nzz(j)
+          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
+#include "include/alignva.f90"
+          yv(2,j)=yv(2,j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
+          yv(1,j)=yv(1,j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
+          ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
+                ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
+          ejf0v(j)=ejfv(j)
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+        end do
         goto 640 
       case (61) ! JBG RF CC Multipoles
         xory=1
-+ca ccmul4
+        pi=four*atan_mb(one)
+        crabfreq=ek(ix)*c1e3
+        do j=1,napx
+          crabamp4 = ed(ix)*nzz(j)
+          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
+#include "include/alignva.f90"
+          yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
+          yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
+          ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))&
+                *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
+        ejf0v(j)=ejfv(j)
+        ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+        dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+        oidpsv(j)=one/(one+dpsv(j))
+        moidpsv(j)=mtc(j)/(one+dpsv(j))
+        dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+        yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+        yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+        if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+        end do
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
-+ca ccmul4s
+        pi=four*atan_mb(one)
+        crabfreq=ek(ix)*c1e3
+        do j=1,napx
+          crabamp4 = ed(ix)*nzz(j)
+          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
+#include "include/alignva.f90"
+          yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
+          yv(2,j)=yv(2,j) + (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
+          ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
+          ejf0v(j)=ejfv(j)
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
+          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+        end do
         goto 640
       case (63) ! Elens
         do j=1,napx
-#include "track/kickelens.f90"
+#include "include/kickelens.f90"
         end do
         goto 640
       case (64) ! Scatter (thin)
@@ -19953,16 +19231,16 @@ subroutine thin6d(nthinerr)
       nmz=nmu(ix)
       if(nmz.ge.2) then
         do j=1,napx
-+ca alignvb
-#include "track/mul4v05.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v05.f90"
           do k=3,nmz
-#include "track/mul4v06.f90"
+#include "include/mul4v06.f90"
           end do
-#include "track/mul4v07.f90"
+#include "include/mul4v07.f90"
         end do
       else
         do j=1,napx
-#include "track/mul4v08.f90"
+#include "include/mul4v08.f90"
         end do
       end if
 
@@ -20013,7 +19291,7 @@ subroutine thin6d(nthinerr)
 !GRDRHIC
 !GRD-042008
     if (lhc.eq.9) then
-+ca bnlout
+#include "include/bnlout.f90"
     end if
 !GRDRHIC
 !GRD-042008
@@ -20349,7 +19627,7 @@ subroutine trauthck(nthinerr)
     strackc(i)=zero
     stracks(i)=zero
   end do
-#include "track/beams1.f90"
+#include "include/beams1.f90"
   do 290 i=1,iu
     if(mout2.eq.1.and.i.eq.1) call write4
     ix=ic(i)
@@ -20380,47 +19658,47 @@ subroutine trauthck(nthinerr)
       ktrack(i)=31
       goto 290
     end if
-#include "track/beams21.f90"
-#include "track/beamcoo.f90"
-#include "track/beamr1.f90"
+#include "include/beams21.f90"
+#include "include/beamcoo.f90"
+#include "include/beamr1.f90"
      &goto 42
-#include "track/beamr2.f90"
-#include "track/beamr3o.f90"
-#include "track/beams22.f90"
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beam12.f90"
-#include "track/beama3.f90"
-#include "track/beam13.f90"
-#include "track/beama4o.f90"
+#include "include/beamr2.f90"
+#include "include/beamr3o.f90"
+#include "include/beams22.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beam12.f90"
+#include "include/beama3.f90"
+#include "include/beam13.f90"
+#include "include/beama4o.f90"
     else if(ibtyp.eq.1) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf1.f90"
-#include "track/beama4o.f90"
-#include "track/beams23.f90"
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beam22.f90"
-#include "track/beama3.f90"
-#include "track/beam23.f90"
-#include "track/beama4o.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf1.f90"
+#include "include/beama4o.f90"
+#include "include/beams23.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beam22.f90"
+#include "include/beama3.f90"
+#include "include/beam23.f90"
+#include "include/beama4o.f90"
     else if(ibtyp.eq.1) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamcoo.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf2.f90"
-#include "track/beama4o.f90"
-#include "track/beams24.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamcoo.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf2.f90"
+#include "include/beama4o.f90"
+#include "include/beams24.f90"
     ! wire
     if(kzz.eq.15) then
       ktrack(i)=45
@@ -20483,70 +19761,70 @@ subroutine trauthck(nthinerr)
         ktrack(i) = 31
       else
         ktrack(i) = 11
-+ca stra01
+#include "include/stra01.f90"
       end if
     case (2)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 12
-+ca stra02
+#include "include/stra02.f90"
       end if
     case (3)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) =31 
       else
         ktrack(i) = 13
-+ca stra03
+#include "include/stra03.f90"
       end if
     case (4)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 14
-+ca stra04
+#include "include/stra04.f90"
       end if
     case (5)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 15
-+ca stra05
+#include "include/stra05.f90"
       end if
     case (6)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 16
-+ca stra06
+#include "include/stra06.f90"
       end if
     case (7)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 17
-+ca stra07
+#include "include/stra07.f90"
       end if
     case (8)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 18
-+ca stra08
+#include "include/stra08.f90"
       end if
     case (9)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 19
-+ca stra09
+#include "include/stra09.f90"
       end if
     case (10)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 20
-+ca stra10
+#include "include/stra10.f90"
       end if
     case (11) ! Multipole block (also in initialize_element)
       r0=ek(ix)
@@ -20561,18 +19839,18 @@ subroutine trauthck(nthinerr)
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i)=33
-+ca stra11
+#include "include/stra11.f90"
           else
             ktrack(i)=35
-+ca stra12
+#include "include/stra12.f90"
           end if
         else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i)=37
-+ca stra13
+#include "include/stra13.f90"
           else
             ktrack(i)=39
-+ca stra14
+#include "include/stra14.f90"
           end if
         end if
       else
@@ -20581,18 +19859,18 @@ subroutine trauthck(nthinerr)
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i)=34
-+ca stra11
+#include "include/stra11.f90"
           else
             ktrack(i)=36
-+ca stra12
+#include "include/stra12.f90"
           end if
         else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i)=38
-+ca stra13
+#include "include/stra13.f90"
           else
             ktrack(i)=40
-+ca stra14
+#include "include/stra14.f90"
           end if
         end if
       end if
@@ -20631,10 +19909,10 @@ subroutine trauthck(nthinerr)
     case (12,13,14,15,16,17,18,19,20,21,22,23)
       goto 290
     case (24) ! DIPEDGE ELEMENT
-+ca stra2dpe
+#include "include/stra2dpe.f90"
       ktrack(i) = 55
     case (25) ! Solenoid
-+ca solenoid
+#include "include/solenoid.f90"
       ktrack(i) = 56
     
     !----------------
@@ -20645,70 +19923,70 @@ subroutine trauthck(nthinerr)
         ktrack(i) = 31
       else
         ktrack(i) = 21
-+ca stra01
+#include "include/stra01.f90"
       end if
     case (-2)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 22
-+ca stra02
+#include "include/stra02.f90"
       end if
     case (-3)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 23
-+ca stra03
+#include "include/stra03.f90"
       end if
     case (-4)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 24
-+ca stra04
+#include "include/stra04.f90"
       end if
     case (-5)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 25
-+ca stra05
+#include "include/stra05.f90"
       end if
     case (-6)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 26
-+ca stra06
+#include "include/stra06.f90"
       end if
     case (-7)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 27
-+ca stra07
+#include "include/stra07.f90"
       end if
     case (-8)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 28
-+ca stra08
+#include "include/stra08.f90"
       end if
     case (-9)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 29
-+ca stra09
+#include "include/stra09.f90"
       end if
     case (-10)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 30
-+ca stra10
+#include "include/stra10.f90"
       end if
     
     case default
@@ -20843,7 +20121,7 @@ subroutine thck4d(nthinerr)
   recompute_linear_matrices = .false.
 +ei
 
-+ca bnlin
+#include "include/bnlin.f90"
 !GRDRHIC
 !GRD-042008
 +ei
@@ -20915,7 +20193,7 @@ subroutine thck4d(nthinerr)
 
     do 480 i=1,iu
 +if bnlelens
-+ca bnltwiss
+#include "include/bnltwiss.f90"
 +ei
       if(ktrack(i).eq.1) then
         ix=ic(i)
@@ -20992,7 +20270,7 @@ subroutine thck4d(nthinerr)
           do jb=1,jmel
             jx=mtyp(ix,jb)
             do j=1,napx
-+ca thcklin
+#include "include/thcklin.f90"
             end do
           end do
         else 
@@ -21035,192 +20313,192 @@ subroutine thck4d(nthinerr)
         goto 480
       case (11) ! HORIZONTAL DIPOLE
         do j=1,napx
-#include "track/kickv01h.f90"
+#include "include/kickv01h.f90"
         end do
         goto 470
       case (12) ! NORMAL QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (14) ! NORMAL OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (15) ! NORMAL DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (16) ! NORMAL DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (17) ! NORMAL 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (18) ! NORMAL 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (19) ! NORMAL 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (20) ! NORMAL 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 470
       case (21) ! VERTICAL DIPOLE
         do j=1,napx
-#include "track/kickv01v.f90"
+#include "include/kickv01v.f90"
         end do
         goto 470
       case (22) ! SKEW QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (23) ! SKEW SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (24) ! SKEW OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (25) ! SKEW DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (26) ! SKEW DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (27) ! SKEW 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (28) ! SKEW 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (29) ! SKEW 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (30) ! SKEW 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 470
       case (31)
@@ -21229,95 +20507,95 @@ subroutine thck4d(nthinerr)
         goto 240
       case (33)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
         end do
         goto 470
       case (34)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
         end do
         goto 240
       case (35)
         do j=1,napx
-#include "track/mul4v02.f90"
+#include "include/mul4v02.f90"
         end do
         goto 470
       case (36)
         do j=1,napx
-#include "track/mul4v02.f90"
+#include "include/mul4v02.f90"
         end do
         goto 240
       case (37)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
         end do
         goto 470
       case (38)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
         end do
         goto 240
       case (39)
         do j=1,napx
-#include "track/mul4v04.f90"
+#include "include/mul4v04.f90"
         end do
         goto 470
       case (40)
         do j=1,napx
-#include "track/mul4v04.f90"
+#include "include/mul4v04.f90"
         end do
         goto 240
       case (41)
         do 690 j=1,napx
-#include "track/beamco.f90"
-#include "track/beamr1.f90"
+#include "include/beamco.f90"
+#include "include/beamr1.f90"
      &goto 690
-#include "track/beamr2.f90"
-#include "track/beamr3.f90"
+#include "include/beamr2.f90"
+#include "include/beamr3.f90"
 690     continue
         goto 470
       case (42)
         if(ibtyp.eq.0) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam12.f90"
-#include "track/beama3.f90"
-#include "track/beam13.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam12.f90"
+#include "include/beama3.f90"
+#include "include/beam13.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf1.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf1.f90"
+#include "include/beama4.f90"
         end if
         goto 470
       case (43)
         if(ibtyp.eq.0) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam22.f90"
-#include "track/beama3.f90"
-#include "track/beam23.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam22.f90"
+#include "include/beama3.f90"
+#include "include/beam23.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf2.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf2.f90"
+#include "include/beama4.f90"
         end if
         goto 470
       case (44,46,47,48,49,50,57,58,59,60,61,62)
@@ -21327,34 +20605,34 @@ subroutine thck4d(nthinerr)
         goto 470
       case (51)
         xory=1
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 470
       case (52)
         xory=2
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 470
       case (53)
         xory=1
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 470
       case (54)
         xory=2
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 470
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
-+ca alignva
-#include "track/kickvdpe.f90"
+#include "include/alignva.f90"
+#include "include/kickvdpe.f90"
         end do
         goto 470
       case (56) ! Solenoid
         do j=1,napx
-#include "track/kickvso1.f90"
+#include "include/kickvso1.f90"
         end do
         goto 470
       case (63) ! Elens
         do j=1,napx
-#include "track/kickelens.f90"
+#include "include/kickelens.f90"
         end do
         goto 470
       end select
@@ -21364,16 +20642,16 @@ subroutine thck4d(nthinerr)
       nmz=nmu(ix)
       if(nmz.ge.2) then
         do j=1,napx
-+ca alignvb
-#include "track/mul4v05.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v05.f90"
           do k=3,nmz
-#include "track/mul4v06.f90"
+#include "include/mul4v06.f90"
           end do
-#include "track/mul4v07.f90"
+#include "include/mul4v07.f90"
         end do
       else
         do j=1,napx
-#include "track/mul4v08.f90"
+#include "include/mul4v08.f90"
         end do
       end if
       goto 470
@@ -21436,7 +20714,7 @@ subroutine thck4d(nthinerr)
 !GRDRHIC
 !GRD-042008
     if (lhc.eq.9) then
-+ca bnlout
+#include "include/bnlout.f90"
     end if
 !GRDRHIC
 !GRD-042008
@@ -21555,7 +20833,7 @@ subroutine thck6d(nthinerr)
 !GRDRHIC
 !GRD-042008
   totals=zero
-+ca bnlin
+#include "include/bnlin.f90"
 !GRDRHIC
 !GRD-042008
 +ei
@@ -21633,7 +20911,7 @@ subroutine thck6d(nthinerr)
     do 500 i=1,iu
 +ei
 +if bnlelens
-+ca bnltwiss
+#include "include/bnltwiss.f90"
 +ei
 +if debug
 !===================================================================
@@ -21732,7 +21010,7 @@ subroutine thck6d(nthinerr)
         do jb=1,jmel
           jx=mtyp(ix,jb)
           do j=1,napx
-+ca thcklin
+#include "include/thcklin.f90"
           end do
         end do
         goto 500
@@ -21831,192 +21109,192 @@ subroutine thck6d(nthinerr)
         goto 500
       case (11) ! HORIZONTAL DIPOLE
         do j=1,napx
-#include "track/kickv01h.f90"
+#include "include/kickv01h.f90"
         end do
         goto 490
       case (12) ! NORMAL QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (14) ! NORMAL OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (15) ! NORMAL DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (16) ! NORMAL DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (17) ! NORMAL 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (18) ! NORMAL 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (19) ! NORMAL 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (20) ! NORMAL 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxh.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxh.f90"
         end do
         goto 490
       case (21) ! VERTICAL DIPOLE
         do j=1,napx
-#include "track/kickv01v.f90"
+#include "include/kickv01v.f90"
         end do
         goto 490
       case (22) ! SKEW QUADRUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (23) ! SKEW SEXTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (24) ! SKEW OCTUPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (25) ! SKEW DECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (26) ! SKEW DODECAPOLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (27) ! SKEW 14-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (28) ! SKEW 16-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (29) ! SKEW 18-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (30) ! SKEW 20-POLE
         do j=1,napx
-+ca alignva
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvho.f90"
-#include "track/kickvxxv.f90"
+#include "include/alignva.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvho.f90"
+#include "include/kickvxxv.f90"
         end do
         goto 490
       case (31)
@@ -22025,87 +21303,87 @@ subroutine thck6d(nthinerr)
         goto 260
       case (33)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
+#include "include/mul6v01.f90"
         end do
         goto 490
       case (34)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v01.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v01.f90"
+#include "include/mul6v01.f90"
         end do
         goto 260
       case (35)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v02.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v02.f90"
+#include "include/mul6v01.f90"
         end do
         goto 490
       case (36)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v02.f90"
-#include "track/mul6v01.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v02.f90"
+#include "include/mul6v01.f90"
         end do
         goto 260
       case (37)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
+#include "include/mul6v02.f90"
         end do
         goto 490
       case (38)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v03.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v03.f90"
+#include "include/mul6v02.f90"
         end do
         goto 260
       case (39)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v04.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v04.f90"
+#include "include/mul6v02.f90"
         end do
         goto 490
       case (40)
         do j=1,napx
-+ca alignvb
-#include "track/mul4v04.f90"
-#include "track/mul6v02.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v04.f90"
+#include "include/mul6v02.f90"
         end do
         goto 260
       case (41)
         do 690 j=1,napx
-#include "track/beamco.f90"
-#include "track/beamr1.f90"
+#include "include/beamco.f90"
+#include "include/beamr1.f90"
      &goto 690
-#include "track/beamr2.f90"
-#include "track/beamr3.f90"
+#include "include/beamr2.f90"
+#include "include/beamr3.f90"
 690     continue
         goto 490
       case (42)
         if(ibtyp.eq.0) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam12.f90"
-#include "track/beama3.f90"
-#include "track/beam13.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam12.f90"
+#include "include/beama3.f90"
+#include "include/beam13.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then
-#include "track/beam11.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf1.f90"
-#include "track/beama4.f90"
+#include "include/beam11.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf1.f90"
+#include "include/beama4.f90"
         end if
         goto 490
       case (43)
@@ -22120,22 +21398,22 @@ subroutine thck6d(nthinerr)
 +ei
 +ei
         if(ibtyp.eq.0) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beam22.f90"
-#include "track/beama3.f90"
-#include "track/beam23.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beam22.f90"
+#include "include/beama3.f90"
+#include "include/beam23.f90"
+#include "include/beama4.f90"
         else if(ibtyp.eq.1) then
-#include "track/beam21.f90"
-#include "track/beama1.f90"
-#include "track/beamco.f90"
-#include "track/beama2.f90"
-#include "track/beama3.f90"
-#include "track/beamwzf2.f90"
-#include "track/beama4.f90"
+#include "include/beam21.f90"
+#include "include/beama1.f90"
+#include "include/beamco.f90"
+#include "include/beama2.f90"
+#include "include/beama3.f90"
+#include "include/beamwzf2.f90"
+#include "include/beama4.f90"
         end if
 +if bnlelens
 +if debug
@@ -22149,7 +21427,7 @@ subroutine thck6d(nthinerr)
 +ei
         goto 490
       case (44)
-#include "track/beam6d.f90"
+#include "include/beam6d.f90"
         goto 490
       case (45) ! Wire
 +ca wirekick
@@ -22158,35 +21436,35 @@ subroutine thck6d(nthinerr)
         goto 500
       case (51)
         xory=1
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 490
       case (52)
         xory=2
-#include "track/acdipkick.f90"
+#include "include/acdipkick.f90"
         goto 490
       case (53)
         xory=1
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 490
       case (54)
         xory=2
-#include "track/crabkick.f90"
+#include "include/crabkick.f90"
         goto 490
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
-+ca alignva
-#include "track/kickvdpe.f90"
+#include "include/alignva.f90"
+#include "include/kickvdpe.f90"
         end do
         goto 490
       case (56) ! Solenoid
         do j=1,napx
-#include "track/kickvso1.f90"
-#include "track/kickvso2.f90"
+#include "include/kickvso1.f90"
+#include "include/kickvso2.f90"
         end do
         goto 490
       case (63) ! Elens
         do j=1,napx
-#include "track/kickelens.f90"
+#include "include/kickelens.f90"
         end do
         goto 490
       end select
@@ -22196,16 +21474,16 @@ subroutine thck6d(nthinerr)
       nmz=nmu(ix)
       if(nmz.ge.2) then
         do j=1,napx
-+ca alignvb
-#include "track/mul4v05.f90"
+#include "include/alignvb.f90"
+#include "include/mul4v05.f90"
           do k=3,nmz
-#include "track/mul4v06.f90"
+#include "include/mul4v06.f90"
           end do
-#include "track/mul4v07.f90"
+#include "include/mul4v07.f90"
         end do
       else
         do j=1,napx
-#include "track/mul4v08.f90"
+#include "include/mul4v08.f90"
         end do
       end if
       goto 490
@@ -22281,7 +21559,7 @@ subroutine thck6d(nthinerr)
 !GRDRHIC
 !GRD-042008
     if (lhc.eq.9) then
-+ca bnlout
+#include "include/bnlout.f90"
     end if
 !GRDRHIC
 !GRD-042008
@@ -24960,7 +24238,7 @@ end subroutine chroma
       call betalf(dp1,qw)
       call phasad(dp1,qwc)
       if(nbeam.ge.1) then
-#include "track/beamcou.f90"
+#include "include/beamcou.f90"
 +if debug
 !     call dumpbin('abeamcou2',3,33)
 !     call abend('after beam coupling                               ')
@@ -26871,7 +26149,7 @@ subroutine linopt(dpp)
         xs=xpl(ix)+zfz(izu)*xrms(ix)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
-+ca alignl
+#include "include/alignl.f90"
 
       if (kzz .ge. 0) then
         select case(kzz)
@@ -26879,113 +26157,113 @@ subroutine linopt(dpp)
         case (1)
 !--HORIZONTAL DIPOLE
            ekk=ekk*c1e3
-#include "track/kickl01h.f90"
-#include "track/kickq01h.f90"
+#include "include/kickl01h.f90"
+#include "include/kickq01h.f90"
 !--NORMAL QUADRUPOLE
         case(2)
-#include "track/kicklxxh.f90"
-#include "track/kickq02h.f90"
+#include "include/kicklxxh.f90"
+#include "include/kickq02h.f90"
 !--   NORMAL SEXTUPOLE
         case(3)
            ekk=ekk*c1m3
-#include "track/kickq03h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kickq03h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--NORMAL OCTUPOLE
         case(4)
            ekk=ekk*c1m6
-#include "track/kicksho.f90"
-#include "track/kickq04h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickq04h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--NORMAL DECAPOLE
         case(5)
            ekk=ekk*c1m9
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq05h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq05h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--NORMAL DODECAPOLE
         case(6)
            ekk=ekk*c1m12
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq06h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq06h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--NORMAL 14-POLE
         case(7)
            ekk=ekk*c1m15
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq07h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq07h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--NORMAL 16-POLE
         case(8)
            ekk=ekk*c1m18
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq08h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq08h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--NORMAL 18-POLE
         case(9)
            ekk=ekk*c1m21
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq09h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq09h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--NORMAL 20-POLE
         case(10)
            ekk=ekk*c1m24
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq10h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq10h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
 !--Multipole block
         case(11)
         r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl01.f90"
-#include "track/multl08.f90"
+#include "include/multl01.f90"
+#include "include/multl08.f90"
             do 340 i=2,ium
-#include "track/multl02.f90"
+#include "include/multl02.f90"
   340       continue
           else
-#include "track/multl03.f90"
-#include "track/multl09.f90"
+#include "include/multl03.f90"
+#include "include/multl09.f90"
           endif
         endif
         if(abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl04.f90"
-#include "track/multl10.f90"
+#include "include/multl04.f90"
+#include "include/multl10.f90"
             do 350 i=2,ium
-#include "track/multl05.f90"
+#include "include/multl05.f90"
   350       continue
           else
-#include "track/multl06.f90"
-#include "track/multl11.f90"
+#include "include/multl06.f90"
+#include "include/multl11.f90"
           endif
         endif
         if(abs(r0).le.pieni) then
@@ -27017,18 +26295,18 @@ subroutine linopt(dpp)
         r0a=one
         benkr=ed(ix)/(one+dpp)
         do 360 l=1,nmz
-#include "track/multl07a.f90"
+#include "include/multl07a.f90"
   360   continue
         if(nmz.ge.2) then
-#include "track/multl07b.f90"
+#include "include/multl07b.f90"
           do 365 l=3,nmz
-#include "track/multl07c.f90"
+#include "include/multl07c.f90"
   365     continue
         else
-#include "track/multl07d.f90"
+#include "include/multl07d.f90"
         endif
 +if tilt
-#include "track/multl07e.f90"
+#include "include/multl07e.f90"
 +ei
         izu=izu+2*mmul-2*nmz
 
@@ -27038,12 +26316,12 @@ subroutine linopt(dpp)
         
 !--DIPEDGE ELEMENT
         case(24)
-#include "track/kickldpe.f90"
-#include "track/kickqdpe.f90"
+#include "include/kickldpe.f90"
+#include "include/kickqdpe.f90"
 !--solenoid
         case(25)
-#include "track/kicklso1.f90"
-#include "track/kickqso1.f90"
+#include "include/kicklso1.f90"
+#include "include/kickqso1.f90"
 
 !--Skipped elements
         case(26,27,28)
@@ -27077,88 +26355,88 @@ subroutine linopt(dpp)
            case(1)
 !--VERTICAL DIPOLE
               ekk=ekk*c1e3
-#include "track/kickl01v.f90"
-#include "track/kickq01v.f90"
+#include "include/kickl01v.f90"
+#include "include/kickq01v.f90"
 !--SKEW QUADRUPOLE
            case(2)
-#include "track/kicklxxv.f90"
-#include "track/kickq02v.f90"
+#include "include/kicklxxv.f90"
+#include "include/kickq02v.f90"
 !--SKEW SEXTUPOLE
            case(3)
               ekk=ekk*c1m3
-#include "track/kickq03v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kickq03v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 !--SKEW OCTUPOLE
            case(4)
               ekk=ekk*c1m6
-#include "track/kicksho.f90"
-#include "track/kickq04v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickq04v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 !--SKEW DECAPOLE
            case(5)
               ekk=ekk*c1m9
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq05v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq05v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 !--SKEW DODECAPOLE
            case(6)
               ekk=ekk*c1m12
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq06v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq06v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 !--SKEW 14-POLE
            case(7)
               ekk=ekk*c1m15
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq07v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq07v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 !--SKEW 16-POLE
            case(8)
               ekk=ekk*c1m18
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq08v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq08v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 !--SKEW 18-POLE
            case(9)
               ekk=ekk*c1m21
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq09v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq09v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 !--SKEW 20-POLE
            case(10)
               ekk=ekk*c1m24
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq10v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq10v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
 
 !     Unrecognized skew element (including kzz=-12,kp.ne.6 for non-collimat/bnlelens)
            case default
@@ -27191,9 +26469,9 @@ subroutine linopt(dpp)
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
 !Contains elseif statements
-#include "track/phas1so1.f90"
-#include "track/phas2so1.f90"
-#include "track/phas3so1.f90"
+#include "include/phas1so1.f90"
+#include "include/phas2so1.f90"
+#include "include/phas3so1.f90"
           else
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
@@ -29078,7 +28356,7 @@ subroutine phasad(dpp,qwc)
         xs=xpl(ix)+zfz(izu)*xrms(ix)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
-+ca alignl
+#include "include/alignl.f90"
 +if debug
 !     call warr('qw',qw(1),1,0,0,0)
 !     call warr('qw',qw(2),2,0,0,0)
@@ -29092,109 +28370,109 @@ subroutine phasad(dpp,qwc)
       select case (kzz)
       case (1) ! HORIZONTAL DIPOLE
         ekk=ekk*c1e3
-#include "track/kickl01h.f90"
-#include "track/kickq01h.f90"
+#include "include/kickl01h.f90"
+#include "include/kickq01h.f90"
         goto 420
       case (2) ! NORMAL QUADRUPOLE
-#include "track/kicklxxh.f90"
-#include "track/kickq02h.f90"
+#include "include/kicklxxh.f90"
+#include "include/kickq02h.f90"
         goto 420
       case (3) ! NORMAL SEXTUPOLE
         ekk=ekk*c1m3
-#include "track/kickq03h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kickq03h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (4) ! NORMAL OCTUPOLE
         ekk=ekk*c1m6
-#include "track/kicksho.f90"
-#include "track/kickq04h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickq04h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (5) ! NORMAL DECAPOLE
         ekk=ekk*c1m9
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq05h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq05h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (6) ! NORMAL DODECAPOLE
         ekk=ekk*c1m12
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq06h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq06h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (7) ! NORMAL 14-POLE
         ekk=ekk*c1m15
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq07h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq07h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (8) ! NORMAL 16-POLE
         ekk=ekk*c1m18
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq08h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq08h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (9) ! NORMAL 18-POLE
         ekk=ekk*c1m21
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq09h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq09h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (10) ! NORMAL 20-POLE
         ekk=ekk*c1m24
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq10h.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq10h.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxh.f90"
         goto 420
       case (11)
         r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl01.f90"
+#include "include/multl01.f90"
             do i=2,ium
-#include "track/multl02.f90"
+#include "include/multl02.f90"
             end do
           else
-#include "track/multl03.f90"
+#include "include/multl03.f90"
           end if
         end if
         if(abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl04.f90"
+#include "include/multl04.f90"
             do i=2,ium
-#include "track/multl05.f90"
+#include "include/multl05.f90"
             end do
           else
-#include "track/multl06.f90"
+#include "include/multl06.f90"
           end if
         end if
         if(abs(r0).le.pieni) goto 450
@@ -29207,30 +28485,30 @@ subroutine phasad(dpp,qwc)
         r0a=one
         benkr=ed(ix)/(one+dpp)
         do l=1,nmz
-#include "track/multl07a.f90"
+#include "include/multl07a.f90"
         end do
         if(nmz.ge.2) then
-#include "track/multl07b.f90"
+#include "include/multl07b.f90"
           do l=3,nmz
-#include "track/multl07c.f90"
+#include "include/multl07c.f90"
           end do
         else
-#include "track/multl07d.f90"
+#include "include/multl07d.f90"
         end if
 +if tilt
-#include "track/multl07e.f90"
+#include "include/multl07e.f90"
 +ei
         izu=izu+2*mmul-2*nmz
         goto 420
       case (12,13,14,15,16,17,18,19,20,21,22,23)
         goto 450
       case (24) ! DIPEDGE ELEMENT
-#include "track/kickldpe.f90"
-#include "track/kickqdpe.f90"
+#include "include/kickldpe.f90"
+#include "include/kickqdpe.f90"
         goto 420
       case (25) ! Solenoid
-#include "track/kicklso1.f90"
-#include "track/kickqso1.f90"
+#include "include/kicklso1.f90"
+#include "include/kickqso1.f90"
         goto 420
       case (26,27,28)
         goto 450
@@ -29240,88 +28518,88 @@ subroutine phasad(dpp,qwc)
       !------------------
       case (-1)  ! VERTICAL DIPOLE
         ekk=ekk*c1e3
-#include "track/kickl01v.f90"
-#include "track/kickq01v.f90"
+#include "include/kickl01v.f90"
+#include "include/kickq01v.f90"
         goto 420
       case (-2)  ! SKEW QUADRUPOLE
-#include "track/kicklxxv.f90"
-#include "track/kickq02v.f90"
+#include "include/kicklxxv.f90"
+#include "include/kickq02v.f90"
         goto 420
       case (-3)  ! SKEW SEXTUPOLE
         ekk=ekk*c1m3
-#include "track/kickq03v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kickq03v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
         goto 420
       case (-4)  ! SKEW OCTUPOLE
         ekk=ekk*c1m6
-#include "track/kicksho.f90"
-#include "track/kickq04v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickq04v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
         goto 420
       case (-5)  ! SKEW DECAPOLE
         ekk=ekk*c1m9
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq05v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq05v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
         goto 420
       case (-6)  ! SKEW DODECAPOLE
         ekk=ekk*c1m12
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq06v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq06v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
         goto 420
       case (-7)  ! SKEW 14-POLE
         ekk=ekk*c1m15
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq07v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq07v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
         goto 420
       case (-8)  ! SKEW 16-POLE
         ekk=ekk*c1m18
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq08v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq08v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
         goto 420
       case (-9)  ! SKEW 18-POLE
         ekk=ekk*c1m21
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq09v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq09v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
         goto 420
       case (-10) ! SKEW 20-POLE
         ekk=ekk*c1m24
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kickq10v.f90"
-#include "track/kicksho.f90"
-#include "track/kicklxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kickq10v.f90"
+#include "include/kicksho.f90"
+#include "include/kicklxxv.f90"
       case default
         goto 450
       end select
@@ -29334,9 +28612,9 @@ subroutine phasad(dpp,qwc)
         if(kzz.eq.24) then
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "track/phas1so1.f90"
-#include "track/phas2so1.f90"
-#include "track/phas3so1.f90"
+#include "include/phas1so1.f90"
+#include "include/phas2so1.f90"
+#include "include/phas3so1.f90"
         else
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
@@ -29704,7 +28982,7 @@ end subroutine qmod0
       do ncorr=1,itqv+1
         if(nbeam.ge.1) then
           nd=mm
-#include "track/beamcou.f90"
+#include "include/beamcou.f90"
         endif
         if(iqmod6.eq.1) write(lout,10080) nd2
         if(iqmod6.ne.1) write(lout,10090) nd2
@@ -30031,138 +29309,138 @@ subroutine umlauf(dpp,ium,ierr)
     xs=xpl(ix)+zfz(izu)*xrms(ix)
     izu=izu+1
     zs=zpl(ix)+zfz(izu)*zrms(ix)
-+ca alignu
+#include "include/alignu.f90"
 
     select case (kzz)
     case (1) ! HORIZONTAL DIPOLE
       ekk=ekk*c1e3
-#include "track/kicku01h.f90"
+#include "include/kicku01h.f90"
       goto 350
     case (2) ! NORMAL QUADRUPOLE
-#include "track/kickuxxh.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
-#include "track/kickq02h.f90"
+#include "include/kickq02h.f90"
       goto 330
     case (3) ! NORMAL SEXTUPOLE
       ekk=ekk*c1m3
       if(ium.ne.1) then
-#include "track/kickq03h.f90"
+#include "include/kickq03h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (4) ! NORMAL OCTUPOLE
       ekk=ekk*c1m6
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq04h.f90"
+#include "include/kickq04h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (5) ! NORMAL DECAPOLE
       ekk=ekk*c1m9
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq05h.f90"
+#include "include/kickq05h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (6) ! NORMAL DODECAPOLE
       ekk=ekk*c1m12
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq06h.f90"
+#include "include/kickq06h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (7) ! NORMAL 14-POLE
       ekk=ekk*c1m15
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq07h.f90"
+#include "include/kickq07h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (8) ! NORMAL 16-POLE
       ekk=ekk*c1m18
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq08h.f90"
+#include "include/kickq08h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (9) ! NORMAL 18-POLE
       ekk=ekk*c1m21
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq09h.f90"
+#include "include/kickq09h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (10) ! NORMAL 20-POLE
       ekk=ekk*c1m24
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq10h.f90"
+#include "include/kickq10h.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxh.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxh.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (11)
       r0=ek(ix)
       if(abs(dki(ix,1)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multu01.f90"
+#include "include/multu01.f90"
           do j=2,ium
-#include "track/multu02.f90"
+#include "include/multu02.f90"
           end do
         else
-#include "track/multu03.f90"
+#include "include/multu03.f90"
         end if
       end if
       if(abs(dki(ix,2)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multu04.f90"
+#include "include/multu04.f90"
           do j=2,ium
-#include "track/multu05.f90"
+#include "include/multu05.f90"
           end do
         else
-#include "track/multu06.f90"
+#include "include/multu06.f90"
         end if
       end if
       if(abs(r0).le.pieni) goto 350
@@ -30175,18 +29453,18 @@ subroutine umlauf(dpp,ium,ierr)
       r0a=one
       benkr=ed(ix)/(one+dpp)
       do l=1,nmz
-#include "track/multl07a.f90"
+#include "include/multl07a.f90"
       end do
       if(nmz.ge.2) then
-#include "track/multl07b.f90"
+#include "include/multl07b.f90"
         do l=3,nmz
-#include "track/multl07c.f90"
+#include "include/multl07c.f90"
         end do
       else
-#include "track/multl07d.f90"
+#include "include/multl07d.f90"
       end if
 +if tilt
-#include "track/multl07e.f90"
+#include "include/multl07e.f90"
 +ei
       izu=izu+2*mmul-2*nmz
       y(1,1)=y(1,1)+dyy1
@@ -30196,14 +29474,14 @@ subroutine umlauf(dpp,ium,ierr)
     case (12,13,14,15,16,17,18,19,20,21,22,23)
       goto 350
     case (24) ! DIPEDGE ELEMENT
-#include "track/kickudpe.f90"
+#include "include/kickudpe.f90"
       if(ium.eq.1) goto 350
-#include "track/kickqdpe.f90"
+#include "include/kickqdpe.f90"
       goto 330
     case (25) ! Solenoid
-#include "track/kickuso1.f90"
+#include "include/kickuso1.f90"
       if(ium.eq.1) goto 350
-#include "track/kickqso1.f90"
+#include "include/kickqso1.f90"
       goto 330
     case (26,27,28)
       goto 350
@@ -30213,111 +29491,111 @@ subroutine umlauf(dpp,ium,ierr)
     !------------------
     case (-1) ! VERTICAL DIPOLE
       ekk=ekk*c1e3
-#include "track/kicku01v.f90"
+#include "include/kicku01v.f90"
       goto 350
     case (-2) ! SKEW QUADRUPOLE
-#include "track/kickuxxv.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
-#include "track/kickq02v.f90"
+#include "include/kickq02v.f90"
       goto 330
     case (-3) ! SKEW SEXTUPOLE
       ekk=ekk*c1m3
       if(ium.ne.1) then
-#include "track/kickq03v.f90"
+#include "include/kickq03v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (-4) ! SKEW OCTUPOLE
       ekk=ekk*c1m6
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq04v.f90"
+#include "include/kickq04v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (-5) ! SKEW DECAPOLE
       ekk=ekk*c1m9
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq05v.f90"
+#include "include/kickq05v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (-6) ! SKEW DODECAPOLE
       ekk=ekk*c1m12
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq06v.f90"
+#include "include/kickq06v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (-7) ! SKEW 14-POLE
       ekk=ekk*c1m15
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq07v.f90"
+#include "include/kickq07v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (-8) ! SKEW 16-POLE
       ekk=ekk*c1m18
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq08v.f90"
+#include "include/kickq08v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (-9) ! SKEW 18-POLE
       ekk=ekk*c1m21
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq09v.f90"
+#include "include/kickq09v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       goto 330
     case (-10) ! SKEW 20-POLE
       ekk=ekk*c1m24
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
-#include "track/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
+#include "include/kicksho.f90"
       if(ium.ne.1) then
-#include "track/kickq10v.f90"
+#include "include/kickq10v.f90"
       end if
-#include "track/kicksho.f90"
-#include "track/kickuxxv.f90"
+#include "include/kicksho.f90"
+#include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
       
     case default
@@ -30612,58 +29890,58 @@ subroutine resex(dpp)
         xs=xpl(ix)+zfz(izu)*xrms(ix)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
-+ca alignl
+#include "include/alignl.f90"
         
         select case (kzz)
         case (1)  ! HORIZONTAL DIPOLE
           ekk=ekk*c1e3
-#include "track/kicka01h.f90"
+#include "include/kicka01h.f90"
         case (2)  ! NORMAL QUADRUPOLE
-#include "track/kicka02h.f90"
+#include "include/kicka02h.f90"
         case (3)  ! NORMAL SEXTUPOLE
           ekk=ekk*c1m3
-#include "track/kicka03h.f90"
+#include "include/kicka03h.f90"
         case (4)  ! NORMAL OCTUPOLE
           ekk=ekk*c1m6
-#include "track/kicka04h.f90"
+#include "include/kicka04h.f90"
         case (5)  ! NORMAL DECAPOLE
           ekk=ekk*c1m9
-#include "track/kicka05h.f90"
+#include "include/kicka05h.f90"
         case (6)  ! NORMAL DODECAPOLE
           ekk=ekk*c1m12
-#include "track/kicka06h.f90"
+#include "include/kicka06h.f90"
         case (7)  ! NORMAL 14-POLE
           ekk=ekk*c1m15
-#include "track/kicka07h.f90"
+#include "include/kicka07h.f90"
         case (8)  ! NORMAL 16-POLE
           ekk=ekk*c1m18
-#include "track/kicka08h.f90"
+#include "include/kicka08h.f90"
         case (9)  ! NORMAL 18-POLE
           ekk=ekk*c1m21
-#include "track/kicka09h.f90"
+#include "include/kicka09h.f90"
         case (10) ! NORMAL 20-POLE
           ekk=ekk*c1m24
-#include "track/kicka10h.f90"
+#include "include/kicka10h.f90"
         case (11)
           r0 = ek(ix)
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl01.f90"
+#include "include/multl01.f90"
               do i=2,ium
-#include "track/multl02.f90"
+#include "include/multl02.f90"
               end do
             else
-#include "track/multl03.f90"
+#include "include/multl03.f90"
             end if
           end if
           if(abs(dki(ix,2)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl04.f90"
+#include "include/multl04.f90"
               do i=2,ium
-#include "track/multl05.f90"
+#include "include/multl05.f90"
               end do
             else
-#include "track/multl06.f90"
+#include "include/multl06.f90"
             end if
           end if
           mpe = 9
@@ -30695,19 +29973,19 @@ subroutine resex(dpp)
             ci(l)=zero
           end do
           do l=1,nmz
-#include "track/multl13.f90"
+#include "include/multl13.f90"
           end do
 +if tilt
-#include "track/multl07e.f90"
+#include "include/multl07e.f90"
 +ei
           izu = izu+2*mmul-2*nmz
           goto 480
         case (12,13,14,15,16,17,18,19,20,21,22,23)
           goto 480
         case (24) ! DIPEDGE ELEMENT
-#include "track/kickadpe.f90"
+#include "include/kickadpe.f90"
         case (25) ! Solenoid
-#include "track/kickaso1.f90"
+#include "include/kickaso1.f90"
         case (26,27,28)
           goto 480
         
@@ -30716,33 +29994,33 @@ subroutine resex(dpp)
         !-----------------
         case (-1)  ! VERTICAL DIPOLE
           ekk=ekk*c1e3
-#include "track/kicka01v.f90"
+#include "include/kicka01v.f90"
         case (-2)  ! SKEW QUADRUPOLE
-#include "track/kicka02v.f90"
+#include "include/kicka02v.f90"
         case (-3)  ! SKEW SEXTUPOLE
           ekk=ekk*c1m3
-#include "track/kicka03v.f90"
+#include "include/kicka03v.f90"
         case (-4)  ! SKEW OCTUPOLE
           ekk=ekk*c1m6
-#include "track/kicka04v.f90"
+#include "include/kicka04v.f90"
         case (-5)  ! SKEW DECAPOLE
           ekk=ekk*c1m9
-#include "track/kicka05v.f90"
+#include "include/kicka05v.f90"
         case (-6)  ! SKEW DODECAPOLE
           ekk=ekk*c1m12
-#include "track/kicka06v.f90"
+#include "include/kicka06v.f90"
         case (-7)  ! SKEW 14-POLE
           ekk=ekk*c1m15
-#include "track/kicka07v.f90"
+#include "include/kicka07v.f90"
         case (-8)  ! SKEW 16-POLE
           ekk=ekk*c1m18
-#include "track/kicka08v.f90"
+#include "include/kicka08v.f90"
         case (-9)  ! SKEW 18-POLE
           ekk=ekk*c1m21
-#include "track/kicka09v.f90"
+#include "include/kicka09v.f90"
         case (-10) ! SKEW 20-POLE
           ekk=ekk*c1m24
-#include "track/kicka10v.f90"
+#include "include/kicka10v.f90"
         end select
         goto 770
   480   continue
@@ -30752,9 +30030,9 @@ subroutine resex(dpp)
           if(kzz.eq.24) then
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "track/phas1so1.f90"
-#include "track/phas2so1.f90"
-#include "track/phas3so1.f90"
+#include "include/phas1so1.f90"
+#include "include/phas2so1.f90"
+#include "include/phas3so1.f90"
           else
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
@@ -31885,71 +31163,71 @@ subroutine subre(dpp)
           xs=xpl(ix)+zfz(izu)*xrms(ix)
           izu=izu+1
           zs=zpl(ix)+zfz(izu)*zrms(ix)
-+ca alignl
+#include "include/alignl.f90"
 
         select case (kzz)
         case (1) ! HORIZONTAL DIPOLE
           ekk=ekk*c1e3
-#include "track/kicka01h.f90"
+#include "include/kicka01h.f90"
         case (2) ! NORMAL QUADRUPOLE
-#include "track/kicka02h.f90"
+#include "include/kicka02h.f90"
         case (3) ! NORMAL SEXTUPOLE
           ekk=ekk*c1m3
-#include "track/kicka03h.f90"
+#include "include/kicka03h.f90"
         case (4) ! NORMAL OCTUPOLE
           ekk=ekk*c1m6
-#include "track/kicka04h.f90"
+#include "include/kicka04h.f90"
           call detune(2,ekk,ep,beta,dtu,dtup,dfac)
         case (5) ! NORMAL DECAPOLE
           ekk=ekk*c1m9
-#include "track/kicka05h.f90"
+#include "include/kicka05h.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
         case (6) ! NORMAL DODECAPOLE
           ekk=ekk*c1m12
-#include "track/kicka06h.f90"
+#include "include/kicka06h.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ekk,ep,beta,dtu,dtup,dfac)
         case (7) ! NORMAL 14-POLE
           ekk=ekk*c1m15
-#include "track/kicka07h.f90"
+#include "include/kicka07h.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
         case (8) ! NORMAL 16-POLE
           ekk=ekk*c1m18
-#include "track/kicka08h.f90"
+#include "include/kicka08h.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
           call detune(4,ekk,ep,beta,dtu,dtup,dfac)
         case (9) ! NORMAL 18-POLE
           ekk=ekk*c1m21
-#include "track/kicka09h.f90"
+#include "include/kicka09h.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
           call detune(4,ab1(8),ep,beta,dtu,dtup,dfac)
         case (10) ! NORMAL 20-POLE
           ekk=ekk*c1m24
-#include "track/kicka10h.f90"
-#include "track/kispa10h.f90"
+#include "include/kicka10h.f90"
+#include "include/kispa10h.f90"
         case (11)
           r0=ek(ix)
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl01.f90"
+#include "include/multl01.f90"
               do i=2,ium
-#include "track/multl02.f90"
+#include "include/multl02.f90"
               end do
             else
-#include "track/multl03.f90"
+#include "include/multl03.f90"
             end if
           end if
           if(abs(dki(ix,2)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl04.f90"
+#include "include/multl04.f90"
               do i=2,ium
-#include "track/multl05.f90"
+#include "include/multl05.f90"
               end do
             else
-#include "track/multl06.f90"
+#include "include/multl06.f90"
             end if
           end if
           mpe=9
@@ -31983,21 +31261,21 @@ subroutine subre(dpp)
             ci(l)=zero
           end do
           do l=1,nmz
-#include "track/multl13.f90"
+#include "include/multl13.f90"
           end do
 +if tilt
-#include "track/multl07e.f90"
+#include "include/multl07e.f90"
 +ei
           izu=izu+2*mmul-2*nmz
           do iv=2,5
-#include "track/multl12.f90"
+#include "include/multl12.f90"
           end do
         case (12,13,14,15,16,17,18,19,20,21,22,23)
           goto 790
         case (24) ! DIPEDGE ELEMENT
-#include "track/kickadpe.f90"
+#include "include/kickadpe.f90"
         case (25) ! Solenoid
-#include "track/kickaso1.f90"
+#include "include/kickaso1.f90"
         case (26,27,28)
           goto 790
         
@@ -32006,43 +31284,43 @@ subroutine subre(dpp)
         !-----------------
         case (-1) ! VERTICAL DIPOLE
           ekk=ekk*c1e3
-#include "track/kicka01v.f90"
+#include "include/kicka01v.f90"
         case (-2) ! SKEW QUADRUPOLE
-#include "track/kicka02v.f90"
+#include "include/kicka02v.f90"
         case (-3) ! SKEW SEXTUPOLE
           ekk=ekk*c1m3
-#include "track/kicka03v.f90"
+#include "include/kicka03v.f90"
         case (-4) ! SKEW OCTUPOLE
           ekk=ekk*c1m6
-#include "track/kicka04v.f90"
+#include "include/kicka04v.f90"
         case (-5) ! SKEW DECAPOLE
           ekk=ekk*c1m9
-#include "track/kicka05v.f90"
+#include "include/kicka05v.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
         case (-6) ! SKEW DODECAPOLE
           ekk=ekk*c1m12
-#include "track/kicka06v.f90"
+#include "include/kicka06v.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
         case (-7) ! SKEW 14-POLE
           ekk=ekk*c1m15
-#include "track/kicka07v.f90"
+#include "include/kicka07v.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
         case (-8) ! SKEW 16-POLE
           ekk=ekk*c1m18
-#include "track/kicka08v.f90"
+#include "include/kicka08v.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
         case (-9) ! SKEW 18-POLE
           ekk=ekk*c1m21
-#include "track/kicka09v.f90"
+#include "include/kicka09v.f90"
           call detune(2,ab1(4),ep,beta,dtu,dtup,dfac)
           call detune(3,ab1(6),ep,beta,dtu,dtup,dfac)
           call detune(4,ab1(8),ep,beta,dtu,dtup,dfac)
         case (-10) ! SKEW 20-POLE
           ekk=ekk*c1m24
-#include "track/kicka10v.f90"
-#include "track/kispa10v.f90"
+#include "include/kicka10v.f90"
+#include "include/kispa10v.f90"
         case default
           goto 790
         end select
@@ -32053,9 +31331,9 @@ subroutine subre(dpp)
             if(kzz.eq.24) then
               t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
               t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "track/phas1so1.f90"
-#include "track/phas2so1.f90"
-#include "track/phas3so1.f90"
+#include "include/phas1so1.f90"
+#include "include/phas2so1.f90"
+#include "include/phas3so1.f90"
             else
               t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
               t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
@@ -32847,58 +32125,58 @@ subroutine subsea(dpp)
         xs=xpl(ix)+zfz(izu)*xrms(ix)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
-+ca alignl
+#include "include/alignl.f90"
       
       select case (kzz)
       case (1) ! HORIZONTAL DIPOLE
         ekk=ekk*c1e3
-#include "track/kicka01h.f90"
+#include "include/kicka01h.f90"
       case (2) ! NORMAL QUADRUPOLE
-#include "track/kicka02h.f90"
+#include "include/kicka02h.f90"
       case (3) ! NORMAL SEXTUPOLE
         ekk=ekk*c1m3
-#include "track/kicka03h.f90"
+#include "include/kicka03h.f90"
       case (4) ! NORMAL OCTUPOLE
         ekk=ekk*c1m6
-#include "track/kicka04h.f90"
+#include "include/kicka04h.f90"
       case (5) ! NORMAL DECAPOLE
         ekk=ekk*c1m9
-#include "track/kicka05h.f90"
+#include "include/kicka05h.f90"
       case (6) ! NORMAL DODECAPOLE
         ekk=ekk*c1m12
-#include "track/kicka06h.f90"
+#include "include/kicka06h.f90"
       case (7) ! NORMAL 14-POLE
         ekk=ekk*c1m15
-#include "track/kicka07h.f90"
+#include "include/kicka07h.f90"
       case (8) ! NORMAL 16-POLE
         ekk=ekk*c1m18
-#include "track/kicka08h.f90"
+#include "include/kicka08h.f90"
       case (9) ! NORMAL 18-POLE
         ekk=ekk*c1m21
-#include "track/kicka09h.f90"
+#include "include/kicka09h.f90"
       case (10) ! NORMAL 20-POLE
         ekk=ekk*c1m24
-#include "track/kicka10h.f90"
+#include "include/kicka10h.f90"
       case (11)
         r0=ek(ix)
         if(abs(dki(ix,1)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl01.f90"
+#include "include/multl01.f90"
             do i=2,ium
-#include "track/multl02.f90"
+#include "include/multl02.f90"
             end do
           else
-#include "track/multl03.f90"
+#include "include/multl03.f90"
           end if
         end if
         if(abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-#include "track/multl04.f90"
+#include "include/multl04.f90"
             do i=2,ium
-#include "track/multl05.f90"
+#include "include/multl05.f90"
             end do
           else
-#include "track/multl06.f90"
+#include "include/multl06.f90"
           end if
         end if
         mpe=9
@@ -32932,18 +32210,18 @@ subroutine subsea(dpp)
         end do
         
         do l=1,nmz
-#include "track/multl13.f90"
+#include "include/multl13.f90"
         end do
 +if tilt
-#include "track/multl07e.f90"
+#include "include/multl07e.f90"
 +ei
         izu=(izu+2*mmul)-2*nmz                                           !hr06
       case (12,13,14,15,16,17,18,19,20,21,22,23)
         goto 740
       case (24) ! DIPEDGE ELEMENT
-#include "track/kickadpe.f90"
+#include "include/kickadpe.f90"
       case (25) ! Solenoid
-#include "track/kickaso1.f90"
+#include "include/kickaso1.f90"
       case (26,27,28)
         goto 740
         
@@ -32952,33 +32230,33 @@ subroutine subsea(dpp)
         !------------------
       case (-1) ! VERTICAL DIPOLE
         ekk=ekk*c1e3
-#include "track/kicka01v.f90"
+#include "include/kicka01v.f90"
       case (-2) ! SKEW QUADRUPOLE
-#include "track/kicka02v.f90"
+#include "include/kicka02v.f90"
       case (-3) ! SKEW SEXTUPOLE
         ekk=ekk*c1m3
-#include "track/kicka03v.f90"
+#include "include/kicka03v.f90"
       case (-4) ! SKEW OCTUPOLE
         ekk=ekk*c1m6
-#include "track/kicka04v.f90"
+#include "include/kicka04v.f90"
       case (-5) ! SKEW DECAPOLE
         ekk=ekk*c1m9
-#include "track/kicka05v.f90"
+#include "include/kicka05v.f90"
       case (-6) ! SKEW DODECAPOLE
         ekk=ekk*c1m12
-#include "track/kicka06v.f90"
+#include "include/kicka06v.f90"
       case (-7) ! SKEW 14-POLE
         ekk=ekk*c1m15
-#include "track/kicka07v.f90"
+#include "include/kicka07v.f90"
       case (-8) ! SKEW 16-POLE
         ekk=ekk*c1m18
-#include "track/kicka08v.f90"
+#include "include/kicka08v.f90"
       case (-9) ! SKEW 18-POLE
         ekk=ekk*c1m21
-#include "track/kicka09v.f90"
+#include "include/kicka09v.f90"
       case (-10) ! SKEW 20-POLE
         ekk=ekk*c1m24
-#include "track/kicka10v.f90"
+#include "include/kicka10v.f90"
         
       case default
         goto 740
@@ -32990,9 +32268,9 @@ subroutine subsea(dpp)
         if(kzz.eq.24) then
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "track/phas1so1.f90"
-#include "track/phas2so1.f90"
-#include "track/phas3so1.f90"
+#include "include/phas1so1.f90"
+#include "include/phas2so1.f90"
+#include "include/phas3so1.f90"
         else
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
