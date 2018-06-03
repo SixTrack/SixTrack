@@ -755,766 +755,6 @@
      &ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
      &clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
      &di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
-+cd bnlin
-+cd bnlout
-+cd bnltwiss
-+cd thcklin
-+cd sqrtfox0
-+if rvet
-!FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0*MTCDA/(ONE+DPDA) ;
-!FOX  RVET=RVET/(E0*(ONE+DPDA)/MTCDA+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+
-!FOX  DPDA*DPDA))) ;
-+ei
-+if .not.rvet
-!
-+ei
-+cd sqrtfox
-+if rvet
-!FOX  EL(JX)*(RVET-C5M4*RV*(Y(1)*Y(1)+Y(2)*Y(2))) ;
-+ei
-+if fast
-!FOX  EL(JX)*(C1E3-RV*(C1E3+(Y(1)*Y(1)+Y(2)*Y(2))*C5M4)) ;
-+ei
-+if .not.fast.and..not.rvet
-!FOX  EL(JX)*(C1E3-RV*SQRT(C1E6+Y(1)*Y(1)+Y(2)*Y(2))) ;
-+ei
-+cd sqrts
-+if .not.fast
-     &sqrt((c1e6+y(j,1)**2)+                                            &!hr03
-     &y(j,2)**2))                                                        !hr03
-+ei
-+if fast
-     &(c1e3+(y(j,1)**2+                                                 &!hr03
-     &y(j,2)**2)*c5m4))                                                  !hr03
-+ei
-+cd sqrtv
-+if rvet
-      rvet(j)=((((c1e3*pma**2)*(two+dpsv(j)))*dpsv(j))/e0)/(one+dpsv(j))
-            rvet(j)=rvet(j)/(e0*(one+dpsv(j))+                          &!hr03
-     &sqrt(e0**2+e0f**2*(two*dpsv(j)+dpsv(j)**2)))                       !hr03
-            sigmv(j)=sigmv(j)+stracki*(rvet(j)-(c5m4*rvv(j))*(yv(1,j)   &!hr03
-     &**2+yv(2,j)**2))                                                   !hr03
-+ei
-+if fast
-            sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)       &!hr03
-     &**2+yv(2,j)**2)*c5m4))                                             !hr03
-+ei
-+if .not.fast.and..not.rvet
-            sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)   &!hr03
-     &**2)+yv(2,j)**2))                                                  !hr03
-+ei
-
-+cd umlalid
-          iwrite=0
-          if(nlin.eq.0) then
-            iwrite=1
-          else
-            do ii=1,nlin
-              if(typ.eq.bezl(ii)) iwrite=1
-            enddo
-          endif
-!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
-!FOX  DPDA1=DPDA*C1E3 ;
-!FOX  DELTAS=SIGMDA/RV ;
-          call dacop(x(1),damap(1))
-          call dacop(yp(1),damap(2))
-          call dacop(x(2),damap(3))
-          call dacop(yp(2),damap(4))
-          do j=1,2
-            ii=2*j
-            call dapek(damap(ii-1),jj,c(j))
-            call dapek(damap(ii),jj,cp(j))
-          enddo
-          call dacsu(damap(1),c(1),damap(1))
-          call dacsu(damap(2),cp(1),damap(2))
-          call dacsu(damap(3),c(2),damap(3))
-          call dacsu(damap(4),cp(2),damap(4))
-          if(ndimf.eq.3) then
-            call dacop(deltas,damap(5))
-            call dacop(dpda1,damap(6))
-            call dapek(damap(5),jj,c(3))
-            call dapek(damap(6),jj,cp(3))
-            call dacsu(damap(5),c(3),damap(5))
-            call dacsu(damap(6),cp(3),damap(6))
-            if(iflag1.eq.1.and.ithick.eq.1) then
-              call dacct(damap,nvar,corrnew,nvar,damap,nvar)
-            endif
-          else
-            call dacop(dpda1,damap(5))
-            do j1=1,4
-              do ii=1,4
-                jj(ii)=1
-                call dapek(damap(j1),jj,rdd(j1,ii))
-                jj(ii)=0
-              enddo
-            enddo
-            jj(5)=1
-            do j1=1,4
-              call dapek(damap(j1),jj,rdd(j1,5))
-            enddo
-            jj(5)=0
-            do j1=1,2
-              ii=2*j1
-              d(j1)=(((rdd(ii-1,1)*dicu(1)+rdd(ii-1,2)*dicu(2))+        &!hr03
-     &rdd(ii-1,3)*dicu(3))+rdd(ii-1,4)*dicu(4))+rdd(ii-1,5)              !hr03
-              dp(j1)=(((rdd(ii,1)*dicu(1)+rdd(ii,2)*dicu(2))+           &!hr03
-     &rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)                    !hr03
-            enddo
-          endif
-          call dacct(damap,nvar,aa2,nvar,damap,nvar)
-!         calculate linear 6D optics parameter for each element
-!         by calculating the matrix of eigenvectors (tas)
-          do j=1,ndimf
-            ii=2*j
-            if(j.eq.1) then
-              i2=4
-              i3=6
-            elseif(j.eq.2) then
-              i2=2
-              i3=6
-            elseif(j.eq.3) then
-              i2=2
-              i3=4
-            endif
-            jj(ii-1)=1
-            call dapek(damap(ii-1),jj,angp(1,ii-1))
-            call dapek(damap(ii),jj,au(ii,ii-1))
-            jj(ii-1)=0
-            jj(ii)=1
-            call dapek(damap(ii-1),jj,angp(1,ii))
-            call dapek(damap(ii),jj,au(ii,ii))
-            jj(ii)=0
-            jj(i2-1)=1
-            call dapek(damap(ii-1),jj,au(i2-1,i2-1))
-            call dapek(damap(ii),jj,au(i2,i2-1))
-            jj(i2-1)=0
-            jj(i2)=1
-            call dapek(damap(ii-1),jj,au(i2-1,i2))
-            call dapek(damap(ii),jj,au(i2,i2))
-            jj(i2)=0
-            jj(i3-1)=1
-            call dapek(damap(ii-1),jj,au(i3-1,i3-1))
-            call dapek(damap(ii),jj,au(i3,i3-1))
-            jj(i3-1)=0
-            jj(i3)=1
-            call dapek(damap(ii-1),jj,au(i3-1,i3))
-            call dapek(damap(ii),jj,au(i3,i3))
-            jj(i3)=0
-            
-!     Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalization.
-!     Variable added to DUMP block module variables;
-!     units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
-            if(ic(i)-nblo.gt.0) then !check if structure element is a block
-              if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-                dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
-                dumptas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
-                dumptas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)
-                dumptas(ic(i)-nblo,ii  ,ii  )=au(ii,ii  )
-                dumptas(ic(i)-nblo,ii-1,i2-1)=au(i2-1,i2-1)
-                dumptas(ic(i)-nblo,ii  ,i2-1)=au(i2  ,i2-1)
-                dumptas(ic(i)-nblo,ii-1,i2  )=au(i2-1,i2  )
-                dumptas(ic(i)-nblo,ii  ,i2  )=au(i2  ,i2  )
-                dumptas(ic(i)-nblo,ii-1,i3-1)=au(i3-1,i3-1)
-                dumptas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
-                dumptas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
-                dumptas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
-!    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
-!    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
-!     -> check units used in dumpclo (is x' or px used?) 
-                dumpclo(ic(i)-nblo,2*j-1)=c(j)
-                if (j.eq.3) then !dp/p
-                  dumpclo(ic(i)-nblo,2*j)  =cp(j)*c1m3
-                else ! xp,yp
-                  dumpclo(ic(i)-nblo,2*j)  =cp(j)/(one+cp(3)*c1m3)
-                endif
-              endif
-            endif
-           
-            b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
-            b2(j)=au(i2-1,i2-1)**2+au(i2-1,i2)**2                        !hr08
-            b3(j)=au(i3-1,i3-1)**2+au(i3-1,i3)**2                        !hr08
-            al1(j)=-one*(angp(1,ii-1)*au(ii,ii-1)+angp(1,ii)*au(ii,ii))  !hr03
-           al2(j)=-one*(au(i2-1,i2-1)*au(i2,i2-1)+au(i2-1,i2)*au(i2,i2)) !hr03
-           al3(j)=-one*(au(i3-1,i3-1)*au(i3,i3-1)+au(i3-1,i3)*au(i3,i3)) !hr03
-            g1(j)=au(ii,ii-1)**2+au(ii,ii)**2                            !hr04
-            g2(j)=au(i2,i2-1)**2+au(i2,i2)**2                            !hr04
-            g3(j)=au(i3,i3-1)**2+au(i3,i3)**2                            !hr04
-            if(ndimf.eq.3) then
-              call dainv(damap,nvar,damapi,nvar)
-              jj(6)=1
-              call dapek(damapi(5),jj,aui(1))
-              call dapek(damapi(6),jj,aui(2))
-              jj(6)=0
-              if(j.lt.3) then
-                d(j)=au(i3-1,i3-1)*aui(1)+au(i3-1,i3)*aui(2)
-                dp(j)=au(i3,i3-1)*aui(1)+au(i3,i3)*aui(2)
-              else
-                d(j)=angp(1,ii-1)*aui(1)+angp(1,ii)*aui(2)
-                dp(j)=au(ii,ii-1)*aui(1)+au(ii,ii)*aui(2)
-              endif
-            endif
-            sx=angp(2,ii-1)*angp(1,ii)-angp(1,ii-1)*angp(2,ii)
-            cx=angp(1,ii-1)*angp(2,ii-1)+angp(1,ii)*angp(2,ii)
-            if(abs(sx).gt.c1m15.or.abs(cx).gt.c1m15) then
-              dphi(j)=atan2_mb(sx,cx)/x2pi
-            else
-              dphi(j)=zero
-            endif
-            phi(j)=phi(j)+dphi(j)
-          enddo !end of optics calculation
-
-          if(ic(i)-nblo.gt.0) then !check if structure element is a block
-             if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-                
-!     do the unit conversion + inversion of dumptas
-!     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
-
-               dumptas(ic(i)-nblo,1:5,6)=                               &
-     &                 dumptas(ic(i)-nblo,1:5,6)*c1e3
-               dumptas(ic(i)-nblo,6,1:5)=                               &
-     &              dumptas(ic(i)-nblo,6,1:5)*c1m3
-               
-!     invert the tas matrix
-                call invert_tas(dumptasinv(ic(i)-nblo,:,:),             &
-     &               dumptas(ic(i)-nblo,:,:))
-!     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-                
-             endif
-          endif
-          
-          do j=1,ndimf
-            ii=2*j
-            angp(2,ii-1)=angp(1,ii-1)
-            angp(2,ii)=angp(1,ii)
-          enddo
-!         write optics parameter for each element (LINE block)
-          if(iwrite.eq.1) then
-            iii=i
-            if(typ(:8).eq.'START   ') iii=0
-            write(lout,10030) iii,typ(:8),tl,phi(1),b1(1),al1(1),g1(1), &
-     &d(1),dp(1),c(1),cp(1)
-            if(ndimf.eq.3) then
-              write(lout,10040) b2(1),al2(1),g2(1)
-              write(lout,10050) typ(9:16),b3(1),al3(1),g3(1)
-            else
-              write(lout,10055) typ(9:16),b2(1),al2(1),g2(1)
-            endif
-            write(lout,10060)
-            write(lout,10070) phi(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),&
-     &cp(2)
-            write(lout,10080) b2(2),al2(2),g2(2)
-            if(ndimf.eq.3) then
-              write(lout,10090) b3(2),al3(2),g3(2)
-              write(lout,10060)
-              write(lout,10100) -phi(3),b1(3),al1(3),g1(3),d(3),dp(3),  &
-     &c(3),cp(3)
-              write(lout,10080) b2(3),al2(3),g2(3)
-              write(lout,10040) b3(3),al3(3),g3(3)
-            endif
-            write(lout,10010)
-          endif
-+cd umlalid1
-          ibb=ibb+1
-          if(ibb.gt.nbb) call prror(102)
-          imbb(i)=ibb
-!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
-!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
-!FOX  DPDA1=DPDA*C1E3 ;
-!FOX  DELTAS=SIGMDA/RV ;
-          call dacop(x(1),damap(1))
-          call dacop(yp(1),damap(2))
-          call dacop(x(2),damap(3))
-          call dacop(yp(2),damap(4))
-          do j=1,2
-            ii=2*j
-            call dapek(damap(ii-1),jj,c(j))
-            call dapek(damap(ii),jj,cp(j))
-          enddo
-          call dacsu(damap(1),c(1),damap(1))
-          call dacsu(damap(2),cp(1),damap(2))
-          call dacsu(damap(3),c(2),damap(3))
-          call dacsu(damap(4),cp(2),damap(4))
-          if(ndimf.eq.3) then
-            call dacop(deltas,damap(5))
-            call dacop(dpda1,damap(6))
-            call dapek(damap(5),jj,c(3))
-            call dapek(damap(6),jj,cp(3))
-            call dacsu(damap(5),c(3),damap(5))
-            call dacsu(damap(6),cp(3),damap(6))
-            if(iflag2.eq.1.and.ithick.eq.1) then
-              call dacct(damap,nvar,corrnew,nvar,damap,nvar)
-            endif
-          endif
-          call dainv(damap,nvar,damapi,nvar)
-          call dacct(damap,nvar,aa2,nvar,aa2r,nvar)
-          call dacct(damap,nvar,damap1,nvar,damap,nvar)
-          call dacct(damap,nvar,damapi,nvar,damap,nvar)
-+if debug
-!         write(*,*) 'bbcu set in umlalid1'
-!     call warr('umlid1bbcu',bbcu(ibb,1),ibb,1,0,0)
-!     call warr('umlid1bbcu',bbcu(ibb,2),ibb,2,0,0)
-!     call warr('umlid1bbcu',bbcu(ibb,3),ibb,3,0,0)
-+ei
-            do ii=1,3
-              call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-              call averaged(angno,aa2r,.false.,angno,rv)
-              do j=1,ndimf
-                j1=2*j
-                jj(j1-1)=1
-                jj(j1)=1
-                call dapek(angno,jj,angnoe(j))
-                jj(j1-1)=0
-                jj(j1)=0
-              enddo
-              if(ndimf.eq.3) then
-                bbcu(ibb,ii)=two*((emitx*angnoe(1)+emity*angnoe(2))+    &!hr03
-     &emitz*angnoe(3))
-+if debug
-!     call warr('umlid1bbcii',bbcu(ibb,ii),ibb,ii,1,0)
-+ei
-              else
-                bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
-+if debug
-!     call warr('umlid1bbcii',bbcu(ibb,ii),ibb,ii,2,0)
-+ei
-              endif
-            enddo
-            if (beam_expflag .eq. 0) then !Old-style input
-              if(parbe(ix,2).gt.zero) then
-                do ii=4,10
-                  call damul(damap(i4(ii,1)),damap(i4(ii,2)),angno)
-                  call averaged(angno,aa2r,.false.,angno, rv)
-                  do j=1,ndimf
-                    j1=2*j
-                    jj(j1-1)=1
-                    jj(j1)=1
-                    call dapek(angno,jj,angnoe(j))
-                    jj(j1-1)=0
-                    jj(j1)=0
-                  enddo
-                  if(ndimf.eq.3) then
-                    bbcu(ibb,ii) = two *                                &
-     &               ((emitx*angnoe(1)+emity*angnoe(2))+emitz*angnoe(3))
-                  else
-                    bbcu(ibb,ii)=two*(emitx*angnoe(1)+emity*angnoe(2))
-                  endif
-                enddo
-              endif
-              if(lhc.eq.1) then
-                dummy=bbcu(ibb,1)
-                bbcu(ibb,1)=bbcu(ibb,2)
-                bbcu(ibb,2)=dummy
-                dummy=bbcu(ibb,4)
-                bbcu(ibb,4)=bbcu(ibb,9)
-                bbcu(ibb,9)=dummy
-                dummy=bbcu(ibb,5)
-                bbcu(ibb,5)=bbcu(ibb,7)
-                bbcu(ibb,7)=dummy
-                dummy=bbcu(ibb,6)
-                bbcu(ibb,6)=bbcu(ibb,10)
-                bbcu(ibb,10)=dummy
-              endif
-              if(lhc.eq.2) then
-                bbcu(ibb,1)=bbbx(ix)
-                bbcu(ibb,2)=bbby(ix)
-                bbcu(ibb,3)=bbbs(ix)
-              endif
-
-            !Indentation break, sorry :(
-
-          else if (beam_expflag .eq. 1) then !New style input
-            if(parbe(ix,2).gt.zero) then
-               bbcu(ibb,1)=parbe(ix,7)
-               bbcu(ibb,4)=parbe(ix,8)
-               bbcu(ibb,6)=parbe(ix,9)
-               bbcu(ibb,2)=parbe(ix,10)
-               bbcu(ibb,9)=parbe(ix,11)
-               bbcu(ibb,10)=parbe(ix,12)
-               bbcu(ibb,3)=parbe(ix,13)
-               bbcu(ibb,5)=parbe(ix,14)
-               bbcu(ibb,7)=parbe(ix,15)
-               bbcu(ibb,8)=parbe(ix,16)
-            endif
-            if(parbe(ix,2).eq.zero) then
-               bbcu(ibb,1)=parbe(ix,1)
-               bbcu(ibb,2)=parbe(ix,3)
-            endif
-          else
-             write(lout,'(a)') "ERROR in +cd umlalid1"
-             write(lout,'(a)') "beam_expflag was", beam_expflag
-             write(lout,'(a)') " expected 0 or 1. This is a BUG!"
-             call prror(-1)
-          end if
-
-          if (.not.beam_expfile_open) then
-             inquire(unit=600,opened=lopen)
-             if (lopen) then
-                write(lout,'(a)') "Error when opening beam_expert.txt"
-                write(lout,'(a)') "Unit 600 already taken."
-                call prror(-1)
-             endif
-+if boinc
-             call boincrf("beam_expert.txt",filename)
-             open(600,file=filename,                                    &
-     &            status='replace',action="write")
-+ei
-+if .not.boinc
-             open(600,file="beam_expert.txt",                           &
-     &            status='replace',action="write")
-+ei
-             beam_expfile_open = .true.
-             !This line will be a comment if copy-pasted into fort.3
-             write(600,'(a,g13.6,a,g13.6,a,g13.6,a)')                   &
-     &            "/ ******* USING emitx=",emitx,                       &
-     &            ", emity=",emity,                                     &
-     &            ", emitz=",emitz," ******"
-          endif
-          
-          if(parbe(ix,2).eq.0.0) then !4D
-             !Note: One should always use the CRLIBM version when converting,
-             ! in order to guarantee the exact same results from the converted input file.
-+if .not.crlibm
-             write(600,"(a16,1x,a1,1x,5g30.20)")                        &
-     &            bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),                &
-     &            parbe(ix,5), parbe(ix,6), ptnfac(ix)
-+ei
-+if crlibm
-             l1 = 1
-             write(ch,'(a16,1x,a1)') bez(ix), "0"
-             l1 = len(trim(ch))+1
-             
-             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(bbcu(ibb,2),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(parbe(ix,5),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(parbe(ix,6),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(ptnfac(ix),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             write(600,*) trim(ch)
-+ei
-          else                      ! 6D
-+if .not.crlibm
-             write(600,"(a16,1x,i4,1x,4g30.20)")                        &
-     &            bez(ix), int(parbe(ix,2)),                            &
-     &            parbe(ix,1), parbe(ix,3),                             &
-     &            parbe(ix,5), parbe(ix,6)
-             write(600,"(5g30.20)")                                     &
-     &            bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6),                &
-     &            bbcu(ibb,2), bbcu(ibb,9)
-             write(600,"(6g30.20)")                                     &
-     &            bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5),               &
-     &            bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
-+ei
-+if crlibm
-             l1 = 1
-             write(ch,'(a16,1x,i4)') bez(ix), int(parbe(ix,2))
-             l1 = len(trim(ch))+1
-
-             errno=dtostr(parbe(ix,1),ch1) ! Return value is the string length (always 24)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(parbe(ix,3),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(parbe(ix,5),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(parbe(ix,6),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-                          
-             write(600,*) trim(ch)
-
-             l1 = 1
-             ch = ' '
-
-             errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(bbcu(ibb,4),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(bbcu(ibb,6),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(bbcu(ibb,2),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-
-             errno=dtostr(bbcu(ibb,9),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             write(600,*) trim(ch)
-
-             l1 = 1
-             ch = ' '
-
-             errno=dtostr(bbcu(ibb,10),ch1) ! Return value is the string length (always 24)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(bbcu(ibb,3),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(bbcu(ibb,5),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             errno=dtostr(bbcu(ibb,7),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-
-             errno=dtostr(bbcu(ibb,8),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-
-             errno=dtostr(ptnfac(ix),ch1)
-             ch(l1:l1+errno) = ch1(1:errno)
-             l1 = l1+errno+1
-             
-             write(600,*) trim(ch)
-+ei
-            endif !END if(parbe(ix,2).eq.0.0)
-          
-        if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
-            call prror(88)
-          endif
-          if(ibbc.eq.1) then
-            sfac1=bbcu(ibb,1)+bbcu(ibb,2)
-            sfac2=bbcu(ibb,1)-bbcu(ibb,2)
-            sfac2s=one
-            if(sfac2.lt.zero) sfac2s=-one                            !hr08
-            sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
-            if(sfac3.gt.sfac1) call prror(103)
-            sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
-            sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
-            sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+                    &!hr03
-     &(two*bbcu(ibb,3))*sfac5)*half)                                     !hr03
-            sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-                    &!hr03
-     &(two*bbcu(ibb,3))*sfac5)*half)                                     !hr03
-            bbcu(ibb,11)=sqrt(half*(one+sfac4))
-            bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
-            if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
-          else
-            bbcu(ibb,11)=one
-            sigman(1,ibb)=sqrt(bbcu(ibb,1))
-            sigman(2,ibb)=sqrt(bbcu(ibb,2))
-          endif
-          if(parbe(ix,2).gt.zero) then !6D -> convert units
-            do ii=1,10
-              bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
-            enddo
-          endif
-          
-!----------------------------------------------------------------------
-! Wire element.
-+cd wirekick
-! MODEL OF STRAIGHT CURRENT WIRE
-!
-!     The model provides a transfer map of a straight current wire. 
-!     Description:
-!     1. Infinitly thin wire with arbitrary orientation.
-!     2. Thin element in SixTrack (L)=0
-!     3. Parameters: 
-!     dx, dy: horizontal and vertical distances between wire midpoint
-!     and closed orbit [mm] 
-!     (parameters are given by dx and dy in WIRE block)
-!     tx, ty: tilt of the wire w.r.t the closed orbit in the
-!     horizontal and vertical planes (in degrees) 
-!     (parameters are given by tiltx and tilty in WIRE block)
-!     L - physical length of the wire element [m]
-!     cur - current of the wire [Amperes]
-!     embl - embedding drift (integrated length or integration interval) [m] 
-!     4. The transport map is given for canonical variables (x,px...)
-!
-! The MAP is constructed out of the following steps:
-!     1. Declaration of shifted canonical variables: 
-!          rx = x+dx; ry = y+dy  in the same way as for the BEAM-BEAM element
-!     2. Symplectic Rotation by the tilt angles tx, ty (in 4D space: px, rx, py, ry)
-!     3. Wire kick for a longitudinally aligned wire (= kick for tx=ty=0)
-!     4. Symplectic Rotation back by the tilt angles -ty, -yx (in 4D space: ...taking only PX, PY)
-!--------------------------------------------------------------
-!     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
-!     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
-
-
-                                
-
-      tx = wire_tiltx(ix) !tilt x [degrees] 
-      ty = wire_tilty(ix) !tilt y [degrees]
-      tx = tx*(pi/c180e0) ![rad]
-      ty = ty*(pi/c180e0) ![rad]
-      dx = wire_dispx(ix) !displacement x [mm]
-      dy = wire_dispy(ix) !displacement y [mm]
-      embl = wire_lint(ix) !integrated length [m]
-      l = wire_lphys(ix) !physical length [m]
-      cur = wire_current(ix)
-
-      if (abs(wire_flagco(ix)).ne.1) then
-        write(lout,                                                     &
-     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')                       &
-     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',  &
-     &'be either 1 or -1! Did you define all wires in the WIRE block?', &
-     &'bez(',ix,') = ',bez(ix),                                         &
-     &'wire_flagco(',ix,') = ',wire_flagco(ix)
-        call prror(-1)
-      endif
-      
-
-      IF (wire_flagco(ix).eq.1) THEN
-         dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
-         dyi = (dy+wire_clo(2,wire_num(i)) )*c1m3 
-      ELSE IF (wire_flagco(ix).eq.-1) THEN
-         dxi = (dx)*c1m3
-         dyi = (dy)*c1m3
-      END IF 
-      
-      do j=1, napx
-      chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight
-      NNORM=c1m7/chi  
-      yv(1,j) = yv(1,j) * c1m3 !SI
-      yv(2,j) = yv(2,j) * c1m3 !SI
-    
-! 1 shift
-      IF (wire_flagco(ix).eq.1) THEN
-         xi = (xv(1,j)+dx)*c1m3 !SI
-         yi = (xv(2,j)+dy)*c1m3 !SI
-      ELSE IF (wire_flagco(ix).eq.-1) THEN
-         xi = (xv(1,j)+( dx-wire_clo(1,wire_num(i)) ))*c1m3 !SI
-         yi = (xv(2,j)+( dy-wire_clo(2,wire_num(i)) ))*c1m3 !SI
-      END IF 
-
-! x'-> px; y'->py
-      yv(1,j) = yv(1,j)*(one + dpsv(j))/mtc(j)
-      yv(2,j) = yv(2,j)*(one + dpsv(j))/mtc(j)
-
-!ibeco = 0
-      if(ibeco.eq.0) then
-! 2 symplectic rotation of coordinate system (tx, ty)
-          yi = yi-(((xi*sin_mb(tx))*yv(2,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
-     &yv(2,j)**2))-tx)
-          xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv(1,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
-          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
-     &sin_mb(atan_mb(yv(1,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
-      
-          xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
-     &yv(2,j)**2))-ty)
-          yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv(2,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-          yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                  &
-     &sin_mb(atan_mb(yv(2,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
-      
-! 3 apply wire kick
-          RTWO = xi**2+yi**2
-          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-
-! ibeco = 1
-      elseif(ibeco.eq.1) then
-! 2 symplectic rotation of coordinate system (tx, ty)
-
-          dyi = dyi-(((dxi*sin_mb(tx))*yv(2,j))/                        &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
-     &yv(2,j)**2))-tx) 
-          dxi = dxi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv(1,j)/      &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
- 
-          yi = yi-(((xi*sin_mb(tx))*yv(2,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
-     &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
-     &yv(2,j)**2))-tx)
-          xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv(1,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
-
-          yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
-     &sin_mb(atan_mb(yv(1,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
-              
-          dxi = dxi-(((dyi*sin_mb(ty))*yv(1,j))/                        &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
-     &yv(2,j)**2))-ty)
-          dyi = dyi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv(2,j)/      &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-      
-          xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
-     &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
-     &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
-     &yv(2,j)**2))-ty)
-          yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv(2,j)/        &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-
-         yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                   &
-     &sin_mb(atan_mb(yv(2,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
-
-! 3 apply wire kick
-          RTWO = xi**2+yi**2
-          yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv(2,j) = yv(2,j)-(((CUR*NNORM)*yi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-! subtract closed orbit kick
-! wire kick is negative px -> px - wirekick - (-closed orbit kick)
-          RTWO = dxi**2+dyi**2
-          yv(1,j) = yv(1,j)+(((CUR*NNORM)*dxi)*                         &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*                         &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-      
-      endif
-
-! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
-      yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                      &
-     &sin_mb(atan_mb(yv(2,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+ty)
-      yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                      &
-     &sin_mb(atan_mb(yv(1,j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))+tx)
-
-! px -> x'; py -> y'
-      yv(1,j) = yv(1,j)*mtc(j)/(one + dpsv(j))
-      yv(2,j) = yv(2,j)*mtc(j)/(one + dpsv(j))
-!-----------------------------------------------------------------------
-! END OF WIRE MAP
-!-----------------------------------------------------------------------
-      yv(1,j) = yv(1,j) * c1e3
-      yv(2,j) = yv(2,j) * c1e3
-!-----------------------------------------------------------------------
-      enddo
-!-----------------------------------------------------------------------
 +cd open
 !--OPENING DATA FILES
 +if boinc
@@ -2523,169 +1763,6 @@
       open(210)                  ! mtc after each collimator interaction
 
 ! END of +cd open
-
-+cd rvet0
-      e0f=sqrt(e0**2-pma**2)                                             !hr03
-+if rvet
-!FOX  RVET=C1E3*NUCMDA*NUCMDA*(TWO+DPDA)*DPDA/E0/DPD ;
-!FOX  RVET=RVET/(E0*DPD+SQRT(E0*E0+E0F*E0F*(TWO*DPDA+DPDA*DPDA))) ;
-+ei
-+cd rvet1
-+if rvet
-        rvet(j)=((((c1e3*pma**2)*(two+dpsv(j)))*dpsv(j))/e0)/dpd(j)      !hr03
-        rvet(j)=rvet(j)/(e0*dpd(j)+                                     &!hr03
-     &sqrt(e0**2+e0f**2*(two*dpsv(j)+dpsv(j)**2)))                       !hr03
-+ei
-+if .not.rvet
-!
-+ei
-+cd rvet2
-+if .not.rvet
-        rv=(ej(1)*e0f)/(e0*ejf(1))
-+ei
-+if rvet
-        rv=(ej(1)*e0f)/(e0*ejf(1))
-        rvet=((((c1e3*pma**2)*(two+dps(1)))*dps(1))/e0)/(one+dps(1))
-        rvet=rvet/(e0*(one+dps(1))+sqrt(e0**2+e0f**2*(two*dps(1)+       &!hr03
-     &dps(1)*dps(1))))                                                   !hr03
-+ei
-+cd dalin1
-        jmel=mel(ix)
-        if(idp.eq.0.or.ition.eq.0) then
-          if(ithick.eq.1) then
-            do jb=1,jmel
-              jx=mtyp(ix,jb)
-              do ip=1,6
-                do ien=1,nord+1
-                  zfeld1(ien)=ald6(jx,1,ip,ien)
-                enddo
-                if(nvar2.eq.4) then
-                  call darea6(alda(1,ip),zfeld1,4)
-                else if(nvar2.eq.5) then
-                  call darea6(alda(1,ip),zfeld1,5)
-                endif
-                do ien=1,nord+1
-                  zfeld1(ien)=ald6(jx,2,ip,ien)
-                enddo
-                if(nvar2.eq.4) then
-                  call darea6(alda(2,ip),zfeld1,4)
-                else if(nvar2.eq.5) then
-                  call darea6(alda(2,ip),zfeld1,5)
-                endif
-              enddo
-+cd dalin2
-!FOX  PUX=X(1) ;
-!FOX  PUZ=Y(1) ;
-!FOX  X(1)=ALDA(1,1)*PUX+ALDA(1,2)*PUZ+ALDA(1,5)*IDZ(1) ;
-!FOX  Y(1)=ALDA(1,3)*PUX+ALDA(1,4)*PUZ+ALDA(1,6)*IDZ(1) ;
-!FOX  PUX=X(2) ;
-!FOX  PUZ=Y(2) ;
-!FOX  X(2)=ALDA(2,1)*PUX+ALDA(2,2)*PUZ+ALDA(2,5)*IDZ(2) ;
-!FOX  Y(2)=ALDA(2,3)*PUX+ALDA(2,4)*PUZ+ALDA(2,6)*IDZ(2) ;
-+cd dalin3
-            enddo
-          else
-!FOX  X(1)=X(1)+BL1(IX,1,2)*Y(1) ;
-!FOX  X(2)=X(2)+BL1(IX,2,2)*Y(2) ;
-          endif
-+cd dalin4
-        else
-          do jb=1,jmel
-            jx=mtyp(ix,jb)
-            if(ithick.eq.1) then
-              do ip=1,6
-                do ien=1,nord+1
-                  zfeld1(ien)=ald6(jx,1,ip,ien)
-                  zfeld2(ien)=asd6(jx,1,ip,ien)
-                enddo
-                if(nvar2.eq.5) then
-                  call darea6(alda(1,ip),zfeld1,5)
-                  call darea6(asda(1,ip),zfeld2,5)
-                else if(nvar2.eq.6) then
-                  call darea6(alda(1,ip),zfeld1,6)
-                  call darea6(asda(1,ip),zfeld2,6)
-                endif
-                do ien=1,nord+1
-                  zfeld1(ien)=ald6(jx,2,ip,ien)
-                  zfeld2(ien)=asd6(jx,2,ip,ien)
-                enddo
-                if(nvar2.eq.5) then
-                  call darea6(alda(2,ip),zfeld1,5)
-                  call darea6(asda(2,ip),zfeld2,5)
-                else if(nvar2.eq.6) then
-                  call darea6(alda(2,ip),zfeld1,6)
-                  call darea6(asda(2,ip),zfeld2,6)
-                endif
-              enddo
-+cd dalin5
-!FOX  PUX=X(1) ;
-!FOX  PUZ=Y(1) ;
-!FOX  SIGMDA=SIGMDA+ASDA(1,1)+ASDA(1,2)*PUX+
-!FOX  ASDA(1,3)*PUZ+ASDA(1,4)*PUX*PUZ+ASDA(1,5)*PUX*PUX+
-!FOX  ASDA(1,6)*PUZ*PUZ ;
-!FOX  X(1)=ALDA(1,1)*PUX+ALDA(1,2)*PUZ+ALDA(1,5)*IDZ(1) ;
-!FOX  Y(1)=ALDA(1,3)*PUX+ALDA(1,4)*PUZ+ALDA(1,6)*IDZ(1) ;
-!FOX  PUX=X(2) ;
-!FOX  PUZ=Y(2) ;
-!FOX  SIGMDA=SIGMDA+ASDA(2,1)+ASDA(2,2)*PUX+
-!FOX  ASDA(2,3)*PUZ+ASDA(2,4)*PUX*PUZ+ASDA(2,5)*PUX*PUX+
-!FOX  ASDA(2,6)*PUZ*PUZ ;
-!FOX  X(2)=ALDA(2,1)*PUX+ALDA(2,2)*PUZ+ALDA(2,5)*IDZ(2) ;
-!FOX  Y(2)=ALDA(2,3)*PUX+ALDA(2,4)*PUZ+ALDA(2,6)*IDZ(2) ;
-+cd dalin6
-!            else !moved outside of dalin6 /Mattias
-!FOX  X(1)=X(1)+EL(JX)*Y(1) ;
-!FOX  X(2)=X(2)+EL(JX)*Y(2) ;
-+cd dalino
-          do 60 kx=1,2
-            if(ithick.eq.1) then
-!FOX  PUX=X(KX) ;
-!FOX  PUZ=Y(KX) ;
-            endif
-            if(idp.eq.0.or.ition.eq.0) then
-              if(ithick.eq.1) then
-!FOX  X(KX)=BL1(IX,KX,1)*PUX+BL1(IX,KX,2)*PUZ+
-!FOX  BL1(IX,KX,5)*IDZ(KX)*DPDA*C1E3 ;
-!FOX  Y(KX)=BL1(IX,KX,3)*PUX+BL1(IX,KX,4)*PUZ+
-!FOX  BL1(IX,KX,6)*IDZ(KX)*DPDA*C1E3 ;
-              else
-!FOX  X(KX)=X(KX)+BL1(IX,KX,2)*Y(KX) ;
-              endif
-            else
-              do 50 jb=1,jmel
-                jx=mtyp(ix,jb)
-                if(ithick.eq.1) then
-                  do 40 ip=1,6
-                    do 30 ien=1,nord+1
-                      zfeld1(ien)=ald6(jx,kx,ip,ien)
-                      zfeld2(ien)=asd6(jx,kx,ip,ien)
-   30               continue
-                    if(nvar2.eq.5) then
-                      call darea6(alda(kx,ip),zfeld1,5)
-                      call darea6(asda(kx,ip),zfeld2,5)
-                    else if(nvar2.eq.6) then
-                      call darea6(alda(kx,ip),zfeld1,6)
-                      call darea6(asda(kx,ip),zfeld2,6)
-                    endif
-   40             continue
-!FOX  SIGMDA=SIGMDA+ASDA(KX,1)+ASDA(KX,2)*PUX+
-!FOX  ASDA(KX,3)*PUZ+ASDA(KX,4)*PUX*PUZ+ASDA(KX,5)*PUX*PUX+
-!FOX  ASDA(KX,6)*PUZ*PUZ ;
-!FOX  X(KX)=ALDA(KX,1)*PUX+ALDA(KX,2)*PUZ+ALDA(KX,5)*IDZ(KX) ;
-!FOX  Y(KX)=ALDA(KX,3)*PUX+ALDA(KX,4)*PUZ+ALDA(KX,6)*IDZ(KX) ;
-!FOX  PUX=X(KX) ;
-!FOX  PUZ=Y(KX) ;
-                else
-!FOX  X(KX)=X(KX)+EL(JX)*Y(KX) ;
-                  if (kx.eq.1) then
-+ca sqrtfox0
-!FOX  SIGMDA=SIGMDA+
-+ca sqrtfox
-                  endif
-                endif
-   50         continue
-            endif
-   60     continue
 
 +dk errf
       subroutine errf(xx,yy,wx,wy)
@@ -10847,15 +9924,14 @@ subroutine runda
           if(ix.le.0) then
             call prror(93)
           endif
-+ca dalin1
-+ca dalin2
-+ca dalin3
-+ca dalin4
-+ca dalin5
-+ca dalin6
-+ca sqrtfox0
+#include "include/dalin1.f90"
+#include "include/dalin2.f90"
+#include "include/dalin3.f90"
+#include "include/dalin4.f90"
+#include "include/dalin5.f90"
+#include "include/dalin6.f90"
 !FOX  SIGMDA=SIGMDA+
-+ca sqrtfox
+#include "include/sqrtfox.f90"
               endif
             enddo
           endif
@@ -12143,7 +11219,7 @@ subroutine umlauda
           write(lout,10020)
           write(lout,10010)
           tl=zero
-+ca umlalid
+#include "include/umlalid.f90"
         endif
 +if debug
 !     call wda('biflag',0d0,2,0,0,0)
@@ -12241,7 +11317,7 @@ subroutine umlauda
         if(ix.le.0) then
           call prror(93)
         endif
-+ca dalin1
+#include "include/dalin1.f90"
 +if debug
 !     call wda('adlin1',0d0,2,0,0,0)
 !     if (umcalls.eq.8) then
@@ -12275,19 +11351,19 @@ subroutine umlauda
 !FOX  X(2)=ALDAQ(2,1)*PUX+ALDAQ(2,2)*PUZ+ALDAQ(2,5)*IDZ(2) ;
 !FOX  Y(2)=ALDAQ(2,3)*PUX+ALDAQ(2,4)*PUZ+ALDAQ(2,6)*IDZ(2) ;
               else
-+ca dalin2
+#include "include/dalin2.f90"
               endif
-+ca dalin3
+#include "include/dalin3.f90"
           if(ilinc.eq.1) then
             do jb=1,jmel
               jx=mtyp(ix,jb)
               typ=bez(jx)
               tl=tl+el(jx)
-+ca umlalid
+#include "include/umlalid.f90"
               if(i.eq.nt) goto 470
             enddo
           endif
-+ca dalin4
+#include "include/dalin4.f90"
               ipch=0
               if(iqmodc.eq.1.and.kz(jx).eq.2) then
                 if(jx.eq.iq(1).or.iratioe(jx).eq.iq(1)) then
@@ -12313,7 +11389,7 @@ subroutine umlauda
 !FOX  X(2)=ALDAQ(2,1)*PUX+ALDAQ(2,2)*PUZ+ALDAQ(2,5)*IDZ(2) ;
 !FOX  Y(2)=ALDAQ(2,3)*PUX+ALDAQ(2,4)*PUZ+ALDAQ(2,6)*IDZ(2) ;
               else
-+ca dalin5
+#include "include/dalin5.f90"
               endif
             else
               if(iexact.eq.1) then
@@ -12337,16 +11413,15 @@ subroutine umlauda
 !-----------------------------------------------------------------------
               else
 ! Regular drift
-+ca dalin6
-+ca sqrtfox0
+#include "include/dalin6.f90"
 !FOX  SIGMDA=SIGMDA+
-+ca sqrtfox
+#include "include/sqrtfox.f90"
               endif
             endif
             if(ilinc.eq.1) then
               typ=bez(jx)
               tl=tl+el(jx)
-+ca umlalid
+#include "include/umlalid.f90"
               if(i.eq.nt) goto 470
             endif
           enddo
@@ -12467,7 +11542,7 @@ subroutine umlauda
         endif
         if(ilinc.eq.2.and.kzz.eq.20) then
           if(nbeam.ge.1) then
-+ca umlalid1
+#include "include/umlalid1.f90"
           endif
           goto 440
         endif
@@ -13179,7 +12254,7 @@ subroutine umlauda
 +ei
       if(ilinc.eq.1) then
         typ=bez(ix)
-+ca umlalid
+#include "include/umlalid.f90"
         if(i.eq.nt) goto 470
       endif
  430  continue ! END LOOP OVER SINGLE ELEMENTS IN UMLAUDA
@@ -18143,7 +17218,7 @@ subroutine thin4d(nthinerr)
       case (44,46,47,48,49,50,57,58,59,60,61,62)
         goto 630
       case (45) ! Wire
-+ca wirekick
+#include "include/wirekick.f90"
         goto 620
       case (51)
         xory=1
@@ -18623,7 +17698,11 @@ subroutine thin6d(nthinerr)
             do j=1,napx
               xv(1,j)=xv(1,j)+stracki*yv(1,j)
               xv(2,j)=xv(2,j)+stracki*yv(2,j)
-+ca sqrtv
+#ifdef FAST
+              sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
+#else
+              sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
+#endif
             end do
           else
             ! EXACT DRIFT
@@ -19030,7 +18109,7 @@ subroutine thin6d(nthinerr)
 #include "include/beam6d.f90"
         goto 640
       case (45) ! Wire
-+ca wirekick
+#include "include/wirekick.f90"
         goto 640
       case (46,47,48,49,50)
         goto 650
@@ -20601,7 +19680,7 @@ subroutine thck4d(nthinerr)
       case (44,46,47,48,49,50,57,58,59,60,61,62)
         goto 480
       case (45) ! Wire
-+ca wirekick
+#include "include/wirekick.f90"
         goto 470
       case (51)
         xory=1
@@ -21430,7 +20509,7 @@ subroutine thck6d(nthinerr)
 #include "include/beam6d.f90"
         goto 490
       case (45) ! Wire
-+ca wirekick
+#include "include/wirekick.f90"
         goto 490
       case (46,47,48,49,50,57,58,59,60,61,62)
         goto 500
@@ -21625,7 +20704,6 @@ subroutine synuthck
       do 10 j=1,napx
         dpd(j)=one+dpsv(j)
         dpsq(j)=sqrt(dpd(j))
-+ca rvet1
    10 continue
       do 160 l=1,il
         if(abs(el(l)).le.pieni) goto 160

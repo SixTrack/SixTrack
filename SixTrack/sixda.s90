@@ -461,13 +461,8 @@ program mainda
   write(lout,10010) amp,epsa
   write(lout,10170)
   if(e0.gt.pieni) then
-+ca rvet2
-+if rvet
-    if(ithick.eq.1) call envars(1,dps(1),rv,rvet)
-+ei
-+if .not.rvet
+    rv=(ej(1)*e0f)/(e0*ejf(1))
     if(ithick.eq.1) call envars(1,dps(1),rv)
-+ei
   else
     call prror(79)
   end if
