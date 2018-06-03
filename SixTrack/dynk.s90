@@ -2289,7 +2289,7 @@ subroutine dynk_apply(turn)
     
     implicit none
 
-#ifdef BOIN
+#ifdef BOINC
     character(len=256) filename
 #endif
 
