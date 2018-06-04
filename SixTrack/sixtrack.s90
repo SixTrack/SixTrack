@@ -8284,7 +8284,7 @@ subroutine daten
       numl=1
 
 !  Initialise new input parameters
-      numlmax=1000000
+      numlmax=1000000000
       numlcp=0
       napx=0
       amp(1)=c1m3
