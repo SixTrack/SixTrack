@@ -1,11 +1,8 @@
-sixtrack.s90 sixda.s90 tshift_corr.s90 debug_dump.s90
+sixtrack.s90 sixda.s90 debug_dump.s90
 sixdan.f
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods
 e mainda
-e RUNDA,RUNCAV,UMSCHR
-e DALIESIX
-e beam6df,MYDAINF
+e RUNDA
+e beam6df
 e dumps
-e cor_glo
-e cor_ord
 ex

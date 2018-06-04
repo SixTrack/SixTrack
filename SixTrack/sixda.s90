@@ -32,6 +32,7 @@ program mainda
   use mod_commons
   use mod_commont
   use mod_commond
+  use tuneshift_corr
   
   implicit none
   
@@ -539,7 +540,6 @@ program mainda
 
 end program mainda
 
-+dk daliesix
 subroutine daliesix
   
   use floatPrecision
@@ -697,8 +697,7 @@ subroutine daliesix
              t10,2('O'),16x,2('O')/t10,20('O')//130('-')//)
 
 end subroutine daliesix
-  
-+dk mydainf
+
 !-----------------------------------------------------------------------
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
@@ -771,7 +770,6 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
 end subroutine mydaini
 
-+dk runcav
 !-----------------------------------------------------------------------
 !               DIFFERENTIAL ALGEBRA FOR CAVITY
 !                          AUGUST 1994
@@ -878,7 +876,6 @@ subroutine runcav
 10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,' second(s) of CPU Time'//131('-')//)
 end subroutine runcav
 
-+dk umschr
 !-----------------------------------------------------------------------
 !           UMSCHR    DIFFERENTIAL ALGEBRA 5 -> 6
 !                          AUGUST 1994

@@ -39,6 +39,8 @@ module hdf5_output
   use strings
   use mod_alloc
   
+  use, intrinsic :: iso_fortran_env, only : real32, real64, real128
+  
   implicit none
   
   ! Common Settings
@@ -262,9 +264,14 @@ subroutine h5_parseInputLine(inLine)
   
   type(string), allocatable :: lnSplit(:)
   integer i, nSplit
+  logical spErr
   
   ! Split the input line
-  call str_split(inLine,lnSplit,nSplit)
+  call str_split(inLine,lnSplit,nSplit,spErr)
+  if(spErr) then
+    write(lout,"(a)") "HDF5> ERROR Failed to parse input line."
+    return
+  end if
   
   if(nSplit == 0) then
     if(h5_debugOn) then

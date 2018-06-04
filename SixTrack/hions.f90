@@ -1,15 +1,17 @@
-! P. Hermes for Heavy Ion SixTrack (hiSix)
+! ================================================================================================ !
+!  Heavy Ions Module
+!  P. Hermes, J. Molson, T. Persson, V.K. Berglyd Olsen, BE-ABP
+!  Last modified: 2018-06-02
+! ================================================================================================ !
 module mod_hions
   
   use floatPrecision
   use parpro
-  use, intrinsic :: iso_fortran_env, only : int16, int32, int64
   use mod_alloc
-  use numerical_constants, only : zero, one
+  use numerical_constants, only : zero, one, c1e3
+  use, intrinsic :: iso_fortran_env, only : int16
   
   implicit none
-  
-  ! initialize the variables for ion tracking
   
   ! Checking for the HION block
   logical, save :: has_hion
@@ -67,57 +69,65 @@ module mod_hions
   
 contains
 
-subroutine mod_hions_allocate_arrays
-  
-  implicit none
-  
-  ! Rest mass of the tracked ion
-  call alloc(nucm,npart,nucm0,'nucm') !(npart)
-  
-  ! Relative rigidity offset
-  call alloc(moidpsv,npart,one,'moidpsv') !(npart)
-  call alloc(omoidpsv,npart,zero,'omoidpsv') !(npart)
-  
-  ! Relative mass to charge ratio
-  call alloc(mtc,npart,one,'mtc') !(npart)
-  
-  ! Nucleon number of the tracked ion
-  call alloc(naa,npart,aa0,'naa') !(npart)
-  
-  ! Charge multiplicity of the tracked ion
-  call alloc(nzz,npart,zz0,'nzz') !(npart)
-  
-  ! SixTrack particle IDs
-  call alloc(pids,npart,0,'pids') !(npart)
-  
-end subroutine mod_hions_allocate_arrays
+subroutine hions_allocate_arrays
+  call alloc(nucm,npart,nucm0,'nucm')
+  call alloc(moidpsv,npart,one,'moidpsv')
+  call alloc(omoidpsv,npart,zero,'omoidpsv')
+  call alloc(mtc,npart,one,'mtc')
+  call alloc(naa,npart,aa0,'naa')
+  call alloc(nzz,npart,zz0,'nzz')
+  call alloc(pids,npart,0,'pids')
+end subroutine hions_allocate_arrays
 
-subroutine mod_hions_expand_arrays(npart_new)
+subroutine hions_expand_arrays(npart_new)
+  integer, intent(in) :: npart_new
+  call resize(nucm,npart_new,nucm0,'nucm')
+  call resize(moidpsv,npart_new,one,'moidpsv')
+  call resize(omoidpsv,npart_new,zero,'omoidpsv')
+  call resize(mtc,npart_new,one,'mtc')
+  call resize(naa,npart_new,aa0,'naa')
+  call resize(nzz,npart_new,zz0,'nzz')
+  call resize(pids,npart_new,0,'pids')
+end subroutine hions_expand_arrays
+
+subroutine hions_parseInputLine(inLine, iLine, iErr)
+  
+  use string_tools
   
   implicit none
   
-  integer, intent(in) :: npart_new
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
   
-  ! Rest mass of the tracked ion
-  call resize(nucm,npart_new,nucm0,'nucm') !(npart)
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
   
-  ! Relative rigidity offset
-  call resize(moidpsv,npart_new,one,'moidpsv') !(npart)
-  call resize(omoidpsv,npart_new,zero,'omoidpsv') !(npart)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "HIONS> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
-  ! Relative mass to charge ratio
-  call resize(mtc,npart_new,one,'mtc') !(npart)
+  if(iLine > 1) then
+    write(lout,"(a)") "HIONS> WARNING Only expected one input line."
+  end if
   
-  ! Nucleon number of the tracked ion
-  call resize(naa,npart_new,aa0,'naa') !(npart)
+  if(nSplit /= 3) then
+    write(lout,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
+    iErr = .true.
+    return
+  end if
   
-  ! Charge multiplicity of the tracked ion
-  call resize(nzz,npart_new,zz0,'nzz') !(npart)
+  call chr_cast(lnSplit(1),aa0,  iErr)
+  call chr_cast(lnSplit(2),zz0,  iErr)
+  call chr_cast(lnSplit(3),nucm0,iErr)
   
-  ! SixTrack particle IDs
-  call resize(pids,npart_new,0,'pids') !(npart)
+  nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
   
-end subroutine mod_hions_expand_arrays
+end subroutine hions_parseInputLine
 
 #ifdef CR
 subroutine hions_crpoint(fileUnit, writeErr, iErro)

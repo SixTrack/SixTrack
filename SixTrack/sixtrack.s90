@@ -691,26 +691,6 @@
 
       common /dcumdb/ dcum(0:nblz+1)
 
-+cd   dbreaddis
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     COMMON for reading a beam distribution
-!     always in main code
-
-!     in case the DIST input block is issued, the beam distribution
-!       is read from a text file
-
-      logical dist_enable                    ! DIST input block given
-      logical dist_echo                      ! echo the read distribution?
-      character(len=16) dist_filename        !
-      integer dist_read_unit                 ! unit for reading the distribution
-      integer dist_echo_unit                 ! unit for echoing the distribution
-
-      common /readdisdb/ dist_filename, dist_echo, dist_enable,dist_read_unit, dist_echo_unit
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
@@ -7196,38 +7176,6 @@
 
 ! END of +cd open
 
-+cd flukaclose
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     clean closure of communication with fluka and un-set mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
-      fluka_con = fluka_is_running()
-      if(fluka_con.eq.0) then
-        if( .not. fluka_connected ) then
-!         temporarily connect to fluka, to properly terminate the run
-          fluka_con = fluka_connect()
-          if(fluka_con.eq.-1) then
-!           no hope to properly close the run
-            write(lout,*) '[Fluka] unable to connect to fluka while'
-            write(lout,*) '        closing the simulation: please,'
-            write(lout,*) '        manually kill all its instances'
-            write(fluka_log_unit,*) '# unable to connect to fluka while'
-            write(fluka_log_unit,*) '#  closing the simulation: please,'
-            write(fluka_log_unit,*) '#  manually kill all its instances'
-            goto 1982
-          endif
-          write(lout,*) '[Fluka] Successfully connected to Fluka server'
-          write(lout,*) '[Fluka]     (only temporarily)'
-          write(fluka_log_unit,*) '# Successfully connected to Fluka server'
-          write(fluka_log_unit,*) '#     (only temporarily)'
-        end if
-        call fluka_end
-      end if
- 1982 call fluka_mod_end
-      flush(lout)
-!      flush(fluka_log_unit)
-
 +cd rvet0
       e0f=sqrt(e0**2-pma**2)                                             !hr03
 +if rvet
@@ -7909,6 +7857,7 @@ subroutine daten
   
   use mod_hions
   use mod_alloc
+  use mod_dist
   
   use elens
   use wire
@@ -7984,7 +7933,6 @@ subroutine daten
 #ifdef BNLELENS
 +ca rhicelens
 #endif
-+ca dbreaddis
   
   ! Fluka related, might be best to lock to real64
   real(kind=fPrec) tmpamplfact, tmplen
@@ -8203,6 +8151,7 @@ subroutine daten
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(idat(1:1) == "/") goto 90
+  if(idat(1:1) == "!") goto 90
   
   select case(idat)
   case("FREE") ! Mode FREE. Elements in fort.3
@@ -8256,6 +8205,7 @@ subroutine daten
   
   if(len(ch) == 0)   goto 110 ! Empty line, ignore
   if(ch(1:1) == "/") goto 110 ! Comment line, ignore
+  if(ch(1:1) == "!") goto 110 ! Comment line, ignore
   if(len(ch) >= 4)   idat = ch(1:4)
   
   ! Parse non-block flags
@@ -8268,14 +8218,6 @@ subroutine daten
     iQuiet  = 1
     oneLine = .true.
     goto 110
-  case("DEBU") ! Enable the DEBUG flag
-    if(currBlock == "NONE") then
-      ! Only when not in a block, otherwise in-block DEBUG will trigger this as well
-      sixin_debug = .true.
-      oneLine     = .true.
-      call sixin_debugInfo
-      goto 110
-    end if
   case("NEXT") ! Close the current block
     if(newParsing .and. .not. oneLine) then
       ! Actual close check is done after a last pass so
@@ -8308,8 +8250,6 @@ subroutine daten
     goto 740
   case("CHRO")
     goto 560
-  case("DIFF")
-    goto 520
   case("LINE")
     goto 660
   case("LIMI")
@@ -8332,8 +8272,6 @@ subroutine daten
     goto 1290
   case("DECO")
     goto 1320
-  case("COMM")
-    goto 1390
   case("NORM")
     goto 1400
   case("CORR")
@@ -8346,8 +8284,6 @@ subroutine daten
     goto 1285
   case("FLUK")
     goto 1800
-  case("DIST")
-    goto 1900
   case("DUMP")
     goto 2000
   case("BDEX")
@@ -8397,6 +8333,29 @@ subroutine daten
   
   select case(currBlock)
   
+  case("INFO") ! Information Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineINFO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("COMM")
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      if(len(ch) > 80) then
+        commen = ch(1:80)
+      else
+        commen = ch
+      end if
+    end if
+    
   case("SING") ! Single Elements Block
     if(openBlock) then
       sixin_nSing = 1
@@ -8437,7 +8396,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("INIT")
+  case("INIT") ! Initial Coordinates
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -8449,13 +8408,33 @@ subroutine daten
       if(inErr) goto 9999
     end if
   
-  case("TRAC")
+  case("TRAC") ! Tracking Parameters
     if(openBlock) then
       continue
     elseif(closeBlock) then
       nbidu = 1
     else
       call sixin_parseInputLineTRAC(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DIFF") ! Differential Algebra
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineDIFF(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DIST") ! Beam Distribution
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call dist_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -8475,11 +8454,10 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      continue
-    else
-      read(ch,*) aa0, zz0, nucm0
-      nucm0 = nucm0 * c1e3 !  [GeV/c^2] -> [MeV/c^2] ! P. HERMES
       has_hion = .true.
+    else
+      call hions_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
     end if
     
   case("ZIPF") ! ZIPF Input Block
@@ -8559,107 +8537,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  DIFFERENTIAL ALGEBRA
-!-----------------------------------------------------------------------
-  520 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 520
-      ndum=ndum+1
-      if(ch(:4).eq.next) then
-        ndum=0
-        goto 110
-      endif
-      if(ndum.eq.1) then
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        idial=1
-        numlr=0
-        napx=1
-        imc=1
-+if fio
-+if crlibm
-      call enable_xp()
-+ei
-        read(ch1,*,round='nearest')                                     &
-     & nord,nvar,preda,nsix,ncor
-+if crlibm
-      call disable_xp()
-+ei
-+ei
-+if .not.fio
-+if .not.crlibm
-        read(ch1,*) nord,nvar,preda,nsix,ncor
-+ei
-+if crlibm
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read (fields(1),*) nord
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(2),*) nvar
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          preda=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(4),*) nsix
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(5),*) ncor
-          nf=nf-1
-        endif
-+ei
-+ei
-        if(nvar.le.4) ition=0
-        if(nord.le.0.or.nvar.le.0) call prror(91)
-      else
-        call intepr(3,1,ch,ch1)
-! ilm0 are character strings so should be OK
-        read(ch1,*) (ilm0(i),i=1,ncor)
-      endif
-      if(iclo6.eq.1.or.iclo6.eq.2) nsix=0
-      if(nvar.ne.6) then
-      nsix=0
-      iclo6=0
-      endif
-      if(nvar.eq.5) then
-        idp=1
-        ition=1
-        hsy(1)=zero
-      endif
-      if(ndum.eq.1) then
-      if(nsix.ne.1) nsix=0
-      if(nord.gt.nema) call prror(52)
-      nvar2=nvar
-      goto 520
-      else
-      if(ncor.gt.mcor) call prror(65)
-      if(ncor.gt.0) then
-        do 540 j1=1,ncor
-          do 530 j2=1,il
-            if(ilm0(j1).eq.bez(j2)) then
-              if(el(j2).ne.zero.or.kz(j2).gt.10) call prror(67)
-              ipar(j1)=j2
-              goto 540
-            endif
-  530     continue
-          call prror(66)
-  540   continue
-      else
-        ncor=0
-        write(lout,*)' '
-        write(lout,*)'NO EXTRA PARAMETERS FOR THE MAP SPECIFIED'
-        write(lout,*)' '
-      endif
-      ndum=0
-      nvar=nvar2+ncor
-      goto 110
-      endif
 !-----------------------------------------------------------------------
 !  CHROMATCITY ADJUSTMENT
 !-----------------------------------------------------------------------
@@ -11355,17 +11232,6 @@ subroutine daten
       iclr=0
       goto 110
 !-----------------------------------------------------------------------
-!  COMMENT LINE
-!-----------------------------------------------------------------------
- 1390 read(3,10020,end=1530,iostat=ierro) commen
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(commen(1:1).eq.'/') goto 1390
-      if(commen(:4).eq.next) then
-      commen=' '
-      endif
-      goto 110
-!-----------------------------------------------------------------------
 !  NORMAL FORMS
 !-----------------------------------------------------------------------
  1400 read(3,10020,end=1530,iostat=ierro) ch
@@ -12269,35 +12135,6 @@ subroutine daten
 
 +ei
       goto 1800
-
-!-----------------------------------------------------------------------
-!  READ INITIAL DISTRIBUTION
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!  last modified: 17-07-2013
-!  always in main code
-!-----------------------------------------------------------------------
- 1900 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-
-      if(ch(1:1).eq.'/') goto 1900
-      if(ch(:4).eq.next) goto 110
-
-      lineno3=lineno3+1
-      ch1(:83)=ch(:80)//' / '
-
-!     keywords:
-      if(ch1(:4).eq.'ECHO') then
-        dist_echo = .true.
-      elseif(ch1(:4).eq.'RDUN') then
-        read(ch1,*) idat, dist_read_unit
-      elseif(ch1(:4).eq.'ECUN') then
-        read(ch1,*) idat, dist_echo_unit
-      elseif(ch1(:4).eq.'READ') then
-        read(ch1,*) idat, dist_filename
-        if(.not.dist_enable) dist_enable = .true.
-      endif
-
-      goto 1900
 
 !-----------------------------------------------------------------------
 !  DUMP BEAM POPULATION
@@ -18823,31 +18660,25 @@ program maincr
   use numerical_constants
   
   use scatter, only : scatter_active, scatter_initialise
-  use dynk, only : dynk_izuIndex
-  use fma, only : fma_postpr, fma_flag
-  use dump, only : dump_initialise, dumpclo,dumptas,dumptasinv
-  use zipf, only : zipf_numfiles, zipf_dozip
+  use dynk,    only : dynk_izuIndex
+  use fma,     only : fma_postpr, fma_flag
+  use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
+  use zipf,    only : zipf_numfiles, zipf_dozip
   
   use, intrinsic :: iso_fortran_env, only : output_unit
   use aperture
   use mod_ranecu
-      
-+if fluka
-  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-  ! Last modified: 17-07-2013
-  ! import mod_fluka
-  ! inserted in main code by the 'fluka' compilation flag
-   use mod_fluka
-+ei
-
   use postprocessing, only : postpr, writebin_header, writebin
 
+#ifdef FLUKA
+  use mod_fluka
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
-+if root
+#ifdef ROOT
   use root_output
-+ei
+#endif
 
   use crcoall
   use parpro
@@ -18858,6 +18689,7 @@ program maincr
   use mod_commont
   
   use mod_hions
+  use mod_dist
   use matrix_inv
   use aperture
   use wire
@@ -18943,8 +18775,6 @@ end interface
 +ca crco
 +ei
 +ca dbdcum
-
-+ca dbreaddis
 
   integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
     idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
@@ -21277,7 +21107,7 @@ end interface
 !     inserted in main code by the 'fluka' compilation flag
  490  continue
  520  continue
-+ca flukaclose
+  call fluka_close
 +ei
       time3=0.
       call timex(time3)
@@ -29524,173 +29354,6 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     return
     
 end subroutine envardis
-
-+dk readdis
-subroutine dist_readdis( napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m )
-!-----------------------------------------------------------------------
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 07-02-2014
-!     read a beam distribution
-!     always in main code
-!
-!     Format of the input file:
-!       id:         unique identifier of the particle (integer)
-!       gen:        parent ID (integer)
-!       weight:     statistical weight of the particle (double: >0.0)
-!       x,  y,  s:  particle position  [m]
-!       xp, yp, zp: particle direction (tangents) []
-!       aa, zz:     mass and atomic number
-!       m:          rest mass [GeV/c2]
-!       pc:         particle momentum [GeV/c]
-!       dt:         time delay with respect to the reference particle [s]
-!     - aa,zz and m are now taken into account for hisix
-!
-!     NOTA BENE:
-!     - id, gen and weight are assigned by the fluka_mod_init subroutine;
-!     - z and zp are actually useless (but we never know);
-!     - aa, zz and m are not stored at the moment (safer decision from the code
-!       point of view, until a decision about ion tracking is taken);
-!       the subroutine fluka_send is then responsible for using the corresponding
-!       values for protons through the interface, whereas the subroutine fluka_receive
-!       simply ignores the values passed through the FlukaIO interface;
-!
-!     variables in input to routine:
-!     - napx: number of protons to be tracked (from fort.3 file);
-!     - npart: max number of protons that can be tracked (array dimensioning);
-!     - enom: nominal total energy of the beam (ie of synch particle) [MeV];
-!     - pnom: nominal linear momentum of the beam (ie of synch particle) [MeV/c];
-!     - clight: speed of light [m/s];
-!     NB: in case the file contains less particle than napx, napx is
-!         re-assigned 
-!
-!     output variables:
-!       all other variables in the interface (6D tracking variables);
-!
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use end_sixtrack
-  use numerical_constants
-  use, intrinsic :: iso_fortran_env, only : int16
-  use crcoall
-  implicit none
-
-+ca dbreaddis
-
-! interface variables:
-  integer napx, npart
-  real(kind=fPrec) enom, pnom, clight
-  real(kind=fPrec) x, y, xp, yp, s, pc
-  real(kind=fPrec) m0
-
-! temporary variables:
-  integer id, gen
-  integer(kind=int16) aa, zz
-  real(kind=fPrec) weight, z, zp, m, dt
-  integer jj
-  character(240) tmp_line
-
-  character comment_char
-  parameter ( comment_char = '*' )
-
-  dimension x ( npart ), y ( npart )
-  dimension xp( npart ), yp( npart )
-  dimension s ( npart ), pc( npart )
-  dimension dt( npart )
-! P. HERMES hisix
-  dimension aa( npart ), zz( npart )
-  dimension m ( npart )
-
-  write(lout,*) ''
-  write(lout,*) "Reading particles from ", dist_filename
-
-! initialise tracking variables:
-  do jj=1,npart
-    x (jj) = zero
-    y (jj) = zero
-    xp(jj) = zero
-    yp(jj) = zero
-    pc(jj) = zero
-    s (jj) = zero
-    aa(jj) = 0            ! hisix
-    zz(jj) = 0            ! hisix
-    m (jj) = zero         ! hisix
-  end do
-
-! initialise particle counter
-  jj = 0
-
-  open( unit=dist_read_unit, file=dist_filename )
-
-! cycle on lines in file:
-1981 continue
-  read(dist_read_unit,'(A)',end=1983,err=1982) tmp_line
-  if( tmp_line(1:1).eq.comment_char ) goto 1981
-  jj = jj+1
-
-  if( jj.gt.npart ) then
-    write(lout,*) 'Error while reading particles'
-    write(lout,*) 'not enough memory for all particles in file'
-    write(lout,*) 'please increase the npart parameter and recompile'
-    write(lout,*) 'present value:', npart
-    jj = npart
-    goto 1984
-  else if( jj.gt.napx ) then
-    write(lout,*) ''
-    write(lout,*) 'Stopping reading file, as already ', napx
-    write(lout,*) ' particles have been read, as requested by the user'
-    write(lout,*) ' in fort.3 file'
-    write(lout,*) ''
-    jj = napx
-    goto 1983
-  end if
-
-  read( tmp_line, *, err=1982 ) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj), pc(jj), dt(jj)
-  goto 1981
-
-! error while parsing file:
-1982 continue
-  write(lout,*) 'Error while reading particles at line:'
-  write(lout,*) tmp_line
-  goto 1984
-
-1983 continue
-  if( jj.eq.0 ) then
-    write(lout,*) 'Error while reading particles'
-    write(lout,*) 'no particles read from file'
-    goto 1984
-  end if
-
-  close(dist_read_unit)
-  write(lout,*) "Number of particles read = ", jj
-
-  if( jj.lt.napx ) then
-    write(lout,*) ''
-    write(lout,*) 'Warning: read a number of particles'
-    write(lout,*) '         LOWER than the one requested for tracking'
-    write(lout,*) '         requested:',napx
-    write(lout,*) ''
-    napx = jj
-  end if
-
-! fix units:
-  do jj=1,napx
-    x (jj) = x(jj)  * c1e3 ! [m]     -> [mm]
-    y (jj) = y(jj)  * c1e3 ! [m]     -> [mm]
-    xp(jj) = xp(jj) * c1e3 ! []      -> [1.0E-03]
-    yp(jj) = yp(jj) * c1e3 ! []      -> [1.0E-03]
-    pc(jj) = pc(jj) * c1e3 ! [GeV/c] -> [MeV/c]
-    m (jj) = m(jj)  * c1e3 ! [GeV/c^2] -> [MeV/c^2] ! P. HERMES
-    s (jj) = -pnom/enom * dt(jj)*clight * c1e3
-  end do
-
-  return
-
-! exit with error
-1984 continue
-  close(dist_read_unit)
-  call prror(-1)
-  return
-end subroutine dist_readdis
 
 +dk cadcum
       subroutine cadcum

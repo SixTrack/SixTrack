@@ -20,7 +20,7 @@ module parpro_scale
   use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
   use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
   use wire,         only : wire_allocate_arrays,         wire_expand_arrays
-  use mod_hions,    only : mod_hions_allocate_arrays,    mod_hions_expand_arrays
+  use mod_hions,    only : hions_allocate_arrays,    hions_expand_arrays
 #ifdef FLUKA
   use mod_fluka,    only : fluka_mod_expand_arrays
 #endif
@@ -50,7 +50,7 @@ subroutine allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
   call wire_allocate_arrays
-  call mod_hions_allocate_arrays
+  call hions_allocate_arrays
   
 end subroutine allocate_arrays
 
@@ -83,7 +83,7 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   call dynk_expand_arrays(nele_new)
   call wire_expand_arrays(nele_new)
 
-  call mod_hions_expand_arrays(npart_new)
+  call hions_expand_arrays(npart_new)
 
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)

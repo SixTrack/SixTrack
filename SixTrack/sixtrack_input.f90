@@ -135,24 +135,6 @@ subroutine sixin_blockReport
   
 end subroutine sixin_blockReport
 
-subroutine sixin_debugInfo
-  
-  if(.not. sixin_debug) return
-  
-  write(lout,"(a)") "INPUT> SixTrack Input Debugging ENABLED"
-#ifdef CRLIBM
-  write(lout,"(a)") "INPUT> DEBUG CRLIBM is ON"
-#else
-  write(lout,"(a)") "INPUT> DEBUG CRLIBM is OFF"
-#endif
-#ifdef FIO
-  write(lout,"(a)") "INPUT> DEBUG FIO is ON"
-#else
-  write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
-#endif
-  
-end subroutine sixin_debugInfo
-
 subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
   character(len=*), intent(in) :: varName
   integer,          intent(in) :: varVal
@@ -186,6 +168,48 @@ end subroutine sixin_echoVal_real64
 ! ================================================================================================ !
 
 ! ================================================================================================ !
+!  Parse Information Block Line
+! ================================================================================================ !
+subroutine sixin_parseInputLineINFO(inLine, iLine, iErr)
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  if(nSplit == 0) return
+  
+  select case(lnSplit(1))
+  case("DEBUG")
+    sixin_debug = .true.
+    write(lout,"(a)") "INPUT> SixTrack Input Debugging ENABLED"
+#ifdef CRLIBM
+    write(lout,"(a)") "INPUT> DEBUG CRLIBM is ON"
+#else
+    write(lout,"(a)") "INPUT> DEBUG CRLIBM is OFF"
+#endif
+#ifdef FIO
+    write(lout,"(a)") "INPUT> DEBUG FIO is ON"
+#else
+    write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
+#endif
+  end select
+  
+end subroutine sixin_parseInputLineINFO
+
+! ================================================================================================ !
 !  Parse Single Element Line
 !  Rewritten from code from DATEN
 ! ================================================================================================ !
@@ -202,10 +226,16 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: elemName
   integer nSplit
+  logical spErr
   
   integer i
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   if(nSplit <= 2) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must have more than 2 values, got ",nSplit
@@ -223,7 +253,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! Check that the name is unique
   do i=1,sixin_nSing-1
     if(bez(i) == elemName) then
-      write(lout,"(a,i0)") "GEOMETRY> ERROR Single element '"//elemName//"' is not unique."
+      write(lout,"(a,i0)") "GEOMETRY> ERROR Single element '"//trim(elemName)//"' is not unique."
       iErr = .true.
       return
     end if
@@ -338,15 +368,19 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: blocName
   integer nSplit
+  logical spErr
   
-  integer i, j, ka, ke
+  integer i, j, ka, ke, nInd
   logical eFound, isCont
   character(len=str_maxName) ilm0(40)
   
-  call chr_split(inLine, lnSplit, nSplit, isCont)
-  ! do i=1,nSplit
-  !   write(lout,"(a,i2,a)") "SPLIT> lnSplit(",i,") = '"//lnSplit(i)//"'"
-  ! end do
+  call chr_split(inLine, lnSplit, nSplit, spErr, nIndent=nInd)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  isCont = (nInd >= 5)
   
   if(nSplit < 2 .and. .not. isCont) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
@@ -474,6 +508,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
+  logical spErr
   
   integer i, j
   character(len=str_maxName) ilm0(40)
@@ -483,7 +518,12 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end do
   
   expLine = chr_expandBrackets(inLine)
-  call chr_split(expLine, lnSplit, nSplit)
+  call chr_split(expLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   if(nSplit > 40) then
     write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have more then 40 elements."
@@ -545,11 +585,17 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: elemName
   integer nSplit
+  logical spErr
   
   integer i
   real(kind=fPrec) xpl0, xrms0, zpl0, zrms0
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   xpl0  = zero
   xrms0 = zero
@@ -630,10 +676,16 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
+  logical spErr
   
   integer i
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   if(nSplit < 1) then
     write(lout,"(a,i0,a)") "PARAM> ERROR INIT block line ",iLine," did not receive any values."
@@ -770,8 +822,14 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
+  logical spErr
   
-  call chr_split(inLine, lnSplit, nSplit)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
   
   select case(iLine)
   case(1)
@@ -901,5 +959,128 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   end select
   
 end subroutine sixin_parseInputLineTRAC
+
+! ================================================================================================ !
+!  Parse Differential Algebra Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
+  
+  use string_tools
+  use mod_commond
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=str_maxName) ilm0(40)
+  integer i, j1, j2, nSplit
+  logical spErr
+  
+  do i=1,40
+    ilm0(i) = str_nmSpace
+  end do
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "DIFF> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  if(iLine == 1) then
+    
+    idial = 1
+    numlr = 0
+    napx  = 1
+    imc   = 1
+    
+    if(nSplit > 0) call chr_cast(lnSplit(1),nord, iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nvar, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),preda,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),nsix, iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),ncor, iErr)
+    
+    if(sixin_debug) then
+      call sixin_echoVal("nord", nord, "DIFF",iLine)
+      call sixin_echoVal("nvar", nvar, "DIFF",iLine)
+      call sixin_echoVal("preda",preda,"DIFF",iLine)
+      call sixin_echoVal("nsix", nsix, "DIFF",iLine)
+      call sixin_echoVal("ncor", ncor, "DIFF",iLine)
+    end if
+    if(iErr) return
+    
+    if(nvar <= 4) ition = 0
+    if(nord <= 0 .or. nvar <= 0) then
+      write(lout,"(a)") "DIFF> ERROR Order and number of variables have to be larger than zero to "//&
+        "calculate a differential algebra map."
+      iErr = .true.
+      return
+    end if
+  
+  else
+    
+    if(nSplit /= ncor) then
+      write(lout,"(2(a,i0))") "DIFF> ERROR Expected line > 1 to have ",ncor," elements, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    do i=1,ncor
+      ilm0(i) = chr_padSpace(lnSplit(i),str_maxName)
+    end do
+    
+  end if
+  
+  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
+  if(nvar /= 6) then
+    nsix  = 0
+    iclo6 = 0
+  end if
+  if(nvar == 5) then
+    idp    = 1
+    ition  = 1
+    hsy(1) = zero
+  end if
+  
+  if(iLine == 1) then
+    if(nsix /= 1) nsix = 0
+    if(nord > nema) then
+      write(lout,"(2(a,i0))") "DIFF> ERROR Maximum order of the one turn map is  ",nema,", got ",nord
+      iErr = .true.
+      return
+    end if
+    nvar2 = nvar
+    return
+  else
+    if(ncor > mcor) then
+      write(lout,"(2(a,i0))") "DIFF> ERROR Maximum number of extra parameters is  ",mcor,", got ",ncor
+      iErr = .true.
+      return
+    end if
+    if(ncor > 0) then
+      OUTER: do j1=1,ncor
+        INNER: do j2=1,il
+          if(ilm0(j1) == bez(j2)) then
+            if(el(j2) /= zero .or. kz(j2) > 10) then
+              write(lout,"(a)") "DIFF> ERROR Only single kick elements allowed for map calculation"
+              iErr = .true.
+              return
+            end if
+            ipar(j1) = j2
+            exit OUTER
+          end if
+        end do INNER
+      end do OUTER
+    else
+      ncor = 0
+      write(lout,"(a)") "DIFF> INFOR No extra parameters for the map specified"
+    end if
+    nvar = nvar2+ncor
+  end if
+  
+end subroutine sixin_parseInputLineDIFF
 
 end module sixtrack_input
