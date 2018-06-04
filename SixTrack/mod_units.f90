@@ -28,59 +28,53 @@ subroutine units_openDefaults
   integer i
   character(len=7) fileName
   
-  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=4,  fileName="fort.4",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=7,  fileName="fort.7",  formatted=.true., boinc=.true.,fio=.true.,recl=303)
-  call units_openUnits(unit=8,  fileName="fort.8",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=9,  fileName="fort.9",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=11, fileName="fort.11", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=13, fileName="fort.13", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=14, fileName="fort.14", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=15, fileName="fort.15", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=16, fileName="fort.16", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=17, fileName="fort.17", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=20, fileName="fort.20", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=21, fileName="fort.21", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=22, fileName="fort.22", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=23, fileName="fort.23", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=24, fileName="fort.24", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=25, fileName="fort.25", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=26, fileName="fort.26", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=27, fileName="fort.27", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=28, fileName="fort.28", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=29, fileName="fort.29", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=30, fileName="fort.30", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=31, fileName="fort.31", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=32, fileName="fort.32", formatted=.false.,boinc=.true.)
-  call units_openUnits(unit=33, fileName="fort.33", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=34, fileName="fort.34", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=35, fileName="fort.35", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., boinc=.true.,fio=.true.,recl=303)
+  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=17,fileName="fort.17",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=19,fileName="fort.19",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=22,fileName="fort.22",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=23,fileName="fort.23",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=24,fileName="fort.24",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=25,fileName="fort.25",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=26,fileName="fort.26",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=30,fileName="fort.30",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,boinc=.true.)
+  call units_openUnits(unit=33,fileName="fort.33",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=35,fileName="fort.35",formatted=.true., boinc=.true.,fio=.true.)
   
 #ifndef BNLELENS
 #ifdef STF
   ! Open Single Track File
   call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,boinc=.true.)
 #else
-  ! Open binary files 59 to 90
+  ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(fileName,"(a5,i2)") "fort.",i
     call units_openUnits(unit=i,fileName=fileName,formatted=.false.,boinc=.true.)
   end do
 #endif
-#endif
-  
-#ifdef BNLELENS
+#else
 #ifdef BOINC
   call units_openUnits(unit=10,fileName="fort.10",formatted=.true.,boinc=.true.,fio=.true.,recl=8195)
-#ifdef CR
   call units_openUnits(unit=54,fileName="fort.54",formatted=.true.,boinc=.true.,fio=.true.)
-#else
-  call units_openUnits(unit=54,fileName="beambeamdist.dat",formatted=.true.,boinc=.false.,fio=.true.)
-#endif
 #else
 #ifdef CR
   call units_openUnits(unit=51,fileName="fort.51",formatted=.true.,boinc=.false.,fio=.true.)
@@ -98,7 +92,7 @@ subroutine units_openDefaults
 #endif
 #endif
 
-  call units_openUnits(unit=98, fileName="fort.98", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,boinc=.true.,fio=.true.)
   
   ! Eric for the DA coefficients in BINARY
   call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
