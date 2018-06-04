@@ -48,6 +48,7 @@ program mainda
   
   character(len=10) cmonth
   character(len=80) day,runtim
+  character(len=7) fileName
   character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
   dimension qw(2),qwc(3),clo0(2),clop0(2)
   dimension eps(2),epsa(2)
@@ -83,7 +84,13 @@ program mainda
   
   ! Open files
   call units_initUnits
-  call units_openDefaults
+  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
 
   ! Print Header Info
   tlim=1e7
