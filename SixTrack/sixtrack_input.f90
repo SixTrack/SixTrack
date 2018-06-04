@@ -693,13 +693,16 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
     return
   end if
   
+  ! All variables initialised to 0/zero in comnul
   select case(iLine)
   case(1) ! Line One
+    
     if(nSplit > 0) call chr_cast(lnSplit(1),itra,iErr) ! Number of particles
     if(nSplit > 1) call chr_cast(lnSplit(2),chi0,iErr) ! Starting phase of the initial coordinate
     if(nSplit > 2) call chr_cast(lnSplit(3),chid,iErr) ! Phase difference between particles
     if(nSplit > 3) call chr_cast(lnSplit(4),rat, iErr) ! Emittance ratio
     if(nSplit > 4) call chr_cast(lnSplit(5),iver,iErr) ! Vertical coordinates switch
+    
     if(sixin_debug) then
       call sixin_echoVal("itra",itra,"INIT",iLine)
       call sixin_echoVal("chi0",chi0,"INIT",iLine)
@@ -707,12 +710,14 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
       call sixin_echoVal("rat", rat, "INIT",iLine)
       call sixin_echoVal("iver",iver,"INIT",iLine)
     end if
+    
     if(iErr) return
     if(itra < 0 .or. itra > 2) then
       write(lout,"(a,i0,a)") "PARAM> ERROR INIT First value (itra) can only be 0, 1 or 2, but ",itra," given."
       iErr = .true.
       return
     end if
+    
     if(iver < 0 .or. iver > 1) then
       write(lout,"(a,i0,a)") "PARAM> ERROR INIT Fifth value (iver) can only be 0 or 1, but ",iver," given."
       iErr = .true.
@@ -833,11 +838,13 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   
   select case(iLine)
   case(1)
+    
     if(nSplit < 7) then
       write(lout,"(a,i0,a)") "PARAM> ERROR TRAC block line 1 should be at least 7 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
+    
     if(nSplit > 0)  call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
     if(nSplit > 1)  call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
     if(nSplit > 2)  call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
@@ -850,10 +857,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
     if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
     
-    ! Default nnmul to numl
+    ! Default nnuml to numl
     nnuml = numl
-    ! Defualt numlcp to 1000
-    if(numlcp == 0) numlcp = 1000
     
     if(sixin_debug) then
       call sixin_echoVal("numl",   numl,   "TRAC",iLine)
@@ -871,16 +876,19 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(iErr) return
     
   case(2)
+    
     if(nSplit < 4) then
       write(lout,"(a,i0,a)") "PARAM> ERROR TRAC block line 2 should be at least 4 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
+    
     if(nSplit > 0) call chr_cast(lnSplit(1),idz(1),iErr) ! Coupling on/off
     if(nSplit > 1) call chr_cast(lnSplit(2),idz(2),iErr) ! Coupling on/off
     if(nSplit > 2) call chr_cast(lnSplit(3),idfor, iErr) ! Closed orbit and initial coordinates
     if(nSplit > 3) call chr_cast(lnSplit(4),irew,  iErr) ! Disable rewind
     if(nSplit > 4) call chr_cast(lnSplit(5),iclo6, iErr) ! Calculate the 6D closed orbit
+    
     if(idz(1) < 0 .or. idz(1) > 1) then
       write(lout,"(a,i0,a)") "PARAM> ERROR TRAC first value (idz(1)) can only be 0 or 1, but ",idz(1)," given."
       iErr = .true.
@@ -924,11 +932,13 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(iclo6 == 1 .or.  iclo6 == 2) nsix  = 0
     
   case(3)
+    
     if(nSplit < 7) then
       write(lout,"(a,i0,a)") "PARAM> ERROR TRAC block line 3 should be at least 7 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
+    
     if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),iErr) ! Number of turns at flat bottom
     if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),iErr) ! Number of turns for the energy ramping
     if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),iErr) ! Every nth turn coordinates will be written

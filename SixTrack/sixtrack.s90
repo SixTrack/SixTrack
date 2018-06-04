@@ -7994,7 +7994,6 @@ subroutine daten
         iqq(i)=' '
       end do
 
-      call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
 
       do i=1,40
         ilm0(i)=' '
@@ -8026,28 +8025,9 @@ subroutine daten
       ncy=0
       ! ncy2=0
       ndum=0
-      numl=1
         
 !  Initialise new input parameters
-      numlmax=1000000
-      numlcp=0
-      napx=0
-      amp(1)=c1m3
-      amp0=zero
-      ird=0
-      imc=0
       idial=0
-      idz(1)=1
-      idz(2)=1
-      idfor=0
-      irew=0
-      nde(1)=0
-      nde(2)=0
-      nwr(1)=1
-      nwr(2)=1
-      nwr(3)=1
-      nwr(4)=10000
-      ntwin=1
       harm=one
       alc=c1m3
       phag=zero
@@ -8115,32 +8095,65 @@ subroutine daten
       mout3=0
       mout4=0
       kanf=1
-      iclo=0
       isub=0
       irmod2=0
       iorg=0
       ise=0
       iskew=0
       preda=c1m38
-!hion
-      zz0 = 1
-      aa0 = 1
-      nucm0 = pmap
-#ifdef COLLIMAT
-      has_coll = .false.
-#else
-      do_coll = .false.
-#endif
-      has_hion = .false.
+  
+! ================================================================================================ !
+!  SET DEFAULT MODULE VALUES
+! ================================================================================================ !
+  
+  ! TRACKING PARAMETERS
+  numl      = 1
+  napx      = 0
+  amp0      = zero
+  amp(1)    = c1m3
+  ird       = 0
+  imc       = 0
+  numlcp    = 0
+  numlmax   = 1000000000
 
-  ! New variables for sixtrack_input module
+  idz(:)    = 1
+  idfor     = 0
+  irew      = 0
+  iclo      = 0
+
+  nde(:)    = 0
+  nwr(:)    = 1
+  nwr(4)    = 10000
+  ntwin     = 1
+  
+  ! HIONS MODULE
+  zz0       = 1
+  aa0       = 1
+  nucm0     = pmap
+  has_hion  = .false.
+  
+  ! COLLIMATION MODULE
+#ifdef COLLIMAT
+  has_coll  = .false.
+#else
+  do_coll   = .false.
+#endif
+  
+! ================================================================================================ !
+!  SET DEFAULT INPUT PARSING VALUES
+! ================================================================================================ !
+  
+  ! SIXTRACK INPUT MODULE
   inErr       = .false.
   oneLine     = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
   sixin_debug = .false.
   
-  nGeom = 0
+  call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
+  
+  ! DATEB INTERNAL
+  nGeom       = 0
   
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
@@ -26331,17 +26344,6 @@ subroutine comnul
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
-  use scatter, only : scatter_comnul
-  use dynk, only : dynk_comnul
-  use fma,  only : fma_comnul
-  use dump, only : dump_comnul
-  use zipf, only : zipf_comnul
-+if collimat
-  use collimation, only : collimation_comnul
-+ei
-#ifdef HDF5
-  use hdf5_output, only : h5_comnul
-#endif
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
@@ -26349,122 +26351,144 @@ subroutine comnul
   use mod_commons
   use mod_commont
   use mod_commond
-  use bdex, only : bdex_comnul
+  
   use aperture
   use elens
   use wire
+  use scatter,     only : scatter_comnul
+  use dynk,        only : dynk_comnul
+  use fma,         only : fma_comnul
+  use dump,        only : dump_comnul
+  use zipf,        only : zipf_comnul
+  use bdex,        only : bdex_comnul
+#ifdef COLLIMAT
+  use collimation, only : collimation_comnul
+#endif
+#ifdef HDF5
+  use hdf5_output, only : h5_comnul
+#endif
   
   implicit none
   
   integer i,i1,i2,i3,i4,j
 +ca commd1da
 
-+if bnlelens
+#ifdef BNLELENS
 +ca rhicelens
-+ei
+#endif
 
 +ca dbdcum
-
+  
   save
-!-----------------------------------------------------------------------
-!
-+if bnlelens
-!GRDRHIC
-!GRD-042008
-! Set all new variables to 0 or ZERO
-! Note we do not initialise the checkpoint cr* variables
-! nor the my* variables as they should all be read in!
-! real(kind=fPrec)
-      do i=1,nblz
-        tbetax(i)=zero
-        tbetay(i)=zero
-        talphax(i)=zero
-        talphay(i)=zero
-        torbx(i)=zero
-        torbxp(i)=zero
-        torby(i)=zero
-        torbyp(i)=zero
-        tdispx(i)=zero
-        tdispy(i)=zero
-        sampl(i)=zero
-      enddo
-! real(kind=fPrec)
-      totals=zero
-      limit_twojx=zero
-      limit_twojy=zero
-      limit_twojr=zero
-      twojx=zero
-      twojy=zero
-      twojr=zero
-      sumtwojx=zero
-      sumtwojy=zero
-      sumsquarex=zero
-      sumsquarey=zero
-! integers
-      n_cut=0
-      n_nocut=0
-      samplenumber=0
-      mynp=0
-      do j=1,npart
-        namepart(j)=0
-      enddo
-!GRDRHIC
-!GRD-042008
-+ei
-      ncorru=0
-      ncorrep=0
-      iexact=0
-      ithick=0
-      ierro=0
-      il=0
-      iclo6=0
-      iclo6r=0
-      mper=0
-      mblo=0
-      mbloz=0
-      kanf=0
-      iu=0
-      itra=0
-      napx=0
-      numl=0
-      numlr=0
-      ird=0
-      imc=0
-      niu(1)=0
-      niu(2)=0
-      idp=0
-      irew=0
-      iorg=0
-      itco=0
-      itcro=0
-      itqv=0
-      ichrom=0
-      iqmod=0
-      iqmod6=0
-      ilin=0
-      iqmodc=0
-      ichromc=0
-      ilinc=0
-      ntco=0
-      nt=0
-      iprint=0
-      iclo=0
-      icoe=0
-      ise=0
-      mesa=0
-      mp=0
-      m21=0
-      m22=0
-      m23=0
-      ise1=0
-      ise2=0
-      ise3=0
-      isub=0
-      nta=0
-      nte=0
-      ipt=0
-      irmod2=0
-      nre=0
+  
+  ncorru  = 0     ! mod_common
+  ncorrep = 0     ! mod_common
+  ierro   = 0     ! mod_common
+  iu      = 0     ! mod_common
+  ilin    = 0     ! mod_common
+  iqmodc  = 0     ! mod_common
+  ichromc = 0     ! mod_common
+  ilinc   = 0     ! mod_common
+  iprint  = 0     ! mod_common
+  
+  ! TRACKING BLOCK
+  ! Line 1
+  numl    = 0     ! mod_common
+  numlr   = 0     ! mod_common
+  napx    = 0     ! mod_common
+  amp0    = zero  ! mod_common
+  amp(:)  = zero  ! mod_commont
+  ird     = 0     ! mod_common
+  imc     = 0     ! mod_common
+  niu(1)  = 0     ! mod_common
+  niu(2)  = 0     ! mod_common
+  numlcp  = 0     ! mod_common
+  numlmax = 0     ! mod_common
+  ! Line 2
+  idz(:)  = 0     ! mod_commons
+  idfor   = 0     ! mod_common
+  irew    = 0     ! mod_common
+  iclo6   = 0     ! mod_common
+  iclo6r  = 0     ! mod_common
+  ! Line 3
+  nde(:)  = 0     ! mod_common
+  nwr(:)  = 0     ! mod_common
+  ntwin   = 0     ! mod_common
+  ibidu   = 0     ! mod_common
+  iexact  = 0     ! mod_common
+  
+  ! SINGLE ELEMENT BLOCK
+  ithick  = 0     ! mod_common
+  il      = 0     ! mod_common
+  
+  ! BLOC DEFINITONS BLOCK
+  mper    = 0     ! mod_common
+  mblo    = 0     ! mod_common
+  mbloz   = 0     ! mod_common
+  
+  ! STRUCTURE INPUT BLOCK
+  kanf    = 0     ! mod_common
+  
+  ! INITIAL COORDINATES BLOCK
+  itra     = 0    ! mod_commons
+  chi0     = zero ! mod_commons
+  chid     = zero ! mod_commons
+  rat      = zero ! mod_common
+  iver     = 0    ! mod_common
+  exz(:,:) = zero ! mod_commons
+  e0       = zero ! mod_common
+  ej(:)    = zero ! mod_common
+
+  ! DIFFERENTIAL ALGEBRA BLOCK
+  idp     = 0     ! mod_common
+  
+  ! RANDOM NUMBERS VARIABLES
+  iorg    = 0     ! mod_common
+  
+  ! ITERATION ERRORS BLOCK
+  itco    = 0     ! mod_common
+  itcro   = 0     ! mod_common
+  itqv    = 0     ! mod_common
+  
+  ! CHROMATICITY ADJUSTMENT BLOCK
+  ichrom  = 0     ! mod_common
+  
+  ! TUNE ADJUSTMENT BLOCK
+  iqmod   = 0     ! mod_common
+  iqmod6  = 0     ! mod_common
+  
+  ! LINEAR OPTICS BLOCK
+  ntco    = 0     ! mod_common
+  nt      = 0     ! mod_common
+  
+  ! ORBIT CORRECTION BLOCK
+  iclo    = 0     ! mod_common
+  
+  ! COMBINATION OF ELEMENTS BLOCK
+  icoe    = 0     ! mod_common
+  
+  ! SEARCH BLOCK
+  ise     = 0     ! mod_common
+  mesa    = 0     ! mod_common
+  mp      = 0     ! mod_common
+  m21     = 0     ! mod_common
+  m22     = 0     ! mod_common
+  m23     = 0     ! mod_common
+  ise1    = 0     ! mod_common
+  ise2    = 0     ! mod_common
+  ise3    = 0     ! mod_common
+  
+  ! SUBRESONANCE CALCULATION BLOCK
+  isub    = 0     ! mod_common
+  nta     = 0     ! mod_common
+  nte     = 0     ! mod_common
+  ipt     = 0     ! mod_common
+  
+  ! RESONANCE COMPENSATION BLOCK
+  irmod2  = 0     ! mod_common
+  nre     = 0     ! mod_common
+  
+  ! TODO
       nur=0
       nch=0
       nqc=0
@@ -26503,8 +26527,6 @@ subroutine comnul
       ibtyp=0
       lhc=1
       ibbc=0
-      iver=0
-      ibidu=0
 !-----------------------------------------------------------------------
       inorm=0
       imod1=0
@@ -26531,13 +26553,8 @@ subroutine comnul
       pi2=zero
       pisqrt=zero
       rad=zero
-      chi0=zero
-      chid=zero
       dp1=zero
-      idfor=0
-      rat=zero
       qs=zero
-      e0=zero
       crad=zero
       dppoff=zero
       tlen=zero
@@ -26557,7 +26574,6 @@ subroutine comnul
       dsi=zero
       dech=zero
       dsm0=zero
-      amp0=zero
       qxt=zero
       qzt=zero
       eui=zero
@@ -26587,10 +26603,7 @@ subroutine comnul
       time1=0.
 !-----------------------------------------------------------------------
       do 10 i=1,2
-        nde(i)=0
         is(i)=0
-        idz(i)=0
-        amp(i)=zero
         bet0(i)=zero
         alf0(i)=zero
         clo(i)=zero
@@ -26625,10 +26638,6 @@ subroutine comnul
       chromc(1)=9.999999e23_fPrec
       chromc(2)=9.999999e23_fPrec
 
-      do 30 i=1,4
-        nwr(i)=0
-   30 continue
-
       do 40 i=1,5
         ipr(i)=0
         nrr(i)=0
@@ -26659,11 +26668,6 @@ subroutine comnul
         end do
       end do
 
-      do i=1,2
-        do j=1,6
-          exz(i,j)=zero
-        end do
-      end do
 
       do i1=1,9
         do i2=1,18
@@ -26819,7 +26823,6 @@ subroutine comnul
         rvf(i)=one
         sigm(i)=zero
         dps(i)=zero
-        ej(i)=zero
         ejf(i)=zero
         do 210 i1=1,2
           x(i,i1)=zero
@@ -26909,7 +26912,44 @@ subroutine comnul
 !     last modified: 2016
       call fma_comnul
       
-!1) --ELEN - ELECTRON LENS---------------------------------------------------------
+!--BNLELENS-------------------------------------------------------------
+#ifdef BNLELENS
+  ! Set all new variables to 0 or ZERO
+  ! Note we do not initialise the checkpoint cr* variables
+  ! nor the my* variables as they should all be read in!
+  do i=1,nblz
+    tbetax(i)=zero
+    tbetay(i)=zero
+    talphax(i)=zero
+    talphay(i)=zero
+    torbx(i)=zero
+    torbxp(i)=zero
+    torby(i)=zero
+    torbyp(i)=zero
+    tdispx(i)=zero
+    tdispy(i)=zero
+    sampl(i)=zero
+  end do
+  totals=zero
+  limit_twojx=zero
+  limit_twojy=zero
+  limit_twojr=zero
+  twojx=zero
+  twojy=zero
+  twojr=zero
+  sumtwojx=zero
+  sumtwojy=zero
+  sumsquarex=zero
+  sumsquarey=zero
+  n_cut=0
+  n_nocut=0
+  samplenumber=0
+  mynp=0
+  do j=1,npart
+    namepart(j)=0
+  end do
+#endif
+    !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Mereghetti
 !     last modified: 09-02-2018
 !     always in main code
