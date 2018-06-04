@@ -33,6 +33,7 @@ program mainda
   use mod_commont
   use mod_commond
   use tuneshift_corr
+  use mod_units
   
   implicit none
   
@@ -79,8 +80,10 @@ program mainda
 +ei
   ! Initial allocation of memory
   call allocate_arrays
-
-+ca open
+  
+  ! Open files
+  call units_initUnits
+  call units_openDefaults
 
   ! Print Header Info
   tlim=1e7

@@ -312,7 +312,7 @@ list(APPEND FORS_FREEFORM
 )
 
 list(APPEND FORS_F90
-	core_tools constants sixtrack_input
+	core_tools constants sixtrack_input mod_units
 	strings string_tools common_modules mainarrays
 	file_units mod_alloc zipf matrix_inv
 	bouncy_castle plato_seq bdex fma
