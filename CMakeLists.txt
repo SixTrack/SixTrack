@@ -682,6 +682,7 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
+	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -cpp -E -P)
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -742,6 +743,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
 	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
+	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -fpp -E -P)
 
 	if(32BIT)
@@ -778,7 +780,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set(PREPRO_FLAGS -fpp -E -P)
+	set(PREPRO_EXEC  fpp)
+	set(PREPRO_FLAGS -P -free)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -1364,7 +1367,7 @@ add_dependencies(generate_input run_astuce run_prepro)
 foreach(loop IN ITEMS ${FORS_F90})
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-		COMMAND ${CMAKE_Fortran_COMPILER} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 		DEPENDS run_prepro
 	)
 endforeach()
@@ -1379,13 +1382,13 @@ foreach(loop IN LISTS FORS_FREEFORM)
 	
 	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
 		message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}n.f")
-		add_custom_command(TARGET run_prepro POST_BUILD COMMAND ${CMAKE_Fortran_COMPILER} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}a.f90 DEPENDS run_astuce)
+		add_custom_command(TARGET run_prepro POST_BUILD COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}a.f90 DEPENDS run_astuce)
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log DEPENDS run_prepro)
 		
 	elseif(${FORS_FREEFORM_LISTINDEX} GREATER -1)
 		message(STATUS "Will copy ${loop}n.f to ${loop}.f90")
 		# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${CMAKE_COMMAND} -E copy ${loop}a.f90 ${loop}.f90 DEPENDS run_prepro)
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${CMAKE_Fortran_COMPILER} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}.f90 DEPENDS run_astuce)
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}.f90 DEPENDS run_astuce)
 			
 	else()
 		message(FATAL_ERROR "Error when preprocessing ${loop}: Logic error in CMakeLists.txt.")
