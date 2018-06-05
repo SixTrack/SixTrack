@@ -1,5 +1,0 @@
-lielib.s90
-lielibn.f90
-df crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
-e lielib
-ex

@@ -311,17 +311,15 @@ LIST(APPEND PREPRO_FLAGS_PREC P32BITM P64BITM P128BITM)
 ###################################################################################################
 
 list(APPEND FORS_FREEFORM
-	end_sixtrack
-	scatter dynk
-	lielib dabnew
-	postprocessing dump
+	end_sixtrack scatter dynk
+	dabnew postprocessing dump
 	aperture
 )
 
 list(APPEND FORS_F90
 	core_tools constants sixtrack_input mod_units close
 	strings string_tools common_modules mainarrays
-	file_units mod_alloc zipf matrix_inv
+	file_units mod_alloc zipf matrix_inv lielib
 	bouncy_castle plato_seq bdex fma
 	ranecu wire hions elens mod_dist
 )

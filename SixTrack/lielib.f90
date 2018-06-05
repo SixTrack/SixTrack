@@ -1,4 +1,4 @@
-+dk lielib
+
 module lielib_vars
   
   use floatPrecision
