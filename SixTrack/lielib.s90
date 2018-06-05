@@ -46,7 +46,8 @@
       integer iflow,jtune
       common /vecflow/ iflow,jtune
 
-+dk lieinit
++dk lielib
+
 subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
       use end_sixtrack
@@ -140,8 +141,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       return
 end subroutine lieinit
 
-+dk flowpara
-      subroutine flowpara(ifl,jtu)
+subroutine flowpara(ifl,jtu)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -150,9 +150,9 @@ end subroutine lieinit
       iflow=ifl
       jtune=jtu
       return
-      end
-+dk pertpeek
-      subroutine pertpeek(st,ang,ra)
+end subroutine flowpara
+
+subroutine pertpeek(st,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -176,9 +176,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk inputres
-      subroutine inputres(mx1,nres1)
+end subroutine pertpeek
+
+subroutine inputres(mx1,nres1)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -204,9 +204,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk respoke
-      subroutine respoke(mres,nre,ire)
+end subroutine inputres
+
+subroutine respoke(mres,nre,ire)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -234,9 +234,9 @@ end subroutine lieinit
 
       call initpert(st,ang,ra)
       return
-      end
-+dk liepeek
-      subroutine liepeek(iia,icoast)
+end subroutine respoke
+
+subroutine liepeek(iia,icoast)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -259,9 +259,9 @@ end subroutine lieinit
       icoast(4)=ndpt
 
       return
-      end
-+dk lienot
-      subroutine lienot(not)
+end subroutine liepeek
+
+subroutine lienot(not)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -271,9 +271,9 @@ end subroutine lieinit
       no=not
 
       return
-      end
-+dk etallnom
-      subroutine etallnom(x,n,nom)
+end subroutine lienot
+
+subroutine etallnom(x,n,nom)
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
@@ -299,9 +299,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk etall
-      subroutine etall(x,n)
+end subroutine etallnom
+
+subroutine etall(x,n)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -323,9 +323,9 @@ end subroutine lieinit
            end do
          endif
       return
-      end
-+dk etall1
-      subroutine etall1(x)
+end subroutine etall
+
+subroutine etall1(x)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -335,18 +335,18 @@ end subroutine lieinit
 !frs
       call daallno(x,1,'ETALL     ')
       return
-      end
-+dk dadal1
-      subroutine dadal1(x)
+end subroutine etall1
+
+subroutine dadal1(x)
       use floatPrecision
       use mathlib_bouncer
       implicit none
       integer x
       call dadal(x,1)
       return
-      end
-+dk etppulnv
-      subroutine etppulnv(x,xi,xff)
+end subroutine dadal1
+
+subroutine etppulnv(x,xi,xff)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -374,9 +374,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etmtree
-      subroutine etmtree(y,x)
+end subroutine etppulnv
+
+subroutine etmtree(y,x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -413,9 +413,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk etppush
-      subroutine etppush(x,xi)
+end subroutine etmtree
+
+subroutine etppush(x,xi)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -438,9 +438,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etppush2
-      subroutine etppush2(x,xi,xff)
+end subroutine etppush
+
+subroutine etppush2(x,xi,xff)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -463,9 +463,9 @@ end subroutine lieinit
       enddo
 
       return
-      end
-+dk ppushlnv
-      subroutine ppushlnv(x,xi,xff,nd1)
+end subroutine etppush2
+
+subroutine ppushlnv(x,xi,xff,nd1)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -493,9 +493,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etcct
-      subroutine etcct(x,y,z)
+end subroutine ppushlnv
+
+subroutine etcct(x,y,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -532,9 +532,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk trx
-      subroutine trx(h,rh,y)
+end subroutine etcct
+
+subroutine trx(h,rh,y)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -573,9 +573,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk trxflo
-      subroutine trxflo(h,rh,y)
+end subroutine trx
+
+subroutine trxflo(h,rh,y)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -615,9 +615,9 @@ end subroutine lieinit
       call dadal(ht,nd2)
       call dadal(yi,nd2)
       return
-      end
-+dk simil
-      subroutine simil(a,x,ai,y)
+end subroutine trxflo
+
+subroutine simil(a,x,ai,y)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -642,9 +642,9 @@ end subroutine lieinit
       call dadal(v,nd2)
       call dadal(w,nd2)
       return
-      end
-+dk etini
-      subroutine etini(x)
+end subroutine simil
+
+subroutine etini(x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -662,9 +662,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etinv
-      subroutine etinv(x,y)
+end subroutine etini
+
+subroutine etinv(x,y)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -712,9 +712,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk etpin
-      subroutine etpin(x,y,jj)
+end subroutine etinv
+
+subroutine etpin(x,y,jj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -762,9 +762,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk dapek0
-      subroutine dapek0(v,x,jj)
+end subroutine etpin
+
+subroutine dapek0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -785,9 +785,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk dapok0
-      subroutine dapok0(v,x,jj)
+end subroutine dapek0
+
+subroutine dapok0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -807,9 +807,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk dapokzer
-      subroutine dapokzer(v,jj)
+end subroutine dapok0
+
+subroutine dapokzer(v,jj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -828,9 +828,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk davar0
-      subroutine davar0(v,x,jj)
+end subroutine dapokzer
+
+subroutine davar0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -846,9 +846,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk comcfu
-      subroutine comcfu(b,f1,f2,c)
+end subroutine davar0
+
+subroutine comcfu(b,f1,f2,c)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -867,9 +867,9 @@ end subroutine lieinit
       call daadd(t(2),t(3),c(2))
       call dadal(t,4)
       return
-      end
-+dk take
-      subroutine take(h,m,ht)
+end subroutine comcfu
+
+subroutine take(h,m,ht)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -928,9 +928,9 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk taked
-      subroutine taked(h,m,ht)
+end subroutine take
+
+subroutine taked(h,m,ht)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -959,9 +959,9 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk daclrd
-      subroutine daclrd(h)
+end subroutine taked
+
+subroutine daclrd(h)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -975,9 +975,9 @@ end subroutine lieinit
         call daclr(h(i))
       end do
       return
-      end
-+dk dacopd
-      subroutine dacopd(h,ht)
+end subroutine daclrd
+
+subroutine dacopd(h,ht)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -991,9 +991,9 @@ end subroutine lieinit
         call dacop(h(i),ht(i))
       end do
       return
-      end
-+dk dacmud
-      subroutine dacmud(h,sca,ht)
+end subroutine dacopd
+
+subroutine dacmud(h,sca,ht)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1007,9 +1007,9 @@ end subroutine lieinit
         call dacmu(h(i),sca,ht(i))
       end do
       return
-      end
-+dk dalind
-      subroutine dalind(h,rh,ht,rt,hr)
+end subroutine dacmud
+
+subroutine dalind(h,rh,ht,rt,hr)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1029,9 +1029,9 @@ end subroutine lieinit
       call dacopd(b,hr)
       call dadal(b,nd2)
       return
-      end
-+dk daread
-      subroutine daread(h,nd1,mfile,xipo)
+end subroutine dalind
+
+subroutine daread(h,nd1,mfile,xipo)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1053,9 +1053,9 @@ end subroutine lieinit
         call dapok(h(i),j,rx)
       end do
       return
-      end
-+dk daprid
-      subroutine daprid(h,n1,n2,mfile)
+end subroutine daread
+
+subroutine daprid(h,n1,n2,mfile)
       use floatPrecision
       implicit none
       integer i,mfile,n1,n2,ndim2,ntt
@@ -1070,9 +1070,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk prresflo
-      subroutine prresflo(h,eps,mfile)
+end subroutine daprid
+
+subroutine prresflo(h,eps,mfile)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -1103,9 +1103,9 @@ end subroutine lieinit
       call  dadal(c,nd2)
       call  dadal(b,nd2)
       return
-      end
-+dk filtres
-      real(kind=fPrec) function filtres(j)
+end subroutine prresflo
+
+real(kind=fPrec) function filtres(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -1133,9 +1133,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk daflo
-      subroutine daflo(h,x,y)
+end function filtres
+
+subroutine daflo(h,x,y)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1169,9 +1169,9 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk daflod
-      subroutine daflod(h,x,y)
+end subroutine daflo
+
+subroutine daflod(h,x,y)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1196,9 +1196,9 @@ end subroutine lieinit
       call dadal(b1,nd2)
       call dadal(b2,nd2)
       return
-      end
-+dk intd
-      subroutine intd(v,h,sca)
+end subroutine daflod
+
+subroutine intd(v,h,sca)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -1246,9 +1246,9 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk difd
-      subroutine difd(h1,v,sca)
+end subroutine intd
+
+subroutine difd(h1,v,sca)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -1274,9 +1274,9 @@ end subroutine lieinit
       call dadal(h(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk expflo
-      subroutine expflo(h,x,y,eps,nrmax)
+end subroutine difd
+
+subroutine expflo(h,x,y,eps,nrmax)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -1343,9 +1343,9 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk expflod
-      subroutine expflod(h,x,w,eps,nrmax)
+end subroutine expflo
+
+subroutine expflod(h,x,w,eps,nrmax)
       use floatPrecision
       implicit none
       integer j,ndim,ndim2,nrmax,ntt
@@ -1373,9 +1373,9 @@ end subroutine lieinit
       call dadal(v,nd2)
       call dadal(b0(1),1)
       return
-      end
-+dk facflo
-      subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
+end subroutine expflod
+
+subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1426,9 +1426,9 @@ end subroutine lieinit
       call dadal(b0,nd2)
       call dadal(bm,nd2)
       return
-      end
-+dk facflod
-      subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
+end subroutine facflo
+
+subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       implicit none
       integer i,ifac,ndim,ndim2,nrmax,nrmin,ntt
@@ -1448,9 +1448,9 @@ end subroutine lieinit
  1    continue
 
       return
-      end
-+dk fexpo
-      subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
+end subroutine facflod
+
+subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1475,9 +1475,9 @@ end subroutine lieinit
       call dadal(v,nd2)
 
       return
-      end
-+dk etcom
-      subroutine etcom(x,y,h)
+end subroutine fexpo
+
+subroutine etcom(x,y,h)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1512,9 +1512,9 @@ end subroutine lieinit
       call dadal(t2(1),1)
       call dadal(t3,nd2)
       return
-      end
-+dk etpoi
-      subroutine etpoi(x,y,h)
+end subroutine etcom
+
+subroutine etpoi(x,y,h)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1551,9 +1551,9 @@ end subroutine lieinit
       call dadal(t2(1),1)
       call dadal(t3(1),1)
       return
-      end
-+dk exp1d
-      subroutine exp1d(h,x,y,eps,non)
+end subroutine etpoi
+
+subroutine exp1d(h,x,y,eps,non)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1576,9 +1576,9 @@ end subroutine lieinit
       call dadal(v,nd2)
 
       return
-      end
-+dk expnd2
-      subroutine expnd2(h,x,w,eps,nrmax)
+end subroutine exp1d
+
+subroutine expnd2(h,x,w,eps,nrmax)
       use floatPrecision
       implicit none
       integer j,ndim,ndim2,nrmax,ntt
@@ -1607,9 +1607,9 @@ end subroutine lieinit
       call dadal(b0(1),1)
 
       return
-      end
-+dk flofacg
-      subroutine flofacg(xy,h,epsone)
+end subroutine expnd2
+
+subroutine flofacg(xy,h,epsone)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -1695,9 +1695,9 @@ end subroutine lieinit
       call dadal(t,nd2)
       call dadal(z,nd2)
       return
-      end
-+dk flofac
-      subroutine flofac(xy,x,h)
+end subroutine flofacg
+
+subroutine flofac(xy,x,h)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1734,9 +1734,9 @@ end subroutine lieinit
       call dadal(w,nd2)
       call dadal(v,nd2)
       return
-      end
-+dk liefact
-      subroutine liefact(xy,x,h)
+end subroutine flofac
+
+subroutine liefact(xy,x,h)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1758,9 +1758,9 @@ end subroutine lieinit
       call dadal(v,nd2)
 
       return
-      end
-+dk mapnorm
-      subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
+end subroutine liefact
+
+subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -1783,9 +1783,9 @@ end subroutine lieinit
       call dadal(hf,nd2)
 
       return
-      end
-+dk gettura
-      subroutine gettura(psq,radsq)
+end subroutine mapnorm
+
+subroutine gettura(psq,radsq)
       use floatPrecision
       implicit none
       integer ik,ndim,ndim2,ntt
@@ -1802,9 +1802,9 @@ end subroutine lieinit
       enddo
 
       return
-      end
-+dk setidpr
-      subroutine setidpr(idprint,nplan)
+end subroutine gettura
+
+subroutine setidpr(idprint,nplan)
       use floatPrecision
       implicit none
       integer idprint,ik,ndim,ndim2,nplan
@@ -1821,9 +1821,9 @@ end subroutine lieinit
       idpr=idprint
 
       return
-      end
-+dk idprset
-      subroutine idprset(idprint)
+end subroutine setidpr
+
+subroutine idprset(idprint)
       use floatPrecision
       implicit none
       integer idprint,ndim,ndim2
@@ -1836,9 +1836,9 @@ end subroutine lieinit
       idpr=idprint
 
       return
-      end
-+dk mapnormf
-      subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
+end subroutine idprset
+
+subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -1911,9 +1911,9 @@ end subroutine lieinit
       call dadal(a2i,nd2)
       call dadal(a1i,nd2)
       return
-      end
-+dk gofix
-      subroutine gofix(xy,a1,a1i,nord)
+end subroutine mapnormf
+
+subroutine gofix(xy,a1,a1i,nord)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -2012,9 +2012,9 @@ end subroutine lieinit
       call dadal(w,nd2)
       call dadal(x,nd2)
       return
-      end
-+dk transver
-      real(kind=fPrec) function transver(j)
+end subroutine gofix
+
+real(kind=fPrec) function transver(j)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -2034,9 +2034,9 @@ end subroutine lieinit
       enddo
       if(ic.ne.1) transver=zero
       return
-      end
-+dk orderflo
-      subroutine orderflo(h,ft,x,ang,ra)
+end function transver
+
+subroutine orderflo(h,ft,x,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2108,9 +2108,9 @@ end subroutine lieinit
       call dadal(v,nd2)
       call dadal(w,nd2)
       return
-      end
-+dk nuanaflo
-      subroutine nuanaflo(h,ft)
+end subroutine orderflo
+
+subroutine nuanaflo(h,ft)
       use floatPrecision
       implicit none
       integer i,ndim,ndim2,ntt
@@ -2168,9 +2168,9 @@ end subroutine lieinit
       call dadal(ci,nd2)
 
       return
-      end
-+dk xgam
-      real(kind=fPrec) function xgam(j)
+end subroutine nuanaflo
+
+real(kind=fPrec) function xgam(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2216,9 +2216,9 @@ end subroutine lieinit
       xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans       !hr11
 
       return
-      end
-+dk xgbm
-      real(kind=fPrec) function xgbm(j)
+end function xgam
+
+real(kind=fPrec) function xgbm(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2263,9 +2263,9 @@ end subroutine lieinit
       xgbm=(sin_mb(as)*ex)/ans                                           !hr11
 
       return
-      end
-+dk filt
-      real(kind=fPrec) function filt(j)
+end function xgbm
+
+real(kind=fPrec) function filt(j)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -2314,9 +2314,9 @@ end subroutine lieinit
 
       filt=zero
       return
-       end
-+dk dfilt
-      real(kind=fPrec) function dfilt(j)
+end function filt
+
+real(kind=fPrec) function dfilt(j)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -2342,9 +2342,9 @@ end subroutine lieinit
        dfilt=one
       endif
       return
-       end
-+dk dhdjflo
-      subroutine dhdjflo(h,t)
+end function dfilt
+
+subroutine dhdjflo(h,t)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2389,9 +2389,9 @@ end subroutine lieinit
       call dadal(b2,nd2)
       call dadal(b1,nd2)
       return
-      end
-+dk dhdj
-      subroutine dhdj(h,t)
+end subroutine dhdjflo
+
+subroutine dhdj(h,t)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2440,9 +2440,9 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk h2pluflo
-      subroutine h2pluflo(h,ang,ra)
+end subroutine dhdj
+
+subroutine h2pluflo(h,ang,ra)
       use floatPrecision
       use numerical_constants
       implicit none
@@ -2493,9 +2493,9 @@ end subroutine lieinit
         call dapok(h(ndt),j,-one*ang(nd))                                !hr11
       endif
       return
-      end
-+dk rotflo
-      subroutine rotflo(ro,ang,ra)
+end subroutine h2pluflo
+
+subroutine rotflo(ro,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2554,9 +2554,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk rotiflo
-      subroutine rotiflo(roi,ang,ra)
+end subroutine rotflo
+
+subroutine rotiflo(roi,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2620,9 +2620,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk hyper
-      subroutine hyper(a,ch,sh)
+end subroutine rotiflo
+
+subroutine hyper(a,ch,sh)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2634,9 +2634,9 @@ end subroutine lieinit
       ch=(x+xi)/two
       sh=(x-xi)/two
       return
-      end
-+dk ctor
-      subroutine ctor(c1,r2,i2)
+end subroutine hyper
+
+subroutine ctor(c1,r2,i2)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2664,9 +2664,9 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk rtoc
-      subroutine rtoc(r1,i1,c2)
+end subroutine ctor
+
+subroutine rtoc(r1,i1,c2)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2685,9 +2685,9 @@ end subroutine lieinit
       call itoc(b1(1),c2)
       call dadal(b1(1),1)
       return
-      end
-+dk ctorflo
-      subroutine ctorflo(c,dr,di)
+end subroutine rtoc
+
+subroutine ctorflo(c,dr,di)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2702,9 +2702,9 @@ end subroutine lieinit
       call resvec(dr,di,dr,di)
 
       return
-      end
-+dk rtocflo
-      subroutine rtocflo(dr,di,c)
+end subroutine ctorflo
+
+subroutine rtocflo(dr,di,c)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2726,9 +2726,9 @@ end subroutine lieinit
       call dadal(ei,nd2)
 
       return
-      end
-+dk ctord
-      subroutine ctord(c,cr,ci)
+end subroutine rtocflo
+
+subroutine ctord(c,cr,ci)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2745,9 +2745,9 @@ end subroutine lieinit
       call ctor(c(i),cr(i),ci(i))
  1    continue
       return
-      end
-+dk rtocd
-      subroutine rtocd(cr,ci,c)
+end subroutine ctord
+
+subroutine rtocd(cr,ci,c)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2762,9 +2762,9 @@ end subroutine lieinit
       call rtoc(cr(i),ci(i),c(i))
  1    continue
       return
-      end
-+dk resvec
-      subroutine resvec(cr,ci,dr,di)
+end subroutine rtocd
+
+subroutine resvec(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -2812,9 +2812,9 @@ end subroutine lieinit
       call dadal(tr,2)
       call dadal(ti,2)
       return
-      end
-+dk reelflo
-      subroutine reelflo(c,ci,f,fi)
+end subroutine resvec
+
+subroutine reelflo(c,ci,f,fi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2856,9 +2856,9 @@ end subroutine lieinit
       call dadal(e,nd2)
       call dadal(ei,nd2)
       return
-      end
-+dk compcjg
-      subroutine compcjg(cr,ci,dr,di)
+end subroutine reelflo
+
+subroutine compcjg(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2880,9 +2880,9 @@ end subroutine lieinit
 
       call dadal(x,nd2)
       return
-      end
-+dk midbflo
-      subroutine midbflo(c,a2,a2i,q,a,st)
+end subroutine compcjg
+
+subroutine midbflo(c,a2,a2i,q,a,st)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2975,9 +2975,8 @@ end subroutine lieinit
       enddo
 
       return
-      end
+end subroutine midbflo
 
-+dk mapflol
 subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
       use end_sixtrack
@@ -3163,8 +3162,7 @@ subroutine mapflol(sa,sai,cr,cm,st)
       return
 end subroutine mapflol
 
-+dk mulnd2
-      subroutine mulnd2(rt,r)
+subroutine mulnd2(rt,r)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3196,9 +3194,9 @@ end subroutine mapflol
       end do
 
       return
-      end
-+dk movearou
-      subroutine movearou(rt)
+end subroutine mulnd2
+
+subroutine movearou(rt)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3332,9 +3330,9 @@ end subroutine mapflol
       enddo
 
       return
-      end
-+dk movemul
-      subroutine movemul(rt,xy,rto,xr)
+end subroutine movearou
+
+subroutine movemul(rt,xy,rto,xr)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3376,8 +3374,8 @@ end subroutine mapflol
       enddo
 
       return
-      end
-+dk initpert
+end subroutine movemul
+
 subroutine initpert(st,ang,ra)
       use floatPrecision
       use end_sixtrack
@@ -3445,8 +3443,7 @@ subroutine initpert(st,ang,ra)
       return
 end subroutine initpert
 
-+dk dlie
-      real(kind=fPrec) function dlie(j)
+real(kind=fPrec) function dlie(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3466,9 +3463,9 @@ end subroutine initpert
       dlie=dlie+one
       dlie=one/dlie
       return
-      end
-+dk rext
-      real(kind=fPrec) function rext(j)
+end function dlie
+
+real(kind=fPrec) function rext(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3497,9 +3494,9 @@ end subroutine initpert
          rext = one
       end select
       return
-      end function rext
-+dk cpart
-      subroutine cpart(h,ch)
+end function rext
+
+subroutine cpart(h,ch)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -3512,9 +3509,9 @@ end subroutine initpert
       integer h,ch
       call dacfu(h,rext,ch)
       return
-      end
-+dk ctoi
-      subroutine ctoi(f1,f2)
+end subroutine cpart
+
+subroutine ctoi(f1,f2)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -3535,9 +3532,9 @@ end subroutine initpert
       call dadal(x,nd2)
       call dadal(b1(1),1)
       return
-      end
-+dk itoc
-      subroutine itoc(f1,f2)
+end subroutine ctoi
+
+subroutine itoc(f1,f2)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -3557,9 +3554,9 @@ end subroutine initpert
       call dadal(x,nd2)
       call dadal(b1(1),1)
       return
-      end
-+dk etrtc
-      subroutine etrtc(x)
+end subroutine itoc
+
+subroutine etrtc(x)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -3584,9 +3581,9 @@ end subroutine initpert
       enddo
       call dadal(rel,nd2)
       return
-      end
-+dk etctr
-      subroutine etctr(x)
+end subroutine etrtc
+
+subroutine etctr(x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3611,9 +3608,9 @@ end subroutine initpert
       enddo
       call dadal(rel,nd2)
       return
-      end
-+dk etcjg
-      subroutine etcjg(x)
+end subroutine etctr
+
+subroutine etcjg(x)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -3644,9 +3641,9 @@ end subroutine initpert
       enddo
       call dadal(rel,nd2)
       return
-      end
-+dk eig6
-      subroutine eig6(fm,reval,aieval,revec,aievec)
+end subroutine etcjg
+
+subroutine eig6(fm,reval,aieval,revec,aievec)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3713,9 +3710,9 @@ end subroutine initpert
         endif
       enddo
       return
-      end
-+dk ety
-      subroutine ety(nm,n,low,igh,a,ort)
+end subroutine eig6
+
+subroutine ety(nm,n,low,igh,a,ort)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3824,9 +3821,9 @@ end subroutine initpert
 
   200 return
 !     ********** last card of ety **********
-      end
-+dk etyt
-      subroutine etyt(nm,n,low,igh,a,ort,z)
+end subroutine ety
+
+subroutine etyt(nm,n,low,igh,a,ort,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3913,9 +3910,9 @@ end subroutine initpert
 
   200 return
 !     ********** last card of etyt **********
-      end
-+dk ety2
-      subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
+end subroutine etyt
+
+subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4345,9 +4342,9 @@ end subroutine initpert
  1000 ierr = en
  1001 return
 !     ********** last card of ety2 **********
-      end
-+dk etdiv
-      subroutine etdiv(a,b,c,d,e,f)
+end subroutine ety2
+
+subroutine etdiv(a,b,c,d,e,f)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4402,9 +4399,9 @@ end subroutine initpert
         b = -b
       endif
       return
-      end
-+dk sympl3
-      subroutine sympl3(m)
+end subroutine etdiv
+
+subroutine sympl3(m)
 !**********************************************************
 !
 !    SYMPL3
@@ -4472,9 +4469,9 @@ end subroutine initpert
 ! 600   continue
   100 continue
       return
-      end
-+dk averaged
-      subroutine averaged(f,a,flag,fave)
+end subroutine sympl3
+
+subroutine averaged(f,a,flag,fave)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4536,9 +4533,9 @@ end subroutine initpert
       endif
 
       return
-      end
-+dk avepol
-      real(kind=fPrec) function avepol(j)
+end subroutine averaged
+
+real(kind=fPrec) function avepol(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4559,9 +4556,9 @@ end subroutine initpert
       enddo
 
       return
-      end
-+dk couplean
-      subroutine couplean(map1,tune,map2,oneturn)
+end function avepol
+
+subroutine couplean(map1,tune,map2,oneturn)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4655,9 +4652,9 @@ end subroutine initpert
       call dadal(h(1),1)
 
       return
-      end
-+dk planar
-      real(kind=fPrec) function planar(j)
+end subroutine couplean
+
+real(kind=fPrec) function planar(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4686,9 +4683,9 @@ end subroutine initpert
       enddo
 
       return
-      end
-+dk killnonl
-      real(kind=fPrec) function killnonl(j)
+end function planar
+
+real(kind=fPrec) function killnonl(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4711,9 +4708,9 @@ end subroutine initpert
       if(j(nv).ne.0) killnonl=zero
 
       return
-      end
-+dk fexpo1
-      subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
+end function killnonl
+
+subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4736,9 +4733,9 @@ end subroutine initpert
       call dadal(v,nd2)
 
       return
-      end
-+dk etcctpar
-      subroutine etcctpar(x,ix,xj,z)
+end subroutine fexpo1
+
+subroutine etcctpar(x,ix,xj,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4765,4 +4762,4 @@ end subroutine initpert
 
       call dadal(ie,nv)
       return
-      end
+end subroutine etcctpar
