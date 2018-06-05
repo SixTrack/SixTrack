@@ -15,7 +15,7 @@
       integer i1,i2,ia1,ia2,idall,idalm,idano,idanv,idapo,ie1,ie2,ieo,  &
      &ifi,lfi,nda,ndamaxi,nmmax,nocut,nomax,nst,nvmax
       real(kind=fPrec) cc,eps,epsmac,facint
-+if small
+#ifdef SMALL
       parameter(lda=10000,lst=200000,lea=500,lia=10000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
@@ -24,8 +24,8 @@
      &idano(lda),idanv(lda),idapo(lda),idalm(lda),idall(lda),           &
      &nst,nomax,nvmax,nmmax,nocut,lfi
       common /factor/ facint(0:lno)
-+ei
-+if big
+#endif
+#ifdef BIG
       parameter(lda=10000,lst=20050000,lea=100000,lia=5000000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
@@ -34,8 +34,8 @@
      &idano(lda),idanv(lda),idapo(lda),idalm(lda),idall(lda),           &
      &nst,nomax,nvmax,nmmax,nocut,lfi
       common /factor/ facint(0:lno)
-+ei
-+if ctrack
+#endif
+#ifdef CTRACK
       parameter(lda=1000,lst=3000000,lea=20000,lia=20000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
@@ -44,7 +44,7 @@
      &idano(lda),idanv(lda),idapo(lda),idalm(lda),idall(lda),           &
      &nst,nomax,nvmax,nmmax,nocut,lfi
       common /factor/ facint(0:lno)
-+ei
+#endif
 +dk daini
 !******************************************************************************
 !                                                                             *
@@ -245,9 +245,9 @@ subroutine daini(no,nv,iunit)
 
       character(len=10) aa
       dimension n(lnv+1),k(0:lnv),j(lnv),jj(lnv)
-+if boinc
+#ifdef BOINC
       character(len=256) filename
-+ei
+#endif
 
       if(eps.le.zero) eps=1.e-38_fPrec
 !      if(EPS.le.0.d0) eps=1.d-90
@@ -438,23 +438,20 @@ subroutine daini(no,nv,iunit)
       write(lout,*)'ARRAY SETUP DONE, BEGIN PRINTING'
 
       iout = 32
-+if boinc
+#ifdef BOINC
       call boincrf('DAINI.DAT',filename)
-+if fio
+#ifdef FIO
       open(iout,file=filename,status='new',round='nearest')
-+ei
-+if .not.fio
+#else
       open(iout,file=filename,status='new')
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
       open(iout,file='DAINI.DAT',status='NEW',round='nearest')
-+ei
-+if .not.fio
+#else
       open(iout,file='DAINI.DAT',status='NEW')
-+ei
-+ei
+#endif
+#endif
 !CRAY OPEN(IOUT,FILE='DAINI',STATUS='UNKNOWN',FORM='FORMATTED')          *CRAY
 !CRAY REWIND IOUT                                                        *CRAY
 
@@ -959,9 +956,9 @@ subroutine danot(not)
       endif
 
       nocut = not
-+if debug
+#ifdef DEBUG
 !     call warr('nocut',zero,0,0,0,0)
-+ei
+#endif
 
       return
 end subroutine danot
@@ -1033,20 +1030,20 @@ subroutine dapek(ina,jj,cjj)
 +ca dabinc
 
       dimension jj(lnv)
-+if debug
+#ifdef DEBUG
 !Eric
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !     dapcalls=dapcalls+1
 !     if (dapcalls.ge.606380)                                           &
 !    &call warr('dapek1',zero,dapcalls,ina,jj(1),1)
-+ei
+#endif
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 
-+if debug
+#ifdef DEBUG
 !     if (dapcalls.ge.606380) then
 !     call warr('ina',zero,ina,0,0,0)
 !     call warr('inoa',zero,inoa,0,0,0)
@@ -1055,7 +1052,7 @@ subroutine dapek(ina,jj,cjj)
 !     call warr('ilma',zero,ilma,0,0,0)
 !     call warr('illa',zero,illa,0,0,0)
 !     endif
-+ei
+#endif
 
       if(illa.eq.0) then   ! etienne shit
         cjj = zero                                                        !hr10
@@ -1081,14 +1078,14 @@ subroutine dapek(ina,jj,cjj)
          endif
          ipek = ipoa + jj1 - 1
          cjj = cc(ipek)
-+if debug
+#ifdef DEBUG
 !     if (dapcalls.ge.606380)                                           &
 !    &call warr('dapek2',cjj,2,ipek,0,0)
 !     if (dapcalls.ge.606381) then
 !       call dumpda('in dapek',606381,2)
 !     call abend('in dapek 606381                                   ')
 !     endif
-+ei
+#endif
          return
       endif
 
@@ -1130,25 +1127,25 @@ subroutine dapek(ina,jj,cjj)
          return
       elseif(ic.eq.icu) then
          cjj = cc(iu)
-+if debug
+#ifdef DEBUG
 !     if (dapcalls.ge.606380)                                           &
 !    &call warr('dapek3',cjj,3,iu,0,0)
 !     if (dapcalls.ge.606400) then
 !       call dumpda('in dapek',606400,3)
 !     call abend('                                                  ')
 !     endif
-+ei
+#endif
          return
       elseif(ic.eq.icz) then
          cjj = cc(iz)
-+if debug
+#ifdef DEBUG
 !     if (dapcalls.ge.606380)                                           &
 !    &call warr('dapek4',cjj,4,iz,0,0)
 !     if (dapcalls.ge.606400) then
 !       call dumpda('in dapek',606400,4)
 !     call abend('                                                  ')
 !     endif
-+ei
+#endif
          return
       elseif(ic.lt.icu.or.ic.gt.icz) then
          cjj = zero                                                       !hr10
@@ -1174,14 +1171,14 @@ subroutine dapek(ina,jj,cjj)
       goto 10
  30   cjj = cc(i)
 
-+if debug
+#ifdef DEBUG
 !     if (dapcalls.ge.606380)                                           &
 !    &call warr('dapek5',cjj,5,i,0,0)
 !     if (dapcalls.ge.606400) then
 !       call dumpda('in dapek',606400,5)
 !     call abend('                                                  ')
 !     endif
-+ei
+#endif
       return
  40   iz = i
       goto 10
@@ -1208,28 +1205,28 @@ subroutine dapok(ina,jj,cjj)
 !
       dimension jj(lnv)
 !
-+if debug
+#ifdef DEBUG
 !Eric
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !     dokcalls=dokcalls+1
-+ei
+#endif
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 !
 !
-+if debug
+#ifdef DEBUG
 !      if (dokcalls.ge.445959) then
 !      call wda('dapokcalls',cjj,dokcalls,0,0,0)
 !      endif
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !      if (dokcalls.eq.445999) then
 !      call dumpda('dapok666',999,8)
 !      read (666) 
 !      endif
-+ei
+#endif
       jj1 = 1
       if(inva.eq.0.or.nomax.eq.1) then
          if(inva.ne.0.and.nomax.eq.1) then
@@ -1250,17 +1247,17 @@ subroutine dapok(ina,jj,cjj)
          endif
          ipok = ipoa + jj1 - 1
          cc(ipok) = cjj
-+if debug
+#ifdef DEBUG
 !      if (dokcalls.ge.445959) then
 !      call wda('dapok',cjj,ipok,ipoa,jj1,0)
 !      endif
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !      if (dokcalls.eq.445999) then
 !      call dumpda('dapok666',999,9)
 !      read (666) 
 !      endif
-+ei
+#endif
          return
       endif
 
@@ -1341,12 +1338,12 @@ subroutine dapok(ina,jj,cjj)
 
  100  continue
 
-+if debug
+#ifdef DEBUG
 !      if (dokcalls.ge.445959) then
 !      call wda('eps',eps,0,0,0,0)
 !      call wda('cjj',cjj,0,0,0,0)
 !      endif
-+ei
+#endif
       if(abs(cjj).lt.eps) return
 
       do 110 ii=ipoa+illa,i+1,-1
@@ -1371,12 +1368,12 @@ subroutine dapok(ina,jj,cjj)
 !     *********************************************
 !
  200  continue
-+if debug
+#ifdef DEBUG
 !      if (dokcalls.ge.445959) then
 !      call wda('eps',eps,1,1,1,1)
 !      call wda('cjj',cjj,1,1,1,1)
 !      endif
-+ei
+#endif
       if(abs(cjj).lt.eps) then
          do ii=i,ipoa+illa-2
            cc(ii) = cc(ii+1)
@@ -1428,10 +1425,10 @@ subroutine dacop(ina,inb)
 !-----------------------------------------------------------------------------1
 +ca dabinc
 
-+if debug
+#ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
+#endif
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
 
@@ -1441,7 +1438,7 @@ subroutine dacop(ina,inb)
 
       iif = 0
       if(nomax.eq.1.or.inva.eq.0) iif = 1
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacopiif',zero,iif,ina,inb,nocut)
 !ERIC
@@ -1450,7 +1447,7 @@ subroutine dacop(ina,inb)
 !         read (555)
 !       endif
 !     endif
-+ei
+#endif
 
       do 100 ia = ipoa,ipoa+illa-1
 
@@ -1458,21 +1455,21 @@ subroutine dacop(ina,inb)
         if(ieo(ia1(i1(ia))+ia2(i2(ia))).gt.nocut) goto 100
       endif
       ib = ib + 1
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('daibb',cc(ib),ib,0,0,0)
 !       call wda('daiba',cc(ia),ia,0,0,0)
 !     endif
-+ei
+#endif
       cc(ib) = cc(ia)
       i1(ib) = i1(ia)
       i2(ib) = i2(ia)
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('daibb2',cc(ib),ib,0,0,0)
 !       call wda('daiba2',cc(ia),ia,0,0,0)
 !     endif
-+ei
+#endif
 
  100  continue
 
@@ -1779,8 +1776,6 @@ subroutine daexct(ina,ckon,inb)
       use numerical_constants
       use crcoall
       implicit none
-+if cr
-+ei
       integer i,ic,idaexc(1),illa,illb,ilma,ilmb,ina,inb,inoa,inob,     &
      &inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon,xic
@@ -1826,8 +1821,6 @@ subroutine damul(ina,inb,inc)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
      &lnv,lst,incc(1)
 !     *****************************
@@ -1862,8 +1855,6 @@ subroutine damult(ina,inb,inc)
       use numerical_constants
       use crcoall
       implicit none
-+if cr
-+ei
       integer i,i1ia,i2ia,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,ina,   &
      &inb,inc,inoa,inob,inoc,inva,invb,invc,ioffb,ipno,ipoa,ipob,ipoc,  &
      &ipos,lda,lea,lia,lno,lnv,lst,minv,noff,noib,nom
@@ -1964,8 +1955,6 @@ subroutine dadiv(ina,inb,inc)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer idadiv(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
 !     *****************************
 
@@ -1988,8 +1977,6 @@ subroutine dasqr(ina,inc)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
 !     *************************
 !
@@ -2142,8 +2129,6 @@ subroutine dacad(ina,ckon,inb)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon,const
 !     ******************************
@@ -2177,8 +2162,6 @@ subroutine dacsu(ina,ckon,inb)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon,const
 !     ******************************
@@ -2186,17 +2169,17 @@ subroutine dacsu(ina,ckon,inb)
 !     THIS SUBROUTINE SUBTRACTS THE CONSTANT CKON FROM THE VECTOR A
 !
 !-----------------------------------------------------------------------------1
-+if debug
+#ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
+#endif
 +ca dabinc
       integer jj(lnv)
       data jj / lnv*0 /
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-+if debug
+#ifdef DEBUG
 !     if (umcalls.eq.8) then
 !       if (dumpl.ne.0) then
 ! write the i's
@@ -2215,27 +2198,27 @@ subroutine dacsu(ina,ckon,inb)
 !     call wda('bdacsu',zero,0,0,0,0)
 !       endif
 !     endif
-+ei
+#endif
 
       call dacop(ina,inb)
 
-+if debug
+#ifdef DEBUG
 !     if (umcalls.eq.8) then
 !       if (dumpl.ne.0) then
 ! write nomax
 !     call wda('bnomax',zero,nomax,0,0,0)
 !       endif
 !     endif
-+ei
+#endif
 
       if(nomax.eq.1) then
-+if debug
+#ifdef DEBUG
 !     if (umcalls.eq.8) then
 !       call wda('bnomax1',cc(ipob),ipob,0,0,0)
 !     endif
-+ei
+#endif
          cc(ipob) = cc(ipob) - ckon
-+if debug
+#ifdef DEBUG
 !ERIC THIS IS IT!
 !     if (umcalls.eq.8) then
 !       call wda('anomaxck',ckon,nomax,0,0,0)
@@ -2245,9 +2228,9 @@ subroutine dacsu(ina,ckon,inb)
 !       read (444)
 !       endif
 !     endif
-+ei
+#endif
          return
-+if debug
+#ifdef DEBUG
 !     if (umcalls.eq.8) then
 !       call wda('dacsu',cc(ipob),ipob,0,0,0)
 !       if (dumpl.ne.0) then
@@ -2255,30 +2238,30 @@ subroutine dacsu(ina,ckon,inb)
 !       read (444)
 !       endif
 !     endif
-+ei
+#endif
       endif
 !
       call dapek(inb,jj,const)
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacsu',const,inb,jj,0,0)
 !     endif
-+ei
+#endif
       call dapok(inb,jj,const-ckon)
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacsucc',const-ckon,inb,jj,0,0)
 !       call wda('dacsuck',ckon,inb,jj,0,0)
 !     endif
-+ei
-+if debug
+#endif
+#ifdef DEBUG
 !     if (umcalls.eq.8) then
 !       if (dumpl.ne.0) then
 !         call dumpda('adacsu',2,0)
 !       read (444)
 !       endif
 !     endif
-+ei
+#endif
 
       return
       end
@@ -2290,8 +2273,6 @@ subroutine dasuc(ina,ckon,inb)
       use numerical_constants
       use crcoall
       implicit none
-+if cr
-+ei
       integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) ckon
 !     ******************************
@@ -2316,8 +2297,6 @@ subroutine dacmu(ina,ckon,inc)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
       real(kind=fPrec) ckon
 !     ******************************
@@ -2328,10 +2307,10 @@ subroutine dacmu(ina,ckon,inc)
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-+if debug
+#ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
+#endif
 
       if(ina.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -2339,19 +2318,19 @@ subroutine dacmu(ina,ckon,inc)
         call daall(incc(1),1,'$$DAJUNK$$',inoc,invc)
         call dacmut(ina,ckon,incc(1))
         call dacop(incc(1),inc)
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacmuz',ckon,ina,inc,incc,0)
 !     endif
-+ei
+#endif
         call dadal(incc(1),1)
       else
         call dacmut(ina,ckon,inc)
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacmunz',ckon,ina,inc,0,0)
 !     endif
-+ei
+#endif
       endif
       return
       end
@@ -2373,10 +2352,10 @@ subroutine dacmut(ina,ckon,inb)
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-+if debug
+#ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
+#endif
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -2394,22 +2373,22 @@ subroutine dacmut(ina,ckon,inb)
            cc(i) = zero
          end do
 
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacmutz',ckon,ipoa,ipob,0,0)
 !     endif
-+ei
+#endif
          return
       endif
 
       if(abs(ckon).lt.eps) then
          idall(inb) = 0
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacmuteps',eps,inb,0,0,0)
 !       call wda('dacmutck',ckon,inb,0,0,0)
 !     endif
-+ei
+#endif
          return
       endif
 
@@ -2424,11 +2403,11 @@ subroutine dacmut(ina,ckon,inb)
       i2(ib) = i2(ia)
 
  100  continue
-+if debug
+#ifdef DEBUG
 !     if (dokcalls.ge.445959) then
 !       call wda('dacmut100',ckon,ipoa,illa,0,0)
 !     endif
-+ei
+#endif
 
       idall(inb) = (ib-ipob)+1                                           !hr10
       if(idall(inb).gt.idalm(inb)) then
@@ -2514,8 +2493,6 @@ subroutine dacma(ina,inb,bfac,inc)
       use numerical_constants
       use crcoall
       implicit none
-+if cr
-+ei
       integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,idacma(1)
       real(kind=fPrec) bfac
 !     **********************************
@@ -2739,8 +2716,6 @@ subroutine dafun(cf,ina,inc)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
 !     ****************************
 !
@@ -2753,10 +2728,10 @@ subroutine dafun(cf,ina,inc)
 +ca dabinc
 
       character(len=4) cf
-+if debug
+#ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-+ei
+#endif
 
       if(ina.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -2769,7 +2744,7 @@ subroutine dafun(cf,ina,inc)
         call dafunt(cf,ina,inc)
       endif
 
-+if debug
+#ifdef DEBUG
 !     if (umcalls.eq.8) then
 !       call wda('dafun',zero,0,0,0,0)
 !       if (dumpl.ne.0) then
@@ -2781,7 +2756,7 @@ subroutine dafun(cf,ina,inc)
 !         endif
 !       endif
 !     endif
-+ei
+#endif
 
       return
       end
@@ -3004,12 +2979,11 @@ subroutine dafunt(cf,ina,inc)
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
             stop 
-+ei
+#endif
          endif
       elseif(cf.eq.'COT ') then
          if(abs(sin_mb(a0)).lt.epsmac) then
@@ -3031,12 +3005,11 @@ subroutine dafunt(cf,ina,inc)
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
             stop 
-+ei
+#endif
          endif
       elseif(cf.eq.'ASIN') then
          if((one-abs(a0)).lt.zero) then
@@ -3061,12 +3034,11 @@ subroutine dafunt(cf,ina,inc)
      &/120.0_fPrec !eric
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
             stop 
-+ei
+#endif
          endif
       elseif(cf.eq.'ACOS')then
          if((one-abs(a0)).lt.zero) then
@@ -3351,8 +3323,6 @@ subroutine dacom(ina,inb,dnorm)
       use mathlib_bouncer
       use crcoall
       implicit none
-+if cr
-+ei
       integer idacom(1),illc,ilmc,ina,inb,inc,inoc,invc,ipoc
       real(kind=fPrec) dnorm
 !     *******************************
@@ -4396,12 +4366,11 @@ subroutine dadert(idif,ina,inc)
       if(nomax.eq.1) then
 !         PRINT*,'ERROR, DADER CALLED WITH NOMAX = 1'
 !        CALL DADEB(31,'ERR DADER1',1)
-+if cr
+#ifdef CR
 !     call abend('666                                               ')
-+ei
-+if .not.cr
+#else
 !        stop 666
-+ei
+#endif
       do i=1,lnv
         jd(i)=0
         enddo
@@ -4590,12 +4559,11 @@ subroutine dacfurt(ina,fun,inc)
       enddo
 !         PRINT*,'ERROR, DACFU CALLED WITH NOMAX = 1'
 !        CALL DADEB(31,'ERR DACFU ',1)
-+if cr
+#ifdef CR
 !     call abend('667                                               ')
-+ei
-+if .not.cr
+#else
 !        stop 667
-+ei
+#endif
       return
       endif
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
@@ -4737,12 +4705,11 @@ subroutine dacfuit(ina,fun,inc)
       enddo
 !         PRINT*,'ERROR, DACFU CALLED WITH NOMAX = 1'
 !        CALL DADEB(31,'ERR DACFU ',1)
-+if cr
+#ifdef CR
 !     call abend('667                                               ')
-+ei
-+if .not.cr
+#else
 !        stop 667
-+ei
+#endif
       return
       endif
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
@@ -4815,12 +4782,11 @@ subroutine dacfut(ina,fun,inc)
       enddo
 !         PRINT*,'ERROR, DACFU CALLED WITH NOMAX = 1'
 !        CALL DADEB(31,'ERR DACFU ',1)
-+if cr
+#ifdef CR
 !     call abend('667                                               ')
-+ei
-+if .not.cr
+#else
 !        stop 667
-+ei
+#endif
       return
       endif
 !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INC,INOC,INVC)
@@ -4875,12 +4841,11 @@ subroutine dapri(ina,iunit)
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
 !        X = SQRT(-ONE)
 !        PRINT*,X
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
 
       inoa = idano(ina)
@@ -4897,29 +4862,29 @@ subroutine dapri(ina,iunit)
 
       if(inva.eq.0) then
          write(iunit,'(A)') '    I  VALUE  '
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
          do i = ipoa,ipoa+illa-1
            write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
            !Eric
            write(111) cc(i)
          end do
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
       elseif(nomax.eq.1) then
          if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
          if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
          do 90 i=1,illa
            do k=1,inva
              j(k)=0
@@ -4936,11 +4901,11 @@ subroutine dapri(ina,iunit)
          write(iunit,'(G21.14)') cc(ipoa+i-1)
          write(111) cc(ipoa+i-1)
  90     continue
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
       else
          if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
          if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
@@ -4952,11 +4917,11 @@ subroutine dapri(ina,iunit)
           if(abs(cc(ii)).gt.eps) then
 !ETIENNE
           iout = iout+1
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
           write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !Eric
          write(111) cc(ii)
@@ -4968,11 +4933,11 @@ subroutine dapri(ina,iunit)
           endif
 !ETIENNE
 !
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
  100      continue
         end do
       end do
@@ -5010,12 +4975,11 @@ subroutine dapri77(ina,iunit)
 
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
 
       inoa = idano(ina)
@@ -5065,11 +5029,11 @@ subroutine dapri77(ina,iunit)
               iout = iout+1
             end if
 
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
 !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
       if(abs(cc(ii)).gt.eps) then
       if(eps.gt.1.e-37_fPrec) then
@@ -5081,11 +5045,11 @@ subroutine dapri77(ina,iunit)
  501  format(' ', i3,1x,g23.16,1x,100(1x,i2))
  503  format(' ', i3,1x,g23.16,1x,100(1x,i2))
  502  format(' ', i5,1x,g23.16,1x,100(1x,i2))
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
       end if
 !ETIENNE
  100      continue
@@ -5097,19 +5061,19 @@ subroutine dapri77(ina,iunit)
       end do
 
       if(iout.eq.0) iout=1
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
 
       write(iunit,502) -iout,zero,(j(i),i=1,inva)
 
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
       return
       end
 
@@ -5133,12 +5097,11 @@ subroutine dashift(ina,inc,ishift)
       inb(1)=0
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
 
       inoa = idano(ina)
@@ -5184,13 +5147,13 @@ subroutine dashift(ina,inc,ishift)
 !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
       if(abs(cc(ii)).gt.eps) then
       if(eps.gt.1.e-37_fPrec) then
-+if crlibm
+#ifdef CRLIBM
 !                                                 call enable_xp()
-+ei
+#endif
 !       write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
-+if crlibm
+#ifdef CRLIBM
 !                                                 call disable_xp()
-+ei
+#endif
 !      write(111) cc(ii)
        ich=1
        do ik=1,ishift
@@ -5206,13 +5169,13 @@ subroutine dashift(ina,inc,ishift)
        endif
        call dapok(inb(1),jd,cc(ii))
       else
-+if crlibm
+#ifdef CRLIBM
 !                                                 call enable_xp()
-+ei
+#endif
 !       write(iunit,503) ioa,cc(ii),(j(i),i=1,inva)
-+if crlibm
+#ifdef CRLIBM
 !                                                 call disable_xp()
-+ei
+#endif
 !       write(111) c(ii)
         ich=1
         do ik=1,ishift
@@ -5272,12 +5235,11 @@ subroutine darea(ina,iunit)
          write(lout,*)'ERROR IN DAREA, INA = ',ina
 !        X = SQRT(-ONE)
 !        PRINT*,X
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
 
       inoa = idano(ina)
@@ -5307,50 +5269,50 @@ subroutine darea(ina,iunit)
       iin = 0
 
   10  continue
-+if debug
+#ifdef DEBUG
 !     c=0.d0
 !     call wda('dar1c',c,1,0,0,0)
-+ei
+#endif
       iin = iin + 1
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
       read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(j(i),i=1,inva)
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
 !Eric
       read(111) c
-+if debug
+#ifdef DEBUG
 !     call wda('dar2c',c,2,0,0,0)
-+ei
+#endif
 !
       if(ii.eq.0) goto 20
 !ETIENNE
-+if debug
+#ifdef DEBUG
 !     call wda('dar3c',c,3,0,0,0)
-+ei
-+if crlibm
-+if .not.lf95
+#endif
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
 !Eric
       read(iunit,'(G21.14)') c
 !Eric
       read(111) c
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
-+if debug
+#endif
+#endif
+#ifdef DEBUG
 !     call wda('dar4c',c,4,0,0,0)
-+ei
+#endif
 !ETIENNE
       if(ii.ne.iin) then
          iwarin = 1
@@ -5375,26 +5337,26 @@ subroutine darea(ina,iunit)
         ic = ic + 1
         call dadcd(j,ii1,ii2)
         ic = ia1(ii1) + ia2(ii2)
-+if debug
+#ifdef DEBUG
 !     call wda('dar5c',c,5,0,0,0)
-+ei
+#endif
         cc(ic) = c
-+if debug
+#ifdef DEBUG
 !     call wda('dar6c',c,6,0,0,0)
-+ei
+#endif
         goto 10
       else
         iche=0
         do i=1,inva
           if(j(i).eq.1) iche=i
         enddo
-+if debug
+#ifdef DEBUG
 !     call wda('dar7c',c,7,0,0,0)
-+ei
+#endif
         cc(ipoa+iche)=c
-+if debug
+#ifdef DEBUG
 !     call wda('dar8c',c,8,0,0,0)
-+ei
+#endif
         goto 10
       endif
 
@@ -5402,9 +5364,9 @@ subroutine darea(ina,iunit)
 
       if(nomax.ne.1) call dapac(ina)
 
-+if debug
+#ifdef DEBUG
 !     call wda('dar9c',c,9,0,0,0)
-+ei
+#endif
       return
       end
 !FF
@@ -5432,12 +5394,11 @@ subroutine darea77(ina,iunit)
 
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
 
       inoa = idano(ina)
@@ -5516,12 +5477,11 @@ subroutine dadeb(iunit,c,istop)
 
 !etienne
       write(lout,*) '  ',c
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
       stop 
-+ei
+#endif
       end
 
 +dk danum
@@ -5693,12 +5653,11 @@ subroutine damch(iaa,ia)
       call dainf(iaa(i),inoi,invi,ipoa,ilma,illa)
       if(ino1.ne.inoi.or.inv1.ne.invi) then
          write(lout,*)'ERROR IN DAMCH, VECTORS ',iaa(1),' AND ',iaa(i),' ARE INCOMPATIBLE '
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
   10  continue
 
@@ -5880,12 +5839,11 @@ subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
 
       if(nv1.gt.lnv.or.nv2.gt.lnv) then
       write(lout,*) ' ERROR IN RECODING '
-+if cr
+#ifdef CR
       call abend('123                                               ')
-+ei
-+if .not.cr
+#else
       stop 123
-+ei
+#endif
       endif
       call dehash(no1,nv1,ic1,ic2,jj)
       ic=0
@@ -6319,12 +6277,11 @@ subroutine dapri6(ina,result,ien,i56)
       result=0.
       if(ina.lt.1.or.ina.gt.nda) then
         write(lout,*)'ERROR IN DAPRI6, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
         stop 
-+ei
+#endif
       endif
       inoa=idano(ina)
       inva=idanv(ina)
@@ -6408,12 +6365,11 @@ subroutine darea6(ina,zfeld,i56)
       dimension j(lnv)
       if(ina.lt.1.or.ina.gt.nda) then
         write(lout,*)'ERROR IN DAREA6, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
         stop 
-+ei
+#endif
       endif
       inoa=idano(ina)
       inva=idanv(ina)
@@ -6546,12 +6502,11 @@ subroutine daprimax(ina,iunit)
 
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
 
       inoa = idano(ina)
@@ -6564,19 +6519,19 @@ subroutine daprimax(ina,iunit)
       ioa = 0
 
       if(inva.eq.0) then
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
          do i = ipoa,ipoa+illa-1
            write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
          end do
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
       elseif(nomax.eq.1) then
          do 90 i=1,illa
              iout=iout+1
@@ -6584,19 +6539,19 @@ subroutine daprimax(ina,iunit)
              j(i-1)=1
              ioa=1
            endif
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                 &
      &iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(iunit,*) cc(ipoa+i-1)
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
  90      continue
       else
         iout = 0
@@ -6608,20 +6563,20 @@ subroutine daprimax(ina,iunit)
           if(abs(cc(ii)).gt.eps) then
 !ETIENNE
           iout = iout+1
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
           write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                &
      &iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !ETIENNE
           write(iunit,*) cc(ii)
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
           endif
 !ETIENNE
  100       continue
@@ -6657,12 +6612,11 @@ subroutine damono(ina,jd,cfac,istart,inc)
 
       if(ina.eq.inc) then
        write(lout,*) ' USE DIFFERENT POWER SERIES IN DAMONO '
-+if cr
+#ifdef CR
       call abend('999                                               ')
-+ei
-+if .not.cr
+#else
        stop 999
-+ei
+#endif
       endif
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -6719,12 +6673,11 @@ subroutine dacycle(ina,ipresent,value,j,illa)
 !
       if(ina.lt.1.or.ina.gt.nda) then
         write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
         stop 
-+ei
+#endif
       endif
 
       if(ina.eq.0) then
@@ -6779,12 +6732,11 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
 
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-+if cr
+#ifdef CR
       call abend('                                                  ')
-+ei
-+if .not.cr
+#else
          stop 
-+ei
+#endif
       endif
 
       inoa = idano(ina)
@@ -6816,34 +6768,34 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
 
   10  continue
       iin = iin + 1
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
       read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jt(i),i=1,invo)
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
       read(111) c
-+ei
-+ei
+#endif
+#endif
 
       if(ii.eq.0) goto 20
 !etienne
 !Eric
 !     read(iunit,*) c
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call enable_xp()
-+ei
-+ei
+#endif
+#endif
       read(iunit,'(G21.14)') c
-+if crlibm
-+if .not.lf95
+#ifdef CRLIBM
+#ifndef LF95
                                                   call disable_xp()
-+ei
-+ei
+#endif
+#endif
       read(111) c
 
       do jh=1,invo
@@ -6962,7 +6914,7 @@ subroutine datrash(idif,ina,inc)
       return
       end
 +dk dumps
-+if debug
+#ifdef DEBUG
 !DUMPS
 subroutine dumpda(dumpname,n,i)
       use floatPrecision
@@ -6996,4 +6948,4 @@ subroutine wda(vname,value,i,j,k,l)
       write(100) ccname,cc(64),64,0,0,0
       end
 !DUMPS
-+ei
+#endif

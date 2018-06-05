@@ -55,7 +55,7 @@ program mainda
   dimension cmonth(12)
   dimension tas(6,6)
 
-+if crlibm
+#ifdef CRLIBM
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -69,16 +69,16 @@ program mainda
   real(kind=fPrec) fround
   real(kind=fPrec) round_near
   data lineno /0/
-+ei
+#endif
 #include "version.f90"
 
   ! Set to nonzero before calling abend in case of error.
   ! If prror is called, it will be set internally.
   errout_status = 0
 
-+if .not.cr
+#ifndef CR
   lout=output_unit
-+ei
+#endif
   ! Initial allocation of memory
   call allocate_arrays
   
@@ -104,12 +104,11 @@ program mainda
   write(cdate,"(i6.6)") idate
   write(ctime,"(i4.4)") itime
   write(lout,"(a)")   ""
-+if .not.tilt
-  write(lout,"(a57)") " SIXTRACK DA VERSION "//version//" - (last change: "//moddate//")"
-+ei
-+if tilt
+#ifdef TILT
   write(lout,"(a69)") " SIXTRACK DA VERSION "//version//" (with tilt) - (last change: "//moddate//")"
-+ei
+#else
+  write(lout,"(a57)") " SIXTRACK DA VERSION "//version//" - (last change: "//moddate//")"
+#endif
   write(lout,"(a)")   ""
   write(lout,"(a26)") " Runtime: 20"//cdate(1:2)//"-"//cdate(3:4)//"-"//cdate(5:6)//" "//ctime(1:2)//":"//ctime(3:4)
   write(lout,"(a)")   ""
@@ -329,14 +328,14 @@ program mainda
       itiono=ition
       ition=0
     end if
-+if debug
+#ifdef DEBUG
 !       write(*,*) '3rd call qmodda multipole???'
-+ei
+#endif
     call qmodda(2,qwc)
-+if debug 
+#ifdef DEBUG
 !     call dumpbin('aqmodda',2,3)
 !     call abend('after  qmodda 2 3                                 ')
-+ei
+#endif
     if(nvar2.le.5) ition=itiono
     if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
     if(ilin.ge.2) then
@@ -504,12 +503,11 @@ program mainda
 ! We're done in mainda, no error :)
 !-----------------------------------------------------------------------
   call closeUnits
-+if cr
+#ifdef CR
   call abend('                                                  ')
-+ei
-+if .not.cr
+#else
   stop
-+ei
+#endif
 
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:',&
              /t10,'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM',&

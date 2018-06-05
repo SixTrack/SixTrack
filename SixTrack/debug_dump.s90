@@ -1,5 +1,5 @@
 +dk dumps
-+if debug
+#ifdef DEBUG
 
 subroutine warr(vname,value,i,j,k,l)
   
@@ -95,7 +95,7 @@ subroutine dumpxy(dumpname,n,i,k)
   
 end subroutine dumpxy
 
-+if bnlelens
+#ifdef BNLELENS
 subroutine dumpbnl(dumpname,n,i)
   
   use floatPrecision
@@ -103,9 +103,7 @@ subroutine dumpbnl(dumpname,n,i)
   
   implicit none
   
-+if bnlelens
 +ca rhicelens
-+ei
   integer n,i,j
   character(len=*) dumpname
   save
@@ -117,7 +115,7 @@ subroutine dumpbnl(dumpname,n,i)
   backspace (99,iostat=ierro)
   
 end subroutine dumpbnl
-+ei
+#endif
 
 subroutine dumpsynu(dumpname,n,i)
   
@@ -1666,4 +1664,4 @@ subroutine dumphex(dumpname,n,i)
 100 format (a10,(Z20))
 
 end subroutine dumphex
-+ei
+#endif

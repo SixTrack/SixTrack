@@ -129,9 +129,9 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   do j = 2,napx
   choice=0
   if ((secondary(j).eq.0) .and. (part_abs_pos (j).eq.0 .and. part_abs_turn(j).eq.0) .and. (bgParameters(1).le.totals)) then
-+if debug
+#ifdef DEBUG
   write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1, pressARRAY(2,pressID)*njobs*dpmjetevents
-+ei
+#endif
 668 continue
 ! Warning: We round DOWN to the nearest integer at each 
 ! location. It is needed in order not to run out of particles

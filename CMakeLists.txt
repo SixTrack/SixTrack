@@ -145,6 +145,7 @@ if(DA)
 	message(STATUS "The DA flag is deprecated due to conflicts with preprocessor and FOX. Please use SIXDA instead.")
 	SET(SIXDA ON)
 endif()
+SET(BIG ON) # Used in dabnew.s90. Is always on (as defined in dabnew.ast)
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -300,8 +301,8 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 ###################################################################################################
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
-LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY BIG)
+LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
 LIST(APPEND PREPRO_FLAGS_PREC P32BITM P64BITM P128BITM)
 
 ###################################################################################################

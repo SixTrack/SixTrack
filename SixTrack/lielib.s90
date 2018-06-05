@@ -3050,9 +3050,9 @@ subroutine mapflol(sa,sai,cr,cm,st)
         open(symplecticity_check_unit,file="symplecticity_check.txt", status='replace')
         write(symplecticity_check_unit,*) c1e2*(xsu-nd2)/xsu
         close(symplecticity_check_unit)
-+if debug
+#ifdef DEBUG
 !       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
-+ei
+#endif
       endif
       call eig6(cr,rr,ri,vr,vi)
       if(idpr.ge.0) then

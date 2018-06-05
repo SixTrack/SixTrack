@@ -544,9 +544,6 @@ module mod_commonmn
        yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
        dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
        xlv(npart),zlv(npart),rvv(npart),pttemp,temptr(6),                &
-! +if rvet
-!        rvet(npart),                                                      &
-! +ei
        ejf0v(npart)
   integer, save :: numxv(npart),nms(npart),nlostp(npart),kxxa
   logical, save :: pstop(npart)
