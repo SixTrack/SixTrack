@@ -416,7 +416,7 @@ subroutine abend(cstring)
   implicit none
   
 +ca crco
-+ca version
+#include "version.f90"
   
   integer i,lstring,j
   character(len=*) cstring

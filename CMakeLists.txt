@@ -15,7 +15,7 @@ PROJECT(SixTrack)
 ENABLE_LANGUAGE(Fortran)
 
 # Set Sixtrack version info
-file(READ ${CMAKE_SOURCE_DIR}/SixTrack/sixtrack.s90 IFILE)
+file(READ ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
 SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
 SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
@@ -1099,7 +1099,6 @@ endif()
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir track_mkdir)
 file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/SixTrack/include/*.f90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
@@ -1107,10 +1106,12 @@ foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 endforeach()
 
 add_custom_target(track_mkdir)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/SixTrack/include/*.f90)
 add_custom_command(TARGET track_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
 foreach(loop IN ITEMS ${SIXTRACK_INCL})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
 endforeach()
+add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 ${CMAKE_BINARY_DIR})
 
 if(BOINC)
 	if(API)

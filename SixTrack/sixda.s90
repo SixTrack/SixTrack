@@ -70,7 +70,7 @@ program mainda
   real(kind=fPrec) round_near
   data lineno /0/
 +ei
-+ca version
+#include "version.f90"
 
   ! Set to nonzero before calling abend in case of error.
   ! If prror is called, it will be set internally.

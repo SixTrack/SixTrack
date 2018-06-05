@@ -116,7 +116,7 @@ subroutine postpr(posi,nnuml)
 +if cr
       integer nnuml
 +ei
-+ca version
+#include "version.f90"
       save
 !----------------------------------------------------------------------
 !--TIME START

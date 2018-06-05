@@ -1,36 +1,35 @@
-+cd version
-  character(len=8) version  ! Keep data type in sync with 'cr_version'
-  character(len=10) moddate ! Keep data type in sync with 'cr_moddate'
-  integer itot,ttot
-  data version /'5.0-rc1'/
-  data moddate /'01.02.2018'/
-+cd license
-!!SixTrack
-!!
-!The code contains the SixTrack particle simulation code written by
-!!F. Schmidt, DESY, CERN
-!!E. Mcintosh, H. Ranshall, H. Grote, F. James,
-!!K. Koelbig, K. Heinemann, M. Vaenttinen,
-!!R. Assman, C. Bracco, R. Bruce, D. Mirarchi, V. Previtali,
-!!S. Redaelli, G. Robert-Demolaize, E. Quaranta
-!!A. Rossi, C. Tambasco, T. Weiler,
-!!J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
-!!A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!!M. Fiascaris, J.F. Wagner, J. Wretborn, V.K. Berglyd Olsen, CERN
-!!M. Fitterer, FNAL, CERN
-!!A. Patapenka,  NIU, CERN
-!!G. Robert-Demolaize, BNL
-!!V. Gupta, Google Summer of Code (GSoC)
-!!J. Molson UMAN, LAL, CERN
-!!S. Kostoglou, NTUA, CERN
-!!
-!!Copyright 2014 CERN. This software is distributed under the terms of the GNU
-!!Lesser General Public License version 2.1, copied verbatim in the file
-!!``COPYING''.
-!!
-!!In applying this licence, CERN does not waive the privileges and immunities
-!!granted to it by virtue of its status as an Intergovernmental Organization or
-!!submit itself to any jurisdiction.
+! ================================================================================================ !
+!  
+!  SixTrack
+!  
+!  The code contains the SixTrack particle simulation code written by:
+!    F. Schmidt, DESY, CERN
+!    E. Mcintosh, H. Ranshall, H. Grote, F. James,
+!    K. Koelbig, K. Heinemann, M. Vaenttinen,
+!    R. Assman, C. Bracco, R. Bruce, D. Mirarchi, V. Previtali,
+!    S. Redaelli, G. Robert-Demolaize, E. Quaranta
+!    A. Rossi, C. Tambasco, T. Weiler,
+!    J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
+!    A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
+!    M. Fiascaris, J.F. Wagner, J. Wretborn, V.K. Berglyd Olsen, CERN
+!    M. Fitterer, FNAL, CERN
+!    A. Patapenka,  NIU, CERN
+!    G. Robert-Demolaize, BNL
+!    V. Gupta, Google Summer of Code (GSoC)
+!    J. Molson UMAN, LAL, CERN
+!    S. Kostoglou, NTUA, CERN
+!    
+!  Copyright 2014 CERN. This software is distributed under the terms of the GNU
+!  Lesser General Public License version 2.1, copied verbatim in the file ``COPYING''.
+!  
+!  In applying this licence, CERN does not waive the privileges and immunities
+!  granted to it by virtue of its status as an Intergovernmental Organization or
+!  submit itself to any jurisdiction.
+!  
+! ================================================================================================ !
+
+
+
 +cd rhicelens
 !GRDRHIC
       real(kind=fPrec) tbetax(nblz),tbetay(nblz),talphax(nblz),         &
@@ -705,56 +704,6 @@
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-+cd dump3
-!
-!  left out to do tracking
-!  numl,niu,amp0,amp(2),damp,chi0,chid,rat,exz(2,6),time0,time1
-!
-     &ierro,erbez,pi,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic, &
-     &ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
-     &idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
-     &iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
-     &hsyc,phasc,dppoff,sigmoff,tlen,                                   &
-     &iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
-     &sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-     &zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
-     &mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-     &dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
-     &elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
-     &pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
-     &ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
-     &icoe,ise,mesa,mp,m21,m22,m23,                                     &
-     &ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
-     &rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
-     &qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
-     &iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-     &nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
-     &alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
-     &sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
-     &sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-     &ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
-     &as,al,sigm,dps,idz,dp1,itra,                                      &
-#ifdef SIXDA
-     &at,a2,                                                            &
-#endif
-     &x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
-     &bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
-     &nvar2,nsix,ncor,ipar,nordf,                                       &
-     &nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-     &icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
-     &ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
-     &clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
-     &dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
-! +if rvet
-!      &rvet,                                                             &
-! +ei
-     &ejf0v,numxv,nms,nlostp,dpd,                                       &
-     &dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
-     &rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
-     &ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
-     &clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
-     &di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
 
 +dk errf
       subroutine errf(xx,yy,wx,wy)
@@ -12576,7 +12525,7 @@ end interface
   data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
     '  April   ','   May    ','   June   ','   July   ',' August  ',  &
     ' September',' October  ',' November ',' December '/
-+ca version
+#include "version.f90"
 !-----------------------------------------------------------------------
   errout_status = 0         ! Set to nonzero before calling abend in case of error.
                             ! If prror is called, it will be set internally.
@@ -13958,8 +13907,50 @@ end interface
 +ei
       napxo=napx
       if(ibidu.eq.1) then
+        ! Note: Keep in sync with read(32) below
         write(32) &
-+ca dump3 !list of variables
+        ierro,erbez,pi,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic, &
+        ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
+        idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
+        iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
+        hsyc,phasc,dppoff,sigmoff,tlen,                                   &
+        iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
+        sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
+        mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
+        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
+        pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
+        ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
+        icoe,ise,mesa,mp,m21,m22,m23,                                     &
+        ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
+        rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
+        qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
+        iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
+        nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
+        alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
+        sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
+        sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
+        ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
+        as,al,sigm,dps,idz,dp1,itra,                                      &
+#ifdef SIXDA
+        at,a2,                                                            &
+#endif
+        x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
+        bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
+        nvar2,nsix,ncor,ipar,nordf,                                       &
+        nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
+        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
+        ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
+        clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
+        dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
+        ejf0v,numxv,nms,nlostp,dpd,                                       &
+        dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
+        rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
+        ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
+        clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
+        di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
+
       endif
   550 continue
       
@@ -13983,8 +13974,50 @@ end interface
       
 !!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
+        ! Note: Keep in sync with write(32) above
         read(32) &
-+ca dump3 !list of variables
+        ierro,erbez,pi,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic, &
+        ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
+        idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
+        iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
+        hsyc,phasc,dppoff,sigmoff,tlen,                                   &
+        iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
+        sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
+        mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
+        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
+        pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
+        ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
+        icoe,ise,mesa,mp,m21,m22,m23,                                     &
+        ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
+        rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
+        qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
+        iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
+        nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
+        alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
+        sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
+        sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
+        ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
+        as,al,sigm,dps,idz,dp1,itra,                                      &
+#ifdef SIXDA
+        at,a2,                                                            &
+#endif
+        x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
+        bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
+        nvar2,nsix,ncor,ipar,nordf,                                       &
+        nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
+        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
+        ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
+        clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
+        dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
+        ejf0v,numxv,nms,nlostp,dpd,                                       &
+        dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
+        rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
+        ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
+        clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
+        di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
+        
         damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
       endif
 
@@ -31886,7 +31919,7 @@ subroutine crcheck
 +ca rhicelens
 +ei
 +ca crco
-+ca version
+#include "version.f90"
       integer i,j,k,l,m,ia
       integer lstring,myia,mybinrecs,binrecs94
 
@@ -32772,7 +32805,7 @@ subroutine crpoint
 +if bnlelens
 +ca rhicelens
 +ei
-+ca version
+#include "version.f90"
 +ca crco
       integer i,j,l,k,m
       integer lstring,osixrecs,ncalls
