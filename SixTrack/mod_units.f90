@@ -2,22 +2,22 @@ module mod_units
   
   implicit none
   
-  type, public :: unitSpec
-    integer,            public :: unit     ! Unit number
-    character(len=256), public :: filename ! Standard filename
-    integer,            public :: form     ! 0 = unformatted, 1 = formatted
-    logical,            public :: sixtrack ! Default open in standard SixTrack
-    logical,            public :: sixda    ! Default open in differential algebra version
-    logical,            public :: boinc    ! Open in BOINC if enabled
-    integer,            public :: recl=0   ! RECL flag, if needed
+  type, private :: unitSpec
+    integer,            private :: unit
+    character(len=256), private :: filename
+    logical,            private :: formatted
+    logical,            private :: boinc
+    logical,            private :: fio
+    integer,            private :: recl
   end type unitSpec
   
-  type(unitSpec), private :: units_uList(200)
-  integer,        private :: units_nList
+  type(unitSpec), allocatable, private :: units_uList(:)
+  integer,                     private :: units_nList
   
 contains
 
 subroutine units_initUnits
+  allocate(units_uList(10))
   units_nList = 0
 end subroutine units_initUnits
 
@@ -32,8 +32,17 @@ subroutine units_openUnits(unit,fileName,formatted,boinc,fio,recl)
   logical,          optional, intent(in) :: fio
   integer,          optional, intent(in) :: recl
   
-  integer i, fRecl
+  type(unitSpec), allocatable :: tmpUnits(:)
+  integer i, fRecl, nUnits
   logical fBoinc, fFio
+  
+  nUnits      = size(units_uList)
+  units_nList = units_nList + 1
+  if(units_nList > nUnits) then
+    allocate(tmpUnits(units_nList + 10))
+    tmpUnits(1:units_nList-1) = units_uList(1:units_nList-1)
+    call move_alloc(tmpUnits,units_uList)
+  end if
   
   if(present(boinc)) then
     fBoinc = boinc
@@ -65,6 +74,13 @@ subroutine units_openUnits(unit,fileName,formatted,boinc,fio,recl)
   
   if(.not. formatted) fFio = .false.
   
+  units_uList(units_nList)%unit      = unit
+  units_uList(units_nList)%filename  = fileName
+  units_uList(units_nList)%formatted = formatted
+  units_uList(units_nList)%boinc     = fBoinc
+  units_uList(units_nList)%fio       = fFio
+  units_uList(units_nList)%recl      = fRecl
+  
   if(formatted) then
     if(fRecl > 0) then
       if(fFio) then
@@ -84,5 +100,27 @@ subroutine units_openUnits(unit,fileName,formatted,boinc,fio,recl)
   endif
   
 end subroutine units_openUnits
+
+subroutine units_flushUnits(unit)
+  
+  implicit none
+  
+  integer, optional, intent(in) :: unit
+  
+  integer i
+  logical isOpen
+  
+  if(present(unit)) then
+    inquire(unit=unit, opened=isOpen)
+    if(isOpen) flush(unit)
+    return
+  end if
+  
+  do i=1,units_nList
+    inquire(unit=units_uList(i)%unit, opened=isOpen)
+    if(isOpen) flush(units_uList(i)%unit)
+  end do
+  
+end subroutine units_flushUnits
 
 end module mod_units
