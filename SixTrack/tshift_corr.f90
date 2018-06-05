@@ -1,4 +1,4 @@
-#ifdef DA
+#ifdef SIXDA
 ! ================================================================================================ !
 !  TUNESHIFT CORRECTIONS MODULE
 !  Used by SixDA (mainda)

@@ -1947,7 +1947,7 @@ subroutine postpr(posi,nnuml)
         sumda(22)=real(nnumxv(ifipa),fPrec)                              !hr06
         sumda(23)=real(nnumxv(ilapa),fPrec)                              !hr06
       endif
-#ifdef DA
+#ifdef SIXDA
       sumda(22)=real(ia,fPrec)                                           !hr06
       sumda(23)=real(ia,fPrec)                                           !hr06
 #endif

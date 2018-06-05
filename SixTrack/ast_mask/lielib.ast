@@ -1,5 +1,5 @@
 lielib.s90
-lielibn.f
+lielibn.f90
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,debug,fio,lf95
 e LIEINIT
 e FLOWPARA
