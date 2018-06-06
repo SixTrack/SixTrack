@@ -12337,7 +12337,6 @@ end interface
   logical isOpen
   character(len=10) cmonth
   character(len=4) cpto
-  character(len=7) fileName
 #ifdef CR
   character(len=80) day
 #else
