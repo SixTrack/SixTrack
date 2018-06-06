@@ -1,8 +1,3 @@
-+cd dascr
-      integer is
-      real(kind=fPrec) rs
-      common/dascr/is(100),rs(100)
-
 +dk dabnew
 
 !******************************************************************************
@@ -181,8 +176,8 @@ subroutine daini(no,nv,iunit)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : idao,is,iscrri,rs,allvec,eps,epsmac,nda,ndamaxi,nst,nomax,nvmax,nmmax,&
-        nocut,lfi,idall,i1,i2,ie1,ie2,ieo,ia1,ia2,lda,lst,lea,lia,lno,lnv
+      use mod_lie_dab, only : idao,is,iscrri,rscrri,allvec,eps,epsmac,nda,ndamaxi,nst,nomax,nvmax,  &
+        nmmax,nocut,lfi,idall,i1,i2,ie1,ie2,ieo,ia1,ia2,lda,lst,lea,lia,lno,lnv
       use crcoall
       implicit none
       integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,n,nn,no,nv
@@ -245,7 +240,7 @@ subroutine daini(no,nv,iunit)
       do i=1,100
         is(i) = 0
         iscrri(i)=0
-        rs(i)=zero
+        rscrri(i)=zero
       enddo
 
       if(nv.gt.lnv.or.no.gt.lno) then

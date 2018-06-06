@@ -157,9 +157,6 @@
     yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
 +cd commonas
   ! Tried to move this to a module, but for some FOX-related reason, iscrda cannot be moved.
-  integer          iscrda
-  real(kind=fPrec) rscrri
-  common/dascr/iscrda(100),rscrri(100)
 +cd commphin
       common/phasecom/ phase(3,npos+1)
       common/invari/ dani(ninv+1)
@@ -8065,7 +8062,7 @@ subroutine envada
   use mod_commont
   use mod_commond
   use mod_commond2
-  use mod_lie_dab, only : idao
+  use mod_lie_dab, only : idao,rscrri
   implicit none
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
@@ -8451,7 +8448,7 @@ end subroutine envada
       use parpro
       use mod_common
       use mod_commond
-      use mod_lie_dab, only : idao
+      use mod_lie_dab, only : idao,rscrri
       implicit none
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
@@ -8559,7 +8556,7 @@ subroutine runda
       use mod_commond
       use mod_commond2
       use mod_hions
-      use mod_lie_dab, only : idao,iscrri
+      use mod_lie_dab, only : idao,iscrri,rscrri
       implicit none
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
@@ -9864,7 +9861,7 @@ subroutine umlauda
       use mod_commond2
       use wire
       use mod_hions
-      use mod_lie_dab, only : idao,iscrri
+      use mod_lie_dab, only : idao,iscrri,rscrri
       
       implicit none
       
@@ -11516,7 +11513,7 @@ subroutine wireda(ix,i)
       use mod_commond
       use wire
       use mod_hions
-      use mod_lie_dab, only : idao
+      use mod_lie_dab, only : idao,rscrri
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
@@ -11712,7 +11709,7 @@ end subroutine wireda
       use mod_commont
       use mod_commond
       use mod_hions
-      use mod_lie_dab, only : idao,iscrri
+      use mod_lie_dab, only : idao,iscrri,rscrri
       implicit none
       integer ix,idaa
 +ca commond1
@@ -11768,7 +11765,7 @@ end subroutine wireda
       use mod_commons
       use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
       use mod_commond
-      use mod_lie_dab, only : idao,iscrri
+      use mod_lie_dab, only : idao,iscrri,rscrri
       implicit none
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
@@ -11962,7 +11959,7 @@ end subroutine beaminf
       use numerical_constants
       use parpro
       use mod_commond
-      use mod_lie_dab, only : idao
+      use mod_lie_dab, only : idao,rscrri
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
@@ -12024,7 +12021,7 @@ end subroutine beaminf
       use numerical_constants
       use parpro
       use mod_commond
-      use mod_lie_dab, only : idao
+      use mod_lie_dab, only : idao,rscrri
       implicit none
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
@@ -12171,7 +12168,7 @@ end subroutine beaminf
       use numerical_constants
       use parpro
       use mod_commond
-      use mod_lie_dab, only : idao
+      use mod_lie_dab, only : idao,rscrri
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
@@ -12243,7 +12240,7 @@ end subroutine beaminf
       use parpro
       use mod_commond
       use mod_ranecu
-      use mod_lie_dab, only : idao
+      use mod_lie_dab, only : idao,rscrri
 
       implicit none
       integer idaa

@@ -778,7 +778,6 @@ module mod_lie_dab
   real(kind=fPrec), save :: sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
   real(kind=fPrec), save :: ps(ndim),rads(ndim)
   real(kind=fPrec), save :: xintex(0:20)
-  real(kind=fPrec), save :: rs(100)
   
   ! From dabnew
 #ifdef SMALLDABNEW
@@ -821,5 +820,6 @@ module mod_lie_dab
   integer,           save :: idao
   integer,           save :: is(100)
   integer,           save :: iscrri(100)
+  real(kind=fPrec),  save :: rscrri(100)
   
 end module mod_lie_dab
