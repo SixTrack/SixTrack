@@ -1,5 +1,5 @@
 end_sixtrack.s90 sixtrack.s90
-end_sixtrackn.f
+end_sixtrackn.f90
 df fluka,bnlelens,cr,nagfor,boinc,fio,crlibm,debug
 e end_sixtrack
 ex

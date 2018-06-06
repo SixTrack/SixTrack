@@ -74,12 +74,13 @@ OPTION(TILT "Allow elements to be tilted (by error)" ON)
 OPTION(FAST "Which implementation of drifts to use in thin6d" ON)
 OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
-OPTION(NAGLIB "Link to external NAGLIB library, used in subroutine coruglo and coruord for DA version" OFF)
+OPTION(NAGLIB "Link to external NAGLIB library, used in subroutine coruglo and coruord for SIXDA version" OFF)
 # used for ifort only SSE
 #SSE="NULL"
 # and we have OFF
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
-OPTION(DA "Build differential algebra version (NOT dynamic aperture!)" OFF)
+OPTION(DA "Deprecated. Replaced by SIXDA" OFF)
+OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" OFF)
 OPTION(COLLIMAT "Collimation code" OFF)
 OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
@@ -140,6 +141,10 @@ SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc b
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
 SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
 
+if(DA)
+	message(STATUS "The DA flag is deprecated due to conflicts with preprocessor and FOX. Please use SIXDA instead.")
+	SET(SIXDA ON)
+endif()
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -178,7 +183,7 @@ endif()
 if(API)
 	SET(SIXTRACK_FEATURES "api_${SIXTRACK_FEATURES}")
 endif()
-if(DA)
+if(SIXDA)
 	SET(SIXTRACK_FEATURES "da_${SIXTRACK_FEATURES}")
 endif()
 if(COLLIMAT)
@@ -294,7 +299,7 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST DA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 LIST(APPEND PREPRO_FLAGS_PREC P32BITM P64BITM P128BITM)
@@ -319,7 +324,7 @@ list(APPEND FORS_F90
 	ranecu wire hions elens mod_dist
 )
 
-if(DA)
+if(SIXDA)
 	list(APPEND FORS_FREEFORM sixsc sixda sixscfox)
 	list(APPEND FORS_F90 tshift_corr)
 else()
@@ -348,12 +353,13 @@ endif(ROOT)
 
 foreach(loop IN LISTS FORS_FREEFORM)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
-	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}n.f)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}n.f90)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}a.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
 endforeach()
 
 foreach(loop IN LISTS FORS_F90)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
 endforeach()
 
 # List of files that must be treated by DAFOR
@@ -554,20 +560,20 @@ if(HUGENPART)
 		message(FATAL_ERROR "Building with HUGENPART requires STF enabled.")
 	endif()
 endif()
-if(DA)
+if(SIXDA)
 	if(COLLIMAT)
-		message(FATAL_ERROR "Cannot build DA with COLLIMAT enabled.")
+		message(FATAL_ERROR "Cannot build SIXDA with COLLIMAT enabled.")
 	endif()
 	if(CPSS)
-		message(FATAL_ERROR "Cannot build DA with CPSS enabled.")
+		message(FATAL_ERROR "Cannot build SIXDA with CPSS enabled.")
 	endif()
 	if(NOT NAGLIB)
-		message(FATAL_ERROR "Building with DA requires NAGLIB enabled.")
+		message(FATAL_ERROR "Building with SIXDA requires NAGLIB enabled.")
 	endif()
 endif()
 if(COLLIMAT)
-	if(DA)
-		message(FATAL_ERROR "Cannot build COLLIMAT with DA enabled.")
+	if(SIXDA)
+		message(FATAL_ERROR "Cannot build COLLIMAT with SIXDA enabled.")
 	endif()
 	if(CPSS)
 		message(FATAL_ERROR "Cannot build COLLIMAT with CPSS enabled.")
@@ -675,7 +681,9 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	# gfortran
-	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008 -cpp")
+	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
+	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
+	set(PREPRO_FLAGS -cpp -E -P)
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
 		set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
@@ -733,8 +741,10 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
 	# set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
 	# set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
-	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp -assume realloc-lhs")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp -assume realloc-lhs")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
+	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
+	set(PREPRO_FLAGS -fpp -E -P)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -768,8 +778,10 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	# nagfor
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -fpp")
+	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set(PREPRO_EXEC  fpp)
+	set(PREPRO_FLAGS -P -free)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -802,6 +814,8 @@ else()
 	message ("No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
 	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
+	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
+	set(PREPRO_FLAGS -cpp -E -P)
 endif ()
 
 #Now for C flags (crlibm for now)
@@ -1008,6 +1022,7 @@ foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_PREC PREP
 	if(${loop})
 		message(STATUS "Adding preprocessor definition -D${loop} to target SixTrack")
 		target_compile_definitions(SixTrack PUBLIC -D${loop})
+		list(APPEND PREPRO_FLAGS -D${loop})
 	endif()
 endforeach()
 
@@ -1082,12 +1097,19 @@ endif()
 
 
 add_custom_target(copy_input_files)
-add_dependencies(copy_input_files ast_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
+add_dependencies(copy_input_files ast_mkdir track_mkdir)
+file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/SixTrack/include/*.f90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
+endforeach()
+
+add_custom_target(track_mkdir)
+add_custom_command(TARGET track_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
+foreach(loop IN ITEMS ${SIXTRACK_INCL})
+	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
 endforeach()
 
 if(BOINC)
@@ -1338,7 +1360,18 @@ foreach(loop IN LISTS FORS_FREEFORM)
 endforeach(loop)
 
 add_custom_target(generate_input)
-add_dependencies(generate_input run_astuce dafor)
+add_custom_target(run_prepro)
+add_dependencies(run_prepro run_astuce dafor)
+add_dependencies(generate_input run_astuce run_prepro)
+
+## Run the preprocessor on all .f90 files and output them to the build directory
+foreach(loop IN ITEMS ${FORS_F90})
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		DEPENDS run_prepro
+	)
+endforeach()
 
 ## Run ASTUCE and DAFOR to generate Fortran source files ##
 foreach(loop IN LISTS FORS_FREEFORM)
@@ -1349,13 +1382,15 @@ foreach(loop IN LISTS FORS_FREEFORM)
 	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
 	
 	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
-		message(STATUS "Will run dafor to generate ${loop}.f from ${loop}n.f")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}n.f ${loop}.f90 > ${loop}_dafor.log DEPENDS run_astuce)
+		message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}n.f")
+		add_custom_command(TARGET run_prepro POST_BUILD COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}a.f90 DEPENDS run_astuce)
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log DEPENDS run_prepro)
 		
 	elseif(${FORS_FREEFORM_LISTINDEX} GREATER -1)
 		message(STATUS "Will copy ${loop}n.f to ${loop}.f90")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${CMAKE_COMMAND} -E copy ${loop}n.f ${loop}.f90 DEPENDS run_astuce)
-		
+		# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${CMAKE_COMMAND} -E copy ${loop}a.f90 ${loop}.f90 DEPENDS run_prepro)
+		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}.f90 DEPENDS run_astuce)
+			
 	else()
 		message(FATAL_ERROR "Error when preprocessing ${loop}: Logic error in CMakeLists.txt.")
 	endif()
@@ -1505,7 +1540,7 @@ IF(BUILD_TESTING)
 	ENABLE_TESTING()
 	INCLUDE(CTest)
 
-	if(DA)
+	if(SIXDA)
 		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest_da)
 	else()
 		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)

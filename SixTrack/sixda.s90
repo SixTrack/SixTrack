@@ -235,7 +235,70 @@ program mainda
   dp1=dp10
   if(idp.ne.1.or.iation.ne.1) iclo6=0
   if(iclo6.eq.1.or.iclo6.eq.2) then
-+ca clor6
+    if(iclo6r.eq.0) then
+      clo6(1)=clo(1)
+      clop6(1)=clop(1)
+      clo6(2)=clo(2)
+      clop6(2)=clop(2)
+      clo6(3)=zero
+      clop6(3)=zero
+    else
+#ifdef FIO
+#ifdef CRLIBM
+      call enable_xp()
+#endif
+      read(33,*,round='nearest') (clo6(l),clop6(l), l=1,3)
+#ifdef CRLIBM
+      call disable_xp()
+#endif
+#else
+#ifndef CRLIBM
+      read(33,*) (clo6(l),clop6(l), l=1,3)
+#else
+      read(33,*) ch 
+      lineno=lineno+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
+      do l=1,3
+        if (nf.gt.0) then
+          clo6(l)=fround(errno,fields,l*2-1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          clop6(l)=fround(errno,fields,l*2)
+          nf=nf-1
+        endif
+      enddo
+#endif
+#endif
+    endif
+    call clorb(zero)
+    call betalf(zero,qw)
+    call phasad(zero,qwc)
+    sigm(1)=clo6(3)
+    dps(1)=clop6(3)
+#ifdef DEBUG
+!     call dumpbin('bqmodda',1,3)
+!     call abend('before qmodda 1 3                                 ')
+!     write(*,*) '1st call qmodda'
+#endif
+    call qmodda(3,qwc)
+#ifdef DEBUG
+!     call dumpbin('aqmodda',1,3)
+!     call abend('after  qmodda 1 3                                 ')
+#endif
+    if(ilin.ge.2) then
+      nlinoo=nlin
+      nlin=nlino
+      ilinc=1
+      call mydaini(2,2,6,3,6,1)
+      nlin=nlinoo
+    endif
+    dp1=dp10+clop6(3)
+#ifdef DEBUG
+!     call dumpbin('ecdclor6',1,3)
+!     call abend('end cd clor6                                      ')
+#endif
     do i=1,6
       do j=1,6
         tas(i,j)=tasm(i,j)
@@ -398,13 +461,8 @@ program mainda
   write(lout,10010) amp,epsa
   write(lout,10170)
   if(e0.gt.pieni) then
-+ca rvet2
-+if rvet
-    if(ithick.eq.1) call envars(1,dps(1),rv,rvet)
-+ei
-+if .not.rvet
+    rv=(ej(1)*e0f)/(e0*ejf(1))
     if(ithick.eq.1) call envars(1,dps(1),rv)
-+ei
   else
     call prror(79)
   end if
@@ -795,7 +853,7 @@ subroutine runcav
 +ca commond1
   save
 !-----------------------------------------------------------------------
-+ca daini
+#include "include/daini.f90"
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   call comt_daStart

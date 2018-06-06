@@ -1,5 +1,5 @@
 aperture.s90 sixtrack.s90
-aperturen.f
+aperturen.f90
 df fluka,root,collimat
 e aperture
 ex
