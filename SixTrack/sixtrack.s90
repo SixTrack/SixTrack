@@ -155,12 +155,6 @@
   integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
   common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),asdaq_da(2,6),smida_da(mcor),xx_da(2), &
     yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
-+cd commonas
-  ! Tried to move this to a module, but for some FOX-related reason, iscrda cannot be moved.
-  integer idao,iscrri
-  integer          iscrda
-  real(kind=fPrec) rscrri
-  common/dascr/iscrda(100),rscrri(100),iscrri(100),idao
 +cd commphin
       common/phasecom/ phase(3,npos+1)
       common/invari/ dani(ninv+1)
@@ -8066,6 +8060,7 @@ subroutine envada
   use mod_commont
   use mod_commond
   use mod_commond2
+  use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
@@ -8451,6 +8446,7 @@ end subroutine envada
       use parpro
       use mod_common
       use mod_commond
+      use mod_lie_dab, only : idao,rscrri,iscrda
       implicit none
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
@@ -8558,6 +8554,7 @@ subroutine runda
       use mod_commond
       use mod_commond2
       use mod_hions
+      use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
       implicit none
       integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,   &
      &ipch,irrtr,iverg,ix,j,jb,jj,jmel,jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,  &
@@ -9862,6 +9859,7 @@ subroutine umlauda
       use mod_commond2
       use wire
       use mod_hions
+      use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
       
       implicit none
       
@@ -11513,6 +11511,7 @@ subroutine wireda(ix,i)
       use mod_commond
       use wire
       use mod_hions
+      use mod_lie_dab, only : idao,rscrri,iscrda
       implicit none
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
@@ -11708,6 +11707,7 @@ end subroutine wireda
       use mod_commont
       use mod_commond
       use mod_hions
+      use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
       implicit none
       integer ix,idaa
 +ca commond1
@@ -11763,6 +11763,7 @@ end subroutine wireda
       use mod_commons
       use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
       use mod_commond
+      use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
       implicit none
       integer n,n1,nc,nuu,nuu1,idaa
       real(kind=fPrec) cc,dare,dum,xlim,ylim
@@ -11888,6 +11889,7 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
       use crcoall
       use parpro
       use parbeam, only : beam_expflag,beam_expfile_open
+      use mod_lie_dab, only : idao
       implicit none
       integer ibb,ibbc,ne,nsli,idaa
       real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
@@ -11955,6 +11957,7 @@ end subroutine beaminf
       use numerical_constants
       use parpro
       use mod_commond
+      use mod_lie_dab, only : idao,rscrri,iscrda
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
@@ -12016,6 +12019,7 @@ end subroutine beaminf
       use numerical_constants
       use parpro
       use mod_commond
+      use mod_lie_dab, only : idao,rscrri,iscrda
       implicit none
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
@@ -12162,6 +12166,7 @@ end subroutine beaminf
       use numerical_constants
       use parpro
       use mod_commond
+      use mod_lie_dab, only : idao,rscrri,iscrda
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
@@ -12233,6 +12238,7 @@ end subroutine beaminf
       use parpro
       use mod_commond
       use mod_ranecu
+      use mod_lie_dab, only : idao,rscrri,iscrda
 
       implicit none
       integer idaa
@@ -22923,10 +22929,10 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
       use parpro
       use mod_common, only : ichromc,ilinc,iqmodc
       use mod_commond
+      use mod_lie_dab, only : iscrda
       implicit none
       integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
       real(kind=fPrec) am
-+ca commonas
       dimension am(6,6),idummy(6)
       save
 !-----------------------------------------------------------------------

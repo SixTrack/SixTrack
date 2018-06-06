@@ -1,51 +1,3 @@
-+cd dascr
-      integer idao,is,iscrri
-      real(kind=fPrec) rs
-      common/dascr/is(100),rs(100),iscrri(100),idao
-+cd alloc
-      logical allvec(lda)
-      common /alloc/ allvec
-+cd alloctot
-      integer ndat
-      common /alloctot/ ndat
-+cd daname
-      character daname(lda)*10
-      common / daname / daname
-+cd dabinc
-      integer i1,i2,ia1,ia2,idall,idalm,idano,idanv,idapo,ie1,ie2,ieo,  &
-     &ifi,lfi,nda,ndamaxi,nmmax,nocut,nomax,nst,nvmax
-      real(kind=fPrec) cc,eps,epsmac,facint
-#ifdef SMALL
-      parameter(lda=10000,lst=200000,lea=500,lia=10000,lno=120,lnv=40)
-      common /fordes/ nda,ndamaxi
-      common / da / cc(lst),eps,epsmac
-      common / dai / i1(lst),i2(lst),                                   &
-     &ie1(lea),ie2(lea),ieo(lea),ia1(0:lia),ia2(0:lia),ifi(lea),        &
-     &idano(lda),idanv(lda),idapo(lda),idalm(lda),idall(lda),           &
-     &nst,nomax,nvmax,nmmax,nocut,lfi
-      common /factor/ facint(0:lno)
-#endif
-#ifdef BIG
-      parameter(lda=10000,lst=20050000,lea=100000,lia=5000000,lno=120,lnv=40)
-      common /fordes/ nda,ndamaxi
-      common / da / cc(lst),eps,epsmac
-      common / dai / i1(lst),i2(lst),                                   &
-     &ie1(lea),ie2(lea),ieo(lea),ia1(0:lia),ia2(0:lia),ifi(lea),        &
-     &idano(lda),idanv(lda),idapo(lda),idalm(lda),idall(lda),           &
-     &nst,nomax,nvmax,nmmax,nocut,lfi
-      common /factor/ facint(0:lno)
-#endif
-#ifdef CTRACK
-      parameter(lda=1000,lst=3000000,lea=20000,lia=20000,lno=120,lnv=40)
-      common /fordes/ nda,ndamaxi
-      common / da / cc(lst),eps,epsmac
-      common / dai / i1(lst),i2(lst),                                   &
-     &ie1(lea),ie2(lea),ieo(lea),ia1(0:lia),ia2(0:lia),ifi(lea),        &
-     &idano(lda),idanv(lda),idapo(lda),idalm(lda),idall(lda),           &
-     &nst,nomax,nvmax,nmmax,nocut,lfi
-      common /factor/ facint(0:lno)
-#endif
-+dk daini
 !******************************************************************************
 !                                                                             *
 !                                                                             *
@@ -222,10 +174,11 @@ subroutine daini(no,nv,iunit)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : idao,is,iscrri,rs
+      use mod_lie_dab, only : idao,iscrda,iscrri,rscrri,allvec,eps,epsmac,nda,ndamaxi,nst,nomax,nvmax,  &
+        nmmax,nocut,lfi,idall,i1,i2,ie1,ie2,ieo,ia1,ia2,lda,lst,lea,lia,lno,lnv
       use crcoall
       implicit none
-      integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,lda,lea,lia,lno,lnv,lst,n,nn,no,nv
+      integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,n,nn,no,nv
       integer iall(1)
 !     *****************************
 !
@@ -235,12 +188,11 @@ subroutine daini(no,nv,iunit)
 !     FOUND AFTER THE ROUTINE.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
 !      COMMON / DASCR /  IS(20), RS(20)                                        1
 !-----------------------------------------------------------------------------2
 
-+ca alloc
 
       character(len=10) aa
       dimension n(lnv+1),k(0:lnv),j(lnv),jj(lnv)
@@ -284,9 +236,9 @@ subroutine daini(no,nv,iunit)
 
       idao=0 
       do i=1,100
-        is(i) = 0
+        iscrda(i)=0
         iscrri(i)=0
-        rs(i)=zero
+        rscrri(i)=zero
       enddo
 
       if(nv.gt.lnv.or.no.gt.lno) then
@@ -469,17 +421,16 @@ subroutine daini(no,nv,iunit)
       return
 end subroutine daini
 
-+dk daexter
 subroutine daexter
       use floatPrecision
+      use mod_lie_dab, only : allvec,lda
       implicit none
-      integer i,lda,lea,lia,lno,lnv,lst
+      integer i
 !     *****************************
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
-+ca alloc
 
       do i=1, lda
         allvec(i)=.false.
@@ -488,19 +439,18 @@ subroutine daexter
       return
 end subroutine daexter
 
-+dk dallsta
 subroutine dallsta(ldanow)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : allvec,lda
       implicit none
-      integer i,lda,ldanow,lea,lia,lno,lnv,lst
+      integer i,ldanow
 !     *****************************
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
-+ca alloc
 
       ldanow=0
       do 5 i=1, lda
@@ -569,14 +519,15 @@ end subroutine dallsta
 !   11         0         0
 !   12        10        34   NOMAX = 3,  NVMAX = 4, NMMAX = 35
 !
-+dk daallno
 subroutine daallno(ic,l,ccc)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : allvec,daname,nda,ndamaxi,nst,nomax,nvmax,nmmax,idano,idanv,idapo,    &
+        idalm,idall,lda,lst
       implicit none
-      integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
+      integer i,ind,l,ndanum,no,nv
       real(kind=fPrec) x
 !     ********************************
 !
@@ -584,12 +535,7 @@ subroutine daallno(ic,l,ccc)
 !     ORDER NOmax AND NUMBER OF VARIABLES NVmax
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
-+ca alloc
 
-!-----------------------------------------------------------------------------9
-+ca daname
-!-----------------------------------------------------------------------------3
 
       integer ic(*)
       logical incnda
@@ -678,14 +624,15 @@ subroutine daallno(ic,l,ccc)
       return
 end subroutine daallno
 
-+dk daall
 subroutine daall(ic,l,ccc,no,nv)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : ndat,allvec,daname,nda,ndamaxi,nst,nomax,nvmax,nmmax,idano,idanv,     &
+        idapo,idalm,idall,lda,lst
       implicit none
-      integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
+      integer i,ind,l,ndanum,no,nv
       real(kind=fPrec) x
 !     ********************************
 !
@@ -693,13 +640,7 @@ subroutine daall(ic,l,ccc,no,nv)
 !     ORDER NO AND NUMBER OF VARIABLES NV
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
-+ca alloc
-+ca alloctot
 
-!-----------------------------------------------------------------------------9
-+ca daname
-!-----------------------------------------------------------------------------3
 
       integer ic(*)
       logical incnda
@@ -790,22 +731,18 @@ subroutine daall(ic,l,ccc,no,nv)
       return
 end subroutine daall
 
-+dk dadal
 subroutine dadal(idal,l)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : allvec,daname,nda,nomax,nst,idapo,idall
       implicit none
-      integer i,l,lda,lea,lia,lno,lnv,lst
+      integer i,l
 !     ************************
 !
 !     THIS SUBROUTINE DEALLOCATES THE VECTORS IDAL
 !
-!-----------------------------------------------------------------------------1
-+ca dabinc
-+ca daname
-!-----------------------------------------------------------------------------3
-+ca alloc
+
 
       integer idal(*)
 
@@ -838,15 +775,14 @@ subroutine dadal(idal,l)
       return
 end subroutine dadal
 
-+dk davar
 subroutine davar(ina,ckon,i)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : eps,cc,nomax,nvmax,idall,i1,i2
       implicit none
-      integer i,ibase,ic1,ic2,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia, &
-     &lno,lnv,lst
+      integer i,ibase,ic1,ic2,illa,ilma,ina,inoa,inva,ipoa
       real(kind=fPrec) ckon
 !     ****************************
 !
@@ -854,7 +790,7 @@ subroutine davar(ina,ckon,i)
 !     AS THE INDEPENDENT VARIABLE NUMBER I.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 
@@ -904,18 +840,18 @@ subroutine davar(ina,ckon,i)
       return
 end subroutine davar
 
-+dk dacon
 subroutine dacon(ina,ckon)
       use floatPrecision
+      use mod_lie_dab, only : eps,cc,nomax,idall,i1,i2
       implicit none
-      integer illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
+      integer illa,ilma,ina,inoa,inva,ipoa
       real(kind=fPrec) ckon
 !     **************************
 !
 !     THIS SUBROUTINE SETS THE VECTOR C TO THE CONSTANT CKON
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 
@@ -935,19 +871,19 @@ subroutine dacon(ina,ckon)
       return
 end subroutine dacon
 
-+dk danot
 subroutine danot(not)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : nomax,nocut
       implicit none
-      integer lda,lea,lia,lno,lnv,lst,not
+      integer not
 !     *********************
 !
 !     THIS SUBROUTINE RESETS THE TRUNCATION ORDER NOCUT TO A NEW VALUE
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       if(not.gt.nomax) then
          write(lout,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
@@ -962,20 +898,20 @@ subroutine danot(not)
       return
 end subroutine danot
 
-+dk getdanot
 subroutine getdanot(not)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nomax,nocut
       implicit none
-      integer lda,lea,lia,lno,lnv,lst,not
+      integer not
 !     *********************
 !
 !     THIS SUBROUTINE RESETS THE TRUNCATION ORDER NOCUT TO A NEW VALUE
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       if(not.gt.nomax) then
          write(lout,*)'ERROR, NOCUT = ',nocut,' EXCEEDS NOMAX = ',nomax
@@ -987,19 +923,18 @@ subroutine getdanot(not)
       return
 end subroutine getdanot
 
-+dk daeps
 subroutine daeps(deps)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : eps
       implicit none
-      integer lda,lea,lia,lno,lnv,lst
       real(kind=fPrec) deps
 !     **********************
 !
 !     THIS SUBROUTINE RESETS THE TRUNCATION ORDER NOCUT TO A NEW VALUE
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       if(deps.ge.zero) then
         eps = deps
@@ -1010,15 +945,15 @@ subroutine daeps(deps)
       return
 end subroutine daeps
 
-+dk dapek
 subroutine dapek(ina,jj,cjj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,nomax,nvmax,i1,i2,ia1,ia2,lia,lnv
       implicit none
       integer i,ibase,ic,ic1,ic2,icu,icz,ii1,ikk,illa,ilma,ina,         &
-     &inoa,inva,ipek,ipoa,iu,iz,jj,jj1,lda,lea,lia,lno,lnv,lst,mchk
+        inoa,inva,ipek,ipoa,iu,iz,jj,jj1,mchk
       real(kind=fPrec) cjj
 !     ****************************
 !
@@ -1026,7 +961,7 @@ subroutine dapek(ina,jj,cjj)
 !     OF EXPONENTS JJ AND RETURNS IT IN CJJ
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension jj(lnv)
 #ifdef DEBUG
@@ -1184,15 +1119,14 @@ subroutine dapek(ina,jj,cjj)
 
 end subroutine dapek
 
-+dk dapok
 subroutine dapok(ina,jj,cjj)
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,eps,nomax,idalm,idall,i1,i2,ia1,ia2,lnv
       implicit none
-      integer i,ic,ic1,ic2,icu,icz,ii,illa,ilma,ina,inoa,inva,          &
-     &ipoa,ipok,iu,iz,jj,jj1,lda,lea,lia,lno,lnv,lst,mchk
+      integer i,ic,ic1,ic2,icu,icz,ii,illa,ilma,ina,inoa,inva,ipoa,ipok,iu,iz,jj,jj1,mchk
       real(kind=fPrec) cjj
 !     ****************************
 !
@@ -1200,7 +1134,7 @@ subroutine dapok(ina,jj,cjj)
 !     OF EXPONENTS JJ TO THE VALUE CJJ
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       dimension jj(lnv)
 !
@@ -1240,8 +1174,7 @@ subroutine dapok(ina,jj,cjj)
             jj1 = jj(1)
          endif
          if(jj1.lt.1.or.jj1.gt.illa) then
-            write(lout,*)                                               &
-     &'ERROR IN DAPOK, INDEX OUTSIDE RANGE, JJ(1) = ',jj1
+            write(lout,*) 'ERROR IN DAPOK, INDEX OUTSIDE RANGE, JJ(1) = ',jj1
 !           CALL DADEB(31,'ERR DAPOK1',1)
          endif
          ipok = ipoa + jj1 - 1
@@ -1385,19 +1318,19 @@ subroutine dapok(ina,jj,cjj)
 
 end subroutine dapok
 
-+dk daclr
 subroutine daclr(inc)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : cc
       implicit none
-      integer i,illc,ilmc,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer i,illc,ilmc,inc,inoc,invc,ipoc
 !     *********************
 !
 !     THIS SUBROUTINE SETS ALL THE STACK SPACE RESERVED FOR VARIABLE
 !     C TO ZERO
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
 
@@ -1408,21 +1341,20 @@ subroutine daclr(inc)
       return
 end subroutine daclr
 
-+dk dacop
 subroutine dacop(ina,inb)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only :  cc,nomax,nocut,idalm,idall,i1,i2,ieo,ia1,ia2
       implicit none
-      integer ia,ib,iif,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,&
-     &ipoa,ipob,lda,lea,lia,lno,lnv,lst
+      integer ia,ib,iif,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob
 !     *************************
 !
 !     THIS SUBROUTINE COPIES THE DA VECTOR A TO THE DA VECTOR B
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
 #ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
@@ -1481,14 +1413,14 @@ subroutine dacop(ina,inb)
       return
 end subroutine dacop
 
-+dk datrashn
 subroutine datrashn(idif,ina,inbb)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nomax,i1,i2,lnv
       implicit none
-      integer i,ia,idif,illa,ilma,ina,inbb,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
+      integer i,ia,idif,illa,ilma,ina,inbb,inoa,inva,ipoa
       integer inb(1)
       real(kind=fPrec) rr
 !     *************************
@@ -1496,7 +1428,7 @@ subroutine datrashn(idif,ina,inbb)
 !     THIS SUBROUTINE COPIES THE DA VECTOR A TO THE DA VECTOR B
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
       integer jd(lnv)
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
@@ -1538,7 +1470,6 @@ subroutine datrashn(idif,ina,inbb)
       return
 end subroutine datrashn
 
-+dk daadd
 subroutine daadd(ina,inb,inc)
       use floatPrecision
       use numerical_constants
@@ -1563,7 +1494,6 @@ subroutine daadd(ina,inb,inc)
       return
 end subroutine daadd
 
-+dk dasub
 subroutine dasub(ina,inb,inc)
       use floatPrecision
       use numerical_constants
@@ -1588,11 +1518,10 @@ subroutine dasub(ina,inb,inc)
       return
 end subroutine dasub
 
-+dk damulin
 subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
       use floatPrecision
       implicit none
-      integer ina,inb,inc,incc(1),ind,ine,inoc,invc,lda,lea,lia,lno,lnv,lst
+      integer ina,inb,inc,incc(1),ind,ine,inoc,invc
       real(kind=fPrec) coe1,coe2
 !     *****************************
 !
@@ -1601,7 +1530,7 @@ subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
 !     OF THE (NOMAX+2) SCRATCH VARIABLES ALLOCATED BY DAINI IS USED.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call daall(incc(1),1,'$$DAJUNK$$',inoc,invc)
       call damul(ina,inb,incc(1))
@@ -1613,15 +1542,14 @@ subroutine damulin(ina,inb,coe1,inc,ind,coe2,ine)
 end subroutine damulin
 
 ! ANFANG UNTERPROGRAMM
-+dk daexx
 subroutine daexx(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc
       integer inaa(1),inbb(1)
-+ca dabinc
+
 !     ******************************
 !
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
@@ -1647,18 +1575,18 @@ subroutine daexx(ina,inb,inc)
 end subroutine daexx
 
 ! ANFANG UNTERPROGRAMM
-+dk daexxt
+
 subroutine daexxt(ina,inb,inc)
       use floatPrecision
       implicit none
       integer idaexx(1),illa,illb,illc,ilma,ilmb,ilmc,ina,inb,inc,inoa, &
-     &inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,lda,lea,lia,lno,lnv,lst
+     &inob,inoc,inva,invb,invc,ipoa,ipob,ipoc
 !     ******************************
 !
 !     THIS SUBROUTINE EXPONENTIATES INA WITH INB
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -1675,16 +1603,16 @@ subroutine daexxt(ina,inb,inc)
 end subroutine daexxt
 
 ! ANFANG UNTERPROGRAMM
-+dk dacex
+
 subroutine dacex(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc
       integer incc(1)
       real(kind=fPrec) ckon
-+ca dabinc
+
 !     ******************************
 !
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
@@ -1705,21 +1633,21 @@ subroutine dacex(ina,ckon,inb)
       return
 end subroutine dacex
 
-+dk dacext
+
 subroutine dacext(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
       implicit none
       integer idacex(1),illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,&
-     &ipoa,ipob,lda,lea,lia,lno,lnv,lst
+     &ipoa,ipob
       real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE EXPONENTIATES THE CONSTANT CKON WITH INA
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -1739,14 +1667,14 @@ subroutine dacext(ina,ckon,inb)
       return
 end subroutine dacext
 
-+dk daexc
+
 subroutine daexc(ina,ckon,inb)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc
       integer incc(1)
       real(kind=fPrec) ckon
-+ca dabinc
+
 !     ******************************
 !
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
@@ -1768,17 +1696,18 @@ subroutine daexc(ina,ckon,inb)
       return
 end subroutine daexc
 
-+dk daexct
+
 subroutine daexct(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : eps
       implicit none
       integer i,ic,idaexc(1),illa,illb,ilma,ilmb,ina,inb,inoa,inob,     &
-     &inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
+     &inva,invb,ipoa,ipob
       real(kind=fPrec) ckon,xic
-+ca dabinc
+
 !     ******************************
 !
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
@@ -1814,14 +1743,13 @@ subroutine daexct(ina,ckon,inb)
       return
 end subroutine daexct
 
-+dk damul
+
 subroutine damul(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,     &
-     &lnv,lst,incc(1)
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,incc(1)
 !     *****************************
 !
 !     THIS SUBROUTINE PERFORMS A DA MULTIPLICATION OF THE DA VECTORS A AND B.
@@ -1829,7 +1757,7 @@ subroutine damul(ina,inb,inc)
 !     OF THE (NOMAX+2) SCRATCH VARIABLES ALLOCATED BY DAINI IS USED.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
 !
 
@@ -1847,16 +1775,17 @@ subroutine damul(ina,inb,inc)
       return
 end subroutine damul
 
-+dk damult
+
 subroutine damult(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,nomax,nocut,idapo,idall,i1,i2,ieo,ia1,ia2,lno
       implicit none
       integer i,i1ia,i2ia,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,ina,   &
      &inb,inc,inoa,inob,inoc,inva,invb,invc,ioffb,ipno,ipoa,ipob,ipoc,  &
-     &ipos,lda,lea,lia,lno,lnv,lst,minv,noff,noib,nom
+     &ipos,minv,noff,noib,nom
       real(kind=fPrec) ccia,ccipoa,ccipob
 !     *****************************
 !
@@ -1865,7 +1794,7 @@ subroutine damult(ina,inb,inc)
 !     OF THE (NOMAX+2) SCRATCH VARIABLES ALLOCATED BY DAINI IS USED.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       dimension ipno(0:lno),noff(0:lno)
 
@@ -1948,7 +1877,7 @@ subroutine damult(ina,inb,inc)
       return
 end subroutine damult
 
-+dk dadiv
+
 subroutine dadiv(ina,inb,inc)
       use floatPrecision
       use mathlib_bouncer
@@ -1970,19 +1899,19 @@ subroutine dadiv(ina,inb,inc)
       return
 end subroutine dadiv
 
-+dk dasqr
+
 subroutine dasqr(ina,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,incc(1)
 !     *************************
 !
 !     THIS SUBROUTINE SQUARES THE VECTOR A AND STORES THE RESULT IN C.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       if(ina.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -1998,23 +1927,23 @@ subroutine dasqr(ina,inc)
       return
 end subroutine dasqr
 
-+dk dasqrt
+
 subroutine dasqrt(ina,inc)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,nomax,nocut,idapo,idalm,idall,i1,i2,ieo,ia1,ia2,lno
       implicit none
-      integer i,i1ia,i2ia,ia,ib,ib1,ic,illa,illc,ilma,ilmc,ina,inc,inoa,&
-     &inoc,inva,invc,ioffa,ioffb,ipno,ipoa,ipoc,ipos,lda,lea,lia,lno,   &
-     &lnv,lst,minv,noff,noia,noib,nom
+      integer i,i1ia,i2ia,ia,ib,ib1,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ioffa,ioffb, &
+        ipno,ipoa,ipoc,ipos,minv,noff,noia,noib,nom
       real(kind=fPrec) ccia,ccipoa
 !     *************************
 !
 !     THIS SUBROUTINE SQUARES THE VECTOR A AND STORES THE RESULT IN C.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension ipno(0:lno),noff(0:lno)
 
@@ -2122,20 +2051,21 @@ subroutine dasqrt(ina,inc)
       return
 end subroutine dasqrt
 
-+dk dacad
+
 subroutine dacad(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,nomax,lnv
       implicit none
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob
       real(kind=fPrec) ckon,const
 !     ******************************
 !
 !     THIS SUBROUTINE ADDS THE CONSTANT CKON TO THE VECTOR A
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
       integer jj(lnv)
       data jj / lnv*0 /
 
@@ -2155,13 +2085,14 @@ subroutine dacad(ina,ckon,inb)
       return
 end subroutine dacad
 
-+dk dacsu
+
 subroutine dacsu(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,nomax,lnv
       implicit none
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob
       real(kind=fPrec) ckon,const
 !     ******************************
 !
@@ -2172,7 +2103,7 @@ subroutine dacsu(ina,ckon,inb)
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
 #endif
-+ca dabinc
+
       integer jj(lnv)
       data jj / lnv*0 /
 
@@ -2265,21 +2196,21 @@ subroutine dacsu(ina,ckon,inb)
       return
       end
 
-+dk dasuc
+
 subroutine dasuc(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
       implicit none
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob
       real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE SUBTRACTS THE VECTOR INA FROM THE CONSTANT CKON
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -2290,13 +2221,13 @@ subroutine dasuc(ina,ckon,inb)
       return
       end
 
-+dk dacmu
+
 subroutine dacmu(ina,ckon,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,incc(1)
       real(kind=fPrec) ckon
 !     ******************************
 !
@@ -2305,7 +2236,7 @@ subroutine dacmu(ina,ckon,inc)
 !     THE DA VECTOR DENOTED WITH THE INTEGER E.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 #ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -2334,14 +2265,15 @@ subroutine dacmu(ina,ckon,inc)
       return
       end
 
-+dk dacmut
+
 subroutine dacmut(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,eps,nomax,nocut,idalm,idall,i1,i2,ieo,ia1,ia2
       implicit none
-      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst,minv
+      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,minv
       real(kind=fPrec) ckon
 !     ******************************
 !
@@ -2350,7 +2282,7 @@ subroutine dacmut(ina,ckon,inb)
 !     THE DA VECTOR DENOTED WITH THE INTEGER E.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 #ifdef DEBUG
 !     integer umcalls,dapcalls,dokcalls,dumpl
 !     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
@@ -2417,21 +2349,21 @@ subroutine dacmut(ina,ckon,inb)
       return
       end
 
-+dk dacdi
+
 subroutine dacdi(ina,ckon,inb)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
       implicit none
-      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,lda,lea,lia,lno,lnv,lst
+      integer illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob
       real(kind=fPrec) ckon
 !     ******************************
 !
 !     THIS SUBROUTINE DIVIDES THE VECTOR INA BY THE CONSTANT CKON
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       if(ckon.eq.zero) then
          write(lout,*)'ERROR IN DACDI, CKON IS ZERO'
@@ -2446,14 +2378,15 @@ subroutine dacdi(ina,ckon,inb)
       return
       end
 
-+dk dadic
+
 subroutine dadic(ina,ckon,inc)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : eps
       implicit none
-      integer idadic(1),illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,lda,lea,lia,lno,lnv,lst
+      integer idadic(1),illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc
       real(kind=fPrec) ckon
 !      parameter(zero=0.0_fPrec)
 !     ******************************
@@ -2461,7 +2394,7 @@ subroutine dadic(ina,ckon,inc)
 !     THIS SUBROUTINE DIVIDES THE CONSTANT CKON BY THE VECTOR INA
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -2485,14 +2418,14 @@ subroutine dadic(ina,ckon,inc)
       return
       end
 
-+dk dacma
+
 subroutine dacma(ina,inb,bfac,inc)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,idacma(1)
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,idacma(1)
       real(kind=fPrec) bfac
 !     **********************************
 !
@@ -2501,7 +2434,7 @@ subroutine dacma(ina,inb,bfac,inc)
 !     CAN LATER BE REPLACED BY SOMETHING LIKE DAADD WITH MINOR CHANGES.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
       idacma(1) = 0
@@ -2513,11 +2446,11 @@ subroutine dacma(ina,inb,bfac,inc)
       return
       end
 
-+dk dalin
+
 subroutine dalin(ina,afac,inb,bfac,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
+      integer illc,ilmc,ina,inb,inc,inoc,invc,ipoc,incc(1)
       real(kind=fPrec) afac,bfac
 !     ***************************************
 !
@@ -2525,7 +2458,7 @@ subroutine dalin(ina,afac,inb,bfac,inc)
 !     C = AFAC*A + BFAC*B. IT IS ALSO USED TO ADD AND SUBTRACT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       if(ina.eq.inc.or.inb.eq.inc) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -2541,16 +2474,16 @@ subroutine dalin(ina,afac,inb,bfac,inc)
       return
       end
 
-+dk dalint
+
 subroutine dalint(ina,afac,inb,bfac,inc)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,eps,nomax,nocut,idalm,idall,i1,i2,ieo,ia1,ia2
       implicit none
-      integer i,ia,iamax,ib,ibmax,ic,icmax,illa,illb,illc,ilma,ilmb,    &
-     &ilmc,ina,inb,inc,inoa,inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,is, &
-     &ismax,ismin,ja,jb,lda,lea,lia,lno,lnv,lst,minv,mchk
+      integer i,ia,iamax,ib,ibmax,ic,icmax,illa,illb,illc,ilma,ilmb,ilmc,ina,inb,inc,inoa,inob,inoc,&
+        inva,invb,invc,ipoa,ipob,ipoc,is,ismax,ismin,ja,jb,minv,mchk
       real(kind=fPrec) afac,bfac,ccc,copf
 !     ***************************************
 !
@@ -2558,7 +2491,7 @@ subroutine dalint(ina,afac,inb,bfac,inc)
 !     C = AFAC*A + BFAC*B. IT IS ALSO USED TO ADD AND SUBTRACT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -2709,13 +2642,13 @@ subroutine dalint(ina,afac,inb,bfac,inc)
       return
       end
 
-+dk dafun
+
 subroutine dafun(cf,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst,incc(1)
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc,incc(1)
 !     ****************************
 !
 !     THIS SUBROUTINE COMPUTES THE FUNCTION CF OF THE DA VECTOR A
@@ -2724,7 +2657,7 @@ subroutine dafun(cf,ina,inc)
 !     THIS HAS TO BE FIXED IN THE FUTURE.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       character(len=4) cf
 #ifdef DEBUG
@@ -2760,16 +2693,17 @@ subroutine dafun(cf,ina,inc)
       return
       end
 
-+dk dafunt
+
 subroutine dafunt(cf,ina,inc)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : epsmac,nocut,lno,lnv
       implicit none
       integer i,illa,illc,ilma,ilmc,ina,inc,ind,inoa,inoc,inon(1),inva, &
-     &invc,ipoa,ipoc,ipow(1),iscr(1),jj,lda,lea,lfun,lia,lno,lnv,lst,no
+     &invc,ipoa,ipoc,ipow(1),iscr(1),jj,lfun,no
 
       real(kind=fPrec) a0,a1,a2,a3,a4,a5,ca,e1,e2,ea,era,p,ra,rpi4,sa,scr,t,xf
 !     ****************************
@@ -2780,7 +2714,7 @@ subroutine dafunt(cf,ina,inc)
 !     THIS HAS TO BE FIXED IN THE FUTURE.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       character(len=4) cf,cfh
       character(len=26) abcs,abcc
@@ -3292,19 +3226,20 @@ subroutine dafunt(cf,ina,inc)
       return
       end
 
-+dk daabs
+
 subroutine daabs(ina,anorm)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : cc
       implicit none
-      integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
+      integer i,illa,ilma,ina,inoa,inva,ipoa
       real(kind=fPrec) anorm
 !     ***************************
 !
 !     THIS SUBROUTINE COMPUTES THE NORM OF THE DA VECTOR A
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 
@@ -3316,7 +3251,7 @@ subroutine daabs(ina,anorm)
       return
       end
 
-+dk dacom
+
 subroutine dacom(ina,inb,dnorm)
       use floatPrecision
       use mathlib_bouncer
@@ -3339,20 +3274,21 @@ subroutine dacom(ina,inb,dnorm)
       return
       end
 
-+dk dapos
+
 subroutine dapos(ina,inb)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,nocut,idalm,idall,i1,i2,ieo,ia1,ia2
       implicit none
       integer ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,    &
-     &ipoa,ipob,lda,lea,lia,lno,lnv,lst
+     &ipoa,ipob
 !     *************************
 !
 !     THIS SUBROUTINE MAKES THE SIGNS OF ALL THE COEFFICIENTS OF A POSITIVE
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -3380,11 +3316,12 @@ subroutine dapos(ina,inb)
       return
       end
 
-+dk dacct
+
 subroutine dacct(ma,ia,mb,ib,mc,ic)
       use floatPrecision
+      use mod_lie_dab, only : lnv
       implicit none
-      integer i,ia,ib,ic,ij,illc,ilmc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ib,ic,ij,illc,ilmc,inoc,invc,ipoc
 !     ***********************************
 !
 !     THIS SUBROUTINE PERFORMS A CONCATENATION MA = MB o MC
@@ -3392,7 +3329,7 @@ subroutine dacct(ma,ia,mb,ib,mc,ic)
 !     DA VECTORS, RESPECTIVELY.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer mon(lnv),mb(*),mc(*),ma(*)
 
@@ -3418,16 +3355,16 @@ subroutine dacct(ma,ia,mb,ib,mc,ic)
       return
       end
 
-+dk dacctt
+
 subroutine dacctt(mb,ib,mc,ic,ma,ia)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,eps,nomax,nvmax,idapo,idall,i1,i2,lno
       implicit none
       integer i,ia,ib,ic,iia,iib,iic,illa,illb,illc,ilma,ilmb,ilmc,inoa,&
-     &inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,iv,jl,jv,lda,lea,lia,lno, &
-     &lnv,lst
+     &inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,iv,jl,jv
       real(kind=fPrec) ccf
 !     ***********************************
 !
@@ -3436,7 +3373,7 @@ subroutine dacctt(mb,ib,mc,ic,ma,ia)
 !     DA VECTORS, RESPECTIVELY.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
 !      INTEGER MON(LNO+1),ICC(LNV),MB(*),MC(*),MA(*)
 !ETIENNE
@@ -3507,16 +3444,16 @@ subroutine dacctt(mb,ib,mc,ic,ma,ia)
       return
       end
 
-+dk mtree
+
 subroutine mtree(mb,ib,mc,ic)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,epsmac,nomax,nvmax,nmmax,idapo,idalm,idall,i1,i2,ieo,ia1,ia2,lno,lnv
       implicit none
       integer i,ib,ib1,ibi,ic,ic1,ic2,icc,ichk(1),ii,iib,iic,illb,illc, &
-     &ilmb,ilmc,inob,inoc,invb,invc,ipob,ipoc,j,jl,jnon,lda,lea,lia,lno,&
-     &lnv,lst,nterm,ntermf
+     &ilmb,ilmc,inob,inoc,invb,invc,ipob,ipoc,j,jl,jnon,nterm,ntermf
       real(kind=fPrec) apek,bbijj,chkjj
 !     *****************************
 !
@@ -3526,7 +3463,7 @@ subroutine mtree(mb,ib,mc,ic)
 !     CONTAINS COEFFICIENTS AND CONTROL INTEGERS USED FOR THE TRAVERSAL.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(lnv),jv(0:lno),mb(*),mc(*)
 
@@ -3711,12 +3648,13 @@ subroutine mtree(mb,ib,mc,ic)
       return
       end
 
-+dk ppushpr
+
 subroutine ppushpri(mc,ic,mf,jc,line)
       use floatPrecision
+      use mod_lie_dab, only : cc,idapo,idall,i1,i2
       implicit none
-      integer i,ic,iv,jc,jl,jv,lda,lea,lia,lno,lnv,lst,mc,mf
-+ca dabinc
+      integer i,ic,iv,jc,jl,jv,mc,mf
+
       dimension mc(*)
       character(len=20) line
       if(mf.le.0) return
@@ -3745,12 +3683,13 @@ subroutine ppushpri(mc,ic,mf,jc,line)
       return
       end
 
-+dk ppush
+
 subroutine ppush(mc,ic,xi,xf)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : cc,idapo,idall,i1,i2,lno
       implicit none
-      integer i,ic,iv,jl,jv,lda,lea,lia,lno,lnv,lst,mc
+      integer i,ic,iv,jl,jv,mc
       real(kind=fPrec) xf,xi,xm,xt,xx
 !     *****************************
 !
@@ -3758,7 +3697,7 @@ subroutine ppush(mc,ic,xi,xf)
 !     TO THE COORDINATES IN XI AND STORES THE RESULT IN XF
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension mc(*),xf(*),xi(*),xm(lno+1) ,xt(lno)
 
@@ -3786,12 +3725,13 @@ subroutine ppush(mc,ic,xi,xf)
       return
       end
 
-+dk ppush1
+
 subroutine ppush1(mc,xi,xf)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : cc,nvmax,idapo,idall,i1,i2,lno
       implicit none
-      integer i,jl,jv,lda,lea,lia,lno,lnv,lst,mc
+      integer i,jl,jv,mc
       real(kind=fPrec) xf,xi,xm,xt,xx
 !     *****************************
 !
@@ -3799,7 +3739,7 @@ subroutine ppush1(mc,xi,xf)
 !     TO THE COORDINATES IN XI AND STORES THE RESULT IN XF
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension xi(*),xm(lno+1) ,xt(lno)
 
@@ -3822,12 +3762,13 @@ subroutine ppush1(mc,xi,xf)
       return
       end
 
-+dk dainv
+
 subroutine dainv(ma,ia,mb,ib)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : lnv
       implicit none
-      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob
       real(kind=fPrec) x
 !     *****************************
 !
@@ -3835,7 +3776,7 @@ subroutine dainv(ma,ia,mb,ib)
 !     STORES THE RESULT IN MI
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(lnv),ml(lnv),ma(*),mb(*)
       dimension x(lnv)
@@ -3877,15 +3818,16 @@ subroutine dainv(ma,ia,mb,ib)
       return
       end
 
-+dk dainvt
+
 subroutine dainvt(ma,ia,mb,ib)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : eps,epsmac,nocut,lnv
       implicit none
       integer i,ia,ib,ie,ier,illa,illb,ilma,ilmb,inoa,inob,inva,invb,   &
-     &ipoa,ipob,j,k,lda,lea,lia,lno,lnv,lst,nocut0
+     &ipoa,ipob,j,k,nocut0
       real(kind=fPrec) aa,ai,amjj,amsjj,prod
 !     *****************************
 !
@@ -3893,7 +3835,7 @@ subroutine dainvt(ma,ia,mb,ib)
 !     STORES THE RESULT IN MI
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(lnv),ms(lnv),ml(lnv),ma(*),mb(*)
       dimension aa(lnv,lnv),ai(lnv,lnv)
@@ -4030,7 +3972,7 @@ subroutine dainvt(ma,ia,mb,ib)
       return
       end
 
-+dk matinv
+
 subroutine matinv(a,ai,n,nmx,ier)
       use floatPrecision
       use numerical_constants
@@ -4068,7 +4010,7 @@ subroutine matinv(a,ai,n,nmx,ier)
       return
       end
 
-+dk ludcmp
+
 subroutine ludcmp(a,n,np,indx,d,ier)
       use floatPrecision
       use numerical_constants
@@ -4149,7 +4091,7 @@ subroutine ludcmp(a,n,np,indx,d,ier)
       return
       end
 
-+dk lubksb
+
 subroutine lubksb(a,n,np,indx,b,nmx)
       use floatPrecision
       use numerical_constants
@@ -4196,12 +4138,13 @@ subroutine lubksb(a,n,np,indx,b,nmx)
       return
       end
 
-+dk dapin
+
 subroutine dapin(ma,ia,mb,ib,jx)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : lnv
       implicit none
-      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ib,ij,illb,ilmb,inob,invb,ipob
       real(kind=fPrec) x
 !     *****************************
 !
@@ -4209,7 +4152,7 @@ subroutine dapin(ma,ia,mb,ib,jx)
 !     STORES THE RESULT IN MI
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(lnv),ml(lnv),ma(*),mb(*),jx(*)
       dimension x(lnv)
@@ -4255,19 +4198,20 @@ subroutine dapin(ma,ia,mb,ib,jx)
       return
       end
 
-+dk dapint
+
 subroutine dapint(ma,ia,mb,ib,jind)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nvmax,lnv
       implicit none
-      integer i,ia,ib,illa,ilma,inoa,inva,ipoa,k,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ib,illa,ilma,inoa,inva,ipoa,k
 !     **********************************
 !
 !     THIS SUBROUTINE PERFORMS A PARTIAL INVERSION OF THE ROWS MARKED WITH
 !     NONZERO ENTRIES IN JJ OF THE MATRIX A. THE RESULT IS STORED IN B.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(lnv),jind(*),ma(*),mb(*),mn(lnv),mi(lnv),me(lnv)
 
@@ -4311,18 +4255,18 @@ subroutine dapint(ma,ia,mb,ib,jind)
       return
       end
 
-+dk dader
+
 subroutine dader(idif,ina,inc)
       use floatPrecision
       implicit none
-      integer idif,illc,ilmc,ina,inc,incc(1),inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer idif,illc,ilmc,ina,inc,incc(1),inoc,invc,ipoc
 !     ******************************
 !
 !     THIS SUBROUTINE COMPUTES THE DERIVATIVE WITH RESPECT TO VARIABLE I
 !     OF THE VECTOR A AND STORES THE RESULT IN C.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
 
       if(ina.eq.inc) then
@@ -4339,15 +4283,15 @@ subroutine dader(idif,ina,inc)
       return
       end
 
-+dk dadert
+
 subroutine dadert(idif,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,epsmac,nomax,nvmax,idalm,idall,i1,i2,lnv
       implicit none
       integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,iee,ifac,illa,  &
-     &illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,lda,      &
-     &lea,lia,lno,lnv,lst
+     &illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj
       real(kind=fPrec) rr,x,xdivi
 !     ******************************
 !
@@ -4355,7 +4299,7 @@ subroutine dadert(idif,ina,inc)
 !     OF THE VECTOR A AND STORES THE RESULT IN C.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
       integer jd(lnv)
 !
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
@@ -4436,18 +4380,19 @@ subroutine dadert(idif,ina,inc)
       return
       end
 
-+dk dapoi
+
 subroutine dapoi(ina,inb,inc,n)
       use floatPrecision
+      use mod_lie_dab, only : nomax,nvmax
       implicit none
-      integer i,ina,inb,inc,lda,lea,lia,lno,lnv,lst,n
+      integer i,ina,inb,inc,n
 !     *******************************
 !
 !     THIS SUBROUTINE COMPUTES THE POISSON BRACKET OF THE VECTORS A AND
 !     B AND STORES THE RESULT IN C. N IS THE DEGREE OF FREEDOM OF THE SYSTEM.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       integer is(4)
 !
@@ -4481,12 +4426,11 @@ subroutine dapoi(ina,inb,inc,n)
       return
       end
 !
-+dk dacfur
+
 subroutine dacfur(ina,fun,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
-     &lst
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc
       integer incc(1)
       complex(kind=fPrec) fun
       external fun
@@ -4497,7 +4441,7 @@ subroutine dacfur(ina,fun,inc)
 !     RESULT IN C
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
 !
 
@@ -4514,14 +4458,14 @@ subroutine dacfur(ina,fun,inc)
 
       return
       end
-+dk dacfurt
+
 subroutine dacfurt(ina,fun,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,eps,nomax,idalm,idall,i1,i2,lnv
       implicit none
-      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
-     &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,j
       real(kind=fPrec) cfac,rr
       complex(kind=fPrec) fun
       external fun
@@ -4532,7 +4476,7 @@ subroutine dacfurt(ina,fun,inc)
 !     RESULT IN C
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       dimension j(lnv)
 !
@@ -4594,12 +4538,11 @@ subroutine dacfurt(ina,fun,inc)
       return
       end
 !
-+dk dacfu
+
 subroutine dacfu(ina,fun,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,     &
-     &lst
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc
       integer incc(1)
       real(kind=fPrec) fun
       external fun
@@ -4610,7 +4553,7 @@ subroutine dacfu(ina,fun,inc)
 !     RESULT IN C
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
 !
 
@@ -4627,12 +4570,11 @@ subroutine dacfu(ina,fun,inc)
 
       return
       end
-+dk dacfui
+
 subroutine dacfui(ina,fun,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,&
-     &lst
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc
       complex(kind=fPrec) fun
       integer incc(1)
       external fun
@@ -4643,7 +4585,7 @@ subroutine dacfui(ina,fun,inc)
 !     RESULT IN C
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
 !
 
@@ -4660,14 +4602,14 @@ subroutine dacfui(ina,fun,inc)
 
       return
       end
-+dk dacfuit
+
 subroutine dacfuit(ina,fun,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,eps,nomax,idalm,idall,i1,i2,lnv
       implicit none
-      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,  &
-     &ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,j
       real(kind=fPrec) cfac,rr
       complex(kind=fPrec) fun
       external fun
@@ -4678,7 +4620,7 @@ subroutine dacfuit(ina,fun,inc)
 !     RESULT IN C
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       dimension j(lnv)
 !
@@ -4740,13 +4682,14 @@ subroutine dacfuit(ina,fun,inc)
       return
       end
 
-+dk dacfut
+
 subroutine dacfut(ina,fun,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,eps,nomax,idalm,idall,i1,i2,lnv
       implicit none
-      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,j,lda,lea,lia,lno,lnv,lst
+      integer i,ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,j
       real(kind=fPrec) cfac,fun,rr
       external fun
 !     *****************************
@@ -4756,7 +4699,7 @@ subroutine dacfut(ina,fun,inc)
 !     RESULT IN C
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension j(lnv)
 
@@ -4816,25 +4759,25 @@ subroutine dacfut(ina,fun,inc)
       return
       end
 
-+dk dapri
+
 subroutine dapri(ina,iunit)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : daname,cc,eps,nda,nomax,nvmax,idano,idanv,idapo,idalm,idall,i1,i2,ieo,&
+        ia1,ia2,lnv
       implicit none
-      integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,k,lda,lea,lia,lno,lnv,lst
+      integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,k
 !     ***************************
 !       Frank
 !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
       dimension j(lnv)
-+ca daname
-!-----------------------------------------------------------------------------3
 
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
@@ -4950,25 +4893,25 @@ subroutine dapri(ina,iunit)
       return
       end
 
-+dk dapri77
+
 subroutine dapri77(ina,iunit)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : daname,cc,eps,nda,nomax,nocut,idano,idanv,idapo,idalm,idall,i1,i2,ieo,&
+        ia1,ia2,lnv
       implicit none
-      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,lda,lea,lia,lno,lnv,lst
+      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j
       character(len=10) c10,k10
 !     ***************************
 !       Etienne
 !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
       dimension j(lnv)
-+ca daname
-!-----------------------------------------------------------------------------3
 
       if(iunit.eq.0) return
 
@@ -5076,19 +5019,19 @@ subroutine dapri77(ina,iunit)
       return
       end
 
-+dk dashift
+
 subroutine dashift(ina,inc,ishift)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname,cc,eps,nda,nomax,nocut,idano,idanv,idapo,idalm,idall,i1,i2,ieo,&
+        ia1,ia2,lnv
       implicit none
-      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,j,lda,lea,lia,lno,lnv,lst
-+ca dabinc
+      integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,j
+
 !-----------------------------------------------------------------------------9
       dimension j(lnv)
-+ca daname
-!-----------------------------------------------------------------------------3
 !
       integer inb(1),ishift,ich,ik,jd(lnv),inc
 !-----------------------------------------------------------------------------3
@@ -5212,20 +5155,19 @@ subroutine dashift(ina,inc,ishift)
       return
       end
 
-+dk darea
+
 subroutine darea(ina,iunit)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv
       implicit none
-      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,ipoa,iunit,iwarin,iwarno,iwarnv,j,lda,lea,lia,lno,lnv,lst,nno
+      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,ipoa,iunit,iwarin,iwarno,iwarnv,j,nno
       real(kind=fPrec) c
 !       Frank
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
-+ca daname
-!-----------------------------------------------------------------------------3
 
       character(len=10) c10
       dimension j(lnv)
@@ -5370,23 +5312,22 @@ subroutine darea(ina,iunit)
       end
 !FF
 
-+dk darea77
+
 subroutine darea77(ina,iunit)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv
       implicit none
-      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,ipoa,iunit,j,k,lda,lea,lia,lno,lnv,lst,nojoh,nvjoh
+      integer i,ic,iche,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,ipoa,iunit,j,k,nojoh,nvjoh
       real(kind=fPrec) c
 !     ***************************
 !     Etienne
 !     THIS SUBROUTINE READS THE DA VECTOR INA FROM UNIT IUNIT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
-+ca daname
-!-----------------------------------------------------------------------------3
+
 
       character(len=10) c10,k10
       dimension j(lnv)
@@ -5454,23 +5395,22 @@ subroutine darea77(ina,iunit)
       return
       end
 
-+dk dadeb
+
 subroutine dadeb(iunit,c,istop)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname
       implicit none
-      integer istop,iunit,lda,lea,lia,lno,lnv,lst
+      integer istop,iunit
 !     *******************************
 !
 !     THIS SUBROUTINE SERVES AS A DEBUGGING TOOL. IT PRINTS ALL
 !     NONZERO INFORMATION IN THE COMMON BLOCKS AND ALL DA  VECTORS.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
-+ca daname
-!-----------------------------------------------------------------------------3
+
 
       character(len=10) c
 
@@ -5483,7 +5423,7 @@ subroutine dadeb(iunit,c,istop)
 #endif
       end
 
-+dk danum
+
 subroutine danum(no,nv,numda)
       use floatPrecision
       implicit none
@@ -5503,20 +5443,21 @@ subroutine danum(no,nv,numda)
       return
       end
 
-+dk dainf
+
 subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : nda,idano,idanv,idapo,idalm,idall
       implicit none
-      integer illc,ilmc,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer illc,ilmc,inc,inoc,invc,ipoc
 !     **********************************************
 !
 !     THIS SUBROUTINE SEARCHES THE NUMBER OF DA VECTOR C
 !     AND RETURS THE INFORMATION IN COMMON DA
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       if(inc.ge.1.and.inc.le.nda) then
          inoc = idano(inc)
@@ -5533,13 +5474,14 @@ subroutine dainf(inc,inoc,invc,ipoc,ilmc,illc)
       return
       end
 
-+dk dapac
+
 subroutine dapac(inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,eps,nmmax,idalm,idall,i1,i2,ie1,ie2
       implicit none
-      integer i,ic,illc,ilmc,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer i,ic,illc,ilmc,inc,inoc,invc,ipoc
       real(kind=fPrec) ccc
 !     ************************
 !
@@ -5549,7 +5491,7 @@ subroutine dapac(inc)
 !     INVERSE IS DAUNP.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
 
@@ -5574,7 +5516,7 @@ subroutine dapac(inc)
       end
 !
 !
-+dk dachk
+
 subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
       use floatPrecision
       use mathlib_bouncer
@@ -5631,7 +5573,7 @@ subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
       return
       end
 
-+dk damch
+
 subroutine damch(iaa,ia)
       use floatPrecision
       use end_sixtrack
@@ -5663,17 +5605,18 @@ subroutine damch(iaa,ia)
       return
       end
 
-+dk dadcd
+
 subroutine dadcd(jj,ic1,ic2)
       use floatPrecision
+      use mod_lie_dab, only : nomax,nvmax,lnv
       implicit none
-      integer i,ibase,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst
+      integer i,ibase,ic1,ic2,isplit
 !     ****************************
 !
 !     THIS SUBROUTINE CODES THE EXPONENTS IN JJ INTO THEIR DA CODES I1,I2.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(lnv)
       ibase = nomax + 1
@@ -5692,18 +5635,19 @@ subroutine dadcd(jj,ic1,ic2)
       return
       end
 
-+dk dancd
+
 subroutine dancd(ic1,ic2,jj)
       use floatPrecision
+      use mod_lie_dab, only : epsmac,nomax,nvmax,lnv
       implicit none
-      integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst
+      integer i,ibase,ic,ic1,ic2,isplit
       real(kind=fPrec) x
 !     ****************************
 !
 !     THIS SUBROUTINE ENCODES THE EXPONENTS IN JJ FROM THEIR DA CODES I1,I2.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(*)
       ibase = nomax + 1
@@ -5731,15 +5675,15 @@ subroutine dancd(ic1,ic2,jj)
       end
 
 !ETIENNE
-+dk datra
+
 subroutine datra(idif,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,epsmac,nomax,nvmax,idalm,idall,i1,i2
       implicit none
       integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,iee,ifac,illa,  &
-     &illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,lda,      &
-     &lea,lia,lno,lnv,lst
+     &illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj
       real(kind=fPrec) x,xdivi
 !     ******************************
 !
@@ -5748,7 +5692,7 @@ subroutine datra(idif,ina,inc)
 !
 !     dx^n/dx= x^(n-1)
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -5818,21 +5762,21 @@ subroutine datra(idif,ina,inc)
       return
       end
 
-+dk etred
+
 subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : lnv
       implicit none
-      integer i,i11,i21,ic,ic1,ic2,lda,lea,lia,lno,lnv,lst,no1,no2,nv1, &
-     &nv2
+      integer i,i11,i21,ic,ic1,ic2,no1,no2,nv1,nv2
 !     ****************************
 !
 !     THIS SUBROUTINE CODES THE EXPONENTS IN JJ INTO THEIR DA CODES I1,I2.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       integer jj(lnv)
 
@@ -5871,17 +5815,17 @@ subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
       return
       end
 
-+dk hash
+
 subroutine hash(no1,nv1,jj,ic1,ic2)
       use floatPrecision
       implicit none
-      integer i,ibase,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,no1,nv1
+      integer i,ibase,ic1,ic2,isplit,no1,nv1
 !     ****************************
 !
 !     THIS SUBROUTINE CODES THE EXPONENTS IN JJ INTO THEIR DA CODES I1,I2.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
       integer jj(*)
 
       ibase = no1 + 1
@@ -5900,21 +5844,22 @@ subroutine hash(no1,nv1,jj,ic1,ic2)
       return
       end
 
-+dk dehash
+
 subroutine dehash(no1,nv1,ic1,ic2,jj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : epsmac
       implicit none
-      integer i,ibase,ic,ic1,ic2,isplit,lda,lea,lia,lno,lnv,lst,no1,nv1
+      integer i,ibase,ic,ic1,ic2,isplit,no1,nv1
       real(kind=fPrec) x
 !     ****************************
 !
 !     THIS SUBROUTINE ENCODES THE EXPONENTS IN JJ FROM THEIR DA CODES I1,I2.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jj(*)
 
@@ -5939,17 +5884,18 @@ subroutine dehash(no1,nv1,ic1,ic2,jj)
       return
       end
 
-+dk daswap
+
 subroutine daswap(j1,j2,inb)
       use floatPrecision
+      use mod_lie_dab, only : cc,nomax,nvmax,i1,i2,ia1,ia2,lnv
       implicit none
-      integer ia,ic,ic1,ic2,illb,ilmb,inb,inob,invb,ipob,j1,j2,jj,k1,k2,lda,lea,lia,lno,lnv,lst
+      integer ia,ic,ic1,ic2,illb,ilmb,inb,inob,invb,ipob,j1,j2,jj,k1,k2
 !     *************************
 !
 !     SWAP A DA VECTOR
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension jj(lnv)
 
@@ -5977,19 +5923,20 @@ subroutine daswap(j1,j2,inb)
       return
       end
 
-+dk dagauss
+
 subroutine dagauss(ina,inb,nd2,anorm)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : cc,facint,i1,i2,lnv
       implicit none
-      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,ja,jb,lda,lea,lia,lno,lnv,lst,nd2
+      integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,ipob,ja,jb,nd2
       real(kind=fPrec) anorm,gau
 !     ***************************
 !
 !     THIS SUBROUTINE COMPUTES THE NORM OF THE DA VECTOR A
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension ja(lnv),jb(lnv)
 
@@ -6013,14 +5960,15 @@ subroutine dagauss(ina,inb,nd2,anorm)
       return
       end
 
-+dk daran
+
 subroutine daran(ina,cm,xran)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : cc,nomax,nvmax,nmmax,idalm,idall
       implicit none
-      integer i,illa,ilma,ina,inoa,inva,ipoa,lda,lea,lia,lno,lnv,lst
+      integer i,illa,ilma,ina,inoa,inva,ipoa
       real(kind=fPrec) bran,cm,xran
 !     ************************
 !
@@ -6030,7 +5978,7 @@ subroutine daran(ina,cm,xran)
 !     ABS(CM) IS THE FILLING FACTOR
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 
@@ -6073,7 +6021,7 @@ subroutine daran(ina,cm,xran)
       return
       end
 !
-+dk bran
+
       real(kind=fPrec) function bran(xran)
       use floatPrecision
       use mathlib_bouncer
@@ -6092,11 +6040,11 @@ subroutine daran(ina,cm,xran)
       return
       end
 
-+dk danorm2
+
 subroutine danorm2(ina,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc
       integer incc(1)
 !     ******************************
 !
@@ -6105,7 +6053,7 @@ subroutine danorm2(ina,inc)
 !     THE DA VECTOR DENOTED WITH THE INTEGER E.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
 
       if(ina.eq.inc) then
@@ -6122,14 +6070,15 @@ subroutine danorm2(ina,inc)
       return
       end
 
-+dk danorm2t
+
 subroutine danorm2t(ina,inb)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,nocut,idalm,idall,i1,i2,ieo,ia1,ia2
       implicit none
       integer ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,    &
-     &ipoa,ipob,lda,lea,lia,lno,lnv,lst
+     &ipoa,ipob
 !     ******************************
 !
 !     THIS SUBROUTINE MULTIPLIES THE DA VECTOR DENOTED BY THE
@@ -6137,7 +6086,7 @@ subroutine danorm2t(ina,inb)
 !     THE DA VECTOR DENOTED WITH THE INTEGER E.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -6167,11 +6116,11 @@ subroutine danorm2t(ina,inb)
       return
       end
 
-+dk danormr
+
 subroutine danormr(ina,inc)
       use floatPrecision
       implicit none
-      integer illc,ilmc,ina,inc,inoc,invc,ipoc,lda,lea,lia,lno,lnv,lst
+      integer illc,ilmc,ina,inc,inoc,invc,ipoc
       integer incc(1)
 !     ******************************
 !
@@ -6180,7 +6129,7 @@ subroutine danormr(ina,inc)
 !     THE DA VECTOR DENOTED WITH THE INTEGER E.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
 
       if(ina.eq.inc) then
@@ -6197,14 +6146,15 @@ subroutine danormr(ina,inc)
       return
       end
 
-+dk danormrt
+
 subroutine danormrt(ina,inb)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,nocut,idalm,idall,i1,i2,ieo,ia1,ia2
       implicit none
       integer ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,    &
-     &ipoa,ipob,lda,lea,lia,lno,lnv,lst
+     &ipoa,ipob
 !     ******************************
 !
 !     THIS SUBROUTINE MULTIPLIES THE DA VECTOR DENOTED BY THE
@@ -6212,7 +6162,7 @@ subroutine danormrt(ina,inb)
 !     THE DA VECTOR DENOTED WITH THE INTEGER E.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
@@ -6241,7 +6191,7 @@ subroutine danormrt(ina,inb)
 !
       return
       end
-+dk dakey
+
 subroutine dakey(c)
       use floatPrecision
       implicit none
@@ -6252,15 +6202,15 @@ subroutine dakey(c)
 !
       end
 ! ANFANG UNTERPROGRAMM
-+dk dapri6
+
 subroutine dapri6(ina,result,ien,i56)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,i1,i2,ieo,ia1,ia2,lnv
       implicit none
-      integer i,i56,ien,ihp,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,   &
-     &j,lda,lea,lia,lno,lnv,lst
+      integer i,i56,ien,ihp,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,j
       real(kind=fPrec) result
 !     *************************************
 !
@@ -6269,9 +6219,7 @@ subroutine dapri6(ina,result,ien,i56)
 !     I56 SAYS WHETHER THE 5TH OR THE 6TH COORDINATE IS THE ENERGY
 !     AND MUST HAVE THE VALUE 5 OR 6 ACCORDINGLY
 !-----------------------------------------------------------------------------1
-+ca dabinc
-+ca daname
-!-----------------------------------------------------------------------------3
+
       dimension j(lnv)
       result=0.
       if(ina.lt.1.or.ina.gt.nda) then
@@ -6340,15 +6288,15 @@ subroutine dapri6(ina,result,ien,i56)
       end
 ! ANFANG UNTERPROGRAMM
 
-+dk darea6
+
 subroutine darea6(ina,zfeld,i56)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv
       implicit none
-      integer i,i56,ic,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,ip,   &
-     &ipoa,iwarin,iwarno,iwarnv,j,lda,lea,lia,lno,lnv,lst
+      integer i,i56,ic,ii1,ii2,iin,illa,ilma,ina,inoa,inva,io,io1,ip,ipoa,iwarin,iwarno,iwarnv,j
       real(kind=fPrec) zfeld
 !     *************************************
 !
@@ -6357,8 +6305,7 @@ subroutine darea6(ina,zfeld,i56)
 !     AND MUST HAVE THE VALUE 5 OR 6 ACCORDINGLY
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
-+ca daname
+
       dimension zfeld(100)
 !-----------------------------------------------------------------------------3
       dimension j(lnv)
@@ -6426,13 +6373,13 @@ subroutine darea6(ina,zfeld,i56)
       return
       end
 ! ANFANG FUNKTION
-+dk dare
+
       real(kind=fPrec) function dare(ina)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : cc,nomax,idano,idanv,idapo,idalm,idall,i1,i2,ieo,ia1,ia2,lnv
       implicit none
-      integer ii,illa,ilma,ina,inoa,inva,ioa,ipoa,j,jj,lda,lea,lia,lno, &
-     &lnv,lst
+      integer ii,illa,ilma,ina,inoa,inva,ioa,ipoa,j,jj
 !     ***********************************
 !     NEW VERSION OF DARE, AUGUST 1992
 !     SUPPOSED TO TREAT THE 0TH COMPONENT ACCURATELY
@@ -6440,7 +6387,7 @@ subroutine darea6(ina,zfeld,i56)
 !     30.10 1997 E.Mcintosh & F.Schmidt
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
       dimension j(lnv)
 !-----------------------------------------------------------------------------9
 !
@@ -6478,24 +6425,23 @@ subroutine darea6(ina,zfeld,i56)
       return
       end
 ! ANFANG UNTERPROGRAMM
-+dk daprimax
+
 subroutine daprimax(ina,iunit)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname,cc,eps,nda,nomax,nvmax,idano,idanv,idapo,idalm,idall,i1,i2,ieo,&
+        ia1,ia2,lnv
       implicit none
-      integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j,   &
-     &lda,lea,lia,lno,lnv,lst
+      integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,j
 !     ***************************
 !
 !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 !-----------------------------------------------------------------------------9
-+ca daname
-!-----------------------------------------------------------------------------3
 
       dimension j(lnv)
 
@@ -6588,15 +6534,15 @@ subroutine daprimax(ina,iunit)
       end
 
 !  unknown stuff
-+dk damono
+
 subroutine damono(ina,jd,cfac,istart,inc)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,idalm,idall,i1,i2
       implicit none
-      integer ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,    &
-     &ipoa,ipoc,istart,jd,lda,lea,lia,lno,lnv,lst
+      integer ia,ic,illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,istart,jd
       real(kind=fPrec) cfac
 !     *****************************
 !
@@ -6605,7 +6551,7 @@ subroutine damono(ina,jd,cfac,istart,inc)
 !     RESULT IN C
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       dimension jd(*)
 
@@ -6649,25 +6595,24 @@ subroutine damono(ina,jd,cfac,istart,inc)
       return
       end
 
-+dk dacycle
+
 subroutine dacycle(ina,ipresent,value,j,illa)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : daname,cc,nda,idano,idanv,idapo,idalm,idall,i1,i2,lnv
       implicit none
-      integer i,ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent,j,lda,lea,lia,lno,lnv,lst
+      integer i,ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent,j
       real(kind=fPrec) value
 !     ***************************
 !
 !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
       dimension j(lnv)
-+ca daname
-!-----------------------------------------------------------------------------3
 !
 !
       if(ina.lt.1.or.ina.gt.nda) then
@@ -6706,25 +6651,23 @@ subroutine dacycle(ina,ipresent,value,j,illa)
       return
 
       end
-+dk daorder
+
 subroutine daorder(ina,iunit,jx,invo,nchop)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : daname,cc,nda,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv
       implicit none
-      integer i,ic,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,invo,io,io1,  &
-     &ipoa,iunit,iwarin,iwarno,iwarnv,j,jh,jt,jx,lda,lea,lia,lno,lnv,   &
-     &lst,nchop
+      integer i,ic,ii,ii1,ii2,iin,illa,ilma,ina,inoa,inva,invo,io,io1,ipoa,iunit,iwarin,iwarno,     &
+        iwarnv,j,jh,jt,jx,nchop
       real(kind=fPrec) c
 !     ***************************
 !
 !     THIS SUBROUTINE READS THE DA VECTOR INA FROM UNIT IUNIT.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
-+ca daname
-!-----------------------------------------------------------------------------3
+
 
       character(len=10) c10
       dimension j(lnv),jx(lnv),jt(lnv)
@@ -6825,15 +6768,15 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
       end
 
 !ETIENNE
-+dk datrash
+
 subroutine datrash(idif,ina,inc)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : cc,nomax,nvmax,idalm,idall,i1,i2,lnv
       implicit none
-      integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,ikil1,ikil2,    &
-     &illa,illc,ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,     &
-     &lda,lea,lia,lno,lnv,lst
+      integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,ikil1,ikil2,illa,illc,ilma,ilmc,ina,inc,    &
+        inoa,inoc,inva,invc,ipoa,ipoc,jj
       real(kind=fPrec) xdivi
 !     ******************************
 !
@@ -6841,7 +6784,7 @@ subroutine datrash(idif,ina,inc)
 !     OF THE VECTOR A AND STORES THE RESULT IN C.
 !
 !-----------------------------------------------------------------------------1
-+ca dabinc
+
 
       integer jx(lnv)
 
@@ -6912,14 +6855,15 @@ subroutine datrash(idif,ina,inc)
 !
       return
       end
-+dk dumps
+
 #ifdef DEBUG
 !DUMPS
 subroutine dumpda(dumpname,n,i)
       use floatPrecision
+      use mod_lie_dab, only : cc,lnv
       implicit none
-      integer i,lda,lea,lia,lno,lnv,lst
-+ca dabinc
+      integer i,lnv
+
       integer n
       character(*) dumpname
       character(10) mydump
@@ -6932,8 +6876,8 @@ subroutine dumpda(dumpname,n,i)
 subroutine wda(vname,value,i,j,k,l)
       use floatPrecision
       implicit none
-      integer i,lda,lea,lia,lno,lnv,lst
-+ca dabinc
+      integer i
+
       integer n
       character(*) vname
       real(kind=fPrec) value

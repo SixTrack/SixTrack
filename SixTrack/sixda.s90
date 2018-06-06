@@ -624,7 +624,6 @@ subroutine daliesix
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
   dimension angle(3),rad(3)
-+ca commonas
   
   save
   
@@ -775,13 +774,13 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_commond
-  use mod_common, only : iqmodc,ichromc,ilinc
+  use mod_common,  only : iqmodc,ichromc,ilinc
+  use mod_lie_dab, only : iscrri,iscrda
   
   implicit none
   
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
   real(kind=fPrec) am
-+ca commonas
   dimension am(6,6),idummy(6)
   save
   
@@ -853,6 +852,7 @@ subroutine runcav
   use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
   use mod_commond
   use mod_hions
+  use mod_lie_dab, only : idao,rscrri,iscrda
   
   implicit none
   
