@@ -103,7 +103,6 @@ subroutine dumpbnl(dumpname,n,i)
   
   implicit none
   
-+ca rhicelens
   integer n,i,j
   character(len=*) dumpname
   save

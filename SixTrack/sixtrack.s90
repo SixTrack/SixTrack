@@ -30,38 +30,6 @@
 
 
 
-+cd rhicelens
-!GRDRHIC
-      real(kind=fPrec) tbetax(nblz),tbetay(nblz),talphax(nblz),         &
-     &talphay(nblz),torbx(nblz),torbxp(nblz),torby(nblz),torbyp(nblz),  &
-     &tdispx(nblz),tdispy(nblz),totals,sampl(nblz)
-      integer ielem
-      integer namepart(npart)
-!
-      common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,       &
-     &torby,torbyp,tdispx,tdispy,sampl,namepart,totals
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      real(kind=fPrec) twojx,twojy,twojr,sumtwojx,sumtwojy,             &
-     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp
-      real(kind=fPrec) limit_twojx,limit_twojy,limit_twojr
-      integer n_cut,n_nocut
-      common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
-     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut,&
-     &limit_twojx,limit_twojy,limit_twojr
-      integer napx00
-      parameter (napx00=64)
-      integer   mynp
-      common /mynp/ mynp
-      real(kind=fPrec) myx,myxp,myy,myyp,myp,mys
-      common /coord/ myx(npart),myxp(npart),myy(npart),myyp(npart),     &
-     &myp(npart),mys(npart)
-      integer   samplenumber
-      common /samplenumber/ samplenumber
-!GRD-042008
-!GRDRHIC
-#endif
 +cd bnlio
 ! This is empty if -crlibm and causes a problem with astuce
 ! if +crlibm we define parameters for dtostr
@@ -1288,10 +1256,6 @@ subroutine daten
   logical has_coll
 #else
   logical do_coll
-#endif
-
-#ifdef BNLELENS
-+ca rhicelens
 #endif
   
   ! Fluka related, might be best to lock to real64
@@ -6805,9 +6769,6 @@ subroutine write4
       data lineno16 /0/
       data lineno30 /0/
       data lineno35 /0/ 
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ii=0
@@ -7711,9 +7672,6 @@ subroutine envars(j,dpp,rv)
 #ifdef SIXDA
   integer jm,k,m,na,ne
 #endif
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
   
   dpd  = one+dpp
@@ -8065,9 +8023,6 @@ subroutine envada
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
 !FOX  B D ;
 #include "include/dainicom.f90"
@@ -8451,9 +8406,6 @@ end subroutine envada
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -9885,9 +9837,6 @@ subroutine umlauda
       dimension b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3)
       dimension d(3),dp(3),c(3),cp(3),au(6,6),aui(2)
       dimension i4(10,2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 !     for FMA analysis
 !+ca fma
 ! END for FMA analysis
@@ -11517,9 +11466,6 @@ subroutine wireda(ix,i)
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11711,9 +11657,6 @@ end subroutine wireda
       implicit none
       integer ix,idaa
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11770,9 +11713,6 @@ end subroutine wireda
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11892,12 +11832,8 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
       use mod_lie_dab, only : idao
       implicit none
       integer ibb,ibbc,ne,nsli,idaa
-      real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
-     &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
+      real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,sphi,star,tphi,phi2,cphi2,sphi2,tphi2
       dimension param(nele,18),bcu(nbb,12),star(3,mbea)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11961,9 +11897,6 @@ end subroutine beaminf
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12024,9 +11957,6 @@ end subroutine beaminf
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
       dimension star(3,mbea),bcu(nbb,12)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12170,9 +12100,6 @@ end subroutine beaminf
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12244,9 +12171,6 @@ end subroutine beaminf
       integer idaa
       real(kind=fPrec) dare,hundred,sqrpi2
       parameter(sqrpi2 = 3.544907701811032_fPrec,hundred = c1e2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12469,9 +12393,6 @@ end interface
 #endif
 !-----------------------------------------------------------------------
 ! Eric needs nwri (clean up new variables and common blocks!)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #ifdef CR
 +ca crco
 #endif
@@ -15285,9 +15206,6 @@ subroutine trauthin(nthinerr)
 +ca info
 +ca dbcolcom
 #endif
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
 
   do i=1,npart
@@ -15815,11 +15733,6 @@ subroutine thin4d(nthinerr)
 #endif
 
   dimension dpsv3(npart)
-
-#ifdef BNLELENS
-+ca rhicelens
-+ca bnlio
-#endif
 
 +ca elenstracktmp
 +ca dbdcum
@@ -16518,10 +16431,6 @@ subroutine thin6d(nthinerr)
 +ca crco
 #endif
   dimension dpsv3(npart)
-#ifdef BNLELENS
-+ca rhicelens
-+ca bnlio
-#endif
 
 +ca elenstracktmp
 +ca dbdcum
@@ -17526,9 +17435,6 @@ subroutine callcrp()
 #ifdef BOINC
       integer timech
 #endif
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #ifdef CR
       data ncalls /0/
 #endif
@@ -17598,9 +17504,6 @@ end subroutine callcrp
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do 20 ia=1,napx,2
@@ -17666,9 +17569,6 @@ subroutine write6(n)
       use mod_commond
       implicit none
       integer ia,ia2,id,ie,ig,n
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       id=0
@@ -18261,10 +18161,6 @@ subroutine thck4d(nthinerr)
 +ca crco
 #endif
   dimension dpsv3(npart)
-#ifdef BNLELENS
-+ca rhicelens
-+ca bnlio
-#endif
 +ca elenstracktmp
 
 #ifdef FLUKA
@@ -18965,14 +18861,6 @@ subroutine thck6d(nthinerr)
 +ca crco
 #endif
   dimension dpsv3(npart)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-+ca rhicelens
-+ca bnlio
-!GRDRHIC
-!GRD-042008
-#endif
 +ca elenstracktmp
 
 #ifdef FLUKA
@@ -19783,9 +19671,6 @@ subroutine synuthck
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -20175,9 +20060,6 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       
       real(kind=fPrec) fokm
       
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 !-----------------------------------------------------------------------
       save
 !-----------------------------------------------------------------------
@@ -20588,10 +20470,6 @@ subroutine comnul
   
   integer i,i1,i2,i3,i4,j
 +ca commd1da
-
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 
 +ca dbdcum
   
@@ -21816,9 +21694,6 @@ end subroutine distance
      &sqrn,yca1,yca2,yclam1,yclam2,ycw1(4),ycw2(4)
       dimension am(4,4)
       dimension qw(2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ierro=0
@@ -22107,9 +21982,6 @@ subroutine blocksv
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
       dimension h(nblo,2,6),g(nblo,2,6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do k=1,mblo
@@ -22163,7 +22035,7 @@ subroutine blocksv
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX, USED FOR DISPERSION
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -22174,9 +22046,6 @@ subroutine blocksv
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
       dimension h(nblo,2,6),g(nblo,2,6)
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do k=1,mblo
@@ -22247,9 +22116,6 @@ subroutine chroma
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens,sm0,su2,suxy,suzy,xi,zi
       dimension dsm(2,4),sens(2,4),xi(2),zi(2),dm(2),sm0(2)
       dimension qwc(3),cro0(2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       cor=zero
@@ -22378,9 +22244,6 @@ end subroutine chroma
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
       dimension qw(2),qwc(3)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       write(lout,10000)
@@ -22514,9 +22377,6 @@ end subroutine chroma
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save ! Saving DPP?
 !-----------------------------------------------------------------------
       ierro=0
@@ -22606,9 +22466,6 @@ end subroutine chroma
       character(len=6) chp(3),chd(3)
       dimension xx(6),dlo(6),cloc(6),dd(6),dc(6),am(nn,nn)
       integer nerror
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
@@ -23013,14 +22870,10 @@ subroutine clorb2(dpp)
       use mod_commont
       implicit none
       integer ierr,ii,l,ll
-      real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
-     &x1,y0,y1
+      real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,x1,y0,y1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ierro=0
@@ -23088,9 +22941,6 @@ subroutine combel(iql)
       use mod_commont
       implicit none
       integer ico,ico0,iql,j,m
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do 20 j=1,icoe
@@ -23139,9 +22989,6 @@ subroutine envar(dpp)
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     
-#ifdef BNLELENS
-+ca rhicelens
-#endif
     save
     
     dpd  = one+dpp
@@ -23386,9 +23233,6 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     integer i,ih,kz1,l,ll
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
     save
     
     dpd  = one+dpp
@@ -23748,9 +23592,6 @@ subroutine linopt(dpp)
   dimension cr(mmul),ci(mmul)
   dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
   data dpr/6*zero/
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
 !-----------------------------------------------------------------------
   
@@ -24743,9 +24584,6 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ca dblinopt
   integer ielem
 #endif
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 
 #ifdef HDF5
     real(kind=fPrec) hdf5Data(17)
@@ -24880,9 +24718,6 @@ subroutine cpltwis(typ,t,etl,phi)
      &phzi,phzii,phzpi,phzpii,t
       character(len=max_name_len) typ
       dimension t(6,4),phi(2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       iwrite=0
@@ -25035,7 +24870,7 @@ end subroutine loesd
 +dk matrix
 subroutine matrix(dpp,am)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -25045,9 +24880,6 @@ subroutine matrix(dpp,am)
       integer i,ierr,l
       real(kind=fPrec) am,dpp
       dimension am(4,4)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do i=2,5
@@ -25097,8 +24929,7 @@ subroutine corrorb
       use mod_commons
       use mod_commont
       implicit none
-      integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
-     &nlino,ntcoo,nto,nx
+      integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
       real(kind=fPrec) ar(nmon1,ncor1)
       real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
@@ -25106,9 +24937,6 @@ subroutine corrorb
       character(len=max_name_len) bezlo(nele)
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       rzero=zero
@@ -25424,7 +25252,7 @@ end subroutine corrorb
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -25437,9 +25265,6 @@ end subroutine corrorb
       real(kind=fPrec) xinc(ncor1)
       real(kind=fPrec) ckicknew,ckickold,r0,r0a
       dimension nx(ncor1)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       kcorru=0
@@ -25528,7 +25353,7 @@ end subroutine corrorb
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -25537,9 +25362,6 @@ end subroutine corrorb
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       izu=0
@@ -25996,9 +25818,6 @@ subroutine ord
       implicit none
       integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
       dimension jra(nele,5),iran(nele),inz(nele)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ! initialisation
@@ -26178,11 +25997,7 @@ subroutine orglat
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
       real(kind=fPrec) extalig1,exterr1
       dimension ilf(nblz),ilfr(nblz)
-      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
-     &icextal1(nblz)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
+      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),icextal1(nblz)
       save
 !-----------------------------------------------------------------------
       if(mper.gt.1) then
@@ -26289,9 +26104,6 @@ subroutine phasad(dpp,qwc)
   dimension qw(2),qwc(3)
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ium=5
@@ -26808,9 +26620,6 @@ subroutine qmod0
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do i=1,3
@@ -27064,9 +26873,6 @@ end subroutine qmod0
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
       dimension intwq(3),qwc(3)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 #ifdef DEBUG
@@ -27363,9 +27169,6 @@ subroutine umlauf(dpp,ium,ierr)
 #endif
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
   
   do i=1,mmul
@@ -27803,9 +27606,6 @@ subroutine resex(dpp)
   dimension b(10,10),nz2(9),e(10,10)
   dimension chy(9,18),shy(9,18),min(5)
   dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
       
       ium=5
@@ -28558,9 +28358,6 @@ subroutine rmod(dppr)
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
       dimension aa(10,10),bb(10),dsm(10),sn(10),sen(10),ss(10)
       dimension qwc(3),d1(10),irr(12)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ntao=nta
@@ -28874,7 +28671,7 @@ end subroutine rmod
 !  FINDING THE BEST POSITIONS FOR CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -28885,9 +28682,6 @@ end subroutine rmod
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=max_name_len) ref
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ntao=nta
@@ -28994,9 +28788,6 @@ subroutine subre(dpp)
       dimension chy(9,18),shy(9,18)
       dimension dfac(10),dtu(2,5),dtup(2,5,0:4,0:4)
       dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ium=5
@@ -30038,9 +29829,6 @@ subroutine subsea(dpp)
       dimension b(10,10),nz2(9),e(10,10)
       dimension chy(9,18),shy(9,18)
       dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ium=5
@@ -30776,9 +30564,6 @@ subroutine decoup
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
       dimension aa(6,6),bb(6),dsm(6),sn(6),sen(6),ss(6)
       dimension qwc(3),qw(2),d1(6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do i=1,6
@@ -31667,7 +31452,6 @@ subroutine bnlrdis(ngrd)
       implicit none
 !ERIC
 +ca crco
-+ca rhicelens
       integer ngrd
 !
 !++ Vectors of coordinates
@@ -31850,9 +31634,6 @@ subroutine crcheck
       use mod_commond
       use mod_hions
       implicit none
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 +ca crco
 #include "version.f90"
       integer i,j,k,l,m,ia
@@ -32737,9 +32518,6 @@ subroutine crpoint
       use mod_hions
       implicit none
 
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #include "version.f90"
 +ca crco
       integer i,j,l,k,m
@@ -33321,9 +33099,6 @@ subroutine crstart
       use mod_hions
 
       implicit none
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 +ca crco
 
       real(kind=fPrec) dynk_newValue

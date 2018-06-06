@@ -561,9 +561,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! logical isnan
   logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #ifdef COLLIMAT
 ! Module to access ipart array
 +ca collpara

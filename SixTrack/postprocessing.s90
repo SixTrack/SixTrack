@@ -3522,9 +3522,6 @@ end subroutine join
 #ifdef BOINC
       integer timech
 #endif
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #ifdef CR
       data ncalls /0/
 #endif
