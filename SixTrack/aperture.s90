@@ -2458,9 +2458,6 @@ subroutine compactArrays(llostp)
               omoidpsv(jj)=omoidpsv(jj1)
 ! ph: hisix
 
-! +if rvet
-!               rvet(jj)=rvet(jj1)
-! +ei
               oidpsv(jj)=oidpsv(jj1)
               dpsv1(jj)=dpsv1(jj1)
               clo6v(1,jj)=clo6v(1,jj1)

@@ -1,74 +1,20 @@
-+cd choice
-      integer nplane
-      real(kind=fPrec) epsplane,xplane
-      common /choice/ xplane(ndim),epsplane,nplane(ndim)
-+cd coast
-      integer ndc,ndc2,ndpt,ndt
-      common /coast/ndc,ndc2,ndt,ndpt
-+cd dano
-      integer lienot
-      common /dano/lienot
-+cd dascr
-      integer idao,is,iscrri
-      real(kind=fPrec) rs
-      common/dascr/is(100),rs(100),iscrri(100),idao
-+cd filtr
-      integer ifilt
-      common /filtr/ ifilt
-+cd ii
-      integer nd,nd2,no,nv
-      common /ii/no,nv,nd,nd2
-+cd integratedex
-      real(kind=fPrec) xintex
-      common /integratedex/ xintex(0:20)
-+cd istable
-      integer idsta,ista
-      common /istable/ista(ndim),idsta(ndim)
-+cd printing
-      integer idpr
-      common /printing/ idpr
-+cd resfile
-      integer iref
-      common /resfile/iref
-+cd reson
-      integer mx,nres
-      common /reson/mx(ndim,nreso),nres
-+cd stable
-      real(kind=fPrec) angle,dsta,rad,sta
-      common /stable/sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
-+cd tunedef
-      integer itu
-      common /tunedef/itu
-+cd tunerad
-      real(kind=fPrec) ps,rads
-      common /tunerad/ ps(ndim),rads(ndim)
-+cd vecflow
-      integer iflow,jtune
-      common /vecflow/ iflow,jtune
 
-+dk lieinit
+
 subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
       use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : ndim,ndim2,ntt,nreso,nd,nd2,no,nv,ifilt,idpr,iref,itu,lienot,iflow,   &
+        jtune,ndc,ndc2,ndpt,ndt,nplane,ista,idsta,mx,nres,epsplane,xplane,sta,dsta,angle,rad,ps,    &
+        rads,xintex,iscrda
+    
       implicit none
-      integer i,iref1,nd1,ndc1,ndim,ndpt1,nis,no1,nv1
+      integer i,iref1,nd1,ndc1,ndpt1,nis,no1,nv1
       real(kind=fPrec) ang,ra,st
 !! Lieinit initializes AD Package and Lielib
-      parameter (ndim=3)
       dimension st(ndim),ang(ndim),ra(ndim)
-+ca ii
-+ca coast
-+ca resfile
-+ca tunedef
-+ca dano
-+ca printing
-+ca integratedex
-+ca dascr
-+ca choice
-!+CA DASCR
       call daexter
 
       do i=1,ndim
@@ -84,12 +30,12 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       nd2=2*nd1
 
       do i=1,100
-       is(i)=0
+        iscrda(i)=0
       end do
 
       call daini(no,nv,0)
 
-      if(nis.gt.0)call etallnom(is,nis,'$$IS      ')
+      if(nis.gt.0)call etallnom(iscrda,nis,'$$IS      ')
        if(ndpt1.eq.0) then
          ndpt=0
          ndt=0
@@ -140,55 +86,40 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       return
 end subroutine lieinit
 
-+dk flowpara
-      subroutine flowpara(ifl,jtu)
+subroutine flowpara(ifl,jtu)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : iflow,jtune
       implicit none
-+ca vecflow
       integer ifl,jtu
       iflow=ifl
       jtune=jtu
       return
-      end
-+dk pertpeek
-      subroutine pertpeek(st,ang,ra)
+end subroutine flowpara
+
+subroutine pertpeek(st,ang,ra)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,ndim,angle,rad,sta
       implicit none
-      integer i,ndim,ndim2,nreso,ntt
+      integer i
       real(kind=fPrec) ang,ra,st
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-      parameter (nreso=20)
       dimension st(ndim),ang(ndim),ra(ndim)
-+ca stable
-+ca istable
-+ca ii
-+ca coast
-+ca reson
-+ca resfile
       do i=1,nd
         st(i)=sta(i)
         ang(i)=angle(i)
         ra(i)=rad(i)
       end do
-
       return
-      end
-+dk inputres
-      subroutine inputres(mx1,nres1)
+end subroutine pertpeek
+
+subroutine inputres(mx1,nres1)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : ndim,nreso,mx,nres
       implicit none
-      integer i,j,ndim,ndim2,nreso,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-      parameter (nreso=20)
+      integer i,j
       integer mx1(ndim,nreso),nres1
-+ca reson
 
       nres=nres1
       do i=1,nreso
@@ -204,25 +135,16 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk respoke
-      subroutine respoke(mres,nre,ire)
+end subroutine inputres
+
+subroutine respoke(mres,nre,ire)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,iref,ndc,ndc2,ndpt,ndt,ndim,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
       implicit none
-      integer i,ire,j,ndim,ndim2,nre,nreso,ntt
+      integer i,ire,j,nre
       real(kind=fPrec) ang,ra,st
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-      parameter (nreso=20)
       integer mres(ndim,nreso)
-+ca stable
-+ca istable
-+ca ii
-+ca coast
-+ca reson
-+ca resfile
       dimension ang(ndim),ra(ndim),st(ndim)
       iref=ire
       nres=nre
@@ -234,19 +156,13 @@ end subroutine lieinit
 
       call initpert(st,ang,ra)
       return
-      end
-+dk liepeek
-      subroutine liepeek(iia,icoast)
+end subroutine respoke
+
+subroutine liepeek(iia,icoast)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt
       implicit none
-      integer ndim,ndim2,nreso,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-      parameter (nreso=20)
-+ca ii
-+ca coast
       integer iia(*),icoast(*)
 
       iia(1)=no
@@ -259,9 +175,9 @@ end subroutine lieinit
       icoast(4)=ndpt
 
       return
-      end
-+dk lienot
-      subroutine lienot(not)
+end subroutine liepeek
+
+subroutine lienot(not)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -271,9 +187,9 @@ end subroutine lieinit
       no=not
 
       return
-      end
-+dk etallnom
-      subroutine etallnom(x,n,nom)
+end subroutine lienot
+
+subroutine etallnom(x,n,nom)
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
@@ -299,9 +215,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk etall
-      subroutine etall(x,n)
+end subroutine etallnom
+
+subroutine etall(x,n)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -323,39 +239,34 @@ end subroutine lieinit
            end do
          endif
       return
-      end
-+dk etall1
-      subroutine etall1(x)
+end subroutine etall
+
+subroutine etall1(x)
       use floatPrecision
       use mathlib_bouncer
       implicit none
       integer x
-!frs
       x=0
-!frs
       call daallno(x,1,'ETALL     ')
       return
-      end
-+dk dadal1
-      subroutine dadal1(x)
+end subroutine etall1
+
+subroutine dadal1(x)
       use floatPrecision
       use mathlib_bouncer
       implicit none
       integer x
       call dadal(x,1)
       return
-      end
-+dk etppulnv
-      subroutine etppulnv(x,xi,xff)
+end subroutine dadal1
+
+subroutine etppulnv(x,xi,xff)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
+      integer i
       integer  x(*)
       real(kind=fPrec) xi(*),xff(*),xf(ntt),xii(ntt)
 
@@ -374,20 +285,17 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etmtree
-      subroutine etmtree(y,x)
+end subroutine etppulnv
+
+subroutine etmtree(y,x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ie,iv,ndim,ndim2,nt,ntt
+      integer i,ie,iv,nt
 ! ROUTINES USING THE MAP IN AD-FORM
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       dimension ie(ntt),iv(ntt)
-+ca ii
       integer  x(*),y(*)
 
       nt=nv-nd2
@@ -413,17 +321,14 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk etppush
-      subroutine etppush(x,xi)
+end subroutine etmtree
+
+subroutine etppush(x,xi)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
+      integer i
       integer  x(*)
       real(kind=fPrec) xi(*),xf(ntt),xii(ntt)
 
@@ -438,17 +343,14 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etppush2
-      subroutine etppush2(x,xi,xff)
+end subroutine etppush
+
+subroutine etppush2(x,xi,xff)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
+      integer i
       integer  x(*)
       real(kind=fPrec) xi(*),xff(*),xf(ntt),xii(ntt)
 
@@ -463,18 +365,15 @@ end subroutine lieinit
       enddo
 
       return
-      end
-+dk ppushlnv
-      subroutine ppushlnv(x,xi,xff,nd1)
+end subroutine etppush2
+
+subroutine ppushlnv(x,xi,xff,nd1)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,nd1,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
+      integer i,nd1
       integer  x(*)
       real(kind=fPrec) xi(*),xff(*),xf(ntt),xii(ntt)
 
@@ -493,20 +392,17 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etcct
-      subroutine etcct(x,y,z)
+end subroutine ppushlnv
+
+subroutine etcct(x,y,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ie,iv,ndim,ndim2,nt,ntt
+      integer i,ie,iv,nt
 !  Z=XoY
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       dimension ie(ntt),iv(ntt)
-+ca ii
       integer  x(*),y(*),z(*)
 
       nt=nv-nd2
@@ -532,20 +428,17 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk trx
-      subroutine trx(h,rh,y)
+end subroutine etcct
+
+subroutine trx(h,rh,y)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ie,iv,ndim,ndim2,nt,ntt
+      integer i,ie,iv,nt
 !  :RH: = Y :H: Y^-1 =  :HoY:
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       dimension ie(ntt),iv(ntt)
-+ca ii
       integer h,rh
       integer y(*)
 
@@ -573,18 +466,15 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk trxflo
-      subroutine trxflo(h,rh,y)
+end subroutine trx
+
+subroutine trxflo(h,rh,y)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndim2,ntt
       implicit none
-      integer j,k,ndim,ndim2,ntt
+      integer j,k
 !  *RH* = Y *H* Y^-1  CHANGE OF A VECTOR FLOW OPERATOR
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer h(*),rh(*),y(*)
       integer yi(ndim2),ht(ndim2),b1(1),b2(1)
 
@@ -615,18 +505,14 @@ end subroutine lieinit
       call dadal(ht,nd2)
       call dadal(yi,nd2)
       return
-      end
-+dk simil
-      subroutine simil(a,x,ai,y)
+end subroutine trxflo
+
+subroutine simil(a,x,ai,y)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer ndim,ndim2,ntt
 !  Y= AoXoAI
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer  x(*),y(*),a(*),ai(*)
 
       integer w(ndim2),v(ndim2)
@@ -642,19 +528,16 @@ end subroutine lieinit
       call dadal(v,nd2)
       call dadal(w,nd2)
       return
-      end
-+dk etini
-      subroutine etini(x)
+end subroutine simil
+
+subroutine etini(x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,no,nv,ndim2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
 !  X=IDENTITY
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x(*)
 !*DAEXT(NO,NV) X(NDIM2)
       do i=1,nd2
@@ -662,21 +545,17 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk etinv
-      subroutine etinv(x,y)
+end subroutine etini
+
+subroutine etinv(x,y)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ie1,ie2,iv1,iv2,ndim,ndim2,nt,ntt
+      integer i,ie1,ie2,iv1,iv2,nt
 ! Y=X^-1
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       dimension ie1(ntt),ie2(ntt),iv1(ntt),iv2(ntt)
-+ca ii
-
       integer x(*),y(*)
 
       nt=nv-nd2
@@ -712,20 +591,17 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk etpin
-      subroutine etpin(x,y,jj)
+end subroutine etinv
+
+subroutine etpin(x,y,jj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ie1,ie2,iv1,iv2,jj,ndim,ndim2,nt,ntt
+      integer i,ie1,ie2,iv1,iv2,jj,nt
 !  Y=PARTIAL INVERSION OF X SEE BERZ'S PACKAGE
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       dimension ie1(ntt),ie2(ntt),iv1(ntt),iv2(ntt),jj(*)
-+ca ii
 
       integer x(*),y(*)
 
@@ -762,17 +638,16 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk dapek0
-      subroutine dapek0(v,x,jj)
+end subroutine etpin
+
+subroutine dapek0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : ntt
       implicit none
-      integer i,jj,ndim2,ntt
+      integer i,jj
       real(kind=fPrec) x
 !- MORE EXTENSIONS OF BASIC BERZ'S PACKAGE
-      parameter (ndim2=6)
-      parameter (ntt=40)
       integer v(*),jd(ntt)
       dimension x(*)
 
@@ -785,16 +660,15 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk dapok0
-      subroutine dapok0(v,x,jj)
+end subroutine dapek0
+
+subroutine dapok0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : ntt
       implicit none
-      integer i,jj,ndim2,ntt
+      integer i,jj
       real(kind=fPrec) x
-      parameter (ndim2=6)
-      parameter (ntt=40)
       integer v(*),jd(ntt)
       dimension x(*)
 
@@ -807,16 +681,15 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk dapokzer
-      subroutine dapokzer(v,jj)
+end subroutine dapok0
+
+subroutine dapokzer(v,jj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : ntt
       implicit none
-      integer i,jj,ndim2,ntt
-      parameter (ndim2=6)
-      parameter (ntt=40)
+      integer i,jj
       integer v(*),jd(ntt)
 
       do i=1,ntt
@@ -828,16 +701,15 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk davar0
-      subroutine davar0(v,x,jj)
+end subroutine dapokzer
+
+subroutine davar0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : ntt
       implicit none
-      integer i,jj,ndim2,ntt
+      integer i,jj
       real(kind=fPrec) x
-      parameter (ndim2=6)
-      parameter (ntt=40)
       integer v(*)
       dimension x(*)
 
@@ -846,9 +718,9 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk comcfu
-      subroutine comcfu(b,f1,f2,c)
+end subroutine davar0
+
+subroutine comcfu(b,f1,f2,c)
       use floatPrecision
       use mathlib_bouncer
       implicit none
@@ -867,18 +739,16 @@ end subroutine lieinit
       call daadd(t(2),t(3),c(2))
       call dadal(t,4)
       return
-      end
-+dk take
-      subroutine take(h,m,ht)
+end subroutine comcfu
+
+subroutine take(h,m,ht)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,no,nv,ntt
       implicit none
-      integer i,m,ndim,ntt
+      integer i,m
       real(kind=fPrec) r
 !  HT= H_M  (TAKES M^th DEGREE PIECE ALL VARIABLES INCLUDED)
-      parameter (ndim=3)
-      parameter (ntt=40)
-+ca ii
       integer h,ht,j(ntt)
 
       integer b1(1),b2(1),b3(1)
@@ -928,17 +798,15 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk taked
-      subroutine taked(h,m,ht)
+end subroutine take
+
+subroutine taked(h,m,ht)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndim2,ntt
       implicit none
-      integer i,m,ndim2,ntt
+      integer i,m
 !  \VEC{HT}= \VEC{H_M}  (TAKES M^th DEGREE PIECE ALL VARIABLES INCLUDED)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer h(*),ht(*),j(ntt)
 
       integer b1(1),b2(1),x(ndim2)
@@ -959,64 +827,57 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk daclrd
-      subroutine daclrd(h)
+end subroutine taked
+
+subroutine daclrd(h)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd2
       implicit none
-      integer i,ndim2,ntt
+      integer i
 ! clear a map : a vector of nd2 polynomials
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer h(*)
       do i=1,nd2
         call daclr(h(i))
       end do
       return
-      end
-+dk dacopd
-      subroutine dacopd(h,ht)
+end subroutine daclrd
+
+subroutine dacopd(h,ht)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd2
       implicit none
-      integer i,ndim2,ntt
+      integer i
 !    H goes into HT  (nd2 array)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer h(*),ht(*)
       do i=1,nd2
         call dacop(h(i),ht(i))
       end do
       return
-      end
-+dk dacmud
-      subroutine dacmud(h,sca,ht)
+end subroutine dacopd
+
+subroutine dacmud(h,sca,ht)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd2
       implicit none
-      integer i,ndim2,ntt
+      integer i
       real(kind=fPrec) sca
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer h(*),ht(*)
       do i=1,nd2
         call dacmu(h(i),sca,ht(i))
       end do
       return
-      end
-+dk dalind
-      subroutine dalind(h,rh,ht,rt,hr)
+end subroutine dacmud
+
+subroutine dalind(h,rh,ht,rt,hr)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer i,ndim2
+      integer i
       real(kind=fPrec) rh,rt
-      parameter (ndim2=6)
-+ca ii
       integer h(*),ht(*),hr(*)
 
       integer b(ndim2)
@@ -1029,17 +890,16 @@ end subroutine lieinit
       call dacopd(b,hr)
       call dadal(b,nd2)
       return
-      end
-+dk daread
-      subroutine daread(h,nd1,mfile,xipo)
+end subroutine dalind
+
+subroutine daread(h,nd1,mfile,xipo)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : ntt
       implicit none
-      integer i,mfile,nd1,ndim2,ntt
+      integer i,mfile,nd1
       real(kind=fPrec) rx,xipo
 !  read a map
-      parameter (ndim2=6)
-      parameter (ntt=40)
       integer h(*),j(ntt)
 
       do i=1,ntt
@@ -1053,15 +913,13 @@ end subroutine lieinit
         call dapok(h(i),j,rx)
       end do
       return
-      end
-+dk daprid
-      subroutine daprid(h,n1,n2,mfile)
+end subroutine daread
+
+subroutine daprid(h,n1,n2,mfile)
       use floatPrecision
       implicit none
-      integer i,mfile,n1,n2,ndim2,ntt
+      integer i,mfile,n1,n2
 !  print a map
-      parameter (ndim2=6)
-      parameter (ntt=40)
       integer  h(*)
       if(mfile.le.0) return
 
@@ -1070,21 +928,18 @@ end subroutine lieinit
       end do
 
       return
-      end
-+dk prresflo
-      subroutine prresflo(h,eps,mfile)
+end subroutine daprid
+
+subroutine prresflo(h,eps,mfile)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ifilt,ndim2
       implicit none
-      integer i,mfile,ndim2,ntt
+      integer i,mfile
       real(kind=fPrec) deps,eps,filtres
 !  print a map   in resonance basis for human consumption (useless)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       integer  h(*) ,b(ndim2) ,c(ndim2)
-+ca ii
-+ca filtr
       external filtres
       call etall(b,nd2)
       call etall(c,nd2)
@@ -1103,21 +958,16 @@ end subroutine lieinit
       call  dadal(c,nd2)
       call  dadal(b,nd2)
       return
-      end
-+dk filtres
-      real(kind=fPrec) function filtres(j)
+end subroutine prresflo
+
+real(kind=fPrec) function filtres(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ifilt,ndc,ndc2,ndpt,ndt
       implicit none
-      integer i,ic,ndim
-      parameter (ndim=3)
-!      PARAMETER (NTT=40)
-!      INTEGER J(NTT)
+      integer i,ic
       integer j(*)
-+ca ii
-+ca coast
-+ca filtr
       filtres=one
       ic=0
       do i=1,(nd2-ndc2)
@@ -1133,20 +983,17 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk daflo
-      subroutine daflo(h,x,y)
+end function filtres
+
+subroutine daflo(h,x,y)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
 ! LIE EXPONENT ROUTINES WITH FLOW OPERATORS
 
 !     \VEC{H}.GRAD X =Y
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer  h(*),x,y
       integer b1(1),b2(1),b3(1)
 !
@@ -1169,17 +1016,14 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk daflod
-      subroutine daflod(h,x,y)
+end subroutine daflo
+
+subroutine daflod(h,x,y)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer i,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
+      integer i
       integer  h(*),x(*),y(*)
       integer b1(ndim2),b2(ndim2)
 
@@ -1196,24 +1040,21 @@ end subroutine lieinit
       call dadal(b1,nd2)
       call dadal(b2,nd2)
       return
-      end
-+dk intd
-      subroutine intd(v,h,sca)
+end subroutine daflod
+
+subroutine intd(v,h,sca)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
       real(kind=fPrec) dlie,sca
 ! IF SCA=-1.D0
 !     \VEC{V}.GRAD   = J GRAD H . GRAD = :H:
 
 ! IF SCA=1.D0
 !     \VEC{V}.GRAD  = GRAD H . GRAD
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       external dlie
       integer v(*),h
 
@@ -1246,19 +1087,16 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk difd
-      subroutine difd(h1,v,sca)
+end subroutine intd
+
+subroutine difd(h1,v,sca)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
       real(kind=fPrec) sca
 ! INVERSE OF INTD ROUTINE
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer  v(*),h1
       integer b1(1),h(1)
       call etall(b1(1),1)
@@ -1274,21 +1112,18 @@ end subroutine lieinit
       call dadal(h(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk expflo
-      subroutine expflo(h,x,y,eps,nrmax)
+end subroutine difd
+
+subroutine expflo(h,x,y,eps,nrmax)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : idpr
       implicit none
-      integer i,ndim,ndim2,nrmax,ntt
+      integer i,nrmax
       real(kind=fPrec) coe,eps,r,rbefore
 ! DOES EXP( \VEC{H} ) X = Y
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca printing
       integer h(*),x,y
       integer b1(1),b2(1),b3(1),b4(1)
       logical more
@@ -1343,18 +1178,15 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk expflod
-      subroutine expflod(h,x,w,eps,nrmax)
+end subroutine expflo
+
+subroutine expflod(h,x,w,eps,nrmax)
       use floatPrecision
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer j,ndim,ndim2,nrmax,ntt
+      integer j,nrmax
       real(kind=fPrec) eps
 ! DOES EXP( \VEC{H} ) \VEC{X} = \VEC{Y}
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x(*),w(*),h(*)
       integer b0(1),v(ndim2)
 !
@@ -1373,22 +1205,19 @@ end subroutine lieinit
       call dadal(v,nd2)
       call dadal(b0(1),1)
       return
-      end
-+dk facflo
-      subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
+end subroutine expflod
+
+subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer i,ifac,ndim,ndim2,nmax,nrmax,nrmin,ntt
+      integer i,ifac,nmax,nrmax,nrmin
       real(kind=fPrec) eps,sca
 ! IFAC=1
 ! DOES EXP(SCA \VEC{H}_MRMIN ) ... EXP(SCA \VEC{H}_NRMAX ) X= Y
 ! IFAC=-1
 ! DOES EXP(SCA \VEC{H}_NRMAX ) ... EXP(SCA \VEC{H}_MRMIN ) X= Y
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x,w,h(*)
       integer bm(ndim2),b0(ndim2),v(1)
 !
@@ -1426,21 +1255,18 @@ end subroutine lieinit
       call dadal(b0,nd2)
       call dadal(bm,nd2)
       return
-      end
-+dk facflod
-      subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
+end subroutine facflo
+
+subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
+      use mod_lie_dab, only : nd,nd2
       implicit none
-      integer i,ifac,ndim,ndim2,nrmax,nrmin,ntt
+      integer i,ifac,nrmax,nrmin
       real(kind=fPrec) sca
 ! IFAC=1
 ! DOES EXP(SCA \VEC{H}_MRMIN ) ... EXP(SCA \VEC{H}_NRMAX )  \VEC{X}= \VEC{Y}
 ! IFAC=-1
 ! DOES EXP(SCA \VEC{H}_NRMAX ) ... EXP(SCA \VEC{H}_MRMIN ) \VEC{X}= \VEC{Y}
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x(*),w(*),h(*)
 
       do 1 i=1,nd2
@@ -1448,20 +1274,17 @@ end subroutine lieinit
  1    continue
 
       return
-      end
-+dk fexpo
-      subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
+end subroutine facflod
+
+subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer ifac,ndim,ndim2,nrma,nrmax,nrmi,nrmin,ntt
+      integer ifac,nrma,nrmax,nrmi,nrmin
       real(kind=fPrec) sca
 !   WRAPPED ROUTINES FOR THE OPERATOR  \VEC{H}=:H:
 ! WRAPPING FACFLOD
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x(*),w(*),h
 
       integer v(ndim2)
@@ -1475,18 +1298,15 @@ end subroutine lieinit
       call dadal(v,nd2)
 
       return
-      end
-+dk etcom
-      subroutine etcom(x,y,h)
+end subroutine fexpo
+
+subroutine etcom(x,y,h)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer i,j,ndim,ndim2,ntt
+      integer i,j
 ! ETCOM TAKES THE BRACKET OF TWO VECTOR FIELDS.
-      parameter (ndim2=6)
-      parameter (ndim=3)
-      parameter (ntt=40)
-+ca ii
       integer h(*),x(*),y(*),t1(1),t2(1),t3(ndim2)
 
       call etall(t1(1),1)
@@ -1512,18 +1332,15 @@ end subroutine lieinit
       call dadal(t2(1),1)
       call dadal(t3,nd2)
       return
-      end
-+dk etpoi
-      subroutine etpoi(x,y,h)
+end subroutine etcom
+
+subroutine etpoi(x,y,h)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
 ! ETPOI TAKES THE POISSON BRACKET OF TWO FUNCTIONS
-      parameter (ndim2=6)
-      parameter (ndim=3)
-      parameter (ntt=40)
-+ca ii
       integer h,x,y,t1(1),t2(1),t3(1)
 
       call etall(t1(1),1)
@@ -1551,20 +1368,16 @@ end subroutine lieinit
       call dadal(t2(1),1)
       call dadal(t3(1),1)
       return
-      end
-+dk exp1d
-      subroutine exp1d(h,x,y,eps,non)
+end subroutine etpoi
+
+subroutine exp1d(h,x,y,eps,non)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,idpr,ndim2
       implicit none
-      integer ndim,ndim2,non,ntt
+      integer non
       real(kind=fPrec) eps
 ! WRAPPING EXPFLO
-      parameter (ndim2=6)
-      parameter (ndim=3)
-      parameter (ntt=40)
-+ca ii
-+ca printing
       integer h,x,y
 
       integer v(ndim2)
@@ -1576,18 +1389,15 @@ end subroutine lieinit
       call dadal(v,nd2)
 
       return
-      end
-+dk expnd2
-      subroutine expnd2(h,x,w,eps,nrmax)
+end subroutine exp1d
+
+subroutine expnd2(h,x,w,eps,nrmax)
       use floatPrecision
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer j,ndim,ndim2,nrmax,ntt
+      integer j,nrmax
       real(kind=fPrec) eps
 ! WRAPPING EXPFLOD USING EXP1D
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x(*),w(*),h
 
       integer b0(1),v(ndim2)
@@ -1607,24 +1417,19 @@ end subroutine lieinit
       call dadal(b0(1),1)
 
       return
-      end
-+dk flofacg
-      subroutine flofacg(xy,h,epsone)
+end subroutine expnd2
+
+subroutine flofacg(xy,h,epsone)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nd,nd2,idpr,ndim2,ntt,xintex
       implicit none
-      integer i,k,kk,ndim,ndim2,nrmax,ntt
+      integer i,k,kk,nrmax
       real(kind=fPrec) eps,epsone,r,xn,xnbefore,xnorm,xnorm1,xx
 ! GENERAL ONE EXPONENT FACTORIZATION
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca printing
       logical more
-+ca ii
-+ca integratedex
       integer xy(*),x(ndim2),h(*)
       integer v(ndim2),w(ndim2),t(ndim2), z(ndim2)
       integer jj(ntt)
@@ -1695,18 +1500,15 @@ end subroutine lieinit
       call dadal(t,nd2)
       call dadal(z,nd2)
       return
-      end
-+dk flofac
-      subroutine flofac(xy,x,h)
+end subroutine flofacg
+
+subroutine flofac(xy,x,h)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,no,ndim2
       implicit none
-      integer k,ndim,ndim2,ntt
+      integer k
 ! GENERAL DRAGT-FINN FACTORIZATION
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer xy(*),x(*),h(*)
       integer v(ndim2),w(ndim2)
 !
@@ -1734,18 +1536,14 @@ end subroutine lieinit
       call dadal(w,nd2)
       call dadal(v,nd2)
       return
-      end
-+dk liefact
-      subroutine liefact(xy,x,h)
+end subroutine flofac
+
+subroutine liefact(xy,x,h)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer ndim,ndim2,ntt
 ! SYMPLECTIC DRAGT-FINN FACTORIZATION WRAPPING FLOFAC
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer xy(*),x(*),h
 
       integer v(ndim2)
@@ -1758,19 +1556,16 @@ end subroutine lieinit
       call dadal(v,nd2)
 
       return
-      end
-+dk mapnorm
-      subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
+end subroutine liefact
+
+subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer isi,ndim,ndim2,nord,ntt
+      integer isi,nord
 !--NORMALIZATION ROUTINES OF LIELIB
 !- WRAPPING MAPNORMF
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x(*),a1(*),a2(*),ft,xy(*),h,hf(ndim2),ftf(ndim2)
 
       call etall(ftf,nd2)
@@ -1783,18 +1578,14 @@ end subroutine lieinit
       call dadal(hf,nd2)
 
       return
-      end
-+dk gettura
-      subroutine gettura(psq,radsq)
+end subroutine mapnorm
+
+subroutine gettura(psq,radsq)
       use floatPrecision
+      use mod_lie_dab, only : nd,nd2,ndim,ps,rads
       implicit none
-      integer ik,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
+      integer ik
       real(kind=fPrec) psq(ndim),radsq(ndim)
-+ca ii
-+ca tunerad
 
       do ik=1,nd
       psq(ik)=ps(ik)
@@ -1802,18 +1593,14 @@ end subroutine lieinit
       enddo
 
       return
-      end
-+dk setidpr
-      subroutine setidpr(idprint,nplan)
+end subroutine gettura
+
+subroutine setidpr(idprint,nplan)
       use floatPrecision
+      use mod_lie_dab, only : nd,nd2,idpr,nplane,epsplane,xplane,ndim
       implicit none
-      integer idprint,ik,ndim,ndim2,nplan
-      parameter (ndim=3)
-      parameter (ndim2=6)
-       dimension nplan(ndim)
-+ca ii
-+ca printing
-+ca choice
+      integer idprint,ik,nplan
+      dimension nplan(ndim)
 
       do ik=1,nd
       nplane(ik)=nplan(ik)
@@ -1821,42 +1608,28 @@ end subroutine lieinit
       idpr=idprint
 
       return
-      end
-+dk idprset
-      subroutine idprset(idprint)
+end subroutine setidpr
+
+subroutine idprset(idprint)
       use floatPrecision
+      use mod_lie_dab, only : idpr
       implicit none
-      integer idprint,ndim,ndim2
-      parameter (ndim=3)
-      parameter (ndim2=6)
-+ca ii
-+ca printing
-+ca choice
-
+      integer idprint
       idpr=idprint
-
       return
-      end
-+dk mapnormf
-      subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
+end subroutine idprset
+
+subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nd,nd2,idpr,itu,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,ps,rads
       implicit none
-      integer ij,isi,ndim,ndim2,nord,ntt
+      integer ij,isi,nord
       real(kind=fPrec) angle,p,rad,st,x2pi,x2pii
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       dimension angle(ndim),st(ndim),p(ndim),rad(ndim)
-+ca ii
-+ca coast
       integer x(*),a1(*),a2(*),ft(*),xy(*),h(*)
-+ca tunedef
-+ca printing
-+ca vecflow
-+ca tunerad
       integer a1i(ndim2),a2i(ndim2)
 !
       call etallnom(a1i,nd2  ,'A1I       ')
@@ -1911,13 +1684,14 @@ end subroutine lieinit
       call dadal(a2i,nd2)
       call dadal(a1i,nd2)
       return
-      end
-+dk gofix
-      subroutine gofix(xy,a1,a1i,nord)
+end subroutine mapnormf
+
+subroutine gofix(xy,a1,a1i,nord)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,no,ndc,ndc2,ndpt,ndt,ndim2
       implicit none
-      integer i,ndim,ndim2,nord,ntt
+      integer i,nord
       real(kind=fPrec) xic
 ! GETTING TO THE FIXED POINT AND CHANGING TIME APPROPRIATELY IN THE
 ! COASTING BEAM CASE
@@ -1927,11 +1701,6 @@ end subroutine lieinit
 ! for ndpt not zero, works in all cases. (coasting beam: eigenvalue
 !1 in Jordan form)
 !****************************************************************
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
-+ca coast
       integer xy(*),a1(*),a1i(*)
 
       integer x(ndim2),w(ndim2),v(ndim2),rel(ndim2)
@@ -2012,20 +1781,17 @@ end subroutine lieinit
       call dadal(w,nd2)
       call dadal(x,nd2)
       return
-      end
-+dk transver
-      real(kind=fPrec) function transver(j)
+end subroutine gofix
+
+real(kind=fPrec) function transver(j)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
-      integer i,ic,ndim
+      integer i,ic
 ! USED IN A DACFU CALL OF GOFIX
-      parameter (ndim=3)
-!      PARAMETER (NTT=40)
 !      INTEGER J(NTT)
       integer j(*)
-+ca ii
-+ca coast
 
       transver=one
       ic=0
@@ -2034,22 +1800,18 @@ end subroutine lieinit
       enddo
       if(ic.ne.1) transver=zero
       return
-      end
-+dk orderflo
-      subroutine orderflo(h,ft,x,ang,ra)
+end function transver
+
+subroutine orderflo(h,ft,x,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndim,ndim2
       implicit none
-      integer k,ndim,ndim2,ntt
+      integer k
       real(kind=fPrec) ang,ra
 !-   NONLINEAR NORMALIZATION PIECE OF MAPNORMF
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca printing
-+ca ii
       dimension ang(ndim),ra(ndim)
       integer x(*),h(*),ft(*)
       integer w(ndim2),v(ndim2),rel(ndim2)
@@ -2108,19 +1870,15 @@ end subroutine lieinit
       call dadal(v,nd2)
       call dadal(w,nd2)
       return
-      end
-+dk nuanaflo
-      subroutine nuanaflo(h,ft)
+end subroutine orderflo
+
+subroutine nuanaflo(h,ft)
       use floatPrecision
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndim2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
       real(kind=fPrec) dfilt,filt,xgam,xgbm
 ! RESONANCE DENOMINATOR OPERATOR (1-R^-1)^-1
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
-+ca vecflow
       external xgam,xgbm,dfilt,filt
       integer h(*),ft(*),br(ndim2),bi(ndim2),c(ndim2),ci(ndim2)
       integer t1(2),t2(2)
@@ -2168,24 +1926,17 @@ end subroutine lieinit
       call dadal(ci,nd2)
 
       return
-      end
-+dk xgam
-      real(kind=fPrec) function xgam(j)
+end subroutine nuanaflo
+
+real(kind=fPrec) function xgam(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
       implicit none
-      integer i,ic,ij,ik,ndim,ndim2
+      integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
 ! XGAM AND XGBM ARE THE EIGENVALUES OF THE OPERATOR NEWANAFLO
-      parameter (ndim=3)
-      parameter (ndim2=6)
-!      PARAMETER (NTT=40)
-+ca vecflow
-+ca stable
-+ca istable
-+ca ii
-+ca coast
 !      INTEGER J(NTT),JJ(NDIM),JP(NDIM)
       integer j(*),jj(ndim),jp(ndim)
       xgam=zero
@@ -2216,23 +1967,16 @@ end subroutine lieinit
       xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans       !hr11
 
       return
-      end
-+dk xgbm
-      real(kind=fPrec) function xgbm(j)
+end function xgam
+
+real(kind=fPrec) function xgbm(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
       implicit none
-      integer i,ic,ij,ik,ndim,ndim2
+      integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
-      parameter (ndim=3)
-      parameter (ndim2=6)
-!      PARAMETER (NTT=40)
-+ca vecflow
-+ca stable
-+ca istable
-+ca ii
-+ca coast
 !      INTEGER J(NTT),JJ(NDIM),JP(NDIM)
       integer j(*),jj(ndim),jp(ndim)
       xgbm=zero
@@ -2263,25 +2007,16 @@ end subroutine lieinit
       xgbm=(sin_mb(as)*ex)/ans                                           !hr11
 
       return
-      end
-+dk filt
-      real(kind=fPrec) function filt(j)
+end function xgbm
+
+real(kind=fPrec) function filt(j)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,idsta,ista,angle,dsta,rad,sta,mx,nres
       implicit none
-      integer i,ic,ic1,ic2,ij,ik,ji,ndim,ndim2,nreso
+      integer i,ic,ic1,ic2,ij,ik,ji
 !  PROJECTION FUNCTIONS ON THE KERNEL ANMD RANGE OF (1-R^-1)
 !-  THE KERNEL OF (1-R^-1)
-      parameter (ndim=3)
-      parameter (ndim2=6)
-!      PARAMETER (NTT=40)
-      parameter (nreso=20)
-+ca stable
-+ca istable
-+ca ii
-+ca coast
-+ca reson
-+ca vecflow
 !      INTEGER J(NTT),JJ(NDIM)
       integer j(*),jj(ndim)
 
@@ -2314,23 +2049,16 @@ end subroutine lieinit
 
       filt=zero
       return
-       end
-+dk dfilt
-      real(kind=fPrec) function dfilt(j)
+end function filt
+
+real(kind=fPrec) function dfilt(j)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,mx,nres
       implicit none
-      integer ndim,ndim2,nreso
       real(kind=fPrec) fil,filt
 !-  THE RANGE OF (1-R^-1)^1
 !- CALLS FILT AND EXCHANGES 1 INTO 0 AND 0 INTO 1.
-      parameter (ndim=3)
-      parameter (ndim2=6)
-!      PARAMETER (NTT=40)
-      parameter (nreso=20)
-+ca ii
-+ca coast
-+ca reson
       external filt
 !      INTEGER J(NTT)
       integer j(*)
@@ -2342,21 +2070,17 @@ end subroutine lieinit
        dfilt=one
       endif
       return
-       end
-+dk dhdjflo
-      subroutine dhdjflo(h,t)
+end function dfilt
+
+subroutine dhdjflo(h,t)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
       real(kind=fPrec) coe,x2pi
 ! CONVENIENT TUNE SHIFT FINDED FOR SYMPLECTIC CASE (NU,DL)(H)=T
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
-+ca coast
       integer h(*),t(*)
 
       integer b1(ndim2),b2(ndim2),bb1(1),bb2(1)
@@ -2389,20 +2113,16 @@ end subroutine lieinit
       call dadal(b2,nd2)
       call dadal(b1,nd2)
       return
-      end
-+dk dhdj
-      subroutine dhdj(h,t)
+end subroutine dhdjflo
+
+subroutine dhdj(h,t)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
       real(kind=fPrec) coe,x2pi
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
-+ca coast
       integer h,t(*)
 
       integer b1(1),b2(1),bb1(1),bb2(1)
@@ -2440,22 +2160,17 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk h2pluflo
-      subroutine h2pluflo(h,ang,ra)
+end subroutine dhdj
+
+subroutine h2pluflo(h,ang,ra)
       use floatPrecision
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ntt,angle,dsta,rad,sta
       implicit none
-      integer i,j,ndim,ndim2,ntt
+      integer i,j
       real(kind=fPrec) ang,r1,r2,ra,st
 ! POKES IN \VEC{H}  ANGLES AND DAMPING COEFFFICIENTS
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca stable
       dimension ang(ndim),st(ndim),ra(ndim),j(ntt)
-+ca ii
-+ca coast
       integer h(*)
 !*DAEXT(NO,NV) H
 
@@ -2493,26 +2208,21 @@ end subroutine lieinit
         call dapok(h(ndt),j,-one*ang(nd))                                !hr11
       endif
       return
-      end
-+dk rotflo
-      subroutine rotflo(ro,ang,ra)
+end subroutine h2pluflo
+
+subroutine rotflo(ro,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim,ntt,idsta,ista
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
       real(kind=fPrec) ang,ch,co,ra,sh,si,sim,xx
 ! CREATES R AND R^-1 USING THE EXISTING ANGLES AND DAMPING
 ! COULD BE REPLACED BY A CALL H2PLUFLO FOLLOWED BY EXPFLOD
 ! CREATES R
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca istable
       dimension co(ndim),si(ndim),ang(ndim),ra(ndim)
       integer j(ntt)
-+ca ii
-+ca coast
       integer ro(*)
       call daclrd(ro)
       do i=1,nd-ndc
@@ -2554,24 +2264,19 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk rotiflo
-      subroutine rotiflo(roi,ang,ra)
+end subroutine rotflo
+
+subroutine rotiflo(roi,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim,ntt,idsta,ista
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
       real(kind=fPrec) ang,ch,co,ra,sh,si,sim,simv,xx
 ! CREATES  R^-1
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca istable
       dimension co(ndim),si(ndim),ang(ndim),ra(ndim)
       integer j(ntt)
-+ca ii
-+ca coast
       integer roi(*)
 
       do i=1,10
@@ -2620,9 +2325,9 @@ end subroutine lieinit
       endif
 
       return
-      end
-+dk hyper
-      subroutine hyper(a,ch,sh)
+end subroutine rotiflo
+
+subroutine hyper(a,ch,sh)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2634,19 +2339,16 @@ end subroutine lieinit
       ch=(x+xi)/two
       sh=(x-xi)/two
       return
-      end
-+dk ctor
-      subroutine ctor(c1,r2,i2)
+end subroutine hyper
+
+subroutine ctor(c1,r2,i2)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer ndim2,ntt
 ! CHANGES OF BASIS
 !   C1------> R2+I R1
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer c1,r2,i2
       integer b1(1),b2(1),x(ndim2)
 !
@@ -2664,17 +2366,13 @@ end subroutine lieinit
       call dadal(b2(1),1)
       call dadal(b1(1),1)
       return
-      end
-+dk rtoc
-      subroutine rtoc(r1,i1,c2)
+end subroutine ctor
+
+subroutine rtoc(r1,i1,c2)
       use floatPrecision
       use mathlib_bouncer
       implicit none
-      integer ndim2,ntt
 !  INVERSE OF CTOR
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer c2,r1,i1
 
       integer b1(1)
@@ -2685,35 +2383,27 @@ end subroutine lieinit
       call itoc(b1(1),c2)
       call dadal(b1(1),1)
       return
-      end
-+dk ctorflo
-      subroutine ctorflo(c,dr,di)
+end subroutine rtoc
+
+subroutine ctorflo(c,dr,di)
       use floatPrecision
       use mathlib_bouncer
       implicit none
-      integer ndim,ndim2,ntt
 ! FLOW CTOR
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       integer dr(*),di(*),c(*)
 
       call ctord(c,dr,di)
       call resvec(dr,di,dr,di)
 
       return
-      end
-+dk rtocflo
-      subroutine rtocflo(dr,di,c)
+end subroutine ctorflo
+
+subroutine rtocflo(dr,di,c)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer ndim,ndim2,ntt
 ! FLOW RTOC
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer dr(*),di(*),c(*),er(ndim2),ei(ndim2)
 
       call etall(er,nd2)
@@ -2726,57 +2416,45 @@ end subroutine lieinit
       call dadal(ei,nd2)
 
       return
-      end
-+dk ctord
-      subroutine ctord(c,cr,ci)
+end subroutine rtocflo
+
+subroutine ctord(c,cr,ci)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
 ! ROUTINES USED IN THE INTERMEDIATE STEPS OF CTORFLO AND RTOCFLO
 ! SAME AS CTOR  OVER ARRAYS CONTAINING ND2 COMPONENTS
 ! ROUTINE USEFUL IN INTERMEDIATE FLOW CHANGE OF BASIS
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer c(*),ci(*),cr(*)
       do 1 i=1,nd2
       call ctor(c(i),cr(i),ci(i))
  1    continue
       return
-      end
-+dk rtocd
-      subroutine rtocd(cr,ci,c)
+end subroutine ctord
+
+subroutine rtocd(cr,ci,c)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd2
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
 !  INVERSE OF CTORD
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer c(*),ci(*),cr(*)
       do 1 i=1,nd2
       call rtoc(cr(i),ci(i),c(i))
  1    continue
       return
-      end
-+dk resvec
-      subroutine resvec(cr,ci,dr,di)
+end subroutine rtocd
+
+subroutine resvec(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista,angle,dsta,rad,sta
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
 ! DOES THE SPINOR PART IN CTORFLO
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca stable
-+ca istable
-+ca coast
-+ca ii
       integer dr(*),di(*),ci(*),cr(*),tr(2),ti(2)
 
       call etall(tr,2)
@@ -2812,22 +2490,16 @@ end subroutine lieinit
       call dadal(tr,2)
       call dadal(ti,2)
       return
-      end
-+dk reelflo
-      subroutine reelflo(c,ci,f,fi)
+end subroutine resvec
+
+subroutine reelflo(c,ci,f,fi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2,idsta,ista,angle,dsta,rad,sta
       implicit none
-      integer i,ndim,ndim2,ntt
+      integer i
 ! DOES THE SPINOR PART IN RTOCFLO
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca stable
-+ca istable
-+ca coast
-+ca ii
       integer c(*),ci(*),f(*),fi(*),e(ndim2),ei(ndim2)
 
       call etall(e,nd2)
@@ -2856,19 +2528,15 @@ end subroutine lieinit
       call dadal(e,nd2)
       call dadal(ei,nd2)
       return
-      end
-+dk compcjg
-      subroutine compcjg(cr,ci,dr,di)
+end subroutine reelflo
+
+subroutine compcjg(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd2,ndim2
       implicit none
-      integer ndim,ndim2,ntt
 ! TAKES THE COMPLEX CONJUGATE IN RESONANCE BASIS OF A POLYNOMIAL
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer dr,di,ci,cr,x(ndim2)
 
       call etall(x,nd2)
@@ -2880,23 +2548,18 @@ end subroutine lieinit
 
       call dadal(x,nd2)
       return
-      end
-+dk midbflo
-      subroutine midbflo(c,a2,a2i,q,a,st)
+end subroutine compcjg
+
+subroutine midbflo(c,a2,a2i,q,a,st)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ndim2,ntt
       implicit none
-      integer i,j,ndim,ndim2,ntt
-      real(kind=fPrec) a,ch,cm,cr,q,r,sa,sai,shm,                       &
-     &st,x2pi
+      integer i,j
+      real(kind=fPrec) a,ch,cm,cr,q,r,sa,sai,shm,st,x2pi
 ! LINEAR EXACT NORMALIZATION USING EIGENVALUE PACKAGE OF NERI
-      parameter (ntt=40)
-      parameter (ndim2=6)
-      parameter (ndim=3)
       integer jx(ntt)
-+ca ii
-+ca coast
       dimension cr(ndim2,ndim2),st(ndim),q(ndim),a(ndim)
       dimension sa(ndim2,ndim2),sai(ndim2,ndim2),cm(ndim2,ndim2)
       integer c(*),a2(*),a2i(*)
@@ -2975,34 +2638,27 @@ end subroutine lieinit
       enddo
 
       return
-      end
+end subroutine midbflo
 
-+dk mapflol
 subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
-
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndc,ndc2,ndpt,ndt,nplane,epsplane,xplane,ndim,ndim2
       use crcoall
       use file_units
       implicit none
 
       integer symplecticity_check_unit
-      integer i,ier,iunst,j,l,n,n1,ndim,ndim2
+      integer i,ier,iunst,j,l,n,n1
       real(kind=fPrec) ap,ax,cm,cr,p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
-      parameter (ndim2=6)
-      parameter (ndim=3)
-+ca ii
-+ca coast
 !---- FROM TRACKING CODE
-+ca printing
-+ca choice
 ! ---------------------
       dimension cr(ndim2,ndim2),xj(ndim2,ndim2),n(ndim),x(ndim)
       dimension rr(ndim2),ri(ndim2),sa(ndim2,ndim2),xx(ndim),sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
-  logical lopen
+      logical lopen
       x2pi=atan_mb(one)*eight
       n1=0
 !     frank/etienne
@@ -3050,9 +2706,9 @@ subroutine mapflol(sa,sai,cr,cm,st)
         open(symplecticity_check_unit,file="symplecticity_check.txt", status='replace')
         write(symplecticity_check_unit,*) c1e2*(xsu-nd2)/xsu
         close(symplecticity_check_unit)
-+if debug
+#ifdef DEBUG
 !       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
-+ei
+#endif
       endif
       call eig6(cr,rr,ri,vr,vi)
       if(idpr.ge.0) then
@@ -3163,17 +2819,14 @@ subroutine mapflol(sa,sai,cr,cm,st)
       return
 end subroutine mapflol
 
-+dk mulnd2
-      subroutine mulnd2(rt,r)
+subroutine mulnd2(rt,r)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer i,ia,j,ndim,ndim2
+      integer i,ia,j
       real(kind=fPrec) r,rt,rtt
-      parameter (ndim2=6)
-      parameter (ndim=3)
-+ca ii
       dimension rt(ndim2,ndim2),r(ndim2,ndim2),rtt(ndim2,ndim2)
       do i=1,nd2
         do j=1,nd2
@@ -3196,20 +2849,17 @@ end subroutine mapflol
       end do
 
       return
-      end
-+dk movearou
-      subroutine movearou(rt)
+end subroutine mulnd2
+
+subroutine movearou(rt)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndim2
       implicit none
-      integer i,ic,j,ndim,ndim2
+      integer i,ic,j
       real(kind=fPrec) rt,rto,s,xr,xrold,xy,xyz,xz,xzy,yz
-      parameter (ndim2=6)
-      parameter (ndim=3)
-+ca ii
-+ca printing
       dimension rt(ndim2,ndim2),rto(ndim2,ndim2)
       dimension xy(ndim2,ndim2),xz(ndim2,ndim2),yz(ndim2,ndim2)
       dimension xyz(ndim2,ndim2),xzy(ndim2,ndim2)
@@ -3332,18 +2982,16 @@ end subroutine mapflol
       enddo
 
       return
-      end
-+dk movemul
-      subroutine movemul(rt,xy,rto,xr)
+end subroutine movearou
+
+subroutine movemul(rt,xy,rto,xr)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer i,j,k,ndim,ndim2
+      integer i,j,k
       real(kind=fPrec) rt,rto,xr,xy
-      parameter (ndim2=6)
-      parameter (ndim=3)
-+ca ii
       dimension rt(ndim2,ndim2)
       dimension xy(ndim2,ndim2),rto(ndim2,ndim2)
 
@@ -3376,31 +3024,22 @@ end subroutine mapflol
       enddo
 
       return
-      end
-+dk initpert
+end subroutine movemul
+
 subroutine initpert(st,ang,ra)
       use floatPrecision
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nd,nd2,iref,ndc,ndc2,ndpt,ndt,ndim,ndim2,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
       implicit none
-      integer i,ndim,ndim2,nn,nreso
+      integer i,nn
       real(kind=fPrec) ang,ra,st
 !   X-RATED
 !- SETS UP ALL THE COMMON BLOCKS RELEVANT TO NORMAL FORM AND THE BASIS
 !- CHANGES INSIDE  MAPNORMF
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (nreso=20)
       dimension st(ndim),ang(ndim),ra(ndim)
-+ca stable
-+ca istable
-+ca ii
-+ca coast
-+ca reson
-+ca resfile
-
       if(iref.gt.0) then
       write(lout,*) iref
       read(iref,*) nres
@@ -3445,18 +3084,15 @@ subroutine initpert(st,ang,ra)
       return
 end subroutine initpert
 
-+dk dlie
-      real(kind=fPrec) function dlie(j)
+real(kind=fPrec) function dlie(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2
       implicit none
-      integer i,ndim
-      parameter (ndim=3)
-!      PARAMETER (NTT=40)
+      integer i
 !      INTEGER J(NTT)
       integer j(*)
-+ca ii
       dlie=zero
 
       do i=1,nd
@@ -3466,19 +3102,15 @@ end subroutine initpert
       dlie=dlie+one
       dlie=one/dlie
       return
-      end
-+dk rext
-      real(kind=fPrec) function rext(j)
+end function dlie
+
+real(kind=fPrec) function rext(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista
       implicit none
-      integer i,lie,mo,ndim
-      parameter (ndim=3)
-!      PARAMETER (NTT=40)
-+ca ii
-+ca coast
-+ca istable
+      integer i,lie,mo
       integer j(*)
       lie=0
       do i=1,nd-ndc
@@ -3497,31 +3129,24 @@ end subroutine initpert
          rext = one
       end select
       return
-      end function rext
-+dk cpart
-      subroutine cpart(h,ch)
+end function rext
+
+subroutine cpart(h,ch)
       use floatPrecision
       use mathlib_bouncer
       implicit none
-      integer ndim,ntt
       real(kind=fPrec) rext
-      parameter (ndim=3)
-      parameter (ntt=40)
       external rext
-+ca ii
       integer h,ch
       call dacfu(h,rext,ch)
       return
-      end
-+dk ctoi
-      subroutine ctoi(f1,f2)
+end subroutine cpart
+
+subroutine ctoi(f1,f2)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd2,ndim2
       implicit none
-      integer ndim2,ntt
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer f1,f2
       integer b1(1),x(ndim2)
 !
@@ -3535,16 +3160,13 @@ end subroutine initpert
       call dadal(x,nd2)
       call dadal(b1(1),1)
       return
-      end
-+dk itoc
-      subroutine itoc(f1,f2)
+end subroutine ctoi
+
+subroutine itoc(f1,f2)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd2,ndim2
       implicit none
-      integer ndim2,ntt
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer f1,f2
       integer b1(1),x(ndim2)
 !
@@ -3557,23 +3179,18 @@ end subroutine initpert
       call dadal(x,nd2)
       call dadal(b1(1),1)
       return
-      end
-+dk etrtc
-      subroutine etrtc(x)
+end subroutine itoc
+
+subroutine etrtc(x)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndc,ndim2
       implicit none
-      integer i,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
-+ca coast
+      integer i
       integer x(*)
 
       integer rel(ndim2)
-!
-!
+
       call etallnom(rel,nd2  ,'REL       ')
 
       call etini(rel)
@@ -3584,19 +3201,15 @@ end subroutine initpert
       enddo
       call dadal(rel,nd2)
       return
-      end
-+dk etctr
-      subroutine etctr(x)
+end subroutine etrtc
+
+subroutine etctr(x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndim2
       implicit none
-      integer i,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
-+ca coast
+      integer i
       integer x(*)
       integer rel(ndim2)
 !
@@ -3611,19 +3224,14 @@ end subroutine initpert
       enddo
       call dadal(rel,nd2)
       return
-      end
-+dk etcjg
-      subroutine etcjg(x)
+end subroutine etctr
+
+subroutine etcjg(x)
       use floatPrecision
       use mathlib_bouncer
+      use mod_lie_dab, only : nd,nd2,ndc,ndim2,idsta,ista
       implicit none
-      integer i,ndim,ndim2,ntt
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca istable
-+ca ii
-+ca coast
+      integer i
       integer x(*)
 
       integer rel(ndim2)
@@ -3644,15 +3252,16 @@ end subroutine initpert
       enddo
       call dadal(rel,nd2)
       return
-      end
-+dk eig6
-      subroutine eig6(fm,reval,aieval,revec,aievec)
+end subroutine etcjg
+
+subroutine eig6(fm,reval,aieval,revec,aievec)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2
       implicit none
-      integer jet,ndim2
+      integer jet
 !**************************************************************************
 
 !  Diagonalization routines of NERI
@@ -3669,11 +3278,8 @@ end subroutine initpert
 !  the eigenvectors 2 ,4, and 6 have the opposite normalization.
 !  written by F. Neri, Feb 26 1986.
 !
-      parameter (ndim2=6)
       integer nn
       integer ilo,ihi,mdim,info
-+ca ii
-+ca coast
       real(kind=fPrec) reval(ndim2),aieval(ndim2),                      &
      &revec(ndim2,ndim2),aievec(ndim2,ndim2)
       real(kind=fPrec) fm(ndim2,ndim2),aa(ndim2,ndim2)
@@ -3713,9 +3319,9 @@ end subroutine initpert
         endif
       enddo
       return
-      end
-+dk ety
-      subroutine ety(nm,n,low,igh,a,ort)
+end subroutine eig6
+
+subroutine ety(nm,n,low,igh,a,ort)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3824,9 +3430,9 @@ end subroutine initpert
 
   200 return
 !     ********** last card of ety **********
-      end
-+dk etyt
-      subroutine etyt(nm,n,low,igh,a,ort,z)
+end subroutine ety
+
+subroutine etyt(nm,n,low,igh,a,ort,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -3913,9 +3519,9 @@ end subroutine initpert
 
   200 return
 !     ********** last card of etyt **********
-      end
-+dk ety2
-      subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
+end subroutine etyt
+
+subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4345,9 +3951,9 @@ end subroutine initpert
  1000 ierr = en
  1001 return
 !     ********** last card of ety2 **********
-      end
-+dk etdiv
-      subroutine etdiv(a,b,c,d,e,f)
+end subroutine ety2
+
+subroutine etdiv(a,b,c,d,e,f)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -4402,9 +4008,9 @@ end subroutine initpert
         b = -b
       endif
       return
-      end
-+dk sympl3
-      subroutine sympl3(m)
+end subroutine etdiv
+
+subroutine sympl3(m)
 !**********************************************************
 !
 !    SYMPL3
@@ -4472,24 +4078,20 @@ end subroutine initpert
 ! 600   continue
   100 continue
       return
-      end
-+dk averaged
-      subroutine averaged(f,a,flag,fave)
+end subroutine sympl3
+
+subroutine averaged(f,a,flag,fave)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndim2
       implicit none
-      integer isi,ndim,ndim2,nord,ntt
+      integer isi,nord
       real(kind=fPrec) avepol
 !      TAKES THE AVERAGE OF A FUNCTION F
 !  FLAG TRUE A=ONE TURN MAP
 !       FALSE A=A_SCRIPT
 !
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca printing
-+ca ii
       integer f,fave,a(*)
       integer cosi(1),sine(1)
       logical flag
@@ -4536,20 +4138,17 @@ end subroutine initpert
       endif
 
       return
-      end
-+dk avepol
-      real(kind=fPrec) function avepol(j)
+end subroutine averaged
+
+real(kind=fPrec) function avepol(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
-      integer i,ndim
-      parameter (ndim=3)
-!      PARAMETER (NTT=40)
+      integer i
 !      INTEGER J(NTT)
       integer j(*)
-+ca ii
-+ca coast
       avepol=one
       do i=1,(nd-ndc)
         if(j(2*i).ne.j(2*i-1)) then
@@ -4559,27 +4158,22 @@ end subroutine initpert
       enddo
 
       return
-      end
-+dk couplean
-      subroutine couplean(map1,tune,map2,oneturn)
+end function avepol
+
+subroutine couplean(map1,tune,map2,oneturn)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ndim2
       implicit none
-      integer i,ndim,ndim2,no1,nord,ntt
+      integer i,no1,nord
       real(kind=fPrec) crazy,tpi
 !  map1 ascript a1 not there
 !  tune 2 or 3 tunes
 
 !   map2 ascript with a couple parameter in nv
 !  oneturn map created with tunes and map2
-
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca coast
-+ca ii
       integer map1(*),oneturn(*),map2(*),ftf(1),hf(1)
       integer xy(ndim2),m1(ndim2),m2(ndim2),a2(ndim2),a1(ndim2)
       integer cs(1),h(1)
@@ -4655,20 +4249,17 @@ end subroutine initpert
       call dadal(h(1),1)
 
       return
-      end
-+dk planar
-      real(kind=fPrec) function planar(j)
+end subroutine couplean
+
+real(kind=fPrec) function planar(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
-      integer i,ndim
-      parameter (ndim=3)
-!      PARAMETER (NTT=40)
+      integer i
 !      INTEGER J(NTT)
       integer j(*)
-+ca ii
-+ca coast
       planar=zero
       do i=1,(nd-ndc)
         if(j(2*i).eq.j(2*i-1)) then
@@ -4686,20 +4277,17 @@ end subroutine initpert
       enddo
 
       return
-      end
-+dk killnonl
-      real(kind=fPrec) function killnonl(j)
+end function planar
+
+real(kind=fPrec) function killnonl(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ndc,ndc2,ndpt,ndt
       implicit none
-      integer i,ic,ndim
-      parameter (ndim=3)
-!      PARAMETER (NTT=40)
+      integer i,ic
 !      INTEGER J(NTT)
       integer j(*)
-+ca ii
-+ca coast
 
       killnonl=one
 
@@ -4711,19 +4299,16 @@ end subroutine initpert
       if(j(nv).ne.0) killnonl=zero
 
       return
-      end
-+dk fexpo1
-      subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
+end function killnonl
+
+subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
-      integer ifac,ndim,ndim2,nrma,nrmax,nrmi,nrmin,ntt
+      integer ifac,nrma,nrmax,nrmi,nrmin
       real(kind=fPrec) sca
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
-+ca ii
       integer x,w,h
 
       integer v(ndim2)
@@ -4736,21 +4321,18 @@ end subroutine initpert
       call dadal(v,nd2)
 
       return
-      end
-+dk etcctpar
-      subroutine etcctpar(x,ix,xj,z)
+end subroutine fexpo1
+
+subroutine etcctpar(x,ix,xj,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
-      integer i,ie,ix,ndim,ndim2,ntt
+      integer i,ie,ix
       real(kind=fPrec) xj
-      parameter (ndim=3)
-      parameter (ndim2=6)
-      parameter (ntt=40)
       dimension xj(*)
       dimension ie(ntt)
-+ca ii
       integer  x(*),z(*)
 
       call etallnom(ie,nv,'IE        ')
@@ -4765,4 +4347,4 @@ end subroutine initpert
 
       call dadal(ie,nv)
       return
-      end
+end subroutine etcctpar

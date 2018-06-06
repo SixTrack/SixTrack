@@ -15,7 +15,7 @@ PROJECT(SixTrack)
 ENABLE_LANGUAGE(Fortran)
 
 # Set Sixtrack version info
-file(READ ${CMAKE_SOURCE_DIR}/SixTrack/sixtrack.s90 IFILE)
+file(READ ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
 SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
 SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
@@ -145,6 +145,8 @@ if(DA)
 	message(STATUS "The DA flag is deprecated due to conflicts with preprocessor and FOX. Please use SIXDA instead.")
 	SET(SIXDA ON)
 endif()
+SET(BIGDABNEW   ON)  # Used in dabnew.s90. Defined in dabnew.ast
+SET(SMALLDABNEW OFF) # Used in dabnew.s90. Defined in dabnews.ast
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -300,8 +302,8 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 ###################################################################################################
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BNLELENS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY)
-LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY BIGDABNEW SMALLDABNEW)
+LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
 LIST(APPEND PREPRO_FLAGS_PREC P32BITM P64BITM P128BITM)
 
 ###################################################################################################
@@ -309,18 +311,15 @@ LIST(APPEND PREPRO_FLAGS_PREC P32BITM P64BITM P128BITM)
 ###################################################################################################
 
 list(APPEND FORS_FREEFORM
-	end_sixtrack close
-	scatter dynk
-	lielib dabnew
-	postprocessing dump
-	aperture
+	end_sixtrack scatter dynk
+	postprocessing dump aperture
 )
 
 list(APPEND FORS_F90
-	core_tools constants sixtrack_input
+	core_tools constants sixtrack_input mod_units close
 	strings string_tools common_modules mainarrays
-	file_units mod_alloc zipf matrix_inv
-	bouncy_castle plato_seq bdex fma
+	file_units mod_alloc zipf matrix_inv lielib
+	bouncy_castle plato_seq bdex fma dabnew
 	ranecu wire hions elens mod_dist
 )
 
@@ -1099,7 +1098,6 @@ endif()
 add_custom_target(copy_input_files)
 add_dependencies(copy_input_files ast_mkdir track_mkdir)
 file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/SixTrack/include/*.f90)
 
 #copy all the input files *.s to our build folder
 foreach(loop IN ITEMS ${SIXTRACK_INPUT})
@@ -1107,10 +1105,12 @@ foreach(loop IN ITEMS ${SIXTRACK_INPUT})
 endforeach()
 
 add_custom_target(track_mkdir)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/SixTrack/include/*.f90)
 add_custom_command(TARGET track_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
 foreach(loop IN ITEMS ${SIXTRACK_INCL})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
 endforeach()
+add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 ${CMAKE_BINARY_DIR})
 
 if(BOINC)
 	if(API)

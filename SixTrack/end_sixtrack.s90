@@ -3,7 +3,6 @@
 ! This File Contains:
 !==========================
 ! Module:     end_sixtrack
-! Subroutine: closeUnits
 
 ! =================================================================================================
 !  END SIXTRACK MODULE
@@ -417,7 +416,7 @@ subroutine abend(cstring)
   implicit none
   
 +ca crco
-+ca version
+#include "version.f90"
   
   integer i,lstring,j
   character(len=*) cstring
@@ -446,41 +445,37 @@ subroutine abend(cstring)
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
   
-+if nagfor
-+if boinc
+#ifdef NAGFOR
+#ifdef BOINC
   call boincrf('fort.10',filename)
-+if fio
+#ifdef FIO
   open(10,file=filename,form='formatted',status='unknown',err=11,round='nearest',recl=8195)
-+ei
+#else
   open(10,file=filename,form='formatted',status='unknown',err=11,recl=8195)
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
   open(10,file='fort.10',form='formatted',status='unknown',err=11,round='nearest',recl=8195)
-+ei
+#else
   open(10,file='fort.10',form='formatted',status='unknown',err=11,recl=8195)
-+ei
-+ei
-
-+if .not.nagfor
-+if boinc
+#endif
+#endif
+#else
+#ifdef BOINC
   call boincrf('fort.10',filename)
-+if fio
+#ifdef FIO
   open(10,file=filename,form='formatted',status='unknown',err=11,round='nearest')
-+ei
-+if .not.fio
+#else
   open(10,file=filename,form='formatted',status='unknown',err=11)
-+ei
-+ei
-+if .not.boinc
-+if fio
+#endif
+#else
+#ifdef FIO
   open(10,file='fort.10',form='formatted',status='unknown',err=11,round='nearest')
-+ei
-+if .not.fio
+#else
   open(10,file='fort.10',form='formatted',status='unknown',err=11)
-+ei
-+ei
-+ei
+#endif
+#endif
+#endif
 
   ! Now we try and read fort.10 i.e. is it empty?
   read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
@@ -515,9 +510,9 @@ subroutine abend(cstring)
   ! The CPU
   call timex(time1)
   trtime=time1-time0
-+if cr
+#ifdef CR
   trtime=trtime+crtime3  
-+ei
+#endif
   sumda(60)=real(trtime,fPrec)
   ! Note it COULD happen that napxo is 0 for a very very early error and even napx!!!
   if (napxo.eq.0.and.napx.eq.0) napxo=1
@@ -527,14 +522,13 @@ subroutine abend(cstring)
   if (napxo.eq.0.and.napx.eq.0) napxo=1
   if (napxo.eq.0) napxo=napx
   do j=1,napxo
-+if .not.crlibm
+#ifndef CRLIBM
     write(ch,*,iostat=ierro) (sumda(i),i=1,60)
     do ich=8192,1,-1
       if(ch(ich:ich).ne.' ') goto 707
     end do
 707 write(10,'(a)',iostat=ierro) ch(:ich)
-+ei
-+if crlibm
+#else
     ! Now use my new dtostr for portability
     l1=1
     do i=1,60
@@ -544,7 +538,7 @@ subroutine abend(cstring)
       l1=l1+errno+1
     end do
     write(10,'(a)',iostat=ierro) ch(1:l1-1)
-+ei
+#endif
     if(ierro.ne.0) then
       write(lout,*)
       write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 10 FROM ABEND'
@@ -555,10 +549,10 @@ subroutine abend(cstring)
   
 12 continue
   close (10,iostat=ierro)
-+if cr
-+if debug
+#ifdef CR
+#ifdef DEBUG
   ! call system('../crend   >> crlog')
-+ei
+#endif
   close(91,err=4)
 4 continue
   close(94,err=5)
@@ -591,16 +585,14 @@ subroutine abend(cstring)
   close(92)
   write(93,*) 'SIXTRACR stop '//cstring
   write(93,*)
-+if debug
+#ifdef DEBUG
   ! call system('../crend   >> crlog')
-+ei
-+if boinc
-!+if debug
+#endif
+#ifdef BOINC
   do i=2,120
     inquire(i,opened=fopen)
     write(93,*) 'UNIT ',i,' opened ',fopen
   end do
-!+ei
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
   if(errout_status.ne.0) then
@@ -611,8 +603,7 @@ subroutine abend(cstring)
     call print_lastlines_to_stderr(6,filename)
   end if
   call boinc_finish(errout_status) !This call does not return
-+ei !END +if boinc
-+if .not.boinc
+#else
   if(errout_status.ne.0) then
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
@@ -624,17 +615,17 @@ subroutine abend(cstring)
     ! No error
     stop
   end if
-+ei !END +if .not.boinc
+#endif
   
 !!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
   
 8 write(93,*) 'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
   close(93)
   write(6,*) 'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
-+if debug
+#ifdef DEBUG
   ! call system('../crend   >> crlog')
-+ei
-+if boinc
+#endif
+#ifdef BOINC
   do i=2,120
     inquire(i,opened=fopen)
     write(6,*) 'UNIT ',i,' opened ',fopen
@@ -651,8 +642,7 @@ subroutine abend(cstring)
     call print_lastlines_to_stderr(6,filename)
   end if
   call boinc_finish(errout_status) !This call does not return
-+ei !END +if boinc
-+if .not.boinc
+#else
   if(errout_status.ne.0) then
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
@@ -664,15 +654,13 @@ subroutine abend(cstring)
     ! No error
     stop
   end if
-+ei !END +if .not.boinc
-+ei !END +if cr
-
-+if .not.cr
+#endif
+#else
   ! This one should probably remain as write(*,*) or use output_unit
   write(*,*) 'SIXTRACK STOP/ABEND '//cstring
-+if debug
+#ifdef DEBUG
   ! call system('../crend   >> crlog')
-+ei
+#endif
   ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
   if(errout_status.ne.0) then
     write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
@@ -681,7 +669,7 @@ subroutine abend(cstring)
     ! No error
     stop
   end if
-+ei !END +if .not.cr
+#endif
 
 end subroutine abend
 
@@ -773,46 +761,3 @@ end subroutine print_lastlines_to_stderr
 ! =================================================================================================
 
 end module end_sixtrack
-
-+dk close
-! ================================================================================================ !
-!  Close all open file units
-!  Rewritten on 2018-04-17, VKBO
-! ================================================================================================ !
-subroutine closeUnits
-  
-  use scatter,     only : scatter_closeUnits
-  use dynk,        only : dynk_closeFiles
-  use dump,        only : dump_closeUnits
-  use bdex,        only : bdex_closeFiles
-  use file_units,  only : funit_closeUnits, funit_minUnit
-#ifdef HDF5
-  use hdf5_output, only : h5_closeHDF5
-#endif
-
-  implicit none
-
-  integer chkUnit
-  logical isOpen
-  
-  ! Call specific close units routines for modules
-  !   that assign units dynamically or via input.
-  call funit_closeUnits
-  call dump_closeUnits
-  call dynk_closeFiles
-  call bdex_closeFiles
-  call scatter_closeUnits
-#ifdef HDF5
-  call h5_closeHDF5
-#endif
-  
-  ! Then iterate through the first 1000 units
-  do chkUnit=1, funit_minUnit-1
-    inquire(unit=chkUnit, opened=isOpen)
-    if(isOpen) close(chkUnit)
-  end do
-  
-  return
-  
-end subroutine closeUnits
-! ================================================================================================ !

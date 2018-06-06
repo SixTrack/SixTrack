@@ -544,9 +544,6 @@ module mod_commonmn
        yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),dpsv(npart),      &
        dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),ejfv(npart),    &
        xlv(npart),zlv(npart),rvv(npart),pttemp,temptr(6),                &
-! +if rvet
-!        rvet(npart),                                                      &
-! +ei
        ejf0v(npart)
   integer, save :: numxv(npart),nms(npart),nlostp(npart),kxxa
   logical, save :: pstop(npart)
@@ -758,3 +755,71 @@ contains
   end subroutine mod_commond2_expand_arrays
   
 end module mod_commond2
+
+module mod_lie_dab
+  
+  use floatPrecision
+  
+  implicit none
+  
+  ! From lielib
+  integer, parameter :: ndim  = 3
+  integer, parameter :: ndim2 = 6
+  integer, parameter :: ntt   = 40
+  integer, parameter :: nreso = 20
+  
+  integer,          save :: nd,nd2,no,nv
+  integer,          save :: ifilt,idpr,iref,itu
+  integer,          save :: lienot,iflow,jtune
+  integer,          save :: ndc,ndc2,ndpt,ndt
+  integer,          save :: nplane(ndim),ista(ndim),idsta(ndim)
+  integer,          save :: mx(ndim,nreso),nres
+  real(kind=fPrec), save :: epsplane,xplane(ndim)
+  real(kind=fPrec), save :: sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
+  real(kind=fPrec), save :: ps(ndim),rads(ndim)
+  real(kind=fPrec), save :: xintex(0:20)
+  
+  ! From dabnew
+#ifdef SMALLDABNEW
+  integer, parameter :: lda = 10000
+  integer, parameter :: lst = 200000
+  integer, parameter :: lea = 500
+  integer, parameter :: lia = 10000
+  integer, parameter :: lno = 120
+  integer, parameter :: lnv = 40
+#endif
+#ifdef BIGDABNEW
+  integer, parameter :: lda = 10000
+  integer, parameter :: lst = 20050000
+  integer, parameter :: lea = 100000
+  integer, parameter :: lia = 5000000
+  integer, parameter :: lno = 120
+  integer, parameter :: lnv = 40
+#endif
+#ifdef CTRACK
+  integer, parameter :: lda = 1000
+  integer, parameter :: lst = 3000000
+  integer, parameter :: lea = 20000
+  integer, parameter :: lia = 20000
+  integer, parameter :: lno = 120
+  integer, parameter :: lnv = 40
+#endif
+
+  integer,           save :: ndat,nda,ndamaxi,lfi
+  integer,           save :: nst,nomax,nvmax,nmmax,nocut
+  integer,           save :: idano(lda),idanv(lda),idapo(lda)
+  integer,           save :: idalm(lda),idall(lda)
+  integer,           save :: i1(lst),i2(lst)
+  integer,           save :: ie1(lea),ie2(lea),ieo(lea)
+  integer,           save :: ia1(0:lia),ia2(0:lia),ifi(lea)
+  logical,           save :: allvec(lda)
+  character(len=10), save :: daname(lda)
+  real(kind=fPrec),  save :: cc(lst),eps,epsmac,facint(0:lno)
+  
+  ! dascr variables
+  integer,           save :: idao
+  integer,           save :: iscrda(100)
+  integer,           save :: iscrri(100)
+  real(kind=fPrec),  save :: rscrri(100)
+  
+end module mod_lie_dab

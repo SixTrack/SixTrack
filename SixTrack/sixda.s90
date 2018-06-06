@@ -33,6 +33,7 @@ program mainda
   use mod_commont
   use mod_commond
   use tuneshift_corr
+  use mod_units
   
   implicit none
   
@@ -47,13 +48,14 @@ program mainda
   
   character(len=10) cmonth
   character(len=80) day,runtim
+  character(len=7) fileName
   character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
   dimension qw(2),qwc(3),clo0(2),clop0(2)
   dimension eps(2),epsa(2)
   dimension cmonth(12)
   dimension tas(6,6)
 
-+if crlibm
+#ifdef CRLIBM
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -67,20 +69,28 @@ program mainda
   real(kind=fPrec) fround
   real(kind=fPrec) round_near
   data lineno /0/
-+ei
-+ca version
+#endif
+#include "version.f90"
 
   ! Set to nonzero before calling abend in case of error.
   ! If prror is called, it will be set internally.
   errout_status = 0
 
-+if .not.cr
+#ifndef CR
   lout=output_unit
-+ei
+#endif
   ! Initial allocation of memory
   call allocate_arrays
-
-+ca open
+  
+  ! Open files
+  call units_initUnits
+  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
 
   ! Print Header Info
   tlim=1e7
@@ -94,12 +104,11 @@ program mainda
   write(cdate,"(i6.6)") idate
   write(ctime,"(i4.4)") itime
   write(lout,"(a)")   ""
-+if .not.tilt
-  write(lout,"(a57)") " SIXTRACK DA VERSION "//version//" - (last change: "//moddate//")"
-+ei
-+if tilt
+#ifdef TILT
   write(lout,"(a69)") " SIXTRACK DA VERSION "//version//" (with tilt) - (last change: "//moddate//")"
-+ei
+#else
+  write(lout,"(a57)") " SIXTRACK DA VERSION "//version//" - (last change: "//moddate//")"
+#endif
   write(lout,"(a)")   ""
   write(lout,"(a26)") " Runtime: 20"//cdate(1:2)//"-"//cdate(3:4)//"-"//cdate(5:6)//" "//ctime(1:2)//":"//ctime(3:4)
   write(lout,"(a)")   ""
@@ -319,14 +328,14 @@ program mainda
       itiono=ition
       ition=0
     end if
-+if debug
+#ifdef DEBUG
 !       write(*,*) '3rd call qmodda multipole???'
-+ei
+#endif
     call qmodda(2,qwc)
-+if debug 
+#ifdef DEBUG
 !     call dumpbin('aqmodda',2,3)
 !     call abend('after  qmodda 2 3                                 ')
-+ei
+#endif
     if(nvar2.le.5) ition=itiono
     if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
     if(ilin.ge.2) then
@@ -494,12 +503,11 @@ program mainda
 ! We're done in mainda, no error :)
 !-----------------------------------------------------------------------
   call closeUnits
-+if cr
+#ifdef CR
   call abend('                                                  ')
-+ei
-+if .not.cr
+#else
   stop
-+ei
+#endif
 
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:',&
              /t10,'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM',&
@@ -616,7 +624,6 @@ subroutine daliesix
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
   dimension angle(3),rad(3)
-+ca commonas
   
   save
   
@@ -767,13 +774,13 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_commond
-  use mod_common, only : iqmodc,ichromc,ilinc
+  use mod_common,  only : iqmodc,ichromc,ilinc
+  use mod_lie_dab, only : iscrri,iscrda
   
   implicit none
   
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
   real(kind=fPrec) am
-+ca commonas
   dimension am(6,6),idummy(6)
   save
   
@@ -845,6 +852,7 @@ subroutine runcav
   use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
   use mod_commond
   use mod_hions
+  use mod_lie_dab, only : idao,rscrri,iscrda
   
   implicit none
   
