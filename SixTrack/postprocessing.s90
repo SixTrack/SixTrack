@@ -3556,28 +3556,11 @@ end subroutine join
 #ifndef DEBUG
       if (ncalls.le.20.or.numx.ge.nnuml-20) then
 #endif
-#ifdef BNLELENS
-         if (lhc.ne.9) then
-            write(93,*) 'WRITEBIN writing binrec ',binrec+1
-            flush(93)
-         else
-            write(93,*) 'WRITEBIN skipping write for bnlelens',binrec+1
-            flush(93)
-         endif
-#else
-         write(93,*) 'WRITEBIN writing binrec ',binrec+1
-         flush(93)
-#endif
+      write(93,*) 'WRITEBIN writing binrec ',binrec+1
+      flush(93)
 #ifndef DEBUG
       endif
 #endif
-#endif
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      if (lhc.ne.9) then
-!GRDRHIC
-!GRD-042008
 #endif
          do ia=1,napx-1
 !GRD
@@ -3687,28 +3670,7 @@ end subroutine join
                endif
             endif
          end do !END "do 10 ia=1,napx-1"
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      endif ! END "if (lhc.ne.9)"
-!GRDRHIC
-!GRD-042008
-#endif
 #ifdef CR
-#ifndef BNLELENS
-      binrec=binrec+1
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-         write(93,*) 'WRITEBIN written binrec ',binrec
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
-#ifndef DEBUG
-      endif
-#endif
-#else
-!GRDRHIC
-!GRD-042008
       if (lhc.ne.9) then
          binrec=binrec+1
 #ifndef DEBUG
@@ -3720,12 +3682,8 @@ end subroutine join
          endif
 #endif
       endif
-!GRDRHIC
-!GRD-042008
-#endif
       return
-   11 write(lout,*)                                                     &
-     &'*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
+   11 write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
       write(lout,*) 'SIXTRACR WRITEBIN IO ERROR on Unit 91'
       call prror(-1)
 #endif

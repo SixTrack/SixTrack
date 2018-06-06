@@ -2438,9 +2438,6 @@ subroutine compactArrays(llostp)
               xv(2,jj)=xv(2,jj1)
               yv(1,jj)=yv(1,jj1)
               yv(2,jj)=yv(2,jj1)
-#ifdef BNLELENS
-              namepart(jj)=namepart(jj1)
-#endif
               dpsv(jj)=dpsv(jj1)
               sigmv(jj)=sigmv(jj1)
               ejfv(jj)=ejfv(jj1)
