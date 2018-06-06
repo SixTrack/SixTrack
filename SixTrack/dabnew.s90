@@ -231,7 +231,7 @@ subroutine daini(no,nv,iunit)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : idao,is,iscrri,rs
+      use mod_lie_dab, only : idao,is,iscrri,rs
       use crcoall
       implicit none
       integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,lda,lea,lia,lno,lnv,lst,n,nn,no,nv

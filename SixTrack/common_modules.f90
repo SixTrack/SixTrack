@@ -755,3 +755,29 @@ contains
   end subroutine mod_commond2_expand_arrays
   
 end module mod_commond2
+
+module mod_lie_dab
+  
+  use floatPrecision
+  
+  implicit none
+  
+  integer, parameter :: ndim  = 3
+  integer, parameter :: ndim2 = 6
+  integer, parameter :: ntt   = 40
+  integer, parameter :: nreso = 20
+  
+  integer,          save :: nd,nd2,no,nv
+  integer,          save :: ifilt,idpr,iref,itu
+  integer,          save :: lienot,iflow,jtune
+  integer,          save :: ndc,ndc2,ndpt,ndt
+  integer,          save :: nplane(ndim),ista(ndim),idsta(ndim)
+  integer,          save :: mx(ndim,nreso),nres
+  integer,          save :: idao,is(100),iscrri(100)
+  real(kind=fPrec), save :: epsplane,xplane(ndim)
+  real(kind=fPrec), save :: sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
+  real(kind=fPrec), save :: ps(ndim),rads(ndim)
+  real(kind=fPrec), save :: xintex(0:20)
+  real(kind=fPrec), save :: rs(100)
+  
+end module mod_lie_dab

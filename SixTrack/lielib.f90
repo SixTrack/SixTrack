@@ -1,29 +1,4 @@
 
-module lielib_vars
-  
-  use floatPrecision
-  
-  implicit none
-  
-  integer, parameter :: ndim  = 3
-  integer, parameter :: ndim2 = 6
-  integer, parameter :: ntt   = 40
-  integer, parameter :: nreso = 20
-  
-  integer,          save :: nd,nd2,no,nv
-  integer,          save :: ifilt,idpr,iref,itu
-  integer,          save :: lienot,iflow,jtune
-  integer,          save :: ndc,ndc2,ndpt,ndt
-  integer,          save :: nplane(ndim),ista(ndim),idsta(ndim)
-  integer,          save :: mx(ndim,nreso),nres
-  integer,          save :: idao,is(100),iscrri(100)
-  real(kind=fPrec), save :: epsplane,xplane(ndim)
-  real(kind=fPrec), save :: sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
-  real(kind=fPrec), save :: ps(ndim),rads(ndim)
-  real(kind=fPrec), save :: xintex(0:20)
-  real(kind=fPrec), save :: rs(100)
-  
-end module lielib_vars
 
 subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
@@ -31,7 +6,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use numerical_constants
       use mathlib_bouncer
       use crcoall
-      use lielib_vars
+      use mod_lie_dab
       implicit none
       integer i,iref1,nd1,ndc1,ndpt1,nis,no1,nv1
       real(kind=fPrec) ang,ra,st
@@ -112,7 +87,7 @@ end subroutine lieinit
 subroutine flowpara(ifl,jtu)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : iflow,jtune
+      use mod_lie_dab, only : iflow,jtune
       implicit none
       integer ifl,jtu
       iflow=ifl
@@ -123,7 +98,7 @@ end subroutine flowpara
 subroutine pertpeek(st,ang,ra)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,ndim,angle,rad,sta
+      use mod_lie_dab, only : nd,ndim,angle,rad,sta
       implicit none
       integer i
       real(kind=fPrec) ang,ra,st
@@ -139,7 +114,7 @@ end subroutine pertpeek
 subroutine inputres(mx1,nres1)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : ndim,nreso,mx,nres
+      use mod_lie_dab, only : ndim,nreso,mx,nres
       implicit none
       integer i,j
       integer mx1(ndim,nreso),nres1
@@ -163,7 +138,7 @@ end subroutine inputres
 subroutine respoke(mres,nre,ire)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,iref,ndc,ndc2,ndpt,ndt,ndim,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,iref,ndc,ndc2,ndpt,ndt,ndim,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
       implicit none
       integer i,ire,j,nre
       real(kind=fPrec) ang,ra,st
@@ -184,7 +159,7 @@ end subroutine respoke
 subroutine liepeek(iia,icoast)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt
       implicit none
       integer iia(*),icoast(*)
 
@@ -287,7 +262,7 @@ subroutine etppulnv(x,xi,xff)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i
       integer  x(*)
@@ -314,7 +289,7 @@ subroutine etmtree(y,x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i,ie,iv,nt
 ! ROUTINES USING THE MAP IN AD-FORM
@@ -349,7 +324,7 @@ end subroutine etmtree
 subroutine etppush(x,xi)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i
       integer  x(*)
@@ -371,7 +346,7 @@ end subroutine etppush
 subroutine etppush2(x,xi,xff)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i
       integer  x(*)
@@ -394,7 +369,7 @@ subroutine ppushlnv(x,xi,xff,nd1)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i,nd1
       integer  x(*)
@@ -421,7 +396,7 @@ subroutine etcct(x,y,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i,ie,iv,nt
 !  Z=XoY
@@ -457,7 +432,7 @@ subroutine trx(h,rh,y)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i,ie,iv,nt
 !  :RH: = Y :H: Y^-1 =  :HoY:
@@ -494,7 +469,7 @@ end subroutine trx
 subroutine trxflo(h,rh,y)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndim2,ntt
+      use mod_lie_dab, only : nd,nd2,ndim2,ntt
       implicit none
       integer j,k
 !  *RH* = Y *H* Y^-1  CHANGE OF A VECTOR FLOW OPERATOR
@@ -533,7 +508,7 @@ end subroutine trxflo
 subroutine simil(a,x,ai,y)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
 !  Y= AoXoAI
       integer  x(*),y(*),a(*),ai(*)
@@ -557,7 +532,7 @@ subroutine etini(x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,no,nv,ndim2
+      use mod_lie_dab, only : nd,nd2,no,nv,ndim2
       implicit none
       integer i
 !  X=IDENTITY
@@ -574,7 +549,7 @@ subroutine etinv(x,y)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i,ie1,ie2,iv1,iv2,nt
 ! Y=X^-1
@@ -620,7 +595,7 @@ subroutine etpin(x,y,jj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i,ie1,ie2,iv1,iv2,jj,nt
 !  Y=PARTIAL INVERSION OF X SEE BERZ'S PACKAGE
@@ -666,7 +641,7 @@ end subroutine etpin
 subroutine dapek0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : ntt
+      use mod_lie_dab, only : ntt
       implicit none
       integer i,jj
       real(kind=fPrec) x
@@ -688,7 +663,7 @@ end subroutine dapek0
 subroutine dapok0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : ntt
+      use mod_lie_dab, only : ntt
       implicit none
       integer i,jj
       real(kind=fPrec) x
@@ -710,7 +685,7 @@ subroutine dapokzer(v,jj)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : ntt
+      use mod_lie_dab, only : ntt
       implicit none
       integer i,jj
       integer v(*),jd(ntt)
@@ -729,7 +704,7 @@ end subroutine dapokzer
 subroutine davar0(v,x,jj)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : ntt
+      use mod_lie_dab, only : ntt
       implicit none
       integer i,jj
       real(kind=fPrec) x
@@ -767,7 +742,7 @@ end subroutine comcfu
 subroutine take(h,m,ht)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,no,nv,ntt
+      use mod_lie_dab, only : nd,nd2,no,nv,ntt
       implicit none
       integer i,m
       real(kind=fPrec) r
@@ -826,7 +801,7 @@ end subroutine take
 subroutine taked(h,m,ht)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndim2,ntt
+      use mod_lie_dab, only : nd,nd2,ndim2,ntt
       implicit none
       integer i,m
 !  \VEC{HT}= \VEC{H_M}  (TAKES M^th DEGREE PIECE ALL VARIABLES INCLUDED)
@@ -855,7 +830,7 @@ end subroutine taked
 subroutine daclrd(h)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd2
+      use mod_lie_dab, only : nd2
       implicit none
       integer i
 ! clear a map : a vector of nd2 polynomials
@@ -869,7 +844,7 @@ end subroutine daclrd
 subroutine dacopd(h,ht)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd2
+      use mod_lie_dab, only : nd2
       implicit none
       integer i
 !    H goes into HT  (nd2 array)
@@ -883,7 +858,7 @@ end subroutine dacopd
 subroutine dacmud(h,sca,ht)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd2
+      use mod_lie_dab, only : nd2
       implicit none
       integer i
       real(kind=fPrec) sca
@@ -897,7 +872,7 @@ end subroutine dacmud
 subroutine dalind(h,rh,ht,rt,hr)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer i
       real(kind=fPrec) rh,rt
@@ -918,7 +893,7 @@ end subroutine dalind
 subroutine daread(h,nd1,mfile,xipo)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : ntt
+      use mod_lie_dab, only : ntt
       implicit none
       integer i,mfile,nd1
       real(kind=fPrec) rx,xipo
@@ -957,7 +932,7 @@ subroutine prresflo(h,eps,mfile)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ifilt,ndim2
+      use mod_lie_dab, only : nd,nd2,ifilt,ndim2
       implicit none
       integer i,mfile
       real(kind=fPrec) deps,eps,filtres
@@ -987,7 +962,7 @@ real(kind=fPrec) function filtres(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ifilt,ndc,ndc2,ndpt,ndt
+      use mod_lie_dab, only : nd,nd2,ifilt,ndc,ndc2,ndpt,ndt
       implicit none
       integer i,ic
       integer j(*)
@@ -1011,7 +986,7 @@ end function filtres
 subroutine daflo(h,x,y)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2
+      use mod_lie_dab, only : nd,nd2
       implicit none
       integer i
 ! LIE EXPONENT ROUTINES WITH FLOW OPERATORS
@@ -1044,7 +1019,7 @@ end subroutine daflo
 subroutine daflod(h,x,y)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer i
       integer  h(*),x(*),y(*)
@@ -1069,7 +1044,7 @@ subroutine intd(v,h,sca)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer i
       real(kind=fPrec) dlie,sca
@@ -1115,7 +1090,7 @@ end subroutine intd
 subroutine difd(h1,v,sca)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2
+      use mod_lie_dab, only : nd,nd2
       implicit none
       integer i
       real(kind=fPrec) sca
@@ -1142,7 +1117,7 @@ subroutine expflo(h,x,y,eps,nrmax)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : idpr
+      use mod_lie_dab, only : idpr
       implicit none
       integer i,nrmax
       real(kind=fPrec) coe,eps,r,rbefore
@@ -1205,7 +1180,7 @@ end subroutine expflo
 
 subroutine expflod(h,x,w,eps,nrmax)
       use floatPrecision
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer j,nrmax
       real(kind=fPrec) eps
@@ -1233,7 +1208,7 @@ end subroutine expflod
 subroutine facflo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer i,ifac,nmax,nrmax,nrmin
       real(kind=fPrec) eps,sca
@@ -1282,7 +1257,7 @@ end subroutine facflo
 
 subroutine facflod(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
-      use lielib_vars, only : nd,nd2
+      use mod_lie_dab, only : nd,nd2
       implicit none
       integer i,ifac,nrmax,nrmin
       real(kind=fPrec) sca
@@ -1302,7 +1277,7 @@ end subroutine facflod
 subroutine fexpo(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer ifac,nrma,nrmax,nrmi,nrmin
       real(kind=fPrec) sca
@@ -1326,7 +1301,7 @@ end subroutine fexpo
 subroutine etcom(x,y,h)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer i,j
 ! ETCOM TAKES THE BRACKET OF TWO VECTOR FIELDS.
@@ -1360,7 +1335,7 @@ end subroutine etcom
 subroutine etpoi(x,y,h)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2
+      use mod_lie_dab, only : nd,nd2
       implicit none
       integer i
 ! ETPOI TAKES THE POISSON BRACKET OF TWO FUNCTIONS
@@ -1396,7 +1371,7 @@ end subroutine etpoi
 subroutine exp1d(h,x,y,eps,non)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,idpr,ndim2
+      use mod_lie_dab, only : nd,nd2,idpr,ndim2
       implicit none
       integer non
       real(kind=fPrec) eps
@@ -1416,7 +1391,7 @@ end subroutine exp1d
 
 subroutine expnd2(h,x,w,eps,nrmax)
       use floatPrecision
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer j,nrmax
       real(kind=fPrec) eps
@@ -1447,7 +1422,7 @@ subroutine flofacg(xy,h,epsone)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : nd,nd2,idpr,ndim2,ntt,xintex
+      use mod_lie_dab, only : nd,nd2,idpr,ndim2,ntt,xintex
       implicit none
       integer i,k,kk,nrmax
       real(kind=fPrec) eps,epsone,r,xn,xnbefore,xnorm,xnorm1,xx
@@ -1528,7 +1503,7 @@ end subroutine flofacg
 subroutine flofac(xy,x,h)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,no,ndim2
+      use mod_lie_dab, only : nd,nd2,no,ndim2
       implicit none
       integer k
 ! GENERAL DRAGT-FINN FACTORIZATION
@@ -1564,7 +1539,7 @@ end subroutine flofac
 subroutine liefact(xy,x,h)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
 ! SYMPLECTIC DRAGT-FINN FACTORIZATION WRAPPING FLOFAC
       integer xy(*),x(*),h
@@ -1584,7 +1559,7 @@ end subroutine liefact
 subroutine mapnorm(x,ft,a2,a1,xy,h,nord)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer isi,nord
 !--NORMALIZATION ROUTINES OF LIELIB
@@ -1605,7 +1580,7 @@ end subroutine mapnorm
 
 subroutine gettura(psq,radsq)
       use floatPrecision
-      use lielib_vars, only : nd,nd2,ndim,ps,rads
+      use mod_lie_dab, only : nd,nd2,ndim,ps,rads
       implicit none
       integer ik
       real(kind=fPrec) psq(ndim),radsq(ndim)
@@ -1620,7 +1595,7 @@ end subroutine gettura
 
 subroutine setidpr(idprint,nplan)
       use floatPrecision
-      use lielib_vars, only : nd,nd2,idpr,nplane,epsplane,xplane,ndim
+      use mod_lie_dab, only : nd,nd2,idpr,nplane,epsplane,xplane,ndim
       implicit none
       integer idprint,ik,nplan
       dimension nplan(ndim)
@@ -1635,7 +1610,7 @@ end subroutine setidpr
 
 subroutine idprset(idprint)
       use floatPrecision
-      use lielib_vars, only : idpr
+      use mod_lie_dab, only : idpr
       implicit none
       integer idprint
       idpr=idprint
@@ -1647,7 +1622,7 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : nd,nd2,idpr,itu,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,ps,rads
+      use mod_lie_dab, only : nd,nd2,idpr,itu,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,ps,rads
       implicit none
       integer ij,isi,nord
       real(kind=fPrec) angle,p,rad,st,x2pi,x2pii
@@ -1712,7 +1687,7 @@ end subroutine mapnormf
 subroutine gofix(xy,a1,a1i,nord)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,no,ndc,ndc2,ndpt,ndt,ndim2
+      use mod_lie_dab, only : nd,nd2,no,ndc,ndc2,ndpt,ndt,ndim2
       implicit none
       integer i,nord
       real(kind=fPrec) xic
@@ -1809,7 +1784,7 @@ end subroutine gofix
 real(kind=fPrec) function transver(j)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
       integer i,ic
 ! USED IN A DACFU CALL OF GOFIX
@@ -1830,7 +1805,7 @@ subroutine orderflo(h,ft,x,ang,ra)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : nd,nd2,no,idpr,ndim,ndim2
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndim,ndim2
       implicit none
       integer k
       real(kind=fPrec) ang,ra
@@ -1897,7 +1872,7 @@ end subroutine orderflo
 
 subroutine nuanaflo(h,ft)
       use floatPrecision
-      use lielib_vars, only : nd,nd2,iflow,jtune,ndim2
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndim2
       implicit none
       integer i
       real(kind=fPrec) dfilt,filt,xgam,xgbm
@@ -1955,7 +1930,7 @@ real(kind=fPrec) function xgam(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
       implicit none
       integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
@@ -1996,7 +1971,7 @@ real(kind=fPrec) function xgbm(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
       implicit none
       integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
@@ -2035,7 +2010,7 @@ end function xgbm
 real(kind=fPrec) function filt(j)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,idsta,ista,angle,dsta,rad,sta,mx,nres
       implicit none
       integer i,ic,ic1,ic2,ij,ik,ji
 !  PROJECTION FUNCTIONS ON THE KERNEL ANMD RANGE OF (1-R^-1)
@@ -2077,7 +2052,7 @@ end function filt
 real(kind=fPrec) function dfilt(j)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,mx,nres
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,mx,nres
       implicit none
       real(kind=fPrec) fil,filt
 !-  THE RANGE OF (1-R^-1)^1
@@ -2099,7 +2074,7 @@ subroutine dhdjflo(h,t)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2
       implicit none
       integer i
       real(kind=fPrec) coe,x2pi
@@ -2142,7 +2117,7 @@ subroutine dhdj(h,t)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
       integer i
       real(kind=fPrec) coe,x2pi
@@ -2188,7 +2163,7 @@ end subroutine dhdj
 subroutine h2pluflo(h,ang,ra)
       use floatPrecision
       use numerical_constants
-      use lielib_vars, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ntt,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ntt,angle,dsta,rad,sta
       implicit none
       integer i,j
       real(kind=fPrec) ang,r1,r2,ra,st
@@ -2237,7 +2212,7 @@ subroutine rotflo(ro,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim,ntt,idsta,ista
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim,ntt,idsta,ista
       implicit none
       integer i
       real(kind=fPrec) ang,ch,co,ra,sh,si,sim,xx
@@ -2293,7 +2268,7 @@ subroutine rotiflo(roi,ang,ra)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim,ntt,idsta,ista
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim,ntt,idsta,ista
       implicit none
       integer i
       real(kind=fPrec) ang,ch,co,ra,sh,si,sim,simv,xx
@@ -2368,7 +2343,7 @@ subroutine ctor(c1,r2,i2)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
 ! CHANGES OF BASIS
 !   C1------> R2+I R1
@@ -2424,7 +2399,7 @@ end subroutine ctorflo
 subroutine rtocflo(dr,di,c)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
 ! FLOW RTOC
       integer dr(*),di(*),c(*),er(ndim2),ei(ndim2)
@@ -2444,7 +2419,7 @@ end subroutine rtocflo
 subroutine ctord(c,cr,ci)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd2
+      use mod_lie_dab, only : nd2
       implicit none
       integer i
 ! ROUTINES USED IN THE INTERMEDIATE STEPS OF CTORFLO AND RTOCFLO
@@ -2460,7 +2435,7 @@ end subroutine ctord
 subroutine rtocd(cr,ci,c)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd2
+      use mod_lie_dab, only : nd2
       implicit none
       integer i
 !  INVERSE OF CTORD
@@ -2474,7 +2449,7 @@ end subroutine rtocd
 subroutine resvec(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista,angle,dsta,rad,sta
       implicit none
       integer i
 ! DOES THE SPINOR PART IN CTORFLO
@@ -2519,7 +2494,7 @@ subroutine reelflo(c,ci,f,fi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2,idsta,ista,angle,dsta,rad,sta
       implicit none
       integer i
 ! DOES THE SPINOR PART IN RTOCFLO
@@ -2557,7 +2532,7 @@ subroutine compcjg(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd2,ndim2
+      use mod_lie_dab, only : nd2,ndim2
       implicit none
 ! TAKES THE COMPLEX CONJUGATE IN RESONANCE BASIS OF A POLYNOMIAL
       integer dr,di,ci,cr,x(ndim2)
@@ -2577,7 +2552,7 @@ subroutine midbflo(c,a2,a2i,q,a,st)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ndim2,ntt
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ndim2,ntt
       implicit none
       integer i,j
       real(kind=fPrec) a,ch,cm,cr,q,r,sa,sai,shm,st,x2pi
@@ -2668,7 +2643,7 @@ subroutine mapflol(sa,sai,cr,cm,st)
       use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,no,idpr,ndc,ndc2,ndpt,ndt,nplane,epsplane,xplane,ndim,ndim2
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndc,ndc2,ndpt,ndt,nplane,epsplane,xplane,ndim,ndim2
       use crcoall
       use file_units
       implicit none
@@ -2846,7 +2821,7 @@ subroutine mulnd2(rt,r)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer i,ia,j
       real(kind=fPrec) r,rt,rtt
@@ -2879,7 +2854,7 @@ subroutine movearou(rt)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : nd,nd2,no,idpr,ndim2
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndim2
       implicit none
       integer i,ic,j
       real(kind=fPrec) rt,rto,s,xr,xrold,xy,xyz,xz,xzy,yz
@@ -3011,7 +2986,7 @@ subroutine movemul(rt,xy,rto,xr)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer i,j,k
       real(kind=fPrec) rt,rto,xr,xy
@@ -3055,7 +3030,7 @@ subroutine initpert(st,ang,ra)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : nd,nd2,iref,ndc,ndc2,ndpt,ndt,ndim,ndim2,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,nd2,iref,ndc,ndc2,ndpt,ndt,ndim,ndim2,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
       implicit none
       integer i,nn
       real(kind=fPrec) ang,ra,st
@@ -3111,7 +3086,7 @@ real(kind=fPrec) function dlie(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2
+      use mod_lie_dab, only : nd,nd2
       implicit none
       integer i
 !      INTEGER J(NTT)
@@ -3131,7 +3106,7 @@ real(kind=fPrec) function rext(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista
       implicit none
       integer i,lie,mo
       integer j(*)
@@ -3168,7 +3143,7 @@ end subroutine cpart
 subroutine ctoi(f1,f2)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd2,ndim2
+      use mod_lie_dab, only : nd2,ndim2
       implicit none
       integer f1,f2
       integer b1(1),x(ndim2)
@@ -3188,7 +3163,7 @@ end subroutine ctoi
 subroutine itoc(f1,f2)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd2,ndim2
+      use mod_lie_dab, only : nd2,ndim2
       implicit none
       integer f1,f2
       integer b1(1),x(ndim2)
@@ -3207,7 +3182,7 @@ end subroutine itoc
 subroutine etrtc(x)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndc,ndim2
+      use mod_lie_dab, only : nd,nd2,ndc,ndim2
       implicit none
       integer i
       integer x(*)
@@ -3230,7 +3205,7 @@ subroutine etctr(x)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndim2
+      use mod_lie_dab, only : nd,nd2,ndc,ndim2
       implicit none
       integer i
       integer x(*)
@@ -3252,7 +3227,7 @@ end subroutine etctr
 subroutine etcjg(x)
       use floatPrecision
       use mathlib_bouncer
-      use lielib_vars, only : nd,nd2,ndc,ndim2,idsta,ista
+      use mod_lie_dab, only : nd,nd2,ndc,ndim2,idsta,ista
       implicit none
       integer i
       integer x(*)
@@ -3282,7 +3257,7 @@ subroutine eig6(fm,reval,aieval,revec,aievec)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2
       implicit none
       integer jet
 !**************************************************************************
@@ -4107,7 +4082,7 @@ subroutine averaged(f,a,flag,fave)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,no,idpr,ndim2
+      use mod_lie_dab, only : nd,nd2,no,idpr,ndim2
       implicit none
       integer isi,nord
       real(kind=fPrec) avepol
@@ -4167,7 +4142,7 @@ real(kind=fPrec) function avepol(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
       integer i
 !      INTEGER J(NTT)
@@ -4188,7 +4163,7 @@ subroutine couplean(map1,tune,map2,oneturn)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use lielib_vars, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ndim2
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ndim2
       implicit none
       integer i,no1,nord
       real(kind=fPrec) crazy,tpi
@@ -4278,7 +4253,7 @@ real(kind=fPrec) function planar(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndc,ndc2,ndpt,ndt
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt
       implicit none
       integer i
 !      INTEGER J(NTT)
@@ -4306,7 +4281,7 @@ real(kind=fPrec) function killnonl(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ndc,ndc2,ndpt,ndt
+      use mod_lie_dab, only : nd,nd2,nv,ndc,ndc2,ndpt,ndt
       implicit none
       integer i,ic
 !      INTEGER J(NTT)
@@ -4328,7 +4303,7 @@ subroutine fexpo1(h,x,w,nrmin,nrmax,sca,ifac)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,ndim2
+      use mod_lie_dab, only : nd,nd2,ndim2
       implicit none
       integer ifac,nrma,nrmax,nrmi,nrmin
       real(kind=fPrec) sca
@@ -4350,7 +4325,7 @@ subroutine etcctpar(x,ix,xj,z)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use lielib_vars, only : nd,nd2,nv,ntt
+      use mod_lie_dab, only : nd,nd2,nv,ntt
       implicit none
       integer i,ie,ix
       real(kind=fPrec) xj
