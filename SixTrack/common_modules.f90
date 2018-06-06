@@ -762,6 +762,7 @@ module mod_lie_dab
   
   implicit none
   
+  ! From Lielib
   integer, parameter :: ndim  = 3
   integer, parameter :: ndim2 = 6
   integer, parameter :: ntt   = 40
@@ -780,4 +781,36 @@ module mod_lie_dab
   real(kind=fPrec), save :: xintex(0:20)
   real(kind=fPrec), save :: rs(100)
   
+  ! From dabnew
+#ifdef SMALLDABNEW
+  integer, parameter :: lda = 10000
+  integer, parameter :: lst = 200000
+  integer, parameter :: lea = 500
+  integer, parameter :: lia = 10000
+  integer, parameter :: lno = 120
+  integer, parameter :: lnv = 40
+#endif
+#ifdef BIGDABNEW
+  integer, parameter :: lda = 10000
+  integer, parameter :: lst = 20050000
+  integer, parameter :: lea = 100000
+  integer, parameter :: lia = 5000000
+  integer, parameter :: lno = 120
+  integer, parameter :: lnv = 40
+#endif
+#ifdef CTRACK
+  integer, parameter :: lda = 1000
+  integer, parameter :: lst = 3000000
+  integer, parameter :: lea = 20000
+  integer, parameter :: lia = 20000
+  integer, parameter :: lno = 120
+  integer, parameter :: lnv = 40
+#endif
+
+  ! common /alloctot/ ndat
+  integer,          save :: ndat
+  
+  ! common /alloc/ allvec
+  logical,          save :: allvec(lda)
+
 end module mod_lie_dab

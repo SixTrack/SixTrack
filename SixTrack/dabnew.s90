@@ -2,19 +2,13 @@
       integer idao,is,iscrri
       real(kind=fPrec) rs
       common/dascr/is(100),rs(100),iscrri(100),idao
-+cd alloc
-      logical allvec(lda)
-      common /alloc/ allvec
-+cd alloctot
-      integer ndat
-      common /alloctot/ ndat
 +cd daname
       character daname(lda)*10
       common / daname / daname
 +cd dabinc
       integer i1,i2,ia1,ia2,idall,idalm,idano,idanv,idapo,ie1,ie2,ieo,ifi,lfi,nda,ndamaxi,nmmax,nocut,nomax,nst,nvmax
       real(kind=fPrec) cc,eps,epsmac,facint
-#ifdef SMALL
+#ifdef SMALLDABNEW
       parameter(lda=10000,lst=200000,lea=500,lia=10000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
@@ -24,7 +18,7 @@
      &nst,nomax,nvmax,nmmax,nocut,lfi
       common /factor/ facint(0:lno)
 #endif
-#ifdef BIG
+#ifdef BIGDABNEW
       parameter(lda=10000,lst=20050000,lea=100000,lia=5000000,lno=120,lnv=40)
       common /fordes/ nda,ndamaxi
       common / da / cc(lst),eps,epsmac
@@ -231,7 +225,7 @@ subroutine daini(no,nv,iunit)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : idao,is,iscrri,rs
+      use mod_lie_dab, only : idao,is,iscrri,rs,allvec
       use crcoall
       implicit none
       integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,lda,lea,lia,lno,lnv,lst,n,nn,no,nv
@@ -249,7 +243,6 @@ subroutine daini(no,nv,iunit)
 !      COMMON / DASCR /  IS(20), RS(20)                                        1
 !-----------------------------------------------------------------------------2
 
-+ca alloc
 
       character(len=10) aa
       dimension n(lnv+1),k(0:lnv),j(lnv),jj(lnv)
@@ -480,6 +473,7 @@ end subroutine daini
 
 subroutine daexter
       use floatPrecision
+      use mod_lie_dab, only : allvec
       implicit none
       integer i,lda,lea,lia,lno,lnv,lst
 !     *****************************
@@ -487,7 +481,6 @@ subroutine daexter
 !-----------------------------------------------------------------------------1
 +ca dabinc
 !-----------------------------------------------------------------------------9
-+ca alloc
 
       do i=1, lda
         allvec(i)=.false.
@@ -500,6 +493,7 @@ subroutine dallsta(ldanow)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : allvec
       implicit none
       integer i,lda,ldanow,lea,lia,lno,lnv,lst
 !     *****************************
@@ -507,7 +501,6 @@ subroutine dallsta(ldanow)
 !-----------------------------------------------------------------------------1
 +ca dabinc
 !-----------------------------------------------------------------------------9
-+ca alloc
 
       ldanow=0
       do 5 i=1, lda
@@ -581,6 +574,7 @@ subroutine daallno(ic,l,ccc)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : allvec
       implicit none
       integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
       real(kind=fPrec) x
@@ -591,7 +585,6 @@ subroutine daallno(ic,l,ccc)
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-+ca alloc
 
 !-----------------------------------------------------------------------------9
 +ca daname
@@ -689,6 +682,7 @@ subroutine daall(ic,l,ccc,no,nv)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
+      use mod_lie_dab, only : ndat,allvec
       implicit none
       integer i,ind,l,lda,lea,lia,lno,lnv,lst,ndanum,no,nv
       real(kind=fPrec) x
@@ -699,8 +693,6 @@ subroutine daall(ic,l,ccc,no,nv)
 !
 !-----------------------------------------------------------------------------1
 +ca dabinc
-+ca alloc
-+ca alloctot
 
 !-----------------------------------------------------------------------------9
 +ca daname
@@ -799,6 +791,7 @@ subroutine dadal(idal,l)
       use floatPrecision
       use mathlib_bouncer
       use crcoall
+      use mod_lie_dab, only : allvec
       implicit none
       integer i,l,lda,lea,lia,lno,lnv,lst
 !     ************************
@@ -809,7 +802,6 @@ subroutine dadal(idal,l)
 +ca dabinc
 +ca daname
 !-----------------------------------------------------------------------------3
-+ca alloc
 
       integer idal(*)
 

@@ -12,7 +12,6 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       real(kind=fPrec) ang,ra,st
 !! Lieinit initializes AD Package and Lielib
       dimension st(ndim),ang(ndim),ra(ndim)
-!+CA DASCR
       call daexter
 
       do i=1,ndim
