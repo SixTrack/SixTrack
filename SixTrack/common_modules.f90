@@ -807,10 +807,15 @@ module mod_lie_dab
   integer, parameter :: lnv = 40
 #endif
 
-  ! common /alloctot/ ndat
-  integer,          save :: ndat
+  integer,           save :: ndat,nda,ndamaxi,lfi
+  integer,           save :: nst,nomax,nvmax,nmmax,nocut
+  integer,           save :: idano(lda),idanv(lda),idapo(lda)
+  integer,           save :: idalm(lda),idall(lda)
+  integer,           save :: i1(lst),i2(lst)
+  integer,           save :: ie1(lea),ie2(lea),ieo(lea)
+  integer,           save :: ia1(0:lia),ia2(0:lia),ifi(lea)
+  logical,           save :: allvec(lda)
+  character(len=10), save :: daname(lda)
+  real(kind=fPrec),  save :: cc(lst),eps,epsmac,facint(0:lno)
   
-  ! common /alloc/ allvec
-  logical,          save :: allvec(lda)
-
 end module mod_lie_dab
