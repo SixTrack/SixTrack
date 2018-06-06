@@ -12337,6 +12337,7 @@ end interface
   logical isOpen
   character(len=10) cmonth
   character(len=4) cpto
+  character(len=7) tmpFile
 #ifdef CR
   character(len=80) day
 #else
@@ -12631,8 +12632,8 @@ end interface
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
-    write(fileName,"(a5,i2)") "fort.",i
-    call units_openUnits(unit=i,fileName=fileName,formatted=.false.,boinc=.true.)
+    write(tmpFile,"(a5,i2)") "fort.",i
+    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,boinc=.true.)
   end do
 #endif
   
