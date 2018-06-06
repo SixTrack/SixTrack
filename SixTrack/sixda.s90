@@ -775,7 +775,8 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_commond
-  use mod_common, only : iqmodc,ichromc,ilinc
+  use mod_common,  only : iqmodc,ichromc,ilinc
+  use mod_lie_dab, only : iscrri
   
   implicit none
   
@@ -853,6 +854,7 @@ subroutine runcav
   use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
   use mod_commond
   use mod_hions
+  use mod_lie_dab, only : idao
   
   implicit none
   

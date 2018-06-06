@@ -1,7 +1,7 @@
 +cd dascr
-      integer idao,is,iscrri
+      integer is
       real(kind=fPrec) rs
-      common/dascr/is(100),rs(100),iscrri(100),idao
+      common/dascr/is(100),rs(100)
 
 +dk dabnew
 

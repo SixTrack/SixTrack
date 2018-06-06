@@ -314,10 +314,13 @@
          ENDIF
   30     CONTINUE
 
-         WRITE(2,'(6X,A)') 'INTEGER ISCRDA, ISCRRI,IDAO'
+      !    WRITE(2,'(6X,A)') 'INTEGER ISCRDA, ISCRRI,IDAO'
+      !    WRITE(2,'(6X,A)') 'REAL(KIND=fPrec) RSCRRI'
+      !    WRITE(2,'(6X,A)') 'COMMON/DASCR/ISCRDA(100),RSCRRI(100)'       &
+      !                          //',ISCRRI(100),IDAO'
+         WRITE(2,'(6X,A)') 'INTEGER ISCRDA'
          WRITE(2,'(6X,A)') 'REAL(KIND=fPrec) RSCRRI'
-         WRITE(2,'(6X,A)') 'COMMON/DASCR/ISCRDA(100),RSCRRI(100)'       &
-                               //',ISCRRI(100),IDAO'
+         WRITE(2,'(6X,A)') 'COMMON/DASCR/ISCRDA(100),RSCRRI(100)'
 
          DO 60 I=1,INAM
 !         IF((NPAR(I,1).EQ.1).AND.(NPAR(I,2).EQ.4).AND.(NPAR(I,6).EQ.0))

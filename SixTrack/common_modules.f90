@@ -762,7 +762,7 @@ module mod_lie_dab
   
   implicit none
   
-  ! From Lielib
+  ! From lielib
   integer, parameter :: ndim  = 3
   integer, parameter :: ndim2 = 6
   integer, parameter :: ntt   = 40
@@ -774,7 +774,6 @@ module mod_lie_dab
   integer,          save :: ndc,ndc2,ndpt,ndt
   integer,          save :: nplane(ndim),ista(ndim),idsta(ndim)
   integer,          save :: mx(ndim,nreso),nres
-  integer,          save :: idao,is(100),iscrri(100)
   real(kind=fPrec), save :: epsplane,xplane(ndim)
   real(kind=fPrec), save :: sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
   real(kind=fPrec), save :: ps(ndim),rads(ndim)
@@ -817,5 +816,10 @@ module mod_lie_dab
   logical,           save :: allvec(lda)
   character(len=10), save :: daname(lda)
   real(kind=fPrec),  save :: cc(lst),eps,epsmac,facint(0:lno)
+  
+  ! dascr variables
+  integer,           save :: idao
+  integer,           save :: is(100)
+  integer,           save :: iscrri(100)
   
 end module mod_lie_dab
