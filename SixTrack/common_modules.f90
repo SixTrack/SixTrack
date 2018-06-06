@@ -818,7 +818,7 @@ module mod_lie_dab
   
   ! dascr variables
   integer,           save :: idao
-  integer,           save :: is(100)
+  integer,           save :: iscrda(100)
   integer,           save :: iscrri(100)
   real(kind=fPrec),  save :: rscrri(100)
   

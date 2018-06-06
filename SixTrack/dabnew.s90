@@ -176,7 +176,7 @@ subroutine daini(no,nv,iunit)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : idao,is,iscrri,rscrri,allvec,eps,epsmac,nda,ndamaxi,nst,nomax,nvmax,  &
+      use mod_lie_dab, only : idao,iscrda,iscrri,rscrri,allvec,eps,epsmac,nda,ndamaxi,nst,nomax,nvmax,  &
         nmmax,nocut,lfi,idall,i1,i2,ie1,ie2,ieo,ia1,ia2,lda,lst,lea,lia,lno,lnv
       use crcoall
       implicit none
@@ -238,7 +238,7 @@ subroutine daini(no,nv,iunit)
 
       idao=0 
       do i=1,100
-        is(i) = 0
+        iscrda(i)=0
         iscrri(i)=0
         rscrri(i)=zero
       enddo

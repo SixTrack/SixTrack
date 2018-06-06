@@ -6,7 +6,10 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use numerical_constants
       use mathlib_bouncer
       use crcoall
-      use mod_lie_dab
+      use mod_lie_dab, only : ndim,ndim2,ntt,nreso,nd,nd2,no,nv,ifilt,idpr,iref,itu,lienot,iflow,   &
+        jtune,ndc,ndc2,ndpt,ndt,nplane,ista,idsta,mx,nres,epsplane,xplane,sta,dsta,angle,rad,ps,    &
+        rads,xintex,iscrda
+    
       implicit none
       integer i,iref1,nd1,ndc1,ndpt1,nis,no1,nv1
       real(kind=fPrec) ang,ra,st
@@ -27,12 +30,12 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       nd2=2*nd1
 
       do i=1,100
-       is(i)=0
+        iscrda(i)=0
       end do
 
       call daini(no,nv,0)
 
-      if(nis.gt.0)call etallnom(is,nis,'$$IS      ')
+      if(nis.gt.0)call etallnom(iscrda,nis,'$$IS      ')
        if(ndpt1.eq.0) then
          ndpt=0
          ndt=0
