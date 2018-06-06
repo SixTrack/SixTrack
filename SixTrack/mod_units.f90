@@ -32,7 +32,8 @@ subroutine units_openUnits(unit,fileName,formatted,boinc,fio,recl)
   logical,          optional, intent(in) :: fio
   integer,          optional, intent(in) :: recl
   
-  type(unitSpec), allocatable :: tmpUnits(:)
+  type(unitSpec),   allocatable :: tmpUnits(:)
+  character(len=:), allocatable :: fFileName
   integer i, fRecl, nUnits
   logical fBoinc, fFio
   
@@ -63,7 +64,9 @@ subroutine units_openUnits(unit,fileName,formatted,boinc,fio,recl)
   end if
   
 #ifdef BOINC
-  if(fBoinc) call boincrf(unitList(i)%filename, fileName)
+  if(fBoinc) call boincrf(fileName,fFileName)
+#else
+  fFileName = fileName
 #endif
 #ifndef FIO
   fFio = .false.
@@ -84,19 +87,19 @@ subroutine units_openUnits(unit,fileName,formatted,boinc,fio,recl)
   if(formatted) then
     if(fRecl > 0) then
       if(fFio) then
-        open(unit,file=fileName,form="formatted",status="unknown",round="nearest",recl=fRecl)
+        open(unit,file=fFileName,form="formatted",status="unknown",round="nearest",recl=fRecl)
       else
-        open(unit,file=fileName,form="formatted",status="unknown",recl=fRecl)
+        open(unit,file=fFileName,form="formatted",status="unknown",recl=fRecl)
       end if
     else
       if(fFio) then
-        open(unit,file=fileName,form="formatted",status="unknown",round="nearest")
+        open(unit,file=fFileName,form="formatted",status="unknown",round="nearest")
       else
-        open(unit,file=fileName,form="formatted",status="unknown")
+        open(unit,file=fFileName,form="formatted",status="unknown")
       end if
     end if
   else
-    open(unit,file=fileName,form="unformatted",status="unknown")
+    open(unit,file=fFileName,form="unformatted",status="unknown")
   endif
   
 end subroutine units_openUnits

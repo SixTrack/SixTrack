@@ -48,7 +48,6 @@ program mainda
   
   character(len=10) cmonth
   character(len=80) day,runtim
-  character(len=7) fileName
   character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
   dimension qw(2),qwc(3),clo0(2),clop0(2)
   dimension eps(2),epsa(2)
