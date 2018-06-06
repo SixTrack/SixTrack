@@ -561,9 +561,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! logical isnan
   logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #ifdef COLLIMAT
 ! Module to access ipart array
 +ca collpara
@@ -2441,9 +2438,6 @@ subroutine compactArrays(llostp)
               xv(2,jj)=xv(2,jj1)
               yv(1,jj)=yv(1,jj1)
               yv(2,jj)=yv(2,jj1)
-#ifdef BNLELENS
-              namepart(jj)=namepart(jj1)
-#endif
               dpsv(jj)=dpsv(jj1)
               sigmv(jj)=sigmv(jj1)
               ejfv(jj)=ejfv(jj1)

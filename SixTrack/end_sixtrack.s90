@@ -39,9 +39,6 @@ subroutine prror(ier)
   implicit none
   
   integer ier
-! +if bnlelens
-! +ca rhicelens
-! +ei
 
 #ifdef FLUKA
   integer fluka_con

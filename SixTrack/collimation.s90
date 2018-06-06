@@ -199,10 +199,6 @@ subroutine collimate_init()
 +ca dbdaten
 +ei
 
-+if bnlelens
-+ca rhicelens
-+ei
-
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
 #endif
@@ -675,10 +671,6 @@ subroutine collimate_start_sample(nsample)
 +ca info
 +ca dbthin6d
 +ca dbcolcom
-+ei
-
-+if bnlelens
-+ca rhicelens
 +ei
 
 +if cr
@@ -1378,10 +1370,6 @@ subroutine collimate_start_collimator(stracki)
 +ca dbthin6d
 +ei
 
-+if bnlelens
-+ca rhicelens
-+ei
-
   real(kind=fPrec) c5m4,stracki
 
 +if fast
@@ -1588,10 +1576,6 @@ subroutine collimate_do_collimator(stracki)
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
-
-+if bnlelens
-+ca rhicelens
 +ei
 
   real(kind=fPrec) c5m4,stracki
@@ -2416,10 +2400,6 @@ subroutine collimate_end_collimator()
 +ca dbthin6d
 #endif
 
-#ifdef BNLELENS
-+ca rhicelens
-#endif
-
 #ifdef HDF5
   ! For tracks2
   integer hdfturn,hdfpid,hdftyp
@@ -2868,10 +2848,6 @@ subroutine collimate_end_sample(j)
 +ca dbcolcom
 +ei
   
-+if bnlelens
-+ca rhicelens
-+ei
-  
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
   close(survival_unit)
@@ -3136,10 +3112,6 @@ subroutine collimate_exit()
 +ca dbcolcom
 +ei
 
-+if bnlelens
-+ca rhicelens
-+ei
-
   close(outlun)
   close(collgaps_unit)
 
@@ -3337,10 +3309,6 @@ subroutine collimate_start_element(i)
 +ca dbthin6d
 +ei
 
-+if bnlelens
-+ca rhicelens
-+ei
-
   ie=i
 !++  For absorbed particles set all coordinates to zero. Also
 !++  include very large offsets, let's say above 100mm or
@@ -3440,10 +3408,6 @@ subroutine collimate_end_element
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
-
-+if bnlelens
-+ca rhicelens
 +ei
 
 #ifdef HDF5
@@ -3601,9 +3565,6 @@ subroutine collimate_end_turn
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
-+if bnlelens
-+ca rhicelens
 +ei
 
 #ifdef HDF5

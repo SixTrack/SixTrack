@@ -29,48 +29,6 @@
 ! ================================================================================================ !
 
 
-
-+cd rhicelens
-!GRDRHIC
-      real(kind=fPrec) tbetax(nblz),tbetay(nblz),talphax(nblz),         &
-     &talphay(nblz),torbx(nblz),torbxp(nblz),torby(nblz),torbyp(nblz),  &
-     &tdispx(nblz),tdispy(nblz),totals,sampl(nblz)
-      integer ielem
-      integer namepart(npart)
-!
-      common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,       &
-     &torby,torbyp,tdispx,tdispy,sampl,namepart,totals
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      real(kind=fPrec) twojx,twojy,twojr,sumtwojx,sumtwojy,             &
-     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp
-      real(kind=fPrec) limit_twojx,limit_twojy,limit_twojr
-      integer n_cut,n_nocut
-      common /cumulsigma/ twojx,twojy,twojr,sumtwojx,sumtwojy,          &
-     &sumsquarex,sumsquarey,x_temp,xp_temp,y_temp,yp_temp,n_cut,n_nocut,&
-     &limit_twojx,limit_twojy,limit_twojr
-      integer napx00
-      parameter (napx00=64)
-      integer   mynp
-      common /mynp/ mynp
-      real(kind=fPrec) myx,myxp,myy,myyp,myp,mys
-      common /coord/ myx(npart),myxp(npart),myy(npart),myyp(npart),     &
-     &myp(npart),mys(npart)
-      integer   samplenumber
-      common /samplenumber/ samplenumber
-!GRD-042008
-!GRDRHIC
-#endif
-+cd bnlio
-! This is empty if -crlibm and causes a problem with astuce
-! if +crlibm we define parameters for dtostr
-#ifdef CRLIBM
-      character(len=8192) ch
-      character(len=25) ch1
-      integer errno,l1,l2
-      integer dtostr
-#endif
 +cd crco
       integer sixrecs,binrec,binrecs,bnlrec,bllrec,numlcr
       logical rerun,start,restart,checkp,fort95,fort96,read95,read96
@@ -92,51 +50,17 @@
 
       character(len=8)  cr_version !Keep data type in sync with 'version'
       character(len=10) cr_moddate !Keep data type in sync with 'moddate'
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      integer crnamepart,crn_nocut,crn_cut
-      real(kind=fPrec) crtotals,crsumtwojx,crsumtwojy,                  &
-     &crsumsquarex,crsumsquarey,                                        &
-     &crlimit_twojx,crlimit_twojy,crlimit_twojr
-!GRDRHIC
-!GRD-042008
-#endif
       common/crio/                                                      &
      &cre0,crxv(2,npart),cryv(2,npart),                                 &
      &crsigmv(npart),crdpsv(npart),crdpsv1(npart),crejv(npart),         &
      &crejfv(npart),craperv(npart,2),crxvl(2,npart),cryvl(2,npart),     &
      &crdpsvl(npart),crejvl(npart),crsigmvl(npart),                     &
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-     &crsumsquarex,                                                     &
-     &crsumsquarey,                                                     &
-     &crsumtwojx,                                                       &
-     &crsumtwojy,                                                       &
-     &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
-     &crtotals,                                                         &
-!GRDRHIC
-!GRD-042008
-#endif
      &            crsixrecs,crbinrec,crbinrecs((npart+1)/2),crbnlrec,   &
      &crbllrec,cril,                                                    &
      &crnumlcr,crnuml,crsythck,                                         &
      &                crtime3,                                          &
      &crnapxo,crnapx,                                                   &
-#ifndef BNLELENS
      &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart)
-#endif
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-     &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart),    &
-     &crn_cut,                                                          &
-     &crn_nocut,                                                        &
-     &crnamepart(npart)
-!GRDRHIC
-!GRD-042008
-#endif
 
 +cd beamdim
       real(kind=fPrec) cc,xlim,ylim
@@ -1288,10 +1212,6 @@ subroutine daten
   logical has_coll
 #else
   logical do_coll
-#endif
-
-#ifdef BNLELENS
-+ca rhicelens
 #endif
   
   ! Fluka related, might be best to lock to real64
@@ -4416,7 +4336,6 @@ subroutine daten
 #ifndef FIO
       if(iclr.eq.2) read(ch1,*) nloop,myenom
 #endif
-      !Does not work for bnlelens, but collimat+bnlelens doesn't work anyway...
       !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
       if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
          write(lout,*) ""
@@ -4820,19 +4739,7 @@ subroutine daten
          if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
          if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
          if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
-!GRD-2007
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
-     &      lhc=1
-!GRDRHIC
-!GRD-042008
-#endif
-#ifndef BNLELENS
          if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
-#endif
-!GRD-2007
          if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
          nbeam=1
          if(ibtyp.eq.1) call wzset !Initialize complex error function for FAST BB kick
@@ -5143,19 +5050,7 @@ subroutine daten
          if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
          if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
          if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
-!GRD-2007
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2).and.(lhc.ne.9))
-     &      lhc=1
-!GRDRHIC
-!GRD-042008
-#endif
-#ifndef BNLELENS
          if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
-#endif
-!GRD-2007
          if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
          nbeam=1
          if(ibtyp.eq.1) call wzset
@@ -6805,9 +6700,6 @@ subroutine write4
       data lineno16 /0/
       data lineno30 /0/
       data lineno35 /0/ 
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ii=0
@@ -6895,13 +6787,6 @@ subroutine intepr(i,j,ch,ch1)
       character(len=nchars+nchars) ch1
       save
 !-----------------------------------------------------------------------
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      ch1=""
-!GRDRHIC
-!GRD-042008
-#endif
       i0=0
       i1=j
       i2=1
@@ -7711,9 +7596,6 @@ subroutine envars(j,dpp,rv)
 #ifdef SIXDA
   integer jm,k,m,na,ne
 #endif
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
   
   dpd  = one+dpp
@@ -8065,9 +7947,6 @@ subroutine envada
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
 !FOX  B D ;
 #include "include/dainicom.f90"
@@ -8451,9 +8330,6 @@ end subroutine envada
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -9885,9 +9761,6 @@ subroutine umlauda
       dimension b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3)
       dimension d(3),dp(3),c(3),cp(3),au(6,6),aui(2)
       dimension i4(10,2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 !     for FMA analysis
 !+ca fma
 ! END for FMA analysis
@@ -11517,9 +11390,6 @@ subroutine wireda(ix,i)
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11711,9 +11581,6 @@ end subroutine wireda
       implicit none
       integer ix,idaa
 +ca commond1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11770,9 +11637,6 @@ end subroutine wireda
       parameter(cc = 1.12837916709551_fPrec)
       parameter(xlim = 5.33_fPrec)
       parameter(ylim = 4.29_fPrec)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11892,12 +11756,8 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
       use mod_lie_dab, only : idao
       implicit none
       integer ibb,ibbc,ne,nsli,idaa
-      real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,  &
-     &sphi,star,tphi,phi2,cphi2,sphi2,tphi2
+      real(kind=fPrec) alpha,bcu,calpha,cphi,f,param,phi,salpha,sigzs,sphi,star,tphi,phi2,cphi2,sphi2,tphi2
       dimension param(nele,18),bcu(nbb,12),star(3,mbea)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11961,9 +11821,6 @@ end subroutine beaminf
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi,cphi2,sphi2,tphi2
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12024,9 +11881,6 @@ end subroutine beaminf
       integer ibb,ibbc,ibbc1,jsli,nsli,idaa
       real(kind=fPrec) bcu,cphi,cphi2,dare,f,sfac,star
       dimension star(3,mbea),bcu(nbb,12)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12170,9 +12024,6 @@ end subroutine beaminf
       implicit none
       integer idaa
       real(kind=fPrec) calpha,cphi,salpha,sphi,tphi
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12244,9 +12095,6 @@ end subroutine beaminf
       integer idaa
       real(kind=fPrec) dare,hundred,sqrpi2
       parameter(sqrpi2 = 3.544907701811032_fPrec,hundred = c1e2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -12469,9 +12317,6 @@ end interface
 #endif
 !-----------------------------------------------------------------------
 ! Eric needs nwri (clean up new variables and common blocks!)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #ifdef CR
 +ca crco
 #endif
@@ -13072,40 +12917,36 @@ end interface
       !Postprocessing is on, but there are no particles
       if(ipos.eq.1.and.napx.eq.0) then
 ! and now we open fort.10 unless already opened for
-! BOINC AND BNLELENS
+! BOINC
 
 #ifdef NAGFOR
 #ifdef BOINC
-#ifndef BNLELENS
-      call boincrf('fort.10',filename)
+  call boincrf('fort.10',filename)
 #ifdef FIO
-      open(10,file=filename,form='formatted',status='unknown',round='nearest',recl=8195)
+  open(10,file=filename,form='formatted',status='unknown',round='nearest',recl=8195)
 #else
-      open(10,file=filename,form='formatted',status='unknown',recl=8195)
-#endif
+  open(10,file=filename,form='formatted',status='unknown',recl=8195)
 #endif
 #else
 #ifdef FIO
-      open(10,file='fort.10',form='formatted',status='unknown',round='nearest',recl=8195)
+  open(10,file='fort.10',form='formatted',status='unknown',round='nearest',recl=8195)
 #else
-      open(10,file='fort.10',form='formatted',status='unknown',recl=8195)
+  open(10,file='fort.10',form='formatted',status='unknown',recl=8195)
 #endif
 #endif
 #else
 #ifdef BOINC
-#ifndef BNLELENS
-      call boincrf('fort.10',filename)
+  call boincrf('fort.10',filename)
 #ifdef FIO
-      open(10,file=filename,form='formatted',status='unknown',round='nearest')
+  open(10,file=filename,form='formatted',status='unknown',round='nearest')
 #else
-      open(10,file=filename,form='formatted',status='unknown')
-#endif
+  open(10,file=filename,form='formatted',status='unknown')
 #endif
 #else
 #ifdef FIO
-      open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
+  open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
 #else
-      open(10,file='fort.10',form='formatted',status='unknown')
+  open(10,file='fort.10',form='formatted',status='unknown')
 #endif
 #endif
 #endif
@@ -14531,13 +14372,6 @@ end interface
             dam(ia+1)=dam1
           endif !endif(mod(ia+1,2).eq.0)
 
-#ifdef BNLELENS
-          if (lhc.eq.9) then
-            write(lout,*)                                               &
-     & 'SKIPPING Binary File Initialisation for BNLELENS'
-            go to 340
-          endif
-#endif
 
 !     Write header of track output file(s) used by postprocessing
 !     for case ntwin.ne.2
@@ -14563,13 +14397,6 @@ end interface
 #endif
 #endif
         else !ELSE for "if(ntwin.ne.2)"
-#ifdef BNLELENS
-          if (lhc.eq.9) then
-            write(lout,*)                                               &
-     & 'SKIPPING Binary File Initialisation for BNLELENS'
-            go to 340
-          endif
-#endif
 
 !     Write header of track output file(s) used by postprocessing
 !     for case ntwin.eq.2
@@ -14880,56 +14707,35 @@ end interface
 
 ! POSTPROCESSING (POSTPR)
 
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      if (lhc.eq.9) go to 520
-!GRDRHIC
-!GRD-042008
-#endif
-! and we need to open fort.10 unless already opened
-! for BOINC AND BNLELENS
+! and we need to open fort.10 unless already opened for BOINC
 #ifdef NAGFOR
 #ifdef BOINC
-#ifndef BNLELENS
-      call boincrf('fort.10',filename)
-      open(10,file=filename,form='formatted',status='unknown',          &
+  call boincrf('fort.10',filename)
 #ifdef FIO
-     &round='nearest',                                                  &
+  open(10,file=filename,form='formatted',status='unknown',round='nearest',recl=8195)
+#else
+  open(10,file=filename,form='formatted',status='unknown',recl=8195)
 #endif
-     &recl=8195)
-#endif
-#endif
-#ifndef BOINC
-      open(10,file='fort.10',form='formatted',status='unknown',         &
+#else
 #ifdef FIO
-     &round='nearest',                                                  &
+  open(10,file='fort.10',form='formatted',status='unknown',round='nearest',recl=8195)
+#else
+  open(10,file='fort.10',form='formatted',status='unknown',recl=8195)
 #endif
-     &recl=8195)
 #endif
-#endif
-
-#ifndef NAGFOR
+#else
 #ifdef BOINC
-#ifndef BNLELENS
-      call boincrf('fort.10',filename)
+  call boincrf('fort.10',filename)
 #ifdef FIO
-      open(10,file=filename,form='formatted',status='unknown',          &
-     &round='nearest')
+  open(10,file=filename,form='formatted',status='unknown',round='nearest')
+#else
+  open(10,file=filename,form='formatted',status='unknown')
 #endif
-#ifndef FIO
-      open(10,file=filename,form='formatted',status='unknown')
-#endif
-#endif
-#endif
-
-#ifndef BOINC
+#else
 #ifdef FIO
-      open(10,file='fort.10',form='formatted',status='unknown',         &
-     &round='nearest')
-#endif
-#ifndef FIO
-      open(10,file='fort.10',form='formatted',status='unknown')
+  open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
+#else
+  open(10,file='fort.10',form='formatted',status='unknown')
 #endif
 #endif
 #endif
@@ -15284,9 +15090,6 @@ subroutine trauthin(nthinerr)
 +ca dbpencil
 +ca info
 +ca dbcolcom
-#endif
-#ifdef BNLELENS
-+ca rhicelens
 #endif
   save
 
@@ -15816,26 +15619,12 @@ subroutine thin4d(nthinerr)
 
   dimension dpsv3(npart)
 
-#ifdef BNLELENS
-+ca rhicelens
-+ca bnlio
-#endif
-
 +ca elenstracktmp
 +ca dbdcum
 
   save
 !-----------------------------------------------------------------------
   nthinerr=0
-
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-  totals=zero
-#include "include/bnlin.f90"
-!GRDRHIC
-!GRD-042008
-#endif
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 24-11-2016
@@ -15903,9 +15692,6 @@ subroutine thin4d(nthinerr)
     ! loop over structure elements, single element: name + type + parameter,
     ! structure element = order of single elements/blocks
     do 630 i=1,iu
-#ifdef BNLELENS
-#include "include/bnltwiss.f90"
-#endif
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo ! ix = index of single element
@@ -16413,16 +16199,6 @@ subroutine thin4d(nthinerr)
     if(mod(n,nwr(4)).eq.0) call write6(n)
 #endif
 
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-    if (lhc.eq.9) then
-#include "include/bnlout.f90"
-    end if
-!GRDRHIC
-!GRD-042008
-#endif
-
 #ifdef FLUKA
   ! A.Mereghetti, for the FLUKA Team
   ! last modified: 14-06-2014
@@ -16518,10 +16294,6 @@ subroutine thin6d(nthinerr)
 +ca crco
 #endif
   dimension dpsv3(npart)
-#ifdef BNLELENS
-+ca rhicelens
-+ca bnlio
-#endif
 
 +ca elenstracktmp
 +ca dbdcum
@@ -16531,15 +16303,6 @@ subroutine thin6d(nthinerr)
   c5m4=5.0e-4_fPrec
 #endif
   nthinerr=0
-
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-  totals=zero
-#include "include/bnlin.f90"
-!GRDRHIC
-!GRD-042008
-#endif
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 24-11-2016
@@ -16614,9 +16377,6 @@ subroutine thin6d(nthinerr)
     do 650 i=1,iu !Loop over elements
 #ifdef COLLIMAT
       call collimate_start_element(i)
-#endif
-#ifdef BNLELENS
-#include "include/bnltwiss.f90"
 #endif
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
@@ -17462,16 +17222,6 @@ subroutine thin6d(nthinerr)
 #endif
 #endif
 
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-    if (lhc.eq.9) then
-#include "include/bnlout.f90"
-    end if
-!GRDRHIC
-!GRD-042008
-#endif
-
 #ifdef FLUKA
 !     A.Mereghetti, for the FLUKA Team
 !     last modified: 14-06-2014
@@ -17525,9 +17275,6 @@ subroutine callcrp()
 #endif
 #ifdef BOINC
       integer timech
-#endif
-#ifdef BNLELENS
-+ca rhicelens
 #endif
 #ifdef CR
       data ncalls /0/
@@ -17598,9 +17345,6 @@ end subroutine callcrp
       implicit none
       integer ia,ib2,ib3,ie
       real(kind=fPrec) dam1
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do 20 ia=1,napx,2
@@ -17666,9 +17410,6 @@ subroutine write6(n)
       use mod_commond
       implicit none
       integer ia,ia2,id,ie,ig,n
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       id=0
@@ -17676,10 +17417,8 @@ subroutine write6(n)
         ig=ia+1
         ia2=ig/2
 #ifndef CR
-#ifndef BNLELENS
         endfile (91-ia2,iostat=ierro)
         backspace (91-ia2,iostat=ierro)
-#endif
 #endif
 !-- PARTICLES STABLE
         if(.not.pstop(ia).and..not.pstop(ig)) then
@@ -18261,10 +18000,6 @@ subroutine thck4d(nthinerr)
 +ca crco
 #endif
   dimension dpsv3(npart)
-#ifdef BNLELENS
-+ca rhicelens
-+ca bnlio
-#endif
 +ca elenstracktmp
 
 #ifdef FLUKA
@@ -18282,24 +18017,6 @@ subroutine thck4d(nthinerr)
   nthinerr=0
   idz1=idz(1)
   idz2=idz(2)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-  totals=zero
-
-#ifdef FLUKA
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     force re-computation of transport matrices of linear elements
-!     inserted in main code by the 'fluka' compilation flag
-  recompute_linear_matrices = .false.
-#endif
-
-#include "include/bnlin.f90"
-!GRDRHIC
-!GRD-042008
-#endif
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 24-11-2016
@@ -18367,9 +18084,6 @@ subroutine thck4d(nthinerr)
     call dump_linesFirst(n)
 
     do 480 i=1,iu
-#ifdef BNLELENS
-#include "include/bnltwiss.f90"
-#endif
       if(ktrack(i).eq.1) then
         ix=ic(i)
       else
@@ -18885,16 +18599,6 @@ subroutine thck4d(nthinerr)
     if(mod(n,nwr(4)).eq.0) call write6(n)
 #endif
 
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-    if (lhc.eq.9) then
-#include "include/bnlout.f90"
-    end if
-!GRDRHIC
-!GRD-042008
-#endif
-
 #ifdef FLUKA
     ! A.Mereghetti, for the FLUKA Team
     ! last modified: 14-06-2014
@@ -18965,14 +18669,6 @@ subroutine thck6d(nthinerr)
 +ca crco
 #endif
   dimension dpsv3(npart)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-+ca rhicelens
-+ca bnlio
-!GRDRHIC
-!GRD-042008
-#endif
 +ca elenstracktmp
 
 #ifdef FLUKA
@@ -19002,15 +18698,6 @@ subroutine thck6d(nthinerr)
 !     force re-computation of transport matrices of linear elements
 !     inserted in main code by the 'fluka' compilation flag
   recompute_linear_matrices = .false.
-#endif
-
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-  totals=zero
-#include "include/bnlin.f90"
-!GRDRHIC
-!GRD-042008
 #endif
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -19081,12 +18768,8 @@ subroutine thck6d(nthinerr)
 #ifdef DEBUG
 ! Now comes the loop over elements do 500/501
     do 501 i=1,iu
-#endif
-#ifndef DEBUG
+#else
     do 500 i=1,iu
-#endif
-#ifdef BNLELENS
-#include "include/bnltwiss.f90"
 #endif
 #ifdef DEBUG
 !===================================================================
@@ -19172,16 +18855,6 @@ subroutine thck6d(nthinerr)
       select case (ktrack(i))
       case (1)
         jmel=mel(ix)
-#ifdef BNLELENS
-#ifdef DEBUG
-        ! if (n.eq.991) then
-        !   write(99,*) 'element statement 20 j=1 991 before ', &
-        !   xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-        !   endfile (99,iostat=ierro)
-        !   backspace (99,iostat=ierro)
-        ! end if
-#endif
-#endif
         do jb=1,jmel
           jx=mtyp(ix,jb)
           do j=1,napx
@@ -19209,30 +18882,12 @@ subroutine thck6d(nthinerr)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
         end do
         if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),j=1,napx)
-#ifdef BNLELENS
-#ifdef DEBUG
-        ! if (n.eq.991) then
-        !   write(99,*) 'element statement 40 j=1 991 after  ', &
-        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-        ! end if
-#endif
-#endif
 #ifdef CR
         ! write(93,*) 'ERIC loop at 40 calling synuthck!!!'
         ! endfile (93,iostat=ierro)
         ! backspace (93,iostat=ierro)
 #endif
         call synuthck
-#ifdef BNLELENS
-#ifdef DEBUG
-        ! if (n.eq.991) then
-        !   write(99,*) 'element statement 40 j=1 991 after synuthck ', &
-        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-        !   endfile (99,iostat=ierro)
-        !   backspace (99,iostat=ierro)
-        ! end if
-#endif
-#endif
         goto 490
       case (3)
         irrtr=imtr(ix)
@@ -19562,16 +19217,6 @@ subroutine thck6d(nthinerr)
         end if
         goto 490
       case (43)
-#ifdef BNLELENS
-#ifdef DEBUG
-        ! if (n.eq.991) then
-        !   write(99,*) 'element statement 720 j=1 991 before ', &
-        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-        !   endfile (99,iostat=ierro)
-        !   backspace (99,iostat=ierro)
-        ! end if
-#endif
-#endif
         if(ibtyp.eq.0) then
 #include "include/beam21.f90"
 #include "include/beama1.f90"
@@ -19590,16 +19235,6 @@ subroutine thck6d(nthinerr)
 #include "include/beamwzf2.f90"
 #include "include/beama4.f90"
         end if
-#ifdef BNLELENS
-#ifdef DEBUG
-        ! if (n.eq.991) then
-        !   write(99,*) 'element statement 720 j=1 991 after  ', &
-        !     xv(1,1),xv(2,1),yv(1,1),yv(2,1),sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-        !   endfile (99,iostat=ierro)
-        !   backspace (99,iostat=ierro)
-        ! end if
-#endif
-#endif
         goto 490
       case (44)
 #include "include/beam6d.f90"
@@ -19730,16 +19365,6 @@ subroutine thck6d(nthinerr)
     if(mod(n,nwr(4)).eq.0) call write6(n)
 #endif
 
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-    if (lhc.eq.9) then
-#include "include/bnlout.f90"
-    end if
-!GRDRHIC
-!GRD-042008
-#endif
-
 #ifdef FLUKA
     ! A.Mereghetti, for the FLUKA Team
     ! last modified: 14-06-2014
@@ -19783,9 +19408,6 @@ subroutine synuthck
       implicit none
       integer ih1,ih2,j,kz1,l
       real(kind=fPrec) fokm
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -20175,9 +19797,6 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       
       real(kind=fPrec) fokm
       
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 !-----------------------------------------------------------------------
       save
 !-----------------------------------------------------------------------
@@ -20588,10 +20207,6 @@ subroutine comnul
   
   integer i,i1,i2,i3,i4,j
 +ca commd1da
-
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 
 +ca dbdcum
   
@@ -21128,43 +20743,6 @@ subroutine comnul
 !     last modified: 2016
       call fma_comnul
       
-!--BNLELENS-------------------------------------------------------------
-#ifdef BNLELENS
-  ! Set all new variables to 0 or ZERO
-  ! Note we do not initialise the checkpoint cr* variables
-  ! nor the my* variables as they should all be read in!
-  do i=1,nblz
-    tbetax(i)=zero
-    tbetay(i)=zero
-    talphax(i)=zero
-    talphay(i)=zero
-    torbx(i)=zero
-    torbxp(i)=zero
-    torby(i)=zero
-    torbyp(i)=zero
-    tdispx(i)=zero
-    tdispy(i)=zero
-    sampl(i)=zero
-  end do
-  totals=zero
-  limit_twojx=zero
-  limit_twojy=zero
-  limit_twojr=zero
-  twojx=zero
-  twojy=zero
-  twojr=zero
-  sumtwojx=zero
-  sumtwojy=zero
-  sumsquarex=zero
-  sumsquarey=zero
-  n_cut=0
-  n_nocut=0
-  samplenumber=0
-  mynp=0
-  do j=1,npart
-    namepart(j)=0
-  end do
-#endif
     !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Mereghetti
 !     last modified: 09-02-2018
@@ -21816,9 +21394,6 @@ end subroutine distance
      &sqrn,yca1,yca2,yclam1,yclam2,ycw1(4),ycw2(4)
       dimension am(4,4)
       dimension qw(2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ierro=0
@@ -22107,9 +21682,6 @@ subroutine blocksv
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
       dimension h(nblo,2,6),g(nblo,2,6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do k=1,mblo
@@ -22163,7 +21735,7 @@ subroutine blocksv
 !  COMBINATION OF LINEAR ELEMENTS TO ONE MATRIX, USED FOR DISPERSION
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -22174,9 +21746,6 @@ subroutine blocksv
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
       dimension h(nblo,2,6),g(nblo,2,6)
       dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do k=1,mblo
@@ -22247,9 +21816,6 @@ subroutine chroma
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens,sm0,su2,suxy,suzy,xi,zi
       dimension dsm(2,4),sens(2,4),xi(2),zi(2),dm(2),sm0(2)
       dimension qwc(3),cro0(2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       cor=zero
@@ -22378,9 +21944,6 @@ end subroutine chroma
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
       dimension qw(2),qwc(3)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       write(lout,10000)
@@ -22514,9 +22077,6 @@ end subroutine chroma
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save ! Saving DPP?
 !-----------------------------------------------------------------------
       ierro=0
@@ -22606,9 +22166,6 @@ end subroutine chroma
       character(len=6) chp(3),chd(3)
       dimension xx(6),dlo(6),cloc(6),dd(6),dc(6),am(nn,nn)
       integer nerror
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       nd2=2*ndimf
@@ -23013,14 +22570,10 @@ subroutine clorb2(dpp)
       use mod_commont
       implicit none
       integer ierr,ii,l,ll
-      real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,&
-     &x1,y0,y1
+      real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,x1,y0,y1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ierro=0
@@ -23088,9 +22641,6 @@ subroutine combel(iql)
       use mod_commont
       implicit none
       integer ico,ico0,iql,j,m
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do 20 j=1,icoe
@@ -23139,9 +22689,6 @@ subroutine envar(dpp)
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     
-#ifdef BNLELENS
-+ca rhicelens
-#endif
     save
     
     dpd  = one+dpp
@@ -23386,9 +22933,6 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     integer i,ih,kz1,l,ll
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
     save
     
     dpd  = one+dpp
@@ -23748,9 +23292,6 @@ subroutine linopt(dpp)
   dimension cr(mmul),ci(mmul)
   dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
   data dpr/6*zero/
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
 !-----------------------------------------------------------------------
   
@@ -23858,7 +23399,7 @@ subroutine linopt(dpp)
 !--START OF THE MACHINE
       idum='START'
       nr=0
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
       call writelin(nr,idum,etl,phi,t,1,.false.)
 #else
       call writelin(nr,idum,etl,phi,t,1,.false.,0)
@@ -23898,18 +23439,7 @@ subroutine linopt(dpp)
         do 150 j=1,jm
           jj=jj+dj       ! Subelement index of current sub=element
           jk=mtyp(ix,jj) ! Single-element index of the current sub-element
-#ifndef BNLELENS
           if(ithick.eq.1.and.kz(jk).ne.0) goto 120
-#endif
-#ifdef BNLELENS
-!GRDRHIC
-          if(ithick.eq.1.and.kz(jk).ne.0) then
-             call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-             goto 120
-          endif
-!GRDRHIC
-#endif
-
           if(ithick.eq.0.and.kz(jk).ne.0) then
             etl=etl+el(jk)
             
@@ -23959,7 +23489,7 @@ subroutine linopt(dpp)
           end do
 
           nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
           call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
 #else
           call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
@@ -24016,7 +23546,7 @@ subroutine linopt(dpp)
           enddo
           
           nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
           call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
 #else
           call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
@@ -24033,7 +23563,7 @@ subroutine linopt(dpp)
   150   continue !End of loop over elements inside block
 
         nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 #else
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
@@ -24092,7 +23622,7 @@ subroutine linopt(dpp)
         end do
 
         nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 #else
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
@@ -24150,7 +23680,7 @@ subroutine linopt(dpp)
         end do
 
         nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
 #else
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
@@ -24176,13 +23706,13 @@ subroutine linopt(dpp)
         kzz=kz(ix)
 
  ! Cavity
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
         if(kpz.eq.6) then
 #else
         if(abs(kzz).eq.12) then
 #endif
           nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 #else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -24203,7 +23733,7 @@ subroutine linopt(dpp)
         if(kzz.eq.20.and.nbeam.ge.1) then
           nbeam=k
           nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 #else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -24252,7 +23782,7 @@ subroutine linopt(dpp)
      &     .or.abs(kzz).eq.15) then
           
           nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 #else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -24419,7 +23949,7 @@ subroutine linopt(dpp)
           izu=izu+2*mmul
           
           nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 #else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -24474,7 +24004,7 @@ subroutine linopt(dpp)
 !--Unrecognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
         case default
            nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
            call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 #else
            call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -24584,7 +24114,7 @@ subroutine linopt(dpp)
 !     Unrecognized skew element (including kzz=-12,kp.ne.6 for non-collimat/bnlelens)
            case default
               nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
               call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 #else
               call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -24644,7 +24174,7 @@ subroutine linopt(dpp)
         endif
         
         nr=nr+1
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
         call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
 #else
         call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -24707,7 +24237,7 @@ end subroutine linopt
 !-----------------------------------------------------------------------
 !  WRITE OUT LINEAR OPTICS PARAMETERS
 !-----------------------------------------------------------------------
-#if !defined(COLLIMAT) && !defined(BNLELENS)
+#ifndef COLLIMAT
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
 #else
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
@@ -24742,9 +24272,6 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 +ca collpara
 +ca dblinopt
   integer ielem
-#endif
-#ifdef BNLELENS
-+ca rhicelens
 #endif
 
 #ifdef HDF5
@@ -24791,10 +24318,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
     end if
 #endif
   
-#if defined(COLLIMAT) || defined(BNLELENS)
-#if !defined(COLLIMAT) && defined(BNLELENS)
-    if (lhc.eq.9) then
-#endif
+#if defined(COLLIMAT)
       tbetax(max(ielem,1))  = b1(1)
       tbetay(max(ielem,1))  = b1(2)
       talphax(max(ielem,1)) = al1(1)
@@ -24805,9 +24329,6 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       torbyp(max(ielem,1))  = cp(2)
       tdispx(max(ielem,1))  = d(1)
       tdispy(max(ielem,1))  = d(2)
-#if !defined(COLLIMAT) && defined(BNLELENS)
-    end if
-#endif
 #endif
     if(ncorru == 0) then
       if(iquiet == 0) then
@@ -24880,9 +24401,6 @@ subroutine cpltwis(typ,t,etl,phi)
      &phzi,phzii,phzpi,phzpii,t
       character(len=max_name_len) typ
       dimension t(6,4),phi(2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       iwrite=0
@@ -25035,7 +24553,7 @@ end subroutine loesd
 +dk matrix
 subroutine matrix(dpp,am)
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -25045,9 +24563,6 @@ subroutine matrix(dpp,am)
       integer i,ierr,l
       real(kind=fPrec) am,dpp
       dimension am(4,4)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do i=2,5
@@ -25097,8 +24612,7 @@ subroutine corrorb
       use mod_commons
       use mod_commont
       implicit none
-      integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,    &
-     &nlino,ntcoo,nto,nx
+      integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
       real(kind=fPrec) ar(nmon1,ncor1)
       real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
@@ -25106,9 +24620,6 @@ subroutine corrorb
       character(len=max_name_len) bezlo(nele)
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       rzero=zero
@@ -25424,7 +24935,7 @@ end subroutine corrorb
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -25437,9 +24948,6 @@ end subroutine corrorb
       real(kind=fPrec) xinc(ncor1)
       real(kind=fPrec) ckicknew,ckickold,r0,r0a
       dimension nx(ncor1)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       kcorru=0
@@ -25528,7 +25036,7 @@ end subroutine corrorb
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use parpro
       use mod_common
@@ -25537,9 +25045,6 @@ end subroutine corrorb
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       izu=0
@@ -25996,9 +25501,6 @@ subroutine ord
       implicit none
       integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
       dimension jra(nele,5),iran(nele),inz(nele)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ! initialisation
@@ -26178,11 +25680,7 @@ subroutine orglat
       integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
       real(kind=fPrec) extalig1,exterr1
       dimension ilf(nblz),ilfr(nblz)
-      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),         &
-     &icextal1(nblz)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
+      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),icextal1(nblz)
       save
 !-----------------------------------------------------------------------
       if(mper.gt.1) then
@@ -26289,9 +25787,6 @@ subroutine phasad(dpp,qwc)
   dimension qw(2),qwc(3)
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ium=5
@@ -26808,9 +26303,6 @@ subroutine qmod0
      &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do i=1,3
@@ -27064,9 +26556,6 @@ end subroutine qmod0
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
       dimension intwq(3),qwc(3)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
 #ifdef DEBUG
@@ -27363,9 +26852,6 @@ subroutine umlauf(dpp,ium,ierr)
 #endif
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
   save
   
   do i=1,mmul
@@ -27803,9 +27289,6 @@ subroutine resex(dpp)
   dimension b(10,10),nz2(9),e(10,10)
   dimension chy(9,18),shy(9,18),min(5)
   dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
       
       ium=5
@@ -28558,9 +28041,6 @@ subroutine rmod(dppr)
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
       dimension aa(10,10),bb(10),dsm(10),sn(10),sen(10),ss(10)
       dimension qwc(3),d1(10),irr(12)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ntao=nta
@@ -28874,7 +28354,7 @@ end subroutine rmod
 !  FINDING THE BEST POSITIONS FOR CORRECTION-ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
@@ -28885,9 +28365,6 @@ end subroutine rmod
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
       character(len=max_name_len) ref
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ntao=nta
@@ -28994,9 +28471,6 @@ subroutine subre(dpp)
       dimension chy(9,18),shy(9,18)
       dimension dfac(10),dtu(2,5),dtup(2,5,0:4,0:4)
       dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ium=5
@@ -30038,9 +29512,6 @@ subroutine subsea(dpp)
       dimension b(10,10),nz2(9),e(10,10)
       dimension chy(9,18),shy(9,18)
       dimension cr(mmul),ci(mmul)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       ium=5
@@ -30776,9 +30247,6 @@ subroutine decoup
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
       dimension aa(6,6),bb(6),dsm(6),sn(6),sen(6),ss(6)
       dimension qwc(3),qw(2),d1(6)
-#ifdef BNLELENS
-+ca rhicelens
-#endif
       save
 !-----------------------------------------------------------------------
       do i=1,6
@@ -31647,176 +31115,6 @@ function gauinv(p0)
       call prror(-1)
 end function gauinv
 
-+dk nwrtbnl
-!GRDRHIC
-!GRD-042008
-subroutine bnlrdis(ngrd)
-!
-!     SR, 09-08-2005
-!     Format for the input file:
-!               x, y   -> [ m ]
-!               xp, yp -> [ rad ]
-!               s      -> [ mm ]
-!               DE     -> [ MeV ]
-!
-      use floatPrecision
-      use end_sixtrack
-      use crcoall
-      use parpro
-      use mod_common
-      implicit none
-!ERIC
-+ca crco
-+ca rhicelens
-      integer ngrd
-!
-!++ Vectors of coordinates
-!
-      integer i,j
-#ifdef CRLIBM
-      integer nchars
-      parameter (nchars=160)
-      character(len=nchars) ch
-      character(len=nchars+nchars) ch1
-      integer errno,l1,l2
-      integer dtostr
-      ! MAXF be kept in sync with value in function fround
-      integer maxf,nofields
-      parameter (maxf=30)
-      parameter (nofields=41)
-      character(len=maxf) fields(nofields)
-!     integer errno,nfields,nunit,nf
-      integer nfields,nunit,nf
-      real(kind=fPrec) fround
-#endif
-      save
-      write(lout,*) "Reading input bunch from beambeamdist.dat"
-      mynp=0
-!ERIC napx00???
-      do j=1,napx
-! Now read data using crlibm stuff.
-#ifdef FIO
-#ifdef CRLIBM
-        call enable_xp()
-#endif
-        read(54,*,end=10,err=20,round='nearest')                        &
-     & myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j)
-#ifdef CRLIBM
-        call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-        read(54,*,end=10,err=20)                                        &
-       &myx(j),myxp(j),myy(j),myyp(j),mys(j),myp(j)
-#endif
-#ifdef CRLIBM
-        read (54,'(A)',end=10) ch 
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        call splitfld(errno,54,j,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          myx(j)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          myxp(j)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          myy(j)=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          myyp(j)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          mys(j)=fround(errno,fields,5)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          myp(j)=fround(errno,fields,6)
-          nf=nf-1
-        endif
-#endif
-#endif
-      enddo
-      mynp=1
- 10   continue
-      if(mynp.eq.0) then
-        write(lout,*)
-        write(lout,*) '!!!!! WARNING !!!!!'
-        write(lout,*)'beambeamdist.dat is either missing or too small'
-        write(lout,*)
-        write(lout,'(a)') 'bnlelens input file error'
-        call prror(-1)
-      else
-        write(lout,*) "Number of samples in the bunch = ",mynp
-      endif
-!ERIC napx00???
-      do j=1,napx
-#ifdef CRLIBM
-! Now use my new dtostr for portability
-        l1=1
-#ifdef BOINC
-        ch(l1:l1+10)='checkdist '
-        l1=l1+10
-#endif
-! We return the length of the string (always 24)
-        errno=dtostr(myx(j),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
-        errno=dtostr(myxp(j),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
-        errno=dtostr(myy(j),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
-        errno=dtostr(myyp(j),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
-        errno=dtostr(mys(j),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
-        errno=dtostr(myp(j),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
-#endif
-#ifndef BOINC
-#ifdef CRLIBM
-        write(97,'(a)') ch(1:l1-1)
-#endif
-#ifndef CRLIBM
-        write(97,'(e15.8,4(1x,e15.8),1x,f15.8)')                        &
-     &myx(j),myxp(j),myy(j), myyp(j),mys(j),myp(j)
-#endif
-        endfile (97,iostat=ierro)
-        backspace (97,iostat=ierro)
-#endif
-#ifdef BOINC
-        if (.not.restart) then
-#ifdef CRLIBM
-          write(10,'(a)') ch(1:l1-1)
-#endif
-#ifndef CRLIBM
-          write(10,'(a10,e15.8,4(1x,e15.8),1x,f15.8)')                  &
-     &'checkdist ',                                                     &
-     &myx(j),myxp(j),myy(j), myyp(j),mys(j),myp(j)
-#endif
-          endfile (10,iostat=ierro)
-          backspace (10,iostat=ierro)
-          bnlrec=bnlrec+1
-        endif
-#endif
-      enddo
-      return
- 20   continue
-      write(lout,*) 'I/O Error on Unit 54'
-      call prror(-1)
-end subroutine bnlrdis
-
-!GRD-042008
-!GRDRHIC
 +dk checkpt
 subroutine crcheck
 !     Thus subroutine checks if the C/R files fort.95 and fort.96 exists,
@@ -31850,9 +31148,6 @@ subroutine crcheck
       use mod_commond
       use mod_hions
       implicit none
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 +ca crco
 #include "version.f90"
       integer i,j,k,l,m,ia
@@ -31962,26 +31257,6 @@ subroutine crcheck
      &(crdpsvl(j),j=1,crnapxo),                                         &
      &(crejvl(j),j=1,crnapxo),                                          &
      &(crsigmvl(j),j=1,crnapxo)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      if(lhc.eq.9) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 4 BNL'
-        flush(93)
-        read(95,err=100,end=100)                                        &
-     &crn_cut,                                                          &
-     &crn_nocut,                                                        &
-     &crsumsquarex,                                                     &
-     &crsumsquarey,                                                     &
-     &crsumtwojx,                                                       &
-     &crsumtwojy,                                                       &
-     &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
-     &crtotals,                                                         &
-     &(crnamepart(j),j=1,crnapxo)
-      endif
-!GRDRHIC
-!GRD-042008
-#endif
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
       flush(93)
@@ -32132,26 +31407,6 @@ subroutine crcheck
      &(crdpsvl(j),j=1,crnapxo),                                         &
      &(crejvl(j),j=1,crnapxo),                                          &
      &(crsigmvl(j),j=1,crnapxo)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      if(lhc.eq.9) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 4 BNL'
-        flush(93)
-        read(96,err=101,end=101)                                        &
-     &crn_cut,                                                          &
-     &crn_nocut,                                                        &
-     &crsumsquarex,                                                     &
-     &crsumsquarey,                                                     &
-     &crsumtwojx,                                                       &
-     &crsumtwojy,                                                       &
-     &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
-     &crtotals,                                                         &
-     &(crnamepart(j),j=1,crnapxo)
-      endif
-!GRDRHIC
-!GRD-042008
-#endif
 
       write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DUMP'
       flush(93)
@@ -32236,24 +31491,6 @@ subroutine crcheck
       endif
   103 continue
       
-#ifdef DEBUG
-#ifdef BNLELENS
-!     write(99,*) 'crcheck ',
-!    &crbnlrec,                                                         &
-!    &crbllrec,                                                         &
-!    &crn_cut,                                                          &
-!    &crn_nocut,                                                        &
-!    &crsumsquarex,                                                     &
-!    &crsumsquarey,                                                     &
-!    &crsumtwojx,                                                       &
-!    &crsumtwojy,                                                       &
-!    &crlimit_twojx,crlimit_twojy,crlimit_twojr,                        &
-!    &crtotals,                                                         &
-!    &(crnamepart(j),j=1,crnapxo)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-#endif
-#endif
 !--   If we have successfully read either fort.95 or fort.96
 !--   we need to handle lost particles and ntwin .ne. 2
 !--   Otherwise we just continue with checkpointing as requested
@@ -32282,48 +31519,6 @@ subroutine crcheck
         write(93,*)                                                     &
      &'SIXTRACR CRCHECK found fort.6 sixrecs=',sixrecs
         flush(93)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-        if (lhc.eq.9) then
-!--   Now re-position beambeam-output.dat and lostID.dat
-!--   or only fort.10 if boinc
-!     TODO: Fix positioning in +if bnlelens so that it works when number of cr records = 0
-#ifndef BOINC
-  610     read(52,'(a1024)',end=608,err=108,iostat=ierro) arecord
-          bnlrec=bnlrec+1
-          if (bnlrec.lt.crbnlrec) goto 610
-          !This is not a FLUSH!
-          endfile (52,iostat=ierro)
-  608     backspace (52,iostat=ierro)
-          write(93,*)                                                   &
-     &'SIXTRACR CRCHECK found fort.52 bnlrec=',bnlrec
-          flush(93)
-  611     read(53,'(a1024)',end=609,err=109,iostat=ierro) arecord
-          bllrec=bllrec+1
-          if (bllrec.lt.crbllrec) goto 611
-          !This is not a FLUSH!
-          endfile (53,iostat=ierro)
-  609     backspace (53,iostat=ierro)
-          write(93,*)                                                   &
-     &'SIXTRACR CRCHECK found fort.53 bllrec=',bllrec
-          flush(93)
-#endif
-#ifdef BOINC
-  610     read(10,'(a1024)',end=608,err=108,iostat=ierro) arecord
-          bnlrec=bnlrec+1
-          if (bnlrec.lt.crbnlrec) goto 610
-          !This is not a FLUSH!
-          endfile (10,iostat=ierro)
-  608     backspace (10,iostat=ierro)
-          write(93,*)                                                   &
-     &'SIXTRACR CRCHECK found fort.10 bnlrec=',bnlrec
-          flush(93)
-#endif
-        endif
-!GRDRHIC
-!GRD-042008
-#endif
 
 !--   We may be re-running with a DIFFERENT number of turns (numl)
 ! Eric fix this later by reading numl for fort.90
@@ -32345,13 +31540,6 @@ subroutine crcheck
           flush(93)
 
 !--   Reposition binary files fort.90 etc. / singletrackfile.dat
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-          if (lhc.ne.9) then
-!GRDRHIC
-!GRD-042008
-#endif
           ! fort.94 = temp file where the data from fort.90 etc. is copied to and then back
 #ifdef BOINC
           call boincrf('fort.94',filename)
@@ -32463,24 +31651,10 @@ subroutine crcheck
           backspace (90,iostat=ierro)
 #endif
           close(94)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-          endif ! END "if (lhc.ne.9) then"
-!GRDRHIC
-!GRD-042008
-#endif
         else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
 !--  Now with the new array crbinrecs we can ignore files which are
 !--  basically finished because a particle has been lost.......
 !--  Just check crbinrecs against crbinrec
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-          if (lhc.ne.9) then
-!GRDRHIC
-!GRD-042008
-#endif
 #ifndef STF
           ! Binary files have been rewritten; now re-position
           write(93,*)                                                   &
@@ -32530,18 +31704,6 @@ subroutine crcheck
       enddo
 #endif
       endif ! END "if (numl.ne.crnuml) then" and END else
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-          endif
-        if (lhc.eq.9) then
-          write(93,*)                                                   &
-     &'SIXTRACR CRCHECK skipping binary files for bnlelens'
-          flush(93)
-        endif
-!GRDRHIC
-!GRD-042008
-#endif
       
       !reposition dynksets.dat
       if (ldynk .and.(.not.ldynkfiledisable) ) then
@@ -32688,26 +31850,6 @@ subroutine crcheck
       flush(93)
       write(lout,*)'SIXTRACR CRCHECK failure positioning fort.92'
       call prror(-1)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
- 108  write(93,*)                                                       &
-     &'SIXTRACR CRCHECK *** ERROR *** reading fort.52, iostat=',ierro
-      write(93,*)                                                       &
-     &'bnlrec=',bnlrec,' crbnlrec=',crbnlrec
-      flush(93)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.52'
-      call prror(-1)
- 109  write(93,*)                                                       &
-     &'SIXTRACR CRCHECK *** ERROR *** reading fort.53, iostat=',ierro
-      write(93,*)                                                       &
-     &'bllrec=',bllrec,' crbllrec=',crbllrec
-      flush(93)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.53'
-      call prror(-1)
-!GRDRHIC
-!GRD-042008
-#endif
 end subroutine crcheck
 
 subroutine crpoint
@@ -32737,9 +31879,6 @@ subroutine crpoint
       use mod_hions
       implicit none
 
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 #include "version.f90"
 +ca crco
       integer i,j,l,k,m
@@ -32900,35 +32039,6 @@ subroutine crpoint
      &(sigmvl(j),j=1,napxo)
       endfile (95,iostat=ierro)
       backspace (95,iostat=ierro)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      if(lhc.eq.9) then
-#ifndef DEBUG
-        if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-          write(93,*) 'SIXTRACR CRPOINT writing BNL vars fort.95'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-        endif
-#endif
-        write(95,err=100,iostat=ierro)                                  &
-     &n_cut,                                                            &
-     &n_nocut,                                                          &
-     &sumsquarex,                                                       &
-     &sumsquarey,                                                       &
-     &sumtwojx,                                                         &
-     &sumtwojy,                                                         &
-     &limit_twojx,limit_twojy,limit_twojr,                              &
-     &totals,                                                           &
-     &(namepart(j),j=1,napxo)
-        endfile (95,iostat=ierro)
-        backspace (95,iostat=ierro)
-      endif
-!GRDRHIC
-!GRD-042008
-#endif
 
 #ifndef DEBUG
       if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -33054,26 +32164,6 @@ subroutine crpoint
         backspace (95,iostat=ierro)
       endif
 
-#ifdef BNLELENS
-#ifdef DEBUG
-!     if (numx.ge.990) then
-!     write(99,*) 'Checkpointed bnl numx ',numx
-!     write(99,*)                                                       &
-!    &n_cut,                                                            &
-!    &n_nocut,                                                          &
-!    &sumsquarex,                                                       &
-!    &sumsquarey,                                                       &
-!    &sumtwojx,                                                         &
-!    &sumtwojy,                                                         &
-!    &limit_twojx,limit_twojy,limit_twojr,                              &
-!    &totals,                                                           &
-!    &(namepart(j),j=1,napxo)
-!     write(99,*) 'crpoint xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-!     endif
-#endif
-#endif
 !--   and finally a second checkpoint copy, or maybe not!
 !--   Well, a second copy is indeed required as shown by testing
 #ifndef DEBUG
@@ -33127,35 +32217,6 @@ subroutine crpoint
      &(sigmvl(j),j=1,napxo)
       endfile (96,iostat=ierro)
       backspace (96,iostat=ierro)
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      if(lhc.eq.9) then
-#ifndef DEBUG
-        if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-          write(93,*) 'SIXTRACR CRPOINT writing Record 3 BNL fort.96'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-        endif
-#endif
-        write(96,err=100,iostat=ierro)                                  &
-     &n_cut,                                                            &
-     &n_nocut,                                                          &
-     &sumsquarex,                                                       &
-     &sumsquarey,                                                       &
-     &sumtwojx,                                                         &
-     &sumtwojy,                                                         &
-     &limit_twojx,limit_twojy,limit_twojr,                              &
-     &totals,                                                           &
-     &(namepart(j),j=1,napxo)
-        endfile (96,iostat=ierro)
-        backspace (96,iostat=ierro)
-      endif
-!GRDRHIC
-!GRD-042008
-#endif
 
 #ifndef DEBUG
       if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -33321,9 +32382,6 @@ subroutine crstart
       use mod_hions
 
       implicit none
-#ifdef BNLELENS
-+ca rhicelens
-#endif
 +ca crco
 
       real(kind=fPrec) dynk_newValue
@@ -33390,53 +32448,7 @@ subroutine crstart
           numxv(j)=numl
           nnumxv(j)=numl
         endif
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-        namepart(j)=crnamepart(j)
-!GRDRHIC
-!GRD-042008
-#endif
       enddo
-#ifdef BNLELENS
-!GRDRHIC
-!GRD-042008
-      if(lhc.eq.9) then
-        write(93,*) 'CRSTART doing BNL vars'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-        n_cut=crn_cut
-        n_nocut=crn_nocut
-        sumsquarex=crsumsquarex
-        sumsquarey=crsumsquarey
-        sumtwojx=crsumtwojx
-        sumtwojy=crsumtwojy
-        limit_twojx=crlimit_twojx
-        limit_twojy=crlimit_twojy
-        limit_twojr=crlimit_twojr
-        totals=crtotals
-      endif
-!GRDRHIC
-!GRD-042008
-#endif
-#ifdef DEBUG
-#ifdef BNLELENS
-!     write(99,*) 'CRSTART bnl numlcr ',numlcr
-!     write(99,*)                                                       &
-!    &n_cut,                                                            &
-!    &n_nocut,                                                          &
-!    &sumsquarex,                                                       &
-!    &sumsquarey,                                                       &
-!    &sumtwojx,                                                         &
-!    &sumtwojy,                                                         &
-!    &limit_twojx,limit_twojy,limit_twojr,                              &
-!    &totals,                                                           &
-!    &(namepart(j),j=1,napxo)
-!     write(99,*) 'crstart xv,yv j=1 ',xv(1,1),xv(2,1),yv(1,1),yv(2,1)
-!     endfile (99,iostat=ierro)
-!     backspace (99,iostat=ierro)
-#endif
-#endif
 !ERIC new extended checkpoint for synuthck
       
       if (ldynk) then

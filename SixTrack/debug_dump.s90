@@ -95,28 +95,6 @@ subroutine dumpxy(dumpname,n,i,k)
   
 end subroutine dumpxy
 
-#ifdef BNLELENS
-subroutine dumpbnl(dumpname,n,i)
-  
-  use floatPrecision
-  use parpro
-  
-  implicit none
-  
-+ca rhicelens
-  integer n,i,j
-  character(len=*) dumpname
-  save
-  
-  write(99,*) dumpname,'   Turn ',n,' Element ',i
-  write(99,*) n_cut, n_nocut, sumsquarex, sumsquarey, sumtwojx, sumtwojy, &
-    limit_twojx, limit_twojy, limit_twojr, totals, (namepart(j),j=1,napx)
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
-  
-end subroutine dumpbnl
-#endif
-
 subroutine dumpsynu(dumpname,n,i)
   
   use floatPrecision
