@@ -15,52 +15,51 @@ echo "For help, run 'cmake_six help'"
 echo ""
 
 #Run the Beauty "linters"
-if [ -x "$(command -v gawk)" ]; then
-    function astuce_linter {
-    echo ""
-    echo "Running 'gawk -f beauty/count.awk "$1"' to check sanity of astuce directives in "$1":"
-    if ! gawk -f beauty/count.awk $1; then
-        echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in "$1"\e[49m\e[0m"
-        echo "This most likely means that you added or removed a +if or +ei,"
-        echo " but forgot about its partner."
-        exit 1
-    else
-        echo "--> count.awk completed without errors."
-    fi
-    
-    echo "Running 'gawk -f beauty/check_astuce_ifs.awk "$1"' to check sanity of astuce directives in "$1":"
-    if ! gawk -f beauty/check_astuce_ifs.awk $1; then
-        echo -e "\e[5m\e[41m WARNING: ASTUCE if has too many arguments in "$1" \e[49m\e[0m"
-        echo "This most likely means that you have an extra space in an astuce +if statement"
-        exit 1
-    else
-        echo "--> check_astuce_ifs.awk completed without errors."
-    fi
-    }
-    astuce_linter sixtrack.s90
-    # astuce_linter plato_seq.s90
-    astuce_linter lielib.s90
-    astuce_linter dabnew.s90
-    astuce_linter beamgas.s90
-    # astuce_linter bouncy_castle.s90
-    astuce_linter collimation.s90
-    astuce_linter dynk.s90
-    # astuce_linter fluka.s90
-    # astuce_linter fma.s90
-    # astuce_linter hdf5_sixtrack.s90
-    astuce_linter postprocessing.s90
-    astuce_linter scatter.s90
-    astuce_linter dump.s90
-    # astuce_linter common_modules.s90
-else
-    echo
-    echo "WARNING: You have not installed gawk (GNU AWK)."
-    echo "This is needed to check the correctness of the ASTUCE +if /+ei"
-    echo -e "If you are modifying the .s files, it is \e[5m\e[41m EXTREMELY STRONGLY RECCOMENDED to install gawk! \e[49m\e[0m"
-    echo "If you're really sure, go ahead and delete the 'exit' just after this 'echo' from cmake_six..."
-    exit 1
-fi
-echo ""
+# if [ -x "$(command -v gawk)" ]; then
+#     function astuce_linter {
+#     echo ""
+#     echo "Running 'gawk -f beauty/count.awk "$1"' to check sanity of astuce directives in "$1":"
+#     if ! gawk -f beauty/count.awk $1; then
+#         echo -e "\e[5m\e[41m WARNING: ASTUCE if/ei doesn't match up in "$1"\e[49m\e[0m"
+#         echo "This most likely means that you added or removed a +if or +ei,"
+#         echo " but forgot about its partner."
+#         exit 1
+#     else
+#         echo "--> count.awk completed without errors."
+#     fi
+#     echo "Running 'gawk -f beauty/check_astuce_ifs.awk "$1"' to check sanity of astuce directives in "$1":"
+#     if ! gawk -f beauty/check_astuce_ifs.awk $1; then
+#         echo -e "\e[5m\e[41m WARNING: ASTUCE if has too many arguments in "$1" \e[49m\e[0m"
+#         echo "This most likely means that you have an extra space in an astuce +if statement"
+#         exit 1
+#     else
+#         echo "--> check_astuce_ifs.awk completed without errors."
+#     fi
+#     }
+#     astuce_linter sixtrack.s90
+#     # astuce_linter plato_seq.s90
+#     astuce_linter lielib.s90
+#     astuce_linter dabnew.s90
+#     astuce_linter beamgas.s90
+#     # astuce_linter bouncy_castle.s90
+#     astuce_linter collimation.s90
+#     astuce_linter dynk.s90
+#     # astuce_linter fluka.s90
+#     # astuce_linter fma.s90
+#     # astuce_linter hdf5_sixtrack.s90
+#     astuce_linter postprocessing.s90
+#     astuce_linter scatter.s90
+#     astuce_linter dump.s90
+#     # astuce_linter common_modules.s90
+# else
+#     echo
+#     echo "WARNING: You have not installed gawk (GNU AWK)."
+#     echo "This is needed to check the correctness of the ASTUCE +if /+ei"
+#     echo -e "If you are modifying the .s files, it is \e[5m\e[41m EXTREMELY STRONGLY RECCOMENDED to install gawk! \e[49m\e[0m"
+#     echo "If you're really sure, go ahead and delete the 'exit' just after this 'echo' from cmake_six..."
+#     exit 1
+# fi
+# echo ""
 
 #Get options
 compilers=(defaultcompiler gfortran gcc g++ gcc-g++ gfortran-gcc-g++ ifort ifort-icc ifort-icc-icpc nagfor clang clang++ clang-clang++) # Valid compilers. defaultcompiler = system default compilers
