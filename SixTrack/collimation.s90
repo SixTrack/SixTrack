@@ -12,6 +12,10 @@ block data scdata
 
   implicit none
 
+! EQ 2016 added variables for collimator material numbers
+  integer, parameter :: nmat  = 14
+  integer, parameter :: nrmat = 12
+
 +ca interac
 
   integer i
@@ -121,16 +125,10 @@ module collimation
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-  ! file units
-  integer, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
-  integer, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit, all_absorptions_unit
-  integer, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
-  integer, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit, efficiency_2d_unit
-  integer, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
-  integer, save :: filename_dis_unit, coll_db_unit, CollPositions_unit
-  integer, save :: collsettings_unit, outlun
-  ! These are not in use
-  !integer, save :: betatron_unit, beta_beat_unit
+!+cd collMatNum
+! EQ 2016 added variables for collimator material numbers
+  integer, parameter :: nmat  = 14
+  integer, parameter :: nrmat = 12
 
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -147,6 +145,17 @@ module collimation
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
   logical, save :: coll_found(100)
+
+  ! file units
+  integer, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
+  integer, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit, all_absorptions_unit
+  integer, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
+  integer, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit, efficiency_2d_unit
+  integer, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
+  integer, save :: filename_dis_unit, coll_db_unit, CollPositions_unit
+  integer, save :: collsettings_unit, outlun
+  ! These are not in use
+  !integer, save :: betatron_unit, beta_beat_unit
 
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
@@ -4072,7 +4081,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 +ca flukavars
 
 +ca database
-+ca collMatNum
+!+ca collMatNum
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
 
@@ -6226,7 +6235,7 @@ function get_dpodx(p,mat_i)          !Claudia
   implicit none
 
   integer mat
-+ca collMatNum
+!+ca collMatNum
   common/materia/mat
   real(kind=fPrec) anuc,zatom,rho,emr,exenergy
   real(kind=fPrec) PE,K,gamma_p
@@ -6334,7 +6343,7 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 
   integer IS
 
-+ca collMatNum
+!+ca collMatNum
 
   real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
   real(kind=fPrec) k !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)

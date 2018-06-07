@@ -498,11 +498,6 @@
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
 !     END BLOCK DBCOLLIM
-+cd collMatNum
-!     EQ 2016 added variables for collimator material numbers
-      integer nmat, nrmat
-      parameter(nmat=14,nrmat=12)
-
 +cd flukavars
 !     RB DM 2014 added variables for FLUKA output
       real(kind=fPrec) xInt,xpInt,yInt,ypInt,sInt
@@ -538,7 +533,7 @@
       common/funint/tftot
 +cd interac
       integer mat,mcurr
-+ca collMatNum
+!+ca collMatNum
       real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
      &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
      &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
