@@ -194,7 +194,6 @@ subroutine collimate_init()
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -203,17 +202,16 @@ subroutine collimate_init()
 +ca info
 +ca dbcolcom
 +ca dbdaten
-+ei
 
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
 #endif
   
-+if g4collimat
+#ifdef G4COLLIMAT
 ! These should be configured in the scatter block when possible/enabled
   real(kind=fPrec) g4_ecut
   integer g4_physics
-+ei
+#endif
   
   call funit_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
@@ -615,15 +613,15 @@ subroutine collimate_init()
   call readcollimator
 
 !Then do any implementation specific initial loading
-+if collimate_k2
+#ifdef COLLIMATE_K2
   call collimate_init_k2
-+ei
+#endif
 
-+if merlinscatter
+#ifdef MERLINSCATTER
   call collimate_init_merlin
-+ei
+#endif
 
-+if g4collimat
+#ifdef G4COLLIMAT
 !! This function lives in the G4Interface.cpp file in the g4collimat folder
 !! Accessed by linking libg4collimat.a
 !! Set the energy cut at 70% - i.e. 30% energy loss
@@ -635,7 +633,8 @@ subroutine collimate_init()
   g4_physics = 0
 
   call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics)
-+ei
+#endif
+
 end subroutine collimate_init
 
 !>
@@ -667,7 +666,6 @@ subroutine collimate_start_sample(nsample)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -676,11 +674,10 @@ subroutine collimate_start_sample(nsample)
 +ca info
 +ca dbthin6d
 +ca dbcolcom
-+ei
 
-+if cr
+#ifdef CR
 +ca crco
-+ei
+#endif
 
   j = nsample
   samplenumber=j
@@ -990,10 +987,10 @@ subroutine collimate_start_sample(nsample)
   if(firstrun) then
   !Reading of collimation database moved to subroutine collimate_init
 
-+if beamgas
+#ifdef BEAMGAS
 !YIL call beam gas initiation routine
   call beamGasInit(myenom)
-+ei
+#endif
 
   write(lout,*) 'number of collimators', db_ncoll
   do icoll = 1, db_ncoll
@@ -1363,7 +1360,6 @@ subroutine collimate_start_collimator(stracki)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -1372,13 +1368,12 @@ subroutine collimate_start_collimator(stracki)
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
   real(kind=fPrec) c5m4,stracki
 
-+if fast
+#ifdef FAST
   c5m4=5.0e-4_fPrec
-+ei
+#endif
 
   if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
     if(bez(myix)(7:9).eq.'3.B' .or. bez(myix)(7:9).eq.'3.b') then
@@ -1570,7 +1565,6 @@ subroutine collimate_do_collimator(stracki)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -1579,20 +1573,19 @@ subroutine collimate_do_collimator(stracki)
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
   real(kind=fPrec) c5m4,stracki
 
-+if g4collimat
+#ifdef G4COLLIMAT
   integer g4_lostc
   integer :: part_hit_flag = 0
   integer :: part_abs_flag = 0
   real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
-+ei
+#endif
 
-+if fast
+#ifdef FAST
   c5m4=5.0e-4_fPrec
-+ei
+#endif
 
 !-----------------------------------------------------------------------
 !GRD NEW COLLIMATION PARAMETERS
@@ -2281,7 +2274,7 @@ subroutine collimate_do_collimator(stracki)
       else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
 !     Treatment of non-sliced collimators
 
-+if g4collimat
+#ifdef G4COLLIMAT
 !! Add the geant4 geometry
         if(firstrun.and.iturn.eq.1) then
           call g4_add_collimator(db_name1(icoll), c_material, c_length, c_aperture, c_rotation, c_offset)
@@ -2351,8 +2344,8 @@ subroutine collimate_do_collimator(stracki)
           end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
         end do   !do j = 1, napx
 !      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
-+ei
-+if .not.g4collimat
+#endif
+#ifndef G4COLLIMAT
 ! This is what is called in a normal collimation run
                   call collimate2(c_material, c_length, c_rotation,     &
      &                 c_aperture, c_offset, c_tilt,                    &
@@ -2362,7 +2355,7 @@ subroutine collimate_do_collimator(stracki)
      &                 part_abs_pos, part_abs_turn,                     &
      &                 part_impact, part_indiv, part_linteract,         &
      &                 onesided, flukaname, secondary, 1, nabs_type)
-+ei
+#endif
       end if !if (n_slices.gt.one .and.
     end if !if(db_name1(icoll)(1:4).eq.'COLM') then
   end if !if (found) then
@@ -2841,7 +2834,6 @@ subroutine collimate_end_sample(j)
 +ca beamdim
   dimension nbeaux(nbb)
   
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -2849,7 +2841,6 @@ subroutine collimate_end_sample(j)
 +ca dbpencil
 +ca info
 +ca dbcolcom
-+ei
   
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
@@ -3104,7 +3095,6 @@ subroutine collimate_exit()
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3112,7 +3102,6 @@ subroutine collimate_exit()
 +ca dbpencil
 +ca info
 +ca dbcolcom
-+ei
 
   close(outlun)
   close(collgaps_unit)
@@ -3235,9 +3224,9 @@ subroutine collimate_exit()
   close(orbitchecking_unit)
   close(CollPositions_unit)
 
-+if g4collimat
+#ifdef G4COLLIMAT
   call g4_terminate()
-+ei
+#endif
 
 end subroutine collimate_exit
 
@@ -3261,7 +3250,7 @@ subroutine collimate_start_turn(n)
   logical lopen
 +ca beamdim
   dimension nbeaux(nbb)
-+if collimat
+
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3269,7 +3258,7 @@ subroutine collimate_start_turn(n)
 +ca dbpencil
 +ca info
 +ca dbcolcom
-+ei
+
   integer n
 
   iturn=n
@@ -3298,7 +3287,6 @@ subroutine collimate_start_element(i)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3307,7 +3295,6 @@ subroutine collimate_start_element(i)
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
   ie=i
 !++  For absorbed particles set all coordinates to zero. Also
@@ -3398,7 +3385,6 @@ subroutine collimate_end_element
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3407,7 +3393,6 @@ subroutine collimate_end_element
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
 #ifdef HDF5
   integer hdfturn,hdfpid,hdftyp
@@ -3542,9 +3527,9 @@ subroutine collimate_end_turn
   use mod_commond
   use crcoall
 
-+if root
+#ifdef ROOT
   use root_output
-+ei
+#endif
 
   implicit none
 
@@ -3554,7 +3539,7 @@ subroutine collimate_end_turn
 
 +ca beamdim
   dimension nbeaux(nbb)
-+if collimat
+
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3563,7 +3548,6 @@ subroutine collimate_end_turn
 +ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
 #ifdef HDF5
   ! For tracks2
@@ -3636,11 +3620,13 @@ subroutine collimate_end_turn
 #ifdef HDF5
     end if
 #endif
-+if root
+
+#ifdef ROOT
     if(root_flag .and. root_Collimation.eq.1) then
       call SurvivalRootWrite(iturn, nsurvive)
     end if
-+ei
+#endif
+
     if (iturn.eq.numl) then
       nsurvive_end = nsurvive_end + nsurvive
     end if
@@ -5418,7 +5404,7 @@ function gettran(inter,xmat,p)
   real(kind=fPrec) truth,xran(1)
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
   if( inter.eq.2 ) then
     gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
 
@@ -5444,8 +5430,8 @@ function gettran(inter,xmat,p)
     t=real(truth,fPrec)                                                    !hr09
     gettran = t
   end if
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
 
   if( inter.eq.2 ) then
     gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
@@ -5466,7 +5452,7 @@ function gettran(inter,xmat,p)
     gettran = t
   end if
 
-+ei
+#endif
   return
 end function gettran
 
@@ -5522,9 +5508,9 @@ subroutine scatin(plab)
 
   implicit none
 
-+if merlinscatter
+#ifdef MERLINSCATTER
 +ca database
-+ei
+#endif
 
 +ca interac
 
@@ -5533,7 +5519,7 @@ subroutine scatin(plab)
   real(kind=fPrec) tlow,thigh
 
   ecmsq = (two * pmap) * plab                                   !hr09
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
   xln15s=log_mb(0.15_fPrec*ecmsq)                                           !hr09
 
 !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
@@ -5544,12 +5530,13 @@ subroutine scatin(plab)
 
 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
   ppsd=(4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
-+ei !+if .not.merlinscatter
+#endif
 
-+if merlinscatter !No crlibm...
+#ifdef MERLINSCATTER
+!No crlibm...
   call merlinscatter_setup(plab,rnd_seed)
   call merlinscatter_setdata(pptot,ppel,ppsd)
-+ei
+#endif
 
 !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
   bpp=7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
@@ -5720,15 +5707,15 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     zlm1=rlen
     call mcs(s)
     s=(zlm-rlen)+s                                                    !hr09
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
     p=p-m_dpodx*s
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
 !void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
     call merlinscatter_calc_ion_loss(p,edens(mat), pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
-+ei
+#endif
 
     dpop=(p-p0)/p0
     if(dowrite_impact) then
@@ -5757,14 +5744,14 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   if(x.le.zero) then
     s=(zlm-rlen)+s                                                    !hr09
 
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)
     p=p-m_dpodx*s
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
-+ei
+#endif
     dpop=(p-p0)/p0
 
     if(dowrite_impact) then
@@ -5802,14 +5789,14 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   if(inter.eq.1) then
     s=(zlm-rlen)+zlm1                                                 !hr09
 
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)
     p=p-m_dpodx*s
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
-+ei
+#endif
 
     dpop=(p-p0)/p0
 
@@ -7229,7 +7216,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
   startpar=1
 
-+if beamgas
+#ifdef BEAMGAS
 ! YIL July 2010 first particle on orbit
 !  initial xangle (if any) is not
 !  yet applied at this point...
@@ -7242,7 +7229,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   myp(1)  = myenom
   mys(1)  = zero
 !YIL end edit July 2010
-+ei
+#endif
 
   do j=startpar, mynp
 ! JBG July 2007
@@ -8221,10 +8208,10 @@ subroutine readcollimator
   use crcoall
   use parpro
 
-+if root
+#ifdef ROOT
   use iso_c_binding
   use root_output
-+ei
+#endif
 
   implicit none
 
@@ -8235,11 +8222,12 @@ subroutine readcollimator
 
   logical lopen
 
-+if root
+#ifdef ROOT
 ! Temp variables to avoid fotran array -> C nightmares
   character(len=max_name_len+1) :: this_name = C_NULL_CHAR
   character(len=5) :: this_material = C_NULL_CHAR
-+ei
+#endif
+
   save
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -8334,23 +8322,24 @@ subroutine readcollimator
       call prror(-1)
     end if
 
-+if root
+#ifdef ROOT
     if(root_flag .and. root_CollimationDB.eq.1) then
       this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
       this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
       call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
 &     db_length(j), db_rotation(j), db_offset(j))
     end if
-+ei
+#endif
 
   end do
 
   close(coll_db_unit)
 
-+if root
+#ifdef ROOT
 ! flush the root file
 !  call SixTrackRootWrite()
-+ei
+#endif
+
 end subroutine readcollimator
 
 subroutine collimation_comnul
