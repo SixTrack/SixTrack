@@ -183,20 +183,6 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd dbdaten
-
-      ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-!      logical cut_input
-!      common /cut/ cut_input
-
-      ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-      real(kind=fPrec) remitx_dist,remity_dist,                         &
-     &     remitx_collgap,remity_collgap
-      common  /remit/ remitx_dist, remity_dist,                         &
-     &     remitx_collgap,remity_collgap
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dblinopt
 !
 ! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
@@ -1205,7 +1191,7 @@ subroutine daten
   
 #ifdef COLLIMAT
 !+ca collpara
-+ca dbdaten
+!+ca dbdaten
 +ca dbpencil
 +ca database
 +ca dbcolcom

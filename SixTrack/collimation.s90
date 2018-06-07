@@ -132,6 +132,20 @@ module collimation
   ! These are not in use
   !integer, save :: betatron_unit, beta_beat_unit
 
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dbdaten
+
+! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+! logical cut_input
+! common /cut/ cut_input
+
+! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+  real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
+!      common  /remit/ remitx_dist, remity_dist,remitx_collgap,remity_collgap
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
   logical, save :: coll_found(100)
 
 #ifdef HDF5
@@ -201,7 +215,7 @@ subroutine collimate_init()
 +ca dbpencil
 +ca info
 +ca dbcolcom
-+ca dbdaten
+!+ca dbdaten
 
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
