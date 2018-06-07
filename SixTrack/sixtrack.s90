@@ -89,10 +89,6 @@
 !-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-+cd collpara
-      integer max_ncoll,maxn,numeff,numeffdpop,nc
-      parameter (max_ncoll=100,nc=32,numeff=32,maxn=20000,              &
-     &numeffdpop=29)
 +cd database
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
       logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
@@ -1145,7 +1141,11 @@ subroutine daten
   
   use elens
   use wire
-  
+
+#ifdef COLLIMAT
+  use collimation
+#endif
+
   implicit none
   
   integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,idi,iexnum,iexread,    &
@@ -1204,7 +1204,7 @@ subroutine daten
   data lineno35 /0/
   
 #ifdef COLLIMAT
-+ca collpara
+!+ca collpara
 +ca dbdaten
 +ca dbpencil
 +ca database
@@ -15082,7 +15082,7 @@ subroutine trauthin(nthinerr)
 +ca beamdim
   dimension nbeaux(nbb)
 #ifdef COLLIMAT
-+ca collpara
+!+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -16280,7 +16280,7 @@ subroutine thin6d(nthinerr)
 +ca beamdim
 
 #ifdef COLLIMAT
-+ca collpara
+!+ca collpara
 +ca dbcommon
 +ca dbthin6d
 +ca database
@@ -23264,9 +23264,14 @@ subroutine linopt(dpp)
 #ifdef ROOT
   use root_output
 #endif
+
 #ifdef HDF5
   use hdf5_output
   use hdf5_linopt
+#endif
+
+#ifdef COLLIMAT
+  use collimation
 #endif
   
   implicit none
@@ -23281,7 +23286,7 @@ subroutine linopt(dpp)
   character(len=max_name_len) idum
   
 #ifdef COLLIMAT
-+ca collpara
+!+ca collpara
 +ca dblinopt
 #endif
   
@@ -24250,13 +24255,19 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mod_common
   use mod_commons
   use mod_commont
+
 #ifdef ROOT
   use iso_c_binding, only: C_NULL_CHAR
   use root_output
 #endif
+
 #ifdef HDF5
   use hdf5_output
   use hdf5_linopt
+#endif
+
+#ifdef COLLIMAT
+  use collimation
 #endif
   
   implicit none
@@ -24269,7 +24280,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
   dimension d(2),dp(2),c(2),cp(2)
 #ifdef COLLIMAT
-+ca collpara
+!+ca collpara
 +ca dblinopt
   integer ielem
 #endif

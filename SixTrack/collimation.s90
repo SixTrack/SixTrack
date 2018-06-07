@@ -114,6 +114,13 @@ module collimation
   
   implicit none
   
+!+cd collpara
+  integer, parameter :: max_ncoll  = 100
+  integer, parameter :: maxn       = 20000
+  integer, parameter :: numeff     = 32
+  integer, parameter :: numeffdpop = 29
+  integer, parameter :: nc         = 32
+
   ! file units
   integer, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
   integer, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit, all_absorptions_unit
@@ -188,7 +195,6 @@ subroutine collimate_init()
   dimension nbeaux(nbb)
 
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -662,7 +668,6 @@ subroutine collimate_start_sample(nsample)
   dimension nbeaux(nbb)
 
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -1359,7 +1364,6 @@ subroutine collimate_start_collimator(stracki)
   dimension nbeaux(nbb)
 
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -1567,7 +1571,6 @@ subroutine collimate_do_collimator(stracki)
   dimension nbeaux(nbb)
 
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -2389,7 +2392,6 @@ subroutine collimate_end_collimator()
   dimension nbeaux(nbb)
   
 #ifdef COLLIMAT
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -2798,7 +2800,9 @@ subroutine collimate_end_collimator()
     write(lout,*) 'INFO>  Average impact parameter [m]     : ', average
     write(lout,*) 'INFO>  Sigma impact parameter [m]       : ', sigma
 
-    if (dowrite_impact) close(impact_unit)
+    if (dowrite_impact) then
+      close(impact_unit)
+    end if
 
 !++  End of    S E L E C T E D   collimator
   end if
@@ -2838,7 +2842,6 @@ subroutine collimate_end_sample(j)
   dimension nbeaux(nbb)
   
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3102,7 +3105,6 @@ subroutine collimate_exit()
   dimension nbeaux(nbb)
 
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3260,7 +3262,6 @@ subroutine collimate_start_turn(n)
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3298,7 +3299,6 @@ subroutine collimate_start_element(i)
   dimension nbeaux(nbb)
 
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3399,7 +3399,6 @@ subroutine collimate_end_element
   dimension nbeaux(nbb)
 
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -3556,7 +3555,6 @@ subroutine collimate_end_turn
 +ca beamdim
   dimension nbeaux(nbb)
 +if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
@@ -4068,7 +4066,6 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   implicit none
 
 
-+ca collpara
 +ca dbpencil
 +ca info
 +ca dbcollim
@@ -4732,7 +4729,6 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 
       real(kind=fPrec) sx, sz
 !
-+ca collpara
 +ca dbpencil
 +ca info
 +ca dbcollim
@@ -6425,7 +6421,6 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   implicit none
 
 
-+ca collpara
 +ca dbmkdist
   real(kind=fPrec) pi
 
@@ -6529,7 +6524,6 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi
@@ -6615,7 +6609,6 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
@@ -6713,7 +6706,6 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi
@@ -6842,7 +6834,6 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   character(len=80)   filename_dis
@@ -6902,7 +6893,6 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use mod_commonmn
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
 
@@ -7047,7 +7037,6 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi
@@ -7191,7 +7180,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
 
@@ -8242,7 +8230,6 @@ subroutine readcollimator
 
   integer I,J,K,ios
 
-+ca collpara
 +ca database
 +ca dbcommon
 
@@ -8370,7 +8357,6 @@ subroutine collimation_comnul
   use parpro
   implicit none
 
-+ca collpara
 +ca database
 +ca dbcommon
 
