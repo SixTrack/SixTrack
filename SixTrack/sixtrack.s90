@@ -497,10 +497,6 @@ real(kind=fPrec) part_impact(npart) !(npart)
       real(kind=fPrec) xInt,xpInt,yInt,ypInt,sInt
       common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
 
-+cd info
-      integer ie,iturn,nabs_total
-      common  /info/ ie,iturn,nabs_total
-
 +cd dbmkdist
 !++ Vectors of coordinates
 
@@ -15060,7 +15056,7 @@ subroutine trauthin(nthinerr)
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 #endif
   save
@@ -16258,7 +16254,7 @@ subroutine thin6d(nthinerr)
 +ca database
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 #endif
 

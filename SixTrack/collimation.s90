@@ -130,6 +130,10 @@ module collimation
   integer, parameter :: nmat  = 14
   integer, parameter :: nrmat = 12
 
+!+cd info
+  integer, save :: ie, iturn, nabs_total
+!  common  /info/ ie,iturn,nabs_total
+
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -222,7 +226,7 @@ subroutine collimate_init()
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 !+ca dbdaten
 
@@ -694,7 +698,7 @@ subroutine collimate_start_sample(nsample)
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbthin6d
 +ca dbcolcom
 
@@ -1388,7 +1392,7 @@ subroutine collimate_start_collimator(stracki)
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
 
@@ -1593,7 +1597,7 @@ subroutine collimate_do_collimator(stracki)
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
 
@@ -2407,16 +2411,14 @@ subroutine collimate_end_collimator()
 +ca beamdim
   dimension nbeaux(nbb)
   
-#ifdef COLLIMAT
 +ca dbtrthin
 +ca database
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
-#endif
 
 #ifdef HDF5
   ! For tracks2
@@ -2862,7 +2864,7 @@ subroutine collimate_end_sample(j)
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
   
 !++  Save particle offsets to a file
@@ -3123,7 +3125,7 @@ subroutine collimate_exit()
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 
   close(outlun)
@@ -3279,7 +3281,7 @@ subroutine collimate_start_turn(n)
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 
   integer n
@@ -3315,7 +3317,7 @@ subroutine collimate_start_element(i)
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
 
@@ -3413,7 +3415,7 @@ subroutine collimate_end_element
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
 
@@ -3568,7 +3570,7 @@ subroutine collimate_end_turn
 +ca dbcommon
 +ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
 
@@ -4074,9 +4076,8 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use mod_common, only : iexact
   implicit none
 
-
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcollim
 +ca flukavars
 
@@ -4739,7 +4740,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
       real(kind=fPrec) sx, sz
 !
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcollim
 !
 +ca database
