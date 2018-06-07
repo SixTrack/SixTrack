@@ -5,12 +5,8 @@
 !  Otherwise write directly to "*" aka iso_fortran_env::output_unit (usually unit 6)
 ! =================================================================================================
 module crcoall
-  
   implicit none
-  
-  integer lout
-  save lout
-  
+  integer, public, save :: lout
 end module crcoall
 
 ! =================================================================================================
@@ -20,13 +16,5 @@ end module crcoall
 module floatPrecision
   use, intrinsic :: iso_fortran_env, only : real32, real64, real128
   implicit none
-#ifdef P32BITM
-  integer, parameter :: fPrec = real32
-#endif
-#ifdef P64BITM
-  integer, parameter :: fPrec = real64
-#endif
-#ifdef P128BITM
-  integer, parameter :: fPrec = real128
-#endif
+  integer, parameter :: fPrec = SIXTRACK_REAL
 end module floatPrecision
