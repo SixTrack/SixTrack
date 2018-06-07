@@ -5,6 +5,7 @@
 !<
 module beamgascommon
   use floatPrecision
+  use end_sixtrack
 !       common to beamGasInit and beamGas
   integer, parameter :: bgmaxx=40000,bamount=1000
   integer bgmax, bgid, bgiddb(bgmaxx), ibgloc, pressID, njobs, njobthis, dpmjetevents
@@ -72,10 +73,14 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use mod_common
   use mod_commont
   use mod_commonmn
+
+#ifdef COLLIMAT
+  use collimation
+#endif
+
   implicit none
 
-+ca collpara
-+ca info
+!+ca info
 +ca dbcommon
 
 !YIL need to save, this is input variable

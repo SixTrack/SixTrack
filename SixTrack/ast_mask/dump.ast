@@ -1,4 +1,4 @@
-dump.s90 sixtrack.s90 debug_dump.s90
+dump.s90 sixtrack.s90 debug_dump.s90 collimation.s90
 dumpn.f90
 df cr,boinc,collimat,datamods,bignblz,hugenblz,bignpart,hugenpart
 e dump
