@@ -117,6 +117,8 @@ module collimation
 #endif
   
   implicit none
+
+!  private
   
 !+cd collpara
   integer, parameter :: max_ncoll  = 100
@@ -134,6 +136,38 @@ module collimation
   integer, save :: ie, iturn, nabs_total
 !  common  /info/ ie,iturn,nabs_total
 
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dblinopt
+!
+! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
+!
+  real(kind=fPrec), save :: tbetax(nblz)  !(nblz)
+  real(kind=fPrec), save :: tbetay(nblz)  !(nblz)
+  real(kind=fPrec), save :: talphax(nblz) !(nblz)
+  real(kind=fPrec), save :: talphay(nblz) !(nblz)
+  real(kind=fPrec), save :: torbx(nblz)   !(nblz)
+  real(kind=fPrec), save :: torbxp(nblz)  !(nblz)
+  real(kind=fPrec), save :: torby(nblz)   !(nblz)
+  real(kind=fPrec), save :: torbyp(nblz)  !(nblz)
+  real(kind=fPrec), save :: tdispx(nblz)  !(nblz)
+  real(kind=fPrec), save :: tdispy(nblz)  !(nblz)
+
+!  common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,torby,torbyp,tdispx,tdispy
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+! Variables for finding the collimator with the smallest gap
+! and defining, stroring the gap rms error
+!
+  character(len=max_name_len) :: coll_mingap1, coll_mingap2
+  real(kind=fPrec), save :: gap_rms_error(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: nsig_err, sig_offset
+  real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
+  integer :: coll_mingap_id
+
+!  common /gap_err/ gap_rms_error
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -224,7 +258,7 @@ subroutine collimate_init()
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -696,7 +730,7 @@ subroutine collimate_start_sample(nsample)
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbthin6d
@@ -1390,7 +1424,7 @@ subroutine collimate_start_collimator(stracki)
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -1595,7 +1629,7 @@ subroutine collimate_do_collimator(stracki)
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -2414,7 +2448,7 @@ subroutine collimate_end_collimator()
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -2862,7 +2896,7 @@ subroutine collimate_end_sample(j)
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -3123,7 +3157,7 @@ subroutine collimate_exit()
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -3279,7 +3313,7 @@ subroutine collimate_start_turn(n)
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -3315,7 +3349,7 @@ subroutine collimate_start_element(i)
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -3413,7 +3447,7 @@ subroutine collimate_end_element
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -3568,7 +3602,7 @@ subroutine collimate_end_turn
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom

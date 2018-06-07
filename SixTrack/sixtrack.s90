@@ -182,38 +182,6 @@
   character(len=4) ch0000
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dblinopt
-!
-! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
-!
-  real(kind=fPrec) :: tbetax(nblz)  !(nblz)
-  real(kind=fPrec) :: tbetay(nblz)  !(nblz)
-  real(kind=fPrec) :: talphax(nblz) !(nblz)
-  real(kind=fPrec) :: talphay(nblz) !(nblz)
-  real(kind=fPrec) :: torbx(nblz)   !(nblz)
-  real(kind=fPrec) :: torbxp(nblz)  !(nblz)
-  real(kind=fPrec) :: torby(nblz)   !(nblz)
-  real(kind=fPrec) :: torbyp(nblz)  !(nblz)
-  real(kind=fPrec) :: tdispx(nblz)  !(nblz)
-  real(kind=fPrec) :: tdispy(nblz)  !(nblz)
-
-  common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,torby,torbyp,tdispx,tdispy
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-! Variables for finding the collimator with the smallest gap
-! and defining, stroring the gap rms error
-!
-  character(len=max_name_len) coll_mingap1, coll_mingap2
-  real(kind=fPrec) gap_rms_error(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) nsig_err, sig_offset
-  real(kind=fPrec) mingap,gap_h1,gap_h2,gap_h3,gap_h4
-  integer coll_mingap_id
-
-  common /gap_err/ gap_rms_error
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbthin6d
 
   integer ios,num_surhit,numbin,ibin,num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov
@@ -15054,7 +15022,7 @@ subroutine trauthin(nthinerr)
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -16252,7 +16220,7 @@ subroutine thin6d(nthinerr)
 +ca dbcommon
 +ca dbthin6d
 +ca database
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
 !+ca info
 +ca dbcolcom
@@ -23255,7 +23223,7 @@ subroutine linopt(dpp)
   
 #ifdef COLLIMAT
 !+ca collpara
-+ca dblinopt
+!+ca dblinopt
 #endif
   
   dimension t(6,4)
@@ -24249,7 +24217,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   dimension d(2),dp(2),c(2),cp(2)
 #ifdef COLLIMAT
 !+ca collpara
-+ca dblinopt
+!+ca dblinopt
   integer ielem
 #endif
 
