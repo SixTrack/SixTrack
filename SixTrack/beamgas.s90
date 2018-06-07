@@ -80,7 +80,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   implicit none
 
-+ca info
+!+ca info
 +ca dbcommon
 
 !YIL need to save, this is input variable
