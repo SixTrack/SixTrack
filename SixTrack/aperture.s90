@@ -2417,69 +2417,110 @@ subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk
   return
 end subroutine intersectTR
 
+
+!>
+!! compactArrays(llostp)
+!! This routine is called to compact all relevant arrays when a particle is lost
+!<
 subroutine compactArrays(llostp)
   
 #ifdef FLUKA
   use mod_fluka
 #endif
-  
+
+#ifdef COLLIMAT
+  use collimation
+#endif
+
   implicit none
 
   integer j,jj,jj1,ib2,ib3,lnapx
   logical llostp(npart)
 
-
-    ! Compact array
-    if (.not.apflag) then
-      lnapx=napx
-      do j=napx,1,-1
-        if(llostp(j)) then
-          if(j.ne.lnapx) then
-            do jj=j,lnapx-1
-              jj1=jj+1
-              nlostp(jj)=nlostp(jj1)
-              xv(1,jj)=xv(1,jj1)
-              xv(2,jj)=xv(2,jj1)
-              yv(1,jj)=yv(1,jj1)
-              yv(2,jj)=yv(2,jj1)
-              dpsv(jj)=dpsv(jj1)
-              sigmv(jj)=sigmv(jj1)
-              ejfv(jj)=ejfv(jj1)
-              ejv(jj)=ejv(jj1)
-              rvv(jj)=rvv(jj1)
-! ph: hisix
-              nzz(jj)=nzz(jj1)
-              naa(jj)=naa(jj1)
-              nucm(jj)=nucm(jj1)
-              mtc(jj)=mtc(jj1)
-              moidpsv(jj)=moidpsv(jj1)
-              omoidpsv(jj)=omoidpsv(jj1)
-! ph: hisix
-
-              oidpsv(jj)=oidpsv(jj1)
-              dpsv1(jj)=dpsv1(jj1)
-              clo6v(1,jj)=clo6v(1,jj1)
-              clo6v(2,jj)=clo6v(2,jj1)
-              clo6v(3,jj)=clo6v(3,jj1)
-              clop6v(1,jj)=clop6v(1,jj1)
-              clop6v(2,jj)=clop6v(2,jj1)
-              clop6v(3,jj)=clop6v(3,jj1)
-  
-              !--beam-beam element
-              di0xs(jj)=di0xs(jj1)
-              dip0xs(jj)=dip0xs(jj1)
-              di0zs(jj)=di0zs(jj1)
-              dip0zs(jj)=dip0zs(jj1)
-              do ib2=1,6
-                do ib3=1,6
-                  tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
-                end do
-              end do
-            end do !do jj=j,lnapx-1
-#ifdef FLUKA
-            if (fluka_enable) call fluka_lostpart(lnapx, j) ! Inform fluka
+#ifdef COLLIMAT
++ca dbcommon
++ca dbthin6d
 #endif
+
+
+  ! Compact array
+  if(.not.apflag) then
+    lnapx=napx
+    do j=napx,1,-1
+      if(llostp(j)) then
+        if(j.ne.lnapx) then
+          do jj=j,lnapx-1
+            jj1=jj+1
+            nlostp(jj)=nlostp(jj1)
+            xv(1,jj)=xv(1,jj1)
+            xv(2,jj)=xv(2,jj1)
+            yv(1,jj)=yv(1,jj1)
+            yv(2,jj)=yv(2,jj1)
+            dpsv(jj)=dpsv(jj1)
+            sigmv(jj)=sigmv(jj1)
+            ejfv(jj)=ejfv(jj1)
+            ejv(jj)=ejv(jj1)
+            rvv(jj)=rvv(jj1)
+! ph: hisix
+            nzz(jj)=nzz(jj1)
+            naa(jj)=naa(jj1)
+            nucm(jj)=nucm(jj1)
+            mtc(jj)=mtc(jj1)
+            moidpsv(jj)=moidpsv(jj1)
+            omoidpsv(jj)=omoidpsv(jj1)
+! ph: hisix
+            oidpsv(jj)=oidpsv(jj1)
+            dpsv1(jj)=dpsv1(jj1)
+            clo6v(1,jj)=clo6v(1,jj1)
+            clo6v(2,jj)=clo6v(2,jj1)
+            clo6v(3,jj)=clo6v(3,jj1)
+            clop6v(1,jj)=clop6v(1,jj1)
+            clop6v(2,jj)=clop6v(2,jj1)
+            clop6v(3,jj)=clop6v(3,jj1)
+  
+            !--beam-beam element
+            di0xs(jj)=di0xs(jj1)
+            dip0xs(jj)=dip0xs(jj1)
+            di0zs(jj)=di0zs(jj1)
+            dip0zs(jj)=dip0zs(jj1)
+            do ib2=1,6
+              do ib3=1,6
+                tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
+              end do
+            end do
+
+#ifdef COLLIMAT
+! If collimation is enabled, all the collimation arrays must also be compressed
+            part_hit_pos(jj)   = part_hit_pos(jj1)
+            part_hit_turn(jj)  = part_hit_turn(jj1)
+            part_abs_pos(jj)   = part_abs_pos(jj1)
+            part_abs_turn(jj)  = part_abs_turn(jj1)
+            part_select(jj)    = part_select(jj1)
+            part_impact(jj)    = part_impact(jj1)
+            part_indiv(jj)     = part_indiv(jj1)
+            part_linteract(jj) = part_linteract(jj1)
+            part_hit_before_pos(jj)  = part_hit_before_pos(jj1)
+            part_hit_before_turn(jj) = part_hit_before_turn(jj1)
+            secondary(jj)  = secondary(jj1)
+            tertiary(jj)   = tertiary(jj1)
+            other(jj)      = other(jj1)
+            scatterhit(jj) = scatterhit(jj1)
+            nabs_type(jj)  = nabs_type(jj1)
+            !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
+            ipart(jj)      = ipart(jj1)
+            flukaname(jj)  = flukaname(jj1)
+#endif
+
+            end do !do jj=j,lnapx-1
+
+#ifdef FLUKA
+            if (fluka_enable) then
+              call fluka_lostpart(lnapx, j) ! Inform fluka
+            end if
+#endif
+
           end if !if(j.ne.lnapx) then
+
           lnapx=lnapx-1
         end if !if(llostp(j)) then
       end do !do j=napx,1,-1
