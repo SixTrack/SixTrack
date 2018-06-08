@@ -167,7 +167,10 @@ if(NOT COLLIMAT)
           perf1
           ${SIXTRACK_TESTS}
         )
-
+else()
+  if(BIGNBLZ OR HUGENBLZ)
+    set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
+  endif()
 endif(NOT COLLIMAT)
 
 #Collimation tests (needs backtrk)
