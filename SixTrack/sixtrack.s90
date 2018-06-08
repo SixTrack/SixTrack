@@ -79,23 +79,6 @@
   common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),asdaq_da(2,6),smida_da(mcor),xx_da(2), &
     yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
 !
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd elenstracktmp
-!     Dummy variables used in tracking block for calculation
-!     of the kick for the ideal annualar e-lens
-      real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-+cd wiretracktmp
-! temporary variables
-      real(kind=fPrec) RTWO !RTWO=x^2+y^2
-      real(kind=fPrec) NNORM_, NNORM
-      real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
 +dk errf
       subroutine errf(xx,yy,wx,wy)
 !----------------------------------------------------------------------*
@@ -15086,8 +15069,10 @@ subroutine thin4d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
-+ca wiretracktmp
-  logical llost
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+logical llost
   
 +ca beamdim
 
@@ -15097,7 +15082,7 @@ subroutine thin4d(nthinerr)
 
   dimension dpsv3(npart)
 
-+ca elenstracktmp
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
 
   save
 !-----------------------------------------------------------------------
@@ -15750,8 +15735,10 @@ subroutine thin6d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab
-+ca wiretracktmp
-  logical llost
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+logical llost
   
 
 +ca beamdim
@@ -15772,7 +15759,7 @@ subroutine thin6d(nthinerr)
 #endif
   dimension dpsv3(npart)
 
-+ca elenstracktmp
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
   save
 
 #ifdef FAST
@@ -17468,15 +17455,17 @@ subroutine thck4d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
-+ca wiretracktmp
-  logical llost
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+logical llost
   
 +ca beamdim
 #ifdef CR
 +ca crco
 #endif
   dimension dpsv3(npart)
-+ca elenstracktmp
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -18135,15 +18124,17 @@ subroutine thck6d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
-+ca wiretracktmp
-  logical llost
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+logical llost
   
 +ca beamdim
 #ifdef CR
 +ca crco
 #endif
   dimension dpsv3(npart)
-+ca elenstracktmp
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
