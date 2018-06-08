@@ -15,7 +15,7 @@ ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
 set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf1014 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
 ADD_TEST(NAME SelfTest_read90 COMMAND read90)
-set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found\n.*19")
+set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found; try --help?\n.*19")
 
 ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
@@ -34,6 +34,10 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 
 #List of tests that does not produce a valid fort.10
 SET(TESTS_NOFORT10
+  orbit6d-element-trombone
+  orbit6d-element-quadrupole
+  orbit6d-ions
+  orbit6d-ions-long
   exact
   thick6dblocks
   elensidealthck6d
@@ -43,6 +47,7 @@ SET(TESTS_NOFORT10
   dump4
   dump5
   dump6
+  fileunits_DYNK_DUMP
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
@@ -50,6 +55,11 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
+  geometry
+  collimation_k2_fcc_2017_h1_collision
+  dump_all_highprec
+  dump_2_all_ele_highprec
+  beam-HO_6D-simple-newstyle-orbit
   )
 
 if(NOT COLLIMAT)
@@ -57,7 +67,7 @@ if(NOT COLLIMAT)
                 SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
         endif()
 
-	if(NAFF)
+        if(NAFF)
                 SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
         endif()
 
@@ -86,7 +96,6 @@ if(NOT COLLIMAT)
           bbe571ib0
           bb
           bb_ntwin1
-          crabamp
           dipedge
           distance
           dynk_globalvars
@@ -103,6 +112,10 @@ if(NOT COLLIMAT)
           lostnumxv
           lostnotilt
           notilt
+          orbit6d-element-quadrupole
+          orbit6d-element-trombone
+          orbit6d-ions
+          orbit6d-ions-long
           prob1
           prob3
           s316
@@ -127,6 +140,8 @@ if(NOT COLLIMAT)
           dump4
           dump5
           dump6
+          fileunits_DYNK_DUMP
+          geometry
           elensidealthin6d_DYNK_RANDU
           elensidealthin6d_DYNK_RANDON
           elensidealthin6d_DYNK_ONOFF
@@ -137,6 +152,7 @@ if(NOT COLLIMAT)
           beam-HO_6D-oldstyle
           beam-HO_6D-simple-oldstyle
           beam-HO_6D-simple-newstyle
+          beam-HO_6D-simple-newstyle-orbit
           beam-HO_LR-newstyle
           beam-HO_LR-oldstyle
           beam-HO_LR-ibbc-oldstyle
@@ -146,10 +162,26 @@ if(NOT COLLIMAT)
           rfMultipoles_4thOrder
           last_amp
           scatter_bbelastic
+          dump_all_highprec
+          dump_2_all_ele_highprec
+          perf1
           ${SIXTRACK_TESTS}
         )
 
 endif(NOT COLLIMAT)
+
+#Collimation tests (needs backtrk)
+#use extra checks on fort.999 and other collimation loss files
+if(COLLIMAT AND BACKTRK)
+    if(BIGNBLZ OR HUGENBLZ AND HUGENPART)
+        if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+                SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+        endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+#        if(NOT FLUKA OR NOT G4COLLIMAT)
+#                SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+#        endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+    endif(BIGNBLZ OR HUGENBLZ AND HUGENPART)
+endif(COLLIMAT AND BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
@@ -270,7 +302,7 @@ endforeach()
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 SET(FAST_TESTS
-  crabamp
+  orbit6d-element-quadrupole
   thick4
   thick6dblocks
   thick6ddynk
@@ -304,6 +336,8 @@ SET(FAST_TESTS
   dump7_fma_thin4d
   dump8_fma
   dump9
+  fileunits_DYNK_DUMP
+  geometry
   fcc
   elensidealthin6d_DYNK_RANDU
   elensidealthin6d_DYNK_RANDON
@@ -325,6 +359,11 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  dump_all_highprec
+  dump_2_all_ele_highprec
+  orbit6d-element-trombone
+  orbit6d-ions
+  beam-HO_6D-simple-newstyle-orbit
   )
 
 #Medium tests take < 30 mins to run
@@ -342,6 +381,8 @@ SET(MEDIUM_TESTS
   bbe51
   bbe52
   javier_bignpart
+  collimation_k2_fcc_2017_h1_collision
+  orbit6d-ions-long
   )
 
 #Slow is everything longer
@@ -350,11 +391,17 @@ SET(SLOW_TESTS
   prob3
   )
 
+#Performance test
+SET(PERF_TESTS
+  perf1
+  )
+
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
         list(FIND FAST_TESTS ${TST} LABEL_FAST)
         list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
         list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
+        list(FIND PERF_TESTS ${TST} LABEL_PERF)
 
         if(${LABEL_FAST} GREATER -1)
                 set_property(TEST ${TST} PROPERTY LABELS fast)
@@ -362,6 +409,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
                 set_property(TEST ${TST} PROPERTY LABELS medium)
         elseif(${LABEL_SLOW} GREATER -1)
                 set_property(TEST ${TST} PROPERTY LABELS slow)
+        elseif(${LABEL_PERF} GREATER -1)
+                set_property(TEST ${TST} PROPERTY LABELS perf)
         else()
                 message(STATUS "TEST ${TST} needs a label setting!")
                 set_property(TEST ${TST} PROPERTY LABELS NeedsLabel)

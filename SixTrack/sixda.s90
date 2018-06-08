@@ -1,0 +1,1024 @@
++dk mainda
+! ================================================================================================ !
+!
+!  SIXTRACK
+! =========
+!  SIXDIMENSIONAL PARTICLE-TRACKING
+!
+!  DIFFERENTIAL ALGEBRA INCLUDED
+!  ONE TURN MAP
+!  NO POSTPROCESSING FORSEEN
+!
+!  DEVELOPPED FROM <RACETRACK> A. WRULICH (DESY 84-026)
+! ================================================================================================ !
+!  USED DISKS:
+!
+!  GEOMETRY AND STRENGTH OF THE ACCELERATOR : UNIT  2
+!  TRACKING PARAMETER                       : UNIT  3
+!  NORMAL PRINTOUT                          : UNIT  6
+!  TRACKING DATA                            : UNIT  8
+! ================================================================================================ !
+program mainda
+    
+  use floatPrecision
+  use end_sixtrack
+  use numerical_constants
+  use mathlib_bouncer
+  use, intrinsic :: iso_fortran_env, only : output_unit
+  use crcoall
+  use parpro
+  use parpro_scale
+  use mod_common
+  use mod_commons
+  use mod_commont
+  use mod_commond
+  use tuneshift_corr
+  use mod_units
+  
+  implicit none
+  
+  integer i,iation,itiono,idate,im,imonth,itime,ix,izu,j,jj,k,kpz,kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
+  real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
+    bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,e0f,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,&
+    gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,&
+! +if rvet
+!     rvet,&
+! +ei
+    tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
+  
+  character(len=10) cmonth
+  character(len=80) day,runtim
+  character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
+  dimension qw(2),qwc(3),clo0(2),clop0(2)
+  dimension eps(2),epsa(2)
+  dimension cmonth(12)
+  dimension tas(6,6)
+
+#ifdef CRLIBM
+  integer nchars
+  parameter (nchars=160)
+  character(len=nchars) ch
+  character(len=nchars+nchars) ch1
+  ! MAXF be kept in sync with value in function fround
+  integer maxf,nofields
+  parameter (maxf=30)
+  parameter (nofields=41)
+  character(len=maxf) fields(nofields)
+  integer errno,nfields,nunit,lineno,nf
+  real(kind=fPrec) fround
+  real(kind=fPrec) round_near
+  data lineno /0/
+#endif
+#include "version.f90"
+
+  ! Set to nonzero before calling abend in case of error.
+  ! If prror is called, it will be set internally.
+  errout_status = 0
+
+#ifndef CR
+  lout=output_unit
+#endif
+  ! Initial allocation of memory
+  call allocate_arrays
+  
+  ! Open files
+  call units_initUnits
+  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., boinc=.true.,fio=.true.)
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
+
+  ! Print Header Info
+  tlim=1e7
+  call timest(tlim)
+  time0=0.
+  call timex(time0)
+  idate=0
+  itime=0
+  call datime(idate,itime)
+  
+  write(cdate,"(i6.6)") idate
+  write(ctime,"(i4.4)") itime
+  write(lout,"(a)")   ""
+#ifdef TILT
+  write(lout,"(a69)") " SIXTRACK DA VERSION "//version//" (with tilt) - (last change: "//moddate//")"
+#else
+  write(lout,"(a57)") " SIXTRACK DA VERSION "//version//" - (last change: "//moddate//")"
+#endif
+  write(lout,"(a)")   ""
+  write(lout,"(a26)") " Runtime: 20"//cdate(1:2)//"-"//cdate(3:4)//"-"//cdate(5:6)//" "//ctime(1:2)//":"//ctime(3:4)
+  write(lout,"(a)")   ""
+  
+  ! Init stuff
+  do i=1,2
+    eps(i)=zero
+    epsa(i)=zero
+    qw(i)=zero
+    qwc(i)=zero
+  end do
+  qwc(3)=zero
+  call comnul
+  pi=four*atan_mb(one)
+  pi2=pi*half
+  pisqrt=sqrt(pi)
+  rad=pi/c180e0
+  
+  call daten
+  if (ithick.eq.1) call allocate_thickarrays
+  if(nord.le.0.or.nvar.le.0) call prror(91)
+  if(ithick.eq.1) write(lout,10020)
+  if(ithick.eq.0) write(lout,10030)
+  if(ibidu.eq.2) then
+    write(lout,10025)
+    goto 550
+  endif
+  call orglat
+  call ord
+  call clorb(ded)
+
+  do l=1,2
+    clo0(l)=clo(l)
+    clop0(l)=clop(l)
+  end do
+
+  call clorb(zero)
+
+  do l=1,2
+    ll=2*l
+    di0(l)=(clo0(l)-clo(l))/ded
+    dip0(l)=(clop0(l)-clop(l))/ded
+  end do
+
+  amp00=amp(1)
+  iation=abs(ition)
+  call corrorb
+  if(irmod2.eq.1) call rmod(dp1)
+  if(iqmod.ne.0) call qmod0
+  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+  if(iskew.ne.0) call decoup
+  dp0=dp1
+
+  !--FOR THE MOMENTUM-SCAN THE MOMENTUM IS THE SAME FOR BOTH PARTICLES
+  exz(1,6)=dp1
+  exz(2,6)=dp1
+  if(ilin.eq.1.or.ilin.eq.3) then
+    call linopt(dp1)
+  endif
+  if(isub.eq.1) call subre(dp1)
+  if(ise.eq.1) call search(dp1)
+  if(napx.eq.0) goto 160
+
+  ! beam-beam element
+  nlino=nlin
+  nlin=0
+  if(nbeam.ge.1) then
+    do i=1,nele
+      if((kz(i).eq.20).or.(kz(i).eq.15)) then
+        nlin=nlin+1
+        if(nlin.gt.nele) call prror(81)
+        bezl(nlin)=bez(i)
+      end if
+    end do
+  end if
+
+  ! MULTIPOLE WITH THEIR RANDOM VALUES ADDED
+  izu=0
+  do i=1,iu
+    ix=ic(i)
+    if(ix.le.nblo) cycle
+    ix=ix-nblo
+    kpz=kp(ix)
+    kzz=kz(ix)
+    if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) cycle
+    if(kzz.eq.15) cycle
+    if(iorg.lt.0) mzu(i)=izu
+    izu=mzu(i)+1
+    smizf(i)=zfz(izu)*ek(ix)
+    smi(i)=sm(ix)+smizf(i)
+    izu=izu+1
+    xsi(i)=xpl(ix)+zfz(izu)*xrms(ix)
+    izu=izu+1
+    zsi(i)=zpl(ix)+zfz(izu)*zrms(ix)
+    if(mout2.eq.1) then
+      if(kzz.eq.11) zfz(izu-2)=zero
+      if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
+      if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
+      if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
+      write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
+    end if
+    if(kzz.eq.11) then
+      !Very similar to block "multini"
+      r0=ek(ix)
+      if(abs(r0).le.pieni) cycle
+      nmz=nmu(ix)
+      if(nmz.eq.0) then
+        izu=izu+2*mmul
+        cycle
+      end if
+      im=irm(ix)
+      r0a=one
+      
+      do k=1,nmz
+        izu=izu+1
+        aai(i,k)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
+        izu=izu+1
+        bbi(i,k)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
+        r0a=r0a*r0
+      end do
+      
+      izu=izu+2*mmul-2*nmz
+    end if
+  end do
+  dp10=dp1
+  dp1=zero
+  if(ichrom.gt.1) then
+    itiono=ition
+    ition=0
+    call chromda
+    ition=itiono
+  endif
+  dp1=dp10
+  if(idp.ne.1.or.iation.ne.1) iclo6=0
+  if(iclo6.eq.1.or.iclo6.eq.2) then
+    if(iclo6r.eq.0) then
+      clo6(1)=clo(1)
+      clop6(1)=clop(1)
+      clo6(2)=clo(2)
+      clop6(2)=clop(2)
+      clo6(3)=zero
+      clop6(3)=zero
+    else
+#ifdef FIO
+#ifdef CRLIBM
+      call enable_xp()
+#endif
+      read(33,*,round='nearest') (clo6(l),clop6(l), l=1,3)
+#ifdef CRLIBM
+      call disable_xp()
+#endif
+#else
+#ifndef CRLIBM
+      read(33,*) (clo6(l),clop6(l), l=1,3)
+#else
+      read(33,*) ch 
+      lineno=lineno+1
+      ch1(:nchars+3)=ch(:nchars)//' / '
+      call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
+      do l=1,3
+        if (nf.gt.0) then
+          clo6(l)=fround(errno,fields,l*2-1)
+          nf=nf-1
+        endif
+        if (nf.gt.0) then
+          clop6(l)=fround(errno,fields,l*2)
+          nf=nf-1
+        endif
+      enddo
+#endif
+#endif
+    endif
+    call clorb(zero)
+    call betalf(zero,qw)
+    call phasad(zero,qwc)
+    sigm(1)=clo6(3)
+    dps(1)=clop6(3)
+#ifdef DEBUG
+!     call dumpbin('bqmodda',1,3)
+!     call abend('before qmodda 1 3                                 ')
+!     write(*,*) '1st call qmodda'
+#endif
+    call qmodda(3,qwc)
+#ifdef DEBUG
+!     call dumpbin('aqmodda',1,3)
+!     call abend('after  qmodda 1 3                                 ')
+#endif
+    if(ilin.ge.2) then
+      nlinoo=nlin
+      nlin=nlino
+      ilinc=1
+      call mydaini(2,2,6,3,6,1)
+      nlin=nlinoo
+    endif
+    dp1=dp10+clop6(3)
+#ifdef DEBUG
+!     call dumpbin('ecdclor6',1,3)
+!     call abend('end cd clor6                                      ')
+#endif
+    do i=1,6
+      do j=1,6
+        tas(i,j)=tasm(i,j)
+      end do
+    end do
+  else
+    ncorruo=ncorru
+    ncorru=1
+    call clorb(zero)
+    call betalf(zero,qw)
+    call phasad(zero,qwc)
+    call clorb(dp1)
+    call betalf(dp1,qw)
+    call phasad(dp1,qwc)
+    ncorru=ncorruo
+    dps(1)=dp1
+    if(nvar2.le.5) then
+      itiono=ition
+      ition=0
+    end if
+#ifdef DEBUG
+!       write(*,*) '3rd call qmodda multipole???'
+#endif
+    call qmodda(2,qwc)
+#ifdef DEBUG
+!     call dumpbin('aqmodda',2,3)
+!     call abend('after  qmodda 2 3                                 ')
+#endif
+    if(nvar2.le.5) ition=itiono
+    if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
+    if(ilin.ge.2) then
+      nlinoo=nlin
+      nlin=nlino
+      iqmodc=2
+      call mydaini(1,2,5,2,5,1)
+      ilinc=1
+      call mydaini(2,2,5,2,5,1)
+      nlin=nlinoo
+    end if
+    do i=1,4
+      do j=1,4
+        tas(i,j)=tasm(i,j)
+      end do
+    end do
+  end if
+
+  550 continue
+  tas16=tas(1,6)*c1m3
+  tas26=tas(2,6)*c1m3
+  tas36=tas(3,6)*c1m3
+  tas46=tas(4,6)*c1m3
+  tas56=tas(5,6)*c1m3
+  tas61=tas(6,1)*c1e3
+  tas62=tas(6,2)*c1e3
+  tas63=tas(6,3)*c1e3
+  tas64=tas(6,4)*c1e3
+  tas65=tas(6,5)*c1e3
+  bet0(1)=tas(1,1)**2+tas(1,2)**2                                    !hr08
+  bet0x2 =tas(1,3)**2+tas(1,4)**2                                    !hr08
+  bet0x3 =tas(1,5)**2+tas16**2                                       !hr08
+  gam0x1 =tas(2,1)**2+tas(2,2)**2                                    !hr08
+  gam0x2 =tas(2,3)**2+tas(2,4)**2                                    !hr08
+  gam0x3 =tas(2,5)**2+tas26**2                                       !hr08
+  alf0(1)=-one*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2))                 !hr08
+  alf0x2 =-one*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4))                 !hr08
+  alf0x3 =-one*(tas(1,5)*tas(2,5)+tas16*tas26)                       !hr08
+  bet0(2)=tas(3,3)**2+tas(3,4)**2                                    !hr08
+  bet0z2 =tas(3,1)**2+tas(3,2)**2                                    !hr08
+  bet0z3 =tas(3,5)**2+tas36**2                                       !hr08
+  gam0z1 =tas(4,3)**2+tas(4,4)**2                                    !hr08
+  gam0z2 =tas(4,1)**2+tas(4,2)**2                                    !hr08
+  gam0z3 =tas(4,5)**2+tas46**2                                       !hr08
+  alf0(2)=-one*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4))                 !hr08
+  alf0z2 =-one*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2))                 !hr08
+  alf0z3 =-one*(tas(3,5)*tas(4,5)+tas36*tas46)                       !hr08
+  bet0s1 =tas(5,5)**2+tas56**2                                       !hr08
+  bet0s2 =tas(5,1)**2+tas(5,2)**2                                    !hr08
+  bet0s3 =tas(5,3)**2+tas(5,4)**2                                    !hr08
+  gam0s1 =tas65**2+tas(6,6)**2                                       !hr08
+  gam0s2 =tas61**2+tas62**2                                          !hr08
+  gam0s3 =tas63**2+tas64**2                                          !hr08
+  alf0s1 =-one*(tas(5,5)*tas65+tas56*tas(6,6))                       !hr08
+  alf0s2 =-one*(tas(5,1)*tas61+tas(5,2)*tas62)                       !hr08
+  alf0s3 =-one*(tas(5,3)*tas63+tas(5,4)*tas64)                       !hr08
+  if(ierro.eq.0) goto 90
+  write(lout,10200) dp1
+  goto 160
+
+90 continue
+  write(lout,10040)
+  phag=(phas*c180e0)/pi                                               !hr08
+  if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0)) then
+    write(lout,10140) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),&
+      clo(2),clop(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
+  end if
+  if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
+    if(iclo6.eq.0) then
+      write(lout,10120) phag,qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),&
+        clo(2),clop(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
+    else
+      write(lout,10130) phag,qwc(1),clo6(1),clop6(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,&
+        bet0x3,alf0x3,gam0x3,qwc(2),clo6(2),clop6(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,&
+        bet0z3,alf0z3,gam0z3,qwc(3),clo6(3),clop6(3),bet0s1,alf0s1,gam0s1,bet0s2,alf0s2,gam0s2,bet0s3,alf0s3,gam0s3
+    end if
+  end if
+  if(idp.eq.1.and.ition.eq.0.and.abs(phas).gt.pieni) then
+    write(lout,10160) phag,qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),&
+      clo(2),clop(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
+  end if
+  if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
+    if(iclo6.eq.0) then
+      write(lout,10180) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),&
+        clo(2),clop(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
+    else
+      write(lout,10190) qwc(1),clo6(1),clop6(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,&
+        bet0x3,alf0x3,gam0x3,qwc(2),clo6(2),clop6(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,&
+        bet0z3,alf0z3,gam0z3,qwc(3),clo6(3),clop6(3),bet0s1,alf0s1,gam0s1,bet0s2,alf0s2,gam0s2,bet0s3,alf0s3,gam0s3
+    end if
+  end if
+
+  write(lout,10050) dp1
+  call anfb(tas)
+  if(iclo6.eq.2) then
+    x(1,1) = x(1,1) + clo6(1)
+    x(1,2) = x(1,2) + clo6(2)
+    y(1,1) = y(1,1) + clop6(1)
+    y(1,2) = y(1,2) + clop6(2)
+    sigm(1) = sigm(1) + clo6(3)
+    dps(1) = dps(1) + clop6(3)
+    x(2,1) = x(2,1) + clo6(1)
+    x(2,2) = x(2,2) + clo6(2)
+    y(2,1) = y(2,1) + clop6(1)
+    y(2,2) = y(2,2) + clop6(2)
+    sigm(2) = sigm(2) + clo6(3)
+    dps(2) = dps(2) + clop6(3)
+  end if
+  do l=1,2
+    epsa(l)=amp(l)**2/bet0(l)                                        !hr08
+    eps(l)=epsa(l)*c1e6
+    x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)                !hr08
+    y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)               !hr08
+  end do
+  e0f=sqrt(e0**2-pma**2)                                             !hr08
+  if(iclo6.eq.0) then
+    write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, idfor,iclo6,ition
+  else
+    write(lout,10090) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
+  endif
+  if(idfor.eq.1.and.iclo6.ne.2) goto 110
+  ejf(1)=e0f*(one+dps(1))
+  ejf(2)=e0f*(one+dps(2))
+  ej(1)=sqrt(ejf(1)**2+pma**2)                                       !hr08
+  ej(2)=sqrt(ejf(2)**2+pma**2)                                       !hr08
+  goto 120
+110 continue
+  ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
+  ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
+120 continue
+  write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
+  write(lout,10010) amp,epsa
+  write(lout,10170)
+  if(e0.gt.pieni) then
+    rv=(ej(1)*e0f)/(e0*ejf(1))
+    if(ithick.eq.1) call envars(1,dps(1),rv)
+  else
+    call prror(79)
+  end if
+  if(numl.eq.0.or.numlr.ne.0) then
+    write(lout,10070)
+    goto 160
+  end if
+  if(nsix.eq.1.and.nvar2.eq.6) then
+    nsix=2
+    nvar=nvar-1
+    nvar2=5
+  end if
+  ndim=nvar2/2
+  call mydaini(3,nord,nvar,ndim,nvar2,nord1)
+  if(inorm.eq.1) call daliesix
+  if(icorr.eq.1) then
+    if(nctype.eq.0) call coruord
+    if(nctype.eq.1) call coruglo
+  end if
+  if(nsix.eq.2) then
+    call umschr(19,18)
+    nvar2=6
+    nvar=nvar+1
+    call mydaini(3,nord,nvar,ndim,nvar2,nord1)
+  end if
+160 continue
+
+!-----------------------------------------------------------------------
+! We're done in mainda, no error :)
+!-----------------------------------------------------------------------
+  call closeUnits
+#ifdef CR
+  call abend('                                                  ')
+#else
+  stop
+#endif
+
+10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:',&
+             /t10,'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM',&
+             /t10,'EMITTANCE-X = ',f15.3,10x,'EMITTANCE-Y =  ',f15.3, '  PI*MRAD*MM')
+10020 format(/t10,'STRUCTURE INPUT FILE HAS -THICK- LINEAR ELEMENTS'//)
+10030 format(/t10,'STRUCTURE INPUT FILE HAS ONLY -THIN- LINEAR ELEMENTS'//)
+10040 format(/131('-'))
+10050 format(/t10,'REL. MOMENTUM DEVIATION=',f19.16 &
+             /t10,'================================')
+10060 format(/5x,'---- INITIAL COORD. OF TWIN-TRAJECTORIES'/ 15(10x,f47.33/))
+10070 format(/5x,'NON SENSICAL INPUT: NUML = 0 OR NUMLR NOT 0')
+10080 format(/5x,'---- CLOSED ORBIT AND DECOUPLING (1=COU,0=DECOU)'&
+             /5x,'/CLX  /',f47.33&
+             /5x,'/CLXP /',f47.33&
+             /5x,'/CLY  /',f47.33&
+             /5x,'/CLYP /',f47.33&
+             /5x,'/DCX  /',i13&
+             /5x,'/DCY  /',i13&
+             /5x,'/IVER /',i13&
+             /5x,'/IDFOR/',i13&
+             /5x,'/ICLO6/',i13&
+             /5x,'/ITION/',i13&
+             /5x/)
+10090 format(/5x,'---- CLOSED ORBIT AND DECOUPLING (1=COU,0=DECOU)'&
+             /5x,'/CLX  /',f47.33&
+             /5x,'/CLXP /',f47.33&
+             /5x,'/CLY  /',f47.33&
+             /5x,'/CLYP /',f47.33&
+             /5x,'/CLS  /',f47.33&
+             /5x,'/CLSP /',f47.33&
+             /5x,'/DCX  /',i13&
+             /5x,'/DCY  /',i13&
+             /5x,'/IVER /',i13&
+             /5x,'/IDFOR/',i13&
+             /5x,'/ICLO6/',i13&
+             /5x,'/ITION/',i13&
+             /5x/)
+10120 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
+     &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
+10025 format(/t10,'Run started from binary dump file # 32')
+10130 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
+     &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
+10140 format(/t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,     &
+     &'------ NO ACCELERATION ------'// t15,                            &
+     &'       TUNE         CLO            CLOP           ',             &
+     &'   BET0           ALF0           GAMMA      '//                  &
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t60,f15.9,1x,f15.10,f15.9/                                        &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t60,f15.9,1x,f15.10,f15.9/)
+10150 format(t5//t5,'BACK-TRACKING'/ t5, '============='//)
+10160 format(t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,      &
+     &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
+     &'       TUNE         CLO            CLOP           ',             &
+     &'   BET0           ALF0           GAMMA      '//                  &
+     &t10,'  X  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t60,f15.9,1x,f15.10,f15.9/                                        &
+     &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
+     &t60,f15.9,1x,f15.10,f15.9/)
+10170 format(//131('-')//t10,16('O')/t10,2('O'),12x,2('O')/t10,         &
+     &'OO  TRACKING  OO', /t10,2('O'),12x,2('O')/t10,16('O')//131('-')//&
+     &)
+10180 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
+     &'------ NO ACCELERATION ------'// t15,                            &
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
+10190 format(/t10,'TRACKING WITH SYNCHROTRON OSCILLATIONS'// 15x,       &
+     &'------ NO ACCELERATION ------'// t15,                            &
+     &'       TUNE             CLO                CLOP           ',     &
+     &'     BET0             ALF0           GAMMA      '//              &
+     &t10,'  X  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  Y  ',6(1x,ES17.10)/                                        &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10)/                              &
+     &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
+     &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
+10200 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,'RELATIVE MOMENTUM DEVIATION')
+
+end program mainda
+
+subroutine daliesix
+  
+  use floatPrecision
+  use end_sixtrack
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_commond
+  
+  implicit none
+  
+  integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
+  real tlim,time0,time1,time
+  real(kind=fPrec) angle,coe,rad,x2pi
+  dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
+  dimension rot(6),xy(6),df(6)
+  dimension angle(3),rad(3)
+  
+  save
+  
+  tlim=1e7
+  call timest(tlim)
+  time0=0.
+  call timex(time0)
+  
+  ! Initialization
+  x2pi=atan_mb(one)*eight
+  coe=(-one*two)/x2pi
+  no=nordf
+  if(nord1.gt.no) nord1=no
+  ndim=nvar2/2
+  if(nvarf/2.lt.ndim) ndim=nvarf/2
+  if(ndim.eq.0) call prror(94)
+  nv=nvarf
+  nd2=2*ndim
+  ndpt=idptr
+  nis=0
+  mfile=18
+  mf1=21
+  mf2=22
+  mf3=23
+  mf4=24
+  mf5=25
+  call idprset(-102)
+  call lieinit(no,nv,ndim,ndpt,0,nis)
+  call etall(damap,nd2)
+  call etall(xy,nd2)
+  call etall(bb1,1)
+  call etall(bb2,1)
+  call etall(haux,1)
+  call etallnom(a1,nd2,'A1        ')
+  call etallnom(a1i,nd2,'A1I       ')
+  call etallnom(a2,nd2,'A2        ')
+  call etallnom(a2i,nd2,'A2I       ')
+  call etallnom(f,1,'F         ')
+  call etallnom(fc,1,'FC        ')
+  call etallnom(fs,1,'FS        ')
+  call etallnom(rot,nd2,'ROT       ')
+  call etallnom(h,1,'H         ')
+  call etallnom(h4,1,'H4        ')
+  call etallnom(hc,1,'HC        ')
+  call etallnom(hs,1,'HS        ')
+  call etallnom(df,nd2,'DF        ')
+  rewind mfile
+  rewind 111
+  rewind mf1
+  rewind mf2
+  rewind mf3
+  rewind mf4
+  rewind mf5
+  call daread(damap,nd2,mfile,zero)
+  
+  ! Normal Form Analysis
+  call mapnorm(damap,f,a2,a1,xy,h,nord1)
+  call dainv(a1,nv,a1i,nv)
+  call dainv(a2,nv,a2i,nv)
+  call ctor(f,fc,fs)
+  call gettura(angle,rad)
+  call taked(xy,1,rot)
+  call take(h,2,haux)
+  call dasub(h,haux,h4)
+  call ctor(h,hc,hs)
+  call dhdj(h,df)
+  
+  ! Printing
+  call daprid(a1i,1,nd2,mf1)
+  call daprid(a2i,1,nd2,mf1)
+  call dapri(f,mf1)
+  call daprid(rot,1,nd2,mf1)
+  call dapri(h4,mf1)
+  call dapri(f,mf1)
+  call daprid(a2,1,nd2,mf1)
+  call daprid(a1,1,nd2,mf1)
+  call dapri(h,mf2)
+  call dapri(hc,mf2)
+  call dapri(hs,mf2)
+  call dapri(fc,mf2)
+  call dapri(fs,mf2)
+  call daprimax(hc,mf3)
+  call daprid(df,ndim+1,nd2,mf4)
+  call daprid(df,1,ndim,mf5)
+  write(lout,10060)
+  if(imod1.eq.0) then
+    write(lout,10020) nordf
+  else
+    write(lout,10010) nordf
+  endif
+  write(lout,10025) nord1
+  if(imod2.eq.0) then
+    write(lout,10040) nvarf
+  else
+    write(lout,10030) nvarf
+  endif
+  write(lout,10050)
+  angle(3)=angle(3)*(-one)
+  write(lout,*) (angle(i),i=1,ndim)
+  
+  ! Clean-Up
+  call dadal(damap,nd2)
+  call dadal(a1,nd2)
+  call dadal(a1i,nd2)
+  call dadal(a2,nd2)
+  call dadal(a2i,nd2)
+  call dadal(f,1)
+  call dadal(fc,1)
+  call dadal(fs,1)
+  call dadal(rot,nd2)
+  call dadal(xy,nd2)
+  call dadal(h,1)
+  call dadal(h4,1)
+  call dadal(hc,1)
+  call dadal(hs,1)
+  call dadal(df,nd2)
+  call dadal(bb1,1)
+  call dadal(bb2,1)
+  call dadal(haux,1)
+  time1=0.
+  call timex(time1)
+  time = time1-time0
+  write(lout,10000) no,time
+  
+  return
+  
+10000 format(/10x,'DA-CALCULATION OF ORDER : ',i7,' TAKES ', f12.3,' SECONDS OF CPU TIME'//131('-')//)
+10010 format(t10,'THE ORDER IS GREATER THAN THE ONE SPECIFIED IN THE'/t10,'DIFFERENTIAL ALGEBRA BLOCK.'// t10,'NEW ORDER---> ',i3)
+10020 format(t10,'ORDER FOR THE NORMAL FORM CALCULATIONS---> ',i3/)
+10025 format(/t10,'CLOSED ORBIT ORDER OF THE NORMAL FORM ---> ',i3/)
+10030 format(t10,'THE NUMBER OF VARIABLES IS GREATER THAN THE ONE SPECIFIED IN THE'/ &
+             t10,'DIFFERENTIAL ALGEBRA BLOCK.'// t10,'NEW NUMBER OF VARIABLES---> ',i3/)
+10040 format(t10,'NUMBER OF VARIABLES FOR THE NORMAL FORM CALCULATIONS---> ',i3//)
+10050 format(t10,'LINEAR TUNES USED IN THE NORMAL FORM CALCULATIONS:'//)
+10060 format(//131('-')//t10,20('O')/t10,2('O'),16x,2('O')/t10,'OO  NORMAL FORMS  OO', /&
+             t10,2('O'),16x,2('O')/t10,20('O')//130('-')//)
+
+end subroutine daliesix
+
+!-----------------------------------------------------------------------
+!  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
+!-----------------------------------------------------------------------
+subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
+  
+  use floatPrecision
+  use end_sixtrack
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_commond
+  use mod_common,  only : iqmodc,ichromc,ilinc
+  use mod_lie_dab, only : iscrri,iscrda
+  
+  implicit none
+  
+  integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
+  real(kind=fPrec) am
+  dimension am(6,6),idummy(6)
+  save
+  
+  if(nndim.lt.2.or.nndim.gt.3) call prror(95)
+  
+  nordo=nord
+  nvaro=nvar
+  ndimfo=ndimf
+  nvar2o=nvar2
+  nord1o=nord1
+  
+  nord=nnord
+  nvar=nnvar
+  ndimf=nndim
+  nvar2=nnvar2
+  nord1=nnord1
+  
+  ndpt=0
+  nis=0
+  
+  call daeps(preda)
+  call idprset(-102)
+  call lieinit(nord,nvar,ndimf,ndpt,0,nis)
+  write(lout,10000) nord,nvar,nndim
+  call daall(iscrda,100,'$$IS      ',nord,nvar)
+  
+  ! closed orbit
+  if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
+  
+  ! tune variation
+  if(ncase.eq.2) call umlauda
+  rewind 18
+  rewind 111
+  
+  ! main map calculation
+  if(ncase.eq.3) call runda
+  
+  ! %*6 map calculation
+  if(ncase.eq.4) call runcav
+  iqmodc=0
+  ichromc=0
+  ilinc=0
+  call dadal(iscrda,100)
+  
+  nord=nordo
+  nvar=nvaro
+  nvar2=nvar2o
+  ndimf=ndimfo
+  nord1=nord1o
+  
+  return
+10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
+end subroutine mydaini
+
+!-----------------------------------------------------------------------
+!               DIFFERENTIAL ALGEBRA FOR CAVITY
+!                          AUGUST 1994
+!-----------------------------------------------------------------------
+subroutine runcav
+  
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn, only : e0f
+  use mod_commons
+  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_commond
+  use mod_hions
+  use mod_lie_dab, only : idao,rscrri,iscrda
+  
+  implicit none
+  
+  integer idaa
+  real(kind=fPrec) betr0,dare,sigmdac
++ca commond1
+  save
+!-----------------------------------------------------------------------
+#include "include/daini.f90"
+!FOX  1 if(1.eq.1) then
+!-----------------------------------------------------------------------
+  call comt_daStart
+  betr0=sqrt(one-(nucm0/e0)**2)
+  write(lout,*) ' REENTERING MAP '
+  call davar(x(1),zero,1)
+  call davar(yp(1),zero,2)
+  call davar(x(2),zero,3)
+  call davar(yp(2),zero,4)
+  call davar(deltas,zero,5)
+  call davar(dpda1,zero,6)
+  call darea(x(1),18)
+  call darea(yp(1),18)
+  call darea(x(2),18)
+  call darea(yp(2),18)
+  call darea(deltas,18)
+  call darea(dpda1,18)
+  rewind 18
+!Eric
+    rewind 111
+  if(ition.ne.0) then
+  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
+!FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
+!FOX  EJF0=EJF1 ;
+    if(abs(dppoff).gt.pieni) then
+      sigmdac=sigmoff(iicav)
+!FOX  DELTAS=DELTAS-SIGMDAC ;
+
+    endif
+    call synoda
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+
+  endif
+  if(nvar2.ge.1) call dapri(x(1),18)
+  if(nvar2.ge.2) call dapri(yp(1),18)
+  if(nvar2.ge.3) call dapri(x(2),18)
+  if(nvar2.ge.4) call dapri(yp(2),18)
+  if(nvar2.eq.5) call dapri(dpda1,18)
+  if(nvar2.eq.6) call dapri(deltas,18)
+  if(nvar2.eq.6) call dapri(dpda1,18)
+  
+  write(lout,*) 'END COORDINATES'
+  write(lout,*) dare(x(1)),dare(y(1))
+  write(lout,*) dare(x(2)),dare(y(2))
+  write(lout,*) dare(sigmda),dare(dpda)
+  
+  write(12,'(E22.15)') dare(x(1))
+  write(12,'(E22.15)') dare(y(1))
+  write(12,'(E22.15)') dare(x(2))
+  write(12,'(E22.15)') dare(y(2))
+  write(12,'(E22.15)') dare(sigmda)
+  write(12,'(E22.15)') dare(dpda)
+  
+  write(lout,10010)
+!-----------------------------------------------------------------------
+!     DADAL AUTOMATIC INCLUSION
+  time2=0.
+  call timex(time2)
+!     time=time2-time1
+  write(lout,10020) time1-time0
+  write(lout,10030) nord,time2-time1
+  call comt_daEnd
+  return
+10000 format(/t10,'TRACKING ENDED ABNORMALLY'&
+             /t10,'PARTICLE NO. ',i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4&
+             /t10,'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3&
+             /t10,'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3&
+             /t10,'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
+10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30('*')/)
+10020 format(/10x,'The Preparating Calculations took',f12.3,' second(s) of Computing Time')
+10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,' second(s) of CPU Time'//131('-')//)
+end subroutine runcav
+
+!-----------------------------------------------------------------------
+!           UMSCHR    DIFFERENTIAL ALGEBRA 5 -> 6
+!                          AUGUST 1994
+!-----------------------------------------------------------------------
+subroutine umschr(iu1,iu2)
+  
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  
+  implicit none
+  
+  integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
+  real(kind=fPrec) c,c1
+  character(len=80) aaa
+  character(len=18) a18
+  character(len=58) a58
+  dimension jj(100)
+  save
+  
+  do i=1,100
+    jj(i)=0
+  enddo
+  do j=1,6
+    iplus=0
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    read(iu1,'(A18,I4,A58)') a18,nno,a58
+    write(iu2,'(A18,I4,A58)') a18,nno,a58
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    read(iu1,'(A80)') aaa
+    write(iu2,'(A80)') aaa
+    
+    if(nno.eq.1) then
+      do i=1,5
+        read(iu1,'(6X,2X,G21.14,I5)') c,ii
+        write(iu2,'(6X,2X,G21.14,I5)') c,ii
+      end do
+      if (j.eq.5) then
+        write(iu2,'(6X,2X,G21.14,I5)') one,5
+      else
+        write(iu2,'(6X,2X,G21.14,I5)') zero,5
+      endif
+      read(iu1,'(6X,2X,G21.14,I5)') c,ii
+      write(iu2,'(6X,2X,G21.14,I5)') c,ii+1
+      read(iu1,'(6X,2X,G21.14,I5)') c,ii
+      if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
+    else
+20     read(iu1,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
+      if(ii.eq.0) then
+        if(j.eq.5.and.ioo.lt.2) then
+          write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iio+1,one,1, 0,0,0,0,1,0
+          write(iu2,*) one
+        endif
+        goto 30
+      endif
+      ioo=io
+      iio=ii
+      read(iu1,*) c1
+      if(j.eq.5.and.(io.eq.2.or.jj(5).eq.1).and.iplus.eq.0) then
+        iplus=1
+        write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,one,io,0,0,0,0,1,0
+        write(iu2,*) one
+      endif
+      write(iu2,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii+iplus,c,io,(jj(i),i=1,4),0,jj(5)
+      write(iu2,*) c1
+      goto 20
+    endif
+30   write(iu2,*)
+  end do
+  rewind iu1
+  rewind iu2
+  return
+  
+end subroutine umschr
+
+  
