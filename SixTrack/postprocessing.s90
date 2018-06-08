@@ -3,7 +3,13 @@
 module postprocessing
 
   use end_sixtrack
-
+  use parpro
+  
+  implicit none
+  
+  real(kind=fPrec), private, save :: phase(3,npos+1)
+  real(kind=fPrec), private, save :: dani(ninv+1)
+  
 contains
   
 #ifdef STF
@@ -43,7 +49,6 @@ subroutine postpr(nfile)
 #endif
       implicit none
 
-+ca commphin
 #ifdef CR
 +ca crco
 #endif
@@ -60,14 +65,14 @@ subroutine postpr(nfile)
       real(kind=fPrec) alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
      &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
      &bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold,c, &
-     &c0,c1,c6,clo,cloau,clop,cx,cz,d,d0,d1,dani,dared,dares,di0,di0au, &
+     &c0,c1,c6,clo,cloau,clop,cx,cz,d,d0,d1,dared,dares,di0,di0au,      &
      &di11,dife,dip0,dizu0,dle1,dle1c,dmmac,dnms,dnumlr,dp1,dph6,dphx,  &
      &dphz,dpx,dpxp,dpz,dpzp,dummy,e,e0,e1,emag,emat,emax,emaz,emi,emig,&
      &emii,emiii,emit,emix,emiz,emt,emta,emts,emx,emx0,emxa,emxs,emz,   &
      &emz0,emza,emzs,evt,evt1,evtm,evtma,evtmi,evx,evx1,evx2,evxm,evxma,&
      &evxmi,evz,evz1,evz2,evzm,evzma,evzmi,f,f0,f1,ffx,ffz,finv,g,g0,g1,&
      &gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,h, &
-     &h0,h1,p,p1,pcha,phase,pieni2,pinx,pinz,pixr,pizr,pmax,pmin,prec,  &
+     &h0,h1,p,p1,pcha,pieni2,pinx,pinz,pixr,pizr,pmax,pmin,prec,        &
      &qs0,qwc,ratemx,ratemz,rbeta,s6,sdp6,sdpx,sdpz,sevt,sevx,sevz,     &
      &slopem,sumda,sx,sz,t,ta,ta16,ta26,ta36,ta46,ta56,ta61,ta62,ta63,  &
      &ta64,ta65,tasum,tidnt,tle1,tlo,tph6,tphx,tphz,tpi,txyz,txyz2,x,   &
@@ -2987,8 +2992,7 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
       use parpro
       implicit none
       integer i,ie,j,k
-      real(kind=fPrec) a,b,c,d,f,phase,tpi,dani
-+ca commphin
+      real(kind=fPrec) a,b,c,d,f,tpi
       save
 !---------------------------------------------------------------------
       tpi=eight*atan_mb(one)                                               !hr06
@@ -3011,8 +3015,7 @@ subroutine cinvar(a,b,c,d,j,e,xinv,invx)
       use parpro
       implicit none
       integer i,invx,j
-      real(kind=fPrec) a,b,c,d,phase,dani,e,xinv
-+ca commphin
+      real(kind=fPrec) a,b,c,d,e,xinv
       dimension xinv(ninv),invx(ninv)
       save
 !---------------------------------------------------------------------

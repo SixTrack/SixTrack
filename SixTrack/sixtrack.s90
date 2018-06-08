@@ -78,9 +78,6 @@
   integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
   common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),asdaq_da(2,6),smida_da(mcor),xx_da(2), &
     yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
-+cd commphin
-      common/phasecom/ phase(3,npos+1)
-      common/invari/ dani(ninv+1)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
