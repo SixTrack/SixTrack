@@ -7,13 +7,30 @@
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 +cd database
 !GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
-  logical do_coll,do_select,do_nominal,dowrite_dist,do_oneside,     &
-  &dowrite_impact,dowrite_secondary,dowrite_amplitude,radial,        &
-  &systilt_antisymm,dowritetracks,cern,do_nsig,do_mingap
+  logical :: do_coll
+  logical :: do_select
+  logical :: do_nominal
+  logical :: dowrite_dist
+  logical :: do_oneside
+  logical :: dowrite_impact
+  logical :: dowrite_secondary
+  logical :: dowrite_amplitude
+  logical :: radial
+  logical :: systilt_antisymm
+  logical :: dowritetracks
+  logical :: cern
+  logical :: do_nsig
+  logical :: do_mingap
 
 !SEPT2005 for slicing process
-  integer nloop,rnd_seed,c_offsettilt_seed,ibeam,jobnumber,         &
-  &do_thisdis,n_slices,pencil_distr
+  integer :: nloop
+  integer :: rnd_seed
+  integer :: c_offsettilt_seed
+  integer :: ibeam
+  integer :: jobnumber
+  integer :: do_thisdis
+  integer :: n_slices
+  integer :: pencil_distr
 
   real(kind=fPrec) myenom,mynex,mdex,myney,mdey,                    &
   &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
@@ -101,8 +118,9 @@
 +cd dbthin6d
 
   integer ios,num_surhit,numbin,ibin,num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov
-  integer ipart(npart) !(npart)
-  integer totalelem,selelem,unitnumber,distnumber,turnnumber,jb,flukaname(npart)
+  integer :: ipart(npart) !(npart)
+  integer totalelem,selelem,unitnumber,distnumber,turnnumber,jb
+  integer :: flukaname(npart) !(npart)
 
 ! SR, 29-08-2005: add the required variable for slicing collimators
   integer jjj, ijk
@@ -115,10 +133,24 @@
   real(kind=fPrec) c_offset    !offset in m
   real(kind=fPrec) c_tilt(2)   !tilt in radian
 
-  real(kind=fPrec) cx(npart),cxp(npart),cy(npart),cyp(npart),       &
-  &cp(npart),cs(npart),rcx(npart),rcxp(npart),rcy(npart),rcyp(npart),&
-  &rcp(npart),rcs(npart),rcx0(npart),rcxp0(npart),rcy0(npart),       &
-  &rcyp0(npart),rcp0(npart)
+  real(kind=fPrec) :: cx(npart) !(npart)
+  real(kind=fPrec) :: cxp(npart) !(npart)
+  real(kind=fPrec) :: cy(npart) !(npart)
+  real(kind=fPrec) :: cyp(npart) !(npart)
+  real(kind=fPrec) :: cp(npart) !(npart)
+  real(kind=fPrec) :: cs(npart) !(npart)
+  real(kind=fPrec) :: rcx(npart) !(npart)
+  real(kind=fPrec) :: rcxp(npart) !(npart)
+  real(kind=fPrec) :: rcy(npart) !(npart)
+  real(kind=fPrec) :: rcyp(npart) !(npart)
+  real(kind=fPrec) :: rcp(npart) !(npart)
+  real(kind=fPrec) :: rcs(npart) !(npart)
+  real(kind=fPrec) :: rcx0(npart) !(npart)
+  real(kind=fPrec) :: rcxp0(npart) !(npart)
+  real(kind=fPrec) :: rcy0(npart) !(npart)
+  real(kind=fPrec) :: rcyp0(npart) !(npart)
+  real(kind=fPrec) :: rcp0(npart) !(npart)
+
   real(kind=fPrec) enom_gev,betax,betay,xmax,ymax,          &
   &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
   &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
@@ -126,12 +158,25 @@
   &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
   &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
   &nom_aperture,pencil_aperture
-  real(kind=fPrec) xp_pencil(max_ncoll),yp_pencil(max_ncoll),x_pencil0,y_pencil0,sum,sqsum,               &
-  &csum(max_ncoll),csqsum(max_ncoll),average,sigma,sigsecut,nspxd, xndisp,zpj
 
-  real(kind=fPrec) xgrd(npart),xpgrd(npart),ygrd(npart),ypgrd(npart),   &
-  &pgrd(npart),ejfvgrd(npart),sigmvgrd(npart),rvvgrd(npart),         &
-  &dpsvgrd(npart),oidpsvgrd(npart),dpsv1grd(npart)
+  real(kind=fPrec) :: xp_pencil(max_ncoll)
+  real(kind=fPrec) :: yp_pencil(max_ncoll)
+  real(kind=fPrec) :: csum(max_ncoll)
+  real(kind=fPrec) :: csqsum(max_ncoll)
+  real(kind=fPrec) :: x_pencil0, y_pencil0, sum, sqsum
+  real(kind=fPrec) :: average, sigma, sigsecut, nspxd, xndisp, zpj
+
+  real(kind=fPrec) :: xgrd(npart)
+  real(kind=fPrec) :: xpgrd(npart)
+  real(kind=fPrec) :: ygrd(npart)
+  real(kind=fPrec) :: ypgrd(npart)
+  real(kind=fPrec) :: pgrd(npart)
+  real(kind=fPrec) :: ejfvgrd(npart)
+  real(kind=fPrec) :: sigmvgrd(npart)
+  real(kind=fPrec) :: rvvgrd(npart)
+  real(kind=fPrec) :: dpsvgrd(npart)
+  real(kind=fPrec) :: oidpsvgrd(npart)
+  real(kind=fPrec) :: dpsv1grd(npart)
 
   real(kind=fPrec) dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4
 
