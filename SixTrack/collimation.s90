@@ -2224,7 +2224,7 @@ subroutine collimate_do_collimator(stracki)
 !            write(45,'(a)')                                             &
 !     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
     do j = 1, napx
-      write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j)+100*samplenumber,xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
+      write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
@@ -2596,7 +2596,7 @@ subroutine collimate_do_collimator(stracki)
       call prror(-1)
     end if
 
-    flukaname(j) = ipart(j)+100*samplenumber
+    flukaname(j) = ipart(j)
   end do
 
 !++  Do the collimation tracking
@@ -3139,13 +3139,13 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
         if(h5_useForSCAT) then
           call h5_prepareWrite(coll_hdf5_allImpacts, 1)
-          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j)+100*samplenumber)
+          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j))
           call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
           call h5_writeData(coll_hdf5_allImpacts, 3, 1, sampl(ie))
           call h5_finaliseWrite(coll_hdf5_allImpacts)
         else
 #endif
-          write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+          write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
 #ifdef HDF5
         end if
 #endif
@@ -3157,13 +3157,13 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
           if(h5_useForSCAT) then
             call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
-            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j)+100*samplenumber)
+            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j))
             call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
             call h5_writeData(coll_hdf5_allAbsorb, 3, 1, sampl(ie))
             call h5_finaliseWrite(coll_hdf5_allAbsorb)
           else
 #endif
-            write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+            write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
 #ifdef HDF5
           end if
 #endif
@@ -3222,7 +3222,7 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
             if(h5_writeTracks2) then
               ! We write trajectories before and after element in this case.
-              hdfpid  = ipart(j)+100*samplenumber
+              hdfpid  = ipart(j)
               hdfturn = iturn
               hdfs    = sampl(ie)-half*c_length
               hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
@@ -3242,7 +3242,7 @@ subroutine collimate_end_collimator()
             else
 #endif
               write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
-                ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
+                ipart(j),iturn,sampl(ie)-half*c_length,           &
                 (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
@@ -3250,7 +3250,7 @@ subroutine collimate_end_collimator()
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
               
               write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
-                ipart(j)+100*samplenumber,iturn,sampl(ie)+half*c_length,           &
+                ipart(j),iturn,sampl(ie)+half*c_length,           &
                 xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
                 xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
                 secondary(j)+tertiary(j)+other(j)+scatterhit(j)
@@ -4082,7 +4082,7 @@ subroutine collimate_end_element
           ypj = (yv(2,j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)+100*samplenumber
+            hdfpid=ipart(j)
             hdfturn=iturn
             hdfs=sampl(ie)
             hdfx=xv(1,j)
@@ -4094,7 +4094,7 @@ subroutine collimate_end_element
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber, iturn, sampl(ie), &
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
               xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4548,7 +4548,7 @@ subroutine collimate_end_turn
           ypj    = (yv(2,j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)+100*samplenumber
+            hdfpid=ipart(j)
             hdfturn=iturn
             hdfs=sampl(ie)
             hdfx=xv(1,j)
@@ -4560,7 +4560,7 @@ subroutine collimate_end_turn
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber,iturn,sampl(ie), &
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
               xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if

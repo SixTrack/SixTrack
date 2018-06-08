@@ -944,7 +944,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               if( fluka_uid(j).eq.plost(jj).or. fluka_gen(j).eq.plost(jj) ) then
 #endif
 #ifdef COLLIMAT
-              if( ipart(j)+100*samplenumber .eq. plost(jj) ) then
+              if( ipart(j) .eq. plost(jj) ) then
 #endif
 #if !defined(FLUKA) && !defined(COLLIMAT)
               if ( nlostp(j) .eq. plost(jj) ) then
@@ -965,7 +965,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             plost(jjx) = fluka_uid(j)
 #endif
 #ifdef COLLIMAT
-            plost(jjx) = ipart(j)+100*samplenumber
+            plost(jjx) = ipart(j)
 #endif
 #if !defined(FLUKA) && !defined(COLLIMAT)
             plost(jjx) = j
@@ -996,7 +996,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           call h5_writeData(aper_setLostPart, 17, 1, fluka_weight(j))
 #endif
 #ifdef COLLIMAT
-          call h5_writeData(aper_setLostPart, 15, 1, ipart(j)+100*samplenumber)
+          call h5_writeData(aper_setLostPart, 15, 1, ipart(j))
 #endif
 #if !defined(FLUKA) && !defined(COLLIMAT)
           call h5_writeData(aper_setLostPart, 15, 1, nlostp(j))
@@ -1016,7 +1016,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         fluka_uid(j), fluka_gen(j), fluka_weight(j),                    &
 #endif
 #ifdef COLLIMAT
-     &         ipart(j)+100*samplenumber,                                      &
+     &         ipart(j),                                                       &
 #endif
 #if !defined(FLUKA) && !defined(COLLIMAT)
      &         nlostp(j),                                                      &
@@ -1034,7 +1034,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! root output
         if(root_flag .and. root_ApertureCheck.eq.1) then
           this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
-          call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, ipart(j)+100*samplenumber,&
+          call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, ipart(j),&
        &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
        &  -c1m3 * (sigmvlos/clight) * (e0/e0f))
         end if

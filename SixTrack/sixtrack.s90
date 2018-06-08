@@ -3833,12 +3833,16 @@ subroutine daten
 #endif
       
 #ifdef FIO
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & nloop,myenom
+      if(iclr.eq.2) read(ch1,*,round='nearest') nloop, myenom
 #endif
 #ifndef FIO
       if(iclr.eq.2) read(ch1,*) nloop,myenom
 #endif
+      if(nloop.ne.1) then
+        write(lout,*) "The number of samples/(loops) is now limited to 1. Please use 1 sample and more particles per sample!"
+        call prror(-1)
+      end if
+
       !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
       if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
          write(lout,*) ""
