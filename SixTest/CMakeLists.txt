@@ -60,6 +60,7 @@ SET(TESTS_NOFORT10
   dump_all_highprec
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
+  scatter_collimation
   )
 
 if(NOT COLLIMAT)
