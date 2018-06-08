@@ -72,30 +72,30 @@
 
 !++ Vectors of coordinates
 
-  real(kind=fPrec) mygammax,mygammay
-
-  character(len=80) dummy
-
-  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-!  real(kind=fPrec) remitx_dist,remity_dist,
-! &     remitx_collgap,remity_collgap
-!  common  /remit/ remitx_dist, remity_dist,
-! &     remitx_collgap,remity_collgap
-
-
-  real(kind=fPrec) ielem,iclr,grd
-  character(len=160) ch
-  character(len=320) ch1
-  logical flag
-
-  integer k,np0
-
-  character(len=160) cmd
-  character(len=160) cmd2
-  character(len=1) ch0
-  character(len=2) ch00
-  character(len=3) ch000
-  character(len=4) ch0000
+!  real(kind=fPrec) mygammax,mygammay
+!
+!  character(len=80) dummy
+!
+!  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+!!  real(kind=fPrec) remitx_dist,remity_dist,
+!! &     remitx_collgap,remity_collgap
+!!  common  /remit/ remitx_dist, remity_dist,
+!! &     remitx_collgap,remity_collgap
+!
+!
+!  real(kind=fPrec) ielem,iclr,grd
+!  character(len=160) ch
+!  character(len=320) ch1
+!  logical flag
+!
+!  integer k,np0
+!
+!  character(len=160) cmd
+!  character(len=160) cmd2
+!  character(len=1) ch0
+!  character(len=2) ch00
+!  character(len=3) ch000
+!  character(len=4) ch0000
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbthin6d
@@ -265,15 +265,15 @@
   integer :: n_tot_absorbed
   integer :: n_absorbed
 
-real(kind=fPrec) part_impact(npart) !(npart)
+  real(kind=fPrec) part_impact(npart) !(npart)
   common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
   & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
 
   common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
   common /part_select/ part_select
 
-  logical firstrun
-  common /firstrun/ firstrun
+!  logical firstrun
+!  common /firstrun/ firstrun
 
   integer nsurvive,nsurvive_end,num_selhit,n_impact
   common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
@@ -281,8 +281,8 @@ real(kind=fPrec) part_impact(npart) !(npart)
   integer napx00
   common /napx00/ napx00
 
-  integer  icoll
-  common  /icoll/  icoll
+!  integer  icoll
+!  common  /icoll/  icoll
 
 !UPGRADE January 2005
   integer db_ncoll
@@ -337,7 +337,8 @@ real(kind=fPrec) part_impact(npart) !(npart)
 
 
       logical onesided,hit
-      integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
+!      integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
+      integer nprim,filel,mat,nev,j,nabs,nhit,np,nabs_tmp
 
       integer lhit_pos(npart),lhit_turn(npart),                         &
      &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
@@ -371,7 +372,7 @@ real(kind=fPrec) part_impact(npart) !(npart)
       common /nommom/p0
       common /cjaw1/zlm
       common /other/mybetax,mybetaz,mymux,mymuz,atdi
-      common /icoll/  icoll
+!      common /icoll/  icoll
 !
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
@@ -539,6 +540,7 @@ module collimation
   use mod_alloc
   use end_sixtrack
   use file_units
+
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -623,6 +625,46 @@ module collimation
  & 152.9e-9_fPrec, 424e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
 ! common/meanexen/exenergy(nmat)
 
+!+cd dbtrthin
+
+! Note: no saves needed
+
+! integer   mynp
+! common /mynp/ mynp
+
+!++ Vectors of coordinates
+
+  real(kind=fPrec), private :: mygammax,mygammay
+
+  character(len=80), private :: dummy
+
+  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+!  real(kind=fPrec) remitx_dist,remity_dist,
+! &     remitx_collgap,remity_collgap
+!  common  /remit/ remitx_dist, remity_dist,
+! &     remitx_collgap,remity_collgap
+
+
+  real(kind=fPrec), private :: ielem,iclr,grd
+  character(len=160), private :: ch
+  character(len=320), private :: ch1
+  logical, private :: flag
+
+  integer, private :: k
+  integer np0
+
+  character(len=160), private :: cmd
+  character(len=160), private :: cmd2
+  character(len=1), private :: ch0
+  character(len=2), private :: ch00
+  character(len=3), private :: ch000
+  character(len=4), private :: ch0000
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+
+  logical, save :: firstrun
+  integer, save :: icoll
 
   ! file units
   integer, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
