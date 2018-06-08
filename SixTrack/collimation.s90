@@ -1429,7 +1429,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 5)  call chr_cast(lnSPlit(6), sigsecut3,    iErr)
     
   case default
-    write(lout,"(a,i0)") "COLL> ERROR Unexpected line ",iLine," encountered."
+    write(lout,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
     iErr = .true.
     
   end select
