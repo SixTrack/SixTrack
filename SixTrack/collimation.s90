@@ -377,17 +377,18 @@
       data   dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
 !     END BLOCK DBCOLLIM
-+cd flukavars
-!     RB DM 2014 added variables for FLUKA output
-      real(kind=fPrec) xInt,xpInt,yInt,ypInt,sInt
-      common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
-
 +cd dbmkdist
 !++ Vectors of coordinates
 
   integer i,j,mynp,nloop
-  real(kind=fPrec) myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),       &
-  &myp(maxn),mys(maxn),myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  real(kind=fPrec) :: myx(maxn)
+  real(kind=fPrec) :: myxp(maxn)
+  real(kind=fPrec) :: myy(maxn)
+  real(kind=fPrec) :: myyp(maxn)
+  real(kind=fPrec) :: myp(maxn)
+  real(kind=fPrec) :: mys(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
   &xsigmax,ysigmay,myenom,nr,ndr
 
@@ -665,6 +666,11 @@ module collimation
 
   logical, save :: firstrun
   integer, save :: icoll
+
+!+cd flukavars
+! RB DM 2014 added variables for FLUKA output
+  real(kind=fPrec), save :: xInt,xpInt,yInt,ypInt,sInt
+! common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
 
   ! file units
   integer, private, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
@@ -4595,7 +4601,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 +ca dbpencil
 !+ca info
 +ca dbcollim
-+ca flukavars
+!+ca flukavars
 
 +ca database
 !+ca collMatNum
@@ -4679,7 +4685,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   do j = 1, nev
 ! SR-GRD (04-08-2005):
-!       Don't do scattering process for particles already absorbed
+!   Don't do scattering process for particles already absorbed
     if ( part_abs_pos_local(j) .ne. 0 .and. part_abs_turn_local(j) .ne. 0) goto 777
 
     impact(j) = -one
@@ -6168,7 +6174,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   implicit none
 
 +ca interac
-+ca flukavars
+!+ca flukavars
   integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
   logical dowrite_impact
   real(kind=fPrec) m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
