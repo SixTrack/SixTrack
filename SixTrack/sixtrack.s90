@@ -62,10 +62,6 @@
      &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart)
 
 +cd beamdim
-      real(kind=fPrec) cc,xlim,ylim
-      parameter(cc = 1.12837916709551_fPrec)
-      parameter(xlim = 5.33_fPrec)
-      parameter(ylim = 4.29_fPrec)
       dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),    &
      &r2b(npart),rb(npart),rkb(npart),                                  &
      &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
@@ -95,14 +91,12 @@
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
+      use mod_common, only : cc,xlim,ylim
       implicit none
 
       integer n,nc,nu
-      real(kind=fPrec) cc,h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,        &
-     &xh,xl,xlim,xx,y,yh,ylim,yy
-      parameter(cc = 1.12837916709551_fPrec)
-      parameter(xlim = 5.33_fPrec)
-      parameter(ylim = 4.29_fPrec)
+      real(kind=fPrec) h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,        &
+     &xh,xl,xx,y,yh,yy
       dimension rx(33),ry(33)
       save
 !-----------------------------------------------------------------------
@@ -11095,10 +11089,7 @@ end subroutine wireda
       use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
       implicit none
       integer n,n1,nc,nuu,nuu1,idaa
-      real(kind=fPrec) cc,dare,dum,xlim,ylim
-      parameter(cc = 1.12837916709551_fPrec)
-      parameter(xlim = 5.33_fPrec)
-      parameter(ylim = 4.29_fPrec)
+      real(kind=fPrec) dare,dum
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -27918,7 +27909,7 @@ subroutine subre(dpp)
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
           mis,mm,mpe,mx,n2,n22,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,&
           nv2,nv21,nz2,dj
-  real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc,chy,ci,cikve,clo0,clop0,cr,crkve,&
+  real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc_r,chy,ci,cikve,clo0,clop0,cr,crkve,&
           cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,&
           ekk,ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,r0a,radi,rc,re,re1,res,&
           rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
@@ -28815,10 +28806,10 @@ subroutine subre(dpp)
             nkk=nkk+1
             min1=-min1
             goto 890
-  910       cc=rtc(np,nv,np,1)
+  910       cc_r=rtc(np,nv,np,1)
             ss=rts(np,nv,np,1)
-            sdel=sqrt(cc**2+ss**2)                                       !hr06
-            write(lout,10140) n2,ip(np,nv),ipc,cc,ss,re(np,nv),sdel
+            sdel=sqrt(cc_r**2+ss**2)                                       !hr06
+            write(lout,10140) n2,ip(np,nv),ipc,cc_r,ss,re(np,nv),sdel
   920     continue
   930   continue
   940 continue
