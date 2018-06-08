@@ -1,3 +1,481 @@
+!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
+!-----                                                                   -----
+!-----    NEW BLOCKS PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
+!-----                                                                   -----
+!-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
+!-----                                                                   -----
+!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
++cd database
+!GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
+  logical :: do_coll
+  logical :: do_select
+  logical :: do_nominal
+  logical :: dowrite_dist
+  logical :: do_oneside
+  logical :: dowrite_impact
+  logical :: dowrite_secondary
+  logical :: dowrite_amplitude
+  logical :: radial
+  logical :: systilt_antisymm
+  logical :: dowritetracks
+  logical :: cern
+  logical :: do_nsig
+  logical :: do_mingap
+
+!SEPT2005 for slicing process
+  integer :: nloop
+  integer :: rnd_seed
+  integer :: c_offsettilt_seed
+  integer :: ibeam
+  integer :: jobnumber
+  integer :: do_thisdis
+  integer :: n_slices
+  integer :: pencil_distr
+
+  real(kind=fPrec) myenom,mynex,mdex,myney,mdey,                    &
+  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
+  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
+  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
+  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
+  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
+!SEPT2005 add these lines for the slicing procedure
+  &smin_slices,smax_slices,recenter1,recenter2,                      &
+  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
+  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
+!SEPT2005,OCT2006 added offset
+  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
+  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
+  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
+  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
+  &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
+  &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
+  &sigsecut3,sigsecut2,enerror,bunchlength
+
+  character(len=max_name_len) name_sel
+  character(len=80) coll_db
+  character(len=16) castordir
+  character(len=80) filename_dis
+
+  common /grd/ myenom,mynex,mdex,myney,mdey,                        &
+  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
+  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
+  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
+  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
+  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
+  &smin_slices,smax_slices,recenter1,recenter2,                      &
+  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
+  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
+  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
+  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
+  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
+  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
+  &c_sysoffset_sec,c_rmserror_gap,nr,                                &
+  &ndr,driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,        &
+  &sigsecut3,sigsecut2,enerror,                                      &
+  &bunchlength,coll_db,name_sel,                                     &
+  &castordir,filename_dis,nloop,rnd_seed,c_offsettilt_seed,          &
+  &ibeam,jobnumber,do_thisdis,n_slices,pencil_distr,                 &
+  &do_coll,                                                          &
+  &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
+  &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
+  &dowritetracks,cern,do_nsig,do_mingap
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd dbtrthin
+
+ integer   mynp
+ common /mynp/ mynp
+
+!++ Vectors of coordinates
+
+!  real(kind=fPrec) mygammax,mygammay
+!
+!  character(len=80) dummy
+!
+!  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+!!  real(kind=fPrec) remitx_dist,remity_dist,
+!! &     remitx_collgap,remity_collgap
+!!  common  /remit/ remitx_dist, remity_dist,
+!! &     remitx_collgap,remity_collgap
+!
+!
+!  real(kind=fPrec) ielem,iclr,grd
+!  character(len=160) ch
+!  character(len=320) ch1
+!  logical flag
+!
+!  integer k,np0
+!
+!  character(len=160) cmd
+!  character(len=160) cmd2
+!  character(len=1) ch0
+!  character(len=2) ch00
+!  character(len=3) ch000
+!  character(len=4) ch0000
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
++cd dbthin6d
+
+  integer ios,num_surhit,numbin,ibin,num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov
+  integer :: ipart(npart) !(npart)
+  integer totalelem,selelem,unitnumber,distnumber,turnnumber,jb
+  integer :: flukaname(npart) !(npart)
+
+! SR, 29-08-2005: add the required variable for slicing collimators
+  integer jjj, ijk
+
+  real(kind=fPrec) zbv
+
+  real(kind=fPrec) c_length    !length in m
+  real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
+  real(kind=fPrec) c_aperture  !aperture in m
+  real(kind=fPrec) c_offset    !offset in m
+  real(kind=fPrec) c_tilt(2)   !tilt in radian
+
+  real(kind=fPrec) :: cx(npart) !(npart)
+  real(kind=fPrec) :: cxp(npart) !(npart)
+  real(kind=fPrec) :: cy(npart) !(npart)
+  real(kind=fPrec) :: cyp(npart) !(npart)
+  real(kind=fPrec) :: cp(npart) !(npart)
+  real(kind=fPrec) :: cs(npart) !(npart)
+  real(kind=fPrec) :: rcx(npart) !(npart)
+  real(kind=fPrec) :: rcxp(npart) !(npart)
+  real(kind=fPrec) :: rcy(npart) !(npart)
+  real(kind=fPrec) :: rcyp(npart) !(npart)
+  real(kind=fPrec) :: rcp(npart) !(npart)
+  real(kind=fPrec) :: rcs(npart) !(npart)
+  real(kind=fPrec) :: rcx0(npart) !(npart)
+  real(kind=fPrec) :: rcxp0(npart) !(npart)
+  real(kind=fPrec) :: rcy0(npart) !(npart)
+  real(kind=fPrec) :: rcyp0(npart) !(npart)
+  real(kind=fPrec) :: rcp0(npart) !(npart)
+
+  real(kind=fPrec) enom_gev,betax,betay,xmax,ymax,          &
+  &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
+  &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
+  &rxpjco,rypjco,c_rmstilt,                                          &
+  &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
+  &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
+  &nom_aperture,pencil_aperture
+
+  real(kind=fPrec) :: xp_pencil(max_ncoll)
+  real(kind=fPrec) :: yp_pencil(max_ncoll)
+  real(kind=fPrec) :: csum(max_ncoll)
+  real(kind=fPrec) :: csqsum(max_ncoll)
+  real(kind=fPrec) :: x_pencil0, y_pencil0, sum, sqsum
+  real(kind=fPrec) :: average, sigma, sigsecut, nspxd, xndisp, zpj
+
+  real(kind=fPrec) :: xgrd(npart)
+  real(kind=fPrec) :: xpgrd(npart)
+  real(kind=fPrec) :: ygrd(npart)
+  real(kind=fPrec) :: ypgrd(npart)
+  real(kind=fPrec) :: pgrd(npart)
+  real(kind=fPrec) :: ejfvgrd(npart)
+  real(kind=fPrec) :: sigmvgrd(npart)
+  real(kind=fPrec) :: rvvgrd(npart)
+  real(kind=fPrec) :: dpsvgrd(npart)
+  real(kind=fPrec) :: oidpsvgrd(npart)
+  real(kind=fPrec) :: dpsv1grd(npart)
+
+  real(kind=fPrec) dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4
+
+!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
+  real(kind=fPrec) x_sl(100)
+  real(kind=fPrec) x1_sl(100), x2_sl(100)
+  real(kind=fPrec) y1_sl(100), y2_sl(100)
+  real(kind=fPrec) angle1(100), angle2(100)
+
+  real(kind=fPrec) max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
+  real(kind=fPrec) tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
+  real(kind=fPrec) beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
+!SEPT2005
+
+  character(len=4) c_material     !material
+
+  common /dbthinc/ cx,cxp,cy,cyp,                                   &
+  &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
+  &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
+  &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
+  &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
+  &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
+  &rxpjco,rypjco,c_rmstilt,                                          &
+  &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
+  &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
+  &nom_aperture,pencil_aperture,xp_pencil,                           &
+  &yp_pencil,x_pencil0,y_pencil0,sum,sqsum,                          &
+  &csum,csqsum,average,sigma,sigsecut,nspxd,                         &
+  &xndisp,xgrd,xpgrd,ygrd,ypgrd,zpj,                                 &
+  &pgrd,ejfvgrd,sigmvgrd,rvvgrd,                                     &
+  &dpsvgrd,oidpsvgrd,dpsv1grd,                                       &
+  &dnormx,dnormy,driftx,drifty,                                      &
+  &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
+  &grdpiover2,grdpiover4,grd3piover4,                                &
+  &x_sl,x1_sl,x2_sl,                                                 &
+  &y1_sl, y2_sl,                                                &
+  &angle1, angle2,                                              &
+  &max_tmp,                                                     &
+  &a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
+  &Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
+  &tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
+  &beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
+  &alphax1, alphax2,alphay1,alphay2,minAmpl,                    &
+  &ios,num_surhit,numbin,ibin,                                       &
+  &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
+  &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
+  &jb,flukaname,                                                     &
+  &jjj,ijk,zbv,c_length,c_rotation,                                  &
+  &c_aperture,c_offset,c_tilt,c_material
+
+! myran_gauss,rndm5,
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd dbcolcom
+  logical firstcoll,found,onesided
+  integer rnd_lux,rnd_k1,rnd_k2
+
+  integer myix,myktrack
+
+  real(kind=fPrec) nspx,nspy,mux0,muy0
+  real(kind=fPrec) ax0,ay0,bx0,by0
+  real(kind=fPrec) totals
+
+  ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+  logical cut_input
+  common /cut/ cut_input
+
+  real(kind=fPrec) xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
+
+  common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
+  real(kind=fPrec) mux(nblz),muy(nblz)
+  common /mu/ mux,muy
+
+  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
++cd dbcommon
+! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
+
+  integer ieff,ieffdpop
+
+  real(kind=fPrec) myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myemitx,myalphay,mybetay,myalphax, mybetax,rselect
+  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
+
+! M. Fiascaris for the collimation team
+! variables for global inefficiencies studies
+! of normalized and off-momentum halo
+! Last modified: July 2016
+
+  real(kind=fPrec) neff(numeff),rsig(numeff)
+  common  /eff/ neff,rsig
+
+  integer counteddpop(npart,numeffdpop)
+  integer counted2d(npart,numeff,numeffdpop)
+  real(kind=fPrec) neffdpop(numeffdpop),dpopbins(numeffdpop)
+  integer npartdpop(numeffdpop)
+  common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
+
+  real(kind=fPrec) dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
+  common /eff2d/ neff2d
+
+  integer  nimpact(50)
+  real(kind=fPrec) sumimpact(50),sqsumimpact(50)
+  common  /rimpact/ sumimpact,sqsumimpact,nimpact
+
+  integer  nampl(nblz)
+  character(len=max_name_len) ename(nblz)
+  real(kind=fPrec) sum_ax(nblz),sqsum_ax(nblz),sum_ay(nblz),sqsum_ay(nblz),sampl(nblz)
+  common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
+
+  real(kind=fPrec) neffx(numeff),neffy(numeff)
+  common /efficiency/ neffx,neffy
+
+  integer :: secondary(npart) !(npart)
+  integer :: tertiary(npart) !(npart)
+  integer :: other(npart) !(npart)
+  integer :: scatterhit(npart) !(npart)
+  integer :: part_hit_before_pos(npart) !(npart)
+  integer :: part_hit_before_turn(npart) !(npart)
+
+  real(kind=fPrec) :: part_indiv(npart) !(npart)
+  real(kind=fPrec) :: part_linteract(npart) !(npart)
+
+  integer :: part_hit_pos(npart) !(npart)
+  integer :: part_hit_turn(npart) !(npart)
+  integer :: part_abs_pos(npart) !(npart)
+  integer :: part_abs_turn(npart) !(npart)
+  integer :: part_select(npart) !(npart)
+  integer :: nabs_type(npart) !(npart)
+  integer :: n_tot_absorbed
+  integer :: n_absorbed
+
+  real(kind=fPrec) part_impact(npart) !(npart)
+  common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
+  & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
+
+  common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
+  common /part_select/ part_select
+
+!  logical firstrun
+!  common /firstrun/ firstrun
+
+  integer nsurvive,nsurvive_end,num_selhit,n_impact
+  common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
+
+  integer napx00
+  common /napx00/ napx00
+
+!  integer  icoll
+!  common  /icoll/  icoll
+
+!UPGRADE January 2005
+  integer db_ncoll
+
+  character(len=max_name_len) :: db_name1(max_ncoll), db_name2(max_ncoll)
+  character(len=4) :: db_material(max_ncoll)
+!APRIL2005
+  real(kind=fPrec) :: db_nsig(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: db_length(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: db_offset(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: db_rotation(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: db_bx(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: db_by(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: db_tilt(max_ncoll,2) !(max_ncoll,2)
+  common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
+
+  integer :: cn_impact(max_ncoll)  !(max_ncoll)
+  integer :: cn_absorbed(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: caverage(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: csigma(max_ncoll) !(max_ncoll)
+  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
+
+  real(kind=fPrec) myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),myp(maxn),mys(maxn)
+  common /coord/ myx,myxp,myy,myyp,myp,mys
+
+  integer counted_r(npart,numeff),counted_x(npart,numeff),counted_y(npart,numeff)
+  common /counting/ counted_r,counted_x,counted_y
+
+  integer   samplenumber
+  character(len=4) smpl
+  character(len=80) pfile
+  common /samplenumber/ pfile,smpl,samplenumber
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd dbpencil
+!
+! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
+!
+      integer ipencil
+      real(kind=fPrec) xp_pencil0,yp_pencil0,x_pencil(max_ncoll),       &
+     &y_pencil(max_ncoll),pencil_dx(max_ncoll)
+      common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
+      common  /pencil2/ x_pencil, y_pencil
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd dbcollim
+!     BLOCK DBCOLLIM
+!     This block is common to collimaterhic and collimate2
+!     It is NOT compatible with block DBCOMMON, as some variable names overlap...
+
+
+      logical onesided,hit
+!      integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
+      integer nprim,filel,mat,nev,j,nabs,nhit,np,nabs_tmp
+
+      integer lhit_pos(npart),lhit_turn(npart),                         &
+     &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
+     &     name(npart),nabs_type(npart)
+!MAY2005
+      real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
+     &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
+     &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
+     &indiv(npart),lint(npart),                                         &
+     &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
+     &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
+!
+      real(kind=fPrec) c_length    !length in m
+      real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
+      real(kind=fPrec) c_aperture  !aperture in m
+      real(kind=fPrec) c_offset    !offset in m
+      real(kind=fPrec) c_tilt(2)   !tilt in radian
+      character(len=4) c_material  !material
+!
+      character(nc) filen,tit
+!
+      real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
+!
+!AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
+!           sheet beam distribution  (smear in x and y)
+!
+      common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,  &
+     &nev
+      common /materia/mat
+      common /phase/x,xp,z,zp,dpop
+      common /nommom/p0
+      common /cjaw1/zlm
+      common /other/mybetax,mybetaz,mymux,mymuz,atdi
+!      common /icoll/  icoll
+!
+      data   dx,dxp/.5e-4,20.e-4/                                        !hr09
+!
+!     END BLOCK DBCOLLIM
++cd dbmkdist
+!++ Vectors of coordinates
+
+  integer i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn)
+  real(kind=fPrec) :: myxp(maxn)
+  real(kind=fPrec) :: myy(maxn)
+  real(kind=fPrec) :: myyp(maxn)
+  real(kind=fPrec) :: myp(maxn)
+  real(kind=fPrec) :: mys(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+
+  character(len=80)   dummy
+
+  ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
+  logical cut_input
+  common /cut/ cut_input
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
++cd interac
+      integer mat,mcurr
+!+ca collMatNum
+      real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
+     &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
+     &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
+     &pptco,ppeco,sdcoe,freeco,zatom
+!electron density and plasma energy
+      real(kind=fPrec) edens, pleng
+!      parameter(fnavo=6.02214129e23_fPrec)
+      real(kind=fPrec) cgen
+      character(4) mname(nmat)
+      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
+      common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
+      common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
+      common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
+      common/scatu2/xintl(nmat),radl(nmat),mname
+      common/scatpp/pptot,ppel,ppsd
+      common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
+      common/phase/x,xp,z,zp,dpop
+!      real(kind=fPrec) exenergy
+!      common/meanexen/exenergy(nmat)
+      common/nommom/p0
+      common/cjaw1/zlm
+      common/cmcs1/zlm1
+      common/materia/mat
+      common/sindif/xpsd,zpsd,psd
+      common/cdpodx/dpodx
+      common/cions/edens(nmat),pleng(nmat)
+
 +dk nwrtcoll
 
 !>
@@ -11,6 +489,10 @@ block data scdata
   use numerical_constants
 
   implicit none
+
+! EQ 2016 added variables for collimator material numbers
+  integer, parameter :: nmat  = 14
+  integer, parameter :: nrmat = 12
 
 +ca interac
 
@@ -54,12 +536,6 @@ block data scdata
 
   data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
   data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
-
-!October 2013
-!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
-  data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9/
 
 ! All cross-sections are in barns,nuclear values from RPP at 20geV
 ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
@@ -107,25 +583,151 @@ module collimation
   use mod_alloc
   use end_sixtrack
   use file_units
+
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
 #endif
   
   implicit none
+
+!  private
   
+!+cd collpara
+  integer, parameter :: max_ncoll  = 100
+  integer, parameter :: maxn       = 20000
+  integer, parameter :: numeff     = 32
+  integer, parameter :: numeffdpop = 29
+  integer, parameter :: nc         = 32
+
+!+cd collMatNum
+! EQ 2016 added variables for collimator material numbers
+  integer, parameter :: nmat  = 14
+  integer, parameter :: nrmat = 12
+
+!+cd info
+  integer, save :: ie, iturn, nabs_total
+!  common  /info/ ie,iturn,nabs_total
+
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dblinopt
+!
+! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
+!
+  real(kind=fPrec), save :: tbetax(nblz)  !(nblz)
+  real(kind=fPrec), save :: tbetay(nblz)  !(nblz)
+  real(kind=fPrec), save :: talphax(nblz) !(nblz)
+  real(kind=fPrec), save :: talphay(nblz) !(nblz)
+  real(kind=fPrec), save :: torbx(nblz)   !(nblz)
+  real(kind=fPrec), save :: torbxp(nblz)  !(nblz)
+  real(kind=fPrec), save :: torby(nblz)   !(nblz)
+  real(kind=fPrec), save :: torbyp(nblz)  !(nblz)
+  real(kind=fPrec), save :: tdispx(nblz)  !(nblz)
+  real(kind=fPrec), save :: tdispy(nblz)  !(nblz)
+
+!  common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,torby,torbyp,tdispx,tdispy
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+! Variables for finding the collimator with the smallest gap
+! and defining, stroring the gap rms error
+!
+  character(len=max_name_len) :: coll_mingap1, coll_mingap2
+  real(kind=fPrec), save :: gap_rms_error(max_ncoll) !(max_ncoll)
+  real(kind=fPrec) :: nsig_err, sig_offset
+  real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
+  integer :: coll_mingap_id
+
+! common /gap_err/ gap_rms_error
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dbdaten
+
+! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+! logical cut_input
+! common /cut/ cut_input
+
+! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+  real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
+! common  /remit/ remitx_dist, remity_dist,remitx_collgap,remity_collgap
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+  logical, save :: coll_found(100)
+
+!from +cd interac
+!October 2013
+!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
+!  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
+!  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
+!  data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9/
+  real(kind=fPrec), parameter :: exenergy(nmat) = &
+ & [ 63.7e-9_fPrec, 166e-9_fPrec, 322e-9_fPrec, 727e-9_fPrec, 823e-9_fPrec, 78e-9_fPrec, 78.0e-9_fPrec, 87.1e-9_fPrec, &
+ & 152.9e-9_fPrec, 424e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
+! common/meanexen/exenergy(nmat)
+
+!+cd dbtrthin
+
+! Note: no saves needed
+
+! integer   mynp
+! common /mynp/ mynp
+
+!++ Vectors of coordinates
+
+  real(kind=fPrec), private :: mygammax,mygammay
+
+  character(len=80), private :: dummy
+
+  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
+!  real(kind=fPrec) remitx_dist,remity_dist,
+! &     remitx_collgap,remity_collgap
+!  common  /remit/ remitx_dist, remity_dist,
+! &     remitx_collgap,remity_collgap
+
+
+  real(kind=fPrec), private :: ielem,iclr,grd
+  character(len=160), private :: ch
+  character(len=320), private :: ch1
+  logical, private :: flag
+
+  integer, private :: k
+  integer np0
+
+  character(len=160), private :: cmd
+  character(len=160), private :: cmd2
+  character(len=1), private :: ch0
+  character(len=2), private :: ch00
+  character(len=3), private :: ch000
+  character(len=4), private :: ch0000
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+
+  logical, public, save :: firstrun
+  integer, save :: icoll
+
+!+cd flukavars
+! RB DM 2014 added variables for FLUKA output
+  real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
+! common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
+
+!+cd funint
+  real(kind=fPrec), private, save :: tftot
+!  common/funint/tftot
+
   ! file units
-  integer, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
-  integer, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit, all_absorptions_unit
-  integer, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
-  integer, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit, efficiency_2d_unit
-  integer, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
-  integer, save :: filename_dis_unit, coll_db_unit, CollPositions_unit
-  integer, save :: collsettings_unit, outlun
+  integer, private, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
+  integer, private, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit
+  integer, private, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
+  integer, private, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit
+  integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
+  integer, private, save :: filename_dis_unit, coll_db_unit, CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
+  integer, private, save :: collsettings_unit, outlun
   ! These are not in use
   !integer, save :: betatron_unit, beta_beat_unit
-
-  logical, save :: coll_found(100)
 
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
@@ -187,27 +789,24 @@ subroutine collimate_init()
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
-+ca dbdaten
-+ei
+!+ca dbdaten
 
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
 #endif
   
-+if g4collimat
+#ifdef G4COLLIMAT
 ! These should be configured in the scatter block when possible/enabled
   real(kind=fPrec) g4_ecut
   integer g4_physics
-+ei
+#endif
   
   call funit_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
@@ -609,15 +1208,15 @@ subroutine collimate_init()
   call readcollimator
 
 !Then do any implementation specific initial loading
-+if collimate_k2
+#ifdef COLLIMATE_K2
   call collimate_init_k2
-+ei
+#endif
 
-+if merlinscatter
+#ifdef MERLINSCATTER
   call collimate_init_merlin
-+ei
+#endif
 
-+if g4collimat
+#ifdef G4COLLIMAT
 !! This function lives in the G4Interface.cpp file in the g4collimat folder
 !! Accessed by linking libg4collimat.a
 !! Set the energy cut at 70% - i.e. 30% energy loss
@@ -629,7 +1228,8 @@ subroutine collimate_init()
   g4_physics = 0
 
   call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics)
-+ei
+#endif
+
 end subroutine collimate_init
 
 ! ================================================================================================ !
@@ -638,7 +1238,7 @@ end subroutine collimate_init
 subroutine collimate_parseInputLine(inLine, iLine, iErr)
   
   use string_tools
-  use mod_common
+  use mod_common, only : napx
   
   implicit none
   
@@ -650,7 +1250,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   integer nSplit
   logical spErr
   
-+ca collpara
 +ca database
 +ca dbcolcom
 +ca dbpencil
@@ -866,21 +1465,18 @@ subroutine collimate_start_sample(nsample)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbthin6d
 +ca dbcolcom
-+ei
 
-+if cr
+#ifdef CR
 +ca crco
-+ei
+#endif
 
   j = nsample
   samplenumber=j
@@ -1190,10 +1786,10 @@ subroutine collimate_start_sample(nsample)
   if(firstrun) then
   !Reading of collimation database moved to subroutine collimate_init
 
-+if beamgas
+#ifdef BEAMGAS
 !YIL call beam gas initiation routine
   call beamGasInit(myenom)
-+ei
+#endif
 
   write(lout,*) 'number of collimators', db_ncoll
   do icoll = 1, db_ncoll
@@ -1563,23 +2159,20 @@ subroutine collimate_start_collimator(stracki)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
   real(kind=fPrec) c5m4,stracki
 
-+if fast
+#ifdef FAST
   c5m4=5.0e-4_fPrec
-+ei
+#endif
 
   if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
     if(bez(myix)(7:9).eq.'3.B' .or. bez(myix)(7:9).eq.'3.b') then
@@ -1771,30 +2364,27 @@ subroutine collimate_do_collimator(stracki)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
   real(kind=fPrec) c5m4,stracki
 
-+if g4collimat
+#ifdef G4COLLIMAT
   integer g4_lostc
   integer :: part_hit_flag = 0
   integer :: part_abs_flag = 0
   real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
-+ei
+#endif
 
-+if fast
+#ifdef FAST
   c5m4=5.0e-4_fPrec
-+ei
+#endif
 
 !-----------------------------------------------------------------------
 !GRD NEW COLLIMATION PARAMETERS
@@ -1838,7 +2428,7 @@ subroutine collimate_do_collimator(stracki)
 !            write(45,'(a)')                                             &
 !     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
     do j = 1, napx
-      write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j)+100*samplenumber,xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
+      write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
@@ -2210,7 +2800,7 @@ subroutine collimate_do_collimator(stracki)
       call prror(-1)
     end if
 
-    flukaname(j) = ipart(j)+100*samplenumber
+    flukaname(j) = ipart(j)
   end do
 
 !++  Do the collimation tracking
@@ -2483,7 +3073,7 @@ subroutine collimate_do_collimator(stracki)
       else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
 !     Treatment of non-sliced collimators
 
-+if g4collimat
+#ifdef G4COLLIMAT
 !! Add the geant4 geometry
         if(firstrun.and.iturn.eq.1) then
           call g4_add_collimator(db_name1(icoll), c_material, c_length, c_aperture, c_rotation, c_offset)
@@ -2553,8 +3143,8 @@ subroutine collimate_do_collimator(stracki)
           end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
         end do   !do j = 1, napx
 !      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
-+ei
-+if .not.g4collimat
+#endif
+#ifndef G4COLLIMAT
 ! This is what is called in a normal collimation run
                   call collimate2(c_material, c_length, c_rotation,     &
      &                 c_aperture, c_offset, c_tilt,                    &
@@ -2564,7 +3154,7 @@ subroutine collimate_do_collimator(stracki)
      &                 part_abs_pos, part_abs_turn,                     &
      &                 part_impact, part_indiv, part_linteract,         &
      &                 onesided, flukaname, secondary, 1, nabs_type)
-+ei
+#endif
       end if !if (n_slices.gt.one .and.
     end if !if(db_name1(icoll)(1:4).eq.'COLM') then
   end if !if (found) then
@@ -2593,17 +3183,14 @@ subroutine collimate_end_collimator()
 +ca beamdim
   dimension nbeaux(nbb)
   
-#ifdef COLLIMAT
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
-#endif
 
 #ifdef HDF5
   ! For tracks2
@@ -2756,13 +3343,13 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
         if(h5_useForSCAT) then
           call h5_prepareWrite(coll_hdf5_allImpacts, 1)
-          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j)+100*samplenumber)
+          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j))
           call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
           call h5_writeData(coll_hdf5_allImpacts, 3, 1, sampl(ie))
           call h5_finaliseWrite(coll_hdf5_allImpacts)
         else
 #endif
-          write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+          write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
 #ifdef HDF5
         end if
 #endif
@@ -2774,13 +3361,13 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
           if(h5_useForSCAT) then
             call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
-            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j)+100*samplenumber)
+            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j))
             call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
             call h5_writeData(coll_hdf5_allAbsorb, 3, 1, sampl(ie))
             call h5_finaliseWrite(coll_hdf5_allAbsorb)
           else
 #endif
-            write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j)+100*samplenumber,iturn,sampl(ie)
+            write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
 #ifdef HDF5
           end if
 #endif
@@ -2839,7 +3426,7 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
             if(h5_writeTracks2) then
               ! We write trajectories before and after element in this case.
-              hdfpid  = ipart(j)+100*samplenumber
+              hdfpid  = ipart(j)
               hdfturn = iturn
               hdfs    = sampl(ie)-half*c_length
               hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
@@ -2859,7 +3446,7 @@ subroutine collimate_end_collimator()
             else
 #endif
               write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
-                ipart(j)+100*samplenumber,iturn,sampl(ie)-half*c_length,           &
+                ipart(j),iturn,sampl(ie)-half*c_length,           &
                 (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
@@ -2867,7 +3454,7 @@ subroutine collimate_end_collimator()
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
               
               write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
-                ipart(j)+100*samplenumber,iturn,sampl(ie)+half*c_length,           &
+                ipart(j),iturn,sampl(ie)+half*c_length,           &
                 xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
                 xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
                 secondary(j)+tertiary(j)+other(j)+scatterhit(j)
@@ -3003,7 +3590,9 @@ subroutine collimate_end_collimator()
     write(lout,*) 'INFO>  Average impact parameter [m]     : ', average
     write(lout,*) 'INFO>  Sigma impact parameter [m]       : ', sigma
 
-    if (dowrite_impact) close(impact_unit)
+    if (dowrite_impact) then
+      close(impact_unit)
+    end if
 
 !++  End of    S E L E C T E D   collimator
   end if
@@ -3042,16 +3631,13 @@ subroutine collimate_end_sample(j)
 +ca beamdim
   dimension nbeaux(nbb)
   
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
-+ei
   
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
@@ -3306,16 +3892,13 @@ subroutine collimate_exit()
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
-+ei
 
   close(outlun)
   close(collgaps_unit)
@@ -3438,9 +4021,9 @@ subroutine collimate_exit()
   close(orbitchecking_unit)
   close(CollPositions_unit)
 
-+if g4collimat
+#ifdef G4COLLIMAT
   call g4_terminate()
-+ei
+#endif
 
 end subroutine collimate_exit
 
@@ -3464,16 +4047,15 @@ subroutine collimate_start_turn(n)
   logical lopen
 +ca beamdim
   dimension nbeaux(nbb)
-+if collimat
-+ca collpara
+
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
-+ei
+
   integer n
 
   iturn=n
@@ -3502,17 +4084,14 @@ subroutine collimate_start_element(i)
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
   ie=i
 !++  For absorbed particles set all coordinates to zero. Also
@@ -3603,17 +4182,14 @@ subroutine collimate_end_element
 +ca beamdim
   dimension nbeaux(nbb)
 
-+if collimat
-+ca collpara
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
 #ifdef HDF5
   integer hdfturn,hdfpid,hdftyp
@@ -3710,7 +4286,7 @@ subroutine collimate_end_element
           ypj = (yv(2,j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)+100*samplenumber
+            hdfpid=ipart(j)
             hdfturn=iturn
             hdfs=sampl(ie)
             hdfx=xv(1,j)
@@ -3722,7 +4298,7 @@ subroutine collimate_end_element
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber, iturn, sampl(ie), &
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
               xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -3748,9 +4324,9 @@ subroutine collimate_end_turn
   use mod_commond
   use crcoall
 
-+if root
+#ifdef ROOT
   use root_output
-+ei
+#endif
 
   implicit none
 
@@ -3760,17 +4336,15 @@ subroutine collimate_end_turn
 
 +ca beamdim
   dimension nbeaux(nbb)
-+if collimat
-+ca collpara
+
 +ca dbtrthin
 +ca database
 +ca dbcommon
-+ca dblinopt
+!+ca dblinopt
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcolcom
 +ca dbthin6d
-+ei
 
 #ifdef HDF5
   ! For tracks2
@@ -3843,11 +4417,13 @@ subroutine collimate_end_turn
 #ifdef HDF5
     end if
 #endif
-+if root
+
+#ifdef ROOT
     if(root_flag .and. root_Collimation.eq.1) then
       call SurvivalRootWrite(iturn, nsurvive)
     end if
-+ei
+#endif
+
     if (iturn.eq.numl) then
       nsurvive_end = nsurvive_end + nsurvive
     end if
@@ -4176,7 +4752,7 @@ subroutine collimate_end_turn
           ypj    = (yv(2,j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)+100*samplenumber
+            hdfpid=ipart(j)
             hdfturn=iturn
             hdfs=sampl(ie)
             hdfx=xv(1,j)
@@ -4188,7 +4764,7 @@ subroutine collimate_end_turn
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j)+100*samplenumber,iturn,sampl(ie), &
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
               xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4272,15 +4848,13 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use mod_common, only : iexact
   implicit none
 
-
-+ca collpara
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcollim
-+ca flukavars
+!+ca flukavars
 
 +ca database
-+ca collMatNum
+!+ca collMatNum
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
 
@@ -4361,7 +4935,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   do j = 1, nev
 ! SR-GRD (04-08-2005):
-!       Don't do scattering process for particles already absorbed
+!   Don't do scattering process for particles already absorbed
     if ( part_abs_pos_local(j) .ne. 0 .and. part_abs_turn_local(j) .ne. 0) goto 777
 
     impact(j) = -one
@@ -4937,9 +5511,8 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 
       real(kind=fPrec) sx, sz
 !
-+ca collpara
 +ca dbpencil
-+ca info
+!+ca info
 +ca dbcollim
 !
 +ca database
@@ -5627,7 +6200,7 @@ function gettran(inter,xmat,p)
   real(kind=fPrec) truth,xran(1)
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
   if( inter.eq.2 ) then
     gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
 
@@ -5653,8 +6226,8 @@ function gettran(inter,xmat,p)
     t=real(truth,fPrec)                                                    !hr09
     gettran = t
   end if
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
 
   if( inter.eq.2 ) then
     gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
@@ -5675,7 +6248,7 @@ function gettran(inter,xmat,p)
     gettran = t
   end if
 
-+ei
+#endif
   return
 end function gettran
 
@@ -5731,9 +6304,9 @@ subroutine scatin(plab)
 
   implicit none
 
-+if merlinscatter
+#ifdef MERLINSCATTER
 +ca database
-+ei
+#endif
 
 +ca interac
 
@@ -5742,7 +6315,7 @@ subroutine scatin(plab)
   real(kind=fPrec) tlow,thigh
 
   ecmsq = (two * pmap) * plab                                   !hr09
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
   xln15s=log_mb(0.15_fPrec*ecmsq)                                           !hr09
 
 !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
@@ -5753,12 +6326,13 @@ subroutine scatin(plab)
 
 !Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
   ppsd=(4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
-+ei !+if .not.merlinscatter
+#endif
 
-+if merlinscatter !No crlibm...
+#ifdef MERLINSCATTER
+!No crlibm...
   call merlinscatter_setup(plab,rnd_seed)
   call merlinscatter_setdata(pptot,ppel,ppsd)
-+ei
+#endif
 
 !Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
   bpp=7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
@@ -5850,7 +6424,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   implicit none
 
 +ca interac
-+ca flukavars
+!+ca flukavars
   integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
   logical dowrite_impact
   real(kind=fPrec) m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
@@ -5929,15 +6503,15 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
     zlm1=rlen
     call mcs(s)
     s=(zlm-rlen)+s                                                    !hr09
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
     p=p-m_dpodx*s
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
 !void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
     call merlinscatter_calc_ion_loss(p,edens(mat), pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
-+ei
+#endif
 
     dpop=(p-p0)/p0
     if(dowrite_impact) then
@@ -5966,14 +6540,14 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   if(x.le.zero) then
     s=(zlm-rlen)+s                                                    !hr09
 
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)
     p=p-m_dpodx*s
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
-+ei
+#endif
     dpop=(p-p0)/p0
 
     if(dowrite_impact) then
@@ -6011,14 +6585,14 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   if(inter.eq.1) then
     s=(zlm-rlen)+zlm1                                                 !hr09
 
-+if .not.merlinscatter
+#ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)
     p=p-m_dpodx*s
-+ei
-+if merlinscatter
+#endif
+#ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
-+ei
+#endif
 
     dpop=(p-p0)/p0
 
@@ -6434,13 +7008,14 @@ function get_dpodx(p,mat_i)          !Claudia
   implicit none
 
   integer mat
-+ca collMatNum
+!+ca collMatNum
   common/materia/mat
-  real(kind=fPrec) anuc,zatom,rho,emr,exenergy
+  real(kind=fPrec) anuc,zatom,rho,emr
   real(kind=fPrec) PE,K,gamma_p
 !  real(kind=fPrec) PE,me,mp,K,gamma_p
   common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-  common/meanexen/exenergy(nmat)
+!  real(kind=fPrec) anuc,zatom,rho,emr,exenergy
+!  common/meanexen/exenergy(nmat)
   real(kind=fPrec) beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,I_s,delta
   parameter(K=0.307075)
 !  parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
@@ -6524,12 +7099,12 @@ function CalcPlasmaEnergy(ElectronDensity)
 end function CalcPlasmaEnergy
 
 !>
-!! CALC_ION_LOSS(IS,PC,DZ,EnLo)
+!! calc_ion_loss(IS,PC,DZ,EnLo)
 !! subroutine for the calculazion of the energy loss by ionization
 !! Either mean energy loss from Bethe-Bloch, or higher energy loss, according to finite probability from cross section
 !! written by DM for crystals, introduced in main code by RB
 !<
-SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
+subroutine calc_ion_loss(IS, PC, DZ, EnLo)
 
 ! IS material ID
 ! PC momentum in GeV
@@ -6538,13 +7113,13 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 
   use physical_constants
 
-  IMPLICIT none
+  implicit none
 
   integer IS
 
-+ca collMatNum
+!+ca collMatNum
 
-  real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
+  real(kind=fPrec) PC,DZ,EnLo,exEn
   real(kind=fPrec) k !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
 !  real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
   real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
@@ -6553,7 +7128,8 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
   real(kind=fPrec) ranc
   real(kind=fPrec) anuc,zatom,rho,emr
 
-  common/meanexen/exenergy(nmat)
+!  real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
+!  common/meanexen/exenergy(nmat)
 
   common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 
@@ -6606,7 +7182,7 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
   ranc = real(rndm4(),fPrec)
 
 ! determine based on random number if tail energy loss occurs.
-  if(ranc.lt.prob_tail)then
+  if(ranc.lt.prob_tail) then
     EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two- &
  &       log_mb(plen/exEn)-log_mb(bgr)+half+(TMax**2)/(eight*(gammar**2)*(pmap**2)))
 
@@ -6618,7 +7194,7 @@ SUBROUTINE CALC_ION_LOSS(IS,PC,DZ,EnLo)
 
   RETURN
 
-END SUBROUTINE CALC_ION_LOSS
+end subroutine calc_ion_loss
 
 subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
      &myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,             &
@@ -6630,7 +7206,6 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   implicit none
 
 
-+ca collpara
 +ca dbmkdist
   real(kind=fPrec) pi
 
@@ -6734,7 +7309,6 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi
@@ -6820,7 +7394,6 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
@@ -6918,7 +7491,6 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi
@@ -7047,7 +7619,6 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   character(len=80)   filename_dis
@@ -7107,7 +7678,6 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use mod_commonmn
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
 
@@ -7252,7 +7822,6 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   use crcoall
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
   real(kind=fPrec) pi
@@ -7396,7 +7965,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   
   implicit none
 
-+ca collpara
 +ca dbmkdist
 
 
@@ -7446,7 +8014,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
   startpar=1
 
-+if beamgas
+#ifdef BEAMGAS
 ! YIL July 2010 first particle on orbit
 !  initial xangle (if any) is not
 !  yet applied at this point...
@@ -7459,7 +8027,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   myp(1)  = myenom
   mys(1)  = zero
 !YIL end edit July 2010
-+ei
+#endif
 
   do j=startpar, mynp
 ! JBG July 2007
@@ -7931,7 +8499,7 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       external func
       integer ifunc,ierr
       real(kind=fPrec) x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
-+ca funint
+!+ca funint
       dimension xfcum(200)
       parameter (rteps=0.0002)
       save ifunc
@@ -8085,7 +8653,7 @@ subroutine funlux(array,xran,len)
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
       implicit none
-+ca funint
+!+ca funint
       integer len,ibuf,j,j1
       real(kind=fPrec) array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
       dimension array(200)
@@ -8438,26 +9006,26 @@ subroutine readcollimator
   use crcoall
   use parpro
 
-+if root
+#ifdef ROOT
   use iso_c_binding
   use root_output
-+ei
+#endif
 
   implicit none
 
   integer I,J,K,ios
 
-+ca collpara
 +ca database
 +ca dbcommon
 
   logical lopen
 
-+if root
+#ifdef ROOT
 ! Temp variables to avoid fotran array -> C nightmares
   character(len=max_name_len+1) :: this_name = C_NULL_CHAR
   character(len=5) :: this_material = C_NULL_CHAR
-+ei
+#endif
+
   save
 !--------------------------------------------------------------------
 !++  Read collimator database
@@ -8552,30 +9120,30 @@ subroutine readcollimator
       call prror(-1)
     end if
 
-+if root
+#ifdef ROOT
     if(root_flag .and. root_CollimationDB.eq.1) then
       this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
       this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
       call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
 &     db_length(j), db_rotation(j), db_offset(j))
     end if
-+ei
+#endif
 
   end do
 
   close(coll_db_unit)
 
-+if root
+#ifdef ROOT
 ! flush the root file
 !  call SixTrackRootWrite()
-+ei
+#endif
+
 end subroutine readcollimator
 
 subroutine collimation_comnul
   use parpro
   implicit none
 
-+ca collpara
 +ca database
 +ca dbcommon
 

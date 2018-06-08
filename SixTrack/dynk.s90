@@ -2286,7 +2286,11 @@ subroutine dynk_apply(turn)
     use mod_common
     use mod_commont
     use mod_commonmn
-    
+
+#ifdef COLLIMAT
+    use collimation
+#endif
+
     implicit none
 
 #ifdef BOINC
@@ -2294,7 +2298,7 @@ subroutine dynk_apply(turn)
 #endif
 
 #ifdef COLLIMAT
-+ca collpara
+!+ca collpara
 +ca dbcommon
 #endif
 

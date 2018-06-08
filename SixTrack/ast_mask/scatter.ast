@@ -1,4 +1,4 @@
-scatter.s90 sixtrack.s90
+scatter.s90 sixtrack.s90 collimation.s90
 scattern.f90
 df collimat
 e scatter
