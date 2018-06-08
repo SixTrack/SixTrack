@@ -312,6 +312,11 @@ module mod_common
   ! common /xz/
   real(kind=fPrec), save :: xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),aai(nblz,mmul),bbi(nblz,mmul)
   
+  ! common /dcumdb/
+  real(kind=fPrec), save      :: dcum(0:nblz+1)       ! Machine length in m
+  real(kind=fPrec), parameter :: eps_dcum = c1m6      ! Tolerance for machine length mismatch [m]
+  logical,          parameter :: print_dcum = .false.
+  
 contains
 
 subroutine mod_common_allocate_arrays

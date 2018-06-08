@@ -81,29 +81,6 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd   dbdcum
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     COMMON block for computing the dcum, i.e. the longitudinal s-coordinate
-!     always in main code
-
-!     dcum is computed at the END of each entry of the accelerator structure
-!       thus, for BLOCks, values are given at the end
-!     entries are identified by the usual indices: 1:nblz
-!     two further entries are added, at the beginning and at the end of the
-!       array, for storing the positions of the MARKERs at the beginning and
-!       end of the accelerator structure
-
-      real(kind=fPrec) dcum                  ! actual values [m]
-      logical print_dcum                     ! flag for printout
-      parameter ( print_dcum = .false. )
-
-      real(kind=fPrec) eps_dcum              ! Tolerance for machine length mismatch [m]
-      parameter ( eps_dcum = c1m6 )
-
-      common /dcumdb/ dcum(0:nblz+1)
-
 +cd elenstracktmp
 !     Dummy variables used in tracking block for calculation
 !     of the kick for the ideal annualar e-lens
@@ -11822,7 +11799,6 @@ end interface
 #ifdef CR
 +ca crco
 #endif
-+ca dbdcum
 
   integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
     idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
@@ -15122,7 +15098,6 @@ subroutine thin4d(nthinerr)
   dimension dpsv3(npart)
 
 +ca elenstracktmp
-+ca dbdcum
 
   save
 !-----------------------------------------------------------------------
@@ -15798,7 +15773,6 @@ subroutine thin6d(nthinerr)
   dimension dpsv3(npart)
 
 +ca elenstracktmp
-+ca dbdcum
   save
 
 #ifdef FAST
@@ -17512,8 +17486,6 @@ subroutine thck4d(nthinerr)
   logical recompute_linear_matrices
 #endif
 
-+ca dbdcum
-
   save
 
   nthinerr=0
@@ -18180,8 +18152,6 @@ subroutine thck6d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   logical recompute_linear_matrices
 #endif
-
-+ca dbdcum
 
   save
 #ifdef DEBUG
@@ -19709,8 +19679,6 @@ subroutine comnul
   
   integer i,i1,i2,i3,i4,j
 +ca commd1da
-
-+ca dbdcum
   
   save
   
@@ -20490,8 +20458,6 @@ integer function INEELS( iEl )
       use mod_commonmn
       implicit none
 
-+ca dbdcum
-
 !     interface variables
       integer iEl
 
@@ -20591,8 +20557,6 @@ integer function check_SE_unique( iEl, ixEl )
   use mod_commonmn
   implicit none
 
-+ca dbdcum
-
 ! interface variables
   integer iEl, ixEl
 
@@ -20630,10 +20594,9 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
   use floatPrecision
   use mod_common     ! for iu, tlen, ic
   use parpro   
-  use crcoall        ! for lout
+  use crcoall
   use end_sixtrack
   implicit none
-+ca dbdcum
 
 ! interface variables
   integer iEl, ixEl
@@ -22679,7 +22642,6 @@ end subroutine envardis
       use mod_common
       implicit none
 
-+ca dbdcum
       save
 
 !     temporary variables

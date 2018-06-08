@@ -571,7 +571,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 +ca dbthin6d
 +ca dbcommon
 #endif
-+ca dbdcum
 
 ! temporary variables
   logical lparID, llostp(npart)
@@ -1381,7 +1380,6 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
   implicit none
 
-+ca dbdcum
 ! interface variables
   integer iEl
   logical lInsUp
@@ -1674,8 +1672,6 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 !-----------------------------------------------------------------------
   implicit none
 
-+ca dbdcum
-
 ! interface variables
   integer iUp, ixUp, iDw, ixDw, oKApe
   real(kind=fPrec) oApe(9), spos
@@ -1717,8 +1713,6 @@ subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 !-----------------------------------------------------------------------
   implicit none
 
-+ca dbdcum
-
 ! interface variables
   integer ixApeTo, ixApeFrom, nKApe
   real(kind=fPrec) nApe(9)
@@ -1749,8 +1743,6 @@ subroutine dump_aperture_model
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
-
-+ca dbdcum
 
 ! temporary variables
   integer i, ix
@@ -1818,8 +1810,6 @@ end subroutine dump_aperture_model
 
 subroutine dumpMe
   implicit none
-
-+ca dbdcum
 
 ! temporary variables
   integer i, ix
@@ -1895,8 +1885,6 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
-
-+ca dbdcum
 
 ! interface variables
   integer iunit, iEl, ixEl
