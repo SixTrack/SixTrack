@@ -155,11 +155,11 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   if(bgid.lt.bgiddb(ibgloc)) then ! no proton for this scattering event
 !   check that this works correctly!!!!!!
-    write(777,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom, &
+    write(777,*) ipart(j),iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom, &
  &  bgid+njobthis*dpmjetevents
 
 !   writing down the scattering location information
-    write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
+    write(667,*) ipart(j),iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
  &  bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),yv(2,j)
 !    part_abs(j) = 1
     part_abs_pos(j)  = el_idx
@@ -247,7 +247,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
      dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
 
 ! writing down the scattering location information
-  write(667,*) ipart(j)+100*samplenumber,iturn,totals,xv(1,j),      &
+  write(667,*) ipart(j),iturn,totals,xv(1,j),      &
  &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),oldCoordinates(3),            &
  &   bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
  &   oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
