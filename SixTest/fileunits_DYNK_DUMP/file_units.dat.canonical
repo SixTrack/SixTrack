@@ -1,13 +1,14 @@
 # unit  assigned_to
-  1000  scatter_log.dat
-  1001  dynksets.dat
-  1002  dynk_parseFUN_IO
-  1003  dump_ip1.dat
-  1004  dump_ip5.dat
-  1005  dump_all.dat
-  1006  StartDUMP.dat
-  1007  symplecticity_check.txt
+  1000  mem_alloc.log
+  1001  scatter_log.dat
+  1002  dynksets.dat
+  1003  dynk_parseFUN_IO
+  1004  dump_ip1.dat
+  1005  dump_ip5.dat
+  1006  dump_all.dat
+  1007  StartDUMP.dat
   1008  symplecticity_check.txt
   1009  symplecticity_check.txt
   1010  symplecticity_check.txt
-  1011  file_units.dat
+  1011  symplecticity_check.txt
+  1012  file_units.dat

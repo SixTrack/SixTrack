@@ -34,6 +34,7 @@ program mainda
   use mod_commond
   use tuneshift_corr
   use mod_units
+  use mod_alloc, only : alloc_init
   
   implicit none
   
@@ -78,9 +79,9 @@ program mainda
 #ifndef CR
   lout=output_unit
 #endif
-  ! Initial allocation of memory
-  call allocate_arrays
-  
+  call alloc_init      ! Initialise tmod_alloc
+  call allocate_arrays ! Initial allocation of memory
+
   ! Open files
   call units_initUnits
   call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., boinc=.true.,fio=.true.)

@@ -708,7 +708,7 @@ subroutine daten
   logical parseFort2
   integer nGeom
   
-  logical newParsing, oneLine
+  logical newParsing, prevPrint
   
   save
   
@@ -810,7 +810,6 @@ subroutine daten
       ilin=0
       nlin=0
       iout=0
-      iquiet=0
       idp=0
       izu0=0
       mmac=1
@@ -831,6 +830,10 @@ subroutine daten
 ! ================================================================================================ !
 !  SET DEFAULT MODULE VALUES
 ! ================================================================================================ !
+  
+  ! SixTrack Settings
+  st_debug    = .false.
+  st_quiet  = 0
   
   ! TRACKING PARAMETERS
   numl      = 1
@@ -874,10 +877,9 @@ subroutine daten
   
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  oneLine     = .false.
+  prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
-  sixin_debug = .false.
   
   call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
   
@@ -889,7 +891,7 @@ subroutine daten
 ! ================================================================================================ !
   
 90 continue
-  read(3,10010,end=1530,iostat=ierro) idat,ihead
+  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) idat,ihead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(idat(1:1) == "/") goto 90
@@ -903,16 +905,25 @@ subroutine daten
     iMod       = 2
     parseFort2 = .true.
   case default
-    call prror(1)
+    write(lout,"(a)") "INPUT> ERROR Wrong mode '"//idat//"'"
+    goto 9999
   end select
   
-  write(lout,10130)
-  write(lout,10030)
-  write(lout,10180) ihead
+  write(lout,"(a)") repeat("-",131)
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OO                  OO"
+  write(lout,"(a)") "    OO  SixTrack Input  OO"
+  write(lout,"(a)") "    OO                  OO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") ""
+  if(ihead /= " ") write(lout,"(a)") "    TITLE: "//ihead
+  if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
+  if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
+  write(lout,"(a)") ""
+  write(lout,"(a)") repeat("-",131)
+  
   sixtit(1:60)=ihead
-  if(imod.eq.1) write(lout,10190)
-  if(imod.eq.2) write(lout,10200)
-  write(lout,10130)
   
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
@@ -953,15 +964,15 @@ subroutine daten
   ! Parse non-block flags
   select case(idat)
   case("PRIN") ! Enable the PRINT flag
-    iOut    = 1
-    oneLine = .true.
-    goto 110
-  case("QUIE") ! Enable the QUIET flag
-    iQuiet  = 1
-    oneLine = .true.
+    ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
+    ! so we need to handle that for backwards compatibility.
+    prevPrint = .true.
+    iOut      = 1
+    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
+    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
     goto 110
   case("NEXT") ! Close the current block
-    if(newParsing .and. .not. oneLine) then
+    if(newParsing .and. .not. prevPrint) then
       ! Actual close check is done after a last pass so
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
@@ -975,7 +986,7 @@ subroutine daten
     goto 771
   end select
   
-  oneLine = .false.
+  prevPrint = .false.
   
   ! Old style block parsing
   newParsing = .false.
@@ -1065,13 +1076,13 @@ subroutine daten
   
   select case(currBlock)
   
-  case("INFO") ! Information Block
+  case("SETT") ! Global Settings Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineINFO(ch,blockLine,inErr)
+      call sixin_parseInputLineSETT(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -5497,10 +5508,10 @@ subroutine daten
   return
       
 10000 format(11(a4,1x))
-10010 format(a4,8x,a60)
+! 10010 format(a4,8x,a60)
 10020 format(a)
-10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-     &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
+! 10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
+!      &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
      &'OO  PREPROCESSING  OO', /t10,2('O'),17x,2('O')/t10,21('O'))
 10050 format(//131('-')//t43,'*** RING PARAMETERS ***'/)
@@ -5552,10 +5563,10 @@ subroutine daten
      &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
      &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
      &'PRECISION FOR C.-O. RMS',t47,d10.3/)
-10180 format(t5/t10,a60)
-10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
-10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
-     &'EXTRA GEOMETRY STRENGTH FILE--')
+! 10180 format(t5/t10,a60)
+! 10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
+! 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
+!      &'EXTRA GEOMETRY STRENGTH FILE--')
 10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
 10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
      &'BLOCKS PER PERIOD',t49,i5//)
@@ -11321,6 +11332,7 @@ program maincr
   use mod_units
   use aperture
   use mod_ranecu
+  use mod_alloc, only : alloc_init
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -11486,7 +11498,8 @@ end interface
 #ifndef CR
   lout=output_unit
 #endif
-  call allocate_arrays      ! Initial allocation of memory
+  call alloc_init      ! Initialise tmod_alloc
+  call allocate_arrays ! Initial allocation of memory
 #ifdef CRLIBM
 ! Removed the call to disable_xp for Laurent
 ! but re-instated it
@@ -12864,7 +12877,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        dech,dsm0,itco,itcro,itqv,iout,qw0,iq,iqmod,kpa,iqmod6,bez,       &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -12931,7 +12944,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        dech,dsm0,itco,itcro,itqv,iout,qw0,iq,iqmod,kpa,iqmod6,bez,       &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -13114,7 +13127,7 @@ end interface
       do 340 ia=1,napx,2
         if(idfor.ne.2.and.idfor.ne.3) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-          if(iquiet==0) write(lout,10050)
+          if(st_quiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
@@ -13169,8 +13182,8 @@ end interface
             endif
             chi=chi+dchi
   320     continue
-          if(iquiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-          if(iquiet == 0) then
+          if(st_quiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+          if(st_quiet == 0) then
             write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
                               xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
           end if
@@ -13222,7 +13235,7 @@ end interface
           nucm(ia)=nucm0
           nucm(ia+1)=nucm0
 
-          if(iquiet==0) write(lout,10020) ampv(ia),amp(2),epsa
+          if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 #ifndef CRLIBM
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
@@ -13415,7 +13428,7 @@ end interface
           omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
           omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
-        if (idfor /= 3 .and. iquiet == 0) then
+        if (idfor /= 3 .and. st_quiet == 0) then
           write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
                             yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
         end if
@@ -13730,7 +13743,7 @@ end interface
         if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
@@ -13740,13 +13753,13 @@ end interface
         
         if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
           id=id+1
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           else
             write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
@@ -13756,12 +13769,12 @@ end interface
         if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
           id=id+1
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           else
             write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           end if
-          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
@@ -13771,12 +13784,12 @@ end interface
         if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           else
             write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
-          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
@@ -23439,7 +23452,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       tdispy(max(ielem,1))  = d(2)
 #endif
     if(ncorru == 0) then
-      if(iquiet == 0) then
+      if(st_quiet == 0) then
         write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1)
         write(lout,10010) b2(1),al2(1),g2(1)
         write(lout,10030) typ(9:16)

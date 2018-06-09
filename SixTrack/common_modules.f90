@@ -116,7 +116,12 @@ module mod_common
   use numerical_constants
   
   implicit none
-
+  
+  ! SixTrack Settings
+  integer, save :: iOut     ! PRINT Flag
+  integer, save :: st_quiet ! QUIET Level (SETT Block)
+  logical, save :: st_debug ! Global DEBUG flag (SETT Block)
+  
   ! common /erro/
   integer, save :: ierro
   character(len=max_name_len), save :: erbez
@@ -188,7 +193,7 @@ module mod_common
   
   ! common /clo/
   real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
-  integer, save :: itco,itcro,itqv,iout,iquiet
+  integer, save :: itco,itcro,itqv
   
   ! common /qmodi/
   real(kind=fPrec), save :: qw0(3),amp0

@@ -15,9 +15,6 @@ module sixtrack_input
   
   implicit none
   
-  ! Global Flags
-  logical,                       public, save :: sixin_debug     ! Global debug flag
-  
   ! Record of encountered blocks
   character(len=:), allocatable, public, save :: sixin_cBlock(:) ! Name of block
   integer,          allocatable, public, save :: sixin_iBlock(:) ! Line of block
@@ -183,9 +180,9 @@ end subroutine sixin_echoVal_char
 ! ================================================================================================ !
 
 ! ================================================================================================ !
-!  Parse Information Block Line
+!  Parse Global Settings Block Line
 ! ================================================================================================ !
-subroutine sixin_parseInputLineINFO(inLine, iLine, iErr)
+subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   
   implicit none
   
@@ -207,8 +204,9 @@ subroutine sixin_parseInputLineINFO(inLine, iLine, iErr)
   if(nSplit == 0) return
   
   select case(lnSplit(1))
+  
   case("DEBUG")
-    sixin_debug = .true.
+    st_debug = .true.
     write(lout,"(a)") "INPUT> SixTrack Input Debugging ENABLED"
 #ifdef CRLIBM
     write(lout,"(a)") "INPUT> DEBUG CRLIBM is ON"
@@ -220,9 +218,22 @@ subroutine sixin_parseInputLineINFO(inLine, iLine, iErr)
 #else
     write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
 #endif
+  
+  case("PRINT")
+    iOut = 1
+    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
+  
+  case("QUIET")
+    if(nSplit > 1) then
+      call chr_cast(lnSplit(2),st_quiet,iErr)
+    else
+      st_quiet = 1
+    end if
+    write(lout,"(a,i0)") "INPUT> SixTrack Quiet level set to: ",st_quiet
+    
   end select
   
-end subroutine sixin_parseInputLineINFO
+end subroutine sixin_parseInputLineSETT
 
 ! ================================================================================================ !
 !  Parse Single Element Line
@@ -637,7 +648,7 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   if(nSplit > 4) call chr_cast(lnSplit(5),zrms0,iErr)
   if(iErr) return
   
-  if(sixin_debug) then
+  if(st_debug) then
     call sixin_echoVal("xpl0", xpl0, "DISP",0)
     call sixin_echoVal("xrms0",xrms0,"DISP",0)
     call sixin_echoVal("zpl0", zpl0, "DISP",0)
@@ -718,7 +729,7 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
     if(nSplit > 3) call chr_cast(lnSplit(4),rat, iErr) ! Emittance ratio
     if(nSplit > 4) call chr_cast(lnSplit(5),iver,iErr) ! Vertical coordinates switch
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("itra",itra,"INIT",iLine)
       call sixin_echoVal("chi0",chi0,"INIT",iLine)
       call sixin_echoVal("chid",chid,"INIT",iLine)
@@ -741,77 +752,77 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
     
   case(2)  ! x [mm] coordinate of particle 1
     call chr_cast(lnSplit(1),exz(1,1),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(1,1)",exz(1,1),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(1,1)",exz(1,1),"INIT",iLine)
     if(iErr) return
     
   case(3)  ! xp [mrad] coordinate of particle 1
     call chr_cast(lnSplit(1),exz(1,2),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(1,2)",exz(1,2),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(1,2)",exz(1,2),"INIT",iLine)
     if(iErr) return
     
   case(4)  ! y [mm] coordinate of particle 1
     call chr_cast(lnSplit(1),exz(1,3),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(1,3)",exz(1,3),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(1,3)",exz(1,3),"INIT",iLine)
     if(iErr) return
     
   case(5)  ! yp [mrad] coordinate of particle 1
     call chr_cast(lnSplit(1),exz(1,4),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(1,4)",exz(1,4),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(1,4)",exz(1,4),"INIT",iLine)
     if(iErr) return
     
   case(6)  ! Path length difference 1(sigma = s−v0*t) [mm] of particle 1
     call chr_cast(lnSplit(1),exz(1,5),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(1,5)",exz(1,5),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(1,5)",exz(1,5),"INIT",iLine)
     if(iErr) return
     
   case(7)  ! dp/p0 of particle 1
     call chr_cast(lnSplit(1),exz(1,6),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(1,6)",exz(1,6),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(1,6)",exz(1,6),"INIT",iLine)
     if(iErr) return
     
   case(8)  ! x [mm] coordinate of particle 2
     call chr_cast(lnSplit(1),exz(2,1),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(2,1)",exz(2,1),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(2,1)",exz(2,1),"INIT",iLine)
     if(iErr) return
     
   case(9)  ! xp [mrad] coordinate of particle 2
     call chr_cast(lnSplit(1),exz(2,2),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(2,2)",exz(2,2),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(2,2)",exz(2,2),"INIT",iLine)
     if(iErr) return
     
   case(10) ! y [mm] coordinate of particle 2
     call chr_cast(lnSplit(1),exz(2,3),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(2,3)",exz(2,3),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(2,3)",exz(2,3),"INIT",iLine)
     if(iErr) return
     
   case(11) ! yp [mrad] coordinate of particle 2
     call chr_cast(lnSplit(1),exz(2,4),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(2,4)",exz(2,4),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(2,4)",exz(2,4),"INIT",iLine)
     if(iErr) return
     
   case(12) ! Path length difference 1(sigma = s−v0*t) [mm] of particle 2
     call chr_cast(lnSplit(1),exz(2,5),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(2,5)",exz(2,5),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(2,5)",exz(2,5),"INIT",iLine)
     if(iErr) return
     
   case(13) ! dp/p0 of particle 2
     call chr_cast(lnSplit(1),exz(2,6),iErr)
-    if(sixin_debug) call sixin_echoVal("exz(2,6)",exz(2,6),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("exz(2,6)",exz(2,6),"INIT",iLine)
     if(iErr) return
     
   case(14) ! energy [MeV] of the reference particle
     call chr_cast(lnSplit(1),e0,iErr)
-    if(sixin_debug) call sixin_echoVal("e0",e0,"INIT",iLine)
+    if(st_debug) call sixin_echoVal("e0",e0,"INIT",iLine)
     if(iErr) return
     
   case(15) ! energy [MeV] of particle 1
     call chr_cast(lnSplit(1),ej(1),iErr)
-    if(sixin_debug) call sixin_echoVal("ej(1)",ej(1),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("ej(1)",ej(1),"INIT",iLine)
     if(iErr) return
     
   case(16) ! energy [MeV] of particle 2
     call chr_cast(lnSplit(1),ej(2),iErr)
-    if(sixin_debug) call sixin_echoVal("ej(2)",ej(2),"INIT",iLine)
+    if(st_debug) call sixin_echoVal("ej(2)",ej(2),"INIT",iLine)
     if(iErr) return
     
   case default
@@ -875,7 +886,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     ! Default nnuml to numl
     nnuml = numl
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("numl",   numl,   "TRAC",iLine)
       call sixin_echoVal("numlr",  numlr,  "TRAC",iLine)
       call sixin_echoVal("napx",   napx,   "TRAC",iLine)
@@ -930,7 +941,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       return
     end if
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("idz(1)",idz(1),"TRAC",iLine)
       call sixin_echoVal("idz(2)",idz(2),"TRAC",iLine)
       call sixin_echoVal("idfor", idfor, "TRAC",iLine)
@@ -964,7 +975,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 7) call chr_cast(lnSplit(8),ibidu, iErr) ! Switch to create or read binary dump
     if(nSplit > 8) call chr_cast(lnSplit(9),iexact,iErr) ! Switch to enable exact solution of the equation of motion
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("nde(1)",nde(1),"TRAC",iLine)
       call sixin_echoVal("nde(2)",nde(2),"TRAC",iLine)
       call sixin_echoVal("nwr(1)",nwr(1),"TRAC",iLine)
@@ -1029,7 +1040,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
     if(nSplit > 3) call chr_cast(lnSplit(4),nsix, iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5),ncor, iErr)
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("nord", nord, "DIFF",iLine)
       call sixin_echoVal("nvar", nvar, "DIFF",iLine)
       call sixin_echoVal("preda",preda,"DIFF",iLine)
@@ -1146,7 +1157,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),ichrom0,  iErr)
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("bez_is(1)",tmp_is(1),"CHRO",iLine)
       call sixin_echoVal("cro(1)",   cro(1),   "CHRO",iLine)
       call sixin_echoVal("ichrom0",  ichrom0,  "CHRO",iLine)
@@ -1158,7 +1169,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     if(nSplit > 0) tmp_is(2) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSplit(2),cro(2),   iErr)
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("bez_is(2)",tmp_is(2),"CHRO",iLine)
       call sixin_echoVal("cro(1)",   cro(2),   "CHRO",iLine)
     end if
@@ -1170,7 +1181,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     end do
     if(ichrom0 >= 1 .and. ichrom0 <= 3) ichrom = ichrom0
     
-    if(sixin_debug) then
+    if(st_debug) then
       call sixin_echoVal("is(1)", is(1), "CHRO",iLine)
       call sixin_echoVal("is(2)", is(2), "CHRO",iLine)
       call sixin_echoVal("ichrom",ichrom,"CHRO",iLine)
