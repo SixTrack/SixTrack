@@ -60,6 +60,7 @@ SET(TESTS_NOFORT10
   dump_all_highprec
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
+  scatter_collimation
   )
 
 if(NOT COLLIMAT)
@@ -167,7 +168,10 @@ if(NOT COLLIMAT)
           perf1
           ${SIXTRACK_TESTS}
         )
-
+else()
+  if(BIGNBLZ OR HUGENBLZ)
+    set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
+  endif()
 endif(NOT COLLIMAT)
 
 #Collimation tests (needs backtrk)

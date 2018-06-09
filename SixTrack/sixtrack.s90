@@ -626,6 +626,9 @@ subroutine daten
 #ifdef ROOT
   use root_output
 #endif
+#ifdef COLLIMAT
+  use collimation
+#endif
   
   use mod_ranecu
   
@@ -1076,8 +1079,6 @@ subroutine daten
     goto 1600
   case("TROM")
     goto 1700
-  case("COLL")
-    goto 1285
   case("FLUK")
     goto 1800
   case("DUMP")
@@ -1231,6 +1232,26 @@ subroutine daten
       continue
     else
       call dist_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("COLL") ! Collimation Block
+    if(openBlock) then
+#ifndef COLLIMAT
+      if(do_coll) then
+        write(lout,"(a)") "INPUT> ERROR Collimation enabled, but SixTrack was not compiled with collimation support."
+        goto 9999
+      end if
+#endif
+      has_coll = .true.
+      if(ilin /= 1) then
+        write(lout,"(a)") "INPUT> ERROR Collimation requaires 4D mode, i.e. ilin=1."
+        goto 9999
+      end if
+    elseif(closeBlock) then
+      continue
+    else
+      call collimate_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -3776,257 +3797,6 @@ subroutine daten
  1380 continue
       goto 110
 
-!GRD-----------------------------------------------------------------------
-!  COLLIMATION INPUT BLOCK
-!GRD-----------------------------------------------------------------------
- 1285 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-
-#ifdef COLLIMAT
-      has_coll = .true. !We have a collimation block.
-      if (ilin.ne.1) then
-         write(lout,*) "ERROR DETECTED:"
-         write(lout,*) "Incompatible flag with collimation version"
-         write(lout,*) "detected in the LINEAR OPTICS block."
-         write(lout,*) ""
-         write(lout,*) "You have not chosen ilin=1 (4D mode),"
-         write(lout,*) "which is required for the collimation version."
-         write(lout,*) ""
-         write(lout,*) "Note that the ilin=2 (6D mode) is not"
-         write(lout,*) "compatible with the collimation version."
-         write(lout,*) ""
-         write(lout,*) "Current setting ilin=",ilin
-         call prror(-1)
-      endif
-#endif
-
-      if(ch(1:1).ne.'/') then
-         iclr=iclr+1
-      else
-         goto 1285
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      
-#ifndef COLLIMAT
-      if (iclr.eq.1) then
-         read(ch1,*) do_coll
-         if (do_coll) then
-           write(lout,*)
-           write(lout,*) "ERR> Collimation not forseen in this version;"
-           write(lout,*) "ERR> Please use proper version"
-           write(lout,*) "ERR> or set do_coll to .FALSE."
-           write(lout,*)
-           call prror(-1)
-         endif
-      endif
-#endif
-
-#ifdef COLLIMAT
-!APRIL2005
-#ifdef FIO
-      if(iclr.eq.1) read(ch1,*,round='nearest') do_coll !Does not make sense with round=nearest: do_coll is a logical...
-#endif
-#ifndef FIO
-      if(iclr.eq.1) read(ch1,*) do_coll
-#endif
-      
-#ifdef FIO
-      if(iclr.eq.2) read(ch1,*,round='nearest') nloop, myenom
-#endif
-#ifndef FIO
-      if(iclr.eq.2) read(ch1,*) nloop, myenom
-#endif
-      if(nloop.ne.1) then
-        write(lout,*) "The number of samples/(loops) is now limited to 1. Please use 1 sample and more particles per sample!"
-        call prror(-1)
-      end if
-
-      !Note: After daten, napx = napx*2; in daten napx is the number of particle pairs.
-      if(iclr.eq.2 .and. nloop*napx*2.gt.maxn) then
-         write(lout,*) ""
-         write(lout,*) "Error when parsing COLL block in fort.3"
-         write(lout,*) "nloop =", nloop
-         write(lout,*) "napx  =", napx,"(-> napx*2=",napx*2,"particles)"
-         write(lout,*) "maxn  =", maxn
-         write(lout,*) "mynp  = nloop*napx*2 =",nloop*napx*2,"> maxn"
-         write(lout,*) "Please reduce the number of particles or loops"
-         write(lout,*) ""
-         
-         call prror(-1)
-      endif
-
-      if(iclr.eq.2 .and. napx*2.ge.100 .and. nloop.gt.1) then
-         write(lout,*) ""
-         write(lout,*) "Error when parsing COLL block in fort.3"
-         write(lout,*) "If nloop > 1 then you must have napx*2 < 100"
-         write(lout,*) " or else the particle numbers in the"
-         write(lout,*) " output gets confused."
-         write(lout,*) "napx  = ", napx
-         write(lout,*) "nloop = ", nloop
-         
-         call prror(-1)
-      endif
-      
-#ifdef FIO
-      if(iclr.eq.3) read(ch1,*,round='nearest') do_thisdis,mynex,mdex,myney,mdey,&
-#endif
-#ifndef FIO
-      if(iclr.eq.3) read(ch1,*) do_thisdis,mynex,mdex,myney,mdey,       &
-#endif
-     &filename_dis,enerror,bunchlength
-!JUNE2005
-!UPGRADE JANUARY 2005
-#ifdef FIO
-!      if(iclr.eq.4) read(ch1,*,round='nearest')                        &
-!     & NSIG_PRIM,NSIG_SEC
-#endif
-#ifndef FIO
-!      if(iclr.eq.4) read(ch1,*) NSIG_PRIM,NSIG_SEC
-#endif
-#ifdef FIO
-!      if(iclr.eq.4) read(ch1,*,round='nearest')                        
-!     & nsig_prim,nsig_sec,nsig_ter
-#endif
-#ifndef FIO
-!      if(iclr.eq.4) read(ch1,*) nsig_prim,nsig_sec,nsig_ter
-#endif
-#ifdef FIO
-      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & do_nsig,                                                         &
-#endif
-#ifndef FIO
-      if(iclr.eq.4) read(ch1,*) do_nsig,                                &
-#endif
-     &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
-     &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,             &
-     &nsig_tcli,                                                        &
-!     &nsig_tcth,nsig_tctv,                                              &
-     &nsig_tcdq,nsig_tcstcdq,nsig_tdi
-#ifdef FIO
-      if(iclr.eq.5) read(ch1,*,round='nearest')                         &
-#endif
-#ifndef FIO
-      if(iclr.eq.5) read(ch1,*)                                         &
-#endif
-     &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-     &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-     &nsig_tcxrp,nsig_tcryo
-#ifdef FIO
-      if(iclr.eq.6) read(ch1,*,round='nearest')                         &
-     & n_slices,smin_slices,smax_slices,                                &
-#endif
-#ifndef FIO
-      if(iclr.eq.6) read(ch1,*) n_slices,smin_slices,smax_slices,       &
-#endif
-     &recenter1,recenter2
-#ifdef FIO
-      if(iclr.eq.7) read(ch1,*,round='nearest')                         &
-#endif
-#ifndef FIO
-      if(iclr.eq.7) read(ch1,*)                                         &
-#endif
-     & fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1
-#ifdef FIO
-      if(iclr.eq.8) read(ch1,*,round='nearest')                         &
-#endif
-#ifndef FIO
-      if(iclr.eq.8) read(ch1,*)                                         &
-#endif
-     & fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2
-!
-#ifdef FIO
-      if(iclr.eq.9) read(ch1,*,round='nearest')                         &
-     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
-#endif
-#ifndef FIO
-      if(iclr.eq.9) read(ch1,*)                                         &
-     & emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap
-#endif
-#ifdef FIO
-      if(iclr.eq.10) read(ch1,*,round='nearest')                        &
-     & do_select,do_nominal,                  &
-#endif
-#ifndef FIO
-      if(iclr.eq.10) read(ch1,*) do_select,do_nominal,                  &
-#endif
-     &rnd_seed,dowrite_dist,name_sel,do_oneside,                        &
-     &dowrite_impact,dowrite_secondary,dowrite_amplitude
-#ifdef FIO
-      if(iclr.eq.11) read(ch1,*,round='nearest')                        &
-     & xbeat,xbeatphase,ybeat,                                          &
-#endif
-#ifndef FIO
-      if(iclr.eq.11) read(ch1,*) xbeat,xbeatphase,ybeat,                &
-#endif
-     &ybeatphase
-!AUGUST2006 ADDED offset variables for mechanical errors    ---- TW
-!JANUAR2007 added rms error for gap and switch to min gap   ---- TW
-#ifdef FIO
-      if(iclr.eq.12) read(ch1,*,round='nearest')                        &
-     & c_rmstilt_prim,c_rmstilt_sec,                                    &
-#endif
-#ifndef FIO
-      if(iclr.eq.12) read(ch1,*) c_rmstilt_prim,c_rmstilt_sec,          &
-#endif
-     &c_systilt_prim,c_systilt_sec,c_rmsoffset_prim,c_rmsoffset_sec,    &
-     &c_sysoffset_prim,c_sysoffset_sec,c_offsettilt_seed,               &
-     &c_rmserror_gap,do_mingap
-#ifdef FIO
-      if(iclr.eq.13) read(ch1,*,round='nearest')                        &
-     & radial,nr,ndr
-#endif
-#ifndef FIO
-      if(iclr.eq.13) read(ch1,*) radial,nr,ndr
-#endif
-#ifdef FIO
-      if(iclr.eq.14) read(ch1,*,round='nearest')                        &
-     & driftsx,driftsy,cut_input,                                       &
-#endif
-#ifndef FIO
-      if(iclr.eq.14) read(ch1,*) driftsx,driftsy,cut_input,             &
-#endif
-     &systilt_antisymm
-!AUGUST2006 ADDED rmsx, rmsy and distr. type for pencil beam ---- TW
-#ifdef FIO
-      if(iclr.eq.15) read(ch1,*,round='nearest')                        &
-     &                                                                  &
-#endif
-#ifndef FIO
-      if(iclr.eq.15) read(ch1,*)                                        &
-#endif
-     &ipencil,pencil_offset,pencil_rmsx,pencil_rmsy,pencil_distr
-!APRIL2005
-#ifdef G4COLLIMAT
-      if(ipencil.gt.0) then
-        write(lout,*) 'pencil distribution not supported with geant4'
-        call prror(-1)
-      endif
-#endif
-#ifdef FIO
-      if(iclr.eq.16) read(ch1,*,round='nearest')                        &
-     & coll_db,ibeam
-#endif
-#ifndef FIO
-      if(iclr.eq.16) read(ch1,*) coll_db,ibeam
-#endif
-!APRIL2005
-#ifdef FIO
-      if(iclr.eq.17) read(ch1,*,round='nearest')                        &
-     & dowritetracks, cern, castordir,                                  &
-#endif
-#ifndef FIO
-      if(iclr.eq.17) read(ch1,*) dowritetracks, cern, castordir,        &
-#endif
-     &jobnumber, sigsecut2, sigsecut3
-!
-#endif
-
-!     Use this code for both collimat and non-collimat
-      if(iclr.ne.17) goto 1285
- 1287 continue
-      iclr=0
-      goto 110
 !-----------------------------------------------------------------------
 !  NORMAL FORMS
 !-----------------------------------------------------------------------
