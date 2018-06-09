@@ -1191,7 +1191,7 @@ subroutine daten
 #endif
       has_coll = .true.
       if(ilin /= 1) then
-        write(lout,"(a)") "INPUT> ERROR Collimation requaires 4D mode, i.e. ilin=1."
+        write(lout,"(a)") "INPUT> ERROR Collimation requires 4D mode, i.e. ilin=1."
         goto 9999
       end if
     elseif(closeBlock) then
