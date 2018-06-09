@@ -1025,8 +1025,6 @@ subroutine daten
     goto 1700
   case("FLUK")
     goto 1800
-  case("DUMP")
-    goto 2000
   case("BDEX")
     goto 2250
   case("ELEN")
@@ -1214,6 +1212,16 @@ subroutine daten
       continue
     else
       call fma_parseInputLine(ch,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DUMP") ! DUMP Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call dump_parseInputLine(ch,inErr)
       if(inErr) goto 9999
     end if
     
@@ -4617,29 +4625,6 @@ subroutine daten
 
 #endif
       goto 1800
-
-!-----------------------------------------------------------------------
-!  DUMP BEAM POPULATION
-!  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!  K.Sjobak, BE-ABP/HSS, BE-ABP/LAT
-!  last modified: 03-09-2015
-!  always in main code
-!-----------------------------------------------------------------------
- 2000 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1 ! Line number used for some crash output
-      if(ch(1:1).eq.'/') goto 2000 !Skip comment line
-      
-      !Done with DUMP, write out!
-      if(ch(:4).eq.next) then
-         call dump_parseInputDone
-         goto 110
-      endif !END writeout when finished reading
-      
-      call dump_parseInputLine(ch)
-      
-      ! Go to next line
-      goto 2000
 
 !-----------------------------------------------------------------------
 !  BDEX = Beam Distribution EXchange
