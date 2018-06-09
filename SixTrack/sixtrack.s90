@@ -1029,8 +1029,6 @@ subroutine daten
     goto 2000
   case("BDEX")
     goto 2250
-  case("FMA")
-    goto 2300
   case("ELEN")
     goto 2400
   case("WIRE")
@@ -1207,6 +1205,16 @@ subroutine daten
 #else
       continue
 #endif
+    end if
+    
+  case("FMA") ! FMA Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call fma_parseInputLine(ch,inErr)
+      if(inErr) goto 9999
     end if
     
   case("DYNK") ! Dynamic Kick Block
@@ -4693,26 +4701,6 @@ subroutine daten
       call prror(-1)
       
 !-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!  FMA
-!  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
-!  last modified: 07-01-2016
-!  always in main code
-!-----------------------------------------------------------------------
- 2300 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
-
-      if (ch(:4).eq.next) then
-         goto 110 ! loop to next BLOCK in fort.3
-      endif
-
-      call fma_parseInputLine(ch)
-      
-      goto 2300
-!-----------------------------------------------------------------------
 !  Electron Lense, kz=29,ktrack=63
 !  M. Fitterer,  FNAL
 !  last modified: 20-06-2016
@@ -5589,9 +5577,11 @@ subroutine daten
 9999 continue
   ! Error handling for sixtrack_input module
   if(nUnit == 2) then
-    write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineNo2
+    write(lout,"(a)")      "INPUT> ERROR in fort.2"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//ch//"'"
   else
-    write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineNo3
+    write(lout,"(a)")      "INPUT> ERROR in fort.3"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//ch//"'"
   end if
   call prror(-1)
   return
