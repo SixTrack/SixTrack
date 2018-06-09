@@ -41,14 +41,15 @@ contains
     endif
   end subroutine fma_error
   
-  subroutine fma_parseInputline(ch)
+  subroutine fma_parseInputline(ch,iErr)
     
     use crcoall
     use string_tools
     
     implicit none
 
-    character(len=*), intent(in) :: ch
+    character(len=*), intent(in)    :: ch
+    logical,          intent(inout) :: iErr
     
     character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
     integer   getfields_nfields                                                 ! Number of identified fields
@@ -61,8 +62,9 @@ contains
     endif
     
     if(fma_numfiles.ge.fma_max) then
-       write(lout,*) 'ERROR: you can only do ',fma_max,' number of FMAs'
-       call prror(-1) 
+       write(lout,"(a,i0,a)") "FMA> ERROR You can only do ",fma_max," number of FMAs"
+       iErr = .true.
+       return
     endif
     
     fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
@@ -71,14 +73,14 @@ contains
     call getfields_split( ch, getfields_fields, getfields_lfields, &
          getfields_nfields, getfields_lerr )
     if ( getfields_lerr ) then
-       write(lout,*) 'ERROR in FMA block: getfields_lerr=', getfields_lerr
-       call prror(-1)
+       write(lout,"(a,l1)") "FMA> ERROR getfields_lerr = ",getfields_lerr
+       iErr = .true.
+       return
     endif
     if(getfields_nfields.eq.1 .or. getfields_nfields.eq.4 .or. getfields_nfields.ge.6) then
-       write(lout,*) &
-            'ERROR in FMA block: wrong number of input ', &
-            'parameters: ninput = ', getfields_nfields,' != 2 (3 or 5)'
-       call prror(-1)
+       write(lout,"(a,i0)") "FMA> ERROR Wrong number of input parameters. Expected 2, 3 or 4, got ",getfields_nfields
+       iErr = .true.
+       return
     endif
 
     fma_fname(fma_numfiles)  = getfields_fields(1)(1:getfields_lfields(1))
@@ -108,27 +110,24 @@ contains
      .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"      &
 #endif
        )      ) then
-       write(lout,*) &
-            "ERROR in DATEN::FMA: The FMA method '"// &
-            trim(stringzerotrim(fma_method(fma_numfiles))) &
-            //"' is unknown. FMA index = ", fma_numfiles
-       write(lout,*) &
-            "Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "//        &
-            "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1"// &
+      write(lout,"(a,i0)") "FMA> ERROR The method '"//chr_trimZero(fma_method(fma_numfiles))//"' is unknown."//&
+        " FMA index = ",fma_numfiles
+      write(lout,"(a)")    "FMA>       Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "// &
+        "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1"// &
 #ifdef NAFF
-            ", NAFF"// &
+        ", NAFF"// &
 #endif
-            "."
-       write(lout,*)  "Note that it is case-sensitive, so use uppercase only."
-       call prror(-1)
+        "."
+      write(lout,"(a)")    "FMA>       Note that it is case-sensitive, so use uppercase only."
+      iErr = .true.
+      return
     end if
     
-    if (.not. (fma_norm_flag(fma_numfiles).eq.0 .or. &
-               fma_norm_flag(fma_numfiles).eq.1      )) then
-       write(lout,*) &
-            "ERROR in DATEN::FMA: Expected  fma_norm_flag = 1 or 0." // &
-            "Got:", fma_norm_flag(fma_numfiles),                        &
-            "FMA index =",fma_numfiles
+    if(.not.(fma_norm_flag(fma_numfiles).eq.0 .or. fma_norm_flag(fma_numfiles).eq.1)) then
+      write(lout,"(2(a,i0))") "FMA> ERROR Expected fma_norm_flag = 1 or 0, Got: ",fma_norm_flag(fma_numfiles),&
+        ", FMA index =",fma_numfiles
+      iErr = .true.
+      return
     end if
       
     fma_flag = .true.

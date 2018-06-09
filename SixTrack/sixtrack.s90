@@ -61,15 +61,6 @@
      &crnapxo,crnapx,                                                   &
      &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart)
 
-+cd beamdim
-      real(kind=fPrec) cc,xlim,ylim
-      parameter(cc = 1.12837916709551_fPrec)
-      parameter(xlim = 5.33_fPrec)
-      parameter(ylim = 4.29_fPrec)
-      dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),    &
-     &r2b(npart),rb(npart),rkb(npart),                                  &
-     &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
-     &crzb(npart),cbxb(npart),cbzb(npart)
 +cd commond1
   ! This and the next block just have different variable names, and seem to be FOX related?
   ! Could in principle go into mod_commont where the DA / non-DA copy logic lives
@@ -78,50 +69,7 @@
   integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
   common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),asdaq_da(2,6),smida_da(mcor),xx_da(2), &
     yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
-+cd commphin
-      common/phasecom/ phase(3,npos+1)
-      common/invari/ dani(ninv+1)
 !
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd   dbdcum
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     COMMON block for computing the dcum, i.e. the longitudinal s-coordinate
-!     always in main code
-
-!     dcum is computed at the END of each entry of the accelerator structure
-!       thus, for BLOCks, values are given at the end
-!     entries are identified by the usual indices: 1:nblz
-!     two further entries are added, at the beginning and at the end of the
-!       array, for storing the positions of the MARKERs at the beginning and
-!       end of the accelerator structure
-
-      real(kind=fPrec) dcum                  ! actual values [m]
-      logical print_dcum                     ! flag for printout
-      parameter ( print_dcum = .false. )
-
-      real(kind=fPrec) eps_dcum              ! Tolerance for machine length mismatch [m]
-      parameter ( eps_dcum = c1m6 )
-
-      common /dcumdb/ dcum(0:nblz+1)
-
-+cd elenstracktmp
-!     Dummy variables used in tracking block for calculation
-!     of the kick for the ideal annualar e-lens
-      real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-+cd wiretracktmp
-! temporary variables
-      real(kind=fPrec) RTWO !RTWO=x^2+y^2
-      real(kind=fPrec) NNORM_, NNORM
-      real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
 +dk errf
       subroutine errf(xx,yy,wx,wy)
 !----------------------------------------------------------------------*
@@ -138,14 +86,12 @@
       use floatPrecision
       use numerical_constants
       use mathlib_bouncer
+      use mod_common, only : cc,xlim,ylim
       implicit none
 
       integer n,nc,nu
-      real(kind=fPrec) cc,h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,        &
-     &xh,xl,xlim,xx,y,yh,ylim,yy
-      parameter(cc = 1.12837916709551_fPrec)
-      parameter(xlim = 5.33_fPrec)
-      parameter(ylim = 4.29_fPrec)
+      real(kind=fPrec) h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,        &
+     &xh,xl,xx,y,yh,yy
       dimension rx(33),ry(33)
       save
 !-----------------------------------------------------------------------
@@ -654,7 +600,7 @@ subroutine daten
 
   implicit none
   
-  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,idi,iexnum,iexread,    &
+  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
@@ -673,7 +619,7 @@ subroutine daten
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iss,iqq,iele,ilm0,idum,norm
+  character(len=max_name_len) iqq,iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
   character(len=60) ihead
@@ -733,17 +679,14 @@ subroutine daten
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
   
-  dimension icel(ncom,20),iss(2),iqq(5)
+  dimension icel(ncom,20),iqq(5)
   dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
-  data sync,ende,next,comm /'SYNC','ENDE','NEXT','COMM'/
+  data sync,ende,next /'SYNC','ENDE','NEXT'/
   data fluc,mult,chro,iter,tune,line,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','DIFF'/
-  data limi,orbi,go,sear,subr,reso,post,ripp,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','RIPP','DECO'/
+  data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
-  ! data corr,sing,stru,prin,quie,bloc,init,trac,disp /'CORR','SING','STRU','PRIN','QUIE','BLOC','INIT','TRAC','DISP'/
-  ! data free,geom /'FREE','GEOM'/
-  data coll /'COLL'/
   character(len=4) fluk
   data fluk /'FLUK'/
   
@@ -773,8 +716,6 @@ subroutine daten
 
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
-      iss(1)=' '
-      iss(2)=' '
 
       do i=1,5
         iqq(i)=' '
@@ -863,7 +804,6 @@ subroutine daten
       itqv=10
       dkq=c1m10
       dqq=c1m10
-      ichrom=0
       iqmod=0
       im=0
       imtr0=0
@@ -911,6 +851,9 @@ subroutine daten
   nwr(:)    = 1
   nwr(4)    = 10000
   ntwin     = 1
+  
+  ! CHROMATICITY ADJUSTMENTS
+  ichrom    = 0
   
   ! HIONS MODULE
   zz0       = 1
@@ -996,7 +939,7 @@ subroutine daten
     lineNo3 = lineNo3 + 1
   end if
   
-  read(nUnit, 10020, end=1530, iostat=iErro) ch
+  read(nUnit,"(a)",end=1530,iostat=iErro) ch
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror(-1)
@@ -1005,7 +948,7 @@ subroutine daten
   if(len(ch) == 0)   goto 110 ! Empty line, ignore
   if(ch(1:1) == "/") goto 110 ! Comment line, ignore
   if(ch(1:1) == "!") goto 110 ! Comment line, ignore
-  if(len(ch) >= 4)   idat = ch(1:4)
+  read(ch,"(a4)") idat
   
   ! Parse non-block flags
   select case(idat)
@@ -1047,8 +990,6 @@ subroutine daten
     goto 790
   case("MULT")
     goto 740
-  case("CHRO")
-    goto 560
   case("LINE")
     goto 660
   case("LIMI")
@@ -1067,8 +1008,6 @@ subroutine daten
     goto 880
   case("POST")
     goto 1280
-  case("RIPP")
-    goto 1290
   case("DECO")
     goto 1320
   case("NORM")
@@ -1081,12 +1020,8 @@ subroutine daten
     goto 1700
   case("FLUK")
     goto 1800
-  case("DUMP")
-    goto 2000
   case("BDEX")
     goto 2250
-  case("FMA")
-    goto 2300
   case("ELEN")
     goto 2400
   case("WIRE")
@@ -1140,7 +1075,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("COMM")
+  case("COMM") ! Comment Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -1225,6 +1160,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
+  case("CHRO")
+    if(openBlock) then
+      ichrom = 1
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineCHRO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -1235,6 +1180,11 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
+  case("RIPP") ! Power Supply Ripple Block
+    write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
+    write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
+    goto 9999
+    
   case("COLL") ! Collimation Block
     if(openBlock) then
 #ifndef COLLIMAT
@@ -1242,16 +1192,41 @@ subroutine daten
         write(lout,"(a)") "INPUT> ERROR Collimation enabled, but SixTrack was not compiled with collimation support."
         goto 9999
       end if
-#endif
+#else
       has_coll = .true.
       if(ilin /= 1) then
-        write(lout,"(a)") "INPUT> ERROR Collimation requaires 4D mode, i.e. ilin=1."
+        write(lout,"(a)") "INPUT> ERROR Collimation requires 4D mode in the LINEAR OPTICS block, i.e. ilin=1."
         goto 9999
       end if
+#endif
     elseif(closeBlock) then
       continue
     else
+#ifdef COLLIMAT
       call collimate_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+#else
+      continue
+#endif
+    end if
+    
+  case("FMA") ! FMA Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call fma_parseInputLine(ch,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("DUMP") ! DUMP Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call dump_parseInputLine(ch,inErr)
       if(inErr) goto 9999
     end if
     
@@ -1353,86 +1328,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  CHROMATCITY ADJUSTMENT
-!-----------------------------------------------------------------------
-  560 ichrom=1
-      ichrom0=0
-      do 580 l=1,2
-  570 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 570
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.1) read(ch1,*,round='nearest') iss(1),cro(1),ichrom0
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.1) read(ch1,*) iss(1),cro(1),ichrom0
-#endif
-#ifdef CRLIBM
-      if(l.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read (fields(1),*) iss(1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cro(1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(3),*) ichrom0
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.2) read(ch1,*,round='nearest')                            &
-     & iss(2),cro(2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.2) read(ch1,*) iss(2),cro(2)
-#endif
-#ifdef CRLIBM
-      if (l.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iss(2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cro(2)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-  580 continue
-
-      do j=1,il
-        if(iss(1).eq.bez(j)) is(1)=j
-        if(iss(2).eq.bez(j)) is(2)=j
-      end do
-
-      if(ichrom0.ge.1.and.ichrom0.le.3) ichrom=ichrom0
-      goto 110
 
 !-----------------------------------------------------------------------
 !  TUNE ADJUSTMENT
@@ -3701,28 +3596,6 @@ subroutine daten
       ipos=1
       goto 110
 !-----------------------------------------------------------------------
-!  POWER SUPPLY RIPPLE
-!-----------------------------------------------------------------------
- 1290 continue
-      write(lout,*)
-      write(lout,*) "ERROR: old RIPP module is no longer supported"
-      write(lout,*) "Please convert your RIPP block (in fort.3) to DYNK"
-      write(lout,*) "The script rippconvert.py (in the pytools folder)"
-      write(lout,*) " can be used to automatically convert the fort.3!"
-      write(lout,*)
-      call prror(-1)
-
-!Code for just skipping over the RIPP block, which runs the simulation without RIPP:
- 1300 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-
-      write(lout,*) 'ignoring line:'
-      write(lout,*) ch
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1300
-      if(ch(:4).eq.next) goto 110
-      goto 1300
-!-----------------------------------------------------------------------
 !  DECOUPLING ROUTINE
 !-----------------------------------------------------------------------
  1320 iskew=1
@@ -4679,29 +4552,6 @@ subroutine daten
       goto 1800
 
 !-----------------------------------------------------------------------
-!  DUMP BEAM POPULATION
-!  A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!  K.Sjobak, BE-ABP/HSS, BE-ABP/LAT
-!  last modified: 03-09-2015
-!  always in main code
-!-----------------------------------------------------------------------
- 2000 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1 ! Line number used for some crash output
-      if(ch(1:1).eq.'/') goto 2000 !Skip comment line
-      
-      !Done with DUMP, write out!
-      if(ch(:4).eq.next) then
-         call dump_parseInputDone
-         goto 110
-      endif !END writeout when finished reading
-      
-      call dump_parseInputLine(ch)
-      
-      ! Go to next line
-      goto 2000
-
-!-----------------------------------------------------------------------
 !  BDEX = Beam Distribution EXchange
 !  K.Sjobak, BE/ABP-HSS 2016
 !  Based on FLUKA coupling version by
@@ -4760,26 +4610,6 @@ subroutine daten
       write (lout,*) "*****************************"
       call prror(-1)
       
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!  FMA
-!  M. Fitterer, R. De Maria, K. Sjobak, BE/ABP-HSS
-!  last modified: 07-01-2016
-!  always in main code
-!-----------------------------------------------------------------------
- 2300 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2300 ! skip comment lines
-
-      if (ch(:4).eq.next) then
-         goto 110 ! loop to next BLOCK in fort.3
-      endif
-
-      call fma_parseInputLine(ch)
-      
-      goto 2300
 !-----------------------------------------------------------------------
 !  Electron Lense, kz=29,ktrack=63
 !  M. Fitterer,  FNAL
@@ -5657,9 +5487,11 @@ subroutine daten
 9999 continue
   ! Error handling for sixtrack_input module
   if(nUnit == 2) then
-    write(lout,"(a,i0)") "DATEN> ERROR in fort.2 line ",lineNo2
+    write(lout,"(a)")      "INPUT> ERROR in fort.2"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//ch//"'"
   else
-    write(lout,"(a,i0)") "DATEN> ERROR in fort.3 line ",lineNo3
+    write(lout,"(a)")      "INPUT> ERROR in fort.3"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//ch//"'"
   end if
   call prror(-1)
   return
@@ -10908,10 +10740,7 @@ end subroutine wireda
       use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
       implicit none
       integer n,n1,nc,nuu,nuu1,idaa
-      real(kind=fPrec) cc,dare,dum,xlim,ylim
-      parameter(cc = 1.12837916709551_fPrec)
-      parameter(xlim = 5.33_fPrec)
-      parameter(ylim = 4.29_fPrec)
+      real(kind=fPrec) dare,dum
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -11595,7 +11424,6 @@ end interface
 #ifdef CR
 +ca crco
 #endif
-+ca dbdcum
 
   integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
     idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
@@ -14354,8 +14182,8 @@ subroutine trauthin(nthinerr)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
     r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 #ifdef COLLIMAT
 !+ca collpara
 +ca dbtrthin
@@ -14883,10 +14711,12 @@ subroutine thin4d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
-+ca wiretracktmp
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
   logical llost
-  
-+ca beamdim
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
 #ifdef CR
 +ca crco
@@ -14894,8 +14724,7 @@ subroutine thin4d(nthinerr)
 
   dimension dpsv3(npart)
 
-+ca elenstracktmp
-+ca dbdcum
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
 
   save
 !-----------------------------------------------------------------------
@@ -15548,11 +15377,13 @@ subroutine thin6d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab
-+ca wiretracktmp
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
   logical llost
   
-
-+ca beamdim
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
 #ifdef COLLIMAT
 !+ca collpara
@@ -15570,8 +15401,7 @@ subroutine thin6d(nthinerr)
 #endif
   dimension dpsv3(npart)
 
-+ca elenstracktmp
-+ca dbdcum
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
   save
 
 #ifdef FAST
@@ -16792,8 +16622,8 @@ subroutine trauthck(nthinerr)
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 #ifdef COLLIMAT
 +ca database
 #endif
@@ -17267,15 +17097,17 @@ subroutine thck4d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
-+ca wiretracktmp
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
   logical llost
-  
-+ca beamdim
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 #ifdef CR
 +ca crco
 #endif
   dimension dpsv3(npart)
-+ca elenstracktmp
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -17284,8 +17116,6 @@ subroutine thck4d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   logical recompute_linear_matrices
 #endif
-
-+ca dbdcum
 
   save
 
@@ -17936,15 +17766,17 @@ subroutine thck6d(nthinerr)
   integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
-+ca wiretracktmp
+  real(kind=fPrec) RTWO !RTWO=x^2+y^2
+  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
   logical llost
-  
-+ca beamdim
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 #ifdef CR
 +ca crco
 #endif
   dimension dpsv3(npart)
-+ca elenstracktmp
+  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -17953,8 +17785,6 @@ subroutine thck6d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   logical recompute_linear_matrices
 #endif
-
-+ca dbdcum
 
   save
 #ifdef DEBUG
@@ -19482,8 +19312,6 @@ subroutine comnul
   
   integer i,i1,i2,i3,i4,j
 +ca commd1da
-
-+ca dbdcum
   
   save
   
@@ -20263,8 +20091,6 @@ integer function INEELS( iEl )
       use mod_commonmn
       implicit none
 
-+ca dbdcum
-
 !     interface variables
       integer iEl
 
@@ -20364,8 +20190,6 @@ integer function check_SE_unique( iEl, ixEl )
   use mod_commonmn
   implicit none
 
-+ca dbdcum
-
 ! interface variables
   integer iEl, ixEl
 
@@ -20403,10 +20227,9 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
   use floatPrecision
   use mod_common     ! for iu, tlen, ic
   use parpro   
-  use crcoall        ! for lout
+  use crcoall
   use end_sixtrack
   implicit none
-+ca dbdcum
 
 ! interface variables
   integer iEl, ixEl
@@ -22452,7 +22275,6 @@ end subroutine envardis
       use mod_common
       implicit none
 
-+ca dbdcum
       save
 
 !     temporary variables
@@ -27738,7 +27560,7 @@ subroutine subre(dpp)
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
           mis,mm,mpe,mx,n2,n22,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,&
           nv2,nv21,nz2,dj
-  real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc,chy,ci,cikve,clo0,clop0,cr,crkve,&
+  real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,cc_r,chy,ci,cikve,clo0,clop0,cr,crkve,&
           cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,&
           ekk,ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,r0a,radi,rc,re,re1,res,&
           rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
@@ -28635,10 +28457,10 @@ subroutine subre(dpp)
             nkk=nkk+1
             min1=-min1
             goto 890
-  910       cc=rtc(np,nv,np,1)
+  910       cc_r=rtc(np,nv,np,1)
             ss=rts(np,nv,np,1)
-            sdel=sqrt(cc**2+ss**2)                                       !hr06
-            write(lout,10140) n2,ip(np,nv),ipc,cc,ss,re(np,nv),sdel
+            sdel=sqrt(cc_r**2+ss**2)                                       !hr06
+            write(lout,10140) n2,ip(np,nv),ipc,cc_r,ss,re(np,nv),sdel
   920     continue
   930   continue
   940 continue

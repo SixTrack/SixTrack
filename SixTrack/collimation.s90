@@ -785,9 +785,8 @@ subroutine collimate_init()
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-  
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -1462,8 +1461,8 @@ subroutine collimate_start_sample(nsample)
   integer fmtHdf
 #endif
   
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -2156,8 +2155,8 @@ subroutine collimate_start_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -2361,8 +2360,8 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -3180,8 +3179,8 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
   
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   
 +ca dbtrthin
 +ca database
@@ -3628,8 +3627,8 @@ subroutine collimate_end_sample(j)
   integer fmtHdf, setHdf
 #endif
   
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   
 +ca dbtrthin
 +ca database
@@ -3888,9 +3887,9 @@ subroutine collimate_exit()
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-
-+ca beamdim
-  dimension nbeaux(nbb)
+  
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -4045,8 +4044,8 @@ subroutine collimate_start_turn(n)
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -4081,8 +4080,8 @@ subroutine collimate_start_element(i)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -4179,8 +4178,8 @@ subroutine collimate_end_element
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database
@@ -4334,8 +4333,8 @@ subroutine collimate_end_turn
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
 
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
 +ca database

@@ -312,6 +312,16 @@ module mod_common
   ! common /xz/
   real(kind=fPrec), save :: xsi(nblz),zsi(nblz),smi(nblz),smizf(nblz),aai(nblz,mmul),bbi(nblz,mmul)
   
+  ! common /dcumdb/
+  real(kind=fPrec), save      :: dcum(0:nblz+1)       ! Machine length in m
+  real(kind=fPrec), parameter :: eps_dcum = c1m6      ! Tolerance for machine length mismatch [m]
+  logical,          parameter :: print_dcum = .false.
+  
+  ! beamdim
+  real(kind=fPrec), parameter :: cc   = 1.12837916709551_fPrec
+  real(kind=fPrec), parameter :: xlim = 5.33_fPrec
+  real(kind=fPrec), parameter :: ylim = 4.29_fPrec
+
 contains
 
 subroutine mod_common_allocate_arrays
