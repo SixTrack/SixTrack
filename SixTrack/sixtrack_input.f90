@@ -1128,7 +1128,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   integer nSplit,i,ichrom0
   logical spErr
   
-  save :: tmp_is
+  save :: tmp_is,ichrom0
   
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1140,6 +1140,8 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   select case(iLine)
   
   case(1)
+    ichrom0 = 0
+    
     if(nSplit > 0) tmp_is(1) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),ichrom0,  iErr)
@@ -1152,6 +1154,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     if(iErr) return
     
   case(2)
+    
     if(nSplit > 0) tmp_is(2) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSplit(2),cro(2),   iErr)
     
