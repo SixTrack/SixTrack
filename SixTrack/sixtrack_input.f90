@@ -17,6 +17,7 @@ module sixtrack_input
   
   ! Record of encountered blocks
   character(len=:), allocatable, public, save :: sixin_cBlock(:) ! Name of block
+  integer,          allocatable, public, save :: sixin_uBlock(:) ! Unit of block
   integer,          allocatable, public, save :: sixin_iBlock(:) ! Line of block
   logical,          allocatable, public, save :: sixin_lBlock(:) ! Block closed
   integer,                       public, save :: sixin_nBlock    ! Number of blocks
@@ -49,9 +50,10 @@ contains
 ! ================================================================================================ !
 !  BLOCK PARSING RECORD
 ! ================================================================================================ !
-subroutine sixin_checkBlock(blockName, blockOpened, blockClosed, blockLine)
+subroutine sixin_checkBlock(blockName, blockUnit, blockOpened, blockClosed, blockLine)
   
   character(len=*), intent(in)  :: blockName
+  integer,          intent(in)  :: blockUnit
   logical,          intent(out) :: blockOpened
   logical,          intent(out) :: blockClosed
   integer,          intent(out) :: blockLine
@@ -91,16 +93,20 @@ subroutine sixin_checkBlock(blockName, blockOpened, blockClosed, blockLine)
   
   ! New block. Expand the arrays.
   call alloc(sixin_cBlock,4,sixin_nBlock,"    ", "sixin_cBlock")
+  call alloc(sixin_uBlock,  sixin_nBlock,0,      "sixin_uBlock")
   call alloc(sixin_iBlock,  sixin_nBlock,0,      "sixin_iBlock")
   call alloc(sixin_lBlock,  sixin_nBlock,.false.,"sixin_lBlock")
   
   sixin_cBlock(sixin_nBlock)(1:4) = blockName(1:4)
+  sixin_uBlock(sixin_nBlock)      = blockUnit
   sixin_iBlock(sixin_nBlock)      = 0
   sixin_lBlock(sixin_nBlock)      = .false.
   
   blockOpened = .true.
   
-  write(lout,"(a)") "INPUT> Opened block '"//blockName//"'"
+  if(st_debug) then
+    write(lout,"(a)") "INPUT> Reading block '"//blockName//"'"
+  end if
   
 end subroutine sixin_checkBlock
 
@@ -117,7 +123,7 @@ subroutine sixin_closeBlock(blockName)
     end if
   end do
   
-  write(lout,"(a)") "INPUT> Closed block '"//blockName//"'"
+  write(lout,"(a)") "INPUT> WARNING Could not close block '"//blockName//"'"
   
 end subroutine sixin_closeBlock
 
@@ -125,11 +131,15 @@ subroutine sixin_blockReport
   
   integer i
   
-  write(lout,"(a)") "INPUT> Finished parsing input file(s)."
-  write(lout,"(a)") "INPUT> Parsed the following blocks:"
+  write(lout,"(a)") repeat("-",131)
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    Finished parsing input file(s)."
+  write(lout,"(a)") "    Parsed the following blocks:"
   do i=1,sixin_nBlock
-    write(lout,"(a,i0,a)") "INPUT> * "//sixin_cBlock(i)//" block with ",sixin_iBlock(i)," lines"
+    write(lout,"(a,i5,a,i0)") "     * "//sixin_cBlock(i)//" block with ",sixin_iBlock(i)," line(s) from fort.",sixin_uBlock(i)
   end do
+  write(lout,"(a)") ""
+  write(lout,"(a)") repeat("-",131)
   
 end subroutine sixin_blockReport
 

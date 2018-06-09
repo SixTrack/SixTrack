@@ -909,7 +909,6 @@ subroutine daten
     goto 9999
   end select
   
-  write(lout,"(a)") repeat("-",131)
   write(lout,"(a)") ""
   write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
   write(lout,"(a)") "    OO                  OO"
@@ -1050,7 +1049,7 @@ subroutine daten
   end if
   
   ! Check the status of the current block
-  call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
+  call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine)
   ! if(nUnit == 2) then
   !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
   !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
@@ -11436,7 +11435,8 @@ end interface
 #ifdef CR
 +ca crco
 #endif
-
+  
+  ! "Old" variables
   integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
     idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
     jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -11452,7 +11452,6 @@ end interface
   logical isOpen
   character(len=10) cmonth
   character(len=4) cpto
-  character(len=7) tmpFile
 #ifdef CR
   character(len=80) day
 #else
@@ -11490,64 +11489,87 @@ end interface
   data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
     '  April   ','   May    ','   June   ','   July   ',' August  ',  &
     ' September',' October  ',' November ',' December '/
+    
+  ! New Variables
+    character(len=:), allocatable :: featList
+  character(len=7)  tmpFile
+  character(len=23) timeStamp
+  character(len=8)  tsDate
+  character(len=10) tsTime
+    
 #include "version.f90"
-!-----------------------------------------------------------------------
-  errout_status = 0         ! Set to nonzero before calling abend in case of error.
-                            ! If prror is called, it will be set internally.
-  lout=92
+  
+  ! ---------------------------------------------------------------------------------------------- !
+  errout_status = 0 ! Set to nonzero before calling abend in case of error.
+  lout = 92
 #ifndef CR
-  lout=output_unit
+  lout = output_unit
 #endif
+
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
+ 
+  ! Set napx,napxo,trtime for error handling
+  napx   = 0
+  napxo  = 0
+  trtime = 0.0
+  napxto = 0
+  runtim = ""
+  
+  !----------------------------------------------------------------------------------------------- !
+  ! Features
+#ifdef TILT
+  featList = featList//" TILT"
+#endif
+#ifdef FAST
+  featList = featList//" FAST"
+#endif
+#ifdef STF
+  featList = featList//" STF"
+#endif
+#ifdef COLLIMAT
+  featList = featList//" COLLIMAT"
+#endif
 #ifdef CRLIBM
-! Removed the call to disable_xp for Laurent
-! but re-instated it
+  featList = featList//" CRLIBM"
   call disable_xp()
 #endif
-#ifdef DEBUG
-!     umcalls=0
-!     dapcalls=0
-!     dokcalls=0
-!     dumpl=0
-#endif
-! Set napx,napxo,trtime for error handling
-  napx=0
-  napxo=0
-  trtime=0.0
-  napxto=0
-  runtim=''
 #ifdef CR
-      stxt=''
+  featList = featList//" CR"
+  stxt = ""
+#endif
+#ifdef ROOT
+  featList = featList//" ROOT"
 #endif
 #ifdef HDF5
+  featList = featList//" HDF5"
   call h5_initHDF5()
 #endif
 #ifdef BOINC
+  featList = featList//" BOINC LIBARCHIVE"
   call boinc_init()
-!  call boinc_init_graphics()
+! call boinc_init_graphics()
 #endif
+
 #ifdef CR
-! Main start for Checkpoint/Restart
-      sythckcr=.false.
-      numlcr=1
-      rerun=.false.
-      start=.true.
-      restart=.false.
-      checkp=.false.
-      fort95=.false.
-      fort96=.false.
-      sixrecs=0
-      binrec=0
-      bnlrec=0
-      bllrec=0
-      do i=1,(npart+1)/2
-        binrecs(i)=0
-      enddo
-      crtime3=0.
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
+  ! Main start for Checkpoint/Restart
+  sythckcr = .false.
+  numlcr   = 1
+  rerun    = .false.
+  start    = .true.
+  restart  = .false.
+  checkp   = .false.
+  fort95   = .false.
+  fort96   = .false.
+  sixrecs  = 0
+  binrec   = 0
+  bnlrec   = 0
+  bllrec   = 0
+  crtime3  = 0.0
+  do i=1,(npart+1)/2
+    binrecs(i) = 0
+  end do
+  
 #ifdef BOINC
  611  continue
 #endif
@@ -11768,19 +11790,34 @@ end interface
   call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,boinc=.true.) ! collimator losses (energy)
   call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,boinc=.true.) ! collimator losses in function of particle i
   call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,boinc=.true.) ! mtc after each collimator interaction
-
-  write(lout,10010) version,moddate
-      tlim=1e7
-      call timest(tlim)
-      call datime(idate,itime)
-      write(cdate,'(I6.6)') idate
-      write(ctime,'(I4.4)') itime
-      read(cdate(3:4),'(I2)') imonth
-      if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
+  
+  ! ---------------------------------------------------------------------------------------------- !
+  ! Write Header
+  
+  ! TimeStamp
+  call date_and_time(tsDate,tsTime)
+  timeStamp = tsDate(1:4)//"-"//tsDate(5:6)//"-"//tsDate(7:8)//" "//&
+              tsTime(1:2)//":"//tsTime(3:4)//":"//tsTime(5:10)
+  
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
+  write(lout,"(a)") "  "//repeat("=",127)
+  write(lout,"(a)") "    Built With:"//featList
+  write(lout,"(a)") "    Start Time: "//timeStamp
+  write(lout,"(a)") ""
+  write(lout,"(a)") repeat("-",131)
+  
+  tlim=1e7
+  call timest(tlim)
+  call datime(idate,itime)
+  write(cdate,"(i6.6)") idate
+  write(ctime,"(i4.4)") itime
+  read(cdate(3:4),'(I2)') imonth
+  if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
 #ifdef CR
-        day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
+  day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
 #else
-        day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
+  day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
 #endif
      &//' 20'//cdate(1:2)//', '
       else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
@@ -11822,7 +11859,7 @@ end interface
           runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
         endif
       endif
-      write(lout,'(a80)') runtim
+      ! write(lout,'(a80)') runtim
 #ifdef CR
 !     Log start messages
       write(93,*)
