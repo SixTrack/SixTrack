@@ -1013,8 +1013,6 @@ subroutine daten
     goto 880
   case("POST")
     goto 1280
-  case("RIPP")
-    goto 1290
   case("DECO")
     goto 1320
   case("NORM")
@@ -1086,7 +1084,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("COMM")
+  case("COMM") ! Comment Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -1181,6 +1179,11 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
+  case("RIPP") ! Power Supply Ripple Block
+    write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
+    write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
+    goto 9999
+    
   case("COLL") ! Collimation Block
     if(openBlock) then
 #ifndef COLLIMAT
@@ -1188,17 +1191,22 @@ subroutine daten
         write(lout,"(a)") "INPUT> ERROR Collimation enabled, but SixTrack was not compiled with collimation support."
         goto 9999
       end if
-#endif
+#else
       has_coll = .true.
       if(ilin /= 1) then
-        write(lout,"(a)") "INPUT> ERROR Collimation requires 4D mode, i.e. ilin=1."
+        write(lout,"(a)") "INPUT> ERROR Collimation requires 4D mode in the LINEAR OPTICS block, i.e. ilin=1."
         goto 9999
       end if
+#endif
     elseif(closeBlock) then
       continue
     else
+#ifdef COLLIMAT
       call collimate_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
+#else
+      continue
+#endif
     end if
     
   case("DYNK") ! Dynamic Kick Block
@@ -3646,28 +3654,6 @@ subroutine daten
       if(abs(cma2).le.pieni) cma2=one
       ipos=1
       goto 110
-!-----------------------------------------------------------------------
-!  POWER SUPPLY RIPPLE
-!-----------------------------------------------------------------------
- 1290 continue
-      write(lout,*)
-      write(lout,*) "ERROR: old RIPP module is no longer supported"
-      write(lout,*) "Please convert your RIPP block (in fort.3) to DYNK"
-      write(lout,*) "The script rippconvert.py (in the pytools folder)"
-      write(lout,*) " can be used to automatically convert the fort.3!"
-      write(lout,*)
-      call prror(-1)
-
-!Code for just skipping over the RIPP block, which runs the simulation without RIPP:
- 1300 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-
-      write(lout,*) 'ignoring line:'
-      write(lout,*) ch
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1300
-      if(ch(:4).eq.next) goto 110
-      goto 1300
 !-----------------------------------------------------------------------
 !  DECOUPLING ROUTINE
 !-----------------------------------------------------------------------
