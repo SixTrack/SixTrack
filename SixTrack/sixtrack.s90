@@ -682,14 +682,11 @@ subroutine daten
   dimension icel(ncom,20),iss(2),iqq(5)
   dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
-  data sync,ende,next,comm /'SYNC','ENDE','NEXT','COMM'/
+  data sync,ende,next /'SYNC','ENDE','NEXT'/
   data fluc,mult,chro,iter,tune,line,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','DIFF'/
-  data limi,orbi,go,sear,subr,reso,post,ripp,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','RIPP','DECO'/
+  data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
-  ! data corr,sing,stru,prin,quie,bloc,init,trac,disp /'CORR','SING','STRU','PRIN','QUIE','BLOC','INIT','TRAC','DISP'/
-  ! data free,geom /'FREE','GEOM'/
-  data coll /'COLL'/
   character(len=4) fluk
   data fluk /'FLUK'/
   
@@ -942,7 +939,7 @@ subroutine daten
     lineNo3 = lineNo3 + 1
   end if
   
-  read(nUnit, 10020, end=1530, iostat=iErro) ch
+  read(nUnit,"(a)",end=1530,iostat=iErro) ch
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror(-1)
@@ -951,7 +948,7 @@ subroutine daten
   if(len(ch) == 0)   goto 110 ! Empty line, ignore
   if(ch(1:1) == "/") goto 110 ! Comment line, ignore
   if(ch(1:1) == "!") goto 110 ! Comment line, ignore
-  if(len(ch) >= 4)   idat = ch(1:4)
+  read(ch,"(a4)") idat
   
   ! Parse non-block flags
   select case(idat)
