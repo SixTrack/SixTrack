@@ -13,6 +13,9 @@ module mod_alloc
   
   implicit none
   
+  ! Logfile Unit
+  integer, public, save :: alloc_log
+  
   ! The total quantity of memory allocated (bits)
   integer(kind=int64) :: allocated_bits = 0
   
@@ -130,26 +133,55 @@ interface dealloc
   
 end interface dealloc
 
+  private :: resize1di16
+  private :: resize1di32,resize2di32,resize3di32
+  private :: resize1di64,resize2di64,resize3di64
+  private :: resize1dr32,resize2dr32,resize3dr32,resize4dr32
+  private :: resize1dr64,resize2dr64,resize3dr64,resize4dr64
+  private :: resize1dr128,resize2dr128,resize3dr128,resize4dr128
+  private :: resize1dc,resize2dc
+  private :: resize1ds
+  private :: resize1dl,resize2dl
+  
+  private :: dealloc1di16,dealloc2di16
+  private :: dealloc1dr32,dealloc2dr32,dealloc3dr32
+  private :: dealloc1dr64,dealloc2dr64,dealloc3dr64
+  private :: dealloc1dr128,dealloc2dr128,dealloc3dr128
+  private :: dealloc1di32,dealloc2di32
+  private :: dealloc1di64,dealloc2di64
+  private :: dealloc1dl
+  private :: dealloc1dc
+    
 contains
 
-subroutine alloc_error(ename, error, requested_bits)
+subroutine alloc_init
+  
+  use file_units
+  
   implicit none
+  
+  logical isOpen
+  
+  call funit_requestUnit("mem_alloc.log",alloc_log)
+  open(alloc_log,file="mem_alloc.log",form="formatted",status="unknown")
+  
+end subroutine alloc_init
 
-  !The variable name we are allocating
-  character(len=*), intent(in) :: ename
+subroutine alloc_error(ename, error, requested_bits)
+  
+  implicit none
+  
+  character(len=*),    intent(in) :: ename          ! The variable name we are allocating
+  integer(kind=int64), intent(in) :: requested_bits ! The requested allocation size
+  integer,             intent(in) :: error          ! The error code
 
-  !The requested allocation size
-  integer(kind=int64), intent(in) :: requested_bits
-
-  !The error code
-  integer, intent(in) :: error
-
-  write(lout,*) 'Memory allocation error for array ', ename
-  write(lout,*) 'Current allocation is: ', allocated_bits, ' bits'
-  write(lout,*) 'Requested allocation is: ', requested_bits, ' bits'
-  write(lout,*) 'Allocation error code is ', error
-  write(lout,*) 'Exiting!'
+  write(lout,"(a)")      "ALLOC> ERROR Memory allocation error for array "//ename
+  write(lout,"(a,i0,a)") "ALLOC>       Current allocation is:    ",allocated_bits," bits"
+  write(lout,"(a,i0,a)") "ALLOC>       Requested allocation is:  ",requested_bits," bits"
+  write(lout,"(a,i0)")   "ALLOC        Allocation error code is: ",error
+  write(lout,"(a)")      "ALLOC>       Exiting!"
   stop
+  
 end subroutine alloc_error
 
 subroutine print_alloc(ename, type, requested_bits)
@@ -161,26 +193,23 @@ subroutine print_alloc(ename, type, requested_bits)
   character(len=*), intent(in) :: ename, type
   integer(kind=int64) :: requested_bits
   
-#ifdef SPAMMY
-  
-  write(lout,"(a)") "ALLOC> Memory allocation for "//type//" array '"//ename//"'"
+  write(alloc_log,"(a)") "ALLOC> Memory allocation for "//type//" array '"//ename//"'"
   
   if(real(allocated_bits,real64)/mbyte >= one) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/mbyte," Mb"
+    write(alloc_log,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/mbyte," Mb"
   else if(real(allocated_bits,real64)/kbyte >= one) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/kbyte," kb"
+    write(alloc_log,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/kbyte," kb"
   else
-    write(lout,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/byte," b"
+    write(alloc_log,"(a,f7.2,a)") "ALLOC>   Current allocation is:   ",real(allocated_bits,real64)/byte," b"
   end if
 
   if(real(requested_bits,real64)/mbyte >= one) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/mbyte," Mb"
+    write(alloc_log,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/mbyte," Mb"
   else if(real(requested_bits,real64)/kbyte >= one) then
-    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/kbyte," kb"
+    write(alloc_log,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/kbyte," kb"
   else
-    write(lout,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/byte," b"
+    write(alloc_log,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/byte," b"
   end if
-#endif
   
   if(allocated_bits > maximum_bits) then
     maximum_bits = allocated_bits
@@ -189,20 +218,18 @@ subroutine print_alloc(ename, type, requested_bits)
 end subroutine print_alloc
 
 subroutine alloc_exit
+  
+  use file_units
+  
   implicit none
 
-  logical lopen
-  integer, parameter :: memunit = 47894
-
-  !write the maximum allocated memory to a file
-  inquire(unit=memunit, opened=lopen)
-  if(.not.lopen) then
-    open(memunit, file='maximum_memory_allocation_mbytes.txt', form='formatted' )
-    write(memunit,*) real(maximum_bits,real64)/real(mbyte,real64)
-    close(memunit)
-  else
-    write(lout,*) 'WARNING: unit already open for memory usage writing!'
-  end if
+  integer memunit
+  
+  call funit_requestUnit("maximum_memory_allocation_mbytes.txt",memunit)
+  open(memunit, file="maximum_memory_allocation_mbytes.txt", form="formatted")
+  write(memunit,"(f10.3)") real(maximum_bits,real64)/real(mbyte,real64)
+  close(memunit)
+  
 end subroutine alloc_exit
 
 ! ================================================================================================ !
@@ -246,7 +273,7 @@ subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(int16)
     
@@ -263,7 +290,7 @@ subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
     request = (eIdx-oIdx) * storage_size(int16)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -314,7 +341,7 @@ subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(int32)
     
@@ -331,7 +358,7 @@ subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
     request = (eIdx-oIdx) * storage_size(int32)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -387,7 +414,7 @@ subroutine resize2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(int32)
     
@@ -408,7 +435,7 @@ subroutine resize2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)) * storage_size(int32)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -475,7 +502,7 @@ subroutine resize3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(int32)
     
@@ -499,7 +526,7 @@ subroutine resize3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)) * storage_size(int32)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -561,7 +588,7 @@ subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(int64)
     
@@ -578,7 +605,7 @@ subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
     request = (eIdx-oIdx) * storage_size(int64)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -634,7 +661,7 @@ subroutine resize2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(int64)
     
@@ -655,7 +682,7 @@ subroutine resize2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)) * storage_size(int64)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -722,7 +749,7 @@ subroutine resize3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(int64)
     
@@ -746,7 +773,7 @@ subroutine resize3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)) * storage_size(int64)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -812,7 +839,7 @@ subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(real32)
     
@@ -829,7 +856,7 @@ subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
     request = (eIdx-oIdx) * storage_size(real32)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -885,7 +912,7 @@ subroutine resize2dr32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(real32)
     
@@ -906,7 +933,7 @@ subroutine resize2dr32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)) * storage_size(real32)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -973,7 +1000,7 @@ subroutine resize3dr32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(real32)
     
@@ -997,7 +1024,7 @@ subroutine resize3dr32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)) * storage_size(real32)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1074,7 +1101,7 @@ subroutine resize4dr32(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1) * storage_size(real32)
     
@@ -1101,7 +1128,7 @@ subroutine resize4dr32(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)*(oIdx4-fIdx4+1)) * storage_size(real32)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1168,7 +1195,7 @@ subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(real64)
     
@@ -1185,7 +1212,7 @@ subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
     request = (eIdx-oIdx) * storage_size(real64)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1241,7 +1268,7 @@ subroutine resize2dr64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(real64)
     
@@ -1262,7 +1289,7 @@ subroutine resize2dr64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)) * storage_size(real64)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1329,7 +1356,7 @@ subroutine resize3dr64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(real64)
     
@@ -1353,7 +1380,7 @@ subroutine resize3dr64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)) * storage_size(real64)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1430,7 +1457,7 @@ subroutine resize4dr64(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1) * storage_size(real64)
     
@@ -1457,7 +1484,7 @@ subroutine resize4dr64(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)*(oIdx4-fIdx4+1)) * storage_size(real64)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1524,7 +1551,7 @@ subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * storage_size(real128)
     
@@ -1541,7 +1568,7 @@ subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
     request = (eIdx-oIdx) * storage_size(real128)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1597,7 +1624,7 @@ subroutine resize2dr128(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(real128)
     
@@ -1618,7 +1645,7 @@ subroutine resize2dr128(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
                (eIdx1-oIdx1)  * (eIdx2-oIdx2)) * storage_size(real128)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1685,7 +1712,7 @@ subroutine resize3dr128(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fId
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(real128)
     
@@ -1709,7 +1736,7 @@ subroutine resize3dr128(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fId
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)) * storage_size(real128)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1786,7 +1813,7 @@ subroutine resize4dr128(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxI
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)*(eIdx4-fIdx4+1) * storage_size(real128)
     
@@ -1813,7 +1840,7 @@ subroutine resize4dr128(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxI
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)*(oIdx4-fIdx4+1)) * storage_size(real128)
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1885,7 +1912,7 @@ subroutine resize1dc(input, strlen, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx-fIdx+1) * strlen * CHARACTER_STORAGE_SIZE
     
@@ -1902,7 +1929,7 @@ subroutine resize1dc(input, strlen, eIdx, initial, ename, fIdxIn)
     request = (eIdx-oIdx) * strlen * CHARACTER_STORAGE_SIZE
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -1959,7 +1986,7 @@ subroutine resize2dc(input, strlen, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxI
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * strlen * CHARACTER_STORAGE_SIZE
     
@@ -1980,7 +2007,7 @@ subroutine resize2dc(input, strlen, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxI
                (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)) * strlen * CHARACTER_STORAGE_SIZE
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -2042,7 +2069,7 @@ subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = eIdx-fIdx+1
     
@@ -2059,7 +2086,7 @@ subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
     request = eIdx-oIdx
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -2114,7 +2141,7 @@ subroutine resize1dl(input, eIdx, initial, ename, fIdxIn)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = eIdx-fIdx+1
     
@@ -2131,7 +2158,7 @@ subroutine resize1dl(input, eIdx, initial, ename, fIdxIn)
     request = eIdx-oIdx
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -2187,7 +2214,7 @@ subroutine resize2dl(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   if(allocated(input) .neqv. .true.) then
     
-    write(lout,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
     
     request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)
     
@@ -2207,7 +2234,7 @@ subroutine resize2dl(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     request = ((eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) - (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1))
     
     if(request == 0.0) then
-      write(lout,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
       return
     end if
     
@@ -2250,7 +2277,7 @@ subroutine dealloc1dr32(input, ename)
   real(kind=real32), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input)*storage_size(real32))
@@ -2263,7 +2290,7 @@ subroutine dealloc1dr64(input, ename)
   real(kind=real64), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input)*storage_size(real64))
@@ -2276,7 +2303,7 @@ subroutine dealloc1dr128(input, ename)
   real(kind=real128), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input)*storage_size(real128))
@@ -2289,7 +2316,7 @@ subroutine dealloc2dr32(input, ename)
   real(kind=real32), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real32))
@@ -2302,7 +2329,7 @@ subroutine dealloc2dr64(input, ename)
   real(kind=real64), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real64))
@@ -2315,7 +2342,7 @@ subroutine dealloc2dr128(input, ename)
   real(kind=real128), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real128))
@@ -2328,7 +2355,7 @@ subroutine dealloc3dr32(input, ename)
   real(kind=real32), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real32))
@@ -2341,7 +2368,7 @@ subroutine dealloc3dr64(input, ename)
   real(kind=real64), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real64))
@@ -2354,7 +2381,7 @@ subroutine dealloc3dr128(input, ename)
   real(kind=real128), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real128))
@@ -2367,7 +2394,7 @@ subroutine dealloc1di16(input, ename)
   integer(kind=int16), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input)*storage_size(int16))
@@ -2380,7 +2407,7 @@ subroutine dealloc1di32(input, ename)
   integer(kind=int32), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input)*storage_size(int32))
@@ -2393,7 +2420,7 @@ subroutine dealloc1di64(input, ename)
   integer(kind=int64), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input)*storage_size(int64))
@@ -2406,7 +2433,7 @@ subroutine dealloc2di16(input, ename)
   integer(kind=int16), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int16))
@@ -2419,7 +2446,7 @@ subroutine dealloc2di32(input, ename)
   integer(kind=int32), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int32))
@@ -2432,7 +2459,7 @@ subroutine dealloc2di64(input, ename)
   integer(kind=int64), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int64))
@@ -2445,7 +2472,7 @@ subroutine dealloc1dl(input, ename)
   logical, allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - size(input)
@@ -2460,7 +2487,7 @@ subroutine dealloc1dc(input, strlen, ename)
 
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,*) 'ERROR: Trying to deallocate a NULL pointer: ', ename
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   !TODO: Check what size(input) actually does
