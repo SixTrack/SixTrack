@@ -44,6 +44,7 @@ module sixtrack_input
   interface sixin_echoVal
     module procedure sixin_echoVal_int
     module procedure sixin_echoVal_real64
+    module procedure sixin_echoVal_char
   end interface sixin_echoVal
   
 contains
@@ -162,6 +163,20 @@ subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
       chr_padSpace(varName,10)//" = ",varVal
   end if
 end subroutine sixin_echoVal_real64
+
+subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
+  character(len=*), intent(in) :: varName
+  character(len=*), intent(in) :: varVal
+  character(len=*), intent(in) :: blockName
+  integer,          intent(in) :: lineNo
+  if(lineNo < 10) then
+    write(lout,"(a,i0,a,a)") "INPUT> DEBUG "//blockName//":",lineNo,"  "//&
+      chr_padSpace(varName,10)//" = '"//varVal//"'"
+  else
+    write(lout,"(a,i0,a,a)") "INPUT> DEBUG "//blockName//":",lineNo," "//&
+      chr_padSpace(varName,10)//" = '"//varVal//"'"
+  end if
+end subroutine sixin_echoVal_char
 
 ! ================================================================================================ !
 !  LINE PARSING ROUTINES
@@ -1092,5 +1107,79 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
   end if
   
 end subroutine sixin_parseInputLineDIFF
+
+! ================================================================================================ !
+!  Parse Chromaticity Adjustment Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
+  
+  use string_tools
+  use mod_commont
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=str_maxName)      :: tmp_is(2)
+  integer nSplit,i,ichrom0
+  logical spErr
+  
+  save :: tmp_is
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "CHRO> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  select case(iLine)
+  
+  case(1)
+    if(nSplit > 0) tmp_is(1) = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ichrom0,  iErr)
+    
+    if(sixin_debug) then
+      call sixin_echoVal("bez_is(1)",tmp_is(1),"CHRO",iLine)
+      call sixin_echoVal("cro(1)",   cro(1),   "CHRO",iLine)
+      call sixin_echoVal("ichrom0",  ichrom0,  "CHRO",iLine)
+    end if
+    if(iErr) return
+    
+  case(2)
+    if(nSplit > 0) tmp_is(2) = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(2),   iErr)
+    
+    if(sixin_debug) then
+      call sixin_echoVal("bez_is(2)",tmp_is(2),"CHRO",iLine)
+      call sixin_echoVal("cro(1)",   cro(2),   "CHRO",iLine)
+    end if
+    if(iErr) return
+    
+    do i=1,il
+      if(tmp_is(1) == bez(i)) is(1) = i
+      if(tmp_is(2) == bez(i)) is(2) = i
+    end do
+    if(ichrom0 >= 1 .and. ichrom0 <= 3) ichrom = ichrom0
+    
+    if(sixin_debug) then
+      call sixin_echoVal("is(1)", is(1), "CHRO",iLine)
+      call sixin_echoVal("is(2)", is(2), "CHRO",iLine)
+      call sixin_echoVal("ichrom",ichrom,"CHRO",iLine)
+    end if
+  
+  case default
+    write(lout,"(a,i0,a)") "PARAM> ERROR Unexpected line number ",iLine," in CHRO block."
+    iErr = .true.
+    return
+    
+  end select
+  
+end subroutine sixin_parseInputLineCHRO
 
 end module sixtrack_input

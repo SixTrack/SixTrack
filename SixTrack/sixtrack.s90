@@ -600,7 +600,7 @@ subroutine daten
 
   implicit none
   
-  integer i,i1,i2,i3,ia,icc,ichrom0,iclr,ico,idi,iexnum,iexread,    &
+  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
@@ -619,7 +619,7 @@ subroutine daten
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iss,iqq,iele,ilm0,idum,norm
+  character(len=max_name_len) iqq,iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
   character(len=60) ihead
@@ -679,7 +679,7 @@ subroutine daten
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
   
-  dimension icel(ncom,20),iss(2),iqq(5)
+  dimension icel(ncom,20),iqq(5)
   dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
   data sync,ende,next /'SYNC','ENDE','NEXT'/
@@ -716,8 +716,6 @@ subroutine daten
 
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
-      iss(1)=' '
-      iss(2)=' '
 
       do i=1,5
         iqq(i)=' '
@@ -806,7 +804,6 @@ subroutine daten
       itqv=10
       dkq=c1m10
       dqq=c1m10
-      ichrom=0
       iqmod=0
       im=0
       imtr0=0
@@ -854,6 +851,9 @@ subroutine daten
   nwr(:)    = 1
   nwr(4)    = 10000
   ntwin     = 1
+  
+  ! CHROMATICITY ADJUSTMENTS
+  ichrom    = 0
   
   ! HIONS MODULE
   zz0       = 1
@@ -990,8 +990,6 @@ subroutine daten
     goto 790
   case("MULT")
     goto 740
-  case("CHRO")
-    goto 560
   case("LINE")
     goto 660
   case("LIMI")
@@ -1162,6 +1160,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
+  case("CHRO")
+    if(openBlock) then
+      ichrom = 1
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineCHRO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -1320,86 +1328,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  CHROMATCITY ADJUSTMENT
-!-----------------------------------------------------------------------
-  560 ichrom=1
-      ichrom0=0
-      do 580 l=1,2
-  570 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 570
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.1) read(ch1,*,round='nearest') iss(1),cro(1),ichrom0
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.1) read(ch1,*) iss(1),cro(1),ichrom0
-#endif
-#ifdef CRLIBM
-      if(l.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read (fields(1),*) iss(1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cro(1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read (fields(3),*) ichrom0
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.2) read(ch1,*,round='nearest')                            &
-     & iss(2),cro(2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.2) read(ch1,*) iss(2),cro(2)
-#endif
-#ifdef CRLIBM
-      if (l.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iss(2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cro(2)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-  580 continue
-
-      do j=1,il
-        if(iss(1).eq.bez(j)) is(1)=j
-        if(iss(2).eq.bez(j)) is(2)=j
-      end do
-
-      if(ichrom0.ge.1.and.ichrom0.le.3) ichrom=ichrom0
-      goto 110
 
 !-----------------------------------------------------------------------
 !  TUNE ADJUSTMENT
