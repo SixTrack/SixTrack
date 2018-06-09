@@ -1231,6 +1231,210 @@ subroutine collimate_init()
 
 end subroutine collimate_init
 
+! ================================================================================================ !
+!  Parse Input Line
+! ================================================================================================ !
+subroutine collimate_parseInputLine(inLine, iLine, iErr)
+  
+  use string_tools
+  use mod_common, only : napx
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+  
++ca database
++ca dbcolcom
++ca dbpencil
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "COLL> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  if(nSplit == 0) return
+  
+  select case(iLine)
+    
+  case(1)
+    
+    if(nSplit /= 1) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    
+    if(nSplit > 0) call chr_cast(lnSPlit(1),do_coll,iErr)
+    
+  case(2)
+    
+    if(nSplit > 0) call chr_cast(lnSPlit(1),nloop,iErr)
+    if(nSplit > 1) call chr_cast(lnSPlit(2),myenom,iErr)
+    
+    if(nloop /= 1) then
+      write(lout,"(a,i0)") "COLL> ERROR Support for multiple samples is deprecated. nloop must be 1, got ",nloop
+      iErr = .true.
+      return
+    end if
+    
+    if(napx*2 > maxn) then
+      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ",maxn,", got ",(napx*2)
+      iErr = .true.
+      return
+   endif
+ 
+  case(3)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_thisdis,  iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), mynex,       iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), mdex,        iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), myney,       iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), mdey,        iErr)
+    if(nSplit > 5)  filename_dis = lnSPlit(6)
+    if(nSplit > 6)  call chr_cast(lnSPlit(7), enerror,     iErr)
+    if(nSplit > 7)  call chr_cast(lnSPlit(8), bunchlength, iErr)
+    
+  case(4)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_nsig,     iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), nsig_tcp3,   iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), nsig_tcsg3,  iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), nsig_tcsm3,  iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), nsig_tcla3,  iErr)
+    if(nSplit > 5)  call chr_cast(lnSPlit(6), nsig_tcp7,   iErr)
+    if(nSplit > 6)  call chr_cast(lnSPlit(7), nsig_tcsg7,  iErr)
+    if(nSplit > 7)  call chr_cast(lnSPlit(8), nsig_tcsm7,  iErr)
+    if(nSplit > 8)  call chr_cast(lnSPlit(9), nsig_tcla7,  iErr)
+    if(nSplit > 9)  call chr_cast(lnSPlit(10),nsig_tclp,   iErr)
+    if(nSplit > 10) call chr_cast(lnSPlit(11),nsig_tcli,   iErr)
+    if(nSplit > 11) call chr_cast(lnSPlit(12),nsig_tcdq,   iErr)
+    if(nSplit > 12) call chr_cast(lnSPlit(13),nsig_tcstcdq,iErr)
+    if(nSplit > 13) call chr_cast(lnSPlit(14),nsig_tdi,    iErr)
+    
+  case(5)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), nsig_tcth1,iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), nsig_tcth2,iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), nsig_tcth5,iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), nsig_tcth8,iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), nsig_tctv1,iErr)
+    if(nSplit > 5)  call chr_cast(lnSPlit(6), nsig_tctv2,iErr)
+    if(nSplit > 6)  call chr_cast(lnSPlit(7), nsig_tctv5,iErr)
+    if(nSplit > 7)  call chr_cast(lnSPlit(8), nsig_tctv8,iErr)
+    if(nSplit > 8)  call chr_cast(lnSPlit(9), nsig_tcxrp,iErr)
+    if(nSplit > 9)  call chr_cast(lnSPlit(10),nsig_tcryo,iErr)
+    
+  case(6)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), n_slices,   iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), smin_slices,iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), smax_slices,iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), recenter1,  iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), recenter2,  iErr)
+    
+  case(7)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), fit1_1,iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), fit1_2,iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), fit1_3,iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), fit1_4,iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), fit1_5,iErr)
+    if(nSplit > 5)  call chr_cast(lnSPlit(6), fit1_6,iErr)
+    if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf1,  iErr)
+    
+  case(8)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), fit2_1,iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), fit2_2,iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), fit2_3,iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), fit2_4,iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), fit2_5,iErr)
+    if(nSplit > 5)  call chr_cast(lnSPlit(6), fit2_6,iErr)
+    if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf2,  iErr)
+    
+  case(9)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), emitnx0_dist,   iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), emitny0_dist,   iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), emitnx0_collgap,iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), emitny0_collgap,iErr)
+    
+  case(10)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_select,        iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), do_nominal,       iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), rnd_seed,         iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), dowrite_dist,     iErr)
+    if(nSplit > 4)  name_sel = lnSPlit(5)
+    if(nSplit > 5)  call chr_cast(lnSPlit(6), do_oneside,       iErr)
+    if(nSplit > 6)  call chr_cast(lnSPlit(7), dowrite_impact,   iErr)
+    if(nSplit > 7)  call chr_cast(lnSPlit(8), dowrite_secondary,iErr)
+    if(nSplit > 8)  call chr_cast(lnSPlit(9), dowrite_amplitude,iErr)
+    
+  case(11)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), xbeat,     iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), xbeatphase,iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), ybeat,     iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), ybeatphase,iErr)
+    
+  case(12)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), c_rmstilt_prim,   iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), c_rmstilt_sec,    iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), c_systilt_prim,   iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), c_systilt_sec,    iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), c_rmsoffset_prim, iErr)
+    if(nSplit > 5)  call chr_cast(lnSPlit(6), c_rmsoffset_sec,  iErr)
+    if(nSplit > 6)  call chr_cast(lnSPlit(7), c_sysoffset_prim, iErr)
+    if(nSplit > 7)  call chr_cast(lnSPlit(8), c_sysoffset_sec,  iErr)
+    if(nSplit > 8)  call chr_cast(lnSPlit(9), c_offsettilt_seed,iErr)
+    if(nSplit > 9)  call chr_cast(lnSPlit(10),c_rmserror_gap,   iErr)
+    if(nSplit > 10) call chr_cast(lnSPlit(11),do_mingap,        iErr)
+    
+  case(13)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), radial,iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), nr,    iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), ndr,   iErr)
+    
+  case(14)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), driftsx,         iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), driftsy,         iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), cut_input,       iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), systilt_antisymm,iErr)
+    
+  case(15)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), ipencil,      iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), pencil_offset,iErr)
+    if(nSplit > 2)  call chr_cast(lnSPlit(3), pencil_rmsx,  iErr)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), pencil_rmsy,  iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), pencil_distr, iErr)
+#ifdef G4COLLIMAT
+    if(ipencil > 0) then
+      write(lout,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
+      iErr = .true.
+      return
+    endif
+#endif
+    
+  case(16)
+    if(nSplit > 0)  coll_db =  lnSPlit(1)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
+    
+  case(17)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), dowritetracks,iErr)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), cern,         iErr)
+    if(nSplit > 2)  castordir = lnSPlit(3)
+    if(nSplit > 3)  call chr_cast(lnSPlit(4), jobnumber,    iErr)
+    if(nSplit > 4)  call chr_cast(lnSPlit(5), sigsecut2,    iErr)
+    if(nSplit > 5)  call chr_cast(lnSPlit(6), sigsecut3,    iErr)
+    
+  case default
+    write(lout,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
+    iErr = .true.
+    
+  end select
+  
+end subroutine collimate_parseInputLine
+
 !>
 !! collimate_start_sample()
 !! This routine is called from trauthin before each sample
