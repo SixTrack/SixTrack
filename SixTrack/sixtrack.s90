@@ -61,11 +61,6 @@
      &crnapxo,crnapx,                                                   &
      &crnumxv(npart),crnnumxv(npart),crnlostp(npart),crpstop(npart)
 
-+cd beamdim
-      dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),    &
-     &r2b(npart),rb(npart),rkb(npart),                                  &
-     &xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),          &
-     &crzb(npart),cbxb(npart),cbzb(npart)
 +cd commond1
   ! This and the next block just have different variable names, and seem to be FOX related?
   ! Could in principle go into mod_commont where the DA / non-DA copy logic lives
@@ -14531,8 +14526,8 @@ subroutine trauthin(nthinerr)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
     r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 #ifdef COLLIMAT
 !+ca collpara
 +ca dbtrthin
@@ -15063,9 +15058,9 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
   real(kind=fPrec) NNORM_, NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-logical llost
-  
-+ca beamdim
+  logical llost
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
 #ifdef CR
 +ca crco
@@ -15729,10 +15724,10 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
   real(kind=fPrec) NNORM_, NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-logical llost
+  logical llost
   
-
-+ca beamdim
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
 #ifdef COLLIMAT
 !+ca collpara
@@ -16971,8 +16966,8 @@ subroutine trauthck(nthinerr)
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-+ca beamdim
-  dimension nbeaux(nbb)
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 #ifdef COLLIMAT
 +ca database
 #endif
@@ -17449,9 +17444,9 @@ subroutine thck4d(nthinerr)
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
   real(kind=fPrec) NNORM_, NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-logical llost
-  
-+ca beamdim
+  logical llost
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 #ifdef CR
 +ca crco
 #endif
@@ -18118,9 +18113,9 @@ subroutine thck6d(nthinerr)
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
   real(kind=fPrec) NNORM_, NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-logical llost
-  
-+ca beamdim
+  logical llost
+  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
+  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 #ifdef CR
 +ca crco
 #endif
