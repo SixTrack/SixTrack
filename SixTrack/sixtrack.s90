@@ -11550,8 +11550,9 @@ end interface
   call boinc_init()
 ! call boinc_init_graphics()
 #endif
+  
   call units_initUnits
-
+  
 #ifdef CR
   ! Main start for Checkpoint/Restart
   sythckcr = .false.
@@ -11574,7 +11575,6 @@ end interface
 #ifdef BOINC
 611 continue
 #endif
-  
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
   if(isOpen) close(lout)
@@ -11590,36 +11590,36 @@ end interface
 #ifdef BOINC
   ! and if BOINC issue an informatory message
   if (start) then
-    write(93,*) "SIXTRACR starts very first time"
+    write(93,"(a)") "SIXTRACR starts for the very first time"
   else
-    write(93,*) "SIXTRACR retry after unzip of Sixin.zip"
-  endif
+    write(93,"(a)") "SIXTRACR retry after unzip of Sixin.zip"
+  end if
 #endif
   ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
   ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
-  call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
-  if(fErr) goto 602
-  stxt = "SIXTRACR reruns on: "
-! #ifdef BOINC
-!       call boincrf('fort.6',filename)
-! #ifdef FIO
-!       open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
-! #else
-!       open(output_unit,file=filename,form='formatted',status='old',err=602)
-! #endif
-! !--   Set up start message depending on fort.6 or not
-!       stxt='SIXTRACR reruns on: '
-! #else
-! #ifdef FIO
-!       open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
-! #else
-!       open(output_unit,file='fort.6',form='formatted',status='old',err=602)
-! #endif
-! !--   Set up start message depending on fort.6 or not
-!       stxt='SIXTRACR reruns on: '
-! #endif
-  rerun = .true.
-  goto 605
+  ! call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  ! if(fErr) goto 602
+  ! stxt = "SIXTRACR reruns on: "
+#ifdef BOINC
+      call boincrf('fort.6',filename)
+#ifdef FIO
+      open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
+#else
+      open(output_unit,file=filename,form='formatted',status='old',err=602)
+#endif
+!--   Set up start message depending on fort.6 or not
+      stxt='SIXTRACR reruns on: '
+#else
+#ifdef FIO
+      open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
+#else
+      open(output_unit,file='fort.6',form='formatted',status='old',err=602)
+#endif
+!--   Set up start message depending on fort.6 or not
+      stxt='SIXTRACR reruns on: '
+#endif
+      rerun=.true.
+      goto 605
 #ifdef BOINC
   602 continue
 ! No fort.6 so we do an unzip of Sixin.zip
