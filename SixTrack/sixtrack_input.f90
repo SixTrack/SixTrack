@@ -10,6 +10,7 @@ module sixtrack_input
   use numerical_constants
   use mod_alloc
   use string_tools
+  use mod_settings
   use mod_common
   use mod_commons
   
@@ -131,7 +132,7 @@ subroutine sixin_blockReport
   
   integer i
   
-  write(lout,"(a)") repeat("-",131)
+  write(lout,"(a)") st_divLine
   write(lout,"(a)") ""
   write(lout,"(a)") "    Finished parsing input file(s)."
   write(lout,"(a)") "    Parsed the following blocks:"
@@ -139,7 +140,7 @@ subroutine sixin_blockReport
     write(lout,"(a,i5,a,i0)") "     * "//sixin_cBlock(i)//" block with ",sixin_iBlock(i)," line(s) from fort.",sixin_uBlock(i)
   end do
   write(lout,"(a)") ""
-  write(lout,"(a)") repeat("-",131)
+  write(lout,"(a)") st_divLine
   
 end subroutine sixin_blockReport
 
@@ -230,7 +231,7 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 #endif
   
   case("PRINT")
-    iOut = 1
+    st_print = .true.
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
   
   case("QUIET")

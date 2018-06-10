@@ -582,6 +582,7 @@ subroutine daten
   use parpro
   use parpro_scale
   use parbeam, only : beam_expflag,beam_expfile_open
+  use mod_settings
   use mod_common
   use mod_commons
   use mod_commont
@@ -593,11 +594,7 @@ subroutine daten
   
   use elens
   use wire
-
-#ifdef COLLIMAT
-  use collimation
-#endif
-
+  
   implicit none
   
   integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
@@ -809,7 +806,6 @@ subroutine daten
       imtr0=0
       ilin=0
       nlin=0
-      iout=0
       idp=0
       izu0=0
       mmac=1
@@ -832,7 +828,8 @@ subroutine daten
 ! ================================================================================================ !
   
   ! SixTrack Settings
-  st_debug    = .false.
+  st_print  = .false.
+  st_debug  = .false.
   st_quiet  = 0
   
   ! TRACKING PARAMETERS
@@ -920,7 +917,7 @@ subroutine daten
   if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
   if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
   write(lout,"(a)") ""
-  write(lout,"(a)") repeat("-",131)
+  write(lout,"(a)") st_divLine
   
   sixtit(1:60)=ihead
   
@@ -966,7 +963,7 @@ subroutine daten
     ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
     ! so we need to handle that for backwards compatibility.
     prevPrint = .true.
-    iOut      = 1
+    st_print  = .true.
     write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
     goto 110
@@ -5220,7 +5217,7 @@ subroutine daten
          endif
         enddo
       endif
-      if(iout.eq.0) return
+      if(.not.st_print) return
       write(lout,10050)
       write(lout,10060)
       il1=il
@@ -11347,6 +11344,7 @@ program maincr
   use crcoall
   use parpro
   use parpro_scale
+  use mod_settings
   use mod_common
   use mod_commonmn
   use mod_commons
@@ -11801,11 +11799,11 @@ end interface
   
   write(lout,"(a)") ""
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
-  write(lout,"(a)") "  "//repeat("=",127)
+  write(lout,"(a)") "  "//repeat("=",128)
   write(lout,"(a)") "    Built With:"//featList
   write(lout,"(a)") "    Start Time: "//timeStamp
   write(lout,"(a)") ""
-  write(lout,"(a)") repeat("-",131)
+  write(lout,"(a)") st_divLine
   
   tlim=1e7
   call timest(tlim)
@@ -12914,7 +12912,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,qw0,iq,iqmod,kpa,iqmod6,bez,       &
+        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -12981,7 +12979,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,qw0,iq,iqmod,kpa,iqmod6,bez,       &
+        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -21211,13 +21209,15 @@ end subroutine chroma
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
+      use mod_settings
       use mod_common
       use mod_commons
       use mod_commont
+      
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
@@ -21270,7 +21270,7 @@ end subroutine chroma
    40 continue
       if(ncorru.ne.1) write(lout,10000) itco
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
-      if(iout.eq.1.and.ncorru.ne.1) then
+      if(st_print .and. ncorru /= 1) then
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
 #ifdef DEBUG
 !     call warr('dpp',dpp,0,0,0,0)
@@ -23399,6 +23399,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_settings
   use mod_common
   use mod_commons
   use mod_commont

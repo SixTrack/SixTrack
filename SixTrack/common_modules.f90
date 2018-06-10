@@ -108,6 +108,28 @@ module parbeam
   
 end module parbeam
 
+! ================================================================================================ !
+!  Global Settings Module
+!  Last modiffied: 2018-06-10
+!  Holds global settings values and parameters not directly related to the physics
+! ================================================================================================ !
+module mod_settings
+  
+  implicit none
+  
+  ! PRINT Flag (fort.3)
+  logical, save :: st_print
+  
+  ! SETTINGS Block (fort.3)
+  integer, save :: st_quiet ! QUIET Level
+  logical, save :: st_debug ! Global DEBUG flag
+  
+  ! String Stuff
+  integer,            parameter :: st_divLen  = 132
+  character(len=132), parameter :: st_divLine = repeat("-",132)
+  
+end module mod_settings
+
 module mod_common
   
   use parpro
@@ -116,11 +138,6 @@ module mod_common
   use numerical_constants
   
   implicit none
-  
-  ! SixTrack Settings
-  integer, save :: iOut     ! PRINT Flag
-  integer, save :: st_quiet ! QUIET Level (SETT Block)
-  logical, save :: st_debug ! Global DEBUG flag (SETT Block)
   
   ! common /erro/
   integer, save :: ierro
