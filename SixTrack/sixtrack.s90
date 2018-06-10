@@ -11489,11 +11489,13 @@ end interface
     ' September',' October  ',' November ',' December '/
     
   ! New Variables
-    character(len=:), allocatable :: featList
+  character(len=:), allocatable :: featList
   character(len=7)  tmpFile
   character(len=23) timeStamp
   character(len=8)  tsDate
   character(len=10) tsTime
+  
+  logical fErr ! For file units
     
 #include "version.f90"
   
@@ -11548,6 +11550,7 @@ end interface
   call boinc_init()
 ! call boinc_init_graphics()
 #endif
+  call units_initUnits
 
 #ifdef CR
   ! Main start for Checkpoint/Restart
@@ -11569,75 +11572,54 @@ end interface
   end do
   
 #ifdef BOINC
- 611  continue
+611 continue
 #endif
-!--   Very first get rid of any previous partial output
-      inquire(unit=lout, opened=isOpen)
-      if(isOpen) close(lout)
+  
+  ! Very first get rid of any previous partial output
+  inquire(unit=lout, opened=isOpen)
+  if(isOpen) close(lout)
+  call units_openUnits(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
+  
+  ! Now position the checkpoint/restart logfile=93
+  call units_openUnits(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
+606 continue
+  read(93,"(a1024)",end=607) arecord
+  goto 606
+607 continue
+  backspace (93,iostat=ierro)
 #ifdef BOINC
-      call boincrf('fort.92',filename)
-#ifdef FIO
-      open(lout,file=filename,form='formatted',status='replace',round='nearest')
-#else
-      open(lout,file=filename,form='formatted',status='replace')
+  ! and if BOINC issue an informatory message
+  if (start) then
+    write(93,*) "SIXTRACR starts very first time"
+  else
+    write(93,*) "SIXTRACR retry after unzip of Sixin.zip"
+  endif
 #endif
-#else
-#ifdef FIO
-      open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
-#else
-      open(lout,file='fort.92',form='formatted',status='replace')
-#endif
-#endif
-!--   Now position the checkpoint/restart logfile=93
-#ifdef BOINC
-      call boincrf('fort.93',filename)
-#ifdef FIO
-      open(93,file=filename,form='formatted',status='unknown', round='nearest')
-#else
-      open(93,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-      open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
-#else
-      open(93,file='fort.93',form='formatted',status='unknown')
-#endif
-#endif
-  606 read(93,'(a1024)',end=607) arecord
-      goto 606
-  607 backspace (93,iostat=ierro)
-! and if BOINC issue an informatory message
-#ifdef BOINC
-      if (start) then
-        write(93,*) 'SIXTRACR starts very first time'
-      else
-        write(93,*) 'SIXTRACR retry after unzip of Sixin.zip'
-      endif
-#endif
-! Now we see if we have a fort.6 which implies
-! that we can perhaps just restart using all exisiting files
-! including the last checkpoints
-! if not, we just do a start (with an unzip for BOINC)
-#ifdef BOINC
-      call boincrf('fort.6',filename)
-#ifdef FIO
-      open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
-#else
-      open(output_unit,file=filename,form='formatted',status='old',err=602)
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
-#else
-#ifdef FIO
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
-#else
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602)
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
-#endif
-      rerun=.true.
-      goto 605
+  ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
+  ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
+  call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  if(fErr) goto 602
+  stxt = "SIXTRACR reruns on: "
+! #ifdef BOINC
+!       call boincrf('fort.6',filename)
+! #ifdef FIO
+!       open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
+! #else
+!       open(output_unit,file=filename,form='formatted',status='old',err=602)
+! #endif
+! !--   Set up start message depending on fort.6 or not
+!       stxt='SIXTRACR reruns on: '
+! #else
+! #ifdef FIO
+!       open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
+! #else
+!       open(output_unit,file='fort.6',form='formatted',status='old',err=602)
+! #endif
+! !--   Set up start message depending on fort.6 or not
+!       stxt='SIXTRACR reruns on: '
+! #endif
+  rerun = .true.
+  goto 605
 #ifdef BOINC
   602 continue
 ! No fort.6 so we do an unzip of Sixin.zip
@@ -11728,66 +11710,64 @@ end interface
                    !call system('../crmain  >> crlog')
 #endif
 !-----------------------------------------------------------------------
-  call units_initUnits
-  
-  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., boinc=.true.,fio=.true.) ! Should be opened in DATEN
-  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., boinc=.true.,fio=.true.) ! Should be opened in DATEN
-  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., boinc=.true.,fio=.true.,recl=303)
-  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., boinc=.true.,fio=.true.) ! Should only be opened when reading
-  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=22,fileName="fort.22",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,boinc=.true.)
-! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
+  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
+  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr)
+  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
+  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr)
+! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
+  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=22,fileName="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Not in use?
+  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
+! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
   
 #ifdef STF
   ! Open Single Track File
-  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,boinc=.true.)
+  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,boinc=.true.)
+    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
   end do
 #endif
   
-  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,boinc=.true.,fio=.true.)
+  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
   
   ! Eric for the DA coefficients in BINARY
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
   
 #ifdef DEBUG
-  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,boinc=.true.)
-  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,boinc=.true.)
+  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
 #endif
   
   ! Heavy Ion Output
-  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,boinc=.true.) ! collimator losses (energy)
-  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,boinc=.true.) ! collimator losses in function of particle i
-  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,boinc=.true.) ! mtc after each collimator interaction
+  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
+  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
+  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
   
   ! ---------------------------------------------------------------------------------------------- !
   ! Write Header
