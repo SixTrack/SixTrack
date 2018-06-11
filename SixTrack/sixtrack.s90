@@ -659,7 +659,7 @@ subroutine daten
 !+ca collpara
 !+ca dbdaten
 +ca dbpencil
-+ca database
+!+ca database
 +ca dbcolcom
   logical has_coll
 #else
@@ -1195,7 +1195,17 @@ subroutine daten
 #else
       has_coll = .true.
       if(ilin /= 1) then
-        write(lout,"(a)") "INPUT> ERROR Collimation requires 4D mode in the LINEAR OPTICS block, i.e. ilin=1."
+         write(lout,*) "INPUT> ERROR DETECTED:"
+         write(lout,*) "INPUT> Incompatible flag with collimation version"
+         write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
+         write(lout,*) ""
+         write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
+         write(lout,*) "INPUT> which is required for the collimation version."
+         write(lout,*) ""
+         write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
+         write(lout,*) "INPUT> compatible with the collimation version."
+         write(lout,*) ""
+         write(lout,*) "INPUT> Current setting ilin=",ilin
         goto 9999
       end if
 #endif
@@ -14187,7 +14197,7 @@ subroutine trauthin(nthinerr)
 #ifdef COLLIMAT
 !+ca collpara
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
 +ca dbpencil
@@ -15389,7 +15399,7 @@ subroutine thin6d(nthinerr)
 !+ca collpara
 +ca dbcommon
 +ca dbthin6d
-+ca database
+!+ca database
 !+ca dblinopt
 +ca dbpencil
 !+ca info
@@ -16610,6 +16620,10 @@ subroutine trauthck(nthinerr)
   use mod_fluka
 #endif
 
+#ifdef COLLIMAT
+  use collimation
+#endif
+
   use crcoall
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
@@ -16624,9 +16638,9 @@ subroutine trauthck(nthinerr)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-#ifdef COLLIMAT
-+ca database
-#endif
+!#ifdef COLLIMAT
+!+ca database
+!#endif
   save
 
 #ifdef COLLIMAT
