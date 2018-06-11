@@ -1041,6 +1041,7 @@ subroutine daten
     openBlock = .true.
   end if
   
+  ! By default blocks can only be opened once. The exceptions are set here.
   blockReopen = .false.
   if(currBlock == "LINE") blockReopen = .true.
   
@@ -1354,89 +1355,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  LINEAR OPTICS CALCULATION
-!  - in the 4D case (ilin=1) the subroutine linopt is called
-!  - in the 6d case (ilin=2) the optics parameters are calculated and 
-!    printed in the subroutine umlauda (calculated in the common block
-!    umlalid)
-!-----------------------------------------------------------------------
-!  660  continue
-!       ilin0=1
-!       read(3,10020,end=1530,iostat=ierro) ch
-!       if(ierro.gt.0) call prror(58)
-!       lineno3=lineno3+1
-!       if(ch(1:1).eq.'/') goto 660
-!       if(ch(:4).eq.next) goto 110
-!       call intepr(1,1,ch,ch1)
-! #ifdef FIO
-! #ifdef CRLIBM
-!       call enable_xp()
-! #endif
-!       read(ch1,*,round='nearest')                                       &
-!      & idat,nt,ilin0,ntco,eui,euii
-! #ifdef CRLIBM
-!       call disable_xp()
-! #endif
-! #endif
-! #ifndef FIO
-! #ifndef CRLIBM
-!       read(ch1,*) idat,nt,ilin0,ntco,eui,euii
-! #endif
-! #ifdef CRLIBM
-!       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-!       if (nf.gt.0) then
-!         read(fields(1),*) idat
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         read(fields(2),*) nt
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         read(fields(3),*) ilin0
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         read(fields(4),*) ntco
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         eui=fround(errno,fields,5)
-!         nf=nf-1
-!       endif
-!       if (nf.gt.0) then
-!         euii=fround(errno,fields,6)
-!         nf=nf-1
-!       endif
-! #endif
-! #endif
-!       iprint=0
-!       if(idat.ne.'BLOCK'.and.idat.ne.'ELEMENT') call prror(45)
-!       if(idat.eq.'BLOCK') iprint=1
-!       ilin=1
-!       if(ilin0.ge.1.and.ilin0.le.3) ilin=ilin0
-
-!   670 do m=1,40
-!         ilm0(m)=idum
-!       end do
-
-!   690 read(3,10020,end=1530,iostat=ierro) ch
-!       if(ierro.gt.0) call prror(58)
-!       lineno3=lineno3+1
-!       if(ch(1:1).eq.'/') goto 690
-!       if(ch(:4).eq.next) goto 110
-!       call intepr(2,1,ch,ch1)
-! ! ilm0 are character strings, should be OK
-!       read(ch1,*) (ilm0(m),m=1,40)
-!       do 700 m=1,40
-!       if(ilm0(m).eq.idum) goto 700
-!       nlin=nlin+1
-!       if(nlin.gt.nele) call prror(81)
-!       bezl(nlin)=ilm0(m)
-!   700 continue
-!       goto 670
 
 !-----------------------------------------------------------------------
 !  SYNCHROTRON OSCILLATIONS
