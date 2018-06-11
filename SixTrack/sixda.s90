@@ -42,9 +42,6 @@ program mainda
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,e0f,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,&
     gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,&
-! +if rvet
-!     rvet,&
-! +ei
     tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
   
   character(len=10) cmonth
@@ -54,6 +51,8 @@ program mainda
   dimension eps(2),epsa(2)
   dimension cmonth(12)
   dimension tas(6,6)
+  
+  logical fErr
 
 #ifdef CRLIBM
   integer nchars
@@ -83,14 +82,15 @@ program mainda
   call allocate_arrays ! Initial allocation of memory
 
   ! Open files
+  fErr = .false.
   call units_initUnits
-  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
+  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., mode="r",err=fErr)
+  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., mode="r",err=fErr)
+  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., mode="w",err=fErr)
+  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., mode="w",err=fErr)
+  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., mode="w",err=fErr)
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
 
   ! Print Header Info
   tlim=1e7
