@@ -19,7 +19,6 @@ module sixtrack_input
   ! Record of encountered blocks
   character(len=:), allocatable, public, save :: sixin_cBlock(:) ! Name of block
   integer,          allocatable, public, save :: sixin_uBlock(:) ! Unit of block
-  integer,          allocatable, public, save :: sixin_nBlock(:) ! Count of block
   integer,          allocatable, public, save :: sixin_iBlock(:) ! Line of block
   logical,          allocatable, public, save :: sixin_lBlock(:) ! Block closed
   integer,                       public, save :: sixin_nBlock    ! Number of blocks
@@ -41,6 +40,9 @@ module sixtrack_input
   integer,                       public, save :: sixin_icy
   character(len=2), parameter,   public       :: sixin_go = "GO"
   
+  ! Linear Optics Variables
+  integer,                       public, save :: sixin_ilin0
+  
   interface sixin_echoVal
     module procedure sixin_echoVal_int
     module procedure sixin_echoVal_real64
@@ -52,19 +54,21 @@ contains
 ! ================================================================================================ !
 !  BLOCK PARSING RECORD
 ! ================================================================================================ !
-subroutine sixin_checkBlock(blockName, blockUnit, blockOpened, blockClosed, blockLine)
+subroutine sixin_checkBlock(blockName, blockUnit, blockOpened, blockClosed, blockLine, blockCount)
   
   character(len=*), intent(in)  :: blockName
   integer,          intent(in)  :: blockUnit
   logical,          intent(out) :: blockOpened
   logical,          intent(out) :: blockClosed
   integer,          intent(out) :: blockLine
+  integer,          intent(out) :: blockCount
   
   integer i
   
   blockLine   = 0
   blockOpened = .false.
   blockClosed = .false.
+  blockCount  = 1
   
   if(len(blockName) < 4) then
     write(lout,"(a)") "INPUT> WARNING Unknown blockname '"//blockName//"'"
@@ -78,13 +82,19 @@ subroutine sixin_checkBlock(blockName, blockUnit, blockOpened, blockClosed, bloc
     ! Check status of block, and increment line number if it exists
     do i=1,sixin_nBlock
       if(sixin_cBlock(i) == blockName) then
-        ! Block already opened, so don't add it to the list.
-        ! Just increment line number and return.
-        blockOpened     = .true.
-        blockClosed     = sixin_lBlock(i)
-        blockLine       = sixin_iBlock(i) + 1
-        sixin_iBlock(i) = blockLine
-        return
+        if(sixin_lBlock(i)) then
+          ! Block already exists, but is closed.
+          ! Count it, and continue.
+          blockCount = blockCount + 1
+        else
+          ! Block exists and is opened,
+          ! Just increment line number and return.
+          blockOpened     = .true.
+          blockClosed     = sixin_lBlock(i)
+          blockLine       = sixin_iBlock(i) + 1
+          sixin_iBlock(i) = blockLine
+          return
+        end if
       end if
     end do
     sixin_nBlock = sixin_nBlock + 1
@@ -138,7 +148,8 @@ subroutine sixin_blockReport
   write(lout,"(a)") "    Finished parsing input file(s)."
   write(lout,"(a)") "    Parsed the following blocks:"
   do i=1,sixin_nBlock
-    write(lout,"(a,i5,a,i0)") "     * "//sixin_cBlock(i)//" block with ",sixin_iBlock(i)," line(s) from fort.",sixin_uBlock(i)
+    write(lout,"(a,i5,a,i0)") "     * "//sixin_cBlock(i)//" block "//&
+      "with ",(sixin_iBlock(i)-1)," line(s) from fort.",sixin_uBlock(i)
   end do
   write(lout,"(a)") ""
   write(lout,"(a)") st_divLine
@@ -1374,7 +1385,7 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
   
   character(len=:), allocatable   :: lnSplit(:)
   character(len=str_maxName) mode
-  integer nSplit,i,ilin0,nlin
+  integer nSplit,i,nlin
   logical spErr
   
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1387,13 +1398,14 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
   if(iLine == 1) then
     
     nlin = 0
+    ilin = 1
     
     if(nSplit > 0) mode = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),nt,iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),ilin0,iErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4),ntco,iErr)
-    if(nSplit > 4) call chr_cast(lnSplit(5),eui,iErr)
-    if(nSplit > 5) call chr_cast(lnSplit(6),euii,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nt,         iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),sixin_ilin0,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),ntco,       iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),eui,        iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),euii,       iErr)
     
     select case(mode)
     case("ELEMENT")
@@ -1405,15 +1417,12 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
       iErr = .true.
     end select
     
-    select case(ilin0)
-    case(1)
-      ilin = 1
-    case(2)
-      ilin = 2
-    case default
+    if(sixin_ilin0 == 1 .or. sixin_ilin0 == 2) then
+      ilin = sixin_ilin0
+    else
       write(lout,"(a)") "LINE> ERROR Only 1 (4D) and 2 (6D) are valid options for ilin."
       iErr = .true.
-    end select
+    end if
     
     if(st_debug) then
       call sixin_echoVal("mode",mode,"LINE",iLine)

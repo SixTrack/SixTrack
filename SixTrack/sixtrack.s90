@@ -699,8 +699,8 @@ subroutine daten
   logical inErr
   character(len=4) currBlock
   logical blockOpened, blockClosed
-  logical openBlock, closeBlock
-  integer blockLine, iElem
+  logical openBlock, closeBlock, blockReopen
+  integer blockLine, blockCount, iElem
   
   logical parseFort2
   integer nGeom
@@ -876,6 +876,7 @@ subroutine daten
   prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
+  sixin_ilin0 = 1
   
   call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
   
@@ -1040,19 +1041,22 @@ subroutine daten
     openBlock = .true.
   end if
   
+  blockReopen = .false.
+  if(currBlock == "LINE") blockReopen = .true.
+  
   ! Check the status of the current block
-  call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine)
+  call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
   ! if(nUnit == 2) then
-  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! else
-  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! end if
   
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't.
-  if(blockClosed) then
+  if(blockCount > 1 .and. .not. blockReopen) then
     write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
     goto 9999
   end if
