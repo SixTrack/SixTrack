@@ -149,13 +149,15 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
   integer,          intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
-  if(lineNo < 10) then
-    write(lout,"(2(a,i0))") "INPUT> DEBUG "//blockName//":",lineNo,"  "//&
-      chr_padSpace(varName,10)//" =  ",varVal
+  character(len=2) :: lineNm
+  if(lineNo == -1) then
+    lineNm = "PP"
+  else if(lineNo < 10) then
+    write(lineNm,"(i1,1x)") lineNo
   else
-    write(lout,"(2(a,i0))") "INPUT> DEBUG "//blockName//":",lineNo," "//&
-      chr_padSpace(varName,10)//" =  ",varVal
+    write(lineNm,"(i2)") lineNo
   end if
+  write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" =  ",varVal
 end subroutine sixin_echoVal_int
 
 subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
@@ -163,13 +165,15 @@ subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
   real(kind=real64), intent(in) :: varVal
   character(len=*),  intent(in) :: blockName
   integer,           intent(in) :: lineNo
-  if(lineNo < 10) then
-    write(lout,"(a,i0,a,e22.15)") "INPUT> DEBUG "//blockName//":",lineNo,"  "//&
-      chr_padSpace(varName,10)//" = ",varVal
+  character(len=2) :: lineNm
+  if(lineNo == -1) then
+    lineNm = "PP"
+  else if(lineNo < 10) then
+    write(lineNm,"(i1,1x)") lineNo
   else
-    write(lout,"(a,i0,a,e22.15)") "INPUT> DEBUG "//blockName//":",lineNo," "//&
-      chr_padSpace(varName,10)//" = ",varVal
+    write(lineNm,"(i2)") lineNo
   end if
+  write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = ",varVal
 end subroutine sixin_echoVal_real64
 
 subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
@@ -177,13 +181,15 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
   character(len=*), intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
-  if(lineNo < 10) then
-    write(lout,"(a,i0,a,a)") "INPUT> DEBUG "//blockName//":",lineNo,"  "//&
-      chr_padSpace(varName,10)//" = '"//varVal//"'"
+  character(len=2) :: lineNm
+  if(lineNo == -1) then
+    lineNm = "PP"
+  else if(lineNo < 10) then
+    write(lineNm,"(i1,1x)") lineNo
   else
-    write(lout,"(a,i0,a,a)") "INPUT> DEBUG "//blockName//":",lineNo," "//&
-      chr_padSpace(varName,10)//" = '"//varVal//"'"
+    write(lineNm,"(i2)") lineNo
   end if
+  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = '"//varVal//"'"
 end subroutine sixin_echoVal_char
 
 ! ================================================================================================ !
@@ -1162,7 +1168,9 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   select case(iLine)
   
   case(1)
-    ichrom0 = 0
+    
+    ichrom0   = 0
+    tmp_is(:) = str_nmSpace
     
     if(nSplit > 0) tmp_is(1) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
@@ -1206,5 +1214,148 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   end select
   
 end subroutine sixin_parseInputLineCHRO
+
+! ================================================================================================ !
+!  Parse Tune Adjustment Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
+  
+  use string_tools
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=str_maxName)      :: tmp_iq(5)
+  integer nSplit,i,nLines
+  logical spErr
+  
+  save :: tmp_iq,nLines
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "TUNE> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  select case(iLine)
+  
+  case(1)
+    
+    nLines    = 1
+    tmp_iq(:) = str_nmSpace
+    
+    if(nSplit > 0) tmp_iq(1) = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),qw0(1),iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),iqmod6,iErr)
+    
+    select case(iqmod6)
+    case(1)
+      iqmod  = 1
+      iqmod6 = 0
+    case(2)
+      iqmod6 = 1
+      iqmod  = 0
+    case(3)
+      iqmod  = 1
+      iqmod6 = 1
+    case default
+      iqmod  = 1
+      iqmod6 = 0
+    end select
+    
+    if(st_debug) then
+      call sixin_echoVal("tmp_iq(1)",tmp_iq(1),"TUNE",iLine)
+      call sixin_echoVal("qw0(1)",   qw0(1),   "TUNE",iLine)
+      call sixin_echoVal("iqmod",    iqmod,    "TUNE",iLine)
+      call sixin_echoVal("iqmod6",   iqmod6,   "TUNE",iLine)
+    end if
+    if(iErr) return
+    
+  case(2)
+    
+    nLines = 2
+    
+    if(nSplit > 0) tmp_iq(2) = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),qw0(2),iErr)
+    
+    if(st_debug) then
+      call sixin_echoVal("tmp_iq(2)",tmp_iq(2),"TUNE",iLine)
+      call sixin_echoVal("qw0(2)",   qw0(2),   "TUNE",iLine)
+    end if
+    if(iErr) return
+    
+  case(3)
+    
+    nLines = 3
+    
+    if(nSplit > 0) tmp_iq(3) = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),qw0(3),iErr)
+    
+    if(st_debug) then
+      call sixin_echoVal("tmp_iq(3)",tmp_iq(3),"TUNE",iLine)
+      call sixin_echoVal("qw0(3)",   qw0(3),   "TUNE",iLine)
+    end if
+    if(iErr) return
+    
+  case(4)
+    
+    nLines = 4
+    
+    if(nSplit > 0) tmp_iq(4) = lnSplit(1)
+    if(nSplit > 1) tmp_iq(5) = lnSplit(2)
+    
+    if(st_debug) then
+      call sixin_echoVal("tmp_iq(4)",tmp_iq(4),"TUNE",iLine)
+      call sixin_echoVal("tmp_iq(5)",tmp_iq(5),"TUNE",iLine)
+    end if
+    if(iErr) return
+    
+  case(-1) ! Postprocessing
+    
+    if(nLines == 2 .or. nLines == 3) then
+      if(abs(qw0(1)) > pieni .and. abs(qw0(2)) > pieni) then
+        do i=1,il
+          if(tmp_iq(1) == bez(i)) iq(1) = i
+          if(tmp_iq(2) == bez(i)) iq(2) = i
+        end do
+        call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
+        call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+      else
+        write(lout,"(a)") "TUNE> Desired TUNE adjustment is zero. Block ignored."
+        iqmod  = 0
+        iqmod6 = 0
+      end if
+    else if(nLines == 4) then
+      if(abs(qw0(1)) > pieni .and. abs(qw0(2)) > pieni .and. abs(qw0(3)) > pieni) then
+        do i=1,il
+          if(tmp_iq(1) == bez(1)) iq(1)  = i
+          if(tmp_iq(2) == bez(1)) iq(2)  = i
+          if(tmp_iq(3) == bez(1)) iq(3)  = i
+          if(tmp_iq(4) == bez(1)) kpa(i) = 1
+          if(tmp_iq(5) == bez(1)) kpa(i) = 2
+        end do
+        call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
+        call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+        call sixin_echoVal("iq(3)",iq(3),"TUNE",-1)
+      else
+        write(lout,"(a)") "TUNE> Desired TUNE adjustment is zero. Block ignored."
+        iqmod  = 0
+        iqmod6 = 0
+      endif
+    else
+      write(lout,"(a,i0)") "TUNE> ERROR Expected 2, 3 or 4 lines. Got ",nLines
+      iErr = .true.
+      return
+    end if
+    
+  end select
+    
+end subroutine sixin_parseInputLineTUNE
 
 end module sixtrack_input

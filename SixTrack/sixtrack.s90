@@ -612,11 +612,11 @@ subroutine daten
   real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
   
   character(len=max_name_len) sing,stru,prin,quie,trac,diff,sync,ende,bloc,comm
-  character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
+  character(len=max_name_len) fluc,iter,limi,orbi,deco
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iqq,iele,ilm0,idum,norm
+  character(len=max_name_len) iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
   character(len=60) ihead
@@ -676,11 +676,11 @@ subroutine daten
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
   
-  dimension icel(ncom,20),iqq(5)
+  dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
   data sync,ende,next /'SYNC','ENDE','NEXT'/
-  data fluc,mult,chro,iter,tune,line,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','DIFF'/
+  data fluc,mult,iter,line,diff /'FLUC','MULT','ITER','LINE','DIFF'/
   data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
@@ -713,11 +713,6 @@ subroutine daten
 
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
-
-      do i=1,5
-        iqq(i)=' '
-      end do
-
 
       do i=1,40
         ilm0(i)=' '
@@ -801,7 +796,6 @@ subroutine daten
       itqv=10
       dkq=c1m10
       dqq=c1m10
-      iqmod=0
       im=0
       imtr0=0
       ilin=0
@@ -854,6 +848,9 @@ subroutine daten
   
   ! CHROMATICITY ADJUSTMENTS
   ichrom    = 0
+  
+  ! TUNE ADJUSTMENTS
+  iqmod     = 0
   
   ! HIONS MODULE
   zz0       = 1
@@ -987,8 +984,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("TUNE")
-    goto 600
   case("SYNC")
     goto 710
   case("ITER")
@@ -1167,13 +1162,23 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("CHRO")
+  case("CHRO") ! Chromaticity Adjustment
     if(openBlock) then
       ichrom = 1
     elseif(closeBlock) then
       continue
     else
       call sixin_parseInputLineCHRO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("TUNE") ! Tune Adjustment
+    if(openBlock) then
+      iqmod = 1
+    elseif(closeBlock) then
+      call sixin_parseInputLineTUNE(ch,-1,inErr)
+    else
+      call sixin_parseInputLineTUNE(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -1336,164 +1341,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  TUNE ADJUSTMENT
-!-----------------------------------------------------------------------
-  600 iqmod=1
-      do 630 l=1,3
-  610 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 610
-      if(ch(:4).eq.next) then
-        if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni) then
-
-          do j=1,il
-            if(iqq(1).eq.bez(j)) iq(1)=j
-            if(iqq(2).eq.bez(j)) iq(2)=j
-          end do
-
-          goto 110
-        else
-          write(lout,10370)
-          iqmod=0
-          iqmod6=0
-          goto 110
-        endif
-      endif
-      call intepr(1,1,ch,ch1)
-      if(l.eq.1) then
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-        read(ch1,*,round='nearest')                                     &
-     & iqq(1),qw0(1),iqmod6
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-        read(ch1,*) iqq(1),qw0(1),iqmod6
-#endif
-#ifdef CRLIBM
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) iqmod6
-          nf=nf-1
-        endif
-#endif
-#endif
-        if(iqmod6.eq.1) then
-          iqmod6=0
-        elseif(iqmod6.eq.2) then
-          iqmod6=1
-          iqmod=0
-        elseif(iqmod6.eq.3) then
-          iqmod6=1
-        endif
-      endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.2) read(ch1,*,round='nearest')                            &
-     & iqq(2),qw0(2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.2) read(ch1,*) iqq(2),qw0(2)
-#endif
-#ifdef CRLIBM
-      if(l.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(2)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(2)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.3) read(ch1,*,round='nearest')                            &
-     & iqq(3),qw0(3)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.3) read(ch1,*) iqq(3),qw0(3)
-#endif
-#ifdef CRLIBM
-      if(l.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(3)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(3)=fround(errno,fields,2)
-        nf=nf-1
-        endif
-      endif
-#endif
-#endif
-  630 continue
-  640 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 640
-      call intepr(4,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & iqq(4),iqq(5)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) iqq(4),iqq(5)
-#endif
-      if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni                  &
-     &.and.abs(qw0(3)).gt.pieni) then
-        do 650 j=1,il
-          if(iqq(1).eq.bez(j)) iq(1)=j
-          if(iqq(2).eq.bez(j)) iq(2)=j
-          if(iqq(3).eq.bez(j)) iq(3)=j
-          if(iqq(4).eq.bez(j)) kpa(j)=1
-          if(iqq(5).eq.bez(j)) kpa(j)=2
- 650    continue
-        goto 110
-      else
-        write(lout,10370)
-        iqmod=0
-        iqmod6=0
-        write(lout,*) 'TUNE ADJUSTED'
-        goto 110
-      endif
 !-----------------------------------------------------------------------
 !  LINEAR OPTICS CALCULATION
 !  - in the 4D case (ilin=1) the subroutine linopt is called
@@ -5575,8 +5422,8 @@ subroutine daten
 10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
      &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
      &'DOM NUMBERS      |   SAME MULTIPOLECOEFFICIENTS  |'/131('-'))
-10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
-     &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
+! 10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
+!      &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
 10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
      &' AND THEREFORE IGNORED')
 10410 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
@@ -19301,6 +19148,7 @@ subroutine comnul
   ! TUNE ADJUSTMENT BLOCK
   iqmod   = 0     ! mod_common
   iqmod6  = 0     ! mod_common
+  qw0(:)  = zero  ! mod_common
   
   ! LINEAR OPTICS BLOCK
   ntco    = 0     ! mod_common
@@ -19468,7 +19316,6 @@ subroutine comnul
       do 20 i=1,3
         iq(i)=0
         hsy(i)=zero
-        qw0(i)=zero
         clo6(i)=zero
         clop6(i)=zero
         clon(i)=zero
