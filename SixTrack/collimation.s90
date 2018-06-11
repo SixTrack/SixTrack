@@ -881,6 +881,22 @@ contains
 ! 1: The RNG used in collimation.
 ! 2: A bunch distribution generator
 
+subroutine collimation_allocate_arrays
+
+  implicit none
+
+
+end subroutine collimation_allocate_arrays
+
+subroutine collimation_expand_arrays(npart_new, nblo_new)
+
+  implicit none
+
+  integer, intent(in) :: npart_new
+  integer, intent(in) :: nblo_new
+
+end subroutine collimation_expand_arrays
+
 !>
 !! collimate_init()
 !! This routine is called once at the start of the simulation and
@@ -1351,20 +1367,6 @@ subroutine collimate_init()
 
 end subroutine collimate_init
 
-subroutine collimation_allocate_arrays
-
-  implicit none
-
-
-end subroutine collimation_allocate_arrays
-
-subroutine collimation_expand_arrays(npart_new)
-
-  implicit none
-
-  integer, intent(in) :: npart_new
-
-end subroutine collimation_expand_arrays
 ! ================================================================================================ !
 !  Parse Input Line
 ! ================================================================================================ !
