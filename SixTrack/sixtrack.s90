@@ -658,7 +658,7 @@ subroutine daten
 #ifdef COLLIMAT
 !+ca collpara
 !+ca dbdaten
-+ca dbpencil
+!+ca dbpencil
 !+ca database
 +ca dbcolcom
   logical has_coll
@@ -14200,7 +14200,7 @@ subroutine trauthin(nthinerr)
 !+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
 #endif
@@ -15401,7 +15401,7 @@ subroutine thin6d(nthinerr)
 +ca dbthin6d
 !+ca database
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
 #endif
