@@ -885,36 +885,36 @@ subroutine collimation_allocate_arrays
 
   implicit none
 
-  call alloc(tbetax,  nblo, zero, 'tbetax')  !(nblz)
-  call alloc(tbetay,  nblo, zero, 'tbetay')  !(nblz)
-  call alloc(talphax, nblo, zero, 'talphax') !(nblz)
-  call alloc(talphay, nblo, zero, 'talphay') !(nblz)
-  call alloc(torbx,   nblo, zero, 'torbx')   !(nblz)
-  call alloc(torbxp,  nblo, zero, 'torbxp')  !(nblz)
-  call alloc(torby,   nblo, zero, 'torby')   !(nblz)
-  call alloc(torbyp,  nblo, zero, 'torbyp')  !(nblz)
-  call alloc(tdispx,  nblo, zero, 'tdispx')  !(nblz)
-  call alloc(tdispy,  nblo, zero, 'tdispy')  !(nblz)
+  call alloc(tbetax,  nblz, zero, 'tbetax')  !(nblz)
+  call alloc(tbetay,  nblz, zero, 'tbetay')  !(nblz)
+  call alloc(talphax, nblz, zero, 'talphax') !(nblz)
+  call alloc(talphay, nblz, zero, 'talphay') !(nblz)
+  call alloc(torbx,   nblz, zero, 'torbx')   !(nblz)
+  call alloc(torbxp,  nblz, zero, 'torbxp')  !(nblz)
+  call alloc(torby,   nblz, zero, 'torby')   !(nblz)
+  call alloc(torbyp,  nblz, zero, 'torbyp')  !(nblz)
+  call alloc(tdispx,  nblz, zero, 'tdispx')  !(nblz)
+  call alloc(tdispy,  nblz, zero, 'tdispy')  !(nblz)
 
 end subroutine collimation_allocate_arrays
 
-subroutine collimation_expand_arrays(npart_new, nblo_new)
+subroutine collimation_expand_arrays(npart_new, nblz_new)
 
   implicit none
 
   integer, intent(in) :: npart_new
-  integer, intent(in) :: nblo_new
+  integer, intent(in) :: nblz_new
 
-  call resize(tbetax,  nblo_new, zero, 'tbetax')  !(nblz)
-  call resize(tbetay,  nblo_new, zero, 'tbetay')  !(nblz)
-  call resize(talphax, nblo_new, zero, 'talphax') !(nblz)
-  call resize(talphay, nblo_new, zero, 'talphay') !(nblz)
-  call resize(torbx,   nblo_new, zero, 'torbx')   !(nblz)
-  call resize(torbxp,  nblo_new, zero, 'torbxp')  !(nblz)
-  call resize(torby,   nblo_new, zero, 'torby')   !(nblz)
-  call resize(torbyp,  nblo_new, zero, 'torbyp')  !(nblz)
-  call resize(tdispx,  nblo_new, zero, 'tdispx')  !(nblz)
-  call resize(tdispy,  nblo_new, zero, 'tdispy')  !(nblz)
+  call resize(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
+  call resize(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
+  call resize(talphax, nblz_new, zero, 'talphax') !(nblz)
+  call resize(talphay, nblz_new, zero, 'talphay') !(nblz)
+  call resize(torbx,   nblz_new, zero, 'torbx')   !(nblz)
+  call resize(torbxp,  nblz_new, zero, 'torbxp')  !(nblz)
+  call resize(torby,   nblz_new, zero, 'torby')   !(nblz)
+  call resize(torbyp,  nblz_new, zero, 'torbyp')  !(nblz)
+  call resize(tdispx,  nblz_new, zero, 'tdispx')  !(nblz)
+  call resize(tdispy,  nblz_new, zero, 'tdispy')  !(nblz)
 end subroutine collimation_expand_arrays
 
 !>

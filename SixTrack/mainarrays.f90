@@ -99,7 +99,7 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
 #endif
 
 #ifdef COLLIMAT
-  call collimation_expand_arrays(npart_new, nblo_new)
+  call collimation_expand_arrays(npart_new, nblz_new)
 #endif
 
   ! Update nele etc.
