@@ -736,16 +736,16 @@ module collimation
 !
 ! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
 !
-  real(kind=fPrec), save :: tbetax(nblz)  !(nblz)
-  real(kind=fPrec), save :: tbetay(nblz)  !(nblz)
-  real(kind=fPrec), save :: talphax(nblz) !(nblz)
-  real(kind=fPrec), save :: talphay(nblz) !(nblz)
-  real(kind=fPrec), save :: torbx(nblz)   !(nblz)
-  real(kind=fPrec), save :: torbxp(nblz)  !(nblz)
-  real(kind=fPrec), save :: torby(nblz)   !(nblz)
-  real(kind=fPrec), save :: torbyp(nblz)  !(nblz)
-  real(kind=fPrec), save :: tdispx(nblz)  !(nblz)
-  real(kind=fPrec), save :: tdispy(nblz)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tbetax(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tbetay(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: talphax(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: talphay(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: torbx(:)   !(nblz)
+  real(kind=fPrec), allocatable, save :: torbxp(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: torby(:)   !(nblz)
+  real(kind=fPrec), allocatable, save :: torbyp(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tdispx(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tdispy(:)  !(nblz)
 
 !  common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,torby,torbyp,tdispx,tdispy
 !
@@ -885,6 +885,16 @@ subroutine collimation_allocate_arrays
 
   implicit none
 
+  call alloc(tbetax,  nblo, zero, 'tbetax')  !(nblz)
+  call alloc(tbetay,  nblo, zero, 'tbetay')  !(nblz)
+  call alloc(talphax, nblo, zero, 'talphax') !(nblz)
+  call alloc(talphay, nblo, zero, 'talphay') !(nblz)
+  call alloc(torbx,   nblo, zero, 'torbx')   !(nblz)
+  call alloc(torbxp,  nblo, zero, 'torbxp')  !(nblz)
+  call alloc(torby,   nblo, zero, 'torby')   !(nblz)
+  call alloc(torbyp,  nblo, zero, 'torbyp')  !(nblz)
+  call alloc(tdispx,  nblo, zero, 'tdispx')  !(nblz)
+  call alloc(tdispy,  nblo, zero, 'tdispy')  !(nblz)
 
 end subroutine collimation_allocate_arrays
 
@@ -895,6 +905,16 @@ subroutine collimation_expand_arrays(npart_new, nblo_new)
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblo_new
 
+  call resize(tbetax,  nblo_new, zero, 'tbetax')  !(nblz)
+  call resize(tbetay,  nblo_new, zero, 'tbetay')  !(nblz)
+  call resize(talphax, nblo_new, zero, 'talphax') !(nblz)
+  call resize(talphay, nblo_new, zero, 'talphay') !(nblz)
+  call resize(torbx,   nblo_new, zero, 'torbx')   !(nblz)
+  call resize(torbxp,  nblo_new, zero, 'torbxp')  !(nblz)
+  call resize(torby,   nblo_new, zero, 'torby')   !(nblz)
+  call resize(torbyp,  nblo_new, zero, 'torbyp')  !(nblz)
+  call resize(tdispx,  nblo_new, zero, 'tdispx')  !(nblz)
+  call resize(tdispy,  nblo_new, zero, 'tdispy')  !(nblz)
 end subroutine collimation_expand_arrays
 
 !>
