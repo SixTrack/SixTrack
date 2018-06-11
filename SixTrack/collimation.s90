@@ -1351,6 +1351,20 @@ subroutine collimate_init()
 
 end subroutine collimate_init
 
+subroutine collimation_allocate_arrays
+
+  implicit none
+
+
+end subroutine collimation_allocate_arrays
+
+subroutine collimation_expand_arrays(npart_new)
+
+  implicit none
+
+  integer, intent(in) :: npart_new
+
+end subroutine collimation_expand_arrays
 ! ================================================================================================ !
 !  Parse Input Line
 ! ================================================================================================ !
