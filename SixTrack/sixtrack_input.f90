@@ -19,6 +19,7 @@ module sixtrack_input
   ! Record of encountered blocks
   character(len=:), allocatable, public, save :: sixin_cBlock(:) ! Name of block
   integer,          allocatable, public, save :: sixin_uBlock(:) ! Unit of block
+  integer,          allocatable, public, save :: sixin_nBlock(:) ! Count of block
   integer,          allocatable, public, save :: sixin_iBlock(:) ! Line of block
   logical,          allocatable, public, save :: sixin_lBlock(:) ! Block closed
   integer,                       public, save :: sixin_nBlock    ! Number of blocks
@@ -1314,7 +1315,6 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
       call sixin_echoVal("tmp_iq(4)",tmp_iq(4),"TUNE",iLine)
       call sixin_echoVal("tmp_iq(5)",tmp_iq(5),"TUNE",iLine)
     end if
-    if(iErr) return
     
   case(-1) ! Postprocessing
     
@@ -1357,5 +1357,88 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
   end select
     
 end subroutine sixin_parseInputLineTUNE
+
+! ================================================================================================ !
+!  Parse Linear Optics Calculation Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
+  
+  use string_tools
+  
+  implicit none
+  
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+  
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=str_maxName) mode
+  integer nSplit,i,ilin0,nlin
+  logical spErr
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "LINE> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  if(iLine == 1) then
+    
+    nlin = 0
+    
+    if(nSplit > 0) mode = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nt,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ilin0,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),ntco,iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),eui,iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),euii,iErr)
+    
+    select case(mode)
+    case("ELEMENT")
+      iprint = 0
+    case("BLOCK")
+      iprint = 1
+    case default
+      write(lout,"(a)") "LINE> ERROR Valid modes are 'BLOCK' or 'ELEMENT'"
+      iErr = .true.
+    end select
+    
+    select case(ilin0)
+    case(1)
+      ilin = 1
+    case(2)
+      ilin = 2
+    case default
+      write(lout,"(a)") "LINE> ERROR Only 1 (4D) and 2 (6D) are valid options for ilin."
+      iErr = .true.
+    end select
+    
+    if(st_debug) then
+      call sixin_echoVal("mode",mode,"LINE",iLine)
+      call sixin_echoVal("nt",  nt,  "LINE",iLine)
+      call sixin_echoVal("ilin",ilin,"LINE",iLine)
+      call sixin_echoVal("ntco",ntco,"LINE",iLine)
+      call sixin_echoVal("eui", eui, "LINE",iLine)
+      call sixin_echoVal("euii",euii,"LINE",iLine)
+    end if
+    if(iErr) return
+    
+  else
+    
+    do i=1,nSplit
+      nlin = nlin + 1
+      if(nlin >nele) then
+        write(lout,"(2(a,i0))") "LINE> ERROR Too many elements for linear optics write out. Max is ",nele," got ",nlin
+        iErr = .true.
+        return
+      end if
+      bezl(nlin) = trim(lnSplit(i))
+    end do
+    
+  end if
+  
+end subroutine sixin_parseInputLineLINE
 
 end module sixtrack_input
