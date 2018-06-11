@@ -812,31 +812,20 @@ module mod_lie_dab
   real(kind=fPrec), save :: xintex(0:20)
   
   ! From dabnew
-#ifdef SMALLDABNEW
-  integer, parameter :: lda = 10000
-  integer, parameter :: lst = 200000
-  integer, parameter :: lea = 500
-  integer, parameter :: lia = 10000
-  integer, parameter :: lno = 120
-  integer, parameter :: lnv = 40
-#endif
-#ifdef BIGDABNEW
+#ifdef SIXDA
   integer, parameter :: lda = 10000
   integer, parameter :: lst = 20050000
   integer, parameter :: lea = 100000
   integer, parameter :: lia = 5000000
+#else
+  integer, parameter :: lda = 10000
+  integer, parameter :: lst = 200000
+  integer, parameter :: lea = 500
+  integer, parameter :: lia = 10000
+#endif
   integer, parameter :: lno = 120
   integer, parameter :: lnv = 40
-#endif
-#ifdef CTRACK
-  integer, parameter :: lda = 1000
-  integer, parameter :: lst = 3000000
-  integer, parameter :: lea = 20000
-  integer, parameter :: lia = 20000
-  integer, parameter :: lno = 120
-  integer, parameter :: lnv = 40
-#endif
-
+  
   integer,           save :: ndat,nda,ndamaxi,lfi
   integer,           save :: nst,nomax,nvmax,nmmax,nocut
   integer,           save :: idano(lda),idanv(lda),idapo(lda)
