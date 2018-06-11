@@ -11589,7 +11589,7 @@ end interface
   backspace (93,iostat=ierro)
 #ifdef BOINC
   ! and if BOINC issue an informatory message
-  if (start) then
+  if(start) then
     write(93,"(a)") "SIXTRACR starts for the very first time"
   else
     write(93,"(a)") "SIXTRACR retry after unzip of Sixin.zip"
@@ -11600,116 +11600,53 @@ end interface
   ! call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   ! if(fErr) goto 602
   ! stxt = "SIXTRACR reruns on: "
+  call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  if(fErr) then
 #ifdef BOINC
-      call boincrf('fort.6',filename)
-#ifdef FIO
-      open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
+    ! No fort.6 so we do an unzip of Sixin.zip
+    ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
+    ! and CLOSE 92 and 93
+    if(start) then
+      start=.false.
+      close(92)
+      close(93)
+      ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
+      ! Name hard-wired in our boinc_unzip_.
+      ! Either it is only the fort.* input data or it is a restart.
+      call boincrf("Sixin.zip",filename)
+      ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
+      call f_read_archive(trim(filename),".")
+      goto 611
+    end if
+    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
 #else
-      open(output_unit,file=filename,form='formatted',status='old',err=602)
+    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
 #endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
+    ! Set up start message depending on fort.6 or not
+    stxt = "SIXTRACR starts on: "
+  else
+    ! Set up start message depending on fort.6 or not
+    stxt = "SIXTRACR reruns on: "
+    rerun=.true.
+  end if
+  call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
+  if(fErr) then
+    call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
+  else
+    fort95 = .true.
+  end if
+  call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
+  if(fErr) then
+    call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
+  else
+    fort96 = .true.
+  end if
+  call units_openUnits(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
 #else
-#ifdef FIO
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
-#else
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602)
+  lout = output_unit
 #endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
-#endif
-      rerun=.true.
-      goto 605
-#ifdef BOINC
-  602 continue
-! No fort.6 so we do an unzip of Sixin.zip
-! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
-! and CLOSE 92 and 93
-      if (start) then
-        start=.false.
-        close(92)
-        close(93)
-! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
-! name hard-wired in our boinc_unzip_.
-! Either it is only the fort.* input data or it is a restart.
-! Removed temporarily??? because of problems.
-! Re-instated and REQUIRED version 4516
-        !call boinc_unzip()
-        !call system('unzip Sixin.zip')
-        
-        call boincrf("Sixin.zip",filename)
-        ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
-        call f_read_archive(trim(filename),".")
-        go to 611
-      endif
-#ifdef FIO
-      open(output_unit,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-      open(output_unit,file=filename,form='formatted',status='unknown')
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: '
-#else
-#ifdef FIO
- 602  open(output_unit,file='fort.6',form='formatted',status='new',round='nearest')
-#else
- 602  open(output_unit,file='fort.6',form='formatted',status='new')
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: '
-#endif
-!--   Now check for restart files fort.95/96 and OPEN them
-#ifdef BOINC
-  605 call boincrf('fort.95',filename)
-      open(95,file=filename,form='unformatted',status='old',err=600)
-#else
-  605 open(95,file='fort.95',form='unformatted',status='old',err=600)
-#endif
-      fort95=.true.
-      goto 608
-#ifdef BOINC
-  600 call boincrf('fort.95',filename)
-      open(95,file=filename,form='unformatted',status='new')
-#else
-  600 open(95,file='fort.95',form='unformatted',status='new')
-#endif
-#ifdef BOINC
-  608 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='old',err=601)
-#else
-  608 open(96,file='fort.96',form='unformatted',status='old',err=601)
-#endif
-      fort96=.true.
-      goto 609
-#ifdef BOINC
-  601 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='new')
-#else
-  601 open(96,file='fort.96',form='unformatted',status='new')
-#endif
-#ifdef BOINC
-  609 call boincrf('fort.91',filename)
-#ifdef FIO
-      open(91,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-      open(91,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-  609 open(91,file='fort.91',form='formatted',status='unknown',round='nearest')
-#else
-  609 open(91,file='fort.91',form='formatted',status='unknown')
-#endif
-#endif
-! END +if cr -- END of Main start for Checkpoint/Restart
-#else
-      lout=output_unit
-#endif
-      
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
-!-----------------------------------------------------------------------
+  
+  ! Open Regular File Units
   call units_openUnits(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
@@ -11785,69 +11722,15 @@ end interface
   write(lout,"(a)") ""
   write(lout,"(a)") st_divLine
   
-  tlim=1e7
-  call timest(tlim)
-  call datime(idate,itime)
-  write(cdate,"(i6.6)") idate
-  write(ctime,"(i4.4)") itime
-  read(cdate(3:4),'(I2)') imonth
-  if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
 #ifdef CR
-  day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
-#else
-  day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
+  ! Log start messages
+  write(93,"(a)") ""
+  write(93,"(a)") "SIXTRACR MAINCR"
+  write(93,"(a)") stxt//timeStamp
+  endfile(93,iostat=ierro)
+  backspace(93,iostat=ierro)
 #endif
-     &//' 20'//cdate(1:2)//', '
-      else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'nd of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'nd of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else if(cdate(6:6).eq.'3'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'rd of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'rd of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else
-#ifdef CR
-        day=stxt//cdate(5:6)//'th of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'th of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      endif
-      if(ctime(1:2).ne.'  ') then
-        if(ctime(3:4).eq.'  ') then
-          runtim=day(1:44)//' at '//ctime(1:2)//'.'
-        else if(ctime(3:4).eq.'01') then
-          runtim=day(1:44)//' one minute after '//ctime(1:2)//'.'
-        else
-          runtim=day(1:44)//ctime(3:4)//' minutes after '//ctime(1:2)//'.'
-        endif
-      else
-        if(ctime(3:4).eq.'  ') then
-          runtim=day(1:44)//' at midnight.'
-        else if(ctime(3:4).eq.'01') then
-          runtim=day(1:44)//' one minute after midnight.'
-        else
-          runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
-        endif
-      endif
-      ! write(lout,'(a80)') runtim
-#ifdef CR
-!     Log start messages
-      write(93,*)
-      write(93,*) 'SIXTRACR MAINCR ',runtim
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-#endif
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
+
 !     A normal start, time0 is beginning
       pretime=0.0
       trtime=0.0
