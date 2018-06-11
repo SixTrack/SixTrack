@@ -170,8 +170,8 @@
   real(kind=fPrec) totals
 
   ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-  logical cut_input
-  common /cut/ cut_input
+!  logical cut_input
+!  common /cut/ cut_input
 
   real(kind=fPrec) :: xbob(nblz) !(nblz)
   real(kind=fPrec) :: ybob(nblz) !(nblz)
@@ -375,27 +375,6 @@
 !
 ! END BLOCK DBCOLLIM
 
-+cd dbmkdist
-!++ Vectors of coordinates
-
-  integer i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
-
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
-
-
-  character(len=80) dummy
-
-  ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
-  logical cut_input
-  common /cut/ cut_input
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -700,6 +679,29 @@ module collimation
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
+!+cd dbmkdist
+!++ Vectors of coordinates
+
+!  integer :: i,j,mynp,nloop
+!  real(kind=fPrec) :: myx(maxn) !(maxn)
+!  real(kind=fPrec) :: myxp(maxn) !(maxn)
+!  real(kind=fPrec) :: myy(maxn) !(maxn)
+!  real(kind=fPrec) :: myyp(maxn) !(maxn)
+!  real(kind=fPrec) :: myp(maxn) !(maxn)
+!  real(kind=fPrec) :: mys(maxn) !(maxn)
+!
+!  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+!  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+!  &xsigmax,ysigmay,myenom,nr,ndr
+!
+!
+!  character(len=80) :: dummy
+
+! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
+! USED IN MULTIPLE COMMON BLOCKS
+  logical, save :: cut_input
+!  common /cut/ cut_input
+
 !from +cd interac
 !October 2013
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
@@ -7284,7 +7286,21 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   implicit none
 
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
+
   real(kind=fPrec) pi
 
   save
@@ -7387,7 +7403,20 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
@@ -7472,7 +7501,20 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
 
@@ -7569,7 +7611,20 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
@@ -7697,7 +7752,20 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   character(len=80)   filename_dis
 
@@ -7756,7 +7824,20 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use mod_commonmn
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
 
   character(len=80)   filename_dis
@@ -7900,7 +7981,20 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi
 
@@ -8043,7 +8137,20 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
 
   real(kind=fPrec) pi
