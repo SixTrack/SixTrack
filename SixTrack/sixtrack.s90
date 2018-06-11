@@ -15398,7 +15398,7 @@ subroutine thin6d(nthinerr)
 #ifdef COLLIMAT
 !+ca collpara
 +ca dbcommon
-+ca dbthin6d
+!+ca dbthin6d
 !+ca database
 !+ca dblinopt
 !+ca dbpencil
