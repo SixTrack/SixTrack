@@ -303,8 +303,8 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 ###################################################################################################
 
 list(APPEND FORS_F90
-	core_tools constants sixtrack_input mod_units close
-	strings string_tools common_modules mainarrays
+	sixtrack core_tools constants sixtrack_input mod_units
+	close strings string_tools common_modules mainarrays
 	file_units mod_alloc zipf matrix_inv lielib beam6d
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dynk dump
@@ -312,12 +312,10 @@ list(APPEND FORS_F90
 )
 
 if(SIXDA)
-	list(APPEND FORS_FREEFORM sixsc)
 	list(APPEND FORS_F90 main_da tshift_corr)
 	list(APPEND FORS_DAFOR_F90 sixda)
 else()
-	list(APPEND FORS_FREEFORM sixve)
-	list(APPEND FORS_F90 main_cr track_thin track_thick)
+	list(APPEND FORS_F90 main_cr sixve track_thin track_thick)
 endif()
 
 # List of files that must be treated by DAFOR

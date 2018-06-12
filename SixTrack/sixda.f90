@@ -418,7 +418,7 @@ end subroutine umschr
 !  5 --> 6  AND  ASD6 / ALD6
 ! ================================================================================================ !
 subroutine runda
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -434,9 +434,9 @@ subroutine runda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
-  
+
   implicit none
-  
+
   integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,ipch,irrtr,iverg,ix,j,jb,jj,jmel,  &
     jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,nsta,nsto,idaa
   real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,c5m4,cbxb,  &
@@ -1685,3 +1685,110 @@ call comt_daEnd
 10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,      &
   &' second(s) of CPU Time'//131('-')//)
 end subroutine runda
+
+!-----------------------------------------------------------------------
+!  CALCULATION OF INITIAL COORDINATES
+!-----------------------------------------------------------------------
+subroutine anfb(tas)
+
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+  use mod_commont
+  implicit none
+  integer i,ii,jj,l,ll
+  real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si,tas,tas56,x1,x11,x13,x2
+  dimension tas(6,6),x1(6),x2(6)
+  save
+!-----------------------------------------------------------------------
+  write(lout,10030)
+  if(itra.eq.0) goto 60
+  tas56=tas(5,6)*c1m3
+  bet0x2=tas(1,3)**2+tas(1,4)**2                                     !hr08
+  bet0z2=tas(3,1)**2+tas(3,2)**2                                     !hr08
+  bet0s1=tas(5,5)**2+tas56**2                                        !hr08
+  dsign=one
+  if(tas(3,3).lt.-one*pieni) rat=-one*rat                            !hr08
+  if(rat.lt.-one*pieni) dsign=-one*one
+  x11=amp(1)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
+  x13=(x11*dsign)*sqrt(abs(rat))                                     !hr08
+  amp(2)=(dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))
+  x1(5)=zero
+  if(iclo6.eq.1.or.iclo6.eq.2) then
+    x1(6)=(dp1-clop6(3))*sqrt(bet0s1)
+  else
+    x1(6)=dp1*sqrt(bet0s1)
+  endif
+  chi=chi0*rad
+  dchi=chid*rad
+  do 50 i=1,itra
+    si=sin_mb(chi)
+    co=cos_mb(chi)
+    x1(1)=x11*co
+    x1(2)=x11*si
+    x1(3)=x13*co
+    x1(4)=x13*si
+    do 20 ii=1,6
+      x2(ii)=zero
+      do 10 jj=1,6
+        x2(ii)=x2(ii)+tas(ii,jj)*x1(jj)
+10     continue
+20   continue
+    if(iclo6.eq.1.or.iclo6.eq.2) then
+      x2(2)=x2(2)/((one+x2(6))+clop6(3))                             !hr08
+      x2(4)=x2(4)/((one+x2(6))+clop6(3))                             !hr08
+    endif
+    if(abs(bet0s1).le.pieni) x2(6)=dp1
+    if(iver.eq.1) then
+      x2(3)=zero
+      x2(4)=zero
+    endif
+    do 30 l=1,2
+      ll=(l-1)*2
+      x(i,l)=x2(1+ll)+exz(i,1+ll)
+      y(i,l)=x2(2+ll)+exz(i,2+ll)
+30   continue
+    sigm(i)=x2(5)+exz(i,5)
+    dps(i)=x2(6)
+    dpsic=dps(i)+clop6(3)
+    if(idp.eq.1.and.abs(ition).eq.1.and.iclo6.eq.0) then
+      do 40 l=1,2
+        x(i,l)=x(i,l)+di0(l)*dpsic
+        y(i,l)=y(i,l)+dip0(l)*dpsic
+40     continue
+    endif
+    chi=chi+dchi
+50 continue
+  write(lout,10000) itra,amp,chi0,chid
+  write(lout,10010) x(1,1), y(1,1), x(1,2), y(1,2), sigm(1), dps(1), x(2,1), y(2,1), x(2,2), y(2,2), sigm(2), dps(2)
+  return
+60 itra=2
+  do 80 i=1,itra
+    sigm(i)=exz(i,5)
+    dps(i)=exz(i,6)
+    do 70 l=1,2
+      ll=(l-1)*2
+      x(i,l)=exz(i,1+ll)
+      y(i,l)=exz(i,2+ll)
+70   continue
+80 continue
+  write(lout,10020)
+  write(lout,10010) x(1,1), y(1,1), x(1,2), y(1,2), sigm(1), dps(1), x(2,1), y(2,1), x(2,2), y(2,2), sigm(2), dps(2)
+!-----------------------------------------------------------------------
+  return
+10000 format(t5,'---- ENTRY ANFB ----/ITRA/',i3,' /AMP/ ',f8.3,2x,f8.3, &
+  &' /CHI0,CHID/  ',f6.1,2x,f6.1)
+10010 format(/5x,'---- TWIN-TRAJECTORIES NO CL.ORBIT ADDED'/ 5x,'/X1  /'&
+  &,f47.33/5x,'/XP1 /',f47.33/ 5x,'/Y1  /',f47.33/5x,'/YP1 /',f47.33/&
+  &5x,'/SIG1/',f47.33/5x,'/DP1 /',f47.33/ 5x,'/X2  /',f47.33/5x,     &
+  &'/XP2 /',f47.33/ 5x,'/Y2  /',f47.33/5x,'/YP2 /',f47.33/ 5x,       &
+  &'/SIG2/',f47.33/5x,'/DP2 /',f47.33/)
+10020 format(t5,'---- ENTRY ANFB ----/COORDINATE-INPUT')
+10030 format(//131('-')//t10,27('O')/t10,2('O'),23x,2('O')/t10,         &
+  &'OO  INITIAL COORDINATES  OO'/ t10,2('O'),23x,2('O')/t10,27('O')  &
+  &//131('-')//)
+end subroutine anfb
