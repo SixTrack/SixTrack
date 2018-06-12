@@ -155,27 +155,27 @@ if(parbe(ix,2).eq.0.0) then !4D
   l1 = 1
   write(ch,'(a16,1x,a1)') bez(ix), "0"
   l1 = len(trim(ch))+1
-  
+
   errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(bbcu(ibb,2),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(parbe(ix,5),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(parbe(ix,6),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(ptnfac(ix),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   write(600,*) trim(ch)
 #endif
 else                      ! 6D
@@ -187,23 +187,23 @@ else                      ! 6D
   l1 = 1
   write(ch,'(a16,1x,i4)') bez(ix), int(parbe(ix,2))
   l1 = len(trim(ch))+1
-  
+
   errno=dtostr(parbe(ix,1),ch1) ! Return value is the string length (always 24)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(parbe(ix,3),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(parbe(ix,5),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(parbe(ix,6),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-              
+
   write(600,*) trim(ch)
 
   l1 = 1
@@ -212,15 +212,15 @@ else                      ! 6D
   errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(bbcu(ibb,4),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(bbcu(ibb,6),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(bbcu(ibb,2),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
@@ -228,7 +228,7 @@ else                      ! 6D
   errno=dtostr(bbcu(ibb,9),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   write(600,*) trim(ch)
 
   l1 = 1
@@ -237,15 +237,15 @@ else                      ! 6D
   errno=dtostr(bbcu(ibb,10),ch1) ! Return value is the string length (always 24)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(bbcu(ibb,3),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(bbcu(ibb,5),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   errno=dtostr(bbcu(ibb,7),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
@@ -257,12 +257,12 @@ else                      ! 6D
   errno=dtostr(ptnfac(ix),ch1)
   ch(l1:l1+errno) = ch1(1:errno)
   l1 = l1+errno+1
-  
+
   write(600,*) trim(ch)
 #endif
 endif !END if(parbe(ix,2).eq.0.0)
 
-if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then 
+if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then
   call prror(88)
 endif
 if(ibbc.eq.1) then
