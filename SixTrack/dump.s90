@@ -1593,10 +1593,9 @@ subroutine dump_crcheck_positionFiles
   use crcoall
   use string_tools
   use mod_common
+  use checkpoint_restart, only : arecord
 
   implicit none
-
-+ca crco ! arecord
 
   ! For skipping through binary DUMP files (format 3&8)
   integer tmp_ID, tmp_nturn, tmp_ktrack

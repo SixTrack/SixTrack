@@ -160,10 +160,10 @@ subroutine dump(dumpname,n,i)
   use mod_commons
   use mod_commont
   use mod_commond
+  use checkpoint_restart
 
   implicit none
 
-+ca crco
   integer n,i
   character(len=*) dumpname
   save
@@ -654,10 +654,10 @@ subroutine dumpbin(dumpname,n,i)
   use mod_commons
   use mod_commont
   use mod_commond
+  use checkpoint_restart
 
   implicit none
 
-+ca crco
   integer n,i
   character(len=*) dumpname
   character(len=10) mydump
@@ -1152,10 +1152,10 @@ subroutine dumphex(dumpname,n,i)
   use mod_commons
   use mod_commont
   use mod_commond
+  use checkpoint_restart
 
   implicit none
 
-+ca crco
   integer n,i
   character(len=*) dumpname
   save

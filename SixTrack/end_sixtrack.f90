@@ -1,5 +1,3 @@
-+dk end_sixtrack
-
 ! This File Contains:
 !==========================
 ! Module:     end_sixtrack
@@ -409,10 +407,10 @@ subroutine abend(cstring)
   use crcoall
   use parpro
   use mod_common
+  use checkpoint_restart
 
   implicit none
 
-+ca crco
 #include "version.f90"
 
   integer i,lstring,j

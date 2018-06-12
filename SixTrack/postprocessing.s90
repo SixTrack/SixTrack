@@ -47,11 +47,11 @@ subroutine postpr(nfile)
 #ifdef ROOT
       use root_output
 #endif
+#ifdef CR
+      use checkpoint_restart
+#endif
       implicit none
 
-#ifdef CR
-+ca crco
-#endif
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
@@ -3513,11 +3513,11 @@ end subroutine join
       use mod_commons
       use mod_commont
       use mod_commond
+#ifdef CR
+      use checkpoint_restart
+#endif
       implicit none
 
-#ifdef CR
-+ca crco
-#endif
       integer ia,ia2,ie,nthinerr
 #ifdef CR
       integer ncalls

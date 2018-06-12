@@ -303,15 +303,14 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
 ###################################################################################################
 
 list(APPEND FORS_FREEFORM
-	end_sixtrack scatter dynk
-	postprocessing dump aperture
+	scatter dynk postprocessing dump aperture
 )
 
 list(APPEND FORS_F90
 	core_tools constants sixtrack_input mod_units close
-	strings string_tools common_modules mainarrays
-	file_units mod_alloc zipf matrix_inv lielib
-	bouncy_castle plato_seq bdex fma dabnew
+	checkpoint_restart strings string_tools common_modules
+	mainarrays file_units mod_alloc zipf matrix_inv lielib
+	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist
 )
 

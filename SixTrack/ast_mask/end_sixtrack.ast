@@ -1,5 +1,0 @@
-end_sixtrack.s90 sixtrack.s90 collimation.s90
-end_sixtrackn.f90
-df fluka,cr,nagfor,boinc,fio,crlibm,debug
-e end_sixtrack
-ex
