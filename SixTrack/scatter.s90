@@ -921,11 +921,6 @@ subroutine scatter_thin(i_elem, ix, turn)
 #endif
 
   implicit none
-
-#ifdef COLLIMAT
-!+ca collpara ! Needed to define array sizes
-+ca dbcommon ! Get the arrays that we need to set to mark the particle as "dirty" for collimation
-#endif
 #ifdef HDF5
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
   integer                     :: iRecords(2,napx)

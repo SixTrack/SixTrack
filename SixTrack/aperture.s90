@@ -565,12 +565,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 ! logical isnan
   logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
-#ifdef COLLIMAT
-! Module to access ipart array
-!+ca collpara
-!+ca dbthin6d
-+ca dbcommon
-#endif
 
 ! temporary variables
   logical lparID, llostp(npart)
@@ -2424,12 +2418,6 @@ subroutine compactArrays(llostp)
 
   integer j,jj,jj1,ib2,ib3,lnapx
   logical llostp(npart)
-
-#ifdef COLLIMAT
-+ca dbcommon
-!+ca dbthin6d
-#endif
-
 
   ! Compact array
   if(.not.apflag) then
