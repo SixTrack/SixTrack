@@ -33,124 +33,137 @@ module mod_alloc
 !some arrays are fixed to a specific variable type, and therefore we are prevented from doing this :(
 interface alloc
   
-  module procedure resize1di16  ! 1D int16
+  module procedure alloc1di16  ! 1D int16
+  module procedure alloc2di16  ! 2D int16
+  module procedure alloc3di16  ! 3D int16
   
-  module procedure resize1di32  ! 1D int32
-  module procedure resize2di32  ! 2D int32
-  module procedure resize3di32  ! 3D int32
+  module procedure alloc1di32  ! 1D int32
+  module procedure alloc2di32  ! 2D int32
+  module procedure alloc3di32  ! 3D int32
   
-  module procedure resize1di64  ! 1D int64
-  module procedure resize2di64  ! 2D int64
-  module procedure resize3di64  ! 3D int64
+  module procedure alloc1di64  ! 1D int64
+  module procedure alloc2di64  ! 2D int64
+  module procedure alloc3di64  ! 3D int64
   
-  module procedure resize1dr32  ! 1D real32
-  module procedure resize2dr32  ! 2D real32
-  module procedure resize3dr32  ! 3D real32
-  module procedure resize4dr32  ! 4D real32
+  module procedure alloc1dr32  ! 1D real32
+  module procedure alloc2dr32  ! 2D real32
+  module procedure alloc3dr32  ! 3D real32
+  module procedure alloc4dr32  ! 4D real32
   
-  module procedure resize1dr64  ! 1D real64
-  module procedure resize2dr64  ! 2D real64
-  module procedure resize3dr64  ! 3D real64
-  module procedure resize4dr64  ! 4D real64
+  module procedure alloc1dr64  ! 1D real64
+  module procedure alloc2dr64  ! 2D real64
+  module procedure alloc3dr64  ! 3D real64
+  module procedure alloc4dr64  ! 4D real64
   
-  module procedure resize1dr128 ! 1D real128
-  module procedure resize2dr128 ! 2D real128
-  module procedure resize3dr128 ! 3D real128
-  module procedure resize4dr128 ! 4D real128
+  module procedure alloc1dr128 ! 1D real128
+  module procedure alloc2dr128 ! 2D real128
+  module procedure alloc3dr128 ! 3D real128
+  module procedure alloc4dr128 ! 4D real128
   
-  module procedure resize1dc    ! 1D character
-  module procedure resize2dc    ! 2D character
+  module procedure alloc1dc    ! 1D character
+  module procedure alloc2dc    ! 2D character
   
-  module procedure resize1ds    ! 1D string
+  module procedure alloc1ds    ! 1D string
   
-  module procedure resize1dl    ! 1D logical
-  module procedure resize2dl    ! 2D logical
+  module procedure alloc1dl    ! 1D logical
+  module procedure alloc2dl    ! 2D logical
   
 end interface alloc
 
 interface resize
   
-  module procedure resize1di16  ! 1D int16
+  module procedure alloc1di16  ! 1D int16
+  module procedure alloc2di16  ! 2D int16
+  module procedure alloc3di16  ! 3D int16
   
-  module procedure resize1di32  ! 1D int32
-  module procedure resize2di32  ! 2D int32
-  module procedure resize3di32  ! 3D int32
+  module procedure alloc1di32  ! 1D int32
+  module procedure alloc2di32  ! 2D int32
+  module procedure alloc3di32  ! 3D int32
   
-  module procedure resize1di64  ! 1D int64
-  module procedure resize2di64  ! 2D int64
-  module procedure resize3di64  ! 3D int64
+  module procedure alloc1di64  ! 1D int64
+  module procedure alloc2di64  ! 2D int64
+  module procedure alloc3di64  ! 3D int64
   
-  module procedure resize1dr32  ! 1D real32
-  module procedure resize2dr32  ! 2D real32
-  module procedure resize3dr32  ! 3D real32
-  module procedure resize4dr32  ! 4D real32
+  module procedure alloc1dr32  ! 1D real32
+  module procedure alloc2dr32  ! 2D real32
+  module procedure alloc3dr32  ! 3D real32
+  module procedure alloc4dr32  ! 4D real32
   
-  module procedure resize1dr64  ! 1D real64
-  module procedure resize2dr64  ! 2D real64
-  module procedure resize3dr64  ! 3D real64
-  module procedure resize4dr64  ! 4D real64
+  module procedure alloc1dr64  ! 1D real64
+  module procedure alloc2dr64  ! 2D real64
+  module procedure alloc3dr64  ! 3D real64
+  module procedure alloc4dr64  ! 4D real64
   
-  module procedure resize1dr128 ! 1D real128
-  module procedure resize2dr128 ! 2D real128
-  module procedure resize3dr128 ! 3D real128
-  module procedure resize4dr128 ! 4D real128
+  module procedure alloc1dr128 ! 1D real128
+  module procedure alloc2dr128 ! 2D real128
+  module procedure alloc3dr128 ! 3D real128
+  module procedure alloc4dr128 ! 4D real128
   
-  module procedure resize1dc    ! 1D character
-  module procedure resize2dc    ! 2D character
+  module procedure alloc1dc    ! 1D character
+  module procedure alloc2dc    ! 2D character
   
-  module procedure resize1ds    ! 1D string
+  module procedure alloc1ds    ! 1D string
   
-  module procedure resize1dl    ! 1D logical
-  module procedure resize2dl    ! 2D logical
+  module procedure alloc1dl    ! 1D logical
+  module procedure alloc2dl    ! 2D logical
   
 end interface resize
 
 interface dealloc
   
-  module procedure dealloc1dr32
-  module procedure dealloc1dr64
-  module procedure dealloc1dr128
+  module procedure dealloc1di16  ! 1D int16
+  module procedure dealloc2di16  ! 2D int16
+  module procedure dealloc3di16  ! 3D int16
   
-  module procedure dealloc2dr32
-  module procedure dealloc2dr64
-  module procedure dealloc2dr128
+  module procedure dealloc1di32  ! 1D int32
+  module procedure dealloc2di32  ! 2D int32
+  module procedure dealloc3di32  ! 3D int32
   
-  module procedure dealloc3dr32
-  module procedure dealloc3dr64
-  module procedure dealloc3dr128
+  module procedure dealloc1di64  ! 1D int64
+  module procedure dealloc2di64  ! 2D int64
+  module procedure dealloc3di64  ! 3D int64
+    
+  module procedure dealloc1dr32  ! 1D real32
+  module procedure dealloc2dr32  ! 2D real32
+  module procedure dealloc3dr32  ! 3D real32
+  module procedure dealloc4dr32  ! 4D real32
   
-  module procedure dealloc1di16
-  module procedure dealloc1di32
-  module procedure dealloc1di64
+  module procedure dealloc1dr64  ! 1D real64
+  module procedure dealloc2dr64  ! 2D real64
+  module procedure dealloc3dr64  ! 3D real64
+  module procedure dealloc4dr64  ! 4D real64
   
-  module procedure dealloc2di16
-  module procedure dealloc2di32
-  module procedure dealloc2di64
+  module procedure dealloc1dr128 ! 1D real128
+  module procedure dealloc2dr128 ! 2D real128
+  module procedure dealloc3dr128 ! 3D real128
+  module procedure dealloc4dr128 ! 4D real128
   
-  module procedure dealloc1dl
+  module procedure dealloc1dc    ! 1D character
+  module procedure dealloc2dc    ! 2D character
   
-  module procedure dealloc1dc
+  module procedure dealloc1dl    ! 1D logical
+  module procedure dealloc2dl    ! 2D logical
   
 end interface dealloc
 
-  private :: resize1di16
-  private :: resize1di32,resize2di32,resize3di32
-  private :: resize1di64,resize2di64,resize3di64
-  private :: resize1dr32,resize2dr32,resize3dr32,resize4dr32
-  private :: resize1dr64,resize2dr64,resize3dr64,resize4dr64
-  private :: resize1dr128,resize2dr128,resize3dr128,resize4dr128
-  private :: resize1dc,resize2dc
-  private :: resize1ds
-  private :: resize1dl,resize2dl
+  private :: alloc1di16,alloc2di16,alloc3di16
+  private :: alloc1di32,alloc2di32,alloc3di32
+  private :: alloc1di64,alloc2di64,alloc3di64
+  private :: alloc1dr32,alloc2dr32,alloc3dr32,alloc4dr32
+  private :: alloc1dr64,alloc2dr64,alloc3dr64,alloc4dr64
+  private :: alloc1dr128,alloc2dr128,alloc3dr128,alloc4dr128
+  private :: alloc1dc,alloc2dc
+  private :: alloc1ds
+  private :: alloc1dl,alloc2dl
   
-  private :: dealloc1di16,dealloc2di16
-  private :: dealloc1dr32,dealloc2dr32,dealloc3dr32
-  private :: dealloc1dr64,dealloc2dr64,dealloc3dr64
-  private :: dealloc1dr128,dealloc2dr128,dealloc3dr128
-  private :: dealloc1di32,dealloc2di32
-  private :: dealloc1di64,dealloc2di64
-  private :: dealloc1dl
-  private :: dealloc1dc
+  private :: dealloc1di16,dealloc2di16,dealloc3di16
+  private :: dealloc1di32,dealloc2di32,dealloc3di32
+  private :: dealloc1di64,dealloc2di64,dealloc3di64
+  private :: dealloc1dr32,dealloc2dr32,dealloc3dr32,dealloc4dr32
+  private :: dealloc1dr64,dealloc2dr64,dealloc3dr64,dealloc4dr64
+  private :: dealloc1dr128,dealloc2dr128,dealloc3dr128,dealloc4dr128
+  private :: dealloc1dc,dealloc2dc
+  private :: dealloc1dl,dealloc2dl
     
 contains
 
@@ -248,7 +261,7 @@ end subroutine alloc_exit
 ! ================================================================================================ !
 
 ! 1D int16 Array
-subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1di16(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -313,10 +326,189 @@ subroutine resize1di16(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D int16",request)
   
-end subroutine resize1di16
+end subroutine alloc1di16
+
+! 2D int16 Array
+subroutine alloc2di16(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+  
+  implicit none
+  
+  integer(kind=int16), allocatable, intent(inout) :: input(:,:)
+  integer,                          intent(in)    :: eIdx1,eIdx2
+  integer(kind=int16),              intent(in)    :: initial
+  character(len=*),                 intent(in)    :: ename
+  integer,             optional,    intent(in)    :: fIdxIn1,fIdxIn2
+  
+  integer(kind=int16), allocatable :: buffer(:,:) ! Buffer array
+  integer                          :: fIdx1,fIdx2 ! First indices
+  integer                          :: oIdx1,oIdx2 ! Old end indices
+  integer(kind=int64)              :: request     ! Requested size addition
+  
+  integer i, j, error
+  
+  if(present(fIdxIn1)) then
+    fIdx1 = fIdxIn1
+  else
+    fIdx1 = 1
+  end if
+  if(present(fIdxIn2)) then
+    fIdx2 = fIdxIn2
+  else
+    fIdx2 = 1
+  end if
+  
+  if(allocated(input) .neqv. .true.) then
+    
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    
+    request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1) * storage_size(int16)
+    
+    allocate(input(fIdx1:eIdx1,fIdx2:eIdx2), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx2,eIdx2
+      do j=fIdx1,eIdx1
+        input(j,i) = initial
+      end do
+    end do
+    
+  else
+    
+    oIdx1   = size(input,1)+fIdx1-1
+    oIdx2   = size(input,2)+fIdx2-1
+    request = ((eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)  - &
+               (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)) * storage_size(int16)
+    
+    if(request == 0.0) then
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
+    
+    allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx2,eIdx2
+      do j=fIdx1,eIdx1
+        buffer(j,i) = initial
+      end do
+    end do
+    
+    if(oIdx1 > eIdx1) oIdx1 = eIdx1
+    if(oIdx2 > eIdx2) oIdx2 = eIdx2
+    
+    do i=fIdx2,oIdx2
+      do j=fIdx1,oIdx1
+        buffer(j,i) = input(j,i)
+      end do
+    end do
+        
+    call move_alloc(buffer,input)
+    
+  end if
+  
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,"2D int16",request)
+  
+end subroutine alloc2di16
+
+! 3D int16 Array
+subroutine alloc3di16(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
+  
+  implicit none
+  
+  integer(kind=int16), allocatable, intent(inout) :: input(:,:,:)
+  integer,                          intent(in)    :: eIdx1,eIdx2,eIdx3
+  integer(kind=int16),              intent(in)    :: initial
+  character(len=*),                 intent(in)    :: ename
+  integer,             optional,    intent(in)    :: fIdxIn1,fIdxIn2,fIdxIn3
+  
+  integer(kind=int16), allocatable :: buffer(:,:,:)     ! Buffer array
+  integer                          :: fIdx1,fIdx2,fIdx3 ! First indices
+  integer                          :: oIdx1,oIdx2,oIdx3 ! Old end indices
+  integer(kind=int64)              :: request           ! Requested size addition
+  
+  integer i, j, k, error
+  
+  if(present(fIdxIn1)) then
+    fIdx1 = fIdxIn1
+  else
+    fIdx1 = 1
+  end if
+  if(present(fIdxIn2)) then
+    fIdx2 = fIdxIn2
+  else
+    fIdx2 = 1
+  end if
+  if(present(fIdxIn3)) then
+    fIdx3 = fIdxIn3
+  else
+    fIdx3 = 1
+  end if
+  
+  if(allocated(input) .neqv. .true.) then
+    
+    write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
+    
+    request = (eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1) * storage_size(int16)
+    
+    allocate(input(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx3,eIdx3
+      do j=fIdx2,eIdx2
+        do k=fIdx1,eIdx1
+          input(k,j,i) = initial
+        end do
+      end do
+    end do
+    
+  else
+    
+    oIdx1   = size(input,1)+fIdx1-1
+    oIdx2   = size(input,2)+fIdx2-1
+    oIdx3   = size(input,3)+fIdx3-1
+    request = ((eIdx1-fIdx1+1)*(eIdx2-fIdx2+1)*(eIdx3-fIdx3+1)  - &
+               (oIdx1-fIdx1+1)*(oIdx2-fIdx2+1)*(oIdx3-fIdx3+1)) * storage_size(int16)
+    
+    if(request == 0.0) then
+      write(alloc_log,"(a)") "ALLOC> No additional allocating needed for array '"//ename//"'"
+      return
+    end if
+    
+    allocate(buffer(fIdx1:eIdx1,fIdx2:eIdx2,fIdx3:eIdx3), stat=error)
+    if(error /= 0) call alloc_error(ename, error, request)
+    
+    do i=fIdx3,eIdx3
+      do j=fIdx2,eIdx2
+        do k=fIdx1,eIdx1
+          buffer(k,j,i) = initial
+        end do
+      end do
+    end do
+    
+    if(oIdx1 > eIdx1) oIdx1 = eIdx1
+    if(oIdx2 > eIdx2) oIdx2 = eIdx2
+    if(oIdx3 > eIdx3) oIdx3 = eIdx3
+    
+    do i=fIdx3,oIdx3
+      do j=fIdx2,oIdx2
+        do k=fIdx1,oIdx1
+          buffer(k,j,i) = input(k,j,i)
+        end do
+      end do
+    end do
+    
+    call move_alloc(buffer,input)
+    
+  end if
+  
+  allocated_bits = allocated_bits + request
+  call print_alloc(ename,"3D int16",request)
+  
+end subroutine alloc3di16
 
 ! 1D int32 Array
-subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1di32(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -381,10 +573,10 @@ subroutine resize1di32(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D int32",request)
   
-end subroutine resize1di32
+end subroutine alloc1di32
 
 ! 2D int32 Array
-subroutine resize2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+subroutine alloc2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   implicit none
   
@@ -464,10 +656,10 @@ subroutine resize2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"2D int32",request)
   
-end subroutine resize2di32
+end subroutine alloc2di32
 
 ! 3D int32 Array
-subroutine resize3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
+subroutine alloc3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
   
   implicit none
   
@@ -560,10 +752,10 @@ subroutine resize3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"3D int32",request)
   
-end subroutine resize3di32
+end subroutine alloc3di32
 
 ! 1D int64 Array
-subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1di64(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -628,10 +820,10 @@ subroutine resize1di64(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D int64",request)
   
-end subroutine resize1di64
+end subroutine alloc1di64
 
 ! 2D int64 Array
-subroutine resize2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+subroutine alloc2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   implicit none
   
@@ -711,10 +903,10 @@ subroutine resize2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"2D int64",request)
   
-end subroutine resize2di64
+end subroutine alloc2di64
 
 ! 3D int64 Array
-subroutine resize3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
+subroutine alloc3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
   
   implicit none
   
@@ -807,14 +999,14 @@ subroutine resize3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"3D int64",request)
   
-end subroutine resize3di64
+end subroutine alloc3di64
 
 ! ================================================================================================ !
 !  REALS
 ! ================================================================================================ !
 
 ! 1D real32 Array
-subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1dr32(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -879,10 +1071,10 @@ subroutine resize1dr32(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D real32",request)
   
-end subroutine resize1dr32
+end subroutine alloc1dr32
 
 ! 2D real32 Array
-subroutine resize2dr32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+subroutine alloc2dr32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   implicit none
   
@@ -962,10 +1154,10 @@ subroutine resize2dr32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"2D real32",request)
   
-end subroutine resize2dr32
+end subroutine alloc2dr32
 
 ! 3D real32 Array
-subroutine resize3dr32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
+subroutine alloc3dr32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
   
   implicit none
   
@@ -1058,10 +1250,10 @@ subroutine resize3dr32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"3D real32",request)
   
-end subroutine resize3dr32
+end subroutine alloc3dr32
 
 ! 4D real32 Array
-subroutine resize4dr32(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
+subroutine alloc4dr32(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
   
   implicit none
   
@@ -1167,10 +1359,10 @@ subroutine resize4dr32(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"4D real32",request)
   
-end subroutine resize4dr32
+end subroutine alloc4dr32
 
 ! 1D real64 Array
-subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1dr64(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -1235,10 +1427,10 @@ subroutine resize1dr64(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D real64",request)
   
-end subroutine resize1dr64
+end subroutine alloc1dr64
 
 ! 2D real64 Array
-subroutine resize2dr64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+subroutine alloc2dr64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   implicit none
   
@@ -1318,10 +1510,10 @@ subroutine resize2dr64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"2D real64",request)
   
-end subroutine resize2dr64
+end subroutine alloc2dr64
 
 ! 3D real64 Array
-subroutine resize3dr64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
+subroutine alloc3dr64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
   
   implicit none
   
@@ -1414,10 +1606,10 @@ subroutine resize3dr64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"3D real64",request)
   
-end subroutine resize3dr64
+end subroutine alloc3dr64
 
 ! 4d real64 array
-subroutine resize4dr64(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
+subroutine alloc4dr64(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
   
   implicit none
   
@@ -1523,10 +1715,10 @@ subroutine resize4dr64(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"4D real64",request)
   
-end subroutine resize4dr64
+end subroutine alloc4dr64
 
 ! 1D real128 Array
-subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1dr128(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -1591,10 +1783,10 @@ subroutine resize1dr128(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D real128",request)
   
-end subroutine resize1dr128
+end subroutine alloc1dr128
 
 ! 2D real128 Array
-subroutine resize2dr128(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+subroutine alloc2dr128(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   implicit none
   
@@ -1674,10 +1866,10 @@ subroutine resize2dr128(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"2D real128",request)
   
-end subroutine resize2dr128
+end subroutine alloc2dr128
 
 ! 3D real128 Array
-subroutine resize3dr128(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
+subroutine alloc3dr128(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3)
   
   implicit none
   
@@ -1770,10 +1962,10 @@ subroutine resize3dr128(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fId
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"3D real128",request)
   
-end subroutine resize3dr128
+end subroutine alloc3dr128
 
 ! 4D real128 Array
-subroutine resize4dr128(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
+subroutine alloc4dr128(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1, fIdxIn2, fIdxIn3, fIdxIn4)
   
   implicit none
   
@@ -1879,14 +2071,14 @@ subroutine resize4dr128(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxI
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"4D real128",request)
   
-end subroutine resize4dr128
+end subroutine alloc4dr128
 
 ! ================================================================================================ !
 !  CHARACTERS
 ! ================================================================================================ !
 
 ! 1D character Array
-subroutine resize1dc(input, strlen, eIdx, initial, ename, fIdxIn)
+subroutine alloc1dc(input, strlen, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -1952,10 +2144,10 @@ subroutine resize1dc(input, strlen, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D character",request)
   
-end subroutine resize1dc
+end subroutine alloc1dc
 
 ! 2D character Array
-subroutine resize2dc(input, strlen, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+subroutine alloc2dc(input, strlen, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   implicit none
   
@@ -2036,13 +2228,13 @@ subroutine resize2dc(input, strlen, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxI
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"2D character",request)
   
-end subroutine resize2dc
+end subroutine alloc2dc
 
 ! ==================================================================== !
 !  STRINGS
 ! ==================================================================== !
 
-subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1ds(input, eIdx, initial, ename, fIdxIn)
   
   use strings
   
@@ -2109,14 +2301,14 @@ subroutine resize1ds(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D string",request)
   
-end subroutine resize1ds
+end subroutine alloc1ds
 
 ! ================================================================================================ !
 !  LOGICALS
 ! ================================================================================================ !
 
 ! 1D logical Array
-subroutine resize1dl(input, eIdx, initial, ename, fIdxIn)
+subroutine alloc1dl(input, eIdx, initial, ename, fIdxIn)
   
   implicit none
   
@@ -2181,10 +2373,10 @@ subroutine resize1dl(input, eIdx, initial, ename, fIdxIn)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"1D logical",request)
   
-end subroutine resize1dl
+end subroutine alloc1dl
 
 ! 2D logical Array
-subroutine resize2dl(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
+subroutine alloc2dl(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   
   implicit none
   
@@ -2263,7 +2455,7 @@ subroutine resize2dl(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
   allocated_bits = allocated_bits + request
   call print_alloc(ename,"2D logical",request)
   
-end subroutine resize2dl
+end subroutine alloc2dl
 
 ! ================================================================================================ !
 !  DEALLOCTIONS
@@ -2271,123 +2463,7 @@ end subroutine resize2dl
 !  These exist to keep track of the total allocated memory
 ! ================================================================================================ !
 
-subroutine dealloc1dr32(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real32), allocatable, intent(inout) :: input(:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input)*storage_size(real32))
-  deallocate(input)
-end subroutine dealloc1dr32
-
-subroutine dealloc1dr64(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real64), allocatable, intent(inout) :: input(:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input)*storage_size(real64))
-  deallocate(input)
-end subroutine dealloc1dr64
-
-subroutine dealloc1dr128(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real128), allocatable, intent(inout) :: input(:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input)*storage_size(real128))
-  deallocate(input)
-end subroutine dealloc1dr128
-
-subroutine dealloc2dr32(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real32), allocatable, intent(inout) :: input(:,:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real32))
-  deallocate(input)
-end subroutine dealloc2dr32
-
-subroutine dealloc2dr64(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real64), allocatable, intent(inout) :: input(:,:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real64))
-  deallocate(input)
-end subroutine dealloc2dr64
-
-subroutine dealloc2dr128(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real128), allocatable, intent(inout) :: input(:,:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real128))
-  deallocate(input)
-end subroutine dealloc2dr128
-
-subroutine dealloc3dr32(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real32), allocatable, intent(inout) :: input(:,:,:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real32))
-  deallocate(input)
-end subroutine dealloc3dr32
-
-subroutine dealloc3dr64(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real64), allocatable, intent(inout) :: input(:,:,:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real64))
-  deallocate(input)
-end subroutine dealloc3dr64
-
-subroutine dealloc3dr128(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  real(kind=real128), allocatable, intent(inout) :: input(:,:,:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real128))
-  deallocate(input)
-end subroutine dealloc3dr128
-
+! 1D int16 Array
 subroutine dealloc1di16(input, ename)
   implicit none
   character(len=*), intent(in) :: ename
@@ -2397,36 +2473,11 @@ subroutine dealloc1di16(input, ename)
     write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
-  allocated_bits = allocated_bits - (size(input)*storage_size(int16))
+  allocated_bits = allocated_bits - (size(input,1)*storage_size(int16))
   deallocate(input)
 end subroutine dealloc1di16
 
-subroutine dealloc1di32(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  integer(kind=int32), allocatable, intent(inout) :: input(:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input)*storage_size(int32))
-  deallocate(input)
-end subroutine dealloc1di32
-
-subroutine dealloc1di64(input, ename)
-  implicit none
-  character(len=*), intent(in) :: ename
-  integer(kind=int64), allocatable, intent(inout) :: input(:)
-  !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
-    stop
-  end if
-  allocated_bits = allocated_bits - (size(input)*storage_size(int64))
-  deallocate(input)
-end subroutine dealloc1di64
-
+! 2D int16 Array
 subroutine dealloc2di16(input, ename)
   implicit none
   character(len=*), intent(in) :: ename
@@ -2439,7 +2490,36 @@ subroutine dealloc2di16(input, ename)
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int16))
   deallocate(input)
 end subroutine dealloc2di16
-  
+
+! 3D int16 Array
+subroutine dealloc3di16(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int16), allocatable, intent(inout) :: input(:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(int16))
+  deallocate(input)
+end subroutine dealloc3di16
+
+! 1D int32 Array
+subroutine dealloc1di32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int32), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*storage_size(int32))
+  deallocate(input)
+end subroutine dealloc1di32
+
+! 2D int32 Array
 subroutine dealloc2di32(input, ename)
   implicit none
   character(len=*), intent(in) :: ename
@@ -2452,7 +2532,36 @@ subroutine dealloc2di32(input, ename)
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int32))
   deallocate(input)
 end subroutine dealloc2di32
-  
+
+! 3D int32 Array
+subroutine dealloc3di32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int32), allocatable, intent(inout) :: input(:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(int32))
+  deallocate(input)
+end subroutine dealloc3di32
+
+! 1D int64 Array
+subroutine dealloc1di64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  integer(kind=int64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*storage_size(int64))
+  deallocate(input)
+end subroutine dealloc1di64
+
+! 2D int64 Array
 subroutine dealloc2di64(input, ename)
   implicit none
   character(len=*), intent(in) :: ename
@@ -2466,19 +2575,189 @@ subroutine dealloc2di64(input, ename)
   deallocate(input)
 end subroutine dealloc2di64
 
-subroutine dealloc1dl(input, ename)
+! 3D int64 Array
+subroutine dealloc3di64(input, ename)
   implicit none
   character(len=*), intent(in) :: ename
-  logical, allocatable, intent(inout) :: input(:)
+  integer(kind=int64), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
     write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
-  allocated_bits = allocated_bits - size(input)
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(int64))
   deallocate(input)
-end subroutine dealloc1dl
+end subroutine dealloc3di64
 
+! 1D real32 Array
+subroutine dealloc1dr32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real32), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*storage_size(real32))
+  deallocate(input)
+end subroutine dealloc1dr32
+
+! 2D real32 Array
+subroutine dealloc2dr32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real32), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real32))
+  deallocate(input)
+end subroutine dealloc2dr32
+
+! 3D real32 Array
+subroutine dealloc3dr32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real32), allocatable, intent(inout) :: input(:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real32))
+  deallocate(input)
+end subroutine dealloc3dr32
+
+! 4D real32 Array
+subroutine dealloc4dr32(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real32), allocatable, intent(inout) :: input(:,:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*size(input,4)*storage_size(real32))
+  deallocate(input)
+end subroutine dealloc4dr32
+
+! 1D real64 Array
+subroutine dealloc1dr64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*storage_size(real64))
+  deallocate(input)
+end subroutine dealloc1dr64
+
+! 2D real64 Array
+subroutine dealloc2dr64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real64))
+  deallocate(input)
+end subroutine dealloc2dr64
+
+! 3D real64 Array
+subroutine dealloc3dr64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real64))
+  deallocate(input)
+end subroutine dealloc3dr64
+
+! 4D real64 Array
+subroutine dealloc4dr64(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real64), allocatable, intent(inout) :: input(:,:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*size(input,4)*storage_size(real64))
+  deallocate(input)
+end subroutine dealloc4dr64
+
+! 1D real128 Array
+subroutine dealloc1dr128(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real128), allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*storage_size(real128))
+  deallocate(input)
+end subroutine dealloc1dr128
+
+! 2D real128 Array
+subroutine dealloc2dr128(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real128), allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real128))
+  deallocate(input)
+end subroutine dealloc2dr128
+
+! 3D real128 Array
+subroutine dealloc3dr128(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real128), allocatable, intent(inout) :: input(:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real128))
+  deallocate(input)
+end subroutine dealloc3dr128
+
+! 4D real128 Array
+subroutine dealloc4dr128(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  real(kind=real128), allocatable, intent(inout) :: input(:,:,:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*size(input,4)*storage_size(real128))
+  deallocate(input)
+end subroutine dealloc4dr128
+
+! 1D character Array
 subroutine dealloc1dc(input, strlen, ename)
   implicit none
   character(len=*), intent(in) :: ename
@@ -2491,8 +2770,53 @@ subroutine dealloc1dc(input, strlen, ename)
     stop
   end if
   !TODO: Check what size(input) actually does
-  allocated_bits = allocated_bits - (size(input)*strlen * CHARACTER_STORAGE_SIZE)
+  allocated_bits = allocated_bits - (size(input,1)*strlen * CHARACTER_STORAGE_SIZE)
   deallocate(input)
 end subroutine dealloc1dc
+
+! 2D character Array
+subroutine dealloc2dc(input, strlen, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  character(len=:), allocatable, intent(inout) :: input(:,:)
+  integer, intent(in) :: strlen
+
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  !TODO: Check what size(input) actually does
+  allocated_bits = allocated_bits - (size(input,1)*size(input,2)*strlen * CHARACTER_STORAGE_SIZE)
+  deallocate(input)
+end subroutine dealloc2dc
+
+! 1D logical Array
+subroutine dealloc1dl(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  logical, allocatable, intent(inout) :: input(:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - size(input,1)
+  deallocate(input)
+end subroutine dealloc1dl
+
+! 2D logical Array
+subroutine dealloc2dl(input, ename)
+  implicit none
+  character(len=*), intent(in) :: ename
+  logical, allocatable, intent(inout) :: input(:,:)
+  !Check that we are already allocated
+  if(allocated(input) .eqv. .FALSE.) then
+    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    stop
+  end if
+  allocated_bits = allocated_bits - size(input,1)*size(input,2)
+  deallocate(input)
+end subroutine dealloc2dl
 
 end module mod_alloc
