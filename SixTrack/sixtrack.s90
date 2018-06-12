@@ -14196,7 +14196,7 @@ subroutine trauthin(nthinerr)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 #ifdef COLLIMAT
 !+ca collpara
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt

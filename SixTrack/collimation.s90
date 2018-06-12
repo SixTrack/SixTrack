@@ -6,10 +6,10 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbtrthin
+!+cd dbtrthin
 
- integer   mynp
- common /mynp/ mynp
+! integer   mynp
+! common /mynp/ mynp
 
 !++ Vectors of coordinates
 
@@ -582,6 +582,7 @@ module collimation
 
 ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
 ! USED IN MULTIPLE COMMON BLOCKS
+  integer, save :: mynp
   logical, save :: cut_input
 !  common /cut/ cut_input
 
@@ -962,7 +963,7 @@ subroutine collimate_init()
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -1639,7 +1640,7 @@ subroutine collimate_start_sample(nsample)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -2334,7 +2335,7 @@ subroutine collimate_start_collimator(stracki)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -2539,7 +2540,7 @@ subroutine collimate_do_collimator(stracki)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -3358,7 +3359,7 @@ subroutine collimate_end_collimator()
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -3806,7 +3807,7 @@ subroutine collimate_end_sample(j)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -4067,7 +4068,7 @@ subroutine collimate_exit()
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -4223,7 +4224,7 @@ subroutine collimate_start_turn(n)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -4259,7 +4260,7 @@ subroutine collimate_start_element(i)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -4357,7 +4358,7 @@ subroutine collimate_end_element
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
@@ -4512,7 +4513,7 @@ subroutine collimate_end_turn
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
 +ca dbcommon
 !+ca dblinopt
