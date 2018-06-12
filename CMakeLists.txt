@@ -316,11 +316,12 @@ if(SIXDA)
 	list(APPEND FORS_F90 tshift_corr)
 	list(APPEND FORS_DAFOR_F90 sixda)
 else()
-	list(APPEND FORS_FREEFORM track sixve sixvefox)
+	list(APPEND FORS_FREEFORM sixve sixvefox)
+	list(APPEND FORS_F90 track_thin track_thick)
 endif()
 
 # List of files that must be treated by DAFOR
-list(APPEND FORS_DAFOR sixvefox sixscfox sixda)
+list(APPEND FORS_DAFOR sixvefox sixscfox)
 list(APPEND FORS_DAFOR_F90 beam6d_fox)
 
 if(CR)
