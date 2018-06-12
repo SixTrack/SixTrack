@@ -312,8 +312,9 @@ list(APPEND FORS_F90
 )
 
 if(SIXDA)
-	list(APPEND FORS_FREEFORM sixsc sixda sixscfox)
+	list(APPEND FORS_FREEFORM sixsc sixscfox)
 	list(APPEND FORS_F90 tshift_corr)
+	list(APPEND FORS_DAFOR_F90 sixda)
 else()
 	list(APPEND FORS_FREEFORM track sixve sixvefox)
 endif()
