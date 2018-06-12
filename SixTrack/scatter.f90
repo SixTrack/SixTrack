@@ -1,10 +1,8 @@
-+dk scatter
 ! Deck for the scattering routines implemented in the SCATTER block
 
 module scatter
 
   use floatPrecision
-  use end_sixtrack
   use mathlib_bouncer
   use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
   use parpro
@@ -15,8 +13,6 @@ module scatter
 #ifdef HDF5
   use hdf5_output
 #endif
-
-
 
   implicit none
 

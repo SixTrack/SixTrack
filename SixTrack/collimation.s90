@@ -203,7 +203,6 @@ module collimation
   use numerical_constants
   use mod_hions
   use mod_alloc
-  use end_sixtrack
   use file_units
 !  use mod_ranecu
   use mod_ranlux

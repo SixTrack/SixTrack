@@ -163,6 +163,7 @@ module mod_common
 
   ! common /erro/
   integer, save :: ierro
+  integer, save :: errout_status
   character(len=max_name_len), save :: erbez
 
   ! common /kons/
@@ -181,7 +182,7 @@ module mod_common
   ! common /pla/
   real(kind=fPrec), allocatable, save :: xpl(:),xrms(:),zpl(:),zrms(:) ! (nele)
 
-  !common /str2/
+  ! common /str2/
   integer, allocatable, save :: mel(:)    ! (nblo)
   integer, allocatable, save :: mtyp(:,:) ! (nblo,nelb)
   integer, allocatable, save :: mstr(:)   ! (nblo)

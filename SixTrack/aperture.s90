@@ -7,7 +7,6 @@ module aperture
   ! K.Sjobak, BE/ABP-LAT
 
   use floatPrecision
-  use end_sixtrack
   use mathlib_bouncer
   use numerical_constants
 
@@ -200,8 +199,6 @@ end subroutine aperture_comnul
 !  Last modified: 2018-05-15
 ! ================================================================================================ !
 subroutine aperture_init
-
-  use end_sixtrack
 
   implicit none
 

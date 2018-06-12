@@ -109,7 +109,6 @@ end subroutine dist_parseInputLine
 
 subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m)
 
-  use end_sixtrack
   use numerical_constants
   use, intrinsic :: iso_fortran_env, only : int16
   implicit none

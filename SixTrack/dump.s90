@@ -22,7 +22,6 @@
 module dump
 
   use floatPrecision
-  use end_sixtrack
   use parpro ! For nele
   use mod_alloc
   use string_tools, only : str_maxLen, str_dZeros
@@ -1593,7 +1592,6 @@ subroutine dump_crcheck_positionFiles
   use crcoall
   use string_tools
   use mod_common
-  use checkpoint_restart, only : arecord
 
   implicit none
 
@@ -1604,6 +1602,7 @@ subroutine dump_crcheck_positionFiles
   integer i,j
   logical lerror,lopen
   character(len=256) filename
+  character(len=1024) arecord
 
   do i=-1, il
     if (ldump(i)) then

@@ -1,7 +1,6 @@
 module root_output
   use, intrinsic :: iso_c_binding
   use crcoall
-  use end_sixtrack
 
   implicit none
 

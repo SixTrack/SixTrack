@@ -1,7 +1,6 @@
 
 module FMA
 
-  use end_sixtrack
   use string_tools, only : getfields_l_max_string
 
   implicit none

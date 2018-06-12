@@ -7,7 +7,6 @@
 ! ================================================================================================ !
 module zipf
 
-  use end_sixtrack
   use string_tools
 
   implicit none

@@ -117,7 +117,6 @@ end subroutine dinv
 subroutine kermtr(ercode,log,mflag,rflag)
 
   use floatPrecision
-  use end_sixtrack
   use mathlib_bouncer
   use crcoall
 
@@ -313,7 +312,6 @@ end subroutine rinv
 subroutine f010pr(name,n,idim,k,kprnt)
 
   use floatPrecision
-  use end_sixtrack
   use mathlib_bouncer
   use crcoall
 
@@ -804,7 +802,6 @@ end subroutine dfinv
 subroutine tmprnt(name,n,idim,k)
 
   use floatPrecision
-  use end_sixtrack
   use mathlib_bouncer
   use crcoall
 

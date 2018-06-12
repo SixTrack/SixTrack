@@ -2696,7 +2696,6 @@ subroutine dafun(cf,ina,inc)
 
 subroutine dafunt(cf,ina,inc)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -4762,7 +4761,6 @@ subroutine dacfut(ina,fun,inc)
 
 subroutine dapri(ina,iunit)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -4896,7 +4894,6 @@ subroutine dapri(ina,iunit)
 
 subroutine dapri77(ina,iunit)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -5022,7 +5019,6 @@ subroutine dapri77(ina,iunit)
 
 subroutine dashift(ina,inc,ishift)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname,cc,eps,nda,nomax,nocut,idano,idanv,idapo,idalm,idall,i1,i2,ieo,&
@@ -5158,7 +5154,6 @@ subroutine dashift(ina,inc,ishift)
 
 subroutine darea(ina,iunit)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv
@@ -5315,7 +5310,6 @@ subroutine darea(ina,iunit)
 
 subroutine darea77(ina,iunit)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv
@@ -5398,7 +5392,6 @@ subroutine darea77(ina,iunit)
 
 subroutine dadeb(iunit,c,istop)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname
@@ -5576,7 +5569,6 @@ subroutine dachk(ina,inoa,inva, inb,inob,invb, inc,inoc,invc)
 
 subroutine damch(iaa,ia)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       implicit none
@@ -5765,7 +5757,6 @@ subroutine datra(idif,ina,inc)
 
 subroutine etred(no1,nv1,ic1,ic2,no2,nv2,i11,i21)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : lnv
@@ -6205,7 +6196,6 @@ subroutine dakey(c)
 
 subroutine dapri6(ina,result,ien,i56)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,i1,i2,ieo,ia1,ia2,lnv
@@ -6291,7 +6281,6 @@ subroutine dapri6(ina,result,ien,i56)
 
 subroutine darea6(ina,zfeld,i56)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname,cc,nda,nomax,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv
@@ -6428,7 +6417,6 @@ subroutine darea6(ina,zfeld,i56)
 
 subroutine daprimax(ina,iunit)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname,cc,eps,nda,nomax,nvmax,idano,idanv,idapo,idalm,idall,i1,i2,ieo,&
@@ -6537,7 +6525,6 @@ subroutine daprimax(ina,iunit)
 
 subroutine damono(ina,jd,cfac,istart,inc)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : cc,idalm,idall,i1,i2
@@ -6598,7 +6585,6 @@ subroutine damono(ina,jd,cfac,istart,inc)
 
 subroutine dacycle(ina,ipresent,value,j,illa)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -6654,7 +6640,6 @@ subroutine dacycle(ina,ipresent,value,j,illa)
 
 subroutine daorder(ina,iunit,jx,invo,nchop)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : daname,cc,nda,idano,idanv,idapo,idalm,idall,ia1,ia2,lnv

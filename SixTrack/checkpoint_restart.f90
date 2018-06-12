@@ -79,731 +79,629 @@ contains
 !   The file fort.93 is used as a log file for the checkpoint/restarting.
 ! ================================================================================================ !
 subroutine crcheck
-  
-      use floatPrecision
-      use end_sixtrack
-      use string_tools
-      use numerical_constants
-      use dynk, only : ldynk, ldynkfiledisable,                         &
-            dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
-      use dump, only : dump_crcheck_readdata, dump_crcheck_positionFiles
-
-      use scatter, only : scatter_active, scatter_crcheck_readdata,     &
-      &     scatter_crcheck_positionFiles
-
-      use, intrinsic :: iso_fortran_env, only : int32
-
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-      use mod_commont
-      use mod_commond
-      use mod_hions
-      implicit none
+  use floatPrecision
+  use string_tools
+  use numerical_constants
+  use dynk,    only : ldynk, ldynkfiledisable,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dump,    only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use scatter, only : scatter_active,scatter_crcheck_readdata,scatter_crcheck_positionFiles
+  use, intrinsic :: iso_fortran_env, only : int32
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use mod_commont
+  use mod_commond
+  use mod_hions
+  implicit none
 #include "version.f90"
-      integer i,j,k,l,m,ia
-      integer lstring,myia,mybinrecs,binrecs94
+  integer i,j,k,l,m,ia
+  integer lstring,myia,mybinrecs,binrecs94
 
-      !DANGER: IF THE LENGTH OF THE RECORDS IN WRITEBIN(_HEADER)CHANGES,
-      ! THESE ARRAYS MUST BE UPDATED
-      integer(int32) hbuff,tbuff
-      dimension hbuff(253),tbuff(35)
+  !DANGER: IF THE LENGTH OF THE RECORDS IN WRITEBIN(_HEADER)CHANGES,
+  ! THESE ARRAYS MUST BE UPDATED
+  integer(int32) hbuff,tbuff
+  dimension hbuff(253),tbuff(35)
 
-      logical lopen,lerror
-
+  logical lopen,lerror
 
 #ifdef BOINC
-      character(len=256) filename
+  character(len=256) filename
 #endif
-      save
-      restart=.false.
-      read95=.false.
-      read96=.false.
-!     Some log entries to fort.93
-      write(93,*)                                                       &
-      &'SIXTRACR CRCHECK CALLED lout=',lout,'restart',restart,           &
-      &'rerun',rerun,'checkp',checkp
-      flush(93)
-#ifdef DEBUG
-                    !call system('../crcheck >> crlog')
-#endif
-!--   We are not checkpoint/restart or we have no restart files
-      if (.not.checkp) goto 605
-      if (.not.fort95.and..not.fort96) goto 605
-!--   If we do we must have a fort.6 as they were created by CRPOINT
-! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
+  save
+  !--------------------------------------------------------------------!
+  restart=.false.
+  read95=.false.
+  read96=.false.
+  ! Some log entries to fort.93
+  write(93,"(a,i0,3(a,l1))") "SIXTRACR> CRCHECK CALLED lout=",lout," restart=",restart," rerun=",rerun," checkp=",checkp
+  flush(93)
+  ! We are not checkpoint/restart or we have no restart files
+  if (.not.checkp) goto 605
+  if (.not.fort95.and..not.fort96) goto 605
+  ! If we do we must have a fort.6 as they were created by CRPOINT
+  ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
-      if (.not.rerun) then
-        write(lout,*)                                                   &
-      &'SIXTRACR CRCHECK *** ERROR *** ',                                &
-      &'Found fort.95/fort.96 but NO fort.6'
-        write(lout,*) 'SIXTRACR CRCHECK failure'
+  if (.not.rerun) then
+    write(lout,"(a)") "SIXTRACR> ERROR CRCHECK Found fort.95/fort.96 but NO fort.6"
+    call prror(-1)
+  endif
+#endif
+  ! Check at least one restart file is readable
+  write(93,"(a)") "SIXTRACR> CRCHECK checking fort.95/96"
+  flush(93)
+  if (fort95) then
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 1 VERSION"
+    flush(93)
+
+    rewind 95
+    read(95,err=100,end=100) cr_version,cr_moddate
+    if ((cr_version /= version) .or. (cr_moddate /= moddate)) then
+      write(93,"(a)") "SIXTRACR> CRCHECK: fort.95 was written by SixTrack version="//cr_version//" moddate="//cr_moddate
+      write(93,"(a)") "          This is SixTrack version="//version//" moddate="//moddate
+      write(93,"(a)") "          Version mismatch; giving up on this file."
+      flush(93)
+      goto 100
+    end if
+    
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 2"
+    flush(93)
+    read(95,err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,crsythck,cril,crtime3,crnapxo,crnapx,cre0
+    
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 3"
+    flush(93)
+    read(95,err=100,end=100) &
+      (crbinrecs(j),j=1,(crnapxo+1)/2), &
+      (crnumxv(j),j=1,crnapxo),         &
+      (crnnumxv(j),j=1,crnapxo),        &
+      (crnlostp(j),j=1,crnapxo),        &
+      (crpstop(j),j=1,crnapxo),         &
+      (crxv(1,j),j=1,crnapxo),          &
+      (cryv(1,j),j=1,crnapxo),          &
+      (crxv(2,j),j=1,crnapxo),          &
+      (cryv(2,j),j=1,crnapxo),          &
+      (crsigmv(j),j=1,crnapxo),         &
+      (crdpsv(j),j=1,crnapxo),          &
+      (crdpsv1(j),j=1,crnapxo),         &
+      (crejv(j),j=1,crnapxo),           &
+      (crejfv(j),j=1,crnapxo),          &
+      (craperv(j,1),j=1,crnapxo),       &
+      (craperv(j,2),j=1,crnapxo),       &
+      (crxvl(1,j),j=1,crnapxo),         &
+      (crxvl(2,j),j=1,crnapxo),         &
+      (cryvl(1,j),j=1,crnapxo),         &
+      (cryvl(2,j),j=1,crnapxo),         &
+      (crdpsvl(j),j=1,crnapxo),         &
+      (crejvl(j),j=1,crnapxo),          &
+      (crsigmvl(j),j=1,crnapxo)
+
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 5 DUMP"
+    flush(93)
+    call dump_crcheck_readdata(95,lerror)
+    if (lerror) goto 100
+
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 5.5 HION"
+    flush(93)
+    call hions_crcheck_readdata(95,lerror)
+    if (lerror) goto 100
+
+    if (ldynk) then
+      write(93,"(a)") "SIXTRACR CRCHECK reading fort.95 Record 6 DYNK"
+      flush(93)
+      call dynk_crcheck_readdata(95,lerror)
+      if (lerror) goto 100
+    end if
+
+    if(scatter_active) then
+      write(93,"(a)") "SIXTRACR CRCHECK reading fort.95 Record 7 SCATTER"
+      flush(93)
+      call scatter_crcheck_readdata(95,lerror)
+      if (lerror) goto 100
+    end if
+
+    !ERIC new extended checkpoint for synuthck
+    if (crsythck) then
+      !ERICVARS
+      ! and make sure we can read the extended vars before leaving fort.95
+      ! We will re-read them in crstart to be sure they are restored correctly
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 8 extended vars fort.95 crnapxo=",crnapxo
+      flush(93)
+      read(95,end=100,err=100,iostat=ierro) &
+        ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
+        ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
+        (aek(j),j=1,crnapxo),                               &
+        (afok(j),j=1,crnapxo),                              &
+        (as3(j),j=1,crnapxo),                               &
+        (as4(j),j=1,crnapxo),                               &
+        (as6(j),j=1,crnapxo),                               &
+        (co(j),j=1,crnapxo),                                &
+        (dpd(j),j=1,crnapxo),                               &
+        (dpsq(j),j=1,crnapxo),                              &
+        (fi(j),j=1,crnapxo),                                &
+        (fok(j),j=1,crnapxo),                               &
+        (fok1(j),j=1,crnapxo),                              &
+        (fokqv(j),j=1,crnapxo),                             &
+        (g(j),j=1,crnapxo),                                 &
+        (gl(j),j=1,crnapxo),                                &
+        (hc(j),j=1,crnapxo),                                &
+        (hi(j),j=1,crnapxo),                                &
+        (hi1(j),j=1,crnapxo),                               &
+        (hm(j),j=1,crnapxo),                                &
+        (hp(j),j=1,crnapxo),                                &
+        (hs(j),j=1,crnapxo),                                &
+        (rho(j),j=1,crnapxo),                               &
+        (rhoc(j),j=1,crnapxo),                              &
+        (rhoi(j),j=1,crnapxo),                              &
+        (si(j),j=1,crnapxo),                                &
+        (siq(j),j=1,crnapxo),                               &
+        (sm1(j),j=1,crnapxo),                               &
+        (sm12(j),j=1,crnapxo),                              &
+        (sm2(j),j=1,crnapxo),                               &
+        (sm23(j),j=1,crnapxo),                              &
+        (sm3(j),j=1,crnapxo),                               &
+        (wf(j),j=1,crnapxo),                                &
+        (wfa(j),j=1,crnapxo),                               &
+        (wfhi(j),j=1,crnapxo)
+      backspace (95,iostat=ierro)
+      write(93,"(a)") "SIXTRACR> CRCHECK read fort.95 EXTENDED OK"
+      flush(93)
+      write(93,"(a)") "SIXTRACR> CRCHECK leaving fort.95 for CRSTART EXTENDED"
+      flush(93)
+    end if
+    read95=.true.
+    goto 103
+  end if
+100 continue
+  if (.not.read95) then
+    write(93,"(a)") "SIXTRACR> CRCHECK COULD NOT READ CHECKPOINT FILE 95"
+    flush(93)
+  end if
+  if (fort96) then
+    write(93,"(a)") "SIXTRACR> CRCHECK trying fort.96 instead"
+    flush(93)
+    rewind 96
+
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 1 VERSION"
+    flush(93)
+
+    read(96,err=101,end=101) cr_version,cr_moddate
+    if ((cr_version /= version) .or. (cr_moddate /= moddate)) then
+      write(93,"(a)") "SIXTRACR> CRCHECK: fort.96 was written by SixTrack version="//cr_version//" moddate="//cr_moddate
+      write(93,"(a)") "          This is SixTrack version="//version//" moddate="//moddate
+      write(93,"(a)") "          Version mismatch; giving up on this file."
+      flush(93)
+      goto 101
+    end if
+
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 2"
+    flush(93)
+    read(96,err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
+      crsythck,cril,crtime3,crnapxo,crnapx,cre0
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 3"
+    flush(93)
+    read(96,err=101,end=101,iostat=ierro) &
+      (crbinrecs(j),j=1,(crnapxo+1)/2),  &
+      (crnumxv(j),j=1,crnapxo),          &
+      (crnnumxv(j),j=1,crnapxo),         &
+      (crnlostp(j),j=1,crnapxo),         &
+      (crpstop(j),j=1,crnapxo),          &
+      (crxv(1,j),j=1,crnapxo),           &
+      (cryv(1,j),j=1,crnapxo),           &
+      (crxv(2,j),j=1,crnapxo),           &
+      (cryv(2,j),j=1,crnapxo),           &
+      (crsigmv(j),j=1,crnapxo),          &
+      (crdpsv(j),j=1,crnapxo),           &
+      (crdpsv1(j),j=1,crnapxo),          &
+      (crejv(j),j=1,crnapxo),            &
+      (crejfv(j),j=1,crnapxo),           &
+      (craperv(j,1),j=1,crnapxo),        &
+      (craperv(j,2),j=1,crnapxo),        &
+      (crxvl(1,j),j=1,crnapxo),          &
+      (crxvl(2,j),j=1,crnapxo),          &
+      (cryvl(1,j),j=1,crnapxo),          &
+      (cryvl(2,j),j=1,crnapxo),          &
+      (crdpsvl(j),j=1,crnapxo),          &
+      (crejvl(j),j=1,crnapxo),           &
+      (crsigmvl(j),j=1,crnapxo)
+
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 5 DUMP"
+    flush(93)
+    call dump_crcheck_readdata(96,lerror)
+    if (lerror) goto 100
+
+    if (ldynk) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 6 DYNK"
+      flush(93)
+      call dynk_crcheck_readdata(96,lerror)
+      if (lerror) goto 101
+    end if
+
+    if(scatter_active) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 7 SCATTER"
+      flush(93)
+      call scatter_crcheck_readdata(96,lerror)
+      if (lerror) goto 101
+    end if
+
+    !ERIC new extended checkpoint for synuthck
+    if (crsythck) then
+      !ERICVARS
+      ! and make sure we can read the extended vars before leaving fort.96
+      ! We will re-read them in crstart to be sure they are correct
+      write(93,"(a,i0)") "SIXTRACR CRCHECK verifying Record 8 extended vars fort.96, crnapxo=",crnapxo
+      flush(93)
+      write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
+      flush(93)
+      read(96,end=101,err=101,iostat=ierro)                  &
+        ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
+        ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
+        (aek(j),j=1,crnapxo),                               &
+        (afok(j),j=1,crnapxo),                              &
+        (as3(j),j=1,crnapxo),                               &
+        (as4(j),j=1,crnapxo),                               &
+        (as6(j),j=1,crnapxo),                               &
+        (co(j),j=1,crnapxo),                                &
+        (dpd(j),j=1,crnapxo),                               &
+        (dpsq(j),j=1,crnapxo),                              &
+        (fi(j),j=1,crnapxo),                                &
+        (fok(j),j=1,crnapxo),                               &
+        (fok1(j),j=1,crnapxo),                              &
+        (fokqv(j),j=1,crnapxo),                             &
+        (g(j),j=1,crnapxo),                                 &
+        (gl(j),j=1,crnapxo),                                &
+        (hc(j),j=1,crnapxo),                                &
+        (hi(j),j=1,crnapxo),                                &
+        (hi1(j),j=1,crnapxo),                               &
+        (hm(j),j=1,crnapxo),                                &
+        (hp(j),j=1,crnapxo),                                &
+        (hs(j),j=1,crnapxo),                                &
+        (rho(j),j=1,crnapxo),                               &
+        (rhoc(j),j=1,crnapxo),                              &
+        (rhoi(j),j=1,crnapxo),                              &
+        (si(j),j=1,crnapxo),                                &
+        (siq(j),j=1,crnapxo),                               &
+        (sm1(j),j=1,crnapxo),                               &
+        (sm12(j),j=1,crnapxo),                              &
+        (sm2(j),j=1,crnapxo),                               &
+        (sm23(j),j=1,crnapxo),                              &
+        (sm3(j),j=1,crnapxo),                               &
+        (wf(j),j=1,crnapxo),                                &
+        (wfa(j),j=1,crnapxo),                               &
+        (wfhi(j),j=1,crnapxo)
+      backspace (96,iostat=ierro)
+      write(93,"(a)") "SIXTRACR> CRCHECK read fort.96 EXTENDED OK"
+      flush(93)
+      write(93,"(a)") "SIXTRACR> CRCHECK, leaving fort.96 for CRSTART EXTENDED"
+      flush(93)
+    end if
+    read96=.true.
+    goto 103
+  end if
+101 continue
+  if (.not.read96) then
+    write(93,"(a)") "SIXTRACR> CRCHECK, COULD NOT READ CHECKPOINT FILE 96"
+    flush(93)
+  end if
+103 continue
+
+  ! If we have successfully read either fort.95 or fort.96
+  ! we need to handle lost particles and ntwin .ne. 2
+  ! Otherwise we just continue with checkpointing as requested
+  if (read95.or.read96) then
+    write(93,"(2(a,l1),7(a,i0))") "SIXTRACR> CRCHECK read95=",read95," read96=",read96,&
+      " crnapxo=",crnapxo," crbinrec=",crbinrec," napx=",napx," sixrecs=",sixrecs,     &
+      " crsixrecs=",crsixrecs," crbnlrec=",crbnlrec," crbllrec=",crbllrec
+    write(93,"(a)") "SIXTRACR> CRCHECK crbinrecs:"
+    do j=1,(crnapxo+1)/2
+      write(93,"(2(a,i0))") "SIXTRACR> ",j,": ",crbinrecs(j)
+    end do
+    flush(93)
+
+    ! First we position fort.6 to last checkpoint
+    do j=1,crsixrecs
+      read(6,"(a1024)",end=604,err=106,iostat=ierro) arecord
+      sixrecs = sixrecs+1
+    end do
+    ! This is not a FLUSH!
+    endfile (6,iostat=ierro)
+604 continue
+    backspace (6,iostat=ierro)
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK found fort.6 sixrecs=",sixrecs
+    flush(93)
+
+    ! We may be re-running with a DIFFERENT number of turns (numl)
+    ! Eric fix this later by reading numl for fort.90
+    if (numl /= crnuml) then
+      if (numl < crnumlcr) then
+        write(lout,"(2(a,i0))") "SIXTRACR> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
+        write(93,"(2(a,i0))")   "SIXTRACR> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
+        flush(93)
         call prror(-1)
-      endif
-#endif
-!--   Check at least one restart file is readable
-        write(93,*)                                                      &
-      &'SIXTRACR CRCHECK checking fort.95/96'
-        flush(93)
-      if (fort95) then
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1 VERSION'
-        flush(93)
-
-        rewind 95
-
-        read(95,err=100,end=100)                                        &
-      &       cr_version,cr_moddate
-        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))   &
-      &       then
-            write(93,*) "SIXTRACR CRCHECK: fort.95 was written by "//    &
-      &          "SixTrack version=", cr_version, "moddate=",cr_moddate
-            write(93,*) "This is SixTrack "//                            &
-      &          "version=",version,"moddate=",moddate
-            write(93,*) "Version mismatch; giving up on this file."
-
-            flush(93)
-
-            goto 100
-        endif
-
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
-        flush(93)
-
-        read(95,err=100,end=100)                                        &
-      &crnumlcr,                                                         &
-      &crnuml,                                                           &
-      &crsixrecs,                                                        &
-      &crbinrec,                                                         &
-      &crbnlrec,                                                         &
-      &crbllrec,                                                         &
-      &crsythck,                                                         &
-      &cril,                                                             &
-      &crtime3,                                                          &
-      &crnapxo,                                                          &
-      &crnapx,                                                           &
-      &cre0
-        write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 3'
-        flush(93)
-        read(95,err=100,end=100)                                        &
-      &(crbinrecs(j),j=1,(crnapxo+1)/2),                                 &
-      &(crnumxv(j),j=1,crnapxo),                                         &
-      &(crnnumxv(j),j=1,crnapxo),                                        &
-      &(crnlostp(j),j=1,crnapxo),                                        &
-      &(crpstop(j),j=1,crnapxo),                                         &
-      &(crxv(1,j),j=1,crnapxo),                                          &
-      &(cryv(1,j),j=1,crnapxo),                                          &
-      &(crxv(2,j),j=1,crnapxo),                                          &
-      &(cryv(2,j),j=1,crnapxo),                                          &
-      &(crsigmv(j),j=1,crnapxo),                                         &
-      &(crdpsv(j),j=1,crnapxo),                                          &
-      &(crdpsv1(j),j=1,crnapxo),                                         &
-      &(crejv(j),j=1,crnapxo),                                           &
-      &(crejfv(j),j=1,crnapxo),                                          &
-      &(craperv(j,1),j=1,crnapxo),                                       &
-      &(craperv(j,2),j=1,crnapxo),                                       &
-      &(crxvl(1,j),j=1,crnapxo),                                         &
-      &(crxvl(2,j),j=1,crnapxo),                                         &
-      &(cryvl(1,j),j=1,crnapxo),                                         &
-      &(cryvl(2,j),j=1,crnapxo),                                         &
-      &(crdpsvl(j),j=1,crnapxo),                                         &
-      &(crejvl(j),j=1,crnapxo),                                          &
-      &(crsigmvl(j),j=1,crnapxo)
-
-      write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5 DUMP'
+      end if
+      write(93,"(2(a,i0))") "SIXTRACR> CRCHECK re-sets numl in binary file headers from ",crnuml," to ",numl
       flush(93)
-      call dump_crcheck_readdata(95,lerror)
-      if (lerror) goto 100
 
-      write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5.5 HION'
-      flush(93)
-      call hions_crcheck_readdata(95,lerror)
-      if (lerror) goto 100
-
-      if (ldynk) then
-          write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 6 DYNK'
-          flush(93)
-          call dynk_crcheck_readdata(95,lerror)
-          if (lerror) goto 100
-      endif
-
-      if(scatter_active) then
-          write(93,*) "SIXTRACR CRCHECK reading fort.95 Record 7 SCATTER"
-          flush(93)
-          call scatter_crcheck_readdata(95,lerror)
-          if (lerror) goto 100
-      endif
-
-!ERIC new extended checkpoint for synuthck
-      if (crsythck) then
-!ERICVARS
-! and make sure we can read the extended vars before leaving fort.95
-! We will re-read them in crstart to be sure they are restored correctly
-          write(93,*)                                                   &
-      &'SIXTRACR CRCHECK verifying Record 8 extended vars fort.95',      &
-      &' crnapxo=',crnapxo
-          flush(93)
-          read(95,end=100,err=100,iostat=ierro)                         &
-      &((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
-      &((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
-      &(aek(j),j=1,crnapxo),                                             &
-      &(afok(j),j=1,crnapxo),                                            &
-      &(as3(j),j=1,crnapxo),                                             &
-      &(as4(j),j=1,crnapxo),                                             &
-      &(as6(j),j=1,crnapxo),                                             &
-      &(co(j),j=1,crnapxo),                                              &
-      &(dpd(j),j=1,crnapxo),                                             &
-      &(dpsq(j),j=1,crnapxo),                                            &
-      &(fi(j),j=1,crnapxo),                                              &
-      &(fok(j),j=1,crnapxo),                                             &
-      &(fok1(j),j=1,crnapxo),                                            &
-      &(fokqv(j),j=1,crnapxo),                                           &
-      &(g(j),j=1,crnapxo),                                               &
-      &(gl(j),j=1,crnapxo),                                              &
-      &(hc(j),j=1,crnapxo),                                              &
-      &(hi(j),j=1,crnapxo),                                              &
-      &(hi1(j),j=1,crnapxo),                                             &
-      &(hm(j),j=1,crnapxo),                                              &
-      &(hp(j),j=1,crnapxo),                                              &
-      &(hs(j),j=1,crnapxo),                                              &
-      &(rho(j),j=1,crnapxo),                                             &
-      &(rhoc(j),j=1,crnapxo),                                            &
-      &(rhoi(j),j=1,crnapxo),                                            &
-      &(si(j),j=1,crnapxo),                                              &
-      &(siq(j),j=1,crnapxo),                                             &
-      &(sm1(j),j=1,crnapxo),                                             &
-      &(sm12(j),j=1,crnapxo),                                            &
-      &(sm2(j),j=1,crnapxo),                                             &
-      &(sm23(j),j=1,crnapxo),                                            &
-      &(sm3(j),j=1,crnapxo),                                             &
-      &(wf(j),j=1,crnapxo),                                              &
-      &(wfa(j),j=1,crnapxo),                                             &
-      &(wfhi(j),j=1,crnapxo)
-          backspace (95,iostat=ierro)
-          write(93,*) 'CRCHECK read fort.95 EXTENDED OK'
-          flush(93)
-          write(93,*)                                                   &
-      &'SIXTRACR CRCHECK leaving fort.95 for CRSTART EXTENDED'
-          flush(93)
-        endif
-        read95=.true.
-        goto 103
-      endif
-  100 if (.not.read95) then
-        write(93,*)                                                     &
-      &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 95'
-        flush(93)
-      endif
-      if (fort96) then
-        write(93,*) 'CRCHECK trying fort.96 instead'
-        flush(93)
-
-        rewind 96
-
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1 VERSION'
-        flush(93)
-
-        read(96,err=101,end=101)                                        &
-      &       cr_version,cr_moddate
-        if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))   &
-      &       then
-            write(93,*) "SIXTRACR CRCHECK: fort.96 was written by "//    &
-      &          "SixTrack version=", cr_version, "moddate=",cr_moddate
-            write(93,*) "This is SixTrack "//                            &
-      &          "version=",version,"moddate=",moddate
-            write(93,*) "Version mismatch; giving up on this file."
-
-            flush(93)
-
-            goto 101
-        endif
-
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
-        flush(93)
-        read(96,err=101,end=101,iostat=ierro)                           &
-      &crnumlcr,                                                         &
-      &crnuml,                                                           &
-      &crsixrecs,                                                        &
-      &crbinrec,                                                         &
-      &crbnlrec,                                                         &
-      &crbllrec,                                                         &
-      &crsythck,                                                         &
-      &cril,                                                             &
-      &crtime3,                                                          &
-      &crnapxo,                                                          &
-      &crnapx,                                                           &
-      &cre0
-        write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 3'
-        flush(93)
-      read(96,err=101,end=101,iostat=ierro)                             &
-      &(crbinrecs(j),j=1,(crnapxo+1)/2),                                 &
-      &(crnumxv(j),j=1,crnapxo),                                         &
-      &(crnnumxv(j),j=1,crnapxo),                                        &
-      &(crnlostp(j),j=1,crnapxo),                                        &
-      &(crpstop(j),j=1,crnapxo),                                         &
-      &(crxv(1,j),j=1,crnapxo),                                          &
-      &(cryv(1,j),j=1,crnapxo),                                          &
-      &(crxv(2,j),j=1,crnapxo),                                          &
-      &(cryv(2,j),j=1,crnapxo),                                          &
-      &(crsigmv(j),j=1,crnapxo),                                         &
-      &(crdpsv(j),j=1,crnapxo),                                          &
-      &(crdpsv1(j),j=1,crnapxo),                                         &
-      &(crejv(j),j=1,crnapxo),                                           &
-      &(crejfv(j),j=1,crnapxo),                                          &
-      &(craperv(j,1),j=1,crnapxo),                                       &
-      &(craperv(j,2),j=1,crnapxo),                                       &
-      &(crxvl(1,j),j=1,crnapxo),                                         &
-      &(crxvl(2,j),j=1,crnapxo),                                         &
-      &(cryvl(1,j),j=1,crnapxo),                                         &
-      &(cryvl(2,j),j=1,crnapxo),                                         &
-      &(crdpsvl(j),j=1,crnapxo),                                         &
-      &(crejvl(j),j=1,crnapxo),                                          &
-      &(crsigmvl(j),j=1,crnapxo)
-
-      write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 5 DUMP'
-      flush(93)
-      call dump_crcheck_readdata(96,lerror)
-      if (lerror) goto 100
-
-      if (ldynk) then
-          write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 6 DYNK'
-          flush(93)
-          call dynk_crcheck_readdata(96,lerror)
-          if (lerror) goto 101
-      endif
-
-      if(scatter_active) then
-          write(93,*) "SIXTRACR CRCHECK reading fort.96 Record 7 SCATTER"
-          flush(93)
-          call scatter_crcheck_readdata(96,lerror)
-          if (lerror) goto 101
-      endif
-
-!ERIC new extended checkpoint for synuthck
-        if (crsythck) then
-!ERICVARS
-! and make sure we can read the extended vars before leaving fort.96
-! We will re-read them in crstart to be sure they are correct
-          write(93,*)                                                   &
-      &'SIXTRACR CRCHECK verifying Record 8 extended vars fort.96,',     &
-      &' crnapxo=',crnapxo
-          flush(93)
-          write(93,*) 'CRCHECK verifying extended vars fort.96'
-          flush(93)
-          read(96,end=101,err=101,iostat=ierro)                         &
-      &((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
-      &((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6),               &
-      &(aek(j),j=1,crnapxo),                                             &
-      &(afok(j),j=1,crnapxo),                                            &
-      &(as3(j),j=1,crnapxo),                                             &
-      &(as4(j),j=1,crnapxo),                                             &
-      &(as6(j),j=1,crnapxo),                                             &
-      &(co(j),j=1,crnapxo),                                              &
-      &(dpd(j),j=1,crnapxo),                                             &
-      &(dpsq(j),j=1,crnapxo),                                            &
-      &(fi(j),j=1,crnapxo),                                              &
-      &(fok(j),j=1,crnapxo),                                             &
-      &(fok1(j),j=1,crnapxo),                                            &
-      &(fokqv(j),j=1,crnapxo),                                           &
-      &(g(j),j=1,crnapxo),                                               &
-      &(gl(j),j=1,crnapxo),                                              &
-      &(hc(j),j=1,crnapxo),                                              &
-      &(hi(j),j=1,crnapxo),                                              &
-      &(hi1(j),j=1,crnapxo),                                             &
-      &(hm(j),j=1,crnapxo),                                              &
-      &(hp(j),j=1,crnapxo),                                              &
-      &(hs(j),j=1,crnapxo),                                              &
-      &(rho(j),j=1,crnapxo),                                             &
-      &(rhoc(j),j=1,crnapxo),                                            &
-      &(rhoi(j),j=1,crnapxo),                                            &
-      &(si(j),j=1,crnapxo),                                              &
-      &(siq(j),j=1,crnapxo),                                             &
-      &(sm1(j),j=1,crnapxo),                                             &
-      &(sm12(j),j=1,crnapxo),                                            &
-      &(sm2(j),j=1,crnapxo),                                             &
-      &(sm23(j),j=1,crnapxo),                                            &
-      &(sm3(j),j=1,crnapxo),                                             &
-      &(wf(j),j=1,crnapxo),                                              &
-      &(wfa(j),j=1,crnapxo),                                             &
-      &(wfhi(j),j=1,crnapxo)
-          backspace (96,iostat=ierro)
-          write(93,*) 'SIXTRACR CRCHECK read fort.96 EXTENDED OK'
-          flush(93)
-          write(93,*)                                                   &
-      &'SIXTRACR CRCHECK, leaving fort.96 for CRSTART EXTENDED'
-          flush(93)
-        endif
-        read96=.true.
-        goto 103
-      endif
-  101 if (.not.read96) then
-        write(93,*)                                                     &
-      &'SIXTRACR CRCHECK, COULD NOT READ CHECKPOINT FILE 96'
-        flush(93)
-      endif
-  103 continue
-
-!--   If we have successfully read either fort.95 or fort.96
-!--   we need to handle lost particles and ntwin .ne. 2
-!--   Otherwise we just continue with checkpointing as requested
-      if (read95.or.read96) then
-        write(93,*)                                                     &
-      &'SIXTRACR CRCHECK read95',read95,'read96',read96,                 &
-      &'crnapxo',crnapxo,'crbinrec',crbinrec,'napx',napx,                &
-      &'sixrecs',sixrecs,'crsixrecs',crsixrecs,'crbnlrec',crbnlrec,      &
-      &'crbllrec',crbllrec
-        write(93,*)                                                     &
-      &'SIXTRACR CRCHECK crbinrecs ',                                    &
-      &(crbinrecs(j),j=1,(crnapxo+1)/2)
-        flush(93)
-
-!--   First we position fort.6 to last checkpoint
-        do j=1,crsixrecs
-            read(6,'(a1024)',end=604,err=106,iostat=ierro) arecord
-            sixrecs=sixrecs+1
-        end do
-        !This is not a FLUSH!
-        endfile (6,iostat=ierro)
-  604   backspace (6,iostat=ierro)
-#ifdef DEBUG
-                    !call system('../crcheck >> crlog')
-#endif
-        write(93,*)                                                     &
-      &'SIXTRACR CRCHECK found fort.6 sixrecs=',sixrecs
-        flush(93)
-
-!--   We may be re-running with a DIFFERENT number of turns (numl)
-! Eric fix this later by reading numl for fort.90
-        if (numl.ne.crnuml) then
-          if (numl.lt.crnumlcr) then
-            write(lout,*)                                               &
-      &'SIXTRACR CRCHECK *** ERROR *** New numl .lt. crnumlcr',          &
-      &numl,crnumlcr
-            write(93,*)                                                 &
-      &'SIXTRACR CRCHECK *** ERROR *** New numl .lt. crnumlcr',          &
-      &numl,crnumlcr
-            flush(93)
-            write(lout,*) 'SIXTRACR CRCHECK numl .lt. crnumlcr'
-            call prror(-1)
-          endif
-          write(93,*)                                                   &
-      &'SIXTRACR CRCHECK re-sets numl in binary file headers from ',     &
-      &crnuml,' to ',numl
-          flush(93)
-
-!--   Reposition binary files fort.90 etc. / singletrackfile.dat
-          ! fort.94 = temp file where the data from fort.90 etc. is copied to and then back
+      ! Reposition binary files fort.90 etc. / singletrackfile.dat
+      ! fort.94 = temp file where the data from fort.90 etc. is copied to and then back
 #ifdef BOINC
-          call boincrf('fort.94',filename)
-          open(94,file=filename,form='unformatted',status='unknown')
-#endif
-#ifndef BOINC
-          open(94,file='fort.94',form='unformatted',status='unknown')
+      call boincrf('fort.94',filename)
+      open(94,file=filename,form='unformatted',status='unknown')
+#else
+      open(94,file='fort.94',form='unformatted',status='unknown')
 #endif
 #ifndef STF
-          do ia=1,crnapxo/2,1
-            ! First, copy crbinrecs(ia) records of data from fort.91-ia to fort.94
-            mybinrecs=0
-            binrecs94=0
-            myia=91-ia
-            !Copy header into integer array hbuff
-            read(91-ia,err=105,end=105,iostat=ierro) hbuff
-            mybinrecs=mybinrecs+1
-            hbuff(51)=numl ! Reset the number of turns (not very elegant)
-            write(94,err=105,iostat=ierro) hbuff
-            ! Copy particle tracking data
-            do j=2,crbinrecs(ia)
-              if(ntwin.ne.2) then
-                read(91-ia,err=105,end=105,iostat=ierro)                &
-      &(tbuff(k),k=1,17)
-                write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
-              else
-                read(91-ia,err=105,end=105,iostat=ierro) tbuff
-                write(94,err=105,iostat=ierro) tbuff
-              endif
-              mybinrecs=mybinrecs+1
-            end do ! END "do j=2,crbinrecs(ia)"
+      do ia=1,crnapxo/2,1
+        ! First, copy crbinrecs(ia) records of data from fort.91-ia to fort.94
+        mybinrecs=0
+        binrecs94=0
+        myia=91-ia
+        !Copy header into integer array hbuff
+        read(91-ia,err=105,end=105,iostat=ierro) hbuff
+        mybinrecs=mybinrecs+1
+        hbuff(51)=numl ! Reset the number of turns (not very elegant)
+        write(94,err=105,iostat=ierro) hbuff
+        ! Copy particle tracking data
+        do j=2,crbinrecs(ia)
+          if(ntwin.ne.2) then
+            read(91-ia,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+            write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          else
+            read(91-ia,err=105,end=105,iostat=ierro) tbuff
+            write(94,err=105,iostat=ierro) tbuff
+          endif
+          mybinrecs=mybinrecs+1
+        end do ! END "do j=2,crbinrecs(ia)"
 
-            ! Second, copy crbinrecs(ia) records of data from fort.94 to fort.91-ia
-            rewind 94
-            rewind 91-ia
-            !Copy header
-            read(94,err=105,end=105,iostat=ierro) hbuff
-            binrecs94=binrecs94+1
-            write(91-ia,err=105,iostat=ierro) hbuff
-            ! Copy particle tracking data into integer array tbuff
-            do j=2,crbinrecs(ia)
-              if(ntwin.ne.2) then
-                read(94,err=105,end=105,iostat=ierro)                   &
-      &(tbuff(k),k=1,17)
-                write(91-ia,err=105,iostat=ierro) (tbuff(k),k=1,17)
-              else
-                read(94,err=105,end=105,iostat=ierro) tbuff
-                write(91-ia,err=105,iostat=ierro) tbuff
-              endif
-              binrecs94=binrecs94+1
-            end do ! END "j=2,crbinrecs(ia)"
-            !This is not a FLUSH!
-            endfile (91-ia,iostat=ierro)
-            backspace (91-ia,iostat=ierro)
-            rewind 94
-          end do ! END "do ia=1,crnapxo/2,1"
+        ! Second, copy crbinrecs(ia) records of data from fort.94 to fort.91-ia
+        rewind 94
+        rewind 91-ia
+        !Copy header
+        read(94,err=105,end=105,iostat=ierro) hbuff
+        binrecs94=binrecs94+1
+        write(91-ia,err=105,iostat=ierro) hbuff
+        ! Copy particle tracking data into integer array tbuff
+        do j=2,crbinrecs(ia)
+          if(ntwin.ne.2) then
+            read(94,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+            write(91-ia,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          else
+            read(94,err=105,end=105,iostat=ierro) tbuff
+            write(91-ia,err=105,iostat=ierro) tbuff
+          endif
+          binrecs94=binrecs94+1
+        end do ! END "j=2,crbinrecs(ia)"
+        !This is not a FLUSH!
+        endfile (91-ia,iostat=ierro)
+        backspace (91-ia,iostat=ierro)
+        rewind 94
+      end do ! END "do ia=1,crnapxo/2,1"
 #endif
 #ifdef STF
-          ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to fort.94
-          mybinrecs=0
-          !Copy headers
-          do ia=1,crnapxo/2,1
-              read(90,err=105,end=105,iostat=ierro) hbuff
-              mybinrecs=mybinrecs+1
-              hbuff(51)=numl ! Reset the number of turns (not very elegant)
-              write(94,err=105,iostat=ierro) hbuff
-          end do
-          ! Copy particle tracking data
-          do ia=1,crnapxo/2,1
-              do j=2,crbinrecs(ia)
-                if(ntwin.ne.2) then
-                    read(90,err=105,end=105,iostat=ierro)                &
-      &                  (tbuff(k),k=1,17)
-                    write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
-                else
-                    read(90,err=105,end=105,iostat=ierro) tbuff
-                    write(94,err=105,iostat=ierro) tbuff
-                endif
-                mybinrecs=mybinrecs+1
-              end do
-          end do
+      ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to fort.94
+      mybinrecs=0
+      !Copy headers
+      do ia=1,crnapxo/2,1
+        read(90,err=105,end=105,iostat=ierro) hbuff
+        mybinrecs=mybinrecs+1
+        hbuff(51)=numl ! Reset the number of turns (not very elegant)
+        write(94,err=105,iostat=ierro) hbuff
+      end do
+      ! Copy particle tracking data
+      do ia=1,crnapxo/2,1
+        do j=2,crbinrecs(ia)
+          if(ntwin.ne.2) then
+            read(90,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+            write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          else
+            read(90,err=105,end=105,iostat=ierro) tbuff
+            write(94,err=105,iostat=ierro) tbuff
+          endif
+          mybinrecs=mybinrecs+1
+        end do
+      end do
 
-          ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from fort.94 to singletrackfile.dat
-          rewind 94
-          rewind 90
-          binrecs94=0
-          ! Copy header
-          do ia=1,crnapxo/2,1
-              read(94,err=105,end=105,iostat=ierro) hbuff
-              binrecs94=binrecs94+1
-              write(90,err=105,iostat=ierro) hbuff
-          end do
-          ! Copy particle tracking data
-          do ia=1,crnapxo/2,1
-              do j=2,crbinrecs(ia)
-                if(ntwin.ne.2) then
-                    read(94,err=105,end=105,iostat=ierro)                &
-      &                  (tbuff(k),k=1,17)
-                    write(90,err=105,iostat=ierro) (tbuff(k),k=1,17)
-                else
-                    read(94,err=105,end=105,iostat=ierro) tbuff
-                    write(90,err=105,iostat=ierro) tbuff
-                endif
-                binrecs94=binrecs94+1
-              enddo
-          end do
-          !This is not a FLUSH!
-          endfile   (90,iostat=ierro)
-          backspace (90,iostat=ierro)
+    ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from fort.94 to singletrackfile.dat
+      rewind 94
+      rewind 90
+      binrecs94=0
+      ! Copy header
+      do ia=1,crnapxo/2,1
+        read(94,err=105,end=105,iostat=ierro) hbuff
+        binrecs94=binrecs94+1
+        write(90,err=105,iostat=ierro) hbuff
+      end do
+      ! Copy particle tracking data
+      do ia=1,crnapxo/2,1
+        do j=2,crbinrecs(ia)
+          if(ntwin.ne.2) then
+            read(94,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+            write(90,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          else
+            read(94,err=105,end=105,iostat=ierro) tbuff
+            write(90,err=105,iostat=ierro) tbuff
+          endif
+          binrecs94=binrecs94+1
+        end do
+      end do
+      !This is not a FLUSH!
+      endfile   (90,iostat=ierro)
+      backspace (90,iostat=ierro)
 #endif
-          close(94)
-        else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
-!--  Now with the new array crbinrecs we can ignore files which are
-!--  basically finished because a particle has been lost.......
-!--  Just check crbinrecs against crbinrec
+      close(94)
+    else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
+      ! Now with the new array crbinrecs we can ignore files which are
+      ! basically finished because a particle has been lost.......
+      ! Just check crbinrecs against crbinrec
 #ifndef STF
-          ! Binary files have been rewritten; now re-position
-          write(93,*)                                                   &
-      &'SIXTRACR CRCHECK re-positioning binary files'
-          do ia=1,crnapxo/2,1
-            myia=91-ia
-            if (crbinrecs(ia).ge.crbinrec) then
-              mybinrecs=0
-              read(91-ia,err=102,end=102,iostat=ierro) hbuff
-              do 11 j=2,crbinrecs(ia)
-                if(ntwin.ne.2) then
-                  read(91-ia,err=102,end=102,iostat=ierro)              &
-      &(tbuff(k),k=1,17)
-                else
-                  read(91-ia,err=102,end=102,iostat=ierro) tbuff
-                endif
-              mybinrecs=mybinrecs+1
-    11         continue
-              !This is not a FLUSH!
-              endfile (91-ia,iostat=ierro)
-              backspace (91-ia,iostat=ierro)
-              else ! Number of ecords written to this file < general number of records written
-                  ! => Particle has been lost before last checkpoint, no need to reposition.
-              write(93,*)                                               &
-      &'SIXTRACR CRCHECK ignoring IA ',ia,' Unit ',myia
+      ! Binary files have been rewritten; now re-position
+      write(93,"(a)") "SIXTRACR> CRCHECK re-positioning binary files"
+      do ia=1,crnapxo/2,1
+        myia=91-ia
+        if (crbinrecs(ia).ge.crbinrec) then
+          mybinrecs=0
+          read(91-ia,err=102,end=102,iostat=ierro) hbuff
+          do 11 j=2,crbinrecs(ia)
+            if(ntwin.ne.2) then
+              read(91-ia,err=102,end=102,iostat=ierro) (tbuff(k),k=1,17)
+            else
+              read(91-ia,err=102,end=102,iostat=ierro) tbuff
             endif
-          end do ! END "do ia=1,crnapxo/2,1"
+            mybinrecs=mybinrecs+1
+11        continue
+          !This is not a FLUSH!
+          endfile (91-ia,iostat=ierro)
+          backspace (91-ia,iostat=ierro)
+        else ! Number of ecords written to this file < general number of records written
+            ! => Particle has been lost before last checkpoint, no need to reposition.
+          write(93,"(2(a,i0))") "SIXTRACR> CRCHECK ignoring IA ",ia," Unit ",myia
+        endif
+      end do ! END "do ia=1,crnapxo/2,1"
 #endif
 #ifdef STF
       mybinrecs=0
       ! Reposition headers
       do ia=1,crnapxo/2,1
-          read(90,err=102,end=102,iostat=ierro) hbuff
-          mybinrecs=mybinrecs+1
+        read(90,err=102,end=102,iostat=ierro) hbuff
+        mybinrecs=mybinrecs+1
       end do
       !Reposition track records
       do ia=1,crnapxo/2,1
-          do j=2,crbinrecs(ia)
-            if(ntwin.ne.2) then !ntwin=1
-                read(90,err=102,end=102,iostat=ierro)                    &
-      &              (tbuff(k),k=1,17)
-            else                !ntwin=2
-                read(90,err=102,end=102,iostat=ierro) tbuff
-            endif
-            mybinrecs=mybinrecs+1
-          end do
-      enddo
+        do j=2,crbinrecs(ia)
+          if(ntwin.ne.2) then !ntwin=1
+            read(90,err=102,end=102,iostat=ierro) (tbuff(k),k=1,17)
+          else                !ntwin=2
+            read(90,err=102,end=102,iostat=ierro) tbuff
+          endif
+          mybinrecs=mybinrecs+1
+        end do
+      end do
 #endif
-      endif ! END "if (numl.ne.crnuml) then" and END else
+    end if ! END "if (numl.ne.crnuml) then" and END else
 
-      !reposition dynksets.dat
-      if (ldynk .and.(.not.ldynkfiledisable) ) then
-          write(93,*) "SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
-          flush(93)
-          call dynk_crcheck_positionFiles
-      endif !END if (ldynk .and.(.not.ldynkfiledisable) )
-
-      !Reposition files for DUMP
-      write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP files"
-      flush(93)
-      call dump_crcheck_positionFiles
-
-      if(scatter_active) then
-          write(93,*)                                                    &
-      &        "SIXTRACR CRCHECK REPOSITIONING scatter_log.txt"
-          flush(93)
-          call scatter_crcheck_positionFiles
-
-      endif
-
-!--     Set up flag for tracking routines to call CRSTART
-        restart=.true.
-        write(lout,'(a80)')                                                   &
-      &runtim
-        !Flush or truncate?
-        endfile (lout,iostat=ierro)
-        backspace (lout,iostat=ierro)
-#ifdef DEBUG
-                    !call system('../crcheck >> crlog')
-#endif
-        write(93,*)                                                     &
-      &'SIXTRACR CRCHECK restart=TRUE',' crnumlcr=',crnumlcr
+    !reposition dynksets.dat
+    if (ldynk .and.(.not.ldynkfiledisable) ) then
+      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING dynksets.dat"
         flush(93)
-        return
-      endif
+      call dynk_crcheck_positionFiles
+    endif !END if (ldynk .and.(.not.ldynkfiledisable) )
 
-      goto 605                  !Should not end up here -> checkpoint failed.
-                                ! Start simulation over!
+    !Reposition files for DUMP
+    write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING DUMP files"
+    flush(93)
+    call dump_crcheck_positionFiles
 
-!--   Just abort if we cannot re-position/copy the binary files,
+    if(scatter_active) then
+      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING scatter_log.txt"
+      flush(93)
+      call scatter_crcheck_positionFiles
+    endif
+
+    ! Set up flag for tracking routines to call CRSTART
+    restart=.true.
+    write(lout,"(a80)") runtim
+    !Flush or truncate?
+    endfile (lout,iostat=ierro)
+    backspace (lout,iostat=ierro)
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK restart=TRUE',' crnumlcr=",crnumlcr
+    flush(93)
+    return
+  end if
+
+  goto 605                  !Should not end up here -> checkpoint failed.
+                            ! Start simulation over!
+
+  !--   Just abort if we cannot re-position/copy the binary files,
 #ifndef STF
-  102 write(lout,*)
-      write(lout,*)                                                     &
-      &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS RE-READING fort.',      &
-      &myia,' IOSTAT=',ierro
-      write(lout,*)'Unit',myia,                                         &
-      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia)
-      write(lout,*) 'SIXTRACR CRCHECK failure positioning binary files'
-      call prror(-1)
+102 continue
+  write(lout,"(a)") ""
+  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING fort.",myia," IOSTAT=",ierro
+  write(lout,"(3(a,i0))") "          Unit ",myia," mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
+  write(lout,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
+  call prror(-1)
 #endif
 #ifdef STF
-  102 write(lout,*)
-      write(lout,*)                                                     &
-      &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS RE-READING ',           &
-      &'singletrackfile.dat for ia=',ia,' IOSTAT=',ierro
-      write(lout,*)                                                     &
-      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning binary files'
-      call prror(-1)
+102 continue
+  write(lout,"(a)") ""
+  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING singletrackfile.dat for ia=",ia," IOSTAT=",ierro
+  write(lout,"(2(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
+  write(lout,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
+  call prror(-1)
 #endif
 #ifndef STF
-  105 write(lout,*)
-      write(lout,*)                                                     &
-      &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS COPYING fort.',         &
-      &myia,' IOSTAT=',ierro
-      write(lout,*)'Unit',myia,                                         &
-      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia),      &
-      &' binrecs94=',binrecs94
-      write(lout,*)
-      write(lout,*)'SIXTRACR CRCHECK failure copying binary files'
-      call prror(-1)
+105 continue
+  write(lout,"(a)") ""
+  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING fort.",myia," IOSTAT=",ierro
+  write(lout,"(4(a,i0))") "          Unit ",myia," mybinrecs=",mybinrecs,&
+    " Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
+  write(lout,"(a)")       "SIXTRACR> CRCHECK failure copying binary files"
+  call prror(-1)
 #endif
 #ifdef STF
-  105 write(lout,*)
-      write(lout,*)                                                     &
-      &'SIXTRACR CRCHECK *** ERROR ***, PROBLEMS COPYING particle pair', &
-      &ia,' IOSTAT=',ierro, ' from/to singletrackfile.dat'
-      write(lout,*)                                                     &
-      &' mybinrecs',mybinrecs,' Expected crbinrecs=',crbinrecs(ia),      &
-      &' binrecs94=',binrecs94
-      write(lout,*)
-      write(lout,*)'SIXTRACR CRCHECK failure copying binary files'
-      call prror(-1)
+105 continue
+  write(lout,"(a)") ""
+  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING particle pair ",ia," IOSTAT=",ierro," from/to singletrackfile.dat"
+  write(lout,"(3(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
+  write(lout,"(a)")       "SIXTRACR> CRCHECK failure copying binary files"
+  call prror(-1)
 #endif
-!--  We are not checkpointing or we have no checkpoints
-!--  or we have no readable checkpoint
-!--  If not checkpointing we can just give up on lout and use
-!--  fort.6. We don't need to count records at all
-  605 write(93,*)                                                       &
-      &'SIXTRACR CRCHECK no restart possible checkp=',checkp
+  ! We are not checkpointing or we have no checkpoints
+  ! or we have no readable checkpoint
+  ! If not checkpointing we can just give up on lout and use
+  ! fort.6. We don't need to count records at all
+605 continue
+  write(93,"(a,l1)") "SIXTRACR> CRCHECK no restart possible checkp=",checkp
+  flush(93)
+  if (.not.checkp) then
+    if (rerun) then
+      ! we nevertheless have an existing fort.6
+      ! we will just overwrite it for now and delete
+      ! 92 to avoid abend copying it again
+      write(93,"(a)") "SIXTRACR> CRCHECK overwriting fort.6"
       flush(93)
-      if (.not.checkp) then
-        if (rerun) then
-!--   we nevertheless have an existing fort.6
-!--   we will just overwrite it for now and delete
-!--   92 to avoid abend copying it again
-          write(93,*)                                                   &
-      &'SIXTRACR CRCHECK overwriting fort.6'
-          flush(93)
-        endif
-!--   and just use fort.6 from now on
-        write(93,*)                                                     &
-      &'SIXTRACR CRCHECK giving up on LOUT'
-        flush(93)
-#ifdef DEBUG
-                    !call system('../crcheck >> crlog')
-#endif
-!--   Copy the lout to fort.6 (the file, not output_unit)
-!     It seems that FORTRAN will open the file automatically?
-!     There are no open(unit=6) etc. calls anywhere...
-        rewind lout
-    3   read(lout,'(a1024)',end=1,err=107,iostat=ierro) arecord
-        lstring=1024
-        do i=1024,2,-1
-          lstring=i
-          if (arecord(i:i).ne.' ')goto 2
-          lstring=lstring-1
-        enddo
-    2   write(6,'(a)') arecord(1:lstring)
-        goto 3
-        !Not a flush?
-    1   endfile (6,iostat=ierro)
-        backspace (6,iostat=ierro)
-        !This is not a FLUSH!
-        rewind lout
-        endfile (lout,iostat=ierro)
-        close(lout)
-#ifdef DEBUG
-                    !call system('../crcheck >> crlog')
-#endif
-        lout=6
-      endif
-      return
-  106  write(93,*)                                                       &
-      &'SIXTRACR CRCHECK *** ERROR *** reading fort.6, iostat=',ierro
-      write(93,*)                                                       &
-      &'sixrecs=',sixrecs,' crsixrecs=',crsixrecs
-      flush(93)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.6'
-      call prror(-1)
-  107  write(93,*)                                                       &
-      &'SIXTRACR CRCHECK *** ERROR *** reading fort.92, iostat=',ierro
-      flush(93)
-      write(lout,*)'SIXTRACR CRCHECK failure positioning fort.92'
-      call prror(-1)
+    end if
+    ! and just use fort.6 from now on
+    write(93,"(a)") "SIXTRACR> CRCHECK giving up on LOUT"
+    flush(93)
+    ! Copy the lout to fort.6 (the file, not output_unit)
+    ! It seems that FORTRAN will open the file automatically?
+    ! There are no open(unit=6) etc. calls anywhere...
+    rewind lout
+3   read(lout,'(a1024)',end=1,err=107,iostat=ierro) arecord
+    lstring=1024
+    do i=1024,2,-1
+      lstring=i
+      if (arecord(i:i).ne.' ')goto 2
+      lstring=lstring-1
+    enddo
+2   write(6,'(a)') arecord(1:lstring)
+    goto 3
+    ! Not a flush?
+1   endfile (6,iostat=ierro)
+    backspace (6,iostat=ierro)
+    ! This is not a FLUSH!
+    rewind lout
+    endfile (lout,iostat=ierro)
+    close(lout)
+    lout=6
+  endif
+    
+  return
+  
+106 continue
+  write(93,"(a,i0)")    "SIXTRACR> ERROR reading fort.6, iostat=",ierro
+  write(93,"(2(a,i0))") "          sixrecs=",sixrecs," crsixrecs=",crsixrecs
+  flush(93)
+  write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning fort.6"
+  call prror(-1)
+  
+107 continue
+  write(93,"(a,i0)") "SIXTRACR> ERROR reading fort.92, iostat=",ierro
+  flush(93)
+  write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning fort.92"
+  call prror(-1)
+  
 end subroutine crcheck
 
 subroutine crpoint
@@ -814,7 +712,6 @@ subroutine crpoint
 !
 !     See also subroutine crcheck and crstart.
       use floatPrecision
-      use end_sixtrack
       use numerical_constants
 
       use dynk, only : ldynk,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynkfilepos,dynk_crpoint
@@ -1317,7 +1214,6 @@ subroutine crstart
 !
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
-      use end_sixtrack
       use numerical_constants
       use dynk, only : ldynk, dynk_crstart
 

@@ -17,7 +17,6 @@ subroutine check_coupling_integrity
       use mod_common
       use mod_commont
       use aperture
-      use end_sixtrack
       implicit none
 
 !     temporary variables
@@ -145,7 +144,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
       use mod_commonmn
 
       use mod_hions
-      use end_sixtrack
 
       implicit none
 
@@ -286,7 +284,6 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
       use mod_commonmn
 
       use mod_hions
-      use end_sixtrack
 
       implicit none
 
@@ -364,7 +361,6 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       use mod_commonmn
 
       use mod_hions
-      use end_sixtrack
 
       implicit none
 

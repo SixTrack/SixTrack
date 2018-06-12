@@ -34,7 +34,6 @@ module hdf5_output
 
   use hdf5
   use floatPrecision
-  use end_sixtrack
   use crcoall
   use strings
   use mod_alloc

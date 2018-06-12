@@ -21,7 +21,6 @@
 program mainda
 
   use floatPrecision
-  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use, intrinsic :: iso_fortran_env, only : output_unit
@@ -609,7 +608,6 @@ end program mainda
 subroutine daliesix
 
   use floatPrecision
-  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use crcoall
@@ -769,7 +767,6 @@ end subroutine daliesix
 subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 
   use floatPrecision
-  use end_sixtrack
   use mathlib_bouncer
   use crcoall
   use parpro
