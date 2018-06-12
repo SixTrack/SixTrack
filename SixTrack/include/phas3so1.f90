@@ -3,7 +3,7 @@ do l=1,2
   if(abs(t(ll,ll-1)).gt.pieni) then
     dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
   else
-    dphi=pi2-phibf(l)             
+    dphi=pi2-phibf(l)
   end if
   phi(l)=phi(l)+dphi/pie
 end do

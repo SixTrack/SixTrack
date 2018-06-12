@@ -1,9 +1,9 @@
 
 module FMA
-  
+
   use end_sixtrack
   use string_tools, only : getfields_l_max_string
-  
+
   implicit none
 
   integer, parameter :: fma_max       = 200              !max. number of FMAs
@@ -20,9 +20,9 @@ module FMA
   save fma_fname,fma_method,fma_numfiles, &
        fma_norm_flag,fma_first,fma_last,  &
        fma_flag,fma_writeNormDUMP
-  
+
 contains
-  
+
   subroutine fma_error(ierro,str,subroutine_name)
     !-----------------------------------------------------------------------*
     !  FMA                                                                  *
@@ -40,33 +40,33 @@ contains
        call prror(-1)
     endif
   end subroutine fma_error
-  
+
   subroutine fma_parseInputline(ch,iErr)
-    
+
     use crcoall
     use string_tools
-    
+
     implicit none
 
     character(len=*), intent(in)    :: ch
     logical,          intent(inout) :: iErr
-    
+
     character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
     integer   getfields_nfields                                                 ! Number of identified fields
     integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
     logical   getfields_lerr                                                    ! An error flag
-    
+
     if (ch(:10).eq."NoNormDUMP") then
        fma_writeNormDUMP = .false.
        return
     endif
-    
+
     if(fma_numfiles.ge.fma_max) then
        write(lout,"(a,i0,a)") "FMA> ERROR You can only do ",fma_max," number of FMAs"
        iErr = .true.
        return
     endif
-    
+
     fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
 
     ! Read in input parameters
@@ -122,18 +122,18 @@ contains
       iErr = .true.
       return
     end if
-    
+
     if(.not.(fma_norm_flag(fma_numfiles).eq.0 .or. fma_norm_flag(fma_numfiles).eq.1)) then
       write(lout,"(2(a,i0))") "FMA> ERROR Expected fma_norm_flag = 1 or 0, Got: ",fma_norm_flag(fma_numfiles),&
         ", FMA index =",fma_numfiles
       iErr = .true.
       return
     end if
-      
+
     fma_flag = .true.
-    
+
   end subroutine fma_parseInputline
-  
+
   subroutine fma_postpr
     !-----------------------------------------------------------------------*
     !  FMA                                                                  *
@@ -153,7 +153,7 @@ contains
     use platofma
 
     use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, dumptas, dumpclo, dumptasinv
-    
+
     !numbers (zero,one,two etc.)
     use numerical_constants, only : zero, one, c1e3
 
@@ -161,9 +161,9 @@ contains
     use parpro
     use mod_common
     use mod_commont
-    
+
     implicit none
-    
+
     integer :: i,j,k,l,m,n                    ! for do loops
     integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
     integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
@@ -180,7 +180,7 @@ contains
     integer filefields_lfields( getfields_n_max_fields )
     logical filefields_lerr
     real(kind=fPrec) round_near
-    
+
     integer, dimension(:,:),allocatable :: turn ! Current turn no (particle, rel. turn no)
     integer, dimension(:),allocatable :: nturns ! Number of turns to analyze for this particle
     logical hasNormDumped(-1:nele)              ! Have we written a normDump file for this element before?
@@ -199,7 +199,7 @@ contains
          INTEGER(C_INT), INTENT(in), VALUE :: maxn, plane_idx, norm_flag
        end function tunenaff
     end interface
-    
+
     ! Need to pass a single dimension array to NAFF,
     !  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to C++.
     ! (We can't interpret the struct that Fortran is passing us;
@@ -213,7 +213,7 @@ contains
     real(kind=fPrec), dimension(3) :: q123 !tune q1,q2,q3
     real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max,eps123_avg !initial,minimum,maximum,average emittance
     real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
-      
+
 #ifdef BOINC
     character(len=256) filename
 #endif
@@ -234,13 +234,13 @@ contains
             " of size proportional to napx*fma_nturn_max."
        call prror(-1)
     endif
-    
+
     allocate(nturns(napx),STAT=i)
     if (i.ne.0) then
        write(lout,*) "Error in fma_postpr: Cannot ALLOCATE array 'nturns' of size proportional to napx."
        call prror(-1)
     endif
-    
+
 #ifdef NAFF
     allocate(naff_xyzv1(fma_nturn_max), naff_xyzv2(fma_nturn_max), STAT=i )
 #endif
@@ -248,12 +248,12 @@ contains
        write(lout,*) "Error in fma_postpr: Cannot ALLOCATE arrays 'naff_xyzv1,naff_xyzv2' of size fma_nturn_max."
        call prror(-1)
     endif
-    
+
     ! Initialize the hasNormDumped array
     do i=-1,nele
        hasNormDumped(i)=.false.
     end do
-    
+
     ! fma_six = data file for storing the results of the FMA analysis
     inquire(unit=2001001,opened=lopen)
     if(lopen) then
@@ -267,20 +267,20 @@ contains
     open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,action='write',form='formatted')
 #endif
     call fma_error(ierro,'cannot open file fma_sixtrack for writing!','fma_postpr')
-    
+
     if (idp.eq.0 .or. ition.eq.0) then
        num_modes = 2          !4D tracking
     else
        num_modes = 3          !6D tracking
     endif
-    
+
     ! write the header of fma_sixtrack
     write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, phi* [rad]'
     write(2001001,'(a)') '# inputfile method id q1 q2 q3 eps1_min '       //&
          'eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg' //&
          ' eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0 norm_flag'  //&
          ' first_turn last_turn'
-    
+
     ! start FMA analysis: loop over all files, calculate tunes, write output file
     do i=1,fma_numfiles
        lexist=.false.
@@ -291,7 +291,7 @@ contains
              write(lout,*) 'start FMA analysis using file ', trim(stringzerotrim(fma_fname(i))), &
                   ': number of particles=',napx, &
                   ', first turn=',fma_first(i),', last turn=',fma_last(i)
-             
+
              ! check the format, if dumpfmt != 2,3 (physical) or 7,8 (normalized) then abort
              if(.not. (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.3 .or. &
                        dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8)) then
@@ -304,7 +304,7 @@ contains
              else ! file has to be open if nothing went wrong
                 call fma_error(-1,'Expected file '//trim(stringzerotrim(dump_fname(j)))//' to be open','fma_postpr')
              endif
-             
+
              if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then
 #ifdef BOINC
                 call boincrf(dump_fname(j),filename)
@@ -314,7 +314,7 @@ contains
 #endif
                 !Create error message to be used in case ierro.ne.0
                 write(ch,'(a,1x,I5,1x,a)') "cannot open file '"//trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=",dumpfmt(j),')'
-                  
+
                 call fma_error(ierro, ch, 'fma_postpr')
              else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then
 #ifdef BOINC
@@ -343,7 +343,7 @@ contains
                    fma_last(i) = dumplast(j)
                 endif
              endif
-             ! now check that first turn are compatible with 
+             ! now check that first turn are compatible with
              ! turns saved in dump file
              if (fma_first(i) .lt. dumpfirst(j)) then
                 write(lout,*) 'ERROR in fma_postpr: First turn in FMA block is smaller than first turn in DUMP block '//&
@@ -488,32 +488,32 @@ contains
                      dumptasinv(j,5,4),dumptasinv(j,5,5),dumptasinv(j,5,6), &
                      dumptasinv(j,6,1),dumptasinv(j,6,2),dumptasinv(j,6,3), &
                      dumptasinv(j,6,4),dumptasinv(j,6,5),dumptasinv(j,6,6)
-                
+
                 write(200101+i*10,'(a)') &
                      '# id turn pos[m] nx[1.e-3 sqrt(m)]' //&
                      ' npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)]'//&
                      ' npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)]'//&
                      ' ndp/p[1.e-3 sqrt(m)] kt'
              endif !END IF fma_writeNormDUMP
-             
+
              ! Read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
              ! TODO: This logic breaks apart if there are particle losses;
              !  it is checked for, but it only triggers a "call prror(-1)".
-             
+
              ! If normalization within FMA, we now have to always write the full NORM_* file
              ! Otherwise  one would overwrite the NORM_* file constantly if different FMAs are done
              ! on the same DUMP file
-             
+
              if (dumplast(j) .eq. -1) then
                 dump_last_turn = numl
              else
                 dump_last_turn = dumplast(j)
              endif
-             
+
              !Loop over all turns in the DUMP file;
              ! this is neccessary since we're writing normalized DUMP files.
              do k=dumpfirst(j),dump_last_turn !loop over turns, use the dump files
-                
+
                 !loop over particles
                 do l=1,napx
                    if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then  ! Read an ASCII dump
@@ -547,7 +547,7 @@ contains
                               "'. 10 fields expected from getfields_split, got ", filefields_nfields, ' and ch=',ch
                          call prror(-1)
                       endif
-                      
+
                       read(filefields_fields(1) (1:filefields_lfields(1)),*) id
                       read(filefields_fields(2) (1:filefields_lfields(2)),*) thisturn
                       pos = round_near(ierro, filefields_lfields(3)+1, filefields_fields(3) )
@@ -577,13 +577,13 @@ contains
                          call fma_error(ierro,ch,'fma_postpr') !read error
                       endif
                    endif
-                   
+
                    !Check for losses
                    if (l.ne.id .or. k.ne.thisturn) then
                       if (k .lt. nturns(l)+fma_first(l)-1) then
                          nturns(l) = k-fma_first(l)
                       endif
-                      
+
                       !TODO: Actually handle those losses.
                       write(lout,*) "ERROR when reading DUMP file #",j, "for FMA #",i
                       write(lout,*) "Expected turn and particle ID =", k,l
@@ -592,7 +592,7 @@ contains
                            " which is currently not handled in FMA."
                       call prror(-1)
                    endif
-                   
+
                    !Normalization
                    if (dumpfmt(j).eq.2 .or.dumpfmt(j).eq.3) then
                       ! Case: The file isn't pre-normalized -> Compute normalization
@@ -601,17 +601,17 @@ contains
                       ! we anyway compute the normalized coordinates.
                       !
                       ! units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
-                      
+
                       ! remove closed orbit -> check units used in dumpclo (is x' or px used?)
                       do m=1,6
                          xyzvdummy2(m)=xyzvdummy(m)-dumpclo(j,m)
                       enddo
-                      
+
                       !For use in with normalized coordinates:
                       ! convert to canonical variables
                       xyzvdummy2(2)=xyzvdummy2(2) * ((one+xyzvdummy2(6))+dumpclo(j,6))
                       xyzvdummy2(4)=xyzvdummy2(4) * ((one+xyzvdummy2(6))+dumpclo(j,6))
-                      
+
                       ! normalize nxyz=dumptasinv*xyz2
                       do m=1,6
                          nxyzvdummy(m)=zero
@@ -624,14 +624,14 @@ contains
                             nxyzvdummy(m)=nxyzvdummy(m)*c1e3
                          endif
                       enddo
-                      
+
                       ! Write normalized particle amplitudes
                       ! (only when reading physical coordinates)
                       if (fma_writeNormDUMP .and. .not.hasNormDumped(j) ) then
                          write(200101+i*10, '(2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)') &
                               id,thisturn,pos,nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
                       endif
-                      
+
                    else if (dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8) then
                       ! Case: we are already normalized;
                       ! just copy the data into the relevant array
@@ -639,12 +639,12 @@ contains
                          nxyzvdummy(m) = xyzvdummy(m)
                       end do
                    endif ! END IF already normalized or not
-                   
+
                    ! Copy the data into the final arrays
                    if (thisturn.ge.fma_first(i) .and. thisturn.le.fma_last(i) ) then
-                      
+
                       turn(l,k-fma_first(i)+1) = thisturn
-                      
+
                       do m=1,6
                          ! for FMA in physical coordinates, convert units to [mm,mrad,mm,mrad,mm,1.e-3]
                          if(m.eq.6) then
@@ -652,27 +652,27 @@ contains
                          else
                             xyzv(l,k-fma_first(i)+1,m)=xyzvdummy(m)
                          endif
-                         
+
                          nxyzv(l,k-fma_first(i)+1,m) = nxyzvdummy(m)
-                         
+
                          ! calculate emittance of mode 1,2,3
                          if(mod(m,2).eq.0) then
                             epsnxyzv(l,k-fma_first(i)+1,m/2) = nxyzvdummy((m-1))**2+nxyzvdummy(m)**2
                          endif
                       enddo
-                      
+
                    endif !END if fma_first <= thisturn <= fma_last
-                   
+
                 enddo ! END loop over particles l
              enddo ! END loop over turns k
-             
+
              ! Calculate tunes of particles using the methods in plato_seq.f and NAFF
              !  for fma_norm_flag == 0: use physical coordinates x,x',y,y',sig,dp/p
              !  for fma_norm_flag == 1: use normalized coordinates
              do l=1,napx ! loop over particles
                 !TODO particle losses - detect if nturns(l) is too small & skip that particle.
                 ! (probably just write a line of mostly zeros to the file)
-                
+
                 do m=1,num_modes ! loop over modes (hor.,vert.,long.)
                    select case( trim(stringzerotrim(fma_method(i))) )
                    case('TUNELASK')
@@ -681,63 +681,63 @@ contains
                       else
                          q123(m) =  tunelask(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNEFFTI')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) =  tuneffti( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) =  tuneffti(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNEFFT')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) =   tunefft( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) =   tunefft(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNEAPA')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) =   tuneapa( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) =   tuneapa(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNEFIT')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) =   tunefit( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) =   tunefit(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNENEWT')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) =  tunenewt( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) =  tunenewt(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNEABT2')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) =  tuneabt2( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) =  tuneabt2(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNEABT')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) =   tuneabt( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) =   tuneabt(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                      
+
                    case('TUNENEWT1')
                       if(fma_norm_flag(i) .eq. 0) then
                          q123(m) = tunenewt1( xyzv(l,1:nturns(l),2*(m-1)+1), xyzv(l,1:nturns(l),2*m), nturns(l) )
                       else
                          q123(m) = tunenewt1(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
                       endif
-                        
+
 #ifdef NAFF
                    case("NAFF")
                       ! write(lout,*) "DBG", fma_nturn(i),l
@@ -745,15 +745,15 @@ contains
                       !
                       ! write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*(m-1)+1))
                       ! write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*m))
-                      
+
                       flush(lout)  ! F2003 does specify a FLUSH statement.
                       ! However NAFF should NOT be chatty...
-                      
+
                       ! do n=1,fma_nturn(i)
                       !    write(*,*) n, nxyzv(l,n,2*(m-1)+1), nxyzv(l,n,2*m)
                       ! enddo
                       ! write(*,*) ""
-                      
+
                       ! Copy the relevant contents of the arrays
                       ! into a new temporary array with stride=1
                       ! for passing to C++.
@@ -764,9 +764,9 @@ contains
                          naff_xyzv1 = nxyzv(l,1:nturns(l),  2*(m-1)+1)
                          naff_xyzv2 = nxyzv(l,1:nturns(l),  2*m)
                       endif
-                      
+
                       q123(m) = tunenaff(naff_xyzv1, naff_xyzv2, nturns(l), m, fma_norm_flag(i) )
-                      
+
                       flush(lout)
                       ! stop
 #endif
@@ -775,11 +775,11 @@ contains
                       call fma_error(-1,'FMA method '//trim(stringzerotrim(fma_method(i)))// &
                            ' not known! Note that the method name must be in capital letters!','fma_postpr')
                    end select
-                   
+
                    ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative,
                    ! but define it as convention positive
                    if(m.eq.3) q123(m)=one-q123(m)
-                   
+
                    !Some general calculations
                    eps123_0(m)=epsnxyzv(l,1,m) ! initial amplitude
                    phi123_0(m)=atan_mb(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1))! inital phase
@@ -795,7 +795,7 @@ contains
                    eps123_0(3)=zero
                    phi123_0(3)=zero
                 endif
-                
+
                 ! Write the FMA output file "fma_sixtrack"
                 ! TODO losses: fma_first and fma_last may not be the right start/stop variables...
                 write(2001001,'(2(1x,A20),1x,I8,18(1X,1PE16.9),3(1X,I8))') &
@@ -806,15 +806,15 @@ contains
                      eps123_avg(3),eps123_0(1),eps123_0(2),eps123_0(3), &
                      phi123_0(1),phi123_0(2),phi123_0(3),fma_norm_flag(i), &
                      fma_first(i),fma_last(i)
-                
+
              enddo ! END loop over particles l
-             
+
              if (fma_writeNormDUMP .and. .not.hasNormDumped(j)) then
                 ! filename NORM_* (normalized particle amplitudes)
                 close(200101+i*10)
                 hasNormDumped(j) = .true.
              endif
-             
+
              ! resume initial position of dumpfile = end of file
              close(dumpunit(j))
              if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq. 7) then !ASCII
@@ -841,7 +841,7 @@ contains
                      trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=3)", 'fma_postpr')
              endif
           endif !END: if fma_fname(i) matches dump_fname(j)
-          
+
           ! if file has been already found, jump to next file fma_fname(i)
           if( lexist ) then
              exit
@@ -853,7 +853,7 @@ contains
        endif
     enddo !END: loop over fma files
     close(2001001) !filename: fma_sixtrack
-    
+
     deallocate(turn, nturns, xyzv, nxyzv, epsnxyzv)
 #ifdef NAFF
     deallocate(naff_xyzv1, naff_xyzv2)
@@ -864,11 +864,11 @@ contains
     implicit none
 
     integer i, j
-    
+
     fma_flag = .false.
     fma_writeNormDUMP = .true.
     fma_numfiles = 0
-    
+
     do i=1,fma_max
        fma_first(i) = 0
        fma_last(i)  = 0
@@ -879,7 +879,7 @@ contains
           fma_method(i)(j:j) = char(0)
        end do
     end do
-    
+
   end subroutine fma_comnul
-  
+
 end module fma

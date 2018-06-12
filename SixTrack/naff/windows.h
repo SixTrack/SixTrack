@@ -17,7 +17,7 @@ class WindowFunc {
 
     WindowFunc(): window() {}
     ~WindowFunc() {}
-    
+
     void compute(const size_t);
     void compute(const size_t, const double, const char);
     std::complex<double> operator()(size_t, size_t) const;

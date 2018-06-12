@@ -188,7 +188,7 @@ void Astuce::ReadInputFiles()
 		// It is also helpfull when reading multiple source files
 		// in case one of them is ending on a newline.
 		InputFileBufferStream << '\n';
-		
+
 		while(sbuffer->sgetc() != EOF)
 		{
 			if((cbuffer = sbuffer->sbumpc()))
@@ -320,7 +320,7 @@ void Astuce::ExtractDecks()
 	while(CurrentPosition < InputFileBuffer.size())
 	{
 		CurrentPosition = InputFileBuffer.find("\n+dk", CurrentPosition);
-		
+
 		if(CurrentPosition == std::string::npos)
 		{
 			break;
@@ -488,7 +488,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 		if (NameEnd != std::string::npos) NameEnd-=1;
 		NameEnd = line->Text.find_last_not_of(" ",NameEnd);
 		if (NameEnd != std::string::npos) NameEnd+=1;
-		
+
 		std::string FlagName = FixCase(line->Text.substr(NameStart,NameEnd-NameStart));
 
 		if (FlagName.find(" ") != std::string::npos)
@@ -497,14 +497,14 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 			std::cerr << "The +if statement '" << line->Text << "' contains a space inside the actual statement '" << FlagName << "'." << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		
+
 		//Check that there are no spaces inside the STATEMENT
 		if(OutputFlag)
 		{
 			*LogStream << "Evaluating flag: '" << FlagName << "'" << std::endl;
 		}
 
-		
+
 		size_t Position = 0;
 		size_t NextOR = 0;
 		size_t NextAND = 0;
@@ -562,7 +562,7 @@ void Astuce::ProcessIfBlock(std::list<LineStorage>::iterator line)
 				std::cerr << "The +if statement '" << line->Text << "' has an orphan .AND./.OR./.NOT." << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			
+
 			//Enable/disable lines
 			std::set<std::string>::const_iterator Flags_itr = Flags.find(FlagNames.at(n));
 			if(Flags_itr != Flags.end())
@@ -690,7 +690,7 @@ bool Astuce::ReplaceCA(std::map<std::string, std::list<LineStorage> >::iterator 
 	bool Replaced = false;
 
 	std::string BlockName = Storage_itr->first;
-	
+
 	std::list<LineStorage>::iterator Lines_itr = Storage_itr->second.begin();
 	while(Lines_itr != Storage_itr->second.end())
 	{

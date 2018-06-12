@@ -27,15 +27,15 @@
 !        (aString%get() == "Something") instead of (aString == "Something").
 ! ================================================================================================ !
 module strings
-  
+
   implicit none
-  
+
   type, public :: string
-    
+
     character(len=:), allocatable, public :: chr
-    
+
   contains
-    
+
     procedure, public,  pass(this)  :: get     => getStr
     procedure, public,  pass(this)  :: set     => setStr
   ! procedure, public,  pass(this)  :: len     => lenStr
@@ -45,95 +45,95 @@ module strings
     procedure, public,  pass(this)  :: strip   => stripStr
     procedure, public,  pass(this)  :: upper   => upperStr
     procedure, public,  pass(this)  :: lower   => lowerStr
-    
+
     procedure, private, pass(this)  :: getStr
     procedure, private, pass(this)  :: setStr
-    
+
     procedure, private, pass(this)  :: lenStr
     procedure, private, pass(this)  :: trimStr
     procedure, private, pass(this)  :: adjLStr
     procedure, private, pass(this)  :: adjRStr
-    
+
     procedure, private, pass(this)  :: stripStr
     procedure, private, pass(this)  :: upperStr
     procedure, private, pass(this)  :: lowerStr
-    
+
     procedure, private, pass(left)  :: assignStrStr
     procedure, private, pass(left)  :: assignStrChr
     procedure, private, pass(right) :: assignChrStr
-    
+
     procedure, private, pass(left)  :: appendStrStr
     procedure, private, pass(left)  :: appendStrChr
-    
+
     procedure, private, pass(left)  :: concatStrStr
     procedure, private, pass(left)  :: concatStrChr
     procedure, private, pass(right) :: concatChrStr
-    
+
     procedure, private, pass(left)  :: compStrStr
     procedure, private, pass(left)  :: compStrChr
     procedure, private, pass(right) :: compChrStr
-    
+
     procedure, private, pass(left)  :: compNStrStr
     procedure, private, pass(left)  :: compNStrChr
     procedure, private, pass(right) :: compNChrStr
-    
+
   end type string
-  
+
   interface string
     module procedure constructStr
   end interface string
-  
+
   interface len
     module procedure lenStr
   end interface len
-  
+
   interface trim
     module procedure trimStr
   end interface trim
-  
+
   interface adjustl
     module procedure adjLStr
   end interface adjustl
-  
+
   interface adjustr
     module procedure adjRStr
   end interface adjustr
-  
+
   interface assignment(=)
     module procedure assignStrStr
     module procedure assignStrChr
     module procedure assignChrStr
   end interface
-  
+
   interface operator(+)
     module procedure appendStrStr
     module procedure appendStrChr
   end interface
-  
+
   interface operator(//)
     module procedure concatStrStr
     module procedure concatStrChr
     module procedure concatChrStr
   end interface
-  
+
   interface operator(==)
     module procedure compStrStr
     module procedure compStrChr
     module procedure compChrStr
   end interface
-  
+
   interface operator(/=)
     module procedure compNStrStr
     module procedure compNStrChr
     module procedure compNChrStr
   end interface
-  
+
 contains
-  
+
   type(string) function constructStr()
     constructStr%chr = ""
   end function constructStr
-  
+
   ! ================================================================ !
   !  Set and Get
   ! ================================================================ !
@@ -142,13 +142,13 @@ contains
     character(len=:), allocatable :: retValue
     retValue = this%chr
   end function getStr
-  
+
   pure subroutine setStr(this, setValue)
     class(string),    intent(inout) :: this
     character(len=*), intent(in)    :: setValue
     if(allocated(this%chr)) this%chr = setValue
   end subroutine setStr
-  
+
   ! ================================================================ !
   !  Standard String Information and Operations
   ! ================================================================ !
@@ -161,7 +161,7 @@ contains
       retValue = 0
     end if
   end function lenStr
-  
+
   pure function trimStr(this) result(retValue)
     class(string),    intent(in)  :: this
     character(len=:), allocatable :: retValue
@@ -169,7 +169,7 @@ contains
       retValue = trim(this%chr)
     end if
   end function trimStr
-  
+
   pure function adjLStr(this) result(retValue)
     class(string),    intent(in)  :: this
     character(len=:), allocatable :: retValue
@@ -177,7 +177,7 @@ contains
       retValue = adjustl(this%chr)
     end if
   end function adjLStr
-  
+
   pure function adjRStr(this) result(retValue)
     class(string),    intent(in)  :: this
     character(len=:), allocatable :: retValue
@@ -185,7 +185,7 @@ contains
       retValue = adjustr(this%chr)
     end if
   end function adjRStr
-  
+
   ! ================================================================ !
   !  String Manipulation
   !  Upper and Lower are based on:
@@ -208,7 +208,7 @@ contains
     end if
     stripStr%chr = trim(adjustl(this%chr(1:cut)))
   end function stripStr
-  
+
   type(string) pure function upperStr(this)
     class(string),    intent(in)  :: this
     character(len=:), allocatable :: tmpValue
@@ -224,7 +224,7 @@ contains
     upperStr%chr = tmpValue
     deallocate(tmpvalue)
   end function upperStr
-  
+
   type(string) elemental function lowerStr(this)
     class(string),    intent(in)  :: this
     character(len=:), allocatable :: tmpValue
@@ -240,7 +240,7 @@ contains
     lowerStr%chr = tmpValue
     deallocate(tmpvalue)
   end function lowerStr
-  
+
   ! ================================================================ !
   !  String Assignment
   ! ================================================================ !
@@ -249,19 +249,19 @@ contains
     class(string), intent(in)    :: right
     left%chr = right%chr
   end subroutine assignStrStr
-  
+
   elemental subroutine assignStrChr(left, right)
     class(string),    intent(inout) :: left
     character(len=*), intent(in)    :: right
     left%chr = right
   end subroutine assignStrChr
-  
+
   elemental subroutine assignChrStr(left, right)
     character(len=*), intent(inout) :: left
     class(string),    intent(in)    :: right
     left = right%chr
   end subroutine assignChrStr
-  
+
   ! ================================================================ !
   !  Append Strings with +, Returning String
   ! ================================================================ !
@@ -278,7 +278,7 @@ contains
     appendStrStr%chr    = tmpChr
     deallocate(tmpChr)
   end function appendStrStr
-  
+
   type(string) elemental function appendStrChr(left, right)
     class(string),    intent(in)  :: left
     character(len=*), intent(in)  :: right
@@ -292,7 +292,7 @@ contains
     appendStrChr%chr    = tmpChr
     deallocate(tmpChr)
   end function appendStrChr
-  
+
   ! ================================================================ !
   !  Concat Strings with //, Returning Character
   ! ================================================================ !
@@ -307,7 +307,7 @@ contains
     retValue(1:nOld)      = left%chr
     retValue(nOld+1:nNew) = right%chr
   end function concatStrStr
-  
+
   pure function concatChrStr(left, right) result(retValue)
     character(len=*), intent(in)  :: left
     class(string),    intent(in)  :: right
@@ -319,7 +319,7 @@ contains
     retValue(1:nOld)      = left
     retValue(nOld+1:nNew) = right%chr
   end function concatChrStr
-  
+
   pure function concatStrChr(left, right) result(retValue)
     class(string),    intent(in)  :: left
     character(len=*), intent(in)  :: right
@@ -331,7 +331,7 @@ contains
     retValue(1:nOld)      = left%chr
     retValue(nOld+1:nNew) = right
   end function concatStrChr
-  
+
   ! ================================================================ !
   !  Compare Strings, Equal
   ! ================================================================ !
@@ -341,21 +341,21 @@ contains
     logical retValue
     retValue = left%chr == right%chr
   end function compStrStr
-  
+
   elemental function compStrChr(left, right) result(retValue)
     class(string),    intent(in) :: left
     character(len=*), intent(in) :: right
     logical retValue
     retValue = left%chr == right
   end function compStrChr
-  
+
   elemental function compChrStr(left, right) result(retValue)
     character(len=*), intent(in) :: left
     class(string),    intent(in) :: right
     logical retValue
     retValue = left == right%chr
   end function compChrStr
-  
+
   ! ================================================================ !
   !  Compare Strings, Not Equal
   ! ================================================================ !
@@ -365,19 +365,19 @@ contains
     logical retValue
     retValue = left%chr /= right%chr
   end function compNStrStr
-  
+
   elemental function compNStrChr(left, right) result(retValue)
     class(string),    intent(in) :: left
     character(len=*), intent(in) :: right
     logical retValue
     retValue = left%chr /= right
   end function compNStrChr
-  
+
   elemental function compNChrStr(left, right) result(retValue)
     character(len=*), intent(in) :: left
     class(string),    intent(in) :: right
     logical retValue
     retValue = left /= right%chr
   end function compNChrStr
-  
+
 end module strings

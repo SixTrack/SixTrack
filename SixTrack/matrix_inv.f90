@@ -1,7 +1,7 @@
 module matrix_inv
-  
+
   implicit none
-  
+
 contains
 
 ! ================================================================================================ !
@@ -10,13 +10,13 @@ contains
 ! CALLS ... DFACT, DFINV, F010PR, ABEND.
 ! ================================================================================================ !
 subroutine dinv(n,a,idim,ir,ifail)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
-  
+
   integer idim,ifail,jfail,k,kprnt,n
   integer ir
   real(kind=fPrec) t1,t2,t3
@@ -25,15 +25,15 @@ subroutine dinv(n,a,idim,ir,ifail)
   dimension ir(n),a(idim,n)
   data name/'DINV'/,kprnt/0/
   save
-  
+
   ! TEST FOR PARAMETER ERRORS.
   if((n.lt.1).or.(n.gt.idim)) goto 7
-  
+
   ! TEST FOR N.LE.3.
   if(n.gt.3) goto 6
   ifail=0
   if(n.lt.3) goto 4
-  
+
   ! N=3 CASE.
   ! COMPUTE COFACTORS.
   c11=a(2,2)*a(3,3)-a(2,3)*a(3,2)
@@ -48,7 +48,7 @@ subroutine dinv(n,a,idim,ir,ifail)
   t1=abs(a(1,1))                                               !hr07
   t2=abs(a(2,1))                                               !hr07
   t3=abs(a(3,1))                                               !hr07
-  
+
   ! (SET TEMP=PIVOT AND DET=PIVOT*DET.)
   if(t1.ge.t2) goto 1
   if(t3.ge.t2) goto 2
@@ -64,7 +64,7 @@ subroutine dinv(n,a,idim,ir,ifail)
   ! (PIVOT IS A31)
 2 temp=a(3,1)
   det=c23*c12-c22*c13
-  
+
   ! SET ELEMENTS OF INVERSE IN A.
 3 if(det.eq.zero) goto 8
   s=temp/det
@@ -78,7 +78,7 @@ subroutine dinv(n,a,idim,ir,ifail)
   a(3,2)=s*c23
   a(3,3)=s*c33
   return
-  
+
 4 if(n.lt.2) goto 5
   ! N=2 CASE BY CRAMERS RULE.
   det=a(1,1)*a(2,2)-a(1,2)*a(2,1)
@@ -90,45 +90,45 @@ subroutine dinv(n,a,idim,ir,ifail)
   a(2,2)=s*a(1,1)
   a(1,1)=c11
   return
-  
+
   !  N=1 CASE.
 5 if(a(1,1).eq.zero) goto 8
   a(1,1)=one/a(1,1)
   return
-  
+
   ! N.GT.3 CASES.  FACTORIZE MATRIX AND INVERT.
-  
+
 6 call dfact(n,a,idim,ir,ifail,det,jfail)
   if(ifail.ne.0) return
   call dfinv(n,a,idim,ir)
   return
-  
+
   ! ERROR EXITS.
 7 ifail=+1
   call f010pr(name,n,idim,k,kprnt)
   return
-  
+
 8 ifail=-1
   return
-  
+
 end subroutine dinv
 
 ! ================================================================================================ !
 subroutine kermtr(ercode,log,mflag,rflag)
-  
+
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
   use crcoall
-  
+
   implicit none
-  
+
   integer i,kounte,l,lgfile,limitm,limitr,log,logf
   parameter(kounte = 27)
   character(len=6)    ercode,   code(kounte)
   logical             mflag,    rflag
   integer             kntm(kounte),       kntr(kounte)
-  
+
   data      logf      /  0  /
   data      code(1), kntm(1), kntr(1)  / 'C204.1', 255, 255 /
   data      code(2), kntm(2), kntr(2)  / 'C204.2', 255, 255 /
@@ -158,7 +158,7 @@ subroutine kermtr(ercode,log,mflag,rflag)
   data      code(26),kntm(26),kntr(26) / 'G100.1', 255, 255 /
   data      code(27),kntm(27),kntr(27) / 'G100.2', 255, 255 /
   save
-  
+
   log  =  logf
   do i=1, kounte
     if(ercode .eq. code(i)) goto 21
@@ -167,7 +167,7 @@ subroutine kermtr(ercode,log,mflag,rflag)
   write(lout,*) 'KERNLIB Library Error'
   call prror(-1)
   return
-    
+
 21 continue
   rflag  =  kntr(i) .ge. 1
   if(rflag  .and.  (kntr(i) .lt. 255))  kntr(i)  =  kntr(i) - 1
@@ -188,11 +188,11 @@ subroutine kermtr(ercode,log,mflag,rflag)
     end if
   end if
   return
-  
+
 1000  format('KERNLIB LIBRARY ERROR. ERROR CODE ',a6,' NOT RECOGNIZED BY KERMTR ERROR MONITOR. RUN ABORTED.')
 1001  format(/' ***** RUN TERMINATED BY CERN LIBRARY ERROR CONDITION ',a6)
 1002  format(/' ***** CERN LIBRARY ERROR CONDITION ',a6)
-  
+
 end subroutine kermtr
 
 ! This routine is unused
@@ -202,28 +202,28 @@ end subroutine kermtr
 !     CALLS ... RFACT, RFINV, F010PR, ABEND.
 ! ================================================================================================ !
 subroutine rinv(n,a,idim,ir,ifail)
-  
+
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
-  
+
   implicit none
   integer idim,ifail,ir,jfail,k,kprnt,n
   real(kind=fPrec) t1,t2,t3,a,det,temp,s,c11,c12,c13,c21,c22,c23,c31,c32,c33
-  
+
   character(len=6) name
   dimension ir(n),a(idim,n)
   data name/'RINV'/,kprnt/0/
   save
-  
+
   ! TEST FOR PARAMETER ERRORS.
   if((n.lt.1).or.(n.gt.idim)) goto 7
-  
+
   ! TEST FOR N.LE.3.
   if(n.gt.3) goto 6
   ifail=0
   if(n.lt.3) goto 4
-  
+
   ! N=3 CASE.
   ! COMPUTE COFACTORS.
   c11=a(2,2)*a(3,3)-a(2,3)*a(3,2)
@@ -238,7 +238,7 @@ subroutine rinv(n,a,idim,ir,ifail)
   t1=abs(a(1,1))
   t2=abs(a(2,1))
   t3=abs(a(3,1))
-  
+
   ! (SET TEMP=PIVOT AND DET=PIVOT*DET.)
   if(t1.ge.t2) goto 1
   if(t3.ge.t2) goto 2
@@ -267,9 +267,9 @@ subroutine rinv(n,a,idim,ir,ifail)
   a(3,2)=s*c23
   a(3,3)=s*c33
   return
-  
+
 4 if(n.lt.2) goto 5
-  
+
   ! N=2 CASE BY CRAMERS RULE.
   det=a(1,1)*a(2,2)-a(1,2)*a(2,1)
   if(det.eq.zero) goto 8
@@ -280,26 +280,26 @@ subroutine rinv(n,a,idim,ir,ifail)
   a(2,2)=s*a(1,1)
   a(1,1)=c11
   return
-  
+
   ! N=1 CASE.
 5 if(a(1,1).eq.zero) goto 8
   a(1,1)=one/a(1,1)                                                  !hr07
   return
-  
+
   ! N.GT.3 CASES.  FACTORIZE MATRIX AND INVERT.
 6 call rfact(n,a,idim,ir,ifail,det,jfail)
   if(ifail.ne.0) return
   call rfinv(n,a,idim,ir)
   return
-  
+
   ! ERROR EXITS.
 7 ifail=+1
   call f010pr(name,n,idim,k,kprnt)
   return
-  
+
 8 ifail=-1
   return
-  
+
 end subroutine rinv
 
 ! ================================================================================================ !
@@ -311,19 +311,19 @@ end subroutine rinv
 !  KPRNT        PRINT FLAG FOR K (K IS NOT PRINTED IF KPRNT=0).
 ! ================================================================================================ !
 subroutine f010pr(name,n,idim,k,kprnt)
-  
+
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
   use crcoall
-  
+
   implicit none
-  
+
   integer idim,k,kprnt,lgfile,n
   character(len=6) name
   logical mflag,rflag
   save
-  
+
   call kermtr('F010.1',lgfile,mflag,rflag)
   if(mflag) then
     if(lgfile.eq.0)  then
@@ -339,26 +339,26 @@ subroutine f010pr(name,n,idim,k,kprnt)
     call prror(-1)
   end if
   return
-  
+
 2000 format(7x,'subroutine ',a6,' ... parameter error (n.lt.1 or n.gt.idim).',6x,'n =',i4,6x,'idim =',i4,'.')
 2001 format(7x,'subroutine ',a6,' ... parameter error (n.lt.1 or n.gt.idim or k.lt.1).',6x,'n =',i4,6x,'idim =',i4,6x,'k =',i4,'.')
 end subroutine f010pr
 
 subroutine rfact(n,a,idim,ir,ifail,det,jfail)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
-  
+
   integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,jrange,junder,k,l,n,normal,nxch
-  
+
   real(kind=fPrec) a,det,g1,g2,p,q,t,tf,x,y
   real(kind=fPrec) s11,s12
-  
+
   character(len=6) hname
-  
+
   dimension ir(*),a(idim,*)
   !      data      g1, g2              /  1.e-37,  1.e37  /
   data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
@@ -366,7 +366,7 @@ subroutine rfact(n,a,idim,ir,ifail,det,jfail)
   data      normal, imposs      /  0, -1  /
   data      jrange, jover, junder  /  0, +1, -1  /
   save
-  
+
   if(idim .ge. n  .and.  n .gt. 0)  goto 110
     call tmprnt(hname,n,idim,0)
     return
@@ -427,62 +427,62 @@ subroutine rfact(n,a,idim,ir,ifail,det,jfail)
     if(jfail .ne. jrange)   det  =  zero
     ir(n)  =  nxch
     return
-  
+
   contains
-  
+
   real(kind=fPrec) function dotf(x,y,s11)
     real(kind=fPrec), intent(in) :: x, y, s11
     dotf = x * y + s11
   end function dotf
-  
+
   integer function ipairf(j,k)
     integer, intent(in) :: j, k
     ipairf = j*2**12 + k
   end function ipairf
-  
+
   real(kind=fPrec) function pivotf(x)
     real(kind=fPrec), intent(in) :: x
     pivotf = abs(x)
   end function pivotf
-  
+
   real(kind=fPrec) function sizef(x)
     real(kind=fPrec), intent(in) :: x
     sizef = abs(x)
   end function sizef
-  
+
 end subroutine rfact
 
 subroutine dfact(n,a,idim,ir,ifail,det,jfail)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
-  
+
   integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,jrange,junder,k,l,n,normal,nxch
   real(kind=fPrec) g1,g2,p,q,t
   real(kind=fPrec) a,det,s11,s12,x,y,tf
   character(len=6)         hname
   dimension ir(*),a(idim,*)
-  
+
   !      data      g1, g2              /  1.e-37,  1.e37  /
   data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
   data      hname               /  ' DFACT'  /
   data      normal, imposs      /  0, -1  /
   data      jrange, jover, junder  /  0, +1, -1  /
   save
-  
+
   if(idim .ge. n  .and.  n .gt. 0) goto 110
   call tmprnt(hname,n,idim,0)
   return
-  
+
 110 continue
   ifail = normal
   jfail = jrange
   nxch  = 0
   det   = one
-  
+
   do 144    j  =  1, n
 120 k  =  j
   p  =  pivotf(a(j,j))
@@ -536,40 +536,40 @@ subroutine dfact(n,a,idim,ir,ifail,det,jfail)
   if(jfail .ne. jrange)   det  =  zero
   ir(n)  =  nxch
   return
-  
+
   contains
-  
+
   real(kind=fPrec) function dotf(x,y,s11)
     real(kind=fPrec), intent(in) :: x, y, s11
     dotf = x * y + s11
   end function dotf
-  
+
   integer function ipairf(j,k)
     integer, intent(in) :: j, k
     ipairf = j*2**12 + k
   end function ipairf
-  
+
   real(kind=fPrec) function pivotf(x)
     real(kind=fPrec), intent(in) :: x
     pivotf = abs(x)
   end function pivotf
-  
+
   real(kind=fPrec) function sizef(x)
     real(kind=fPrec), intent(in) :: x
     sizef = abs(x)
   end function sizef
-  
+
 end subroutine dfact
 
   ! This subroutine is not used
 subroutine rfeqn(n,a,idim,ir,k,b)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
-  
+
   integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
   real(kind=fPrec) a,b,te,x,y
   real(kind=fPrec) s21,s22
@@ -577,11 +577,11 @@ subroutine rfeqn(n,a,idim,ir,k,b)
   dimension ir(*),a(idim,*),b(idim,*)
   data      hname               /  ' RFEQN'  /
   save
-  
+
   if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0) goto 210
   call tmprnt(hname,n,idim,k)
   return
-  
+
 210 continue
   nxch = ir(n)
   if(nxch .eq. 0) goto 220
@@ -595,7 +595,7 @@ subroutine rfeqn(n,a,idim,ir,k,b)
       b(j,l) = te
     end do
   end do
-  
+
 220 continue
   do l=1,k
     b(1,l) = a(1,1)*b(1,l)
@@ -621,27 +621,27 @@ subroutine rfeqn(n,a,idim,ir,k,b)
       b(nmi,l) = -one*s22
     end do
   end do
-  
+
 299 continue
   return
-  
+
   contains
-  
+
   real(kind=fPrec) function dotf(x,y,s21)
     real(kind=fPrec), intent(in) :: x, y, s21
     dotf = x * y + s21
   end function dotf
-  
+
 end subroutine rfeqn
 
 subroutine rfinv(n,a,idim,ir)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
-  
+
   integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
   real(kind=fPrec) a,ti,x,y
   real(kind=fPrec) s31,s32,s33,s34
@@ -649,12 +649,12 @@ subroutine rfinv(n,a,idim,ir)
   dimension ir(*),a(idim,*)
   data      hname               /  ' RFINV'  /
   save
-  
+
   if(idim .ge. n .and. n .gt. 0) goto 310
   call tmprnt(hname,n,idim,0)
   return
 310 if(n .eq. 1) return
-  
+
   a(2,1)  = (-one*a(2,2)) * dotf(a(1,1),a(2,1),zero)     !hr07
   a(1,2)  =  -one*a(1,2)                                             !hr07
   if(n .eq. 2) goto 330
@@ -673,7 +673,7 @@ subroutine rfinv(n,a,idim,ir)
     a(i,i-1) = (-one*a(i,i))*dotf(a(i-1,i-1),a(i,i-1),zero)         !hr07
     a(i-1,i) =  -one*a(i-1,i)                                       !hr07
   end do
-  
+
 330 continue
   nm1 = n-1
   do i=1,nm1
@@ -706,38 +706,38 @@ subroutine rfinv(n,a,idim,ir)
       a(k,j) = ti
     end do
   end do
-    
+
   return
-  
+
   contains
-  
+
   real(kind=fPrec) function dotf(x,y,s31)
     real(kind=fPrec), intent(in) :: x, y, s31
     dotf = x * y + s31
   end function dotf
-  
+
 end subroutine rfinv
 
 subroutine dfinv(n,a,idim,ir)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
-  
+
   integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
   real(kind=fPrec) a,s31,s32,s33,s34,ti,x,y
   character(len=6) hname
   dimension ir(*),a(idim,*)
   data      hname               /  ' DFINV'  /
   save
-  
+
   if(idim .ge. n  .and.  n .gt. 0) goto 310
   call tmprnt(hname,n,idim,0)
   return
 310 if(n .eq. 1) return
-  
+
   a(2,1) = (-one*a(2,2)) * dotf(a(1,1),a(2,1),zero)
   a(1,2) = -one*a(1,2)
   if(n .eq. 2) goto 330
@@ -756,7 +756,7 @@ subroutine dfinv(n,a,idim,ir)
     a(i,i-1) = (-one*a(i,i)) * dotf(a(i-1,i-1),a(i,i-1),zero)     !hr07
     a(i-1,i) = -one*a(i-1,i)                                      !hr07
   end do
-  
+
 330 continue
   nm1 = n-1
   do i=1,nm1
@@ -789,32 +789,32 @@ subroutine dfinv(n,a,idim,ir)
       a(k,j)  =  ti
     end do
   end do
-  
+
   return
-  
+
   contains
-  
+
   real(kind=fPrec) function dotf(x,y,s31)
     real(kind=fPrec), intent(in) :: x, y, s31
     dotf = x * y + s31
   end function dotf
-  
+
 end subroutine dfinv
 
 subroutine tmprnt(name,n,idim,k)
-  
+
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
   use crcoall
-  
+
   implicit none
-  
+
   integer idim,k,lgfile,n
   character(len=6) name
   logical mflag,rflag
   save
-  
+
   if(name(2:2) .eq. 'S') then
     call kermtr('F012.1',lgfile,mflag,rflag)
   else
@@ -846,13 +846,13 @@ end subroutine tmprnt
 
 ! This subrtoutine is not used
 subroutine dfeqn(n,a,idim,ir,k,b)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
-  
+
   integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
   real(kind=fPrec) a,b,x,y,te
   real(kind=fPrec) s21,s22
@@ -860,11 +860,11 @@ subroutine dfeqn(n,a,idim,ir,k,b)
   dimension ir(*),a(idim,*),b(idim,*)
   data      hname               /  ' DFEQN'  /
   save
-  
+
   if(idim .ge. n  .and.  n .gt. 0  .and.  k .gt. 0) goto 210
   call tmprnt(hname,n,idim,k)
   return
-  
+
 210 continue
   nxch = ir(n)
   if(nxch .eq. 0) goto 220
@@ -903,17 +903,17 @@ subroutine dfeqn(n,a,idim,ir,k,b)
       b(nmi,l) = -one*s22
     end do
   end do
-  
+
 299 continue
   return
-  
+
   contains
-  
+
   real(kind=fPrec) function dotf(x,y,s21)
     real(kind=fPrec), intent(in) :: x, y, s21
     dotf = x * y + s21
   end function dotf
-  
+
 end subroutine dfeqn
 
 end module matrix_inv

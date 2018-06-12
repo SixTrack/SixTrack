@@ -9,4 +9,3 @@
               ktrack(i)=41
               if(ibeco.eq.1) then
                 do 42 j=1,napx
-  

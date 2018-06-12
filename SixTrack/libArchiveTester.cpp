@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
   list_archive(argv[1]);
 
   cout << endl;
-  
+
   cout << "OK, now inflating into folder 'libarchive_test' in current directory!" << endl;
   read_archive(argv[1], "libarchive_test");
 

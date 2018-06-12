@@ -3,33 +3,33 @@
 !  TUNESHIFT CORRECTIONS MODULE
 !  Used by SixDA (mainda)
 !  Last modified: 2018-06-01
-!  
+!
 !  Moved from main code into module June 2018, by VKBO.
 ! ================================================================================================ !
 module tuneshift_corr
-  
+
   use floatPrecision
-  
+
   implicit none
-  
+
   integer,          private, save :: iamp
   integer,          private, save :: x(10)
   real(kind=fPrec), private, save :: ham(0:3)
   real(kind=fPrec), private, save :: hama(0:4)
   real(kind=fPrec), private, save :: hamp(0:1)
-  
+
   integer,          private, save :: jeltot1
   integer,          private, save :: maxa
   integer,          private, save :: maxp
   real(kind=fPrec), private, save :: hda1(0:3,3,0:3,0:4000)
-  
+
   integer,          private, save :: jeltot2
   integer,          private, save :: nordp
   integer,          private, save :: nordm
   integer,          private, save :: norda
   real(kind=fPrec), private, save :: hda2(0:4,5,0:8000)
   real(kind=fPrec), private, save :: hdp(0:1,5,0:8000)
-  
+
 contains
 
 !-----------------------------------------------------------------------
@@ -41,15 +41,15 @@ contains
 !----
 !-----------------------------------------------------------------------
 subroutine coruord
-  
+
   use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use mod_commond, only : ncor,namp,nmom,coel
   use crcoall
-  
+
   implicit none
-  
+
   integer i,ifail,istate,iter,iuser,iwork,j,jaord,jbound,jcol,jcomp,jconf,jord,jpord,jrow,jsex,jvar,&
     k,kcol,l,liwork,lwork,mcor,n,nclin,ncnln,nconf,ndim2,nout,nrel,nrowa,nrowj,nrowr
   real a,bl,bu,c,cjac,clamda,objf,objgrd,r,work,user
@@ -63,11 +63,11 @@ subroutine coruord
   dimension work(450),user(500),sex(10),sgn(10,10)
   dimension istate(20),iwork(40),iuser(3)
   data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48*zero/
-  
+
   save
-  
+
   pi2in=one/(eight*atan_mb(one))
-  
+
   do i=0,3
     do j=1,3
       do k=0,3
@@ -84,13 +84,13 @@ subroutine coruord
   ! SPECIFIES THE I/O UNITS FOR THE NAG ROUTINES
   nout=26
   call x04abf(1,nout)
-  
+
   jeltot1=ncor
   jaord=namp
   jpord=nmom
-  
+
   call readd1(user,jaord,jpord)
-  
+
   if(jaord.eq.2.or.jpord.eq.3) goto 130
 
   ! DEFINES THE MATRIX WITH THE LINEAR CONSTRAINTS
@@ -111,7 +111,7 @@ subroutine coruord
   ainv(1,2)=-one*detinv*a(1,2)
   ainv(2,1)=-one*detinv*a(2,1)
   ainv(2,2)=detinv*a(1,1)
-  
+
   do jrow=1,2
     do jcol=1,jeltot1
       do kcol=1,2
@@ -122,20 +122,20 @@ subroutine coruord
       dvec(jrow)=dvec(jrow)+ainv(jrow,jcol)*cvec(jcol)
     end do
   end do
-  
+
   ! WRITES ON THE EXIT FILE
 130 write(lout,10000)
     write(lout,10010)
     write(lout,10020) jeltot1,jaord,jpord
     write(lout,10030)
-    
+
   nrel=2
   nconf=jeltot1-2
   if(jaord.eq.2.or.jpord.eq.3) then
     nrel=0
     nconf=1
   end if
-  
+
   ! DEFINES EXTRA PARAMETERS
   do jconf=1,jeltot1
     n=jeltot1
@@ -178,12 +178,12 @@ subroutine coruord
     call e04uef('MAJOR ITERATION LIMIT = 100')
     call e04ucf(n,nclin,ncnln,nrowa,nrowj,nrowr,a,bl,bu,e04udm,objfun1,iter,istate,c,&
                 cjac,clamda,objf,objgrd,r,x,iwork,liwork,work,lwork,iuser,user,ifail)
-    
+
     if(ifail.ne.0.and.ifail.ne.5) then
       write(lout,10040) ifail
       call prror(-1)
     end if
-    
+
     do jsex=1,jeltot1
       sex(jsex)=x(jsex)
       write(lout,10050) coel(jsex),sex(jsex)
@@ -216,7 +216,7 @@ subroutine coruord
         chia=(pi2in/sqrt(30.d0))*sqrt((((((((27.d0*ham(3)**2 +5.d0*ham(2)**2)+5.d0*ham(1)**2)+27.d0*ham(0)**2) &
           +(9.d0*ham(3))*ham(2))+(9.d0*ham(1))*ham(0))+(6.d0*ham(2))*ham(1))+(3.d0*ham(3))*ham(1))+(3.d0*ham(2))*ham(0))
       end if
-      
+
       ! WRITES THE VALUE OF THE HAMILTONIAN
       write(lout,10110) jord
       write(lout,10120)
@@ -258,13 +258,13 @@ end subroutine coruord
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
 subroutine readd1(user,jaord,jpord)
-  
+
   use end_sixtrack
   use mathlib_bouncer
   use crcoall
-  
+
   implicit none
-  
+
   integer icont,ind,j,j1,j2,j3,j4,j5,j6,jaord,jcomp,jel,jord,jpord,maxcomp,njx,njx1,njz,njz1,nmax,np,ncoef,nord,point,kointer
   real user
   real(kind=fPrec) cc
@@ -285,7 +285,7 @@ subroutine readd1(user,jaord,jpord)
 #endif
 
   save
-  
+
   nmax=40
   maxa=jaord+1
   maxp=jpord
@@ -369,7 +369,7 @@ subroutine readd1(user,jaord,jpord)
       write(lout,'(a)') "Problem with data in fort.23"
       call prror(-1)
     end if
-    
+
     ! DATA PROCESSING
     hda1(njx,njx+njz,np,point)=cc+hda1(njx,njx+njz,np,point)
   end if
@@ -468,7 +468,7 @@ subroutine readd1(user,jaord,jpord)
       end do
     end do
   end if
-  
+
   return
 
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
@@ -479,10 +479,10 @@ end subroutine readd1
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
 subroutine hamilton1(ja,jp)
-  
+
   use numerical_constants
   use mathlib_bouncer
-  
+
   implicit none
 
   integer j1,j2,j3,j4,j5,j6,ja,jcomp,jel,jord,jp,l,ncoef,kointer
@@ -509,7 +509,7 @@ subroutine hamilton1(ja,jp)
           tham(l)=tham(l)+hda1(l,ja,jp,kointer)*(x(1)**j1)
         end do
       end do
-    
+
     case (2)
       do jord=0,2
         do j1=0,jord
@@ -520,7 +520,7 @@ subroutine hamilton1(ja,jp)
           end do
         end do
       end do
-      
+
     case (3)
       do jord=0,2
         do j1=0,jord
@@ -533,7 +533,7 @@ subroutine hamilton1(ja,jp)
           end do
         end do
       end do
-      
+
     case (4)
       do jord=0,2
         do j1=0,jord
@@ -548,7 +548,7 @@ subroutine hamilton1(ja,jp)
           end do
         end do
       end do
-      
+
     case (5)
       do jord=0,2
         do j1=0,jord
@@ -565,7 +565,7 @@ subroutine hamilton1(ja,jp)
           end do
         end do
       end do
-      
+
     case (6)
       do jord=0,2
         do j1=0,jord
@@ -585,15 +585,15 @@ subroutine hamilton1(ja,jp)
           end do
         end do
       end do
-    
+
   end select
-    
+
   do jel=0,ncoef
     ham(jel)=tham(jel)
   end do
-    
+
   return
-    
+
 end subroutine hamilton1
 
 !-----------------------------------------------------------------------
@@ -601,10 +601,10 @@ end subroutine hamilton1
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
 subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
-  
+
   use mathlib_bouncer
   use numerical_constants
-  
+
   implicit none
 
   integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jvar,l,mode,n,nmax,nstate,kointer
@@ -612,16 +612,16 @@ subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
   real(kind=fPrec) fder,fun,objf,objgrd,x
   dimension iuser(*),x(10),objgrd(10),user(*),fun(0:3),fder(0:3,10)
   save
-  
+
   nmax=40
-  
+
   do jel=0,3
     do jvar=1,n
       fder(jel,jvar)=zero
     end do
     fun(jel)=zero
   end do
-  
+
   if(n.eq.1) then
     do l=0,iuser(3)
       icont=0
@@ -745,7 +745,7 @@ subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
       end do
     end do
   end if
-  
+
   if(iuser(2).eq.0) then
     if(iuser(1).eq.1) then
       objf=(((2.d0*fun(0)**2+fun(1)**2)+2.d0*fun(2)**2)+fun(0)*fun(1))+fun(2)*fun(1)
@@ -768,9 +768,9 @@ subroutine objfun1(mode,n,x,objf,objgrd,nstate,iuser,user)
       objgrd(jvar)=(two*fun(0))*fder(0,jvar) +(two*fun(1))*fder(1,jvar)
     end do
   end if
-  
+
   return
-  
+
 end subroutine objfun1
 
 !-----------------------------------------------------------------------
@@ -781,13 +781,13 @@ end subroutine objfun1
 !----
 !-----------------------------------------------------------------------
 subroutine coruglo
-  
+
   use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use mod_commond, only : ncor,dpmax,nmom1,nmom2,weig1,weig2,coel
   use crcoall
-  
+
   implicit none
 
   integer i,ifail,istate,iter,itype,iuser,iwork,j,jbound,jcol,jcomp,jconf,jord,jrow,jsex,jvar,kcol,l,&
@@ -797,14 +797,14 @@ subroutine coruglo
   external e04udm !,objfun2
   parameter(mcor = 10)
   parameter(ndim2 = 6)
-  
+
   dimension a(2,10),cjac(1,1),c(1)
   dimension r(10,10),bu(20),bl(20),clamda(20),objgrd(10)
   dimension ainv(2,2),bmat(2,10),cmat(2,10),cvec(2),dvec(2)
   dimension work(450),user(500),sex(10),sgn(10,10)
   dimension istate(20),iwork(40),iuser(2)
   data sgn/100*one/ainv,bmat,cmat,cvec,dvec/48*zero/
-  
+
   save
 
   pi2in=one/(eight*atan_mb(one))
@@ -866,7 +866,7 @@ subroutine coruglo
   write(lout,10010)
   write(lout,10020) jeltot2,nordm,nordp,delta,weig1,weig2,value
   write(lout,10030)
-  
+
   do jconf=1,jeltot2-2
     ! INITIALIZATION
     iuser(1)=nordp
@@ -876,7 +876,7 @@ subroutine coruglo
     user(3)=value
     user(4)=delta*c1e3
     user(5)=one/(user(4)**(2*nordm+1))
-    
+
     ! DEFINES EXTRA PARAMETERS
     n=jeltot2
     nclin=2
@@ -886,17 +886,17 @@ subroutine coruglo
     nrowr=10
     liwork=30
     lwork=450
-    
+
     do jbound=1,n
       bu(jbound)=c1e2
       bl(jbound)=-c1e2
     end do
-    
+
     do jbound=1,nclin
       bu(n+jbound)=-one*hdp(jbound-1,1,0)
       bl(n+jbound)=-one*hdp(jbound-1,1,0)
     end do
-    
+
     do jvar=1,n
       x(jvar)=zero
     end do
@@ -908,12 +908,12 @@ subroutine coruglo
         x(jcol+2)=sgn(jcol,jconf)
       end do
     end do
-      
+
     ifail=-1
     call e04uef('MAJOR ITERATION LIMIT = 100')
     call e04ucf(n,nclin,ncnln,nrowa,nrowj,nrowr,a,bl,bu,e04udm,objfun2,iter,istate,c,cjac,clamda,&
       objf,objgrd,r,x,iwork,liwork,work,lwork,iuser,user,ifail)
-    
+
     if(ifail.ne.0.and.ifail.ne.5) then
       write(lout,10040) ifail
       call prror(-1)
@@ -928,7 +928,7 @@ subroutine coruglo
     do jord=1,nordp
       iamp=0
       call hamilton2(jord)
-      
+
       ! WRITES THE VALUES OF THE HAMILTONIAN
       write(lout,10060) jord
       write(lout,10070)
@@ -970,7 +970,7 @@ subroutine coruglo
       write(lout,10100)
     end do
   end do
-    
+
 10000 format(//80('-')//t10,29('O')/t10,2('O'),25x,2('O')/t10,          &
      &'OO  TUNE-SHIFT CORRECTION  OO', /t10,2('O'),25x,2('O')/t10,29('O'&
      &)//80('-')//)
@@ -1005,18 +1005,18 @@ end subroutine coruglo
 !---- SUBROUTINE TO READ DATA
 !-----------------------------------------------------------------------
 subroutine readd2(user)
-  
+
   use end_sixtrack
   use mathlib_bouncer
   use crcoall
-  
+
   implicit none
-  
+
   integer icont,ind,j,j1,j2,j3,j4,j5,j6,jcomp,jel,jord,jp,ncoef,njx,njx1,njz,njz1,nor,np,point,kointer
   real user
   real(kind=fPrec) cc
   dimension ind(10),user(500)
-  
+
 #ifdef CRLIBM
   integer nchars
   parameter (nchars=160)
@@ -1121,7 +1121,7 @@ subroutine readd2(user)
     ! DATA PROCESSING
     hda2(njx,njx+njz,point)=cc+hda2(njx,njx+njz,point)
   end if
-  
+
   goto 10
 
   ! DEFINES DATA FOR THE ROUTINE OBJFUN
@@ -1224,9 +1224,9 @@ subroutine readd2(user)
       end do
     end do
   end if
-  
+
   return
-  
+
 10000 format(//,t10,' INDEX OUT OF BOUND IN ROUTINE READD ')
 
 end subroutine readd2
@@ -1235,15 +1235,15 @@ end subroutine readd2
 !---- COMPUTES THE VALUE OF THE HAMILTONIAN AFTER CORRECTIONS
 !-----------------------------------------------------------------------
 subroutine hamilton2(jp)
-  
+
   use numerical_constants
   use mathlib_bouncer
-  
+
   implicit none
-  
+
   integer j,j1,j2,j3,j4,j5,j6,jel,jord,jp,l,kointer
   real(kind=fPrec) thama,thamp
-  
+
   dimension thamp(0:1),thama(0:4)
   save
 
@@ -1421,7 +1421,7 @@ subroutine hamilton2(jp)
   end if
 
   return
-  
+
 end subroutine hamilton2
 
 !-----------------------------------------------------------------------
@@ -1429,18 +1429,18 @@ end subroutine hamilton2
 !---- DERIVATIVES
 !-----------------------------------------------------------------------
 subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
-  
+
   use numerical_constants
   use mathlib_bouncer
-  
+
   implicit none
-  
+
   integer icont,iuser,j1,j2,j3,j4,j5,j6,jel,jord,jp,jvar,kord,l,mode,n,nstate,kointer
   real user
   real(kind=fPrec) add1,add2,fder,fun,objf,objgrd,sgn,tunedx,tunedy,tunex,tuney,weight,x
   dimension x(10),objgrd(10),user(*),fun(0:1,10),fder(0:1,10,10)
   dimension iuser(*),tunedx(10),tunedy(10)
-  
+
   save
 
   do jel=0,1
@@ -1451,7 +1451,7 @@ subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
       fun(jel,jord)=0.d0
     end do
   end do
-    
+
   icont=5
   if(n.eq.1) then
     do l=0,1
@@ -1535,9 +1535,9 @@ subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
                     real(j1,fPrec))*(x(1)**(j1-1)))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)
                   fder(l,jp,2)=fder(l,jp,2)+(((((user(icont)* &
                     real(j2,fPrec))*(x(1)**j1))*(x(2)**(j2-1)))*(x(3)**j3))*(x(4)**j4))*(x(5)**j5)
-                  fder(l,jp,3)=fder(l,jp,3)+(((((user(icont)* & 
+                  fder(l,jp,3)=fder(l,jp,3)+(((((user(icont)* &
                     real(j3,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**(j3-1)))*(x(4)**j4))*(x(5)**j5)
-                  fder(l,jp,4)=fder(l,jp,4)+(((((user(icont)* & 
+                  fder(l,jp,4)=fder(l,jp,4)+(((((user(icont)* &
                     real(j4,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**(j4-1)))*(x(5)**j5)
                   fder(l,jp,5)=fder(l,jp,5)+(((((user(icont)* &
                     real(j5,fPrec))*(x(1)**j1))*(x(2)**j2))*(x(3)**j3))*(x(4)**j4))*(x(5)**(j5-1))
@@ -1582,14 +1582,14 @@ subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
       end do
     end do
   end if
-  
+
   tunex=zero
   tuney=zero
   do jvar=1,n
     tunedx(jvar)=zero
     tunedy(jvar)=zero
   end do
-    
+
   do jord=iuser(2),iuser(1)
     do kord=iuser(2),iuser(1)
       sgn=one
@@ -1605,7 +1605,7 @@ subroutine objfun2(mode,n,x,objf,objgrd,nstate,iuser,user)
       end do
     end do
   end do
-    
+
   objf=user(1)**2*tunex+user(2)**2*tuney
   do jvar=1,n
     objgrd(jvar)=(two*user(1)**2)*tunedx(jvar)+ (two*user(2)**2)*tunedy(jvar)

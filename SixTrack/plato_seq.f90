@@ -83,11 +83,11 @@ module platoFMA
 !C=============================================================
 !C COMPUTES THE TUNE USING A DISCRETE VERSION OF LASKAR METHOD.
 !C IT INCLUDES A NEWTON METHOD FOR THE SEARCH OF THE FREQUENCY.
-!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE 
+!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE
 !C LENGTH IF THE ORBIT.
 !C
 !C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
-!C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME 
+!C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME
 !C                                   MODIFICATIONS
 !C
 
@@ -100,7 +100,7 @@ module platoFMA
       INTEGER MAXN, MFT, NPOINT, MAXN2, MF, NPMIN, NPMAX, NFTMAX, NFT
       COMPLEX(kind=fPrec) Z
       COMPLEX(kind=fPrec), DIMENSION(MAXITER) :: ZSING ! Temp Z for CFFT, used to be SINGLE precision
-      
+
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
@@ -110,7 +110,7 @@ module platoFMA
          call prror(-1)
       ENDIF
 !C.............................................................
-!C    ESTIMATION OF TUNE WITH FFT 
+!C    ESTIMATION OF TUNE WITH FFT
 !C.............................................................
       DUEPI=ATAN_MB(one)*eight
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
@@ -123,10 +123,10 @@ module platoFMA
         Z(MF)=CMPLX(X(MF),XP(MF),fPrec) !Returns COMPLEX*16 / COMPLEX(8)
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
-      ENDDO 
+      ENDDO
       CALL CFFT(ZSING,-MFT)
 !.........COMPUTATION OF THE MAXIMUM OF THE FOURIER TRANSFORM
-      NPMIN=1 
+      NPMIN=1
       IF (SUM.EQ.zero) THEN
         NPMAX=NPOINT/2  !..REAL FFT ONLY HALF COEFFICIENTS
       ELSE
@@ -147,9 +147,9 @@ module platoFMA
       TUNE1=TUNEFOU-DELTAT
       CALL ZFUN(TUNE,Z,MAXN,TUNE1,DELTAT)
       TUNENEWT1=one-TUNE
-!C............................................................  
-      RETURN 
-!C............................................................  
+!C............................................................
+      RETURN
+!C............................................................
       END FUNCTION
 
 !CDECK  ID>, TUNEFIT.
@@ -168,7 +168,7 @@ module platoFMA
       PARAMETER(MAXITER=100000)
       INTEGER MAX,MAX1,MAX2,N
       REAL(KIND=fPrec) X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,TUNEAPA,U,ATUNE,TUNEF,TUNE
-      DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER) 
+      DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER)
 
 !C............................................................
       IF (MAX.LE.0) THEN
@@ -195,7 +195,7 @@ module platoFMA
         IF (STHETA.GE.0) THEN
           THETA=ACOS_MB(CTHETA)
           ELSE
-          THETA=DUEPI-ACOS_MB(CTHETA) 
+          THETA=DUEPI-ACOS_MB(CTHETA)
         END IF
         PA=PA+THETA
         TUNEAPA=PA/DUEPI
@@ -214,7 +214,7 @@ module platoFMA
       END FUNCTION
 !CDECK  ID>, FIT.
 !C============================================================
-!C COMPUTES THE STRAIGHT LINE WHICH FITS A SET OF N 2D 
+!C COMPUTES THE STRAIGHT LINE WHICH FITS A SET OF N 2D
 !C OBSERVATIONS.
 !C THE LINE IS REPRESENTED BY
 !C
@@ -244,8 +244,8 @@ module platoFMA
       DO I=1,N
         X2M=X2M+X(I)*X(I)
         XYM=XYM+X(I)*Y(I)
-        XM=XM+X(I)        
-        YM=YM+Y(I)        
+        XM=XM+X(I)
+        YM=YM+Y(I)
       END DO
 !C.............................................................
       X2M=X2M/N
@@ -263,10 +263,10 @@ module platoFMA
 !CDECK  ID>, TUNEABT.
 !C=============================================================
 !C COMPUTES THE TUNE USING FFT INTERPOLATED METHOD.
-!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE 
+!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE
 !C LENGTH OF THE ORBIT.
 !C
-!C AUTHOR:     E. TODESCO - INFN AND CERN 
+!C AUTHOR:     E. TODESCO - INFN AND CERN
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)
@@ -279,9 +279,9 @@ module platoFMA
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER),ZSING(MAXITER)
 
-!C..................................ESTIMATION OF TUNE WITH FFT 
+!C..................................ESTIMATION OF TUNE WITH FFT
       PI=ATAN_MB(one)*four
-      MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two)) 
+      MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
       DUEPI=two*PI
       NPOINT=2**MFT
       STEP=DUEPI/NPOINT/two
@@ -313,24 +313,24 @@ module platoFMA
       CF1=ABS(ZSING(NFTMAX-1))
       CF2=ABS(ZSING(NFTMAX))
       CF3=ABS(ZSING(NFTMAX+1))
-      IF (CF3.GT.CF1) THEN      
+      IF (CF3.GT.CF1) THEN
         ASSK=REAL(NFTMAX,fPrec)+(NPOINT/PI)*ATAN2_MB(CF3*SIN_MB(PI/NPOINT),CF2+CF3*COS_MB(PI/NPOINT))
-      ELSEIF (CF3.LE.CF1) THEN                   
+      ELSEIF (CF3.LE.CF1) THEN
         ASSK=REAL(NFTMAX-1,fPrec)+(NPOINT/PI)*ATAN2_MB(CF2*SIN_MB(PI/NPOINT),CF1+CF2*COS_MB(PI/NPOINT))
       ENDIF
       TUNEABT=one-(ASSK-one)/REAL(NPOINT,fPrec) !1D+0 = 1D0, i.e. real(kind=fPrec) 1.0?
-!C............................................................  
-      RETURN 
-!C............................................................  
+!C............................................................
+      RETURN
+!C............................................................
       END FUNCTION
 !CDECK  ID>, TUNEABT2.
 !C=============================================================
 !C COMPUTES THE TUNE USING THE INTERPOLATED FFT METHOD
 !C WITH HANNING FILTER.
-!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE 
+!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE
 !C LENGTH OF THE ORBIT.
 !C
-!C AUTHOR:     E. TODESCO - INFN AND CERN 
+!C AUTHOR:     E. TODESCO - INFN AND CERN
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)
@@ -344,9 +344,9 @@ module platoFMA
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
-!C..................................ESTIMATION OF TUNE WITH FFT 
+!C..................................ESTIMATION OF TUNE WITH FFT
       PI=ATAN_MB(one)*four
-      MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two)) 
+      MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
       DUEPI=2*PI
       NPOINT=2**MFT
       STEP=(DUEPI/NPOINT)/two
@@ -356,7 +356,7 @@ module platoFMA
         Z(MF)=CMPLX(X(MF),XP(MF),fPrec)*SIN_MB(STEP*MF)**2
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
-      ENDDO 
+      ENDDO
       CALL FFT_PLATO(ZSING,NPOINT,-1)
 !C.......................SEARCH FOR MAXIMUM OF FOURIER SPECTRUM
       NPMIN=1
@@ -377,11 +377,11 @@ module platoFMA
       CF1=ABS(ZSING(NFTMAX-1))
       CF2=ABS(ZSING(NFTMAX))
       CF3=ABS(ZSING(NFTMAX+1))
-      IF (CF3.GT.CF1) THEN      
+      IF (CF3.GT.CF1) THEN
         P1=CF2
         P2=CF3
         NN=NFTMAX
-      ELSEIF (CF3.LE.CF1) THEN                   
+      ELSEIF (CF3.LE.CF1) THEN
         P1=CF1
         P2=CF2
         NN=NFTMAX-1
@@ -395,9 +395,9 @@ module platoFMA
       SCRA4=(-SCRA2+P2*SQRT(SCRA1))/SCRA3
       ASSK=REAL(NN,fPrec)+((NPOINT/2)/PI)*ASIN_MB(SI*SCRA4)
       TUNEABT2=one-(ASSK-one)/REAL(NPOINT,fPrec)
-!C............................................................  
-      RETURN 
-!C............................................................  
+!C............................................................
+      RETURN
+!C............................................................
       END FUNCTION
 
 !CDECK  ID>, FFT_PLATO.
@@ -474,7 +474,7 @@ module platoFMA
       DO I=1,N,2
         CDATA(I/2+1)=CMPLX(DATA(I),DATA(I+1),fPrec)
       ENDDO
-!C.............................................................      
+!C.............................................................
       END SUBROUTINE
 
 !CDECK  ID>, FFT_PLATO_REAL.
@@ -542,18 +542,18 @@ module platoFMA
         MMAX=ISTEP
         GOTO 2
       END IF
-!C.............................................................      
+!C.............................................................
       END SUBROUTINE
 
 !CDECK  ID>, TUNENEWT.
 !C=============================================================
 !C COMPUTES THE TUNE USING A DISCRETE VERSION OF LASKAR METHOD.
 !C IT INCLUDES A NEWTON METHOD FOR THE SEARCH OF THE FREQUENCY.
-!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE 
+!C X, XP ARE THE COORDINATES OF THE ORBIT AND MAXN IS THE
 !C LENGTH IF THE ORBIT.
 !C
 !C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
-!C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME 
+!C             M. GIOVANNOZZI - CERN HAS INTRODUCED SOME
 !C                                   MODIFICATIONS
 !C
 
@@ -575,10 +575,10 @@ module platoFMA
         call prror(-1)
       ENDIF
 !C.............................................................
-!C    ESTIMATION OF TUNE WITH FFT 
+!C    ESTIMATION OF TUNE WITH FFT
 !C.............................................................
       DUEPI=ATAN_MB(ONE)*EIGHT
-      MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(TWO)) 
+      MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(TWO))
       NPOINT=2**MFT
       MAXN2=MAXN/2
       STEP=DUEPI/MAXN
@@ -588,7 +588,7 @@ module platoFMA
         Z(MF)=CMPLX(X(MF),XP(MF),fPrec)*(one+COS_MB(STEP*(MF-MAXN2)))
         ZSING(MF)=Z(MF)
         SUM=SUM+XP(MF)
-      ENDDO 
+      ENDDO
       CALL CFFT(ZSING,-MFT)
 !C.........COMPUTATION OF THE MAXIMUM OF THE FOURIER TRANSFORM
       NPMIN=1
@@ -612,12 +612,12 @@ module platoFMA
       TUNE1=TUNEFOU-DELTAT
       CALL ZFUN(TUNE,Z,MAXN,TUNE1,DELTAT)
       TUNENEWT=ONE-TUNE
-!C............................................................  
-      RETURN 
-!C............................................................  
+!C............................................................
+      RETURN
+!C............................................................
       END FUNCTION
 !C=============================================================
-!C AUXILIARY ROUTINE USED BY TUNENEWT.      
+!C AUXILIARY ROUTINE USED BY TUNENEWT.
 !C
 !C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 !C
@@ -632,7 +632,7 @@ module platoFMA
       COMPLEX(kind=fPrec) ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
 
-!C............................................................  
+!C............................................................
       DUEPI=ATAN_MB(one)*eight
       ERR=c1m10
       ZU=CMPLX(zero,one,fPrec)
@@ -640,11 +640,11 @@ module platoFMA
 !C.... we divide DELTAT in 5 parts
 !C............................................................
       DELTAT=DELTAT/FIVE
-!C............................................................  
+!C............................................................
       DO ND=1,MAXN
         ZD(ND)=(ZU*ND)*Z(ND)
       ENDDO
-!C............................................................  
+!C............................................................
 #ifdef CRLIBM
       ! EXP_MB expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
       ZTUNE1=cos_mb(DUEPI*TUNEA1) + ZU*sin_mb(DUEPI*TUNEA1)
@@ -680,7 +680,7 @@ module platoFMA
               ELSE
                  IF(TUNE2.EQ.TUNE3) GOTO 100
                  TUNE2=TUNE3
-                 DTUNE2=DTUNE3         
+                 DTUNE2=DTUNE3
               ENDIF
               IF (ABS(TUNE2-TUNE1).LE.ERR) GOTO 100
            ENDDO
@@ -699,12 +699,12 @@ module platoFMA
             TUNE=TUNETEST(NC)
          ENDIF
       ENDDO
-!C............................................................  
+!C............................................................
       RETURN
-!C............................................................  
+!C............................................................
       END SUBROUTINE
 !C=============================================================
-!C AUXILIARY ROUTINE USED BY TUNENEWT.      
+!C AUXILIARY ROUTINE USED BY TUNENEWT.
 !C
 !C AUTHOR:     A. BAZZANI - BOLOGNA UNIVERSITY
 !C
@@ -715,13 +715,13 @@ module platoFMA
       COMPLEX(kind=fPrec) ZV,ZPP,ZP
       DIMENSION ZP(*)
       ZPP=ZP(MAXD)
-!C............................................................  
+!C............................................................
       DO NP=MAXD-1,1, -1
         ZPP=ZPP*ZV+ZP(NP)
       ENDDO
-!C............................................................  
+!C............................................................
       RETURN
-!C............................................................  
+!C............................................................
       END SUBROUTINE
 
 !CDECK  ID>, TUNEAPA.
@@ -736,7 +736,7 @@ module platoFMA
 !C
 !C AUTHOR:    E. TODESCO - UNIVERSITY OF BOLOGNA
 !C
- 
+
       REAL(KIND=fPrec) FUNCTION TUNEAPA(X,P,N)
 !C............................................................
       use crcoall
@@ -803,7 +803,7 @@ module platoFMA
 !C
 !C AUTHOR:    E. TODESCO - UNIVERSITY OF BOLOGNA
 !C
- 
+
       REAL(KIND=fPrec) FUNCTION TUNEFFT(X,P,N)
 !C............................................................
       use crcoall
@@ -876,7 +876,7 @@ module platoFMA
 !C
 !C AUTHOR:     E. TODESCO - UNIVERSITY OF BOLOGNA
 !C
- 
+
       REAL(KIND=fPrec) FUNCTION TUNEFFTI(X,P,N)
 !C............................................................
       use crcoall
@@ -967,8 +967,8 @@ module platoFMA
 !C   OF THE MAP
 !C MAX IS THE NUMBER OF ITERATIONS OF THE MAP
 !C
-!C AUTHOR:     R. BARTOLINI - BOLOGNA UNIVERSITY. 
-!C             M. GIOVANNOZZI - CERN HAS INTRODUCED SIGNIFICANT 
+!C AUTHOR:     R. BARTOLINI - BOLOGNA UNIVERSITY.
+!C             M. GIOVANNOZZI - CERN HAS INTRODUCED SIGNIFICANT
 !C             MODFICATIONS
 !C
 

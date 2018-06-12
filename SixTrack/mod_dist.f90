@@ -3,7 +3,7 @@
 !  last modified: 2018-06-02
 !  read a beam distribution
 !  always in main code
-!  
+!
 !  Format of the input file:
 !    id:         unique identifier of the particle (integer)
 !    gen:        parent ID (integer)
@@ -15,7 +15,7 @@
 !    pc:         particle momentum [GeV/c]
 !    dt:         time delay with respect to the reference particle [s]
 !  - aa,zz and m are now taken into account for hisix
-!  
+!
 !  NOTA BENE:
 !  - id, gen and weight are assigned by the fluka_mod_init subroutine;
 !  - z and zp are actually useless (but we never know);
@@ -24,7 +24,7 @@
 !    the subroutine fluka_send is then responsible for using the corresponding
 !    values for protons through the interface, whereas the subroutine fluka_receive
 !    simply ignores the values passed through the FlukaIO interface;
-!  
+!
 !  variables in input to routine:
 !  - napx: number of protons to be tracked (from fort.3 file);
 !  - npart: max number of protons that can be tracked (array dimensioning);
@@ -32,59 +32,59 @@
 !  - pnom: nominal linear momentum of the beam (ie of synch particle) [MeV/c];
 !  - clight: speed of light [m/s];
 !  NB: in case the file contains less particle than napx, napx is
-!      re-assigned 
-!  
+!      re-assigned
+!
 !  output variables:
 !    all other variables in the interface (6D tracking variables);
-!  
+!
 ! ================================================================================================ !
 module mod_dist
-  
+
   use crcoall
   use floatPrecision
-  
+
   implicit none
-  
+
   logical,           public, save :: dist_enable      ! DIST input block given
   logical,           public, save :: dist_echo        ! echo the read distribution?
-  character(len=16), public, save :: dist_filename    ! 
+  character(len=16), public, save :: dist_filename    !
   integer,           public, save :: dist_read_unit   ! unit for reading the distribution
   integer,           public, save :: dist_echo_unit   ! unit for echoing the distribution
-  
+
 contains
 
 subroutine dist_parseInputLine(inLine, iLine, iErr)
-  
+
   use string_tools
   use file_units
-  
+
   implicit none
-  
+
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
-  
+
   character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
-  
+
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "DIST> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
-  
+
   if(nSplit == 0) return
-  
+
   select case(lnSplit(1))
-  
+
   case("ECHO")
     dist_echo = .true.
-    
+
   case("RDUN")
     write(lout,"(a)") "DIST> INFO RDUN is deprecated. A unit will be assigned automatically."
-    
+
   case("ECUN")
     if(nSplit <= 2) then
       write(lout,"(a,i0)") "DIST> ERROR ECUN must have 1 values, got ",(nSplit-1)
@@ -92,7 +92,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(2),dist_echo_unit,iErr)
-    
+
   case("READ")
     if(nSplit <= 2) then
       write(lout,"(a,i0)") "DIST> ERROR READ must have 1 values, got ",(nSplit-1)
@@ -102,18 +102,18 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     dist_filename = trim(lnSplit(2))
     call funit_requestUnit(dist_filename,dist_read_unit)
     if(.not.dist_enable) dist_enable = .true.
-    
+
   end select
-  
+
 end subroutine dist_parseInputLine
 
 subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m)
-  
+
   use end_sixtrack
   use numerical_constants
   use, intrinsic :: iso_fortran_env, only : int16
   implicit none
-  
+
 ! interface variables:
   integer napx, npart
   real(kind=fPrec) enom, pnom, clight
@@ -229,5 +229,5 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
   call prror(-1)
   return
 end subroutine dist_readdis
-  
+
 end module mod_dist

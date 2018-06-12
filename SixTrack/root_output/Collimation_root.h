@@ -11,7 +11,7 @@ extern "C" void SurvivalRootWrite(int, int);
 extern "C" void CollimatorDatabaseRootWrite(int, char*, int, char*, int, double, double, double, double);
 
 /**
-* This class outputs the particle losses onto collimators 
+* This class outputs the particle losses onto collimators
 * It also prints the number of surviving particles each turn
 */
 class CollimationRootOutput

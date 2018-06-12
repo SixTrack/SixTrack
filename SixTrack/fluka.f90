@@ -19,7 +19,7 @@ subroutine check_coupling_integrity
       use aperture
       use end_sixtrack
       implicit none
-      
+
 !     temporary variables
       integer i1 , i2
       integer ix1, ix2
@@ -177,7 +177,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
         nnuc0   = nnuc0 + naa(j)
         ien0    = ien0 + ejv(j)
         ! array of particle ids sent to FLUKA
-        pids(j) = fluka_uid(j)   
+        pids(j) = fluka_uid(j)
       end do
 
 
@@ -205,7 +205,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
          ejfv  (j) = sqrt((ejv(j)-nucm(j))*(ejv(j)+nucm(j)))   ! hisix: ion mass
          rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))                 ! hisix: remains unchanged
          dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
-         oidpsv(j) = one/(one+dpsv(j))  
+         oidpsv(j) = one/(one+dpsv(j))
          dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))            ! hisix: mass to charge
          moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
@@ -318,7 +318,7 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
 
 !     PH hisix compute the number of nucleons sent to FLUKA
 !     PH hisix compute ion energy sent to FLUKA
-!     PH initialize array of particle ids 
+!     PH initialize array of particle ids
       nnuc0 = 0
       ien0  = zero
       do j=1,npart
