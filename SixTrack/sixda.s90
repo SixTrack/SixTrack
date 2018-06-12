@@ -855,7 +855,7 @@ subroutine runcav
 
   integer idaa
   real(kind=fPrec) betr0,dare,sigmdac
-+ca commond1
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   save
 !-----------------------------------------------------------------------
 #include "include/daini.f90"

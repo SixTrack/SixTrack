@@ -28,15 +28,6 @@
 !
 ! ================================================================================================ !
 
-+cd commond1
-  ! This and the next block just have different variable names, and seem to be FOX related?
-  ! Could in principle go into mod_commont where the DA / non-DA copy logic lives
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
-+cd commd1da
-  integer alda_da,asda_da,aldaq_da,asdaq_da,smida_da,xx_da,yy_da,dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
-  common/daele/alda_da(2,6),asda_da(2,6),aldaq_da(2,6),asdaq_da(2,6),smida_da(mcor),xx_da(2), &
-    yy_da(2),dpda_da,dpda1_da,sigmda_da,ej1_da,ejf1_da,rv_da
-!
 +dk errf
       subroutine errf(xx,yy,wx,wy)
 !----------------------------------------------------------------------*
@@ -6662,7 +6653,7 @@ subroutine envada
   implicit none
   integer i,ien,ih,ip,kz1,l,idaa
   real(kind=fPrec) dare,result
-+ca commond1
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   save
 !FOX  B D ;
 #include "include/dainicom.f90"
@@ -7045,7 +7036,7 @@ end subroutine envada
       implicit none
       integer i,ih,ipch,idaa
       real(kind=fPrec) dare
-+ca commond1
+      common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -7157,7 +7148,7 @@ subroutine runda
      &zfeld1,zfeld2,zrb,zs, crabfreq, crabpht, crabpht2, crabpht3,      &
      &crabpht4
       character(len=300) ch
-+ca commond1
+      common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
       dimension zfeld1(100),zfeld2(100)
       dimension iverg(mcor)
       dimension fake(2,20),dpdav2(6),jj(100)
@@ -8466,7 +8457,7 @@ subroutine umlauda
      &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
      &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
       character(len=max_name_len) typ
-+ca commond1
+      common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
       dimension damap(6),damapi(6),damap1(6)
       dimension aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6)
       dimension zfeld1(100),zfeld2(100)
@@ -10102,7 +10093,7 @@ subroutine wireda(ix,i)
       integer ix,idaa,i
       real(kind=fPrec) NNORM_, XCLO, YCLO
       real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
-+ca commond1
+      common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -10293,7 +10284,7 @@ end subroutine wireda
       use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
       implicit none
       integer ix,idaa
-+ca commond1
+      common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
       save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -18795,6 +18786,7 @@ subroutine comnul
   use mod_commons
   use mod_commont
   use mod_commond
+  use mod_common_da2
 
   use aperture
   use elens
@@ -18815,7 +18807,6 @@ subroutine comnul
   implicit none
 
   integer i,i1,i2,i3,i4,j
-+ca commd1da
 
   save
 
@@ -18930,6 +18921,21 @@ subroutine comnul
   ! SYNCHROTRON OSCILLATIONS BLOCK
   phas    = zero  ! mod_common
 
+  ! DIFFERENTIAL ALGEBRA
+  dpda       = 0  ! mod_common_da2
+  dpda1      = 0  ! mod_common_da2
+  sigmda     = 0  ! mod_common_da2
+  ej1        = 0  ! mod_common_da2
+  ejf1       = 0  ! mod_common_da2
+  rv         = 0  ! mod_common_da2
+  xx(:)      = 0  ! mod_common_da2
+  yy(:)      = 0  ! mod_common_da2
+  alda(:,:)  = 0  ! mod_common_da2
+  asda(:,:)  = 0  ! mod_common_da2
+  aldaq(:,:) = 0  ! mod_common_da2
+  asdaq(:,:) = 0  ! mod_common_da2
+  smida(:)   = 0  ! mod_common_da2
+
   ! TODO
       nur=0
       nch=0
@@ -18983,13 +18989,6 @@ subroutine comnul
       weig1=zero
       weig2=zero
       dpmax=zero
-!--DA-------------------------------------------------------------------
-      dpda_da=0
-      dpda1_da=0
-      sigmda_da=0
-      ej1_da=0
-      ejf1_da=0
-      rv_da=0
 !-----------------------------------------------------------------------
       pi=zero
       pi2=zero
@@ -19313,22 +19312,6 @@ subroutine comnul
 
         bbcu(i,11)=one
       end do
-
-!--DA-------------------------------------------------------------------
-      do i1=1,2
-        xx_da(i1)=0
-        yy_da(i1)=0
-        do i2=1,6
-          alda_da(i1,i2)=0
-          asda_da(i1,i2)=0
-          aldaq_da(i1,i2)=0
-          asdaq_da(i1,i2)=0
-        end do
-      end do
-
-      do i=1,mcor
-        smida_da(i)=0
-      enddo
 
 !--CADCUM---------------------------------------------------------------
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
