@@ -313,11 +313,11 @@ list(APPEND FORS_F90
 
 if(SIXDA)
 	list(APPEND FORS_FREEFORM sixsc sixscfox)
-	list(APPEND FORS_F90 tshift_corr)
+	list(APPEND FORS_F90 main_da tshift_corr)
 	list(APPEND FORS_DAFOR_F90 sixda)
 else()
 	list(APPEND FORS_FREEFORM sixve sixvefox)
-	list(APPEND FORS_F90 track_thin track_thick)
+	list(APPEND FORS_F90 main_cr track_thin track_thick)
 endif()
 
 # List of files that must be treated by DAFOR
