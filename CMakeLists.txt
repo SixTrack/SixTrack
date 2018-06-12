@@ -302,17 +302,13 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
 # Select which fortran files to generate and compile
 ###################################################################################################
 
-list(APPEND FORS_FREEFORM
-	postprocessing 
-)
-
 list(APPEND FORS_F90
 	core_tools constants sixtrack_input mod_units close
-	checkpoint_restart strings string_tools common_modules
-	mainarrays file_units mod_alloc zipf matrix_inv lielib
+	strings string_tools common_modules mainarrays
+	file_units mod_alloc zipf matrix_inv lielib 
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dynk dump
-	aperture
+	aperture postprocessing
 )
 
 if(SIXDA)
@@ -321,6 +317,10 @@ if(SIXDA)
 else()
 	list(APPEND FORS_FREEFORM track sixve sixvefox)
 endif()
+
+if(CR)
+	list(APPEND FORS_F90 checkpoint_restart)
+endif(CR)
 
 if(COLLIMAT)
 	LIST(APPEND FORS_FREEFORM collimation)

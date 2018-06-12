@@ -376,6 +376,7 @@ subroutine prror(ier)
 
 end subroutine prror
 
+#ifdef CR
 ! =================================================================================================
 subroutine abend(cstring)
 
@@ -646,6 +647,7 @@ subroutine abend(cstring)
 #endif
 
 end subroutine abend
+#endif
 
 ! =================================================================================================
 !  K. Sjobak, BE-ABP-HSS

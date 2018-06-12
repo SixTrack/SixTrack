@@ -1,5 +1,3 @@
-+dk postpr
-
 module postprocessing
 
   use floatPrecision
@@ -3814,7 +3812,6 @@ end subroutine lfitd
 
 end module postprocessing
 
-+dk plotdumy
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
   use floatPrecision
   implicit none

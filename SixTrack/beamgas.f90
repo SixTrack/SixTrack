@@ -1,4 +1,3 @@
-+dk beamGasK
 !>
 !! @brief Module containing constants for beamgas part
 !!
