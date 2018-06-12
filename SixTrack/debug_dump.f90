@@ -1,4 +1,3 @@
-+dk dumps
 #ifdef DEBUG
 
 subroutine warr(vname,value,i,j,k,l)

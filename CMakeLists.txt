@@ -322,6 +322,10 @@ if(CR)
 	list(APPEND FORS_F90 checkpoint_restart)
 endif(CR)
 
+if(DEBUG)
+	list(APPEND FORS_F90 debug_dumps)
+endif(DEBUG)
+
 if(COLLIMAT)
 	LIST(APPEND FORS_FREEFORM collimation)
 	list(APPEND FORS_F90 ranlux)
