@@ -6,71 +6,6 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!+cd dbtrthin
-
-! integer   mynp
-! common /mynp/ mynp
-
-!++ Vectors of coordinates
-
-!  real(kind=fPrec) mygammax,mygammay
-!
-!  character(len=80) dummy
-!
-!  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-!!  real(kind=fPrec) remitx_dist,remity_dist,
-!! &     remitx_collgap,remity_collgap
-!!  common  /remit/ remitx_dist, remity_dist,
-!! &     remitx_collgap,remity_collgap
-!
-!
-!  real(kind=fPrec) ielem,iclr,grd
-!  character(len=160) ch
-!  character(len=320) ch1
-!  logical flag
-!
-!  integer k,np0
-!
-!  character(len=160) cmd
-!  character(len=160) cmd2
-!  character(len=1) ch0
-!  character(len=2) ch00
-!  character(len=3) ch000
-!  character(len=4) ch0000
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbcolcom
-  logical firstcoll,found,onesided
-  integer rnd_lux,rnd_k1,rnd_k2
-
-  integer myix,myktrack
-
-  real(kind=fPrec) nspx,nspy,mux0,muy0
-  real(kind=fPrec) ax0,ay0,bx0,by0
-  real(kind=fPrec) totals
-
-  ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-!  logical cut_input
-!  common /cut/ cut_input
-
-  real(kind=fPrec) :: xbob(nblz) !(nblz)
-  real(kind=fPrec) :: ybob(nblz) !(nblz)
-  real(kind=fPrec) :: xpbob(nblz) !(nblz)
-  real(kind=fPrec) :: ypbob(nblz) !(nblz)
-
-  real(kind=fPrec) :: xineff(npart) !(npart)
-  real(kind=fPrec) :: yineff(npart) !(npart)
-  real(kind=fPrec) :: xpineff(npart) !(npart)
-  real(kind=fPrec) :: ypineff(npart) !(npart)
-
-  common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
-
-  real(kind=fPrec) :: mux(nblz) !(nblz)
-  real(kind=fPrec) :: muy(nblz) !(nblz)
-  common /mu/ mux,muy
- 
-  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
  
  !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
@@ -526,7 +461,7 @@ module collimation
 ! and defining, stroring the gap rms error
 !
   character(len=max_name_len) :: coll_mingap1, coll_mingap2
-  real(kind=fPrec), save :: gap_rms_error(max_ncoll) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
   integer :: coll_mingap_id
@@ -548,15 +483,51 @@ module collimation
 !
   logical, save :: coll_found(100)
 
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dbcolcom
+  logical, save :: firstcoll,found,onesided
+  integer rnd_lux,rnd_k1,rnd_k2
+
+  integer, save :: myix,myktrack
+
+  real(kind=fPrec) nspx,nspy,mux0,muy0
+  real(kind=fPrec) ax0,ay0,bx0,by0
+  real(kind=fPrec), save :: totals
+
+  ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+!  logical cut_input
+!  common /cut/ cut_input
+
+  real(kind=fPrec), allocatable, save :: xbob(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: ybob(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: xpbob(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: ypbob(:) !(nblz)
+
+  real(kind=fPrec), allocatable, save :: xineff(:) !(npart)
+  real(kind=fPrec), allocatable, save :: yineff(:) !(npart)
+  real(kind=fPrec), allocatable, save :: xpineff(:) !(npart)
+  real(kind=fPrec), allocatable, save :: ypineff(:) !(npart)
+
+!  common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
+
+  real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
+!  common /mu/ mux,muy
+ 
+!  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !+cd dbpencil
 !
 ! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
 !
   integer, save :: ipencil
   real(kind=fPrec), save :: xp_pencil0,yp_pencil0
-  real(kind=fPrec), save :: x_pencil(max_ncoll) !(max_ncoll)
-  real(kind=fPrec), save :: y_pencil(max_ncoll) !(max_ncoll)
-  real(kind=fPrec), save :: pencil_dx(max_ncoll) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: x_pencil(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
 !  common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
 !  common  /pencil2/ x_pencil, y_pencil
 !
@@ -869,11 +840,30 @@ subroutine collimation_allocate_arrays
   call alloc(oidpsvgrd, npart, zero, "oidpsvgrd") !(npart)
   call alloc(dpsv1grd,  npart, zero, "dpsv1grd") !(npart)
 
+  call alloc(xbob,    nblz, zero, "xbob") !(nblz)
+  call alloc(ybob,    nblz, zero, "ybob") !(nblz)
+  call alloc(xpbob,   nblz, zero, "xpbob") !(nblz)
+  call alloc(ypbob,   nblz, zero, "ypbob") !(nblz)
+
+  call alloc(xineff,  npart, zero, "xineff") !(npart)
+  call alloc(yineff,  npart, zero, "yineff") !(npart)
+  call alloc(xpineff, npart, zero, "xpineff") !(npart)
+  call alloc(ypineff, npart, zero, "ypineff") !(npart)
+
+  call alloc(mux,     nblz, zero, "mux") !(nblz)
+  call alloc(muy,     nblz, zero, "muy") !(nblz)
+
+
 ! Fixed allocations follow:
+  call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
   call alloc(xp_pencil, max_ncoll, zero, "xp_pencil")
   call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
   call alloc(csum,      max_ncoll, zero, "csum")
   call alloc(csqsum,    max_ncoll, zero, "csqsum")
+
+  call alloc(x_pencil,  max_ncoll, zero, "x_pencil") !(max_ncoll)
+  call alloc(y_pencil,  max_ncoll, zero, "y_pencil") !(max_ncoll)
+  call alloc(pencil_dx, max_ncoll, zero, "pencil_dx") !(max_ncoll)
 
 !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
   call alloc(x_sl, 100, zero, "x_sl") !(100)
@@ -934,6 +924,20 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call resize(dpsvgrd,   npart_new, zero, "dpsvgrd") !(npart)
   call resize(oidpsvgrd, npart_new, zero, "oidpsvgrd") !(npart)
   call resize(dpsv1grd,  npart_new, zero, "dpsv1grd") !(npart)
+
+  call resize(xbob,    nblz_new, zero, "xbob") !(nblz)
+  call resize(ybob,    nblz_new, zero, "ybob") !(nblz)
+  call resize(xpbob,   nblz_new, zero, "xpbob") !(nblz)
+  call resize(ypbob,   nblz_new, zero, "ypbob") !(nblz)
+
+  call resize(xineff,  npart_new, zero, "xineff") !(npart)
+  call resize(yineff,  npart_new, zero, "yineff") !(npart)
+  call resize(xpineff, npart_new, zero, "xpineff") !(npart)
+  call resize(ypineff, npart_new, zero, "ypineff") !(npart)
+
+  call resize(mux,     nblz_new, zero, "mux") !(nblz)
+  call resize(muy,     nblz_new, zero, "muy") !(nblz)
+
 end subroutine collimation_expand_arrays
 
 !>
@@ -969,7 +973,7 @@ subroutine collimate_init()
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbdaten
 
 #ifdef HDF5
@@ -1426,7 +1430,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   logical spErr
   
 !+ca database
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbpencil
   
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1647,7 +1651,7 @@ subroutine collimate_start_sample(nsample)
 !+ca dbpencil
 !+ca info
 !+ca dbthin6d
-+ca dbcolcom
+!+ca dbcolcom
 
 #ifdef CR
 +ca crco
@@ -2341,7 +2345,7 @@ subroutine collimate_start_collimator(stracki)
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
   real(kind=fPrec) c5m4,stracki
@@ -2546,7 +2550,7 @@ subroutine collimate_do_collimator(stracki)
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
   real(kind=fPrec) c5m4,stracki
@@ -3365,7 +3369,7 @@ subroutine collimate_end_collimator()
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
 #ifdef HDF5
@@ -3813,7 +3817,7 @@ subroutine collimate_end_sample(j)
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
   
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
@@ -4074,7 +4078,7 @@ subroutine collimate_exit()
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 
   close(outlun)
   close(collgaps_unit)
@@ -4230,7 +4234,7 @@ subroutine collimate_start_turn(n)
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 
   integer n
 
@@ -4266,7 +4270,7 @@ subroutine collimate_start_element(i)
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
   ie=i
@@ -4364,7 +4368,7 @@ subroutine collimate_end_element
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
 #ifdef HDF5
@@ -4519,7 +4523,7 @@ subroutine collimate_end_turn
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
 #ifdef HDF5

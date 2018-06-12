@@ -660,7 +660,7 @@ subroutine daten
 !+ca dbdaten
 !+ca dbpencil
 !+ca database
-+ca dbcolcom
+!+ca dbcolcom
   logical has_coll
 #else
   logical do_coll
@@ -14202,7 +14202,7 @@ subroutine trauthin(nthinerr)
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 #endif
   save
 
@@ -15403,7 +15403,7 @@ subroutine thin6d(nthinerr)
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 #endif
 
 #ifdef CR
