@@ -900,7 +900,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 
 #ifdef COLLIMAT
 !+ca collpara
-+ca dbcommon
+!+ca dbcommon
 #else
   integer, parameter :: samplenumber = 1
 #endif

@@ -7,130 +7,6 @@
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
  
- !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbcommon
-! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
-
-  integer ieff,ieffdpop
-
-  real(kind=fPrec) myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myemitx,myalphay,mybetay,myalphax, mybetax,rselect
-  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
-
-! M. Fiascaris for the collimation team
-! variables for global inefficiencies studies
-! of normalized and off-momentum halo
-! Last modified: July 2016
-
-  real(kind=fPrec) neff(numeff)
-  real(kind=fPrec) rsig(numeff)
-  common  /eff/ neff,rsig
-
-  integer :: counteddpop(npart,numeffdpop)
-  integer :: counted2d(npart,numeff,numeffdpop)
-  real(kind=fPrec) :: neffdpop(numeffdpop)
-  real(kind=fPrec) :: dpopbins(numeffdpop)
-  integer :: npartdpop(numeffdpop)
-  common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
-
-  real(kind=fPrec) dpopmin,dpopmax,mydpop
-  real(kind=fPrec) :: neff2d(numeff,numeffdpop)
-  common /eff2d/ neff2d
-
-  integer :: nimpact(50)
-  real(kind=fPrec) :: sumimpact(50)
-  real(kind=fPrec) :: sqsumimpact(50)
-  common  /rimpact/ sumimpact,sqsumimpact,nimpact
-
-  integer :: nampl(nblz)
-  character(len=max_name_len) :: ename(nblz) !(nblz)
-  real(kind=fPrec) :: sum_ax(nblz) !(nblz)
-  real(kind=fPrec) :: sqsum_ax(nblz) !(nblz)
-  real(kind=fPrec) :: sum_ay(nblz) !(nblz)
-  real(kind=fPrec) :: sqsum_ay(nblz) !(nblz)
-  real(kind=fPrec) :: sampl(nblz) !(nblz)
-  common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
-
-  real(kind=fPrec) :: neffx(numeff)
-  real(kind=fPrec) :: neffy(numeff)
-  common /efficiency/ neffx,neffy
-
-  integer :: secondary(npart) !(npart)
-  integer :: tertiary(npart) !(npart)
-  integer :: other(npart) !(npart)
-  integer :: scatterhit(npart) !(npart)
-  integer :: part_hit_before_pos(npart) !(npart)
-  integer :: part_hit_before_turn(npart) !(npart)
-
-  real(kind=fPrec) :: part_indiv(npart) !(npart)
-  real(kind=fPrec) :: part_linteract(npart) !(npart)
-
-  integer :: part_hit_pos(npart) !(npart)
-  integer :: part_hit_turn(npart) !(npart)
-  integer :: part_abs_pos(npart) !(npart)
-  integer :: part_abs_turn(npart) !(npart)
-  integer :: part_select(npart) !(npart)
-  integer :: nabs_type(npart) !(npart)
-  integer :: n_tot_absorbed
-  integer :: n_absorbed
-
-  real(kind=fPrec) part_impact(npart) !(npart)
-  common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
-  & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
-
-  common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
-  common /part_select/ part_select
-
-!  logical firstrun
-!  common /firstrun/ firstrun
-
-  integer nsurvive,nsurvive_end,num_selhit,n_impact
-  common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
-
-  integer napx00
-  common /napx00/ napx00
-
-!  integer  icoll
-!  common  /icoll/  icoll
-
-!UPGRADE January 2005
-  integer db_ncoll
-
-  character(len=max_name_len) :: db_name1(max_ncoll) !(max_ncoll)
-  character(len=max_name_len) :: db_name2(max_ncoll) !(max_ncoll)
-  character(len=4) :: db_material(max_ncoll) !(max_ncoll)
-!APRIL2005
-  real(kind=fPrec) :: db_nsig(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_length(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_offset(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_rotation(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_bx(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_by(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_tilt(max_ncoll,2) !(max_ncoll,2)
-  common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
-
-  integer :: cn_impact(max_ncoll)  !(max_ncoll)
-  integer :: cn_absorbed(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: caverage(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: csigma(max_ncoll) !(max_ncoll)
-  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
-
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
-  common /coord/ myx,myxp,myy,myyp,myp,mys
-
-  integer :: counted_r(npart,numeff) !(npart,numeff)
-  integer :: counted_x(npart,numeff) !(npart,numeff)
-  integer :: counted_y(npart,numeff) !(npart,numeff)
-  common /counting/ counted_r,counted_x,counted_y
-
-  integer   samplenumber
-  character(len=4) smpl
-  character(len=80) pfile
-  common /samplenumber/ pfile,smpl,samplenumber
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -435,6 +311,133 @@ module collimation
   integer, save :: ie, iturn, nabs_total
 !  common  /info/ ie,iturn,nabs_total
 
+ !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!+cd dbcommon
+! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
+
+  integer ieff,ieffdpop
+
+  real(kind=fPrec), save :: myemitx0_dist, myemity0_dist, myemitx0_collgap, myemity0_collgap, myemitx
+  real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect
+! myemitx was not saved?
+!  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
+
+! M. Fiascaris for the collimation team
+! variables for global inefficiencies studies
+! of normalized and off-momentum halo
+! Last modified: July 2016
+
+  real(kind=fPrec), allocatable, save :: neff(:) !(numeff)
+  real(kind=fPrec), allocatable, save :: rsig(:) !(numeff)
+!  common  /eff/ neff,rsig
+
+  integer, allocatable, save :: counteddpop(:,:) !(npart,numeffdpop)
+  integer, allocatable, save :: npartdpop(:) !(numeffdpop)
+  integer, allocatable, save :: counted2d(:,:,:) !(npart,numeff,numeffdpop)
+  real(kind=fPrec), allocatable, save :: neffdpop(:) !(numeffdpop)
+  real(kind=fPrec), allocatable, save :: dpopbins(:) !(numeffdpop)
+!  common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
+
+  real(kind=fPrec) dpopmin,dpopmax,mydpop
+  real(kind=fPrec), allocatable, save :: neff2d(:,:) !(numeff,numeffdpop)
+!  common /eff2d/ neff2d
+
+  integer, allocatable, save :: nimpact(:) !(50)
+  real(kind=fPrec), allocatable, save :: sumimpact(:) !(50)
+  real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
+!  common  /rimpact/ sumimpact,sqsumimpact,nimpact
+
+  character(len=:), allocatable, save :: ename(:) !(max_name_len)(nblz)
+  integer, allocatable, save :: nampl(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sum_ax(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sum_ay(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sqsum_ay(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sampl(:) !(nblz)
+!  common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
+
+  real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
+  real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
+!  common /efficiency/ neffx,neffy
+
+  integer, allocatable, save :: secondary(:) !(npart)
+  integer, allocatable, save :: tertiary(:) !(npart)
+  integer, allocatable, save :: other(:) !(npart)
+  integer, allocatable, save :: scatterhit(:) !(npart)
+  integer, allocatable, save :: part_hit_before_pos(:) !(npart)
+  integer, allocatable, save :: part_hit_before_turn(:) !(npart)
+
+  real(kind=fPrec), allocatable, save :: part_indiv(:) !(npart)
+  real(kind=fPrec), allocatable, save :: part_linteract(:) !(npart)
+
+  integer, allocatable, save :: part_hit_pos(:) !(npart)
+  integer, allocatable, save :: part_hit_turn(:) !(npart)
+  integer, allocatable, save :: part_abs_pos(:) !(npart)
+  integer, allocatable, save :: part_abs_turn(:) !(npart)
+  integer, allocatable, save :: part_select(:) !(npart)
+  integer, allocatable, save :: nabs_type(:) !(npart)
+  integer, save :: n_tot_absorbed
+  integer, save :: n_absorbed
+
+  real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
+!  common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
+!  & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
+
+!  common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
+!  common /part_select/ part_select
+
+!  logical firstrun
+!  common /firstrun/ firstrun
+
+  integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
+!  common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
+
+  integer, save :: napx00
+!  common /napx00/ napx00
+
+!  integer  icoll
+!  common  /icoll/  icoll
+
+!UPGRADE January 2005
+  integer, save :: db_ncoll
+
+  character(len=:), allocatable, save :: db_name1(:) !(max_name_len)(max_ncoll)
+  character(len=:), allocatable, save :: db_name2(:) !(max_name_len)(max_ncoll)
+  character(len=:), allocatable, save :: db_material(:) !(4)(max_ncoll)
+!APRIL2005
+  real(kind=fPrec), allocatable, save :: db_nsig(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_length(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_offset(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_rotation(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_bx(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_by(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_tilt(:,:) !(max_ncoll,2)
+!  common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
+
+  integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
+  integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: caverage(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: csigma(:) !(max_ncoll)
+!  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
+
+! Change the following block to npart
+  real(kind=fPrec), allocatable, save :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: mys(:) !(maxn)
+!  common /coord/ myx,myxp,myy,myyp,myp,mys
+
+  integer, allocatable, save :: counted_r(:,:) !(npart,numeff)
+  integer, allocatable, save :: counted_x(:,:) !(npart,numeff)
+  integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
+!  common /counting/ counted_r,counted_x,counted_y
+
+  integer, save ::   samplenumber
+  character(len=4), save :: smpl
+  character(len=80), save :: pfile
+!  common /samplenumber/ pfile,smpl,samplenumber
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -853,6 +856,46 @@ subroutine collimation_allocate_arrays
   call alloc(mux,     nblz, zero, "mux") !(nblz)
   call alloc(muy,     nblz, zero, "muy") !(nblz)
 
+  call alloc(counteddpop, npart, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
+  call alloc(counted2d, npart, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
+
+  call alloc(ename,    max_name_len, nblz, ' ', "ename") !(nblz)
+  call alloc(nampl,    nblz, 0, "nampl") !(nblz)
+  call alloc(sum_ax,   nblz, zero, "sum_ax") !(nblz)
+  call alloc(sqsum_ax, nblz, zero, "sqsum_ax") !(nblz)
+  call alloc(sum_ay,   nblz, zero, "sum_ay") !(nblz)
+  call alloc(sqsum_ay, nblz, zero, "sqsum_ay") !(nblz)
+  call alloc(sampl,    nblz, zero, "sampl") !(nblz)
+
+  call alloc(secondary,            npart, 0, "secondary") !(npart)
+  call alloc(tertiary,             npart, 0, "tertiary") !(npart)
+  call alloc(other,                npart, 0, "other") !(npart)
+  call alloc(scatterhit,           npart, 0, "scatterhit") !(npart)
+  call alloc(part_hit_before_pos,  npart, 0, "part_hit_before_pos") !(npart)
+  call alloc(part_hit_before_turn, npart, 0, "part_hit_before_turn") !(npart)
+  call alloc(part_hit_pos,         npart, 0, "part_hit_pos") !(npart)
+  call alloc(part_hit_turn,        npart, 0, "part_hit_turn") !(npart)
+  call alloc(part_abs_pos,         npart, 0, "part_abs_pos") !(npart)
+  call alloc(part_abs_turn,        npart, 0, "part_abs_turn") !(npart)
+  call alloc(part_select,          npart, 0, "part_select") !(npart)
+  call alloc(nabs_type,            npart, 0, "nabs_type") !(npart)
+
+  call alloc(part_impact,    npart, zero, "part_impact") !(npart)
+  call alloc(part_indiv,     npart, zero, "part_indiv") !(npart)
+  call alloc(part_linteract, npart, zero, "part_linteract") !(npart)
+
+
+  call alloc(counted_r, npart, numeff, 0, "counted_r") !(npart,numeff)
+  call alloc(counted_x, npart, numeff, 0, "counted_x") !(npart,numeff)
+  call alloc(counted_y, npart, numeff, 0, "counted_y") !(npart,numeff)
+
+! Change the following block to npart
+  call alloc(myx,  npart, zero, "myx") !(maxn)
+  call alloc(myxp, npart, zero, "myxp") !(maxn)
+  call alloc(myy,  npart, zero, "myy") !(maxn)
+  call alloc(myyp, npart, zero, "myyp") !(maxn)
+  call alloc(myp,  npart, zero, "myp") !(maxn)
+  call alloc(mys,  npart, zero, "mys") !(maxn)
 
 ! Fixed allocations follow:
   call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
@@ -873,6 +916,36 @@ subroutine collimation_allocate_arrays
   call alloc(y2_sl, 100, zero, "y2_sl") !(100)
   call alloc(angle1, 100, zero, "angle1") !(100)
   call alloc(angle2, 100, zero, "angle2") !(100)
+
+  call alloc(npartdpop, numeffdpop, 0, "npartdpop") !(numeffdpop)
+  call alloc(neff, numeff, zero, "neff") !(numeff)
+  call alloc(rsig, numeff, zero, "rsig") !(numeff)
+  call alloc(neffdpop, numeffdpop, zero, "neffdpop") !(numeffdpop)
+  call alloc(dpopbins, numeffdpop, zero, "dpopbins") !(numeffdpop)
+  call alloc(neff2d, numeff, numeffdpop, zero, "neff2d") !(numeff,numeffdpop)
+
+  call alloc(nimpact, 50, 0, "nimpact") !(50)
+  call alloc(sumimpact, 50, zero, "sumimpact") !(50)
+  call alloc(sqsumimpact, 50, zero, "sqsumimpact") !(50)
+
+  call alloc(neffx, numeff, zero, "neffx") !(numeff)
+  call alloc(neffy, numeff, zero, "neffy") !(numeff)
+  call alloc(db_name1, max_name_len, max_ncoll, ' ', "db_name1") !(max_ncoll)
+  call alloc(db_name2, max_name_len, max_ncoll, ' ', "db_name2") !(max_ncoll)
+  call alloc(db_material, 4, max_ncoll, '    ', "db_material") !(max_ncoll)
+  call alloc(db_nsig, max_ncoll, zero, "db_nsig") !(max_ncoll)
+  call alloc(db_length, max_ncoll, zero, "db_length") !(max_ncoll)
+  call alloc(db_offset, max_ncoll, zero, "db_offset") !(max_ncoll)
+  call alloc(db_rotation, max_ncoll, zero, "db_rotation") !(max_ncoll)
+  call alloc(db_bx, max_ncoll, zero, "db_bx") !(max_ncoll)
+  call alloc(db_by, max_ncoll, zero, "db_by") !(max_ncoll)
+  call alloc(db_tilt, max_ncoll, 2, zero, "db_tilt") !(max_ncoll,2)
+
+  call alloc(cn_impact, max_ncoll, 0, "cn_impact")  !(max_ncoll)
+  call alloc(cn_absorbed, max_ncoll, 0, "cn_absorbed") !(max_ncoll)
+  call alloc(caverage, max_ncoll, zero, "caverage") !(max_ncoll)
+  call alloc(csigma, max_ncoll, zero, "csigma") !(max_ncoll)
+
 end subroutine collimation_allocate_arrays
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
@@ -938,6 +1011,47 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call resize(mux,     nblz_new, zero, "mux") !(nblz)
   call resize(muy,     nblz_new, zero, "muy") !(nblz)
 
+  call resize(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
+  call resize(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
+
+  call resize(ename,    max_name_len, nblz_new, ' ', "ename") !(nblz_new)
+  call resize(nampl,    nblz_new, 0, "nampl") !(nblz_new)
+  call resize(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
+  call resize(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
+  call resize(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
+  call resize(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
+  call resize(sampl,    nblz_new, zero, "sampl") !(nblz_new)
+
+  call resize(secondary,            npart_new, 0, "secondary") !(npart_new)
+  call resize(tertiary,             npart_new, 0, "tertiary") !(npart_new)
+  call resize(other,                npart_new, 0, "other") !(npart_new)
+  call resize(scatterhit,           npart_new, 0, "scatterhit") !(npart_new)
+  call resize(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos") !(npart_new)
+  call resize(part_hit_before_turn, npart_new, 0, "part_hit_before_turn") !(npart_new)
+  call resize(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
+  call resize(part_hit_turn,        npart_new, 0, "part_hit_turn") !(npart_new)
+  call resize(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
+  call resize(part_abs_turn,        npart_new, 0, "part_abs_turn") !(npart_new)
+  call resize(part_select,          npart_new, 0, "part_select") !(npart_new)
+  call resize(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
+
+  call resize(part_impact,    npart_new, zero, "part_impact") !(npart_new)
+  call resize(part_indiv,     npart_new, zero, "part_indiv") !(npart_new)
+  call resize(part_linteract, npart_new, zero, "part_linteract") !(npart_new)
+
+
+  call alloc(counted_r, npart_new, numeff, 0, "counted_r") !(npart_new,numeff)
+  call alloc(counted_x, npart_new, numeff, 0, "counted_x") !(npart_new,numeff)
+  call alloc(counted_y, npart_new, numeff, 0, "counted_y") !(npart_new,numeff)
+
+! Change the following block to npart
+  call resize(myx,  npart_new, zero, "myx") !(maxn)
+  call resize(myxp, npart_new, zero, "myxp") !(maxn)
+  call resize(myy,  npart_new, zero, "myy") !(maxn)
+  call resize(myyp, npart_new, zero, "myyp") !(maxn)
+  call resize(myp,  npart_new, zero, "myp") !(maxn)
+  call resize(mys,  npart_new, zero, "mys") !(maxn)
+
 end subroutine collimation_expand_arrays
 
 !>
@@ -969,7 +1083,7 @@ subroutine collimate_init()
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -1646,7 +1760,7 @@ subroutine collimate_start_sample(nsample)
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -2341,7 +2455,7 @@ subroutine collimate_start_collimator(stracki)
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -2546,7 +2660,7 @@ subroutine collimate_do_collimator(stracki)
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -3365,7 +3479,7 @@ subroutine collimate_end_collimator()
   
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -3813,7 +3927,7 @@ subroutine collimate_end_sample(j)
   
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -4074,7 +4188,7 @@ subroutine collimate_exit()
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -4230,7 +4344,7 @@ subroutine collimate_start_turn(n)
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -4266,7 +4380,7 @@ subroutine collimate_start_element(i)
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -4364,7 +4478,7 @@ subroutine collimate_end_element
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -4519,7 +4633,7 @@ subroutine collimate_end_turn
 
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -9002,7 +9116,7 @@ subroutine readcollimator
   integer I,J,K,ios
 
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 
   logical lopen
 
@@ -9131,7 +9245,7 @@ subroutine collimation_comnul
   implicit none
 
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 
   do_coll = .false.
   

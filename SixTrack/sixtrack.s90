@@ -14198,7 +14198,7 @@ subroutine trauthin(nthinerr)
 !+ca collpara
 !+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
@@ -15397,7 +15397,7 @@ subroutine thin6d(nthinerr)
 
 #ifdef COLLIMAT
 !+ca collpara
-+ca dbcommon
+!+ca dbcommon
 !+ca dbthin6d
 !+ca database
 !+ca dblinopt

@@ -2297,11 +2297,6 @@ subroutine dynk_apply(turn)
     character(len=256) filename
 #endif
 
-#ifdef COLLIMAT
-!+ca collpara
-+ca dbcommon
-#endif
-
     ! interface variables
     integer turn  ! current turn number
     intent(in) turn

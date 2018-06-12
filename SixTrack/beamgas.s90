@@ -81,7 +81,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   implicit none
 
 !+ca info
-+ca dbcommon
+!+ca dbcommon
 
 !YIL need to save, this is input variable
   real(kind=fPrec) myenom
