@@ -305,7 +305,7 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
 list(APPEND FORS_F90
 	core_tools constants sixtrack_input mod_units close
 	strings string_tools common_modules mainarrays
-	file_units mod_alloc zipf matrix_inv lielib 
+	file_units mod_alloc zipf matrix_inv lielib beam6d
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dynk dump
 	aperture postprocessing
