@@ -8,10 +8,32 @@ module parpro
   ! the size of the accelerator, the number of particles, etc.
   
   implicit none
-  
-  integer mbea,mcor,mcop,mmul,mpa,mran,nbb,nblz,ncom,ncor1, &
-       nelb,nema,ninv,nlya,nmac,nmon1,npart,nper,nplo,npos,nran, &
-       nrco,ntr,nzfz
+
+! All of the following need a description
+  integer :: mbea
+  integer :: mcor
+  integer :: mcop
+  integer :: mmul
+  integer :: mpa
+  integer :: mran
+  integer :: nbb   ! Maximum number of beam-beam elements
+  integer :: nblz  ! Maximum number of blocks
+  integer :: ncom
+  integer :: ncor1
+  integer :: nelb
+  integer :: nema
+  integer :: ninv
+  integer :: nlya
+  integer :: nmac
+  integer :: nmon1
+  integer :: npart ! Maximum number of particles
+  integer :: nper
+  integer :: nplo
+  integer :: npos
+  integer :: nran
+  integer :: nrco
+  integer :: ntr
+  integer :: nzfz
 
   !Maximum length of element names
   integer, parameter :: max_name_len = 48

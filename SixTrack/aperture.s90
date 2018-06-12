@@ -568,7 +568,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 #ifdef COLLIMAT
 ! Module to access ipart array
 !+ca collpara
-+ca dbthin6d
+!+ca dbthin6d
 +ca dbcommon
 #endif
 
@@ -2427,7 +2427,7 @@ subroutine compactArrays(llostp)
 
 #ifdef COLLIMAT
 +ca dbcommon
-+ca dbthin6d
+!+ca dbthin6d
 #endif
 
 

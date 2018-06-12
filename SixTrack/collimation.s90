@@ -5,83 +5,7 @@
 !-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-+cd database
-!GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
-  logical :: do_coll
-  logical :: do_select
-  logical :: do_nominal
-  logical :: dowrite_dist
-  logical :: do_oneside
-  logical :: dowrite_impact
-  logical :: dowrite_secondary
-  logical :: dowrite_amplitude
-  logical :: radial
-  logical :: systilt_antisymm
-  logical :: dowritetracks
-  logical :: cern
-  logical :: do_nsig
-  logical :: do_mingap
-
-!SEPT2005 for slicing process
-  integer :: nloop
-  integer :: rnd_seed
-  integer :: c_offsettilt_seed
-  integer :: ibeam
-  integer :: jobnumber
-  integer :: do_thisdis
-  integer :: n_slices
-  integer :: pencil_distr
-
-  real(kind=fPrec) myenom,mynex,mdex,myney,mdey,                    &
-  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
-  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
-!SEPT2005 add these lines for the slicing procedure
-  &smin_slices,smax_slices,recenter1,recenter2,                      &
-  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
-  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-!SEPT2005,OCT2006 added offset
-  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
-  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
-  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
-  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
-  &c_sysoffset_sec,c_rmserror_gap,nr,ndr,                            &
-  &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
-  &sigsecut3,sigsecut2,enerror,bunchlength
-
-  character(len=max_name_len) name_sel
-  character(len=80) coll_db
-  character(len=16) castordir
-  character(len=80) filename_dis
-
-  common /grd/ myenom,mynex,mdex,myney,mdey,                        &
-  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
-  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
-  &smin_slices,smax_slices,recenter1,recenter2,                      &
-  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
-  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
-  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
-  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
-  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
-  &c_sysoffset_sec,c_rmserror_gap,nr,                                &
-  &ndr,driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,        &
-  &sigsecut3,sigsecut2,enerror,                                      &
-  &bunchlength,coll_db,name_sel,                                     &
-  &castordir,filename_dis,nloop,rnd_seed,c_offsettilt_seed,          &
-  &ibeam,jobnumber,do_thisdis,n_slices,pencil_distr,                 &
-  &do_coll,                                                          &
-  &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
-  &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
-  &dowritetracks,cern,do_nsig,do_mingap
-
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dbtrthin
 
  integer   mynp
@@ -115,121 +39,6 @@
 !  character(len=4) ch0000
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbthin6d
-
-  integer ios,num_surhit,numbin,ibin,num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov
-  integer :: ipart(npart) !(npart)
-  integer totalelem,selelem,unitnumber,distnumber,turnnumber,jb
-  integer :: flukaname(npart) !(npart)
-
-! SR, 29-08-2005: add the required variable for slicing collimators
-  integer jjj, ijk
-
-  real(kind=fPrec) zbv
-
-  real(kind=fPrec) c_length    !length in m
-  real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-  real(kind=fPrec) c_aperture  !aperture in m
-  real(kind=fPrec) c_offset    !offset in m
-  real(kind=fPrec) c_tilt(2)   !tilt in radian
-
-  real(kind=fPrec) :: cx(npart) !(npart)
-  real(kind=fPrec) :: cxp(npart) !(npart)
-  real(kind=fPrec) :: cy(npart) !(npart)
-  real(kind=fPrec) :: cyp(npart) !(npart)
-  real(kind=fPrec) :: cp(npart) !(npart)
-  real(kind=fPrec) :: cs(npart) !(npart)
-  real(kind=fPrec) :: rcx(npart) !(npart)
-  real(kind=fPrec) :: rcxp(npart) !(npart)
-  real(kind=fPrec) :: rcy(npart) !(npart)
-  real(kind=fPrec) :: rcyp(npart) !(npart)
-  real(kind=fPrec) :: rcp(npart) !(npart)
-  real(kind=fPrec) :: rcs(npart) !(npart)
-  real(kind=fPrec) :: rcx0(npart) !(npart)
-  real(kind=fPrec) :: rcxp0(npart) !(npart)
-  real(kind=fPrec) :: rcy0(npart) !(npart)
-  real(kind=fPrec) :: rcyp0(npart) !(npart)
-  real(kind=fPrec) :: rcp0(npart) !(npart)
-
-  real(kind=fPrec) enom_gev,betax,betay,xmax,ymax,          &
-  &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-  &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
-  &rxpjco,rypjco,c_rmstilt,                                          &
-  &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
-  &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
-  &nom_aperture,pencil_aperture
-
-  real(kind=fPrec) :: xp_pencil(max_ncoll)
-  real(kind=fPrec) :: yp_pencil(max_ncoll)
-  real(kind=fPrec) :: csum(max_ncoll)
-  real(kind=fPrec) :: csqsum(max_ncoll)
-  real(kind=fPrec) :: x_pencil0, y_pencil0, sum, sqsum
-  real(kind=fPrec) :: average, sigma, sigsecut, nspxd, xndisp, zpj
-
-  real(kind=fPrec) :: xgrd(npart)
-  real(kind=fPrec) :: xpgrd(npart)
-  real(kind=fPrec) :: ygrd(npart)
-  real(kind=fPrec) :: ypgrd(npart)
-  real(kind=fPrec) :: pgrd(npart)
-  real(kind=fPrec) :: ejfvgrd(npart)
-  real(kind=fPrec) :: sigmvgrd(npart)
-  real(kind=fPrec) :: rvvgrd(npart)
-  real(kind=fPrec) :: dpsvgrd(npart)
-  real(kind=fPrec) :: oidpsvgrd(npart)
-  real(kind=fPrec) :: dpsv1grd(npart)
-
-  real(kind=fPrec) dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4
-
-!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-  real(kind=fPrec) x_sl(100)
-  real(kind=fPrec) x1_sl(100), x2_sl(100)
-  real(kind=fPrec) y1_sl(100), y2_sl(100)
-  real(kind=fPrec) angle1(100), angle2(100)
-
-  real(kind=fPrec) max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
-  real(kind=fPrec) tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
-  real(kind=fPrec) beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
-!SEPT2005
-
-  character(len=4) c_material     !material
-
-  common /dbthinc/ cx,cxp,cy,cyp,                                   &
-  &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
-  &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
-  &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
-  &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-  &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
-  &rxpjco,rypjco,c_rmstilt,                                          &
-  &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
-  &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
-  &nom_aperture,pencil_aperture,xp_pencil,                           &
-  &yp_pencil,x_pencil0,y_pencil0,sum,sqsum,                          &
-  &csum,csqsum,average,sigma,sigsecut,nspxd,                         &
-  &xndisp,xgrd,xpgrd,ygrd,ypgrd,zpj,                                 &
-  &pgrd,ejfvgrd,sigmvgrd,rvvgrd,                                     &
-  &dpsvgrd,oidpsvgrd,dpsv1grd,                                       &
-  &dnormx,dnormy,driftx,drifty,                                      &
-  &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
-  &grdpiover2,grdpiover4,grd3piover4,                                &
-  &x_sl,x1_sl,x2_sl,                                                 &
-  &y1_sl, y2_sl,                                                &
-  &angle1, angle2,                                              &
-  &max_tmp,                                                     &
-  &a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
-  &Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
-  &tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
-  &beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
-  &alphax1, alphax2,alphay1,alphay2,minAmpl,                    &
-  &ios,num_surhit,numbin,ibin,                                       &
-  &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
-  &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
-  &jb,flukaname,                                                     &
-  &jjj,ijk,zbv,c_length,c_rotation,                                  &
-  &c_aperture,c_offset,c_tilt,c_material
-
-! myran_gauss,rndm5,
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcolcom
   logical firstcoll,found,onesided
@@ -242,18 +51,28 @@
   real(kind=fPrec) totals
 
   ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-  logical cut_input
-  common /cut/ cut_input
+!  logical cut_input
+!  common /cut/ cut_input
 
-  real(kind=fPrec) xbob(nblz),ybob(nblz),xpbob(nblz),ypbob(nblz),xineff(npart),yineff(npart),xpineff(npart),ypineff(npart)
+  real(kind=fPrec) :: xbob(nblz) !(nblz)
+  real(kind=fPrec) :: ybob(nblz) !(nblz)
+  real(kind=fPrec) :: xpbob(nblz) !(nblz)
+  real(kind=fPrec) :: ypbob(nblz) !(nblz)
+
+  real(kind=fPrec) :: xineff(npart) !(npart)
+  real(kind=fPrec) :: yineff(npart) !(npart)
+  real(kind=fPrec) :: xpineff(npart) !(npart)
+  real(kind=fPrec) :: ypineff(npart) !(npart)
 
   common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
-  real(kind=fPrec) mux(nblz),muy(nblz)
+
+  real(kind=fPrec) :: mux(nblz) !(nblz)
+  real(kind=fPrec) :: muy(nblz) !(nblz)
   common /mu/ mux,muy
-
+ 
   common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+ 
+ !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 +cd dbcommon
 ! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
 
@@ -267,28 +86,37 @@
 ! of normalized and off-momentum halo
 ! Last modified: July 2016
 
-  real(kind=fPrec) neff(numeff),rsig(numeff)
+  real(kind=fPrec) neff(numeff)
+  real(kind=fPrec) rsig(numeff)
   common  /eff/ neff,rsig
 
-  integer counteddpop(npart,numeffdpop)
-  integer counted2d(npart,numeff,numeffdpop)
-  real(kind=fPrec) neffdpop(numeffdpop),dpopbins(numeffdpop)
-  integer npartdpop(numeffdpop)
+  integer :: counteddpop(npart,numeffdpop)
+  integer :: counted2d(npart,numeff,numeffdpop)
+  real(kind=fPrec) :: neffdpop(numeffdpop)
+  real(kind=fPrec) :: dpopbins(numeffdpop)
+  integer :: npartdpop(numeffdpop)
   common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
 
-  real(kind=fPrec) dpopmin,dpopmax,mydpop,neff2d(numeff,numeffdpop)
+  real(kind=fPrec) dpopmin,dpopmax,mydpop
+  real(kind=fPrec) :: neff2d(numeff,numeffdpop)
   common /eff2d/ neff2d
 
-  integer  nimpact(50)
-  real(kind=fPrec) sumimpact(50),sqsumimpact(50)
+  integer :: nimpact(50)
+  real(kind=fPrec) :: sumimpact(50)
+  real(kind=fPrec) :: sqsumimpact(50)
   common  /rimpact/ sumimpact,sqsumimpact,nimpact
 
-  integer  nampl(nblz)
-  character(len=max_name_len) ename(nblz)
-  real(kind=fPrec) sum_ax(nblz),sqsum_ax(nblz),sum_ay(nblz),sqsum_ay(nblz),sampl(nblz)
+  integer :: nampl(nblz)
+  character(len=max_name_len) :: ename(nblz) !(nblz)
+  real(kind=fPrec) :: sum_ax(nblz) !(nblz)
+  real(kind=fPrec) :: sqsum_ax(nblz) !(nblz)
+  real(kind=fPrec) :: sum_ay(nblz) !(nblz)
+  real(kind=fPrec) :: sqsum_ay(nblz) !(nblz)
+  real(kind=fPrec) :: sampl(nblz) !(nblz)
   common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
 
-  real(kind=fPrec) neffx(numeff),neffy(numeff)
+  real(kind=fPrec) :: neffx(numeff)
+  real(kind=fPrec) :: neffy(numeff)
   common /efficiency/ neffx,neffy
 
   integer :: secondary(npart) !(npart)
@@ -332,8 +160,9 @@
 !UPGRADE January 2005
   integer db_ncoll
 
-  character(len=max_name_len) :: db_name1(max_ncoll), db_name2(max_ncoll)
-  character(len=4) :: db_material(max_ncoll)
+  character(len=max_name_len) :: db_name1(max_ncoll) !(max_ncoll)
+  character(len=max_name_len) :: db_name2(max_ncoll) !(max_ncoll)
+  character(len=4) :: db_material(max_ncoll) !(max_ncoll)
 !APRIL2005
   real(kind=fPrec) :: db_nsig(max_ncoll) !(max_ncoll)
   real(kind=fPrec) :: db_length(max_ncoll) !(max_ncoll)
@@ -350,10 +179,17 @@
   real(kind=fPrec) :: csigma(max_ncoll) !(max_ncoll)
   common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
 
-  real(kind=fPrec) myx(maxn),myxp(maxn),myy(maxn),myyp(maxn),myp(maxn),mys(maxn)
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
   common /coord/ myx,myxp,myy,myyp,myp,mys
 
-  integer counted_r(npart,numeff),counted_x(npart,numeff),counted_y(npart,numeff)
+  integer :: counted_r(npart,numeff) !(npart,numeff)
+  integer :: counted_x(npart,numeff) !(npart,numeff)
+  integer :: counted_y(npart,numeff) !(npart,numeff)
   common /counting/ counted_r,counted_x,counted_y
 
   integer   samplenumber
@@ -363,118 +199,95 @@
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-+cd dbpencil
-!
-! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
-!
-      integer ipencil
-      real(kind=fPrec) xp_pencil0,yp_pencil0,x_pencil(max_ncoll),       &
-     &y_pencil(max_ncoll),pencil_dx(max_ncoll)
-      common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
-      common  /pencil2/ x_pencil, y_pencil
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 +cd dbcollim
-!     BLOCK DBCOLLIM
-!     This block is common to collimaterhic and collimate2
-!     It is NOT compatible with block DBCOMMON, as some variable names overlap...
+! BLOCK DBCOLLIM
+! This block is common to collimaterhic and collimate2
+! It is NOT compatible with block DBCOMMON, as some variable names overlap...
 
 
-      logical onesided,hit
-!      integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-      integer nprim,filel,mat,nev,j,nabs,nhit,np,nabs_tmp
+  logical onesided,hit
+! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
+  integer nprim,filel,mat,nev,j,nabs,nhit,np,nabs_tmp
 
-      integer lhit_pos(npart),lhit_turn(npart),                         &
-     &     part_abs_pos_local(npart), part_abs_turn_local(npart),       &
-     &     name(npart),nabs_type(npart)
+  integer :: lhit_pos(npart) !(npart)
+  integer :: lhit_turn(npart) !(npart)
+  integer :: part_abs_pos_local(npart) !(npart)
+  integer :: part_abs_turn_local(npart) !(npart)
+  integer :: name(npart) !(npart)
+  integer :: nabs_type(npart) !(npart)
 !MAY2005
-      real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
-     &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom,x_in(npart),       &
-     &xp_in(npart),y_in(npart),yp_in(npart),p_in(npart),s_in(npart),    &
-     &indiv(npart),lint(npart),                                         &
-     &keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,                    &
-     &sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle,impact(npart)
-!
-      real(kind=fPrec) c_length    !length in m
-      real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-      real(kind=fPrec) c_aperture  !aperture in m
-      real(kind=fPrec) c_offset    !offset in m
-      real(kind=fPrec) c_tilt(2)   !tilt in radian
-      character(len=4) c_material  !material
-!
-      character(nc) filen,tit
-!
-      real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
-!
+
+  real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
+  &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom
+  real(kind=fPrec) :: x_in(npart) !(npart)
+  real(kind=fPrec) :: xp_in(npart) !(npart)
+  real(kind=fPrec) :: y_in(npart) !(npart)
+  real(kind=fPrec) :: yp_in(npart) !(npart)
+  real(kind=fPrec) :: p_in(npart) !(npart)
+  real(kind=fPrec) :: s_in(npart) !(npart)
+  real(kind=fPrec) :: indiv(npart) !(npart)
+  real(kind=fPrec) :: lint(npart) !(npart)
+  real(kind=fPrec) :: impact(npart) !(npart)
+  real(kind=fPrec) keeps,fracab,mybetax,mybetaz,mymux,mymuz,sigx,sigz,norma,xpmu,atdi,drift_length,mirror,tiltangle
+
+  real(kind=fPrec) c_length    !length in m
+  real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
+  real(kind=fPrec) c_aperture  !aperture in m
+  real(kind=fPrec) c_offset    !offset in m
+  real(kind=fPrec) c_tilt(2)   !tilt in radian
+  character(len=4) c_material  !material
+
+  character(nc) filen,tit
+
+  real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
+
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
 !
-      common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,  &
-     &nev
-      common /materia/mat
-      common /phase/x,xp,z,zp,dpop
-      common /nommom/p0
-      common /cjaw1/zlm
-      common /other/mybetax,mybetaz,mymux,mymuz,atdi
-!      common /icoll/  icoll
+  common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,nev
+  common /materia/mat
+  common /phase/x,xp,z,zp,dpop
+  common /nommom/p0
+  common /cjaw1/zlm
+  common /other/mybetax,mybetaz,mymux,mymuz,atdi
+! common /icoll/  icoll
 !
-      data   dx,dxp/.5e-4,20.e-4/                                        !hr09
+  data dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
-!     END BLOCK DBCOLLIM
-+cd dbmkdist
-!++ Vectors of coordinates
+! END BLOCK DBCOLLIM
 
-  integer i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn)
-  real(kind=fPrec) :: myxp(maxn)
-  real(kind=fPrec) :: myy(maxn)
-  real(kind=fPrec) :: myyp(maxn)
-  real(kind=fPrec) :: myp(maxn)
-  real(kind=fPrec) :: mys(maxn)
-
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
-
-
-  character(len=80)   dummy
-
-  ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
-  logical cut_input
-  common /cut/ cut_input
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd interac
-      integer mat,mcurr
+  integer mat,mcurr
 !+ca collMatNum
-      real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd, &
-     &psd,dpodx(nmat),anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep,     &
-     &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,     &
-     &pptco,ppeco,sdcoe,freeco,zatom
+  real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd,psd,anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep, &
+  &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,pptco,ppeco,sdcoe,freeco,zatom
+
+  real(kind=fPrec) :: dpodx(nmat)
 !electron density and plasma energy
-      real(kind=fPrec) edens, pleng
-!      parameter(fnavo=6.02214129e23_fPrec)
-      real(kind=fPrec) cgen
-      character(4) mname(nmat)
-      common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-      common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
-      common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
-      common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
-      common/scatu2/xintl(nmat),radl(nmat),mname
-      common/scatpp/pptot,ppel,ppsd
-      common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
-      common/phase/x,xp,z,zp,dpop
-!      real(kind=fPrec) exenergy
-!      common/meanexen/exenergy(nmat)
-      common/nommom/p0
-      common/cjaw1/zlm
-      common/cmcs1/zlm1
-      common/materia/mat
-      common/sindif/xpsd,zpsd,psd
-      common/cdpodx/dpodx
-      common/cions/edens(nmat),pleng(nmat)
+  real(kind=fPrec) edens, pleng
+! parameter(fnavo=6.02214129e23_fPrec)
+  real(kind=fPrec) cgen
+  character(4) mname(nmat)
+  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
+  common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
+  common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
+  common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
+  common/scatu2/xintl(nmat),radl(nmat),mname
+  common/scatpp/pptot,ppel,ppsd
+  common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
+  common/phase/x,xp,z,zp,dpop
+! real(kind=fPrec) exenergy
+! common/meanexen/exenergy(nmat)
+  common/nommom/p0
+  common/cjaw1/zlm
+  common/cmcs1/zlm1
+  common/materia/mat
+  common/sindif/xpsd,zpsd,psd
+  common/cdpodx/dpodx
+  common/cions/edens(nmat),pleng(nmat)
 
 +dk nwrtcoll
 
@@ -583,6 +396,8 @@ module collimation
   use mod_alloc
   use end_sixtrack
   use file_units
+!  use mod_ranecu
+  use mod_ranlux
 
 #ifdef HDF5
   use hdf5_output
@@ -605,6 +420,82 @@ module collimation
   integer, parameter :: nmat  = 14
   integer, parameter :: nrmat = 12
 
+!+cd database
+!GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
+  logical, save :: do_coll
+  logical, save :: do_select
+  logical, save :: do_nominal
+  logical, save :: dowrite_dist
+  logical, save :: do_oneside
+  logical, save :: dowrite_impact
+  logical, save :: dowrite_secondary
+  logical, save :: dowrite_amplitude
+  logical, save :: radial
+  logical, save :: systilt_antisymm
+  logical, save :: dowritetracks
+  logical, save :: cern
+  logical, save :: do_nsig
+  logical, save :: do_mingap
+
+!SEPT2005 for slicing process
+  integer, save :: nloop
+  integer, save :: rnd_seed
+  integer, save :: c_offsettilt_seed
+  integer, save :: ibeam
+  integer, save :: jobnumber
+  integer, save :: do_thisdis
+  integer, save :: n_slices
+  integer, save :: pencil_distr
+
+  real(kind=fPrec), save :: myenom,mynex,mdex,myney,mdey,                    &
+  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
+  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
+  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
+  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
+  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
+!SEPT2005 add these lines for the slicing procedure
+  &smin_slices,smax_slices,recenter1,recenter2,                      &
+  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
+  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
+!SEPT2005,OCT2006 added offset
+  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
+  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
+  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
+  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
+  &c_sysoffset_sec,c_rmserror_gap,ndr,                            &
+  &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
+  &sigsecut3,sigsecut2,enerror,bunchlength
+
+  real(kind=fPrec), private, save :: nr 
+
+  character(len=max_name_len), save :: name_sel
+  character(len=80), save :: coll_db
+  character(len=16), save :: castordir
+  character(len=80), save :: filename_dis
+
+!  common /grd/ myenom,mynex,mdex,myney,mdey,                        &
+!  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
+!  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
+!  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
+!  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
+!  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
+!  &smin_slices,smax_slices,recenter1,recenter2,                      &
+!  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
+!  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
+!  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
+!  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
+!  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
+!  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
+!  &c_sysoffset_sec,c_rmserror_gap,nr,                                &
+!  &ndr,driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,        &
+!  &sigsecut3,sigsecut2,enerror,                                      &
+!  &bunchlength,coll_db,name_sel,                                     &
+!  &castordir,filename_dis,nloop,rnd_seed,c_offsettilt_seed,          &
+!  &ibeam,jobnumber,do_thisdis,n_slices,pencil_distr,                 &
+!  &do_coll,                                                          &
+!  &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
+!  &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
+!  &dowritetracks,cern,do_nsig,do_mingap
 !+cd info
   integer, save :: ie, iturn, nabs_total
 !  common  /info/ ie,iturn,nabs_total
@@ -616,16 +507,16 @@ module collimation
 !
 ! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
 !
-  real(kind=fPrec), save :: tbetax(nblz)  !(nblz)
-  real(kind=fPrec), save :: tbetay(nblz)  !(nblz)
-  real(kind=fPrec), save :: talphax(nblz) !(nblz)
-  real(kind=fPrec), save :: talphay(nblz) !(nblz)
-  real(kind=fPrec), save :: torbx(nblz)   !(nblz)
-  real(kind=fPrec), save :: torbxp(nblz)  !(nblz)
-  real(kind=fPrec), save :: torby(nblz)   !(nblz)
-  real(kind=fPrec), save :: torbyp(nblz)  !(nblz)
-  real(kind=fPrec), save :: tdispx(nblz)  !(nblz)
-  real(kind=fPrec), save :: tdispy(nblz)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tbetax(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tbetay(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: talphax(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: talphay(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: torbx(:)   !(nblz)
+  real(kind=fPrec), allocatable, save :: torbxp(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: torby(:)   !(nblz)
+  real(kind=fPrec), allocatable, save :: torbyp(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tdispx(:)  !(nblz)
+  real(kind=fPrec), allocatable, save :: tdispy(:)  !(nblz)
 
 !  common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,torby,torbyp,tdispx,tdispy
 !
@@ -656,6 +547,43 @@ module collimation
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
   logical, save :: coll_found(100)
+
+!+cd dbpencil
+!
+! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
+!
+  integer, save :: ipencil
+  real(kind=fPrec), save :: xp_pencil0,yp_pencil0
+  real(kind=fPrec), save :: x_pencil(max_ncoll) !(max_ncoll)
+  real(kind=fPrec), save :: y_pencil(max_ncoll) !(max_ncoll)
+  real(kind=fPrec), save :: pencil_dx(max_ncoll) !(max_ncoll)
+!  common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
+!  common  /pencil2/ x_pencil, y_pencil
+!
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dbmkdist
+!++ Vectors of coordinates
+
+!  integer :: i,j,mynp,nloop
+!  real(kind=fPrec) :: myx(maxn) !(maxn)
+!  real(kind=fPrec) :: myxp(maxn) !(maxn)
+!  real(kind=fPrec) :: myy(maxn) !(maxn)
+!  real(kind=fPrec) :: myyp(maxn) !(maxn)
+!  real(kind=fPrec) :: myp(maxn) !(maxn)
+!  real(kind=fPrec) :: mys(maxn) !(maxn)
+!
+!  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+!  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+!  &xsigmax,ysigmay,myenom,nr,ndr
+!
+!
+!  character(len=80) :: dummy
+
+! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
+! USED IN MULTIPLE COMMON BLOCKS
+  logical, save :: cut_input
+!  common /cut/ cut_input
 
 !from +cd interac
 !October 2013
@@ -718,6 +646,138 @@ module collimation
   real(kind=fPrec), private, save :: tftot
 !  common/funint/tftot
 
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!+cd dbthin6d
+
+  integer, private :: ios
+  integer, save :: num_surhit
+  integer, save :: numbin
+  integer, save :: ibin
+  integer, save :: num_selabs
+  integer, save :: iturn_last_hit
+  integer, save :: iturn_absorbed
+  integer, save :: iturn_survive
+  integer, save :: imov
+  integer, save :: totalelem
+  integer, save :: selelem
+  integer, save :: unitnumber
+  integer, save :: distnumber
+  integer, save :: turnnumber
+  integer, private, save :: jb
+
+! SR, 29-08-2005: add the required variable for slicing collimators
+  integer, private, save :: jjj, ijk
+
+  real(kind=fPrec), save :: zbv
+
+  real(kind=fPrec), save :: c_length    !length in m
+  real(kind=fPrec), save :: c_rotation  !rotation angle vs vertical in radian
+  real(kind=fPrec), save :: c_aperture  !aperture in m
+  real(kind=fPrec), save :: c_offset    !offset in m
+  real(kind=fPrec), save :: c_tilt(2)   !tilt in radian
+  character(len=4), save :: c_material  !material
+
+  integer, allocatable, save :: ipart(:) !(npart)
+  integer, allocatable, save :: flukaname(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: cx(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: cxp(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: cy(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: cyp(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: cp(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: cs(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcx(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcxp(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcy(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcyp(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcp(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcs(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcx0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcxp0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcy0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcyp0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcp0(:) !(npart)
+
+  real(kind=fPrec), allocatable, private, save :: xgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: xpgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: ygrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: ypgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: pgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: ejfvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: sigmvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rvvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: dpsvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: oidpsvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: dpsv1grd(:) !(npart)
+
+  real(kind=fPrec), save :: enom_gev,betax,betay,xmax,ymax
+  real(kind=fPrec), save :: nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1
+  real(kind=fPrec), save :: xj,xpj,yj,ypj,pj
+  real(kind=fPrec), save :: arcdx,arcbetax,xdisp,rxjco,ryjco
+  real(kind=fPrec), save :: rxpjco,rypjco,c_rmstilt,c_systilt
+  real(kind=fPrec), save :: scale_bx, scale_by, scale_bx0, scale_by0, xkick, ykick, bx_dist, by_dist
+  real(kind=fPrec), save :: xmax_pencil, ymax_pencil, xmax_nom, ymax_nom, nom_aperture, pencil_aperture
+
+  real(kind=fPrec), allocatable, save :: xp_pencil(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: yp_pencil(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: csum(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: csqsum(:) !(max_ncoll)
+
+  real(kind=fPrec), save :: x_pencil0, y_pencil0, sum, sqsum
+  real(kind=fPrec), save :: average, sigma, sigsecut, nspxd, xndisp, zpj
+
+  real(kind=fPrec), save :: dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4
+
+!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
+  real(kind=fPrec), allocatable, save :: x_sl(:) !(100)
+  real(kind=fPrec), allocatable, save :: x1_sl(:) !(100)
+  real(kind=fPrec), allocatable, save :: x2_sl(:) !(100)
+  real(kind=fPrec), allocatable, save :: y1_sl(:) !(100)
+  real(kind=fPrec), allocatable, save :: y2_sl(:) !(100)
+  real(kind=fPrec), allocatable, save :: angle1(:) !(100)
+  real(kind=fPrec), allocatable, save :: angle2(:) !(100)
+
+  real(kind=fPrec), save :: max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
+  real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
+  real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
+!SEPT2005
+
+
+!  common /dbthinc/ cx,cxp,cy,cyp,                                   &
+!  &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
+!  &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
+!  &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
+!  &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
+!  &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
+!  &rxpjco,rypjco,c_rmstilt,                                          &
+!  &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
+!  &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
+!  &nom_aperture,pencil_aperture,xp_pencil,                           &
+!  &yp_pencil,x_pencil0,y_pencil0,sum,sqsum,                          &
+!  &csum,csqsum,average,sigma,sigsecut,nspxd,                         &
+!  &xndisp,xgrd,xpgrd,ygrd,ypgrd,zpj,                                 &
+!  &pgrd,ejfvgrd,sigmvgrd,rvvgrd,                                     &
+!  &dpsvgrd,oidpsvgrd,dpsv1grd,                                       &
+!  &dnormx,dnormy,driftx,drifty,                                      &
+!  &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
+!  &grdpiover2,grdpiover4,grd3piover4,                                &
+!  &x_sl,x1_sl,x2_sl,                                                 &
+!  &y1_sl, y2_sl,                                                &
+!  &angle1, angle2,                                              &
+!  &max_tmp,                                                     &
+!  &a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
+!  &Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
+!  &tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
+!  &beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
+!  &alphax1, alphax2,alphay1,alphay2,minAmpl,                    &
+!  &ios,num_surhit,numbin,ibin,                                       &
+!  &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
+!  &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
+!  &jb,flukaname,                                                     &
+!  &jjj,ijk,zbv,c_length,c_rotation,                                  &
+!  &c_aperture,c_offset,c_tilt,c_material
+
+! myran_gauss,rndm5,
+
   ! file units
   integer, private, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
   integer, private, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit
@@ -761,6 +821,120 @@ contains
 ! 1: The RNG used in collimation.
 ! 2: A bunch distribution generator
 
+subroutine collimation_allocate_arrays
+
+  implicit none
+
+  call alloc(tbetax,  nblz, zero, 'tbetax')  !(nblz)
+  call alloc(tbetay,  nblz, zero, 'tbetay')  !(nblz)
+  call alloc(talphax, nblz, zero, 'talphax') !(nblz)
+  call alloc(talphay, nblz, zero, 'talphay') !(nblz)
+  call alloc(torbx,   nblz, zero, 'torbx')   !(nblz)
+  call alloc(torbxp,  nblz, zero, 'torbxp')  !(nblz)
+  call alloc(torby,   nblz, zero, 'torby')   !(nblz)
+  call alloc(torbyp,  nblz, zero, 'torbyp')  !(nblz)
+  call alloc(tdispx,  nblz, zero, 'tdispx')  !(nblz)
+  call alloc(tdispy,  nblz, zero, 'tdispy')  !(nblz)
+
+  call alloc(flukaname, npart, 0, "flukaname") !(npart)
+  call alloc(ipart, npart, 0, "ipart") !(npart)
+  call alloc(cx,    npart, zero, "cx") !(npart)
+  call alloc(cxp,   npart, zero, "cxp") !(npart)
+  call alloc(cy,    npart, zero, "cy") !(npart)
+  call alloc(cyp,   npart, zero, "cyp") !(npart)
+  call alloc(cp,    npart, zero, "cp") !(npart)
+  call alloc(cs,    npart, zero, "cs") !(npart)
+  call alloc(rcx,   npart, zero, "rcx") !(npart)
+  call alloc(rcxp,  npart, zero, "rcxp") !(npart)
+  call alloc(rcy,   npart, zero, "rcy") !(npart)
+  call alloc(rcyp,  npart, zero, "rcyp") !(npart)
+  call alloc(rcp,   npart, zero, "rcp") !(npart)
+  call alloc(rcs,   npart, zero, "rcs") !(npart)
+  call alloc(rcx0,  npart, zero, "rcx0") !(npart)
+  call alloc(rcxp0, npart, zero, "rcxp0") !(npart)
+  call alloc(rcy0,  npart, zero, "rcy0") !(npart)
+  call alloc(rcyp0, npart, zero, "rcyp0") !(npart)
+  call alloc(rcp0,  npart, zero, "rcp0") !(npart)
+
+  call alloc(xgrd,      npart, zero, "xgrd") !(npart)
+  call alloc(xpgrd,     npart, zero, "xpgrd") !(npart)
+  call alloc(ygrd,      npart, zero, "ygrd") !(npart)
+  call alloc(ypgrd,     npart, zero, "ypgrd") !(npart)
+  call alloc(pgrd,      npart, zero, "pgrd") !(npart)
+  call alloc(ejfvgrd,   npart, zero, "ejfvgrd") !(npart)
+  call alloc(sigmvgrd,  npart, zero, "sigmvgrd") !(npart)
+  call alloc(rvvgrd,    npart, zero, "rvvgrd") !(npart)
+  call alloc(dpsvgrd,   npart, zero, "dpsvgrd") !(npart)
+  call alloc(oidpsvgrd, npart, zero, "oidpsvgrd") !(npart)
+  call alloc(dpsv1grd,  npart, zero, "dpsv1grd") !(npart)
+
+! Fixed allocations follow:
+  call alloc(xp_pencil, max_ncoll, zero, "xp_pencil")
+  call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
+  call alloc(csum,      max_ncoll, zero, "csum")
+  call alloc(csqsum,    max_ncoll, zero, "csqsum")
+
+!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
+  call alloc(x_sl, 100, zero, "x_sl") !(100)
+  call alloc(x1_sl, 100, zero, "x1_sl") !(100)
+  call alloc(x2_sl, 100, zero, "x2_sl") !(100)
+  call alloc(y1_sl, 100, zero, "y1_sl") !(100)
+  call alloc(y2_sl, 100, zero, "y2_sl") !(100)
+  call alloc(angle1, 100, zero, "angle1") !(100)
+  call alloc(angle2, 100, zero, "angle2") !(100)
+end subroutine collimation_allocate_arrays
+
+subroutine collimation_expand_arrays(npart_new, nblz_new)
+
+  implicit none
+
+  integer, intent(in) :: npart_new
+  integer, intent(in) :: nblz_new
+
+  call resize(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
+  call resize(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
+  call resize(talphax, nblz_new, zero, 'talphax') !(nblz)
+  call resize(talphay, nblz_new, zero, 'talphay') !(nblz)
+  call resize(torbx,   nblz_new, zero, 'torbx')   !(nblz)
+  call resize(torbxp,  nblz_new, zero, 'torbxp')  !(nblz)
+  call resize(torby,   nblz_new, zero, 'torby')   !(nblz)
+  call resize(torbyp,  nblz_new, zero, 'torbyp')  !(nblz)
+  call resize(tdispx,  nblz_new, zero, 'tdispx')  !(nblz)
+  call resize(tdispy,  nblz_new, zero, 'tdispy')  !(nblz)
+
+  call resize(flukaname, npart_new, 0, "flukaname") !(npart)
+  call resize(ipart, npart_new, 0, "ipart") !(npart)
+  call resize(cx,    npart_new, zero, "cx") !(npart)
+  call resize(cxp,   npart_new, zero, "cxp") !(npart)
+  call resize(cy,    npart_new, zero, "cy") !(npart)
+  call resize(cyp,   npart_new, zero, "cyp") !(npart)
+  call resize(cp,    npart_new, zero, "cp") !(npart)
+  call resize(cs,    npart_new, zero, "cs") !(npart)
+  call resize(rcx,   npart_new, zero, "rcx") !(npart)
+  call resize(rcxp,  npart_new, zero, "rcxp") !(npart)
+  call resize(rcy,   npart_new, zero, "rcy") !(npart)
+  call resize(rcyp,  npart_new, zero, "rcyp") !(npart)
+  call resize(rcp,   npart_new, zero, "rcp") !(npart)
+  call resize(rcs,   npart_new, zero, "rcs") !(npart)
+  call resize(rcx0,  npart_new, zero, "rcx0") !(npart)
+  call resize(rcxp0, npart_new, zero, "rcxp0") !(npart)
+  call resize(rcy0,  npart_new, zero, "rcy0") !(npart)
+  call resize(rcyp0, npart_new, zero, "rcyp0") !(npart)
+  call resize(rcp0,  npart_new, zero, "rcp0") !(npart)
+
+  call resize(xgrd,      npart_new, zero, "xgrd") !(npart)
+  call resize(xpgrd,     npart_new, zero, "xpgrd") !(npart)
+  call resize(ygrd,      npart_new, zero, "ygrd") !(npart)
+  call resize(ypgrd,     npart_new, zero, "ypgrd") !(npart)
+  call resize(pgrd,      npart_new, zero, "pgrd") !(npart)
+  call resize(ejfvgrd,   npart_new, zero, "ejfvgrd") !(npart)
+  call resize(sigmvgrd,  npart_new, zero, "sigmvgrd") !(npart)
+  call resize(rvvgrd,    npart_new, zero, "rvvgrd") !(npart)
+  call resize(dpsvgrd,   npart_new, zero, "dpsvgrd") !(npart)
+  call resize(oidpsvgrd, npart_new, zero, "oidpsvgrd") !(npart)
+  call resize(dpsv1grd,  npart_new, zero, "dpsv1grd") !(npart)
+end subroutine collimation_expand_arrays
+
 !>
 !! collimate_init()
 !! This routine is called once at the start of the simulation and
@@ -789,10 +963,10 @@ subroutine collimate_init()
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
 !+ca dbdaten
@@ -1080,6 +1254,7 @@ subroutine collimate_init()
   rnd_k1  = 0
   rnd_k2  = 0
   call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
+!  call recuin(rnd_seed, 0)
   write(lout,*)
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 
@@ -1249,9 +1424,9 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   integer nSplit
   logical spErr
   
-+ca database
+!+ca database
 +ca dbcolcom
-+ca dbpencil
+!+ca dbpencil
   
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1465,12 +1640,12 @@ subroutine collimate_start_sample(nsample)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
-+ca dbthin6d
+!+ca dbthin6d
 +ca dbcolcom
 
 #ifdef CR
@@ -2094,7 +2269,8 @@ subroutine collimate_start_sample(nsample)
   rnd_lux = 3
   rnd_k1  = 0
   rnd_k2  = 0
-  call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
+  call rluxgo(rnd_lux, rnd_seed, rnd_k2, rnd_k2)
+!  call recuin(rnd_seed, 0)
 ! TW - 01/2007
 
 !GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, I.E. THE ONE WE DON'T WANT
@@ -2159,13 +2335,13 @@ subroutine collimate_start_collimator(stracki)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
-+ca dbthin6d
+!+ca dbthin6d
 
   real(kind=fPrec) c5m4,stracki
 
@@ -2335,7 +2511,7 @@ subroutine collimate_start_collimator(stracki)
   end do
 
   if(.not. found .and. firstrun .and. iturn.eq.1) then
-    write(lout,*) 'ERR>  Collimator not found in colldb: ', bez(myix)
+    write(lout,*) 'WARN>  Collimator not found in colldb: ', bez(myix)
   end if
 
 end subroutine collimate_start_collimator
@@ -2364,13 +2540,13 @@ subroutine collimate_do_collimator(stracki)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
-+ca dbthin6d
+!+ca dbthin6d
 
   real(kind=fPrec) c5m4,stracki
 
@@ -3183,13 +3359,13 @@ subroutine collimate_end_collimator()
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
-+ca dbthin6d
+!+ca dbthin6d
 
 #ifdef HDF5
   ! For tracks2
@@ -3631,10 +3807,10 @@ subroutine collimate_end_sample(j)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
   
@@ -3892,10 +4068,10 @@ subroutine collimate_exit()
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
 
@@ -4048,10 +4224,10 @@ subroutine collimate_start_turn(n)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
 
@@ -4084,13 +4260,13 @@ subroutine collimate_start_element(i)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
-+ca dbthin6d
+!+ca dbthin6d
 
   ie=i
 !++  For absorbed particles set all coordinates to zero. Also
@@ -4182,13 +4358,13 @@ subroutine collimate_end_element
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
-+ca dbthin6d
+!+ca dbthin6d
 
 #ifdef HDF5
   integer hdfturn,hdfpid,hdftyp
@@ -4337,13 +4513,13 @@ subroutine collimate_end_turn
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
 +ca dbtrthin
-+ca database
+!+ca database
 +ca dbcommon
 !+ca dblinopt
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcolcom
-+ca dbthin6d
+!+ca dbthin6d
 
 #ifdef HDF5
   ! For tracks2
@@ -4847,12 +5023,12 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use mod_common, only : iexact
   implicit none
 
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcollim
 !+ca flukavars
 
-+ca database
+!+ca database
 !+ca collMatNum
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
@@ -5510,11 +5686,11 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 
       real(kind=fPrec) sx, sz
 !
-+ca dbpencil
+!+ca dbpencil
 !+ca info
 +ca dbcollim
 !
-+ca database
+!+ca database
 !
       real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk
 !JUNE2005
@@ -6303,9 +6479,9 @@ subroutine scatin(plab)
 
   implicit none
 
-#ifdef MERLINSCATTER
-+ca database
-#endif
+!#ifdef MERLINSCATTER
+!+ca database
+!#endif
 
 +ca interac
 
@@ -7205,7 +7381,21 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   implicit none
 
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
+
   real(kind=fPrec) pi
 
   save
@@ -7308,7 +7498,20 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
@@ -7393,7 +7596,20 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
 
@@ -7490,7 +7706,20 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
@@ -7618,7 +7847,20 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   character(len=80)   filename_dis
 
@@ -7677,7 +7919,20 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use mod_commonmn
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
 
   character(len=80)   filename_dis
@@ -7821,7 +8076,20 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   use crcoall
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
   real(kind=fPrec) pi
 
@@ -7964,7 +8232,20 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   
   implicit none
 
-+ca dbmkdist
+!+ca dbmkdist
+  integer :: i,j,mynp,nloop
+  real(kind=fPrec) :: myx(maxn) !(maxn)
+  real(kind=fPrec) :: myxp(maxn) !(maxn)
+  real(kind=fPrec) :: myy(maxn) !(maxn)
+  real(kind=fPrec) :: myyp(maxn) !(maxn)
+  real(kind=fPrec) :: myp(maxn) !(maxn)
+  real(kind=fPrec) :: mys(maxn) !(maxn)
+
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+  &xsigmax,ysigmay,myenom,nr,ndr
+
+  character(len=80) :: dummy
 
 
   real(kind=fPrec) pi
@@ -8072,6 +8353,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 end subroutine makedis_ga
 
 function rndm4()
+
   implicit none
 
   integer len, in
@@ -8083,6 +8365,7 @@ function rndm4()
 
   if( in.eq.1 ) then
     call ranlux(a,len)
+!    call ranecu(a,len,-1)
     rndm4=a(1)
     in=2
   else
@@ -8120,6 +8403,7 @@ function rndm5(irnd)
 
   if( inn.eq.1 ) then
     call ranlux(a,len)
+!     call ranecu(a,len,-1)
     rndm5=a(1)
     inn=2
   else
@@ -8176,309 +8460,6 @@ real(kind=fPrec) function myran_gauss(cut)
   return
 end function myran_gauss
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine ranlux(rvec,lenv)
-!         Subtract-and-borrow random number generator proposed by
-!         Marsaglia and Zaman, implemented by F. James with the name
-!         RCARRY in 1991, and later improved by Martin Luescher
-!         in 1993 to produce "Luxury Pseudorandom Numbers".
-!     Fortran 77 coded by F. James, 1993
-!
-!   LUXURY LEVELS.
-!   ------ ------      The available luxury levels are:
-!
-!  level 0  (p=24): equivalent to the original RCARRY of Marsaglia
-!           and Zaman, very long period, but fails many tests.
-!  level 1  (p=48): considerable improvement in quality over level 0,
-!           now passes the gap test, but still fails spectral test.
-!  level 2  (p=97): passes all known tests, but theoretically still
-!           defective.
-!  level 3  (p=223): DEFAULT VALUE.  Any theoretically possible
-!           correlations have very small chance of being observed.
-!  level 4  (p=389): highest possible luxury, all 24 bits chaotic.
-!
-!!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!!!  Calling sequences for RANLUX:                                  ++
-!!!      CALL RANLUX (RVEC, LEN)   returns a vector RVEC of LEN     ++
-!!!                   32-bit random floating point numbers between  ++
-!!!                   zero (not included) and one (also not incl.). ++
-!!!      CALL RLUXGO(LUX,INT,K1,K2) initializes the generator from  ++
-!!!               one 32-bit integer INT and sets Luxury Level LUX  ++
-!!!               which is integer between zero and MAXLEV, or if   ++
-!!!               LUX .GT. 24, it sets p=LUX directly.  K1 and K2   ++
-!!!               should be set to zero unless restarting at a break++
-!!!               point given by output of RLUXAT (see RLUXAT).     ++
-!!!      CALL RLUXAT(LUX,INT,K1,K2) gets the values of four integers++
-!!!               which can be used to restart the RANLUX generator ++
-!!!               at the current point by calling RLUXGO.  K1 and K2++
-!!!               specify how many numbers were generated since the ++
-!!!               initialization with LUX and INT.  The restarting  ++
-!!!               skips over  K1+K2*E9   numbers, so it can be long.++
-!!!   A more efficient but less convenient way of restarting is by: ++
-!!!      CALL RLUXIN(ISVEC)    restarts the generator from vector   ++
-!!!                   ISVEC of 25 32-bit integers (see RLUXUT)      ++
-!!!      CALL RLUXUT(ISVEC)    outputs the current values of the 25 ++
-!!!                 32-bit integer seeds, to be used for restarting ++
-!!!      ISVEC must be dimensioned 25 in the calling program        ++
-!!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      use crcoall
-      implicit none
-      integer lenv,isdext,iseeds,maxlev,ndskip,itwo24,next,j24,i24,     &
-     &inseed,mkount,kount,in24,nskip,lxdflt,jsdflt,jseed,lp,i,k,icons,  &
-     &inner,izip,izip2,ivec,isk,igiga,isd,k2,k1,inout,lout2,ins,lux,ilx,&
-     &iouter
-      real(kind=fPrec) rvec,seeds,twop12,twom12,twom24,carry,uni
-      dimension rvec(lenv)
-      dimension seeds(24), iseeds(24), isdext(25)
-      parameter (maxlev=4, lxdflt=3)
-      dimension ndskip(0:maxlev)
-      dimension next(24)
-      parameter (twop12=4096., igiga=1000000000,jsdflt=314159265)
-      parameter (itwo24=2**24, icons=2147483563)
-      save notyet, i24, j24, carry, seeds, twom24, twom12, luxlev
-      save nskip, ndskip, in24, next, kount, mkount, inseed
-      integer luxlev
-      logical notyet
-      data notyet, luxlev, in24, kount, mkount /.true., lxdflt, 0,0,0/
-      data i24,j24,carry/24,10,0./
-!                               default
-!  Luxury Level   0     1     2   *3*    4
-      data ndskip/0,   24,   73,  199,  365 /
-!Corresponds to p=24    48    97   223   389
-!     time factor 1     2     3     6    10   on slow workstation
-!                 1    1.5    2     3     5   on fast mainframe
-!
-!  NOTYET is .TRUE. if no initialization has been performed yet.
-!              Default Initialization by Multiplicative Congruential
-      if (notyet) then
-         notyet = .false.
-         jseed = jsdflt
-         inseed = jseed
-         write(lout,'(A,I12)') ' RANLUX DEFAULT INITIALIZATION: ',jseed
-         luxlev = lxdflt
-         nskip = ndskip(luxlev)
-         lp = nskip + 24
-         in24 = 0
-         kount = 0
-         mkount = 0
-!         WRITE(6,'(A,I2,A,I4)')  ' RANLUX DEFAULT LUXURY LEVEL =  ',
-!     &        LUXLEV,'      p =',LP
-            twom24 = 1.
-         do 25 i= 1, 24
-            twom24 = twom24 * 0.5
-         k = jseed/53668
-         jseed = 40014*(jseed-k*53668) -k*12211
-         if (jseed .lt. 0)  jseed = jseed+icons
-         iseeds(i) = mod(jseed,itwo24)
-   25    continue
-         twom12 = twom24 * 4096.
-         do 50 i= 1,24
-         seeds(i) = real(iseeds(i))*twom24
-         next(i) = i-1
-   50    continue
-         next(1) = 24
-         i24 = 24
-         j24 = 10
-         carry = 0.
-         if (seeds(24) .eq. 0.) carry = twom24
-      endif
-!
-!          The Generator proper: "Subtract-with-borrow",
-!          as proposed by Marsaglia and Zaman,
-!          Florida State University, March, 1989
-!
-      do 100 ivec= 1, lenv
-      uni = seeds(j24) - seeds(i24) - carry
-      if (uni .lt. 0.)  then
-         uni = uni + 1.
-         carry = twom24
-      else
-         carry = 0.
-      endif
-      seeds(i24) = uni
-      i24 = next(i24)
-      j24 = next(j24)
-      rvec(ivec) = uni
-!  small numbers (with less than 12 "significant" bits) are "padded".
-      if (uni .lt. twom12)  then
-         rvec(ivec) = rvec(ivec) + twom24*seeds(j24)
-!        and zero is forbidden in case someone takes a logarithm
-         if (rvec(ivec) .eq. 0.)  rvec(ivec) = twom24*twom24
-      endif
-!        Skipping to luxury.  As proposed by Martin Luscher.
-      in24 = in24 + 1
-      if (in24 .eq. 24)  then
-         in24 = 0
-         kount = kount + nskip
-         do 90 isk= 1, nskip
-         uni = seeds(j24) - seeds(i24) - carry
-         if (uni .lt. 0.)  then
-            uni = uni + 1.
-            carry = twom24
-         else
-            carry = 0.
-         endif
-         seeds(i24) = uni
-         i24 = next(i24)
-         j24 = next(j24)
-   90    continue
-      endif
-  100 continue
-      kount = kount + lenv
-      if (kount .ge. igiga)  then
-         mkount = mkount + 1
-         kount = kount - igiga
-      endif
-      return
-!
-!           Entry to input and float integer seeds from previous run
-      entry rluxin(isdext)
-         notyet = .false.
-         twom24 = 1.
-         do i= 1, 24
-           next(i) = i-1
-           twom24 = twom24 * 0.5
-         end do
-         next(1) = 24
-         twom12 = twom24 * 4096.
-      write(lout,*) ' FULL INITIALIZATION OF RANLUX WITH 25 INTEGERS:'
-      write(lout,'(5X,5I12)') isdext
-      do 200 i= 1, 24
-      seeds(i) = real(isdext(i))*twom24
-  200 continue
-      carry = 0.
-      if (isdext(25) .lt. 0)  carry = twom24
-      isd = iabs(isdext(25))
-      i24 = mod(isd,100)
-      isd = isd/100
-      j24 = mod(isd,100)
-      isd = isd/100
-      in24 = mod(isd,100)
-      isd = isd/100
-      luxlev = isd
-        if (luxlev .le. maxlev) then
-          nskip = ndskip(luxlev)
-          write(lout,'(A,I2)')' RANLUX LUXURY LEVEL SET BY RLUXIN TO: ', luxlev
-        else  if (luxlev .ge. 24) then
-          nskip = luxlev - 24
-          write(lout,'(A,I5)')' RANLUX P-VALUE SET BY RLUXIN TO:',luxlev
-        else
-          nskip = ndskip(maxlev)
-          write(lout,'(A,I5)') ' RANLUX ILLEGAL LUXURY RLUXIN: ',luxlev
-          luxlev = maxlev
-        endif
-      inseed = -1
-      return
-!
-!                    Entry to ouput seeds as integers
-      entry rluxut(isdext)
-      do 300 i= 1, 24
-         isdext(i) = int(seeds(i)*twop12*twop12)
-  300 continue
-      isdext(25) = i24 + 100*j24 + 10000*in24 + 1000000*luxlev
-      if (carry .gt. 0.)  isdext(25) = -isdext(25)
-      return
-!
-!     Entry to output the "convenient" restart point
-!     Note: The first argument was originall called "lout";
-!     however this conflicts with the variable name used for selecting output unit.
-!     It was therefore renamed to "lout2".
-      entry rluxat(lout2,inout,k1,k2)
-      lout2 = luxlev
-      inout = inseed
-      k1 = kount
-      k2 = mkount
-      return
-!
-!                    Entry to initialize from one or three integers
-      entry rluxgo(lux,ins,k1,k2)
-         if (lux .lt. 0) then
-            luxlev = lxdflt
-         else if (lux .le. maxlev) then
-            luxlev = lux
-         else if (lux .lt. 24 .or. lux .gt. 2000) then
-            luxlev = maxlev
-            write(lout,'(A,I7)') ' RANLUX ILLEGAL LUXURY RLUXGO: ',lux
-         else
-            luxlev = lux
-            do 310 ilx= 0, maxlev
-              if (lux .eq. ndskip(ilx)+24)  luxlev = ilx
-  310       continue
-         endif
-      if (luxlev .le. maxlev)  then
-         nskip = ndskip(luxlev)
-         write(lout,'(A,I2,A,I4)') ' RANLUX LUXURY LEVEL SET BY RLUXGO :', luxlev,'     P=', nskip+24
-      else
-          nskip = luxlev - 24
-          write(lout,'(A,I5)') ' RANLUX P-VALUE SET BY RLUXGO TO:',luxlev
-      endif
-      in24 = 0
-      if (ins .lt. 0)  write(lout,*) ' Illegal initialization by RLUXGO, negative input seed'
-      if (ins .gt. 0)  then
-        jseed = ins
-        write(lout,'(A,3I12)') ' RANLUX INITIALIZED BY RLUXGO FROM SEEDS',jseed, k1,k2
-      else
-        jseed = jsdflt
-        write(lout,*)' RANLUX INITIALIZED BY RLUXGO FROM DEFAULT SEED'
-      endif
-      inseed = jseed
-      notyet = .false.
-      twom24 = 1.
-         do 325 i= 1, 24
-           twom24 = twom24 * 0.5
-         k = jseed/53668
-         jseed = 40014*(jseed-k*53668) -k*12211
-         if (jseed .lt. 0)  jseed = jseed+icons
-         iseeds(i) = mod(jseed,itwo24)
-  325    continue
-      twom12 = twom24 * 4096.
-         do 350 i= 1,24
-         seeds(i) = real(iseeds(i))*twom24
-         next(i) = i-1
-  350    continue
-      next(1) = 24
-      i24 = 24
-      j24 = 10
-      carry = 0.
-      if (seeds(24) .eq. 0.) carry = twom24
-!        If restarting at a break point, skip K1 + IGIGA*K2
-!        Note that this is the number of numbers delivered to
-!        the user PLUS the number skipped (if luxury .GT. 0).
-      kount = k1
-      mkount = k2
-      if (k1+k2 .ne. 0)  then
-        do 500 iouter= 1, k2+1
-          inner = igiga
-          if (iouter .eq. k2+1)  inner = k1
-          do 450 isk= 1, inner
-            uni = seeds(j24) - seeds(i24) - carry
-            if (uni .lt. 0.)  then
-               uni = uni + 1.
-               carry = twom24
-            else
-               carry = 0.
-            endif
-            seeds(i24) = uni
-            i24 = next(i24)
-            j24 = next(j24)
-  450     continue
-  500   continue
-!         Get the right value of IN24 by direct calculation
-        in24 = mod(kount, nskip+24)
-        if (mkount .gt. 0)  then
-           izip = mod(igiga, nskip+24)
-           izip2 = mkount*izip + in24
-           in24 = mod(izip2, nskip+24)
-        endif
-!       Now IN24 had better be between zero and 23 inclusive
-        if (in24 .gt. 23) then
-           write(lout,'(A/A,3I11,A,I5)') '  Error in RESTARTING with RLUXGO:','  The values', ins, k1, k2, &
- &                                       ' cannot occur at luxury level', luxlev
-           in24 = 0
-        endif
-      endif
-      return
-end subroutine ranlux
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine funlxp (func,xfcum,x2low,x2high)
@@ -8673,6 +8654,7 @@ subroutine funlux(array,xran,len)
 !                       98 and 99 (right tail of distribution)
 !
       call ranlux(xran,len)
+!      call ranecu(xran,len,-1)
 
       do 500 ibuf= 1, len
       x = xran(ibuf)
@@ -9014,7 +8996,7 @@ subroutine readcollimator
 
   integer I,J,K,ios
 
-+ca database
+!+ca database
 +ca dbcommon
 
   logical lopen
@@ -9143,7 +9125,7 @@ subroutine collimation_comnul
   use parpro
   implicit none
 
-+ca database
+!+ca database
 +ca dbcommon
 
   do_coll = .false.
