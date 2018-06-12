@@ -1,7 +1,0 @@
-sixtrack.s90
-sixvefoxn.f90
-df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,fio,lf95,hugenblz,bignpart,hugenpart,datamods,fluka
-e UMLAU6,ENVADA,SYNODA,ERRFF
-e CLOR6,MYDAINI
-e beam6df,wireda
-ex

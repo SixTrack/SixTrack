@@ -296,31 +296,38 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT)
-LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
+LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
 ###################################################################################################
 
 list(APPEND FORS_F90
-	core_tools constants sixtrack_input mod_units close
-	strings string_tools common_modules mainarrays
-	file_units mod_alloc zipf matrix_inv lielib 
+	sixtrack core_tools constants sixtrack_input mod_units
+	close strings string_tools common_modules mainarrays
+	file_units mod_alloc zipf matrix_inv lielib beam6d
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dynk dump
 	aperture postprocessing
 )
 
 if(SIXDA)
-	list(APPEND FORS_FREEFORM sixsc sixda sixscfox)
-	list(APPEND FORS_F90 tshift_corr)
+	list(APPEND FORS_F90 main_da tshift_corr)
+	list(APPEND FORS_DAFOR_F90 sixda)
 else()
-	list(APPEND FORS_FREEFORM track sixve sixvefox)
+	list(APPEND FORS_F90 main_cr sixve track_thin track_thick)
 endif()
+
+# List of files that must be treated by DAFOR
+list(APPEND FORS_DAFOR_F90 beam6d_fox six_fox)
 
 if(CR)
 	list(APPEND FORS_F90 checkpoint_restart)
 endif(CR)
+
+if(DEBUG)
+	list(APPEND FORS_F90 debug_dumps)
+endif(DEBUG)
 
 if(COLLIMAT)
 	list(APPEND FORS_F90 ranlux collimation)
@@ -331,7 +338,7 @@ if(HDF5)
 endif(HDF5)
 
 if(BEAMGAS)
-	LIST(APPEND FORS_FREEFORM beamgas)
+	LIST(APPEND FORS_F90 beamgas)
 endif(BEAMGAS)
 
 if(FLUKA)
@@ -352,9 +359,9 @@ endforeach()
 foreach(loop IN LISTS FORS_F90)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
 endforeach()
-
-# List of files that must be treated by DAFOR
-LIST(APPEND FORS_DAFOR sixvefox sixscfox sixda)
+foreach(loop IN LISTS FORS_DAFOR_F90)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
+endforeach()
 
 if(BOINC AND NOT API)
 	#We have a BOINC build but no API, load the fake API substitute for debugging.
@@ -1346,17 +1353,23 @@ foreach(loop IN ITEMS ${FORS_F90})
 		DEPENDS run_prepro
 	)
 endforeach()
+foreach(loop IN ITEMS ${FORS_DAFOR_F90})
+	add_custom_command(
+		TARGET run_prepro POST_BUILD
+		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
+	)
+endforeach()
 
 ## Run ASTUCE and DAFOR to generate Fortran source files ##
 foreach(loop IN LISTS FORS_FREEFORM)
 	message(STATUS "Will run astuce to generate ${loop}n.f using ${loop}.ast")
 	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
 	
-	LIST(FIND FORS_DAFOR    ${loop} FORS_DAFOR_LISTINDEX )
-	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
+	LIST(FIND FORS_DAFOR    ${loop} FORS_DAFOR_LISTINDEX)
+	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX)
 	
 	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
-		message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}n.f")
+		message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}n.f90")
 		add_custom_command(TARGET run_prepro POST_BUILD COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}a.f90 DEPENDS run_astuce)
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log DEPENDS run_prepro)
 		
@@ -1368,6 +1381,11 @@ foreach(loop IN LISTS FORS_FREEFORM)
 	else()
 		message(FATAL_ERROR "Error when preprocessing ${loop}: Logic error in CMakeLists.txt.")
 	endif()
+endforeach()
+
+foreach(loop IN LISTS FORS_DAFOR_F90)
+	message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}a.f90")
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log DEPENDS run_prepro)
 endforeach()
 
 ###################################################################################################
