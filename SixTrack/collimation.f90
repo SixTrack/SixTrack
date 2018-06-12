@@ -5116,23 +5116,23 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
   integer nprim,filel,j,nabs,nhit,np,nabs_tmp
 
-  integer :: lhit_pos(npart) !(npart)
-  integer :: lhit_turn(npart) !(npart)
-  integer :: part_abs_pos_local(npart) !(npart)
-  integer :: part_abs_turn_local(npart) !(npart)
-  integer :: name(npart) !(npart)
-  integer :: nabs_type(npart) !(npart)
+  integer, allocatable :: lhit_pos(:) !(npart)
+  integer, allocatable :: lhit_turn(:) !(npart)
+  integer, allocatable :: part_abs_pos_local(:) !(npart)
+  integer, allocatable :: part_abs_turn_local(:) !(npart)
+  integer, allocatable :: name(:) !(npart)
+  integer, allocatable :: nabs_type(:) !(npart)
 !MAY2005
 
-  real(kind=fPrec) :: x_in(npart) !(npart)
-  real(kind=fPrec) :: xp_in(npart) !(npart)
-  real(kind=fPrec) :: y_in(npart) !(npart)
-  real(kind=fPrec) :: yp_in(npart) !(npart)
-  real(kind=fPrec) :: p_in(npart) !(npart)
-  real(kind=fPrec) :: s_in(npart) !(npart)
-  real(kind=fPrec) :: indiv(npart) !(npart)
-  real(kind=fPrec) :: lint(npart) !(npart)
-  real(kind=fPrec) :: impact(npart) !(npart)
+  real(kind=fPrec), allocatable :: x_in(:) !(npart)
+  real(kind=fPrec), allocatable :: xp_in(:) !(npart)
+  real(kind=fPrec), allocatable :: y_in(:) !(npart)
+  real(kind=fPrec), allocatable :: yp_in(:) !(npart)
+  real(kind=fPrec), allocatable :: p_in(:) !(npart)
+  real(kind=fPrec), allocatable :: s_in(:) !(npart)
+  real(kind=fPrec), allocatable :: indiv(:) !(npart)
+  real(kind=fPrec), allocatable :: lint(:) !(npart)
+  real(kind=fPrec), allocatable :: impact(:) !(npart)
   real(kind=fPrec) keeps,fracab,sigx,sigz,norma,xpmu,drift_length,mirror,tiltangle
 
   real(kind=fPrec) c_length    !length in m
@@ -5818,23 +5818,23 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
   integer nprim,filel,j,nabs,nhit,np,nabs_tmp
 
-  integer :: lhit_pos(npart) !(npart)
-  integer :: lhit_turn(npart) !(npart)
-  integer :: part_abs_pos_local(npart) !(npart)
-  integer :: part_abs_turn_local(npart) !(npart)
-  integer :: name(npart) !(npart)
-  integer :: nabs_type(npart) !(npart)
+  integer, allocatable :: lhit_pos(:) !(npart)
+  integer, allocatable :: lhit_turn(:) !(npart)
+  integer, allocatable :: part_abs_pos_local(:) !(npart)
+  integer, allocatable :: part_abs_turn_local(:) !(npart)
+  integer, allocatable :: name(:) !(npart)
+  integer, allocatable :: nabs_type(:) !(npart)
 !MAY2005
 
-  real(kind=fPrec) :: x_in(npart) !(npart)
-  real(kind=fPrec) :: xp_in(npart) !(npart)
-  real(kind=fPrec) :: y_in(npart) !(npart)
-  real(kind=fPrec) :: yp_in(npart) !(npart)
-  real(kind=fPrec) :: p_in(npart) !(npart)
-  real(kind=fPrec) :: s_in(npart) !(npart)
-  real(kind=fPrec) :: indiv(npart) !(npart)
-  real(kind=fPrec) :: lint(npart) !(npart)
-  real(kind=fPrec) :: impact(npart) !(npart)
+  real(kind=fPrec), allocatable :: x_in(:) !(npart)
+  real(kind=fPrec), allocatable :: xp_in(:) !(npart)
+  real(kind=fPrec), allocatable :: y_in(:) !(npart)
+  real(kind=fPrec), allocatable :: yp_in(:) !(npart)
+  real(kind=fPrec), allocatable :: p_in(:) !(npart)
+  real(kind=fPrec), allocatable :: s_in(:) !(npart)
+  real(kind=fPrec), allocatable :: indiv(:) !(npart)
+  real(kind=fPrec), allocatable :: lint(:) !(npart)
+  real(kind=fPrec), allocatable :: impact(:) !(npart)
   real(kind=fPrec) keeps,fracab,sigx,sigz,norma,xpmu,drift_length,mirror,tiltangle
 
   real(kind=fPrec) c_length    !length in m
