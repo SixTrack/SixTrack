@@ -288,6 +288,10 @@ if(128BITM)
 	set(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_quad")
 endif()
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	set(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_DEBUG")
+endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+
 # Create the sixtrack binary name string
 set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
@@ -325,6 +329,7 @@ endif()
 
 if(COLLIMAT)
 	LIST(APPEND FORS_FREEFORM collimation)
+	list(APPEND FORS_F90 ranlux)
 endif(COLLIMAT)
 
 if(HDF5)
