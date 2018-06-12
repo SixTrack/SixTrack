@@ -1,9 +1,8 @@
 sixtrack.s90 collimation.s90
 sixscn.f90
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,bignblz,debug,fio,lf95,hugenblz,bignpart,hugenpart,datamods,naff
-e DATEN,ENVARS,ERRF
-e COMNUL
-e ANFB,BETALF,BLOCK,BLOCKDIS
+e DATEN,ENVARS,ERRF,COMNUL
+e BETALF,BLOCK,BLOCKDIS
 e CHROMA,CLORB,CLORB2
 e COMBEL,ENVAR,ENVARDIS
 e LINOPT,LOESD
@@ -11,4 +10,5 @@ e MATRIX,ORBIT,ORD,PHASAD,QMOD,UMLAUF
 e DISTANCE,DECOUP
 e RESEX,RMOD,SEARCH,SUBRE,SUBSEA
 e aux
+e ANFB
 ex

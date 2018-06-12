@@ -296,7 +296,7 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT)
-LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
+LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -312,17 +312,16 @@ list(APPEND FORS_F90
 )
 
 if(SIXDA)
-	list(APPEND FORS_FREEFORM sixsc sixscfox)
+	list(APPEND FORS_FREEFORM sixsc)
 	list(APPEND FORS_F90 main_da tshift_corr)
 	list(APPEND FORS_DAFOR_F90 sixda)
 else()
-	list(APPEND FORS_FREEFORM sixve sixvefox)
+	list(APPEND FORS_FREEFORM sixve)
 	list(APPEND FORS_F90 main_cr track_thin track_thick)
 endif()
 
 # List of files that must be treated by DAFOR
-list(APPEND FORS_DAFOR sixvefox sixscfox)
-list(APPEND FORS_DAFOR_F90 beam6d_fox)
+list(APPEND FORS_DAFOR_F90 beam6d_fox six_fox)
 
 if(CR)
 	list(APPEND FORS_F90 checkpoint_restart)
@@ -342,7 +341,7 @@ if(HDF5)
 endif(HDF5)
 
 if(BEAMGAS)
-	LIST(APPEND FORS_FREEFORM beamgas)
+	LIST(APPEND FORS_F90 beamgas)
 endif(BEAMGAS)
 
 if(FLUKA)
