@@ -10,16 +10,16 @@
 !  Last modified: 22-03-2018
 ! =================================================================================================
 module end_sixtrack
-  
+
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
   use, intrinsic :: iso_fortran_env, only : error_unit
-  
+
   implicit none
 
   integer errout_status
-  
+
   save errout_status
 
 contains
@@ -27,17 +27,17 @@ contains
 
 ! =================================================================================================
 subroutine prror(ier)
-  
+
   use crcoall
   use parpro,     only : mcor,mmul,mran,nbb,nele,nmac,npart,nran,nrco,ntr
   use mod_common, only : ierro
-  
+
 #ifdef FLUKA
   use mod_fluka
 #endif
 
   implicit none
-  
+
   integer ier
 
 #ifdef FLUKA
@@ -47,7 +47,7 @@ subroutine prror(ier)
   save
 
   errout_status = ier
-  
+
   write(lout,"(a)") "    +++++++++++++++++++++++++++++"
   write(lout,"(a)") "    +      ERROR DETECTED       +"
   write(lout,"(a)") "    + RUN TERMINATED ABNORMALLY +"
@@ -55,10 +55,10 @@ subroutine prror(ier)
     write(lout,"(a,i3,a)") "    +      ERROR CODE: ",ier,"      +"
   end if
   write(lout,"(a)") "    +++++++++++++++++++++++++++++"
-  
+
   select case (ier)
-  case (1)
-    write(lout,10010)
+  ! case (1)
+  !   write(lout,10010)
   case (2)
     write(lout,10020) nele
   case (3)
@@ -105,14 +105,14 @@ subroutine prror(ier)
   !   write(lout,10230)
   ! case (24)
   !   write(lout,10240)
-  case (25)
-    write(lout,10250)
+  ! case (25)
+  !   write(lout,10250)
   ! case (26)
   !   write(lout,10260) nelb
   case (27)
     write(lout,10270)
-  case (28)
-    write(lout,10280)
+  ! case (28)
+  !   write(lout,10280)
   case (29)
     write(lout,10290)
   case (30)
@@ -145,8 +145,8 @@ subroutine prror(ier)
   !   write(lout,10430) nzfz
   case (44)
     write(lout,10440)
-  case (45)
-    write(lout,10450)
+  ! case (45)
+  !   write(lout,10450)
   case (46)
     write(lout,10460) nrco
   case (47)
@@ -217,8 +217,8 @@ subroutine prror(ier)
     write(lout,10790)
   case (80)
     write(lout,10800)
-  case (81)
-    write(lout,10810)
+  ! case (81)
+  !   write(lout,10810)
   case (82)
     write(lout,10820)
   case (83)
@@ -272,7 +272,7 @@ subroutine prror(ier)
 #ifdef FLUKA
   call fluka_close
 #endif
-  
+
   call closeUnits
 #ifdef CR
   call abend('                                                  ')
@@ -401,20 +401,20 @@ end subroutine prror
 
 ! =================================================================================================
 subroutine abend(cstring)
-  
+
   use numerical_constants
-  
+
   use, intrinsic :: iso_fortran_env, only : error_unit
-  
+
   use crcoall
   use parpro
   use mod_common
-  
+
   implicit none
-  
+
 +ca crco
 #include "version.f90"
-  
+
   integer i,lstring,j
   character(len=*) cstring
   character(len=256) filename
@@ -425,23 +425,23 @@ subroutine abend(cstring)
   integer errno,l1,l2
   integer dtostr
   integer ich
-  
+
   save
-  
+
   write(93,*) 'SIXTRACR STOP/ABEND called and closing files'
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
 
-  ! Calling close to be very safe.......96 calls to abend 
+  ! Calling close to be very safe.......96 calls to abend
   ! Easier than adding the call on every abend
   call closeUnits
-  
+
   ! If fort.10 is inexistent (physics error or some other problem)
   ! we try and write a 0d0 file with a turn number and CPU time
   write(93,*) 'SIXTRACR STOP/ABEND checking fort.10'
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
-  
+
 #ifdef NAGFOR
 #ifdef BOINC
   call boincrf('fort.10',filename)
@@ -478,7 +478,7 @@ subroutine abend(cstring)
   read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
   ! Seems to be OK
   goto 12
-  
+
 11 continue
   ! Now we try and write a fort.10
   ! We put some CPU for Igor, a version, and turn number 0
@@ -508,7 +508,7 @@ subroutine abend(cstring)
   call timex(time1)
   trtime=time1-time0
 #ifdef CR
-  trtime=trtime+crtime3  
+  trtime=trtime+crtime3
 #endif
   sumda(60)=real(trtime,fPrec)
   ! Note it COULD happen that napxo is 0 for a very very early error and even napx!!!
@@ -543,7 +543,7 @@ subroutine abend(cstring)
       write(lout,*)
     end if
   end do
-  
+
 12 continue
   close (10,iostat=ierro)
 #ifdef CR
@@ -573,7 +573,7 @@ subroutine abend(cstring)
 2   write(6,'(a)',iostat=ierro) arecord(1:lstring)
     goto 3
   end if
-  
+
 1 write(6,*,iostat=ierro) 'SIXTRACR stop '//cstring
   close(6,iostat=ierro)
   ! and get rid of fort.92
@@ -605,7 +605,7 @@ subroutine abend(cstring)
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
-    
+
     write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
     stop 1
   else
@@ -613,9 +613,9 @@ subroutine abend(cstring)
     stop
   end if
 #endif
-  
+
 !!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
-  
+
 8 write(93,*) 'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
   close(93)
   write(6,*) 'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
@@ -626,7 +626,7 @@ subroutine abend(cstring)
   do i=2,120
     inquire(i,opened=fopen)
     write(6,*) 'UNIT ',i,' opened ',fopen
-  end do 
+  end do
   close(6,err=31)
 31 continue
   ! call boinc_zipitall()
@@ -644,7 +644,7 @@ subroutine abend(cstring)
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
-    
+
     write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
     stop 1
   else
@@ -678,62 +678,62 @@ end subroutine abend
 !  This is useful since STDERR is often returned from batch systems and BOINC.
 ! =================================================================================================
 subroutine print_lastlines_to_stderr(file_unit, file_name)
-  
+
   use, intrinsic :: iso_fortran_env, only : error_unit
   use string_tools
-  
+
   implicit none
-  
+
   integer,          intent(in) :: file_unit
   character(len=*), intent(in) :: file_name
-  
+
   integer, parameter :: nlines = 40
-  
+
   character(len=1024) fileBuff (nlines)
   integer fileBuff_idx
   integer i,j
   integer printLines
-  
+
   logical lopen
   integer ierro
-  
+
   ! Clear the buffer
   do i=1,nlines
     fileBuff(i)=''
   end do
-  
+
   ! Open the file
   inquire(unit=file_unit,opened=lopen)
   if(lopen) then
     write(error_unit,'(a,1x,i5,1x,a)') "Error when opening unit #",file_unit,": The file is already open."
     return
   end if
-  
+
   open(file_unit,file=file_name,form="formatted",status="old",iostat=ierro)
   if(ierro .ne. 0) then
     write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)') &
       "Error when opening file '",trim(file_name),"' on unit #", file_unit,", iostat =",ierro
     return
   end if
-  
+
   ! Read into fileBuff as a ring buffer.
   fileBuff_idx = 1
   j = 0
-  
+
 1 read(file_unit,'(a1024)',end=3,err=2,iostat=ierro) fileBuff(fileBuff_idx)
   ! write(error_unit,*) fileBuff_idx,":",trim(fileBuff(fileBuff_idx))
   fileBuff_idx = fileBuff_idx+1
   if (fileBuff_idx.ge.nlines) fileBuff_idx = 1
   j = j+1
   goto 1
-  
+
 2 continue ! An error occured
   write(error_unit,'(a,1x,i5)') "An error occured while reading the file, iostat=",ierro
-  
-  
+
+
 3 continue ! EOF or error; anyway we're done.
   close(file_unit)
-  
+
   ! Print stuff back out from the buffer
   if (j .lt. nlines) then
     printLines = j
@@ -742,10 +742,10 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
     printLines = nlines
   end if
   write(error_unit,'(a,1x,i5,1x,a,a,a)') "******* Last",printLines,"lines of file '",trim(file_name),"': *******"
-  
+
   i = fileBuff_idx  ! Position in buffer (we have already incremented i)
   j = 0             ! How many have we printed
-  
+
 10 continue
   if(i.gt.nlines) i=1      ! i is wrapping
     write(error_unit,'(a)') trim(fileBuff(i))
@@ -753,7 +753,7 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
     j = j+1                   ! j just counts
     if(j.lt.printLines) goto 10
       write(error_unit,'(a,a,a)') "******* Done writing tail of file '",trim(file_name),"' to stderr *******"
-  
+
 end subroutine print_lastlines_to_stderr
 ! =================================================================================================
 

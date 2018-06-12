@@ -23,10 +23,10 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
   char buff[8192];
   int len;
   FILE* fd;
-  
-  
+
+
   //printf("Writing outname='%s'\n",outname);
-  
+
   a = archive_write_new(); //Constructs the archive in memory? If so, may be problematic for large archives.
   //For tar.gz:
   // archive_write_add_filter_gzip(a);
@@ -60,13 +60,13 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
     if(err != 0) continue;
     filesize = st.st_size;
 #endif
-    
+
     archive_entry_set_pathname(entry, filename[i]);
     archive_entry_set_size(entry, filesize);
     archive_entry_set_filetype(entry, AE_IFREG);
     archive_entry_set_perm(entry, 0644);
     archive_write_header(a, entry);
-    
+
     //Write the data
     int len_total = 0;
     fd = fopen(filename[i], "rb");
@@ -84,7 +84,7 @@ void write_archive(const char* const outname, char** filename, int nFiles) {
     }
     fclose(fd);
     archive_entry_clear(entry);
-    
+
     //printf("Wrote file '%s', len_total = %i, filesize = %i\n", filename[i], len_total, filesize);
     if (len_total != filesize) {
       fprintf(stderr, "CRITICAL ERROR in write_archive(): When writing file '%s', got len_total = %i but filesize = %i\n", filename[i], len_total, filesize);
@@ -103,9 +103,9 @@ void list_archive(const char* const infile) {
   // Note - this function will always be "chatty"; make sure to flush the stdout before using it...
   // TODO: Write a function which *returns* the list of files
   //       (by writing it into a char** supplied by the caller)
-  
+
   fprintf(stderr, "Opening archive '%s' for listing...\n",infile);
-  
+
   struct archive* a = archive_read_new();
   archive_read_support_format_zip(a);
   int err = archive_read_open_filename(a, infile,10240);//Note: Blocksize isn't neccessarilly adhered to
@@ -114,13 +114,13 @@ void list_archive(const char* const infile) {
     fprintf(stderr, "CRITICAL ERROR in list_archive(): %s\n",archive_error_string(a));
     exit(EXIT_FAILURE);
   }
-  
+
   struct archive_entry* entry;
   while (archive_read_next_header(a,&entry)==ARCHIVE_OK){
     printf("Found file: '%s'\n",archive_entry_pathname(entry));
     archive_read_data_skip(a);
   }
-  
+
   archive_read_close(a);
   err = archive_read_free(a);
   if (err != ARCHIVE_OK){
@@ -133,7 +133,7 @@ void list_archive(const char* const infile) {
 void list_archive_get(const char* const infile, char** filenames, int* nfiles, const int buffsize) {
   //printf("In list_archive_get\n");
   //fflush(stdout);
-  
+
   struct archive* a = archive_read_new();
   archive_read_support_format_zip(a);
   int err = archive_read_open_filename(a, infile,10240);//Note: Blocksize isn't neccessarilly adhered to
@@ -142,10 +142,10 @@ void list_archive_get(const char* const infile, char** filenames, int* nfiles, c
     fprintf(stderr, "CRITICAL ERROR in list_archive_get(): %s\n",archive_error_string(a));
     exit(EXIT_FAILURE);
   }
-  
+
   const int nfiles_max = *nfiles;
   *nfiles = 0;
-  
+
   struct archive_entry* entry;
   while (archive_read_next_header(a,&entry)==ARCHIVE_OK){
     //printf("Found file: '%s'\n",archive_entry_pathname(entry));
@@ -162,15 +162,15 @@ void list_archive_get(const char* const infile, char** filenames, int* nfiles, c
       fprintf(stderr, "CRITICAL ERROR in list_archive_get(): Error in snprintf.\n");
       exit(EXIT_FAILURE);
     }
-    
+
     archive_read_data_skip(a);
-    
+
     if(++(*nfiles) >= nfiles_max) {
       fprintf(stderr, "CRITICAL ERROR in list_archive_get(): Number of files greater than nfiles_max=%i",nfiles_max);
       exit(EXIT_FAILURE);
     }
   }
-  
+
   archive_read_close(a);
   err = archive_read_free(a);
   if (err != ARCHIVE_OK){
@@ -184,19 +184,19 @@ void list_archive_get(const char* const infile, char** filenames, int* nfiles, c
 void read_archive(const char* const infile, const char* const extractFolder){
   // Strongly inspired by
   // https://github.com/libarchive/libarchive/wiki/Examples#A_Complete_Extractor
-  
+
   //printf("Opening archive '%s' for extracting to folder '%s'...\n",infile,extractFolder);
 
   //Check that the archive exists
 
   //Check that the folder exists, if not then create it
-  
+
   struct archive* a = archive_read_new();
   archive_read_support_format_zip(a);
   struct archive* ext = archive_write_disk_new();
   archive_write_disk_set_options(ext,ARCHIVE_EXTRACT_TIME|ARCHIVE_EXTRACT_PERM|ARCHIVE_EXTRACT_ACL|ARCHIVE_EXTRACT_FFLAGS);
   archive_write_disk_set_standard_lookup(ext);
-  
+
   int err;
   err = archive_read_open_filename(a, infile, 10240);
   if (err != ARCHIVE_OK) {
@@ -206,7 +206,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
   }
 
   struct archive_entry *entry;
-  
+
   const int fcount_max = 1000;
   char fcompleted=0; //C-Boolean
   for(int fcount=0; fcount<fcount_max;fcount++){
@@ -232,7 +232,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
       exit(EXIT_FAILURE);
     }
     archive_entry_set_pathname(entry,newPath);
-    
+
     err = archive_write_header(ext, entry);
     if (err != ARCHIVE_OK){
       fprintf(stderr, "CRITICAL ERROR in read_archive(): when extracting archive (creating new file), err=%i\n",err);
@@ -244,7 +244,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
     const void* buff;
     size_t size;
     la_int64_t offset;
-    
+
     const int bcount_max = 100000000;
     char bcompleted = 0; //C boolean
     for (int bcount=0; bcount<bcount_max;bcount++){
@@ -270,7 +270,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
       fprintf(stderr, "CRITICAL ERROR in read_archive(): The file writing block loop was aborted by the infinite loop guard\n");
       exit(EXIT_FAILURE);
     }
-    
+
     err=archive_write_finish_entry(ext);
     if (err != ARCHIVE_OK) {
       fprintf(stderr, "CRITICAL ERROR in read_archive(): When extracting archive (closing new file), err=%i\n",err);
@@ -293,7 +293,7 @@ void read_archive(const char* const infile, const char* const extractFolder){
     fprintf(stderr, "CRITICAL ERROR in read_archive(): %s\n",archive_error_string(a));
     exit(EXIT_FAILURE);
   }
-  
+
   if (!fcompleted) {
     fprintf(stderr, "CRITICAL ERROR in read_archive(): The file header loop was aborted by the infinite loop guard\n");
     exit(EXIT_FAILURE);

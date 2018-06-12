@@ -8,7 +8,7 @@
 !   at EACH occurence of the flagged SINGLE ELEMENT(s) in the accelerator structure
 ! Important remarks:
 !   - The chosen SINGLE ELEMENT(s) must be outside a BLOC, and BLOCs cannot be chosen
-!   - The special name 'ALL' will trigger dump at all SINGLE ELEMENTs (settings of dump 
+!   - The special name 'ALL' will trigger dump at all SINGLE ELEMENTs (settings of dump
 !     are stored in index 0 of all the usual arrays);
 !   - The beam population is ALWAYS dumped at the end of the entry, i.e. AFTER the proper
 !     transformation map is applied, and after the aperture check, i.e. AFTER the lost
@@ -20,7 +20,7 @@
 !     post-processing tools, activating the dumpfmt flag (0=off, by default);
 
 module dump
-  
+
   use floatPrecision
   use end_sixtrack
   use parpro ! For nele
@@ -51,7 +51,7 @@ module dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
   character(len=:), allocatable, save :: dump_fname(:) !(str_maxLen)(-1:nele)
-  
+
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
   real(kind=fPrec), save :: dumptas (-1:nblz,6,6)
@@ -60,13 +60,13 @@ module dump
   ! closed orbit used for normalisation of phase space
   ! TODO: check units used in dumpclo; is x' or px used?
   real(kind=fPrec), save :: dumpclo (-1:nblz,6)
-  
+
 #ifdef HDF5
   ! Array to save hdf5 formats for each dump format
   integer, allocatable, save :: dump_hdf5Format(:)
   integer, allocatable, save :: dump_hdf5DataSet(:)
 #endif
-  
+
 #ifdef CR
   ! For resetting file positions
   integer, allocatable, save :: dumpfilepos(:), dumpfilepos_cr(:) !(-1:nele)
@@ -79,11 +79,11 @@ contains
 
 ! ================================================================================================================================ !
 subroutine dump_allocate_arrays
-  
+
   use crcoall
   implicit none
   integer :: stat
-  
+
   call alloc(ldump,nele,.FALSE.,'ldump',-1)
   call alloc(ndumpt,nele,0,'ndumpt',-1)
   call alloc(dumpfirst,nele,0,'dumpfirst',-1)
@@ -96,16 +96,16 @@ subroutine dump_allocate_arrays
   call alloc(dumpfilepos,nele,-1,'dumpfilepos',-1)
   call alloc(dumpfilepos_cr,nele,-1,'dumpfilepos_cr',-1)
 #endif
-  
+
 #ifdef HDF5
   call alloc(dump_hdf5Format,9,0,"dump_hdf5Format",0)
   call alloc(dump_hdf5DataSet,nele,0,"dump_hdf5Format",-1)
 #endif
-  
+
 end subroutine dump_allocate_arrays
 
 subroutine dump_expand_arrays(nele_new)
-  
+
   use crcoall
   implicit none
   integer, intent(in) :: nele_new
@@ -117,24 +117,24 @@ subroutine dump_expand_arrays(nele_new)
   call resize(dumpunit,nele_new,0,'dumpunit',-1)
   call resize(dumpfmt,nele_new,0,'dumpfmt',-1)
   call resize(dump_fname,str_maxLen,nele_new,str_dZeros,'dump_fname',-1)
-  
+
 #ifdef CR
   call resize(dumpfilepos,nele_new,-1,'dumpfilepos',-1)
   call resize(dumpfilepos_cr,nele_new,-1,'dumpfilepos_cr',-1)
 #endif
-  
+
 #ifdef HDF5
   call alloc(dump_hdf5DataSet,nele_new,0,"dump_hdf5Format",-1)
 #endif
-  
+
 end subroutine dump_expand_arrays
 
 subroutine dump_lines(n,i,ix)
-  
+
   use mod_commont
-  
+
   implicit none
-  
+
   integer, intent(in) :: n,i,ix
 
   if ( ldump(0) ) then
@@ -164,7 +164,7 @@ subroutine dump_linesFirst(n)
 
   implicit none
   integer, intent(in) :: n
-  
+
   ! StartDUMP - dump on the first element
   if (ldump(-1)) then
     if (ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1) then
@@ -173,7 +173,7 @@ subroutine dump_linesFirst(n)
       end if
     end if
   end if
-  
+
 end subroutine dump_linesFirst
 
 ! ================================================================================================================================ !
@@ -182,12 +182,12 @@ end subroutine dump_linesFirst
 !  Close units for dumping particle population
 ! ================================================================================================================================ !
 subroutine dump_closeUnits
-  
+
   use mod_common
   implicit none
   logical lopen
   integer i
-  
+
 #ifdef HDF5
   if(.not. h5_useForDUMP) then
 #endif
@@ -201,34 +201,34 @@ subroutine dump_closeUnits
 #ifdef HDF5
   end if
 #endif
-  
+
 end subroutine dump_closeUnits
 
 ! ================================================================================================================================ !
 subroutine dump_parseInputLine(ch,iErr)
-  
+
   use crcoall
   use mod_common
   use file_units
   use string_tools
-  
+
   implicit none
-  
+
   character(len=*), intent(in)    :: ch
   logical,          intent(inout) :: iErr
-  
+
   ! Fields split variables
   character gFields(str_maxFields)*(str_maxLen) ! Array of fields
   integer   nFields                             ! Number of identified fields
   integer   lFields(str_maxFields)              ! Length of each what:
   logical   fieldsErr                           ! An error flag
-  
+
   ! Temp variables
   character(len=max_name_len) idat ! Synchronized with daten
   integer i1,i2,i3,i4,i5,kk,j
-  
+
   character(len=str_maxLen) ch1
-  
+
   ! initialise reading variables, to avoid storing nonsense values
   idat = ' ' ! Name
   i1 = 0     ! frequency
@@ -236,7 +236,7 @@ subroutine dump_parseInputLine(ch,iErr)
   i3 = 0     ! format
   i4 = 1     ! first turn
   i5 = -1    ! last turn
-  
+
   if(ch(:4).eq.'HIGH') then
     ldumphighprec = .true.
     return
@@ -244,24 +244,24 @@ subroutine dump_parseInputLine(ch,iErr)
     ldumpfront = .true.
     return
   end if
-  
+
   ! Requested element
   call getfields_split(ch, gFields, lFields, nFields, fieldsErr)
   if (fieldsErr) call prror(-1)
-  
+
   if ((nFields .lt. 4) .or. (nFields .gt. 7) .or. (nFields .eq. 6)) then
     write(lout,"(a,i0)")    "DUMP> ERROR Expected 4 to 7 (but not 6) arguments, got ",nFields
     write(lout,"(a)")      ("DUMP>       '"//gFields(kk)(1:lFields(kk))//"' ",kk=1,nFields)
     iErr = .true.
     return
   end if
-  
+
   if (lFields(1) > max_name_len) then
     write(lout,"(a,i0,a)") "DUMP> ERROR Element names are max. ",max_name_len," characters"
     iErr = .true.
     return
   end if
-  
+
   idat = gFields(1)(1:lFields(1))
   read(gFields(2)(1:lFields(2)),*) i1
   read(gFields(3)(1:lFields(3)),*) i2
@@ -280,7 +280,7 @@ subroutine dump_parseInputLine(ch,iErr)
     read(gFields(6)(1:lFields(6)),*) i4
     read(gFields(7)(1:lFields(7)),*) i5
   end if
-  
+
   ! Check that first/last turn is sane
   if (i5.ne.-1) then
     if (i5 .lt. i4) then
@@ -294,7 +294,7 @@ subroutine dump_parseInputLine(ch,iErr)
     iErr = .true.
     return
   end if
-  
+
   ! Find it in the list of SINGLE ELEMENTs:
   do j=1,il
     if(bez(j).eq.idat) then
@@ -303,7 +303,7 @@ subroutine dump_parseInputLine(ch,iErr)
         iErr = .true.
         return
       end if
-      
+
       ! Element was found in SINGLE ELEMENTS list, now do some sanity checks
       if(trim(bez(j)).eq."ALL") then
         write(lout,"(a)") "DUMP> ERROR The element name 'ALL' cannot be used in the SINGLE ELEMENTS list "//&
@@ -319,7 +319,7 @@ subroutine dump_parseInputLine(ch,iErr)
       goto 10 ! Element found, store the data
     end if
   end do
-  
+
   if (idat(:3).eq.'ALL') then
     j=0
     if (ldump(j)) then
@@ -338,7 +338,7 @@ subroutine dump_parseInputLine(ch,iErr)
       end if
     goto 10 ! Element found, store the data
   end if
-  
+
   ! Search failed, fall-through to here:
   write(lout,"(a)") "DUMP> ERROR Unidentified SINGLE ELEMENT '"//idat//"'"
   iErr = .true.
@@ -363,30 +363,30 @@ subroutine dump_parseInputLine(ch,iErr)
 #ifdef HDF5
   end if
 #endif
-  
+
   return
-  
+
 end subroutine dump_parseInputLine
 
 ! ================================================================================================================================ !
 subroutine dump_parseInputDone
-  
+
   use crcoall
   use mod_common
   use string_tools
-  
+
   implicit none
 
   ! Temp variables
   integer ii,jj,kk
   character(len=str_maxLen) ch1
-  
+
   ! HEADER
   write(lout,10460) "DUMP"
   write(lout,*) ''
   write(lout,*) '       The last column states the format'
   write(lout,*) '            of the output file (see manual):'
-  
+
   ! ldump(0)=.true. : DUMP all elements found
   if (ldump(0)) then
     write(lout,10470) 'ALL SING. ELEMS.', &
@@ -396,7 +396,7 @@ subroutine dump_parseInputDone
     write(lout,10470) 'StartDUMP speci.', &
                       ndumpt(0),dumpunit(0),trim(chr_trimZero(dump_fname(0))),dumpfmt(0),dumpfirst(0),dumplast(0)
   end if
-  
+
   do ii=1,il
     if (ldump(ii)) then
       write(lout,10470) bez(ii),ndumpt(ii),dumpunit(ii),trim(chr_trimZero(dump_fname(ii))),dumpfmt(ii),dumpfirst(ii),dumplast(ii)
@@ -417,7 +417,7 @@ subroutine dump_parseInputDone
         end if
       end if
     end do
-    
+
     if (ldumphighprec) then
       write(lout,*) ''
       write(lout,*) '        --> requested high precision dumping!'
@@ -427,7 +427,7 @@ subroutine dump_parseInputDone
       write(lout,*) '        --> requested FRONT dumping!'
     end if
     return
-      
+
 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10, 'ELEMENT NAME',8x,'EVERY # TURNs',2x, &
                       'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x, "FirstTurn",6x,"LastTurn")
 10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12)
@@ -441,18 +441,18 @@ end subroutine dump_parseInputDone
 !  Last modified: 2018-05-08
 ! ================================================================================================================================ !
 subroutine dump_initialise
-  
+
   use numerical_constants, only : zero
   use crcoall
   use string_tools
   use mod_common
-  
+
   implicit none
-  
+
   integer i,j
   logical lopen
   character(len=256) filename
-  
+
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
   if(h5_useForDUMP) then
@@ -511,7 +511,7 @@ subroutine dump_initialise
         ! Also, a file should not be shared with element 0 (all) or -1 (StartDUMP)
         ! All dumps writing to the same file (unit) must have the same format and filename.
         ! If everything is OK, add to the header.
-        
+
         ! Reuse the lopen flag as a temp variable
         lopen = .false.
         do j=-1,i-1 ! Search all possible DUMPs up to but not including the one we're looking at (number i)
@@ -541,7 +541,7 @@ subroutine dump_initialise
             end if ! IF file unit matches
           end if ! IF ldump(j)
         end do ! DO loop over j
-        
+
         ! LOPEN not set to true by sanity check in loop above
         ! => File was already open, but not by DUMP.
         if (.not.lopen) then
@@ -550,7 +550,7 @@ subroutine dump_initialise
           call prror(-1)
         end if
       end if
-      
+
       ! Write format-specific headers
       if (dumpfmt(i).eq.1) then
         write(dumpunit(i),'(a)') '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
@@ -576,7 +576,7 @@ subroutine dump_initialise
             '# DUMP format #',dumpfmt(i), ', bez=', bez(i), ', number of particles=',napx,', dump period=',ndumpt(i), &
             ', first turn=',dumpfirst(i), ', last turn=',dumplast(i), ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
         end if
-         
+
         ! Write the format-specific headers:
         if (dumpfmt(i).eq.2) then ! FORMAT 2
           write(dumpunit(i),'(a,a)') '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
@@ -619,7 +619,7 @@ subroutine dump_initialise
               '<npsigma^2>'
           end if
           ! closed orbit
-          ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] 
+          ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1]
           ! (note: units are already changed in linopt part)
           write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') '# closed orbit [mm,mrad,mm,mrad,1]', &
             dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
@@ -638,19 +638,19 @@ subroutine dump_initialise
             dumptasinv(i,5,1),dumptasinv(i,5,2),dumptasinv(i,5,3),dumptasinv(i,5,4),dumptasinv(i,5,5),dumptasinv(i,5,6), &
             dumptasinv(i,6,1),dumptasinv(i,6,2),dumptasinv(i,6,3),dumptasinv(i,6,4),dumptasinv(i,6,5),dumptasinv(i,6,6)
         end if ! Format-specific headers
-        
+
         ! Flush file
         endfile   (dumpunit(i))
         backspace (dumpunit(i))
 #ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 2
         ! format 7 also writes clo, tas and tasinv
-        if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then 
+        if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then
           dumpfilepos(i) = dumpfilepos(i) + 3
         end if
 #endif
       end if ! END if format 2/4/5/6/7/9 -> General header
-      
+
       ! Normalized DUMP
       if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9) then
         ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
@@ -676,16 +676,16 @@ subroutine dump_initialise
       end if ! END if normalized dump
     end if ! If ldump(i) -> Dump on this element
   end do ! Loop over elements with index i
-  
+
   return
-  
+
   ! The following section only applies if HDF5 is available AND enabled
 #ifdef HDF5
 3100 continue
   do i=-1,il
     if(ldump(i)) then
       select case(dumpfmt(i))
-      
+
       case(1)
         ! Format 1:
         ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack
@@ -703,7 +703,7 @@ subroutine dump_initialise
           call h5_createFormat("dumpFormat1", setFields, dump_hdf5Format(1))
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(1), dump_hdf5DataSet(i), napx)
-        
+
       case(2)
         ! Format 2:
         ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
@@ -722,7 +722,7 @@ subroutine dump_initialise
           call h5_createFormat("dumpFormat2", setFields, dump_hdf5Format(2))
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(2), dump_hdf5DataSet(i), napx)
-        
+
       case(3)
         ! Format 3:
         ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
@@ -741,7 +741,7 @@ subroutine dump_initialise
           call h5_createFormat("dumpFormat3", setFields, dump_hdf5Format(3))
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(3), dump_hdf5DataSet(i), napx)
-        
+
       case(4)
         ! Format 4:
         ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]
@@ -759,7 +759,7 @@ subroutine dump_initialise
           call h5_createFormat("dumpFormat4", setFields, dump_hdf5Format(4))
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(4), dump_hdf5DataSet(i), numl)
-        
+
       case(5)
         ! Format 5:
         ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]
@@ -804,7 +804,7 @@ subroutine dump_initialise
           call h5_createFormat("dumpFormat5", setFields, dump_hdf5Format(5))
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(5), dump_hdf5DataSet(i), numl)
-        
+
       case(6)
         ! Format 6:
         ! # napx turn s[m] <x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1]
@@ -849,14 +849,14 @@ subroutine dump_initialise
           call h5_createFormat("dumpFormat6", setFields, dump_hdf5Format(6))
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(6), dump_hdf5DataSet(i), numl)
-        
+
       end select
-      
+
       if(allocated(setFields) .eqv. .true.) deallocate(setFields)
     end if
   end do
 #endif
-  
+
 end subroutine dump_initialise
 
 ! ================================================================================================================================ !
@@ -874,13 +874,13 @@ end subroutine dump_initialise
 !  lhighprec : High precission output y/n
 ! ================================================================================================================================ !
 subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tasinv)
-  
+
   use floatPrecision
   use physical_constants
   use numerical_constants
   use crcoall
   use string_tools
-  
+
   use parpro
   use mod_common
   use mod_commont
@@ -889,9 +889,9 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef COLLIMAT
   use collimation
 #endif
-  
+
   implicit none
-  
+
   ! interface variables:
   integer, intent(in) :: nturn, i, ix, unit, fmt
   logical, intent(in) ::  lhighprec
@@ -904,18 +904,18 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #else
   integer, parameter :: samplenumber = 1
 #endif
-  
+
   ! Temporary variables
   integer j,k,l,m,n
   character(len=max_name_len) localBez
-  
+
   real(kind=fPrec) localDcum
   integer localKtrack
-  
+
   real(kind=fPrec) xyz_particle(6),nxyz_particle(6)
   real(kind=fPrec) xyz(6)
   real(kind=fPrec) xyz2(6,6)
-  
+
 #ifdef CR
   ! For accessing dumpfilepos
   integer dumpIdx
@@ -929,7 +929,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     dumpIdx = ix
   end if
 #endif
-  
+
   ! ------------------------------------------------------------------ !
   !  Format #0
   !  General format
@@ -959,14 +959,14 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end if
     write(unit,*) ''
     write(unit,*) ''
-    
+
     ! Flush
     endfile (unit,iostat=ierro)
     backspace (unit,iostat=ierro)
 #ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx+2
 #endif
-  
+
   ! ------------------------------------------------------------------ !
   !  Format #1
   !  Format for aperture check
@@ -1005,7 +1005,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
             xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
         end do
       end if
-      
+
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
@@ -1015,7 +1015,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     end if
 #endif
-  
+
   ! ------------------------------------------------------------------ !
   !  Format #2
   !  Same as fmt 1, but also include z (for crab cavities etc.)
@@ -1055,7 +1055,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
             sigmv(j),(ejv(j)-e0)/e0,localKtrack
         end do
       end if
-      
+
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
@@ -1065,7 +1065,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     end if
 #endif
-  
+
   ! ------------------------------------------------------------------ !
   !  Format #3
   !  Same as fmt 2, but in Fortran binary
@@ -1098,7 +1098,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
-      
+
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
@@ -1108,7 +1108,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     end if
 #endif
-  
+
   ! ------------------------------------------------------------------ !
   !  Format #4
   !  Average bunch position
@@ -1130,9 +1130,9 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       xyz(5) = xyz(5) + sigmv(j)
       xyz(6) = xyz(6) + (ejv(j)-e0)/e0
     end do
-    
+
     xyz = xyz/napx
-    
+
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), 1)
@@ -1153,7 +1153,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       else
         write(unit,1990) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
       end if
-    
+
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
@@ -1163,7 +1163,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     end if
 #endif
-  
+
   ! ------------------------------------------------------------------ !
   !  Format #5 or #6
   !  Average beam positon + beam matrix
@@ -1174,18 +1174,18 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     else
       localDcum = dcum(i)
     end if
-    
+
     do l=1,6
       xyz(l) = zero
       do k=1,6
         xyz2(l,k) = zero
       end do
     end do
-    
+
     if(fmt == 5) then ! Raw
       do j=1,napx
         xyz_particle(6)=(ejv(j)-e0)/e0
-        
+
         ! Average beam position
         xyz(1) = xyz(1) + xv(1,j)
         xyz(2) = xyz(2) + yv(1,j)
@@ -1193,7 +1193,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         xyz(4) = xyz(4) + yv(2,j)
         xyz(5) = xyz(5) + sigmv(j)
         xyz(6) = xyz(6) + xyz_particle(6)
-        
+
         ! Beam matrix (don't calulate identical elements twice (symmetry))
         xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
         xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
@@ -1201,28 +1201,28 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
         xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
         xyz2(6,1) = xyz2(6,1) + xv(1,j)*xyz_particle(6)
-        
+
         xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
         xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
         xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
         xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
         xyz2(6,2) = xyz2(6,2) + yv(1,j)*xyz_particle(6)
-        
+
         xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
         xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
         xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
         xyz2(6,3) = xyz2(6,3) + xv(2,j)*xyz_particle(6)
-        
+
         xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
         xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
         xyz2(6,4) = xyz2(6,4) + yv(2,j)*xyz_particle(6)
-        
+
         xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
         xyz2(6,5) = xyz2(6,5) + sigmv(j)*xyz_particle(6)
-        
+
         xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
       end do
-      
+
     else if (fmt == 6) then ! Canonical
       do j=1,napx
         xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
@@ -1231,7 +1231,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         xyz_particle(4) = (yv(2,j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
         xyz_particle(5) = sigmv(j)*c1m3                !sigma:  [mm]   -> [m]
         xyz_particle(6) = (((ejv(j)-e0)*e0)/e0f)/e0f   !psigma: [MeV]  -> [1]
-        
+
         ! Average beam position
         xyz(1) = xyz(1) + xyz_particle(1)
         xyz(2) = xyz(2) + xyz_particle(2)
@@ -1239,7 +1239,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         xyz(4) = xyz(4) + xyz_particle(4)
         xyz(5) = xyz(5) + xyz_particle(5)
         xyz(6) = xyz(6) + xyz_particle(6)
-        
+
         ! Beam matrix (don't calulate identical elements twice (symmetry))
         xyz2(1,1) = xyz2(1,1) + xyz_particle(1)*xyz_particle(1)
         xyz2(2,1) = xyz2(2,1) + xyz_particle(1)*xyz_particle(2)
@@ -1247,39 +1247,39 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         xyz2(4,1) = xyz2(4,1) + xyz_particle(1)*xyz_particle(4)
         xyz2(5,1) = xyz2(5,1) + xyz_particle(1)*xyz_particle(5)
         xyz2(6,1) = xyz2(6,1) + xyz_particle(1)*xyz_particle(6)
-        
+
         xyz2(2,2) = xyz2(2,2) + xyz_particle(2)*xyz_particle(2)
         xyz2(3,2) = xyz2(3,2) + xyz_particle(2)*xyz_particle(3)
         xyz2(4,2) = xyz2(4,2) + xyz_particle(2)*xyz_particle(4)
         xyz2(5,2) = xyz2(5,2) + xyz_particle(2)*xyz_particle(5)
         xyz2(6,2) = xyz2(6,2) + xyz_particle(2)*xyz_particle(6)
-        
+
         xyz2(3,3) = xyz2(3,3) + xyz_particle(3)*xyz_particle(3)
         xyz2(4,3) = xyz2(4,3) + xyz_particle(3)*xyz_particle(4)
         xyz2(5,3) = xyz2(5,3) + xyz_particle(3)*xyz_particle(5)
         xyz2(6,3) = xyz2(6,3) + xyz_particle(3)*xyz_particle(6)
-        
+
         xyz2(4,4) = xyz2(4,4) + xyz_particle(4)*xyz_particle(4)
         xyz2(5,4) = xyz2(5,4) + xyz_particle(4)*xyz_particle(5)
         xyz2(6,4) = xyz2(6,4) + xyz_particle(4)*xyz_particle(6)
-        
+
         xyz2(5,5) = xyz2(5,5) + xyz_particle(5)*xyz_particle(5)
         xyz2(6,5) = xyz2(6,5) + xyz_particle(5)*xyz_particle(6)
-        
+
         xyz2(6,6) = xyz2(6,6) + xyz_particle(6)*xyz_particle(6)
       end do
     end if
-    
+
     ! Normalize to get averages
     xyz = xyz/napx
-    
+
     xyz2(:,1)  = xyz2(:,1) /napx
     xyz2(2:,2) = xyz2(2:,2)/napx
     xyz2(3:,3) = xyz2(3:,3)/napx
     xyz2(4:,4) = xyz2(4:,4)/napx
     xyz2(5:,5) = xyz2(5:,5)/napx
     xyz2(6,6)  = xyz2(6,6) /napx
-    
+
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), 1)
@@ -1333,7 +1333,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
                                                   xyz2(5,5),xyz2(6,5),&
                                                             xyz2(6,6)
       end if
-      
+
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
@@ -1343,7 +1343,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #ifdef HDF5
     end if
 #endif
-  
+
   ! ------------------------------------------------------------------ !
   !  Format #7, #8 or #9
   !  fmt 7 same as fmt 2,   but in normalized coordinates
@@ -1358,7 +1358,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       localDcum = dcum(i)
       localKtrack = ktrack(i)
     end if
-    
+
     ! initialize parameters for writing of beam moments
     do l=1,6
       xyz(l) = zero
@@ -1366,7 +1366,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
         xyz2(l,k) = zero
       end do
     end do
-    
+
     ! normalize particle coordinates
     do j=1,napx
       xyz_particle(1) = xv(1,j)
@@ -1397,7 +1397,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           nxyz_particle(m)=nxyz_particle(m)*c1e3
         end if
       end do
-      
+
       if (fmt .eq. 7) then
         if (lhighprec) then
           write(unit,1985) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
@@ -1406,11 +1406,11 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           write(unit,1986) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
             nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
         end if
-        
+
       else if (fmt .eq. 8) then
         write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
           nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
-      
+
       else if (fmt .eq. 9) then
         ! Average beam position
         ! here we recycle xyz used also for fmt 5 and 6. These are
@@ -1422,7 +1422,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
         xyz(4) = xyz(4) + nxyz_particle(4)
         xyz(5) = xyz(5) + nxyz_particle(5)
         xyz(6) = xyz(6) + nxyz_particle(6)
-        
+
         ! Beam matrix (don't calulate identical elements twice (symmetry))
         xyz2(1,1) = xyz2(1,1) + nxyz_particle(1)*nxyz_particle(1)
         xyz2(2,1) = xyz2(2,1) + nxyz_particle(1)*nxyz_particle(2)
@@ -1430,29 +1430,29 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
         xyz2(4,1) = xyz2(4,1) + nxyz_particle(1)*nxyz_particle(4)
         xyz2(5,1) = xyz2(5,1) + nxyz_particle(1)*nxyz_particle(5)
         xyz2(6,1) = xyz2(6,1) + nxyz_particle(1)*nxyz_particle(6)
-        
+
         xyz2(2,2) = xyz2(2,2) + nxyz_particle(2)*nxyz_particle(2)
         xyz2(3,2) = xyz2(3,2) + nxyz_particle(2)*nxyz_particle(3)
         xyz2(4,2) = xyz2(4,2) + nxyz_particle(2)*nxyz_particle(4)
         xyz2(5,2) = xyz2(5,2) + nxyz_particle(2)*nxyz_particle(5)
         xyz2(6,2) = xyz2(6,2) + nxyz_particle(2)*nxyz_particle(6)
-        
+
         xyz2(3,3) = xyz2(3,3) + nxyz_particle(3)*nxyz_particle(3)
         xyz2(4,3) = xyz2(4,3) + nxyz_particle(3)*nxyz_particle(4)
         xyz2(5,3) = xyz2(5,3) + nxyz_particle(3)*nxyz_particle(5)
         xyz2(6,3) = xyz2(6,3) + nxyz_particle(3)*nxyz_particle(6)
-        
+
         xyz2(4,4) = xyz2(4,4) + nxyz_particle(4)*nxyz_particle(4)
         xyz2(5,4) = xyz2(5,4) + nxyz_particle(4)*nxyz_particle(5)
         xyz2(6,4) = xyz2(6,4) + nxyz_particle(4)*nxyz_particle(6)
-        
+
         xyz2(5,5) = xyz2(5,5) + nxyz_particle(5)*nxyz_particle(5)
         xyz2(6,5) = xyz2(6,5) + nxyz_particle(5)*nxyz_particle(6)
-        
+
         xyz2(6,6) = xyz2(6,6) + nxyz_particle(6)*nxyz_particle(6)
       end if
     end do ! END loop over particles (j)
-    
+
     if (fmt .eq. 7) then
       ! Flush
       endfile (unit,iostat=ierro)
@@ -1470,14 +1470,14 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else if (fmt .eq. 9) then
       ! Normalize to get averages
       xyz = xyz/napx
-      
+
       xyz2(:,1)  = xyz2(:,1) /napx
       xyz2(2:,2) = xyz2(2:,2)/napx
       xyz2(3:,3) = xyz2(3:,3)/napx
       xyz2(4:,4) = xyz2(4:,4)/napx
       xyz2(5:,5) = xyz2(5:,5)/napx
       xyz2(6,6)  = xyz2(6,6) /napx
-      
+
       if (lhighprec) then
         write(unit,1991) napx,nturn,localDcum,xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
           xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
@@ -1495,7 +1495,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
                                                   xyz2(5,5),xyz2(6,5),&
                                                             xyz2(6,6)
       end if
-      
+
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
@@ -1503,13 +1503,13 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
     end if
-    
+
   ! Unrecognized format fmt
   else
     write (lout,*) "DUMP> Format",fmt, "not understood for unit", unit
     call prror(-1)
   end if
-    
+
   return
 
 1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
@@ -1526,19 +1526,19 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
 1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5&6 / hiprec
 1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5&6 / not hiprec
-  
+
 end subroutine dump_beam_population
 
 ! ================================================================================================================================ !
 subroutine dump_comnul
-  
+
   implicit none
-  
+
   integer i1,i2,i3,i
-  
+
   ldumphighprec = .false.
   ldumpfront    = .false.
-  
+
   do i1=-1,nblz
     do i2=1,6
       dumpclo(i1,i2)=0
@@ -1547,7 +1547,7 @@ subroutine dump_comnul
       end do
     end do
   end do
-  
+
   do i=-1,nele
     ldump(i)    = .false.
     ndumpt(i)   = 0
@@ -1559,7 +1559,7 @@ subroutine dump_comnul
     dumpfilepos(i) = -1
 #endif
   end do
-  
+
 end subroutine dump_comnul
 
 ! ================================================================================================================================ !
@@ -1569,43 +1569,43 @@ end subroutine dump_comnul
 
 ! ================================================================================================================================ !
 subroutine dump_crcheck_readdata(fileunit, readerr)
-  
+
   implicit none
-  
+
   integer, intent(in) :: fileunit
   logical, intent(out) :: readerr
-  
+
   integer j
-  
+
   read(fileunit,err=100,end=100) (dumpfilepos_cr(j),j=-1,nele)
-  
+
   readerr = .false.
   return
-  
+
 100 continue
   readerr = .true.
-  
+
 end subroutine dump_crcheck_readdata
 
 ! ================================================================================================================================ !
 subroutine dump_crcheck_positionFiles
-  
+
   use crcoall
   use string_tools
   use mod_common
-  
+
   implicit none
-  
+
 +ca crco ! arecord
-  
+
   ! For skipping through binary DUMP files (format 3&8)
   integer tmp_ID, tmp_nturn, tmp_ktrack
   real(kind=fPrec) tmp_dcum, tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE
-  
+
   integer i,j
   logical lerror,lopen
   character(len=256) filename
-  
+
   do i=-1, il
     if (ldump(i)) then
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
@@ -1623,7 +1623,7 @@ subroutine dump_crcheck_positionFiles
         goto 111
       end if
       flush(93)
-      
+
       inquire( unit=dumpunit(i), opened=lopen )
       if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
         if (.not. lopen) then
@@ -1634,13 +1634,13 @@ subroutine dump_crcheck_positionFiles
           open(dumpunit(i),file=dump_fname(i), status='old',form='formatted',action='readwrite')
 #endif
         end if
-        
+
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
 702       read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro) arecord
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
-        
+
       else                         ! BINARY (format = 3 & 8)
         if (.not. lopen) then
 #ifdef BOINC
@@ -1652,21 +1652,21 @@ subroutine dump_crcheck_positionFiles
         end if
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
-703       read(dumpunit(i),end=111,err=111,iostat=ierro) & 
+703       read(dumpunit(i),end=111,err=111,iostat=ierro) &
             tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
       end if
     end if
   end do
-  
+
   ! Crop DUMP files (if used by multiple DUMPs,
   ! the actual position is the sum of the dumpfileposes
   do i=0,il
     if (ldump(i)) then
       ! This is not a FLUSH!
       endfile (dumpunit(i),iostat=ierro)
-      
+
       ! Change from 'readwrite' to 'write'
       close(dumpunit(i))
       if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
@@ -1688,34 +1688,34 @@ subroutine dump_crcheck_positionFiles
   end do
 
   return
-  
+
 111 continue
   write(93,*) 'SIXTRACR DUMP_CRCHECK_POSITIONFILES *** ERROR *** reading DUMP file#', dumpunit(i),' iostat=',ierro
   write(93,*) 'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
   flush(93)
   write(lout,*)'SIXTRACR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file'
   call prror(-1)
-  
+
 end subroutine dump_crcheck_positionFiles
 
 ! ================================================================================================================================ !
 subroutine dump_crpoint(fileunit,lerror,ierro)
-  
+
   use parpro !nele
   implicit none
-  
+
   integer, intent(in) :: fileunit
   logical, intent(out) :: lerror
   integer, intent(inout) :: ierro
   integer j
-  
+
   write(95,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
   return
-  
+
 100 continue
   lerror = .true.
   return
-  
+
 end subroutine dump_crpoint
 ! ================================================================================================================================ !
 

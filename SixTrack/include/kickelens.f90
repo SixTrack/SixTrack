@@ -29,7 +29,7 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
     case default
       write(lout,"(a,i0)") "ELENS> ERROR in deck kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
       write(lout,"(a)")    "ELENS>       Possible values for type are: 1 and 2"
-      call prror(-1) 
+      call prror(-1)
     end select
   else ! r1 < r2 <= rrelens
     frrelens = one

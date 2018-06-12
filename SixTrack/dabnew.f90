@@ -234,7 +234,7 @@ subroutine daini(no,nv,iunit)
         i2(i)=0
       enddo
 
-      idao=0 
+      idao=0
       do i=1,100
         iscrda(i)=0
         iscrri(i)=0
@@ -1157,7 +1157,7 @@ subroutine dapok(ina,jj,cjj)
 #ifdef DEBUG
 !      if (dokcalls.eq.445999) then
 !      call dumpda('dapok666',999,8)
-!      read (666) 
+!      read (666)
 !      endif
 #endif
       jj1 = 1
@@ -1187,7 +1187,7 @@ subroutine dapok(ina,jj,cjj)
 #ifdef DEBUG
 !      if (dokcalls.eq.445999) then
 !      call dumpda('dapok666',999,9)
-!      read (666) 
+!      read (666)
 !      endif
 #endif
          return
@@ -2915,7 +2915,7 @@ subroutine dafunt(cf,ina,inc)
 #ifdef CR
       call abend('                                                  ')
 #else
-            stop 
+            stop
 #endif
          endif
       elseif(cf.eq.'COT ') then
@@ -2941,7 +2941,7 @@ subroutine dafunt(cf,ina,inc)
 #ifdef CR
       call abend('                                                  ')
 #else
-            stop 
+            stop
 #endif
          endif
       elseif(cf.eq.'ASIN') then
@@ -2970,7 +2970,7 @@ subroutine dafunt(cf,ina,inc)
 #ifdef CR
       call abend('                                                  ')
 #else
-            stop 
+            stop
 #endif
          endif
       elseif(cf.eq.'ACOS')then
@@ -4786,7 +4786,7 @@ subroutine dapri(ina,iunit)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
 
@@ -4920,7 +4920,7 @@ subroutine dapri77(ina,iunit)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
 
@@ -5042,7 +5042,7 @@ subroutine dashift(ina,inc,ishift)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
 
@@ -5179,7 +5179,7 @@ subroutine darea(ina,iunit)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
 
@@ -5337,7 +5337,7 @@ subroutine darea77(ina,iunit)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
 
@@ -5419,7 +5419,7 @@ subroutine dadeb(iunit,c,istop)
 #ifdef CR
       call abend('                                                  ')
 #else
-      stop 
+      stop
 #endif
       end
 
@@ -5597,7 +5597,7 @@ subroutine damch(iaa,ia)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
   10  continue
@@ -6227,7 +6227,7 @@ subroutine dapri6(ina,result,ien,i56)
 #ifdef CR
       call abend('                                                  ')
 #else
-        stop 
+        stop
 #endif
       endif
       inoa=idano(ina)
@@ -6314,7 +6314,7 @@ subroutine darea6(ina,zfeld,i56)
 #ifdef CR
       call abend('                                                  ')
 #else
-        stop 
+        stop
 #endif
       endif
       inoa=idano(ina)
@@ -6450,7 +6450,7 @@ subroutine daprimax(ina,iunit)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
 
@@ -6620,7 +6620,7 @@ subroutine dacycle(ina,ipresent,value,j,illa)
 #ifdef CR
       call abend('                                                  ')
 #else
-        stop 
+        stop
 #endif
       endif
 
@@ -6677,7 +6677,7 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
 #ifdef CR
       call abend('                                                  ')
 #else
-         stop 
+         stop
 #endif
       endif
 

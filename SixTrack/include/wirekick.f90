@@ -2,24 +2,24 @@
 ! Wire element.
 ! MODEL OF STRAIGHT CURRENT WIRE
 !
-!     The model provides a transfer map of a straight current wire. 
+!     The model provides a transfer map of a straight current wire.
 !     Description:
 !     1. Infinitly thin wire with arbitrary orientation.
 !     2. Thin element in SixTrack (L)=0
-!     3. Parameters: 
+!     3. Parameters:
 !     dx, dy: horizontal and vertical distances between wire midpoint
-!     and closed orbit [mm] 
+!     and closed orbit [mm]
 !     (parameters are given by dx and dy in WIRE block)
 !     tx, ty: tilt of the wire w.r.t the closed orbit in the
-!     horizontal and vertical planes (in degrees) 
+!     horizontal and vertical planes (in degrees)
 !     (parameters are given by tiltx and tilty in WIRE block)
 !     L - physical length of the wire element [m]
 !     cur - current of the wire [Amperes]
-!     embl - embedding drift (integrated length or integration interval) [m] 
+!     embl - embedding drift (integrated length or integration interval) [m]
 !     4. The transport map is given for canonical variables (x,px...)
 !
 ! The MAP is constructed out of the following steps:
-!     1. Declaration of shifted canonical variables: 
+!     1. Declaration of shifted canonical variables:
 !          rx = x+dx; ry = y+dy  in the same way as for the BEAM-BEAM element
 !     2. Symplectic Rotation by the tilt angles tx, ty (in 4D space: px, rx, py, ry)
 !     3. Wire kick for a longitudinally aligned wire (= kick for tx=ty=0)
@@ -29,9 +29,9 @@
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
 
-                                
 
-      tx = wire_tiltx(ix) !tilt x [degrees] 
+
+      tx = wire_tiltx(ix) !tilt x [degrees]
       ty = wire_tilty(ix) !tilt y [degrees]
       tx = tx*(pi/c180e0) ![rad]
       ty = ty*(pi/c180e0) ![rad]
@@ -50,22 +50,22 @@
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
         call prror(-1)
       endif
-      
+
 
       IF (wire_flagco(ix).eq.1) THEN
          dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
-         dyi = (dy+wire_clo(2,wire_num(i)) )*c1m3 
+         dyi = (dy+wire_clo(2,wire_num(i)) )*c1m3
       ELSE IF (wire_flagco(ix).eq.-1) THEN
          dxi = (dx)*c1m3
          dyi = (dy)*c1m3
-      END IF 
-      
+      END IF
+
       do j=1, napx
       chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight
-      NNORM=c1m7/chi  
+      NNORM=c1m7/chi
       yv(1,j) = yv(1,j) * c1m3 !SI
       yv(2,j) = yv(2,j) * c1m3 !SI
-    
+
 ! 1 shift
       IF (wire_flagco(ix).eq.1) THEN
          xi = (xv(1,j)+dx)*c1m3 !SI
@@ -73,7 +73,7 @@
       ELSE IF (wire_flagco(ix).eq.-1) THEN
          xi = (xv(1,j)+( dx-wire_clo(1,wire_num(i)) ))*c1m3 !SI
          yi = (xv(2,j)+( dy-wire_clo(2,wire_num(i)) ))*c1m3 !SI
-      END IF 
+      END IF
 
 ! x'-> px; y'->py
       yv(1,j) = yv(1,j)*(one + dpsv(j))/mtc(j)
@@ -91,7 +91,7 @@
           yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
      &sin_mb(atan_mb(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
-      
+
           xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
      &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
@@ -101,7 +101,7 @@
           yv(2,j) = sqrt((one+dpsv(j))**2-yv(1,j)**2)*                  &
      &sin_mb(atan_mb(yv(2,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty)
-      
+
 ! 3 apply wire kick
           RTWO = xi**2+yi**2
           yv(1,j) = yv(1,j)-(((CUR*NNORM)*xi)*                          &
@@ -116,10 +116,10 @@
           dyi = dyi-(((dxi*sin_mb(tx))*yv(2,j))/                        &
      &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
      &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
-     &yv(2,j)**2))-tx) 
+     &yv(2,j)**2))-tx)
           dxi = dxi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv(1,j)/      &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx))
- 
+
           yi = yi-(((xi*sin_mb(tx))*yv(2,j))/                           &
      &sqrt((one+dpsv(j))**2-yv(2,j)**2))/                               &
      &cos_mb(atan_mb(yv(1,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
@@ -130,14 +130,14 @@
           yv(1,j) = sqrt((one+dpsv(j))**2-yv(2,j)**2)*                  &
      &sin_mb(atan_mb(yv(1,j)/                                           &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-tx)
-              
+
           dxi = dxi-(((dyi*sin_mb(ty))*yv(1,j))/                        &
      &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
      &yv(2,j)**2))-ty)
           dyi = dyi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv(2,j)/      &
      &sqrt(((one+dpsv(j))**2-yv(1,j)**2)-yv(2,j)**2))-ty))
-      
+
           xi = xi-(((yi*sin_mb(ty))*yv(1,j))/                           &
      &sqrt((one+dpsv(j))**2-yv(1,j)**2))/                               &
      &cos_mb(atan_mb(yv(2,j)/sqrt(((one+dpsv(j))**2-yv(1,j)**2)-        &
@@ -162,7 +162,7 @@
      &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
           yv(2,j) = yv(2,j)+(((CUR*NNORM)*dyi)*                         &
      &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-      
+
       endif
 
 ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)

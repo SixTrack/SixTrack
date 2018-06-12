@@ -1,7 +1,7 @@
 ! ================================================================================================ !
-!  
+!
 !  SixTrack
-!  
+!
 !  The code contains the SixTrack particle simulation code written by:
 !    F. Schmidt, DESY, CERN
 !    E. Mcintosh, H. Ranshall, H. Grote, F. James,
@@ -18,14 +18,14 @@
 !    V. Gupta, Google Summer of Code (GSoC)
 !    J. Molson UMAN, LAL, CERN
 !    S. Kostoglou, NTUA, CERN
-!    
+!
 !  Copyright 2014 CERN. This software is distributed under the terms of the GNU
 !  Lesser General Public License version 2.1, copied verbatim in the file ``COPYING''.
-!  
+!
 !  In applying this licence, CERN does not waive the privileges and immunities
 !  granted to it by virtue of its status as an Intergovernmental Organization or
 !  submit itself to any jurisdiction.
-!  
+!
 ! ================================================================================================ !
 
 +cd crco
@@ -267,7 +267,7 @@
               vt=vp-b1
               vr=a1/(vt**2+vqsq)
               vsreal=vr*vt
-              vsimag=-vr*vq                              
+              vsimag=-vr*vq
 !  Second term
               vt=vp-b2
               vr=a2/(vt**2+vqsq)
@@ -352,7 +352,7 @@
         vt=vp-b1
         vr=a1/(vt**2+vqsq)
         vsreal=vr*vt
-        vsimag=-vr*vq                              
+        vsimag=-vr*vq
 !  Second term
         vt=vp-b2
         vr=a2/(vt**2+vqsq)
@@ -542,12 +542,12 @@
 !  READS INPUT DATA FROM FILE FORT.3 AND/OR FORT.2
 ! ================================================================================================ !
 subroutine daten
-  
+
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
   use sixtrack_input
-  
+
   use scatter, only : scatter_active, scatter_debug, scatter_seed1, scatter_seed2, scatter_dumpdata, &
     scatter_parseInputLine, scatter_allocate
   use dynk, only : ldynk,ldynkdebug,ldynkfiledisable,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
@@ -557,12 +557,12 @@ subroutine daten
   use zipf, only : zipf_parseInputDone, zipf_parseInputline
   use bdex, only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
   use aperture
-  
+
   use physical_constants
   use numerical_constants
   use string_tools
   use strings
-  
+
 #ifdef FLUKA
   use mod_fluka
 #endif
@@ -575,51 +575,46 @@ subroutine daten
 #ifdef COLLIMAT
   use collimation
 #endif
-  
+
   use mod_ranecu
-  
+
   use crcoall
   use parpro
   use parpro_scale
   use parbeam, only : beam_expflag,beam_expfile_open
+  use mod_settings
   use mod_common
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   use mod_hions
   use mod_alloc
   use mod_dist
-  
+
   use elens
   use wire
 
-#ifdef COLLIMAT
-  use collimation
-#endif
-
   implicit none
-  
+
   integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
     ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
-    
-  real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,cosy,dummy,    &
-    emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,qbet,qigam,    &
-    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,xang,xstr,xpl0,xplane,xrms0,  &
-    zpl0,zrms0
-    
+
+  real(kind=fPrec) ak0d,akad,alignx,alignz,bk0d,bkad,dummy,emitnx,emitny,extaux,&
+    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
+
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy
   real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
-  
+
   character(len=max_name_len) sing,stru,prin,quie,trac,diff,sync,ende,bloc,comm
-  character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
+  character(len=max_name_len) fluc,iter,limi,orbi,deco
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iqq,iele,ilm0,idum,norm
+  character(len=max_name_len) iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
   character(len=60) ihead
@@ -628,14 +623,14 @@ subroutine daten
   character(len=nchars) ch
   character(len=nchars+nchars) ch1
   logical   beam_xstr
-  
+
   ! Variables for input line fields
   ! These  should eventually be replaced by the string_tools->str_split subroutine
   character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
   integer   getfields_nfields                                                 ! Number of identified fields
   integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
   logical   getfields_lerr                                                    ! An error flag
-  
+
 #ifdef CRLIBM
   ! MAXF be kept in sync with value in function fround
   integer maxf,nofields
@@ -654,7 +649,7 @@ subroutine daten
   data lineno16 /0/
   data lineno30 /0/
   data lineno35 /0/
-  
+
 #ifdef COLLIMAT
 !+ca collpara
 !+ca dbdaten
@@ -665,62 +660,57 @@ subroutine daten
 #else
   logical do_coll
 #endif
-  
+
   ! Fluka related, might be best to lock to real64
   real(kind=fPrec) tmpamplfact, tmplen
-  
+
   ! some temp vars for parsing block lines
   logical tmpl
   character(len=nchars) tmpch
   integer tmpi1,tmpi2,tmpi3
   real(kind=fPrec) tmpflt
   real(kind=fPrec) tmpflts(9)
-  
+
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
-  
-  dimension icel(ncom,20),iqq(5)
+
+  dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
   data sync,ende,next /'SYNC','ENDE','NEXT'/
-  data fluc,mult,chro,iter,tune,line,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','DIFF'/
+  data fluc,mult,iter,line,diff /'FLUC','MULT','ITER','LINE','DIFF'/
   data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
   character(len=4) fluk
   data fluk /'FLUK'/
-  
+
 #ifdef CRLIBM
   real(kind=fPrec) round_near
 #endif
-  
+
   logical lapefound
   logical lerr1
   logical lexist
-  
+
   ! New variables for sixtrack_input module
   logical inErr
   character(len=4) currBlock
   logical blockOpened, blockClosed
-  logical openBlock, closeBlock
-  integer blockLine, iElem
-  
+  logical openBlock, closeBlock, blockReopen
+  integer blockLine, blockCount, iElem
+
   logical parseFort2
   integer nGeom
-  
-  logical newParsing, oneLine
-  
+
+  logical newParsing, prevPrint
+
   save
-  
+
 ! ================================================================================================ !
 
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
-
-      do i=1,5
-        iqq(i)=' '
-      end do
-
 
       do i=1,40
         ilm0(i)=' '
@@ -749,15 +739,11 @@ subroutine daten
       iclo6=0
       iclo6r=0
       iclr=0
-      ncy=0
       ! ncy2=0
       ndum=0
-        
+
 !  Initialise new input parameters
       idial=0
-      harm=one
-      alc=c1m3
-      phag=zero
       tlen=one
       pma=pmap
       ition=0
@@ -804,14 +790,9 @@ subroutine daten
       itqv=10
       dkq=c1m10
       dqq=c1m10
-      iqmod=0
       im=0
       imtr0=0
-      ilin=0
       nlin=0
-      iout=0
-      iquiet=0
-      idp=0
       izu0=0
       mmac=1
       mcut=0
@@ -827,74 +808,92 @@ subroutine daten
       ise=0
       iskew=0
       preda=c1m38
-  
+
 ! ================================================================================================ !
 !  SET DEFAULT MODULE VALUES
 ! ================================================================================================ !
-  
+
+  ! SixTrack Settings
+  st_print    = .false.
+  st_debug    = .false.
+  st_quiet    = 0
+
   ! TRACKING PARAMETERS
-  numl      = 1
-  napx      = 0
-  amp0      = zero
-  amp(1)    = c1m3
-  ird       = 0
-  imc       = 0
-  numlcp    = 1000
-  numlmax   = 1000000000
+  numl        = 1
+  napx        = 0
+  amp0        = zero
+  amp(1)      = c1m3
+  ird         = 0
+  imc         = 0
+  numlcp      = 1000
+  numlmax     = 1000000000
 
-  idz(:)    = 1
-  idfor     = 0
-  irew      = 0
-  iclo      = 0
+  idz(:)      = 1
+  idfor       = 0
+  irew        = 0
+  iclo        = 0
 
-  nde(:)    = 0
-  nwr(:)    = 1
-  nwr(4)    = 10000
-  ntwin     = 1
-  
+  nde(:)      = 0
+  nwr(:)      = 1
+  nwr(4)      = 10000
+  ntwin       = 1
+
   ! CHROMATICITY ADJUSTMENTS
-  ichrom    = 0
-  
+  ichrom      = 0
+
+  ! TUNE ADJUSTMENTS
+  iqmod       = 0
+
+  ! LINEAR OPTICS CALCULATION
+  ilin        = 0
+  sixin_ilin0 = 1
+
+  ! SYNCHROTRON OSCILLATIONS
+  sixin_alc   = c1m3
+  sixin_harm  = one
+  sixin_phag  = zero
+  idp         = 0
+  ncy         = 0
+
   ! HIONS MODULE
-  zz0       = 1
-  aa0       = 1
-  nucm0     = pmap
-  has_hion  = .false.
-  
+  zz0         = 1
+  aa0         = 1
+  nucm0       = pmap
+  has_hion    = .false.
+
   ! COLLIMATION MODULE
 #ifdef COLLIMAT
   has_coll  = .false.
 #else
   do_coll   = .false.
 #endif
-  
+
 ! ================================================================================================ !
 !  SET DEFAULT INPUT PARSING VALUES
 ! ================================================================================================ !
-  
+
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  oneLine     = .false.
+  prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
-  sixin_debug = .false.
-  
+
   call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
-  
+
   ! DATEB INTERNAL
   nGeom       = 0
-  
+
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
 ! ================================================================================================ !
-  
+
 90 continue
-  read(3,10010,end=1530,iostat=ierro) idat,ihead
+  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) idat,ihead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(idat(1:1) == "/") goto 90
   if(idat(1:1) == "!") goto 90
-  
+
   select case(idat)
   case("FREE") ! Mode FREE. Elements in fort.3
     iMod       = 1
@@ -903,33 +902,41 @@ subroutine daten
     iMod       = 2
     parseFort2 = .true.
   case default
-    call prror(1)
+    write(lout,"(a)") "INPUT> ERROR Wrong mode '"//idat//"'"
+    goto 9999
   end select
-  
-  write(lout,10130)
-  write(lout,10030)
-  write(lout,10180) ihead
+
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OO                  OO"
+  write(lout,"(a)") "    OO  SixTrack Input  OO"
+  write(lout,"(a)") "    OO                  OO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") ""
+  if(ihead /= " ") write(lout,"(a)") "    TITLE: "//ihead
+  if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
+  if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
+  write(lout,"(a)") ""
+  write(lout,"(a)") st_divLine
+
   sixtit(1:60)=ihead
-  if(imod.eq.1) write(lout,10190)
-  if(imod.eq.2) write(lout,10200)
-  write(lout,10130)
-  
+
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-  
+
   currBlock   = "NONE"  ! The current block being parsed
   openBlock   = .false. ! Whether the current block was opened on this pass
   blockOpened = .false. ! Whether the current block is open
   closeBlock  = .false. ! Whether the current block should be closed after the pass
   blockClosed = .false. ! Whether the current block is now closed, and should not be opened again
-  
+
 100 continue ! fort.2 loop
 110 continue ! fort.3 loop
-  
+
   ! We have our three geometry blocks, stop parsing fort.2
   if(nGeom >= 3) parseFort2 = .false.
-  
+
   ! Select unit, and increment line number for error output
   if(parseFort2) then
     nUnit   = 2
@@ -938,30 +945,30 @@ subroutine daten
     nUnit   = 3
     lineNo3 = lineNo3 + 1
   end if
-  
+
   read(nUnit,"(a)",end=1530,iostat=iErro) ch
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror(-1)
   end if
-  
+
   if(len(ch) == 0)   goto 110 ! Empty line, ignore
   if(ch(1:1) == "/") goto 110 ! Comment line, ignore
   if(ch(1:1) == "!") goto 110 ! Comment line, ignore
   read(ch,"(a4)") idat
-  
+
   ! Parse non-block flags
   select case(idat)
   case("PRIN") ! Enable the PRINT flag
-    iOut    = 1
-    oneLine = .true.
-    goto 110
-  case("QUIE") ! Enable the QUIET flag
-    iQuiet  = 1
-    oneLine = .true.
+    ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
+    ! so we need to handle that for backwards compatibility.
+    prevPrint = .true.
+    st_print  = .true.
+    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
+    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
     goto 110
   case("NEXT") ! Close the current block
-    if(newParsing .and. .not. oneLine) then
+    if(newParsing .and. .not. prevPrint) then
       ! Actual close check is done after a last pass so
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
@@ -974,24 +981,18 @@ subroutine daten
     call sixin_blockReport
     goto 771
   end select
-  
-  oneLine = .false.
-  
+
+  prevPrint = .false.
+
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("TUNE")
-    goto 600
-  case("SYNC")
-    goto 710
   case("ITER")
     goto 940
   case("FLUC")
     goto 790
   case("MULT")
     goto 740
-  case("LINE")
-    goto 660
   case("LIMI")
     goto 950
   case("ORBI")
@@ -1027,34 +1028,38 @@ subroutine daten
   case("WIRE")
     goto 2500
   end select
-  
+
   ! If we've reached this point, the old style block parsing has not been executed.
   ! Switch to new type of parsing.
   newParsing = .true.
-  
+
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
     currBlock = idat
     openBlock = .true.
   end if
-  
+
+  ! By default blocks can only be opened once. The exceptions are set here.
+  blockReopen = .false.
+  if(currBlock == "LINE") blockReopen = .true.
+
   ! Check the status of the current block
-  call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
+  call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
   ! if(nUnit == 2) then
-  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! else
-  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! end if
-  
+
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't.
-  if(blockClosed) then
+  if(blockCount > 1 .and. .not. blockReopen) then
     write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
     goto 9999
   end if
-  
+
   ! Block-Wise Parsing Code
   !=========================
   ! These are parsed one line at a time, including the block declaration and the NEXT.
@@ -1062,19 +1067,19 @@ subroutine daten
   ! When the block is closed, the 'closeBlock' flag is .true. for the final pass.
   ! Otherwise, we have an input line that should be parsed by a single subroutine call.
   ! The in-block line number is available as the variable 'blockLine' if needed.
-  
+
   select case(currBlock)
-  
-  case("INFO") ! Information Block
+
+  case("SETT") ! Global Settings Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineINFO(ch,blockLine,inErr)
+      call sixin_parseInputLineSETT(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("COMM") ! Comment Block
     if(openBlock) then
       continue
@@ -1087,7 +1092,7 @@ subroutine daten
         commen = ch
       end if
     end if
-    
+
   case("SING") ! Single Elements Block
     if(openBlock) then
       sixin_nSing = 1
@@ -1097,7 +1102,7 @@ subroutine daten
       call sixin_parseInputLineSING(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("BLOC") ! Block Definitions
     if(openBlock) then
       sixin_nBloc = 0
@@ -1107,7 +1112,7 @@ subroutine daten
       call sixin_parseInputLineBLOC(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("STRU") ! Structure Input
     if(openBlock) then
       sixin_nStru = 0
@@ -1117,7 +1122,7 @@ subroutine daten
       call sixin_parseInputLineSTRU(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("DISP") ! Displacement of Elements Block
     if(openBlock) then
       continue
@@ -1127,7 +1132,7 @@ subroutine daten
       call sixin_parseInputLineDISP(ch,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("INIT") ! Initial Coordinates
     if(openBlock) then
       continue
@@ -1139,7 +1144,7 @@ subroutine daten
       call sixin_parseInputLineINIT(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-  
+
   case("TRAC") ! Tracking Parameters
     if(openBlock) then
       continue
@@ -1149,7 +1154,7 @@ subroutine daten
       call sixin_parseInputLineTRAC(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("DIFF") ! Differential Algebra
     if(openBlock) then
       continue
@@ -1159,8 +1164,8 @@ subroutine daten
       call sixin_parseInputLineDIFF(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
-  case("CHRO")
+
+  case("CHRO") ! Chromaticity Adjustment
     if(openBlock) then
       ichrom = 1
     elseif(closeBlock) then
@@ -1169,7 +1174,37 @@ subroutine daten
       call sixin_parseInputLineCHRO(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
+  case("TUNE") ! Tune Adjustment
+    if(openBlock) then
+      iqmod = 1
+    elseif(closeBlock) then
+      call sixin_parseInputLineTUNE(ch,-1,inErr)
+    else
+      call sixin_parseInputLineTUNE(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("LINE") ! Linear Optics Calculation Block
+    if(openBlock) then
+      ilin0 = 1
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineLINE(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("SYNC") ! Synchrotron Oscillations
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineSYNC(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -1179,12 +1214,12 @@ subroutine daten
       call dist_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("RIPP") ! Power Supply Ripple Block
     write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
     write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
     goto 9999
-    
+
   case("COLL") ! Collimation Block
     if(openBlock) then
 #ifndef COLLIMAT
@@ -1195,17 +1230,17 @@ subroutine daten
 #else
       has_coll = .true.
       if(ilin /= 1) then
-         write(lout,*) "INPUT> ERROR DETECTED:"
-         write(lout,*) "INPUT> Incompatible flag with collimation version"
-         write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
-         write(lout,*) ""
-         write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
-         write(lout,*) "INPUT> which is required for the collimation version."
-         write(lout,*) ""
-         write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
-         write(lout,*) "INPUT> compatible with the collimation version."
-         write(lout,*) ""
-         write(lout,*) "INPUT> Current setting ilin=",ilin
+        write(lout,*) "INPUT> ERROR DETECTED:"
+        write(lout,*) "INPUT> Incompatible flag with collimation version"
+        write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
+        write(lout,*) ""
+        write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
+        write(lout,*) "INPUT> which is required for the collimation version."
+        write(lout,*) ""
+        write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
+        write(lout,*) "INPUT> compatible with the collimation version."
+        write(lout,*) ""
+        write(lout,*) "INPUT> Current setting ilin=",ilin
         goto 9999
       end if
 #endif
@@ -1219,7 +1254,7 @@ subroutine daten
       continue
 #endif
     end if
-    
+
   case("FMA") ! FMA Block
     if(openBlock) then
       continue
@@ -1229,7 +1264,7 @@ subroutine daten
       call fma_parseInputLine(ch,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("DUMP") ! DUMP Block
     if(openBlock) then
       continue
@@ -1239,7 +1274,7 @@ subroutine daten
       call dump_parseInputLine(ch,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("DYNK") ! Dynamic Kick Block
     if(openBlock) then
       call dynk_allocate
@@ -1251,7 +1286,7 @@ subroutine daten
       call dynk_parseInputLine(ch,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("HION") ! Heavy Ion Input Block
     if(openBlock) then
       continue
@@ -1261,7 +1296,7 @@ subroutine daten
       call hions_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("ZIPF") ! ZIPF Input Block
     if(openBlock) then
       continue
@@ -1270,7 +1305,7 @@ subroutine daten
     else
       call zipf_parseInputline(ch)
     end if
-  
+
   case("SCAT") ! SCATTER Input Block
     if(openBlock) then
       scatter_active = .true.
@@ -1280,7 +1315,7 @@ subroutine daten
     else
       call scatter_parseInputLine(string(adjustl(ch)))
     end if
-  
+
   case("HDF5") ! HDF5 Input Block
 #ifndef HDF5
     write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
@@ -1294,10 +1329,10 @@ subroutine daten
       call h5_parseInputLine(string(ch))
     end if
 #endif
-  
+
   case("ROOT") ! ROOT Input Block
 #ifndef ROOT
-    write(lout,"(a)") "INPUT> ERROR ROOT output requested but this exe does not have ROOT support compiled in"
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the ROOT flag."
     goto 9999
 #else
   if(openBlock) then
@@ -1308,20 +1343,20 @@ subroutine daten
     call daten_root(ch)
   end if
 #endif
-  
+
   case default ! Unknown Block, Time to Panic
     write(lout,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
     goto 9999
-  
+
   end select
-  
+
   ! Some cleanup and record keeping
-  
+
   if(openBlock) then
     ! Nothing to do other than switch off the flag
     openBlock = .false.
   end if
-  
+
   if(closeBlock) then
     ! Close the block and check that everything is normal.
     if(blockClosed) then
@@ -1332,410 +1367,13 @@ subroutine daten
     currBlock  = "NONE"  ! No active blocks
     closeBlock = .false. ! Switch off the flag
   end if
-  
+
   goto 110 ! Get next line
-  
+
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  TUNE ADJUSTMENT
-!-----------------------------------------------------------------------
-  600 iqmod=1
-      do 630 l=1,3
-  610 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 610
-      if(ch(:4).eq.next) then
-        if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni) then
-
-          do j=1,il
-            if(iqq(1).eq.bez(j)) iq(1)=j
-            if(iqq(2).eq.bez(j)) iq(2)=j
-          end do
-
-          goto 110
-        else
-          write(lout,10370)
-          iqmod=0
-          iqmod6=0
-          goto 110
-        endif
-      endif
-      call intepr(1,1,ch,ch1)
-      if(l.eq.1) then
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-        read(ch1,*,round='nearest')                                     &
-     & iqq(1),qw0(1),iqmod6
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-        read(ch1,*) iqq(1),qw0(1),iqmod6
-#endif
-#ifdef CRLIBM
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) iqmod6
-          nf=nf-1
-        endif
-#endif
-#endif
-        if(iqmod6.eq.1) then
-          iqmod6=0
-        elseif(iqmod6.eq.2) then
-          iqmod6=1
-          iqmod=0
-        elseif(iqmod6.eq.3) then
-          iqmod6=1
-        endif
-      endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.2) read(ch1,*,round='nearest')                            &
-     & iqq(2),qw0(2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.2) read(ch1,*) iqq(2),qw0(2)
-#endif
-#ifdef CRLIBM
-      if(l.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(2)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(2)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.3) read(ch1,*,round='nearest')                            &
-     & iqq(3),qw0(3)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.3) read(ch1,*) iqq(3),qw0(3)
-#endif
-#ifdef CRLIBM
-      if(l.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(3)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(3)=fround(errno,fields,2)
-        nf=nf-1
-        endif
-      endif
-#endif
-#endif
-  630 continue
-  640 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 640
-      call intepr(4,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & iqq(4),iqq(5)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) iqq(4),iqq(5)
-#endif
-      if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni                  &
-     &.and.abs(qw0(3)).gt.pieni) then
-        do 650 j=1,il
-          if(iqq(1).eq.bez(j)) iq(1)=j
-          if(iqq(2).eq.bez(j)) iq(2)=j
-          if(iqq(3).eq.bez(j)) iq(3)=j
-          if(iqq(4).eq.bez(j)) kpa(j)=1
-          if(iqq(5).eq.bez(j)) kpa(j)=2
- 650    continue
-        goto 110
-      else
-        write(lout,10370)
-        iqmod=0
-        iqmod6=0
-        write(lout,*) 'TUNE ADJUSTED'
-        goto 110
-      endif
-!-----------------------------------------------------------------------
-!  LINEAR OPTICS CALCULATION
-!  - in the 4D case (ilin=1) the subroutine linopt is called
-!  - in the 6d case (ilin=2) the optics parameters are calculated and 
-!    printed in the subroutine umlauda (calculated in the common block
-!    umlalid)
-!-----------------------------------------------------------------------
- 660  continue
-      ilin0=1
-      read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 660
-      if(ch(:4).eq.next) goto 110
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & idat,nt,ilin0,ntco,eui,euii
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) idat,nt,ilin0,ntco,eui,euii
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) nt
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(3),*) ilin0
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(4),*) ntco
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        eui=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        euii=fround(errno,fields,6)
-        nf=nf-1
-      endif
-#endif
-#endif
-      iprint=0
-      if(idat.ne.'BLOCK'.and.idat.ne.'ELEMENT') call prror(45)
-      if(idat.eq.'BLOCK') iprint=1
-      ilin=1
-      if(ilin0.ge.1.and.ilin0.le.3) ilin=ilin0
-
-  670 do m=1,40
-        ilm0(m)=idum
-      end do
-
-  690 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 690
-      if(ch(:4).eq.next) goto 110
-      call intepr(2,1,ch,ch1)
-! ilm0 are character strings, should be OK
-      read(ch1,*) (ilm0(m),m=1,40)
-      do 700 m=1,40
-      if(ilm0(m).eq.idum) goto 700
-      nlin=nlin+1
-      if(nlin.gt.nele) call prror(81)
-      bezl(nlin)=ilm0(m)
-  700 continue
-      goto 670
-
-!-----------------------------------------------------------------------
-!  SYNCHROTRON OSCILLATIONS
-!-----------------------------------------------------------------------
-  710 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-      iclr=iclr+1
-      else
-      goto 710
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & harm,alc,u0,phag,tlen,pma,ition,dppoff
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.1) read(ch1,*) harm,alc,u0,phag,tlen,pma,ition,dppoff
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          harm=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          alc=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          u0=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          phag=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          tlen=fround(errno,fields,5)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          pma=real(fround(errno,fields,6),fPrec)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(7),*) ition
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dppoff=fround(errno,fields,8)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & dpscor,sigcor
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.2) read(ch1,*) dpscor,sigcor
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          dpscor=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          sigcor=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-      if(iclr.ne.2) goto 710
-      iclr=0
-      if(abs(pma-pmap).le.c1m1) pmat=pmap
-      if(abs(pma-pmae).le.c1m1) pmat=pmae
-      if(pmat.ne.pmap.and.pmat.ne.pmae) then
-        write(lout,*)
-        write(lout,*) 'Warning: Particle is neither proton nor electron'
-        write(lout,*) 'pma:  ', pma
-        write(lout,*) 'pmap: ', pmap
-        write(lout,*)
-      endif
-      if(pma.lt.pieni) call prror(27)
-      !nucm0=pma
-      crad=(crade*pmae)/pma                                              !hr05
-      if(abs(tlen).le.pieni) call prror(25)
-      if(sixin_ncy2.eq.0) then
-        ncy=sixin_icy*mper
-        idp=1
-        if(ncy.ne.0) goto 720
-        idp=0
-        write(lout,10130)
-        write(lout,10340)
-  720   phas=phag*rad
-        if(ncy.ne.0) then
-          hsy(1)=u0/real(ncy,fPrec)
-        else
-          hsy(1)=u0
-        endif
-        if(nvar.eq.5) then
-          idp=1
-          ition=1
-          hsy(1)=zero
-        endif
-        halc=harm*alc
-        halc2=harm/tlen
-        hsy(3)=(two*pi)*halc2                                            !hr05
-        cosy=cos_mb(phas)
-        qigam=(pma**2/e0)/e0                                             !hr05
-        qbet=one-qigam
-        halc3=((((((-one*(qigam-alc))*real(ition,fPrec))*harm)*u0)/e0)  &
-     &*cosy)/((two*pi)*qbet)                                             !hr05
-        if(halc3.lt.zero) call prror(28)
-        qs=sqrt(halc3)
-      else
-        idp=1
-        ncy=0
-        do 725 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(abs(kz(ix)).eq.12) ncy=ncy+1
-          endif
-  725   continue
-        do 730 j=1,il
-          if(abs(kz(j)).eq.12) then
-            hsyc(j)=((two*pi)*ek(j))/tlen                                !hr05
-            if(nvar.eq.5) then
-              ition=1
-              ed(j)=zero
-            endif
-          endif
-  730   continue
-      endif
-      goto 110
 !-----------------------------------------------------------------------
 !  MULTIPOLE COEFFICIENTS  FOR KZ = 11
 !-----------------------------------------------------------------------
@@ -1920,7 +1558,7 @@ subroutine daten
       else if(mout.eq.1.or.mout.eq.9) then
         mout1=1
       endif
-      
+
       ! Reads from fort.16 IF mout1==1
       if(mout1.eq.1) then
         write(lout,*)
@@ -1976,7 +1614,7 @@ subroutine daten
               lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(19),extaux(20)
 
-              
+
               lineno16=lineno16+1
               read(16,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
      &extaux(23)
@@ -2354,7 +1992,7 @@ subroutine daten
           bezr(i,j)=idum !Initialize all bezr to idum=' '
         end do
       end do
-      
+
   900 iorg=iorg+1
   910 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
@@ -2578,7 +2216,7 @@ subroutine daten
       write(lout,*)'ERROR in LIMI block: fortran IO format currently not supported!'
       call prror(-1)
 #endif
-      
+
 !     P.G.Ortega and A.Mereghetti, 02-03-2018
 !     'next': echo aperture profiles
       if(ch(:4).eq.next) then
@@ -2629,7 +2267,7 @@ subroutine daten
              write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND IN THE RUNNING FOLDER"
              call prror(-1)
           endif
-          open(loadunit,file=load_file,form='formatted') 
+          open(loadunit,file=load_file,form='formatted')
           write(lout,*) 'APERTURES READ FROM FILE: ',load_file,' - UNIT: ',loadunit
 
         elseif(ch(:4).eq.'PRIN') then
@@ -2709,7 +2347,7 @@ subroutine daten
              write(lout,*)'ERROR in LIMI block: negative min s-value for xsecs!'
              call prror(-1)
           endif
-   
+
           if(getfields_nfields.ge.5) then
 #ifndef CRLIBM
              read (getfields_fields(5)(1:getfields_lfields(5)),*) sLocMax(mxsec)
@@ -2769,7 +2407,7 @@ subroutine daten
 #endif
                 enddo
                 call aperture_initCR( j, tmpflts(1) )
-                
+
               case (apeName(2)) !Rectangle
                 if(getfields_nfields.lt.4) then
                   write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
@@ -2787,7 +2425,7 @@ subroutine daten
 #endif
                 enddo
                 call aperture_initRE( j, tmpflts(1), tmpflts(2) )
-                
+
               case (apeName(3)) !Ellipse
                 if(getfields_nfields.lt.4) then
                   write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
@@ -2805,7 +2443,7 @@ subroutine daten
 #endif
                 enddo
                 call aperture_initEL( j, tmpflts(1), tmpflts(2) )
-                
+
               case (apeName(4)) !Rectellipse
                 if(getfields_nfields.lt.6) then
                   write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
@@ -2824,8 +2462,8 @@ subroutine daten
 #endif
                 enddo
                 call aperture_initRL( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
-                
-              case (apeName(5)) !Octagon  
+
+              case (apeName(5)) !Octagon
                 if(getfields_nfields.lt.6) then
                   write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
            &        'for declaring a '//apeName(5)//' aperture marker: ninput = ',          &
@@ -2842,7 +2480,7 @@ subroutine daten
 #endif
                 enddo
                 call aperture_initOC( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
-                
+
               case (apeName(6)) !Racetrack
                 if(getfields_nfields.lt.5) then
                   write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
@@ -2860,7 +2498,7 @@ subroutine daten
 #endif
                 enddo
                 call aperture_initRT( j, tmpflts(1), tmpflts(2), tmpflts(3) )
-                
+
               case (apeName(-1)) !Transition
                 if(getfields_nfields.lt.8) then
                   write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
@@ -2878,7 +2516,7 @@ subroutine daten
 #endif
                 enddo
                 call aperture_initTR( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4), tmpflts(5), tmpflts(6) )
-                
+
               case default
                 write(lout,*) 'Aperture profile not identified for element ',idat
                 write(lout,*) '  value:', irel
@@ -2898,7 +2536,7 @@ subroutine daten
 #endif
                   endif
                 end do
-              else 
+              else
                 do i=5,7
                   tmpflts(i+2)=zero
                   if(getfields_nfields.ge.i+2) then
@@ -2966,7 +2604,7 @@ subroutine daten
         nf=nf-1
       endif
       if (nf.gt.0) then
-        read(fields(2),*) ncorru 
+        read(fields(2),*) ncorru
         nf=nf-1
       endif
       if (nf.gt.0) then
@@ -3024,7 +2662,7 @@ subroutine daten
         do ll=1,20
           icel(jj,ll)=idum
         end do
-      end do 
+      end do
 
       write(lout,10130)
       write(lout,10300)
@@ -3429,7 +3067,7 @@ subroutine daten
 !-----------------------------------------------------------------------
  1280 read(3,10020,end=1530,iostat=ierro) ch
       if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1 
+      lineno3=lineno3+1
       if(ch(1:1).ne.'/') then
       iclr=iclr+1
       else
@@ -3439,8 +3077,8 @@ subroutine daten
 
       !Line 1
       if(iclr.eq.1) toptit(1)=ch
-      
-      
+
+
       !Line 2
 #ifdef FIO
 #ifdef CRLIBM
@@ -3586,7 +3224,7 @@ subroutine daten
          call prror(-1)
       endif
 #endif
-      
+
       kwtype=0
       icr=0
       if(iskip.le.0) iskip=1
@@ -3849,10 +3487,10 @@ subroutine daten
      &        "ERROR: There can only be one BEAM block in fort.3"
          call prror(-1)
       endif
-      
+
       if (ch(:6) .eq."EXPERT") then
          beam_expflag = 1
-         
+
  1601    read(3,10020,end=1530,iostat=ierro) ch
          if(ierro.gt.0) call prror(58)
          lineno3=lineno3+1
@@ -3882,7 +3520,7 @@ subroutine daten
      &           "First line should have 9 fields, got", nf
             call prror(-1)
          endif
-         
+
          partnum = fround(errno,fields,1)
          emitnx  = fround(errno,fields,2)
          emitny  = fround(errno,fields,3)
@@ -3933,19 +3571,19 @@ subroutine daten
          if (i.gt.0) then !6D
             call intepr(1,1,ch,ch1)
             read(ch1,*) idat,i,xang,xplane,separx,separy
-            
+
  1661       read(3,10020,end=1530,iostat=ierro) ch
             if(ierro.gt.0) call prror(58)
             lineno3=lineno3+1
             if(ch(1:1).eq.'/') goto 1661
             read(ch,*) mm1,mm2,mm3,mm4,mm5
-            
+
  1662       read(3,10020,end=1530,iostat=ierro) ch
             if(ierro.gt.0) call prror(58)
             lineno3=lineno3+1
             if(ch(1:1).eq.'/') goto 1662
             read(ch,*) mm6,mm7,mm8,mm9,mm10,mm11
-            
+
          else if (i.eq.0) then  !4D
             call intepr(1,1,ch,ch1)
             read(ch1,*) idat,i,xang,xplane,separx,separy
@@ -3967,9 +3605,9 @@ subroutine daten
      &           "have 6 or 7 fields, got", nf
             call prror(-1)
          endif
-         
+
          read(fields(2),*) i !read number of slices
-         
+
          if (i.gt.0) then  !6D
             if (nf.ne.6) then
                write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
@@ -3978,14 +3616,14 @@ subroutine daten
      &              "have 6 fields, got", nf
                call prror(-1)
             endif
-            
+
             read(fields(1),*) idat !Name
             read(fields(2),*) i    !slices (ibsix)
             xang=fround(errno,fields,3)
             xplane=fround(errno,fields,4)
             separx=fround(errno,fields,5)
             separy=fround(errno,fields,6)
-            
+
  1661       read(3,10020,end=1530,iostat=ierro) ch
             if(ierro.gt.0) call prror(58)
             lineno3=lineno3+1
@@ -4000,13 +3638,13 @@ subroutine daten
      &              "have 5 fields, got", nf
                call prror(-1)
             endif
-            
+
             mm1=fround(errno,fields,1)
             mm2=fround(errno,fields,2)
             mm3=fround(errno,fields,3)
             mm4=fround(errno,fields,4)
             mm5=fround(errno,fields,5)
-            
+
  1662       read(3,10020,end=1530,iostat=ierro) ch
             if(ierro.gt.0) call prror(58)
             ch1(:nchars+3)=ch(:nchars)//' / '
@@ -4021,14 +3659,14 @@ subroutine daten
      &              "have 5 fields, got", nf
                call prror(-1)
             endif
-            
+
             mm6=fround(errno,fields,1)
             mm7=fround(errno,fields,2)
             mm8=fround(errno,fields,3)
             mm9=fround(errno,fields,4)
             mm10=fround(errno,fields,5)
             mm11=fround(errno,fields,6)
-            
+
          else if(i.eq.0) then ! 4D
             if (nf.ne.7) then
                write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
@@ -4037,7 +3675,7 @@ subroutine daten
      &              "have 7 fields, got", nf
                call prror(-1)
             endif
-            
+
             read(fields(1),*) idat
             xang=fround(errno,fields,3)
             xplane=fround(errno,fields,4)
@@ -4054,7 +3692,7 @@ subroutine daten
          endif
 #endif
 #endif
-         
+
          do j=1,il !loop over single lements
             if(idat.eq.bez(j)) then
                if(kz(j).ne.20) then
@@ -4064,7 +3702,7 @@ subroutine daten
      &                 " but type is",kz(j), ", expected type 20!"
                   call prror(-1)
                else
-                  
+
                   if(parbe(j,5).ne.zero .or. parbe(j,6).ne.zero         &
      &                 .or. ptnfac(j).ne.zero                           &
      &                 .or. bbbx(j).ne.zero .or. bbby(j).ne.zero        &
@@ -4110,7 +3748,7 @@ subroutine daten
             endif
          end do
          goto 1660
-         
+
       else ! Old-style BEAM block
          write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
          write (lout,'(a)') " Check the file 'beam_expert.txt'"//       &
@@ -4138,7 +3776,7 @@ subroutine daten
      &        " NOT COMPILED WITH CRLIBM, CONVERSION WILL NOT BE EXACT."
 #endif
          write(lout,'(a)') " "
-         
+
          ch1(:nchars+3)=ch(:nchars)//' / '
 #ifdef FIO
 #ifdef CRLIBM
@@ -4166,7 +3804,7 @@ subroutine daten
             !lots of working input files
             !call prror(-1)
          endif
-         
+
          if (nf.gt.0) then
             partnum=fround(errno,fields,1)
             nf=nf-1
@@ -4212,7 +3850,7 @@ subroutine daten
          if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
          nbeam=1
          if(ibtyp.eq.1) call wzset
-         
+
          ! ! ! Read other lines of BEAM block ! ! !
  1610    read(3,10020,end=1530,iostat=ierro) ch
          if(ierro.gt.0) call prror(58)
@@ -4279,7 +3917,7 @@ subroutine daten
             write(lout,*) "No xstr present, assuming xstr=xang"
             xstr = xang
          endif
-      
+
          if(i.lt.0) i=0
          do 1620 j=1,il
             if(idat.eq.bez(j).and.kz(j).eq.20) then
@@ -4346,15 +3984,15 @@ subroutine daten
 #ifdef CRLIBM
       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
       if (nf.gt.0) then
-        cotr(imtr0,j1-2)=fround(errno,fields,1) 
+        cotr(imtr0,j1-2)=fround(errno,fields,1)
         nf=nf-1
       endif
       if (nf.gt.0) then
-        cotr(imtr0,j1-1)=fround(errno,fields,2) 
+        cotr(imtr0,j1-1)=fround(errno,fields,2)
         nf=nf-1
       endif
       if (nf.gt.0) then
-        cotr(imtr0,j1)=fround(errno,fields,3) 
+        cotr(imtr0,j1)=fround(errno,fields,3)
         nf=nf-1
       endif
 #endif
@@ -4593,15 +4231,15 @@ subroutine daten
       else if (ch(:4).eq."ELEM") then
          call bdex_parseElem(ch)
          goto 2250 !loop BDEX
-         
+
       else if (ch(:4).eq."CHAN") then
          call bdex_parseChan(ch)
          goto 2250 !Loop BDEX
-         
+
       else if (ch(:4).eq.next) then
          call bdex_parseInputDone
          goto 110 ! loop BLOCK
-         
+
       else
          write (lout,*)
          write (lout,*) "*******************************************"
@@ -4611,7 +4249,7 @@ subroutine daten
          write (lout,*) "'"//ch//"'"
          write (lout,*) "*******************************************"
          call prror(-1)
-         
+
       endif
 
       ! Should never arrive here
@@ -4619,7 +4257,7 @@ subroutine daten
       write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
       write (lout,*) "*****************************"
       call prror(-1)
-      
+
 !-----------------------------------------------------------------------
 !  Electron Lense, kz=29,ktrack=63
 !  M. Fitterer,  FNAL
@@ -4684,7 +4322,7 @@ subroutine daten
      &        //"' is too long."
          call prror(-1)
       endif
-      
+
       do j=1,nele               !loop over single elements and set parameters of elens
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_elens=29)
@@ -4748,7 +4386,7 @@ subroutine daten
      &              "' not recognized. Remember to use all UPPER CASE!"
                call prror(-1)
             end select
-            
+
 #ifndef CRLIBM
             read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
      &              elens_theta_r2(ielens(j))
@@ -4829,7 +4467,7 @@ subroutine daten
  1972           continue
             end if
 !           additional geometrical infos:
-!           depending on profile, the position of these parameters change            
+!           depending on profile, the position of these parameters change
             tmpi1=0
             tmpi2=0
             tmpi3=0
@@ -4873,7 +4511,7 @@ subroutine daten
      &              errno,getfields_fields,tmpi3,elens_Ek(ielens(j)) )
 #endif
             end if
-            
+
             ! Make checks for this case
             if( elens_r2(ielens(j)).lt.elens_r1(ielens(j)) ) then
                write(lout,*) 'WARNING: ELEN R2<R1 -> inverting'
@@ -4936,7 +4574,7 @@ subroutine daten
      &'  Ek =',elens_Ek(ielens(j)),' keV'
             end if
             goto 2401           !Search success :)
-            
+
          endif
       enddo
 
@@ -4945,10 +4583,10 @@ subroutine daten
      &     "Un-identified SINGLE ELEMENT '",                            &
      &     getfields_fields(1)(1:getfields_lfields(1)), "'"
       call prror(-1)
-      
+
 !     element search was a success :)
  2401 continue
-      
+
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
 
 !-----------------------------------------------------------------------
@@ -4961,7 +4599,7 @@ subroutine daten
       lineno3 = lineno3+1 ! Line number used for some crash output
 
       if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
-     
+
       if (ch(:4).eq.next) then
 !       4) loop over single elements to check that they have been defined in the fort.3 block
         do j=1,nele
@@ -5011,7 +4649,7 @@ subroutine daten
      &        //"' is too long."
          call prror(-1)
       endif
-      
+
       do j=1,nele               !loop over single elements and set parameters of wire
          if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
             ! check the element type (kz(j)_wire=15)
@@ -5086,7 +4724,7 @@ subroutine daten
             if (errno.ne.0) call rounderr (                             &
      &           errno,getfields_fields,9,wire_tilty(j) )
 #endif
-            
+
             ! Make checks for the wire parameters
             if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
                write(lout,*)                                            &
@@ -5142,7 +4780,7 @@ subroutine daten
             end if
 
             goto 2501           !Search success :)
-            
+
          endif
       enddo
 
@@ -5151,10 +4789,10 @@ subroutine daten
      &     "Un-identified SINGLE ELEMENT '",                            &
      &     getfields_fields(1)(1:getfields_lfields(1)), "'"
       call prror(-1)
-      
+
 !     element search was a success :)
  2501 continue
-      
+
       goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
 
 
@@ -5220,7 +4858,7 @@ subroutine daten
          endif
         enddo
       endif
-      if(iout.eq.0) return
+      if(.not.st_print) return
       write(lout,10050)
       write(lout,10060)
       il1=il
@@ -5331,7 +4969,7 @@ subroutine daten
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
      &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
             endif
-            
+
          elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
             if(partnum.gt.zero) then !Beams have same charge
                ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
@@ -5390,7 +5028,7 @@ subroutine daten
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
       if(sixin_ncy2.eq.0) then
-        write(lout,10143) harm,u0,phag,qs,alc
+        write(lout,10143) sixin_harm,sixin_u0,sixin_phag,qs,sixin_alc
       else
         write(lout,*)
       endif
@@ -5406,7 +5044,7 @@ subroutine daten
      &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
             enddo
          endif
-         
+
       elseif(beam_expflag .eq. 1) then
          write(lout,                                                    &
      &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
@@ -5438,7 +5076,7 @@ subroutine daten
      &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
             endif
          enddo
-         
+
       else
          write(lout,'(a)') "ERROR in subroutine daten"
          write(lout,'(a)') "beam_expflag was", beam_expflag
@@ -5493,7 +5131,7 @@ subroutine daten
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
   return
-  
+
 9999 continue
   ! Error handling for sixtrack_input module
   if(nUnit == 2) then
@@ -5505,12 +5143,12 @@ subroutine daten
   end if
   call prror(-1)
   return
-      
+
 10000 format(11(a4,1x))
-10010 format(a4,8x,a60)
+! 10010 format(a4,8x,a60)
 10020 format(a)
-10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-     &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
+! 10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
+!      &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
      &'OO  PREPROCESSING  OO', /t10,2('O'),17x,2('O')/t10,21('O'))
 10050 format(//131('-')//t43,'*** RING PARAMETERS ***'/)
@@ -5562,10 +5200,10 @@ subroutine daten
      &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
      &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
      &'PRECISION FOR C.-O. RMS',t47,d10.3/)
-10180 format(t5/t10,a60)
-10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
-10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
-     &'EXTRA GEOMETRY STRENGTH FILE--')
+! 10180 format(t5/t10,a60)
+! 10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
+! 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
+!      &'EXTRA GEOMETRY STRENGTH FILE--')
 10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
 10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
      &'BLOCKS PER PERIOD',t49,i5//)
@@ -5578,8 +5216,8 @@ subroutine daten
 10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
      &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
      &'DOM NUMBERS      |   SAME MULTIPOLECOEFFICIENTS  |'/131('-'))
-10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
-     &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
+! 10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
+!      &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
 10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
      &' AND THEREFORE IGNORED')
 10410 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
@@ -5657,7 +5295,7 @@ end subroutine daten
 subroutine parseChebyFile(ifile)
 !-----------------------------------------------------------------------
 !     read file with coefficients for chebyshev polynomials
-!     ifile is index of file in table of chebyshev files        
+!     ifile is index of file in table of chebyshev files
 !     file is structured as:
 !        keyword : value
 !     keywords:
@@ -5678,9 +5316,9 @@ subroutine parseChebyFile(ifile)
       use mod_common
       use elens
       use string_tools
-      
+
       implicit none
-      
+
       character(len=160) tmpstr
       character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
       integer   getfields_nfields                                                 ! Number of identified fields
@@ -5716,7 +5354,7 @@ subroutine parseChebyFile(ifile)
                if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
 #endif
                elens_cheby_refCurr(ifile)=tmpflt
-               
+
             elseif (tmpstr(1:2).eq.'Ek') then
 !              read reference kinetic energy of e-beam in e-lens
                if (getfields_nfields.lt.3) then
@@ -5732,7 +5370,7 @@ subroutine parseChebyFile(ifile)
 #endif
                gamma=tmpflt*c1m3/pmae+1 ! from kinetic energy
                elens_cheby_refBeta(ifile)=sqrt((gamma+one)*(gamma-one))/(gamma)
-               
+
             elseif (tmpstr(1:3).eq.'rad') then
 !              read reference radius e-beam in e-lens
                if (getfields_nfields.lt.3) then
@@ -5747,7 +5385,7 @@ subroutine parseChebyFile(ifile)
                if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
 #endif
                elens_cheby_refRadius(ifile)=tmpflt
-               
+
             else
 !              read chebyshev coefficients
                if (getfields_nfields.ne.4) then
@@ -5792,9 +5430,9 @@ subroutine parseChebyFile(ifile)
             end if
          end do
       end do
-      
+
 end subroutine parseChebyFile
-      
+
 subroutine write4
 !-----------------------------------------------------------------------
 !     WRITE MODIFIED GEOMETRY FILE ON UNIT 4
@@ -5816,7 +5454,7 @@ subroutine write4
       data lineno8 /0/
       data lineno16 /0/
       data lineno30 /0/
-      data lineno35 /0/ 
+      data lineno35 /0/
       save
 !-----------------------------------------------------------------------
       ii=0
@@ -5952,14 +5590,14 @@ subroutine intepr(i,j,ch,ch1)
       ch1(i2:i3)=ch(i1:nchars)//' / '
       return
       end
-      
+
 subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 !     K.Sjobak & A.Santamaria, BE-ABP/HSS
 !     last modified: 23-12-2016
 !     Initialize a lattice element with index elIdx,
 !     such as done when reading fort.2 (GEOM) and in DYNK.
-!     
+!
 !     Never delete an element from the lattice, even if it is not making a kick.
 !     If the element is not recognized, do nothing (for now).
 !     If trying to initialize an element (not lfirst) which is disabled,
@@ -5979,7 +5617,7 @@ subroutine initialize_element(ix,lfirst)
       use elens
       use wire
       implicit none
-      
+
       integer, intent(in) :: ix
       logical, intent(in) :: lfirst
 
@@ -6121,7 +5759,7 @@ subroutine initialize_element(ix,lfirst)
 
 !--Multipoles
       elseif(kz(ix).eq.11) then
-         
+
          !MULT support removed until we have a proper use case.
 !c$$$         if (lfirst) then
 !c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
@@ -6132,7 +5770,7 @@ subroutine initialize_element(ix,lfirst)
 !c$$$            dynk_elemdata(ii,2) = ed(ii) !Updated in dynk_setvalue
 !c$$$            ek(ii) = dynk_elemdata(ix,3)
 !c$$$         end if
-         
+
          ! Moved from daten():
          if (abs(el(ix)+one).le.pieni) then
             dki(ix,1) = ed(ix)
@@ -6229,9 +5867,9 @@ subroutine initialize_element(ix,lfirst)
 
             ! Doesn't work, as i is not initialized here.
             !if (.not.ktrack(i).eq.2) goto 100 !ERROR
-            
+
             phasc(ix) = phasc(ix)*rad
-            
+
             hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
             hsyc(ix)=(c1m3*hsyc(ix))*real(itionc(ix),fPrec) ! trauthin/trauthck
          endif
@@ -6300,7 +5938,7 @@ subroutine initialize_element(ix,lfirst)
 end subroutine initialize_element
 
 #ifdef CRLIBM
-      
+
 subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
       use floatPrecision
       use crcoall
@@ -6314,12 +5952,12 @@ subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
 !     fields in nf. All spaces are ignored but treated as separators.
 !     A / is a line terminator as provided in ch1 typically.
 !     This corresponds to Fortran treatment with an * format spec.
-            
+
       j=0
       nf=0
       do i=1,nfields
         fields(i)=' '
-         
+
         ! Get the length we can use to store a field,
         ! should be equal to maxf in the calling function
         lf=len(fields(i))
@@ -6369,7 +6007,7 @@ subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
           endif
         endif
       enddo
-      
+
  8890 continue
 ! If we get here we have a problem unless there
 ! is nothing left but ' '*/
@@ -6381,7 +6019,7 @@ subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
  8887 continue
 ! Eric for debug
       do j=1,nf
-        l=len(fields(j)) 
+        l=len(fields(j))
         localstr=fields(j)(1:l)
         write(lout,*) 'splitfld:'//localstr//':'
       enddo
@@ -6410,7 +6048,7 @@ real(kind=fPrec) function fround(errno,fields,f)
   endif
   return
 end function fround
-      
+
 subroutine rounderr(errno,fields,f,value)
   use floatPrecision
   use end_sixtrack
@@ -6430,17 +6068,17 @@ subroutine rounderr(errno,fields,f,value)
   localstr=fields(f)(1:l)
   write (lout,*) 'f:fieldf:',f,':'//localstr
   write (lout,*) 'Function fround (rounderr) returning:',value
-  
+
   call prror(-1)
-      
+
 10000 format(5x//&
              /t10,'++++++++++++++++++++++++'&
              /t10,'+++++ERROR DETECTED+++++'&
              /t10,'++++++++++++++++++++++++'/)
 end subroutine rounderr
-      
+
 subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
-  
+
       use end_sixtrack
       use crcoall
       implicit none
@@ -6465,14 +6103,14 @@ subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
         write (lout,*)                                                     &
      &  'Too many input fields, maximum of',nfields,' exceeded'
       endif
-      
+
       call prror(-1)
-      
+
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
 end subroutine spliterr
-      
+
 integer function dtostr(x,results)
 ! Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in
 ! crlibm
@@ -6482,13 +6120,13 @@ integer function dtostr(x,results)
       implicit none
       real(kind=fPrec) x
       character(len=24) results
-      integer dtoaf 
+      integer dtoaf
       integer ilen,mode,ndigits,decpoint,mysign
       integer i,l,d,e
       character(len=1) str(17)
       character(len=24) lstr
       character(len=3) e3
-      
+
       mode=2
       ndigits=17
       ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1),1)
@@ -6498,7 +6136,7 @@ integer function dtostr(x,results)
       write (lout,*) 'Routine dtoa[f] returned string length ',ilen
       write (lout,*) 'Error from dtostr, string length not 17'
       call prror(-1)
-      
+
 10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
      &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
 ! Never returns
@@ -6558,14 +6196,14 @@ integer function dtostr(x,results)
         l=22
         write (e3,'(I3.3)') e
         lstr(l:l+2)=e3(1:3)
-      endif  
+      endif
       results=lstr(1:24)
       dtostr=24
       return
 end function dtostr
-      
+
 #endif
-      
+
       subroutine wzset
 !  *********************************************************************
 !
@@ -6697,7 +6335,7 @@ end function dtostr
 !                   CHANGE OF PATH LENGTHS FOR EACH PARTICLE.
 !-----------------------------------------------------------------------
 subroutine envars(j,dpp,rv)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -6714,7 +6352,7 @@ subroutine envars(j,dpp,rv)
   integer jm,k,m,na,ne
 #endif
   save
-  
+
   dpd  = one+dpp
   dpsq = sqrt(dpd)
   do i=1,il
@@ -6728,7 +6366,7 @@ subroutine envars(j,dpp,rv)
 #endif
       end do
     end do
-    
+
     if(abs(el(i)).le.pieni) cycle
     kz1 = kz(i)+1
     select case (kz1)
@@ -6741,7 +6379,7 @@ subroutine envars(j,dpp,rv)
         as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
       end do
       as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
-      
+
     case (2,5)
       ! 2: RECTANGULAR MAGNET HORIZONTAL
       ! 5: RECTANGULAR MAGNET VERTICAL
@@ -6801,7 +6439,7 @@ subroutine envars(j,dpp,rv)
       as(4,ih,j,i)=((-one*two)*as6)*fok1                               !hr05
       as(5,ih,j,i)=as6*fok1**2                                         !hr05
       as(6,ih,j,i)=as6
-      
+
     case (3)
       ! QUADRUPOLE
       ! FOCUSSING
@@ -6847,7 +6485,7 @@ subroutine envars(j,dpp,rv)
       as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
       as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
       if(ih.eq.1) goto 100
-    
+
     case (4)
       ! 4: SEKTORMAGNET HORIZONTAL
       ! 6: SEKTORMAGNET VERTICAL
@@ -6895,7 +6533,7 @@ subroutine envars(j,dpp,rv)
       al(3,ih,j,i)=zero
       al(4,ih,j,i)=one
       as(6,ih,j,i)=((-one*rv)*al(2,ih,j,i))/c2e3                       !hr05
-      
+
     case (7,8)
       ! 7: COMBINED FUNCTION MAGNET HORIZONTAL
       ! 8: COMBINED FUNCTION MAGNET VERTICAL
@@ -6998,7 +6636,7 @@ subroutine envars(j,dpp,rv)
       as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
       as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3 !hr05
       as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
-      
+
     case (9)
       ! EDGE FOCUSSING
       rhoi=ed(i)/dpsq
@@ -7011,10 +6649,10 @@ subroutine envars(j,dpp,rv)
       al(2,2,j,i)=zero
       al(3,2,j,i)=-one*fok                                             !hr05
       al(4,2,j,i)=one
-      
+
     end select
   end do
-  
+
 #ifdef SIXDA
   do k=1,mblo
     jm=mel(k)
@@ -7039,7 +6677,7 @@ subroutine envars(j,dpp,rv)
   end do
 #endif
   return
-  
+
 end subroutine envars
 
 +dk envada
@@ -7105,13 +6743,13 @@ subroutine envada
 !FOX  ASDA(IH,IP)=ZERO ;
       end do
     end do
-    
+
     !-----------------------------------------------------------------------
     if(abs(el(i)).le.pieni) goto 190
     select case (kz(i))
     case (0)
       goto 20
-      
+
     !-----------------------------------------------------------------------
     !  RECTANGULAR MAGNET
     !-----------------------------------------------------------------------
@@ -7167,7 +6805,7 @@ subroutine envada
       goto 190
     case (2)
       goto 100
-      
+
     !-----------------------------------------------------------------------
     !  SEKTORMAGNET
     !-----------------------------------------------------------------------
@@ -7178,7 +6816,7 @@ subroutine envada
         ih = 2
       end if
       goto 70
-      
+
     !-----------------------------------------------------------------------
     !  COMBINED FUNCTION MAGNET
     !-----------------------------------------------------------------------
@@ -7288,7 +6926,7 @@ subroutine envada
 !FOX  ASDA(IH,6)=-RV*(EL(I)+ALDA(IH,1)*ALDA(IH,2))/C4E3 ;
       end if
       goto 190
-      
+
     !-----------------------------------------------------------------------
     !  EDGE FOCUSSING
     !-----------------------------------------------------------------------
@@ -7307,7 +6945,7 @@ subroutine envada
     end select
     !-----------------------------------------------------------------------
     cycle
-    
+
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
@@ -7425,9 +7063,9 @@ subroutine envada
       end do
     end do
     ! DADAL AUTOMATIC INCLUSION
-    
+
   return
-  
+
 end subroutine envada
 
       subroutine envquad(i,ipch)
@@ -7525,7 +7163,7 @@ end subroutine envada
 !     DADAL AUTOMATIC INCLUSION
       return
       end
-      
+
 +dk runda
 subroutine runda
 !-----------------------------------------------------------------------
@@ -7642,7 +7280,7 @@ subroutine runda
         call davar(dpda1,zero,6)
 
 
-!FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;        
+!FOX  DPDA1=DPDA1+DPS(1)*C1E3 ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -8213,11 +7851,11 @@ subroutine runda
 !FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
 !FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
 !FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
-!FOX  SIGMDA=COTR(IRRTR,5)+ 
+!FOX  SIGMDA=COTR(IRRTR,5)+
 !FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
 !FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
 !FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
-!FOX  PUSIG=COTR(IRRTR,6)+ 
+!FOX  PUSIG=COTR(IRRTR,6)+
 !FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
 !FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
 !FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
@@ -8227,7 +7865,7 @@ subroutine runda
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
             end if
             if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) then
@@ -8349,7 +7987,7 @@ subroutine runda
         crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
         crabpht2=crabph2(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
-!FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI 
+!FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI
 !FOX  + CRABPHT2)*MTCDA/(ONE+DPDA);
 !FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
 !FOX  COS(SIGMDA/(CLIGHT*(E0F/E0))*CRABFREQ*2D0*PI
@@ -8371,7 +8009,7 @@ subroutine runda
           if(kzz.eq.-26) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
@@ -8402,9 +8040,9 @@ subroutine runda
           if(kzz.eq.27) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
-            endif 
+            endif
           xs=xsi(i)
           zs=zsi(i)
 #include "include/alignf.f90"
@@ -8434,9 +8072,9 @@ subroutine runda
           if(kzz.eq.-27) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
-            endif 
+            endif
           xs=xsi(i)
           zs=zsi(i)
 #include "include/alignf.f90"
@@ -8465,7 +8103,7 @@ subroutine runda
           if(kzz.eq.28) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
             endif
           xs=xsi(i)
@@ -8596,7 +8234,7 @@ subroutine runda
                 fake(2,j)=(aai(i,j)*r0a)/benkcc                            !hr08
                 r0a=r0a*r000
               end do
-              
+
               write(9,'(a16)') bez(ix)
               write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
               write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
@@ -8612,7 +8250,7 @@ subroutine runda
               write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
               write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
               write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-              
+
               do j=1,20
                 fake(1,j)=zero
                 fake(2,j)=zero
@@ -8633,7 +8271,7 @@ subroutine runda
 #include "include/kickfdpe.f90"
           case (25) ! Solenoid
 #include "include/kickfso1.f90"
-          
+
           !-----------------
           !--SKEW ELEMENTS--
           !-----------------
@@ -8796,7 +8434,7 @@ subroutine runda
       write(lout,*) dare(x(1)),dare(y(1))
       write(lout,*) dare(x(2)),dare(y(2))
       write(lout,*) dare(sigmda),dare(dpda)
-      
+
       write(12,'(E22.15)') dare(x(1))
       write(12,'(E22.15)') dare(y(1))
       write(12,'(E22.15)') dare(x(2))
@@ -8805,7 +8443,7 @@ subroutine runda
       write(12,'(E22.15)') dare(dpda)
 
       write(lout,10010)
-      
+
   520 continue
 !     DADAL AUTOMATIC INCLUSION
       time2=0.
@@ -8853,9 +8491,9 @@ subroutine umlauda
       use wire
       use mod_hions
       use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
-      
+
       implicit none
-      
+
       integer i,ibb,iii,i2,i3,i4,icav,icoonly,ien,iflag,iflag1,iflag2,  &
      &ii,ii2,ip,ipch,irrtr,ivar,ivar1,iwrite,ix,j,j1,jb,jj,jmel,jx,k,   &
      &kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,damap,damapi,damap1,f,aa2,   &
@@ -8971,9 +8609,9 @@ subroutine umlauda
       ozp=yytr(1,2)
       sigm1=sigm(1)
       dps1=dps(1)
-      nucmda=nucm0 ! this is doen like this in case we want to change so we can run Ions designed for different optics. 
-      !mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j)) Again we keep this variable in case we want to change the implementation later. 
-      mtcda = one  
+      nucmda=nucm0 ! this is doen like this in case we want to change so we can run Ions designed for different optics.
+      !mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j)) Again we keep this variable in case we want to change the implementation later.
+      mtcda = one
 
 
       if(iqmodc.eq.1) then
@@ -9019,7 +8657,7 @@ subroutine umlauda
         call davar(deltas,zero,5)
         call davar(dpda1,zero,6)
 
-!FOX  DPDA1=DPDA1+DPS1*C1E3 ;        
+!FOX  DPDA1=DPDA1+DPS1*C1E3 ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -9460,7 +9098,7 @@ subroutine umlauda
           call dacct(damap,nvar,damap1,nvar,damap,nvar)
           call dacct(damap,nvar,damapi,nvar,damap,nvar)
 ! the same as in umlalid1
-      
+
 !FOX  XX(1)=X(1) ;
 !FOX  XX(2)=X(2) ;
 !FOX  YY(1)=Y(1) ;
@@ -9688,14 +9326,14 @@ subroutine umlauda
           pi=four*atan_mb(one)
         if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*ZZ0 ;
-          
+
           crabfreq=ek(ix)*c1e3
           crabpht=crabph(ix)
 
 
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
-                
+
 !FOX  Y(1)=Y(1) - CRABAMP*C1E3/E0F*
 !FOX  SIN((SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT))/(1+DPDA) ;
@@ -9723,7 +9361,7 @@ subroutine umlauda
            crabpht=crabph(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
-               
+
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
 !FOX  SIN(KCRABDA)*MTCDA/(ONE+DPDA) ;
 
@@ -9747,7 +9385,7 @@ subroutine umlauda
         if(kzz.eq.26) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
@@ -9782,7 +9420,7 @@ subroutine umlauda
           if(kzz.eq.-26) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
             endif
           xs=xsi(i) ! JBG change of variables for misal calculations
@@ -9816,9 +9454,9 @@ subroutine umlauda
           if(kzz.eq.27) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
-            endif 
+            endif
           xs=xsi(i)
           zs=zsi(i)
 #include "include/alignf.f90"
@@ -9851,9 +9489,9 @@ subroutine umlauda
           if(kzz.eq.-27) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
-            endif 
+            endif
           xs=xsi(i)
           zs=zsi(i)
 #include "include/alignf.f90"
@@ -9885,7 +9523,7 @@ subroutine umlauda
           if(kzz.eq.28) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
             endif
           xs=xsi(i)
@@ -9924,7 +9562,7 @@ subroutine umlauda
           if(kzz.eq.-28) then
             ! JBG bypass this element if 4D/5D case
             if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case' 
+!                write(*,*)'Bypassing RF mult 4D or 5D case'
                 goto 440
             endif
           xs=xsi(i)
@@ -9985,11 +9623,11 @@ subroutine umlauda
 !FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
 !FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
 !FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
-!FOX  SIGMDA=COTR(IRRTR,5)+ 
+!FOX  SIGMDA=COTR(IRRTR,5)+
 !FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
 !FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
 !FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
-!FOX  PUSIG=COTR(IRRTR,6)+ 
+!FOX  PUSIG=COTR(IRRTR,6)+
 !FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
 !FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
 !FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
@@ -9999,7 +9637,7 @@ subroutine umlauda
 !FOX  RV=EJ1/E0*E0F/EJF1 ;
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
-!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
 !FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
         end if
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
@@ -10027,7 +9665,7 @@ subroutine umlauda
         xs=xsi(i)
         zs=zsi(i)
 #include "include/alignf.f90"
-        
+
         select case (kzz)
         case (1)  ! HORIZONTAL DIPOLE
 !FOX  EKK=EKK*C1E3 ;
@@ -10184,7 +9822,7 @@ subroutine umlauda
 #include "include/kickfho.f90"
 #include "include/kickfxxv.f90"
         end select
-        
+
  440  continue
 #ifdef DEBUG
 !     if (umcalls.eq.8) then
@@ -10462,24 +10100,24 @@ end subroutine umlauda
 subroutine wireda(ix,i)
 ! MODEL OF STRAIGHT CURRENT WIRE
 !
-!     The model provides a transfer map of a straight current wire. 
+!     The model provides a transfer map of a straight current wire.
 !     Description:
 !     1. Infinitly thin wire with arbitrary orientation.
 !     2. Thin element in SixTrack (L)=0
-!     3. Parameters: 
+!     3. Parameters:
 !     dx, dy: horizontal and vertical distances between wire midpoint
-!     and closed orbit [mm] 
+!     and closed orbit [mm]
 !     (parameters are given by dx and dy in WIRE block)
 !     tx, ty: tilt of the wire w.r.t the closed orbit in the
-!     horizontal and vertical planes (in degrees) 
+!     horizontal and vertical planes (in degrees)
 !     (parameters are given by tiltx and tilty in WIRE block)
 !     L - physical length of the wire element [m]
 !     cur - current of the wire [Amperes]
-!     embl - embedding drift (integrated length or integration interval) [m] 
+!     embl - embedding drift (integrated length or integration interval) [m]
 !     4. The transport map is given for canonical variables (x,px...)
 !
 ! The MAP is constructed out of the following steps:
-!     1. Declaration of shifted canonical variables: 
+!     1. Declaration of shifted canonical variables:
 !          rx = x+dx; ry = y+dy  in the same way as for the BEAM-BEAM element
 !     2. Symplectic Rotation by the tilt angles tx, ty (in 4D space: px, rx, py, ry)
 !     3. Wire kick for a longitudinally aligned wire (= kick for tx=ty=0)
@@ -10521,7 +10159,7 @@ subroutine wireda(ix,i)
 !FOX  D V RE INT L ; D V RE INT ONE ; D V RE INT TWO ;
 !FOX  D V RE INT C1M7 ;
 !FOX  D V RE INT C1E3 ; D V RE INT C1M3 ;
-!FOX  D V DA INT RTWO_ NORD NVAR ; 
+!FOX  D V DA INT RTWO_ NORD NVAR ;
 !FOX  D V RE INT NNORM_ ;
 !FOX  E D ;
 !FOX  1 if(1.eq.1) then
@@ -10533,7 +10171,7 @@ call comt_daStart
 !     magnetic rigidity
 
       CHI = (sqrt(e0**2-nucm0**2)*c1e6)/clight
-      TX = wire_tiltx(ix) !tilt x [degrees] 
+      TX = wire_tiltx(ix) !tilt x [degrees]
       TY = wire_tilty(ix) !tilt y [degrees]
       TX = TX*(pi/c180e0) ![rad]
       TY = TY*(pi/c180e0) ![rad]
@@ -10705,7 +10343,7 @@ end subroutine wireda
 !FOX  D V RE INT E0 ; D V RE EXT E0F ;
 !FOX  D V RE INT HSY 3 ; D V RE INT PHAS ;
 !FOX  D V RE EXT ED NELE ; D V RE EXT HSYC NELE ;
-!FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ; 
+!FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ;
 !FOX  D V RE INT C1E3 ; D V RE INT ONE ;
 !FOX  D V IN EXT ITIONC NELE ; D V IN INT ITION ; D V IN INT IX ;
 !FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
@@ -10856,7 +10494,7 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
 !
 !   Hirata's 6d beam-beam from BBC
 !   DA VERSION for SIXTRACK courtesy Peter Leunissen
-!   January 1999         
+!   January 1999
 !
 !-----------------------------------------------------------------------
       use floatPrecision
@@ -11312,7 +10950,7 @@ end subroutine beaminf
 
 +dk maincr
 program maincr
-  
+
   use floatPrecision
   use end_sixtrack
   use file_units
@@ -11320,17 +10958,18 @@ program maincr
   use mathlib_bouncer
   use physical_constants
   use numerical_constants
-  
+
   use scatter, only : scatter_active, scatter_initialise
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
   use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
   use zipf,    only : zipf_numfiles, zipf_dozip
-  
+
   use, intrinsic :: iso_fortran_env, only : output_unit
   use mod_units
   use aperture
   use mod_ranecu
+  use mod_alloc, only : alloc_init
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -11346,36 +10985,37 @@ program maincr
   use crcoall
   use parpro
   use parpro_scale
+  use mod_settings
   use mod_common
   use mod_commonmn
   use mod_commons
   use mod_commont
-  
+
   use mod_hions
   use mod_dist
   use matrix_inv
   use aperture
   use wire
-  
+
   implicit none
-  
+
 interface
-  
+
   subroutine envarsv(dpsv,oidpsv,rvv,ekv)
-      
+
     use floatPrecision
     use parpro
     use parpro_scale
     use mod_commond
-    
+
     implicit none
 
     real(kind=fPrec) :: dpsv(npart)
     real(kind=fPrec) :: oidpsv(npart)
     real(kind=fPrec) :: rvv(npart)
-    real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:) 
+    real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:)
   end subroutine envarsv
-  
+
 end interface
 
 !-----------------------------------------------------------------------
@@ -11435,6 +11075,7 @@ end interface
 +ca crco
 #endif
 
+  ! "Old" variables
   integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
     idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
     jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -11450,7 +11091,6 @@ end interface
   logical isOpen
   character(len=10) cmonth
   character(len=4) cpto
-  character(len=7) tmpFile
 #ifdef CR
   character(len=80) day
 #else
@@ -11488,348 +11128,250 @@ end interface
   data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
     '  April   ','   May    ','   June   ','   July   ',' August  ',  &
     ' September',' October  ',' November ',' December '/
+
+  ! New Variables
+  character(len=:), allocatable :: featList
+  character(len=7)  tmpFile
+  character(len=23) timeStamp
+  character(len=8)  tsDate
+  character(len=10) tsTime
+
+  logical fErr ! For file units
+
 #include "version.f90"
-!-----------------------------------------------------------------------
-  errout_status = 0         ! Set to nonzero before calling abend in case of error.
-                            ! If prror is called, it will be set internally.
-  lout=92
+
+  ! ---------------------------------------------------------------------------------------------- !
+  errout_status = 0 ! Set to nonzero before calling abend in case of error.
+  lout = 92
 #ifndef CR
-  lout=output_unit
+  lout = output_unit
 #endif
-  call allocate_arrays      ! Initial allocation of memory
+
+  call alloc_init      ! Initialise tmod_alloc
+  call allocate_arrays ! Initial allocation of memory
+
+  ! Set napx,napxo,trtime for error handling
+  napx   = 0
+  napxo  = 0
+  trtime = 0.0
+  napxto = 0
+  runtim = ""
+
+  !----------------------------------------------------------------------------------------------- !
+  ! Features
+#ifdef TILT
+  featList = featList//" TILT"
+#endif
+#ifdef FAST
+  featList = featList//" FAST"
+#endif
+#ifdef STF
+  featList = featList//" STF"
+#endif
+#ifdef COLLIMAT
+  featList = featList//" COLLIMAT"
+#endif
 #ifdef CRLIBM
-! Removed the call to disable_xp for Laurent
-! but re-instated it
+  featList = featList//" CRLIBM"
   call disable_xp()
 #endif
-#ifdef DEBUG
-!     umcalls=0
-!     dapcalls=0
-!     dokcalls=0
-!     dumpl=0
-#endif
-! Set napx,napxo,trtime for error handling
-  napx=0
-  napxo=0
-  trtime=0.0
-  napxto=0
-  runtim=''
 #ifdef CR
-      stxt=''
+  featList = featList//" CR"
+  stxt = ""
+#endif
+#ifdef ROOT
+  featList = featList//" ROOT"
 #endif
 #ifdef HDF5
+  featList = featList//" HDF5"
   call h5_initHDF5()
 #endif
 #ifdef BOINC
+  featList = featList//" BOINC LIBARCHIVE"
   call boinc_init()
-!  call boinc_init_graphics()
+! call boinc_init_graphics()
 #endif
-#ifdef CR
-! Main start for Checkpoint/Restart
-      sythckcr=.false.
-      numlcr=1
-      rerun=.false.
-      start=.true.
-      restart=.false.
-      checkp=.false.
-      fort95=.false.
-      fort96=.false.
-      sixrecs=0
-      binrec=0
-      bnlrec=0
-      bllrec=0
-      do i=1,(npart+1)/2
-        binrecs(i)=0
-      enddo
-      crtime3=0.
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
-#ifdef BOINC
- 611  continue
-#endif
-!--   Very first get rid of any previous partial output
-      inquire(unit=lout, opened=isOpen)
-      if(isOpen) close(lout)
-#ifdef BOINC
-      call boincrf('fort.92',filename)
-#ifdef FIO
-      open(lout,file=filename,form='formatted',status='replace',round='nearest')
-#else
-      open(lout,file=filename,form='formatted',status='replace')
-#endif
-#else
-#ifdef FIO
-      open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
-#else
-      open(lout,file='fort.92',form='formatted',status='replace')
-#endif
-#endif
-!--   Now position the checkpoint/restart logfile=93
-#ifdef BOINC
-      call boincrf('fort.93',filename)
-#ifdef FIO
-      open(93,file=filename,form='formatted',status='unknown', round='nearest')
-#else
-      open(93,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-      open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
-#else
-      open(93,file='fort.93',form='formatted',status='unknown')
-#endif
-#endif
-  606 read(93,'(a1024)',end=607) arecord
-      goto 606
-  607 backspace (93,iostat=ierro)
-! and if BOINC issue an informatory message
-#ifdef BOINC
-      if (start) then
-        write(93,*) 'SIXTRACR starts very first time'
-      else
-        write(93,*) 'SIXTRACR retry after unzip of Sixin.zip'
-      endif
-#endif
-! Now we see if we have a fort.6 which implies
-! that we can perhaps just restart using all exisiting files
-! including the last checkpoints
-! if not, we just do a start (with an unzip for BOINC)
-#ifdef BOINC
-      call boincrf('fort.6',filename)
-#ifdef FIO
-      open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
-#else
-      open(output_unit,file=filename,form='formatted',status='old',err=602)
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
-#else
-#ifdef FIO
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
-#else
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602)
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
-#endif
-      rerun=.true.
-      goto 605
-#ifdef BOINC
-  602 continue
-! No fort.6 so we do an unzip of Sixin.zip
-! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
-! and CLOSE 92 and 93
-      if (start) then
-        start=.false.
-        close(92)
-        close(93)
-! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
-! name hard-wired in our boinc_unzip_.
-! Either it is only the fort.* input data or it is a restart.
-! Removed temporarily??? because of problems.
-! Re-instated and REQUIRED version 4516
-        !call boinc_unzip()
-        !call system('unzip Sixin.zip')
-        
-        call boincrf("Sixin.zip",filename)
-        ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
-        call f_read_archive(trim(filename),".")
-        go to 611
-      endif
-#ifdef FIO
-      open(output_unit,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-      open(output_unit,file=filename,form='formatted',status='unknown')
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: '
-#else
-#ifdef FIO
- 602  open(output_unit,file='fort.6',form='formatted',status='new',round='nearest')
-#else
- 602  open(output_unit,file='fort.6',form='formatted',status='new')
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: '
-#endif
-!--   Now check for restart files fort.95/96 and OPEN them
-#ifdef BOINC
-  605 call boincrf('fort.95',filename)
-      open(95,file=filename,form='unformatted',status='old',err=600)
-#else
-  605 open(95,file='fort.95',form='unformatted',status='old',err=600)
-#endif
-      fort95=.true.
-      goto 608
-#ifdef BOINC
-  600 call boincrf('fort.95',filename)
-      open(95,file=filename,form='unformatted',status='new')
-#else
-  600 open(95,file='fort.95',form='unformatted',status='new')
-#endif
-#ifdef BOINC
-  608 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='old',err=601)
-#else
-  608 open(96,file='fort.96',form='unformatted',status='old',err=601)
-#endif
-      fort96=.true.
-      goto 609
-#ifdef BOINC
-  601 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='new')
-#else
-  601 open(96,file='fort.96',form='unformatted',status='new')
-#endif
-#ifdef BOINC
-  609 call boincrf('fort.91',filename)
-#ifdef FIO
-      open(91,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-      open(91,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-  609 open(91,file='fort.91',form='formatted',status='unknown',round='nearest')
-#else
-  609 open(91,file='fort.91',form='formatted',status='unknown')
-#endif
-#endif
-! END +if cr -- END of Main start for Checkpoint/Restart
-#else
-      lout=output_unit
-#endif
-      
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
-!-----------------------------------------------------------------------
+
   call units_initUnits
-  
-  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., boinc=.true.,fio=.true.) ! Should be opened in DATEN
-  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., boinc=.true.,fio=.true.) ! Should be opened in DATEN
-  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., boinc=.true.,fio=.true.,recl=303)
-  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., boinc=.true.,fio=.true.) ! Should only be opened when reading
-  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=22,fileName="fort.22",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,boinc=.true.)
-! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  
+
+#ifdef CR
+  ! Main start for Checkpoint/Restart
+  sythckcr = .false.
+  numlcr   = 1
+  rerun    = .false.
+  start    = .true.
+  restart  = .false.
+  checkp   = .false.
+  fort95   = .false.
+  fort96   = .false.
+  sixrecs  = 0
+  binrec   = 0
+  bnlrec   = 0
+  bllrec   = 0
+  crtime3  = 0.0
+  do i=1,(npart+1)/2
+    binrecs(i) = 0
+  end do
+
+#ifdef BOINC
+611 continue
+#endif
+  ! Very first get rid of any previous partial output
+  inquire(unit=lout, opened=isOpen)
+  if(isOpen) close(lout)
+  call units_openUnits(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
+
+  ! Now position the checkpoint/restart logfile=93
+  call units_openUnits(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
+606 continue
+  read(93,"(a1024)",end=607) arecord
+  goto 606
+607 continue
+  backspace (93,iostat=ierro)
+#ifdef BOINC
+  ! and if BOINC issue an informatory message
+  if(start) then
+    write(93,"(a)") "SIXTRACR starts for the very first time"
+  else
+    write(93,"(a)") "SIXTRACR retry after unzip of Sixin.zip"
+  end if
+#endif
+  ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
+  ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
+  ! call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  ! if(fErr) goto 602
+  ! stxt = "SIXTRACR reruns on: "
+  call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  if(fErr) then
+#ifdef BOINC
+    ! No fort.6 so we do an unzip of Sixin.zip
+    ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
+    ! and CLOSE 92 and 93
+    if(start) then
+      start=.false.
+      close(92)
+      close(93)
+      ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
+      ! Name hard-wired in our boinc_unzip_.
+      ! Either it is only the fort.* input data or it is a restart.
+      call boincrf("Sixin.zip",filename)
+      ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
+      call f_read_archive(trim(filename),".")
+      goto 611
+    end if
+    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
+#else
+    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
+#endif
+    ! Set up start message depending on fort.6 or not
+    stxt = "SIXTRACR starts on: "
+  else
+    ! Set up start message depending on fort.6 or not
+    stxt = "SIXTRACR reruns on: "
+    rerun=.true.
+  end if
+  call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
+  if(fErr) then
+    call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
+  else
+    fort95 = .true.
+  end if
+  call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
+  if(fErr) then
+    call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
+  else
+    fort96 = .true.
+  end if
+  call units_openUnits(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
+#else
+  lout = output_unit
+#endif
+
+  ! Open Regular File Units
+  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
+  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr)
+  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
+  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr)
+! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
+  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=22,fileName="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Not in use?
+  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
+! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
+
 #ifdef STF
   ! Open Single Track File
-  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,boinc=.true.)
+  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,boinc=.true.)
+    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
   end do
 #endif
-  
-  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,boinc=.true.,fio=.true.)
-  
-  ! Eric for the DA coefficients in BINARY
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
-  
-#ifdef DEBUG
-  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,boinc=.true.)
-  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,boinc=.true.)
-#endif
-  
-  ! Heavy Ion Output
-  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,boinc=.true.) ! collimator losses (energy)
-  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,boinc=.true.) ! collimator losses in function of particle i
-  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,boinc=.true.) ! mtc after each collimator interaction
 
-  write(lout,10010) version,moddate
-      tlim=1e7
-      call timest(tlim)
-      call datime(idate,itime)
-      write(cdate,'(I6.6)') idate
-      write(ctime,'(I4.4)') itime
-      read(cdate(3:4),'(I2)') imonth
-      if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'nd of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'nd of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else if(cdate(6:6).eq.'3'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'rd of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'rd of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else
-#ifdef CR
-        day=stxt//cdate(5:6)//'th of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'th of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      endif
-      if(ctime(1:2).ne.'  ') then
-        if(ctime(3:4).eq.'  ') then
-          runtim=day(1:44)//' at '//ctime(1:2)//'.'
-        else if(ctime(3:4).eq.'01') then
-          runtim=day(1:44)//' one minute after '//ctime(1:2)//'.'
-        else
-          runtim=day(1:44)//ctime(3:4)//' minutes after '//ctime(1:2)//'.'
-        endif
-      else
-        if(ctime(3:4).eq.'  ') then
-          runtim=day(1:44)//' at midnight.'
-        else if(ctime(3:4).eq.'01') then
-          runtim=day(1:44)//' one minute after midnight.'
-        else
-          runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
-        endif
-      endif
-      write(lout,'(a80)') runtim
-#ifdef CR
-!     Log start messages
-      write(93,*)
-      write(93,*) 'SIXTRACR MAINCR ',runtim
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-#endif
+  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
+
+  ! Eric for the DA coefficients in BINARY
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
+
 #ifdef DEBUG
-                   !call system('../crmain  >> crlog')
+  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
 #endif
+
+  ! Heavy Ion Output
+  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
+  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
+  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
+
+  ! ---------------------------------------------------------------------------------------------- !
+  ! Write Header
+
+  ! TimeStamp
+  call date_and_time(tsDate,tsTime)
+  timeStamp = tsDate(1:4)//"-"//tsDate(5:6)//"-"//tsDate(7:8)//" "//&
+              tsTime(1:2)//":"//tsTime(3:4)//":"//tsTime(5:10)
+
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
+  write(lout,"(a)") "  "//repeat("=",128)
+  write(lout,"(a)") "    Built With:"//featList
+  write(lout,"(a)") "    Start Time: "//timeStamp
+  write(lout,"(a)") ""
+  write(lout,"(a)") st_divLine
+
+#ifdef CR
+  ! Log start messages
+  write(93,"(a)") ""
+  write(93,"(a)") "SIXTRACR MAINCR"
+  write(93,"(a)") stxt//timeStamp
+  endfile(93,iostat=ierro)
+  backspace(93,iostat=ierro)
+#endif
+
 !     A normal start, time0 is beginning
       pretime=0.0
       trtime=0.0
@@ -11977,9 +11519,9 @@ end interface
 #ifdef ROOT
       call SixTrackRootFortranInit
 #endif
-  
+
   call daten
-  
+
 #ifdef HDF5
   if(h5_isActive) then
     call h5_openFile()
@@ -11989,7 +11531,7 @@ end interface
   call aperture_init
 
   if (ithick.eq.1) call allocate_thickarrays
-      
+
 #ifdef DEBUG
 !     call dumpbin('adaten',999,9999)
 !     call abend('after  daten                                      ')
@@ -12162,7 +11704,7 @@ end interface
               write(lout,'(1x,a)') "Please fix the TLEN parameter in your SYNC block"
               write(lout,'(1x,a)') "so that it matches the calculated machine length from DCUM."
               write(lout,'(1x,a)') "If incorrect, the RF frequency may be (slightly) wrong."
-        
+
               !It's a warning not an error, and the consequences seem relatively small.
               !Ideally, tlen should be calculated automatically based on the sequence.
               !call prror(-1)
@@ -12317,7 +11859,7 @@ end interface
             if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
             write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
           endif
-         
+
 !-- MULTIPOLE BLOCK
           if(kzz.eq.11) then
              dynk_izuIndex(ix)=izu
@@ -12340,10 +11882,10 @@ end interface
                 izu=izu+1
                 bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
                 bbi(i,k)=bbiv(k,m,i)
-                
+
                 r0a=r0a*r0
              enddo
-             
+
              izu=izu+2*mmul-2*nmz
        !------------------------------------------------------------------------------------
           endif
@@ -12402,7 +11944,7 @@ end interface
 #ifndef CRLIBM
               read(33,*) (clo6(l),clop6(l), l=1,3)
 #else
-              read(33,*) ch 
+              read(33,*) ch
               lineno=lineno+1
               ch1(:nchars+3)=ch(:nchars)//' / '
               call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
@@ -12606,7 +12148,7 @@ end interface
           endif
           iar=(m+ib-2)*napx+1
 
-! save tas matrix and closed orbit for later dumping of the beam 
+! save tas matrix and closed orbit for later dumping of the beam
 ! distribution at the first element (i=-1)
 ! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
 ! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
@@ -12627,7 +12169,7 @@ end interface
 !     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
           endif
 !     tas(iar,*,*) [mm,mrad,mm,mrad,1]
-          
+
 ! convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
           tasiar16=tas(iar,1,6)*c1m3
           tasiar26=tas(iar,2,6)*c1m3
@@ -12827,7 +12369,7 @@ end interface
 
 #ifdef FLUKA
 
-!     A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis 
+!     A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis
 !             for the FLUKA Team
 !     last modified: 11-06-2014
 !     start connection to FLUKA and initialise max ID
@@ -12874,7 +12416,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -12909,8 +12451,8 @@ end interface
 
       endif
   550 continue
-      
-      
+
+
       if (idp.eq.0.or.ition.eq.0) then
          !4D tracking
          if (iclo6 .ne. 0) then
@@ -12926,8 +12468,8 @@ end interface
             call prror(-1)
          endif
       endif
-      
-      
+
+
 !!!   GENERATE THE INITIAL DISTRIBUTION
       if(ibidu.eq.2) then
         ! Note: Keep in sync with write(32) above
@@ -12941,7 +12483,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -12973,7 +12515,7 @@ end interface
         ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
         clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
         di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
-        
+
         damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
       endif
 
@@ -13025,7 +12567,7 @@ end interface
           ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)              ! hiSix
           dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hiSix
           oidpsv(j)   = one/(one+dpsv(j))
-          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))  
+          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))
           moidpsv (j) = mtc(j)*oidpsv(j)
           omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
 
@@ -13124,7 +12666,7 @@ end interface
       do 340 ia=1,napx,2
         if(idfor.ne.2.and.idfor.ne.3) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-          if(iquiet==0) write(lout,10050)
+          if(st_quiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
@@ -13179,8 +12721,8 @@ end interface
             endif
             chi=chi+dchi
   320     continue
-          if(iquiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-          if(iquiet == 0) then
+          if(st_quiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+          if(st_quiet == 0) then
             write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
                               xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
           end if
@@ -13232,7 +12774,7 @@ end interface
           nucm(ia)=nucm0
           nucm(ia+1)=nucm0
 
-          if(iquiet==0) write(lout,10020) ampv(ia),amp(2),epsa
+          if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 #ifndef CRLIBM
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
@@ -13250,7 +12792,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV xv(1,ia)]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ yv(1,ia)]"
@@ -13261,7 +12803,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV yv(1,ia)]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ xv(2,ia)]"
@@ -13272,7 +12814,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV xv(2,ia)]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ yv(2,ia)]"
@@ -13283,7 +12825,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV yv(2,ia)]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ sigmv(ia)]"
@@ -13294,7 +12836,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV sigmv(ia)]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ dpsv(ia)]"
@@ -13305,7 +12847,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV dpsv(ia)]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ xv(1,ia+1)]"
@@ -13316,7 +12858,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV xv(1,ia+1)]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ yv(1,ia+1)]"
@@ -13386,7 +12928,7 @@ end interface
              write(lout,*)"Error when reading fort.13 [CONV e0]"
              call prror(-1)
           endif
-          
+
           read(13,'(a)', iostat=ierro) ch
           if(ierro.gt.0) then
              write(lout,*)"Error when reading fort.13 [READ ejv(ia)]"
@@ -13425,7 +12967,7 @@ end interface
           omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
           omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
-        if (idfor /= 3 .and. iquiet == 0) then
+        if (idfor /= 3 .and. st_quiet == 0) then
           write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
                             yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
         end if
@@ -13688,7 +13230,7 @@ end interface
 
 #ifndef FLUKA
 #ifdef CR
-      if (.not.restart) then  
+      if (.not.restart) then
 ! If restart is true , we haven't done any tracking
 ! and must be running from very last checkpoint
         write(93,*) 'Very last call to WRITEBIN?'
@@ -13736,57 +13278,57 @@ end interface
         ie=ia+1
         ia2=(ie)/2
         napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
-        
+
         if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
           if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has ',&
             'corrupted output probably due to lost particle: ',ia,' or: ',ie
         end if
-        
+
         if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
           id=id+1
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           else
             write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ie
         end if
-        
+
         if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
           id=id+1
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           else
             write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           end if
-          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ia
         end if
-        
+
         if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           else
             write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
-          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
@@ -13873,7 +13415,7 @@ end interface
           if(iposc.ge.1) call sumpos
         endif !END if(ipos.eq.1)
         goto 520 !Done postprocessing
-        
+
   490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
           ndafi2=ndafi
           do 500 ia=1,ndafi2
@@ -13909,7 +13451,7 @@ end interface
           if(iposc.ge.1) call sumpos
         endif
         goto 520 !Done postprocessing
-        
+
   490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
           ndafi2=ndafi
           do 500 ia=1,(2*ndafi2),2
@@ -13929,7 +13471,7 @@ end interface
 #endif
 
  520  continue !Finished postprocessing (POST in fort.3)
-      
+
 !     start fma
       if(fma_flag) then
         write(lout,*)'Calling FMA_POSTPR'
@@ -13983,7 +13525,7 @@ end interface
 !     write(lout,*) 'ia=',ia,' numxv=',numxv
 !           napxto=napxto+numxv(ia)
 !         endif
-!       enddo 
+!       enddo
 !     endif
 #endif
       write(lout,10300) napxto,trtime
@@ -14349,7 +13891,7 @@ subroutine trauthin(nthinerr)
         if(mout2.eq.1.and.icextal(i).ne.0) then
           write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
         end if
-        
+
         select case (kzz)
         case (1)
           if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
@@ -14474,13 +14016,13 @@ subroutine trauthin(nthinerr)
             benkcc = ed(ix)*benkc(irm(ix))
             r0a    = one
             r000   = r0*r00(irm(ix))
-            
+
             do j=1,mmul
               fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
               fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
               r0a=r0a*r000
             end do
-            
+
             write(9,'(a16)') bez(ix)
             write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
             write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
@@ -14496,7 +14038,7 @@ subroutine trauthin(nthinerr)
             write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
             write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
             write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-            
+
             do j=1,20
               fake(1,j)=zero
               fake(2,j)=zero
@@ -14510,7 +14052,7 @@ subroutine trauthin(nthinerr)
         case (25) ! Solenoid
 #include "include/solenoid.f90"
           ktrack(i) = 56
-          
+
         !----------------
         !--Negative KZZ--
         !----------------
@@ -14587,7 +14129,7 @@ subroutine trauthin(nthinerr)
         case default
           ktrack(i)=31
         end select
-        
+
   290 continue
       do j=1,napx
         dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
@@ -14669,7 +14211,7 @@ subroutine trauthin(nthinerr)
       call collimate_exit()
 #endif
   return
-      
+
 end subroutine trauthin
 
 !>
@@ -14678,7 +14220,7 @@ end subroutine trauthin
 !<
 subroutine thin4d(nthinerr)
   ! Replaced computed goto with select case. VKBO 27/11/2017
-  
+
   use floatPrecision
   use end_sixtrack
   use string_tools
@@ -14688,7 +14230,7 @@ subroutine thin4d(nthinerr)
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
-  
+
 #ifdef FLUKA
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 17-07-2013
@@ -14711,7 +14253,7 @@ subroutine thin4d(nthinerr)
   use aperture
   use elens
   use wire
-  
+
   implicit none
 
   real(kind=fPrec) pz
@@ -14802,7 +14344,7 @@ subroutine thin4d(nthinerr)
       call dynk_apply(n)
     end if
     call dump_linesFirst(n)
-        
+
     ! loop over structure elements, single element: name + type + parameter,
     ! structure element = order of single elements/blocks
     do 630 i=1,iu
@@ -14863,7 +14405,7 @@ subroutine thin4d(nthinerr)
 
       select case (ktrack(i))
       case (1)
-        stracki=strack(i) 
+        stracki=strack(i)
         if(iexact.eq.0) then ! exact drift?
           do j=1,napx
             xv(1,j)=xv(1,j)+stracki*yv(1,j)
@@ -14899,7 +14441,7 @@ subroutine thin4d(nthinerr)
           temptr(4)=yv(2,j)/moidpsv(j)
           temptr(5)=sigmv(j)
           temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-          ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+          ! Adding the closed orbit. The previous values are stored in the temptr vector.
           xv(1,j)  = cotr(irrtr,1)
           yv(1,j)  = cotr(irrtr,2)
           xv(2,j)  = cotr(irrtr,3)
@@ -14907,18 +14449,18 @@ subroutine thin4d(nthinerr)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
-          ! Multiplying the arbitrary matrix to the coordinates. 
+          ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
             xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
+            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
           enddo
           ! Transforming back to the tracked coordinates of Sixtrack...
           ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-          
+
 
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -14927,8 +14469,8 @@ subroutine thin4d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
 
-          
-          ! We have to go back to angles after we updated the energy. 
+
+          ! We have to go back to angles after we updated the energy.
           yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
           yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
           !yv(j,1) = yv(j,1)*moidpsv(j)
@@ -15284,7 +14826,7 @@ subroutine thin4d(nthinerr)
 #include "include/beamr3.f90"
 690   continue
       goto 620
-        
+
 !----------------------------
 620 continue
 
@@ -15322,9 +14864,9 @@ subroutine thin4d(nthinerr)
 #endif
 
   640 continue
-  
+
   return
-  
+
 end subroutine thin4d
 
 !>
@@ -15348,7 +14890,7 @@ subroutine thin6d(nthinerr)
 
 #ifdef BEAMGAS
 ! <b>Additions/modifications:</b>
-! - YIL: Added call to beamGas subroutine if element name starts with 
+! - YIL: Added call to beamGas subroutine if element name starts with
 !   'press' or 'PRESS' (only for first turn)
 ! - YIL: Added call to beamGasInit just after readcollimator
 #endif
@@ -15391,7 +14933,7 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) NNORM_, NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
   logical llost
-  
+
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
@@ -15449,7 +14991,7 @@ subroutine thin6d(nthinerr)
       if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
     end do
   end if
-  
+
   do 660 n=numlcr,nnuml ! Loop over turns, CR version
 #endif
 #ifndef CR
@@ -15477,7 +15019,7 @@ subroutine thin6d(nthinerr)
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
 #endif
-    
+
     ! A.Mereghetti, for the FLUKA Team
     ! last modified: 03-09-2014
     ! apply dynamic kicks
@@ -15508,11 +15050,11 @@ subroutine thin6d(nthinerr)
 #endif
 
 !Should this be inside "if ktrack .ne. 1"? (time)
-      
+
       if (ldumpfront) then
         call dump_lines(n,i,ix)
       end if
-      
+
 #ifdef FLUKA
 !         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !         last modified: 17-07-2013
@@ -15600,8 +15142,8 @@ subroutine thin6d(nthinerr)
 !     SR, 17-01-2006: Review the TCT assignments because the MADX names
 !     have changes (TCTH.L -> TCTH.4L)
 !
-! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB 
-! both namings before and after V6.503 can be used 
+! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
+! both namings before and after V6.503 can be used
 !
         if (do_coll.and.(bez(myix)(1:2).eq.'TC'  &
                     .or. bez(myix)(1:2).eq.'tc'  &
@@ -15708,7 +15250,7 @@ subroutine thin6d(nthinerr)
       case (2)
         do j=1,napx
           ejf0v(j)=ejfv(j)
-          if(abs(dppoff).gt.pieni) then 
+          if(abs(dppoff).gt.pieni) then
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
           if(kz(ix).eq.12) then
@@ -15739,7 +15281,7 @@ subroutine thin6d(nthinerr)
           temptr(4)=yv(2,j)/moidpsv(j)
           temptr(5)=sigmv(j)
           temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-          ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+          ! Adding the closed orbit. The previous values are stored in the temptr vector.
           xv(1,j)  = cotr(irrtr,1)
           yv(1,j)  = cotr(irrtr,2)
           xv(2,j)  = cotr(irrtr,3)
@@ -15747,18 +15289,18 @@ subroutine thin6d(nthinerr)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
-          ! Multiplying the arbitrary matrix to the coordinates. 
+          ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
             xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
+            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
           enddo
           ! Transforming back to the tracked coordinates of Sixtrack...
           ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-          
+
 
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -15767,8 +15309,8 @@ subroutine thin6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
 
-          
-          ! We have to go back to angles after we updated the energy. 
+
+          ! We have to go back to angles after we updated the energy.
           yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
           yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
           !yv(j,1) = yv(j,1)*moidpsv(j)
@@ -16181,7 +15723,7 @@ subroutine thin6d(nthinerr)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
-        goto 640 
+        goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
         pi=four*atan_mb(one)
@@ -16205,7 +15747,7 @@ subroutine thin6d(nthinerr)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
-        goto 640 
+        goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
         pi=four*atan_mb(one)
@@ -16357,9 +15899,9 @@ subroutine thin6d(nthinerr)
   close(53)
 
 #endif
-  
+
   return
-  
+
 end subroutine thin6d
 
 subroutine callcrp()
@@ -16397,7 +15939,7 @@ subroutine callcrp()
       save
 !-----------------------------------------------------------------------
 #ifdef CR
-      ncalls=ncalls+1 
+      ncalls=ncalls+1
       write(91,*,iostat=ierro,err=11) numx,numl
       rewind 91
       if (restart) then
@@ -16787,7 +16329,7 @@ subroutine trauthck(nthinerr)
     if(mout2.eq.1.and.icextal(i).ne.0) then
       write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
     end if
-    
+
     select case (kzz)
     case (1)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
@@ -16805,7 +16347,7 @@ subroutine trauthck(nthinerr)
       end if
     case (3)
       if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) =31 
+        ktrack(i) =31
       else
         ktrack(i) = 13
 #include "include/stra03.f90"
@@ -16917,7 +16459,7 @@ subroutine trauthck(nthinerr)
           fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
           r0a=r0a*r000
         end do
-        
+
         write(9,'(a16)') bez(ix)
         write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
         write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
@@ -16933,7 +16475,7 @@ subroutine trauthck(nthinerr)
         write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
         write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
         write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-          
+
         do j=1,20
           fake(1,j)=zero
           fake(2,j)=zero
@@ -16947,7 +16489,7 @@ subroutine trauthck(nthinerr)
     case (25) ! Solenoid
 #include "include/solenoid.f90"
       ktrack(i) = 56
-    
+
     !----------------
     !--Negative KZZ--
     !----------------
@@ -17021,12 +16563,12 @@ subroutine trauthck(nthinerr)
         ktrack(i) = 30
 #include "include/stra10.f90"
       end if
-    
+
     case default
       ktrack(i) = 31
     end select
 290 continue ! Label is still needed as it is referenced in some of the ca blocks
-  
+
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
   end do
@@ -17060,7 +16602,7 @@ subroutine trauthck(nthinerr)
         call thck6d(nthinerr)
       end if
     end if
-    
+
   return
 end subroutine trauthck
 
@@ -17083,7 +16625,7 @@ subroutine thck4d(nthinerr)
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
-      
+
 #ifdef FLUKA
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 17-07-2013
@@ -17207,14 +16749,14 @@ subroutine thck4d(nthinerr)
         ix=ic(i)
       else
         ix=ic(i)-nblo
-      
+
         if (ldumpfront) then
           write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
                          "due to lack of test cases. Please contact developers!"
           call prror(-1)
 !+ca dumplines
         end if
-      
+
       end if
 
 #ifdef FLUKA
@@ -17281,7 +16823,7 @@ subroutine thck4d(nthinerr)
 #include "include/thcklin.f90"
             end do
           end do
-        else 
+        else
           do j=1,napx
             puxve=xv(1,j)
             puzve=yv(1,j)
@@ -17292,7 +16834,7 @@ subroutine thck4d(nthinerr)
             xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
             yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
           end do
-        end if 
+        end if
         goto 480
       case (2)
         goto 480
@@ -17311,9 +16853,9 @@ subroutine thck4d(nthinerr)
 
           do kxxa=1,6
             xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)      
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
           enddo
         enddo
         goto 470
@@ -17750,7 +17292,7 @@ subroutine thck6d(nthinerr)
   use dynk, only : ldynk, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
-      
+
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -17771,7 +17313,7 @@ subroutine thck6d(nthinerr)
   use aperture
   use elens
   use wire
-  
+
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
@@ -18018,7 +17560,7 @@ subroutine thck6d(nthinerr)
           temptr(4)=yv(2,j)/moidpsv(j)
           temptr(5)=sigmv(j)
           temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-          ! Adding the closed orbit. The previous values are stored in the temptr vector.   
+          ! Adding the closed orbit. The previous values are stored in the temptr vector.
           xv(1,j)  = cotr(irrtr,1)
           yv(1,j)  = cotr(irrtr,2)
           xv(2,j)  = cotr(irrtr,3)
@@ -18026,18 +17568,18 @@ subroutine thck6d(nthinerr)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
-          ! Multiplying the arbitrary matrix to the coordinates. 
+          ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
             xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa) 
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa) 
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa) 
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)        
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)        
+            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
+            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
           enddo
           ! Transforming back to the tracked coordinates of Sixtrack...
           ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-          
+
 
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -18046,8 +17588,8 @@ subroutine thck6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
 
-          
-          ! We have to go back to angles after we updated the energy. 
+
+          ! We have to go back to angles after we updated the energy.
           yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
           yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
           !yv(j,1) = yv(j,1)*moidpsv(j)
@@ -18913,9 +18455,9 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       dimension hp(npart),hm(npart),hc(npart),hs(npart),wf(npart)
       dimension wfa(npart),wfhi(npart),rhoi(npart)
       dimension hi(npart),fi(npart),hi1(npart)
-      
+
       real(kind=fPrec) fokm
-      
+
 !-----------------------------------------------------------------------
       save
 !-----------------------------------------------------------------------
@@ -19294,7 +18836,7 @@ end subroutine envarsv
 !  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
 !-----------------------------------------------------------------------
 subroutine comnul
-  
+
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
@@ -19305,7 +18847,7 @@ subroutine comnul
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   use aperture
   use elens
   use wire
@@ -19321,14 +18863,14 @@ subroutine comnul
 #ifdef HDF5
   use hdf5_output, only : h5_comnul
 #endif
-  
+
   implicit none
-  
+
   integer i,i1,i2,i3,i4,j
 +ca commd1da
-  
+
   save
-  
+
   ncorru  = 0     ! mod_common
   ncorrep = 0     ! mod_common
   ierro   = 0     ! mod_common
@@ -19338,7 +18880,7 @@ subroutine comnul
   ichromc = 0     ! mod_common
   ilinc   = 0     ! mod_common
   iprint  = 0     ! mod_common
-  
+
   ! TRACKING BLOCK
   ! Line 1
   numl    = 0     ! mod_common
@@ -19364,19 +18906,19 @@ subroutine comnul
   ntwin   = 0     ! mod_common
   ibidu   = 0     ! mod_common
   iexact  = 0     ! mod_common
-  
+
   ! SINGLE ELEMENT BLOCK
   ithick  = 0     ! mod_common
   il      = 0     ! mod_common
-  
+
   ! BLOC DEFINITONS BLOCK
   mper    = 0     ! mod_common
   mblo    = 0     ! mod_common
   mbloz   = 0     ! mod_common
-  
+
   ! STRUCTURE INPUT BLOCK
   kanf    = 0     ! mod_common
-  
+
   ! INITIAL COORDINATES BLOCK
   itra     = 0    ! mod_commons
   chi0     = zero ! mod_commons
@@ -19389,32 +18931,33 @@ subroutine comnul
 
   ! DIFFERENTIAL ALGEBRA BLOCK
   idp     = 0     ! mod_common
-  
+
   ! RANDOM NUMBERS VARIABLES
   iorg    = 0     ! mod_common
-  
+
   ! ITERATION ERRORS BLOCK
   itco    = 0     ! mod_common
   itcro   = 0     ! mod_common
   itqv    = 0     ! mod_common
-  
+
   ! CHROMATICITY ADJUSTMENT BLOCK
   ichrom  = 0     ! mod_common
-  
+
   ! TUNE ADJUSTMENT BLOCK
   iqmod   = 0     ! mod_common
   iqmod6  = 0     ! mod_common
-  
+  qw0(:)  = zero  ! mod_common
+
   ! LINEAR OPTICS BLOCK
   ntco    = 0     ! mod_common
   nt      = 0     ! mod_common
-  
+
   ! ORBIT CORRECTION BLOCK
   iclo    = 0     ! mod_common
-  
+
   ! COMBINATION OF ELEMENTS BLOCK
   icoe    = 0     ! mod_common
-  
+
   ! SEARCH BLOCK
   ise     = 0     ! mod_common
   mesa    = 0     ! mod_common
@@ -19425,17 +18968,20 @@ subroutine comnul
   ise1    = 0     ! mod_common
   ise2    = 0     ! mod_common
   ise3    = 0     ! mod_common
-  
+
   ! SUBRESONANCE CALCULATION BLOCK
   isub    = 0     ! mod_common
   nta     = 0     ! mod_common
   nte     = 0     ! mod_common
   ipt     = 0     ! mod_common
-  
+
   ! RESONANCE COMPENSATION BLOCK
   irmod2  = 0     ! mod_common
   nre     = 0     ! mod_common
-  
+
+  ! SYNCHROTRON OSCILLATIONS BLOCK
+  phas    = zero  ! mod_common
+
   ! TODO
       nur=0
       nch=0
@@ -19508,7 +19054,6 @@ subroutine comnul
       tlen=zero
       pma=zero
       phas0=zero
-      phas=zero
       ition=0
       dpscor=one
       sigcor=one
@@ -19571,7 +19116,6 @@ subroutine comnul
       do 20 i=1,3
         iq(i)=0
         hsy(i)=zero
-        qw0(i)=zero
         clo6(i)=zero
         clop6(i)=zero
         clon(i)=zero
@@ -19854,12 +19398,12 @@ subroutine comnul
 !     initialise common
 !     always in main code
       call dump_comnul
-      
+
 !--FMA ANALYSIS---------------------------------------------------------
 !     M. Fitterer, FNAL
 !     last modified: 2016
       call fma_comnul
-      
+
     !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Mereghetti
 !     last modified: 09-02-2018
@@ -19997,7 +19541,7 @@ subroutine SELNUL( iel )
       zrms(iel)=zero
       benkc(iel)=zero
       r00(iel)=zero
-      
+
       ratioe(iel)=one
       hsyc(iel)=zero
       phasc(iel)=zero
@@ -20034,7 +19578,7 @@ subroutine SELNUL( iel )
       end do
 
       call aperture_nul(iel)
-      
+
       return
 end subroutine SELNUL
 
@@ -20049,7 +19593,7 @@ subroutine STRNUL( iel )
       use mod_common
       use mod_commonmn
       implicit none
-      
+
 !     local variables
       integer iel, i1, i2, i3, j
 
@@ -20215,7 +19759,7 @@ integer function check_SE_unique( iEl, ixEl )
   do i=1,iu
     ix=ic(i)-nblo
     if(ix.gt.0) then
-!     SINGLE ELEMENT 
+!     SINGLE ELEMENT
       if( i.ne.iEl .and. ix.eq.ixEl ) then
         check_SE_unique=i
         exit
@@ -20224,7 +19768,7 @@ integer function check_SE_unique( iEl, ixEl )
   end do
 
   return
-      
+
 end function check_SE_unique
 
 subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
@@ -20240,7 +19784,7 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
 !-----------------------------------------------------------------------
   use floatPrecision
   use mod_common     ! for iu, tlen, ic
-  use parpro   
+  use parpro
   use crcoall
   use end_sixtrack
   implicit none
@@ -20296,7 +19840,7 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
      endif
      exit
   enddo
-  
+
   if (lfound) then
      ixEl=ic(iEl)-nblo
      if (ixEl.lt.0) ixEl=ic(iEl) ! drift
@@ -20306,7 +19850,7 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
      write(lout,*)"this is actually embarassing..."
   endif
   return
-      
+
 end subroutine find_entry_at_s
 
 +dk distance
@@ -21175,13 +20719,15 @@ end subroutine chroma
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
+      use mod_settings
       use mod_common
       use mod_commons
       use mod_commont
+
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
@@ -21234,7 +20780,7 @@ end subroutine chroma
    40 continue
       if(ncorru.ne.1) write(lout,10000) itco
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
-      if(iout.eq.1.and.ncorru.ne.1) then
+      if(st_print .and. ncorru /= 1) then
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
 #ifdef DEBUG
 !     call warr('dpp',dpp,0,0,0,0)
@@ -21788,11 +21334,11 @@ end subroutine combel
 !  Rewritten from computed goto to select case 16/11/2017, VKBO
 !-----------------------------------------------------------------------
 subroutine envar(dpp)
-    
+
     use floatPrecision
     use numerical_constants
     use mathlib_bouncer
-    
+
     use parpro
     use mod_common
     use mod_commons
@@ -21800,9 +21346,9 @@ subroutine envar(dpp)
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
-    
+
     save
-    
+
     dpd  = one+dpp
     dpsq = sqrt(dpd)
     do i=1,il
@@ -21815,7 +21361,7 @@ subroutine envar(dpp)
             sm(i)=ed(i)
             cycle
         end if
-        
+
         kz1 = kz(i)+1
         select case(kz1)
         case (1) ! DRIFTLENGTH
@@ -21825,9 +21371,9 @@ subroutine envar(dpp)
                 a(i,l,3) = zero
                 a(i,l,4) = one
             end do
-            
+
         case (2, 4, 5, 6)
-            ! 2: RECTANGULAR MAGNET 
+            ! 2: RECTANGULAR MAGNET
             ! 4: SEKTORMAGNET
             ! 5: RECTANGULAR MAGNET VERTICAL
             ! 6: SEKTORMAGNET VERTICAL
@@ -21900,7 +21446,7 @@ subroutine envar(dpp)
                 a(i,1,3) = zero
                 a(i,1,4) = one
             end select
-            
+
         case (3) ! QUADRUPOLE
             fok=ek(i)/(one+dpp)
             if(abs(fok).le.pieni) then
@@ -21934,7 +21480,7 @@ subroutine envar(dpp)
             a(i,ih,3) = hs*hi
             a(i,ih,4) = hc
             if(ih.eq.1) goto 100
-            
+
         case (7, 8)
             ! 7: COMBINED FUNCTION MAGNET HORIZONTAL
             ! 8: COMBINED FUNCTION MAGNET VERTICAL
@@ -22006,7 +21552,7 @@ subroutine envar(dpp)
             a(i,ih,2) = si/hi
             a(i,ih,3) = (-one*si)*hi ! hr06
             a(i,ih,4) = co
-            
+
         case (9) ! EDGE FOCUSSING
             rhoi = ed(i)/dpsq
             fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
@@ -22018,12 +21564,12 @@ subroutine envar(dpp)
             a(i,2,2) = zero
             a(i,2,3) = -one*fok ! hr06
             a(i,2,4) = one
-            
+
         end select
     end do
     call block
     return
-    
+
 end subroutine envar
 
 +dk envardis
@@ -22032,11 +21578,11 @@ end subroutine envar
 !  Rewritten from computed goto to select case 16/11/2017, VKBO
 !-----------------------------------------------------------------------
 subroutine envardis(dpp,aeg,bl1eg,bl2eg)
-    
+
     use floatPrecision
     use numerical_constants
     use mathlib_bouncer
-    
+
     use parpro
     use mod_common
     use mod_commons
@@ -22046,7 +21592,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
     dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
     save
-    
+
     dpd  = one+dpp
     dpsq = sqrt(dpd)
     do i=1,il
@@ -22065,7 +21611,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,l,3) = zero
                 aeg(i,l,4) = one
             end do
-            
+
         case (2, 4, 5, 6)
             ! 2: RECTANGULAR MAGNET
             ! 4: SEKTORMAGNET
@@ -22141,7 +21687,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,1,3)=zero
                 aeg(i,1,4)=one
             end select
-            
+
         case (3) ! QUADRUPOLE
             ! FOCUSSING
             fok = ek(i)/(one+dpp)
@@ -22176,7 +21722,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             aeg(i,ih,3) = hs*hi
             aeg(i,ih,4) = hc
             if(ih.eq.1) goto 100
-            
+
         case (7, 8)
             ! 7: COMBINED FUNCTION MAGNET HORIZONTAL
             ! 8: COMBINED FUNCTION MAGNET VERTICAL
@@ -22247,7 +21793,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             aeg(i,ih,2) = si/hi
             aeg(i,ih,3) = (-one*si)*hi              ! hr06
             aeg(i,ih,4) = co
-            
+
         case (9) ! EDGE FOCUSSING
             rhoi = ed(i)/dpsq
             fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
@@ -22259,12 +21805,12 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             aeg(i,2,2) = zero
             aeg(i,2,3) = -one*fok
             aeg(i,2,4) = one
-            
+
         end select
     end do
     call blockdis(aeg,bl1eg,bl2eg)
     return
-    
+
 end subroutine envardis
 
 +dk cadcum
@@ -22361,7 +21907,7 @@ end subroutine envardis
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
 subroutine linopt(dpp)
-  
+
   use floatPrecision
   use end_sixtrack
   use numerical_constants
@@ -22371,7 +21917,7 @@ subroutine linopt(dpp)
   use mod_common
   use mod_commons
   use mod_commont
-  
+
 #ifdef ROOT
   use root_output
 #endif
@@ -22384,9 +21930,9 @@ subroutine linopt(dpp)
 #ifdef COLLIMAT
   use collimation
 #endif
-  
+
   implicit none
-  
+
   integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,nmz,nr,dj
   real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,ci,cikve,clo0,clop0,cr,crkve, &
     crkveuk,di00,dip00,dphi,dpp,dpp1,dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,pie,puf,qu,qv,qw,qwc,r0,&
@@ -22395,12 +21941,12 @@ subroutine linopt(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 #endif
   character(len=max_name_len) idum
-  
+
 #ifdef COLLIMAT
 !+ca collpara
 !+ca dblinopt
 #endif
-  
+
   dimension t(6,4)
   dimension beta(2),alfa(2),phibf(2),phi(2)
   dimension clo0(2),clop0(2),di00(2),dip00(2),qw(2),qwc(3)
@@ -22410,7 +21956,7 @@ subroutine linopt(dpp)
   data dpr/6*zero/
   save
 !-----------------------------------------------------------------------
-  
+
       nhmoni=0
       nvmoni=0
       nhcorr=0
@@ -22536,7 +22082,7 @@ subroutine linopt(dpp)
 #ifdef HDF5
       if(h5_writeOptics) call h5lin_init
 #endif
-      
+
       STRUCTLOOP: do k=1,nt
         ix=ic(k)
         if(ix.gt.nblo) goto 220 !Not a BLOCK
@@ -22544,7 +22090,7 @@ subroutine linopt(dpp)
 
         jj=0 !initial idx
         dj=1 !step
-        
+
         if (ix.le.0) then
            ix=-1*ix             !hr13
            jj=mel(ix)+1         !initial idx
@@ -22558,7 +22104,7 @@ subroutine linopt(dpp)
           if(ithick.eq.1.and.kz(jk).ne.0) goto 120
           if(ithick.eq.0.and.kz(jk).ne.0) then
             etl=etl+el(jk)
-            
+
 !c$$$            nr=nr+1
 !c$$$+if .not.collimat.and..not.bnlelens
 !c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
@@ -22569,7 +22115,7 @@ subroutine linopt(dpp)
 !c$$$            if(ntco.ne.0) then
 !c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 !c$$$            endif
-            
+
             write(lout,*) "ERROR in LINOPT:"
             write(lout,*) "In block ", bezb(ix),                        &
      &           "found a thick non-drift element",                     &
@@ -22660,7 +22206,7 @@ subroutine linopt(dpp)
             if(kz(jk).ne.8.and.-one*dphi.gt.pieni) dphi=dphi+pi          !hr06
             phi(l)=phi(l)+dphi/pie
           enddo
-          
+
           nr=nr+1
 #ifndef COLLIMAT
           call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
@@ -22675,7 +22221,7 @@ subroutine linopt(dpp)
             call OpticsRootWrite()
           end if
 #endif
-          
+
   150   continue !End of loop over elements inside block
 
         nr=nr+1
@@ -22751,7 +22297,7 @@ subroutine linopt(dpp)
           call OpticsRootWrite()
         end if
 #endif
-        
+
         cycle STRUCTLOOP
 
 !--REVERSE RUN THROUGH BLOCKS (ix.le.0)
@@ -22809,7 +22355,7 @@ subroutine linopt(dpp)
           call OpticsRootWrite()
         end if
 #endif
-        
+
         cycle STRUCTLOOP
 
 !--NOT A BLOCK / Nonlinear insertion
@@ -22844,7 +22390,7 @@ subroutine linopt(dpp)
 
           cycle STRUCTLOOP
         endif
-        
+
         !Beam Beam element .and. fort.3 has BB block
         if(kzz.eq.20.and.nbeam.ge.1) then
           nbeam=k
@@ -22896,7 +22442,7 @@ subroutine linopt(dpp)
      &     .or.abs(kzz).eq.23.or.abs(kzz).eq.26                         &
      &     .or.abs(kzz).eq.27.or.abs(kzz).eq.28                         &
      &     .or.abs(kzz).eq.15) then
-          
+
           nr=nr+1
 #ifndef COLLIMAT
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
@@ -22929,7 +22475,7 @@ subroutine linopt(dpp)
 !           cycle STRUCTLOOP
 !        endif
 !+ei
-      
+
         ! Update the matrix etc. for supported blocks
         dyy1=zero
         dyy2=zero
@@ -23063,7 +22609,7 @@ subroutine linopt(dpp)
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
-          
+
           nr=nr+1
 #ifndef COLLIMAT
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
@@ -23103,7 +22649,7 @@ subroutine linopt(dpp)
 !--Skipped elements
         case(12,13,14,15,16,17,18,19,20,21,22,23)
            cycle STRUCTLOOP
-        
+
 !--DIPEDGE ELEMENT
         case(24)
 #include "include/kickldpe.f90"
@@ -23116,7 +22662,7 @@ subroutine linopt(dpp)
 !--Skipped elements
         case(26,27,28)
            cycle STRUCTLOOP
-           
+
 !--Unrecognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
         case default
            nr=nr+1
@@ -23246,7 +22792,7 @@ subroutine linopt(dpp)
               cycle STRUCTLOOP
            end select
         endif
-      
+
         !Done processing an element: go here!
         t(6,2)=t(6,2)-dyy1/(one+dpp)
         t(6,4)=t(6,4)-dyy2/(one+dpp)
@@ -23288,7 +22834,7 @@ subroutine linopt(dpp)
               write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
            endif
         endif
-        
+
         nr=nr+1
 #ifndef COLLIMAT
         call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
@@ -23303,13 +22849,13 @@ subroutine linopt(dpp)
           call OpticsRootWrite()
         end if
 #endif
-        
+
       end do STRUCTLOOP ! END LOOP OVER ELEMENTS
-      
+
 #ifdef HDF5
       if(h5_writeOptics) call h5lin_saveData
 #endif
-      
+
       call clorb(ded)
       do 510 l=1,2
         clo0(l)=clo(l)
@@ -23363,6 +22909,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_settings
   use mod_common
   use mod_commons
   use mod_commont
@@ -23380,9 +22927,9 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 #ifdef COLLIMAT
   use collimation
 #endif
-  
+
   implicit none
-  
+
   integer i,iwrite,ixwl,l,ll,nr
   real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
   character(len=max_name_len) typ
@@ -23399,7 +22946,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 #ifdef HDF5
     real(kind=fPrec) hdf5Data(17)
 #endif
-  
+
   save
 !-----------------------------------------------------------------------
   iwrite=0
@@ -23424,7 +22971,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       c(l)=t(1,ll-1)
       cp(l)=t(1,ll)
     end do
-    
+
 #ifdef ROOT
     if(root_flag .and. root_Optics.eq.1) then
       call OpticsRootWriteLin(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),&
@@ -23439,7 +22986,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       call h5lin_writeLine(nr, typ, hdf5Data)
     end if
 #endif
-  
+
 #if defined(COLLIMAT)
       tbetax(max(ielem,1))  = b1(1)
       tbetay(max(ielem,1))  = b1(2)
@@ -23453,7 +23000,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       tdispy(max(ielem,1))  = d(2)
 #endif
     if(ncorru == 0) then
-      if(iquiet == 0) then
+      if(st_quiet == 0) then
         write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1)
         write(lout,10010) b2(1),al2(1),g2(1)
         write(lout,10030) typ(9:16)
@@ -24396,7 +23943,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
       rms=rmss(k)
 10000 format(a,i4)
 end subroutine htls
-  
+
       subroutine htal(a,m,n,k,beta)
 !*********************************************************************
 !     Subroutine HTAL to make Householder transform                  *
@@ -24745,7 +24292,7 @@ subroutine ord
           endif
         end do
       endif
-      
+
 !     misalignments
       izu=0
       do i=1,iu
@@ -24816,7 +24363,7 @@ subroutine orglat
           end do
         end do
       end if
-      
+
       ! set iu
       iu=mper*mbloz
 
@@ -24878,7 +24425,7 @@ subroutine orglat
           end do
         end do
       endif
-      
+
       return
 end subroutine orglat
 
@@ -25269,7 +24816,7 @@ subroutine phasad(dpp,qwc)
         goto 420
       case (26,27,28)
         goto 450
-        
+
       !-----------------
       !--SKEW ELEMENTS--
       !------------------
@@ -25361,7 +24908,7 @@ subroutine phasad(dpp,qwc)
         goto 450
       end select
       goto 450
-    
+
   420 continue
       t(1,2)=t(1,2)+dyy1
       t(1,4)=t(1,4)+dyy2
@@ -25377,7 +24924,7 @@ subroutine phasad(dpp,qwc)
           t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
         end if
       end do
-      
+
       do l=1,2
         ll=2*l
         alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))       !hr06
@@ -25975,7 +25522,7 @@ subroutine umlauf(dpp,ium,ierr)
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
   save
-  
+
   do i=1,mmul
     aa(i)=zero
     bb(i)=zero
@@ -25992,7 +25539,7 @@ subroutine umlauf(dpp,ium,ierr)
     ix=ic(k)
     if(ix.gt.nblo) goto 60
     if(ix.le.0) goto 40
-    
+
     do j=1,ium
       do kx=1,2
         if(ithick.eq.1) then
@@ -26018,7 +25565,7 @@ subroutine umlauf(dpp,ium,ierr)
         end if
       end do
     end do
-    
+
     goto 350
 
 60  ix=ix-nblo
@@ -26233,7 +25780,7 @@ subroutine umlauf(dpp,ium,ierr)
       goto 330
     case (26,27,28)
       goto 350
-    
+
     !-----------------
     !--SKEW ELEMENTS--
     !------------------
@@ -26345,7 +25892,7 @@ subroutine umlauf(dpp,ium,ierr)
 #include "include/kicksho.f90"
 #include "include/kickuxxv.f90"
       if(ium.eq.1) goto 350
-      
+
     case default
       goto 350
     end select
@@ -26362,8 +25909,8 @@ subroutine umlauf(dpp,ium,ierr)
         y(j,2)=cikve*cos_mb(qv)-crkve*sin_mb(qv)                     !hr09
         crkve=x(j,1)*cos_mb(qv)+x(j,2)*sin_mb(qv)                    !hr09
         cikve=x(j,2)*cos_mb(qv)-x(j,1)*sin_mb(qv)                    !hr09
-        x(j,1)=crkve 
-        x(j,2)=cikve 
+        x(j,1)=crkve
+        x(j,2)=cikve
       else
         y(j,1)=(y(j,1)+x(j,1)*qu)-qv*x(j,2)                          !hr06
         y(j,2)=(y(j,2)-x(j,2)*qu)-qv*x(j,1)                          !hr06
@@ -26372,7 +25919,7 @@ subroutine umlauf(dpp,ium,ierr)
 350 continue
 
   return
-  
+
 end subroutine umlauf
 
 +dk resex
@@ -26386,7 +25933,7 @@ subroutine resex(dpp)
   use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
-  
+
   use parpro
   use mod_common
   use mod_commons
@@ -26412,7 +25959,7 @@ subroutine resex(dpp)
   dimension chy(9,18),shy(9,18),min(5)
   dimension cr(mmul),ci(mmul)
       save
-      
+
       ium=5
       do i=1,ium
         dpr(i)=zero
@@ -26466,7 +26013,7 @@ subroutine resex(dpp)
           end do
         end do
       end do
-      
+
       btc=zero
       bts=zero
       phy=zero
@@ -26636,7 +26183,7 @@ subroutine resex(dpp)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 #include "include/alignl.f90"
-        
+
         select case (kzz)
         case (1)  ! HORIZONTAL DIPOLE
           ekk=ekk*c1e3
@@ -26733,7 +26280,7 @@ subroutine resex(dpp)
 #include "include/kickaso1.f90"
         case (26,27,28)
           goto 480
-        
+
         !-----------------
         !--SKEW ELEMENTS--
         !-----------------
@@ -27570,7 +27117,7 @@ subroutine subre(dpp)
   use mod_commons
   use mod_commont
   implicit none
-  
+
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
           mis,mm,mpe,mx,n2,n22,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,nph,nr,ns,ntx,nv,nv1,nv11,&
           nv2,nv21,nz2,dj
@@ -28014,7 +27561,7 @@ subroutine subre(dpp)
 #include "include/kickaso1.f90"
         case (26,27,28)
           goto 790
-        
+
         !-----------------
         !--SKEW ELEMENTS--
         !-----------------
@@ -28081,7 +27628,7 @@ subroutine subre(dpp)
             alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
             clop0(l)=t(1,ll)
           end do
-          
+
           if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 790
           if(mpe.lt.nta) goto 790
           if(mpe.gt.nte) mpe=nte
@@ -28537,7 +28084,7 @@ subroutine subre(dpp)
 10010 format(1x,i4,1x,a8,1x,f8.2,1x,f7.3,1x, f7.2,1x,f6.2,1x,f6.2,1x,f6.&
      &2,1x,f6.3,1x,f6.2,1x,f6.3,1x, f7.2,1x,f6.2,1x,f6.2,1x,f6.2,1x,f6. &
      &3,1x,f6.2,1x,f6.3)
-end subroutine subre 
+end subroutine subre
 
       subroutine detune(iv,ekk,ep,beta,dtu,dtup,dfac)
 !-----------------------------------------------------------------------
@@ -28848,7 +28395,7 @@ subroutine subsea(dpp)
         if(kzz.eq.15) goto 740
 ! JBG RF CC Multipoles to 740
         if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 740
-        if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 740 
+        if(kzz.eq.-26.or.kzz.eq.-27.or.kzz.eq.-28) goto 740
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -28859,7 +28406,7 @@ subroutine subsea(dpp)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 #include "include/alignl.f90"
-      
+
       select case (kzz)
       case (1) ! HORIZONTAL DIPOLE
         ekk=ekk*c1e3
@@ -28936,12 +28483,12 @@ subroutine subsea(dpp)
         qv=zero
         lmin=3
         if(nmz.eq.1) lmin=2
-        
+
         do l=lmin,mmul
           cr(l)=zero
           ci(l)=zero
         end do
-        
+
         do l=1,nmz
 #include "include/multl13.f90"
         end do
@@ -28957,7 +28504,7 @@ subroutine subsea(dpp)
 #include "include/kickaso1.f90"
       case (26,27,28)
         goto 740
-        
+
         !-----------------
         !--SKEW ELEMENTS--
         !------------------
@@ -28990,11 +28537,11 @@ subroutine subsea(dpp)
       case (-10) ! SKEW 20-POLE
         ekk=ekk*c1m24
 #include "include/kicka10v.f90"
-        
+
       case default
         goto 740
       end select
-      
+
       t(1,2)=t(1,2)+dyy1
       t(1,4)=t(1,4)+dyy2
       do i=2,ium
@@ -29344,7 +28891,7 @@ subroutine subsea(dpp)
         np2=np2-2
         if(np2.ge.1) goto 750
   780 continue
-  
+
   return
 
 end subroutine subsea
@@ -29560,7 +29107,7 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
       use mod_commont
       use crcoall
       implicit none
-      
+
       integer :: i,j            !iterators
       real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
       real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
@@ -29576,7 +29123,7 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
             fma_tas_inv(i,j)=fma_tas(j,i)
          enddo
       enddo
-      
+
       if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.   &
      &pieni) then
         fma_tas_inv(1,1)=one
@@ -29592,7 +29139,7 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
         fma_tas_inv(5,5)=one
         fma_tas_inv(6,6)=one
       endif
-      
+
 !     - invert: dinv returns the transposed matrix
       call dinv(6,fma_tas_inv,6,idummy,ierro)
       if (ierro.ne.0) then
@@ -29600,7 +29147,7 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
          write(lout,*) "Subroutine DINV returned ierro=",ierro
          call prror(-1)
       endif
-      
+
 !     - transpose fma_tas_inv
       tdummy=fma_tas_inv
       do i=1,6
@@ -29712,7 +29259,7 @@ end subroutine invert_tas
 ! But note that dnms is now found in word 59.
 ! and we always print the maximum DMMAC as NMAC
 ! or zero which should really be OK I think.
-! N.B. If particle is lost nms is 0, so we set mmac to zero too 
+! N.B. If particle is lost nms is 0, so we set mmac to zero too
       d(60)=real(nmac,fPrec)
       if (nint(d(59)).eq.0) d(60)=zero
       write(lout,10030) i,nint(d(59)),nint(d(60)),                      &
@@ -29748,7 +29295,7 @@ end subroutine invert_tas
 10030 format(3x,i2,13x,i2,19x,i2,13x,i8)
 10040 format(65('-')//131('-'))
       end
-      
+
 +dk beam6d
 subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 !-----------------------------------------------------------------------
@@ -29887,7 +29434,7 @@ subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
         do 1000 i=1,np
           s=(track(5,i)-star(3,jsli))*half
           !write(*,*)'JBG - cphi2',cphi2
-          sp=s/cphi2 
+          sp=s/cphi2
           dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2       !hr06
           dum(2)=(bcu(ibb,2)+(two*bcu(ibb,9))*sp)+bcu(ibb,10)*sp**2      !hr06
           dum(3)=(bcu(ibb,3)+(bcu(ibb,5)+bcu(ibb,7))*sp)+               &!hr06
@@ -30155,10 +29702,10 @@ subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
         bord=bord1
         !JBG When doing slicing phi=0 for crab crossing
         ! star(1,i)=0.
-        ! star(2,i)=0. 
+        ! star(2,i)=0.
         !JBG When doing slicing phi2 different tiltings of the strong beam
         star(1,i)=(star(3,i)*sphi2)*calpha
-        star(2,i)=(star(3,i)*sphi2)*salpha  
+        star(2,i)=(star(3,i)*sphi2)*salpha
         !star(1,i)=(star(3,i)*sphi)*calpha                                !hr06
         !star(2,i)=(star(3,i)*sphi)*salpha                                !hr06
  101  continue
@@ -30243,9 +29790,9 @@ subroutine crcheck
 !     and if so tries to load them into the cr* variables.
 !     This routine also repositions the output files for
 !     fort.90..91-napx/2 or STF, DUMP, and DYNK (dynksets.dat).
-!     
+!
 !     The file fort.93 is used as a log file for the checkpoint/restarting.
-!     
+!
 !     See also subroutines crpoint and crstart.
       use floatPrecision
       use end_sixtrack
@@ -30255,10 +29802,10 @@ subroutine crcheck
            dynk_crcheck_readdata, dynk_crcheck_positionFiles
 
       use dump, only : dump_crcheck_readdata, dump_crcheck_positionFiles
-      
+
       use scatter, only : scatter_active, scatter_crcheck_readdata,     &
      &     scatter_crcheck_positionFiles
-      
+
       use, intrinsic :: iso_fortran_env, only : int32
 
       use crcoall
@@ -30279,7 +29826,7 @@ subroutine crcheck
       ! THESE ARRAYS MUST BE UPDATED
       integer(int32) hbuff,tbuff
       dimension hbuff(253),tbuff(35)
-      
+
       logical lopen,lerror
 
 
@@ -30319,9 +29866,9 @@ subroutine crcheck
       if (fort95) then
         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 1 VERSION'
         flush(93)
-        
+
         rewind 95
-        
+
         read(95,err=100,end=100)                                        &
      &       cr_version,cr_moddate
         if ((cr_version .ne. version) .or. (cr_moddate .ne. moddate))   &
@@ -30336,10 +29883,10 @@ subroutine crcheck
 
            goto 100
         endif
-        
+
         write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 2'
         flush(93)
-        
+
         read(95,err=100,end=100)                                        &
      &crnumlcr,                                                         &
      &crnuml,                                                           &
@@ -30384,7 +29931,7 @@ subroutine crcheck
       flush(93)
       call dump_crcheck_readdata(95,lerror)
       if (lerror) goto 100
-      
+
       write(93,*) 'SIXTRACR CRCHECK reading fort.95 Record 5.5 HION'
       flush(93)
       call hions_crcheck_readdata(95,lerror)
@@ -30403,7 +29950,7 @@ subroutine crcheck
          call scatter_crcheck_readdata(95,lerror)
          if (lerror) goto 100
       endif
-      
+
 !ERIC new extended checkpoint for synuthck
       if (crsythck) then
 !ERICVARS
@@ -30467,7 +30014,7 @@ subroutine crcheck
       if (fort96) then
         write(93,*) 'CRCHECK trying fort.96 instead'
         flush(93)
-        
+
         rewind 96
 
         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 1 VERSION'
@@ -30482,12 +30029,12 @@ subroutine crcheck
            write(93,*) "This is SixTrack "//                            &
      &          "version=",version,"moddate=",moddate
            write(93,*) "Version mismatch; giving up on this file."
-           
+
            flush(93)
-           
+
            goto 101
         endif
-        
+
         write(93,*) 'SIXTRACR CRCHECK reading fort.96 Record 2'
         flush(93)
         read(96,err=101,end=101,iostat=ierro)                           &
@@ -30612,7 +30159,7 @@ subroutine crcheck
         flush(93)
       endif
   103 continue
-      
+
 !--   If we have successfully read either fort.95 or fort.96
 !--   we need to handle lost particles and ntwin .ne. 2
 !--   Otherwise we just continue with checkpointing as requested
@@ -30626,7 +30173,7 @@ subroutine crcheck
      &'SIXTRACR CRCHECK crbinrecs ',                                    &
      &(crbinrecs(j),j=1,(crnapxo+1)/2)
         flush(93)
-        
+
 !--   First we position fort.6 to last checkpoint
         do j=1,crsixrecs
            read(6,'(a1024)',end=604,err=106,iostat=ierro) arecord
@@ -30693,7 +30240,7 @@ subroutine crcheck
               endif
               mybinrecs=mybinrecs+1
             end do ! END "do j=2,crbinrecs(ia)"
-            
+
             ! Second, copy crbinrecs(ia) records of data from fort.94 to fort.91-ia
             rewind 94
             rewind 91-ia
@@ -30743,7 +30290,7 @@ subroutine crcheck
                 mybinrecs=mybinrecs+1
              end do
           end do
-          
+
           ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from fort.94 to singletrackfile.dat
           rewind 94
           rewind 90
@@ -30826,27 +30373,27 @@ subroutine crcheck
       enddo
 #endif
       endif ! END "if (numl.ne.crnuml) then" and END else
-      
+
       !reposition dynksets.dat
       if (ldynk .and.(.not.ldynkfiledisable) ) then
          write(93,*) "SIXTRACR CRCHECK REPOSITIONING dynksets.dat"
          flush(93)
          call dynk_crcheck_positionFiles
       endif !END if (ldynk .and.(.not.ldynkfiledisable) )
-      
+
       !Reposition files for DUMP
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP files"
       flush(93)
       call dump_crcheck_positionFiles
-      
+
       if(scatter_active) then
          write(93,*)                                                    &
      &        "SIXTRACR CRCHECK REPOSITIONING scatter_log.txt"
          flush(93)
          call scatter_crcheck_positionFiles
-         
+
       endif
-      
+
 !--     Set up flag for tracking routines to call CRSTART
         restart=.true.
         write(lout,'(a80)')                                                   &
@@ -30862,7 +30409,7 @@ subroutine crcheck
         flush(93)
         return
       endif
-      
+
       goto 605                  !Should not end up here -> checkpoint failed.
                                 ! Start simulation over!
 
@@ -30977,9 +30524,9 @@ end subroutine crcheck
 subroutine crpoint
 !     This subroutine writes the checkpoint data to fort.95/96,
 !     and copies the new output from the temporary (lout/fort.92) output file into fort.6.
-!     
+!
 !     The file fort.93 is used as a log file for the checkpoint/restarting.
-!     
+!
 !     See also subroutine crcheck and crstart.
       use floatPrecision
       use end_sixtrack
@@ -30988,9 +30535,9 @@ subroutine crpoint
       use dynk, only : ldynk,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynkfilepos,dynk_crpoint
 
       use dump, only : dump_crpoint
-      
+
       use scatter, only : scatter_active, scatter_crpoint
-      
+
       use crcoall
       use parpro
       use mod_common
@@ -31175,7 +30722,7 @@ subroutine crpoint
       if (lerror) then
          goto 100
       endif
-      
+
 #ifndef DEBUG
       if (ncalls.le.20.or.numx.ge.numl-20) then
 #endif
@@ -31189,7 +30736,7 @@ subroutine crpoint
       if (lerror) then
         goto 100
       end if
-      
+
       if (ldynk) then
 #ifndef DEBUG
         if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -31203,7 +30750,7 @@ subroutine crpoint
         call dynk_crpoint(95,lerror,ierro)
         if (lerror) goto 100
       endif
-      
+
       if (scatter_active) then
 #ifndef DEBUG
          if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -31217,7 +30764,7 @@ subroutine crpoint
          call scatter_crpoint(95,lerror,ierro)
          if (lerror) goto 100
       endif
-      
+
       if (sythckcr) then
 #ifndef DEBUG
         if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -31246,7 +30793,7 @@ subroutine crpoint
           endfile (95,iostat=ierro)
           backspace (95,iostat=ierro)
         endif
-        
+
         write(95,err=100,iostat=ierro)                                  &
      &(aek(j),j=1,napxo),                                               &
      &(afok(j),j=1,napxo),                                              &
@@ -31281,7 +30828,7 @@ subroutine crpoint
      &(wf(j),j=1,napxo),                                                &
      &(wfa(j),j=1,napxo),                                               &
      &(wfhi(j),j=1,napxo)
-        
+
         endfile (95,iostat=ierro)
         backspace (95,iostat=ierro)
       endif
@@ -31367,7 +30914,7 @@ subroutine crpoint
         call dynk_crpoint(96,lerror,ierro)
         if (lerror) goto 100
       endif
-      
+
       if (scatter_active) then
 #ifndef DEBUG
          if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -31381,7 +30928,7 @@ subroutine crpoint
          call scatter_crpoint(96,lerror,ierro)
          if (lerror) goto 100
       endif
-      
+
       if (sythckcr) then
 !ERIC new extended checkpoint for synuthck
 #ifndef DEBUG
@@ -31410,7 +30957,7 @@ subroutine crpoint
           endfile   (96,iostat=ierro)
           backspace (96,iostat=ierro)
         endif
-        
+
         write(96,err=100,iostat=ierro)                                  &
      &(aek(j),j=1,napxo),                                               &
      &(afok(j),j=1,napxo),                                              &
@@ -31483,7 +31030,7 @@ subroutine crstart
 !     e.g. crnapx -> napx etc.
 !
 !     The file fort.93 is used as a log file for the checkpoint/restarting.
-!     
+!
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
       use end_sixtrack
@@ -31491,7 +31038,7 @@ subroutine crstart
       use dynk, only : ldynk, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
-      
+
       use crcoall
       use parpro
       use mod_common
@@ -31572,7 +31119,7 @@ subroutine crstart
         endif
       enddo
 !ERIC new extended checkpoint for synuthck
-      
+
       if (ldynk) then
          call dynk_crstart
       endif
@@ -31580,9 +31127,9 @@ subroutine crstart
       if (scatter_active) then
          call scatter_crstart
       endif
-      
+
       call hions_crstart
-      
+
       if (crsythck) then
 !ERICVARS now read the extended vars from fort.95/96.
         if (cril.ne.il) then
@@ -31723,7 +31270,7 @@ subroutine crstart
      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
           endif
-          
+
           read(95,end=100,err=100,iostat=ierro)                         &
      &(aek(j),j=1,napxo),                                               &
      &(afok(j),j=1,napxo),                                              &

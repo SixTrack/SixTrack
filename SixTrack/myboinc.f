@@ -9,7 +9,7 @@
       subroutine boincrf(myname,filename)
       implicit none
       character(*) myname
-      character(256) filename 
+      character(256) filename
       filename=myname
       end
       subroutine boinc_finish(flag)

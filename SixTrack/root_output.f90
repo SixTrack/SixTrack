@@ -248,9 +248,9 @@ subroutine SixTrackRootFortranInit
 end subroutine SixTrackRootFortranInit
 
 subroutine daten_root(ch)
-  
+
   use string_tools
-  
+
   implicit none
 
   character(len=*), intent(in) :: ch
@@ -338,6 +338,6 @@ subroutine root_parseInputDone
   write(lout,*) 'CollimationDB: ', root_CollimationDB
   write(lout,*) 'Aperture:      ', root_ApertureCheck
 
-end subroutine root_parseInputDone  
- 
+end subroutine root_parseInputDone
+
 end module root_output

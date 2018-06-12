@@ -5,16 +5,16 @@
 ! Some values are not updated to ensure numerical compatability with older studies
 ! ================================================================================================ !
 module physical_constants
-  
+
   use floatPrecision
-  
+
   implicit none
-  
+
 #ifndef FLUKA
   ! Proton mass (MeV)
   real(kind=fPrec), parameter :: pmap   = 938.271998_fPrec              ! old
 ! real(kind=fPrec), parameter :: pmap   = 938.2720813_fPrec             ! 2017
-  
+
   ! Electron mass (MeV) from PDG, 2002
   real(kind=fPrec), parameter :: pmae   = 0.510998902_fPrec             ! old
 ! real(kind=fPrec), parameter :: pmae   = 0.5109989461_fPrec            ! 2017
@@ -26,24 +26,24 @@ module physical_constants
   real(kind=fPrec), parameter :: pmap  = 0.938272310e3_fPrec            ! PDG 20xx, Fluka-2011-pro
   real(kind=fPrec), parameter :: pmae  = 0.510998928_fPrec              ! PDG 2014, Fluka-2011-dev
 #endif
-  
+
   ! Classical electron radius
   real(kind=fPrec), parameter :: crade  = 2.817940285e-15_fPrec         ! old
 ! real(kind=fPrec), parameter :: crade  = 2.8179403227e-15_fPrec        ! 2017
-  
+
   ! Speed of light
   real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec            ! Exact
-  
+
   ! Avogadro constant
   real(kind=fPrec), parameter :: fnavo  = 6.022140857e23_fPrec          ! 2017
 ! real(kind=fPrec), parameter :: fnavo  = 6.02214129e23_fPrec           ! old
-  
+
   ! Planck constant
   real(kind=fPrec), parameter :: planck = 6.626070040e-34_fPrec
-  
+
   ! Vacuum permittivity
   real(kind=fPrec), parameter :: eps0   = 8.854187817e-12_fPrec
-  
+
 end module physical_constants
 
 ! ================================================================================================ !
@@ -52,16 +52,16 @@ end module physical_constants
 ! To ensure that the same values (including round-off) is used throughout the program.
 ! ================================================================================================ !
 module numerical_constants
-  
+
   use floatPrecision
-  
+
   implicit none
-  
+
 ! real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
 ! real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
-  
+
   real(kind=fPrec), parameter :: pieni  = 1e-38_fPrec
-  
+
   real(kind=fPrec), parameter :: zero   = 0.0_fPrec
   real(kind=fPrec), parameter :: half   = 0.5_fPrec
   real(kind=fPrec), parameter :: one    = 1.0_fPrec
@@ -73,7 +73,7 @@ module numerical_constants
   real(kind=fPrec), parameter :: seven  = 7.0_fPrec
   real(kind=fPrec), parameter :: eight  = 8.0_fPrec
   real(kind=fPrec), parameter :: nine   = 9.0_fPrec
-  
+
   real(kind=fPrec), parameter :: c1e1   = 1.0e1_fPrec
   real(kind=fPrec), parameter :: c1e2   = 1.0e2_fPrec
   real(kind=fPrec), parameter :: c1e3   = 1.0e3_fPrec
@@ -88,11 +88,11 @@ module numerical_constants
   real(kind=fPrec), parameter :: c1e13  = 1.0e13_fPrec
   real(kind=fPrec), parameter :: c1e15  = 1.0e15_fPrec
   real(kind=fPrec), parameter :: c1e16  = 1.0e16_fPrec
-  
+
   real(kind=fPrec), parameter :: c2e3   = 2.0e3_fPrec
   real(kind=fPrec), parameter :: c4e3   = 4.0e3_fPrec
   real(kind=fPrec), parameter :: c180e0 = 180.0_fPrec
-  
+
   real(kind=fPrec), parameter :: c1m1   = 1.0e-1_fPrec
   real(kind=fPrec), parameter :: c1m2   = 1.0e-2_fPrec
   real(kind=fPrec), parameter :: c1m3   = 1.0e-3_fPrec
@@ -111,6 +111,5 @@ module numerical_constants
   real(kind=fPrec), parameter :: c1m24  = 1.0e-24_fPrec
   real(kind=fPrec), parameter :: c1m36  = 1.0e-36_fPrec
   real(kind=fPrec), parameter :: c1m38  = 1.0e-38_fPrec
-  
+
 end module numerical_constants
-  

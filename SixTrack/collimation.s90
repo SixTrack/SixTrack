@@ -5,9 +5,7 @@
 !-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
- 
-!
+
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcollim
@@ -199,7 +197,7 @@ block data scdata
 end block data scdata
 
 module collimation
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -214,11 +212,11 @@ module collimation
   use hdf5_output
   use hdf5_tracks2
 #endif
-  
+
   implicit none
 
 !  private
-  
+
 !+cd collpara
   integer, parameter :: max_ncoll  = 100
   integer, parameter :: maxn       = 20000
@@ -277,7 +275,7 @@ module collimation
   &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
   &sigsecut3,sigsecut2,enerror,bunchlength
 
-  real(kind=fPrec), private, save :: nr 
+  real(kind=fPrec), private, save :: nr
 
   character(len=max_name_len), save :: name_sel
   character(len=80), save :: coll_db
@@ -1060,7 +1058,7 @@ end subroutine collimation_expand_arrays
 !! can be used to do any initial configuration and/or file loading.
 !<
 subroutine collimate_init()
-  
+
   use crcoall
   use parpro
   use mod_common
@@ -1068,9 +1066,9 @@ subroutine collimate_init()
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
-  
+
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldDist0(:)
   integer                         :: fmtDist0, setDist0
@@ -1093,16 +1091,16 @@ subroutine collimate_init()
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
 #endif
-  
+
 #ifdef G4COLLIMAT
 ! These should be configured in the scatter block when possible/enabled
   real(kind=fPrec) g4_ecut
   integer g4_physics
 #endif
-  
+
   call funit_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
-  
+
   write(lout,*) '         -------------------------------'
   write(lout,*)
   write(lout,*) '          Program      C O L L T R A C K '
@@ -1529,62 +1527,62 @@ end subroutine collimate_init
 !  Parse Input Line
 ! ================================================================================================ !
 subroutine collimate_parseInputLine(inLine, iLine, iErr)
-  
+
   use string_tools
   use mod_common, only : napx
-  
+
   implicit none
-  
+
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
-  
+
   character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
-  
+
 !+ca database
 !+ca dbcolcom
 !+ca dbpencil
-  
+
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "COLL> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
-  
+
   if(nSplit == 0) return
-  
+
   select case(iLine)
-    
+
   case(1)
-    
+
     if(nSplit /= 1) then
       write(lout,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
       iErr = .true.
       return
     end if
-    
+
     if(nSplit > 0) call chr_cast(lnSPlit(1),do_coll,iErr)
-    
+
   case(2)
-    
+
     if(nSplit > 0) call chr_cast(lnSPlit(1),nloop,iErr)
     if(nSplit > 1) call chr_cast(lnSPlit(2),myenom,iErr)
-    
+
     if(nloop /= 1) then
       write(lout,"(a,i0)") "COLL> ERROR Support for multiple samples is deprecated. nloop must be 1, got ",nloop
       iErr = .true.
       return
     end if
-    
+
     if(napx*2 > maxn) then
       write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ",maxn,", got ",(napx*2)
       iErr = .true.
       return
    endif
- 
+
   case(3)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), do_thisdis,  iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), mynex,       iErr)
@@ -1594,7 +1592,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 5)  filename_dis = lnSPlit(6)
     if(nSplit > 6)  call chr_cast(lnSPlit(7), enerror,     iErr)
     if(nSplit > 7)  call chr_cast(lnSPlit(8), bunchlength, iErr)
-    
+
   case(4)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), do_nsig,     iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), nsig_tcp3,   iErr)
@@ -1610,7 +1608,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 11) call chr_cast(lnSPlit(12),nsig_tcdq,   iErr)
     if(nSplit > 12) call chr_cast(lnSPlit(13),nsig_tcstcdq,iErr)
     if(nSplit > 13) call chr_cast(lnSPlit(14),nsig_tdi,    iErr)
-    
+
   case(5)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), nsig_tcth1,iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), nsig_tcth2,iErr)
@@ -1622,14 +1620,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 7)  call chr_cast(lnSPlit(8), nsig_tctv8,iErr)
     if(nSplit > 8)  call chr_cast(lnSPlit(9), nsig_tcxrp,iErr)
     if(nSplit > 9)  call chr_cast(lnSPlit(10),nsig_tcryo,iErr)
-    
+
   case(6)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), n_slices,   iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), smin_slices,iErr)
     if(nSplit > 2)  call chr_cast(lnSPlit(3), smax_slices,iErr)
     if(nSplit > 3)  call chr_cast(lnSPlit(4), recenter1,  iErr)
     if(nSplit > 4)  call chr_cast(lnSPlit(5), recenter2,  iErr)
-    
+
   case(7)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), fit1_1,iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), fit1_2,iErr)
@@ -1638,7 +1636,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 4)  call chr_cast(lnSPlit(5), fit1_5,iErr)
     if(nSplit > 5)  call chr_cast(lnSPlit(6), fit1_6,iErr)
     if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf1,  iErr)
-    
+
   case(8)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), fit2_1,iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), fit2_2,iErr)
@@ -1647,13 +1645,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 4)  call chr_cast(lnSPlit(5), fit2_5,iErr)
     if(nSplit > 5)  call chr_cast(lnSPlit(6), fit2_6,iErr)
     if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf2,  iErr)
-    
+
   case(9)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), emitnx0_dist,   iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), emitny0_dist,   iErr)
     if(nSplit > 2)  call chr_cast(lnSPlit(3), emitnx0_collgap,iErr)
     if(nSplit > 3)  call chr_cast(lnSPlit(4), emitny0_collgap,iErr)
-    
+
   case(10)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), do_select,        iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), do_nominal,       iErr)
@@ -1664,13 +1662,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 6)  call chr_cast(lnSPlit(7), dowrite_impact,   iErr)
     if(nSplit > 7)  call chr_cast(lnSPlit(8), dowrite_secondary,iErr)
     if(nSplit > 8)  call chr_cast(lnSPlit(9), dowrite_amplitude,iErr)
-    
+
   case(11)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), xbeat,     iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), xbeatphase,iErr)
     if(nSplit > 2)  call chr_cast(lnSPlit(3), ybeat,     iErr)
     if(nSplit > 3)  call chr_cast(lnSPlit(4), ybeatphase,iErr)
-    
+
   case(12)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), c_rmstilt_prim,   iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), c_rmstilt_sec,    iErr)
@@ -1683,18 +1681,18 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 8)  call chr_cast(lnSPlit(9), c_offsettilt_seed,iErr)
     if(nSplit > 9)  call chr_cast(lnSPlit(10),c_rmserror_gap,   iErr)
     if(nSplit > 10) call chr_cast(lnSPlit(11),do_mingap,        iErr)
-    
+
   case(13)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), radial,iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), nr,    iErr)
     if(nSplit > 2)  call chr_cast(lnSPlit(3), ndr,   iErr)
-    
+
   case(14)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), driftsx,         iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), driftsy,         iErr)
     if(nSplit > 2)  call chr_cast(lnSPlit(3), cut_input,       iErr)
     if(nSplit > 3)  call chr_cast(lnSPlit(4), systilt_antisymm,iErr)
-    
+
   case(15)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), ipencil,      iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), pencil_offset,iErr)
@@ -1708,11 +1706,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     endif
 #endif
-    
+
   case(16)
     if(nSplit > 0)  coll_db =  lnSPlit(1)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
-    
+
   case(17)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), dowritetracks,iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), cern,         iErr)
@@ -1720,13 +1718,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 3)  call chr_cast(lnSPlit(4), jobnumber,    iErr)
     if(nSplit > 4)  call chr_cast(lnSPlit(5), sigsecut2,    iErr)
     if(nSplit > 5)  call chr_cast(lnSPlit(6), sigsecut3,    iErr)
-    
+
   case default
     write(lout,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
     iErr = .true.
-    
+
   end select
-  
+
 end subroutine collimate_parseInputLine
 
 !>
@@ -1735,7 +1733,7 @@ end subroutine collimate_parseInputLine
 !! is injected into thin 6d
 !<
 subroutine collimate_start_sample(nsample)
-  
+
   use crcoall
   use parpro
   use mod_common
@@ -1743,18 +1741,18 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
-  
+
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-  
+
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
   integer fmtHdf
 #endif
-  
+
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
@@ -1909,7 +1907,7 @@ subroutine collimate_start_sample(nsample)
   if(dowrite_impact) then
 #ifdef HDF5
     if(h5_useForCOLL .and. firstrun) then
-      
+
       ! All Impacts and All Absorbtions
       allocate(setFields(3))
       setFields(1) = h5_dataField(name="ID",   type=h5_typeInt)
@@ -1919,7 +1917,7 @@ subroutine collimate_start_sample(nsample)
       call h5_createDataSet("all_impacts",     h5_collID, fmtHdf, coll_hdf5_allImpacts)
       call h5_createDataSet("all_absorptions", h5_collID, fmtHdf, coll_hdf5_allAbsorb)
       deallocate(setFields)
-      
+
       ! First Impacts
       allocate(setFields(14))
       setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
@@ -1939,7 +1937,7 @@ subroutine collimate_start_sample(nsample)
       call h5_createFormat("collFirstImpacts", setFields, fmtHdf)
       call h5_createDataSet("first_impacts", h5_collID, fmtHdf, coll_hdf5_fstImpacts)
       deallocate(setFields)
-      
+
       ! Coll Scatter
       allocate(setFields(7))
       setFields(1) = h5_dataField(name="ID",    type=h5_typeInt)
@@ -1952,7 +1950,7 @@ subroutine collimate_start_sample(nsample)
       call h5_createFormat("collScatter", setFields, fmtHdf)
       call h5_createDataSet("coll_scatter", h5_collID, fmtHdf, coll_hdf5_collScatter)
       deallocate(setFields)
-      
+
     else
 #endif
     call funit_requestUnit('all_impacts.dat', all_impacts_unit)
@@ -2443,7 +2441,7 @@ subroutine collimate_start_collimator(stracki)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -2648,7 +2646,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -3459,7 +3457,7 @@ end subroutine collimate_do_collimator
 !! This routine is called at the exit of a collimator
 !<
 subroutine collimate_end_collimator()
-  
+
   use crcoall
   use parpro
   use mod_common
@@ -3467,24 +3465,15 @@ subroutine collimate_end_collimator()
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
-  
+
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-  
+
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-  
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-!+ca dbthin6d
 
 #ifdef HDF5
   ! For tracks2
@@ -3666,7 +3655,7 @@ subroutine collimate_end_collimator()
           end if
 #endif
         end if
-        
+
       !Here we've found a newly hit particle
       else if(part_abs_pos (j).eq.0 .and.  part_abs_turn(j).eq.0) then
         xkick = rcxp(j) - rcxp0(j)
@@ -3746,7 +3735,7 @@ subroutine collimate_end_collimator()
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
                 rcyp0(j)*c1e3+torbyp(ie),                                          &
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-              
+
               write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
                 ipart(j),iturn,sampl(ie)+half*c_length,           &
                 xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
@@ -3899,7 +3888,7 @@ end subroutine collimate_end_collimator
 !! has been tracked by thin6d
 !<
 subroutine collimate_end_sample(j)
-  
+
   use parpro
   use mod_common
   use mod_commonmn
@@ -3910,42 +3899,33 @@ subroutine collimate_end_sample(j)
 #ifdef ROOT
   use root_output
 #endif
-  
+
   implicit none
-  
+
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-  
+
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
-  
+
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-  
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-  
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
   close(survival_unit)
-  
+
   if(dowrite_impact) close(impact_unit)
-  
+
   if(dowritetracks) then
     if(cern) close(tracks2_unit)
 #ifdef HDF5
     if(cern .and. h5_writeTracks2) call h5tr2_finalise
 #endif
   end if
-  
+
 !------------------------------------------------------------------------
 !++  Write the number of absorbed particles
   write(outlun,*) 'INFO>  Number of impacts             : ', n_tot_absorbed+nsurvive_end
@@ -3953,7 +3933,7 @@ subroutine collimate_end_sample(j)
   write(outlun,*) 'INFO>  Number of surviving particles : ', nsurvive_end
   write(outlun,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
   write(outlun,*)
-  
+
   if(n_tot_absorbed.ne.0) then                                       !hr08
     write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
     write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
@@ -3964,14 +3944,14 @@ subroutine collimate_end_sample(j)
   else
     write(lout,*) 'NO PARTICLE ABSORBED'
   endif
-  
+
   write(lout,*)
   write(lout,*) 'INFO>  Number of impacts             : ', n_tot_absorbed+nsurvive_end
   write(lout,*) 'INFO>  Number of impacts at selected : ', num_selhit
   write(lout,*) 'INFO>  Number of surviving particles : ', nsurvive_end
   write(lout,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
   write(lout,*)
-  
+
   if(n_tot_absorbed.ne.0) then                                       !hr08
     write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/dble(n_tot_absorbed))/c1m4            !hr08
     write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/dble(n_tot_absorbed))/c1m4            !hr08
@@ -3980,7 +3960,7 @@ subroutine collimate_end_sample(j)
   else
      write(lout,*) 'NO PARTICLE ABSORBED'
   endif
-  
+
 ! Write efficiency file
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
@@ -4023,7 +4003,7 @@ subroutine collimate_end_sample(j)
 #ifdef HDF5
   end if
 #endif
-  
+
 ! Write efficiency vs dp/p file
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
@@ -4060,7 +4040,7 @@ subroutine collimate_end_sample(j)
 #ifdef HDF5
   end if
 #endif
-  
+
 ! Write 2D efficiency file (eff vs. A_r and dp/p)
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
@@ -4101,7 +4081,7 @@ subroutine collimate_end_sample(j)
 #ifdef HDF5
   end if
 #endif
-  
+
 ! Write collimation summary file
 #ifdef HDF5
   if(h5_useForCOLL) then
@@ -4145,7 +4125,7 @@ subroutine collimate_end_sample(j)
 #ifdef HDF5
   end if
 #endif
-  
+
 #ifdef ROOT
   if(root_flag .and. root_Collimation.eq.1) then
     do icoll = 1, db_ncoll
@@ -4155,11 +4135,11 @@ subroutine collimate_end_sample(j)
       end if
     end do
   end if
-  
+
   ! flush the root file
 !  call SixTrackRootWrite()
 #endif
-  
+
 end subroutine collimate_end_sample
 
 !>
@@ -4176,13 +4156,13 @@ subroutine collimate_exit()
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   logical lopen
-  
+
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
@@ -4333,7 +4313,7 @@ subroutine collimate_start_turn(n)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -4368,7 +4348,7 @@ subroutine collimate_start_element(i)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -4466,7 +4446,7 @@ subroutine collimate_end_element
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
 
   integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
@@ -4573,7 +4553,7 @@ subroutine collimate_end_element
              (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
              ((xv(2,j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
              then
-            
+
           xj  = (xv(1,j)-torbx(ie)) /c1e3
           xpj = (yv(1,j)-torbxp(ie))/c1e3
           yj  = (xv(2,j)-torby(ie)) /c1e3
@@ -5039,7 +5019,7 @@ subroutine collimate_end_turn
             (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
             ((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
             then
-           
+
           xj     = (xv(1,j)-torbx(ie))/c1e3
           xpj    = (yv(1,j)-torbxp(ie))/c1e3
           yj     = (xv(2,j)-torby(ie))/c1e3
@@ -6964,10 +6944,10 @@ end subroutine jaw
 
 #ifdef HDF5
 subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
-  
+
   integer,          intent(in) :: icoll,iturn,ipart,nabs
   real(kind=fPrec), intent(in) :: dp,dx,dy
-  
+
   call h5_prepareWrite(coll_hdf5_collScatter, 1)
   call h5_writeData(coll_hdf5_collScatter, 1, 1, ipart)
   call h5_writeData(coll_hdf5_collScatter, 2, 1, iturn)
@@ -6977,7 +6957,7 @@ subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
   call h5_writeData(coll_hdf5_collScatter, 6, 1, dx)
   call h5_writeData(coll_hdf5_collScatter, 7, 1, dy)
   call h5_finaliseWrite(coll_hdf5_collScatter)
-  
+
 end subroutine coll_hdf5_writeCollScatter
 #endif
 !>
@@ -8348,7 +8328,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   use crcoall
   use parpro
   use mod_commont
-  
+
   implicit none
 
 !+ca dbmkdist
@@ -9248,13 +9228,13 @@ subroutine collimation_comnul
 !+ca dbcommon
 
   do_coll = .false.
-  
+
   ! From common /grd/
   emitnx0_dist = zero
   emitny0_dist = zero
   emitnx0_collgap = zero
   emitny0_collgap = zero
-  
+
   ! From common /ralph/
   myemitx0_dist = zero
   myemity0_dist = zero

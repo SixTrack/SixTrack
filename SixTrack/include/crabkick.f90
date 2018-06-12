@@ -5,14 +5,14 @@
 !---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
   pi=four*atan_mb(one)
   crabfreq=ek(ix)*c1e3
-  
+
   do j=1,napx ! loop over particles
     crabamp=ed(ix)*nzz(j)
     kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi+crabph(ix)
     yv(xory,j)=yv(xory,j) - (crabamp*c1e3)*sin_mb(kcrab)*(moidpsv(j)/e0f)
     ejv(j)=ejv(j)-(((((crabamp*crabfreq)*two)*pi)/clight)*xv(xory,j))*cos_mb(kcrab)
     ejf0v(j)=ejfv(j)
-  
+
     ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
     rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
     dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f

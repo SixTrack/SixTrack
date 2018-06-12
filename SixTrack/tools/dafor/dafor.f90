@@ -1,5 +1,5 @@
 ! ANFANG - HAUPTPROGRAMM -
-  
+
       PROGRAM FOXY
 !     ************
 !
@@ -98,12 +98,12 @@
 
       close(1)
       close(2)
-      
+
       STOP
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       subroutine predata
 
 ! Eric: use local LL DATA and copy it to the COMMON blocks
@@ -185,7 +185,7 @@
       DATA llINAM / 0 /
 
       do i=1,132
-        blanks(i:i)=' '     
+        blanks(i:i)=' '
       enddo
 !      blank6='      '
       blank8='        '
@@ -243,7 +243,7 @@
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       SUBROUTINE PRECOM
       USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
 !     *****************
@@ -273,7 +273,7 @@
       CHARACTER(LEN=8) BLANK,DNAM
       CHARACTER(LEN=6) PREC
       CHARACTER(LEN=64) IDAT
-    
+
       INTEGER NA(50)
 
       DATA  BLANK / '        ' /
@@ -367,12 +367,12 @@
              ',',(CTEX(IT+2)(K:K),K=1,ILAST(CTEX(IT+2),1,132)),')'
            icount=icount+1
            if(icount.gt.mname) then
-             write(2,*) 'C   Number of variables to be allocated and ' 
+             write(2,*) 'C   Number of variables to be allocated and '
              write(2,*) 'C   deallocated is larger than the parameter ', 'MNAME: ',MNAME
-             write(2,*) 'C   Change in program dafor.f'  
-             WRITE(OUTPUT_UNIT,*) 'C   Number of variables to be allocated and ' 
+             write(2,*) 'C   Change in program dafor.f'
+             WRITE(OUTPUT_UNIT,*) 'C   Number of variables to be allocated and '
              WRITE(OUTPUT_UNIT,*) 'C   deallocated is larger than the parameter ', 'MNAME: ',MNAME
-             WRITE(OUTPUT_UNIT,*) 'C   Change in program dafor.f'  
+             WRITE(OUTPUT_UNIT,*) 'C   Change in program dafor.f'
              stop 5
            endif
                write(NAMEDAL(icount),'(A,38A1,5(/''     *   '',60A1))') &
@@ -511,7 +511,7 @@
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       SUBROUTINE GETCOM(CMOD,A,NA,IA,IEND)
       USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -662,7 +662,7 @@
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       SUBROUTINE POSFRA(A,IA1,IA2,CDEL,NA,LA,IA)
       USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -718,7 +718,7 @@
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       SUBROUTINE CAP(A,IA1,IA2)
 !     *************************
 !
@@ -777,7 +777,7 @@
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       SUBROUTINE SYNTAX(B, IB1,IB2, IX, IN, IU, LERR)
       USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT, ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -1574,7 +1574,7 @@
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       SUBROUTINE ARIFOR(IARI1,IARI2,IU)
       USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -1943,7 +1943,7 @@
          WRITE(ERROR_UNIT,*) "ERROR in ARIFOR - ITS not set"
          stop 16
       endif
-      
+
       ELSEIF(ITY.EQ.4) THEN
          IF((ITS.EQ.1).OR.(ITS.EQ.2)) THEN
             A = AS(1:LS)//' = '//AR(1:LR)
@@ -1979,12 +1979,12 @@
       WRITE(IU,'(1X,A)') '!!! ERROR IN ARIFOR, CODE NOT SUPPORTED'
       WRITE(ERROR_UNIT,'(1X,A)') '!!! ERROR IN ARIFOR, CODE NOT SUPPORTED:'
       WRITE(ERROR_UNIT,'(1X,5I5)') (NARI(I,J),J=1,5)
-  
+
       RETURN
       END
 
 ! ANFANG UNTERPROGRAMM
-  
+
       SUBROUTINE VNAM(IA, IN, A,NA,LA, ITA, ISCRTY)
       USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : ERROR_UNIT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -2028,7 +2028,7 @@
                   '91','92','93','94','95','96','97','98','99'/
 
       ND = -4242
-      
+
       IF(IA.LT.0) THEN
          IA = -IA
          ITA = ISCRTY(IA)
@@ -2073,7 +2073,7 @@
          WRITE(ERROR_UNIT,*) "!!! ERROR, ND was not initialized in VNAM"
          stop 15
       end if
-      
+
 
 !     CASE OF ARRAYS OR FUNCTIONS
 !     ***************************

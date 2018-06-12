@@ -19,7 +19,7 @@
 !  TRACKING DATA                            : UNIT  8
 ! ================================================================================================ !
 program mainda
-    
+
   use floatPrecision
   use end_sixtrack
   use numerical_constants
@@ -34,18 +34,16 @@ program mainda
   use mod_commond
   use tuneshift_corr
   use mod_units
-  
+  use mod_alloc, only : alloc_init
+
   implicit none
-  
+
   integer i,iation,itiono,idate,im,imonth,itime,ix,izu,j,jj,k,kpz,kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,e0f,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,&
     gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,&
-! +if rvet
-!     rvet,&
-! +ei
     tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
-  
+
   character(len=10) cmonth
   character(len=80) day,runtim
   character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
@@ -53,6 +51,8 @@ program mainda
   dimension eps(2),epsa(2)
   dimension cmonth(12)
   dimension tas(6,6)
+
+  logical fErr
 
 #ifdef CRLIBM
   integer nchars
@@ -78,18 +78,19 @@ program mainda
 #ifndef CR
   lout=output_unit
 #endif
-  ! Initial allocation of memory
-  call allocate_arrays
-  
+  call alloc_init      ! Initialise tmod_alloc
+  call allocate_arrays ! Initial allocation of memory
+
   ! Open files
+  fErr = .false.
   call units_initUnits
-  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
+  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., mode="r",err=fErr)
+  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., mode="r",err=fErr)
+  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., mode="w",err=fErr)
+  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., mode="w",err=fErr)
+  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., mode="w",err=fErr)
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
 
   ! Print Header Info
   tlim=1e7
@@ -99,7 +100,7 @@ program mainda
   idate=0
   itime=0
   call datime(idate,itime)
-  
+
   write(cdate,"(i6.6)") idate
   write(ctime,"(i4.4)") itime
   write(lout,"(a)")   ""
@@ -111,7 +112,7 @@ program mainda
   write(lout,"(a)")   ""
   write(lout,"(a26)") " Runtime: 20"//cdate(1:2)//"-"//cdate(3:4)//"-"//cdate(5:6)//" "//ctime(1:2)//":"//ctime(3:4)
   write(lout,"(a)")   ""
-  
+
   ! Init stuff
   do i=1,2
     eps(i)=zero
@@ -125,7 +126,7 @@ program mainda
   pi2=pi*half
   pisqrt=sqrt(pi)
   rad=pi/c180e0
-  
+
   call daten
   if (ithick.eq.1) call allocate_thickarrays
   if(nord.le.0.or.nvar.le.0) call prror(91)
@@ -220,7 +221,7 @@ program mainda
       end if
       im=irm(ix)
       r0a=one
-      
+
       do k=1,nmz
         izu=izu+1
         aai(i,k)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
@@ -228,7 +229,7 @@ program mainda
         bbi(i,k)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
         r0a=r0a*r0
       end do
-      
+
       izu=izu+2*mmul-2*nmz
     end if
   end do
@@ -263,7 +264,7 @@ program mainda
 #ifndef CRLIBM
       read(33,*) (clo6(l),clop6(l), l=1,3)
 #else
-      read(33,*) ch 
+      read(33,*) ch
       lineno=lineno+1
       ch1(:nchars+3)=ch(:nchars)//' / '
       call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
@@ -606,7 +607,7 @@ program mainda
 end program mainda
 
 subroutine daliesix
-  
+
   use floatPrecision
   use end_sixtrack
   use numerical_constants
@@ -614,23 +615,23 @@ subroutine daliesix
   use crcoall
   use parpro
   use mod_commond
-  
+
   implicit none
-  
+
   integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
   real tlim,time0,time1,time
   real(kind=fPrec) angle,coe,rad,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
   dimension angle(3),rad(3)
-  
+
   save
-  
+
   tlim=1e7
   call timest(tlim)
   time0=0.
   call timex(time0)
-  
+
   ! Initialization
   x2pi=atan_mb(one)*eight
   coe=(-one*two)/x2pi
@@ -677,7 +678,7 @@ subroutine daliesix
   rewind mf4
   rewind mf5
   call daread(damap,nd2,mfile,zero)
-  
+
   ! Normal Form Analysis
   call mapnorm(damap,f,a2,a1,xy,h,nord1)
   call dainv(a1,nv,a1i,nv)
@@ -689,7 +690,7 @@ subroutine daliesix
   call dasub(h,haux,h4)
   call ctor(h,hc,hs)
   call dhdj(h,df)
-  
+
   ! Printing
   call daprid(a1i,1,nd2,mf1)
   call daprid(a2i,1,nd2,mf1)
@@ -722,7 +723,7 @@ subroutine daliesix
   write(lout,10050)
   angle(3)=angle(3)*(-one)
   write(lout,*) (angle(i),i=1,ndim)
-  
+
   ! Clean-Up
   call dadal(damap,nd2)
   call dadal(a1,nd2)
@@ -746,9 +747,9 @@ subroutine daliesix
   call timex(time1)
   time = time1-time0
   write(lout,10000) no,time
-  
+
   return
-  
+
 10000 format(/10x,'DA-CALCULATION OF ORDER : ',i7,' TAKES ', f12.3,' SECONDS OF CPU TIME'//131('-')//)
 10010 format(t10,'THE ORDER IS GREATER THAN THE ONE SPECIFIED IN THE'/t10,'DIFFERENTIAL ALGEBRA BLOCK.'// t10,'NEW ORDER---> ',i3)
 10020 format(t10,'ORDER FOR THE NORMAL FORM CALCULATIONS---> ',i3/)
@@ -766,7 +767,7 @@ end subroutine daliesix
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
 subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
-  
+
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
@@ -775,61 +776,61 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use mod_commond
   use mod_common,  only : iqmodc,ichromc,ilinc
   use mod_lie_dab, only : iscrri,iscrda
-  
+
   implicit none
-  
+
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
   real(kind=fPrec) am
   dimension am(6,6),idummy(6)
   save
-  
+
   if(nndim.lt.2.or.nndim.gt.3) call prror(95)
-  
+
   nordo=nord
   nvaro=nvar
   ndimfo=ndimf
   nvar2o=nvar2
   nord1o=nord1
-  
+
   nord=nnord
   nvar=nnvar
   ndimf=nndim
   nvar2=nnvar2
   nord1=nnord1
-  
+
   ndpt=0
   nis=0
-  
+
   call daeps(preda)
   call idprset(-102)
   call lieinit(nord,nvar,ndimf,ndpt,0,nis)
   write(lout,10000) nord,nvar,nndim
   call daall(iscrda,100,'$$IS      ',nord,nvar)
-  
+
   ! closed orbit
   if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
-  
+
   ! tune variation
   if(ncase.eq.2) call umlauda
   rewind 18
   rewind 111
-  
+
   ! main map calculation
   if(ncase.eq.3) call runda
-  
+
   ! %*6 map calculation
   if(ncase.eq.4) call runcav
   iqmodc=0
   ichromc=0
   ilinc=0
   call dadal(iscrda,100)
-  
+
   nord=nordo
   nvar=nvaro
   nvar2=nvar2o
   ndimf=ndimfo
   nord1=nord1o
-  
+
   return
 10000 format(/131('-')/10x,'DA INITIALIZATION: ORDER = ',i2,', # of VARIABLES = ',i2,', DIMENSION = ',i2/)
 end subroutine mydaini
@@ -839,7 +840,7 @@ end subroutine mydaini
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
 subroutine runcav
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -852,9 +853,9 @@ subroutine runcav
   use mod_commond
   use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
-  
+
   implicit none
-  
+
   integer idaa
   real(kind=fPrec) betr0,dare,sigmdac
 +ca commond1
@@ -908,19 +909,19 @@ subroutine runcav
   if(nvar2.eq.5) call dapri(dpda1,18)
   if(nvar2.eq.6) call dapri(deltas,18)
   if(nvar2.eq.6) call dapri(dpda1,18)
-  
+
   write(lout,*) 'END COORDINATES'
   write(lout,*) dare(x(1)),dare(y(1))
   write(lout,*) dare(x(2)),dare(y(2))
   write(lout,*) dare(sigmda),dare(dpda)
-  
+
   write(12,'(E22.15)') dare(x(1))
   write(12,'(E22.15)') dare(y(1))
   write(12,'(E22.15)') dare(x(2))
   write(12,'(E22.15)') dare(y(2))
   write(12,'(E22.15)') dare(sigmda)
   write(12,'(E22.15)') dare(dpda)
-  
+
   write(lout,10010)
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
@@ -946,14 +947,14 @@ end subroutine runcav
 !                          AUGUST 1994
 !-----------------------------------------------------------------------
 subroutine umschr(iu1,iu2)
-  
+
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
   use crcoall
-  
+
   implicit none
-  
+
   integer i,ii,iio,io,ioo,iplus,iu1,iu2,j,jj,nno
   real(kind=fPrec) c,c1
   character(len=80) aaa
@@ -961,7 +962,7 @@ subroutine umschr(iu1,iu2)
   character(len=58) a58
   dimension jj(100)
   save
-  
+
   do i=1,100
     jj(i)=0
   enddo
@@ -977,7 +978,7 @@ subroutine umschr(iu1,iu2)
     write(iu2,'(A80)') aaa
     read(iu1,'(A80)') aaa
     write(iu2,'(A80)') aaa
-    
+
     if(nno.eq.1) then
       do i=1,5
         read(iu1,'(6X,2X,G21.14,I5)') c,ii
@@ -1018,7 +1019,6 @@ subroutine umschr(iu1,iu2)
   rewind iu1
   rewind iu2
   return
-  
+
 end subroutine umschr
 
-  

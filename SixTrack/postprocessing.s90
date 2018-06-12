@@ -4,14 +4,14 @@ module postprocessing
 
   use end_sixtrack
   use parpro
-  
+
   implicit none
-  
+
   real(kind=fPrec), private, save :: phase(3,npos+1)
   real(kind=fPrec), private, save :: dani(ninv+1)
-  
+
 contains
-  
+
 #ifdef STF
 #ifdef CR
 subroutine postpr(posi,nnuml)
@@ -86,16 +86,16 @@ subroutine postpr(nfile)
       real(kind=real64) ta_tmp(6,6)
       real(kind=real64) dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,sigcor_tmp,dpscor_tmp
       real(kind=real64) dummy64
-      
+
       !For the actual tracking data
       real(kind=real64) b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
       real(kind=real64) c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
-      
+
       character(len=80) title(20),chxtit(20),chytit(20)
       character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr
       character(len=80) sixtit,commen     ! Note: Keep in sync with mod_common
                                           ! DANGER: If the len changes, CRCHECK will break.
-      
+
       character(len=11) hvs
       character(len=8192) ch
 #ifdef CRLIBM
@@ -272,7 +272,7 @@ subroutine postpr(nfile)
      &     ta_tmp(6,4),ta_tmp(6,5),ta_tmp(6,6), &
      &     dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp, &
      &     sigcor_tmp,dpscor_tmp
-      
+
       if(ierro.gt.0) then
          write(lout,10320) nfile
 #ifdef CR
@@ -281,32 +281,32 @@ subroutine postpr(nfile)
          goto 550
 #endif
       endif
-      
+
       !Convert it to the current working precission
       do i=1,3
          qwc(i)  = real(qwc_tmp (i), fPrec)
          clo(i)  = real(clo_tmp (i), fPrec)
          clop(i) = real(clop_tmp(i), fPrec)
       end do
-      
+
       do i=1,2
          di0(i)  = real(di0_tmp (i), fPrec)
          dip0(i) = real(dip0_tmp(i), fPrec)
       enddo
-      
+
       do i=1,6
          do j=1,6
             ta(j,i) = real(ta_tmp(j,i), fPrec)
          end do
       end do
-      
+
       dmmac  = real(dmmac_tmp,  fPrec)
       dnms   = real(dnms_tmp,   fPrec)
       dizu0  = real(dizu0_tmp,  fPrec)
       dnumlr = real(dnumlr_tmp, fPrec)
       sigcor = real(sigcor_tmp, fPrec)
       dpscor = real(dpscor_tmp, fPrec)
-      
+
 #ifdef CR
       sumda(1)=nnuml
 #else
@@ -360,18 +360,18 @@ subroutine postpr(nfile)
            clo(i)  = real(clo_tmp (i), fPrec)
            clop(i) = real(clop_tmp(i), fPrec)
         end do
-        
+
         do i=1,2
            di0(i)  = real(di0_tmp (i), fPrec)
            dip0(i) = real(dip0_tmp(i), fPrec)
         enddo
-        
+
         do i=1,6
            do j=1,6
               ta(j,i) = real(ta_tmp(j,i), fPrec)
            end do
         end do
-        
+
         dmmac  = real(dmmac_tmp,  fPrec)
         dnms   = real(dnms_tmp,   fPrec)
         dizu0  = real(dizu0_tmp,  fPrec)
@@ -394,7 +394,7 @@ subroutine postpr(nfile)
       endif
 #else
       !Read header lines until a match is found
- 555  continue      
+ 555  continue
       read(nfile,end=510,iostat=ierro) &
      &     sixtit,commen,cdate,ctime,progrm, &
      &     ifipa,ilapa,itopa,icode,numl, &
@@ -431,32 +431,32 @@ subroutine postpr(nfile)
          goto 550
 #endif
       endif
-      
+
       !Convert it to the current working precission
       do i=1,3
          qwc(i)  = real(qwc_tmp (i), fPrec)
          clo(i)  = real(clo_tmp (i), fPrec)
          clop(i) = real(clop_tmp(i), fPrec)
       end do
-      
+
       do i=1,2
          di0(i)  = real(di0_tmp (i), fPrec)
          dip0(i) = real(dip0_tmp(i), fPrec)
       end do
-      
+
       do i=1,6
          do j=1,6
             ta(j,i) = real(ta_tmp(j,i), fPrec)
          end do
       end do
-      
+
       dmmac  = real(dmmac_tmp,  fPrec)
       dnms   = real(dnms_tmp,   fPrec)
       dizu0  = real(dizu0_tmp,  fPrec)
       dnumlr = real(dnumlr_tmp, fPrec)
       sigcor = real(sigcor_tmp, fPrec)
       dpscor = real(dpscor_tmp, fPrec)
-      
+
 #ifdef CR
       sumda(1)=nnuml
 #else
@@ -724,7 +724,7 @@ subroutine postpr(nfile)
         write(lout,10090) idis,icow,istw,iffw
         write(lout,10100) iskip,iconv,imad,cma1,cma2,nprint,ndafi
       endif ! END if(nprint.eq.1)
-      
+
 !--INITIALISATION
       tpi=eight*atan_mb(one)                                               !hr06
       prec=c1m1
@@ -798,7 +798,7 @@ subroutine postpr(nfile)
 !--INVERTING THE MATRIX OF THE GENERATING VECTORS
 !     ta = matrix of eigenvectors already normalized, rotated and ordered, units mm,mrad,mm,mrad,mm,1
 !     t  = inverse(ta), units mm,mrad,mm,mrad,mm,1
-!     
+!
 !     This is similar but not exactly the same as the subroutine invert_tas;
 !     the "tasum" is missing from there
       do i=1,6
@@ -860,11 +860,11 @@ subroutine postpr(nfile)
          g=real(g_tmp,fPrec)
          h=real(h_tmp,fPrec)
          p=real(p_tmp,fPrec)
-         
+
       elseif(ntwin.eq.2) then
          read(nfile,end=200,iostat=ierro) ia,ifipa,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,ilapa,b_tmp,c1_tmp,d1_tmp,    &
      &e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
-         
+
          b=real(b_tmp,fPrec)
          c=real(c_tmp,fPrec)
          d=real(d_tmp,fPrec)
@@ -873,7 +873,7 @@ subroutine postpr(nfile)
          g=real(g_tmp,fPrec)
          h=real(h_tmp,fPrec)
          p=real(p_tmp,fPrec)
-         
+
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -881,27 +881,27 @@ subroutine postpr(nfile)
          g1=real(g1_tmp,fPrec)
          h1=real(h1_tmp,fPrec)
          p1=real(p1_tmp,fPrec)
-         
+
       endif
 #else
 !STF case: read tracking data until one reaches right particle.
       if(ntwin.eq.1) then
          read(nfile,end=200,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-         
+
       elseif(ntwin.eq.2) then
          read(nfile,end=200,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,    &
      &        ilapa_stf,b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
-         
+
       endif
-      
+
       if(ifipa_stf.ne.posi) then
         goto 190
       endif
-      
+
       ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
       ifipa=ifipa_stf
-      
+
       b=real(b_tmp,fPrec)
       c=real(c_tmp,fPrec)
       d=real(d_tmp,fPrec)
@@ -913,7 +913,7 @@ subroutine postpr(nfile)
 
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-         
+
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -929,7 +929,7 @@ subroutine postpr(nfile)
       endif
       if(ifipa.lt.1) goto 190
       if((ia-nstart).lt.0) goto 190
-      
+
       if(progrm.eq.'MAD') then
 #ifndef STF
         c=c*c1e3
@@ -971,9 +971,9 @@ subroutine postpr(nfile)
       if(b.lt.b0.or.abs(b0).le.pieni) b0=b
       goto 190
   200 if(ia.le.0) goto 530
-      
+
       rewind nfile
-      
+
 !----------------------------------------------------------------------
 !--GET FIRST DATA POINT AS A REFERENCE
 !----------------------------------------------------------------------
@@ -1015,7 +1015,7 @@ subroutine postpr(nfile)
          g=real(g_tmp,fPrec)
          h=real(h_tmp,fPrec)
          p=real(p_tmp,fPrec)
-         
+
       elseif(ntwin.eq.2) then
          read(nfile,end=530,iostat=ierro) ia,ifipa,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,ilapa,b_tmp,c1_tmp,d1_tmp,    &
      &e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
@@ -1028,7 +1028,7 @@ subroutine postpr(nfile)
          g=real(g_tmp,fPrec)
          h=real(h_tmp,fPrec)
          p=real(p_tmp,fPrec)
-         
+
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -1041,20 +1041,20 @@ subroutine postpr(nfile)
 !     STF case: read tracking data until one reaches right particle.
       if(ntwin.eq.1) then
          read(nfile,end=530,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-         
+
       elseif(ntwin.eq.2) then
          read(nfile,end=530,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp, &
      &        ilapa_stf,b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
       endif
-      
+
       if(ifipa_stf.ne.posi) then
          goto 210
       endif
-      
+
       ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
       ifipa=ifipa_stf
-      
+
       b=real(b_tmp,fPrec)
       c=real(c_tmp,fPrec)
       d=real(d_tmp,fPrec)
@@ -1063,10 +1063,10 @@ subroutine postpr(nfile)
       g=real(g_tmp,fPrec)
       h=real(h_tmp,fPrec)
       p=real(p_tmp,fPrec)
-      
+
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-         
+
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -1111,7 +1111,7 @@ subroutine postpr(nfile)
         call prror(-1)
 #endif
       endif
-      
+
       dp1=h
       write(toptit(2)(51:61),10000) dp1-clop(3)
       if(nprint.eq.1.and.ia.eq.0) then
@@ -1124,7 +1124,7 @@ subroutine postpr(nfile)
         write(lout,*) '    DP/P = ',h
         write(lout,*) '  ENERGY = ',p
       endif
-      
+
       if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 540
       ia=ia-nstart
 !--LYAPUNOV
@@ -1341,7 +1341,7 @@ subroutine postpr(nfile)
       elseif(ntwin.eq.2) then
          read(nfile,end=270,iostat=ierro) ia,ifipa,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,ilapa,b_tmp,c1_tmp,d1_tmp,    &
      &e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
-         
+
          b=real(b_tmp,fPrec)
          c=real(c_tmp,fPrec)
          d=real(d_tmp,fPrec)
@@ -1350,7 +1350,7 @@ subroutine postpr(nfile)
          g=real(g_tmp,fPrec)
          h=real(h_tmp,fPrec)
          p=real(p_tmp,fPrec)
-         
+
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -1363,20 +1363,20 @@ subroutine postpr(nfile)
 !     STF case: read tracking data until one reaches right particle.
       if(ntwin.eq.1) then
          read(nfile,end=270,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-         
+
       elseif(ntwin.eq.2) then
          read(nfile,end=270,iostat=ierro) ia_stf,ifipa_stf, &
      &        b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,ilapa_stf,b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
       endif
-      
+
       if(ifipa_stf.ne.posi) then
          goto 240
       endif
-      
+
       ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
       ia=ia_stf
       ifipa=ifipa_stf
-      
+
       b=real(b_tmp,fPrec)
       c=real(c_tmp,fPrec)
       d=real(d_tmp,fPrec)
@@ -1385,10 +1385,10 @@ subroutine postpr(nfile)
       g=real(g_tmp,fPrec)
       h=real(h_tmp,fPrec)
       p=real(p_tmp,fPrec)
-      
+
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-         
+
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -1789,14 +1789,14 @@ subroutine postpr(nfile)
 #else
 !     STF case: read tracking data until one reaches right particle.
  315    read(nfile,end=350,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-        
+
         if(ifipa_stf.ne.posi) then
           goto 315
         endif
         ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
         ia=ia_stf
         ifipa=ifipa_stf
-        
+
         b=real(b_tmp,fPrec)
         c=real(c_tmp,fPrec)
         d=real(d_tmp,fPrec)
@@ -1810,7 +1810,7 @@ subroutine postpr(nfile)
            write(lout,10320) nfile
            goto 550
         endif
-        
+
         if(ifipa.lt.1) goto 340
         if(progrm.eq.'MAD') then
 #ifndef STF
@@ -2236,7 +2236,7 @@ subroutine postpr(nfile)
         errno=dtostr(sumda(i),ch1)
         ch(l1:l1+errno)=' '//ch1(1:errno)
         l1=l1+errno+1
-      enddo        
+      enddo
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 #endif
       if(ierro.ne.0) then
@@ -2377,11 +2377,11 @@ subroutine postpr(nfile)
                g=real(g_tmp,fPrec)
                h=real(h_tmp,fPrec)
                p=real(p_tmp,fPrec)
-               
+
             elseif(ntwin.eq.2) then
                read(nfile,end=470,iostat=ierro) ia,ifipa,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp, &
      & ilapa,b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
-               
+
                b=real(b_tmp,fPrec)
                c=real(c_tmp,fPrec)
                d=real(d_tmp,fPrec)
@@ -2390,7 +2390,7 @@ subroutine postpr(nfile)
                g=real(g_tmp,fPrec)
                h=real(h_tmp,fPrec)
                p=real(p_tmp,fPrec)
-               
+
                c1=real(c1_tmp,fPrec)
                d1=real(d1_tmp,fPrec)
                e1=real(e1_tmp,fPrec)
@@ -2407,11 +2407,11 @@ subroutine postpr(nfile)
                read(nfile,end=470,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp, &
      &              ilapa_stf,b_tmp,c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
             end if
-            
+
             if(ifipa_stf.ne.posi) then
               goto 435
             end if
-           
+
             ! Found the right particle; load data in memory (otherwise it's corrupted when EOF is reached)
             ia=ia_stf
             ifipa=ifipa_stf
@@ -2424,7 +2424,7 @@ subroutine postpr(nfile)
             g=real(g_tmp,fPrec)
             h=real(h_tmp,fPrec)
             p=real(p_tmp,fPrec)
-            
+
             if(ntwin.eq.2) then
                ilapa=ilapa_stf
 
@@ -2691,7 +2691,7 @@ subroutine postpr(nfile)
         errno=dtostr(sumda(i),ch1)
         ch(l1:l1+errno)=' '//ch1(1:errno)
         l1=l1+errno+1
-      enddo        
+      enddo
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 #endif
       if(ierro.ne.0) then
@@ -2710,7 +2710,7 @@ subroutine postpr(nfile)
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 !----------------------------------------------------------------------
       return
-      
+
 10000 format(d11.4)
 10010 format(f10.6)
 10020 format(a80)
@@ -2891,7 +2891,7 @@ subroutine postpr(nfile)
      &,i2,') -----'//)
 
 end subroutine postpr
-      
+
 subroutine fft(ar,ai,m,n)
 !---------------------------------------------------------------------
 !      A(N) IS A COMPLEX ARRAY. THE INPUT IS A(N)=(X(N),0.0), WHERE
@@ -3069,7 +3069,7 @@ subroutine join
       use parpro
       use mod_common, only : dpscor,sigcor,icode,idam,its6d
       implicit none
-      
+
       integer i,j,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
       real(kind=fPrec) alf0,bet0,clo,clop,di0,dip0,dps,dummy,e0,qwc,sigm,ta,x,y
       character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr
@@ -3079,7 +3079,7 @@ subroutine join
       dimension qwc(3),clo(3),clop(3)
       dimension x(mpa,2),y(mpa,2),sigm(mpa),dps(mpa)
       dimension di0(2),dip0(2)
-      
+
       !The fort.90 file is always with real64, so we need some temps to read it
       ! For the header:
       real(kind=real64) qwc_tmp(3), clo_tmp(3), clop_tmp(3)
@@ -3087,17 +3087,17 @@ subroutine join
       real(kind=real64) ta_tmp(6,6)
       real(kind=real64) dummy64, dam_tmp
       real(kind=real64) sigcor64, dpscor64, zero64
-      
+
       !For the actual tracking data
       real(kind=real64) x_tmp(2,2),y_tmp(2,2), sigm_tmp(2),dps_tmp(2),e0_tmp
 
       save
 !-----------------------------------------------------------------------
-      
+
       sigcor64 = real(one, real64)
       dpscor64 = real(one, real64)
       zero64   = real(zero,real64)
-      
+
       read(90,iostat=ierro) &
            sixtit,commen,cdate,ctime,progrm, &
            ifipa,ilapa,itopa,icode,numl, &
@@ -3118,31 +3118,31 @@ subroutine join
            ta_tmp(5,4),ta_tmp(5,5),ta_tmp(5,6), &
            ta_tmp(6,1),ta_tmp(6,2),ta_tmp(6,3), &
            ta_tmp(6,4),ta_tmp(6,5),ta_tmp(6,6)
-      
+
       if (IS_IOSTAT_END(ierro)) then
          write(lout,10000) 90
 10000    format(//10x,'** ERROR IN JOIN** ----- INPUT DATA EMPTY (FILE : ',i2,') -----'//)
          return
       endif
-      
+
       !Convert it to the current working precission
       do i=1,3
          qwc(i)  = real(qwc_tmp (i), fPrec)
          clo(i)  = real(clo_tmp (i), fPrec)
          clop(i) = real(clop_tmp(i), fPrec)
       end do
-      
+
       do i=1,2
          di0(i)  = real(di0_tmp (i), fPrec)
          dip0(i) = real(dip0_tmp(i), fPrec)
       enddo
-      
+
       do i=1,6
          do j=1,6
             ta(j,i) = real(ta_tmp(j,i), fPrec)
          end do
       end do
-      
+
       if(ierro.gt.0) then
          write(lout,10010) 90,ierro
          return
@@ -3154,18 +3154,18 @@ subroutine join
       alf0(1)=-(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))
       bet0(2)=ta(3,3)*ta(3,3)+ta(3,4)*ta(3,4)
       alf0(2)=-(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))
-      
+
       rewind 90
-      
+
       ihalf=itopa/2
-      
+
       if(icode.eq.1.or.icode.eq.2.or.icode.eq.4) idam=1
       if(icode.eq.3.or.icode.eq.5.or.icode.eq.6) idam=2
       if(icode.eq.7) idam=3
 
       !Read pairs of binary files; 90 and 90-ihalf, 89 and 89-ihalf, etc.
       do i=1,ihalf
-         
+
          !Skip the headers
          read(91-i,iostat=ierro)
          if (IS_IOSTAT_END(ierro)) then
@@ -3175,7 +3175,7 @@ subroutine join
             write(lout,10010) 91-i,ierro
             exit
          endif
-         
+
          read(91-i-ihalf,iostat=ierro)
          if (IS_IOSTAT_END(ierro)) then
             exit
@@ -3184,10 +3184,10 @@ subroutine join
             write(lout,10010) 91-i-ihalf,ierro
             exit
          endif
-         
+
          !Loop to read the actual tracking data and write it to fort.90
          do
-            
+
             !First file
             read(91-i,iostat=ierro) &
                  ia,ipa,dummy64, &
@@ -3204,12 +3204,12 @@ subroutine join
             sigm(1)    = real(sigm_tmp(1),fPrec)
             dps(1)     = real(dps_tmp(1), fPrec)
             e0         = real(e0,         fPrec)
-            
+
             if(ierro.gt.0) then
                write(lout,10010) 91-i,ierro
                exit
             endif
-            
+
             x(1,1)=x(1,1)*c1e3
             y(1,1)=y(1,1)*c1e3
             x(1,2)=x(1,2)*c1e3
@@ -3233,7 +3233,7 @@ subroutine join
             sigm(2)    = real(sigm_tmp(2),fPrec)
             dps(2)     = real(dps_tmp(2), fPrec)
             e0         = real(e0,         fPrec)
-            
+
             if(ierro.gt.0) then
                write(lout,10010) 91-i-ihalf,ierro
                exit
@@ -3243,10 +3243,10 @@ subroutine join
             x(2,2)=x(2,2)*c1e3
             y(2,2)=y(2,2)*c1e3
             sigm(2)=sigm(2)*c1e3
-            
+
             !OK, we have read a pair, now write it back to fort.90
             ! (possible bug: Should this have been back to fort.(91-i)?)
-            
+
             !Convert it to real64 before writing
             x_tmp(1,1) = real(x(1,1), real64)
             y_tmp(1,1) = real(y(1,1), real64)
@@ -3264,7 +3264,7 @@ subroutine join
 
             sigm_tmp(2) = real(sigm(2), real64)
             dps_tmp (2) = real(dps (2), real64)
-            
+
             write(90,iostat=ierro) ia,ipa,dummy64, &
                  x_tmp(1,1),y_tmp(1,1),x_tmp(1,2),y_tmp(1,2), &
                  sigm_tmp(1),dps_tmp(1),e0_tmp, &
@@ -3275,7 +3275,7 @@ subroutine join
                write(lout,10010) 90,ierro
                exit
             endif
-            
+
             !Loop back and read the next line...
          end do
          !Ok, we're done reading the pair of files.
@@ -3315,7 +3315,7 @@ subroutine join
             write(lout,10010) 91-i,ierro
             goto 40
          endif
-         
+
          rewind 91-i
          progrm='MADTOSIX'
 
@@ -3352,12 +3352,12 @@ subroutine join
            zero64,zero64,zero64,zero64, &
            zero64,zero64,zero64,zero64, &
            zero64,zero64,zero64,zero64
-         
+
          if(ierro.ne.0) then
             write(lout,10010) 91-i,ierro
             goto 40
          endif
-         
+
          !copy the particle records from fort.90 to fort.91-i
          do
             read(90,iostat=ierro) &
@@ -3373,7 +3373,7 @@ subroutine join
                write(lout,10010) 90,ierro
                exit
             endif
-            
+
             write(91-i,iostat=ierro) &
                  ia,ipa,dam_tmp, &
                  x_tmp(1,1),y_tmp(1,1),x_tmp(1,2),y_tmp(1,2), &
@@ -3390,11 +3390,11 @@ subroutine join
  40      continue
          rewind 90
          rewind 91-i
-         
+
       end do ! END of loop over file pairs
-            
+
       return
-      
+
 10010 format(//10x,'** ERROR IN JOIN** ----- PROBLEMS WITH DATA FILE : ',i2,' ----- ERROR CODE : ',i10//)
 end subroutine join
 
@@ -3414,25 +3414,25 @@ end subroutine join
       use mod_common
       use mod_commonmn
       implicit none
-      
+
       integer, intent(in) :: ia_p1, ia_p2, fileunit_in
       integer, intent(inout) :: ierro_wbh
-      
+
       character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
                                           !DANGER: If the len changes, CRCHECK will break.
 
       integer i,j
-      
+
       real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
       real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
       real(kind=real64) tas_tmp(6,6)
       real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,            &
      &     sigcor_tmp,dpscor_tmp
-      
+
       real(kind=real64) zero64,one64
       parameter(zero64 = 0.0_real64)
       parameter(one64  = 1.0_real64)
-      
+
       !Convert from whatever precission is used internally to real64,
       ! which is what should go in the output file
       do i=1,3
@@ -3445,24 +3445,24 @@ end subroutine join
       dip0xs_tmp = real(dip0xs(ia_p1), real64)
       di0zs_tmp  = real(di0zs (ia_p1), real64)
       dip0zs_tmp = real(dip0zs(ia_p1), real64)
-      
+
       do i=1,6
          do j=1,6
             tas_tmp(j,i) = real(tas(ia_p1,j,i), real64)
          enddo
       enddo
-      
+
       mmac_tmp   = real(mmac,       real64)
       nms_tmp    = real(nms(ia_p1), real64)
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)
       sigcor_tmp = real(sigcor,     real64)
       dpscor_tmp = real(dpscor,     real64)
-      
+
       ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
       ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
       ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-      
+
       write(fileunit_in,iostat=ierro_wbh)                               &
      &     sixtit,commen,cdate,ctime,progrm,                            &
      &     ia_p1,ia_p2, napx, icode,numl,                               &
@@ -3491,9 +3491,9 @@ end subroutine join
      &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
      &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
      &     zero64,zero64,zero64,zero64
-      
+
       end subroutine writebin_header
-      
+
       subroutine writebin(nthinerr)
 !-------------------------------------------------------------------------
 !     Subroutine for writing the the binary files (fort.90 etc.)
@@ -3531,7 +3531,7 @@ end subroutine join
 
       real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
      &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
-      
+
       save
 !-----------------------------------------------------------------------
 #ifdef CR
@@ -3573,10 +3573,10 @@ end subroutine join
 !     In the case of no lost particles, all nlostp(i)=i for 1..npart
             if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and. &
      &           (mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
-              
+
                ia2=(nlostp(ia)+1)/2 !File ID for non-STF & binrecs
                ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
-              
+
                if(ntwin.ne.2) then !Write particle nlostp(ia) only
                   dam_tmp      = real(dam(ia),   real64)
                   xv_tmp(1,1)  = real(xv(1,ia),  real64)
@@ -3586,11 +3586,11 @@ end subroutine join
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
                   e0_tmp       = real(e0,        real64)
-                  
+
                   ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
                   ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
                   ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-                  
+
 #ifndef STF
                   write(91-ia2,iostat=ierro)                            &
 #else
@@ -3608,7 +3608,7 @@ end subroutine join
 #ifdef CR
                   binrecs(ia2)=binrecs(ia2)+1
 #endif
-              
+
                else !Write both particles nlostp(ia) and nlostp(ia)+1
                     ! Note that dam(ia) (distance in angular phase space)
                     ! is written twice.
@@ -3620,16 +3620,16 @@ end subroutine join
                   yv_tmp(2,1)  = real(yv(2,ia),  real64)
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
-                  
+
                   xv_tmp(1,2)  = real(xv(1,ie),  real64)
                   yv_tmp(1,2)  = real(yv(1,ie),  real64)
                   xv_tmp(2,2)  = real(xv(2,ie),  real64)
                   yv_tmp(2,2)  = real(yv(2,ie),  real64)
                   sigmv_tmp(2) = real(sigmv(ie), real64)
                   dpsv_tmp(2)  = real(dpsv(ie),  real64)
-                  
+
                   e0_tmp       = real(e0,        real64)
-                  
+
                   ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
                   ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
                   ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...

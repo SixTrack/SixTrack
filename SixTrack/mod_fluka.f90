@@ -10,7 +10,7 @@ module mod_fluka
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 18-01-2016
   ! fortran 90 module for coupling SixTrack to FLUKA
-  ! NOTA BENE: 
+  ! NOTA BENE:
   !    napx  (SixTrack) -> npart     (mod_fluka)
   !    npart (SixTrack) -> max_npart (mod_fluka)
 
@@ -32,14 +32,14 @@ module mod_fluka
   public :: fluka_init_max_uid
   public :: fluka_is_running
   public :: fluka_init_brhono
-  
+
   public :: fluka_close
 
   ! FlukaIO Connection parameters
   character(len = 255), public  :: fluka_host
   integer, public :: fluka_port
   character(len = 255), parameter :: fluka_net_nfo_file = 'network.nfo'
-  
+
   ! FlukaIO interface
   external ntinit, ntconnect, ntend
   external ntsendp,     &
@@ -653,7 +653,7 @@ module mod_fluka
 
 
   !----------------------------------------------------------------------------
-  ! check if fluka is running, ie if it created the 
+  ! check if fluka is running, ie if it created the
   integer function fluka_is_running()
     implicit none
 
@@ -676,13 +676,13 @@ module mod_fluka
 !     clean closure of communication with fluka and un-set mod_fluka
 !     inserted in main code by the 'fluka' compilation flag
 subroutine fluka_close
-  
+
   use crcoall
-  
+
   implicit none
-  
+
   integer fluka_con
-  
+
   fluka_con = fluka_is_running()
   if(fluka_con.eq.0) then
     if( .not. fluka_connected ) then
