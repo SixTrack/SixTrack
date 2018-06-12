@@ -419,6 +419,7 @@ module collimation
 !  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
 
 ! Change the following block to npart
+! This is the array that the generated distribution is placed into
   real(kind=fPrec), allocatable, save :: myx(:) !(maxn)
   real(kind=fPrec), allocatable, save :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable, save :: myy(:) !(maxn)
@@ -1577,8 +1578,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
 
-    if(napx*2 > maxn) then
-      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ",maxn,", got ",(napx*2)
+    if(napx*2 > npart) then
+      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
       iErr = .true.
       return
    endif
@@ -7482,12 +7483,12 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7599,12 +7600,12 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7697,12 +7698,12 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7807,12 +7808,12 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7948,12 +7949,12 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -8020,12 +8021,12 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -8177,12 +8178,12 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -8333,12 +8334,12 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
