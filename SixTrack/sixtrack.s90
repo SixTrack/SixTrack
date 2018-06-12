@@ -602,10 +602,8 @@ subroutine daten
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
     
-  real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,cosy,dummy,    &
-    emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,qbet,qigam,    &
-    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,xang,xstr,xpl0,xplane,xrms0,  &
-    zpl0,zrms0
+  real(kind=fPrec) ak0d,akad,alignx,alignz,bk0d,bkad,dummy,emitnx,emitny,extaux,&
+    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
     
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy
@@ -741,15 +739,11 @@ subroutine daten
       iclo6=0
       iclo6r=0
       iclr=0
-      ncy=0
       ! ncy2=0
       ndum=0
         
 !  Initialise new input parameters
       idial=0
-      harm=one
-      alc=c1m3
-      phag=zero
       tlen=one
       pma=pmap
       ition=0
@@ -799,7 +793,6 @@ subroutine daten
       im=0
       imtr0=0
       nlin=0
-      idp=0
       izu0=0
       mmac=1
       mcut=0
@@ -821,44 +814,52 @@ subroutine daten
 ! ================================================================================================ !
   
   ! SixTrack Settings
-  st_print  = .false.
-  st_debug  = .false.
-  st_quiet  = 0
+  st_print    = .false.
+  st_debug    = .false.
+  st_quiet    = 0
   
   ! TRACKING PARAMETERS
-  numl      = 1
-  napx      = 0
-  amp0      = zero
-  amp(1)    = c1m3
-  ird       = 0
-  imc       = 0
-  numlcp    = 1000
-  numlmax   = 1000000000
+  numl        = 1
+  napx        = 0
+  amp0        = zero
+  amp(1)      = c1m3
+  ird         = 0
+  imc         = 0
+  numlcp      = 1000
+  numlmax     = 1000000000
 
-  idz(:)    = 1
-  idfor     = 0
-  irew      = 0
-  iclo      = 0
+  idz(:)      = 1
+  idfor       = 0
+  irew        = 0
+  iclo        = 0
 
-  nde(:)    = 0
-  nwr(:)    = 1
-  nwr(4)    = 10000
-  ntwin     = 1
+  nde(:)      = 0
+  nwr(:)      = 1
+  nwr(4)      = 10000
+  ntwin       = 1
   
   ! CHROMATICITY ADJUSTMENTS
-  ichrom    = 0
+  ichrom      = 0
   
   ! TUNE ADJUSTMENTS
-  iqmod     = 0
+  iqmod       = 0
   
   ! LINEAR OPTICS CALCULATION
-  ilin      = 0
+  ilin        = 0
+  sixin_ilin0 = 1
+  
+  ! SYNCHROTRON OSCILLATIONS
+  sixin_alc   = c1m3
+  sixin_harm  = one
+  sixin_phag  = zero
+  idp         = 0
+  ncy         = 0
   
   ! HIONS MODULE
-  zz0       = 1
-  aa0       = 1
-  nucm0     = pmap
-  has_hion  = .false.
+  zz0         = 1
+  aa0         = 1
+  nucm0       = pmap
+  has_hion    = .false.
   
   ! COLLIMATION MODULE
 #ifdef COLLIMAT
@@ -876,7 +877,6 @@ subroutine daten
   prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
-  sixin_ilin0 = 1
   
   call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
   
@@ -987,8 +987,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("SYNC")
-    goto 710
   case("ITER")
     goto 940
   case("FLUC")
@@ -1197,6 +1195,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
+  case("SYNC") ! Synchrotron Oscillations
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineSYNC(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -1222,17 +1230,17 @@ subroutine daten
 #else
       has_coll = .true.
       if(ilin /= 1) then
-         write(lout,*) "INPUT> ERROR DETECTED:"
-         write(lout,*) "INPUT> Incompatible flag with collimation version"
-         write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
-         write(lout,*) ""
-         write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
-         write(lout,*) "INPUT> which is required for the collimation version."
-         write(lout,*) ""
-         write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
-         write(lout,*) "INPUT> compatible with the collimation version."
-         write(lout,*) ""
-         write(lout,*) "INPUT> Current setting ilin=",ilin
+        write(lout,*) "INPUT> ERROR DETECTED:"
+        write(lout,*) "INPUT> Incompatible flag with collimation version"
+        write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
+        write(lout,*) ""
+        write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
+        write(lout,*) "INPUT> which is required for the collimation version."
+        write(lout,*) ""
+        write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
+        write(lout,*) "INPUT> compatible with the collimation version."
+        write(lout,*) ""
+        write(lout,*) "INPUT> Current setting ilin=",ilin
         goto 9999
       end if
 #endif
@@ -1366,162 +1374,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  SYNCHROTRON OSCILLATIONS
-!-----------------------------------------------------------------------
-  710 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-      iclr=iclr+1
-      else
-      goto 710
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & harm,alc,u0,phag,tlen,pma,ition,dppoff
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.1) read(ch1,*) harm,alc,u0,phag,tlen,pma,ition,dppoff
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          harm=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          alc=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          u0=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          phag=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          tlen=fround(errno,fields,5)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          pma=real(fround(errno,fields,6),fPrec)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(7),*) ition
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dppoff=fround(errno,fields,8)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & dpscor,sigcor
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.2) read(ch1,*) dpscor,sigcor
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          dpscor=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          sigcor=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-      if(iclr.ne.2) goto 710
-      iclr=0
-      if(abs(pma-pmap).le.c1m1) pmat=pmap
-      if(abs(pma-pmae).le.c1m1) pmat=pmae
-      if(pmat.ne.pmap.and.pmat.ne.pmae) then
-        write(lout,*)
-        write(lout,*) 'Warning: Particle is neither proton nor electron'
-        write(lout,*) 'pma:  ', pma
-        write(lout,*) 'pmap: ', pmap
-        write(lout,*)
-      endif
-      if(pma.lt.pieni) call prror(27)
-      !nucm0=pma
-      crad=(crade*pmae)/pma                                              !hr05
-      if(abs(tlen).le.pieni) call prror(25)
-      if(sixin_ncy2.eq.0) then
-        ncy=sixin_icy*mper
-        idp=1
-        if(ncy.ne.0) goto 720
-        idp=0
-        write(lout,10130)
-        write(lout,10340)
-  720   phas=phag*rad
-        if(ncy.ne.0) then
-          hsy(1)=u0/real(ncy,fPrec)
-        else
-          hsy(1)=u0
-        endif
-        if(nvar.eq.5) then
-          idp=1
-          ition=1
-          hsy(1)=zero
-        endif
-        halc=harm*alc
-        halc2=harm/tlen
-        hsy(3)=(two*pi)*halc2                                            !hr05
-        cosy=cos_mb(phas)
-        qigam=(pma**2/e0)/e0                                             !hr05
-        qbet=one-qigam
-        halc3=((((((-one*(qigam-alc))*real(ition,fPrec))*harm)*u0)/e0)  &
-     &*cosy)/((two*pi)*qbet)                                             !hr05
-        if(halc3.lt.zero) call prror(28)
-        qs=sqrt(halc3)
-      else
-        idp=1
-        ncy=0
-        do 725 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(abs(kz(ix)).eq.12) ncy=ncy+1
-          endif
-  725   continue
-        do 730 j=1,il
-          if(abs(kz(j)).eq.12) then
-            hsyc(j)=((two*pi)*ek(j))/tlen                                !hr05
-            if(nvar.eq.5) then
-              ition=1
-              ed(j)=zero
-            endif
-          endif
-  730   continue
-      endif
-      goto 110
 !-----------------------------------------------------------------------
 !  MULTIPOLE COEFFICIENTS  FOR KZ = 11
 !-----------------------------------------------------------------------
@@ -5176,7 +5028,7 @@ subroutine daten
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
       if(sixin_ncy2.eq.0) then
-        write(lout,10143) harm,u0,phag,qs,alc
+        write(lout,10143) sixin_harm,sixin_u0,sixin_phag,qs,sixin_alc
       else
         write(lout,*)
       endif
@@ -19127,6 +18979,9 @@ subroutine comnul
   irmod2  = 0     ! mod_common
   nre     = 0     ! mod_common
   
+  ! SYNCHROTRON OSCILLATIONS BLOCK
+  phas    = zero  ! mod_common
+  
   ! TODO
       nur=0
       nch=0
@@ -19199,7 +19054,6 @@ subroutine comnul
       tlen=zero
       pma=zero
       phas0=zero
-      phas=zero
       ition=0
       dpscor=one
       sigcor=one

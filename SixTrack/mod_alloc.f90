@@ -145,7 +145,7 @@ interface dealloc
   module procedure dealloc2dl    ! 2D logical
   
 end interface dealloc
-
+  
   private :: alloc1di16,alloc2di16,alloc3di16
   private :: alloc1di32,alloc2di32,alloc3di32
   private :: alloc1di64,alloc2di64,alloc3di64
@@ -164,7 +164,7 @@ end interface dealloc
   private :: dealloc1dr128,dealloc2dr128,dealloc3dr128,dealloc4dr128
   private :: dealloc1dc,dealloc2dc
   private :: dealloc1dl,dealloc2dl
-    
+  
 contains
 
 subroutine alloc_init
