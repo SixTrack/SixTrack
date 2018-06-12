@@ -145,11 +145,11 @@ subroutine crcheck
       flush(93)
       goto 100
     end if
-    
+
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 2"
     flush(93)
     read(95,err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,crsythck,cril,crtime3,crnapxo,crnapx,cre0
-    
+
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 3"
     flush(93)
     read(95,err=100,end=100) &
@@ -686,22 +686,22 @@ subroutine crcheck
     close(lout)
     lout=6
   endif
-    
+
   return
-  
+
 106 continue
   write(93,"(a,i0)")    "SIXTRACR> ERROR reading fort.6, iostat=",ierro
   write(93,"(2(a,i0))") "          sixrecs=",sixrecs," crsixrecs=",crsixrecs
   flush(93)
   write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning fort.6"
   call prror(-1)
-  
+
 107 continue
   write(93,"(a,i0)") "SIXTRACR> ERROR reading fort.92, iostat=",ierro
   flush(93)
   write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning fort.92"
   call prror(-1)
-  
+
 end subroutine crcheck
 
 subroutine crpoint

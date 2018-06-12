@@ -1,5 +1,4 @@
-+dk dump
-
+! ================================================================================================ !
 ! A. Mereghetti, D. Sinuela Pastor and P. Garcia Ortega, for the FLUKA Team
 ! K. Sjobak, BE-ABP/HSS, BE-ABP/LAT
 ! V.K. Berglyd Olsen, BE-ABP-HSS
@@ -18,6 +17,7 @@
 !     are used in other places of the code...
 !   - The dump format can be changed to the one required by the LHC aperture check
 !     post-processing tools, activating the dumpfmt flag (0=off, by default);
+! ================================================================================================ !
 
 module dump
 

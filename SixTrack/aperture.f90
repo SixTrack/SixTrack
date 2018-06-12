@@ -1,5 +1,3 @@
-+dk aperture
-
 module aperture
   ! Aperture check module
   ! A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
