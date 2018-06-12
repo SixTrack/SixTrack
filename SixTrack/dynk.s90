@@ -6,7 +6,7 @@
 !  Last modified: 2018-05-28
 ! ================================================================================================ !
 module dynk
-  
+
   use floatPrecision
   use end_sixtrack
   use mathlib_bouncer
@@ -15,94 +15,94 @@ module dynk
   use parpro, only : nele, max_name_len
   use mod_alloc
   use string_tools
-  
+
   implicit none
-  
+
   ! General-purpose variables
   logical, save :: ldynk            ! dynamic kick requested, i.e. DYNK input bloc issued in the fort.3 file
   logical, save :: ldynkdebug       ! print debug messages in main output
   logical, save :: ldynkfiledisable ! Disable writing dynksets.dat?
   integer, save :: ldynkfileunit    ! The file unit for dynksets.dat
   integer, save :: ldynkFUNfileunit ! File unit for parseFUN files
-  
+
   ! Store the FUN statements
   integer, save :: dynk_maxFuncs
   integer, save :: dynk_maxiData
   integer, save :: dynk_maxfData
   integer, save :: dynk_maxcData
-  
+
   ! 1 row/FUN, cols are:
   ! (1) = function name in fort.3 (points within dynk_cData),
   ! (2) = indicates function type
   ! (3,4,5) = arguments (often pointing within other arrays {i|f|c}expr_dynk)
   integer, allocatable, save :: dynk_funcs(:,:) ! (dynk_maxFuncs,5)
-  
+
   ! Data for DYNK FUNs
   integer,          allocatable, save :: dynk_iData(:)
   real(kind=fPrec), allocatable, save :: dynk_fData(:)
   character(len=:), allocatable, save :: dynk_cData(:)
-  
+
   ! Number of used positions in arrays
   integer, save :: dynk_nFuncs
   integer, save :: dynk_niData
   integer, save :: dynk_nfData
   integer, save :: dynk_ncData
-  
+
   ! Store the SET statements
   integer, parameter :: dynk_maxSets = 200
-  
+
   ! 1 row/SET, cols are:
   ! (1) = function index (points within dynk_funcs)
   ! (2) = first turn num. where it is active
   ! (3) =  last turn num. where it is active
   ! (4) = Turn shift - number added to turn before evaluating the FUN
   integer, save :: dynk_sets(dynk_maxSets, 4)
-  
+
   ! 1 row/SET (same ordering as dynk_sets), cols are:
   ! (1) element name
   ! (2) attribute name
   character(str_maxLen), save :: dynk_cSets(dynk_maxSets,2)
-  
+
   ! Number of used positions in arrays
   integer, save :: dynk_nSets
-  
+
   ! Similar to dynk_cSets, but only one entry per elem/attr
-  character(str_maxLen), save :: dynk_cSets_unique(dynk_maxSets,2) 
-  
+  character(str_maxLen), save :: dynk_cSets_unique(dynk_maxSets,2)
+
   ! Store original value from dynk
   real(kind=fPrec), save :: dynk_fSets_orig(dynk_maxSets)
-  
+
   ! Number of used positions in arrays
   integer, save :: dynk_nSets_unique
-  
+
   ! Some elements (multipoles) overwrites the general settings info when initialized.
   ! Store this information on the side.
   ! Also used by setvalue and getvalue
   integer, allocatable, save :: dynk_izuIndex(:) !(nele
   real(kind=fPrec), allocatable, save :: dynk_elemdata(:,:) !(nele,3)
-  
+
 #ifdef CR
   ! Block with data/fields needed for checkpoint/restart of DYNK
-  
+
   ! Number of records written to dynkfile (dynksets.dat)
   integer, save :: dynkfilepos
   integer, save :: dynkfilepos_cr
-  
+
   ! Data for DYNK FUNs
   integer,          allocatable, save :: dynk_iData_cr(:)
   real(kind=fPrec), allocatable, save :: dynk_fData_cr(:)
   character(len=:), allocatable, save :: dynk_cData_cr(:)
-  
+
   ! Number of used positions in arrays
   integer, save :: dynk_niData_cr
   integer, save :: dynk_nfData_cr
   integer, save :: dynk_ncData_cr
-  
+
   ! Store current settings from dynk
   real(kind=fPrec), save :: dynk_fSets_cr(dynk_maxSets)
-  
+
 #endif
-  
+
 contains
 
 subroutine dynk_allocate_arrays
@@ -121,26 +121,26 @@ end subroutine dynk_expand_arrays
 !  Last modified: 2018-05-28
 ! =================================================================================================
 subroutine dynk_allocate
-  
+
   use crcoall
   use file_units
-  
+
   ! Setting inital allocations
   ! These values are increased if needed when dynk_checkspace is called
   dynk_maxiData = 500
   dynk_maxfData = 500
   dynk_maxcData = 100
   dynk_maxFuncs = 10
-  
+
   call alloc(dynk_iData,dynk_maxiData,0,"dynk_iData")
   call alloc(dynk_fData,dynk_maxfData,zero,"dynk_fData")
   call alloc(dynk_cData,str_maxLen,dynk_maxcData,str_dZeros,"dynk_cData")
   call alloc(dynk_funcs,dynk_maxFuncs,5,0,"dynk_funcs")
-  
+
   ! Set file units for I/O files
   call funit_requestUnit("dynksets.dat",ldynkfileunit)
   call funit_requestUnit("dynk_parseFUN_IO",ldynkFUNfileunit)
-  
+
 end subroutine dynk_allocate
 
 ! =================================================================================================
@@ -149,30 +149,30 @@ end subroutine dynk_allocate
 !  Parse input line
 ! =================================================================================================
 subroutine dynk_parseInputLine(inLine,iErr)
-  
+
   use string_tools
-  
+
   implicit none
-  
+
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
-  
+
   character(len=:), allocatable :: lnSplit(:)
   integer i, nSplit
   logical spErr
-  
+
   character gFields(str_maxFields)*(str_maxlen)
   integer   nFields
   integer   lFields(str_maxFields)
   logical   eFields
-  
+
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
     write(lout,"(a)") "DYNK> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
-  
+
   if(nSplit == 0) then
     if(ldynkdebug) then
       write (lout,"(a,i3,a)") "DYNK> DEBUG Input line len=",len(inLine),": '"//chr_strip(inLine)//"'."
@@ -180,38 +180,38 @@ subroutine dynk_parseInputLine(inLine,iErr)
     end if
     return
   end if
-  
+
   ! Report if debugging is ON
   if(ldynkdebug) then
     write (lout,"(a,i3,a)")  "DYNK> DEBUG Input line len=",len(inLine),": '"//chr_strip(inLine)//"'."
     write (lout,"(a,i3,a)") ("DYNK> DEBUG  * Field(",i,") = '"//chr_trimZero(lnSplit(i))//"'",i=1,nSplit)
   end if
-  
+
   select case(chr_trimZero(lnSplit(1)))
-  
+
   case("DEBUG")
     ldynkdebug = .true.
     write(lout,"(a)") "DYNK> DYNK block debugging is ON."
-  
+
   case("NOFILE")
     ldynkfiledisable = .true.
     write (lout,*) "DYNK> Disabled writing dynksets.dat"
-  
+
   case("FUN")
     call getfields_split(inLine,gFields,lFields,nFields,eFields)
     call dynk_parseFUN(gFields,lFields,nFields)
-    
+
   case("SET")
     call getfields_split(inLine,gFields,lFields,nFields,eFields)
     call dynk_parseSET(gFields,lFields,nFields)
-    
+
   case default
     write(lout,"(a)") "DYNK> ERROR Unrecognised statement '"//chr_trimZero(lnSplit(1))//"'."
     iErr = .true.
     return
-    
+
   end select
-  
+
 end subroutine dynk_parseInputLine
 
 ! =================================================================================================
@@ -220,24 +220,24 @@ end subroutine dynk_parseInputLine
 !  Parse FUN lines in the fort.3 input file.
 ! =================================================================================================
 subroutine dynk_parseFUN(gFields, lFields, nFields)
-  
+
   use crcoall
   implicit none
-  
+
   character, intent(in) :: gFields(str_maxFields)*(str_maxlen)
   integer,   intent(in) :: nFields
   integer,   intent(in) :: lFields(str_maxFields)
-  
+
   ! Temp variables
   integer ii, stat, t, nlines
   real(kind=fPrec) x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
   real(kind=fPrec) x1,x2,y1,y2,deriv                        ! LINSEG, QUADSEG,
   real(kind=fPrec) tinj,Iinj,Inom,A,D,R,te                  ! PELP (input)
   real(kind=fPrec) derivI_te,I_te,bexp,aexp, t1,I1, td,tnom ! PELP (calc)
-  
+
   logical isFIR ! FIR/IIR
   logical lopen
-  
+
 #ifdef CRLIBM
   integer nchars
   parameter(nchars=160) ! Same as in daten
@@ -251,16 +251,16 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
   real(kind=fPrec) round_near
   integer errno
 #endif
-  
+
 #ifdef BOINC
   character(len=256) filename
 #endif
-  
+
   if(dynk_nFuncs+1 > dynk_maxFuncs) then
     dynk_maxFuncs = dynk_maxFuncs + 10
     call alloc(dynk_funcs,dynk_maxFuncs,5,0,"dynk_funcs")
   end if
-  
+
     if (lFields(2).gt.str_maxLen-1 .or. lFields(2) .gt. 20) then
         write(lout,*) "ERROR in DYNK block parsing (fort.3):"
         write(lout,*) "Max length of a FUN name is the smallest of", str_maxLen-1, "and", 20, "."
@@ -462,7 +462,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
         dynk_funcs(dynk_nFuncs,3) = dynk_ncData+1 !Filename (in dynk_cData)
         dynk_funcs(dynk_nFuncs,4) = dynk_nfData+1 !Data     (in dynk_fData)
         dynk_funcs(dynk_nFuncs,5) = -1            !Below: Length of file (number of x,y sets)
-        
+
         !Sanity checks
         if (lFields(4) .gt. str_maxLen-1) then
             write (lout,*) "*************************************"
@@ -709,7 +709,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
                             call prror(-1)
                         end if
                         exit ! Break loop
-                    
+
                     else ! Partial match
                         write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
                         write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
@@ -782,7 +782,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
 
     case ("RANDG")
         ! RANDG: Gausian random number with mu, sigma, and optional cutoff
-        
+
         call dynk_checkargs(nFields,8,"FUN funname RANDG seed1 seed2 mu sigma cut")
         call dynk_checkspace(5,2,1)
 
@@ -925,7 +925,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
         ! columns, the first row (a_0 and y[n]) are ignored. For the first of these columns, the
         ! first value (a_0) is ignored and never used, while y[n-0] is pushed into y[n-1] at the
         ! first evaluation, such that the initial x[n-N] is never used (just like for x[n-N]).
-        ! 
+        !
         ! Format in dynk_fData:
         ! b_0 <- dynk_funcs(<this>,3)
         ! x[n]
@@ -1036,7 +1036,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
             call prror(51)
         end if
 
-        do ii=0, dynk_funcs(dynk_nFuncs,4) 
+        do ii=0, dynk_funcs(dynk_nFuncs,4)
 
             ! Reading the FIR/IIR file without CRLIBM
 #ifndef CRLIBM
@@ -1138,7 +1138,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
 
         ! Store pointers
         ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData 
+        dynk_funcs(dynk_nFuncs,1) = dynk_ncData
         select case (gFields(3)(1:lFields(3)))
         case ("ADD")
             dynk_funcs(dynk_nFuncs,2) = 20 ! TYPE (ADD)
@@ -1240,7 +1240,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
 
     ! Polynomial & Elliptical functions: # 40-59
 
-    case("CONST")   
+    case("CONST")
         ! CONST: Just a constant value
 
         call dynk_checkargs(nFields,4,"FUN funname CONST value")
@@ -1297,7 +1297,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
 
     case ("LIN")
         ! LIN: Linear ramp y = dy/dt*T+b
-         
+
         call dynk_checkargs(nFields,5,"FUN funname LIN dy/dt b")
         call dynk_checkspace(0,2,1)
 
@@ -1727,21 +1727,21 @@ end subroutine dynk_checkargs
 !  - If a large number of new elements is requested, allocate this in one chunk
 ! ================================================================================================ !
 subroutine dynk_checkspace(iReq,fReq,cReq)
-  
+
   use crcoall
-  
+
   implicit none
-  
+
   integer, intent(in) :: iReq
   integer, intent(in) :: fReq
   integer, intent(in) :: cReq
-  
+
   integer iNeeded, fNeeded, cNeeded
-  
+
   iNeeded = dynk_niData + iReq
   fNeeded = dynk_nfData + fReq
   cNeeded = dynk_ncData + cReq
-  
+
   if(iNeeded > dynk_maxiData) then
     if(iReq < 500) then
       dynk_maxiData = dynk_maxiData + 500
@@ -1766,7 +1766,7 @@ subroutine dynk_checkspace(iReq,fReq,cReq)
     end if
     call alloc(dynk_cData,str_maxLen,dynk_maxcData,str_dZeros,"dynk_cData")
   end if
-  
+
 end subroutine dynk_checkspace
 
 ! ================================================================================================ !
@@ -1897,7 +1897,7 @@ integer function dynk_findFUNindex(funName_input, startfrom)
 
     integer ii
 
-    ! write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)      
+    ! write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)
 
     if (len(funName_input).gt.str_maxLen) then
         write (lout,*) "ERROR in dynk_findFUNindex"
@@ -2231,14 +2231,14 @@ subroutine dynk_pretrack
                         write(lout,*) "DYNK> Insane - element found '", &
                                       "GLOBAL-VARS' is not a valid element name, ", &
                                       "it is reserved"
-                        call prror(-1) 
+                        call prror(-1)
                     end if
 
                     if (badelem) then
                         write(lout,*) "DYNK> Insane - attribute '", &
                                       att_name_s, "' is not valid for element '", &
                                       element_name_s, "' which is of type",kz(jj)
-                        call prror(-1) 
+                        call prror(-1)
                     end if
                 end if
             end do
@@ -2335,7 +2335,7 @@ subroutine dynk_apply(turn)
 
     ! First-turn initialization, including some parts which are specific for collimat.
     if (turn .eq. 1) then
-        ! Reset RNGs and filters 
+        ! Reset RNGs and filters
         do ii=1, dynk_nFuncs
             if (dynk_funcs(ii,2) .eq. 6) then ! RANDG
                 if (ldynkdebug) then
@@ -2404,7 +2404,7 @@ subroutine dynk_apply(turn)
 
             if (ldynkfiledisable) then
                 write(ldynkfileunit,*) "### DYNK file output was disabled with flag NOFILE in fort.3 ###"
-            else 
+            else
                 write(ldynkfileunit,*) "# turn element attribute SETidx funname value"
             end if
 #ifdef CR
@@ -2419,7 +2419,7 @@ subroutine dynk_apply(turn)
 #ifdef COLLIMAT
         end if !END if(samplenumber.eq.1)
 
-        ! Reset values to original settings in turn 1 
+        ! Reset values to original settings in turn 1
         if (samplenumber.gt.1) then
             if (ldynkdebug) then
                 write (lout,*) "DYNKDEBUG> New collimat sample, ", &
@@ -2531,14 +2531,14 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     use crcoall
     use mod_common
     use mod_ranecu
-    
+
     implicit none
 
     character gFields(str_maxFields)*(str_maxlen)
     integer   nFields
     integer   lFields(str_maxFields)
     logical   getfields_lerr
-  
+
     integer funNum, turn
     intent (in) funNum, turn
 
@@ -2664,10 +2664,10 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
         call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
         call recuin(tmpseed1,tmpseed2)
         ! routine for switching element (orginially the electron lens) ON or OFF
-        ! when random value is less than P, set ON, else OFF 
-        if (ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then 
+        ! when random value is less than P, set ON, else OFF
+        if (ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
             retval = 1.0
-        else 
+        else
             retval = 0.0
         end if
 
@@ -2947,8 +2947,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
             !     end if
             !     call initialize_element(ii, .false.)
 
-            ! Cavities 
-            else if (abs(el_type).eq.12) then 
+            ! Cavities
+            else if (abs(el_type).eq.12) then
                 if (att_name_stripped.eq."voltage") then ! [MV]
                     ed(ii) = newValue
                 else if (att_name_stripped.eq."harmonic") then !
@@ -2967,7 +2967,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
             ! Not yet supported
             ! AC dipole
-            ! else if (abs(el_type).eq.16) then 
+            ! else if (abs(el_type).eq.16) then
             !     if (att_name_stripped.eq."amplitude") then ! [T.m]
             !         ed(ii) = dynk_computeFUN(funNum,turn)
             !     else if (att_name_stripped.eq."frequency") then ! [2pi]
@@ -2980,7 +2980,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
             ! Not yet supported
             ! beam-beam separation
-            ! else if (abs(el_type).eq.20) then 
+            ! else if (abs(el_type).eq.20) then
             !     if (att_name_stripped.eq."horizontal") then ! [mm]
             !         ed(ii) = dynk_computeFUN(funNum,turn)
             !     else if (att_name_stripped.eq."vertical") then ! [mm]
@@ -2990,7 +2990,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
             !     else
             !         goto 100 ! ERROR
             !     end if
-            
+
             else if ((abs(el_type).eq.23).or. &  ! crab cavity
                      (abs(el_type).eq.26).or. &  ! cc mult. kick order 2
                      (abs(el_type).eq.27).or. &  ! cc mult. kick order 3
@@ -3003,7 +3003,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
                     ! Note: el is set to 0 in initialize_element and in daten.
                     ! Calling initialize element on a crab without setting el
                     ! will set crabph = 0!
-                    el(ii) = newValue 
+                    el(ii) = newValue
                     call initialize_element(ii, .false.)
                 else
                     goto 100 ! ERROR
@@ -3040,7 +3040,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     end if
 
     return
-      
+
     ! Error handlers
 100 continue
         write (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
@@ -3073,7 +3073,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
     use mod_commonmn
     use elens
     implicit none
-    
+
     character(str_maxLen) element_name, att_name
     intent(in) element_name, att_name
 
@@ -3131,7 +3131,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
             ! Multipoles (Not yet supported)
             ! else if (abs(el_type).eq.11) then
-            !     if (att_name_s.eq."bending_str") then 
+            !     if (att_name_s.eq."bending_str") then
             !         dynk_getvalue = dynk_elemdata(ii,2)
             !     elseif (att_name_s.eq."radius") then
             !         dynk_getvalue = dynk_elemdata(ii,3)
@@ -3152,7 +3152,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
                 end if
 
             ! Not yet supported
-            ! AC dipole 
+            ! AC dipole
             ! else if (abs(el_type).eq.16) then
             !     if (att_name_s.eq."amplitude") then ! [T.m]
             !         nretdata = nretdata+1
@@ -3166,19 +3166,19 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
             !     else
             !         goto 100 ! ERROR
             !     end if
-               
+
             ! Not yet supported
             ! beam-beam separation
             ! else if (abs(el_type).eq.20) then
             !     if (att_name_s.eq."horizontal") then ! [mm]
             !         nretdata = nretdata+1
-            !         retdata(nretdata) = ed(ii)                
+            !         retdata(nretdata) = ed(ii)
             !     else if (att_name_s.eq."vertical") then ! [mm]
             !         nretdata = nretdata+1
-            !         retdata(nretdata) = ek(ii)                
+            !         retdata(nretdata) = ek(ii)
             !     else if (att_name_s.eq."strength") then ! [m]
             !         nretdata = nretdata+1
-            !         retdata(nretdata) = el(ii)       
+            !         retdata(nretdata) = el(ii)
             !     else
             !         goto 100 ! ERROR
             !     end if
@@ -3251,7 +3251,7 @@ end function dynk_getvalue
 !
 !  - xvals should be in increasing order, if not then program is aborted.
 !  - If x < min(xvals) or x>max(xvals), program is aborted.
-!  - If datalen <= 0, program is aborted. 
+!  - If datalen <= 0, program is aborted.
 ! ================================================================================================ !
 real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
 
@@ -3311,7 +3311,7 @@ real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
 end function dynk_lininterp
 
 ! ================================================================================================ !
-!  K. Sjobak, ABP-HSS, 
+!  K. Sjobak, ABP-HSS,
 !  Last modified: 23-01-2015
 !  - Indicates whether a structure element is in use by DYNK
 ! ================================================================================================ !
@@ -3363,22 +3363,22 @@ end function dynk_isused
 !  Initialize the memory for DYNK
 ! =================================================================================================
 subroutine dynk_comnul
-  
+
   use numerical_constants, only : zero
-  
+
   implicit none
-  
+
   integer i,j
-  
+
   ldynk = .false.
   ldynkdebug = .false.
   ldynkfiledisable = .false.
-  
+
   dynk_nFuncs = 0
   dynk_niData = 0
   dynk_nfData = 0
   dynk_ncData = 0
-  
+
   do i=1,dynk_maxFuncs
     dynk_funcs(i,1)= 0 !FUN name ( index in dynk_cData; 0 is invalid )
     dynk_funcs(i,2)=-1 !FUN type (-1 is invalid)
@@ -3386,15 +3386,15 @@ subroutine dynk_comnul
     dynk_funcs(i,4)= 0
     dynk_funcs(i,5)= 0
   end do
-  
+
   dynk_nSets = 0
-  
+
   do i=1, dynk_maxSets
     dynk_sets(i,1) = 0 !FUN idx ( index in dynk_funcs; 0 is invalid )
     dynk_sets(i,2) = 0
     dynk_sets(i,3) = 0
     dynk_sets(i,4) = 0
-    
+
     do j=1, str_maxLen
       dynk_cSets(i,1)(j:j) = char(0)
       dynk_cSets(i,2)(j:j) = char(0)
@@ -3403,7 +3403,7 @@ subroutine dynk_comnul
     end do
     dynk_fSets_orig(i) = zero
   end do
-  
+
   do i=1,nele
     dynk_izuIndex(i) = 0
     dynk_elemdata(i,1) = 0
@@ -3421,20 +3421,20 @@ end subroutine dynk_comnul
 !  Close units for logging dynks
 ! =================================================================================================
 subroutine dynk_closeFiles
-  
+
   implicit none
-  
+
   integer i
   logical lopen
-  
+
   if(.not. ldynk) return
-  
+
   do i=1,dynk_nFuncs
     if (dynk_funcs(i,2) == 3) then ! PIPE FUN
       ! InPipe
       inquire(unit=dynk_iData(dynk_funcs(i,3)), opened=lopen)
       if(lopen) close(dynk_iData(dynk_funcs(i,3)))
-      
+
       ! OutPipe
       inquire(unit=dynk_iData(dynk_funcs(i,3)+1), opened=lopen)
       if(lopen) then
@@ -3443,7 +3443,7 @@ subroutine dynk_closeFiles
       end if
     end if
   end do
-  
+
 end subroutine dynk_closeFiles
 
 ! ================================================================================================ !
@@ -3458,35 +3458,35 @@ end subroutine dynk_closeFiles
 !  - Sets readerr=.true. if something goes wrong while reading.
 ! ================================================================================================ !
 subroutine dynk_crcheck_readdata(fileunit,readerr)
-  
+
   use crcoall
-  
+
   implicit none
-  
+
   integer, intent(in)  :: fileunit
   logical, intent(out) :: readerr
-  
+
   integer j, stat
-  
+
   read(fileunit,err=100,end=100) dynkfilepos_cr, dynk_niData_cr, dynk_nfData_cr, dynk_ncData_cr
-  
+
   call alloc(dynk_iData_cr,dynk_niData_cr,0,"dynk_iData_cr")
   call alloc(dynk_fData_cr,dynk_nfData_cr,zero,"dynk_fData_cr")
   call alloc(dynk_cData_cr,str_maxLen,dynk_ncData_cr,str_dZeros,"dynk_cData_cr")
-  
+
   read(fileunit,err=100,end=100) &
     (dynk_iData_cr(j),j=1,dynk_niData_cr), (dynk_fData_cr(j),j=1,dynk_nfData_cr), &
     (dynk_cData_cr(j),j=1,dynk_ncData_cr), (dynk_fSets_cr(j),j=1,dynk_maxSets)
-  
+
   readerr=.false.
   return
-  
+
 100 continue
-  
+
   write(lout,*) "READERR in scatter_crcheck; fileunit=",fileunit
   write(93,*)   "READERR in scatter_crcheck; fileunit=",fileunit
   readerr=.true.
-  
+
 end subroutine dynk_crcheck_readdata
 
 ! ================================================================================================ !
@@ -3562,7 +3562,7 @@ subroutine dynk_crcheck_positionFiles
     endfile   (93,iostat=ierro)
     backspace (93,iostat=ierro)
     write(lout,*) "SIXTRACR CRCHECK failure positioning 'dynksets.dat'"
-    call prror(-1)  
+    call prror(-1)
 
 end subroutine dynk_crcheck_positionFiles
 
@@ -3572,24 +3572,24 @@ end subroutine dynk_crcheck_positionFiles
 !  - Called from CRPOINT; write checkpoint data to fort.95/96
 ! ================================================================================================ !
 subroutine dynk_crpoint(fileunit,fileerror,ierro)
-  
+
   implicit none
-  
+
   integer, intent(in)    :: fileunit
   logical, intent(out)   :: fileerror
-  integer, intent(inout) :: ierro 
-  
+  integer, intent(inout) :: ierro
+
   integer j
-  
+
   write(fileunit,err=100,iostat=ierro) dynkfilepos, dynk_niData, dynk_nfData, dynk_ncData
   write(fileunit,err=100,iostat=ierro) &
       (dynk_iData(j),j=1,dynk_niData), (dynk_fData(j),j=1,dynk_nfData), &
       (dynk_cData(j),j=1,dynk_ncData), (dynk_fSets_cr(j),j=1,dynk_maxSets)
   endfile (fileunit,iostat=ierro)
   backspace (fileunit,iostat=ierro)
-  
+
   return
-  
+
 100 continue
     fileerror=.true.
 end subroutine dynk_crpoint
@@ -3601,30 +3601,30 @@ end subroutine dynk_crpoint
 !    order to recreate the state of the SCATTER block at the time of the checkpoint.
 ! ================================================================================================ !
 subroutine dynk_crstart
-  
+
   implicit none
-  
+
   integer j
 
   call dynk_checkspace(dynk_niData_cr-dynk_niData, dynk_nfData_cr-dynk_nfData, dynk_ncData_cr-dynk_ncData)
-  
+
   dynk_niData = dynk_niData_cr
   dynk_nfData = dynk_nfData_cr
   dynk_ncData = dynk_ncData_cr
-  
+
   dynk_iData(1:dynk_niData) = dynk_iData_cr(1:dynk_niData)
   dynk_fData(1:dynk_nfData) = dynk_fData_cr(1:dynk_nfData)
   dynk_cData(1:dynk_ncData) = dynk_cData_cr(1:dynk_ncData)
-  
+
   call dealloc(dynk_iData_cr,"dynk_iData_cr")
   call dealloc(dynk_fData_cr,"dynk_fData_cr")
   call dealloc(dynk_cData_cr,str_maxLen,"dynk_cData_cr")
-  
+
   do j=1,dynk_nSets_unique
     ! It is OK to write to lout from here
     call dynk_setvalue(dynk_cSets_unique(j,1),dynk_cSets_unique(j,2),dynk_fSets_cr(j))
   end do
-  
+
 end subroutine dynk_crstart
 
 ! ================================================================================================ !

@@ -2,113 +2,113 @@
 #ifdef DEBUG
 
 subroutine warr(vname,value,i,j,k,l)
-  
+
   use floatPrecision
   use parpro
-  
+
   implicit none
-  
+
   character(len=*) vname
   real(kind=fPrec) value
-  
+
   integer i,j,k,l
   integer ierro
   character(len=max_name_len) myname
-  
+
   myname=vname
   write(100) myname,value,i,j,k,l
   endfile (100,iostat=ierro)
   backspace (100,iostat=ierro)
-  
+
   return
-  
+
 end subroutine warr
 
 subroutine dumpbl1(dumpname,n,i)
-  
+
   use floatPrecision
   use parpro
   use mod_common
-  
+
   implicit none
-  
+
   integer n,i
   character(len=*) dumpname
   save
-  
+
   write(99,*) dumpname,'   Turn ',n,' Element ',i
   write(99,100) 'bl1 ',bl1
   write(99,100) 'bl2 ',bl2
   endfile (99,iostat=ierro)
   backspace (99,iostat=ierro)
-  
+
 100  format (a10,(Z20))
 
 end subroutine dumpbl1
 
 subroutine dumpzfz(dumpname,n,i)
-  
+
   use floatPrecision
   use parpro
   use mod_common
-  
+
   implicit none
-  
+
   integer n,i
   integer j
   character(len=*) dumpname
   character(len=10) mydump,myzfz
   save
-  
+
   mydump=dumpname
   myzfz='zfz'
   write(101) mydump,n,i
   write(101) myzfz
   do j=1,nzfz
-    write(101) zfz(j) 
+    write(101) zfz(j)
   end do
   endfile (101,iostat=ierro)
   backspace (101,iostat=ierro)
-  
+
 end subroutine dumpzfz
 
 subroutine dumpxy(dumpname,n,i,k)
-  
+
   use floatPrecision
   use parpro
   use mod_common
   use mod_commont
   use mod_commonmn
-  
+
   implicit none
-  
+
   integer n,i,j,k
   character(len=*) dumpname
   save
-  
+
   write(99,*) dumpname,'   Turn ',n,' Element ',i
   write(99,*) (xv(1,j),j=1,k),(xv(2,j),j=1,k),(yv(1,j),j=1,k),(yv(2,j),j=1,k),&
     (sigmv(j),j=1,k),(ejv(j),j=1,k),(ejfv(j),j=1,k),(rvv(j),j=1,k),           &
     (dpsv(j),j=1,k),(dpsv1(j),j=1,k),(oidpsv(j),j=1,k)
   endfile (99,iostat=ierro)
   backspace (99,iostat=ierro)
-  
+
 end subroutine dumpxy
 
 subroutine dumpsynu(dumpname,n,i)
-  
+
   use floatPrecision
   use parpro
   use mod_common
   use mod_commonmn
   use mod_commons
-  
+
   implicit none
-  
+
   integer n,i,j,l,m,k
   character(len=*) dumpname
   save
-  
+
   write(99,*) dumpname,'   Turn ',n,' Element ',i
   write(99,*) (aek(j),j=1,napxo)
   write(99,*) (afok(j),j=1,napxo)
@@ -145,14 +145,14 @@ subroutine dumpsynu(dumpname,n,i)
   write(99,*) (wfhi(j),j=1,napxo)
   write(99,*) ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
   write(99,*) ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-  
+
   endfile (99,iostat=ierro)
   backspace (99,iostat=ierro)
-  
+
 end subroutine dumpsynu
 
 subroutine dump(dumpname,n,i)
-  
+
   use floatPrecision
   use parpro
   use mod_common
@@ -160,16 +160,16 @@ subroutine dump(dumpname,n,i)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
-  
+
 +ca crco
   integer n,i
   character(len=*) dumpname
   save
-  
+
   write(99,*) dumpname,'   Turn ',n,' Element ',i
-  
+
   ! my cr variables
   write(99,*) 'time0 ',time0
   write(99,*) 'time1 ',time1
@@ -208,7 +208,7 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'crdpsv1',crdpsv1
   write(99,*) 'crejv',crejv
   write(99,*) 'crejfv',crejfv
-  
+
   ! some tracking stuff
   write(99,*) 'nwri',nwri
   write(99,*) 'ktrack',ktrack
@@ -216,7 +216,7 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'strackc',strackc
   write(99,*) 'stracks',stracks
   write(99,*) 'dpsv1',dpsv1
-  
+
   write(99,*) 'ierro ',ierro
   write(99,*) 'erbez ',erbez
   write(99,*) 'pi ',pi
@@ -620,7 +620,7 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'x1 ',x1
   write(99,*) 'x2 ',x2
   write(99,*) 'fake ',fake
-  
+
   write(99,*) 'e0f ',e0f
   write(99,*) 'numx ',numx
   write(99,*) 'cotr ',cotr
@@ -639,14 +639,14 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'exz ',exz
   write(99,*) 'time0 ',time0
   write(99,*) 'time1 ',time1
-  
+
   endfile (99,iostat=ierro)
   backspace (99,iostat=ierro)
-  
+
 end subroutine dump
 
 subroutine dumpbin(dumpname,n,i)
-  
+
   use floatPrecision
   use parpro
   use mod_common
@@ -654,17 +654,17 @@ subroutine dumpbin(dumpname,n,i)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
-  
+
 +ca crco
   integer n,i
   character(len=*) dumpname
   character(len=10) mydump
   save
-  
+
   mydump=dumpname
-  
+
   write(99) mydump
   write(99) n
   write(99) i
@@ -715,7 +715,7 @@ subroutine dumpbin(dumpname,n,i)
   write(99) strackc
   write(99) stracks
   write(99) dpsv1
-  
+
   write(99) ierro
   write(99) erbez
   write(99) pi
@@ -1137,14 +1137,14 @@ subroutine dumpbin(dumpname,n,i)
   write(99) exz
   write(99) time0
   write(99) time1
-  
+
   endfile (99,iostat=ierro)
   backspace (99,iostat=ierro)
-  
+
 end subroutine dumpbin
 
 subroutine dumphex(dumpname,n,i)
-  
+
   use floatPrecision
   use parpro
   use mod_common
@@ -1152,14 +1152,14 @@ subroutine dumphex(dumpname,n,i)
   use mod_commons
   use mod_commont
   use mod_commond
-  
+
   implicit none
-  
+
 +ca crco
   integer n,i
   character(len=*) dumpname
   save
-  
+
   write(99,*) dumpname,'   Turn ',n,' Element ',i
 
   ! my cr variables
@@ -1208,7 +1208,7 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'strackc',strackc
   write(99,100) 'stracks',stracks
   write(99,100) 'dpsv1',dpsv1
-  
+
   write(99,100) 'ierro ',ierro
   write(99,100) 'erbez ',erbez
   write(99,100) 'pi ',pi
@@ -1630,10 +1630,10 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'exz ',exz
   write(99,100) 'time0 ',time0
   write(99,100) 'time1 ',time1
-  
+
   endfile (99,iostat=ierro)
   backspace (99,iostat=ierro)
-  
+
 100 format (a10,(Z20))
 
 end subroutine dumphex
