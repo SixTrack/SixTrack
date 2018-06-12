@@ -9,7 +9,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use mod_lie_dab, only : ndim,ndim2,ntt,nreso,nd,nd2,no,nv,ifilt,idpr,iref,itu,lienot,iflow,   &
         jtune,ndc,ndc2,ndpt,ndt,nplane,ista,idsta,mx,nres,epsplane,xplane,sta,dsta,angle,rad,ps,    &
         rads,xintex,iscrda
-    
+
       implicit none
       integer i,iref1,nd1,ndc1,ndpt1,nis,no1,nv1
       real(kind=fPrec) ang,ra,st
@@ -1410,7 +1410,7 @@ subroutine expnd2(h,x,w,eps,nrmax)
       do j=1,nd2
         call exp1d(h,v(j),b0(1),eps,nrmax)
         call dacop(b0(1),v(j))
-      end do 
+      end do
 
       call dacopd(v,w)
       call dadal(v,nd2)
@@ -1680,7 +1680,7 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
 !      CALL TAKED(A2I,1,XY)
       call taked(a2i,1,a1i)
       call etcct(xy,a1i,xy)
-      
+
       call dadal(a2i,nd2)
       call dadal(a1i,nd2)
       return

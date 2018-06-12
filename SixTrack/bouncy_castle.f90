@@ -13,14 +13,14 @@ module mathlib_bouncer
   !For linking with CRLIBM
 #ifdef CRLIBM
   private :: acos_rn, asin_rn, atan2_rn
-  
+
   !Can't declare them private as they have BIND labels,
   ! however they should not be called from outside this module.
   !private :: exp_rn, log_rn, log10_rn, atan_rn, tan_rn, sin_rn, cos_rn, sinh_rn, cosh_rn
-  
+
   !! Interface definitions for the other functions in crlibm
   interface
-     
+
      real(kind=c_double) function exp_rn(arg) bind(C,name="exp_rn")
        use, intrinsic :: iso_c_binding, only : c_double
        implicit none
@@ -44,7 +44,7 @@ module mathlib_bouncer
        implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function atan_rn
-     
+
      real(kind=c_double) function tan_rn(arg) bind(C,name="tan_rn")
        use, intrinsic :: iso_c_binding, only : c_double
        implicit none
@@ -74,7 +74,7 @@ module mathlib_bouncer
        implicit none
        real(kind=c_double), intent(in), VALUE :: arg
      end function cosh_rn
-     
+
   end interface
 #endif
 
@@ -85,7 +85,7 @@ contains
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     sin_mb=sin(arg)
@@ -98,7 +98,7 @@ contains
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     asin_mb=asin(arg)
@@ -111,7 +111,7 @@ contains
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     sinh_mb=sinh(arg)
@@ -119,12 +119,12 @@ contains
     sinh_mb=sinh_rn(arg)
 #endif
   end function sinh_mb
-  
+
   real(kind=fPrec) function cos_mb(arg)
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     cos_mb=cos(arg)
@@ -132,12 +132,12 @@ contains
     cos_mb=cos_rn(arg)
 #endif
   end function cos_mb
-  
+
   real(kind=fPrec) function acos_mb(arg)
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     acos_mb=acos(arg)
@@ -145,12 +145,12 @@ contains
     acos_mb=acos_rn(arg)
 #endif
   end function acos_mb
-  
+
   real(kind=fPrec) function cosh_mb(arg)
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     cosh_mb=cosh(arg)
@@ -158,12 +158,12 @@ contains
     cosh_mb=cosh_rn(arg)
 #endif
   end function cosh_mb
-  
+
   real(kind=fPrec) function tan_mb(arg)
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     tan_mb=tan(arg)
@@ -171,12 +171,12 @@ contains
     tan_mb=tan_rn(arg)
 #endif
   end function tan_mb
-  
+
   real(kind=fPrec) function atan_mb(arg)
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     atan_mb=atan(arg)
@@ -184,12 +184,12 @@ contains
     atan_mb=atan_rn(arg)
 #endif
   end function atan_mb
-  
+
   real(kind=fPrec) function atan2_mb(y,x)
     implicit none
     real(kind=fPrec) y,x
     intent(in) y,x
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     atan2_mb=atan2(y,x)
@@ -202,7 +202,7 @@ contains
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     exp_mb=exp(arg)
@@ -215,7 +215,7 @@ contains
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     log_mb=log(arg)
@@ -228,7 +228,7 @@ contains
     implicit none
     real(kind=fPrec) arg
     intent(in) arg
-    
+
 #ifndef CRLIBM
     !Input KIND = output KIND
     log10_mb=log10(arg)
@@ -236,7 +236,7 @@ contains
     log10_mb=log10_rn(arg)
 #endif
   end function log10_mb
-  
+
 #ifdef CRLIBM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Functions moved from sixtrack.s, wrapping parts of crlibm !

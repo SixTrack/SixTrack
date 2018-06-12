@@ -1,7 +1,7 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 module mod_ranlux
   use floatPrecision
-  use numerical_constants 
+  use numerical_constants
   use crcoall
 
   implicit none

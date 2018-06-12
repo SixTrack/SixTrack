@@ -31,18 +31,18 @@
 !            The buffers seem to work just fine for integers and reals though.
 ! ================================================================================================ !
 module hdf5_output
-  
+
   use hdf5
   use floatPrecision
   use end_sixtrack
   use crcoall
   use strings
   use mod_alloc
-  
+
   use, intrinsic :: iso_fortran_env, only : real32, real64, real128
-  
+
   implicit none
-  
+
   ! Common Settings
   logical,          public,  save :: h5_isActive    ! Existence of the HDF5 block
   logical,          public,  save :: h5_debugOn     ! HDF5 debug flag present
@@ -53,22 +53,22 @@ module hdf5_output
   type(string),     private, save :: h5_rootPath    ! The root group where the data for this session is stored
   integer,          private, save :: h5_gzipLevel   ! The level of compression used: 0 for none to 9 for maximum
   integer(HSIZE_T), private, save :: h5_defChunk    ! The default size of chunks, used for mainly logging output
-  
+
   ! Input Block Switches
   logical, public, save :: h5_useForAPER
   logical, public, save :: h5_useForCOLL
   logical, public, save :: h5_useForDUMP
   logical, public, save :: h5_useForSCAT
-  
+
   ! Additional Write Flags
   logical, public,  save :: h5_writeOptics  ! Write the linear optics parameters
   logical, public,  save :: h5_writeTracks2 ! For backwards compatibility for old tracks2 format
-  
+
   ! Runtime Variables
   logical, private, save :: h5_fileIsOpen  ! True if file is open.
   integer, public,  save :: h5_fileError   ! For errors related to file essentials (critical)
   integer, public,  save :: h5_dataError   ! For errors related to datasets
-  
+
   ! HDF5 File/Group IDs
   integer(HID_T), public,  save :: h5_fileID  ! The internal ID of the file
   integer(HID_T), public,  save :: h5_rootID  ! The internal ID of the root group
@@ -76,21 +76,21 @@ module hdf5_output
   integer(HID_T), public,  save :: h5_collID  ! The internal ID of the collimation group
   integer(HID_T), public,  save :: h5_dumpID  ! The internal ID of the dump group
   integer(HID_T), public,  save :: h5_scatID  ! The internal ID of the scatter group
-  
+
   ! HDF5 Internals
   integer(HID_T), private, save :: h5_plistID ! Dataset transfer property
-  
+
   ! Default Group Names
   character(len=8),  parameter :: h5_aperGroup = "aperture"
   character(len=11), parameter :: h5_collGroup = "collimation"
   character(len=4),  parameter :: h5_dumpGroup = "dump"
   character(len=7),  parameter :: h5_scatGroup = "scatter"
-  
+
   ! Atomic Data Type Constants
   integer, parameter :: h5_typeInt  = 1 ! Size is fixed to fortran native integer
   integer, parameter :: h5_typeReal = 2 ! Size is determined by fPrec
   integer, parameter :: h5_typeChar = 3 ! Any size is valid, must be specified
-  
+
   ! Field Definitions
   type, public :: h5_dataField
     character(len=:), allocatable, public  :: name
@@ -99,7 +99,7 @@ module hdf5_output
     integer(HID_T),                private :: typeH5 = 0
     integer(HID_T),                private :: typeID = 0
   end type h5_dataField
-  
+
   ! Format Container
   type, private :: h5_dataFmt
     character(len=:),   allocatable, public  :: name
@@ -107,7 +107,7 @@ module hdf5_output
     integer(HID_T),                  private :: dtypeID = 0
     type(h5_dataField), allocatable, public  :: fields(:)
   end type h5_dataFmt
-  
+
   ! Dataset Container
   type, private :: h5_dataSet
     character(len=:),   allocatable, public  :: name
@@ -121,7 +121,7 @@ module hdf5_output
     integer(HID_T),                  private :: memID   = 0
     integer(HID_T),                  private :: propID  = 0
   end type h5_dataSet
-  
+
   ! Data Buffer Container
   type, private :: h5_dataBuf
     character(len=:), allocatable, public  :: name
@@ -137,7 +137,7 @@ module hdf5_output
     real(kind=fPrec), allocatable, private :: rData(:,:)
     character(len=:), allocatable, private :: cData(:,:)
   end type h5_dataBuf
-  
+
   ! Storage Arrays
   type(h5_dataFmt), allocatable, private, save :: h5_fmtList(:)
   integer,                       private, save :: h5_fmtCount
@@ -148,9 +148,9 @@ module hdf5_output
   type(h5_dataBuf), allocatable, private, save :: h5_bufList(:)
   integer,                       private, save :: h5_bufCount
   integer,          parameter,   private       :: h5_bufOff = 3000
-  
+
   ! Interface for Data Writing
-  
+
   interface h5_writeData
     module procedure h5_writeArray_real32
     module procedure h5_writeValue_real32
@@ -163,13 +163,13 @@ module hdf5_output
     module procedure h5_writeArray_char
     module procedure h5_writeValue_char
   end interface h5_writeData
-  
+
   interface h5_writeBuffer
     module procedure h5_writeBuffer_real
     module procedure h5_writeBuffer_int
     module procedure h5_writeBuffer_char
   end interface h5_writeBuffer
-  
+
   interface h5_writeAttr
     module procedure h5_writeAttr_char
     module procedure h5_writeAttr_char_arr
@@ -182,7 +182,7 @@ module hdf5_output
     module procedure h5_writeAttr_real128
     module procedure h5_writeAttr_real128_arr
   end interface h5_writeAttr
-  
+
   private :: h5_writeArray_real32
   private :: h5_writeValue_real32
   private :: h5_writeArray_real64
@@ -193,11 +193,11 @@ module hdf5_output
   private :: h5_writeValue_int
   private :: h5_writeArray_char
   private :: h5_writeValue_char
-  
+
   private :: h5_writeBuffer_real
   private :: h5_writeBuffer_int
   private :: h5_writeBuffer_char
-  
+
   private :: h5_writeAttr_char
   private :: h5_writeAttr_char_arr
   private :: h5_writeAttr_int
@@ -208,7 +208,7 @@ module hdf5_output
   private :: h5_writeAttr_real64_arr
   private :: h5_writeAttr_real128
   private :: h5_writeAttr_real128_arr
-  
+
 contains
 
 ! ================================================================================================ !
@@ -217,7 +217,7 @@ contains
 !  Last Modified: 2018-05-08
 ! ================================================================================================ !
 subroutine h5_comnul
-  
+
   h5_isActive     = .false.
   h5_debugOn      = .false.
   h5_isReady      = .false.
@@ -227,28 +227,28 @@ subroutine h5_comnul
   h5_rootPath     = ""
   h5_gzipLevel    = -1
   h5_defChunk     = 10
-  
+
   h5_useForCOLL   = .false.
   h5_useForDUMP   = .false.
   h5_useForSCAT   = .false.
-  
+
   h5_writeOptics  = .false.
   h5_writeTracks2 = .false.
-  
+
   h5_fileIsOpen   = .false.
   h5_fileError    = 0
   h5_dataError    = 0
-  
+
   h5_fileID       = 0
   h5_rootID       = 0
   h5_collID       = 0
   h5_dumpID       = 0
   h5_scatID       = 0
-  
+
   h5_fmtCount     = 0
   h5_setCount     = 0
   h5_bufCount     = 0
-  
+
 end subroutine h5_comnul
 
 ! ================================================================================================ !
@@ -257,22 +257,22 @@ end subroutine h5_comnul
 !  Last Modified: 2018-04-13
 ! ================================================================================================ !
 subroutine h5_parseInputLine(inLine)
-  
+
   use string_tools
-  
+
   type(string), intent(in)  :: inLine
-  
+
   type(string), allocatable :: lnSplit(:)
   integer i, nSplit
   logical spErr
-  
+
   ! Split the input line
   call str_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
     write(lout,"(a)") "HDF5> ERROR Failed to parse input line."
     return
   end if
-  
+
   if(nSplit == 0) then
     if(h5_debugOn) then
       write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
@@ -280,27 +280,27 @@ subroutine h5_parseInputLine(inLine)
     end if
     return
   end if
-  
+
   ! Report if debugging is ON
   if(h5_debugOn) then
     write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
     write (lout,"(a,i2,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
   end if
-  
+
   select case(lnSplit(1)%chr)
-  
+
   case("DEBUG")
     h5_debugOn = .true.
     write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
-  
+
   case("SINGLE")
     h5_useDouble = .false.
     write(lout,"(a)") "HDF5> HDF5 will use single precision."
-  
+
   case("DOUBLE")
     h5_useDouble = .true.
     write(lout,"(a)") "HDF5> HDF5 will use double precision."
-  
+
   case("GZIP")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
@@ -312,7 +312,7 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
       call prror(-1)
     end if
-  
+
   case("CHUNK")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
@@ -324,7 +324,7 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
       call prror(-1)
     end if
-  
+
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
       write(lout,"(a,i2,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
@@ -338,7 +338,7 @@ subroutine h5_parseInputLine(inLine)
     end if
     h5_fileName = str_stripQuotes(lnSplit(2))
     write(lout, "(a)") "HDF5> Output file name set to: '"//h5_fileName//"'."
-  
+
   case("ROOT")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
@@ -354,9 +354,9 @@ subroutine h5_parseInputLine(inLine)
     end if
     h5_rootPath = str_stripQuotes(lnSplit(2))
     write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
-  
+
   case("ENABLE")
-  
+
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
@@ -365,7 +365,7 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
       call prror(-1)
     end if
-    
+
     select case(lnSplit(2)%chr(1:4))
     case("APER")
       h5_useForAPER = .true.
@@ -383,14 +383,14 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
       call prror(-1)
     end select
-  
+
   case("WRITE")
-  
+
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR WRITE statement takes 1 input parameter, ",(nSplit-1)," given."
       call prror(-1)
     end if
-    
+
     select case(lnSplit(2)%chr)
     case("OPTICS")
       h5_writeOptics = .true.
@@ -402,13 +402,13 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a)") "HDF5> ERROR Unrecognised WRITE option '"//lnSplit(2)//"'"
       call prror(-1)
     end select
-  
+
   case default
     write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
     call prror(-1)
-  
+
   end select
-  
+
 end subroutine h5_parseInputLine
 
 ! ================================================================================================ !
@@ -417,7 +417,7 @@ end subroutine h5_parseInputLine
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
 subroutine h5_initHDF5()
-  
+
   call h5open_f(h5_fileError)
   call h5pcreate_f(H5P_DATASET_XFER_F, h5_plistID, h5_fileError)
   call h5pset_preserve_f(h5_plistID, .true., h5_fileError)
@@ -425,7 +425,7 @@ subroutine h5_initHDF5()
     write(lout,"(a)") "HDF5> ERROR Failed to initialise Fortran HDF5."
     call prror(-1)
   end if
-  
+
 end subroutine h5_initHDF5
 
 ! ================================================================================================ !
@@ -434,17 +434,17 @@ end subroutine h5_initHDF5
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
 subroutine h5_openFile()
-  
+
   integer accessFlag
   logical doesExist
-  
+
   if(.not. h5_isActive) then
     write(lout,"(a)") "HDF5> ERROR HDF5 file open called, but HDF5 is not active. This is a bug."
     call prror(-1)
   end if
-  
+
   inquire(file=h5_fileName%chr, exist=doesExist)
-  
+
   if(doesExist) then
     if(h5_doTruncate) then
       call h5fcreate_f(h5_fileName%chr, H5F_ACC_TRUNC_F, h5_fileID, h5_fileError)
@@ -469,7 +469,7 @@ subroutine h5_openFile()
     end if
     write(lout,"(a)") "HDF5> Created HDF5 file '"//h5_fileName//"'."
   end if
-  
+
   ! If a root group was requested, create it and save the rootID
   ! Otherwise, use the fileID as the rootID
   if(h5_rootPath%chr /= "") then
@@ -483,9 +483,9 @@ subroutine h5_openFile()
   else
     h5_rootID = h5_fileID
   end if
-  
+
   h5_isReady = .true.
-  
+
 end subroutine h5_openFile
 
 ! ================================================================================================ !
@@ -494,22 +494,22 @@ end subroutine h5_openFile
 !  Last Modified: 2018-05-31
 ! ================================================================================================ !
 subroutine h5_writeSimInfo()
-  
+
   use mod_common, only : napx, numl
-  
+
   character(len=23) timeStamp
   character(len=8)  cDate
   character(len=10) cTime
-  
+
   ! TimeStamp
   call date_and_time(cDate,cTime)
   timeStamp = cDate(1:4)//"-"//cDate(5:6)//"-"//cDate(7:8)//"T"//cTime(1:2)//":"//cTime(3:4)//":"//cTime(5:10)
   call h5_writeAttr(h5_rootID,"TimeStamp",timeStamp)
-  
+
   ! Simulation info
   call h5_writeAttr(h5_rootID,"Particles",napx*2)
   call h5_writeAttr(h5_rootID,"Turns",numl)
-  
+
 end subroutine h5_writeSimInfo
 
 ! ================================================================================================ !
@@ -518,16 +518,16 @@ end subroutine h5_writeSimInfo
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
 subroutine h5_closeHDF5()
-  
+
   integer i,j
-  
+
   if(.not. h5_isReady) then
     if(h5_debugOn) then
       write(lout,"(a)") "HDF5> DEBUG closeHDF5 called, but no files are open. Nothing to do."
     end if
     return
   end if
-  
+
   ! Close all DataType IDs
   do i=1, h5_fmtCount
     do j=1, size(h5_fmtList(i)%fields)
@@ -535,7 +535,7 @@ subroutine h5_closeHDF5()
     end do
     if(h5_fmtList(i)%dtypeID /= 0) call h5tclose_f(h5_fmtList(i)%dtypeID, h5_dataError)
   end do
-  
+
   ! Close all DataSet IDs
   do i=1, h5_setCount
     if(h5_setList(i)%dataID  /= 0) call h5dclose_f(h5_setList(i)%dataID,  h5_dataError)
@@ -543,7 +543,7 @@ subroutine h5_closeHDF5()
     if(h5_setList(i)%memID   /= 0) call h5sclose_f(h5_setList(i)%memID,   h5_dataError)
     if(h5_setList(i)%propID  /= 0) call h5pclose_f(h5_setList(i)%propID,  h5_dataError)
   end do
-  
+
   ! Close groups, if opened
   if(h5_aperID /= 0) call h5gclose_f(h5_aperID, h5_fileError)
   if(h5_collID /= 0) call h5gclose_f(h5_collID, h5_fileError)
@@ -552,23 +552,23 @@ subroutine h5_closeHDF5()
   if(h5_rootID /= h5_fileID) then
     if(h5_rootID /= 0) call h5gclose_f(h5_rootID, h5_fileError)
   end if
-  
+
   ! This closes the file
   call h5fclose_f(h5_fileID, h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to close HDF5 file."
     call prror(-1)
   end if
-  
+
   ! This cleans up everything left over
   call h5close_f(h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to close Fortran HDF5."
     call prror(-1)
   end if
-  
+
   write(lout,"(a)") "HDF5> Closed HDF5 file."
-  
+
 end subroutine h5_closeHDF5
 
 ! ================================================================================================ !
@@ -577,12 +577,12 @@ end subroutine h5_closeHDF5
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
 subroutine h5_initForAperture
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   call h5gcreate_f(h5_rootID, h5_aperGroup, h5_aperID, h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create aperture group '"//h5_aperGroup//"'."
@@ -591,16 +591,16 @@ subroutine h5_initForAperture
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for APERTURE."
   end if
-  
+
 end subroutine h5_initForAperture
 
 subroutine h5_initForCollimation
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   call h5gcreate_f(h5_rootID, h5_collGroup, h5_collID, h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create collimation group '"//h5_collGroup//"'."
@@ -609,16 +609,16 @@ subroutine h5_initForCollimation
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for COLLIMATION."
   end if
-  
+
 end subroutine h5_initForCollimation
 
 subroutine h5_initForDump
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   call h5gcreate_f(h5_rootID, h5_dumpGroup, h5_dumpID, h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create dump group '"//h5_dumpGroup//"'."
@@ -627,16 +627,16 @@ subroutine h5_initForDump
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for DUMP."
   end if
-  
+
 end subroutine h5_initForDump
 
 subroutine h5_initForScatter
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
   if(h5_fileError < 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
@@ -645,7 +645,7 @@ subroutine h5_initForScatter
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for SCATTER."
   end if
-  
+
 end subroutine h5_initForScatter
 
 ! ================================================================================================ !
@@ -654,24 +654,24 @@ end subroutine h5_initForScatter
 !  Last Modified: 2018-05-07
 ! ================================================================================================ !
 subroutine h5_createFormat(formatName, setFields, fmtID)
-  
+
   character(len=*),                intent(in)    :: formatName
   type(h5_dataField), allocatable, intent(inout) :: setFields(:)
   integer,                         intent(out)   :: fmtID
-  
+
   type(h5_dataFmt), allocatable :: tmpTypes(:)
   integer(HID_T),   allocatable :: fieldType(:)
   integer(HSIZE_T), allocatable :: fieldSize(:)
-  
+
   integer(HID_T)   :: dtypeID, tmpID
   integer(HSIZE_T) :: memSize, memOffset
   integer          :: i, nFields
-  
+
   if(.not. h5_isActive) then
     write(lout,"(a)") "HDF5> ERROR HDF5 routine called, but HDF5 is not active. This is a bug."
     call prror(-1)
   end if
-  
+
   ! Check inputs
   if(len(formatName) == 0) then
     write(lout,"(a)") "HDF5> ERROR Empty format name given. This is a bug."
@@ -685,7 +685,7 @@ subroutine h5_createFormat(formatName, setFields, fmtID)
     write(lout,"(a)") "HDF5> ERROR Fields array empty. This is a bug."
     call prror(-1)
   end if
-  
+
   ! First, extend the h5_fmtList array
   if(allocated(h5_fmtList) .eqv. .false.) then
     allocate(h5_fmtList(1))
@@ -696,22 +696,22 @@ subroutine h5_createFormat(formatName, setFields, fmtID)
     h5_fmtCount = h5_fmtCount + 1
     call move_alloc(tmpTypes, h5_fmtList)
   end if
-  
+
   ! Translate DataTypes into HDF5 equivalents
   memSize   = 0
   memOffset = 0
   nFields   = size(setFields)
   allocate(fieldType(nFields))
   allocate(fieldSize(nFields))
-  
+
   do i=1,nFields
-    
+
     select case (setFields(i)%type)
-    
+
     case(h5_typeInt) ! Integer types
       fieldType(i) = H5T_NATIVE_INTEGER
       call h5tget_size_f(fieldType(i), fieldSize(i), h5_dataError)
-    
+
     case(h5_typeReal) ! Real types
       if(h5_useDouble) then
         fieldType(i) = H5T_NATIVE_DOUBLE
@@ -719,57 +719,57 @@ subroutine h5_createFormat(formatName, setFields, fmtID)
         fieldType(i) = H5T_NATIVE_REAL
       end if
       call h5tget_size_f(fieldType(i), fieldSize(i), h5_dataError)
-    
+
     case(h5_typeChar) ! Character types
       call h5tcopy_f(H5T_NATIVE_CHARACTER, tmpID, h5_dataError)
       call h5tset_size_f(tmpID, setFields(i)%size, h5_dataError)
       call h5tget_size_f(tmpID, fieldSize(i), h5_dataError)
       fieldType(i) = tmpID
-    
+
     end select
-    
+
     ! Calculate the total memory allocation needed per record
     memSize = memSize + fieldSize(i)
   end do
-  
+
   if(h5_debugOn) then
     write(lout,"(a,i0)")   "HDF5> DEBUG Creating data format '"//formatName//"' with ID ",(h5_fmtCount+h5_fmtOff)
     write(lout,"(a,i0,a)") "HDF5> DEBUG   Format requires ",memSize," bytes per record."
   end if
-  
+
   ! Create the compound DataType as laid out in setFields
   call h5tcreate_f(H5T_COMPOUND_F, memSize, dtypeID, h5_dataError)
-  
+
   do i=1,nFields
-    
+
     ! Create in-file map
     call h5tinsert_f(dtypeID, setFields(i)%name, memOffset, fieldType(i), h5_dataError)
     memOffset = memOffset + fieldSize(i)
-    
+
     ! Create in-memory map
     setFields(i)%typeH5 = fieldType(i)
     call h5tcreate_f(H5T_COMPOUND_F, fieldSize(i), setFields(i)%typeID, h5_dataError)
     call h5tinsert_f(setFields(i)%typeID, setFields(i)%name, 0_HSIZE_T, setFields(i)%typeH5, h5_dataError)
-    
+
   end do
-  
+
   if(h5_dataError /= 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to create compund data record '"//formatName//"'"
     call prror(-1)
   end if
-  
+
   ! Save the Resulting HDF5 DataType
   h5_fmtList(h5_fmtCount)%name    = formatName
   h5_fmtList(h5_fmtCount)%memSize = memSize
   h5_fmtList(h5_fmtCount)%dtypeID = dtypeID
   h5_fmtList(h5_fmtCount)%fields  = setFields
-  
+
   fmtID = h5_fmtCount + h5_fmtOff
-  
+
   ! Clean up
   deallocate(fieldType)
   deallocate(fieldSize)
-  
+
 end subroutine h5_createFormat
 
 ! ================================================================================================ !
@@ -778,29 +778,29 @@ end subroutine h5_createFormat
 !  Last Modified: 2018-04-30
 ! ================================================================================================ !
 subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
-  
+
   use mod_alloc
   use string_tools
-  
+
   ! Routine Variables
   character(len=*),           intent(in)  :: setName
   integer(HID_T),             intent(in)  :: groupID
   integer,                    intent(in)  :: fmtID
   integer,                    intent(out) :: setID
   integer,          optional, intent(in)  :: chunckSize
-  
+
   type(h5_dataSet), allocatable :: tmpSets(:)
   character(len=:), allocatable :: cleanName
-  
+
   integer(HSIZE_T) :: spaceSize(1)
   integer(HSIZE_T) :: spaceMaxSize(1)
   integer(HID_T)   :: spaceID, dtypeID, dataID, propID
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Dataset creation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   ! First, extend the h5_setList array
   if(allocated(h5_setList) .eqv. .false.) then
     allocate(h5_setList(1))
@@ -811,7 +811,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
     h5_setCount = h5_setCount + 1
     call move_alloc(tmpSets, h5_setList)
   end if
-  
+
   ! Determine the chuncking
   if(present(chunckSize)) then
     spaceSize(1) = int(chunckSize,kind=HSIZE_T)
@@ -820,14 +820,14 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   end if
   spaceMaxSize(1) = H5S_UNLIMITED_F
   cleanName       = chr_strip(chr_trimZero(setName))
-  
+
   if(h5_debugOn) then
     write(lout,"(a,i0)") "HDF5> DEBUG Creating dataset '"//cleanName//"' with ID ",(h5_setCount+h5_setOff)
   end if
-  
+
   ! Create a 1 by chunckSize DataSpace with a 1 by inf max size
   call h5screate_simple_f(1, spaceSize, spaceID, h5_dataError, spaceMaxSize)
-  
+
   ! Create the chunkcing property
   call h5pcreate_f(H5P_DATASET_CREATE_F, propID, h5_dataError)
   call h5pset_chunk_f(propID, 1, spaceSize, h5_dataError)
@@ -838,7 +838,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   if(h5_gzipLevel > -1) then
     call h5pset_deflate_f(propID, h5_gzipLevel, h5_dataError)
   end if
-  
+
   ! Create the DataSet in-file
   dtypeID = h5_fmtList(fmtID-h5_fmtOff)%dtypeID
   call h5dcreate_f(groupID, cleanName, dtypeID, spaceID, dataID, h5_dataError, propID)
@@ -846,10 +846,10 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
     write(lout,"(a)") "HDF5> ERROR Failed to create dataset '"//cleanName//"'"
     call prror(-1)
   end if
-  
+
   call h5sclose_f(spaceID, h5_dataError)
   call h5dclose_f(dataID, h5_dataError)
-  
+
   h5_setList(h5_setCount)%name    = cleanName
   h5_setList(h5_setCount)%path    = ""
   h5_setList(h5_setCount)%format  = fmtID
@@ -859,9 +859,9 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   h5_setList(h5_setCount)%spaceID = 0
   h5_setList(h5_setCount)%memID   = 0
   h5_setList(h5_setCount)%propID  = propID
-  
+
   setID = h5_setCount + h5_setOff
-  
+
 end subroutine h5_createDataSet
 
 ! ================================================================================================ !
@@ -870,30 +870,30 @@ end subroutine h5_createDataSet
 !  Last Modified: 2018-04-30
 ! ================================================================================================ !
 subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
-  
+
   use mod_alloc
-  
+
   ! Routine Variables
   character(len=*), intent(in)  :: bufName
   integer,          intent(in)  :: fmtID
   integer,          intent(in)  :: setID
   integer,          intent(in)  :: bufSize
-  
+
   type(h5_dataBuf), allocatable :: tmpBufs(:)
-  
+
   ! Temp Variables
   integer, allocatable :: colMap(:,:)
   integer              :: nInt, nReal, nChar, nCols, iCol, cSize
-  
+
   integer,          allocatable :: iDataBuffer(:,:)
   real(kind=fPrec), allocatable :: rDataBuffer(:,:)
   character(len=:), allocatable :: cDataBuffer(:,:)
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Buffer creation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   ! First, extend the h5_setList array
   if(allocated(h5_bufList) .eqv. .false.) then
     allocate(h5_bufList(1))
@@ -904,7 +904,7 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
     h5_bufCount = h5_bufCount + 1
     call move_alloc(tmpBufs, h5_bufList)
   end if
-  
+
   ! Iterate through the fields to set up the buffer
   nCols = size(h5_fmtList(fmtID-h5_fmtOff)%fields)
   allocate(colMap(2,nCols))
@@ -913,7 +913,7 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
   nReal       = 0
   nChar       = 0
   cSize       = 0
-  
+
   do iCol=1,nCols
     select case(h5_fmtList(fmtID-h5_fmtOff)%fields(iCol)%type)
     case(h5_typeInt)
@@ -933,7 +933,7 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
       end if
     end select
   end do
-  
+
   h5_bufList(h5_bufCount)%name   = bufName
   h5_bufList(h5_bufCount)%nInt   = nInt
   h5_bufList(h5_bufCount)%nReal  = nReal
@@ -943,7 +943,7 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
   h5_bufList(h5_bufCount)%bSize  = bufSize
   h5_bufList(h5_bufCount)%cSize  = cSize
   h5_bufList(h5_bufCount)%colMap = colMap
-  
+
   if(nInt  > 0) then
     call alloc(iDataBuffer,nInt,bufSize,0,"hdf5_iDataBuffer")
     h5_bufList(h5_bufCount)%iData = iDataBuffer
@@ -959,9 +959,9 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
     write(lout,"(a,i0)") "HDF5-ALLOC> Size 2 = ",size(h5_bufList(h5_bufCount)%cData,2)
     write(lout,"(a,i0)") "HDF5-ALLOC> Size 3 = ",len(h5_bufList(h5_bufCount)%cData(1,1))
   end if
-  
+
   h5_setList(setID-h5_setOff)%buffer = h5_bufCount+h5_bufOff
-  
+
   if(h5_debugOn) then
     write(lout,"(a,i0,a)")    "HDF5> DEBUG Created data buffer '"//bufName//"' with ID ",(h5_bufCount+h5_bufOff)," containing:"
     write(lout,"(a,i2,a)")    "HDF5> DEBUG  ",nInt, " integer columns"
@@ -969,7 +969,7 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
     write(lout,"(a,i2,a,i0)") "HDF5> DEBUG  ",nChar," character columns of length ",cSize
     write(lout,"(a,i0,a)")    "HDF5> DEBUG Buffer length is ",bufSize," rows"
   end if
-  
+
 end subroutine h5_createBuffer
 
 ! ================================================================================================ !
@@ -987,18 +987,18 @@ end subroutine h5_createBuffer
 !  It must be called after all columns of a buffered dataset has been written to.
 ! ================================================================================================ !
 subroutine h5_incrBuffer(setID)
-  
+
   integer, intent(in) :: setID
-  
+
   integer bufID
-  
+
   bufID = h5_setList(setID-h5_setOff)%buffer
   if(h5_bufList(bufID-h5_bufOff)%nRows >= h5_bufList(bufID-h5_bufOff)%bSize) then
     call h5_flushBuffer(setID)
   else
     h5_bufList(bufID-h5_bufOff)%nRows = h5_bufList(bufID-h5_bufOff)%nRows + 1
   end if
-  
+
 end subroutine h5_incrBuffer
 
 ! ================================================================================================ !
@@ -1008,15 +1008,15 @@ end subroutine h5_incrBuffer
 !  This subroutine flushes the buffer for a given dataset, and resets it.
 ! ================================================================================================ !
 subroutine h5_flushBuffer(setID)
-  
+
   integer, intent(in) :: setID
-  
+
   integer bufID, nCols, nRows, iCol, bufCol
-  
+
   bufID = h5_setList(setID-h5_setOff)%buffer
   nCols = h5_bufList(bufID-h5_bufOff)%nCols
   nRows = h5_bufList(bufID-h5_bufOff)%nRows
-  
+
   call h5_prepareWrite(setID,nRows)
   do iCol=1,nCols
     bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,iCol)
@@ -1033,13 +1033,13 @@ subroutine h5_flushBuffer(setID)
     end select
   end do
   call h5_finaliseWrite(setID)
-  
+
   h5_bufList(bufID-h5_bufOff)%nRows = 1
-  
+
   if(h5_debugOn) then
     write(lout,"(a,i0,a)") "HDF5> DEBUG ",nRows," records were flushed from buffer '"//h5_bufList(bufID-h5_bufOff)%name//"'"
   end if
-  
+
 end subroutine h5_flushBuffer
 
 ! ================================================================================================ !
@@ -1048,72 +1048,72 @@ end subroutine h5_flushBuffer
 !  Last Modified: 2018-05-16
 ! ================================================================================================ !
 subroutine h5_writeBuffer_real(setID, colID, valData)
-  
+
   integer,          intent(in) :: setID
   integer,          intent(in) :: colID
   real(kind=fPrec), intent(in) :: valData
-  
+
   integer bufID, bufCol, nRows
-  
+
   bufID  = h5_setList(setID-h5_setOff)%buffer
   nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
-  
+
   h5_bufList(bufID-h5_bufOff)%rData(bufCol,nRows) = valData
-  
+
 end subroutine h5_writeBuffer_real
 
 subroutine h5_writeBuffer_int(setID, colID, valData)
-  
+
   integer, intent(in) :: setID
   integer, intent(in) :: colID
   integer, intent(in) :: valData
-  
+
   integer bufID, bufCol, nRows
-  
+
   bufID  = h5_setList(setID-h5_setOff)%buffer
   nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
-  
+
   h5_bufList(bufID-h5_bufOff)%iData(bufCol,nRows) = valData
-  
+
 end subroutine h5_writeBuffer_int
 
 subroutine h5_writeBuffer_char(setID, colID, valData)
-  
+
   use string_tools
-  
+
   integer,          intent(in) :: setID
   integer,          intent(in) :: colID
   character(len=*), intent(in) :: valData
-  
+
   integer bufID, bufCol, nRows, cSize, inSize
   character(len=:), allocatable :: tmpData
-  
+
   bufID  = h5_setList(setID-h5_setOff)%buffer
   nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   cSize  = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%size
   inSize = len_trim(chr_trimZero(valData))
-  
+
   if(inSize > cSize) then
     inSize = cSize
     write(lout,"(a,2(i0,a))") "HDF5> WARNING Trying to write a ",inSize," length string to a ",cSize," length buffer."
   end if
-  
+
   allocate(character(len=cSize) :: tmpData)
   tmpData = repeat(" ",cSize)
   tmpData(1:inSize) = valData(1:inSize)
   h5_bufList(bufID-h5_bufOff)%cData(bufCol,nRows) = tmpData
-  
+
   ! write(lout,"(a)")    "HDF5> Writing string: '"//tmpData//"'"
   ! write(lout,"(a)")    "HDF5> Buffer holds:   '"//h5_bufList(bufID-h5_bufOff)%cData(bufCol,nRows)//"'"
   ! write(lout,"(a,i0)") "HDF5>   Size 1: ",size(h5_bufList(bufID-h5_bufOff)%cData,1)
   ! write(lout,"(a,i0)") "HDF5>   Size 2: ",size(h5_bufList(bufID-h5_bufOff)%cData,2)
   ! write(lout,"(a,i0)") "HDF5>   Size 3: ",len(h5_bufList(bufID-h5_bufOff)%cData(1,1))
-  
+
   deallocate(tmpData)
-  
+
 end subroutine h5_writeBuffer_char
 
 ! ================================================================================================ !
@@ -1131,44 +1131,44 @@ end subroutine h5_writeBuffer_char
 !  Creates the necessary memory and file space for writing a appendSize chunck of data.
 ! ================================================================================================ !
 subroutine h5_prepareWrite(setID, appendSize)
-  
+
   integer, intent(in) :: setID
   integer, intent(in) :: appendSize
-  
+
   integer(HID_T)   :: groupID, dataID, propID, spaceID, memID
-  
+
   integer(HSIZE_T) :: oldSize(1)
   integer(HSIZE_T) :: addSize(1)
   integer(HSIZE_T) :: newSize(1)
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   oldSize(1) = h5_setList(setID-h5_setOff)%records
   addSize(1) = int(appendSize,kind=HSIZE_T)
   newSize(1) = oldSize(1) + addSize(1)
-  
+
   groupID = h5_setList(setID-h5_setOff)%groupID
   propID  = h5_setList(setID-h5_setOff)%propID
-  
+
   call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
   call h5dextend_f(dataID, newSize, h5_dataError)
   call h5dget_space_f(dataID, spaceID, h5_dataError)
-  call h5sselect_hyperslab_f(spaceID, H5S_SELECT_SET_F, oldSize, addSize, h5_dataError) 
+  call h5sselect_hyperslab_f(spaceID, H5S_SELECT_SET_F, oldSize, addSize, h5_dataError)
   call h5screate_simple_f(1, addSize, memID, h5_dataError)
-  
+
   if(h5_dataError /= 0) then
     write(lout,"(a)") "HDF5> ERROR Failed to extend dataset '"//h5_setList(setID-h5_setOff)%name//"'"
     call prror(-1)
   end if
-  
+
   h5_setList(setID-h5_setOff)%records = newSize(1)
   h5_setList(setID-h5_setOff)%dataID  = dataID
   h5_setList(setID-h5_setOff)%spaceID = spaceID
   h5_setList(setID-h5_setOff)%memID   = memID
-  
+
 end subroutine h5_prepareWrite
 
 ! ================================================================================================ !
@@ -1180,22 +1180,22 @@ end subroutine h5_prepareWrite
 !  executuion. Everything is properly cleaned up and closed at the end though with closeHDF5.
 ! ================================================================================================ !
 subroutine h5_finaliseWrite(setID)
-  
+
   integer, intent(in) :: setID
-  
+
   if(.not. h5_isReady) then
     write(lout,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
-  
+
   call h5dclose_f(h5_setList(setID-h5_setOff)%dataID,  h5_dataError)
   call h5sclose_f(h5_setList(setID-h5_setOff)%spaceID, h5_dataError)
   call h5sclose_f(h5_setList(setID-h5_setOff)%memID,   h5_dataError)
-  
+
   h5_setList(setID-h5_setOff)%dataID  = 0
   h5_setList(setID-h5_setOff)%spaceID = 0
   h5_setList(setID-h5_setOff)%memID   = 0
-  
+
 end subroutine h5_finaliseWrite
 
 ! ================================================================================================ !
@@ -1212,19 +1212,19 @@ end subroutine h5_finaliseWrite
 !  Converted to double when file double precision is required.
 ! ================================================================================================ !
 subroutine h5_writeArray_real32(setID, colID, arrSize, arrData)
-  
+
   integer,           intent(in)  :: setID
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   real(kind=real32), intent(in)  :: arrData(arrSize)
-  
+
   real(kind=real64), allocatable :: arrSave(:)
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   if(h5_useDouble) then
     allocate(arrSave(arrSize), source=real(arrData, kind=real64))
     call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSave, h5_arrSize, h5_dataError, &
@@ -1234,24 +1234,24 @@ subroutine h5_writeArray_real32(setID, colID, arrSize, arrData)
     call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
       xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
   end if
-  
+
 end subroutine h5_writeArray_real32
 
 subroutine h5_writeValue_real32(setID, colID, arrSize, valData)
-  
+
   integer,           intent(in)  :: setID
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   real(kind=real32), intent(in)  :: valData
-  
+
   real(kind=real32), allocatable :: arrSaveS(:)
   real(kind=real64), allocatable :: arrSaveD(:)
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
@@ -1265,7 +1265,7 @@ subroutine h5_writeValue_real32(setID, colID, arrSize, valData)
       xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
-  
+
 end subroutine h5_writeValue_real32
 
 ! ================================================================================================ !
@@ -1275,19 +1275,19 @@ end subroutine h5_writeValue_real32
 !  Converted to single when file single precision is required.
 ! ================================================================================================ !
 subroutine h5_writeArray_real64(setID, colID, arrSize, arrData)
-  
+
   integer,           intent(in)  :: setID
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   real(kind=real64), intent(in)  :: arrData(arrSize)
-  
+
   real(kind=real32), allocatable :: arrSave(:)
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   if(h5_useDouble) then
     call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
       xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
@@ -1297,7 +1297,7 @@ subroutine h5_writeArray_real64(setID, colID, arrSize, arrData)
       xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSave)
   end if
-  
+
 end subroutine h5_writeArray_real64
 
 subroutine h5_writeValue_real64(setID, colID, arrSize, valData)
@@ -1306,15 +1306,15 @@ subroutine h5_writeValue_real64(setID, colID, arrSize, valData)
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   real(kind=real64), intent(in)  :: valData
-  
+
   real(kind=real32), allocatable :: arrSaveS(:)
   real(kind=real64), allocatable :: arrSaveD(:)
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
@@ -1328,7 +1328,7 @@ subroutine h5_writeValue_real64(setID, colID, arrSize, valData)
       xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
-  
+
 end subroutine h5_writeValue_real64
 
 ! ================================================================================================ !
@@ -1338,20 +1338,20 @@ end subroutine h5_writeValue_real64
 !  Converted to double or single depending on file precision.
 ! ================================================================================================ !
 subroutine h5_writeArray_real128(setID, colID, arrSize, arrData)
-  
+
   integer,            intent(in)  :: setID
   integer,            intent(in)  :: colID
   integer,            intent(in)  :: arrSize
   real(kind=real128), intent(in)  :: arrData(arrSize)
-  
+
   real(kind=real32),  allocatable :: arrSaveS(:)
   real(kind=real64),  allocatable :: arrSaveD(:)
   integer(HID_T)                  :: dtypeID
   integer(HSIZE_T)                :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize), source=real(arrData, kind=real64))
     call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrSaveD, h5_arrSize, h5_dataError, &
@@ -1363,7 +1363,7 @@ subroutine h5_writeArray_real128(setID, colID, arrSize, arrData)
       xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
-  
+
 end subroutine h5_writeArray_real128
 
 subroutine h5_writeValue_real128(setID, colID, arrSize, valData)
@@ -1372,15 +1372,15 @@ subroutine h5_writeValue_real128(setID, colID, arrSize, valData)
   integer,            intent(in)  :: colID
   integer,            intent(in)  :: arrSize
   real(kind=real128), intent(in)  :: valData
-  
+
   real(kind=real32),  allocatable :: arrSaveS(:)
   real(kind=real64),  allocatable :: arrSaveD(:)
   integer(HID_T)                  :: dtypeID
   integer(HSIZE_T)                :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   if(h5_useDouble) then
     allocate(arrSaveD(arrSize))
     arrSaveD(:) = real(valData, kind=real64)
@@ -1394,7 +1394,7 @@ subroutine h5_writeValue_real128(setID, colID, arrSize, valData)
       xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
     deallocate(arrSaveS)
   end if
-  
+
 end subroutine h5_writeValue_real128
 
 ! ================================================================================================ !
@@ -1404,41 +1404,41 @@ end subroutine h5_writeValue_real128
 !  These are assumed to be the internal integer type, handled by HDF5 NATIVE_INT
 ! ================================================================================================ !
 subroutine h5_writeArray_int(setID, colID, arrSize, arrData)
-  
+
   integer,           intent(in)  :: setID
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   integer,           intent(in)  :: arrData(arrSize)
-  
+
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
     xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
-  
+
 end subroutine h5_writeArray_int
 
 subroutine h5_writeValue_int(setID, colID, arrSize, valData)
-  
+
   integer,           intent(in)  :: setID
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   integer,           intent(in)  :: valData
-  
+
   integer                        :: arrData(arrSize)
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   arrData(:)    = valData
-  
+
   call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
     xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
-  
+
 end subroutine h5_writeValue_int
 
 ! ================================================================================================ !
@@ -1448,43 +1448,43 @@ end subroutine h5_writeValue_int
 !  Handled as fixed length character arrays
 ! ================================================================================================ !
 subroutine h5_writeArray_char(setID, colID, arrSize, arrData)
-  
+
   integer,           intent(in)  :: setID
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   character(len=*),  intent(in)  :: arrData(arrSize)
-  
+
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
-  
+
   call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
     xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
-  
+
 end subroutine h5_writeArray_char
 
 subroutine h5_writeValue_char(setID, colID, arrSize, valData)
-  
+
   integer,           intent(in)  :: setID
   integer,           intent(in)  :: colID
   integer,           intent(in)  :: arrSize
   character(len=*),  intent(in)  :: valData
-  
+
   character(len=:),  allocatable :: arrData(:)
   integer(HID_T)                 :: dtypeID
   integer(HSIZE_T)               :: h5_arrSize(1)
-  
+
   allocate(character(len=len(valData)) :: arrData(arrSize))
-  
+
   h5_arrSize(1) = arrSize
   dtypeID       = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%typeID
   arrData(:)    = valData
-  
+
   call h5dwrite_f(h5_setList(setID-h5_setOff)%dataID, dtypeID, arrData, h5_arrSize, h5_dataError, &
     xfer_prp=h5_plistID, mem_space_id=h5_setList(setID-h5_setOff)%memID, file_space_id=h5_setList(setID-h5_setOff)%spaceID)
-  
+
 end subroutine h5_writeValue_char
 
 ! ================================================================================================ !
@@ -1499,18 +1499,18 @@ end subroutine h5_writeValue_char
 
 ! Real 32bit Attributes
 subroutine h5_writeAttr_real32(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),    intent(in)  :: attrTarget
   character(len=*),  intent(in)  :: attrName
   real(kind=real32), intent(in)  :: attrValue
   real(kind=real32), allocatable :: arrSaveS(:)
   real(kind=real64), allocatable :: arrSaveD(:)
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = 1
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   if(h5_useDouble) then
     allocate(arrSaveD(1))
@@ -1529,22 +1529,22 @@ subroutine h5_writeAttr_real32(attrTarget, attrName, attrValue)
   end if
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_real32
 
 subroutine h5_writeAttr_real32_arr(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),    intent(in)  :: attrTarget
   character(len=*),  intent(in)  :: attrName
   real(kind=real32), intent(in)  :: attrValue(:)
   real(kind=real32), allocatable :: arrSaveS(:)
   real(kind=real64), allocatable :: arrSaveD(:)
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = size(attrValue,1)
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   if(h5_useDouble) then
     allocate(arrSaveD(size(attrValue,1)))
@@ -1563,23 +1563,23 @@ subroutine h5_writeAttr_real32_arr(attrTarget, attrName, attrValue)
   end if
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_real32_arr
 
 ! Real 64bit Attributes
 subroutine h5_writeAttr_real64(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),    intent(in)  :: attrTarget
   character(len=*),  intent(in)  :: attrName
   real(kind=real64), intent(in)  :: attrValue
   real(kind=real32), allocatable :: arrSaveS(:)
   real(kind=real64), allocatable :: arrSaveD(:)
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = 1
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   if(h5_useDouble) then
     allocate(arrSaveD(1))
@@ -1598,22 +1598,22 @@ subroutine h5_writeAttr_real64(attrTarget, attrName, attrValue)
   end if
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_real64
 
 subroutine h5_writeAttr_real64_arr(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),    intent(in)  :: attrTarget
   character(len=*),  intent(in)  :: attrName
   real(kind=real64), intent(in)  :: attrValue(:)
   real(kind=real32), allocatable :: arrSaveS(:)
   real(kind=real64), allocatable :: arrSaveD(:)
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = size(attrValue,1)
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   if(h5_useDouble) then
     allocate(arrSaveD(size(attrValue,1)))
@@ -1632,23 +1632,23 @@ subroutine h5_writeAttr_real64_arr(attrTarget, attrName, attrValue)
   end if
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_real64_arr
 
 ! Real 128bit Attributes
 subroutine h5_writeAttr_real128(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),     intent(in)  :: attrTarget
   character(len=*),   intent(in)  :: attrName
   real(kind=real128), intent(in)  :: attrValue
   real(kind=real32),  allocatable :: arrSaveS(:)
   real(kind=real64),  allocatable :: arrSaveD(:)
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = 1
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   if(h5_useDouble) then
     allocate(arrSaveD(1))
@@ -1667,22 +1667,22 @@ subroutine h5_writeAttr_real128(attrTarget, attrName, attrValue)
   end if
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_real128
 
 subroutine h5_writeAttr_real128_arr(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),     intent(in)  :: attrTarget
   character(len=*),   intent(in)  :: attrName
   real(kind=real128), intent(in)  :: attrValue(:)
   real(kind=real32),  allocatable :: arrSaveS(:)
   real(kind=real64),  allocatable :: arrSaveD(:)
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = size(attrValue,1)
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   if(h5_useDouble) then
     allocate(arrSaveD(size(attrValue,1)))
@@ -1701,64 +1701,64 @@ subroutine h5_writeAttr_real128_arr(attrTarget, attrName, attrValue)
   end if
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_real128_arr
 
 ! Integer Attributes
 subroutine h5_writeAttr_int(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),   intent(in) :: attrTarget
   character(len=*), intent(in) :: attrName
   integer,          intent(in) :: attrValue
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = 1
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   call h5tcopy_f(H5T_NATIVE_INTEGER, typeID, h5_dataError)
   call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
   call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_int
 
 subroutine h5_writeAttr_int_arr(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),   intent(in) :: attrTarget
   character(len=*), intent(in) :: attrName
   integer,          intent(in) :: attrValue(:)
-  
+
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrDim(1) = size(attrValue,1)
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   call h5tcopy_f(H5T_NATIVE_INTEGER, typeID, h5_dataError)
   call h5acreate_f(attrTarget, attrName, typeID, spaceID, attrID, h5_dataError)
   call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_int_arr
 
 ! Character Attributes
 subroutine h5_writeAttr_char(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),   intent(in) :: attrTarget
   character(len=*), intent(in) :: attrName
   character(len=*), intent(in) :: attrValue
-  
+
   integer(HSIZE_T) :: attrLen
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrLen    = len(attrValue,kind=HSIZE_T)
   attrDim(1) = 1
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   call h5tcopy_f(H5T_NATIVE_CHARACTER, typeID, h5_dataError)
   call h5tset_size_f(typeID, attrLen, h5_dataError)
@@ -1766,22 +1766,22 @@ subroutine h5_writeAttr_char(attrTarget, attrName, attrValue)
   call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_char
 
 subroutine h5_writeAttr_char_arr(attrTarget, attrName, attrValue)
-  
+
   integer(HID_T),   intent(in) :: attrTarget
   character(len=*), intent(in) :: attrName
   character(len=*), intent(in) :: attrValue(:)
-  
+
   integer(HSIZE_T) :: attrLen
   integer(HSIZE_T) :: attrDim(1)
   integer(HID_T)   :: spaceID, typeID, attrID
-  
+
   attrLen    = len(attrValue,kind=HSIZE_T)
   attrDim(1) = size(attrValue,1)
-  
+
   call h5screate_simple_f(1, attrDim, spaceID, h5_dataError)
   call h5tcopy_f(H5T_NATIVE_CHARACTER, typeID, h5_dataError)
   call h5tset_size_f(typeID, attrLen, h5_dataError)
@@ -1789,7 +1789,7 @@ subroutine h5_writeAttr_char_arr(attrTarget, attrName, attrValue)
   call h5awrite_f(attrID, typeID, attrValue, attrDim, h5_dataError)
   call h5aclose_f(attrID, h5_dataError)
   call h5sclose_f(spaceID, h5_dataError)
-  
+
 end subroutine h5_writeAttr_char_arr
 
 ! ================================================================================================ !

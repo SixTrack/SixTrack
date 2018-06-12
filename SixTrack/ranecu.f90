@@ -19,7 +19,7 @@ module mod_ranecu
   integer :: iseed2 = 67890
 
   save iseed1, iseed2
-  
+
 contains
 
   ! Generate LEN random numbers into RVEC
@@ -34,11 +34,11 @@ contains
 
       real(kind=fPrec), intent(out), dimension(*) :: rvec
       integer, intent(in) :: len, mcut
-      
+
       integer i,iz,j,k
       real(kind=fPrec) rvec0, pi
       real(kind=fPrec), dimension(2) :: r
-      
+
 !-----------------------------------------------------------------------
       pi = four*atan_mb(one)
 !     DO 100 I = 1,LEN
@@ -63,7 +63,7 @@ contains
       else if (mcut.eq.-1) then
          rvec0 = r(1)
       end if
-      
+
       if(abs(rvec0).le.real(mcut,fPrec).or.mcut.eq.0.or.mcut.eq.-1) then
         rvec(i) = rvec0
         i=i+1
@@ -79,7 +79,7 @@ contains
     subroutine recuin(is1,is2)
       implicit none
       integer, intent(in) :: is1, is2
-      
+
       iseed1 = is1
       iseed2 = is2
     end subroutine recuin
@@ -88,10 +88,10 @@ contains
     subroutine recuut(is1,is2)
       implicit none
       integer, intent(out) :: is1,is2
-      
+
       is1 = iseed1
       is2 = iseed2
     end subroutine recuut
-    
-    
+
+
   end module mod_ranecu

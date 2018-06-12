@@ -10,14 +10,14 @@ module wire
   ! A. Patapenka (NIU), M. Fitterer (FNAL)
   ! Common block for wire definition
   ! variables to save wire parameters for tracking etc.
-  
+
   ! wire current [A]
   real(kind=fPrec), allocatable, save :: wire_current(:) !(nele)
   ! integrated length of the wire [m]
   real(kind=fPrec), allocatable, save :: wire_lint(:) !(nele)
   ! physical length of the wire [m]
   real(kind=fPrec), allocatable, save :: wire_lphys(:) !(nele)
-  
+
   ! integer to include or not closed orbit in the separation between beam and wire
   ! 0  : Un-initialized if wire element not found
   ! +1 : dispx is the distance between x0=y0=0 and the wire
@@ -73,11 +73,11 @@ contains
     call alloc(wire_tilty,nele,zero,'wire_tilty')
 
   end subroutine wire_allocate_arrays
-  
+
   subroutine wire_expand_arrays(nele_new)
     implicit none
     integer, intent(in) :: nele_new
-    
+
     call resize(wire_current,nele_new,zero,'wire_current')
     call resize(wire_lint,nele_new,zero,'wire_lint')
     call resize(wire_lphys,nele_new,zero,'wire_lphys')
@@ -88,7 +88,7 @@ contains
     call resize(wire_dispy,nele_new,zero,'wire_dispy')
     call resize(wire_tiltx,nele_new,zero,'wire_tiltx')
     call resize(wire_tilty,nele_new,zero,'wire_tilty')
-    
+
   end subroutine wire_expand_arrays
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

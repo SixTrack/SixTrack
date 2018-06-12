@@ -2,14 +2,14 @@
 ! last modified: 09-02-2018
 ! Common block for electron lens definition
 module elens
-  
+
   use parpro
   use floatPrecision
   use crcoall
   use mod_alloc
-  
+
   implicit none
-  
+
   ! size of table with elens data
   integer, parameter     :: nelens=125
   ! last elens read
@@ -44,7 +44,7 @@ module elens
   real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables) ! reference current [A]
   real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) ! reference radius [mm]
   real(kind=fPrec), save :: elens_cheby_refBeta(nelens_cheby_tables) ! reference e-beta []
-  
+
 contains
 
 subroutine elens_allocate_arrays
