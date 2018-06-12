@@ -553,12 +553,12 @@ subroutine daten
   implicit none
 
   integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
-    ifiend16,ifiend8,ii,il1,ilin0,im,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
+    ifiend16,ifiend8,ii,il1,ilin0,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
 
-  real(kind=fPrec) ak0d,akad,alignx,alignz,bk0d,bkad,dummy,emitnx,emitny,extaux,&
-    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
+  real(kind=fPrec) alignx,alignz,dummy,emitnx,emitny,extaux,&
+    rdev,rmean,rsqsum,rsum,tilt,xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
 
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy
@@ -745,7 +745,6 @@ subroutine daten
       itqv=10
       dkq=c1m10
       dqq=c1m10
-      im=0
       imtr0=0
       nlin=0
       izu0=0
@@ -809,6 +808,9 @@ subroutine daten
   sixin_phag  = zero
   idp         = 0
   ncy         = 0
+
+  ! MULTIPOLE COEFFICIENTS
+  sixin_im    = 0
 
   ! HIONS MODULE
   zz0         = 1
@@ -907,9 +909,9 @@ subroutine daten
     call prror(-1)
   end if
 
-  if(len(ch) == 0)   goto 110 ! Empty line, ignore
-  if(ch(1:1) == "/") goto 110 ! Comment line, ignore
-  if(ch(1:1) == "!") goto 110 ! Comment line, ignore
+  if(len_trim(ch) == 0) goto 110 ! Empty line, ignore
+  if(ch(1:1) == "/")    goto 110 ! Comment line, ignore
+  if(ch(1:1) == "!")    goto 110 ! Comment line, ignore
   read(ch,"(a4)") idat
 
   ! Parse non-block flags
@@ -946,8 +948,6 @@ subroutine daten
     goto 940
   case("FLUC")
     goto 790
-  case("MULT")
-    goto 740
   case("LIMI")
     goto 950
   case("ORBI")
@@ -997,6 +997,7 @@ subroutine daten
   ! By default blocks can only be opened once. The exceptions are set here.
   blockReopen = .false.
   if(currBlock == "LINE") blockReopen = .true.
+  if(currBlock == "MULT") blockReopen = .true.
 
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
@@ -1160,6 +1161,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("MULT") ! Multipole Coefficients
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineMULT(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -1185,17 +1196,9 @@ subroutine daten
 #else
       has_coll = .true.
       if(ilin /= 1) then
-        write(lout,*) "INPUT> ERROR DETECTED:"
-        write(lout,*) "INPUT> Incompatible flag with collimation version"
-        write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
-        write(lout,*) ""
-        write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
-        write(lout,*) "INPUT> which is required for the collimation version."
-        write(lout,*) ""
-        write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
-        write(lout,*) "INPUT> compatible with the collimation version."
-        write(lout,*) ""
-        write(lout,*) "INPUT> Current setting ilin=",ilin
+        write(lout,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
+        write(lout,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
+        write(lout,"(a)") "INPUT>       Note that the ilin=2 (6D mode) is not compatible with the collimation version."
         goto 9999
       end if
 #endif
@@ -1329,122 +1332,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  MULTIPOLE COEFFICIENTS  FOR KZ = 11
-!-----------------------------------------------------------------------
-  740 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 740
-      ! Get first data line: name, R_0, \delta_0
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & imn,r0,benki
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) imn,r0,benki
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) imn
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        r0=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        benki=fround(errno,fields,3)
-        nf=nf-1
-      endif
-#endif
-#endif
-      ! Renaming variables?
-      i=1
-      r0a=one
-      im=im+1
-      benkc(im)=benki
-      r00(im)=r0
-      ! Find single element which matches the name, set its
-      ! irm from the MULT block counter im.
-      do 750 j=1,il
-      if(imn.eq.bez(j)) then
-        irm(j)=im
-        goto 760
-      endif
-  750 continue
-  760 write(lout,10130)
-      write(lout,10210) imn,r0,benki
-      ! Read data lines: B_n rms-B_n A_n rms-A_n
-  770 bk0d=zero
-      bkad=zero
-      ak0d=zero
-      akad=zero
-  780 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 780
-      if(ch(:4).eq.next) goto 110
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & bk0d,bkad,ak0d,akad
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) bk0d,bkad,ak0d,akad
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        bk0d=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        bkad=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        ak0d=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        akad=fround(errno,fields,4)
-        nf=nf-1
-      endif
-#endif
-#endif
-      ! Set nmu for the current single element (j)
-      ! to the currently highest multipole seen (i)
-      if(abs(bk0d).gt.pieni.or.abs(bkad).gt.pieni                       &
-     &.or.abs(ak0d).gt.pieni.or.abs(akad).gt.pieni) nmu(j)=i
-      write(lout,10220) i,bk0d,bkad,ak0d,akad
-      bk0(im,i)=(benki*bk0d)/r0a                                         !hr05
-      ak0(im,i)=(benki*ak0d)/r0a                                         !hr05
-      bka(im,i)=(benki*bkad)/r0a                                         !hr05
-      aka(im,i)=(benki*akad)/r0a                                         !hr05
-      i=i+1
-      r0a=r0a*r0
-      if(i.gt.mmul+1) call prror(105)
-      if(ch(:4).ne.next) goto 770 ! loop
-      write(lout,10380)
-      write (lout,*) 'BENKI done'
-      goto 770
 !-----------------------------------------------------------------------
 !  FLUCTUATION RANDOM STARTING NUMBER
 !-----------------------------------------------------------------------
@@ -1967,7 +1854,7 @@ subroutine daten
          if(idat.eq.mult.and.                                           &
      &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
             write(lout,10400) bezr(2,iorg),bezr(3,iorg)
-            im=im+1
+            sixin_im=sixin_im+1
             j0=0
             j1=0
 
@@ -1979,17 +1866,17 @@ subroutine daten
             if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)      &
      &              call prror(29)
 
-            irm(j0)=im
+            irm(j0)=sixin_im
             benkc(j0)=benkc(j1)
             r00(j0)=r00(j1)
             imo=irm(j1)
             nmu(j0)=nmu(j1)
 
             do i1=1,nmu(j0)
-               bk0(im,i1)=bk0(imo,i1)
-               bka(im,i1)=bka(imo,i1)
-               ak0(im,i1)=ak0(imo,i1)
-               aka(im,i1)=aka(imo,i1)
+               bk0(sixin_im,i1)=bk0(imo,i1)
+               bka(sixin_im,i1)=bka(imo,i1)
+               ak0(sixin_im,i1)=ak0(imo,i1)
+               aka(sixin_im,i1)=aka(imo,i1)
             end do
 
          endif
@@ -5091,10 +4978,10 @@ subroutine daten
   ! Error handling for sixtrack_input module
   if(nUnit == 2) then
     write(lout,"(a)")      "INPUT> ERROR in fort.2"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//ch//"'"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(ch)//"'"
   else
     write(lout,"(a)")      "INPUT> ERROR in fort.3"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//ch//"'"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(ch)//"'"
   end if
   call prror(-1)
   return
@@ -6794,6 +6681,17 @@ subroutine comnul
   asdaq(:,:) = 0  ! mod_common_da2
   smida(:)   = 0  ! mod_common_da2
 
+  ! MULTIPOLE COEFFICIENT BLOCK
+  benki      = zero ! mod_common
+  benkc(:)   = zero ! mod_common
+  r00(:)     = zero ! mod_common
+  irm(:)     = 0    ! mod_common
+  nmu(:)     = 0    ! mod_common
+  bk0(:,:)   = zero ! mod_common
+  ak0(:,:)   = zero ! mod_common
+  bka(:,:)   = zero ! mod_common
+  aka(:,:)   = zero ! mod_common
+
   ! TODO
       nur=0
       nch=0
@@ -6862,7 +6760,6 @@ subroutine comnul
       ition=0
       dpscor=one
       sigcor=one
-      benki=zero
       dma=zero
       dmap=zero
       dkq=zero
@@ -6990,9 +6887,7 @@ subroutine comnul
       do i=1,nele
         kz(i)=0
         kp(i)=0
-        irm(i)=0
         imtr(i)=0
-        nmu(i)=0
         kpa(i)=0
         isea(i)=0
         ncororb(i)=0
@@ -7009,8 +6904,6 @@ subroutine comnul
         xrms(i)=zero
         zpl(i)=zero
         zrms(i)=zero
-        benkc(i)=zero
-        r00(i)=zero
         ratioe(i)=one
         hsyc(i)=zero
         phasc(i)=zero
@@ -7027,13 +6920,6 @@ subroutine comnul
             a(i,i3,i4)=zero
           end do
         end do
-
-        do 130 i1=1,mmul
-          bk0(i,i1)=zero
-          ak0(i,i1)=zero
-          bka(i,i1)=zero
-          aka(i,i1)=zero
-  130   continue
 
         do 140 i1=1,3
           bezr(i1,i)=' '

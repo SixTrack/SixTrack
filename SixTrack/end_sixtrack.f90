@@ -242,8 +242,8 @@ subroutine prror(ier)
     write(lout,11030)
   ! case (104)
   !   write(lout,11040) max_name_len
-  case (105)
-    write(lout,11050) mmul
+  ! case (105)
+  !   write(lout,11050) mmul
   end select
 
 #ifdef FLUKA

@@ -211,13 +211,11 @@ module mod_common
   real(kind=fPrec), save :: dpscor,sigcor
   integer, save :: icode,idam,its6d
 
-  ! common /multi/
-  real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:), bka(:,:),aka(:,:) !(nele,mmul)
-
-  ! common /mult1/
-  real(kind=fPrec), save :: benki
+  ! Multipole Coefficients
+  real(kind=fPrec),              save :: benki
   real(kind=fPrec), allocatable, save :: benkc(:),r00(:) !(nele)
-  integer, allocatable, save :: irm(:),nmu(:) !(nele)
+  real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) !(nele,mmul)
+  integer,          allocatable, save :: irm(:),nmu(:)   !(nele)
 
   ! common /rand0/
   real(kind=fPrec), save :: zfz(nzfz)
