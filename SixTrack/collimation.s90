@@ -5,198 +5,7 @@
 !-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbtrthin
 
- integer   mynp
- common /mynp/ mynp
-
-!++ Vectors of coordinates
-
-!  real(kind=fPrec) mygammax,mygammay
-!
-!  character(len=80) dummy
-!
-!  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
-!!  real(kind=fPrec) remitx_dist,remity_dist,
-!! &     remitx_collgap,remity_collgap
-!!  common  /remit/ remitx_dist, remity_dist,
-!! &     remitx_collgap,remity_collgap
-!
-!
-!  real(kind=fPrec) ielem,iclr,grd
-!  character(len=160) ch
-!  character(len=320) ch1
-!  logical flag
-!
-!  integer k,np0
-!
-!  character(len=160) cmd
-!  character(len=160) cmd2
-!  character(len=1) ch0
-!  character(len=2) ch00
-!  character(len=3) ch000
-!  character(len=4) ch0000
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbcolcom
-  logical firstcoll,found,onesided
-  integer rnd_lux,rnd_k1,rnd_k2
-
-  integer myix,myktrack
-
-  real(kind=fPrec) nspx,nspy,mux0,muy0
-  real(kind=fPrec) ax0,ay0,bx0,by0
-  real(kind=fPrec) totals
-
-  ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-!  logical cut_input
-!  common /cut/ cut_input
-
-  real(kind=fPrec) :: xbob(nblz) !(nblz)
-  real(kind=fPrec) :: ybob(nblz) !(nblz)
-  real(kind=fPrec) :: xpbob(nblz) !(nblz)
-  real(kind=fPrec) :: ypbob(nblz) !(nblz)
-
-  real(kind=fPrec) :: xineff(npart) !(npart)
-  real(kind=fPrec) :: yineff(npart) !(npart)
-  real(kind=fPrec) :: xpineff(npart) !(npart)
-  real(kind=fPrec) :: ypineff(npart) !(npart)
-
-  common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
-
-  real(kind=fPrec) :: mux(nblz) !(nblz)
-  real(kind=fPrec) :: muy(nblz) !(nblz)
-  common /mu/ mux,muy
-
-  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
-
- !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-+cd dbcommon
-! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
-
-  integer ieff,ieffdpop
-
-  real(kind=fPrec) myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myemitx,myalphay,mybetay,myalphax, mybetax,rselect
-  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
-
-! M. Fiascaris for the collimation team
-! variables for global inefficiencies studies
-! of normalized and off-momentum halo
-! Last modified: July 2016
-
-  real(kind=fPrec) neff(numeff)
-  real(kind=fPrec) rsig(numeff)
-  common  /eff/ neff,rsig
-
-  integer :: counteddpop(npart,numeffdpop)
-  integer :: counted2d(npart,numeff,numeffdpop)
-  real(kind=fPrec) :: neffdpop(numeffdpop)
-  real(kind=fPrec) :: dpopbins(numeffdpop)
-  integer :: npartdpop(numeffdpop)
-  common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
-
-  real(kind=fPrec) dpopmin,dpopmax,mydpop
-  real(kind=fPrec) :: neff2d(numeff,numeffdpop)
-  common /eff2d/ neff2d
-
-  integer :: nimpact(50)
-  real(kind=fPrec) :: sumimpact(50)
-  real(kind=fPrec) :: sqsumimpact(50)
-  common  /rimpact/ sumimpact,sqsumimpact,nimpact
-
-  integer :: nampl(nblz)
-  character(len=max_name_len) :: ename(nblz) !(nblz)
-  real(kind=fPrec) :: sum_ax(nblz) !(nblz)
-  real(kind=fPrec) :: sqsum_ax(nblz) !(nblz)
-  real(kind=fPrec) :: sum_ay(nblz) !(nblz)
-  real(kind=fPrec) :: sqsum_ay(nblz) !(nblz)
-  real(kind=fPrec) :: sampl(nblz) !(nblz)
-  common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
-
-  real(kind=fPrec) :: neffx(numeff)
-  real(kind=fPrec) :: neffy(numeff)
-  common /efficiency/ neffx,neffy
-
-  integer :: secondary(npart) !(npart)
-  integer :: tertiary(npart) !(npart)
-  integer :: other(npart) !(npart)
-  integer :: scatterhit(npart) !(npart)
-  integer :: part_hit_before_pos(npart) !(npart)
-  integer :: part_hit_before_turn(npart) !(npart)
-
-  real(kind=fPrec) :: part_indiv(npart) !(npart)
-  real(kind=fPrec) :: part_linteract(npart) !(npart)
-
-  integer :: part_hit_pos(npart) !(npart)
-  integer :: part_hit_turn(npart) !(npart)
-  integer :: part_abs_pos(npart) !(npart)
-  integer :: part_abs_turn(npart) !(npart)
-  integer :: part_select(npart) !(npart)
-  integer :: nabs_type(npart) !(npart)
-  integer :: n_tot_absorbed
-  integer :: n_absorbed
-
-  real(kind=fPrec) part_impact(npart) !(npart)
-  common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
-  & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
-
-  common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
-  common /part_select/ part_select
-
-!  logical firstrun
-!  common /firstrun/ firstrun
-
-  integer nsurvive,nsurvive_end,num_selhit,n_impact
-  common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
-
-  integer napx00
-  common /napx00/ napx00
-
-!  integer  icoll
-!  common  /icoll/  icoll
-
-!UPGRADE January 2005
-  integer db_ncoll
-
-  character(len=max_name_len) :: db_name1(max_ncoll) !(max_ncoll)
-  character(len=max_name_len) :: db_name2(max_ncoll) !(max_ncoll)
-  character(len=4) :: db_material(max_ncoll) !(max_ncoll)
-!APRIL2005
-  real(kind=fPrec) :: db_nsig(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_length(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_offset(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_rotation(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_bx(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_by(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: db_tilt(max_ncoll,2) !(max_ncoll,2)
-  common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
-
-  integer :: cn_impact(max_ncoll)  !(max_ncoll)
-  integer :: cn_absorbed(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: caverage(max_ncoll) !(max_ncoll)
-  real(kind=fPrec) :: csigma(max_ncoll) !(max_ncoll)
-  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
-
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
-  common /coord/ myx,myxp,myy,myyp,myp,mys
-
-  integer :: counted_r(npart,numeff) !(npart,numeff)
-  integer :: counted_x(npart,numeff) !(npart,numeff)
-  integer :: counted_y(npart,numeff) !(npart,numeff)
-  common /counting/ counted_r,counted_x,counted_y
-
-  integer   samplenumber
-  character(len=4) smpl
-  character(len=80) pfile
-  common /samplenumber/ pfile,smpl,samplenumber
-!
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd dbcollim
@@ -500,6 +309,134 @@ module collimation
   integer, save :: ie, iturn, nabs_total
 !  common  /info/ ie,iturn,nabs_total
 
+ !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!+cd dbcommon
+! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
+
+  integer ieff,ieffdpop
+
+  real(kind=fPrec), save :: myemitx0_dist, myemity0_dist, myemitx0_collgap, myemity0_collgap, myemitx
+  real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect
+! myemitx was not saved?
+!  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
+
+! M. Fiascaris for the collimation team
+! variables for global inefficiencies studies
+! of normalized and off-momentum halo
+! Last modified: July 2016
+
+  real(kind=fPrec), allocatable, save :: neff(:) !(numeff)
+  real(kind=fPrec), allocatable, save :: rsig(:) !(numeff)
+!  common  /eff/ neff,rsig
+
+  integer, allocatable, save :: counteddpop(:,:) !(npart,numeffdpop)
+  integer, allocatable, save :: npartdpop(:) !(numeffdpop)
+  integer, allocatable, save :: counted2d(:,:,:) !(npart,numeff,numeffdpop)
+  real(kind=fPrec), allocatable, save :: neffdpop(:) !(numeffdpop)
+  real(kind=fPrec), allocatable, save :: dpopbins(:) !(numeffdpop)
+!  common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
+
+  real(kind=fPrec) dpopmin,dpopmax,mydpop
+  real(kind=fPrec), allocatable, save :: neff2d(:,:) !(numeff,numeffdpop)
+!  common /eff2d/ neff2d
+
+  integer, allocatable, save :: nimpact(:) !(50)
+  real(kind=fPrec), allocatable, save :: sumimpact(:) !(50)
+  real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
+!  common  /rimpact/ sumimpact,sqsumimpact,nimpact
+
+  character(len=:), allocatable, save :: ename(:) !(max_name_len)(nblz)
+  integer, allocatable, save :: nampl(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sum_ax(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sum_ay(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sqsum_ay(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: sampl(:) !(nblz)
+!  common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
+
+  real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
+  real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
+!  common /efficiency/ neffx,neffy
+
+  integer, allocatable, save :: secondary(:) !(npart)
+  integer, allocatable, save :: tertiary(:) !(npart)
+  integer, allocatable, save :: other(:) !(npart)
+  integer, allocatable, save :: scatterhit(:) !(npart)
+  integer, allocatable, save :: part_hit_before_pos(:) !(npart)
+  integer, allocatable, save :: part_hit_before_turn(:) !(npart)
+
+  real(kind=fPrec), allocatable, save :: part_indiv(:) !(npart)
+  real(kind=fPrec), allocatable, save :: part_linteract(:) !(npart)
+
+  integer, allocatable, save :: part_hit_pos(:) !(npart)
+  integer, allocatable, save :: part_hit_turn(:) !(npart)
+  integer, allocatable, save :: part_abs_pos(:) !(npart)
+  integer, allocatable, save :: part_abs_turn(:) !(npart)
+  integer, allocatable, save :: part_select(:) !(npart)
+  integer, allocatable, save :: nabs_type(:) !(npart)
+  integer, save :: n_tot_absorbed
+  integer, save :: n_absorbed
+
+  real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
+!  common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
+!  & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
+
+!  common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
+!  common /part_select/ part_select
+
+!  logical firstrun
+!  common /firstrun/ firstrun
+
+  integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
+!  common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
+
+  integer, save :: napx00
+!  common /napx00/ napx00
+
+!  integer  icoll
+!  common  /icoll/  icoll
+
+!UPGRADE January 2005
+  integer, save :: db_ncoll
+
+  character(len=:), allocatable, save :: db_name1(:) !(max_name_len)(max_ncoll)
+  character(len=:), allocatable, save :: db_name2(:) !(max_name_len)(max_ncoll)
+  character(len=:), allocatable, save :: db_material(:) !(4)(max_ncoll)
+!APRIL2005
+  real(kind=fPrec), allocatable, save :: db_nsig(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_length(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_offset(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_rotation(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_bx(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_by(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_tilt(:,:) !(max_ncoll,2)
+!  common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
+
+  integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
+  integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: caverage(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: csigma(:) !(max_ncoll)
+!  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
+
+! Change the following block to npart
+! This is the array that the generated distribution is placed into
+  real(kind=fPrec), allocatable, save :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable, save :: mys(:) !(maxn)
+!  common /coord/ myx,myxp,myy,myyp,myp,mys
+
+  integer, allocatable, save :: counted_r(:,:) !(npart,numeff)
+  integer, allocatable, save :: counted_x(:,:) !(npart,numeff)
+  integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
+!  common /counting/ counted_r,counted_x,counted_y
+
+  integer, save ::   samplenumber
+  character(len=4), save :: smpl
+  character(len=80), save :: pfile
+!  common /samplenumber/ pfile,smpl,samplenumber
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -526,7 +463,7 @@ module collimation
 ! and defining, stroring the gap rms error
 !
   character(len=max_name_len) :: coll_mingap1, coll_mingap2
-  real(kind=fPrec), save :: gap_rms_error(max_ncoll) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
   integer :: coll_mingap_id
@@ -548,15 +485,51 @@ module collimation
 !
   logical, save :: coll_found(100)
 
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dbcolcom
+  logical, save :: firstcoll,found,onesided
+  integer rnd_lux,rnd_k1,rnd_k2
+
+  integer, save :: myix,myktrack
+
+  real(kind=fPrec) nspx,nspy,mux0,muy0
+  real(kind=fPrec) ax0,ay0,bx0,by0
+  real(kind=fPrec), save :: totals
+
+  ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
+!  logical cut_input
+!  common /cut/ cut_input
+
+  real(kind=fPrec), allocatable, save :: xbob(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: ybob(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: xpbob(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: ypbob(:) !(nblz)
+
+  real(kind=fPrec), allocatable, save :: xineff(:) !(npart)
+  real(kind=fPrec), allocatable, save :: yineff(:) !(npart)
+  real(kind=fPrec), allocatable, save :: xpineff(:) !(npart)
+  real(kind=fPrec), allocatable, save :: ypineff(:) !(npart)
+
+!  common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
+
+  real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
+  real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
+!  common /mu/ mux,muy
+ 
+!  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !+cd dbpencil
 !
 ! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
 !
   integer, save :: ipencil
   real(kind=fPrec), save :: xp_pencil0,yp_pencil0
-  real(kind=fPrec), save :: x_pencil(max_ncoll) !(max_ncoll)
-  real(kind=fPrec), save :: y_pencil(max_ncoll) !(max_ncoll)
-  real(kind=fPrec), save :: pencil_dx(max_ncoll) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: x_pencil(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
 !  common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
 !  common  /pencil2/ x_pencil, y_pencil
 !
@@ -582,6 +555,7 @@ module collimation
 
 ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
 ! USED IN MULTIPLE COMMON BLOCKS
+  integer, save :: mynp
   logical, save :: cut_input
 !  common /cut/ cut_input
 
@@ -868,11 +842,70 @@ subroutine collimation_allocate_arrays
   call alloc(oidpsvgrd, npart, zero, "oidpsvgrd") !(npart)
   call alloc(dpsv1grd,  npart, zero, "dpsv1grd") !(npart)
 
+  call alloc(xbob,    nblz, zero, "xbob") !(nblz)
+  call alloc(ybob,    nblz, zero, "ybob") !(nblz)
+  call alloc(xpbob,   nblz, zero, "xpbob") !(nblz)
+  call alloc(ypbob,   nblz, zero, "ypbob") !(nblz)
+
+  call alloc(xineff,  npart, zero, "xineff") !(npart)
+  call alloc(yineff,  npart, zero, "yineff") !(npart)
+  call alloc(xpineff, npart, zero, "xpineff") !(npart)
+  call alloc(ypineff, npart, zero, "ypineff") !(npart)
+
+  call alloc(mux,     nblz, zero, "mux") !(nblz)
+  call alloc(muy,     nblz, zero, "muy") !(nblz)
+
+  call alloc(counteddpop, npart, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
+  call alloc(counted2d, npart, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
+
+  call alloc(ename,    max_name_len, nblz, ' ', "ename") !(nblz)
+  call alloc(nampl,    nblz, 0, "nampl") !(nblz)
+  call alloc(sum_ax,   nblz, zero, "sum_ax") !(nblz)
+  call alloc(sqsum_ax, nblz, zero, "sqsum_ax") !(nblz)
+  call alloc(sum_ay,   nblz, zero, "sum_ay") !(nblz)
+  call alloc(sqsum_ay, nblz, zero, "sqsum_ay") !(nblz)
+  call alloc(sampl,    nblz, zero, "sampl") !(nblz)
+
+  call alloc(secondary,            npart, 0, "secondary") !(npart)
+  call alloc(tertiary,             npart, 0, "tertiary") !(npart)
+  call alloc(other,                npart, 0, "other") !(npart)
+  call alloc(scatterhit,           npart, 0, "scatterhit") !(npart)
+  call alloc(part_hit_before_pos,  npart, 0, "part_hit_before_pos") !(npart)
+  call alloc(part_hit_before_turn, npart, 0, "part_hit_before_turn") !(npart)
+  call alloc(part_hit_pos,         npart, 0, "part_hit_pos") !(npart)
+  call alloc(part_hit_turn,        npart, 0, "part_hit_turn") !(npart)
+  call alloc(part_abs_pos,         npart, 0, "part_abs_pos") !(npart)
+  call alloc(part_abs_turn,        npart, 0, "part_abs_turn") !(npart)
+  call alloc(part_select,          npart, 0, "part_select") !(npart)
+  call alloc(nabs_type,            npart, 0, "nabs_type") !(npart)
+
+  call alloc(part_impact,    npart, zero, "part_impact") !(npart)
+  call alloc(part_indiv,     npart, zero, "part_indiv") !(npart)
+  call alloc(part_linteract, npart, zero, "part_linteract") !(npart)
+
+
+  call alloc(counted_r, npart, numeff, 0, "counted_r") !(npart,numeff)
+  call alloc(counted_x, npart, numeff, 0, "counted_x") !(npart,numeff)
+  call alloc(counted_y, npart, numeff, 0, "counted_y") !(npart,numeff)
+
+! Change the following block to npart
+  call alloc(myx,  npart, zero, "myx") !(maxn)
+  call alloc(myxp, npart, zero, "myxp") !(maxn)
+  call alloc(myy,  npart, zero, "myy") !(maxn)
+  call alloc(myyp, npart, zero, "myyp") !(maxn)
+  call alloc(myp,  npart, zero, "myp") !(maxn)
+  call alloc(mys,  npart, zero, "mys") !(maxn)
+
 ! Fixed allocations follow:
+  call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
   call alloc(xp_pencil, max_ncoll, zero, "xp_pencil")
   call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
   call alloc(csum,      max_ncoll, zero, "csum")
   call alloc(csqsum,    max_ncoll, zero, "csqsum")
+
+  call alloc(x_pencil,  max_ncoll, zero, "x_pencil") !(max_ncoll)
+  call alloc(y_pencil,  max_ncoll, zero, "y_pencil") !(max_ncoll)
+  call alloc(pencil_dx, max_ncoll, zero, "pencil_dx") !(max_ncoll)
 
 !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
   call alloc(x_sl, 100, zero, "x_sl") !(100)
@@ -882,6 +915,36 @@ subroutine collimation_allocate_arrays
   call alloc(y2_sl, 100, zero, "y2_sl") !(100)
   call alloc(angle1, 100, zero, "angle1") !(100)
   call alloc(angle2, 100, zero, "angle2") !(100)
+
+  call alloc(npartdpop, numeffdpop, 0, "npartdpop") !(numeffdpop)
+  call alloc(neff, numeff, zero, "neff") !(numeff)
+  call alloc(rsig, numeff, zero, "rsig") !(numeff)
+  call alloc(neffdpop, numeffdpop, zero, "neffdpop") !(numeffdpop)
+  call alloc(dpopbins, numeffdpop, zero, "dpopbins") !(numeffdpop)
+  call alloc(neff2d, numeff, numeffdpop, zero, "neff2d") !(numeff,numeffdpop)
+
+  call alloc(nimpact, 50, 0, "nimpact") !(50)
+  call alloc(sumimpact, 50, zero, "sumimpact") !(50)
+  call alloc(sqsumimpact, 50, zero, "sqsumimpact") !(50)
+
+  call alloc(neffx, numeff, zero, "neffx") !(numeff)
+  call alloc(neffy, numeff, zero, "neffy") !(numeff)
+  call alloc(db_name1, max_name_len, max_ncoll, ' ', "db_name1") !(max_ncoll)
+  call alloc(db_name2, max_name_len, max_ncoll, ' ', "db_name2") !(max_ncoll)
+  call alloc(db_material, 4, max_ncoll, '    ', "db_material") !(max_ncoll)
+  call alloc(db_nsig, max_ncoll, zero, "db_nsig") !(max_ncoll)
+  call alloc(db_length, max_ncoll, zero, "db_length") !(max_ncoll)
+  call alloc(db_offset, max_ncoll, zero, "db_offset") !(max_ncoll)
+  call alloc(db_rotation, max_ncoll, zero, "db_rotation") !(max_ncoll)
+  call alloc(db_bx, max_ncoll, zero, "db_bx") !(max_ncoll)
+  call alloc(db_by, max_ncoll, zero, "db_by") !(max_ncoll)
+  call alloc(db_tilt, max_ncoll, 2, zero, "db_tilt") !(max_ncoll,2)
+
+  call alloc(cn_impact, max_ncoll, 0, "cn_impact")  !(max_ncoll)
+  call alloc(cn_absorbed, max_ncoll, 0, "cn_absorbed") !(max_ncoll)
+  call alloc(caverage, max_ncoll, zero, "caverage") !(max_ncoll)
+  call alloc(csigma, max_ncoll, zero, "csigma") !(max_ncoll)
+
 end subroutine collimation_allocate_arrays
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
@@ -933,6 +996,61 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call resize(dpsvgrd,   npart_new, zero, "dpsvgrd") !(npart)
   call resize(oidpsvgrd, npart_new, zero, "oidpsvgrd") !(npart)
   call resize(dpsv1grd,  npart_new, zero, "dpsv1grd") !(npart)
+
+  call resize(xbob,    nblz_new, zero, "xbob") !(nblz)
+  call resize(ybob,    nblz_new, zero, "ybob") !(nblz)
+  call resize(xpbob,   nblz_new, zero, "xpbob") !(nblz)
+  call resize(ypbob,   nblz_new, zero, "ypbob") !(nblz)
+
+  call resize(xineff,  npart_new, zero, "xineff") !(npart)
+  call resize(yineff,  npart_new, zero, "yineff") !(npart)
+  call resize(xpineff, npart_new, zero, "xpineff") !(npart)
+  call resize(ypineff, npart_new, zero, "ypineff") !(npart)
+
+  call resize(mux,     nblz_new, zero, "mux") !(nblz)
+  call resize(muy,     nblz_new, zero, "muy") !(nblz)
+
+  call resize(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
+  call resize(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
+
+  call resize(ename,    max_name_len, nblz_new, ' ', "ename") !(nblz_new)
+  call resize(nampl,    nblz_new, 0, "nampl") !(nblz_new)
+  call resize(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
+  call resize(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
+  call resize(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
+  call resize(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
+  call resize(sampl,    nblz_new, zero, "sampl") !(nblz_new)
+
+  call resize(secondary,            npart_new, 0, "secondary") !(npart_new)
+  call resize(tertiary,             npart_new, 0, "tertiary") !(npart_new)
+  call resize(other,                npart_new, 0, "other") !(npart_new)
+  call resize(scatterhit,           npart_new, 0, "scatterhit") !(npart_new)
+  call resize(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos") !(npart_new)
+  call resize(part_hit_before_turn, npart_new, 0, "part_hit_before_turn") !(npart_new)
+  call resize(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
+  call resize(part_hit_turn,        npart_new, 0, "part_hit_turn") !(npart_new)
+  call resize(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
+  call resize(part_abs_turn,        npart_new, 0, "part_abs_turn") !(npart_new)
+  call resize(part_select,          npart_new, 0, "part_select") !(npart_new)
+  call resize(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
+
+  call resize(part_impact,    npart_new, zero, "part_impact") !(npart_new)
+  call resize(part_indiv,     npart_new, zero, "part_indiv") !(npart_new)
+  call resize(part_linteract, npart_new, zero, "part_linteract") !(npart_new)
+
+
+  call alloc(counted_r, npart_new, numeff, 0, "counted_r") !(npart_new,numeff)
+  call alloc(counted_x, npart_new, numeff, 0, "counted_x") !(npart_new,numeff)
+  call alloc(counted_y, npart_new, numeff, 0, "counted_y") !(npart_new,numeff)
+
+! Change the following block to npart
+  call resize(myx,  npart_new, zero, "myx") !(maxn)
+  call resize(myxp, npart_new, zero, "myxp") !(maxn)
+  call resize(myy,  npart_new, zero, "myy") !(maxn)
+  call resize(myyp, npart_new, zero, "myyp") !(maxn)
+  call resize(myp,  npart_new, zero, "myp") !(maxn)
+  call resize(mys,  npart_new, zero, "mys") !(maxn)
+
 end subroutine collimation_expand_arrays
 
 !>
@@ -962,13 +1080,13 @@ subroutine collimate_init()
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbdaten
 
 #ifdef HDF5
@@ -1425,7 +1543,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   logical spErr
 
 !+ca database
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbpencil
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1460,8 +1578,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
 
-    if(napx*2 > maxn) then
-      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ",maxn,", got ",(napx*2)
+    if(napx*2 > npart) then
+      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
       iErr = .true.
       return
    endif
@@ -1639,14 +1757,14 @@ subroutine collimate_start_sample(nsample)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
 !+ca dbthin6d
-+ca dbcolcom
+!+ca dbcolcom
 
 #ifdef CR
 +ca crco
@@ -2334,13 +2452,13 @@ subroutine collimate_start_collimator(stracki)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
   real(kind=fPrec) c5m4,stracki
@@ -2539,13 +2657,13 @@ subroutine collimate_do_collimator(stracki)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
   real(kind=fPrec) c5m4,stracki
@@ -3358,15 +3476,6 @@ subroutine collimate_end_collimator()
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
-!+ca database
-+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-+ca dbcolcom
-!+ca dbthin6d
-
 #ifdef HDF5
   ! For tracks2
   integer hdfturn,hdfpid,hdftyp
@@ -3805,15 +3914,6 @@ subroutine collimate_end_sample(j)
 
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-+ca dbtrthin
-!+ca database
-+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-+ca dbcolcom
-
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
   close(survival_unit)
@@ -4067,13 +4167,13 @@ subroutine collimate_exit()
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 
   close(outlun)
   close(collgaps_unit)
@@ -4223,13 +4323,13 @@ subroutine collimate_start_turn(n)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 
   integer n
 
@@ -4259,13 +4359,13 @@ subroutine collimate_start_element(i)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
   ie=i
@@ -4357,13 +4457,13 @@ subroutine collimate_end_element
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
 #ifdef HDF5
@@ -4512,13 +4612,13 @@ subroutine collimate_end_turn
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 !+ca dbthin6d
 
 #ifdef HDF5
@@ -7383,12 +7483,12 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7500,12 +7600,12 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7598,12 +7698,12 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7708,12 +7808,12 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7849,12 +7949,12 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -7921,12 +8021,12 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -8078,12 +8178,12 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -8234,12 +8334,12 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
 !+ca dbmkdist
   integer :: i,j,mynp,nloop
-  real(kind=fPrec) :: myx(maxn) !(maxn)
-  real(kind=fPrec) :: myxp(maxn) !(maxn)
-  real(kind=fPrec) :: myy(maxn) !(maxn)
-  real(kind=fPrec) :: myyp(maxn) !(maxn)
-  real(kind=fPrec) :: myp(maxn) !(maxn)
-  real(kind=fPrec) :: mys(maxn) !(maxn)
+  real(kind=fPrec), allocatable :: myx(:) !(maxn)
+  real(kind=fPrec), allocatable :: myxp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myy(:) !(maxn)
+  real(kind=fPrec), allocatable :: myyp(:) !(maxn)
+  real(kind=fPrec), allocatable :: myp(:) !(maxn)
+  real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
@@ -8997,7 +9097,7 @@ subroutine readcollimator
   integer I,J,K,ios
 
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 
   logical lopen
 
@@ -9126,7 +9226,7 @@ subroutine collimation_comnul
   implicit none
 
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 
   do_coll = .false.
 

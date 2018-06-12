@@ -655,7 +655,7 @@ subroutine daten
 !+ca dbdaten
 !+ca dbpencil
 !+ca database
-+ca dbcolcom
+!+ca dbcolcom
   logical has_coll
 #else
   logical do_coll
@@ -13738,13 +13738,13 @@ subroutine trauthin(nthinerr)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 #ifdef COLLIMAT
 !+ca collpara
-+ca dbtrthin
+!+ca dbtrthin
 !+ca database
-+ca dbcommon
+!+ca dbcommon
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 #endif
   save
 
@@ -14939,13 +14939,13 @@ subroutine thin6d(nthinerr)
 
 #ifdef COLLIMAT
 !+ca collpara
-+ca dbcommon
+!+ca dbcommon
 !+ca dbthin6d
 !+ca database
 !+ca dblinopt
 !+ca dbpencil
 !+ca info
-+ca dbcolcom
+!+ca dbcolcom
 #endif
 
 #ifdef CR
