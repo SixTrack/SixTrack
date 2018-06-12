@@ -16,7 +16,7 @@
 
   logical onesided,hit
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-  integer nprim,filel,mat,nev,j,nabs,nhit,np,nabs_tmp
+  integer nprim,filel,nev,j,nabs,nhit,np,nabs_tmp
 
   integer :: lhit_pos(npart) !(npart)
   integer :: lhit_turn(npart) !(npart)
@@ -26,8 +26,7 @@
   integer :: nabs_type(npart) !(npart)
 !MAY2005
 
-  real(kind=fPrec) p0,xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax   &
-  &,length,zlm,x,x00,xp,z,z00,zp,p,sp,dpop,s,enom
+  real(kind=fPrec) xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,x00,z00,p,sp,s,enom
   real(kind=fPrec) :: x_in(npart) !(npart)
   real(kind=fPrec) :: xp_in(npart) !(npart)
   real(kind=fPrec) :: y_in(npart) !(npart)
@@ -54,24 +53,24 @@
 !           sheet beam distribution  (smear in x and y)
 !
   common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,nev
-  common /materia/mat
-  common /phase/x,xp,z,zp,dpop
-  common /nommom/p0
-  common /cjaw1/zlm
   common /other/mybetax,mybetaz,mymux,mymuz,atdi
 ! common /icoll/  icoll
 !
   data dx,dxp/.5e-4,20.e-4/                                        !hr09
 !
+!  common /materia/mat
+!  common /phase/x,xp,z,zp,dpop
+!  common /nommom/p0
+!  common /cjaw1/zlm
 ! END BLOCK DBCOLLIM
 
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 +cd interac
-  integer mat,mcurr
+  integer mcurr
 !+ca collMatNum
-  real(kind=fPrec) xintl,radl,x,xp,z,zp,dpop,p0,zlm,zlm1,xpsd,zpsd,psd,anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep, &
+  real(kind=fPrec) xintl,radl,zlm1,xpsd,zpsd,psd,anuc,rho,emr,tlcut,hcut,cs,csref,bnref,freep, &
   &cprob,bn,bpp,xln15s,ecmsq,pptot,ppel,ppsd,pptref,pperef,pref,pptco,ppeco,sdcoe,freeco,zatom
 
   real(kind=fPrec) :: dpodx(nmat)
@@ -87,16 +86,18 @@
   common/scatu2/xintl(nmat),radl(nmat),mname
   common/scatpp/pptot,ppel,ppsd
   common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
-  common/phase/x,xp,z,zp,dpop
 ! real(kind=fPrec) exenergy
 ! common/meanexen/exenergy(nmat)
-  common/nommom/p0
-  common/cjaw1/zlm
   common/cmcs1/zlm1
-  common/materia/mat
   common/sindif/xpsd,zpsd,psd
   common/cdpodx/dpodx
   common/cions/edens(nmat),pleng(nmat)
+
+
+!  common/materia/mat
+!  common/phase/x,xp,z,zp,dpop
+!  common/nommom/p0
+!  common/cjaw1/zlm
 
 +dk nwrtcoll
 
@@ -750,6 +751,12 @@ module collimation
 !  &c_aperture,c_offset,c_tilt,c_material
 
 ! myran_gauss,rndm5,
+
+! Common to interac and dbcollim
+  integer, private, save :: mat
+  real(kind=fPrec), private, save :: x,xp,z,zp,dpop
+  real(kind=fPrec), private, save :: p0
+  real(kind=fPrec), private, save :: zlm
 
   ! file units
   integer, private, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
