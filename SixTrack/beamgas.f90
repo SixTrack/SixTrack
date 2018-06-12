@@ -293,14 +293,14 @@ subroutine beamGasInit(myenom)
   use numerical_constants
   use beamgascommon
   use crcoall
+
+  use collimation, only : mynp
+
   IMPLICIT NONE
 
 
   integer check,j,i
   real(kind=fPrec) myenom,minenergy
-
-  integer   mynp
-  common /mynp/ mynp
 
   character(len=11) bg_var
   integer filereaderror, previousEvent,numberOfEvents

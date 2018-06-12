@@ -330,8 +330,7 @@ if(DEBUG)
 endif(DEBUG)
 
 if(COLLIMAT)
-	LIST(APPEND FORS_FREEFORM collimation)
-	list(APPEND FORS_F90 ranlux)
+	list(APPEND FORS_F90 ranlux collimation)
 endif(COLLIMAT)
 
 if(HDF5)
