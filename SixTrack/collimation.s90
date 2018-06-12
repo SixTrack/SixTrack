@@ -6,17 +6,7 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-+cd dbcollim
-  integer :: nev
-  real(kind=fPrec) :: xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length
-  common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,nev
-
-  real(kind=fPrec) :: mybetax,mybetaz,mymux,mymuz,atdi
-  common /other/mybetax,mybetaz,mymux,mymuz,atdi
 +dk nwrtcoll
-
 module collimation
 
   use floatPrecision
@@ -581,6 +571,18 @@ module collimation
 !  &c_aperture,c_offset,c_tilt,c_material
 
 ! myran_gauss,rndm5,
+
+!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+!
+!+cd dbcollim
+  integer, private, save :: nev
+!  real(kind=fPrec), private, save :: c_xmin,c_xmax,c_xpmin,c_xpmax,c_zmin,c_zmax,c_zpmin,c_zpmax,length
+!!  common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,nev
+!
+!  real(kind=fPrec), private, save :: c_mybetax,c_mybetaz,mymux,mymuz,atdi
+!!  common /other/mybetax,mybetaz,mymux,mymuz,atdi
+
+  real(kind=fPrec), private, save :: length
 
 ! Common to interac and dbcollim
   integer, private, save :: mat
@@ -5151,7 +5153,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
 !
-+ca dbcollim
+!+ca dbcollim
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
 
@@ -5853,7 +5855,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
 !
-+ca dbcollim
+!+ca dbcollim
 
       real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk
 !JUNE2005
