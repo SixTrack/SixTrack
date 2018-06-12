@@ -92,8 +92,6 @@ OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, 
 OPTION(BIGNPART "Allow tracking up to 2048 particles (normally 64)." OFF)
 OPTION(HUGENPART "Allow tracking up to 65536 particles (normally 64)" OFF)
 OPTION(DEBUG "Debugging output" OFF)
-OPTION(SPAMMY "Turns on additional spammy output" OFF)
-# OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postprocessing with BeamLossPattern) there instead of writing it to ASCII." OFF)
 OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
@@ -144,8 +142,6 @@ if(DA)
 	message(STATUS "The DA flag is deprecated due to conflicts with preprocessor and FOX. Please use SIXDA instead.")
 	SET(SIXDA ON)
 endif()
-SET(BIGDABNEW   ON)  # Used in dabnew.s90. Defined in dabnew.ast
-SET(SMALLDABNEW OFF) # Used in dabnew.s90. Defined in dabnews.ast
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -219,9 +215,6 @@ if(HUGENPART)
 endif()
 if(DEBUG)
 	SET(SIXTRACK_FEATURES "debug_${SIXTRACK_FEATURES}")
-endif()
-if(SPAMMY)
-	SET(SIXTRACK_FEATURES "spammy_${SIXTRACK_FEATURES}")
 endif()
 if(HDF5)
 	SET(SIXTRACK_FEATURES "hdf5_${SIXTRACK_FEATURES}")
@@ -302,7 +295,7 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 ###################################################################################################
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY BIGDABNEW SMALLDABNEW)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
 
 ###################################################################################################
@@ -1275,9 +1268,6 @@ foreach(loop IN LISTS FORS_FREEFORM)
 	endif()
 	if(NOT DEBUG)
 		ast_masks_flag(debug ${loop})
-	endif()
-	if(NOT SPAMMY)
-		ast_masks_flag(spammy ${loop})
 	endif()
 	if(NOT HDF5)
 		ast_masks_flag(hdf5 ${loop})

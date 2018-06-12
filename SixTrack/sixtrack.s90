@@ -582,6 +582,7 @@ subroutine daten
   use parpro
   use parpro_scale
   use parbeam, only : beam_expflag,beam_expfile_open
+  use mod_settings
   use mod_common
   use mod_commons
   use mod_commont
@@ -593,11 +594,7 @@ subroutine daten
   
   use elens
   use wire
-
-#ifdef COLLIMAT
-  use collimation
-#endif
-
+  
   implicit none
   
   integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
@@ -605,21 +602,19 @@ subroutine daten
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
     
-  real(kind=fPrec) ak0d,akad,alc,alignx,alignz,bk0d,bkad,cosy,dummy,    &
-    emitnx,emitny,extaux,halc,halc2,halc3,harm,phag,pmat,qbet,qigam,    &
-    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,u0,xang,xstr,xpl0,xplane,xrms0,  &
-    zpl0,zrms0
+  real(kind=fPrec) ak0d,akad,alignx,alignz,bk0d,bkad,dummy,emitnx,emitny,extaux,&
+    r0,r0a,rdev,rmean,rsqsum,rsum,tilt,xang,xstr,xpl0,xplane,xrms0,zpl0,zrms0
     
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy
   real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
   
   character(len=max_name_len) sing,stru,prin,quie,trac,diff,sync,ende,bloc,comm
-  character(len=max_name_len) fluc,chro,tune,iter,limi,orbi,deco
+  character(len=max_name_len) fluc,iter,limi,orbi,deco
   character(len=max_name_len) beze,go,comb,sear,subr
   character(len=max_name_len) free,geom,cavi,disp,reso,bezext
   character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iqq,iele,ilm0,idum,norm
+  character(len=max_name_len) iele,ilm0,idum,norm
   character(len=max_name_len) kl,kr,orga,post,ripp,beam,trom
   character(len=max_name_len) coll
   character(len=60) ihead
@@ -679,11 +674,11 @@ subroutine daten
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
   
-  dimension icel(ncom,20),iqq(5)
+  dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
   dimension extaux(40),bezext(nblz)
   data sync,ende,next /'SYNC','ENDE','NEXT'/
-  data fluc,mult,chro,iter,tune,line,diff /'FLUC','MULT','CHRO','ITER','TUNE','LINE','DIFF'/
+  data fluc,mult,iter,line,diff /'FLUC','MULT','ITER','LINE','DIFF'/
   data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
@@ -702,13 +697,13 @@ subroutine daten
   logical inErr
   character(len=4) currBlock
   logical blockOpened, blockClosed
-  logical openBlock, closeBlock
-  integer blockLine, iElem
+  logical openBlock, closeBlock, blockReopen
+  integer blockLine, blockCount, iElem
   
   logical parseFort2
   integer nGeom
   
-  logical newParsing, oneLine
+  logical newParsing, prevPrint
   
   save
   
@@ -716,11 +711,6 @@ subroutine daten
 
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
       irecuin=0
-
-      do i=1,5
-        iqq(i)=' '
-      end do
-
 
       do i=1,40
         ilm0(i)=' '
@@ -749,15 +739,11 @@ subroutine daten
       iclo6=0
       iclo6r=0
       iclr=0
-      ncy=0
       ! ncy2=0
       ndum=0
         
 !  Initialise new input parameters
       idial=0
-      harm=one
-      alc=c1m3
-      phag=zero
       tlen=one
       pma=pmap
       ition=0
@@ -804,14 +790,9 @@ subroutine daten
       itqv=10
       dkq=c1m10
       dqq=c1m10
-      iqmod=0
       im=0
       imtr0=0
-      ilin=0
       nlin=0
-      iout=0
-      iquiet=0
-      idp=0
       izu0=0
       mmac=1
       mcut=0
@@ -832,34 +813,53 @@ subroutine daten
 !  SET DEFAULT MODULE VALUES
 ! ================================================================================================ !
   
+  ! SixTrack Settings
+  st_print    = .false.
+  st_debug    = .false.
+  st_quiet    = 0
+  
   ! TRACKING PARAMETERS
-  numl      = 1
-  napx      = 0
-  amp0      = zero
-  amp(1)    = c1m3
-  ird       = 0
-  imc       = 0
-  numlcp    = 1000
-  numlmax   = 1000000000
+  numl        = 1
+  napx        = 0
+  amp0        = zero
+  amp(1)      = c1m3
+  ird         = 0
+  imc         = 0
+  numlcp      = 1000
+  numlmax     = 1000000000
 
-  idz(:)    = 1
-  idfor     = 0
-  irew      = 0
-  iclo      = 0
+  idz(:)      = 1
+  idfor       = 0
+  irew        = 0
+  iclo        = 0
 
-  nde(:)    = 0
-  nwr(:)    = 1
-  nwr(4)    = 10000
-  ntwin     = 1
+  nde(:)      = 0
+  nwr(:)      = 1
+  nwr(4)      = 10000
+  ntwin       = 1
   
   ! CHROMATICITY ADJUSTMENTS
-  ichrom    = 0
+  ichrom      = 0
+  
+  ! TUNE ADJUSTMENTS
+  iqmod       = 0
+  
+  ! LINEAR OPTICS CALCULATION
+  ilin        = 0
+  sixin_ilin0 = 1
+  
+  ! SYNCHROTRON OSCILLATIONS
+  sixin_alc   = c1m3
+  sixin_harm  = one
+  sixin_phag  = zero
+  idp         = 0
+  ncy         = 0
   
   ! HIONS MODULE
-  zz0       = 1
-  aa0       = 1
-  nucm0     = pmap
-  has_hion  = .false.
+  zz0         = 1
+  aa0         = 1
+  nucm0       = pmap
+  has_hion    = .false.
   
   ! COLLIMATION MODULE
 #ifdef COLLIMAT
@@ -874,10 +874,9 @@ subroutine daten
   
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  oneLine     = .false.
+  prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
-  sixin_debug = .false.
   
   call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
   
@@ -889,7 +888,7 @@ subroutine daten
 ! ================================================================================================ !
   
 90 continue
-  read(3,10010,end=1530,iostat=ierro) idat,ihead
+  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) idat,ihead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(idat(1:1) == "/") goto 90
@@ -903,16 +902,24 @@ subroutine daten
     iMod       = 2
     parseFort2 = .true.
   case default
-    call prror(1)
+    write(lout,"(a)") "INPUT> ERROR Wrong mode '"//idat//"'"
+    goto 9999
   end select
   
-  write(lout,10130)
-  write(lout,10030)
-  write(lout,10180) ihead
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OO                  OO"
+  write(lout,"(a)") "    OO  SixTrack Input  OO"
+  write(lout,"(a)") "    OO                  OO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") ""
+  if(ihead /= " ") write(lout,"(a)") "    TITLE: "//ihead
+  if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
+  if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
+  write(lout,"(a)") ""
+  write(lout,"(a)") st_divLine
+  
   sixtit(1:60)=ihead
-  if(imod.eq.1) write(lout,10190)
-  if(imod.eq.2) write(lout,10200)
-  write(lout,10130)
   
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
@@ -953,15 +960,15 @@ subroutine daten
   ! Parse non-block flags
   select case(idat)
   case("PRIN") ! Enable the PRINT flag
-    iOut    = 1
-    oneLine = .true.
-    goto 110
-  case("QUIE") ! Enable the QUIET flag
-    iQuiet  = 1
-    oneLine = .true.
+    ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
+    ! so we need to handle that for backwards compatibility.
+    prevPrint = .true.
+    st_print  = .true.
+    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
+    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
     goto 110
   case("NEXT") ! Close the current block
-    if(newParsing .and. .not. oneLine) then
+    if(newParsing .and. .not. prevPrint) then
       ! Actual close check is done after a last pass so
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
@@ -975,23 +982,17 @@ subroutine daten
     goto 771
   end select
   
-  oneLine = .false.
+  prevPrint = .false.
   
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("TUNE")
-    goto 600
-  case("SYNC")
-    goto 710
   case("ITER")
     goto 940
   case("FLUC")
     goto 790
   case("MULT")
     goto 740
-  case("LINE")
-    goto 660
   case("LIMI")
     goto 950
   case("ORBI")
@@ -1038,19 +1039,23 @@ subroutine daten
     openBlock = .true.
   end if
   
+  ! By default blocks can only be opened once. The exceptions are set here.
+  blockReopen = .false.
+  if(currBlock == "LINE") blockReopen = .true.
+  
   ! Check the status of the current block
-  call sixin_checkBlock(currBlock, blockOpened, blockClosed, blockLine)
+  call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
   ! if(nUnit == 2) then
-  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! else
-  !   write(lout,"(a,i4,2(a,l1),a,i0)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! end if
   
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't.
-  if(blockClosed) then
+  if(blockCount > 1 .and. .not. blockReopen) then
     write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
     goto 9999
   end if
@@ -1065,13 +1070,13 @@ subroutine daten
   
   select case(currBlock)
   
-  case("INFO") ! Information Block
+  case("SETT") ! Global Settings Block
     if(openBlock) then
       continue
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineINFO(ch,blockLine,inErr)
+      call sixin_parseInputLineSETT(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -1160,13 +1165,43 @@ subroutine daten
       if(inErr) goto 9999
     end if
     
-  case("CHRO")
+  case("CHRO") ! Chromaticity Adjustment
     if(openBlock) then
       ichrom = 1
     elseif(closeBlock) then
       continue
     else
       call sixin_parseInputLineCHRO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("TUNE") ! Tune Adjustment
+    if(openBlock) then
+      iqmod = 1
+    elseif(closeBlock) then
+      call sixin_parseInputLineTUNE(ch,-1,inErr)
+    else
+      call sixin_parseInputLineTUNE(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("LINE") ! Linear Optics Calculation Block
+    if(openBlock) then
+      ilin0 = 1
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineLINE(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("SYNC") ! Synchrotron Oscillations
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineSYNC(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
@@ -1195,17 +1230,17 @@ subroutine daten
 #else
       has_coll = .true.
       if(ilin /= 1) then
-         write(lout,*) "INPUT> ERROR DETECTED:"
-         write(lout,*) "INPUT> Incompatible flag with collimation version"
-         write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
-         write(lout,*) ""
-         write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
-         write(lout,*) "INPUT> which is required for the collimation version."
-         write(lout,*) ""
-         write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
-         write(lout,*) "INPUT> compatible with the collimation version."
-         write(lout,*) ""
-         write(lout,*) "INPUT> Current setting ilin=",ilin
+        write(lout,*) "INPUT> ERROR DETECTED:"
+        write(lout,*) "INPUT> Incompatible flag with collimation version"
+        write(lout,*) "INPUT> detected in the LINEAR OPTICS block."
+        write(lout,*) ""
+        write(lout,*) "INPUT> You have not chosen ilin=1 (4D mode),"
+        write(lout,*) "INPUT> which is required for the collimation version."
+        write(lout,*) ""
+        write(lout,*) "INPUT> Note that the ilin=2 (6D mode) is not"
+        write(lout,*) "INPUT> compatible with the collimation version."
+        write(lout,*) ""
+        write(lout,*) "INPUT> Current setting ilin=",ilin
         goto 9999
       end if
 #endif
@@ -1297,7 +1332,7 @@ subroutine daten
   
   case("ROOT") ! ROOT Input Block
 #ifndef ROOT
-    write(lout,"(a)") "INPUT> ERROR ROOT output requested but this exe does not have ROOT support compiled in"
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the ROOT flag."
     goto 9999
 #else
   if(openBlock) then
@@ -1339,403 +1374,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  TUNE ADJUSTMENT
-!-----------------------------------------------------------------------
-  600 iqmod=1
-      do 630 l=1,3
-  610 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 610
-      if(ch(:4).eq.next) then
-        if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni) then
-
-          do j=1,il
-            if(iqq(1).eq.bez(j)) iq(1)=j
-            if(iqq(2).eq.bez(j)) iq(2)=j
-          end do
-
-          goto 110
-        else
-          write(lout,10370)
-          iqmod=0
-          iqmod6=0
-          goto 110
-        endif
-      endif
-      call intepr(1,1,ch,ch1)
-      if(l.eq.1) then
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-        read(ch1,*,round='nearest')                                     &
-     & iqq(1),qw0(1),iqmod6
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-        read(ch1,*) iqq(1),qw0(1),iqmod6
-#endif
-#ifdef CRLIBM
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) iqmod6
-          nf=nf-1
-        endif
-#endif
-#endif
-        if(iqmod6.eq.1) then
-          iqmod6=0
-        elseif(iqmod6.eq.2) then
-          iqmod6=1
-          iqmod=0
-        elseif(iqmod6.eq.3) then
-          iqmod6=1
-        endif
-      endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.2) read(ch1,*,round='nearest')                            &
-     & iqq(2),qw0(2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.2) read(ch1,*) iqq(2),qw0(2)
-#endif
-#ifdef CRLIBM
-      if(l.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(2)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(2)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(l.eq.3) read(ch1,*,round='nearest')                            &
-     & iqq(3),qw0(3)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(l.eq.3) read(ch1,*) iqq(3),qw0(3)
-#endif
-#ifdef CRLIBM
-      if(l.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iqq(3)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(3)=fround(errno,fields,2)
-        nf=nf-1
-        endif
-      endif
-#endif
-#endif
-  630 continue
-  640 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 640
-      call intepr(4,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & iqq(4),iqq(5)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) iqq(4),iqq(5)
-#endif
-      if(abs(qw0(1)).gt.pieni.and.abs(qw0(2)).gt.pieni                  &
-     &.and.abs(qw0(3)).gt.pieni) then
-        do 650 j=1,il
-          if(iqq(1).eq.bez(j)) iq(1)=j
-          if(iqq(2).eq.bez(j)) iq(2)=j
-          if(iqq(3).eq.bez(j)) iq(3)=j
-          if(iqq(4).eq.bez(j)) kpa(j)=1
-          if(iqq(5).eq.bez(j)) kpa(j)=2
- 650    continue
-        goto 110
-      else
-        write(lout,10370)
-        iqmod=0
-        iqmod6=0
-        write(lout,*) 'TUNE ADJUSTED'
-        goto 110
-      endif
-!-----------------------------------------------------------------------
-!  LINEAR OPTICS CALCULATION
-!  - in the 4D case (ilin=1) the subroutine linopt is called
-!  - in the 6d case (ilin=2) the optics parameters are calculated and 
-!    printed in the subroutine umlauda (calculated in the common block
-!    umlalid)
-!-----------------------------------------------------------------------
- 660  continue
-      ilin0=1
-      read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 660
-      if(ch(:4).eq.next) goto 110
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & idat,nt,ilin0,ntco,eui,euii
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) idat,nt,ilin0,ntco,eui,euii
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) nt
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(3),*) ilin0
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(4),*) ntco
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        eui=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        euii=fround(errno,fields,6)
-        nf=nf-1
-      endif
-#endif
-#endif
-      iprint=0
-      if(idat.ne.'BLOCK'.and.idat.ne.'ELEMENT') call prror(45)
-      if(idat.eq.'BLOCK') iprint=1
-      ilin=1
-      if(ilin0.ge.1.and.ilin0.le.3) ilin=ilin0
-
-  670 do m=1,40
-        ilm0(m)=idum
-      end do
-
-  690 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 690
-      if(ch(:4).eq.next) goto 110
-      call intepr(2,1,ch,ch1)
-! ilm0 are character strings, should be OK
-      read(ch1,*) (ilm0(m),m=1,40)
-      do 700 m=1,40
-      if(ilm0(m).eq.idum) goto 700
-      nlin=nlin+1
-      if(nlin.gt.nele) call prror(81)
-      bezl(nlin)=ilm0(m)
-  700 continue
-      goto 670
-
-!-----------------------------------------------------------------------
-!  SYNCHROTRON OSCILLATIONS
-!-----------------------------------------------------------------------
-  710 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-      iclr=iclr+1
-      else
-      goto 710
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & harm,alc,u0,phag,tlen,pma,ition,dppoff
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.1) read(ch1,*) harm,alc,u0,phag,tlen,pma,ition,dppoff
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          harm=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          alc=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          u0=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          phag=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          tlen=fround(errno,fields,5)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          pma=real(fround(errno,fields,6),fPrec)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(7),*) ition
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dppoff=fround(errno,fields,8)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & dpscor,sigcor
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.2) read(ch1,*) dpscor,sigcor
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          dpscor=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          sigcor=fround(errno,fields,2)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-      if(iclr.ne.2) goto 710
-      iclr=0
-      if(abs(pma-pmap).le.c1m1) pmat=pmap
-      if(abs(pma-pmae).le.c1m1) pmat=pmae
-      if(pmat.ne.pmap.and.pmat.ne.pmae) then
-        write(lout,*)
-        write(lout,*) 'Warning: Particle is neither proton nor electron'
-        write(lout,*) 'pma:  ', pma
-        write(lout,*) 'pmap: ', pmap
-        write(lout,*)
-      endif
-      if(pma.lt.pieni) call prror(27)
-      !nucm0=pma
-      crad=(crade*pmae)/pma                                              !hr05
-      if(abs(tlen).le.pieni) call prror(25)
-      if(sixin_ncy2.eq.0) then
-        ncy=sixin_icy*mper
-        idp=1
-        if(ncy.ne.0) goto 720
-        idp=0
-        write(lout,10130)
-        write(lout,10340)
-  720   phas=phag*rad
-        if(ncy.ne.0) then
-          hsy(1)=u0/real(ncy,fPrec)
-        else
-          hsy(1)=u0
-        endif
-        if(nvar.eq.5) then
-          idp=1
-          ition=1
-          hsy(1)=zero
-        endif
-        halc=harm*alc
-        halc2=harm/tlen
-        hsy(3)=(two*pi)*halc2                                            !hr05
-        cosy=cos_mb(phas)
-        qigam=(pma**2/e0)/e0                                             !hr05
-        qbet=one-qigam
-        halc3=((((((-one*(qigam-alc))*real(ition,fPrec))*harm)*u0)/e0)  &
-     &*cosy)/((two*pi)*qbet)                                             !hr05
-        if(halc3.lt.zero) call prror(28)
-        qs=sqrt(halc3)
-      else
-        idp=1
-        ncy=0
-        do 725 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(abs(kz(ix)).eq.12) ncy=ncy+1
-          endif
-  725   continue
-        do 730 j=1,il
-          if(abs(kz(j)).eq.12) then
-            hsyc(j)=((two*pi)*ek(j))/tlen                                !hr05
-            if(nvar.eq.5) then
-              ition=1
-              ed(j)=zero
-            endif
-          endif
-  730   continue
-      endif
-      goto 110
 !-----------------------------------------------------------------------
 !  MULTIPOLE COEFFICIENTS  FOR KZ = 11
 !-----------------------------------------------------------------------
@@ -5220,7 +4858,7 @@ subroutine daten
          endif
         enddo
       endif
-      if(iout.eq.0) return
+      if(.not.st_print) return
       write(lout,10050)
       write(lout,10060)
       il1=il
@@ -5390,7 +5028,7 @@ subroutine daten
         write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
       endif
       if(sixin_ncy2.eq.0) then
-        write(lout,10143) harm,u0,phag,qs,alc
+        write(lout,10143) sixin_harm,sixin_u0,sixin_phag,qs,sixin_alc
       else
         write(lout,*)
       endif
@@ -5507,10 +5145,10 @@ subroutine daten
   return
       
 10000 format(11(a4,1x))
-10010 format(a4,8x,a60)
+! 10010 format(a4,8x,a60)
 10020 format(a)
-10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-     &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
+! 10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
+!      &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
      &'OO  PREPROCESSING  OO', /t10,2('O'),17x,2('O')/t10,21('O'))
 10050 format(//131('-')//t43,'*** RING PARAMETERS ***'/)
@@ -5562,10 +5200,10 @@ subroutine daten
      &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
      &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
      &'PRECISION FOR C.-O. RMS',t47,d10.3/)
-10180 format(t5/t10,a60)
-10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
-10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
-     &'EXTRA GEOMETRY STRENGTH FILE--')
+! 10180 format(t5/t10,a60)
+! 10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
+! 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
+!      &'EXTRA GEOMETRY STRENGTH FILE--')
 10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
 10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
      &'BLOCKS PER PERIOD',t49,i5//)
@@ -5578,8 +5216,8 @@ subroutine daten
 10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
      &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
      &'DOM NUMBERS      |   SAME MULTIPOLECOEFFICIENTS  |'/131('-'))
-10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
-     &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
+! 10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
+!      &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
 10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
      &' AND THEREFORE IGNORED')
 10410 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
@@ -11331,6 +10969,7 @@ program maincr
   use mod_units
   use aperture
   use mod_ranecu
+  use mod_alloc, only : alloc_init
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -11346,6 +10985,7 @@ program maincr
   use crcoall
   use parpro
   use parpro_scale
+  use mod_settings
   use mod_common
   use mod_commonmn
   use mod_commons
@@ -11434,7 +11074,8 @@ end interface
 #ifdef CR
 +ca crco
 #endif
-
+  
+  ! "Old" variables
   integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
     idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
     jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
@@ -11450,7 +11091,6 @@ end interface
   logical isOpen
   character(len=10) cmonth
   character(len=4) cpto
-  character(len=7) tmpFile
 #ifdef CR
   character(len=80) day
 #else
@@ -11488,348 +11128,250 @@ end interface
   data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
     '  April   ','   May    ','   June   ','   July   ',' August  ',  &
     ' September',' October  ',' November ',' December '/
+    
+  ! New Variables
+  character(len=:), allocatable :: featList
+  character(len=7)  tmpFile
+  character(len=23) timeStamp
+  character(len=8)  tsDate
+  character(len=10) tsTime
+  
+  logical fErr ! For file units
+    
 #include "version.f90"
-!-----------------------------------------------------------------------
-  errout_status = 0         ! Set to nonzero before calling abend in case of error.
-                            ! If prror is called, it will be set internally.
-  lout=92
+  
+  ! ---------------------------------------------------------------------------------------------- !
+  errout_status = 0 ! Set to nonzero before calling abend in case of error.
+  lout = 92
 #ifndef CR
-  lout=output_unit
+  lout = output_unit
 #endif
-  call allocate_arrays      ! Initial allocation of memory
+
+  call alloc_init      ! Initialise tmod_alloc
+  call allocate_arrays ! Initial allocation of memory
+ 
+  ! Set napx,napxo,trtime for error handling
+  napx   = 0
+  napxo  = 0
+  trtime = 0.0
+  napxto = 0
+  runtim = ""
+  
+  !----------------------------------------------------------------------------------------------- !
+  ! Features
+#ifdef TILT
+  featList = featList//" TILT"
+#endif
+#ifdef FAST
+  featList = featList//" FAST"
+#endif
+#ifdef STF
+  featList = featList//" STF"
+#endif
+#ifdef COLLIMAT
+  featList = featList//" COLLIMAT"
+#endif
 #ifdef CRLIBM
-! Removed the call to disable_xp for Laurent
-! but re-instated it
+  featList = featList//" CRLIBM"
   call disable_xp()
 #endif
-#ifdef DEBUG
-!     umcalls=0
-!     dapcalls=0
-!     dokcalls=0
-!     dumpl=0
-#endif
-! Set napx,napxo,trtime for error handling
-  napx=0
-  napxo=0
-  trtime=0.0
-  napxto=0
-  runtim=''
 #ifdef CR
-      stxt=''
+  featList = featList//" CR"
+  stxt = ""
+#endif
+#ifdef ROOT
+  featList = featList//" ROOT"
 #endif
 #ifdef HDF5
+  featList = featList//" HDF5"
   call h5_initHDF5()
 #endif
 #ifdef BOINC
+  featList = featList//" BOINC LIBARCHIVE"
   call boinc_init()
-!  call boinc_init_graphics()
+! call boinc_init_graphics()
 #endif
-#ifdef CR
-! Main start for Checkpoint/Restart
-      sythckcr=.false.
-      numlcr=1
-      rerun=.false.
-      start=.true.
-      restart=.false.
-      checkp=.false.
-      fort95=.false.
-      fort96=.false.
-      sixrecs=0
-      binrec=0
-      bnlrec=0
-      bllrec=0
-      do i=1,(npart+1)/2
-        binrecs(i)=0
-      enddo
-      crtime3=0.
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
-#ifdef BOINC
- 611  continue
-#endif
-!--   Very first get rid of any previous partial output
-      inquire(unit=lout, opened=isOpen)
-      if(isOpen) close(lout)
-#ifdef BOINC
-      call boincrf('fort.92',filename)
-#ifdef FIO
-      open(lout,file=filename,form='formatted',status='replace',round='nearest')
-#else
-      open(lout,file=filename,form='formatted',status='replace')
-#endif
-#else
-#ifdef FIO
-      open(lout,file='fort.92',form='formatted',status='replace',round='nearest')
-#else
-      open(lout,file='fort.92',form='formatted',status='replace')
-#endif
-#endif
-!--   Now position the checkpoint/restart logfile=93
-#ifdef BOINC
-      call boincrf('fort.93',filename)
-#ifdef FIO
-      open(93,file=filename,form='formatted',status='unknown', round='nearest')
-#else
-      open(93,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-      open(93,file='fort.93',form='formatted',status='unknown', round='nearest')
-#else
-      open(93,file='fort.93',form='formatted',status='unknown')
-#endif
-#endif
-  606 read(93,'(a1024)',end=607) arecord
-      goto 606
-  607 backspace (93,iostat=ierro)
-! and if BOINC issue an informatory message
-#ifdef BOINC
-      if (start) then
-        write(93,*) 'SIXTRACR starts very first time'
-      else
-        write(93,*) 'SIXTRACR retry after unzip of Sixin.zip'
-      endif
-#endif
-! Now we see if we have a fort.6 which implies
-! that we can perhaps just restart using all exisiting files
-! including the last checkpoints
-! if not, we just do a start (with an unzip for BOINC)
-#ifdef BOINC
-      call boincrf('fort.6',filename)
-#ifdef FIO
-      open(output_unit,file=filename,form='formatted',status='old',err=602,round='nearest')
-#else
-      open(output_unit,file=filename,form='formatted',status='old',err=602)
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
-#else
-#ifdef FIO
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602,round='nearest')
-#else
-      open(output_unit,file='fort.6',form='formatted',status='old',err=602)
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR reruns on: '
-#endif
-      rerun=.true.
-      goto 605
-#ifdef BOINC
-  602 continue
-! No fort.6 so we do an unzip of Sixin.zip
-! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
-! and CLOSE 92 and 93
-      if (start) then
-        start=.false.
-        close(92)
-        close(93)
-! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
-! name hard-wired in our boinc_unzip_.
-! Either it is only the fort.* input data or it is a restart.
-! Removed temporarily??? because of problems.
-! Re-instated and REQUIRED version 4516
-        !call boinc_unzip()
-        !call system('unzip Sixin.zip')
-        
-        call boincrf("Sixin.zip",filename)
-        ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
-        call f_read_archive(trim(filename),".")
-        go to 611
-      endif
-#ifdef FIO
-      open(output_unit,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-      open(output_unit,file=filename,form='formatted',status='unknown')
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: '
-#else
-#ifdef FIO
- 602  open(output_unit,file='fort.6',form='formatted',status='new',round='nearest')
-#else
- 602  open(output_unit,file='fort.6',form='formatted',status='new')
-#endif
-!--   Set up start message depending on fort.6 or not
-      stxt='SIXTRACR starts on: '
-#endif
-!--   Now check for restart files fort.95/96 and OPEN them
-#ifdef BOINC
-  605 call boincrf('fort.95',filename)
-      open(95,file=filename,form='unformatted',status='old',err=600)
-#else
-  605 open(95,file='fort.95',form='unformatted',status='old',err=600)
-#endif
-      fort95=.true.
-      goto 608
-#ifdef BOINC
-  600 call boincrf('fort.95',filename)
-      open(95,file=filename,form='unformatted',status='new')
-#else
-  600 open(95,file='fort.95',form='unformatted',status='new')
-#endif
-#ifdef BOINC
-  608 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='old',err=601)
-#else
-  608 open(96,file='fort.96',form='unformatted',status='old',err=601)
-#endif
-      fort96=.true.
-      goto 609
-#ifdef BOINC
-  601 call boincrf('fort.96',filename)
-      open(96,file=filename,form='unformatted',status='new')
-#else
-  601 open(96,file='fort.96',form='unformatted',status='new')
-#endif
-#ifdef BOINC
-  609 call boincrf('fort.91',filename)
-#ifdef FIO
-      open(91,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-      open(91,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-  609 open(91,file='fort.91',form='formatted',status='unknown',round='nearest')
-#else
-  609 open(91,file='fort.91',form='formatted',status='unknown')
-#endif
-#endif
-! END +if cr -- END of Main start for Checkpoint/Restart
-#else
-      lout=output_unit
-#endif
-      
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
-!-----------------------------------------------------------------------
+  
   call units_initUnits
   
-  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., boinc=.true.,fio=.true.) ! Should be opened in DATEN
-  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., boinc=.true.,fio=.true.) ! Should be opened in DATEN
-  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., boinc=.true.,fio=.true.,recl=303)
-  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., boinc=.true.,fio=.true.) ! Should only be opened when reading
-  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=22,fileName="fort.22",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., boinc=.true.,fio=.true.)
-  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,boinc=.true.)
-! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
-  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., boinc=.true.,fio=.true.)
-! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., boinc=.true.,fio=.true.) ! Not in use?
+#ifdef CR
+  ! Main start for Checkpoint/Restart
+  sythckcr = .false.
+  numlcr   = 1
+  rerun    = .false.
+  start    = .true.
+  restart  = .false.
+  checkp   = .false.
+  fort95   = .false.
+  fort96   = .false.
+  sixrecs  = 0
+  binrec   = 0
+  bnlrec   = 0
+  bllrec   = 0
+  crtime3  = 0.0
+  do i=1,(npart+1)/2
+    binrecs(i) = 0
+  end do
+  
+#ifdef BOINC
+611 continue
+#endif
+  ! Very first get rid of any previous partial output
+  inquire(unit=lout, opened=isOpen)
+  if(isOpen) close(lout)
+  call units_openUnits(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
+  
+  ! Now position the checkpoint/restart logfile=93
+  call units_openUnits(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
+606 continue
+  read(93,"(a1024)",end=607) arecord
+  goto 606
+607 continue
+  backspace (93,iostat=ierro)
+#ifdef BOINC
+  ! and if BOINC issue an informatory message
+  if(start) then
+    write(93,"(a)") "SIXTRACR starts for the very first time"
+  else
+    write(93,"(a)") "SIXTRACR retry after unzip of Sixin.zip"
+  end if
+#endif
+  ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
+  ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
+  ! call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  ! if(fErr) goto 602
+  ! stxt = "SIXTRACR reruns on: "
+  call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  if(fErr) then
+#ifdef BOINC
+    ! No fort.6 so we do an unzip of Sixin.zip
+    ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
+    ! and CLOSE 92 and 93
+    if(start) then
+      start=.false.
+      close(92)
+      close(93)
+      ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
+      ! Name hard-wired in our boinc_unzip_.
+      ! Either it is only the fort.* input data or it is a restart.
+      call boincrf("Sixin.zip",filename)
+      ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
+      call f_read_archive(trim(filename),".")
+      goto 611
+    end if
+    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
+#else
+    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
+#endif
+    ! Set up start message depending on fort.6 or not
+    stxt = "SIXTRACR starts on: "
+  else
+    ! Set up start message depending on fort.6 or not
+    stxt = "SIXTRACR reruns on: "
+    rerun=.true.
+  end if
+  call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
+  if(fErr) then
+    call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
+  else
+    fort95 = .true.
+  end if
+  call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
+  if(fErr) then
+    call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
+  else
+    fort96 = .true.
+  end if
+  call units_openUnits(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
+#else
+  lout = output_unit
+#endif
+  
+  ! Open Regular File Units
+  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
+  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr)
+  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
+  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr)
+! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
+  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=22,fileName="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Not in use?
+  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
+  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
+! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
+! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
   
 #ifdef STF
   ! Open Single Track File
-  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,boinc=.true.)
+  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,boinc=.true.)
+    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
   end do
 #endif
   
-  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,boinc=.true.,fio=.true.)
+  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
   
   ! Eric for the DA coefficients in BINARY
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,boinc=.false.)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,boinc=.false.)
+  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
   
 #ifdef DEBUG
-  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,boinc=.true.)
-  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,boinc=.true.)
+  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
+  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
 #endif
   
   ! Heavy Ion Output
-  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,boinc=.true.) ! collimator losses (energy)
-  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,boinc=.true.) ! collimator losses in function of particle i
-  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,boinc=.true.) ! mtc after each collimator interaction
+  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
+  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
+  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
+  
+  ! ---------------------------------------------------------------------------------------------- !
+  ! Write Header
+  
+  ! TimeStamp
+  call date_and_time(tsDate,tsTime)
+  timeStamp = tsDate(1:4)//"-"//tsDate(5:6)//"-"//tsDate(7:8)//" "//&
+              tsTime(1:2)//":"//tsTime(3:4)//":"//tsTime(5:10)
+  
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
+  write(lout,"(a)") "  "//repeat("=",128)
+  write(lout,"(a)") "    Built With:"//featList
+  write(lout,"(a)") "    Start Time: "//timeStamp
+  write(lout,"(a)") ""
+  write(lout,"(a)") st_divLine
+  
+#ifdef CR
+  ! Log start messages
+  write(93,"(a)") ""
+  write(93,"(a)") "SIXTRACR MAINCR"
+  write(93,"(a)") stxt//timeStamp
+  endfile(93,iostat=ierro)
+  backspace(93,iostat=ierro)
+#endif
 
-  write(lout,10010) version,moddate
-      tlim=1e7
-      call timest(tlim)
-      call datime(idate,itime)
-      write(cdate,'(I6.6)') idate
-      write(ctime,'(I4.4)') itime
-      read(cdate(3:4),'(I2)') imonth
-      if(cdate(6:6).eq.'1'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'st of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'st of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else if(cdate(6:6).eq.'2'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'nd of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'nd of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else if(cdate(6:6).eq.'3'.and.cdate(5:5).ne.'1') then
-#ifdef CR
-        day=stxt//cdate(5:6)//'rd of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'rd of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      else
-#ifdef CR
-        day=stxt//cdate(5:6)//'th of' //cmonth(imonth)                  &
-#else
-        day='SIXTRACK starts on: '//cdate(5:6)//'th of' //cmonth(imonth)&
-#endif
-     &//' 20'//cdate(1:2)//', '
-      endif
-      if(ctime(1:2).ne.'  ') then
-        if(ctime(3:4).eq.'  ') then
-          runtim=day(1:44)//' at '//ctime(1:2)//'.'
-        else if(ctime(3:4).eq.'01') then
-          runtim=day(1:44)//' one minute after '//ctime(1:2)//'.'
-        else
-          runtim=day(1:44)//ctime(3:4)//' minutes after '//ctime(1:2)//'.'
-        endif
-      else
-        if(ctime(3:4).eq.'  ') then
-          runtim=day(1:44)//' at midnight.'
-        else if(ctime(3:4).eq.'01') then
-          runtim=day(1:44)//' one minute after midnight.'
-        else
-          runtim=day(1:44)//ctime(3:4)//' minutes after midnight.'
-        endif
-      endif
-      write(lout,'(a80)') runtim
-#ifdef CR
-!     Log start messages
-      write(93,*)
-      write(93,*) 'SIXTRACR MAINCR ',runtim
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-#endif
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
 !     A normal start, time0 is beginning
       pretime=0.0
       trtime=0.0
@@ -12874,7 +12416,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -12941,7 +12483,7 @@ end interface
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
         zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,iout,iquiet,qw0,iq,iqmod,kpa,iqmod6,bez,&
+        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
         pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
         ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
@@ -13124,7 +12666,7 @@ end interface
       do 340 ia=1,napx,2
         if(idfor.ne.2.and.idfor.ne.3) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-          if(iquiet==0) write(lout,10050)
+          if(st_quiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
           bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
           bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
@@ -13179,8 +12721,8 @@ end interface
             endif
             chi=chi+dchi
   320     continue
-          if(iquiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-          if(iquiet == 0) then
+          if(st_quiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+          if(st_quiet == 0) then
             write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
                               xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
           end if
@@ -13232,7 +12774,7 @@ end interface
           nucm(ia)=nucm0
           nucm(ia+1)=nucm0
 
-          if(iquiet==0) write(lout,10020) ampv(ia),amp(2),epsa
+          if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
         else if(idfor.eq.2) then
 #ifndef CRLIBM
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
@@ -13425,7 +12967,7 @@ end interface
           omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
           omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
-        if (idfor /= 3 .and. iquiet == 0) then
+        if (idfor /= 3 .and. st_quiet == 0) then
           write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
                             yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
         end if
@@ -13740,7 +13282,7 @@ end interface
         if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
@@ -13750,13 +13292,13 @@ end interface
         
         if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
           id=id+1
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           else
             write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
@@ -13766,12 +13308,12 @@ end interface
         if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
           id=id+1
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           else
             write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           end if
-          if(iquiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
@@ -13781,12 +13323,12 @@ end interface
         if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-          if(iquiet==0) then
+          if(st_quiet==0) then
             write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           else
             write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
-          if(iquiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
@@ -19404,6 +18946,7 @@ subroutine comnul
   ! TUNE ADJUSTMENT BLOCK
   iqmod   = 0     ! mod_common
   iqmod6  = 0     ! mod_common
+  qw0(:)  = zero  ! mod_common
   
   ! LINEAR OPTICS BLOCK
   ntco    = 0     ! mod_common
@@ -19435,6 +18978,9 @@ subroutine comnul
   ! RESONANCE COMPENSATION BLOCK
   irmod2  = 0     ! mod_common
   nre     = 0     ! mod_common
+  
+  ! SYNCHROTRON OSCILLATIONS BLOCK
+  phas    = zero  ! mod_common
   
   ! TODO
       nur=0
@@ -19508,7 +19054,6 @@ subroutine comnul
       tlen=zero
       pma=zero
       phas0=zero
-      phas=zero
       ition=0
       dpscor=one
       sigcor=one
@@ -19571,7 +19116,6 @@ subroutine comnul
       do 20 i=1,3
         iq(i)=0
         hsy(i)=zero
-        qw0(i)=zero
         clo6(i)=zero
         clop6(i)=zero
         clon(i)=zero
@@ -21175,13 +20719,15 @@ end subroutine chroma
 !  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
 !-----------------------------------------------------------------------
       use floatPrecision
-  use numerical_constants
+      use numerical_constants
       use mathlib_bouncer
       use crcoall
       use parpro
+      use mod_settings
       use mod_common
       use mod_commons
       use mod_commont
+      
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
@@ -21234,7 +20780,7 @@ end subroutine chroma
    40 continue
       if(ncorru.ne.1) write(lout,10000) itco
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
-      if(iout.eq.1.and.ncorru.ne.1) then
+      if(st_print .and. ncorru /= 1) then
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
 #ifdef DEBUG
 !     call warr('dpp',dpp,0,0,0,0)
@@ -23363,6 +22909,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_settings
   use mod_common
   use mod_commons
   use mod_commont
@@ -23453,7 +23000,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       tdispy(max(ielem,1))  = d(2)
 #endif
     if(ncorru == 0) then
-      if(iquiet == 0) then
+      if(st_quiet == 0) then
         write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1)
         write(lout,10010) b2(1),al2(1),g2(1)
         write(lout,10030) typ(9:16)

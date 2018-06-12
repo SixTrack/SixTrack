@@ -66,6 +66,8 @@ end subroutine allocate_arrays
 ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
 subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request)
   
+  use mod_alloc, only : alloc_log
+  
   implicit none
   
   integer, intent(in) :: nele_request, npart_request, nblz_request, nblo_request
@@ -77,8 +79,8 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   nblz_new = nblz_request
   nblo_new = nblo_request
 
-  write(lout,"(a,4(1x,i0))") "Expanding - (nele,npart,nblz,nblo):", nele_new, npart_new, nblz_new, nblo_new
-
+  write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding - (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
+  
   !Call sub-subroutines to actually expand
   call mod_common_expand_arrays(nele_new, nblo_new)
   call mod_commonmn_expand_arrays(nele_new)

@@ -63,7 +63,7 @@ This can be done with this block by splitting the corresponding family into two 
 \begin{longtabu}{@{}llp{0.65\linewidth}}
     \texttt{name1, name2} & char    & Names of focusing and defocusing quadrupole families respectively (in the single element list (~\ref{LinEle}). \\
     \texttt{Qx, Qy}       & floats  & Horizontal and vertical tune \emph{including} the integer part. \\
-    \texttt{iqmod6}       & integer & Logical switch to calculate the tunes in the traditional manner (\texttt{1 = iqmod6}) and with the DA approach including the beam-beam kick (\texttt{2 = iqmod6}). \\
+    \texttt{iqmod6}       & integer & Switch to calculate the tunes in the traditional manner (\texttt{1 = iqmod6}) and with the DA approach including the beam-beam kick (\texttt{2 = iqmod6}). FixMe: This is out of date and does not match the source code. \\
     \texttt{name3}        & char    & Name of the second sub-family, where the first sub-family is one of the above (\texttt{name1} or \texttt{name2}). This second sub-family replaces the elements of the first sub-family between the positions marked by \texttt{name4} and \texttt{name5}. \\
     \texttt{$\Delta Q$}   & float   & Extra phase advance \emph{including} the integer part (horizontal or vertical depending on the first sub-family) between the positions in the machine marked by \texttt{name4} and \texttt{name5}.\\
     \texttt{name4, name5} & char    & Two markers in the machine for the phase advance $\Delta Q$ with the elements of the second sub-family between them

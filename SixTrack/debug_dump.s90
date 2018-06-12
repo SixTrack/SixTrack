@@ -326,8 +326,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'itco ',itco
   write(99,*) 'itcro ',itcro
   write(99,*) 'itqv ',itqv
-  write(99,*) 'iout ',iout
-  write(99,*) 'iquiet ',iquiet
   write(99,*) 'qw0 ',qw0
   write(99,*) 'iq ',iq
   write(99,*) 'iqmod ',iqmod
@@ -827,8 +825,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) itco
   write(99) itcro
   write(99) itqv
-  write(99) iout
-  write(99) iquiet
   write(99) qw0
   write(99) iq
   write(99) iqmod
@@ -1322,7 +1318,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'itco ',itco
   write(99,100) 'itcro ',itcro
   write(99,100) 'itqv ',itqv
-  write(99,100) 'iout ',iout
   write(99,100) 'qw0 ',qw0
   write(99,100) 'iq ',iq
   write(99,100) 'iqmod ',iqmod

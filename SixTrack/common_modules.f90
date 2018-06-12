@@ -130,6 +130,28 @@ module parbeam
   
 end module parbeam
 
+! ================================================================================================ !
+!  Global Settings Module
+!  Last modiffied: 2018-06-10
+!  Holds global settings values and parameters not directly related to the physics
+! ================================================================================================ !
+module mod_settings
+  
+  implicit none
+  
+  ! PRINT Flag (fort.3)
+  logical, save :: st_print
+  
+  ! SETTINGS Block (fort.3)
+  integer, save :: st_quiet ! QUIET Level
+  logical, save :: st_debug ! Global DEBUG flag
+  
+  ! String Stuff
+  integer,            parameter :: st_divLen  = 132
+  character(len=132), parameter :: st_divLine = repeat("-",132)
+  
+end module mod_settings
+
 module mod_common
   
   use parpro
@@ -138,7 +160,7 @@ module mod_common
   use numerical_constants
   
   implicit none
-
+  
   ! common /erro/
   integer, save :: ierro
   character(len=max_name_len), save :: erbez
@@ -210,7 +232,7 @@ module mod_common
   
   ! common /clo/
   real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
-  integer, save :: itco,itcro,itqv,iout,iquiet
+  integer, save :: itco,itcro,itqv
   
   ! common /qmodi/
   real(kind=fPrec), save :: qw0(3),amp0
@@ -812,31 +834,20 @@ module mod_lie_dab
   real(kind=fPrec), save :: xintex(0:20)
   
   ! From dabnew
-#ifdef SMALLDABNEW
-  integer, parameter :: lda = 10000
-  integer, parameter :: lst = 200000
-  integer, parameter :: lea = 500
-  integer, parameter :: lia = 10000
-  integer, parameter :: lno = 120
-  integer, parameter :: lnv = 40
-#endif
-#ifdef BIGDABNEW
+#ifdef SIXDA
   integer, parameter :: lda = 10000
   integer, parameter :: lst = 20050000
   integer, parameter :: lea = 100000
   integer, parameter :: lia = 5000000
+#else
+  integer, parameter :: lda = 10000
+  integer, parameter :: lst = 200000
+  integer, parameter :: lea = 500
+  integer, parameter :: lia = 10000
+#endif
   integer, parameter :: lno = 120
   integer, parameter :: lnv = 40
-#endif
-#ifdef CTRACK
-  integer, parameter :: lda = 1000
-  integer, parameter :: lst = 3000000
-  integer, parameter :: lea = 20000
-  integer, parameter :: lia = 20000
-  integer, parameter :: lno = 120
-  integer, parameter :: lnv = 40
-#endif
-
+  
   integer,           save :: ndat,nda,ndamaxi,lfi
   integer,           save :: nst,nomax,nvmax,nmmax,nocut
   integer,           save :: idano(lda),idanv(lda),idapo(lda)
