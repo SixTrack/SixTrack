@@ -1,4 +1,4 @@
-sixtrack.s90 debug_dump.s90 collimation.s90
+sixtrack.s90 debug_dump.s90
 sixven.f90
 df crlibm,tilt,fast,collimat,cr,boinc,beamgas,nagfor,bignblz,debug,hdf5,fio,lf95,hugenblz,stf,bignpart,hugenpart,datamods,libarchive,g4collimat,naff,fluka,root
 e maincr,envarsv

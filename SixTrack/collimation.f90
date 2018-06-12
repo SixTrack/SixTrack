@@ -6,7 +6,6 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 
-+dk nwrtcoll
 module collimation
 
   use floatPrecision
