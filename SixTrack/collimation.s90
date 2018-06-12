@@ -203,7 +203,6 @@ module collimation
   use numerical_constants
   use mod_hions
   use mod_alloc
-  use end_sixtrack
   use file_units
 !  use mod_ranecu
   use mod_ranlux
@@ -1742,6 +1741,9 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_commont
   use mod_commond
+#ifdef CR
+  use checkpoint_restart
+#endif
 
   implicit none
 
@@ -1766,9 +1768,6 @@ subroutine collimate_start_sample(nsample)
 !+ca dbthin6d
 !+ca dbcolcom
 
-#ifdef CR
-+ca crco
-#endif
 
   j = nsample
   samplenumber=j

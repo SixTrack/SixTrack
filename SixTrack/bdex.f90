@@ -9,7 +9,6 @@
 module bdex
 
   use floatPrecision
-  use end_sixtrack
   use crcoall
   use numerical_constants
   use parpro

@@ -1,4 +1,3 @@
-+dk dynk
 ! ================================================================================================ !
 !  DYNAMIC KICKS
 !  A.Mereghetti, for the FLUKA Team
@@ -8,7 +7,6 @@
 module dynk
 
   use floatPrecision
-  use end_sixtrack
   use mathlib_bouncer
   use mod_hions
   use numerical_constants, only : zero, one, two, c1e3

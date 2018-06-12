@@ -1,11 +1,9 @@
-+dk beamGasK
 !>
 !! @brief Module containing constants for beamgas part
 !!
 !<
 module beamgascommon
   use floatPrecision
-  use end_sixtrack
 !       common to beamGasInit and beamGas
   integer, parameter :: bgmaxx=40000,bamount=1000
   integer bgmax, bgid, bgiddb(bgmaxx), ibgloc, pressID, njobs, njobthis, dpmjetevents

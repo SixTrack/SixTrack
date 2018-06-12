@@ -1,36 +1,13 @@
-+dk end_sixtrack
-
-! This File Contains:
-!==========================
-! Module:     end_sixtrack
-
 ! =================================================================================================
-!  END SIXTRACK MODULE
-!  Converted to Module: 22-03-2018, VKBO
-!  Last modified: 22-03-2018
-! =================================================================================================
-module end_sixtrack
-
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use, intrinsic :: iso_fortran_env, only : error_unit
-
-  implicit none
-
-  integer errout_status
-
-  save errout_status
-
-contains
+!  END SIXTRACK
+!  Last modified: 2018-06-12
 ! =================================================================================================
 
-! =================================================================================================
 subroutine prror(ier)
 
   use crcoall
   use parpro,     only : mcor,mmul,mran,nbb,nele,nmac,npart,nran,nrco,ntr
-  use mod_common, only : ierro
+  use mod_common, only : ierro,errout_status
 
 #ifdef FLUKA
   use mod_fluka
@@ -399,6 +376,7 @@ subroutine prror(ier)
 
 end subroutine prror
 
+#ifdef CR
 ! =================================================================================================
 subroutine abend(cstring)
 
@@ -409,10 +387,10 @@ subroutine abend(cstring)
   use crcoall
   use parpro
   use mod_common
+  use checkpoint_restart
 
   implicit none
 
-+ca crco
 #include "version.f90"
 
   integer i,lstring,j
@@ -669,6 +647,7 @@ subroutine abend(cstring)
 #endif
 
 end subroutine abend
+#endif
 
 ! =================================================================================================
 !  K. Sjobak, BE-ABP-HSS
@@ -755,6 +734,3 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
       write(error_unit,'(a,a,a)') "******* Done writing tail of file '",trim(file_name),"' to stderr *******"
 
 end subroutine print_lastlines_to_stderr
-! =================================================================================================
-
-end module end_sixtrack

@@ -2,7 +2,6 @@
 
 subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use floatPrecision
-      use end_sixtrack
       use numerical_constants
       use mathlib_bouncer
       use crcoall
@@ -2642,7 +2641,6 @@ end subroutine midbflo
 
 subroutine mapflol(sa,sai,cr,cm,st)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use mod_lie_dab, only : nd,nd2,no,idpr,ndc,ndc2,ndpt,ndt,nplane,epsplane,xplane,ndim,ndim2
@@ -3028,7 +3026,6 @@ end subroutine movemul
 
 subroutine initpert(st,ang,ra)
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants
       use crcoall

@@ -1,8 +1,6 @@
-+dk postpr
-
 module postprocessing
 
-  use end_sixtrack
+  use floatPrecision
   use parpro
 
   implicit none
@@ -33,7 +31,6 @@ subroutine postpr(nfile)
 !             (the first particle in pair if ntwin=2, i.e. it is a  pair).
 !  NNUML   :  ??
 !-----------------------------------------------------------------------
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use matrix_inv
@@ -47,11 +44,11 @@ subroutine postpr(nfile)
 #ifdef ROOT
       use root_output
 #endif
+#ifdef CR
+      use checkpoint_restart
+#endif
       implicit none
 
-#ifdef CR
-+ca crco
-#endif
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
      &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
@@ -2904,7 +2901,6 @@ subroutine fft(ar,ai,m,n)
 !      WRITTEN BY : RUI DILAO
 !
 !---------------------------------------------------------------------
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       implicit none
@@ -2970,7 +2966,6 @@ subroutine fft(ar,ai,m,n)
 end subroutine fft
 
 subroutine caconv(a,b,c)
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       implicit none
@@ -2986,7 +2981,6 @@ subroutine caconv(a,b,c)
 end subroutine caconv
 
 subroutine cphase(k,a,b,c,d,i,j,ie)
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use parpro
@@ -3009,7 +3003,6 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
 end subroutine cphase
 
 subroutine cinvar(a,b,c,d,j,e,xinv,invx)
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use parpro
@@ -3037,7 +3030,6 @@ subroutine cinvar(a,b,c,d,j,e,xinv,invx)
 end subroutine cinvar
 
 subroutine sinpro(a,b,c,d,e)
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       implicit none
@@ -3062,7 +3054,6 @@ end subroutine sinpro
 
 
 subroutine join
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -3407,7 +3398,6 @@ end subroutine join
 !-----------------------------------------------------------------------
 !     K. SJOBAK, October 2017
 !-----------------------------------------------------------------------
-      use floatPrecision
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
       use parpro
@@ -3502,7 +3492,6 @@ end subroutine join
 !     F. SCHMIDT, 3 February 1999
 !     K. SJOBAK,    October  2017
 !-------------------------------------------------------------------------
-      use floatPrecision
       use mathlib_bouncer
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
@@ -3513,11 +3502,11 @@ end subroutine join
       use mod_commons
       use mod_commont
       use mod_commond
+#ifdef CR
+      use checkpoint_restart
+#endif
       implicit none
 
-#ifdef CR
-+ca crco
-#endif
       integer ia,ia2,ie,nthinerr
 #ifdef CR
       integer ncalls
@@ -3708,7 +3697,6 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use floatPrecision
   use mathlib_bouncer
   implicit none
   integer icnt,j,key,l
@@ -3769,7 +3757,6 @@ subroutine lfitd(x,y,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use floatPrecision
   use mathlib_bouncer
   implicit none
   integer j,key,l
@@ -3825,12 +3812,9 @@ end subroutine lfitd
 
 end module postprocessing
 
-+dk plotdumy
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
   use floatPrecision
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1,i2,i3
   real r1,r2,r3,r4,r5
   character c1
@@ -3840,8 +3824,6 @@ end subroutine hbook2
 
 subroutine hdelet(i1)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   save
   return
@@ -3849,8 +3831,6 @@ end subroutine hdelet
 
 subroutine hlimit(i1)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   save
   return
@@ -3858,8 +3838,6 @@ end subroutine hlimit
 
 subroutine hplax(c1,c2)
   implicit none
-  integer lout
-  common /crflags/lout
   character c1,c2
   save
   return
@@ -3867,8 +3845,6 @@ end subroutine hplax
 
 subroutine hplcap(i1)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   save
   return
@@ -3876,16 +3852,12 @@ end subroutine hplcap
 
 subroutine hplend()
   implicit none
-  integer lout
-  common /crflags/lout
   save
   return
 end subroutine hplend
 
 subroutine hplint(i1)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   save
   return
@@ -3893,8 +3865,6 @@ end subroutine hplint
 
 subroutine hplopt(c1,i1)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   character c1
   save
@@ -3903,8 +3873,6 @@ end subroutine hplopt
 
 subroutine hplot(i1,c1,c2,i2)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1,i2
   character c1,c2
   save
@@ -3914,8 +3882,6 @@ end subroutine hplot
 subroutine hplset(c1,r1)
   use floatPrecision
   implicit none
-  integer lout
-  common /crflags/lout
   real r1
   character c1
   save
@@ -3925,8 +3891,6 @@ end subroutine hplset
 subroutine hplsiz(r1,r2,c1)
   use floatPrecision
   implicit none
-  integer lout
-  common /crflags/lout
   real r1,r2
   character c1
   save
@@ -3936,8 +3900,6 @@ end subroutine hplsiz
 subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
   use floatPrecision
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   real r1,r2,r3,r4,r5
   character c1
@@ -3948,8 +3910,6 @@ end subroutine hplsof
 subroutine htitle(c1)
   use floatPrecision
   implicit none
-  integer lout
-  common /crflags/lout
   character c1
   save
   return
@@ -3958,8 +3918,6 @@ end subroutine htitle
 subroutine ipl(i1,r1,r2)
   use floatPrecision
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   real r1(*),r2(*)
   save
@@ -3969,8 +3927,6 @@ end subroutine ipl
 subroutine ipm(i1,r1,r2)
   use floatPrecision
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   real r1,r2
   save
@@ -3979,8 +3935,6 @@ end subroutine ipm
 
 subroutine iselnt(i1)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1
   save
   return
@@ -3988,8 +3942,6 @@ end subroutine iselnt
 
 subroutine igmeta(i1,i2)
   implicit none
-  integer lout
-  common /crflags/lout
   integer i1,i2
   save
   return

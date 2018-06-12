@@ -148,12 +148,12 @@ subroutine chr_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
 
   use crcoall
 
-  character(len=*),              intent(in)  :: toSplit
-  character(len=:), allocatable, intent(out) :: sArray(:)
-  integer,                       intent(out) :: nArray
-  logical,                       intent(out) :: hasErr
-  integer,          optional,    intent(in)  :: fixLen
-  integer,          optional,    intent(out) :: nIndent
+  character(len=*),              intent(in)    :: toSplit
+  character(len=:), allocatable, intent(inout) :: sArray(:)
+  integer,                       intent(out)   :: nArray
+  logical,                       intent(out)   :: hasErr
+  integer,          optional,    intent(in)    :: fixLen
+  integer,          optional,    intent(out)   :: nIndent
 
   character(len=:), allocatable :: mskSplit
   integer mLen, nVal, nInd
@@ -876,7 +876,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   cLen      = len(tmpString) + 1
   cString   = tmpString//char(0)
-  theValue  = round_near(cErr,cLen,cString)
+  tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
@@ -889,7 +889,7 @@ subroutine str_toReal128(theString, theValue, rErr)
 #if defined(FIO) && defined(CRLIBM)
   call enable_xp()
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,round="nearest",iostat=readErr) theValue
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
@@ -901,7 +901,7 @@ subroutine str_toReal128(theString, theValue, rErr)
 
 #if defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,round="nearest",iostat=readErr) theValue
+  read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
     write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
@@ -912,7 +912,7 @@ subroutine str_toReal128(theString, theValue, rErr)
 
 #if !defined(FIO) && !defined(CRLIBM)
   tmpString = chr_trimZero(theString%chr)
-  read(tmpString,*,iostat=readErr) theValue
+  read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
     write (lout,"(a)")    "TYPECAST> ERROR Data Input"
     write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"

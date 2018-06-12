@@ -1,5 +1,4 @@
-+dk dump
-
+! ================================================================================================ !
 ! A. Mereghetti, D. Sinuela Pastor and P. Garcia Ortega, for the FLUKA Team
 ! K. Sjobak, BE-ABP/HSS, BE-ABP/LAT
 ! V.K. Berglyd Olsen, BE-ABP-HSS
@@ -18,11 +17,11 @@
 !     are used in other places of the code...
 !   - The dump format can be changed to the one required by the LHC aperture check
 !     post-processing tools, activating the dumpfmt flag (0=off, by default);
+! ================================================================================================ !
 
 module dump
 
   use floatPrecision
-  use end_sixtrack
   use parpro ! For nele
   use mod_alloc
   use string_tools, only : str_maxLen, str_dZeros
@@ -1596,8 +1595,6 @@ subroutine dump_crcheck_positionFiles
 
   implicit none
 
-+ca crco ! arecord
-
   ! For skipping through binary DUMP files (format 3&8)
   integer tmp_ID, tmp_nturn, tmp_ktrack
   real(kind=fPrec) tmp_dcum, tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE
@@ -1605,6 +1602,7 @@ subroutine dump_crcheck_positionFiles
   integer i,j
   logical lerror,lopen
   character(len=256) filename
+  character(len=1024) arecord
 
   do i=-1, il
     if (ldump(i)) then

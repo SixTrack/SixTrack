@@ -42,7 +42,6 @@ contains
 !-----------------------------------------------------------------------
 subroutine coruord
 
-  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use mod_commond, only : ncor,namp,nmom,coel
@@ -259,7 +258,6 @@ end subroutine coruord
 !-----------------------------------------------------------------------
 subroutine readd1(user,jaord,jpord)
 
-  use end_sixtrack
   use mathlib_bouncer
   use crcoall
 
@@ -782,7 +780,6 @@ end subroutine objfun1
 !-----------------------------------------------------------------------
 subroutine coruglo
 
-  use end_sixtrack
   use numerical_constants
   use mathlib_bouncer
   use mod_commond, only : ncor,dpmax,nmom1,nmom2,weig1,weig2,coel
@@ -1006,7 +1003,6 @@ end subroutine coruglo
 !-----------------------------------------------------------------------
 subroutine readd2(user)
 
-  use end_sixtrack
   use mathlib_bouncer
   use crcoall
 

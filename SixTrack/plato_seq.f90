@@ -1,6 +1,5 @@
 module platoFMA
       use floatPrecision
-      use end_sixtrack
       use mathlib_bouncer
       use numerical_constants, only : zero, half, one, two, four, five, seven, eight, c1e1, c1m1, c1m10
 
