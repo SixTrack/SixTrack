@@ -160,10 +160,10 @@ do
         exit 1
         fi
     done
-    
+
     options_ALL+=(${var:1})
     options_OFF+=(${var:1})
-    
+
     ## Positive options
     else
     #echo "ON" $var
@@ -200,10 +200,10 @@ do
         thisWasSpecial="YES"
         fi
     done
-    
+
     if [[ $thisWasSpecial == "NO" ]]; then
         options_ALL+=($var)
-        options_ON+=($var)	
+        options_ON+=($var)
     fi
     thisWasSpecial="NO"
     fi

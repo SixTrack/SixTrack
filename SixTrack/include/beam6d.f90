@@ -6,10 +6,10 @@ do j=1,napx
   track6d(4,j)=(yv(2,j)/moidpsv(j)-clobeam(5,imbb(i)))*c1m3
   track6d(5,j)=(sigmv(j)-clobeam(3,imbb(i)))*c1m3
   track6d(6,j)=dpsv(j)-clobeam(6,imbb(i))
-  
+
   !We want to provide a set of canonical variables (15.03.2018)
   track6d(5,j) = track6d(5,j)/rvv(j)
-  
+
 end do
 call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
 do j=1,napx
@@ -24,10 +24,10 @@ do j=1,napx
   ejfv(j)=dpsv(j)*e0f+e0f
   ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-  
+
   !We want to go back to sixtrack variables (15.03.2018)
   track6d(5,j) = track6d(5,j)*rvv(j)
   sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))- beamoff(3,imbb(i))
-  
+
   if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
 end do
