@@ -351,7 +351,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! CAVITIES
   if(abs(kz(sixin_nSing)) == 12) then
     if(abs(ed(sixin_nSing)) > pieni .and. abs(ek(sixin_nSing)) > pieni) then
-      sixin_ncy2    = sixin_ncy2 + 1
+      sixin_ncy2          = sixin_ncy2 + 1
       itionc(sixin_nSing) = kz(sixin_nSing)/abs(kz(sixin_nSing))
       kp(sixin_nSing)     = 6
     end if
@@ -509,11 +509,8 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     sixin_nBloc = sixin_nBloc + 1             ! Increment the BLOC number
     if(sixin_nBloc > nblo-1) then             ! Expand arrays if needed
       ! For now, don't expand. This is incompatible with the offset in ic() array
-      ! call expand_arrays(nele, npart, nblz, nblo+50)
-      ! call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
-      write(lout,"(a,i0)") "GEOMETRY> ERROR Too many block definitions. Max is ",nblo
-      iErr = .true.
-      return
+      call expand_arrays(nele, npart, nblz, nblo+50)
+      call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
     end if
     bezb(sixin_nBloc) = blocName              ! Set the BLOC name in bezb
     sixin_k0          = 0                     ! Reset the single element counter

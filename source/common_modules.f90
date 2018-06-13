@@ -53,8 +53,8 @@ module parpro
   parameter(npart = 65536,nmac = 1)
 #endif
 
-  integer, parameter :: nele_initial = 50   ! Must be at least 1
-  integer, parameter :: nblo_initial = 2500 ! Setting to 2500 (old value) for now as it blows up when scaling.
+  integer, parameter :: nele_initial = 50 ! Must be at least 1
+  integer, parameter :: nblo_initial = 50 ! Setting to 2500 (old value) for now as it blows up when scaling.
   integer :: nele = -1
   integer :: nblo = -1
 

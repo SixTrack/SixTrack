@@ -73,11 +73,11 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   integer, intent(in) :: nele_request, npart_request, nblz_request, nblo_request
   integer             :: nele_new, npart_new, nblz_new, nblo_new
 
-  !Decide how much to actually expand -- set nele_new etc. based on some heuristic
-  nele_new = nele_request
+  ! Decide how much to actually expand -- set nele_new etc. based on some heuristic
+  nele_new  = nele_request
   npart_new = npart_request
-  nblz_new = nblz_request
-  nblo_new = nblo_request
+  nblz_new  = nblz_request
+  nblo_new  = nblo_request
 
   write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding - (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
 
@@ -104,10 +104,11 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   call collimation_expand_arrays(npart_new, nblz_new)
 #endif
 
-  ! Update nele etc.
+  ! Update array size variables
   nele = nele_new
 ! npart = npart_new
 ! nblz = nblz_new
+  nblo = nblo_new
 
 end subroutine expand_arrays
 
