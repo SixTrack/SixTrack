@@ -406,21 +406,8 @@ module collimation
 !  common  /remit/ remitx_dist, remity_dist,
 ! &     remitx_collgap,remity_collgap
 
-
-  real(kind=fPrec), private :: ielem,iclr,grd
-  character(len=160), private :: ch
-  character(len=320), private :: ch1
-  logical, private :: flag
-
   integer, private :: k
   integer np0
-
-  character(len=160), private :: cmd
-  character(len=160), private :: cmd2
-  character(len=1), private :: ch0
-  character(len=2), private :: ch00
-  character(len=3), private :: ch000
-  character(len=4), private :: ch0000
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -440,7 +427,6 @@ module collimation
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !+cd dbthin6d
 
-  integer, private :: ios
   integer, save :: num_surhit
   integer, save :: numbin
   integer, save :: ibin
@@ -457,7 +443,7 @@ module collimation
   integer, private, save :: jb
 
 ! SR, 29-08-2005: add the required variable for slicing collimators
-  integer, private, save :: jjj, ijk
+  integer, private, save :: jjj
 
   real(kind=fPrec), save :: zbv
 
@@ -601,7 +587,7 @@ module collimation
   real(kind=fPrec), save :: anuc(nmat)
   real(kind=fPrec), save :: rho(nmat)
   real(kind=fPrec), save :: emr(nmat)
-  real(kind=fPrec), save :: tlcut
+  real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
   real(kind=fPrec), save :: hcut(nmat)
   real(kind=fPrec), save :: csect(0:5,nmat)
   real(kind=fPrec), save :: csref(0:5,nmat)
@@ -691,7 +677,6 @@ module collimation
   data (emr(i),i=6,7)/  0.25d0, 0.25d0/
   data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0, 0.578d0/
 
-  data tlcut / 0.0009982d0/
   data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
   data (hcut(i),i=6,7)/0.02d0, 0.02d0/
   data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
@@ -3083,7 +3068,7 @@ subroutine collimate_do_collimator(stracki)
 !                  endif
 !CB
 
-      if(n_slices.gt.1d0 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
+      if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
  &      (db_name1(icoll)(1:4).eq.'TCSG' .or. db_name1(icoll)(1:3).eq.'TCP' .or. db_name1(icoll)(1:4).eq.'TCLA'.or. &
  &       db_name1(icoll)(1:3).eq.'TCT' .or. db_name1(icoll)(1:4).eq.'TCLI'.or. db_name1(icoll)(1:4).eq.'TCL.'.or.  &
 !     RB: added slicing of TCRYO as well
@@ -6074,20 +6059,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
               zlm = zero                                                 !hr09
             endif
 !
-!JUNE2005          endif
-!GRD
-!GRD
  999      continue
-!JUNE2005
-!          write(*,*) 'event ',event,x,xp,z,zp
-!          if(impact(j).lt.0d0) then
-!             if(impact(j).ne.-1d0)                                      &
-!     &write(*,*) 'argh! ',impact(j),x,xp,z,zp,s,event
-!          endif
-!          if(impact(j).ge.0d0) then
-!      write(*,*) 'impact! ',impact(j),x,xp,z,zp,s,event
-!          endif
-!JUNE2005
 !
 !++  First do the drift part
 !
@@ -6102,10 +6074,6 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !
           if (zlm.gt.zero) then                                          !hr09
             nhit = nhit + 1
-!            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
-!DEBUG
-!            write(*,*) 'abs?',s,zlm
-!DEBUG
 !JUNE2005
 !JUNE2005 IN ORDER TO HAVE A PROPER TREATMENT IN THE CASE OF THE VERTICAL
 !JUNE2005 PLANE, CHANGE AGAIN THE FRAME FOR THE SCATTERING SUBROUTINES...
@@ -6462,13 +6430,13 @@ subroutine tetat(t,p,tx,tz)
   teta = sqrt(t)/p
 
 ! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-10 va  =(2d0*real(rndm4(),fPrec))-1d0                                       !hr09
+10 va  =(two*real(rndm4(),fPrec))-one                                      !hr09
   vb = real(rndm4(),fPrec)
   va2 = va**2
   vb2 = vb**2
   r2 = va2 + vb2
-  if ( r2.gt.1.d0) go to 10
-  tx = teta * ((2.d0*va)*vb) / r2                                    !hr09
+  if ( r2.gt.one) go to 10
+  tx = teta * ((two*va)*vb) / r2                                    !hr09
   tz = teta * (va2 - vb2) / r2
   return
 end subroutine tetat
@@ -6537,17 +6505,15 @@ subroutine scatin(plab)
 ! unmeasured tungsten data,computed with lead data and power laws
   bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(two/three)
   emr(4) = emr(5) * (anuc(4)/anuc(5))**(one/three)
-10 format(/' ppRef TOT El     ',4f12.6//)
-11 format(/' pp    TOT El Sd b',4f12.6//)
 
 ! Compute cross-sections (CS) and probabilities + Interaction length
 ! Last two material treated below statement number 100
 
-  tlow=real(tlcut)                                                   !hr09
-  do 100 ma=1,nrmat
+  tlow=tlcut                                                   !hr09
+  do ma=1,nrmat
     mcurr=ma
 ! prepare for Rutherford differential distribution
-    thigh=real(hcut(ma))                                             !hr09
+    thigh=hcut(ma)                                             !hr09
     call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
 
 ! freep: number of nucleons involved in single scattering
@@ -6573,25 +6539,17 @@ subroutine scatin(plab)
 ! Interaction length in meter
   xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1d-24) !hr09
 
-20   format(/1x,a4,' Int.Len. ',f10.6,' CsTot',2f12.4/)
-
-21   format('  bN freep',2 f12.6,'   emR ',f7.4/)
-
 ! Filling CProb with cumulated normalised Cross-sections
-    do 50 i=1,4
+    do i=1,4
       cprob(i,ma)=cprob(i-1,ma)+csect(i,ma)/csect(0,ma)
-
-50     continue
-
-22   format(i4,' prob CS CsRref',3(f12.5,2x))
-100 continue
+    end do
+  end do
 
 ! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
   cprob(1,nmat-1) = one
   cprob(1,nmat)   = one
   xintl(nmat-1)   = c1e12
   xintl(nmat)     = zero
-120 format(/1x,a4,' Int.Len. ',e10.3/)
   return
 end subroutine scatin
 
@@ -8471,7 +8429,7 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       endif
       call radapt(func,xlow,xhigh,1,rteps,zero,tftot ,uncert)
 !      WRITE(6,1003) IFUNC,XLOW,XHIGH,TFTOT
- 1003 format(' FUNLXP: integral of USER FUNCTION', i3,' from ',e12.5,' to ',e12.5,' is ',e14.6)
+! 1003 format(' FUNLXP: integral of USER FUNCTION', i3,' from ',e12.5,' to ',e12.5,' is ',e14.6)
 !
 !      WRITE (6,'(A,A)') ' FUNLXP preparing ',
 !     + 'first the whole range, then left tail, then right tail.'
@@ -8486,7 +8444,8 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       call funpct(func,ifunc,x3,xhigh,xfcum,151,49,tftot2,ierr)
       if (ierr .gt. 0)  go to 900
 !      WRITE(6,1001) IFUNC,XLOW,XHIGH
- 1001 format(' FUNLXP has prepared USER FUNCTION', i3, ' between',g12.3,' and',g12.3,' for FUNLUX')
+! 1001 format(' FUNLXP has prepared USER FUNCTION', i3, ' between',g12.3,' and',g12.3,' for FUNLUX')
+
       return
   900 continue
       write(lout,*) ' Fatal error in FUNLXP. FUNLUX will not work.'
