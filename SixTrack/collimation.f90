@@ -577,7 +577,6 @@ module collimation
 !
 !+cd interac
   integer, save :: mcurr
-!+ca collMatNum
   real(kind=fPrec), save :: xintl(nmat)
   real(kind=fPrec), save :: radl(nmat)
   real(kind=fPrec), save :: zlm1
@@ -1495,10 +1494,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
-
-!+ca database
-!+ca dbcolcom
-!+ca dbpencil
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -4899,7 +4894,6 @@ subroutine collimate_init_merlin()
   implicit none
 
   integer i
-!+ca interac
 
 ! compute the electron densnity and plasma energy for each material
   do i=1, nmat
@@ -5001,7 +4995,6 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
 !
-!+ca dbcollim
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
 
@@ -5697,7 +5690,6 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
 !
-!+ca dbcollim
 
       real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk
 !JUNE2005
@@ -6334,7 +6326,6 @@ end subroutine collimaterhic
 !<
 function ichoix(ma)
   implicit none
-!+ca interac
   integer ma,i,ichoix
   real(kind=fPrec) aran
   aran=real(rndm4(),fPrec)
@@ -6358,11 +6349,12 @@ function gettran(inter,xmat,p)
 
   implicit none
 
-!+ca interac
+  integer, intent(in) :: inter,xmat
+  real(kind=fPrec) :: p
 
-  integer inter,length,xmat
-  real(kind=fPrec) p,gettran,t,xm2,bsd
-  real(kind=fPrec) truth,xran(1)
+  integer :: length
+  real(kind=fPrec) :: gettran,t,xm2,bsd
+  real(kind=fPrec) :: truth,xran(1)
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
@@ -6379,8 +6371,9 @@ function gettran(inter,xmat,p)
       bsd = two * bpp
     else if (( xm2 .ge. two ).and. ( xm2 .le. five )) then
       bsd = ((106.0_fPrec-17.0_fPrec*xm2) *  bpp )/ 36.0_fPrec             !hr09
-    else if ( xm2 .gt. five ) then
-      bsd = (seven * bpp) / 12.d0                                          !hr09
+!    else if ( xm2 .gt. five ) then
+    else !makes the compiler more happy
+      bsd = (seven * bpp) / 12.0_fPrec                                     !hr09
     end if
       gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd                     !hr09
 
@@ -6449,8 +6442,6 @@ function ruth(t)
 
   implicit none
 
-!+ca interac
-
   real(kind=fPrec) ruth,t
   real(kind=fPrec) cnorm,cnform
   parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
@@ -6468,12 +6459,6 @@ subroutine scatin(plab)
   use physical_constants
 
   implicit none
-
-!#ifdef MERLINSCATTER
-!+ca database
-!#endif
-
-!+ca interac
 
   integer ma,i
   real(kind=fPrec) plab
@@ -6861,7 +6846,6 @@ subroutine jaw0(s,nabs)
 
       implicit none
 
-!+ca interac
       integer nabs,inter,icoll,iturn,ipart
       real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1
 !...cne=1/(sqrt(b))
@@ -7007,7 +6991,6 @@ end subroutine jaw0
 subroutine mcs(s)
       implicit none
 !      save h,dh,bn
-!+ca interac
       real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
       real(kind=fPrec) radl_mat,rad_len ! Claudia 2013 added variables
 
@@ -7154,25 +7137,17 @@ end subroutine iterat
 !! get_dpodx(p,mat_i)
 !! calculate mean ionization energy loss according to Bethe-Bloch
 !<
-function get_dpodx(p,mat_i)          !Claudia
+function get_dpodx(p, mat_i)          !Claudia
   use physical_constants
 
   implicit none
 
   real(kind=fPrec), intent(in) :: p
   integer, intent(in) :: mat_i
-!  integer mat
-!+ca collMatNum
-!  common/materia/mat
-!  real(kind=fPrec) anuc,zatom,rho,emr
+
   real(kind=fPrec) PE,K,gamma_p
-!  real(kind=fPrec) PE,me,mp,K,gamma_p
-!  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-!  real(kind=fPrec) anuc,zatom,rho,emr,exenergy
-!  common/meanexen/exenergy(nmat)
   real(kind=fPrec) beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,I_s,delta
   parameter(K=0.307075)
-!  parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
   real(kind=fPrec) get_dpodx
 
   mp2       = pmap**2
@@ -7269,21 +7244,12 @@ subroutine calc_ion_loss(IS, PC, DZ, EnLo)
 
   integer IS
 
-!+ca collMatNum
-
   real(kind=fPrec) PC,DZ,EnLo,exEn
   real(kind=fPrec) k !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-!  real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
   real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
   real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
   real(kind=fPrec) thl,Tt,cs_tail,prob_tail
   real(kind=fPrec) ranc
-!  real(kind=fPrec) anuc,zatom,rho,emr
-
-!  real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
-!  common/meanexen/exenergy(nmat)
-
-!  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 
   data k/0.307075_fPrec/      !constant in front bethe-bloch [MeV g^-1 cm^2]
 ! The following values are now taken from physical_constants
@@ -8414,7 +8380,6 @@ subroutine funlxp (func,xfcum,x2low,x2high)
       external func
       integer ifunc,ierr
       real(kind=fPrec) x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
-!+ca funint
       dimension xfcum(200)
       parameter (rteps=0.0002)
       save ifunc
@@ -8569,7 +8534,6 @@ subroutine funlux(array,xran,len)
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
       implicit none
-!+ca funint
       integer len,ibuf,j,j1
       real(kind=fPrec) array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
       dimension array(200)
@@ -9048,9 +9012,6 @@ end subroutine readcollimator
 subroutine collimation_comnul
   use parpro
   implicit none
-
-!+ca database
-!+ca dbcommon
 
   do_coll = .false.
 
