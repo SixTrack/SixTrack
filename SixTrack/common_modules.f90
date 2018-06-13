@@ -24,7 +24,7 @@ module parpro
   integer :: nema
   integer :: ninv
   integer :: nlya
-  integer :: nmac
+  integer :: nmac  ! Maximum number of seeds for vectorisation (FLUC)
   integer :: nmon1
   integer :: npart ! Maximum number of particles
   integer :: nper
@@ -213,13 +213,16 @@ module mod_common
 
   ! Multipole Coefficients
   real(kind=fPrec),              save :: benki
-  real(kind=fPrec), allocatable, save :: benkc(:),r00(:) !(nele)
+  real(kind=fPrec), allocatable, save :: benkc(:),r00(:)                     !(nele)
   real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) !(nele,mmul)
-  integer,          allocatable, save :: irm(:),nmu(:)   !(nele)
+  integer,          allocatable, save :: irm(:),nmu(:)                       !(nele)
+
+  ! Random Fluctuation Starting Number
+  integer,                       save :: izu0,mmac,mcut
 
   ! common /rand0/
   real(kind=fPrec), save :: zfz(nzfz)
-  integer, save :: iorg,mzu(nblz),izu0,mmac,mcut
+  integer, save :: iorg,mzu(nblz)
   character(len=:), allocatable, save :: bezr(:,:) !(max_name_len)(3,nele)
 
   ! common /rand1/

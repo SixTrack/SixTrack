@@ -142,8 +142,8 @@ subroutine prror(ier)
   !   write(lout,10530)
   case (54)
     write(lout,10540) npart
-  case (55)
-    write(lout,10550) nmac
+  ! case (55)
+  !   write(lout,10550) nmac
   case (56)
     write(lout,10560) ierro
   ! case (57)

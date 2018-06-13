@@ -62,6 +62,7 @@ subroutine daten
   use zipf,    only : zipf_parseInputDone,zipf_parseInputline
   use bdex,    only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
   use aperture
+  use mod_fluc
   use mod_ranecu
   use mod_hions
   use elens
@@ -260,9 +261,6 @@ subroutine daten
       dqq=c1m10
       imtr0=0
       nlin=0
-      izu0=0
-      mmac=1
-      mcut=0
       mout=0
       mout1=0
       mout2=0
@@ -324,6 +322,11 @@ subroutine daten
 
   ! MULTIPOLE COEFFICIENTS
   sixin_im    = 0
+
+  ! RANDOM FLUCTUATIONS
+  izu0        = 0
+  mmac        = 1
+  mcut        = 0
 
   ! HIONS MODULE
   zz0         = 1
@@ -860,21 +863,7 @@ subroutine daten
       if(ch(1:1).eq.'/') goto 790
       ! Read izu0, mmac, mout, mcut
       ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & izu0, mmac, mout, mcut
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) izu0, mmac, mout, mcut
-#endif
-      mcut=iabs(mcut)
-      if(mmac.gt.nmac) call prror(55)
+      call fluc_parseInputLine(ch,1,inErr,mout)
       !Generate normal distributed random numbers into zfz
       call recuin(izu0,irecuin)
       call ranecu(zfz,nzfz,mcut)
