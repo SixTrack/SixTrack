@@ -3858,9 +3858,10 @@ subroutine collimate_end_sample(j)
   if(n_tot_absorbed.ne.0) then                                       !hr08
     write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
     write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
-    write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/(dble(n_tot_absorbed)))/c1m4 !hr08
+    write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)))/c1m4 !hr08
     write(outlun,*)
-    write(outlun,*) neff(5)/dble(n_tot_absorbed), neff(9)/dble(n_tot_absorbed),(neff(9)-neff(19))/(dble(n_tot_absorbed)), ' !eff'
+    write(outlun,*) neff(5)/real(n_tot_absorbed,fPrec), neff(9)/real(n_tot_absorbed,fPrec), &
+ & (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), ' !eff'
     write(outlun,*)
   else
     write(lout,*) 'NO PARTICLE ABSORBED'
@@ -3874,9 +3875,9 @@ subroutine collimate_end_sample(j)
   write(lout,*)
 
   if(n_tot_absorbed.ne.0) then                                       !hr08
-    write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/dble(n_tot_absorbed))/c1m4            !hr08
-    write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/dble(n_tot_absorbed))/c1m4            !hr08
-    write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/dble(n_tot_absorbed))/c1m4 !hr08
+    write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4            !hr08
+    write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4            !hr08
+    write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/real(n_tot_absorbed,fPrec))/c1m4 !hr08
     write(lout,*)
   else
      write(lout,*) 'NO PARTICLE ABSORBED'
@@ -3898,9 +3899,9 @@ subroutine collimate_end_sample(j)
     call h5_createDataSet("efficiency", h5_collID, fmtHdf, setHdf, numeff)
     call h5_prepareWrite(setHdf, numeff)
     call h5_writeData(setHdf, 1, numeff, rsig(1:numeff))
-    call h5_writeData(setHdf, 2, numeff, neffx(1:numeff)/dble(n_tot_absorbed))
-    call h5_writeData(setHdf, 3, numeff, neffy(1:numeff)/dble(n_tot_absorbed))
-    call h5_writeData(setHdf, 4, numeff, neff(1:numeff)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 2, numeff, neffx(1:numeff)/real(n_tot_absorbed,real64))
+    call h5_writeData(setHdf, 3, numeff, neffy(1:numeff)/real(n_tot_absorbed,real64))
+    call h5_writeData(setHdf, 4, numeff, neff(1:numeff)/real(n_tot_absorbed,real64))
     call h5_writeData(setHdf, 5, numeff, neffx(1:numeff))
     call h5_writeData(setHdf, 6, numeff, neffy(1:numeff))
     call h5_writeData(setHdf, 7, numeff, neff(1:numeff))
@@ -3914,8 +3915,8 @@ subroutine collimate_end_sample(j)
     if(n_tot_absorbed /= 0) then
       write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
       do k=1,numeff
-        write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/dble(n_tot_absorbed),neffy(k)/dble(n_tot_absorbed), &
-          neff(k)/dble(n_tot_absorbed), neffx(k), neffy(k), neff(k), n_tot_absorbed
+        write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
+ & neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
       end do
     else
       write(lout,*) 'NO PARTICLE ABSORBED'
@@ -3938,7 +3939,7 @@ subroutine collimate_end_sample(j)
     call h5_createDataSet("efficiency_dpop", h5_collID, fmtHdf, setHdf, numeffdpop)
     call h5_prepareWrite(setHdf, numeffdpop)
     call h5_writeData(setHdf, 1, numeffdpop, dpopbins(1:numeffdpop))
-    call h5_writeData(setHdf, 2, numeffdpop, neffdpop(1:numeffdpop)/dble(n_tot_absorbed))
+    call h5_writeData(setHdf, 2, numeffdpop, neffdpop(1:numeffdpop)/real(n_tot_absorbed,real64))
     call h5_writeData(setHdf, 3, numeffdpop, neffdpop(1:numeffdpop))
     call h5_writeData(setHdf, 4, numeffdpop, n_tot_absorbed)
     call h5_writeData(setHdf, 5, numeffdpop, npartdpop(1:numeffdpop))
@@ -3951,7 +3952,7 @@ subroutine collimate_end_sample(j)
     if(n_tot_absorbed /= 0) then
       write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
       do k=1,numeffdpop
-        write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/dble(n_tot_absorbed), neffdpop(k), &
+        write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
             n_tot_absorbed, npartdpop(k)
       end do
     else
@@ -4123,12 +4124,12 @@ subroutine collimate_exit()
     do i=1,iu
        write(amplitude_unit,'(i4, (1x,a16), 17(1x,e20.13))')             &!hr08
       &i, ename(i), sampl(i),                                            &!hr08
-      &sum_ax(i)/dble(max(nampl(i),1)),                                  &!hr08
-      &sqrt(abs((sqsum_ax(i)/dble(max(nampl(i),1)))-                     &!hr08
-      &(sum_ax(i)/dble(max(nampl(i),1)))**2)),                           &!hr08
-      &sum_ay(i)/dble(max(nampl(i),1)),                                  &!hr08
-      &sqrt(abs((sqsum_ay(i)/dble(max(nampl(i),1)))-                     &!hr08
-      &(sum_ay(i)/dble(max(nampl(i),1)))**2)),                           &!hr08
+      &sum_ax(i)/real(max(nampl(i),1),fPrec),                            &!hr08
+      &sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-               &!hr08
+      &(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)),                     &!hr08
+      &sum_ay(i)/real(max(nampl(i),1),fPrec),                            &!hr08
+      &sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-               &!hr08
+      &(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)),                     &!hr08
       &talphax(i), talphay(i),                                           &!hr08
       &tbetax(i), tbetay(i), torbx(i), torby(i),                         &!hr08
       &tdispx(i), tdispy(i),                                             &!hr08
@@ -7465,7 +7466,7 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 
   do while (j.lt.mynp)
     j = j + 1
-    myemitx = myemitx0*(mynex + ((two*dble(rndm4()-half))*mdex) )**2
+    myemitx = myemitx0*(mynex + ((two*real(rndm4()-half,fPrec))*mdex) )**2
     xsigmax = sqrt(mybetax*myemitx)
     myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
     if(rndm4().gt.half) then
@@ -7474,7 +7475,7 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
       myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
     end if
 
-    myemity = myemity0*(myney + ((two*dble(rndm4()-half))*mdey) )**2
+    myemity = myemity0*(myney + ((two*real(rndm4()-half,fPrec))*mdey) )**2
     ysigmay = sqrt(mybetay*myemity)
     myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
     if(rndm4().gt.half) then
@@ -7542,7 +7543,7 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   mygammay = (one+myalphay**2)/mybetay
   do j=1, mynp
     if((mynex.gt.zero).and.(myney.eq.zero)) then
-      myemitx = myemitx0*(mynex+((two*dble(rndm4()-half))*mdex))**2
+      myemitx = myemitx0*(mynex+((two*real(rndm4()-half,fPrec))*mdex))**2
       xsigmax = sqrt(mybetax*myemitx)
       myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
 
@@ -7558,7 +7559,7 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
 
     else if ( mynex.eq.zero.and.myney.gt.zero ) then
-      myemity = myemity0*(myney+((two*dble(rndm4()-half))*mdey))**2
+      myemity = myemity0*(myney+((two*real(rndm4()-half,fPrec))*mdey))**2
       ysigmay = sqrt(mybetay*myemity)
       myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
 
@@ -7770,7 +7771,7 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 
   do j=1, mynp
     if((mynex.gt.zero).and.(myney.eq.zero)) then
-      myemitx = myemitx0*(mynex+((two*dble(rndm4()-half))*mdex))**2
+      myemitx = myemitx0*(mynex+((two*real(rndm4()-half,fPrec))*mdex))**2
       xsigmax = sqrt(mybetax*myemitx)
       myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
 
@@ -7786,7 +7787,7 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
 
     else if( mynex.eq.zero.and.myney.gt.zero ) then
-      myemity = myemity0*(myney+((two*dble(rndm4()-half))*mdey))**2
+      myemity = myemity0*(myney+((two*real(rndm4()-half,fPrec))*mdey))**2
       ysigmay = sqrt(mybetay*myemity)
       myy(j)   = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
 
@@ -8123,7 +8124,7 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   do while (j.lt.mynp)
 
     j = j + 1
-    myemitx = myemitx0*(mynex + ((two*dble(rndm4()-half))*mdex) )**2  !hr09
+    myemitx = myemitx0*(mynex + ((two*real(rndm4()-half,fPrec))*mdex) )**2  !hr09
     xsigmax = sqrt(mybetax*myemitx)
     myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))              !hr09
 
@@ -8133,7 +8134,7 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
       myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
     endif
 
-    myemity = myemity0*(myney + ((two*dble(rndm4()-half))*mdey) )**2  !hr09
+    myemity = myemity0*(myney + ((two*real(rndm4()-half,fPrec))*mdey) )**2  !hr09
     ysigmay = sqrt(mybetay*myemity)
     myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))          !hr09
 
@@ -8417,7 +8418,7 @@ real(kind=fPrec) function myran_gauss(cut)
 
   twopi=eight*atan_mb(one)
 1 if (flag) then
-    r = dble(rndm5(0))
+    r = real(rndm5(0),fPrec)
     r = max(r, half**32)
     r = min(r, one-half**32)
     u1 = sqrt(-two*log_mb( r ))
@@ -8935,11 +8936,11 @@ real(kind=fPrec) function ran_gauss(cut)
 
   twopi=eight*atan_mb(one) !Why not 2*pi, where pi is in block "common"?
 1 if (flag) then
-    r = dble(rndm4( ))
+    r = real(rndm4(),fPrec)
     r = max(r, half**32)
     r = min(r, one-half**32)
     u1 = sqrt(-two*log_mb( r ))
-    u2 = dble(rndm4( ))
+    u2 = real(rndm4(),fPrec)
     x = u1 * cos_mb(twopi*u2)
   else
     x = u1 * sin_mb(twopi*u2)
