@@ -1353,9 +1353,9 @@ IF(BUILD_TESTING)
 	INCLUDE(CTest)
 
 	if(SIXDA)
-		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest_da)
+		add_subdirectory(${CMAKE_SOURCE_DIR}/test_da)
 	else()
-		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
+		add_subdirectory(${CMAKE_SOURCE_DIR}/test)
 	endif()
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
@@ -1363,19 +1363,19 @@ IF(BUILD_TESTING)
 	#Checks of specialized input/canoncials
 	# Anyway hardcoded to use them from the SixTest source folder...
 	#add_executable(CheckTestInputForBOINC.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
 
 	#add_executable(CheckTestInputForSTF.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
 
 	#need to build the testing tools
-	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f90)
-	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf10.f90)
-	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f90)
-	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f90)
-	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f90)
-	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
-	add_executable(readDump3 ${CMAKE_SOURCE_DIR}/SixTest/readDump3/readDump3.f90)
+	add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/bin/verify10.f90)
+	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/bin/checkf10.f90)
+	add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/bin/compf10.f90)
+	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/bin/checkf110.f90)
+	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/bin/checkf1014.f90)
+	add_executable(read90 ${CMAKE_SOURCE_DIR}/test/read90/read90.f90)
+	add_executable(readDump3 ${CMAKE_SOURCE_DIR}/test/readDump3/readDump3.f90)
 
 	target_link_libraries(read90 roundctl)
 
@@ -1388,7 +1388,7 @@ IF(BUILD_TESTING)
 	SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 	#The testing wrapper
-	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/bin/SixTestWrapper.cpp)
 	if (LIBARCHIVE)
 		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z pthread)
 	endif()
