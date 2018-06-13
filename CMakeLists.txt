@@ -15,7 +15,7 @@ PROJECT(SixTrack)
 ENABLE_LANGUAGE(Fortran)
 
 # Set Sixtrack version info
-file(READ ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 IFILE)
+file(READ ${CMAKE_SOURCE_DIR}/source/version.f90 IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
 SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
 SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
@@ -134,9 +134,9 @@ OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OF
 
 OPTION(ROOT "Link to the root libraries" OFF)
 
-SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
-SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
-SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
+SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/source/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/source/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/source/libarchive CACHE PATH "Path to the libarchive source folder")
 
 if(DA)
 	message(STATUS "The DA flag is deprecated due to conflicts with preprocessor and FOX. Please use SIXDA instead.")
@@ -414,7 +414,7 @@ if(G4COLLIMAT)
 	message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
 	message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
 #	include(${Geant4_USE_FILE})
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/g4collimat)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimat)
 endif(G4COLLIMAT)
 
 #Check for OpenMP
@@ -476,7 +476,7 @@ if(ROOT)
 	if(NOT ROOT_FOUND)
 		MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
 	endif(NOT ROOT_FOUND)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/root_output)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
 ###################################################################################################
@@ -1010,14 +1010,14 @@ if(128BITM)
 endif()
 
 #build dafor
-add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/tools/dafor/dafor.f90)
+add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
 endif()
 if(CRLIBM OR BUILD_TESTING )
-  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/roundctl) #Also needed by read90
+  add_subdirectory(${CMAKE_SOURCE_DIR}/source/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
@@ -1029,7 +1029,7 @@ if(HDF5)
 endif(HDF5)
 
 if(MERLINSCATTER)
-	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/RandomNG/*.cpp)
+	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/source/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/source/merlinscatter/RandomNG/*.cpp)
 	add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
 
 	#Enable c++11
@@ -1044,7 +1044,7 @@ if(MERLINSCATTER)
 endif()
 
 if(NAFF)
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/SixTrack/cmake_modules/")
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/source/cmake_modules/")
 	if (STATIC)
 		SET(FFTW_USE_STATIC_LIBS 1)
 	endif()
@@ -1054,7 +1054,7 @@ if(NAFF)
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
 	
 	
-	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
+	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
 	target_link_libraries(naff ${FFTW_LIBRARIES})
 	
@@ -1071,21 +1071,15 @@ endif()
 
 
 add_custom_target(copy_input_files)
-add_dependencies(copy_input_files track_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
+add_dependencies(copy_input_files include_mkdir)
 
-#copy all the input files *.s to our build folder
-foreach(loop IN ITEMS ${SIXTRACK_INPUT})
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
-endforeach()
-
-add_custom_target(track_mkdir)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/SixTrack/include/*.f90)
-add_custom_command(TARGET track_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
+add_custom_target(include_mkdir)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
+add_custom_command(TARGET include_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
 foreach(loop IN ITEMS ${SIXTRACK_INCL})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
 endforeach()
-add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 ${CMAKE_BINARY_DIR})
+add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
 
 if(BOINC)
 	if(API)
@@ -1126,32 +1120,32 @@ if(BOINC)
 	else()
 		add_custom_command(
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_dummy.f90 POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/boinc_dummy.f90 ${CMAKE_BINARY_DIR}/boinc_dummy.f90
+			COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/boinc_dummy.f90 ${CMAKE_BINARY_DIR}/boinc_dummy.f90
 			DEPENDS copy_input_files
 		)
 	endif()
 endif()
 
 if(FLUKA)
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mod_fluka.f90 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/mod_fluka.f90 ${CMAKE_BINARY_DIR}/mod_fluka.f90 DEPENDS copy_input_files)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/FlukaIO)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mod_fluka.f90 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/mod_fluka.f90 ${CMAKE_BINARY_DIR}/mod_fluka.f90 DEPENDS copy_input_files)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
 	target_link_libraries(SixTrack flukaIO)
 endif(FLUKA)
 
 if(LIBARCHIVE)
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_wr/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c
 		DEPENDS copy_input_files
 	)
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_wr/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c
 		DEPENDS copy_input_files
 	)
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
 		DEPENDS copy_input_files
 	)
 	
@@ -1159,7 +1153,7 @@ if(LIBARCHIVE)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 	#A very small but convenient test code for debugging libArchive.
-	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_wr/libArchiveTester.cpp)
+	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchiveTester.cpp)
 	target_link_libraries(libArchiveTester libArchive_wrapper)
 
 	#See also further down for SixTestWrapper linking
@@ -1175,7 +1169,7 @@ if(LIBARCHIVE)
 	find_library(pthread STATIC pthread)
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
-	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/zlib/install/lib/libz.a)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
 	
 	target_link_libraries(SixTrack libarchive z pthread)
 	target_link_libraries(libArchiveTester libarchive z pthread)
@@ -1199,14 +1193,14 @@ add_dependencies(generate_input run_prepro)
 foreach(loop IN ITEMS ${FORS_F90})
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 		DEPENDS run_prepro
 	)
 endforeach()
 foreach(loop IN ITEMS ${FORS_DAFOR_F90})
 	add_custom_command(
 		TARGET run_prepro POST_BUILD
-		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
+		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
 	)
 endforeach()
 
@@ -1249,15 +1243,15 @@ if(CERNLIB)
 		add_library(xcb STATIC IMPORTED)
 		add_library(Xdmcp STATIC IMPORTED)
 
-		set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libg2c.a)
-		set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libgraflib.a)
-		set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libgrafX11.a)
-		set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libkernlib_noshift.a)
-		set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libpacklib_noshift.a)
-		set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libX11.a)
-		set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libXau.a)
-		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libxcb.a)
-		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libXdmcp.a)
+		set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libg2c.a)
+		set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgraflib.a)
+		set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgrafX11.a)
+		set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libkernlib_noshift.a)
+		set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libpacklib_noshift.a)
+		set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libX11.a)
+		set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXau.a)
+		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libxcb.a)
+		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXdmcp.a)
 
 		find_library(pthread STATIC pthread)
 		find_library(dl STATIC dl)
