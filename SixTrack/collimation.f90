@@ -370,7 +370,6 @@ module collimation
 !  &xsigmax,ysigmay,myenom,nr,ndr
 !
 !
-!  character(len=80) :: dummy
 
 ! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
 ! USED IN MULTIPLE COMMON BLOCKS
@@ -400,7 +399,6 @@ module collimation
 
   real(kind=fPrec), private :: mygammax,mygammay
 
-  character(len=80), private :: dummy
 
   ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
 !  real(kind=fPrec) remitx_dist,remity_dist,
@@ -1058,20 +1056,7 @@ subroutine collimate_init()
   type(h5_dataField), allocatable :: fldDist0(:)
   integer                         :: fmtDist0, setDist0
 #endif
-  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-!+ca dbdaten
+  integer :: i,j
 
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
@@ -1732,27 +1717,13 @@ subroutine collimate_start_sample(nsample)
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr,nsample
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
+  integer j
+  integer, intent(in) :: nsample
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
   integer fmtHdf
 #endif
-
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbthin6d
-!+ca dbcolcom
-
 
   j = nsample
   samplenumber=j
@@ -2429,23 +2400,10 @@ subroutine collimate_start_collimator(stracki)
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
+  integer :: j
+  real(kind=fPrec), intent(in) :: stracki
 
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-!+ca dbthin6d
-
-  real(kind=fPrec) c5m4,stracki
+  real(kind=fPrec) c5m4
 
 #ifdef FAST
   c5m4=5.0e-4_fPrec
@@ -2634,23 +2592,10 @@ subroutine collimate_do_collimator(stracki)
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
+  integer :: j
 
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-!+ca dbthin6d
-
-  real(kind=fPrec) c5m4,stracki
+  real(kind=fPrec) c5m4
+  real(kind=fPrec), intent(in) :: stracki
 
 #ifdef G4COLLIMAT
   integer g4_lostc
@@ -3453,12 +3398,7 @@ subroutine collimate_end_collimator()
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
+  integer :: j
 
 #ifdef HDF5
   ! For tracks2
@@ -3887,17 +3827,13 @@ subroutine collimate_end_sample(j)
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
+  integer, intent(in) :: j
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
 
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
   close(survival_unit)
@@ -4144,20 +4080,7 @@ subroutine collimate_exit()
 
   implicit none
 
-  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
+  integer :: i,j
 
   close(outlun)
   close(collgaps_unit)
@@ -4301,21 +4224,7 @@ subroutine collimate_start_turn(n)
 
   implicit none
 
-  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-
-  integer n
+  integer, intent(in) :: n
 
   iturn=n
   totals=zero !This keeps track of the s position of the current element, which is also done by cadcum
@@ -4336,21 +4245,8 @@ subroutine collimate_start_element(i)
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-!+ca dbthin6d
+  integer, intent(in) :: i
+  integer j
 
   ie=i
 !++  For absorbed particles set all coordinates to zero. Also
@@ -4434,21 +4330,7 @@ subroutine collimate_end_element
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-!+ca dbthin6d
+  integer j
 
 #ifdef HDF5
   integer hdfturn,hdfpid,hdftyp
@@ -4589,21 +4471,7 @@ subroutine collimate_end_turn
 
   implicit none
 
-  integer i,ix,j,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  logical lopen
-
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-!+ca dbthin6d
+  integer j
 
 #ifdef HDF5
   ! For tracks2
@@ -4613,7 +4481,7 @@ subroutine collimate_end_turn
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
-  integer n
+
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
 
@@ -5114,7 +4982,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
   logical onesided,hit
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-  integer nprim,filel,j,nabs,nhit,np,nabs_tmp
+  integer nprim,j,nabs,nhit,np
 
   integer, allocatable :: lhit_pos(:) !(npart)
   integer, allocatable :: lhit_turn(:) !(npart)
@@ -5133,7 +5001,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   real(kind=fPrec), allocatable :: indiv(:) !(npart)
   real(kind=fPrec), allocatable :: lint(:) !(npart)
   real(kind=fPrec), allocatable :: impact(:) !(npart)
-  real(kind=fPrec) keeps,fracab,sigx,sigz,norma,xpmu,drift_length,mirror,tiltangle
+  real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
 
   real(kind=fPrec) c_length    !length in m
   real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -5142,12 +5010,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   real(kind=fPrec) c_tilt(2)   !tilt in radian
   character(len=4) c_material  !material
 
-  character(nc) filen,tit
-
-  real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
   real(kind=fPrec) x00,z00,p,sp,s,enom
-
-  data dx,dxp/.5e-4,20.e-4/                                        !hr09
 
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
@@ -5816,14 +5679,13 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 
   logical onesided,hit
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-  integer nprim,filel,j,nabs,nhit,np,nabs_tmp
+  integer nprim,j,nabs,nhit,np
 
   integer, allocatable :: lhit_pos(:) !(npart)
   integer, allocatable :: lhit_turn(:) !(npart)
   integer, allocatable :: part_abs_pos_local(:) !(npart)
   integer, allocatable :: part_abs_turn_local(:) !(npart)
   integer, allocatable :: name(:) !(npart)
-  integer, allocatable :: nabs_type(:) !(npart)
 !MAY2005
 
   real(kind=fPrec), allocatable :: x_in(:) !(npart)
@@ -5835,7 +5697,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec), allocatable :: indiv(:) !(npart)
   real(kind=fPrec), allocatable :: lint(:) !(npart)
   real(kind=fPrec), allocatable :: impact(:) !(npart)
-  real(kind=fPrec) keeps,fracab,sigx,sigz,norma,xpmu,drift_length,mirror,tiltangle
+  real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
 
   real(kind=fPrec) c_length    !length in m
   real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -5844,12 +5706,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec) c_tilt(2)   !tilt in radian
   character(len=4) c_material  !material
 
-  character(nc) filen,tit
-
-  real(kind=fPrec) xlow,xhigh,xplow,xphigh,dx,dxp
   real(kind=fPrec) x00,z00,p,sp,s,enom
-
-  data dx,dxp/.5e-4,20.e-4/                                        !hr09
 
 !AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
 !           sheet beam distribution  (smear in x and y)
@@ -6762,13 +6619,10 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
   implicit none
 
-!+ca interac
-!+ca flukavars
   integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
   logical dowrite_impact
-  real(kind=fPrec) m_dpodx, mc_int_l,s_in,I,c_material     !CT, RB, DM
+  real(kind=fPrec) m_dpodx     !CT, RB, DM
   real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
-  real(kind=fPrec) get_dpodx
 !...cne=1/(sqrt(b))
 !...dpodx=dE/(dx*c)
 
@@ -7544,9 +7398,7 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   use crcoall
   implicit none
 
-
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -7556,9 +7408,8 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
+  &xsigmax,ysigmay,myenom
 
-  character(len=80) :: dummy
 
   real(kind=fPrec) pi
 
@@ -7662,8 +7513,7 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -7673,9 +7523,8 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
+  &xsigmax,ysigmay,myenom
 
-  character(len=80) :: dummy
 
   real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
@@ -7760,8 +7609,7 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
   use crcoall
   implicit none
 
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -7771,9 +7619,8 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
+  &xsigmax,ysigmay,myenom
 
-  character(len=80) :: dummy
 
   real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
 
@@ -7870,8 +7717,7 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   implicit none
 
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -7881,9 +7727,8 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
+  &xsigmax,ysigmay,myenom
 
-  character(len=80) :: dummy
 
   real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
@@ -8011,8 +7856,7 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   use crcoall
   implicit none
 
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -8020,26 +7864,13 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   real(kind=fPrec), allocatable :: myp(:) !(maxn)
   real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
-
-  character(len=80) :: dummy
-
   character(len=80)   filename_dis
 
-  logical lopen
   integer stat
 
   save
 
   write(lout,*) "Reading input bunch from file ", filename_dis
-
-!  inquire( unit=53, opened=lopen )
-!  if(lopen) then
-!    write(lout,*) "ERROR in subroutine readdis: FORTRAN Unit 53 was already open!"
-!    goto 20
-!  end if
 
   call funit_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
@@ -8083,8 +7914,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use mod_commonmn
   implicit none
 
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -8092,23 +7922,17 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   real(kind=fPrec), allocatable :: myp(:) !(maxn)
   real(kind=fPrec), allocatable :: mys(:) !(maxn)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
-
-  character(len=80) :: dummy
-
+  real(kind=fPrec) myalphax, myalphay
+  real(kind=fPrec) mybetax,myemitx
+  real(kind=fPrec) mybetay,myemity,myenom
 
   character(len=80)   filename_dis
   real(kind=fPrec) enerror, bunchlength
 
-  logical lopen
   integer stat
 
   real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
   real(kind=fPrec) myemitz
-
-  write(lout,*) "Reading input bunch from file ", filename_dis
 
   if (iclo6.eq.0) then
     write(lout,*) "ERROR DETECTED: Incompatible flag           "
@@ -8121,11 +7945,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
     call prror(-1)
   endif
 
-!  inquire( unit=53, opened=lopen )
-!  if(lopen) then
-!    write(lout,*) "ERROR in subroutine readdis: FORTRAN Unit 53 was already open!"
-!    goto 20
-!  end if
+  write(lout,*) "Reading input bunch from file ", filename_dis
 
   call funit_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
@@ -8240,8 +8060,7 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   use crcoall
   implicit none
 
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -8253,7 +8072,6 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
   &xsigmax,ysigmay,myenom,nr,ndr
 
-  character(len=80) :: dummy
 
   real(kind=fPrec) pi
 
@@ -8396,8 +8214,7 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
   implicit none
 
-!+ca dbmkdist
-  integer :: i,j,mynp,nloop
+  integer :: j,mynp
   real(kind=fPrec), allocatable :: myx(:) !(maxn)
   real(kind=fPrec), allocatable :: myxp(:) !(maxn)
   real(kind=fPrec), allocatable :: myy(:) !(maxn)
@@ -8407,17 +8224,12 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 
   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
-
-  character(len=80) :: dummy
-
+  &xsigmax,ysigmay,myenom
 
   real(kind=fPrec) pi
 !YIL march2010 edit: was missing enerror, bunchlength etc...
 ! no common block for these parameters?
 
-  real(kind=fPrec) gauss_rand
-  real(kind=fPrec) iix, iiy, phix, phiy
   real(kind=fPrec) enerror, bunchlength
   real(kind=fPrec) en_error, bunch_length
 
@@ -9158,12 +8970,7 @@ subroutine readcollimator
 
   implicit none
 
-  integer I,J,K,ios
-
-!+ca database
-!+ca dbcommon
-
-  logical lopen
+  integer J,ios
 
 #ifdef ROOT
 ! Temp variables to avoid fotran array -> C nightmares
@@ -9174,13 +8981,6 @@ subroutine readcollimator
   save
 !--------------------------------------------------------------------
 !++  Read collimator database
-!
-!      write(*,*) 'reading collimator database'
-!  inquire( unit=53, opened=lopen )
-!  if(lopen) then
-!    write(lout,*) "ERROR in subroutine readcollimator: FORTRAN Unit 53 was already open!"
-!    call prror(-1)
-!  end if
 
   call funit_requestUnit(coll_db, coll_db_unit)
   open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
