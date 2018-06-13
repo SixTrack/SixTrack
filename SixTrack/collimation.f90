@@ -6,6 +6,17 @@
 !-----                                                                   -----
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 
+! Useful names for future reference in the code:
+!GRD Guillaume Robert-Demolaize
+!RA  Ralph Assmann
+!TW  Thomas Weiler
+!CB  Chiara Bracco
+!SR  Stefano Redaelli
+!RB  Roderik Bruce
+!DM  Daniele Mirarchi
+!YIL Yngve Inntjore Levinsen
+!CT  Claudia Tambasco
+
 module collimation
 
   use floatPrecision
@@ -1710,16 +1721,7 @@ subroutine collimate_start_sample(nsample)
 
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
-  !FIXME : never used?
-  ! call funit_requestUnit('betatron.dat', betatron_unit)
-  ! open(unit=betatron_unit,file='betatron.dat') !was 99
-
-  !FIXME : never used?
-  ! call funit_requestUnit('beta_beat.dat', beta_beat_unit)
-  ! open(unit=beta_beat_unit, file='beta_beat.dat') !was 42
-  ! write(beta_beat_unit,*) '# 1=s 2=bx/bx0 3=by/by0 4=sigx0 5=sigy0 6=crot 7=acalc'
-
-  ! Survival Output
+! Survival Output
 #ifdef HDF5
   if(h5_useForCOLL) then
     allocate(setFields(2))
@@ -1742,24 +1744,9 @@ subroutine collimate_start_sample(nsample)
   if(firstrun) write(collgaps_unit,*) '# ID name  angle[rad]  betax[m]  betay[m] halfgap[m]', &
  & '  Material  Length[m]  sigx[m]  sigy[m] tilt1[rad] tilt2[rad] nsig'
 
-!      if (dowrite_impact) then
-!        open(unit=46, file='coll_impact.dat')
-!        write(46,*)                                                     &
-!     &'# 1=sample 2=iturn 3=icoll 4=nimp 5=nabs 6=imp_av 7=imp_sig'
-!      endif
-!
   call funit_requestUnit('collimator-temp.db', collimator_temp_db_unit)
   open(unit=collimator_temp_db_unit, file='collimator-temp.db') !was 40
 !
-!      open(unit=47, file='tertiary.dat')
-!      write(47,*)                                                       &
-!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
-!
-!      if (dowrite_secondary) then
-!        open(unit=48, file='secondary.dat')
-!        write(48,'(2a)')                                                &
-!     &'# 1=x 2=xp 3=y 4=yp 5=p 6=Ax 7=Axd 8=Ay 9=Ar 10=Ard'
-!      endif
 
 ! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
   call funit_requestUnit('collsettings.dat', collsettings_unit)
@@ -1780,12 +1767,6 @@ subroutine collimate_start_sample(nsample)
   if (dowritetracks) then
 !GRD SPECIAL FILE FOR SECONDARY HALO
     if(cern) then
-!      open(unit=41,file='stuff')
-!      write(41,*) samplenumber
-!      close(41)
-!      open(unit=41,file='stuff')
-!      read(41,*) smpl
-!      close(41)
       read(samplenumber,*) smpl
 
       pfile(1:8) = 'tracks2.'
@@ -2615,20 +2596,8 @@ subroutine collimate_do_collimator(stracki)
   end if
 
 !++  Write beam ellipse at selected collimator
-! ---- changed name_sel(1:11) name_sel(1:12) to be checked if feasible!!
   if (((db_name1(icoll).eq.name_sel(1:max_name_len)) .or.&
        (db_name2(icoll).eq.name_sel(1:max_name_len))) .and. dowrite_dist) then
-!          if (firstrun .and.                                            &
-!     &         ((db_name1(icoll).eq.name_sel(1:11))                     &
-!     &         .or.(db_name2(icoll).eq.name_sel(1:11)))                 &
-!     &         .and. dowrite_dist) then
-! --- get halo on each turn
-!     &.and. iturn.eq.1 .and. dowrite_dist) then
-! --- put open and close at the pso. where it is done for the
-! --- other files belonging to dowrite_impact flag !(may not a good loc.)
-!            open(unit=45, file='coll_ellipse.dat')
-!            write(45,'(a)')                                             &
-!     &'#  1=x 2=y 3=xp 4=yp 5=E 6=s'
     do j = 1, napx
       write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
@@ -2691,38 +2660,6 @@ subroutine collimate_do_collimator(stracki)
 !++  Get corresponding beam angles (uses xp_max)
     xp_pencil(icoll) = -one * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)* xmax / sqrt(myemitx0_collgap*tbetax(ie))
     yp_pencil(icoll) = -one * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)* ymax / sqrt(myemity0_collgap*tbetay(ie))
-
-! that the way xp is calculated for makedis subroutines !!!!
-!        if (rndm4().gt.0.5) then
-!          myxp(j)  = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-        &
-!     &myalphax*myx(j)/mybetax
-!        else
-!          myxp(j)  = -1*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-     &
-!     &myalphax*myx(j)/mybetax
-!        endif
-!            xp_pencil(icoll) =                                          &
-!     &           sqrt(sqrt((myemitx0/tbetax(ie)                         &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
-!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
-!            write(*,*) " ************************************ "
-!            write(*,*) myemitx0/tbetax(ie)                              &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2
-!            write(*,*)sqrt(sqrt((myemitx0/tbetax(ie)                    &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))
-!            write(*,*) -talphax(ie)*x_pencil(icoll)/tbetax(ie)
-!            write(*,*) sqrt(myemitx0/tbetax(ie))*talphax(ie)            &
-!     &                   * x_pencil(icoll) / sqrt(myemitx0*tbetax(ie))
-!            write(*,*)  sqrt(sqrt((myemitx0/tbetax(ie)                  &
-!     &           -x_pencil(icoll)**2/tbetax(ie)**2)**2))                &
-!     &           -talphax(ie)*x_pencil(icoll)/tbetax(ie)
-!            write(*,*) xp_pencil(icoll)
-!            write(*,*) " ************************************ "
-!
-!            yp_pencil(icoll) =                                          &
-!     &           sqrt(sqrt((myemity0/tbetay(ie)                         &
-!     &           -y_pencil(icoll)**2/tbetay(ie)**2)**2))                &
-!     &           -talphay(ie)*y_pencil(icoll)/tbetay(ie)
-!!
     xp_pencil0 = xp_pencil(icoll)
     yp_pencil0 = yp_pencil(icoll)
 
@@ -2905,13 +2842,6 @@ subroutine collimate_do_collimator(stracki)
     Nap1neg=((c_aperture/two - c_offset) + tiltOffsNeg1)/beamsize1
     Nap2neg=((c_aperture/two - c_offset) + tiltOffsNeg2)/beamsize2
 
-! debugging output - can be removed when not needed
-!            write(7878,*) c_tilt(1),c_tilt(2),c_offset
-!       write(7878,*) tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
-!            write(7878,*) Nap1pos,Nap2pos,Nap1neg,Nap2neg
-!            write(7878,*) min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
-!            write(7878,*) mynex * sqrt(tbetax(ie)/betax1)
-
 !   Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
     minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
 
@@ -2936,8 +2866,6 @@ subroutine collimate_do_collimator(stracki)
       myalphay=alphay2
       ldrift = c_length / two
     end if
-
-!    write(7878,*) napx,myalphax,myalphay,mybetax,mybetay,myemitx0_collgap,myemity0_collgap,myenom,mynex2,mdex,myney2,mdey
 
 !   create new pencil beam distribution with spread at start or end of collimator at the minAmpl
 !   note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
@@ -3100,12 +3028,6 @@ subroutine collimate_do_collimator(stracki)
         end do
 
 !       Apply the slicing scaling factors (ssf's):
-!
-!          do jjj=1,n_slices+1
-!             y1_sl(jjj) = ssf1 * y1_sl(jjj)
-!             y2_sl(jjj) = ssf2 * y2_sl(jjj)
-!          enddo
-
 !       CB:10-2007 coordinates rotated of the tilt
         do jjj=1,n_slices+1
           y1_sl(jjj) = ssf1 * y1_sl(jjj)
@@ -5611,7 +5533,7 @@ end subroutine collimate2
 
 !>
 !! collimaterhic()
-!! ???
+!! Collimation for RHIC
 !<
 subroutine collimaterhic(c_material, c_length, c_rotation,        &
      &     c_aperture, n_aperture,                                      &
@@ -5644,12 +5566,12 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 !++  - Put real dp/dx
 !
 
-      use crcoall
-      use parpro
-      implicit none
+  use crcoall
+  use parpro
+  implicit none
 
 
-      real(kind=fPrec) sx, sz
+  real(kind=fPrec) sx, sz
 !
 ! BLOCK DBCOLLIM
 ! This block is common to collimaterhic and collimate2
@@ -6706,7 +6628,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !++  Check whether particle is absorbed. If yes, calculate output
 !++  longitudinal position (s), reduce momentum (output as dpop)
 !++  and return.
-!++  PARTICLE WAS ABSORPED INSIDE COLLIMATOR DURING MCS.
+!++  PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
 
   inter=ichoix(mat)
   nabs=inter
@@ -6830,7 +6752,7 @@ end subroutine coll_hdf5_writeCollScatter
 !!++  Input:   ZLM is interaction length
 !!++           MAT is choice of material
 !!
-!!++  Output:  nabs = 1   Particle is absorped
+!!++  Output:  nabs = 1   Particle is absorbed
 !!++           nabs = 4   Single-diffractive scattering
 !!++           dpop       Adjusted for momentum loss (dE/dx)
 !!++           s          Exit longitudinal position
@@ -6902,24 +6824,24 @@ subroutine jaw0(s,nabs)
 !++  reduce momentum (output as dpop) and return.
 !++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
 !
-      if(x.le.0.d0) then
+      if(x.le.zero) then
        s=(zlm-rlen)+s                                                    !hr09
        p=p-dpodx(mat)*s
-       dpop=1.d0-p0/p
+       dpop=one-p0/p
        return
       end if
 !
 !++  Check whether particle is absorbed. If yes, calculate output
 !++  longitudinal position (s), reduce momentum (output as dpop)
 !++  and return.
-!++  PARTICLE WAS ABSORPED INSIDE COLLIMATOR DURING MCS.
+!++  PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
 !
       inter=ichoix(mat)
       if(inter.eq.1) then
         nabs=1
         s=(zlm-rlen)+zlm1                                                 !hr09
         p=p-dpodx(mat)*s
-        dpop=1.d0-p0/p
+        dpop=one-p0/p
         ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
         if(h5_useForCOLL) then
