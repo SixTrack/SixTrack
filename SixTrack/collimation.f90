@@ -7346,21 +7346,21 @@ function get_dpodx(p,mat_i)          !Claudia
 
   implicit none
 
-  integer mat
+  real(kind=fPrec), intent(in) :: p
+  integer, intent(in) :: mat_i
+!  integer mat
 !+ca collMatNum
-  common/materia/mat
-  real(kind=fPrec) anuc,zatom,rho,emr
+!  common/materia/mat
+!  real(kind=fPrec) anuc,zatom,rho,emr
   real(kind=fPrec) PE,K,gamma_p
 !  real(kind=fPrec) PE,me,mp,K,gamma_p
-  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
+!  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 !  real(kind=fPrec) anuc,zatom,rho,emr,exenergy
 !  common/meanexen/exenergy(nmat)
   real(kind=fPrec) beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,I_s,delta
   parameter(K=0.307075)
 !  parameter(me=0.510998910e-3,mp=938.272013e-3,K=0.307075)
-  real(kind=fPrec) p
-  integer mat_i
-  real(kind=fPrec) dpodx,get_dpodx
+  real(kind=fPrec) get_dpodx
 
   mp2       = pmap**2
   me2       = pmae**2
@@ -7465,12 +7465,12 @@ subroutine calc_ion_loss(IS, PC, DZ, EnLo)
   real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
   real(kind=fPrec) thl,Tt,cs_tail,prob_tail
   real(kind=fPrec) ranc
-  real(kind=fPrec) anuc,zatom,rho,emr
+!  real(kind=fPrec) anuc,zatom,rho,emr
 
 !  real(kind=fPrec) PC,DZ,EnLo,exenergy,exEn
 !  common/meanexen/exenergy(nmat)
 
-  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
+!  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
 
   data k/0.307075_fPrec/      !constant in front bethe-bloch [MeV g^-1 cm^2]
 ! The following values are now taken from physical_constants
