@@ -49,6 +49,9 @@ module sixtrack_input
   real(kind=fPrec),              public, save :: sixin_harm
   real(kind=fPrec),              public, save :: sixin_phag
   real(kind=fPrec),              public, save :: sixin_u0
+  
+  ! Multipole Coefficients
+  integer,                       public, save :: sixin_im
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
@@ -124,7 +127,7 @@ subroutine sixin_checkBlock(blockName, blockUnit, blockOpened, blockClosed, bloc
   blockOpened = .true.
 
   if(st_debug) then
-    write(lout,"(a)") "INPUT> Reading block '"//blockName//"'"
+    write(lout,"(a)") "INPUT> Opened block '"//blockName//"'"
   end if
 
 end subroutine sixin_checkBlock
@@ -136,8 +139,11 @@ subroutine sixin_closeBlock(blockName)
   integer i
 
   do i=1,sixin_nBlock
-    if(sixin_cBlock(i) == blockName) then
+    if(sixin_cBlock(i) == blockName .and. .not. sixin_lBlock(i)) then
       sixin_lBlock(i) = .true.
+      if(st_debug) then
+        write(lout,"(a)") "INPUT> Closed block '"//blockName//"'"
+      end if
       return
     end if
   end do
@@ -1473,7 +1479,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "LINE> ERROR Failed to parse input line."
+    write(lout,"(a)") "SYNC> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1599,5 +1605,103 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   end select
 
 end subroutine sixin_parseInputLineSYNC
+
+! ================================================================================================ !
+!  Parse Multipole Coefficient Line for KZ=11
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=str_maxName) imn
+  real(kind=fPrec) ak0d,akad,bk0d,bkad,r0,r0a
+  integer          nSplit,i,nmul,iil
+  logical          spErr
+  
+  save nmul,iil,r0,r0a
+  
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "MULT> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  
+  if(iLine == 1) then
+    
+    if(nSplit > 0) imn = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),r0,   iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),benki,iErr)
+    
+    nmul     = 1
+    r0a      = one
+    sixin_im = sixin_im + 1
+    
+    benkc(sixin_im) = benki
+    r00(sixin_im)   = r0
+    
+    do i=1,il
+      if(imn == bez(i)) then
+        irm(i) = sixin_im
+        iil    = i
+        exit
+      end if
+    end do
+    
+    if(st_debug) then
+      call sixin_echoVal("imn",  imn,  "MULT",iLine)
+      call sixin_echoVal("r0",   r0,   "MULT",iLine)
+      call sixin_echoVal("benki",benki,"MULT",iLine)
+    end if
+    if(iErr) return
+    
+  else
+    
+    bk0d = zero
+    bkad = zero
+    ak0d = zero
+    akad = zero
+    
+    if(nSplit > 0) call chr_cast(lnSplit(1),bk0d,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),bkad,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ak0d,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),akad,iErr)
+    
+    if(st_debug) then
+      call sixin_echoVal("bk0d",bk0d,"MULT",iLine)
+      call sixin_echoVal("bkad",bkad,"MULT",iLine)
+      call sixin_echoVal("ak0d",ak0d,"MULT",iLine)
+      call sixin_echoVal("akad",akad,"MULT",iLine)
+      call sixin_echoVal("r0a", r0a, "MULT",iLine)
+      call sixin_echoVal("nmul",nmul,"MULT",iLine)
+    end if
+    if(iErr) return
+    
+    ! Set nmu for the current single element (j)
+    ! to the currently highest multipole seen (i)
+    if(abs(bk0d) > pieni .or. abs(bkad) > pieni .or. abs(ak0d) > pieni .or. abs(akad) > pieni) then
+      nmu(iil) = nmul
+    end if
+    bk0(sixin_im,nmul) = (benki*bk0d)/r0a
+    ak0(sixin_im,nmul) = (benki*ak0d)/r0a
+    bka(sixin_im,nmul) = (benki*bkad)/r0a
+    aka(sixin_im,nmul) = (benki*akad)/r0a
+    nmul = nmul + 1
+    r0a  = r0a*r0
+    if(nmul > mmul+1) then
+      write(lout,"(a,i0)") "MULT> ERROR The order of multipoles is too large. Maximum is ",mmul
+      iErr = .true.
+      return
+    end if
+    
+  end if
+  
+end subroutine sixin_parseInputLineMULT
 
 end module sixtrack_input
