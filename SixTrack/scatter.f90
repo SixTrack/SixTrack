@@ -184,14 +184,13 @@ subroutine scatter_initialise
 
       inquire(unit=scatter_logFile, opened=lopen)
       if(lopen) then
-        write(lout,*) "ERROR in SCATTER when opening scatter_log.dat"
-        write(lout,*) "Unit ",scatter_logFile," was already taken."
+        write(lout,"(a)") "SCATTER> ERROR Could not open scatter_log.dat, unit already taken."
         call prror(-1)
       end if
 
       open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
-      write(scatter_logFile,"(A)") "# scatter_log"
-      write(scatter_logFile,"(A)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
+      write(scatter_logFile,"(a)") "# scatter_log"
+      write(scatter_logFile,"(a)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
 
 #ifdef CR
       scatter_filePos = 2
@@ -288,8 +287,8 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,*) "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,*)   "READERR in scatter_crcheck; fileUnit = ",fileUnit
+  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
   readErr = .true.
 
 end subroutine scatter_crcheck_readdata
@@ -315,13 +314,13 @@ subroutine scatter_crcheck_positionFiles
 
   inquire(unit=scatter_logFile, opened=lOpen)
   if(lOpen) then
-    write(93,"(a)") "SIXTRACR CRCHECK FAILED while repsositioning scatter_log.dat"
-    write(93,"(a)") "UNIT ",scatter_logFile," already in use!"
+    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning scatter_log.dat"
+    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
 
     endfile(93,iostat=iErro)
     backspace(93,iostat=iErro)
 
-    write(lout,*) "SIXTRACR CRCHECK failure positioning scatter_log.dat"
+    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning scatter_log.dat"
     call prror(-1)
   end if
 
@@ -348,16 +347,16 @@ subroutine scatter_crcheck_positionFiles
 #else
     open(unit=scatter_logFile,file="scatter_log.dat",status="old",position="append",action="write",err=10)
 #endif
-    write(97,*) "SIXTRACR CRCHECK sucessfully repositioned scatter_log.dat, "// &
-                "scatter_filePos=",scatter_filePos, "scatter_filePos_CR=",scatter_filePos_CR
+    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned scatter_log.dat, "//&
+                "scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
     endfile(93,iostat=iErro)
     backspace(93,iostat=iErro)
 
   else
-    write(93,*) "SIXTRACR CRCHECK did not attempt repositioning "// &
-                "of scatter_log.dat, scatter_filePos_CR=",scatter_filePos_CR
-    write(93,*) "If anything has been written to the file, "// &
-                "it will be correctly truncated in scatter_initialise."
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
+      "of scatter_log.dat, scatter_filePos_CR=",scatter_filePos_CR
+    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
+      "it will be correctly truncated in scatter_initialise."
     endfile(93,iostat=iErro)
     backspace(93,iostat=iErro)
   end if
@@ -365,12 +364,11 @@ subroutine scatter_crcheck_positionFiles
   return
 
 10 continue
-  write(93,*) "SIXTRACR CRCHECK *** ERROR *** reading scatter_log.dat, iostat=",iErro
-  write(93,*) "scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
+  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iErro
+  write(93,"(2(a,i0))") "SIXTRACR> scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
   endfile(93,iostat=iErro)
   backspace(93,iostat=iErro)
-  write(lout,*)"SIXTRACR CRCHECK failure positioning scatter_log.dat"
-
+  write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning scatter_log.dat"
   call prror(-1)
 
 end subroutine scatter_crcheck_positionFiles
@@ -578,8 +576,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
   ! Check number of arguments
   if(nSplit < 5) then
-    write(lout,"(a)") "SCATTER> ERROR, ELEM expected at least 5 arguments:"
-    write(lout,"(a)") "ELEM elemname profile scaling gen1 (gen2...)"
+    write(lout,"(a)") "SCATTER> ERROR ELEM expected at least 5 arguments:"
+    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (gen2...)"
     call prror(-1)
   end if
 
@@ -605,16 +603,16 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
       if(kz(j) /= 40) then
         write(lout,"(a)")    "SCATTER> ERROR SCATTER can only work on SINGLE ELEMENTs of type 40."
-        write(lout,"(a,i3)") "         The referenced element '"//lnSplit(2)//"'is of type ", kz(j)
+        write(lout,"(a,i0)") "SCATTER>       The referenced element '"//lnSplit(2)//"'is of type ", kz(j)
         call prror(-1)
       end if
 
       if(el(j) /= 0 .or. ek(j) /= 0 .or. ed(j) /= 0) then
-        write(lout,*) "SCATTER> ERROR: length el(j) (SCATTER is treated as thin element), "// &
-                      " and first and second field have to be zero: el(j)=ed(j)=ek(j)=0; "//&
-                      "but el(",j,")=",el(j),", ed(",j,")=",ed(j),", ek(",j,")=",ek(j),"."
-        write(lout,*) "Please check your input in the single element "//&
-                      "definition of your SCATTER. All values except for the type must be zero."
+        write(lout,"(6(a,i0))") "SCATTER> ERROR Length el(j) (SCATTER is treated as thin element), "//&
+          " and first and second field have to be zero: el(j)=ed(j)=ek(j)=0; "//&
+          "but el(",j,")=",el(j),", ed(",j,")=",ed(j),", ek(",j,")=",ek(j),"."
+        write(lout,"(a)") "SCATTER>       Please check your input in the single element "//&
+          "definition of your SCATTER. All values except for the type must be zero."
         call prror(-1)
       end if
 
@@ -624,7 +622,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   end do
 
   if(scatter_ELEM(scatter_nELEM,1) == 0) then
-    write(lout,"(a)") "SCATTER> ERROR: Could not find element '"//lnSplit(2)//"'"
+    write(lout,"(a)") "SCATTER> ERROR Could not find element '"//lnSplit(2)//"'"
     call prror(-1)
   end if
 
@@ -636,7 +634,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   end do
 
   if(scatter_ELEM(scatter_nELEM,2) == 0) then
-    write(lout,"(a)") "SCATTER> ERROR: Could not find profile '"//lnSplit(3)//"'"
+    write(lout,"(a)") "SCATTER> ERROR Could not find profile '"//lnSplit(3)//"'"
     call prror(-1)
   end if
 
@@ -645,7 +643,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
   ! Find the generator(s) referenced
   if(nSplit-4 > 3) then
-    write(lout,"(a,i2,a)") "SCATTER> ERROR when parsing ELEM,",nSplit-4,"generators specified, space for 3"
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Parsing ELEM,",nSplit-4,"generators specified, space for 3"
     call prror(-1)
   end if
 
@@ -663,7 +661,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
     ! If it is still -1, it wasn't found
     if(scatter_ELEM(scatter_nELEM,ii-4+2) == -1) then
-      write(lout,"(a)") "SCATTER> ERROR when parsing ELEM, generator '"//lnSplit(ii)//"' not found."
+      write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//lnSplit(ii)//"' not found."
       call prror(-1)
     end if
 
@@ -672,7 +670,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     ! to check for duplicates
     do j=3, ii-4+2-1
       if(scatter_ELEM(scatter_nELEM,j) == scatter_ELEM(scatter_nELEM,ii-4+2)) then
-        write(lout,"(a)") "SCATTER> ERROR when parsing ELEM, generator '"//lnSplit(ii)//"' used twice."
+        write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//lnSplit(ii)//"' used twice."
         call prror(-1)
       end if
     end do
@@ -700,7 +698,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   ! Check number of arguments
   if(nSplit < 3) then
     write(lout,"(a)") "SCATTER> ERROR, PRO expected at least 3 arguments:"
-    write(lout,"(a)") "PRO name type (arguments...)"
+    write(lout,"(a)") "SCATTER>        PRO name type (arguments...)"
     call prror(-1)
   end if
 
@@ -718,7 +716,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   ! Check that the profile name is unique
   do ii=1,scatter_nPROFILE-1
     if(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
-      write(lout,"(a)") "SCATTER> ERROR, profile name '"//lnSplit(2)//"' is not unique."
+      write(lout,"(a)") "SCATTER> ERROR Profile name '"//lnSplit(2)//"' is not unique."
       call prror(-1)
     end if
   end do
@@ -728,8 +726,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   case("FLAT")
     scatter_PROFILE(scatter_nPROFILE,2) = 1 ! Integer code for FLAT
     if(nSplit /= 6) then
-      write(lout,"(a)") "SCATTER> ERROR, PROfile type FLAT expected 6 arguments:"
-      write(lout,"(a)") "PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
+      write(lout,"(a)") "SCATTER> ERROR PROfile type FLAT expected 6 arguments:"
+      write(lout,"(a)") "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
       call prror(-1)
     end if
 
@@ -746,8 +744,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   case("GAUSS1")
     scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
     if(nSplit /= 8) then
-      write(lout,"(a)") "SCATTER> ERROR, PROfile type GAUSS1 expected 8 arguments:"
-      write(lout,"(a)") "PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
+      write(lout,"(a)") "SCATTER> ERROR PROfile type GAUSS1 expected 8 arguments:"
+      write(lout,"(a)") "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
       call prror(-1)
     end if
 
@@ -764,7 +762,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     call str_cast(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! Offset Y
 
   case default
-    write(lout,"(a)") "SCATTER> ERROR, PRO name '"//lnSplit(3)//"' not recognized."
+    write(lout,"(a)") "SCATTER> ERROR PRO name '"//lnSplit(3)//"' not recognized."
     call prror(-1)
 
   end select
@@ -793,7 +791,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
   ! Check number of arguments
   if(nSplit < 3) then
     write(lout,"(a)") "SCATTER> ERROR GEN expected at least 3 arguments:"
-    write(lout,"(a)") "         GEN name type (arguments...)"
+    write(lout,"(a)") "SCATTER>       GEN name type (arguments...)"
     call prror(-1)
   end if
 
@@ -811,7 +809,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
   ! Check that the generator name is unique
   do ii=1,scatter_nGENERATOR-1
     if(chr_trimZero(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
-      write(lout,"(a)") "SCATTER> ERROR, generator name '"//lnSplit(2)//"' is not unique."
+      write(lout,"(a)") "SCATTER> ERROR Generator name '"//lnSplit(2)//"' is not unique."
       call prror(-1)
     end if
   end do
@@ -827,7 +825,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
     scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
     if(nSplit < 8 .or. nSplit > 9) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 8 or 9 arguments:"
-      write(lout,"(a)") "         GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
+      write(lout,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
       call prror(-1)
     end if
 
@@ -885,7 +883,7 @@ subroutine scatter_parseSeed(lnSplit, nSplit)
   ! Check the number of arguments
   if(nSplit /= 3) then
     write(lout,"(a)") "SCATTER> ERROR SEED expected 2 arguments:"
-    write(lout,"(a)") "         GEN seed1 seed2"
+    write(lout,"(a)") "SCATTER>       GEN seed1 seed2"
     call prror(-1)
   end if
 
@@ -941,9 +939,12 @@ subroutine scatter_thin(i_elem, ix, turn)
   scaling = scatter_ELEM_scale(ELEMidx)
 
   if (scatter_debug) then
-    write(lout,*) "SCATTER> In scatter_thin, ix=",ix, &
-                  "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",turn, &
-                  "scaling=",scaling
+    write(lout,"(a)")       "SCATTER> DEBUG In scatter_thin"
+    write(lout,"(a,i0)")    "SCATTER> DEBUG  * ix      = ",ix
+    write(lout,"(a)")       "SCATTER> DEBUG  * bez     = '"//trim(bez(ix))//"'"
+    write(lout,"(a,i0)")    "SCATTER> DEBUG  * napx    = ",napx
+    write(lout,"(a,i0)")    "SCATTER> DEBUG  * turn    = ",turn
+    write(lout,"(a,e13.6)") "SCATTER> DEBUG  * scaling = ",scaling
   end if
 
   if(scaling <= pieni) then
@@ -1089,8 +1090,8 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
             * exp_mb(-half*((y-offsetY)/sigmaY)**2)
 
   case default
-    write(lout,*) "SCATTER> ERROR in scatter_profile_getDensity"
-    write(lout,*) "Type", scatter_PROFILE(profileIdx,2),"for profile '"// &
+    write(lout,"(a)")      "SCATTER> ERROR scatter_profile_getDensity"
+    write(lout,"(a,i0,a)") "SCATTER>       Type ", scatter_PROFILE(profileIdx,2)," for profile '"//&
       chr_trimZero(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
     call prror(-1)
   end select
@@ -1152,8 +1153,8 @@ real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generato
     end if
 
   case default
-    write(lout,*) "SCATTER> ERROR in scatter_generator_getCrossSection"
-    write(lout,*) "Type",scatter_PROFILE(profileIdx,2),"for profile '"//&
+    write(lout,"(a)")      "SCATTER> ERROR scatter_generator_getCrossSection"
+    write(lout,"(a,i0,a)") "SCATTER>       Type ",scatter_PROFILE(profileIdx,2)," for profile '"//&
       chr_trimZero(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
     call prror(-1)
 
@@ -1198,8 +1199,8 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     t  = t*c1e6 ! Scale return variable to MeV^2
 
   case default
-    write(lout,*) "SCATTER> ERROR in scatter_generator_getTandXi"
-    write(lout,*) "Type", generatorIDX, "not understood"
+    write(lout,"(a)")      "SCATTER> ERROR in scatter_generator_getTandXi"
+    write(lout,"(a,i0,a)") "SCATTER>       Type ",generatorIDX," not understood"
     call prror(-1)
 
   end select
@@ -1260,8 +1261,8 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
   end do
 
   if(nItt > maxItt) then
-    write(lout,*) "SCATTER> ERROR in generator PPBEAMELASTIC"
-    write(lout,*) "Limit of", maxItt, "misses in generator loop reached."
+    write(lout,"(a)")      "SCATTER> ERROR in generator PPBEAMELASTIC"
+    write(lout,"(a,i0,a)") "SCATTER>       Limit of", maxItt, "misses in generator loop reached."
     call prror(-1)
   end if
 
