@@ -5,29 +5,34 @@
 !  this module is used to set the start value for the random generator.
 !
 !  Moved from main code and updated by V.K. Berglyd Olsen, June 2018
-!  Last modified: 2018-06-13
+!  Last modified: 2018-06-14
 ! ================================================================================================ !
 module mod_fluc
 
   use crcoall
   use floatPrecision
-  use parpro,         only : nmac
-  use mod_common,     only : izu0,mmac,mcut
-  use mod_settings,   only : st_debug
-  use sixtrack_input, only : sixin_echoVal
 
   implicit none
+
+  integer,                       public, save :: fluc_nAlign      ! Number of multipoles in fort.8
 
   real(kind=fPrec), allocatable, public, save :: fluc_errExt(:,:) ! The errors from fort.16
   character(len=:), allocatable, public, save :: fluc_bezExt(:)   ! The name of the element
   integer,          allocatable, public, save :: fluc_ixExt(:)    ! The index of the element
-  integer,                       public, save :: fluc_nExt        ! Number of multipoles
+  integer,                       public, save :: fluc_nExt        ! Number of multipoles in fort.16
+
+  integer, public, save :: fluc_iSeed1
+  integer, public, save :: fluc_iSeed2
 
 contains
 
 subroutine fluc_parseInputLine(inLine, iLine, iErr, mout)
 
   use string_tools
+  use parpro,         only : nmac
+  use mod_common,     only : izu0,mmac,mcut
+  use mod_settings,   only : st_debug
+  use sixtrack_input, only : sixin_echoVal
 
   implicit none
 
@@ -66,7 +71,9 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr, mout)
   end if
 
   ! Process variables
-  mcut = iabs(mcut)
+  mcut        = iabs(mcut)
+  fluc_iSeed1 = izu0
+  fluc_iSeed2 = 0
 
   if(mmac > nmac) then
     write(lout,"(a,i0)") "FLUC> ERROR Maximum number of seeds for vectorisation is ",nmac
@@ -75,6 +82,30 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr, mout)
   end if
 
 end subroutine fluc_parseInputLine
+
+subroutine fluc_moreRandomness
+
+  use mod_alloc
+  use mod_ranecu
+  use parpro,              only : nzfz
+  use mod_common,          only : zfz,mcut
+  use numerical_constants, only : zero
+
+  implicit none
+
+  integer, parameter :: newRnd = 1000
+  real(kind=fPrec)   :: tmpRnd(newRnd)
+
+  call recuin(fluc_iSeed1, fluc_iSeed2)
+  call ranecu(tmpRnd, newRnd, mcut)
+  call recuut(fluc_iSeed1, fluc_iSeed2)
+
+  if(nzfz == -1) nzfz = 0
+  call alloc(zfz, nzfz+newRnd, zero, "zfz")
+  zfz(nzfz+1:nzfz+newRnd) = tmpRnd(1:newRnd)
+  nzfz = nzfz + newRnd
+
+end subroutine fluc_moreRandomness
 
 subroutine fluc_readFort8
 end subroutine fluc_readFort8
@@ -116,7 +147,7 @@ subroutine fluc_readFort16
     write(lout,"(a,i0)") "FLUC> ERROR fort.16 iostat = ",ioStat
     goto 30
   end if
-  
+
   call chr_split(inLine, lnSplit, nSplit, iErr)
   if(iErr) goto 30
   if(nSplit == 0) goto 10
@@ -137,17 +168,17 @@ subroutine fluc_readFort16
       end if
     end do
     if(inSing) then
-      
+
       lMode = 1
       nVals = 0
       mVal  = 0
-      
+
       if(allocated(fluc_ixExt)) then
         mExt = size(fluc_ixExt,1)
       else
         mExt = 0
       end if
-      
+
       fluc_nExt = fluc_nExt + 1
       if(fluc_nExt > mExt) then
         call alloc(fluc_errExt,40,         mExt+10,zero,       "fluc_errExt")
@@ -155,7 +186,7 @@ subroutine fluc_readFort16
         call alloc(fluc_ixExt,             mExt+10,0,          "fluc_ixExt")
       end if
       fluc_bezExt(fluc_nExt) = bezExt
-      
+
     else
       write(lout,"(a)") "FLUC> ERROR Unknown element name '"//trim(bezExt)//"'."
       goto 30
@@ -181,7 +212,7 @@ subroutine fluc_readFort16
 
 20 continue
   close(16)
-  
+
   ! We require that the elements in fort.16 have the same order as in the STRUcture block.
   ! A repeated element name implies it is the next one of that name in the sequenc, so we will
   ! iterate over the index array ic() and check for a matchin order to build the index icext.
@@ -194,8 +225,11 @@ subroutine fluc_readFort16
       fluc_ixExt(nExt) = iStru
       icext(iStru)     = nExt
       nExt = nExt + 1
+      if(nExt > fluc_nExt) exit
     end if
   end do
+
+  ! Now, set the parpro variabl nzfz
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nExt," values from fort.16"
   if(st_debug) then

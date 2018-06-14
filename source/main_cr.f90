@@ -671,27 +671,27 @@ end interface
 !       call warr('mmac and m',0d0,nmac,m,0,0)
 !       write(*,*) 'do 260 mmac/m',mmac,m
 #endif
-!--MULTIPOLE WITH THEIR RANDOM VALUES ADDED
-    if(m.ge.2) then
-      call recuin(m*izu0,irecuin)
-      call ranecu(zfz,nzfz,mcut)
-      rsum=zero
+    !--MULTIPOLE WITH THEIR RANDOM VALUES ADDED
+    ! mmac is currently not allowed to be larger than 1
+    ! zfz array is n ow handled by mod_fluc, and using the below code
+    ! will break tests
+    ! if(m.ge.2) then
+    !   call recuin(m*izu0,irecuin)
+    !   call ranecu(zfz,nzfz,mcut)
+    !   rsum=zero
+    !   do i=1,nzfz
+    !     rsum=rsum+zfz(i)
+    !   end do
+    !   rmean=rsum/real(nzfz,fPrec)
+    !   rsqsum=zero
+    !   do i=1,nzfz
+    !     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
+    !   end do
+    !   rdev=sqrt(rsqsum/real(nzfz,fPrec))
+    !   write(lout,10320) m*izu0,nzfz,rmean,rdev
+    !   write(lout,10070)
+    ! endif
 
-      do i=1,nzfz
-        rsum=rsum+zfz(i)
-      end do
-
-      rmean=rsum/real(nzfz,fPrec)                                          !hr05
-      rsqsum=zero
-
-      do i=1,nzfz
-        rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
-      end do
-
-      rdev=sqrt(rsqsum/real(nzfz,fPrec))                                   !hr05
-      write(lout,10320) m*izu0,nzfz,rmean,rdev
-      write(lout,10070)
-    endif
     ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
     ! possible to re-shuffle lattice structure
     if(m.eq.1) call orglat
@@ -704,7 +704,7 @@ end interface
     call cadcum
     if(idp /= 0.and. ition /= 0) then ! 6D tracking
       if(abs(dcum(iu+1) - tlen) > eps_dcum) then
-        write(lout,"(a)") ""
+        write(lout,"(a)")          ""
         write(lout,"(a)")          "    WARNING Problem with SYNC block detected"
         write(lout,"(a,f17.10)")   "            TLEN in SYNC block = ",tlen
         write(lout,"(a,f17.10)")   "            Length from DCUM   = ",dcum(iu+1)
@@ -714,9 +714,9 @@ end interface
         write(lout,"(a)")          "    Please fix the TLEN parameter in your SYNC block"
         write(lout,"(a)")          "    so that it matches the calculated machine length from DCUM."
         write(lout,"(a)")          "    If incorrect, the RF frequency may be (slightly) wrong."
-        write(lout,"(a)") ""
-        write(lout,"(a)") st_divLine
-              ! It's a warning not an error, and the consequences seem relatively small.
+        write(lout,"(a)")          ""
+        write(lout,"(a)")          st_divLine
+        ! It's a warning not an error, and the consequences seem relatively small.
         ! Ideally, tlen should be calculated automatically based on the sequence.
       end if
     else
@@ -726,8 +726,8 @@ end interface
     ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
     ! initialise aperture of first and last elements of sequence
     if (limifound) then
-        write(lout,*) ' check that beginning/end of lattice structure is assigned aperture markers...'
-        call contour_aperture_markers( iu, 1, .false. )
+      write(lout,"(a)") "MAINCR> Check that beginning/end of lattice structure is assigned aperture markers."
+      call contour_aperture_markers( iu, 1, .false. )
     end if
 
 #ifdef FLUKA
@@ -1407,7 +1407,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,extalign,tiltc,tilts,            &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
@@ -1474,7 +1474,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,extalign,tiltc,tilts,            &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &

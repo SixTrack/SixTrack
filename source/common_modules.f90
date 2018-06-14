@@ -21,16 +21,16 @@ module parpro
   integer, parameter :: nema  = 15
   integer, parameter :: ninv  = 1000
   integer, parameter :: nlya  = 10000
-  integer, parameter :: nmac  = 1         ! Maximum number of machines
+  integer, parameter :: nmac  = 1         ! Maximum number of seeds for vectorisation
   integer, parameter :: nmon1 = 600
   integer, parameter :: nper  = 16
   integer, parameter :: nplo  = 20000
   integer, parameter :: npos  = 20000
-  integer, parameter :: nran  = 2000000
+  integer, parameter :: nran  = 2000000   ! Maximum size for scaling nzfz
   integer, parameter :: nrco  = 5
   integer, parameter :: ntr   = 20
 
-  !Maximum length of element names
+  ! Maximum length of element names
   integer, parameter :: max_name_len = 48
 
   ! Max number of particles
@@ -39,72 +39,29 @@ module parpro
   integer, parameter :: npart = 64
 #endif
 #if defined(BIGNPART) && !defined(HUGENPART)
-  integer, parameter :: npart = 2048          
+  integer, parameter :: npart = 2048
 #endif
 #if !defined(BIGNPART) && defined(HUGENPART)
   integer, parameter :: npart = 65536
 #endif
 
+  integer :: nzfz = -1   ! Number of multipole random numbers
+  integer :: nele = -1   ! Number of SINGle elements
+  integer :: nblo = -1   ! Number of BLOCs
+  integer :: nblz = -1   ! Number of STRUcture elements
+
   integer, parameter :: nele_initial = 500
   integer, parameter :: nblo_initial = 100
   integer, parameter :: nblz_initial = 1000
-  integer, parameter :: nzfz_initial = 100
-  integer :: nele = -1
-  integer :: nblo = -1
-  integer :: nblz = -1
-  integer :: nzfz = -1
 
-!Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
-! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
-! For now, scale the number of multipoles (from nzfz) as is done in the "no-flag" version:
-! 6000/20000 -> 30% multipoles
 #ifndef COLLIMAT
-#ifdef BIGNBLZ
-  integer, parameter :: nelb = 140
-  integer, parameter :: nzfz = 3000000
   integer, parameter :: mmul = 20
-#endif
-#ifdef HUGENBLZ
-  integer, parameter :: nelb = 280
-  integer, parameter :: nzfz = 6000000
-  integer, parameter :: mmul = 20
-#endif
-#if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  integer, parameter :: nelb = 140
-  integer, parameter :: nzfz = 300000
-  integer, parameter :: mmul = 20
-#endif
 #else
-#ifdef BEAMGAS
-  integer, parameter :: nelb = 140
-  integer, parameter :: nzfz = 1920000
   integer, parameter :: mmul = 11
-#else
-#ifdef BIGNBLZ
-  integer, parameter :: nelb = 140
-  integer, parameter :: nzfz = 1920000
-  integer, parameter :: mmul = 11
-#endif
-#ifdef HUGENBLZ
-  integer, parameter :: nelb = 140
-  integer, parameter :: nzfz = 3840000
-  integer, parameter :: mmul = 11
-#endif
-#if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  integer, parameter :: nelb = 140
-  integer, parameter :: nzfz = 144000
-  integer, parameter :: mmul = 11
-#endif
-#endif
 #endif
 
-  ! Beam-beam lenses
-#if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  integer, parameter :: nbb = 350
-#endif
-#if defined(BIGNBLZ) || defined(HUGENBLZ)
-  integer, parameter :: nbb = 500
-#endif
+  integer, parameter :: nelb = 280  ! Maximum elements per BLOC
+  integer, parameter :: nbb  = 500  ! Beam-beam lenses
 
 end module parpro
 
@@ -155,8 +112,10 @@ module mod_settings
   logical, save :: st_debug ! Global DEBUG flag
 
   ! String Stuff
-  integer,            parameter :: st_divLen  = 132
-  character(len=132), parameter :: st_divLine = repeat("-",132)
+  integer,            parameter :: st_maxName   = 48
+  integer,            parameter :: st_maxString = 161
+  integer,            parameter :: st_divLen    = 132
+  character(len=132), parameter :: st_divLine   = repeat("-",132)
 
 end module mod_settings
 
@@ -231,7 +190,7 @@ module mod_common
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
   ! common /rand0/
-  real(kind=fPrec), save :: zfz(nzfz)
+  real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
   integer,          save :: iorg,izu0,mmac,mcut
 
   character(len=:), allocatable, save :: bezr(:,:) ! (max_name_len)(3,nele)
@@ -240,7 +199,7 @@ module mod_common
   ! common /rand1/
   integer,                       save :: mout2
   integer,          allocatable, save :: icext(:),icextal(:) ! (nblz)
-  real(kind=fPrec), allocatable, save :: exterr(:,:)         ! (nblz,40)
+! real(kind=fPrec), allocatable, save :: exterr(:,:)         ! (nblz,40)
   real(kind=fPrec), allocatable, save :: extalign(:,:)       ! (nblz,3)
   real(kind=fPrec), allocatable, save :: tiltc(:),tilts(:)   ! (nblz)
 
@@ -459,7 +418,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
   call alloc(imbb,                     nblz_new,       0,           "imbb")
   call alloc(icext,                    nblz_new,       0,           "icext")
   call alloc(icextal,                  nblz_new,       0,           "icextal")
-  call alloc(exterr,                   nblz_new, 40,   zero,        "exterr")
+! call alloc(exterr,                   nblz_new, 40,   zero,        "exterr")
   call alloc(extalign,                 nblz_new, 3,    zero,        "extalign")
   call alloc(tiltc,                    nblz_new,       one,         "tiltc")
   call alloc(tilts,                    nblz_new,       zero,        "tilts")
