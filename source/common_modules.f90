@@ -10,55 +10,49 @@ module parpro
 
   implicit none
 
-! All of the following need a description
-  integer :: mbea
-  integer :: mcor
-  integer :: mcop
-  integer :: mmul
-  integer :: mpa
-  integer :: mran
-  integer :: nbb   ! Maximum number of beam-beam elements
-  integer :: ncom
-  integer :: ncor1
-  integer :: nelb
-  integer :: nema
-  integer :: ninv
-  integer :: nlya
-  integer :: nmac  ! Maximum number of seeds for vectorisation (FLUC)
-  integer :: nmon1
-  integer :: npart ! Maximum number of particles
-  integer :: nper
-  integer :: nplo
-  integer :: npos
-  integer :: nran
-  integer :: nrco
-  integer :: ntr
-  integer :: nzfz
+  ! All of the following need a description
+  integer, parameter :: mbea  = 99
+  integer, parameter :: mcor  = 10
+  integer, parameter :: mcop  = mcor + 6
+  integer, parameter :: mpa   = 6
+  integer, parameter :: mran  = 500
+  integer, parameter :: ncom  = 100
+  integer, parameter :: ncor1 = 600
+  integer, parameter :: nema  = 15
+  integer, parameter :: ninv  = 1000
+  integer, parameter :: nlya  = 10000
+  integer, parameter :: nmac  = 1         ! Maximum number of machines
+  integer, parameter :: nmon1 = 600
+  integer, parameter :: nper  = 16
+  integer, parameter :: nplo  = 20000
+  integer, parameter :: npos  = 20000
+  integer, parameter :: nran  = 2000000
+  integer, parameter :: nrco  = 5
+  integer, parameter :: ntr   = 20
 
   !Maximum length of element names
   integer, parameter :: max_name_len = 48
 
-  !Max number of particles
+  ! Max number of particles
+  ! See also: subroutine wzsubv
 #if !defined(BIGNPART) && !defined(HUGENPART)
-  parameter(npart = 64,nmac = 1)
+  integer, parameter :: npart = 64
 #endif
 #if defined(BIGNPART) && !defined(HUGENPART)
-  !See also:
-  ! - subroutine wzsubv
-  parameter(npart = 2048,nmac = 1)
+  integer, parameter :: npart = 2048          
 #endif
 #if !defined(BIGNPART) && defined(HUGENPART)
-  !See also:
-  ! - subroutine wzsubv
-  parameter(npart = 65536,nmac = 1)
+  integer, parameter :: npart = 65536
 #endif
 
-  integer, parameter :: nele_initial = 50   ! Must be at least 1
-  integer, parameter :: nblo_initial = 50   ! Must be at least 1
-  integer, parameter :: nblz_initial = 1000 ! Must be at least 1
+  integer, parameter :: nele_initial = 500
+  integer, parameter :: nblo_initial = 100
+  integer, parameter :: nblz_initial = 1000
+  integer, parameter :: nzfz_initial = 100
   integer :: nele = -1
   integer :: nblo = -1
   integer :: nblz = -1
+  integer :: nzfz = -1
 
 !Note: nzfz should be = 3*nblz+2*mmul*#MULTIPOLES,
 ! where #MULTIPOLES are the max number of multipoles in the lattice (up to nblz)
@@ -66,42 +60,50 @@ module parpro
 ! 6000/20000 -> 30% multipoles
 #ifndef COLLIMAT
 #ifdef BIGNBLZ
-  parameter(nper=16,nelb=140,nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
+  integer, parameter :: nelb = 140
+  integer, parameter :: nzfz = 3000000
+  integer, parameter :: mmul = 20
 #endif
 #ifdef HUGENBLZ
-  parameter(nper=16,nelb=280,nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
+  integer, parameter :: nelb = 280
+  integer, parameter :: nzfz = 6000000
+  integer, parameter :: mmul = 20
 #endif
 #if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  parameter(nper=16,nelb=140,nzfz = 300000,mmul = 20) !up to 6'000 multipoles
+  integer, parameter :: nelb = 140
+  integer, parameter :: nzfz = 300000
+  integer, parameter :: mmul = 20
 #endif
 #else
 #ifdef BEAMGAS
-  parameter(nper=16,nelb=140,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
+  integer, parameter :: nelb = 140
+  integer, parameter :: nzfz = 1920000
+  integer, parameter :: mmul = 11
 #else
 #ifdef BIGNBLZ
-  parameter(nper=16,nelb=140,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
+  integer, parameter :: nelb = 140
+  integer, parameter :: nzfz = 1920000
+  integer, parameter :: mmul = 11
 #endif
 #ifdef HUGENBLZ
-  parameter(nper=16,nelb=140,nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
+  integer, parameter :: nelb = 140
+  integer, parameter :: nzfz = 3840000
+  integer, parameter :: mmul = 11
 #endif
 #if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  parameter(nper=16,nelb=140,nzfz = 144000,mmul = 11) !up to 4500 multipoles
+  integer, parameter :: nelb = 140
+  integer, parameter :: nzfz = 144000
+  integer, parameter :: mmul = 11
 #endif
 #endif
 #endif
-
-  parameter(nran = 2000000,ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
-  parameter(mcor = 10,mcop = mcor+6, mbea = 99)
-  parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
-  parameter(nmon1 = 600,ncor1 = 600)
-  parameter(ntr = 20)
 
   ! Beam-beam lenses
 #if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  parameter(nbb = 350)
+  integer, parameter :: nbb = 350
 #endif
 #if defined(BIGNBLZ) || defined(HUGENBLZ)
-  parameter(nbb = 500)
+  integer, parameter :: nbb = 500
 #endif
 
 end module parpro

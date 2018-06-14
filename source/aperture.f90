@@ -596,9 +596,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
     do j=1,napx
+#ifdef COLLIMAT
+    if(part_abs_turn(j).eq.0) then
+#endif
       llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
  &                       (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
       llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+    else
+      llostp(j)=.false.
+    end if
+#endif
     end do
 
   else
@@ -611,6 +619,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       apyy = ape(4,ix)**2.
       apxy = apxx * apyy
       do j=1,napx
+#ifdef COLLIMAT
+      if(part_abs_turn(j).eq.0) then
+#endif
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -631,11 +642,19 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end if
         end if
         llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+      else
+        llostp(j)=.false.
+      end if
+#endif
       end do
 
     case (1) ! circle
       radius2 = ape(3,ix)**2
       do j=1,napx
+#ifdef COLLIMAT
+        if(part_abs_turn(j).eq.0) then
+#endif
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -654,10 +673,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end if
         end if
         llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+      else
+        llostp(j)=.false.
+      end if
+#endif
       end do
 
     case (2) ! Rectangle
       do j=1,napx
+#ifdef COLLIMAT
+      if(part_abs_turn(j).eq.0) then
+#endif
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -676,6 +703,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end if
         end if
         llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+      else
+        llostp(j)=.false.
+      end if
+#endif
       end do
 
     case (3) ! Ellipse
@@ -683,6 +715,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       apyy = ape(4,ix)**2.
       apxy = apxx * apyy
       do j=1,napx
+#ifdef COLLIMAT
+      if(part_abs_turn(j).eq.0) then
+#endif
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -701,6 +736,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end if
         end if
         llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+      else
+        llostp(j)=.false.
+      end if
+#endif
       end do
 
     case (4) ! RectEllipse
@@ -708,6 +748,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       apyy = ape(4,ix)**2.
       apxy = apxx * apyy
       do j=1,napx
+#ifdef COLLIMAT
+      if(part_abs_turn(j).eq.0) then
+#endif
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -726,10 +769,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end if
         end if
         llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+      else
+        llostp(j)=.false.
+      end if
+#endif
       end do
 
     case (5) ! Octagon
       do j=1,napx
+#ifdef COLLIMAT
+      if(part_abs_turn(j).eq.0) then
+#endif
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -748,12 +799,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end if
         end if
         llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+      else
+        llostp(j)=.false.
+      end if
+#endif
       end do
 
     case (6) ! Racetrack
       !   NB: it follows the MadX definition
       apxy = ape(3,ix)**2.
       do j=1,napx
+#ifdef COLLIMAT
+      if(part_abs_turn(j).eq.0) then
+#endif
         if (lapeofftlt(ix)) then
           if (lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -772,6 +831,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           end if
         end if
         llost=llost.or.llostp(j)
+#ifdef COLLIMAT
+      else
+        llostp(j)=.false.
+      end if
+#endif
       end do
 
     end select
@@ -2395,11 +2459,16 @@ subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk
 end subroutine intersectTR
 
 
+end module aperture
+
+
 !>
 !! compactArrays(llostp)
 !! This routine is called to compact all relevant arrays when a particle is lost
 !<
 subroutine compactArrays(llostp)
+
+  use aperture
 
 #ifdef FLUKA
   use mod_fluka
@@ -2462,6 +2531,17 @@ subroutine compactArrays(llostp)
 
 #ifdef COLLIMAT
 ! If collimation is enabled, all the collimation arrays must also be compressed
+            xgrd(jj)           = xgrd(jj1)
+            ygrd(jj)           = ygrd(jj1)
+            xpgrd(jj)          = xpgrd(jj1)
+            ypgrd(jj)          = ypgrd(jj1)
+            pgrd(jj)           = pgrd(jj1)
+            ejfvgrd(jj)        = ejfvgrd(jj1)
+            sigmvgrd(jj)       = sigmvgrd(jj1)
+            rvvgrd(jj)         = rvvgrd(jj1)
+            dpsvgrd(jj)        = dpsvgrd(jj1)
+            oidpsvgrd(jj)      = oidpsvgrd(jj1)
+            dpsv1grd(jj)       = dpsv1grd(jj1)
             part_hit_pos(jj)   = part_hit_pos(jj1)
             part_hit_turn(jj)  = part_hit_turn(jj1)
             part_abs_pos(jj)   = part_abs_pos(jj1)
@@ -2480,6 +2560,11 @@ subroutine compactArrays(llostp)
             !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
             ipart(jj)      = ipart(jj1)
             flukaname(jj)  = flukaname(jj1)
+            do ieff = 1, numeff
+              counted_r(jj,ieff) = counted_r(jj1,ieff)
+              counted_x(jj,ieff) = counted_x(jj1,ieff)
+              counted_y(jj,ieff) = counted_y(jj1,ieff)
+            end do
 #endif
 
             end do !do jj=j,lnapx-1
@@ -2498,6 +2583,3 @@ subroutine compactArrays(llostp)
       napx=lnapx
     end if !(.not.apflag)
 end subroutine compactArrays
-
-end module aperture
-

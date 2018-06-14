@@ -485,17 +485,17 @@ module collimation
   real(kind=fPrec), allocatable, private, save :: rcyp0(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcp0(:) !(npart)
 
-  real(kind=fPrec), allocatable, private, save :: xgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: xpgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: ygrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: ypgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: pgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: ejfvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: sigmvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rvvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: dpsvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: oidpsvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: dpsv1grd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: xgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: xpgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: ygrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: ypgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: pgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: ejfvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: sigmvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: rvvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: dpsvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: oidpsvgrd(:) !(npart)
+  real(kind=fPrec), allocatable, save :: dpsv1grd(:) !(npart)
 
   real(kind=fPrec), save :: enom_gev,betax,betay,xmax,ymax
   real(kind=fPrec), save :: nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1
@@ -3396,54 +3396,6 @@ subroutine collimate_end_collimator()
       yv(2,j) = rcyp0(j) * c1e3 + torbyp(ie)
       ejv(j)  = rcp0(j)  * c1e3
     end if
-!APRIL2005
-!
-!TW for roman pot checking
-!            if(icoll.eq.73) then
-!               do j = 1,napx
-!                  write(9998,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
-!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
-!               enddo
-!            elseif(icoll.eq.74) then
-!               do j = 1,napx
-!                  write(9999,*)flukaname(j),rcx0(j),rcy0(j),rcx(j),     &
-!     &rcy(j),rcxp0(j),rcyp0(j),rcxp(j),rcyp(j)
-!               enddo
-!            endif
-!
-!++  Write trajectory for any selected particle
-!
-!!            if (firstrun) then
-!!              if (rselect.gt.0 .and. rselect.lt.65) then
-!            DO j = 1, NAPX
-!
-!!              xj     = (xv(1,j)-torbx(ie))/1d3
-!!              xpj    = (yv(1,j)-torbxp(ie))/1d3
-!!              yj     = (xv(2,j)-torby(ie))/1d3
-!!              ypj    = (yv(2,j)-torbyp(ie))/1d3
-!!              pj     = ejv(j)/1d3
-!GRD
-!07-2006 TEST
-!!              if (iturn.eq.1.and.j.eq.1) then
-!!              sum_ax(ie)=0d0
-!!              sum_ay(ie)=0d0
-!!              endif
-!GRD
-!
-!!              gammax = (1d0 + talphax(ie)**2)/tbetax(ie)
-!!              gammay = (1d0 + talphay(ie)**2)/tbetay(ie)
-!
-!!             if (part_abs(j).eq.0) then
-!!          nspx    = sqrt(                                               &
-!!     &abs( gammax*(xj)**2 +                                             &
-!!     &2d0*talphax(ie)*xj*xpj +                                          &
-!!     &tbetax(ie)*xpj**2 )/myemitx0                                      &
-!!     &)
-!!                nspy    = sqrt(                                         &
-!!     &abs( gammay*(yj)**2 +                                             &
-!!     &2d0*talphay(ie)*yj*ypj +                                          &
-!!     &tbetay(ie)*ypj**2 )/myemity0                                      &
-!!     &)
 
 !++  First check for particle interaction at this collimator and this turn
     if(part_hit_pos (j).eq.ie .and. part_hit_turn(j).eq.iturn) then
@@ -4375,6 +4327,7 @@ subroutine collimate_end_turn
   implicit none
 
   integer j
+  integer napx_pre
 
 #ifdef HDF5
   ! For tracks2
@@ -4384,6 +4337,8 @@ subroutine collimate_end_turn
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
+
+  logical :: turnlostp(npart)
 
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
@@ -4593,52 +4548,63 @@ subroutine collimate_end_turn
 !------------------------------------------------------------------
 !++  For LAST ELEMENT in the ring compact the arrays by moving all
 !++  lost particles to the end of the array.
+  napx_pre = napx
   if(ie.eq.iu) then
     imov = 0
     do j = 1, napx
       if(xgrd(j).lt.99.0_fPrec .and. ygrd(j).lt.99.0_fPrec) then
-        imov = imov + 1
-        xgrd(imov)           = xgrd(j)
-        ygrd(imov)           = ygrd(j)
-        xpgrd(imov)          = xpgrd(j)
-        ypgrd(imov)          = ypgrd(j)
-        pgrd(imov)           = pgrd(j)
-        ejfvgrd(imov)        = ejfvgrd(j)
-        sigmvgrd(imov)       = sigmvgrd(j)
-        rvvgrd(imov)         = rvvgrd(j)
-        dpsvgrd(imov)        = dpsvgrd(j)
-        oidpsvgrd(imov)      = oidpsvgrd(j)
-        dpsv1grd(imov)       = dpsv1grd(j)
-        part_hit_pos(imov)   = part_hit_pos(j)
-        part_hit_turn(imov)  = part_hit_turn(j)
-        part_abs_pos(imov)   = part_abs_pos(j)
-        part_abs_turn(imov)  = part_abs_turn(j)
-        part_select(imov)    = part_select(j)
-        part_impact(imov)    = part_impact(j)
-        part_indiv(imov)     = part_indiv(j)
-        part_linteract(imov) = part_linteract(j)
-        part_hit_before_pos(imov)  = part_hit_before_pos(j)
-        part_hit_before_turn(imov) = part_hit_before_turn(j)
-        secondary(imov) = secondary(j)
-        tertiary(imov) = tertiary(j)
-        other(imov) = other(j)
-        scatterhit(imov) = scatterhit(j)
-        nabs_type(imov) = nabs_type(j)
-!GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-        ipart(imov) = ipart(j)
-        flukaname(imov) = flukaname(j)
-!KNS: Also compact nlostp (used for standard LOST calculations + output)
-        nlostp(imov) = nlostp(j)
-        do ieff = 1, numeff
-          counted_r(imov,ieff) = counted_r(j,ieff)
-          counted_x(imov,ieff) = counted_x(j,ieff)
-          counted_y(imov,ieff) = counted_y(j,ieff)
-        end do
+        turnlostp(j) = .false.
+      else
+        turnlostp(j) = .true.
+
+!        imov = imov + 1
+!        xgrd(imov)           = xgrd(j)
+!        ygrd(imov)           = ygrd(j)
+!        xpgrd(imov)          = xpgrd(j)
+!        ypgrd(imov)          = ypgrd(j)
+!        pgrd(imov)           = pgrd(j)
+!        ejfvgrd(imov)        = ejfvgrd(j)
+!        sigmvgrd(imov)       = sigmvgrd(j)
+!        rvvgrd(imov)         = rvvgrd(j)
+!        dpsvgrd(imov)        = dpsvgrd(j)
+!        oidpsvgrd(imov)      = oidpsvgrd(j)
+!        dpsv1grd(imov)       = dpsv1grd(j)
+!        part_hit_pos(imov)   = part_hit_pos(j)
+!        part_hit_turn(imov)  = part_hit_turn(j)
+!        part_abs_pos(imov)   = part_abs_pos(j)
+!        part_abs_turn(imov)  = part_abs_turn(j)
+!        part_select(imov)    = part_select(j)
+!        part_impact(imov)    = part_impact(j)
+!        part_indiv(imov)     = part_indiv(j)
+!        part_linteract(imov) = part_linteract(j)
+!        part_hit_before_pos(imov)  = part_hit_before_pos(j)
+!        part_hit_before_turn(imov) = part_hit_before_turn(j)
+!        secondary(imov) = secondary(j)
+!        tertiary(imov) = tertiary(j)
+!        other(imov) = other(j)
+!        scatterhit(imov) = scatterhit(j)
+!        nabs_type(imov) = nabs_type(j)
+!!GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
+!        ipart(imov) = ipart(j)
+!        flukaname(imov) = flukaname(j)
+!!KNS: Also compact nlostp (used for standard LOST calculations + output)
+!        nlostp(imov) = nlostp(j)
+!        do ieff = 1, numeff
+!          counted_r(imov,ieff) = counted_r(j,ieff)
+!          counted_x(imov,ieff) = counted_x(j,ieff)
+!          counted_y(imov,ieff) = counted_y(j,ieff)
+!        end do
       end if
     end do
-     write(lout,*) 'INFO>  Compacted the particle distributions: ', napx, ' -->  ', imov, ", turn =",iturn
-     flush(lout)
-    napx = imov
+
+!   A call to the array compression function in the aperture module
+    call compactArrays(turnlostp)
+
+    write(lout,*) 'INFO>  Compacted the particle distributions: ', napx_pre, ' -->  ', napx, ", turn =",iturn
+    flush(lout)
+
+! napx gets updated by compactArrays
+!    napx = imov
   endif
 
   ! Write final distribution
