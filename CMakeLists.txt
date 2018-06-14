@@ -15,7 +15,7 @@ PROJECT(SixTrack)
 ENABLE_LANGUAGE(Fortran)
 
 # Set Sixtrack version info
-file(READ ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 IFILE)
+file(READ ${CMAKE_SOURCE_DIR}/source/version.f90 IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
 SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
 SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
@@ -92,8 +92,6 @@ OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, 
 OPTION(BIGNPART "Allow tracking up to 2048 particles (normally 64)." OFF)
 OPTION(HUGENPART "Allow tracking up to 65536 particles (normally 64)" OFF)
 OPTION(DEBUG "Debugging output" OFF)
-OPTION(SPAMMY "Turns on additional spammy output" OFF)
-# OPTION(HDF5 "Link to external HDF5 library, write tracks2.dat data (for postprocessing with BeamLossPattern) there instead of writing it to ASCII." OFF)
 OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
@@ -136,16 +134,14 @@ OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OF
 
 OPTION(ROOT "Link to the root libraries" OFF)
 
-SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/SixTrack/boinc CACHE PATH "Path to the boinc build folder")
-SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive_build CACHE PATH "Path to the libarchive build folder")
-SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/SixTrack/libarchive CACHE PATH "Path to the libarchive source folder")
+SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/source/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/source/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/source/libarchive CACHE PATH "Path to the libarchive source folder")
 
 if(DA)
 	message(STATUS "The DA flag is deprecated due to conflicts with preprocessor and FOX. Please use SIXDA instead.")
 	SET(SIXDA ON)
 endif()
-SET(BIGDABNEW   ON)  # Used in dabnew.s90. Defined in dabnew.ast
-SET(SMALLDABNEW OFF) # Used in dabnew.s90. Defined in dabnews.ast
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -154,14 +150,13 @@ SET(SMALLDABNEW OFF) # Used in dabnew.s90. Defined in dabnews.ast
 # FFLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
-SET(SIXTRACK_FEATURES "cmake")
-SET(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
+SET(SIXTRACK_FEATURES "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 
-if(TILT)
-	SET(SIXTRACK_FEATURES "tilt_${SIXTRACK_FEATURES}")
+if(NOT TILT)
+	SET(SIXTRACK_FEATURES "notilt_${SIXTRACK_FEATURES}")
 endif()
-if(FAST)
-	SET(SIXTRACK_FEATURES "fast_${SIXTRACK_FEATURES}")
+if(NOT FAST)
+	SET(SIXTRACK_FEATURES "nofast_${SIXTRACK_FEATURES}")
 endif()
 if(CRLIBM AND ROUND_NEAR)
 	SET(SIXTRACK_FEATURES "crlibm_rn_${SIXTRACK_FEATURES}")
@@ -219,9 +214,6 @@ if(HUGENPART)
 endif()
 if(DEBUG)
 	SET(SIXTRACK_FEATURES "debug_${SIXTRACK_FEATURES}")
-endif()
-if(SPAMMY)
-	SET(SIXTRACK_FEATURES "spammy_${SIXTRACK_FEATURES}")
 endif()
 if(HDF5)
 	SET(SIXTRACK_FEATURES "hdf5_${SIXTRACK_FEATURES}")
@@ -290,6 +282,10 @@ if(128BITM)
 	set(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_quad")
 endif()
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	set(SIXTRACK_FEATURES "${SIXTRACK_FEATURES}_DEBUG")
+endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+
 # Create the sixtrack binary name string
 set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 
@@ -298,35 +294,42 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 ###################################################################################################
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT SPAMMY BIGDABNEW SMALLDABNEW)
-LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR )
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT)
+LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
 ###################################################################################################
 
-list(APPEND FORS_FREEFORM
-	end_sixtrack scatter dynk
-	postprocessing dump aperture
-)
-
 list(APPEND FORS_F90
-	core_tools constants sixtrack_input mod_units close
-	strings string_tools common_modules mainarrays
-	file_units mod_alloc zipf matrix_inv lielib
-	bouncy_castle plato_seq bdex fma dabnew
-	ranecu wire hions elens mod_dist
+	sixtrack core_tools constants sixtrack_input mod_units
+	close strings string_tools common_modules mainarrays
+	file_units mod_alloc zipf matrix_inv lielib beam6d
+	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
+	ranecu wire hions elens mod_dist scatter dynk dump
+	aperture postprocessing
 )
 
 if(SIXDA)
-	list(APPEND FORS_FREEFORM sixsc sixda sixscfox)
-	list(APPEND FORS_F90 tshift_corr)
+	list(APPEND FORS_F90 main_da tshift_corr)
+	list(APPEND FORS_DAFOR_F90 sixda)
 else()
-	list(APPEND FORS_FREEFORM track sixve sixvefox)
+	list(APPEND FORS_F90 main_cr sixve track_thin track_thick)
 endif()
 
+# List of files that must be treated by DAFOR
+list(APPEND FORS_DAFOR_F90 beam6d_fox six_fox)
+
+if(CR)
+	list(APPEND FORS_F90 checkpoint_restart)
+endif(CR)
+
+if(DEBUG)
+	list(APPEND FORS_F90 debug_dumps)
+endif(DEBUG)
+
 if(COLLIMAT)
-	LIST(APPEND FORS_FREEFORM collimation)
+	list(APPEND FORS_F90 ranlux collimation)
 endif(COLLIMAT)
 
 if(HDF5)
@@ -334,7 +337,7 @@ if(HDF5)
 endif(HDF5)
 
 if(BEAMGAS)
-	LIST(APPEND FORS_FREEFORM beamgas)
+	LIST(APPEND FORS_F90 beamgas)
 endif(BEAMGAS)
 
 if(FLUKA)
@@ -345,23 +348,19 @@ if(ROOT)
 	LIST(APPEND FORS_F90 root_output)
 endif(ROOT)
 
-foreach(loop IN LISTS FORS_FREEFORM)
+foreach(loop IN LISTS FORS_F90)
 	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
-	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}n.f90)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
+endforeach()
+foreach(loop IN LISTS FORS_DAFOR_F90)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}a.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
 endforeach()
 
-foreach(loop IN LISTS FORS_F90)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
-endforeach()
-
-# List of files that must be treated by DAFOR
-LIST(APPEND FORS_DAFOR sixvefox sixscfox sixda)
-
 if(BOINC AND NOT API)
 	#We have a BOINC build but no API, load the fake API substitute for debugging.
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} myboinc.f)
+	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} boinc_dummy.f90)
 endif(BOINC AND NOT API)
 
 if(FLUKA)
@@ -415,7 +414,7 @@ if(G4COLLIMAT)
 	message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
 	message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
 #	include(${Geant4_USE_FILE})
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/g4collimat)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimat)
 endif(G4COLLIMAT)
 
 #Check for OpenMP
@@ -477,7 +476,7 @@ if(ROOT)
 	if(NOT ROOT_FOUND)
 		MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
 	endif(NOT ROOT_FOUND)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/root_output)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
 ###################################################################################################
@@ -498,15 +497,7 @@ if(NOT 32BIT)
 	endif()
 endif()
 
-#if(CRLIBM)
-#	if(COLLIMAT)
-#		message(FATAL_ERROR "Cannot build CRLIBM with COLLIMAT enabled.")
-#	endif()
-#endif()
 if(HDF5)
-# 	if(NOT COLLIMAT)
-# 		message(FATAL_ERROR "Building with HDF5 requires COLLIMAT enabled")
-# 	endif()
 	if(CR)
 		message(FATAL_ERROR "Cannot build HDF5 with CR enabled")
 	endif()
@@ -572,9 +563,6 @@ if(COLLIMAT)
 	if(CR)
 		message(FATAL_ERROR "Cannot build COLLIMAT with CR enabled.")
 	endif()
-#	if(CRLIBM)
-#		message(FATAL_ERROR "Cannot build COLLIMAT with CRLIBM enabled.")
-#	endif()
 endif()
 if(CPSS)
 	if(CERNLIB)
@@ -1021,24 +1009,15 @@ if(128BITM)
 	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128)
 endif()
 
-##build astuce
-#add_executable(astuce_old ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.f)
-#SET_TARGET_PROPERTIES(astuce_old PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" OUTPUT_NAME "astuce")
-
-add_library(astuce++ STATIC ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce.cpp)
-add_executable(astuce ${CMAKE_SOURCE_DIR}/SixTrack/tools/astuce/astuce++.cpp)
-SET_TARGET_PROPERTIES(astuce PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}" OUTPUT_NAME "astuce++")
-target_link_libraries(astuce astuce++)
-
 #build dafor
-add_executable(dafor ${CMAKE_SOURCE_DIR}/SixTrack/tools/dafor/dafor.f90)
+add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 if(CRLIBM)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/crlibm)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
 endif()
 if(CRLIBM OR BUILD_TESTING )
-  add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/roundctl) #Also needed by read90
+  add_subdirectory(${CMAKE_SOURCE_DIR}/source/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
@@ -1050,7 +1029,7 @@ if(HDF5)
 endif(HDF5)
 
 if(MERLINSCATTER)
-	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/merlinscatter/RandomNG/*.cpp)
+	file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/source/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/source/merlinscatter/RandomNG/*.cpp)
 	add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
 
 	#Enable c++11
@@ -1065,7 +1044,7 @@ if(MERLINSCATTER)
 endif()
 
 if(NAFF)
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/SixTrack/cmake_modules/")
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/source/cmake_modules/")
 	if (STATIC)
 		SET(FFTW_USE_STATIC_LIBS 1)
 	endif()
@@ -1075,7 +1054,7 @@ if(NAFF)
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
 	
 	
-	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cpp ${CMAKE_SOURCE_DIR}/SixTrack/naff/*.cc)
+	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
 	target_link_libraries(naff ${FFTW_LIBRARIES})
 	
@@ -1092,21 +1071,15 @@ endif()
 
 
 add_custom_target(copy_input_files)
-add_dependencies(copy_input_files ast_mkdir track_mkdir)
-file(GLOB SIXTRACK_INPUT ${CMAKE_SOURCE_DIR}/SixTrack/*.s90)
+add_dependencies(copy_input_files include_mkdir)
 
-#copy all the input files *.s to our build folder
-foreach(loop IN ITEMS ${SIXTRACK_INPUT})
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR})
-endforeach()
-
-add_custom_target(track_mkdir)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/SixTrack/include/*.f90)
-add_custom_command(TARGET track_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
+add_custom_target(include_mkdir)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
+add_custom_command(TARGET include_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
 foreach(loop IN ITEMS ${SIXTRACK_INCL})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
 endforeach()
-add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/version.f90 ${CMAKE_BINARY_DIR})
+add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
 
 if(BOINC)
 	if(API)
@@ -1145,26 +1118,42 @@ if(BOINC)
 		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 	else()
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/myboinc.f POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/myboinc.f ${CMAKE_BINARY_DIR}/myboinc.f DEPENDS copy_input_files)
+		add_custom_command(
+			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_dummy.f90 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/boinc_dummy.f90 ${CMAKE_BINARY_DIR}/boinc_dummy.f90
+			DEPENDS copy_input_files
+		)
 	endif()
 endif()
 
 if(FLUKA)
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mod_fluka.f90 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/mod_fluka.f90 ${CMAKE_BINARY_DIR}/mod_fluka.f90 DEPENDS copy_input_files)
-	add_subdirectory(${CMAKE_SOURCE_DIR}/SixTrack/FlukaIO)
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mod_fluka.f90 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/mod_fluka.f90 ${CMAKE_BINARY_DIR}/mod_fluka.f90 DEPENDS copy_input_files)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
 	target_link_libraries(SixTrack flukaIO)
 endif(FLUKA)
 
 if(LIBARCHIVE)
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c DEPENDS copy_input_files)
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c DEPENDS copy_input_files)
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/SixTrack/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h DEPENDS copy_input_files)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c
+		DEPENDS copy_input_files
+	)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c
+		DEPENDS copy_input_files
+	)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
+		DEPENDS copy_input_files
+	)
 	
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 	#A very small but convenient test code for debugging libArchive.
-	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/SixTrack/libArchiveTester.cpp)
+	add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchiveTester.cpp)
 	target_link_libraries(libArchiveTester libArchive_wrapper)
 
 	#See also further down for SixTestWrapper linking
@@ -1180,7 +1169,7 @@ if(LIBARCHIVE)
 	find_library(pthread STATIC pthread)
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
-	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/zlib/install/lib/libz.a)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
 	
 	target_link_libraries(SixTrack libarchive z pthread)
 	target_link_libraries(libArchiveTester libarchive z pthread)
@@ -1188,192 +1177,36 @@ if(LIBARCHIVE)
 	add_definitions( -DLIBARCHIVE )
 endif()
 
-#make a folder for the astuce masks and copy the input files to this folder
-add_custom_target(ast_mkdir)
-file(GLOB ASTUCE_MASKS ${CMAKE_SOURCE_DIR}/SixTrack/ast_mask/*.ast)
-add_custom_command(TARGET ast_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ast_mask/)
-foreach(loop IN ITEMS ${ASTUCE_MASKS})
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/ast_mask/ DEPENDS ast_mkdir)
-endforeach()
-
-#We need to build asatuce and dafor before we build SixTrack, but crlibm and so on can be built at the same time.
+#We need to build dafor before we build SixTrack, but crlibm and so on can be built at the same time.
 add_dependencies(SixTrack copy_input_files generate_input)
 
 ###################################################################################################
-#running astuce and dafor
+# Running dafor
 ###################################################################################################
-add_custom_target(run_astuce)
-
-#make running astuce depend on astuce being built and the input files being in place
-add_dependencies(run_astuce astuce astuce_clean_define_flags astuce_clean_decks)
-
-#This target cleans the define flags
-add_custom_target(astuce_clean_define_flags)
-#this requires the input files to be in place
-add_dependencies(astuce_clean_define_flags copy_input_files)
-
-#this target cleans the decks
-add_custom_target(astuce_clean_decks)
-#and requires the define flags to already be cleaned (this is just to stop parallel writes on the same file)
-add_dependencies(astuce_clean_decks astuce_clean_define_flags)
-
-#This macro calls the regex in masks_define_flags.cmake to remove the requested flags
-macro(ast_masks_flag OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_define_flags POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_define_flags.cmake)
-endmacro()
-
-#This macro calls the regex in masks_decks.cmake to remove the requested decks
-macro(ast_masks_deck OPT FILE_NAME)
-	add_custom_command(TARGET astuce_clean_decks POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -DFILE_NAME:FILEPATH=${CMAKE_BINARY_DIR}/ast_mask/${FILE_NAME}.ast -DOPT:STRING=${OPT} -P ${CMAKE_SOURCE_DIR}/SixTrack/masks_decks.cmake)
-endmacro()
-
-foreach(loop IN LISTS FORS_FREEFORM)
-	#Clean up the astuce flags for only what is enabled
-	if(NOT CRLIBM)
-		ast_masks_flag(crlibm ${loop})
-	endif()
-	if(NOT ROUND_NEAR)
-		ast_masks_flag(round_near ${loop})
-	endif()
-	if(NOT ROUND_UP)
-		ast_masks_flag(round_up ${loop})
-	endif()
-	if(NOT ROUND_DOWN)
-		ast_masks_flag(round_down ${loop})
-	endif()
-	if(NOT ROUND_ZERO)
-		ast_masks_flag(round_zero ${loop})
-	endif()
-	if(NOT TILT)
-		ast_masks_flag(tilt ${loop})
-	endif()
-	if(NOT FAST)
-		ast_masks_flag(fast ${loop})
-	endif()
-	if(NOT BEAMGAS)
-		ast_masks_flag(beamgas ${loop})
-	endif()
-	if(NOT COLLIMAT)
-		ast_masks_flag(collimat ${loop})
-	endif()
-	if(NOT CR)
-		ast_masks_flag(cr ${loop})
-	endif()
-	if(NOT BOINC)
-		ast_masks_flag(boinc ${loop})
-	endif()
-	if(NOT NAGFOR)
-		ast_masks_flag(nagfor ${loop})
-	endif()
-	if(NOT BIGNBLZ)
-		ast_masks_flag(bignblz ${loop})
-	endif()
-	if(NOT DEBUG)
-		ast_masks_flag(debug ${loop})
-	endif()
-	if(NOT SPAMMY)
-		ast_masks_flag(spammy ${loop})
-	endif()
-	if(NOT HDF5)
-		ast_masks_flag(hdf5 ${loop})
-	endif()
-	if(NOT FIO)
-		ast_masks_flag(fio ${loop})
-	endif()
-	if(NOT LF95)
-		ast_masks_flag(lf95 ${loop})
-	endif()
-	if(NOT HUGENBLZ)
-		ast_masks_flag(hugenblz ${loop})
-	endif()
-	if(NOT STF)
-		ast_masks_flag(stf ${loop})
-	endif()
-	if(NOT BIGNPART)
-		ast_masks_flag(bignpart ${loop})
-	endif()
-	if(NOT HUGENPART)
-		ast_masks_flag(hugenpart ${loop})
-	endif()
-	if(NOT MERLINSCATTER)
-		ast_masks_flag(merlinscatter ${loop})
-	endif()
-	if(NOT NAFF)
-		ast_masks_flag(naff ${loop})
-	endif()
-
-	if(NOT LIBARCHIVE)
-		ast_masks_flag(libarchive ${loop})
-	endif()
-	if(NOT G4COLLIMAT)
-		ast_masks_flag(g4collimat ${loop})
-	endif()
-	if(NOT FLUKA)
-		ast_masks_flag(fluka ${loop})
-	endif(NOT FLUKA)
-
-	if(NOT ROOT)
-		ast_masks_flag(root ${loop})
-	endif(NOT ROOT)
-
-	#Clean up the astuce decks for only what is enabled
-	if(NOT COLLIMAT)
-		ast_masks_deck(nwrtcoll ${loop})
-	endif()
-	if(NOT DEBUG)
-		ast_masks_deck(dumps ${loop})
-	endif()
-	if(NOT CR)
-		ast_masks_deck(checkpt ${loop})
-	endif()
-
-	#From make_six:
-	#NOTA BENE! Definitions of cernlib and naglib are reversed
-	# in the sense that while a "" null value implies option is ON
-	# the reverse is true for cernlib and naglib
-	if(CERNLIB)
-		ast_masks_deck(plotdumy ${loop})
-	endif()
-	# if(NAGLIB)
-	# 	ast_masks_deck(nagdumy ${loop})
-	# endif()
-endforeach(loop)
 
 add_custom_target(generate_input)
 add_custom_target(run_prepro)
-add_dependencies(run_prepro run_astuce dafor)
-add_dependencies(generate_input run_astuce run_prepro)
+add_dependencies(run_prepro dafor)
+add_dependencies(generate_input run_prepro)
 
 ## Run the preprocessor on all .f90 files and output them to the build directory
 foreach(loop IN ITEMS ${FORS_F90})
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/SixTrack/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 		DEPENDS run_prepro
 	)
 endforeach()
+foreach(loop IN ITEMS ${FORS_DAFOR_F90})
+	add_custom_command(
+		TARGET run_prepro POST_BUILD
+		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
+	)
+endforeach()
 
-## Run ASTUCE and DAFOR to generate Fortran source files ##
-foreach(loop IN LISTS FORS_FREEFORM)
-	message(STATUS "Will run astuce to generate ${loop}n.f using ${loop}.ast")
-	add_custom_command(TARGET run_astuce POST_BUILD COMMAND $<TARGET_FILE:astuce> ${CMAKE_CURRENT_BINARY_DIR}/ast_mask/${loop}.ast)
-	
-	LIST(FIND FORS_DAFOR    ${loop} FORS_DAFOR_LISTINDEX )
-	LIST(FIND FORS_FREEFORM ${loop} FORS_FREEFORM_LISTINDEX )
-	
-	if(${FORS_DAFOR_LISTINDEX} GREATER -1)
-		message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}n.f")
-		add_custom_command(TARGET run_prepro POST_BUILD COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}a.f90 DEPENDS run_astuce)
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log DEPENDS run_prepro)
-		
-	elseif(${FORS_FREEFORM_LISTINDEX} GREATER -1)
-		message(STATUS "Will copy ${loop}n.f to ${loop}.f90")
-		# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${CMAKE_COMMAND} -E copy ${loop}a.f90 ${loop}.f90 DEPENDS run_prepro)
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${loop}n.f90 > ${loop}.f90 DEPENDS run_astuce)
-			
-	else()
-		message(FATAL_ERROR "Error when preprocessing ${loop}: Logic error in CMakeLists.txt.")
-	endif()
+foreach(loop IN LISTS FORS_DAFOR_F90)
+	message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}a.f90")
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log DEPENDS run_prepro)
 endforeach()
 
 ###################################################################################################
@@ -1382,7 +1215,6 @@ endforeach()
 set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/6.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
-#	target_link_libraries(astuce_old ${MSYS_QUADMATH})
 	target_link_libraries(dafor ${MSYS_QUADMATH})
 	target_link_libraries(SixTrack ${MSYS_QUADMATH})
 endif()
@@ -1411,15 +1243,15 @@ if(CERNLIB)
 		add_library(xcb STATIC IMPORTED)
 		add_library(Xdmcp STATIC IMPORTED)
 
-		set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libg2c.a)
-		set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libgraflib.a)
-		set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libgrafX11.a)
-		set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libkernlib_noshift.a)
-		set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libpacklib_noshift.a)
-		set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libX11.a)
-		set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libXau.a)
-		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libxcb.a)
-		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTrack/lib32/libXdmcp.a)
+		set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libg2c.a)
+		set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgraflib.a)
+		set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgrafX11.a)
+		set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libkernlib_noshift.a)
+		set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libpacklib_noshift.a)
+		set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libX11.a)
+		set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXau.a)
+		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libxcb.a)
+		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXdmcp.a)
 
 		find_library(pthread STATIC pthread)
 		find_library(dl STATIC dl)
@@ -1521,9 +1353,9 @@ IF(BUILD_TESTING)
 	INCLUDE(CTest)
 
 	if(SIXDA)
-		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest_da)
+		add_subdirectory(${CMAKE_SOURCE_DIR}/test_da)
 	else()
-		add_subdirectory(${CMAKE_SOURCE_DIR}/SixTest)
+		add_subdirectory(${CMAKE_SOURCE_DIR}/test)
 	endif()
 
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
@@ -1531,19 +1363,19 @@ IF(BUILD_TESTING)
 	#Checks of specialized input/canoncials
 	# Anyway hardcoded to use them from the SixTest source folder...
 	#add_executable(CheckTestInputForBOINC.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
 
 	#add_executable(CheckTestInputForSTF.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/SixTest/CheckTestInputForBOINC.sh)
+	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
 
 	#need to build the testing tools
-	add_executable(verify10 ${CMAKE_SOURCE_DIR}/SixTest/bin/verify10.f90)
-	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf10.f90)
-	add_executable(compf10 ${CMAKE_SOURCE_DIR}/SixTest/bin/compf10.f90)
-	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf110.f90)
-	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/SixTest/bin/checkf1014.f90)
-	add_executable(read90 ${CMAKE_SOURCE_DIR}/SixTest/read90/read90.f90)
-	add_executable(readDump3 ${CMAKE_SOURCE_DIR}/SixTest/readDump3/readDump3.f90)
+	add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/bin/verify10.f90)
+	add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/bin/checkf10.f90)
+	add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/bin/compf10.f90)
+	add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/bin/checkf110.f90)
+	add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/bin/checkf1014.f90)
+	add_executable(read90 ${CMAKE_SOURCE_DIR}/test/read90/read90.f90)
+	add_executable(readDump3 ${CMAKE_SOURCE_DIR}/test/readDump3/readDump3.f90)
 
 	target_link_libraries(read90 roundctl)
 
@@ -1556,7 +1388,7 @@ IF(BUILD_TESTING)
 	SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 	#The testing wrapper
-	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/SixTest/bin/SixTestWrapper.cpp)
+	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/bin/SixTestWrapper.cpp)
 	if (LIBARCHIVE)
 		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z pthread)
 	endif()

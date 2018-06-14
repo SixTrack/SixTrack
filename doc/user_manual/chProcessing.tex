@@ -1,0 +1,490 @@
+
+\chapter{Processing} \label{Proc}
+
+This chapter comprises all the input blocks that do some kind of pre- or post-processing.
+
+% ================================================================================================================================ %
+\section{Linear Optics Calculation} \label{LinOpt}
+
+The linear optics calculation input block is used to make a print-out of all linear parameters (magnet lengths, $\beta$ and $\alpha$ functions, tunes, dispersion and closed orbit) in the horizontal and vertical planes at the end of each element or linear block.
+The number of elements or blocks can be chosen.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{LINE} \\
+    \textbf{Data lines} & $\geq 1$ \\
+    \textbf{Format}     & First line: \texttt{mode num\_blocks ilin ntco E\_I E\_II} \\
+                        & Other lines: \texttt{name(1), \dots , name(nlin)}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.7\linewidth}}
+    \texttt{mode}        & char    & \texttt{ELEMENT} for a printout after each single element (\ref{SinEle}). \\
+                         &         & \texttt{BLOCK} for a printout after each structure block (\ref{BloDef}). \\
+    \texttt{num\_blocks} & integer & The number of the blocks in the structure to which the linear parameter will be printed. If this number is set to zero or is larger than the number of blocks, the complete structure will be calculated. \\
+    \texttt{ilin}        & integer & Logical switch to calculate the traditional linear optics calculation in 4D (\texttt{1 = ilin}) and with the DA approach 6D (\texttt{2 = ilin}). \\
+    \texttt{ntco}        & integer & A switch to write out linear coupling parameters. \\
+                         &         &  \texttt{ntco = 0}: no write-out. \\
+                         &         &  \texttt{ntco $\neq$ 0}: write-out of all linear coupled (4D) parameters including the coupling angle. These parameters (name, longitudinal position, the phase advances at that location, 4   $\beta$-, $\alpha$- and $\gamma$-functions, 4 angles for coordinates and momenta respectively, plus the coupling angle [rad]) are written in ascii format on file \texttt{fort.11}. This write-out happens every \texttt{ntco} turns. \\
+    \texttt{E\_I, E\_II} & floats  & The two eigen-emittances to be chosen to determine the coupling angle. They are typically set to be equal. \\
+    \texttt{names}       & char    & For \texttt{nlin $\leq$ nele} element and block names the linear parameters are printed whenever they appear in the accelerator structure.
+\end{longtabu}
+
+\paragraph{Remarks}
+\begin{itemize}
+    \item To make this block work the Tracking Parameter block (~\ref{TraPar}) has to used as well.
+    \item When the \texttt{ELEMENT 0} option is used, a file \texttt{fort.34} is written with the longitudinal position, name, element type, multipole strength, $\beta$ functions and phase advances in the horizontal and vertical phase space respectively. This file is used as input for the \texttt{SODD} program~\cite{SODD} to calculate de-tuning and distortion terms in first and second order. A full program suite can be found at: /afs/cern.ch/group/si/slap/share/sodd
+    \item If the \texttt{BLOCK} option has been used, the tunes may be wrong by a multiple of 1/2. This option is not active in the DA part (\texttt{2 = ilin}), which also ignores the (\texttt{NTCO}) option.
+\end{itemize}
+
+% ================================================================================================================================ %
+\section{Tune Variation} \label{TunVar}
+
+This input block initializes a tune adjustment with zero length quadrupoles.
+This is normally done with two families of focusing and defocusing quadrupoles.
+It may be necessary, however, to have a fixed phase advance between certain positions in the machine.
+This can be done with this block by splitting the corresponding family into two sub-families which then are adjusted to give the desired phase advance.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{TUNE} \\
+    \textbf{Data lines} & 2 or 4 \\
+    \textbf{Format}     & Line 1: \texttt{name1 Qx iqmod6} \\
+                        & Line 2: \texttt{name2 Qy} \\
+                        & Line 3 (optional): \texttt{name3 $\Delta Q$} \\
+                        & Line 4 (optional): \texttt{name4 name5}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{name1, name2} & char    & Names of focusing and defocusing quadrupole families respectively (in the single element list (~\ref{LinEle}). \\
+    \texttt{Qx, Qy}       & floats  & Horizontal and vertical tune \emph{including} the integer part. \\
+    \texttt{iqmod6}       & integer & Switch to calculate the tunes in the traditional manner (\texttt{1 = iqmod6}) and with the DA approach including the beam-beam kick (\texttt{2 = iqmod6}). FixMe: This is out of date and does not match the source code. \\
+    \texttt{name3}        & char    & Name of the second sub-family, where the first sub-family is one of the above (\texttt{name1} or \texttt{name2}). This second sub-family replaces the elements of the first sub-family between the positions marked by \texttt{name4} and \texttt{name5}. \\
+    \texttt{$\Delta Q$}   & float   & Extra phase advance \emph{including} the integer part (horizontal or vertical depending on the first sub-family) between the positions in the machine marked by \texttt{name4} and \texttt{name5}.\\
+    \texttt{name4, name5} & char    & Two markers in the machine for the phase advance $\Delta Q$ with the elements of the second sub-family between them
+\end{longtabu}
+
+\paragraph{Remarks}~\\
+
+The integer has to be included as the full phase advance around the machine is calculated by the program.
+
+% ================================================================================================================================ %
+\section{Chromaticity Correction} \label{ChrCor}
+
+The chromaticity can be adjusted to desired values with two sextupole family using this input block.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{CHRO} \\
+    \textbf{Data lines} & 2 \\
+    \textbf{Format}     & Line 1: \texttt{name1 $Q'_x$ ichrom} \\
+                        & Line 2: \texttt{name2 $Q'_y$}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{name1, name2} & char    & Names (in the single element list (\ref{NonEle}) of the two sextupole families. \\
+    \texttt{$Q^\prime$}   & float   & Desired values of the chromaticity: $Q^\prime=\frac{\delta Q}{\delta( \frac{\Delta p}{p_o})}$. \\
+    \texttt{ichrom}       & integer & Logical switch to calculate the traditional chromaticity calculation (\texttt{1 = ichrom}) and with the DA approach including the beam-beam kick (\texttt{2 = ichrom}). \\
+\end{longtabu}
+
+\paragraph{Remarks}~\\
+
+To make the chromaticity correction work well a small momentum spread is required (\texttt{DE0} in table (\ref{T-IteErr})).
+It sometimes is required to optimize this spread.
+
+% ================================================================================================================================ %
+\section{Orbit Correction} \label{OrbCorr}
+
+Due to dipole errors in a real accelerator, a closed orbit different from the beam axis is unavoidable.
+Even after careful adjustment, one always will be left over with some random deviation of the closed orbit around the zero position.
+A closed orbit is introduced by non-zero strengths of $b_{1}$ and $a_{1}$ components of the multipole block (\ref{MulCoe}), horizontal and vertical dipole kicks (\ref{NonEle}), or displacements of non-linear elements (\ref{DisEle}).
+This input data block allows the correction of a such a random distributed closed orbit using he first two types in a ``most effective corrector strategy'' \cite{Auti}.
+For that purpose, correctors have to be denoted by \texttt{HCOR=} and \texttt{VCOR=}, and monitors by \texttt{HMON=} and \texttt{VMON=} for the horizontal and vertical plane respectively.
+After correction, the orbit is scaled to the desired r.m.s. values, unless they are zero.
+
+The horizontal orbit displacement, measured at the horizontal monitors, will be written to \texttt{fort.28} -- together with the monitor number, in \texttt{fort.29}. The same is done for the vertical closed orbit displacement. 
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{ORBI} \\
+    \textbf{Data lines} & $\geq 1$ \\
+    \textbf{Format}     & First line: \texttt{sigmax sigmay ncorru ncorrep} \\
+                        & Other lines: \texttt{HCOR=namec}, \texttt{HMON=namem}, \texttt{VCOR=namec} or \texttt{VMON=namem}.\\
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}lp{0.75\linewidth}}
+    \texttt{sigmax, sigmay} & Desired r.m.s.-values of the randomly distributed closed orbit. \\
+    \texttt{ncorru}         & Number of correctors to be used. \\
+    \texttt{ncorrep}        & Number of corrections. \\
+                            & If \texttt{ncorrep=0}, the correction is iterated until \texttt{ITCO} iterations or after the both desired r.m.s.-values have been reached (see table~\ref{T-IteErr}). \\
+    \texttt{HCOR=namec}     & Horizontal correction element of name \texttt{namec}. \\
+    \texttt{HMON=namem}     & Horizontal monitor for the closed orbit of name \texttt{namem}. \\
+    \texttt{VCOR=namec}     & Vertical correction element of name \texttt{namec}. \\
+    \texttt{VMON=namem}     & Vertical monitor for the closed orbit of name \texttt{namem}.
+\end{longtabu}
+
+\paragraph{Remarks}~
+
+\begin{itemize}
+    \item Elements can have only one extra functionality: either horizontal corrector, horizontal monitor, vertical corrector or   vertical monitor. If the number of monitors in a plane is smaller than the number of correctors it is likely to encounter numerical problems.
+    \item The \texttt{HCOR=}, \texttt{HMON=}, \texttt{VCOR=}, and \texttt{VMON=} must be separated from the following name by at least one space.
+\end{itemize}
+
+% ================================================================================================================================ %
+\section{Decoupling of Motion in the Transverse Planes} \label{LinDec} 
+
+Skew-quadrupole components in the lattice create a linear coupling between the transverse planes of motion.
+A decoupling can be achieved with this block using four independent families of skew-quadrupoles, which cancel the off-diagonal parts of the transfer map.
+As these skew-quadrupoles also influence the tunes an adjustment of the tunes is performed at the same time.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{DECO} \\
+    \textbf{Data lines} & 3 \\
+    \textbf{Format}     & Line 1: \texttt{name1,name2,name3,name4} \\
+                        & Line 2: \texttt{name5 Qx} \\
+                        & Line 3: \texttt{name6 Qy}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}llp{0.70\linewidth}}
+    \texttt{name1,2,3,4} & char   & Names of the four skew-quadrupole families. \\
+    \texttt{name5,6}     & char   & Names of focusing and defocusing quadrupole families respectively (in the single element list (\ref{LinEle}). \\
+    \texttt{Qx, Qy}      & floats & Horizontal and vertical tune \emph{including} the integer part.
+\end{tabular}
+
+\paragraph{Remarks}~\\
+
+A decoupling can also be achieved by compensating skew-resonances (\ref{ResCom}).
+The two approaches, however, are not always equivalent.
+In the resonance approach the zeroth harmonic is compensated, whilst a decoupling also takes into account the higher order terms.
+
+% ================================================================================================================================ %
+\section{Sub-Resonance Calculation} \label{SubCal}
+
+First order resonance widths of multipoles from second to ninth order are calculated following the approach of Guignard \cite{Gilbert78}.
+This includes resonances, which are a multiple of two lower than the order of the multipole.
+The first order detuning including feed-down from closed orbit is calculated from all multipoles up to to tenth order.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{SUBR} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & \texttt{n1 n2 Qx Qy Ax Ay Ip length}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.75\linewidth}}
+    \texttt{n1, n2} & integers & Lowest and highest order of the resonance. \\
+    \texttt{Qx, Qy} & floats   & Horizontal and vertical tune including the integer part. \\
+    \texttt{Ax, Ay} & floats   & Horizontal and vertical amplitudes in mm. \\
+    \texttt{Ip}     & integer  & Is a switch to change the nearest distance to the resonance \mbox{$e = nxQx + nyQy$.} In cases of structure resonances a change of $p$ by one unit may be useful. \\
+                    &          & \texttt{ip = 0}: $e$ is unchanged. \\
+                    &          & \texttt{ip = 1}: \mbox{$(e \pm 1) = nxQx + nyQy - (p \pm 1)$}. \\
+    \texttt{length} & float    & Length of the accelerator in meters
+\end{longtabu}
+
+% ================================================================================================================================ %
+\section{Search for Optimum Places to Compensate Resonances} \label{SeaPla}
+
+To be able to compensate a specific resonance, one has to know how a correcting multipole affects the cosine and sine like terms of the resonance width at a given position in the ring.
+This input data block can be used to find best places for the compensation of up to three different resonances, by calculating the contribution to the resonance width for a variable number of positions.
+For each position, the effect of a fixed and small change of magnetic strength on those resonance widths is tested.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{SEAR} \\
+    \textbf{Data lines} & $\geq 2$ \\
+    \textbf{Format}     & Line 1: \texttt{Qx Qy Ax Ay length} \\
+                        & Line 2: \texttt{npos n ny1 ny2 ny3 ip1 ip2 ip3} \\
+                        & Other lines: \texttt{name1, \dots , namen}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{Qx, Qy}      & floats   & Horizontal and vertical tune including the integer part. \\
+    \texttt{Ax, Ay}      & floats   & Horizontal and vertical amplitudes in mm. \\
+    \texttt{length}      & float    & Length of the accelerator in m. \\
+    \texttt{npos}        & integer  & Number of positions to be checked. \\
+    \texttt{n}           & integer  & Order of the resonance. \\
+    \texttt{ny1,ny2,ny3} & integers & Define three resonances of order $n$ via: \\
+                         &          & \mbox{$nx Qx + ny Qy = p$} with \mbox{$\vert nx \vert + \vert ny \vert = n$}. \\
+    \texttt{ip1,ip2,ip3} & integers & The distance to a resonance is changed by an integer $ip$ for each of the three resonances: \\
+                         &          & \mbox{$e = nx Qx + ny Qy - (p + ip) $.} \\
+    \texttt{namei}       & char     & The i-th name of a multipole of order $n$, which has to appear in the single element list (\ref{NonEle}).
+\end{longtabu}
+
+% ================================================================================================================================ %
+\section{Resonance Compensation} \label{ResCom}
+
+The input block allows the compensation of up to three different resonances of order $n$ simultaneously.
+The chromaticity and the tunes can be adjusted.
+For mostly academic interest, there is also the possibility to consider sub-resonances, which come from multipoles, which are a multiple of 2 larger than the resonance order $n$.
+However, it must be stated that the sub-resonances depend differently on the amplitude compared to resonances where the order of the resonances is the same as that of the multipoles.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{RESO} \\
+    \textbf{Data lines} & 6 \\
+    \textbf{Format}     & Line 1: \texttt{nr n ny1 ny2 ny3 ip1 ip2 ip3} \\
+                        & Line 2: \texttt{nrs ns1 ns2 ns3} \\
+                        & Line 3: \texttt{length Qx Qy Ax Ay} \\
+                        & Line 4: \texttt{name1, \dots, name6} \\
+                        & Line 5: \texttt{nch name7 name8} \\
+                        & Line 6: \texttt{nq name9 name10 Qx0 Qy0}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{nr}          & integer  & Number of resonances (0 to 3). \\
+    \texttt{n}           & integer  & Order of the resonance, which is limited to \texttt{nrco= 5} (see list of parameters in Appendix~\ref{DSP}). \mbox{normal: $3 \le n \le nrco$; skew: $2 \le n \le nrco$}. \\
+    \texttt{ny1,ny2,ny3} & integers & Define three resonances of order $n$ via: \mbox{$nx Qx + ny Qy = p$} with \mbox{$\vert nx \vert + \vert ny \vert = n$}. \\
+    \texttt{ip1,ip2,ip3} & integers & The distance to the resonance $e$ can be changed by an integer value: \mbox{$e = nx Qx + ny Qy - (p+ip)$.} \\
+    \texttt{nrs}         & integer  & Number of sub-resonances (0 to 3). \\
+    \texttt{ns1,ns2,ns3} & integers & Order of the multipole with \mbox{$ns \le 9$} and \mbox{$(ns-n)/2 \in {\mathbf N}$}. \\
+    \texttt{length}      & float    & Length of the machine in meters. \\
+    \texttt{Qx, Qy}      & floats   & Horizontal and vertical tune including the integer part. \\
+    \texttt{Ax, Ay}      & floats   & Horizontal and vertical amplitudes in mm. \\
+    \texttt{name1-6}     & char     & Names (\ref{NonEle}) of the correction multipoles for the first, second and third resonance. \\
+    \texttt{nch}         & integer  & Switch for the chromaticity correction (0 = off, 1 = on). \\
+    \texttt{name7,8}     & char     & Names (\ref{NonEle}) of the families of sextupoles to correct the chromaticity. \\
+    \texttt{nq}          & integer  & Switch for the tune adjustment (0 = off, 1 = on). \\
+    \texttt{name9,10}    & char     & Names (\ref{LinEle}) of the families of quadrupoles to adjust the tune. \\
+    \texttt{Qx0, Qy0}    & floats   & Desired tune values including the integer part.
+\end{longtabu}
+
+% ================================================================================================================================ %
+\section{Differential Algebra} \label{DifAlg}
+
+This input block initiates the calculation of a one turn map using the LBL Differential Algebra package~\cite{DALIE}.
+The use of this block inhibits post-processing.
+The same differential algebra tools allow a subsequent normal form analysis (see \cite{Forest89}).
+A four-dimensional version integrated in SixTrack is available as described in sections~\ref{Normal} and~\ref{Corrections}.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{DIFF} \\
+    \textbf{Data lines} & 1 or 2 \\
+    \textbf{Format}     & Line 1: \texttt{nord nvar preda nsix ncor} \\
+                        & Line 2: \texttt{name(1),\ldots,name(ncor)}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.7\linewidth}}
+    \texttt{nord}    & integer & Order of the map. \\
+    \texttt{nvar}    & integer & Number of the variables (2 to 6).\\
+                     &         & \texttt{nvar = 2,4,6}: two- and four-dimensional transverse motion and full six-dimensional phase space respectively. \\
+                     &         & \texttt{nvar = 5}: four-dimensional transverse motion plus the relative momentum deviation \mbox{$\frac{\Delta p}{p_o}$} as a parameter. \\
+    \texttt{preda}   & float   & Precision needed by the DA package, usually set to \mbox{\texttt{preda= 1e-38}}. \\
+    \texttt{nsix}    & integer & Switch to calculate a $5 \times 6$ instead of a $6 \times 6$ map. This saves computational time and memory space, as the machine can be treated up to the cavity as five-dimensional (constant momentum ). \\
+                     &         & \texttt{nsix = 0}: $6 \times 6$ map. \\
+                     &         & \texttt{nsix = 1}: $5 \times 6$ map. \\
+                     &         & (\texttt{\em nvar} must be set to 6; 6D closed orbit must not be calculated, i.e. \mbox{\texttt{iclo6 = 0}}~(\ref{IniCoo}) and the map calculation is stopped once a cavity has been reached and being    evaluated.) \\
+    \texttt{ncor}    & integer & Number of zero-length elements to be additional parameters besides the transverse and/or longitudinal coordinates (i.e.~two-, four-, five- or six-dimensional phase space). \\
+    \texttt{name(i)} & char    & \texttt{Ncor} names (\ref{NonEle}) of zero-length elements (e.g dipole kicks, quadrupole kicks,   sextupoles kicks etc.)
+\end{longtabu}
+
+\paragraph{Remarks}~
+\begin{itemize}
+    \item For \texttt{nsix = 1}, the map can only be calculated till a cavity is reached.
+    \item If the 6D closed orbit is calculated, the $5 \times 6$ map cannot be done. \texttt{nsix} is therefore forced to 0.
+    \item If \texttt{nvar} is set to 5, the momentum dependence is determined without the need for including a fake cavity. With other words: the linear blocks are automatically broken up into single linear elements so that the momentum dependence can be calculated.
+    \item If a DA map is needed at some longitudinal location, one just has to introduce an element denoted \texttt{DAMAP} at that place in the structure, \texttt{DAMAP} has also to appear as a marker (zero length, element type = 0) in the single element list (\ref{NonEle}). This extra map is written to file \texttt{fort.17}.
+\end{itemize}
+
+% ================================================================================================================================ %
+\section{Normal Forms} \label{Normal}
+
+All the parameters to compute the Normal Form of a truncated one turn map are given in the \textit{Normal Form} input block.
+Details on these procedures including the next block~\ref{Corrections} can be found in reference \cite{Massimo}.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{NORM} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & \texttt{nord nvar}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{nord} & integer & Order of the Normal Form. \\
+    \texttt{nvar} & integer & Number of variables.
+\end{tabular}
+
+\paragraph{Remarks}~
+\begin{itemize}
+    \item The \textit{Normal Form} input block has to be used in conjunction with the \textit{Differential Algebra} input block that computes the one turn map of the accelerator.
+    \item The value of the parameter \texttt{nord} should not exceed the order specified for the transfer map plus one.
+    \item The value of the parameter \texttt{nvar} should be equal to the number of coordinates used to compute the map plus eventually the number of correctors specified in the \textit{Differential Algebra} input block.
+    \item the value $1$ for the off-momentum order is forbidden. This case corresponds to the linear chromaticity correction. It is in fact corrected by default when $par1 =1$ or $par2 =2$.
+\end{itemize}
+
+% ================================================================================================================================ %
+\section{Corrections} \label{Corrections}
+
+All the parameters to optimise the tune-shift using a set of correctors are given in the \textit{Correction} input block.
+For details see reference \cite{Massimo}.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{CORR} \\
+    \textbf{Data lines} & 3 \\
+    \textbf{Format}     & Line 1: \texttt{ctype ncor} \\
+                        & Line 2: \texttt{name(1),\ldots,name(ncor)} \\
+                        & Line 3: \texttt{par1,\ldots,par5}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.7\linewidth}}
+    \texttt{ctype}   & integer & Correction type: \\
+                     &         & \texttt{ctype = 0}: order-by-order correction. \\
+                     &         & \texttt{ctype = 1}: global correction. \\
+    \texttt{ncor}    & integer & Number of zero-length elements to be used as correctors in the optimisation of the tune-shift. \\
+    \texttt{name(i)} & char    & \texttt{Ncor} names of zero-length elements (e.g sextupoles kicks, octupoles kicks etc.). \\
+    \texttt{par1-5}  &         & Parameters for the correction. Their meaning depend on the value of \texttt{ctype} and is  explained in Table \ref{tab:CORR}. \\
+\end{longtabu}
+
+\begin{table}[h]
+\begin{center}
+    \caption{Tune-shift correction parameters}
+    \label{tab:CORR}
+    \begin{tabular}{|l|p{2cm}|p{2.6cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|}
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Variable} & \texttt{par1} & \texttt{par2} & \texttt{par3} & \texttt{par4} & \texttt{par5} \\
+    \hline
+    
+    \rowcolor{blue!15}
+    \textbf{Type} & integer & integer & real & real & real \\
+    \hline
+    
+    \texttt{ctype = 0} & tune-shift order $\leq 2$ & off-momentum order $\leq 3$ & 0.0 & 0.0 & 0.0 \\
+    \hline
+    
+    \texttt{ctype = 1} & $N_{min}\geq 2$ & $N_{max}\leq 3$ & $\alpha_H$ & $\alpha_V$ & $\delta_0 $ \\
+    \hline
+    \end{tabular}
+\end{center}
+\end{table}
+
+\paragraph{Remarks}~
+\begin{itemize}
+    \item The names of the elements specified in the \textit{Correction} input block should be grouped according to the multipole type: first sextupoles, then octupoles $\ldots$ etc.
+    \item In case of order-by-order corrections, at least one of the quantities \texttt{par1}, \texttt{par2} has to be zero, i.e.\ the correction of tune-shift terms depending on both amplitude and momentum is not allowed (as stated in the previous section).
+\end{itemize}
+
+% ================================================================================================================================ %
+\section{Post-Processing} \label{PosPro}
+
+It has been seen in the past that the tracking data hold a large amount of information which should be extracted for a thorough understanding of the nonlinear motion.
+It is therefore necessary to store the tracking data turn by turn and post-process it after the tracking has been finished.
+The following quantities are calculated:
+
+\begin{enumerate}
+    \item \textbf{Lyapunov exponent analysis:} This allows to decide if the motion is of regular or chaotic nature, and, in the latter case, that the particle will ultimately be lost. This is done with the following procedure:
+    \begin{enumerate}
+        \item Start the analysis where the distance in phase space of the two particles reaches its minimum.
+        \item Study the increase in a double logarithmic scale so that the slope in a regular case is always one, while a exponential increase stays exponential when we have chaos.
+        \item Average the distance in phase space to reduce local fluctuations, as we are interested in a long range effect.
+        \item Make a weighted linear fit with an increasing number of averaged values of distance in phase space, so that an exponential increase results in a slope that is larger than one and is increasing. (The weighting stresses the importance of values at large turn numbers).
+    \end{enumerate}
+    \item \textbf{Analysis of the tunes:} This is done either by the averaged phase advance method leading to very precise values of the horizontal and vertical tunes. An FFT analysis is also done. With the second method, one can evaluate the relative strength of resonances rather than achieve a precise tune measurement. In both cases, the nearby resonances are determined.
+    \item \textbf{Smear:} The smear of the horizontal and vertical emittances, and the sum of the emittances, are calculated in case of linearly coupled and un-coupled motion.
+    \item \textbf{Nonlinear Invariants:} A rough estimate of the nonlinear invariants are given.
+    \item \textbf{Plotting:} The processed tracking data can be plotted in different ways:
+    \begin{enumerate}
+        \item The distance of phase space as a function of amplitude.
+        \item Phase space plots.
+        \item Stroboscoped phase space.
+        \item FFT amplitudes.
+    \end{enumerate}
+    \item \textbf{Summary:} The post-processing results for a complete tracking session with varying initial parameters are summarised in a table at the end of the run.
+\end{enumerate}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{POST} \\
+    \textbf{Data lines} & 4 \\
+    \textbf{Format}     & Line 1: \texttt{comment title} \\
+                        & Line 2: \texttt{iav nstart nstop iwg dphix dphiy iskip iconv imad cma1 cma2} \\
+                        & (general parameters) \\
+                        & Line 3: \texttt{Qx0 Qy0 ivox ivoy ires dres ifh dfft} \\
+                        & (parameters for the tune calculation) \\
+                        & Line 4: \texttt{kwtype itf icr idis icow istw iffw nprint ndafi} \\
+                        & (integer parameters for the plotting)
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{iav}          & integer  & Averaging interval of the values of the distance in phase space. Typically a tenth of the total turn number should be used as this interval. \\
+    \texttt{nstart,nstop} & integers & Start and stop turn number for the analysis of the post-processing (0 0 = all data used). \\
+    \texttt{iwg}          & integer  & Switch for the weighting of the slope calculation of the distance in phase space (0 = off, 1 = on). \\
+    \texttt{dphix,dphiy}  & floats   & Horizontal and vertical angle interval in radians that is used to stroboscope phase space. This stroboscoping of one of the two phase space projections is done by restricting the angle in the other phase space respectively to lie inside $\pm$ \texttt{dphix} or $\pm$ \texttt{dphiy}. \\
+    \texttt{iskip}        & integer  & This parameter allows to reduce the number of  data to be processed: only each \texttt{iskip} sample of data will be used. \\
+    \texttt{iconv}        & integer  & If \texttt{iconv} is set to 1, the tracking data are not normalised linearly. Sometimes it is necessary to compare normalised to unnormalised data as the later will be found in the real machine. \\
+    \texttt{imad}         & integer  & This parameters is useful when Mad-X data shall be analysed (\texttt{imad} set to one). \\
+    \texttt{cma1,cma2}    & floats   & To improve the Lyapunov analysis for Mad-X data, and in the case that the motion is 6D but the 6D closed orbit is not calculated the off-momentum and the path-length difference ($\sigma = s - v_o \times t$) can be scaled with \texttt{cma1} and \texttt{cma2} respectively (see also~\ref{SynOsc}). Please set both to 1. when the 6D closed orbit is calculated. \\
+    \texttt{Qx0, Qy0}     & floats   & Values of the horizontal and vertical tune respectively (integer part) to be added to the averaged phase advance and to the $Q$ values of the FFT analysis. \\
+    \texttt{ivox, ivoy}   & integers & The tunes from the average phase advance are difficult to be calculated when this phase advance is strongly changing from turn to turn and when the tune is close to 0.5, as then the phase may become negative leading to a deviation of one unit. This problem can partly be overcome by setting these switches in the following way: \\
+                          &          & tune close to an integer: \texttt{ivox, ivoy = 1}. \\
+                          &          & tune close to half an integer: \texttt{ivox, ivoy = 0}. \\
+    \texttt{ires, dres}   & int,float& For the calculated tune values from the average phase advance method and the FFT-routine the closest resonances are searched up to \texttt{ires}'th order and inside a maximum distance to the resonance \texttt{dres}, so that \mbox{$nx Qx + ny Qy < dres $ and $ nx + ny \le ires $.} \\
+    \texttt{ifh, dfft}    & int,float& For the FFT analysis, the tune interval can be chosen with \texttt{ifh}. To find resonances with the FFT spectrum, all peaks below a fraction \texttt{dfft} of the maximum peak are accepted. \\
+                          &          & \texttt{ifh = 0}: $0 \le Q \le 1$. \\
+                          &          & \texttt{ifh = 1}: $0 \le Q \le 0.5$. \\
+                          &          & \texttt{ifh = 2}: $0.5 \le Q \le 1$. \\
+    \texttt{kwtype}       & integer  & \textcolor{notered}{Disabled, set to 0.} \\
+                          &          & Terminal type, e.g. 7878 for the Pericom graphic terminals. For details, consult the HPLOT manual \cite{HPLOT}. \\
+    \texttt{itf}          & integer  & Switch to get PS file of plots: \\
+                          &          & \texttt{itf = 0}: off \\
+                          &          & \texttt{itf = 1}: on \\
+    \texttt{icr}          & integer  & \textcolor{notered}{Disabled, set to 0} \\
+                          &          & Switch to stop after each plot (0 = no stop, 1 = stop after each plot). \\
+    \texttt{idis, icow}   & integers & Switches (0 = off) to select the different plots. If all values are set \\
+    \texttt{istw, iffw}   &          & to zero, the HBOOK/HPLOT routine will not be called. \\
+                          &          & \texttt{idis = 1}: plot of distance in phase space. \\
+                          &          & \texttt{icow = 1}: a set of plots of projections of the six-dimensional phase space and the energy E versus the turn number. \\
+                          &          & \texttt{istw = 1}: plot of the stroboscoped phase space projection by restricting the phase in the other phase space projection. \\
+                          &          & \texttt{iffw = 1}: plots of the horizontal and vertical FFT spectrum with linear amplitude scale. \\
+                          &          & \texttt{iffw = 2}: plots of the horizontal and vertical FFT spectrum with logarithmic amplitude scale. \\
+    \texttt{nprint}       & integer  & Switch to stop the printing of the post-processing output to unit 6 (0 = printing off, 1 = printing on). \\
+    \texttt{ndafi}        & integer  & Number of data files to be processed. Units from $90$ to $90 - \mbox{ndafi} + 1$.
+\end{longtabu}
+
+\paragraph{Remarks}~
+\begin{enumerate}
+    \item The post-processing can be done in two ways:
+    \begin{enumerate}
+        \item directly following a tracking run by adding this input block to the input blocks of the tracking,
+        \item as a later run where the tracking parameter file \texttt{fort.3} consists of only the \textit{Program Version} input   block~\ref{ProVer} (using the \texttt{FREE} option) and of this input block specifying the post-processing parameters followed by \texttt{ENDE} as usual.
+    \end{enumerate}
+    \item The HBOOK/HPLOT routines are only used at the start of the main program for initialisation and termination. The actual plots are done in the post-processing subroutine. The routines are activated only if at least one of the plotting parameters (\texttt{idis, icow, istw, iffw}) is set to one.
+\end{enumerate}
+

@@ -4,40 +4,33 @@
 *.exe
 
 # SixTest
-SixTest/*/*.run_pro*
-SixTest/*/*.run_kill*
-SixTest/run_pro_*
-SixTest/run_kill_*
+test/*/*.run_pro*
+test/*/*.run_kill*
+test/run_pro_*
+test/run_kill_*
 
 # Builds
-SixTrack/Makefile
-SixTrack/Makefile_makesix
-SixTrack/SixTrack_*
-SixTrack/SixTrack
-SixTrack/astuce
-SixTrack/dafor
+source/libarchive_build
+source/zlib/build
+source/zlib/install
 
-SixTrack/libarchive_build
-SixTrack/zlib/build
-SixTrack/zlib/install
-
-SixTrack/count.log
+source/count.log
 
 # Custom Build Folders
 build*
 Build*
 
 # LaTeX
-Doc/html
-Doc/*/*.pdf
-Doc/*/*.aux
-Doc/*/*.log
-Doc/*/*.lot
-Doc/*/*.out
-Doc/*/*.toc
-Doc/*/*.bbl
-Doc/*/*.blg
-Doc/*/*.synctex.gz
+doc/html
+doc/*/*.pdf
+doc/*/*.aux
+doc/*/*.log
+doc/*/*.lot
+doc/*/*.out
+doc/*/*.toc
+doc/*/*.bbl
+doc/*/*.blg
+doc/*/*.synctex.gz
 
 # Python
 *.pyc

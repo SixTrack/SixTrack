@@ -1,5 +1,0 @@
-aperture.s90 sixtrack.s90 collimation.s90
-aperturen.f90
-df fluka,root,collimat
-e aperture
-ex
