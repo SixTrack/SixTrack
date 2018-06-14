@@ -55,7 +55,7 @@ module parpro
 
   integer, parameter :: nele_initial = 50   ! Must be at least 1
   integer, parameter :: nblo_initial = 50   ! Must be at least 1
-  integer, parameter :: nblz_initial = 15000 ! Must be at least 1
+  integer, parameter :: nblz_initial = 1000 ! Must be at least 1
   integer :: nele = -1
   integer :: nblo = -1
   integer :: nblz = -1
@@ -388,7 +388,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
 
   use mod_alloc
   use string_tools
-  use numerical_constants, only : zero
+  use numerical_constants, only : zero,one
 
   implicit none
 
@@ -459,7 +459,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
   call alloc(icextal,                  nblz_new,       0,           "icextal")
   call alloc(exterr,                   nblz_new, 40,   zero,        "exterr")
   call alloc(extalign,                 nblz_new, 3,    zero,        "extalign")
-  call alloc(tiltc,                    nblz_new,       zero,        "tiltc")
+  call alloc(tiltc,                    nblz_new,       one,         "tiltc")
   call alloc(tilts,                    nblz_new,       zero,        "tilts")
   call alloc(xsi,                      nblz_new,       zero,        "xsi")
   call alloc(zsi,                      nblz_new,       zero,        "zsi")

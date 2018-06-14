@@ -607,7 +607,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
     end if
 
     sixin_nStru = sixin_nStru + 1
-    if(sixin_nStru > nblz-2) then
+    if(sixin_nStru > nblz-3) then
       call expand_arrays(nele,npart,nblz+1000,nblo)
     end if
 
@@ -628,7 +628,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end do
 
   mbloz = sixin_nStru
-  if(mbloz > nblz-2) then
+  if(mbloz > nblz-3) then
     call expand_arrays(nele,npart,nblz+1000,nblo)
   end if
 

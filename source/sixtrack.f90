@@ -6917,64 +6917,6 @@ subroutine comnul
          call SELNUL(i)
       end do
 
-!--NUMBER OF BLOCKS-----------------------------------------------------
-      do i=1,nblo
-        mel(i)=0
-        mstr(i)=0
-        elbe(i)=zero
-        bezb(i)=' '
-
-        do i1=1,2
-          do i2=1,6
-            bl1(i,i1,i2)=zero
-            bl2(i,i1,i2)=zero
-          end do
-        end do
-
-        do j=1,nelb
-          mtyp(i,j)=0
-        end do
-      end do
-
-!--# OF STRUCTURE ELEMENTS----------------------------------------------
-      do i=1,nblz
-        ic(i)=0
-        mzu(i)=0
-        icext(i)=0
-        icextal(i)=0
-        extalign(i,1)=zero
-        extalign(i,2)=zero
-        extalign(i,3)=zero
-        sigmoff(i)=zero
-        tiltc(i)=one
-        tilts(i)=zero
-
-!--Beam-Beam------------------------------------------------------------
-        imbb(i)=0               !Mapping from a STRUCTURE ELEMENT (here: index i)
-                                ! to the beam-beam tables (arrays with size nbb)
-!--Other stuff (not beam-beam)...
-        do j=1,40
-          exterr(i,j)=zero
-          xsi(i)=zero
-          zsi(i)=zero
-          smi(i)=zero
-          smizf(i)=zero
-
-          do i1=1,mmul
-            aai(i,i1)=zero
-            bbi(i,i1)=zero
-          end do
-
-          do i3=1,mmul
-            do i2=1,nmac
-              aaiv(i3,i2,i)=zero
-              bbiv(i3,i2,i)=zero
-            end do
-          end do
-
-        end do
-      end do
-
 !-- BEAM-EXP------------------------------------------------------------
       beam_expflag = 0
       beam_expfile_open = .false.
