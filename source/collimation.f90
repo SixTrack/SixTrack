@@ -253,7 +253,6 @@ module collimation
   integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
 !  common /counting/ counted_r,counted_x,counted_y
 
-  integer, save ::   samplenumber
   character(len=4), save :: smpl
   character(len=80), save :: pfile
 !  common /samplenumber/ pfile,smpl,samplenumber
@@ -1717,7 +1716,6 @@ subroutine collimate_start_sample(nsample)
 #endif
 
   j = nsample
-  samplenumber=j
 
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
@@ -1767,35 +1765,15 @@ subroutine collimate_start_sample(nsample)
   if (dowritetracks) then
 !GRD SPECIAL FILE FOR SECONDARY HALO
     if(cern) then
-      read(samplenumber,*) smpl
+      smpl = '1'
 
       pfile(1:8) = 'tracks2.'
+      pfile(9:9) = smpl
+      pfile(10:13) = '.dat'
 
-      if(samplenumber.le.9) then
-        pfile(9:9) = smpl
-        pfile(10:13) = '.dat'
-      else if(samplenumber.gt.9.and.samplenumber.le.99) then
-        pfile(9:10) = smpl
-        pfile(11:14) = '.dat'
-      else if(samplenumber.gt.99.and.samplenumber.le.int(mynp/napx00)) then
-        pfile(9:11) = smpl
-        pfile(12:15) = '.dat'
-      end if
+      call funit_requestUnit(pfile(1:13), tracks2_unit)
+      open(unit=tracks2_unit,file=pfile(1:13))
 
-      if(samplenumber.le.9) then
-        call funit_requestUnit(pfile(1:13), tracks2_unit)
-        open(unit=tracks2_unit,file=pfile(1:13))
-      end if
-
-      if(samplenumber.gt.9.and.samplenumber.le.99) then
-        call funit_requestUnit(pfile(1:14), tracks2_unit)
-        open(unit=tracks2_unit,file=pfile(1:14))
-      end if
-
-      if(samplenumber.gt.99.and. samplenumber.le.int(mynp/napx00)) then
-        call funit_requestUnit(pfile(1:15), tracks2_unit)
-        open(unit=tracks2_unit,file=pfile(1:15))
-      end if
     else
       call funit_requestUnit('tracks2.dat', tracks2_unit)
       open(unit=tracks2_unit,file='tracks2.dat') !was 38

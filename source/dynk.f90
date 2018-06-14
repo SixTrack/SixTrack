@@ -2310,12 +2310,10 @@ subroutine dynk_apply(turn)
     ! Temp variable for padding the strings for output to dynksets.dat
     character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
 
+    integer, parameter :: samplenumber = 1
+
     if ( ldynkdebug ) then
-#ifdef COLLIMAT
-      write (lout,*) 'DYNKDEBUG> In dynk_apply(), turn = ',turn, "samplenumber =", samplenumber
-#else
       write (lout,*) 'DYNKDEBUG> In dynk_apply(), turn = ',turn
-#endif
     end if
 
     ! Initialize variables (every call)
