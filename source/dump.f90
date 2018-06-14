@@ -53,12 +53,12 @@ module dump
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
-  real(kind=fPrec), save :: dumptas (-1:nblz,6,6)
+  real(kind=fPrec), allocatable, save :: dumptas(:,:,:)    ! (-1:nblz,6,6)
   ! inverse matrix of dumptas
-  real(kind=fPrec), save :: dumptasinv (-1:nblz,6,6)
+  real(kind=fPrec), allocatable, save :: dumptasinv(:,:,:) ! (-1:nblz,6,6)
   ! closed orbit used for normalisation of phase space
   ! TODO: check units used in dumpclo; is x' or px used?
-  real(kind=fPrec), save :: dumpclo (-1:nblz,6)
+  real(kind=fPrec), allocatable, save :: dumpclo(:,:)      ! (-1:nblz,6)
 
 #ifdef HDF5
   ! Array to save hdf5 formats for each dump format
@@ -77,49 +77,30 @@ module dump
 contains
 
 ! ================================================================================================================================ !
-subroutine dump_allocate_arrays
+subroutine dump_expand_arrays(nele_new, nblz_new)
 
-  use crcoall
+  use numerical_constants, only : zero
+  
   implicit none
-  integer :: stat
-
-  call alloc(ldump,nele,.FALSE.,'ldump',-1)
-  call alloc(ndumpt,nele,0,'ndumpt',-1)
-  call alloc(dumpfirst,nele,0,'dumpfirst',-1)
-  call alloc(dumplast,nele,0,'dumplast',-1)
-  call alloc(dumpunit,nele,0,'dumpunit',-1)
-  call alloc(dumpfmt,nele,0,'dumpfmt',-1)
-  call alloc(dump_fname,str_maxLen,nele,str_dZeros,'dump_fname',-1)
-
-#ifdef CR
-  call alloc(dumpfilepos,nele,-1,'dumpfilepos',-1)
-  call alloc(dumpfilepos_cr,nele,-1,'dumpfilepos_cr',-1)
-#endif
-
-#ifdef HDF5
-  call alloc(dump_hdf5Format,9,0,"dump_hdf5Format",0)
-  call alloc(dump_hdf5DataSet,nele,0,"dump_hdf5Format",-1)
-#endif
-
-end subroutine dump_allocate_arrays
-
-subroutine dump_expand_arrays(nele_new)
-
-  use crcoall
-  implicit none
+  
   integer, intent(in) :: nele_new
+  integer, intent(in) :: nblz_new
 
-  call resize(ldump,nele_new,.FALSE.,'ldump',-1)
-  call resize(ndumpt,nele_new,0,'ndumpt',-1)
-  call resize(dumpfirst,nele_new,0,'dumpfirst',-1)
-  call resize(dumplast,nele_new,0,'dumplast',-1)
-  call resize(dumpunit,nele_new,0,'dumpunit',-1)
-  call resize(dumpfmt,nele_new,0,'dumpfmt',-1)
-  call resize(dump_fname,str_maxLen,nele_new,str_dZeros,'dump_fname',-1)
+  call alloc(ldump,                  nele_new, .false.,    "ldump",      -1)
+  call alloc(ndumpt,                 nele_new, 0,          "ndumpt",     -1)
+  call alloc(dumpfirst,              nele_new, 0,          "dumpfirst",  -1)
+  call alloc(dumplast,               nele_new, 0,          "dumplast",   -1)
+  call alloc(dumpunit,               nele_new, 0,          "dumpunit",   -1)
+  call alloc(dumpfmt,                nele_new, 0,          "dumpfmt",    -1)
+  call alloc(dump_fname, str_maxLen, nele_new, str_dZeros, "dump_fname", -1)
+  
+  call alloc(dumptas,                nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
+  call alloc(dumptasinv,             nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
+  call alloc(dumpclo,                nblz_new, 6,    zero, "dumpclo",    -1,1)
 
 #ifdef CR
-  call resize(dumpfilepos,nele_new,-1,'dumpfilepos',-1)
-  call resize(dumpfilepos_cr,nele_new,-1,'dumpfilepos_cr',-1)
+  call alloc(dumpfilepos,nele_new,-1,'dumpfilepos',-1)
+  call alloc(dumpfilepos_cr,nele_new,-1,'dumpfilepos_cr',-1)
 #endif
 
 #ifdef HDF5

@@ -148,7 +148,8 @@ subroutine daten
 
   dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
-  dimension extaux(40),bezext(nblz)
+  dimension extaux(40)
+  dimension bezext(100000) ! FIXME: Must be made dynamic to (nblz) when moved to mod_fluc
   data ende,next,fluc,iter,line,diff /'ENDE','NEXT','FLUC','ITER','LINE','DIFF'/
   data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
@@ -2306,10 +2307,8 @@ subroutine daten
         if(nre.eq.1.and.k.lt.3.and.abs(kz(j)).ne.npp) call prror(39)
         if(nre.eq.2.and.k.lt.5.and.abs(kz(j)).ne.npp) call prror(39)
         if(nre.eq.3.and.k.lt.7.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nch.eq.1.and.(k.eq.7.or.k.eq.8).and.kz(j).ne.3) call prror   &
-     &(11)
-        if(nqc.eq.1.and.(k.eq.9.or.k.eq.10).and.kz(j).ne.2) call prror  &
-     &(8)
+        if(nch.eq.1.and.(k.eq.7.or.k.eq.8).and.kz(j).ne.3) call prror(11)
+        if(nqc.eq.1.and.(k.eq.9.or.k.eq.10).and.kz(j).ne.2) call prror(8)
         goto 1190
  1180 continue
       if((nre.eq.1.and.k.lt.3).or.(nre.eq.2.and.k.lt.5).or.             &
@@ -6918,64 +6917,6 @@ subroutine comnul
          call SELNUL(i)
       end do
 
-!--NUMBER OF BLOCKS-----------------------------------------------------
-      do i=1,nblo
-        mel(i)=0
-        mstr(i)=0
-        elbe(i)=zero
-        bezb(i)=' '
-
-        do i1=1,2
-          do i2=1,6
-            bl1(i,i1,i2)=zero
-            bl2(i,i1,i2)=zero
-          end do
-        end do
-
-        do j=1,nelb
-          mtyp(i,j)=0
-        end do
-      end do
-
-!--# OF STRUCTURE ELEMENTS----------------------------------------------
-      do i=1,nblz
-        ic(i)=0
-        mzu(i)=0
-        icext(i)=0
-        icextal(i)=0
-        extalign(i,1)=zero
-        extalign(i,2)=zero
-        extalign(i,3)=zero
-        sigmoff(i)=zero
-        tiltc(i)=one
-        tilts(i)=zero
-
-!--Beam-Beam------------------------------------------------------------
-        imbb(i)=0               !Mapping from a STRUCTURE ELEMENT (here: index i)
-                                ! to the beam-beam tables (arrays with size nbb)
-!--Other stuff (not beam-beam)...
-        do j=1,40
-          exterr(i,j)=zero
-          xsi(i)=zero
-          zsi(i)=zero
-          smi(i)=zero
-          smizf(i)=zero
-
-          do i1=1,mmul
-            aai(i,i1)=zero
-            bbi(i,i1)=zero
-          end do
-
-          do i3=1,mmul
-            do i2=1,nmac
-              aaiv(i3,i2,i)=zero
-              bbiv(i3,i2,i)=zero
-            end do
-          end do
-
-        end do
-      end do
-
 !-- BEAM-EXP------------------------------------------------------------
       beam_expflag = 0
       beam_expfile_open = .false.
@@ -7288,67 +7229,67 @@ subroutine STRNUL( iel )
       return
 end subroutine STRNUL
 
-integer function INEELS( iEl )
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !     by A.Mereghetti
 !     last modified: 01-12-2016
 !     Insert a New Empty Element in Lattice Structure
 !     interface variables:
 !     - iEl: index in lattice structure where to insert the element
 !     always in main code
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commont
-      use mod_commonmn
-      implicit none
+! ================================================================================================ !
+integer function INEELS( iEl )
+
+  use floatPrecision
+  use numerical_constants
+  use crcoall
+  use parpro
+  use parpro_scale
+  use mod_common
+  use mod_commont
+  use mod_commonmn
+  implicit none
 
 !     interface variables
-      integer iEl
+  integer iEl
 
 !     temporary variables
-      integer i,ii,iInsert
+  integer i,ii,iInsert
 
-      if ( iu.gt.nblz-3) then
-         write(lout,*)'ERROR: not enough space for adding element in lattice structure!'
-         write(lout,*)'       please, increase nblz and recompile!'
-         call prror(-1)
-      end if
-      iu=iu+1
-      if ( iEl.eq.0 ) then
+  if ( iu.gt.nblz-3) then
+    call expand_arrays(nele, npart, nblz+100, nblo)
+  end if
+  iu=iu+1
+  if ( iEl.eq.0 ) then
 !        append
-         iInsert=iu
-      elseif ( iEl .lt. 0 ) then
-         iInsert=iu+iEl
-      else
-         iInsert=iEl
-      end if
-      if ( iInsert.le.iu ) then
+    iInsert=iu
+  elseif ( iEl .lt. 0 ) then
+    iInsert=iu+iEl
+  else
+    iInsert=iEl
+  end if
+  if ( iInsert.le.iu ) then
 !     shift by one all lattice elements, to make room for the new
 !        starting marker
-         do i=iu,iInsert+1,-1
-            ic(i)=ic(i-1)
-            icext(i)=icext(i-1)
-            icextal(i)=icextal(i-1)
-            extalign(i,1)=extalign(i-1,1)
-            extalign(i,2)=extalign(i-1,2)
-            extalign(i,3)=extalign(i-1,3)
-            do ii=1,40
-               exterr(i,ii)=exterr(i-1,ii)
-            enddo
-            dcum(i)=dcum(i-1)
-         enddo
-      endif
+    do i=iu,iInsert+1,-1
+      ic(i)=ic(i-1)
+      icext(i)=icext(i-1)
+      icextal(i)=icextal(i-1)
+      extalign(i,1)=extalign(i-1,1)
+      extalign(i,2)=extalign(i-1,2)
+      extalign(i,3)=extalign(i-1,3)
+      do ii=1,40
+        exterr(i,ii)=exterr(i-1,ii)
+      enddo
+      dcum(i)=dcum(i-1)
+    enddo
+  endif
 
 !     initialise element to empty
-      call STRNUL(iInsert)
+  call STRNUL(iInsert)
 !     update dcum of added element
-      dcum(iInsert)=dcum(iInsert-1)
+  dcum(iInsert)=dcum(iInsert-1)
 !     return iu
-      INEELS=iu
+  INEELS=iu
 end function INEELS
 
 integer function INEESE()
@@ -7443,6 +7384,8 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
   use mod_common     ! for iu, tlen, ic
   use parpro
   use crcoall
+  use numerical_constants, only : zero
+
   implicit none
 
 ! interface variables
@@ -11261,103 +11204,105 @@ subroutine ord
       return
 end subroutine ord
 
-subroutine orglat
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !  ORGANISATION OF LATTICE SEQUENCE
 !  A.Mereghetti, last modified 2016-03-14
-!  extract pieces of code about lattice structure from original ord
-!     subroutine
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_commont
-      implicit none
-      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
-      real(kind=fPrec) extalig1,exterr1
-      dimension ilf(nblz),ilfr(nblz)
-      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),icextal1(nblz)
-      save
-!-----------------------------------------------------------------------
-      if(mper.gt.1) then
-        do i=2,mper
-          do j=1,mbloz
-            ii=(i-1)*mbloz+j
-            ihi=j
-            if(msym(i).lt.0) ihi=mbloz-j+1
-            ic(ii)=msym(i)*ic(ihi)
-            if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
-          end do
-        end do
-      end if
+!  extract pieces of code about lattice structure from original ord subroutine
+! ================================================================================================ !
+subroutine orglat
 
-      ! set iu
-      iu=mper*mbloz
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+  use mod_commont
+  implicit none
+  integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
+  real(kind=fPrec) extalig1,exterr1
+  dimension ilf(nblz),ilfr(nblz)
+  dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),icextal1(nblz)
+  save
+!-----------------------------------------------------------------------
+  if(mper.gt.1) then
+    do i=2,mper
+      do j=1,mbloz
+        ii=(i-1)*mbloz+j
+        ihi=j
+        if(msym(i).lt.0) ihi=mbloz-j+1
+        ic(ii)=msym(i)*ic(ihi)
+        if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+      end do
+    end do
+  end if
 
-      ! "GO" was not the first structure element -> Reshuffle the structure
-      if(kanf.ne.1) then
-        write(*,*) ' -> reshuffling lattice structure following' &
-     &//' existence of GO keyword not in first position of lattice definition!'
+  ! set iu
+  iu=mper*mbloz
+
+  ! "GO" was not the first structure element -> Reshuffle the structure
+  if(kanf.ne.1) then
+    write(lout,"(a)") "ORGLAT> Reshuffling lattice structure following existence "//&
+      "of GO keyword not in first position of lattice definition!"
+    ! write(lout,"(a,i0)") "ORGLAT> nblz  = ",nblz
+    ! write(lout,"(a,i0)") "ORGLAT> mbloz = ",mbloz
 
 !        initialise some temporary variables
-         do i=1,nblz
-            ilf(i)=0
-            ilfr(i)=0
-            icext1(i)=0
-            icextal1(i)=0
-            do ii=1,3
-               extalig1(i,ii)=zero
-            enddo
-            do ii=1,40
-               exterr1(i,ii)=zero
-            enddo
-        enddo
+    do i=1,nblz
+      ilf(i)=0
+      ilfr(i)=0
+      icext1(i)=0
+      icextal1(i)=0
+      do ii=1,3
+          extalig1(i,ii)=zero
+      enddo
+      do ii=1,40
+          exterr1(i,ii)=zero
+      enddo
+    enddo
 
-        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
-        kanf1=kanf-1
-        do i=1,kanf1
-          if(iorg.ge.0) ilfr(i)=mzu(i)
-          ilf(i)=ic(i)
-          icext1(i)=icext(i)
-          icextal1(i)=icextal(i)
-          extalig1(i,1)=extalign(i,1)
-          extalig1(i,2)=extalign(i,2)
-          extalig1(i,3)=extalign(i,3)
-          do ii=1,40
-            exterr1(i,ii)=exterr(i,ii)
-          end do
-        end do
-        do i=kanf,iu
-          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
-          ic(i-kanf1)=ic(i)
-          icext(i-kanf1)=icext(i)
-          icextal(i-kanf1)=icextal(i)
-          extalign(i-kanf1,1)=extalign(i,1)
-          extalign(i-kanf1,2)=extalign(i,2)
-          extalign(i-kanf1,3)=extalign(i,3)
-          do ii=1,40
-            exterr(i-kanf1,ii)=exterr(i,ii)
-          end do
-        end do
-        do i=1,kanf1
-          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
-          ic(iu-kanf1+i)=ilf(i)
-          icext(iu-kanf1+i)=icext1(i)
-          icextal(iu-kanf1+i)=icextal1(i)
-          extalign(iu-kanf1+i,1)=extalig1(i,1)
-          extalign(iu-kanf1+i,2)=extalig1(i,2)
-          extalign(iu-kanf1+i,3)=extalig1(i,3)
-          do ii=1,40
-            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-          end do
-        end do
-      endif
+    !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+    kanf1=kanf-1
+    do i=1,kanf1
+      if(iorg.ge.0) ilfr(i)=mzu(i)
+      ilf(i)=ic(i)
+      icext1(i)=icext(i)
+      icextal1(i)=icextal(i)
+      extalig1(i,1)=extalign(i,1)
+      extalig1(i,2)=extalign(i,2)
+      extalig1(i,3)=extalign(i,3)
+      do ii=1,40
+        exterr1(i,ii)=exterr(i,ii)
+      end do
+    end do
+    do i=kanf,iu
+      if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
+      ic(i-kanf1)=ic(i)
+      icext(i-kanf1)=icext(i)
+      icextal(i-kanf1)=icextal(i)
+      extalign(i-kanf1,1)=extalign(i,1)
+      extalign(i-kanf1,2)=extalign(i,2)
+      extalign(i-kanf1,3)=extalign(i,3)
+      do ii=1,40
+        exterr(i-kanf1,ii)=exterr(i,ii)
+      end do
+    end do
+    do i=1,kanf1
+      if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
+      ic(iu-kanf1+i)=ilf(i)
+      icext(iu-kanf1+i)=icext1(i)
+      icextal(iu-kanf1+i)=icextal1(i)
+      extalign(iu-kanf1+i,1)=extalig1(i,1)
+      extalign(iu-kanf1+i,2)=extalig1(i,2)
+      extalign(iu-kanf1+i,3)=extalig1(i,3)
+      do ii=1,40
+        exterr(iu-kanf1+i,ii)=exterr1(i,ii)
+      end do
+    end do
+  endif
 
-      return
+  return
 end subroutine orglat
 
 !-----------------------------------------------------------------------
