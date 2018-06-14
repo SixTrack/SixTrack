@@ -11,28 +11,28 @@ module parpro
   implicit none
 
 ! All of the following need a description
-  integer :: mbea
-  integer :: mcor
-  integer :: mcop
+  integer, parameter :: mbea = 99
+  integer, parameter :: mcor = 10
+  integer, parameter :: mcop = mcor + 6
   integer :: mmul
-  integer :: mpa
-  integer :: mran
+  integer, parameter :: mpa = 6
+  integer, parameter :: mran = 500
   integer :: nbb   ! Maximum number of beam-beam elements
-  integer :: ncom
-  integer :: ncor1
+  integer, parameter :: ncom = 100
+  integer, parameter :: ncor1 = 600
   integer :: nelb
-  integer :: nema
-  integer :: ninv
-  integer :: nlya
-  integer :: nmac
-  integer :: nmon1
+  integer, parameter :: nema = 15
+  integer, parameter :: ninv = 1000
+  integer, parameter :: nlya = 10000
+  integer, parameter :: nmac = 1 !Maximum number of machines
+  integer, parameter :: nmon1 = 600
   integer :: npart ! Maximum number of particles
-  integer :: nper
-  integer :: nplo
-  integer :: npos
-  integer :: nran
-  integer :: nrco
-  integer :: ntr
+  integer, parameter :: nper = 16
+  integer, parameter :: nplo = 20000
+  integer, parameter :: npos = 20000
+  integer, parameter :: nran = 2000000
+  integer, parameter :: nrco = 5
+  integer, parameter :: ntr = 20
   integer :: nzfz
 
   !Maximum length of element names
@@ -40,17 +40,17 @@ module parpro
 
   !Max number of particles
 #if !defined(BIGNPART) && !defined(HUGENPART)
-  parameter(npart = 64,nmac = 1)
+  parameter(npart = 64)
 #endif
 #if defined(BIGNPART) && !defined(HUGENPART)
   !See also:
   ! - subroutine wzsubv
-  parameter(npart = 2048,nmac = 1)
+  parameter(npart = 2048)
 #endif
 #if !defined(BIGNPART) && defined(HUGENPART)
   !See also:
   ! - subroutine wzsubv
-  parameter(npart = 65536,nmac = 1)
+  parameter(npart = 65536)
 #endif
 
   integer, parameter :: nele_initial = 50   ! Must be at least 1
@@ -66,35 +66,29 @@ module parpro
 ! 6000/20000 -> 30% multipoles
 #ifndef COLLIMAT
 #ifdef BIGNBLZ
-  parameter(nper=16,nelb=140,nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
+  parameter(nelb=140,nzfz = 3000000,mmul = 20) !up to 60'000 multipoles
 #endif
 #ifdef HUGENBLZ
-  parameter(nper=16,nelb=280,nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
+  parameter(nelb=280,nzfz = 6000000,mmul = 20) !up to 120'000 multipoles -> 48MB/nzfz-array (20%)
 #endif
 #if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  parameter(nper=16,nelb=140,nzfz = 300000,mmul = 20) !up to 6'000 multipoles
+  parameter(nelb=140,nzfz = 300000,mmul = 20) !up to 6'000 multipoles
 #endif
 #else
 #ifdef BEAMGAS
-  parameter(nper=16,nelb=140,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
+  parameter(nelb=140,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 #else
 #ifdef BIGNBLZ
-  parameter(nper=16,nelb=140,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
+  parameter(nelb=140,nzfz = 1920000,mmul = 11) !up to 60'000 multipoles
 #endif
 #ifdef HUGENBLZ
-  parameter(nper=16,nelb=140,nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
+  parameter(nelb=140,nzfz = 3840000,mmul = 11) !up to 120'000 multipoles (20%)
 #endif
 #if !defined(BIGNBLZ) && !defined(HUGENBLZ)
-  parameter(nper=16,nelb=140,nzfz = 144000,mmul = 11) !up to 4500 multipoles
+  parameter(nelb=140,nzfz = 144000,mmul = 11) !up to 4500 multipoles
 #endif
 #endif
 #endif
-
-  parameter(nran = 2000000,ncom = 100, mran = 500, mpa = 6, nrco = 5, nema = 15)
-  parameter(mcor = 10,mcop = mcor+6, mbea = 99)
-  parameter(npos = 20000,nlya = 10000,ninv = 1000,nplo = 20000)
-  parameter(nmon1 = 600,ncor1 = 600)
-  parameter(ntr = 20)
 
   ! Beam-beam lenses
 #if !defined(BIGNBLZ) && !defined(HUGENBLZ)
