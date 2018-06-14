@@ -430,11 +430,11 @@ end interface
       tlim=1e7
       call timest(tlim)
       call timex(time0)
-      do 10 i=1,nblz
-        xsi(i)=zero
-        zsi(i)=zero
-        smi(i)=zero
-   10 continue
+  !     do 10 i=1,nblz
+  !       xsi(i)=zero
+  !       zsi(i)=zero
+  !       smi(i)=zero
+  !  10 continue
       do 20 i=1,mmul
         cr(i)=zero
         ci(i)=zero

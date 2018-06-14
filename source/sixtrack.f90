@@ -149,7 +149,8 @@ subroutine daten
 
   dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
-  dimension extaux(40),bezext(nblz)
+  dimension extaux(40)
+  dimension bezext(100000) ! FIXME: Must be made dynamic to (nblz) when moved to mod_fluc
   data ende,next,fluc,iter,line,diff /'ENDE','NEXT','FLUC','ITER','LINE','DIFF'/
   data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
@@ -911,223 +912,224 @@ subroutine daten
 
       ! Reads from fort.16 IF mout1==1
       if(mout1.eq.1) then
-        write(lout,*)
-        write(lout,*) '          Multipole errors read in ' ,           &
-     &'from external file'
-        write(lout,*)
-        iexread=0 ! Reading regular multipoles(1) or skew components (2)
-        ifiend16=0
-        iexnum=0
-        read(16,10020,end=861)
-        rewind 16
+        call fluc_readFort16
+!         write(lout,*)
+!         write(lout,*) '          Multipole errors read in ' ,           &
+!      &'from external file'
+!         write(lout,*)
+!         iexread=0 ! Reading regular multipoles(1) or skew components (2)
+!         ifiend16=0
+!         iexnum=0
+!         read(16,10020,end=861)
+!         rewind 16
 
-        do 860 i=1,mper*mbloz ! Loop over all structure elements
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(iexread.eq.0) then
-              ilm0(1)=' '
-! READ IN REGULAR MULTIPOLES FIRST AND THEN THE SKEW COMPONENTS
-              if(ifiend16.eq.0) then
-                read(16,10020,end=820,iostat=ierro) ch
-                lineno16=lineno16+1
-              else
-                goto 820
-              endif
-              call intepr(3,1,ch,ch1) ! Read the name of element
-! ilm0 are character strings, should be OK
-              read(ch1,*) ilm0(1)
-              iexnum=iexnum+1
-              bezext(iexnum)=ilm0(1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-! if fio is selected fort.16 is opened with round='nearest'
-              read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
-     &extaux(3)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
-     &extaux(6)
-               lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
-     &extaux(9)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
-     &extaux(12)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
-     &extaux(15)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
-     &extaux(18)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(19),extaux(20)
+!         do 860 i=1,mper*mbloz ! Loop over all structure elements
+!           ix=ic(i)
+!           if(ix.gt.nblo) then
+!             ix=ix-nblo
+!             if(iexread.eq.0) then
+!               ilm0(1)=' '
+! ! READ IN REGULAR MULTIPOLES FIRST AND THEN THE SKEW COMPONENTS
+!               if(ifiend16.eq.0) then
+!                 read(16,10020,end=820,iostat=ierro) ch
+!                 lineno16=lineno16+1
+!               else
+!                 goto 820
+!               endif
+!               call intepr(3,1,ch,ch1) ! Read the name of element
+! ! ilm0 are character strings, should be OK
+!               read(ch1,*) ilm0(1)
+!               iexnum=iexnum+1
+!               bezext(iexnum)=ilm0(1)
+! #ifdef FIO
+! #ifdef CRLIBM
+!       call enable_xp()
+! #endif
+! ! if fio is selected fort.16 is opened with round='nearest'
+!               read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
+!      &extaux(3)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
+!      &extaux(6)
+!                lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
+!      &extaux(9)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
+!      &extaux(12)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
+!      &extaux(15)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
+!      &extaux(18)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(19),extaux(20)
 
 
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
-     &extaux(23)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
-     &extaux(26)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
-     &extaux(29)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
-     &extaux(32)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
-     &extaux(35)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
-     &extaux(38)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(39),extaux(40)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-! if fio is selected fort.16 is opened with round='nearest'
-              read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
-     &extaux(3)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
-     &extaux(6)
-               lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
-     &extaux(9)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
-     &extaux(12)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
-     &extaux(15)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
-     &extaux(18)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(19),extaux(20)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
-     &extaux(23)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
-     &extaux(26)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
-     &extaux(29)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
-     &extaux(32)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
-     &extaux(35)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
-     &extaux(38)
-              lineno16=lineno16+1
-              read(16,*,end=870,iostat=ierro) extaux(39),extaux(40)
-#endif
-#ifdef CRLIBM
-! Now my new loops for splitfld and fround (round_near)
-      do k=1,16,3
-        read(16,10020,end=870,iostat=ierro) ch
-        lineno16=lineno16+1
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
-!             write (*,*) 'ch:'//ch//':'
-!             write (*,*) 'ch1:'//ch1//':'
-        if (nf.gt.0) then
-          extaux(k)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+2)=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      enddo
-      read(16,10020,end=870,iostat=ierro) ch
-      lineno16=lineno16+1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        extaux(19)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        extaux(20)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      do k=21,36,3
-        read(16,10020,end=870,iostat=ierro) ch
-        lineno16=lineno16+1
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          extaux(k)=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+1)=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          extaux(k+2)=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      enddo
-      read(16,10020,end=870,iostat=ierro) ch
-      lineno16=lineno16+1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        extaux(39)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        extaux(40)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-#endif
-#endif
-              if(ierro.gt.0) call prror(80)
-              iexread=1
-              goto 840
-  820         ifiend16=1
-              if(iexnum.eq.0) call prror(80)
-              do 830 j=1,iexnum
-                if(bez(ix).eq.bezext(j)) call prror(80)
-  830         continue
-  840         continue
-            endif ! closing if(iexread.eq.0) then
-            if(ilm0(1).eq.bez(ix)) then
-#ifdef DEBUG
-!             call warr('ilm0(1)',0d0,1,i,0,0)
-#endif
-              icext(i)=ix
-              do 850 k=1,40
-                exterr(i,k)=extaux(k)
-#ifdef DEBUG
-!     call warr('extaux',extaux(k),i,k,0,0)
-#endif
-  850         continue
-              iexread=0
-              goto 860
-            endif
-          endif
-  860   continue
-  861   continue
-        write(lout,*) '        From file fort.16 :',iexnum,             &
-     &' values read in.'
-        write(lout,*)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
+!      &extaux(23)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
+!      &extaux(26)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
+!      &extaux(29)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
+!      &extaux(32)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
+!      &extaux(35)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
+!      &extaux(38)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(39),extaux(40)
+! #ifdef CRLIBM
+!       call disable_xp()
+! #endif
+! #endif
+! #ifndef FIO
+! #ifndef CRLIBM
+! ! if fio is selected fort.16 is opened with round='nearest'
+!               read(16,*,end=870,iostat=ierro) extaux(1),extaux(2),      &
+!      &extaux(3)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(4),extaux(5),      &
+!      &extaux(6)
+!                lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(7),extaux(8),      &
+!      &extaux(9)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(10),extaux(11),    &
+!      &extaux(12)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(13),extaux(14),    &
+!      &extaux(15)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(16),extaux(17),    &
+!      &extaux(18)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(19),extaux(20)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(21),extaux(22),    &
+!      &extaux(23)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(24),extaux(25),    &
+!      &extaux(26)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(27),extaux(28),    &
+!      &extaux(29)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(30),extaux(31),    &
+!      &extaux(32)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(33),extaux(34),    &
+!      &extaux(35)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(36),extaux(37),    &
+!      &extaux(38)
+!               lineno16=lineno16+1
+!               read(16,*,end=870,iostat=ierro) extaux(39),extaux(40)
+! #endif
+! #ifdef CRLIBM
+! ! Now my new loops for splitfld and fround (round_near)
+!       do k=1,16,3
+!         read(16,10020,end=870,iostat=ierro) ch
+!         lineno16=lineno16+1
+!         ch1(:nchars+3)=ch(:nchars)//' / '
+!         call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+! !             write (*,*) 'ch:'//ch//':'
+! !             write (*,*) 'ch1:'//ch1//':'
+!         if (nf.gt.0) then
+!           extaux(k)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+1)=fround(errno,fields,2)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+2)=fround(errno,fields,3)
+!           nf=nf-1
+!         endif
+!       enddo
+!       read(16,10020,end=870,iostat=ierro) ch
+!       lineno16=lineno16+1
+!       ch1(:nchars+3)=ch(:nchars)//' / '
+!       call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+!       if (nf.gt.0) then
+!         extaux(19)=fround(errno,fields,1)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         extaux(20)=fround(errno,fields,2)
+!         nf=nf-1
+!       endif
+!       do k=21,36,3
+!         read(16,10020,end=870,iostat=ierro) ch
+!         lineno16=lineno16+1
+!         ch1(:nchars+3)=ch(:nchars)//' / '
+!         call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+!         if (nf.gt.0) then
+!           extaux(k)=fround(errno,fields,1)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+1)=fround(errno,fields,2)
+!           nf=nf-1
+!         endif
+!         if (nf.gt.0) then
+!           extaux(k+2)=fround(errno,fields,3)
+!           nf=nf-1
+!         endif
+!       enddo
+!       read(16,10020,end=870,iostat=ierro) ch
+!       lineno16=lineno16+1
+!       ch1(:nchars+3)=ch(:nchars)//' / '
+!       call splitfld(errno,16,lineno16,nofields,nf,ch1,fields)
+!       if (nf.gt.0) then
+!         extaux(39)=fround(errno,fields,1)
+!         nf=nf-1
+!       endif
+!       if (nf.gt.0) then
+!         extaux(40)=fround(errno,fields,2)
+!         nf=nf-1
+!       endif
+! #endif
+! #endif
+!               if(ierro.gt.0) call prror(80)
+!               iexread=1
+!               goto 840
+!   820         ifiend16=1
+!               if(iexnum.eq.0) call prror(80)
+!               do 830 j=1,iexnum
+!                 if(bez(ix).eq.bezext(j)) call prror(80)
+!   830         continue
+!   840         continue
+!             endif ! closing if(iexread.eq.0) then
+!             if(ilm0(1).eq.bez(ix)) then
+! #ifdef DEBUG
+! !             call warr('ilm0(1)',0d0,1,i,0,0)
+! #endif
+!               icext(i)=ix
+!               do 850 k=1,40
+!                 exterr(i,k)=extaux(k)
+! #ifdef DEBUG
+! !     call warr('extaux',extaux(k),i,k,0,0)
+! #endif
+!   850         continue
+!               iexread=0
+!               goto 860
+!             endif
+!           endif
+!   860   continue
+!   861   continue
+!         write(lout,*) '        From file fort.16 :',iexnum,             &
+!      &' values read in.'
+!         write(lout,*)
       endif
       if(mout3.eq.1) then
         write(lout,*)
@@ -2295,10 +2297,8 @@ subroutine daten
         if(nre.eq.1.and.k.lt.3.and.abs(kz(j)).ne.npp) call prror(39)
         if(nre.eq.2.and.k.lt.5.and.abs(kz(j)).ne.npp) call prror(39)
         if(nre.eq.3.and.k.lt.7.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nch.eq.1.and.(k.eq.7.or.k.eq.8).and.kz(j).ne.3) call prror   &
-     &(11)
-        if(nqc.eq.1.and.(k.eq.9.or.k.eq.10).and.kz(j).ne.2) call prror  &
-     &(8)
+        if(nch.eq.1.and.(k.eq.7.or.k.eq.8).and.kz(j).ne.3) call prror(11)
+        if(nqc.eq.1.and.(k.eq.9.or.k.eq.10).and.kz(j).ne.2) call prror(8)
         goto 1190
  1180 continue
       if((nre.eq.1.and.k.lt.3).or.(nre.eq.2.and.k.lt.5).or.             &
@@ -6907,64 +6907,6 @@ subroutine comnul
          call SELNUL(i)
       end do
 
-!--NUMBER OF BLOCKS-----------------------------------------------------
-      do i=1,nblo
-        mel(i)=0
-        mstr(i)=0
-        elbe(i)=zero
-        bezb(i)=' '
-
-        do i1=1,2
-          do i2=1,6
-            bl1(i,i1,i2)=zero
-            bl2(i,i1,i2)=zero
-          end do
-        end do
-
-        do j=1,nelb
-          mtyp(i,j)=0
-        end do
-      end do
-
-!--# OF STRUCTURE ELEMENTS----------------------------------------------
-      do i=1,nblz
-        ic(i)=0
-        mzu(i)=0
-        icext(i)=0
-        icextal(i)=0
-        extalign(i,1)=zero
-        extalign(i,2)=zero
-        extalign(i,3)=zero
-        sigmoff(i)=zero
-        tiltc(i)=one
-        tilts(i)=zero
-
-!--Beam-Beam------------------------------------------------------------
-        imbb(i)=0               !Mapping from a STRUCTURE ELEMENT (here: index i)
-                                ! to the beam-beam tables (arrays with size nbb)
-!--Other stuff (not beam-beam)...
-        do j=1,40
-          exterr(i,j)=zero
-          xsi(i)=zero
-          zsi(i)=zero
-          smi(i)=zero
-          smizf(i)=zero
-
-          do i1=1,mmul
-            aai(i,i1)=zero
-            bbi(i,i1)=zero
-          end do
-
-          do i3=1,mmul
-            do i2=1,nmac
-              aaiv(i3,i2,i)=zero
-              bbiv(i3,i2,i)=zero
-            end do
-          end do
-
-        end do
-      end do
-
 !-- BEAM-EXP------------------------------------------------------------
       beam_expflag = 0
       beam_expfile_open = .false.
@@ -7277,67 +7219,67 @@ subroutine STRNUL( iel )
       return
 end subroutine STRNUL
 
-integer function INEELS( iEl )
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !     by A.Mereghetti
 !     last modified: 01-12-2016
 !     Insert a New Empty Element in Lattice Structure
 !     interface variables:
 !     - iEl: index in lattice structure where to insert the element
 !     always in main code
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commont
-      use mod_commonmn
-      implicit none
+! ================================================================================================ !
+integer function INEELS( iEl )
+
+  use floatPrecision
+  use numerical_constants
+  use crcoall
+  use parpro
+  use parpro_scale
+  use mod_common
+  use mod_commont
+  use mod_commonmn
+  implicit none
 
 !     interface variables
-      integer iEl
+  integer iEl
 
 !     temporary variables
-      integer i,ii,iInsert
+  integer i,ii,iInsert
 
-      if ( iu.gt.nblz-3) then
-         write(lout,*)'ERROR: not enough space for adding element in lattice structure!'
-         write(lout,*)'       please, increase nblz and recompile!'
-         call prror(-1)
-      end if
-      iu=iu+1
-      if ( iEl.eq.0 ) then
+  if ( iu.gt.nblz-3) then
+    call expand_arrays(nele, npart, nblz+100, nblo)
+  end if
+  iu=iu+1
+  if ( iEl.eq.0 ) then
 !        append
-         iInsert=iu
-      elseif ( iEl .lt. 0 ) then
-         iInsert=iu+iEl
-      else
-         iInsert=iEl
-      end if
-      if ( iInsert.le.iu ) then
+    iInsert=iu
+  elseif ( iEl .lt. 0 ) then
+    iInsert=iu+iEl
+  else
+    iInsert=iEl
+  end if
+  if ( iInsert.le.iu ) then
 !     shift by one all lattice elements, to make room for the new
 !        starting marker
-         do i=iu,iInsert+1,-1
-            ic(i)=ic(i-1)
-            icext(i)=icext(i-1)
-            icextal(i)=icextal(i-1)
-            extalign(i,1)=extalign(i-1,1)
-            extalign(i,2)=extalign(i-1,2)
-            extalign(i,3)=extalign(i-1,3)
-            do ii=1,40
-               exterr(i,ii)=exterr(i-1,ii)
-            enddo
-            dcum(i)=dcum(i-1)
-         enddo
-      endif
+    do i=iu,iInsert+1,-1
+      ic(i)=ic(i-1)
+      icext(i)=icext(i-1)
+      icextal(i)=icextal(i-1)
+      extalign(i,1)=extalign(i-1,1)
+      extalign(i,2)=extalign(i-1,2)
+      extalign(i,3)=extalign(i-1,3)
+      do ii=1,40
+        exterr(i,ii)=exterr(i-1,ii)
+      enddo
+      dcum(i)=dcum(i-1)
+    enddo
+  endif
 
 !     initialise element to empty
-      call STRNUL(iInsert)
+  call STRNUL(iInsert)
 !     update dcum of added element
-      dcum(iInsert)=dcum(iInsert-1)
+  dcum(iInsert)=dcum(iInsert-1)
 !     return iu
-      INEELS=iu
+  INEELS=iu
 end function INEELS
 
 integer function INEESE()
@@ -7432,6 +7374,8 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
   use mod_common     ! for iu, tlen, ic
   use parpro
   use crcoall
+  use numerical_constants, only : zero
+
   implicit none
 
 ! interface variables
@@ -11071,26 +11015,29 @@ end subroutine htls
       return
 end
 
-subroutine ord
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !  ORGANISATION OF NONLINEAR ELEMENTS AND RANDOM NUMBERS
 !  reserving places in zfz:
 !  - 1+2 for misalignment (h/v - DISP block / fort.8 / fort.30);
 !  - 2xmmul for multipole errors (fort.16);
 !  mapping also position of errors for a given element in lattice
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_commont
-      implicit none
-      integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
-      dimension jra(nele,5),iran(nele),inz(nele)
-      save
+! ================================================================================================ !
+subroutine ord
+  
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+  use mod_commont
+  use mod_fluc
+  
+  implicit none
+  integer i,inz,iran,ix,izu,j,jra,jra3,k,kpz,kzz,kzz1,kzz2,nra1
+  dimension jra(nele,5),iran(nele),inz(nele)
+  save
 !-----------------------------------------------------------------------
       ! initialisation
       do i=1,nele
@@ -11237,11 +11184,25 @@ subroutine ord
           izu=izu+3
         endif
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).ne.0) then
+          ! do j=1,fluc_nExt
+          !   if(fluc_ixExt(j) == ix) then
+          !     k = j
+          !     exit
+          !   end if
+          ! end do
           do j=1,mmul
+            ! izu=izu+1
+            ! zfz(izu)=exterr(i,20+j)
+            ! izu=izu+1
+            ! zfz(izu)=exterr(i,j)
+            ! izu=izu+1
+            ! zfz(izu)=fluc_errExt(20+j,k)
+            ! izu=izu+1
+            ! zfz(izu)=fluc_errExt(j,k)
             izu=izu+1
-            zfz(izu)=exterr(i,20+j)
+            zfz(izu)=fluc_errExt(20+j,icext(i))
             izu=izu+1
-            zfz(izu)=exterr(i,j)
+            zfz(izu)=fluc_errExt(j,icext(i))
           end do
         else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).eq.0) then
           izu=izu+2*mmul
@@ -11250,103 +11211,105 @@ subroutine ord
       return
 end subroutine ord
 
-subroutine orglat
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !  ORGANISATION OF LATTICE SEQUENCE
 !  A.Mereghetti, last modified 2016-03-14
-!  extract pieces of code about lattice structure from original ord
-!     subroutine
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_commont
-      implicit none
-      integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
-      real(kind=fPrec) extalig1,exterr1
-      dimension ilf(nblz),ilfr(nblz)
-      dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),icextal1(nblz)
-      save
-!-----------------------------------------------------------------------
-      if(mper.gt.1) then
-        do i=2,mper
-          do j=1,mbloz
-            ii=(i-1)*mbloz+j
-            ihi=j
-            if(msym(i).lt.0) ihi=mbloz-j+1
-            ic(ii)=msym(i)*ic(ihi)
-            if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
-          end do
-        end do
-      end if
+!  extract pieces of code about lattice structure from original ord subroutine
+! ================================================================================================ !
+subroutine orglat
 
-      ! set iu
-      iu=mper*mbloz
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+  use mod_commont
+  implicit none
+  integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
+  real(kind=fPrec) extalig1,exterr1
+  dimension ilf(nblz),ilfr(nblz)
+  dimension exterr1(nblz,40),extalig1(nblz,3),icext1(nblz),icextal1(nblz)
+  save
+!-----------------------------------------------------------------------
+  if(mper.gt.1) then
+    do i=2,mper
+      do j=1,mbloz
+        ii=(i-1)*mbloz+j
+        ihi=j
+        if(msym(i).lt.0) ihi=mbloz-j+1
+        ic(ii)=msym(i)*ic(ihi)
+        if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+      end do
+    end do
+  end if
 
-      ! "GO" was not the first structure element -> Reshuffle the structure
-      if(kanf.ne.1) then
-        write(*,*) ' -> reshuffling lattice structure following' &
-     &//' existence of GO keyword not in first position of lattice definition!'
+  ! set iu
+  iu=mper*mbloz
+
+  ! "GO" was not the first structure element -> Reshuffle the structure
+  if(kanf.ne.1) then
+    write(lout,"(a)") "ORGLAT> Reshuffling lattice structure following existence "//&
+      "of GO keyword not in first position of lattice definition!"
+    ! write(lout,"(a,i0)") "ORGLAT> nblz  = ",nblz
+    ! write(lout,"(a,i0)") "ORGLAT> mbloz = ",mbloz
 
 !        initialise some temporary variables
-         do i=1,nblz
-            ilf(i)=0
-            ilfr(i)=0
-            icext1(i)=0
-            icextal1(i)=0
-            do ii=1,3
-               extalig1(i,ii)=zero
-            enddo
-            do ii=1,40
-               exterr1(i,ii)=zero
-            enddo
-        enddo
+    do i=1,nblz
+      ilf(i)=0
+      ilfr(i)=0
+      icext1(i)=0
+      icextal1(i)=0
+      do ii=1,3
+          extalig1(i,ii)=zero
+      enddo
+      do ii=1,40
+          exterr1(i,ii)=zero
+      enddo
+    enddo
 
-        !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
-        kanf1=kanf-1
-        do i=1,kanf1
-          if(iorg.ge.0) ilfr(i)=mzu(i)
-          ilf(i)=ic(i)
-          icext1(i)=icext(i)
-          icextal1(i)=icextal(i)
-          extalig1(i,1)=extalign(i,1)
-          extalig1(i,2)=extalign(i,2)
-          extalig1(i,3)=extalign(i,3)
-          do ii=1,40
-            exterr1(i,ii)=exterr(i,ii)
-          end do
-        end do
-        do i=kanf,iu
-          if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
-          ic(i-kanf1)=ic(i)
-          icext(i-kanf1)=icext(i)
-          icextal(i-kanf1)=icextal(i)
-          extalign(i-kanf1,1)=extalign(i,1)
-          extalign(i-kanf1,2)=extalign(i,2)
-          extalign(i-kanf1,3)=extalign(i,3)
-          do ii=1,40
-            exterr(i-kanf1,ii)=exterr(i,ii)
-          end do
-        end do
-        do i=1,kanf1
-          if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
-          ic(iu-kanf1+i)=ilf(i)
-          icext(iu-kanf1+i)=icext1(i)
-          icextal(iu-kanf1+i)=icextal1(i)
-          extalign(iu-kanf1+i,1)=extalig1(i,1)
-          extalign(iu-kanf1+i,2)=extalig1(i,2)
-          extalign(iu-kanf1+i,3)=extalig1(i,3)
-          do ii=1,40
-            exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-          end do
-        end do
-      endif
+    !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+    kanf1=kanf-1
+    do i=1,kanf1
+      if(iorg.ge.0) ilfr(i)=mzu(i)
+      ilf(i)=ic(i)
+      icext1(i)=icext(i)
+      icextal1(i)=icextal(i)
+      extalig1(i,1)=extalign(i,1)
+      extalig1(i,2)=extalign(i,2)
+      extalig1(i,3)=extalign(i,3)
+      do ii=1,40
+        exterr1(i,ii)=exterr(i,ii)
+      end do
+    end do
+    do i=kanf,iu
+      if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
+      ic(i-kanf1)=ic(i)
+      icext(i-kanf1)=icext(i)
+      icextal(i-kanf1)=icextal(i)
+      extalign(i-kanf1,1)=extalign(i,1)
+      extalign(i-kanf1,2)=extalign(i,2)
+      extalign(i-kanf1,3)=extalign(i,3)
+      do ii=1,40
+        exterr(i-kanf1,ii)=exterr(i,ii)
+      end do
+    end do
+    do i=1,kanf1
+      if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
+      ic(iu-kanf1+i)=ilf(i)
+      icext(iu-kanf1+i)=icext1(i)
+      icextal(iu-kanf1+i)=icextal1(i)
+      extalign(iu-kanf1+i,1)=extalig1(i,1)
+      extalign(iu-kanf1+i,2)=extalig1(i,2)
+      extalign(iu-kanf1+i,3)=extalig1(i,3)
+      do ii=1,40
+        exterr(iu-kanf1+i,ii)=exterr1(i,ii)
+      end do
+    end do
+  endif
 
-      return
+  return
 end subroutine orglat
 
 !-----------------------------------------------------------------------
