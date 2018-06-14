@@ -49,7 +49,7 @@ module sixtrack_input
   real(kind=fPrec),              public, save :: sixin_harm
   real(kind=fPrec),              public, save :: sixin_phag
   real(kind=fPrec),              public, save :: sixin_u0
-  
+
   ! Multipole Coefficients
   integer,                       public, save :: sixin_im
 
@@ -388,8 +388,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
 
   ! Expand Arrays
   if(sixin_nSing > nele-2) then
-    call expand_arrays(nele+50, npart, nblz, nblo)
-    ! The value of nele will have been updated here
+    call expand_arrays(nele+100, npart, nblz, nblo)
     call resize(sixin_bez0, str_maxName, nele, str_nmZeros, "sixin_bez0")
   end if
 
@@ -508,7 +507,6 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   if(blocName /= str_nmSpace) then            ! We have a new BLOC
     sixin_nBloc = sixin_nBloc + 1             ! Increment the BLOC number
     if(sixin_nBloc > nblo-1) then             ! Expand arrays if needed
-      ! For now, don't expand. This is incompatible with the offset in ic() array
       call expand_arrays(nele, npart, nblz, nblo+50)
       call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
     end if
@@ -575,7 +573,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   integer nSplit
   logical spErr
 
-  integer i, j
+  integer i, j, t
   character(len=str_maxName) ilm0(40)
 
   do i=1,40
@@ -609,6 +607,9 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
     end if
 
     sixin_nStru = sixin_nStru + 1
+    if(sixin_nStru > nblz-2) then
+      call expand_arrays(nele,npart,nblz+1000,nblo)
+    end if
 
     do j=1,mblo ! is it a BLOC?
       if(bezb(j) == ilm0(i)) then
@@ -628,10 +629,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
 
   mbloz = sixin_nStru
   if(mbloz > nblz-2) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Structure input block has too many elements. Max is ",(nblz-2)
-    iErr = .true.
-    return
-    ! call prror(21)
+    call expand_arrays(nele,npart,nblz+1000,nblo)
   end if
 
 end subroutine sixin_parseInputLineSTRU
@@ -1620,29 +1618,29 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
   real(kind=fPrec) ak0d,akad,bk0d,bkad,r0,r0a
   integer          nSplit,i,nmul,iil
   logical          spErr
-  
+
   save nmul,iil,r0,r0a
-  
+
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "MULT> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
-  
+
   if(iLine == 1) then
-    
+
     if(nSplit > 0) imn = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSplit(2),r0,   iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),benki,iErr)
-    
+
     nmul     = 1
     r0a      = one
     sixin_im = sixin_im + 1
-    
+
     benkc(sixin_im) = benki
     r00(sixin_im)   = r0
-    
+
     do i=1,il
       if(imn == bez(i)) then
         irm(i) = sixin_im
@@ -1650,26 +1648,26 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
         exit
       end if
     end do
-    
+
     if(st_debug) then
       call sixin_echoVal("imn",  imn,  "MULT",iLine)
       call sixin_echoVal("r0",   r0,   "MULT",iLine)
       call sixin_echoVal("benki",benki,"MULT",iLine)
     end if
     if(iErr) return
-    
+
   else
-    
+
     bk0d = zero
     bkad = zero
     ak0d = zero
     akad = zero
-    
+
     if(nSplit > 0) call chr_cast(lnSplit(1),bk0d,iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),bkad,iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),ak0d,iErr)
     if(nSplit > 3) call chr_cast(lnSplit(4),akad,iErr)
-    
+
     if(st_debug) then
       call sixin_echoVal("bk0d",bk0d,"MULT",iLine)
       call sixin_echoVal("bkad",bkad,"MULT",iLine)
@@ -1679,7 +1677,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
       call sixin_echoVal("nmul",nmul,"MULT",iLine)
     end if
     if(iErr) return
-    
+
     ! Set nmu for the current single element (j)
     ! to the currently highest multipole seen (i)
     if(abs(bk0d) > pieni .or. abs(bkad) > pieni .or. abs(ak0d) > pieni .or. abs(akad) > pieni) then
@@ -1696,9 +1694,9 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    
+
   end if
-  
+
 end subroutine sixin_parseInputLineMULT
 
 end module sixtrack_input

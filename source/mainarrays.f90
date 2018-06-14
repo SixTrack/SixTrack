@@ -9,17 +9,17 @@ module parpro_scale
   use parpro
   use crcoall
 
-  use mod_common,   only : mod_common_allocate_arrays,   mod_common_expand_arrays
-  use mod_commonmn, only : mod_commonmn_allocate_arrays, mod_commonmn_expand_arrays
-  use mod_commons,  only : mod_commons_allocate_arrays,  mod_commons_expand_arrays
-  use mod_commond2, only : mod_commond2_allocate_arrays, mod_commond2_expand_arrays
+  use mod_common,   only : mod_common_expand_arrays
+  use mod_commont,  only : mod_commont_expand_arrays
+  use mod_commonmn, only : mod_commonmn_expand_arrays
+  use mod_commond2, only : mod_commond2_expand_arrays
   use aperture,     only : aperture_allocate_arrays,     aperture_expand_arrays
   use elens,        only : elens_allocate_arrays,        elens_expand_arrays
-  use dump,         only : dump_allocate_arrays,         dump_expand_arrays
+  use dump,         only : dump_expand_arrays
   use scatter,      only : scatter_allocate_arrays,      scatter_expand_arrays
   use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
   use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
-  use wire,         only : wire_allocate_arrays,         wire_expand_arrays
+  use wire,         only : wire_expand_arrays
   use mod_hions,    only : hions_allocate_arrays,        hions_expand_arrays
 
 #ifdef FLUKA
@@ -39,22 +39,23 @@ subroutine allocate_arrays
 
   implicit none
 
-  ! Set initial values
   nele = nele_initial
   nblo = nblo_initial
+  nblz = nblz_initial
 
-  !Call subroutines to actually allocate
-  call mod_common_allocate_arrays
-  call mod_commonmn_allocate_arrays
-  call mod_commons_allocate_arrays
-  call mod_commond2_allocate_arrays
+  call mod_common_expand_arrays(nele,nblo,nblz)
+  call mod_commont_expand_arrays(nblz)
+  call mod_commonmn_expand_arrays(nblz)
+  call mod_commond2_expand_arrays(nele)
+
+  call dump_expand_arrays(nele,nblz)
+  call wire_expand_arrays(nele,nblz)
+
   call aperture_allocate_arrays
   call elens_allocate_arrays
-  call dump_allocate_arrays
   call scatter_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
-  call wire_allocate_arrays
   call hions_allocate_arrays
 
 #ifdef COLLIMAT
@@ -79,20 +80,22 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   nblz_new  = nblz_request
   nblo_new  = nblo_request
 
-  write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding - (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
+  write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
 
   !Call sub-subroutines to actually expand
-  call mod_common_expand_arrays(nele_new, nblo_new)
-  call mod_commonmn_expand_arrays(nele_new)
-  call mod_commons_expand_arrays(nele_new)
+  call mod_common_expand_arrays(nele_new,nblo_new,nblz_new)
+  call mod_commont_expand_arrays(nblz_new)
+  call mod_commonmn_expand_arrays(nblz_new)
   call mod_commond2_expand_arrays(nele_new)
+
+  call dump_expand_arrays(nele_new,nblz_new)
+  call wire_expand_arrays(nele_new,nblz_new)
+
   call aperture_expand_arrays(nele_new)
   call elens_expand_arrays(nele_new)
-  call dump_expand_arrays(nele_new)
   call scatter_expand_arrays(nele_new)
   call bdex_expand_arrays(nele_new)
   call dynk_expand_arrays(nele_new)
-  call wire_expand_arrays(nele_new)
 
   call hions_expand_arrays(npart_new)
 
@@ -107,7 +110,7 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   ! Update array size variables
   nele = nele_new
 ! npart = npart_new
-! nblz = nblz_new
+  nblz = nblz_new
   nblo = nblo_new
 
 end subroutine expand_arrays
