@@ -7,7 +7,7 @@ temptr(1)=xv(1,j)*c1m3
 temptr(2)=(yv(1,j)*c1m3)/moidpsv(j)
 temptr(3)=xv(2,j)*c1m3
 temptr(4)=(yv(2,j)*c1m3)/moidpsv(j)
-!temptr(5)=sigmv(j)
+
 temptr(6)=(ejv(j)-e0)/(e0f*(e0f/e0))
 
 
