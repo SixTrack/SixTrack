@@ -434,6 +434,7 @@ subroutine runda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
+  use mod_floc,    only : fluc_errAlign
 
   implicit none
 
@@ -1368,9 +1369,9 @@ subroutine runda
       end if
       xs=xsi(i)
       zs=zsi(i)
-      if(mout2.eq.1.and.n.eq.1.and.icextal(i).ne.0) then
-        write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),               &
-  &extalign(i,1),extalign(i,2),extalign(i,3)
+      if(mout2 == 1 .and. n == 1 .and. icextal(i) /= 0) then
+        write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
+          fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
       end if
 #include "include/alignf.f90"
       select case (kzz)

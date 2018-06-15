@@ -30,6 +30,7 @@ subroutine trauthin(nthinerr)
   use mod_commons
   use mod_commont
   use mod_commond
+  use mod_fluc, only : fluc_errAlign
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
@@ -189,8 +190,9 @@ subroutine trauthin(nthinerr)
       ktrack(i)=3
       goto 290
     endif
-    if(mout2.eq.1.and.icextal(i).ne.0) then
-      write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
+    if(mout2 == 1 .and. icextal(i) > 0) then
+      write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
+        fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
     end if
 
     select case (kzz)

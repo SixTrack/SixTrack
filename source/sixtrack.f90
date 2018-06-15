@@ -6716,9 +6716,9 @@ subroutine STRNUL( iel )
       mzu(iel)=0
       icext(iel)=0
       icextal(iel)=0
-      extalign(iel,1)=zero
-      extalign(iel,2)=zero
-      extalign(iel,3)=zero
+      ! extalign(iel,1)=zero
+      ! extalign(iel,2)=zero
+      ! extalign(iel,3)=zero
       sigmoff(iel)=zero
       tiltc(iel)=one
       tilts(iel)=zero
@@ -6790,9 +6790,9 @@ integer function INEELS( iEl )
       ic(i)=ic(i-1)
       icext(i)=icext(i-1)
       icextal(i)=icextal(i-1)
-      extalign(i,1)=extalign(i-1,1)
-      extalign(i,2)=extalign(i-1,2)
-      extalign(i,3)=extalign(i-1,3)
+      ! extalign(i,1)=extalign(i-1,1)
+      ! extalign(i,2)=extalign(i-1,2)
+      ! extalign(i,3)=extalign(i-1,3)
       ! do ii=1,40
       !   exterr(i,ii)=exterr(i-1,ii)
       ! enddo
@@ -10798,9 +10798,9 @@ subroutine orglat
       ilf(i)=ic(i)
       icext1(i)=icext(i)
       icextal1(i)=icextal(i)
-      extalig1(i,1)=extalign(i,1)
-      extalig1(i,2)=extalign(i,2)
-      extalig1(i,3)=extalign(i,3)
+      ! extalig1(i,1)=extalign(i,1)
+      ! extalig1(i,2)=extalign(i,2)
+      ! extalig1(i,3)=extalign(i,3)
       ! do ii=1,40
       !   exterr1(i,ii)=exterr(i,ii)
       ! end do
@@ -10810,9 +10810,9 @@ subroutine orglat
       ic(i-kanf1)=ic(i)
       icext(i-kanf1)=icext(i)
       icextal(i-kanf1)=icextal(i)
-      extalign(i-kanf1,1)=extalign(i,1)
-      extalign(i-kanf1,2)=extalign(i,2)
-      extalign(i-kanf1,3)=extalign(i,3)
+      ! extalign(i-kanf1,1)=extalign(i,1)
+      ! extalign(i-kanf1,2)=extalign(i,2)
+      ! extalign(i-kanf1,3)=extalign(i,3)
       ! do ii=1,40
       !   exterr(i-kanf1,ii)=exterr(i,ii)
       ! end do
@@ -10822,9 +10822,9 @@ subroutine orglat
       ic(iu-kanf1+i)=ilf(i)
       icext(iu-kanf1+i)=icext1(i)
       icextal(iu-kanf1+i)=icextal1(i)
-      extalign(iu-kanf1+i,1)=extalig1(i,1)
-      extalign(iu-kanf1+i,2)=extalig1(i,2)
-      extalign(iu-kanf1+i,3)=extalig1(i,3)
+      ! extalign(iu-kanf1+i,1)=extalig1(i,1)
+      ! extalign(iu-kanf1+i,2)=extalig1(i,2)
+      ! extalign(iu-kanf1+i,3)=extalig1(i,3)
       ! do ii=1,40
       !   exterr(iu-kanf1+i,ii)=exterr1(i,ii)
       ! end do

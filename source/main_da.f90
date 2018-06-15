@@ -33,6 +33,7 @@ program mainda
   use tuneshift_corr
   use mod_units
   use mod_alloc, only : alloc_init
+  use mod_fluc,  only : fluc_randomReport, fluc_errAlign
 
   implicit none
 
@@ -136,6 +137,7 @@ program mainda
   endif
   call orglat
   call ord
+  if(allocated(zfz)) call fluc_randomReport
   call clorb(ded)
 
   do l=1,2
@@ -206,7 +208,11 @@ program mainda
       if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
       if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
       if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
-      write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
+      if(icextal(i) > 0) then
+        write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+      else
+        write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
+      end if
     end if
     if(kzz.eq.11) then
       !Very similar to block "multini"

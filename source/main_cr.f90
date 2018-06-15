@@ -70,7 +70,7 @@ program maincr
   use aperture
   use mod_ranecu
   use mod_alloc,      only : alloc_init
-  use mod_fluc,       only : fluc_randomReport
+  use mod_fluc,       only : fluc_randomReport, fluc_errAlign
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -742,7 +742,6 @@ end interface
     ! map errors, now that the sequence is no longer going to change
     if(m.eq.1) then
       call ord
-      ! Print random number generator report, if any have been generated
       if(allocated(zfz)) call fluc_randomReport
     end if
 
@@ -858,7 +857,11 @@ end interface
         if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
         if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
         if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
-        write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
+        if(icextal(i) > 0) then
+          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+        else
+          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
+        end if
       endif
 
 !-- MULTIPOLE BLOCK
@@ -1412,7 +1415,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,extalign,tiltc,tilts,            &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
@@ -1479,7 +1482,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,extalign,tiltc,tilts,            &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
