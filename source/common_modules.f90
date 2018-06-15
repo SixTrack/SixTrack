@@ -418,8 +418,8 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
   call alloc(imbb,                 nblz_new,       0,           "imbb")
   call alloc(icext,                nblz_new,       0,           "icext")
   call alloc(icextal,              nblz_new,       0,           "icextal")
-! call alloc(exterr,               nblz_new, 40,   zero,        "exterr")
-! call alloc(extalign,             nblz_new, 3,    zero,        "extalign")
+! call alloc(exterr,               nblz_new, 40,   zero,        "exterr")   ! Replaced by compact array in mod_fluc
+! call alloc(extalign,             nblz_new, 3,    zero,        "extalign") ! Replaced by compact array in mod_fluc
   call alloc(tiltc,                nblz_new,       one,         "tiltc")
   call alloc(tilts,                nblz_new,       zero,        "tilts")
   call alloc(xsi,                  nblz_new,       zero,        "xsi")

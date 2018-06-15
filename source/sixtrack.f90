@@ -55,14 +55,14 @@ subroutine daten
   use mod_alloc
   use mod_dist
 
-  use scatter, only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
-  use dynk,    only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
-  use fma,     only : fma_parseInputLine
-  use dump,    only : dump_parseInputLine,dump_parseInputDone
-  use zipf,    only : zipf_parseInputDone,zipf_parseInputline
-  use bdex,    only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use scatter,  only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
+  use dynk,     only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use fma,      only : fma_parseInputLine
+  use dump,     only : dump_parseInputLine,dump_parseInputDone
+  use zipf,     only : zipf_parseInputDone,zipf_parseInputline
+  use bdex,     only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use mod_fluc, only : fluc_parseInputLine,fluc_readInputs
   use aperture
-  use mod_fluc
   use mod_ranecu
   use mod_hions
   use elens
@@ -82,22 +82,19 @@ subroutine daten
 
   implicit none
 
-  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
-    ifiend16,ifiend8,ii,il1,ilin0,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
+  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imo,imod,imtr0,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
-    ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
+    ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
-  real(kind=fPrec) alignx,alignz,dummy,emitnx,emitny,extaux,&
-    rdev,rmean,rsqsum,rsum,tilt,xang,xstr,xplane
+  real(kind=fPrec) dummy,emitnx,emitny,tilt,xang,xstr,xplane
 
   ! For BEAM-EXP
-  real(kind=fPrec) separx,separy
-  real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+  real(kind=fPrec) separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
 
   character(len=mNameLen) diff,sync,ende
-  character(len=mNameLen) fluc,iter,limi,orbi,deco
+  character(len=mNameLen) iter,limi,orbi,deco
   character(len=mNameLen) beze,go,comb,sear,subr
-  character(len=mNameLen) cavi,disp,reso,bezext
+  character(len=mNameLen) cavi,disp,reso
   character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
   character(len=mNameLen) iele,ilm0,idum,norm
   character(len=mNameLen) kl,kr,orga,post,beam,trom
@@ -126,7 +123,7 @@ subroutine daten
 #else
   integer nunit
 #endif
-  integer lineNo2,lineNo3,lineNo8,lineNo16,lineNo30,lineNo35
+  integer lineNo2,lineNo3
 
 #ifdef COLLIMAT
   logical has_coll
@@ -149,9 +146,7 @@ subroutine daten
 
   dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
-  dimension extaux(40)
-  dimension bezext(100000) ! FIXME: Must be made dynamic to (nblz) when moved to mod_fluc
-  data ende,next,fluc,iter,line,diff /'ENDE','NEXT','FLUC','ITER','LINE','DIFF'/
+  data ende,next,iter,line,diff /'ENDE','NEXT','ITER','LINE','DIFF'/
   data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
@@ -180,11 +175,9 @@ subroutine daten
 ! ================================================================================================ !
 
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
-      irecuin=0
 
       do i=1,40
         ilm0(i)=' '
-        extaux(i)=zero
       end do
 
       do i=1,10
@@ -209,8 +202,6 @@ subroutine daten
       iclo6=0
       iclo6r=0
       iclr=0
-      ! ncy2=0
-      ndum=0
 
 !  Initialise new input parameters
       idial=0
@@ -262,11 +253,6 @@ subroutine daten
       dqq=c1m10
       imtr0=0
       nlin=0
-      mout=0
-      mout1=0
-      mout2=0
-      mout3=0
-      mout4=0
       kanf=1
       isub=0
       irmod2=0
@@ -328,6 +314,7 @@ subroutine daten
   izu0        = 0
   mmac        = 1
   mcut        = 0
+  mout2       = 0
 
   ! HIONS MODULE
   zz0         = 1
@@ -358,10 +345,6 @@ subroutine daten
   nGeom       = 0
   lineNo2     = 0
   lineNo3     = 0
-  lineNo8     = 0
-  lineNo16    = 0
-  lineNo30    = 0
-  lineNo35    = 0
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
