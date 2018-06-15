@@ -12,7 +12,7 @@ subroutine warr(vname,value,i,j,k,l)
 
   integer i,j,k,l
   integer ierro
-  character(len=max_name_len) myname
+  character(len=mNameLen) myname
 
   myname=vname
   write(100) myname,value,i,j,k,l

@@ -1500,7 +1500,7 @@ subroutine thin6d(nthinerr)
                 nspy = zero
               end if
               sampl(ie)    = totals
-              ename(ie)    = bez(myix)(1:max_name_len)
+              ename(ie)    = bez(myix)(1:mNameLen)
             end do
           endif
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF

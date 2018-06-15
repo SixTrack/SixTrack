@@ -105,12 +105,12 @@ subroutine scatter_allocate
 
   call alloc(scatter_iData,                1,    0,          "scatter_iData")
   call alloc(scatter_fData,                1,    zero,       "scatter_fData")
-  call alloc(scatter_cData,    str_maxLen, 1,    str_dSpace, "scatter_cData")
+  call alloc(scatter_cData,    mStrLen, 1,    str_dSpace, "scatter_cData")
 
 #ifdef CR
   call alloc(scatter_iData_CR,             1,    0,          "scatter_iData_CR")
   call alloc(scatter_fData_CR,             1,    zero,       "scatter_fData_CR")
-  call alloc(scatter_cData_CR, str_maxLen, 1,    str_dSpace, "scatter_cData_CR")
+  call alloc(scatter_cData_CR, mStrLen, 1,    str_dSpace, "scatter_cData_CR")
 #endif
 
 end subroutine scatter_allocate
@@ -156,8 +156,8 @@ subroutine scatter_initialise
 
     setFields(1) = h5_dataField(name="ID",    type=h5_typeInt,  size=16)
     setFields(2) = h5_dataField(name="TURN",  type=h5_typeInt,  size=16)
-    setFields(3) = h5_dataField(name="BEZ",   type=h5_typeChar, size=max_name_len)
-    setFields(4) = h5_dataField(name="GEN",   type=h5_typeChar, size=max_name_len)
+    setFields(3) = h5_dataField(name="BEZ",   type=h5_typeChar, size=mNameLen)
+    setFields(4) = h5_dataField(name="GEN",   type=h5_typeChar, size=mNameLen)
     setFields(5) = h5_dataField(name="T",     type=h5_typeReal, size=0)
     setFields(6) = h5_dataField(name="XI",    type=h5_typeReal, size=0)
     setFields(7) = h5_dataField(name="THETA", type=h5_typeReal, size=0)
@@ -277,7 +277,7 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
   call resize(scatter_iData_CR,             scatter_niData_CR, 0,          "scatter_iData_CR")
   call resize(scatter_fData_CR,             scatter_nfData_CR, zero,       "scatter_fData_CR")
-  call resize(scatter_cData_CR, str_maxLen, scatter_ncData_CR, str_dSpace, "scatter_cData_CR")
+  call resize(scatter_cData_CR, mStrLen, scatter_ncData_CR, str_dSpace, "scatter_cData_CR")
 
   read(fileUnit, err=10, end=10) (scatter_iData_CR(j), j=1, scatter_niData_CR)
   read(fileUnit, err=10, end=10) (scatter_fData_CR(j), j=1, scatter_nfData_CR)
@@ -421,7 +421,7 @@ subroutine scatter_crstart
 
   call resize(scatter_iData,             scatter_niData, 0,          "scatter_iData")
   call resize(scatter_fData,             scatter_nfData, zero,       "scatter_fData")
-  call resize(scatter_cData, str_maxLen, scatter_ncData, str_dSpace, "scatter_cData")
+  call resize(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
 
   scatter_iData(1:scatter_niData) = scatter_iData_CR(1:scatter_niData)
   scatter_fData(1:scatter_nfData) = scatter_fData_CR(1:scatter_nfData)
@@ -429,7 +429,7 @@ subroutine scatter_crstart
 
   call dealloc(scatter_iData_CR,             "scatter_iData_CR")
   call dealloc(scatter_fData_CR,             "scatter_fData_CR")
-  call dealloc(scatter_cData_CR, str_maxLen, "scatter_cData_CR")
+  call dealloc(scatter_cData_CR, mStrLen, "scatter_cData_CR")
 
 end subroutine scatter_crstart
 #endif
@@ -708,7 +708,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
 
   ! Store the profile name
   scatter_ncData = scatter_ncData + 1
-  call resize(scatter_cData, str_maxLen, scatter_ncData, str_dSpace, "scatter_cData")
+  call resize(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
 
   scatter_cData(scatter_ncData)       = lnSplit(2)
   scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncData
@@ -801,7 +801,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
 
   ! Store the generator name
   scatter_ncData = scatter_ncData + 1
-  call resize(scatter_cData, str_maxLen, scatter_ncData, str_dSpace, "scatter_cData")
+  call resize(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
 
   scatter_cData(scatter_ncData)           = lnSplit(2)
   scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncData
@@ -919,7 +919,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
   integer                     :: iRecords(2,napx)
   real(kind=fPrec)            :: rRecords(5,napx)
-  character(len=max_name_len) :: cRecords(2,napx)
+  character(len=mNameLen) :: cRecords(2,napx)
   integer                     :: nRecords
 #endif
 

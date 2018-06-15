@@ -114,6 +114,7 @@ subroutine fluc_readFort16
 
   use mod_alloc
   use string_tools
+  use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icext,nblz,nblo,ic
   use mod_settings,        only : st_debug
@@ -122,7 +123,7 @@ subroutine fluc_readFort16
 
   character(len=1024) :: inLine
   character(len=:), allocatable :: lnSplit(:)
-  character(len=str_maxName) bezExt
+  character(len=mNameLen) bezExt
   integer mType, lineNo, ioStat, nSplit, lMode, nVals, mVal, mExt, iStru, iSing, nExt
   logical iErr, isOpen, inSing
   integer i, j
@@ -181,9 +182,9 @@ subroutine fluc_readFort16
 
       fluc_nExt = fluc_nExt + 1
       if(fluc_nExt > mExt) then
-        call alloc(fluc_errExt,40,         mExt+10,zero,       "fluc_errExt")
-        call alloc(fluc_bezExt,str_maxName,mExt+10,str_nmSpace,"fluc_bezExt")
-        call alloc(fluc_ixExt,             mExt+10,0,          "fluc_ixExt")
+        call alloc(fluc_errExt,40,      mExt+10,zero,       "fluc_errExt")
+        call alloc(fluc_bezExt,mNameLen,mExt+10,str_nmSpace,"fluc_bezExt")
+        call alloc(fluc_ixExt,          mExt+10,0,          "fluc_ixExt")
       end if
       fluc_bezExt(fluc_nExt) = bezExt
 

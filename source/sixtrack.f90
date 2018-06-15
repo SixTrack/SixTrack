@@ -94,13 +94,13 @@ subroutine daten
   real(kind=fPrec) separx,separy
   real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
 
-  character(len=max_name_len) diff,sync,ende
-  character(len=max_name_len) fluc,iter,limi,orbi,deco
-  character(len=max_name_len) beze,go,comb,sear,subr
-  character(len=max_name_len) cavi,disp,reso,bezext
-  character(len=max_name_len) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
-  character(len=max_name_len) iele,ilm0,idum,norm
-  character(len=max_name_len) kl,kr,orga,post,beam,trom
+  character(len=mNameLen) diff,sync,ende
+  character(len=mNameLen) fluc,iter,limi,orbi,deco
+  character(len=mNameLen) beze,go,comb,sear,subr
+  character(len=mNameLen) cavi,disp,reso,bezext
+  character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
+  character(len=mNameLen) iele,ilm0,idum,norm
+  character(len=mNameLen) kl,kr,orga,post,beam,trom
   character(len=60) ihead
   integer nchars
   parameter (nchars=160)
@@ -352,7 +352,7 @@ subroutine daten
   sixin_ncy2  = 0
   sixin_icy   = 0
 
-  call alloc(sixin_bez0, max_name_len, nele, repeat(char(0),max_name_len), "sixin_bez0")
+  call alloc(sixin_bez0, mNameLen, nele, repeat(char(0),mNameLen), "sixin_bez0")
 
   ! DATEN INTERNAL
   nGeom       = 0
@@ -397,7 +397,7 @@ subroutine daten
   if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
   if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
   write(lout,"(a)") ""
-  write(lout,"(a)") st_divLine
+  write(lout,"(a)") str_divLine
 
   sixtit(1:60)=ihead
 
@@ -4263,7 +4263,7 @@ subroutine daten
          call parseChebyFile(tmpi1)
       end do
 
-      call dealloc(sixin_bez0,max_name_len,'sixin_bez0')
+      call dealloc(sixin_bez0,mNameLen,'sixin_bez0')
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -5047,7 +5047,7 @@ subroutine write4
       real(kind=fPrec) rdum1,rdum2,rel1
       character(len=160)  ch
       character(len=320) ch1
-      character(len=max_name_len) idat
+      character(len=mNameLen) idat
       integer lineno2,lineno3,lineno8,lineno16,lineno30,lineno35
       data lineno2 /0/
       data lineno3 /0/
@@ -8594,7 +8594,7 @@ subroutine linopt(dpp)
 #ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 #endif
-  character(len=max_name_len) idum
+  character(len=mNameLen) idum
 
 #ifdef COLLIMAT
 !+ca collpara
@@ -9586,7 +9586,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 
   integer i,iwrite,ixwl,l,ll,nr
   real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
-  character(len=max_name_len) typ
+  character(len=mNameLen) typ
   ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
   logical isBLOC
   dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
@@ -9722,7 +9722,7 @@ subroutine cpltwis(typ,t,etl,phi)
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
-      character(len=max_name_len) typ
+      character(len=mNameLen) typ
       dimension t(6,4),phi(2)
       save
 !-----------------------------------------------------------------------
@@ -9936,7 +9936,7 @@ subroutine corrorb
       real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
       real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
       real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
-      character(len=max_name_len) bezlo(nele)
+      character(len=mNameLen) bezlo(nele)
       dimension clo0(2),clop0(2)
       dimension qwc1(3),nx(ncor1)
       save
@@ -13680,7 +13680,7 @@ subroutine search(dpp)
       implicit none
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
-      character(len=max_name_len) ref
+      character(len=mNameLen) ref
       save
 !-----------------------------------------------------------------------
       ntao=nta

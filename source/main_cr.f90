@@ -407,7 +407,7 @@ end interface
   write(lout,"(a)") "    Built With:"//featList
   write(lout,"(a)") "    Start Time: "//timeStamp
   write(lout,"(a)") ""
-  write(lout,"(a)") st_divLine
+  write(lout,"(a)") str_divLine
 
 #ifdef CR
   ! Log start messages
@@ -715,7 +715,7 @@ end interface
         write(lout,"(a)")          "    so that it matches the calculated machine length from DCUM."
         write(lout,"(a)")          "    If incorrect, the RF frequency may be (slightly) wrong."
         write(lout,"(a)")          ""
-        write(lout,"(a)")          st_divLine
+        write(lout,"(a)")          str_divLine
         ! It's a warning not an error, and the consequences seem relatively small.
         ! Ideally, tlen should be calculated automatically based on the sequence.
       end if
