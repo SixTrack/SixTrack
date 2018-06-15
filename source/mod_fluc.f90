@@ -260,6 +260,10 @@ subroutine fluc_readFort8
 
 20 continue
   close(8)
+  if(fluc_nAlign == 0) then
+    write(lout,"(a)") "FLUC> Reading of fort.8 requested in FLUC block, but no elements read."
+    return
+  end if
 
   ! We require that the elements in fort.8 have the same order as in the STRUcture block.
   ! A repeated element name implies it is the next one of that name in the sequenc, so we will
@@ -409,6 +413,10 @@ subroutine fluc_readFort16
 
 20 continue
   close(16)
+  if(fluc_nExt == 0) then
+    write(lout,"(a)") "FLUC> Reading of fort.16 requested in FLUC block, but no elements read."
+    return
+  end if
 
   ! We require that the elements in fort.16 have the same order as in the STRUcture block.
   ! A repeated element name implies it is the next one of that name in the sequenc, so we will
