@@ -897,103 +897,104 @@ subroutine daten
         call fluc_readFort16
       endif
       if(mout3.eq.1) then
-        write(lout,*)
-        write(lout,*) '          Alignment errors read in ' ,           &
-     &'from external file'
-        write(lout,*)
-        iexread=0
-        ifiend8=0
-        iexnum=0
-        read(8,10020,end=1581)
-        rewind 8
-        do 1580 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(iexread.eq.0) then
-              ilm0(1)=' '
-! READ IN HORIZONTAL AND VERTICAL MISALIGNMENT AND TILT
-              if(ifiend8.eq.0) then
-                read(8,10020,end=1550,iostat=ierro) ch
-                if(ierro.gt.0) call prror(86)
-                lineno8=lineno8+1
-              else
-                goto 1550
-              endif
-              call intepr(1,1,ch,ch1)
-!             write (*,*) 'ch:'//ch//':'
-!             write (*,*) 'ch1:'//ch1//':'
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-              read(ch1,*,round='nearest')                               &
-     & ilm0(1),alignx,alignz,tilt
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-              read(ch1,*) ilm0(1),alignx,alignz,tilt
-#endif
-#ifdef CRLIBM
-              call splitfld(errno,8,lineno8,nofields,nf,ch1,fields)
-              if (nf.gt.0) then
-                read(fields(1),*) ilm0(1)
-                nf=nf-1
-              endif
-              if (nf.gt.0) then
-                alignx=fround(errno,fields,2)
-                nf=nf-1
-              endif
-              if (nf.gt.0) then
-                alignz=fround(errno,fields,3)
-                nf=nf-1
-              endif
-              if (nf.gt.0) then
-                tilt=fround(errno,fields,4)
-                nf=nf-1
-              endif
-!             alignx=DBLE(SNGL(alignx))
-!             alignz=DBLE(SNGL(alignz))
-!             tilt=DBLE(SNGL(tilt))
-!             call roundnulp(alignx,1024)
-!             call roundnulp(alignz,1024)
-!             call roundnulp(tilt,1024)
-#endif
-#endif
-#ifdef DEBUG
-!     call warr('ilm0(1)',0d0,1,0,0,0)
-!     call warr('alignx',alignx,I,1,0,0)
-!     call warr('alignz',alignz,I,2,0,0)
-!     call warr('tilt',tilt,I,3,0,0)
-#endif
-              iexnum=iexnum+1
-              bezext(iexnum)=ilm0(1)
-              iexread=1
-              goto 1570
- 1550         ifiend8=1
-              if(iexnum.eq.0) call prror(86)
-              do 1560 j=1,iexnum
-                if(bez(ix).eq.bezext(j)) call prror(86)
- 1560         continue
- 1570         continue
-            endif
-            if(ilm0(1).eq.bez(ix)) then
-              icextal(i)=ix
-              extalign(i,1)=alignx
-              extalign(i,2)=alignz
-              extalign(i,3)=tilt
-              iexread=0
-              goto 1580
-            endif
-          endif
- 1580   continue
- 1581   continue
-        write(lout,*) '        From file fort.8 :',iexnum,              &
-     &' values read in.'
-        write(lout,*)
+        call fluc_readFort8
+!         write(lout,*)
+!         write(lout,*) '          Alignment errors read in ' ,           &
+!      &'from external file'
+!         write(lout,*)
+!         iexread=0
+!         ifiend8=0
+!         iexnum=0
+!         read(8,10020,end=1581)
+!         rewind 8
+!         do 1580 i=1,mper*mbloz
+!           ix=ic(i)
+!           if(ix.gt.nblo) then
+!             ix=ix-nblo
+!             if(iexread.eq.0) then
+!               ilm0(1)=' '
+! ! READ IN HORIZONTAL AND VERTICAL MISALIGNMENT AND TILT
+!               if(ifiend8.eq.0) then
+!                 read(8,10020,end=1550,iostat=ierro) ch
+!                 if(ierro.gt.0) call prror(86)
+!                 lineno8=lineno8+1
+!               else
+!                 goto 1550
+!               endif
+!               call intepr(1,1,ch,ch1)
+! !             write (*,*) 'ch:'//ch//':'
+! !             write (*,*) 'ch1:'//ch1//':'
+! #ifdef FIO
+! #ifdef CRLIBM
+!       call enable_xp()
+! #endif
+!               read(ch1,*,round='nearest')                               &
+!      & ilm0(1),alignx,alignz,tilt
+! #ifdef CRLIBM
+!       call disable_xp()
+! #endif
+! #endif
+! #ifndef FIO
+! #ifndef CRLIBM
+!               read(ch1,*) ilm0(1),alignx,alignz,tilt
+! #endif
+! #ifdef CRLIBM
+!               call splitfld(errno,8,lineno8,nofields,nf,ch1,fields)
+!               if (nf.gt.0) then
+!                 read(fields(1),*) ilm0(1)
+!                 nf=nf-1
+!               endif
+!               if (nf.gt.0) then
+!                 alignx=fround(errno,fields,2)
+!                 nf=nf-1
+!               endif
+!               if (nf.gt.0) then
+!                 alignz=fround(errno,fields,3)
+!                 nf=nf-1
+!               endif
+!               if (nf.gt.0) then
+!                 tilt=fround(errno,fields,4)
+!                 nf=nf-1
+!               endif
+! !             alignx=DBLE(SNGL(alignx))
+! !             alignz=DBLE(SNGL(alignz))
+! !             tilt=DBLE(SNGL(tilt))
+! !             call roundnulp(alignx,1024)
+! !             call roundnulp(alignz,1024)
+! !             call roundnulp(tilt,1024)
+! #endif
+! #endif
+! #ifdef DEBUG
+! !     call warr('ilm0(1)',0d0,1,0,0,0)
+! !     call warr('alignx',alignx,I,1,0,0)
+! !     call warr('alignz',alignz,I,2,0,0)
+! !     call warr('tilt',tilt,I,3,0,0)
+! #endif
+!               iexnum=iexnum+1
+!               bezext(iexnum)=ilm0(1)
+!               iexread=1
+!               goto 1570
+!  1550         ifiend8=1
+!               if(iexnum.eq.0) call prror(86)
+!               do 1560 j=1,iexnum
+!                 if(bez(ix).eq.bezext(j)) call prror(86)
+!  1560         continue
+!  1570         continue
+!             endif
+!             if(ilm0(1).eq.bez(ix)) then
+!               icextal(i)=ix
+!               extalign(i,1)=alignx
+!               extalign(i,2)=alignz
+!               extalign(i,3)=tilt
+!               iexread=0
+!               goto 1580
+!             endif
+!           endif
+!  1580   continue
+!  1581   continue
+!         write(lout,*) '        From file fort.8 :',iexnum,              &
+!      &' values read in.'
+!         write(lout,*)
       endif
 
       call fluc_moreRandomness
@@ -10960,11 +10961,15 @@ subroutine ord
       izu=izu+2
       xrms(ix)=one
       zrms(ix)=one
-      zfz(izu)=extalign(i,1)
+      ! zfz(izu)=extalign(i,1)
+      zfz(izu)=fluc_errAlign(1,icextal(i))
       izu=izu+1
-      zfz(izu)=extalign(i,2)
-      tiltc(i)=cos_mb(extalign(i,3)*c1m3)
-      tilts(i)=sin_mb(extalign(i,3)*c1m3)
+      ! zfz(izu)=extalign(i,2)
+      zfz(izu)=fluc_errAlign(2,icextal(i))
+      ! tiltc(i)=cos_mb(extalign(i,3)*c1m3)
+      ! tilts(i)=sin_mb(extalign(i,3)*c1m3)
+      tiltc(i)=cos_mb(fluc_errAlign(3,icextal(i))*c1m3)
+      tilts(i)=sin_mb(fluc_errAlign(3,icextal(i))*c1m3)
     else
       izu=izu+3
     endif

@@ -338,14 +338,14 @@ end interface
   call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr)
+! call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr) ! Now opened in mod_fluc
   call units_openUnits(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
   call units_openUnits(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr)
+! call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr) ! Now opened in mod_fluc
 ! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use?
   call units_openUnits(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
 ! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
