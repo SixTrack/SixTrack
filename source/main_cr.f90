@@ -69,7 +69,8 @@ program maincr
   use mod_units
   use aperture
   use mod_ranecu
-  use mod_alloc, only : alloc_init
+  use mod_alloc,      only : alloc_init
+  use mod_fluc,       only : fluc_randomReport
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -359,7 +360,7 @@ end interface
   call units_openUnits(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Not in use?
+! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Used by FLUC, but deprecated
   call units_openUnits(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
 ! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
@@ -739,7 +740,11 @@ end interface
     ! dump x-sections at specific locations
     if (mxsec.gt.0) call dump_aperture_xsecs
     ! map errors, now that the sequence is no longer going to change
-    if(m.eq.1) call ord
+    if(m.eq.1) then
+      call ord
+      ! Print random number generator report, if any have been generated
+      if(allocated(zfz)) call fluc_randomReport
+    end if
 
     call clorb(ded)
 

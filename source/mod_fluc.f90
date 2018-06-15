@@ -110,6 +110,42 @@ subroutine fluc_moreRandomness
 
 end subroutine fluc_moreRandomness
 
+subroutine fluc_randomReport
+
+  use parpro,              only : str_divLine,nzfz
+  use mod_common,          only : izu0,zfz
+  use numerical_constants, only : zero
+
+  implicit none
+
+  real(kind=fPrec) rSum, rSqSum, rMean, rDev
+  integer i
+
+  rSum   = zero
+  rSqSum = zero
+
+  do i=1,nzfz
+    rSum=rSum + zfz(i)
+  end do
+
+  rMean = rSum/real(nzfz,fPrec)
+  do i=1,nzfz
+    rSqSum = rSqSum + (zfz(i)-rMean)**2
+  end do
+
+  rDev = sqrt(rSqSum/real(nzfz,fPrec))
+
+  write(lout,"(a)")       ""
+  write(lout,"(a)")       "    FLUC Block Random Numbers (zfz):"
+  write(lout,"(a,i0)")    "     * Generator Seed    = ",izu0
+  write(lout,"(a,i0)")    "     * Numbers Generated = ",nzfz
+  write(lout,"(a,f15.7)") "     * Mean Value        = ",rMean
+  write(lout,"(a,f15.7)") "     * Deviation         = ",rDev
+  write(lout,"(a)")       ""
+  write(lout,"(a)")       str_divLine
+
+end subroutine fluc_randomReport
+
 subroutine fluc_readFort8
 
   use mod_alloc
