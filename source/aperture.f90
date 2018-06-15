@@ -216,7 +216,7 @@ subroutine aperture_init
     setFields(1)  = h5_dataField(name="TURN",         type=h5_typeInt)
     setFields(2)  = h5_dataField(name="BLOCK",        type=h5_typeInt)
     setFields(3)  = h5_dataField(name="BEZID",        type=h5_typeInt)
-    setFields(4)  = h5_dataField(name="BEZ",          type=h5_typeChar, size=max_name_len)
+    setFields(4)  = h5_dataField(name="BEZ",          type=h5_typeChar, size=mNameLen)
     setFields(5)  = h5_dataField(name="SLOS",         type=h5_typeReal)
     setFields(6)  = h5_dataField(name="X",            type=h5_typeReal)
     setFields(7)  = h5_dataField(name="XP",           type=h5_typeReal)
@@ -568,7 +568,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   real(kind=fPrec) xchk(2)
 
 #ifdef ROOT
-  character(len=max_name_len+1) this_name
+  character(len=mNameLen+1) this_name
 #endif
 
 ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1684,7 +1684,7 @@ function CrtApeName() result(retValue)
 !-----------------------------------------------------------------------
   implicit none
 
-  character(len=max_name_len) retValue
+  character(len=mNameLen) retValue
   integer iApe, ii
   data iApe / 0 /
   save iApe
@@ -1803,7 +1803,7 @@ subroutine dump_aperture_model
 
   integer iOld, ixOld, niter, oKApe, jj
   real(kind=fPrec) aprr(9),slos
-  character(len=max_name_len), parameter :: interpolated = 'interpolated'
+  character(len=mNameLen), parameter :: interpolated = 'interpolated'
 
   write(lout,*)''
   write(lout,fmt="(131('-'))")
@@ -1893,7 +1893,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 ! interface variables
   integer iunit
   integer aptype
-  character(len=max_name_len) name
+  character(len=mNameLen) name
   real(kind=fPrec) ape(9)
   real(kind=fPrec) spos
 

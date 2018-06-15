@@ -142,8 +142,8 @@ subroutine prror(ier)
   !   write(lout,10530)
   case (54)
     write(lout,10540) npart
-  case (55)
-    write(lout,10550) nmac
+  ! case (55)
+  !   write(lout,10550) nmac
   case (56)
     write(lout,10560) ierro
   ! case (57)
@@ -241,7 +241,7 @@ subroutine prror(ier)
   case (103)
     write(lout,11030)
   ! case (104)
-  !   write(lout,11040) max_name_len
+  !   write(lout,11040) mNameLen
   ! case (105)
   !   write(lout,11050) mmul
   end select
