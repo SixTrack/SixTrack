@@ -303,7 +303,7 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'mmac ',mmac
   write(99,*) 'mcut ',mcut
 ! write(99,*) 'exterr ',exterr
-  write(99,*) 'extalign ',extalign
+! write(99,*) 'extalign ',extalign
   write(99,*) 'tiltc ',tiltc
   write(99,*) 'tilts ',tilts
   write(99,*) 'mout2 ',mout2
@@ -802,7 +802,7 @@ subroutine dumpbin(dumpname,n,i)
   write(99) mmac
   write(99) mcut
 ! write(99) exterr
-  write(99) extalign
+! write(99) extalign
   write(99) tiltc
   write(99) tilts
   write(99) mout2
@@ -1295,7 +1295,7 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'mmac ',mmac
   write(99,100) 'mcut ',mcut
 ! write(99,100) 'exterr ',exterr
-  write(99,100) 'extalign ',extalign
+! write(99,100) 'extalign ',extalign
   write(99,100) 'tiltc ',tiltc
   write(99,100) 'tilts ',tilts
   write(99,100) 'mout2 ',mout2
