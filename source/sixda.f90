@@ -434,7 +434,7 @@ subroutine runda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
-  use mod_floc,    only : fluc_errAlign
+  use mod_fluc,    only : fluc_errAlign
 
   implicit none
 
