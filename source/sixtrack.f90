@@ -469,8 +469,6 @@ subroutine daten
   select case(idat)
   case("ITER")
     goto 940
-  case("FLUC")
-    goto 790
   case("LIMI")
     goto 950
   case("ORBI")
@@ -694,6 +692,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("FLUC") ! Fluctuation Random Starting Number
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call fluc_readInputs
+    else
+      call fluc_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -854,73 +862,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  FLUCTUATION RANDOM STARTING NUMBER
-!-----------------------------------------------------------------------
-  790 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 790
-      ! Read izu0, mmac, mout, mcut
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call fluc_parseInputLine(ch,1,inErr,mout)
-      !Generate normal distributed random numbers into zfz
-      if(mcut.eq.0) write(lout,10430)
-      if(mcut.gt.0) write(lout,10440) mcut
-      write(lout,10130)
-      ! Set flags mout1, mout2, mount3, mout4 depending on mout
-      ! Enables/disables different functionality
-      if(mout.ge.8) mout4=1
-      if(mout.eq.7.or.mout.eq.15) then
-        mout1=1
-        mout2=1
-        mout3=1
-      else if(mout.eq.6.or.mout.eq.14) then
-        mout2=1
-        mout3=1
-      else if(mout.eq.5.or.mout.eq.13) then
-        mout1=1
-        mout3=1
-      else if(mout.eq.4.or.mout.eq.12) then
-        mout3=1
-      else if(mout.eq.3.or.mout.eq.11) then
-        mout1=1
-        mout2=1
-      else if(mout.eq.2.or.mout.eq.10) then
-        mout2=1
-      else if(mout.eq.1.or.mout.eq.9) then
-        mout1=1
-      endif
-
-      if(mout1.eq.1) then
-        call fluc_readFort16
-      endif
-      if(mout3.eq.1) then
-        call fluc_readFort8
-      endif
-
-      call fluc_moreRandomness
-      ! call recuin(izu0,irecuin)
-      ! call ranecu(zfz,nzfz,mcut)
-      ! rsum=zero
-
-      ! do i=1,nzfz
-      !   rsum=rsum+zfz(i)
-      ! end do
-
-      ! rmean=rsum/real(nzfz,fPrec)                                              !hr05
-      ! rsqsum=zero
-
-      ! do i=1,nzfz
-      !   rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
-      ! end do
-
-      ! rdev=sqrt(rsqsum/real(nzfz,fPrec))                                       !hr05
-      ! write(lout,10410) izu0,nzfz,rmean,rdev
-
-      goto 110
-  870 call prror(80)
 
 !-----------------------------------------------------------------------
 !  ORGANISATION OF RANDOM NUMBERS
@@ -4165,8 +4106,8 @@ subroutine daten
 !      &'  -   DEVIATION=',f15.7)
 !10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
 !     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
-10430 format(/5x,'No cut on random distribution'//)
-10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
+! 10430 format(/5x,'No cut on random distribution'//)
+! 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')

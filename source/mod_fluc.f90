@@ -24,12 +24,14 @@ module mod_fluc
   integer,          allocatable, public, save :: fluc_ixExt(:)      ! The index of the element
   integer,                       public, save :: fluc_nExt          ! Number of multipoles in fort.16
 
+  integer,                       public, save :: fluc_mRead         ! Flag determining what files to read
+
   integer, public, save :: fluc_iSeed1
   integer, public, save :: fluc_iSeed2
 
 contains
 
-subroutine fluc_parseInputLine(inLine, iLine, iErr, mout)
+subroutine fluc_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
   use parpro,         only : nmac
@@ -42,7 +44,6 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr, mout)
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
-  integer,          intent(out)   :: mout
 
   character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
@@ -61,16 +62,18 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr, mout)
     return
   end if
 
-  if(nSplit > 0) call chr_cast(lnSplit(1),izu0,iErr)
-  if(nSplit > 1) call chr_cast(lnSplit(2),mmac,iErr)
-  if(nSplit > 2) call chr_cast(lnSplit(3),mout,iErr)
-  if(nSplit > 3) call chr_cast(lnSplit(4),mcut,iErr)
+  fluc_mRead = 0
+
+  if(nSplit > 0) call chr_cast(lnSplit(1),izu0,      iErr)
+  if(nSplit > 1) call chr_cast(lnSplit(2),mmac,      iErr)
+  if(nSplit > 2) call chr_cast(lnSplit(3),fluc_mRead,iErr)
+  if(nSplit > 3) call chr_cast(lnSplit(4),mcut,      iErr)
 
   if(st_debug) then
-    call sixin_echoVal("izu0",izu0,"FLUC",iLine)
-    call sixin_echoVal("mmac",mmac,"FLUC",iLine)
-    call sixin_echoVal("mout",mout,"FLUC",iLine)
-    call sixin_echoVal("mcut",mcut,"FLUC",iLine)
+    call sixin_echoVal("izu0",izu0,      "FLUC",iLine)
+    call sixin_echoVal("mmac",mmac,      "FLUC",iLine)
+    call sixin_echoVal("mout",fluc_mRead,"FLUC",iLine)
+    call sixin_echoVal("mcut",mcut,      "FLUC",iLine)
   end if
 
   ! Process variables
@@ -84,7 +87,51 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr, mout)
     return
   end if
 
+  if(fluc_mRead < 0 .or. fluc_mRead > 7) then
+    write(lout,"(a,i0)") "FLUC> ERROR I/O options (mout) must be a number between 0 and 7, got ",fluc_mRead
+    iErr = .true.
+    return
+  end if
+
+  if(mcut == 0) then
+    write(lout,"(a)")      "FLUC> No cut on random distribution."
+  else
+    write(lout,"(a,i0,a)") "FLUC> Random distribution has been cut to ",mcut," sigma."
+  end if
+
 end subroutine fluc_parseInputLine
+
+subroutine fluc_readInputs
+
+  use mod_common, only : mout2
+
+  implicit none
+
+  select case(fluc_mRead)
+  case(1)
+    call fluc_readFort16
+  case(2)
+    mout2=1
+  case(3)
+    call fluc_readFort16
+    mout2=1
+  case(4)
+    call fluc_readFort8
+  case(5)
+    call fluc_readFort8
+    call fluc_readFort16
+  case(6)
+    mout2=1
+    call fluc_readFort8
+  case(7)
+    mout2=1
+    call fluc_readFort16
+    call fluc_readFort8
+  end select
+
+  call fluc_moreRandomness
+
+end subroutine fluc_readInputs
 
 subroutine fluc_moreRandomness
 
