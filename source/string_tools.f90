@@ -14,20 +14,10 @@
 module string_tools
 
   use strings
+  use parpro, only : mStrLen, mNameLen
   use, intrinsic :: iso_fortran_env, only : int16, int32, int64, real32, real64, real128
 
   implicit none
-
-  ! "Standard" string and name length, +1 for \0
-  integer, parameter :: str_maxName   = 48
-  integer, parameter :: str_maxLen    = 161
-  integer, parameter :: str_maxFields = 15
-
-  ! Dummy empty strings
-  character(len=str_maxLen),  parameter :: str_dSpace  = repeat(" ",str_maxLen)
-  character(len=str_maxLen),  parameter :: str_dZeros  = repeat(char(0),str_maxLen)
-  character(len=str_maxName), parameter :: str_nmSpace = repeat(" ",str_maxName)
-  character(len=str_maxName), parameter :: str_nmZeros = repeat(char(0),str_maxName)
 
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
@@ -75,9 +65,10 @@ module string_tools
   ! Old stuff added for backwards compatibility
   !
 
+  integer, parameter :: str_maxFields          = 15
   integer, parameter :: getfields_n_max_fields = str_maxFields ! Max number of returned fields
-  integer, parameter :: getfields_l_max_string = str_maxLen    ! Max string length
-  integer, parameter :: stringzerotrim_maxlen  = str_maxLen    ! Max string length
+  integer, parameter :: getfields_l_max_string = mStrLen       ! Max string length
+  integer, parameter :: stringzerotrim_maxlen  = mStrLen       ! Max string length
 
   public stringzerotrim
 
@@ -1211,8 +1202,8 @@ subroutine getfields_split(inLine, gFields, lFields, nFields, errFields)
 
   implicit none
 
-  character inLine*(str_maxLen-1)               ! nchars in daten is 160
-  character gFields(str_maxFields)*(str_maxLen) ! Array of fields
+  character inLine*(mStrLen-1)               ! nchars in daten is 160
+  character gFields(str_maxFields)*(mStrLen) ! Array of fields
   integer   nFields                             ! Number of identified fields
   integer   lFields(str_maxFields)              ! Length of each what:
   logical   errFields                           ! An error flag
@@ -1232,7 +1223,7 @@ subroutine getfields_split(inLine, gFields, lFields, nFields, errFields)
   istart    = 0
 
   do ii=1,str_maxFields
-    do jj=1,str_maxLen
+    do jj=1,mStrLen
       gFields(ii)(jj:jj) = char(0) ! ZERO terminate/pad
     end do
     lFields(ii) = 0
@@ -1240,7 +1231,7 @@ subroutine getfields_split(inLine, gFields, lFields, nFields, errFields)
 
   ! Parse the line
   lchar = .false.
-  do ii=1, str_maxLen-1 ! For \0 termination
+  do ii=1, mStrLen-1 ! For \0 termination
     if(inLine(ii:ii) == " ") then
       ! Blank char
       if(lchar) then

@@ -12,7 +12,7 @@ subroutine warr(vname,value,i,j,k,l)
 
   integer i,j,k,l
   integer ierro
-  character(len=max_name_len) myname
+  character(len=mNameLen) myname
 
   myname=vname
   write(100) myname,value,i,j,k,l
@@ -302,7 +302,7 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'izu0 ',izu0
   write(99,*) 'mmac ',mmac
   write(99,*) 'mcut ',mcut
-  write(99,*) 'exterr ',exterr
+! write(99,*) 'exterr ',exterr
   write(99,*) 'extalign ',extalign
   write(99,*) 'tiltc ',tiltc
   write(99,*) 'tilts ',tilts
@@ -801,7 +801,7 @@ subroutine dumpbin(dumpname,n,i)
   write(99) izu0
   write(99) mmac
   write(99) mcut
-  write(99) exterr
+! write(99) exterr
   write(99) extalign
   write(99) tiltc
   write(99) tilts
@@ -1294,7 +1294,7 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'izu0 ',izu0
   write(99,100) 'mmac ',mmac
   write(99,100) 'mcut ',mcut
-  write(99,100) 'exterr ',exterr
+! write(99,100) 'exterr ',exterr
   write(99,100) 'extalign ',extalign
   write(99,100) 'tiltc ',tiltc
   write(99,100) 'tilts ',tilts

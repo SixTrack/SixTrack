@@ -97,7 +97,7 @@ module collimation
 
   real(kind=fPrec), private, save :: nr
 
-  character(len=max_name_len), save :: name_sel
+  character(len=mNameLen), save :: name_sel
   character(len=80), save :: coll_db
   character(len=16), save :: castordir
   character(len=80), save :: filename_dis
@@ -165,7 +165,7 @@ module collimation
   real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
 !  common  /rimpact/ sumimpact,sqsumimpact,nimpact
 
-  character(len=:), allocatable, save :: ename(:) !(max_name_len)(nblz)
+  character(len=:), allocatable, save :: ename(:) !(mNameLen)(nblz)
   integer, allocatable, save :: nampl(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sum_ax(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
@@ -219,8 +219,8 @@ module collimation
 !UPGRADE January 2005
   integer, save :: db_ncoll
 
-  character(len=:), allocatable, save :: db_name1(:) !(max_name_len)(max_ncoll)
-  character(len=:), allocatable, save :: db_name2(:) !(max_name_len)(max_ncoll)
+  character(len=:), allocatable, save :: db_name1(:) !(mNameLen)(max_ncoll)
+  character(len=:), allocatable, save :: db_name2(:) !(mNameLen)(max_ncoll)
   character(len=:), allocatable, save :: db_material(:) !(4)(max_ncoll)
 !APRIL2005
   real(kind=fPrec), allocatable, save :: db_nsig(:) !(max_ncoll)
@@ -281,7 +281,7 @@ module collimation
 ! Variables for finding the collimator with the smallest gap
 ! and defining, stroring the gap rms error
 !
-  character(len=max_name_len) :: coll_mingap1, coll_mingap2
+  character(len=mNameLen) :: coll_mingap1, coll_mingap2
   real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
@@ -834,7 +834,7 @@ subroutine collimation_allocate_arrays
   call alloc(counteddpop, npart, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
   call alloc(counted2d, npart, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
 
-  call alloc(ename,    max_name_len, nblz, ' ', "ename") !(nblz)
+  call alloc(ename,    mNameLen, nblz, ' ', "ename") !(nblz)
   call alloc(nampl,    nblz, 0, "nampl") !(nblz)
   call alloc(sum_ax,   nblz, zero, "sum_ax") !(nblz)
   call alloc(sqsum_ax, nblz, zero, "sqsum_ax") !(nblz)
@@ -905,8 +905,8 @@ subroutine collimation_allocate_arrays
 
   call alloc(neffx, numeff, zero, "neffx") !(numeff)
   call alloc(neffy, numeff, zero, "neffy") !(numeff)
-  call alloc(db_name1, max_name_len, max_ncoll, ' ', "db_name1") !(max_ncoll)
-  call alloc(db_name2, max_name_len, max_ncoll, ' ', "db_name2") !(max_ncoll)
+  call alloc(db_name1, mNameLen, max_ncoll, ' ', "db_name1") !(max_ncoll)
+  call alloc(db_name2, mNameLen, max_ncoll, ' ', "db_name2") !(max_ncoll)
   call alloc(db_material, 4, max_ncoll, '    ', "db_material") !(max_ncoll)
   call alloc(db_nsig, max_ncoll, zero, "db_nsig") !(max_ncoll)
   call alloc(db_length, max_ncoll, zero, "db_length") !(max_ncoll)
@@ -989,7 +989,7 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call resize(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
   call resize(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
 
-  call resize(ename,    max_name_len, nblz_new, ' ', "ename") !(nblz_new)
+  call resize(ename,    mNameLen, nblz_new, ' ', "ename") !(nblz_new)
   call resize(nampl,    nblz_new, 0, "nampl") !(nblz_new)
   call resize(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
   call resize(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
@@ -2190,8 +2190,8 @@ subroutine collimate_start_sample(nsample)
 
       do i = 1, db_ncoll
 ! start searching minimum gap
-        if((db_name1(i)(1:max_name_len).eq.bez(myix)(1:max_name_len)).or. &
-           (db_name2(i)(1:max_name_len).eq.bez(myix)(1:max_name_len))) then
+        if((db_name1(i)(1:mNameLen).eq.bez(myix)(1:mNameLen)).or. &
+           (db_name2(i)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
           if( db_length(i) .gt. zero ) then
             nsig_err = nsig + gap_rms_error(i)
 
@@ -2486,7 +2486,7 @@ subroutine collimate_start_collimator(stracki)
         end if
 
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:max_name_len)
+          ename(ie)    = bez(myix)(1:mNameLen)
       end do !do j = 1, napx
     end if !if(rselect.gt.0 .and. rselect.lt.65) then
   end if !if( firstrun ) then
@@ -2496,8 +2496,8 @@ subroutine collimate_start_collimator(stracki)
 
 !     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
   do j = 1, db_ncoll
-    if((db_name1(j)(1:max_name_len).eq.bez(myix)(1:max_name_len)) .or. &
-       (db_name2(j)(1:max_name_len).eq.bez(myix)(1:max_name_len))) then
+    if((db_name1(j)(1:mNameLen).eq.bez(myix)(1:mNameLen)) .or. &
+       (db_name2(j)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
       if( db_length(j) .gt. zero ) then
         found = .true.
         icoll = j
@@ -2574,8 +2574,8 @@ subroutine collimate_do_collimator(stracki)
   end if
 
 !++  Write beam ellipse at selected collimator
-  if (((db_name1(icoll).eq.name_sel(1:max_name_len)) .or.&
-       (db_name2(icoll).eq.name_sel(1:max_name_len))) .and. dowrite_dist) then
+  if (((db_name1(icoll).eq.name_sel(1:mNameLen)) .or.&
+       (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. dowrite_dist) then
     do j = 1, napx
       write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
@@ -3565,8 +3565,8 @@ subroutine collimate_end_collimator()
 
 ! should name_sel(1:11) extended to allow longer names as done for
 ! coll the coll_ellipse.dat file !!!!!!!!
-  if(((db_name1(icoll).eq.name_sel(1:max_name_len)).or.&
-      (db_name2(icoll).eq.name_sel(1:max_name_len))) .and. iturn.eq.1  ) then
+  if(((db_name1(icoll).eq.name_sel(1:mNameLen)).or.&
+      (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. iturn.eq.1  ) then
     num_selhit = 0
     num_surhit = 0
     num_selabs = 0
@@ -3841,7 +3841,7 @@ subroutine collimate_end_sample(j)
   if(h5_useForCOLL) then
     allocate(fldHdf(7))
     fldHdf(1) = h5_dataField(name="ICOLL",    type=h5_typeInt)
-    fldHdf(2) = h5_dataField(name="COLLNAME", type=h5_typeChar, size=max_name_len)
+    fldHdf(2) = h5_dataField(name="COLLNAME", type=h5_typeChar, size=mNameLen)
     fldHdf(3) = h5_dataField(name="NIMP",     type=h5_typeInt)
     fldHdf(4) = h5_dataField(name="NABS",     type=h5_typeInt)
     fldHdf(5) = h5_dataField(name="IMP_AV",   type=h5_typeReal)
@@ -4212,7 +4212,7 @@ subroutine collimate_end_element
         end if
 
         sampl(ie) = totals
-        ename(ie) = bez(myix)(1:max_name_len)
+        ename(ie) = bez(myix)(1:mNameLen)
       end do
     end if
   end if
@@ -4677,7 +4677,7 @@ subroutine collimate_end_turn
           sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
           nampl(ie)    = nampl(ie) + 1
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:max_name_len)
+          ename(ie)    = bez(myix)(1:mNameLen)
         else
           nspx = zero
           nspy = zero
@@ -7997,7 +7997,7 @@ subroutine readcollimator
 
 #ifdef ROOT
 ! Temp variables to avoid fotran array -> C nightmares
-  character(len=max_name_len+1) :: this_name = C_NULL_CHAR
+  character(len=mNameLen+1) :: this_name = C_NULL_CHAR
   character(len=5) :: this_material = C_NULL_CHAR
 #endif
 

@@ -27,7 +27,7 @@ module sixtrack_input
   ! Single Element Variables
   integer,                       public, save :: sixin_nSing
   integer,                       public, save :: sixin_ncy2
-  character(len=:), allocatable, public, save :: sixin_bez0(:) ! (str_maxName)(nele)
+  character(len=:), allocatable, public, save :: sixin_bez0(:) ! (mNameLen)(nele)
   character(len=3), parameter,   public       :: sixin_cavity = "CAV"
 
   ! Block Definition Variables
@@ -156,7 +156,7 @@ subroutine sixin_blockReport
 
   integer i
 
-  write(lout,"(a)") st_divLine
+  write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
   write(lout,"(a)") "    Finished parsing input file(s)."
   write(lout,"(a)") "    Parsed the following blocks:"
@@ -165,7 +165,7 @@ subroutine sixin_blockReport
       "with ",(sixin_iBlock(i)-1)," line(s) from fort.",sixin_uBlock(i)
   end do
   write(lout,"(a)") ""
-  write(lout,"(a)") st_divLine
+  write(lout,"(a)") str_divLine
 
 end subroutine sixin_blockReport
 
@@ -311,9 +311,9 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
     return
   end if
 
-  elemName = chr_padSpace(lnSplit(1),str_maxName)
-  if(len(elemName) > str_maxName) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",str_maxName
+  elemName = chr_padSpace(lnSplit(1),mNameLen)
+  if(len(elemName) > mNameLen) then
+    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",mNameLen
     iErr = .true.
     return
   end if
@@ -389,7 +389,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! Expand Arrays
   if(sixin_nSing > nele-2) then
     call expand_arrays(nele+100, npart, nblz, nblo)
-    call resize(sixin_bez0, str_maxName, nele, str_nmZeros, "sixin_bez0")
+    call resize(sixin_bez0, mNameLen, nele, str_nmZeros, "sixin_bez0")
   end if
 
   if(abs(kz(sixin_nSing)) /= 12 .or. (abs(kz(sixin_nSing)) == 12 .and. sixin_ncy2 == 0)) then
@@ -439,7 +439,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
 
   integer i, j, ka, ke, nInd
   logical eFound, isCont
-  character(len=str_maxName) ilm0(40)
+  character(len=mNameLen) ilm0(40)
 
   call chr_split(inLine, lnSplit, nSplit, spErr, nIndent=nInd)
   if(spErr) then
@@ -480,8 +480,8 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     if(iErr) return
 
     ! Init variables
-    call alloc(sixin_ilm,  str_maxName,       nelb, str_nmSpace, "sixin_ilm")
-    call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
+    call alloc(sixin_ilm,  mNameLen,       nelb, str_nmSpace, "sixin_ilm")
+    call alloc(sixin_beze, mNameLen, nblo, nelb, str_nmSpace, "sixin_beze")
 
     ! No need to parse anything more for this line
     return
@@ -495,12 +495,12 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   if(isCont) then                             ! This line continues the previous BLOC
     blocName = str_nmSpace                    ! No name returned, set an empty BLOC name
     do i=1,nSplit                             ! All elements are sub-elements. Save to buffer.
-      ilm0(i) = chr_padSpace(lnSplit(i),str_maxName)
+      ilm0(i) = chr_padSpace(lnSplit(i),mNameLen)
     end do
   else                                        ! This is a new BLOC
-    blocName = chr_padSpace(lnSplit(1),str_maxName)
+    blocName = chr_padSpace(lnSplit(1),mNameLen)
     do i=1,nSplit-1                           ! Save the rest to buffer
-      ilm0(i) = chr_padSpace(lnSplit(i+1),str_maxName)
+      ilm0(i) = chr_padSpace(lnSplit(i+1),mNameLen)
     end do
   end if
 
@@ -508,7 +508,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     sixin_nBloc = sixin_nBloc + 1             ! Increment the BLOC number
     if(sixin_nBloc > nblo-1) then             ! Expand arrays if needed
       call expand_arrays(nele, npart, nblz, nblo+50)
-      call alloc(sixin_beze, str_maxName, nblo, nelb, str_nmSpace, "sixin_beze")
+      call alloc(sixin_beze, mNameLen, nblo, nelb, str_nmSpace, "sixin_beze")
     end if
     bezb(sixin_nBloc) = blocName              ! Set the BLOC name in bezb
     sixin_k0          = 0                     ! Reset the single element counter
@@ -574,7 +574,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   logical spErr
 
   integer i, j, t
-  character(len=str_maxName) ilm0(40)
+  character(len=mNameLen) ilm0(40)
 
   do i=1,40
     ilm0(i) = str_nmSpace
@@ -595,7 +595,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end if
 
   do i=1,nSplit
-    ilm0(i) = chr_padSpace(lnSplit(i),str_maxName)
+    ilm0(i) = chr_padSpace(lnSplit(i),mNameLen)
   end do
 
   do i=1,40
@@ -672,8 +672,8 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   end if
 
   elemName = trim(lnSplit(1))
-  if(len(elemName) > str_maxName) then
-    write(lout,"(a,i0)") "DISP> ERROR Displacement of element name too long. Max length is ",str_maxName
+  if(len(elemName) > mNameLen) then
+    write(lout,"(a,i0)") "DISP> ERROR Displacement of element name too long. Max length is ",mNameLen
     iErr = .true.
     return
   end if
@@ -1048,7 +1048,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=str_maxName) ilm0(40)
+  character(len=mNameLen) ilm0(40)
   integer i, j1, j2, nSplit
   logical spErr
 
@@ -1101,7 +1101,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
       return
     end if
     do i=1,ncor
-      ilm0(i) = chr_padSpace(lnSplit(i),str_maxName)
+      ilm0(i) = chr_padSpace(lnSplit(i),mNameLen)
     end do
 
   end if
@@ -1170,7 +1170,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=str_maxName)      :: tmp_is(2)
+  character(len=mNameLen)      :: tmp_is(2)
   integer nSplit,i,ichrom0
   logical spErr
 
@@ -1246,7 +1246,7 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=str_maxName)      :: tmp_iq(5)
+  character(len=mNameLen)      :: tmp_iq(5)
   integer nSplit,i,nLines
   logical spErr
 
@@ -1386,7 +1386,7 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=str_maxName) mode
+  character(len=mNameLen) mode
   integer nSplit,i,nlin
   logical spErr
 
@@ -1614,7 +1614,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=str_maxName) imn
+  character(len=mNameLen) imn
   real(kind=fPrec) ak0d,akad,bk0d,bkad,r0,r0a
   integer          nSplit,i,nmul,iil
   logical          spErr

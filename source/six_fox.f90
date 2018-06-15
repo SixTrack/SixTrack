@@ -35,7 +35,7 @@ subroutine umlauda
   &scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,sigm1,       &
   &sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zfeld1,zfeld2,  &
   &zrb,zs,  crabfreq, crabpht, crabpht2, crabpht3, crabpht4
-  character(len=max_name_len) typ
+  character(len=mNameLen) typ
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   dimension damap(6),damapi(6),damap1(6)
   dimension aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6)

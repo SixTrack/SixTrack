@@ -25,7 +25,6 @@ contains
   subroutine funit_requestUnit(fileName, fileUnit)
 
     use crcoall
-    use string_tools
 
     implicit none
 
@@ -37,8 +36,9 @@ contains
     type(string),     allocatable :: tmp_usedByFile(:)
 
     logical isOpen
+    integer i
 
-    cleanName = chr_strip(chr_trimZero(fileName))
+    cleanName = trim(fileName)
 
 10  continue
 

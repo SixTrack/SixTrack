@@ -7,14 +7,14 @@
 ! ================================================================================================ !
 module zipf
 
-  use string_tools
+  use parpro
 
   implicit none
 
   integer, save :: zipf_numFiles
 
   character(len=:), allocatable, save :: zipf_fileNames(:) ! Name of files to pack into the zip file.
-  character(len=str_maxLen),     save :: zipf_outFile      ! Name of output file (Default: Sixout.zip)
+  character(len=mStrLen),        save :: zipf_outFile      ! Name of output file (Default: Sixout.zip)
 
 contains
 
@@ -22,12 +22,13 @@ subroutine zipf_parseInputLine(ch)
 
   use crcoall
   use mod_alloc
+  use string_tools
 
   implicit none
 
   character(len=*), intent(in) :: ch
 
-  character gFields(str_maxFields)*(str_maxLen) ! Array of fields
+  character gFields(str_maxFields)*(mStrLen) ! Array of fields
   integer   nFields                             ! Number of identified fields
   integer   lFields(str_maxFields)              ! Length of each what:
   logical   errFields                           ! An error flag
@@ -43,7 +44,7 @@ subroutine zipf_parseInputLine(ch)
   end if
 
   zipf_numFiles = zipf_numFiles + 1
-  call resize(zipf_fileNames,str_maxLen, zipf_numFiles, str_dZeros, "zipf_fileNames")
+  call resize(zipf_fileNames,mStrLen, zipf_numFiles, str_dZeros, "zipf_fileNames")
   zipf_fileNames(zipf_numFiles)(1:lFields(1)) = gFields(1)(1:lFields(1))
 
 end subroutine zipf_parseInputLine
@@ -51,6 +52,7 @@ end subroutine zipf_parseInputLine
 subroutine zipf_parseInputDone
 
   use crcoall
+  use string_tools
 
   implicit none
 
@@ -88,7 +90,7 @@ subroutine zipf_comnul
   zipf_numFiles = 0
   zipf_outFile  = str_dZeros
 
-  call alloc(zipf_fileNames, str_maxLen, 1, str_dZeros, "zipf_fileNames")
+  call alloc(zipf_fileNames, mStrLen, 1, str_dZeros, "zipf_fileNames")
 
 end subroutine zipf_comnul
 
@@ -96,15 +98,16 @@ subroutine zipf_dozip
 
   use crcoall
   use mod_alloc
+  use string_tools
 
   implicit none
 
 #ifdef BOINC
-  character(str_maxLen)            zipf_outFile_boinc
+  character(mStrLen)               zipf_outFile_boinc
   character(len=:), allocatable :: zipf_fileNames_boinc(:)
   integer ii
 
-  call alloc(zipf_fileNames_boinc, str_maxLen, zipf_numFiles, str_dZeros, "zipf_fileNames_boinc")
+  call alloc(zipf_fileNames_boinc, mStrLen, zipf_numFiles, str_dZeros, "zipf_fileNames_boinc")
 #endif
 
 !+if libarchive

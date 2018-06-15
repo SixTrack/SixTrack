@@ -24,7 +24,6 @@ module dump
   use floatPrecision
   use parpro ! For nele
   use mod_alloc
-  use string_tools, only : str_maxLen, str_dZeros
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -49,7 +48,7 @@ module dump
   ! Flag the format of the dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
-  character(len=:), allocatable, save :: dump_fname(:) !(str_maxLen)(-1:nele)
+  character(len=:), allocatable, save :: dump_fname(:) !(mStrLen)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -92,7 +91,7 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   call alloc(dumplast,               nele_new, 0,          "dumplast",   -1)
   call alloc(dumpunit,               nele_new, 0,          "dumpunit",   -1)
   call alloc(dumpfmt,                nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, str_maxLen, nele_new, str_dZeros, "dump_fname", -1)
+  call alloc(dump_fname, mStrLen, nele_new, str_dZeros, "dump_fname", -1)
   
   call alloc(dumptas,                nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
   call alloc(dumptasinv,             nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
@@ -198,16 +197,16 @@ subroutine dump_parseInputLine(ch,iErr)
   logical,          intent(inout) :: iErr
 
   ! Fields split variables
-  character gFields(str_maxFields)*(str_maxLen) ! Array of fields
+  character gFields(str_maxFields)*(mStrLen) ! Array of fields
   integer   nFields                             ! Number of identified fields
   integer   lFields(str_maxFields)              ! Length of each what:
   logical   fieldsErr                           ! An error flag
 
   ! Temp variables
-  character(len=max_name_len) idat ! Synchronized with daten
+  character(len=mNameLen) idat ! Synchronized with daten
   integer i1,i2,i3,i4,i5,kk,j
 
-  character(len=str_maxLen) ch1
+  character(len=mStrLen) ch1
 
   ! initialise reading variables, to avoid storing nonsense values
   idat = ' ' ! Name
@@ -236,8 +235,8 @@ subroutine dump_parseInputLine(ch,iErr)
     return
   end if
 
-  if (lFields(1) > max_name_len) then
-    write(lout,"(a,i0,a)") "DUMP> ERROR Element names are max. ",max_name_len," characters"
+  if (lFields(1) > mNameLen) then
+    write(lout,"(a,i0,a)") "DUMP> ERROR Element names are max. ",mNameLen," characters"
     iErr = .true.
     return
   end if
@@ -338,7 +337,7 @@ subroutine dump_parseInputLine(ch,iErr)
   if(h5_useForDUMP .eqv. .false.) then
 #endif
     if(dumpunit(j) == -1) then
-      call funit_requestUnit(dump_fname(j),dumpunit(j))
+      call funit_requestUnit(chr_trimZero(dump_fname(j)),dumpunit(j))
     end if
 #ifdef HDF5
   end if
@@ -359,7 +358,7 @@ subroutine dump_parseInputDone
 
   ! Temp variables
   integer ii,jj,kk
-  character(len=str_maxLen) ch1
+  character(len=mStrLen) ch1
 
   ! HEADER
   write(lout,10460) "DUMP"
@@ -882,7 +881,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 
   ! Temporary variables
   integer j,k,l,m,n
-  character(len=max_name_len) localBez
+  character(len=mNameLen) localBez
 
   real(kind=fPrec) localDcum
   integer localKtrack

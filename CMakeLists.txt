@@ -86,8 +86,6 @@ OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
 OPTION(BEAMGAS "Beam-gas scattering" OFF)
-OPTION(BIGNBLZ "Allow up to 200'000 structure elements (normally 20'000 (15k for collimat)) - useful for FCC etc." OFF)
-OPTION(HUGENBLZ "Allow up to 400'000 structure elements (normally 20'000 (15k for collimat)) - useful for FCC etc." OFF)
 OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, instead of 32 separate files fort.90 to fort.(90-32). Required for increased particle numbers" OFF)
 OPTION(BIGNPART "Allow tracking up to 2048 particles (normally 64)." OFF)
 OPTION(HUGENPART "Allow tracking up to 65536 particles (normally 64)" OFF)
@@ -197,12 +195,6 @@ endif()
 if(BEAMGAS)
 	SET(SIXTRACK_FEATURES "beamgas_${SIXTRACK_FEATURES}")
 endif()
-if(BIGNBLZ)
-	SET(SIXTRACK_FEATURES "bignblz_${SIXTRACK_FEATURES}")
-endif()
-if(HUGENBLZ)
-	SET(SIXTRACK_FEATURES "hugenblz_${SIXTRACK_FEATURES}")
-endif()
 if(STF)
 	SET(SIXTRACK_FEATURES "stf_${SIXTRACK_FEATURES}")
 endif()
@@ -293,7 +285,7 @@ set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS BIGNBLZ HUGENBLZ STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST SIXDA COLLIMAT CPSS BOINC BEAMGAS STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -307,7 +299,7 @@ list(APPEND FORS_F90
 	file_units mod_alloc zipf matrix_inv lielib beam6d
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dynk dump
-	aperture postprocessing
+	aperture postprocessing mod_fluc
 )
 
 if(SIXDA)
@@ -522,18 +514,7 @@ if(BEAMGAS)
 	if(NOT COLLIMAT)
 		message(FATAL_ERROR "Building with BEAMGAS requires COLLIMAT enabled")
 	endif(NOT COLLIMAT)
-	if(BIGNBLZ)
-		message(FATAL_ERROR "Cannot build BEAMGAS with BIGNBLZ enabled.")
-	endif(BIGNBLZ)
-	if(HUGENBLZ)
-		message(FATAL_ERROR "Cannot build BEAMGAS with HUGENBLZ enabled.")
-	endif(HUGENBLZ)
 endif(BEAMGAS)
-if(BIGNBLZ)
-	if(HUGENBLZ)
-		message(FATAL_ERROR "Cannot combine BIGNBLZ with HUGENBLZ.")
-	endif()
-endif()
 if(HUGENPART)
 	if(BIGNPART)
 		message(FATAL_ERROR "Cannot combine BIGNPART with HUGENPART.")

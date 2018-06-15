@@ -30,7 +30,7 @@ subroutine h5lin_init
   h5lin_nElem(2) = h5lin_chunkSize
 
   call alloc(h5lin_iData,               h5lin_nElem(2), 0,                            "h5lin_iData")
-  call alloc(h5lin_cData, max_name_len, h5lin_nElem(2), repeat(char(0),max_name_len), "h5lin_cData")
+  call alloc(h5lin_cData, mNameLen, h5lin_nElem(2), repeat(char(0),mNameLen), "h5lin_cData")
   call alloc(h5lin_rData, 17,           h5lin_nElem(2), 0.0_fPrec,                    "h5lin_rData")
 
 end subroutine h5lin_init
@@ -46,7 +46,7 @@ subroutine h5lin_writeLine(lineNo, elemType, arrData)
   if(h5lin_nElem(1) > h5lin_nElem(2)) then
     h5lin_nElem(2) = h5lin_nElem(2) + h5lin_chunkSize
     call resize(h5lin_iData,               h5lin_nElem(2), 0,                            "h5lin_iData")
-    call resize(h5lin_cData, max_name_len, h5lin_nElem(2), repeat(char(0),max_name_len), "h5lin_cData")
+    call resize(h5lin_cData, mNameLen, h5lin_nElem(2), repeat(char(0),mNameLen), "h5lin_cData")
     call resize(h5lin_rData, 17,           h5lin_nElem(2), 0.0_fPrec,                    "h5lin_rData")
   end if
 
@@ -64,7 +64,7 @@ subroutine h5lin_saveData
   allocate(setFields(19))
 
   setFields(1)  = h5_dataField(name="NR",     type=h5_typeInt)
-  setFields(2)  = h5_dataField(name="TYP",    type=h5_typeChar, size=max_name_len)
+  setFields(2)  = h5_dataField(name="TYP",    type=h5_typeChar, size=mNameLen)
   setFields(3)  = h5_dataField(name="LTOT",   type=h5_typeReal)
   setFields(4)  = h5_dataField(name="PHIX",   type=h5_typeReal)
   setFields(5)  = h5_dataField(name="BETAX",  type=h5_typeReal)
@@ -97,7 +97,7 @@ subroutine h5lin_saveData
   deallocate(setFields)
 
   call dealloc(h5lin_iData,               "h5lin_iData")
-  call dealloc(h5lin_cData, max_name_len, "h5lin_cData")
+  call dealloc(h5lin_cData, mNameLen, "h5lin_cData")
   call dealloc(h5lin_rData,               "h5lin_rData")
 
 end subroutine h5lin_saveData
