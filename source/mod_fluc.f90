@@ -111,7 +111,7 @@ subroutine fluc_moreRandomness
 end subroutine fluc_moreRandomness
 
 subroutine fluc_readFort8
-  
+
   use mod_alloc
   use mod_units
   use string_tools
@@ -154,20 +154,20 @@ subroutine fluc_readFort8
   call chr_split(inLine, lnSplit, nSplit, iErr)
   if(iErr) goto 30
   if(nSplit == 0) goto 10
-  
+
   if(allocated(fluc_ixAlign)) then
     mAlign = size(fluc_ixAlign,1)
   else
     mAlign = 0
   end if
-  
+
   fluc_nAlign = fluc_nAlign + 1
   if(fluc_nAlign > mAlign) then
     call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
     call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
     call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
   end if
-  
+
   if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
   if(nSplit > 1) call chr_cast(lnSplit(2),fluc_errAlign(1,fluc_nAlign),iErr)
   if(nSplit > 2) call chr_cast(lnSplit(3),fluc_errAlign(2,fluc_nAlign),iErr)
@@ -209,7 +209,7 @@ subroutine fluc_readFort8
   !     write(lout,"(a,3(2x,e14.7))")  "FLUC> Values: ",fluc_errAlign(1,i),fluc_errAlign(2,i),fluc_errAlign(3,i)
   !   end do
   ! end if
-  
+
   return
 
 30 continue
@@ -342,7 +342,7 @@ subroutine fluc_readFort16
       if(nExt > fluc_nExt) exit
     end if
   end do
-  
+
   if(nExt /= fluc_nExt+1) then
     write(lout,"(a)")       "FLUC> ERROR Did not find all the elements in fort.16 in the structure."
     write(lout,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
@@ -369,5 +369,82 @@ subroutine fluc_readFort16
   call prror(-1)
 
 end subroutine fluc_readFort16
+
+! The code for reading fort.30 has not been implementet, as it seemed to be out of date anyway.
+! Pasting it here for reference in case it needs to be put back in.
+! -------------------------------------------------------------------------------------------------
+! izu=0
+! iexnum=0
+! if(mout4.eq.1) then
+!   read(30,10020,end=1591)
+!   rewind 30
+!   do 1590 i=1,mper*mbloz
+!     ix=ic(i)
+!     if(ix.gt.nblo) then
+!       ix=ix-nblo
+!       kpz=kp(ix)
+!       kzz=kz(ix)
+!       if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 1590
+!       if(kzz.eq.15) goto 1590
+!       izu=izu+3
+!       read(30,10020,end=1591,iostat=ierro) ch
+!       if(ierro.gt.0) call prror(87)
+!       lineno30=lineno30+1
+!       call intepr(1,1,ch,ch1)
+!       read(ch1,*) ilm0(1),zfz(izu-2)
+!       iexnum=iexnum+1
+!       if(kz(ix).eq.11) izu=izu+2*mmul
+!     endif
+! 1590   continue
+!   if(iexnum.gt.0) then
+!     write(lout,*)
+!     write(lout,*)'          Single (random) kick errors read in from external file'
+!     write(lout,*)
+!     write(lout,*) '        From file fort.30 :',iexnum,' values read in.'
+!     write(lout,*)
+!   endif
+!   iexread=0
+!   ifiend8=0
+!   iexnum=0
+!   rewind 30
+!   do 1593 i=1,mper*mbloz
+!     ix=ic(i)
+!     if(ix.gt.nblo) then
+!       ix=ix-nblo
+!       if(iexread.eq.0) then
+! 1595         ilm0(1)=' '
+! ! READ IN HORIZONTAL AND VERTICAL MISALIGNMENT AND TILT
+!         if(ifiend8.eq.0) then
+!           read(30,10020,end=1594,iostat=ierro) ch
+!           if(ierro.gt.0) call prror(87)
+!           lineno30=lineno30+1
+!         else
+!           goto 1594
+!         endif
+!         call intepr(1,1,ch,ch1)
+!         read(ch1,*) ilm0(1),dummy,alignx,alignz,tilt
+!         if(((abs(alignx)+abs(alignz))+abs(tilt)).le.pieni) goto 1595
+!         iexnum=iexnum+1
+!         bezext(iexnum)=ilm0(1)
+!         iexread=1
+!         goto 1596
+! 1594         ifiend8=1
+!         do 1597 j=1,iexnum
+!           if(bez(ix).eq.bezext(j)) call prror(87)
+! 1597         continue
+! 1596         continue
+!       endif
+!       if(ilm0(1).eq.bez(ix)) then
+!         icextal(i)=ix
+!         extalign(i,1)=alignx
+!         extalign(i,2)=alignz
+!         extalign(i,3)=tilt
+!         iexread=0
+!         goto 1593
+!       endif
+!     endif
+! 1593   continue
+! 1591   continue
+! endif
 
 end module mod_fluc
