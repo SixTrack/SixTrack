@@ -1,7 +1,9 @@
-
+/*
+// This prevents building on SL6
 #ifdef _GNU_SOURCE
 #undef _GNU_SOURCE
 #endif
+*/
 
 #include <cstdlib>
 #include <iostream>
@@ -1300,6 +1302,8 @@ void *pthread_kill_sixtrack(void* InputStruct)
 		{
 			//perror("Cannot kill SixTrack, it probably finished; will jump out");
 			std::cout << "Cannot kill SixTrack process, most likely it has finished." << std::endl;
+/*
+//          Does not work on SL6
 			char errstr[1024];
 			res=errno;
 			res=strerror_r(res,errstr,1024);
@@ -1309,6 +1313,8 @@ void *pthread_kill_sixtrack(void* InputStruct)
 				exit(EXIT_FAILURE);
 			}
 			std::cout << "Error message from kill(): '" << errstr << "'" << std::endl;
+*/
+			std::cout << "Error message from kill(): '" << strerror(errno) << "'" << std::endl;
 			
 			//No longer running, jump out;
 			ArmKill=false;
