@@ -877,12 +877,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   real(kind=fPrec), intent(in) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
   real(kind=fPrec), intent(in) :: loc_clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
 
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dbcommon
-#else
   integer, parameter :: samplenumber = 1
-#endif
 
   ! Temporary variables
   integer j,k,l,m,n
