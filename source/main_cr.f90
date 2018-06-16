@@ -69,7 +69,8 @@ program maincr
   use mod_units
   use aperture
   use mod_ranecu
-  use mod_alloc, only : alloc_init
+  use mod_alloc,      only : alloc_init
+  use mod_fluc,       only : fluc_randomReport, fluc_errAlign
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -338,14 +339,14 @@ end interface
   call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr)
+! call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr) ! Now opened in mod_fluc
   call units_openUnits(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
   call units_openUnits(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr)
+! call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr) ! Now opened in mod_fluc
 ! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use?
   call units_openUnits(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
 ! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
@@ -359,7 +360,7 @@ end interface
   call units_openUnits(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Not in use?
+! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Used by FLUC, but deprecated
   call units_openUnits(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
   call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
 ! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
@@ -739,7 +740,10 @@ end interface
     ! dump x-sections at specific locations
     if (mxsec.gt.0) call dump_aperture_xsecs
     ! map errors, now that the sequence is no longer going to change
-    if(m.eq.1) call ord
+    if(m.eq.1) then
+      call ord
+      if(allocated(zfz)) call fluc_randomReport
+    end if
 
     call clorb(ded)
 
@@ -853,7 +857,11 @@ end interface
         if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
         if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
         if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
-        write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
+        if(icextal(i) > 0) then
+          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+        else
+          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
+        end if
       endif
 
 !-- MULTIPOLE BLOCK
@@ -1407,7 +1415,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,extalign,tiltc,tilts,            &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
@@ -1474,7 +1482,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,extalign,tiltc,tilts,            &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &

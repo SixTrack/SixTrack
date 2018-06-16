@@ -55,14 +55,14 @@ subroutine daten
   use mod_alloc
   use mod_dist
 
-  use scatter, only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
-  use dynk,    only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
-  use fma,     only : fma_parseInputLine
-  use dump,    only : dump_parseInputLine,dump_parseInputDone
-  use zipf,    only : zipf_parseInputDone,zipf_parseInputline
-  use bdex,    only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use scatter,  only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
+  use dynk,     only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use fma,      only : fma_parseInputLine
+  use dump,     only : dump_parseInputLine,dump_parseInputDone
+  use zipf,     only : zipf_parseInputDone,zipf_parseInputline
+  use bdex,     only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use mod_fluc, only : fluc_parseInputLine,fluc_readInputs
   use aperture
-  use mod_fluc
   use mod_ranecu
   use mod_hions
   use elens
@@ -82,22 +82,19 @@ subroutine daten
 
   implicit none
 
-  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,iexnum,iexread,    &
-    ifiend16,ifiend8,ii,il1,ilin0,imo,imod,imtr0,irecuin,iw,iw0,ix,  &
+  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imo,imod,imtr0,iw,iw0,ix,  &
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
-    ll,m,mblozz,mout,mout1,mout3,mout4,nac,nbidu,ncy2,ndum,nfb,nft,i4,i5
+    ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
-  real(kind=fPrec) alignx,alignz,dummy,emitnx,emitny,extaux,&
-    rdev,rmean,rsqsum,rsum,tilt,xang,xstr,xplane
+  real(kind=fPrec) dummy,emitnx,emitny,tilt,xang,xstr,xplane
 
   ! For BEAM-EXP
-  real(kind=fPrec) separx,separy
-  real(kind=fPrec) mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
+  real(kind=fPrec) separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
 
   character(len=mNameLen) diff,sync,ende
-  character(len=mNameLen) fluc,iter,limi,orbi,deco
+  character(len=mNameLen) iter,limi,orbi,deco
   character(len=mNameLen) beze,go,comb,sear,subr
-  character(len=mNameLen) cavi,disp,reso,bezext
+  character(len=mNameLen) cavi,disp,reso
   character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
   character(len=mNameLen) iele,ilm0,idum,norm
   character(len=mNameLen) kl,kr,orga,post,beam,trom
@@ -126,7 +123,7 @@ subroutine daten
 #else
   integer nunit
 #endif
-  integer lineNo2,lineNo3,lineNo8,lineNo16,lineNo30,lineNo35
+  integer lineNo2,lineNo3
 
 #ifdef COLLIMAT
   logical has_coll
@@ -149,9 +146,7 @@ subroutine daten
 
   dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
-  dimension extaux(40)
-  dimension bezext(100000) ! FIXME: Must be made dynamic to (nblz) when moved to mod_fluc
-  data ende,next,fluc,iter,line,diff /'ENDE','NEXT','FLUC','ITER','LINE','DIFF'/
+  data ende,next,iter,line,diff /'ENDE','NEXT','ITER','LINE','DIFF'/
   data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
@@ -180,11 +175,9 @@ subroutine daten
 ! ================================================================================================ !
 
       if(mmul.lt.10.or.mmul.gt.20) call prror(85)
-      irecuin=0
 
       do i=1,40
         ilm0(i)=' '
-        extaux(i)=zero
       end do
 
       do i=1,10
@@ -209,8 +202,6 @@ subroutine daten
       iclo6=0
       iclo6r=0
       iclr=0
-      ! ncy2=0
-      ndum=0
 
 !  Initialise new input parameters
       idial=0
@@ -262,11 +253,6 @@ subroutine daten
       dqq=c1m10
       imtr0=0
       nlin=0
-      mout=0
-      mout1=0
-      mout2=0
-      mout3=0
-      mout4=0
       kanf=1
       isub=0
       irmod2=0
@@ -328,6 +314,7 @@ subroutine daten
   izu0        = 0
   mmac        = 1
   mcut        = 0
+  mout2       = 0
 
   ! HIONS MODULE
   zz0         = 1
@@ -358,10 +345,6 @@ subroutine daten
   nGeom       = 0
   lineNo2     = 0
   lineNo3     = 0
-  lineNo8     = 0
-  lineNo16    = 0
-  lineNo30    = 0
-  lineNo35    = 0
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
@@ -469,8 +452,6 @@ subroutine daten
   select case(idat)
   case("ITER")
     goto 940
-  case("FLUC")
-    goto 790
   case("LIMI")
     goto 950
   case("ORBI")
@@ -694,6 +675,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("FLUC") ! Fluctuation Random Starting Number
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call fluc_readInputs
+    else
+      call fluc_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -854,271 +845,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  FLUCTUATION RANDOM STARTING NUMBER
-!-----------------------------------------------------------------------
-  790 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 790
-      ! Read izu0, mmac, mout, mcut
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call fluc_parseInputLine(ch,1,inErr,mout)
-      !Generate normal distributed random numbers into zfz
-      if(mcut.eq.0) write(lout,10430)
-      if(mcut.gt.0) write(lout,10440) mcut
-      write(lout,10130)
-      ! Set flags mout1, mout2, mount3, mout4 depending on mout
-      ! Enables/disables different functionality
-      if(mout.ge.8) mout4=1
-      if(mout.eq.7.or.mout.eq.15) then
-        mout1=1
-        mout2=1
-        mout3=1
-      else if(mout.eq.6.or.mout.eq.14) then
-        mout2=1
-        mout3=1
-      else if(mout.eq.5.or.mout.eq.13) then
-        mout1=1
-        mout3=1
-      else if(mout.eq.4.or.mout.eq.12) then
-        mout3=1
-      else if(mout.eq.3.or.mout.eq.11) then
-        mout1=1
-        mout2=1
-      else if(mout.eq.2.or.mout.eq.10) then
-        mout2=1
-      else if(mout.eq.1.or.mout.eq.9) then
-        mout1=1
-      endif
-
-      if(mout1.eq.1) then
-        call fluc_readFort16
-      endif
-      if(mout3.eq.1) then
-        write(lout,*)
-        write(lout,*) '          Alignment errors read in ' ,           &
-     &'from external file'
-        write(lout,*)
-        iexread=0
-        ifiend8=0
-        iexnum=0
-        read(8,10020,end=1581)
-        rewind 8
-        do 1580 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(iexread.eq.0) then
-              ilm0(1)=' '
-! READ IN HORIZONTAL AND VERTICAL MISALIGNMENT AND TILT
-              if(ifiend8.eq.0) then
-                read(8,10020,end=1550,iostat=ierro) ch
-                if(ierro.gt.0) call prror(86)
-                lineno8=lineno8+1
-              else
-                goto 1550
-              endif
-              call intepr(1,1,ch,ch1)
-!             write (*,*) 'ch:'//ch//':'
-!             write (*,*) 'ch1:'//ch1//':'
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-              read(ch1,*,round='nearest')                               &
-     & ilm0(1),alignx,alignz,tilt
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-              read(ch1,*) ilm0(1),alignx,alignz,tilt
-#endif
-#ifdef CRLIBM
-              call splitfld(errno,8,lineno8,nofields,nf,ch1,fields)
-              if (nf.gt.0) then
-                read(fields(1),*) ilm0(1)
-                nf=nf-1
-              endif
-              if (nf.gt.0) then
-                alignx=fround(errno,fields,2)
-                nf=nf-1
-              endif
-              if (nf.gt.0) then
-                alignz=fround(errno,fields,3)
-                nf=nf-1
-              endif
-              if (nf.gt.0) then
-                tilt=fround(errno,fields,4)
-                nf=nf-1
-              endif
-!             alignx=DBLE(SNGL(alignx))
-!             alignz=DBLE(SNGL(alignz))
-!             tilt=DBLE(SNGL(tilt))
-!             call roundnulp(alignx,1024)
-!             call roundnulp(alignz,1024)
-!             call roundnulp(tilt,1024)
-#endif
-#endif
-#ifdef DEBUG
-!     call warr('ilm0(1)',0d0,1,0,0,0)
-!     call warr('alignx',alignx,I,1,0,0)
-!     call warr('alignz',alignz,I,2,0,0)
-!     call warr('tilt',tilt,I,3,0,0)
-#endif
-              iexnum=iexnum+1
-              bezext(iexnum)=ilm0(1)
-              iexread=1
-              goto 1570
- 1550         ifiend8=1
-              if(iexnum.eq.0) call prror(86)
-              do 1560 j=1,iexnum
-                if(bez(ix).eq.bezext(j)) call prror(86)
- 1560         continue
- 1570         continue
-            endif
-            if(ilm0(1).eq.bez(ix)) then
-              icextal(i)=ix
-              extalign(i,1)=alignx
-              extalign(i,2)=alignz
-              extalign(i,3)=tilt
-              iexread=0
-              goto 1580
-            endif
-          endif
- 1580   continue
- 1581   continue
-        write(lout,*) '        From file fort.8 :',iexnum,              &
-     &' values read in.'
-        write(lout,*)
-      endif
-
-      call fluc_moreRandomness
-      ! call recuin(izu0,irecuin)
-      ! call ranecu(zfz,nzfz,mcut)
-      ! rsum=zero
-
-      ! do i=1,nzfz
-      !   rsum=rsum+zfz(i)
-      ! end do
-
-      ! rmean=rsum/real(nzfz,fPrec)                                              !hr05
-      ! rsqsum=zero
-
-      ! do i=1,nzfz
-      !   rsqsum=rsqsum+(zfz(i)-rmean)**2                                    !hr05
-      ! end do
-
-      ! rdev=sqrt(rsqsum/real(nzfz,fPrec))                                       !hr05
-      ! write(lout,10410) izu0,nzfz,rmean,rdev
-
-
-
-      izu=0
-      iexnum=0
-      if(mout4.eq.1) then
-        read(30,10020,end=1591)
-        rewind 30
-        do 1590 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            kpz=kp(ix)
-            kzz=kz(ix)
-            if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 1590
-            if(kzz.eq.15) goto 1590
-            izu=izu+3
-            read(30,10020,end=1591,iostat=ierro) ch
-            if(ierro.gt.0) call prror(87)
-            lineno30=lineno30+1
-            call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-            read(ch1,*,round='nearest')                                 &
-     & ilm0(1),zfz(izu-2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-            read(ch1,*) ilm0(1),zfz(izu-2)
-#endif
-            iexnum=iexnum+1
-            if(kz(ix).eq.11) izu=izu+2*mmul
-          endif
- 1590   continue
-        if(iexnum.gt.0) then
-          write(lout,*)
-          write(lout,*)'          Single (random) kick errors read in ',&
-     &'from external file'
-          write(lout,*)
-          write(lout,*) '        From file fort.30 :',iexnum,           &
-     &' values read in.'
-          write(lout,*)
-        endif
-        iexread=0
-        ifiend8=0
-        iexnum=0
-        rewind 30
-        do 1593 i=1,mper*mbloz
-          ix=ic(i)
-          if(ix.gt.nblo) then
-            ix=ix-nblo
-            if(iexread.eq.0) then
- 1595         ilm0(1)=' '
-! READ IN HORIZONTAL AND VERTICAL MISALIGNMENT AND TILT
-              if(ifiend8.eq.0) then
-                read(30,10020,end=1594,iostat=ierro) ch
-                if(ierro.gt.0) call prror(87)
-                lineno30=lineno30+1
-              else
-                goto 1594
-              endif
-              call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-              read(ch1,*,round='nearest')                               &
-     & ilm0(1),dummy,alignx,alignz,tilt
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-              read(ch1,*) ilm0(1),dummy,alignx,alignz,tilt
-#endif
-              if(((abs(alignx)+abs(alignz))+abs(tilt)).le.pieni)        &!hr05
-     &goto 1595
-              iexnum=iexnum+1
-              bezext(iexnum)=ilm0(1)
-              iexread=1
-              goto 1596
- 1594         ifiend8=1
-              do 1597 j=1,iexnum
-                if(bez(ix).eq.bezext(j)) call prror(87)
- 1597         continue
- 1596         continue
-            endif
-            if(ilm0(1).eq.bez(ix)) then
-              icextal(i)=ix
-              extalign(i,1)=alignx
-              extalign(i,2)=alignz
-              extalign(i,3)=tilt
-              iexread=0
-              goto 1593
-            endif
-          endif
- 1593   continue
- 1591   continue
-      endif
-      goto 110
-  870 call prror(80)
 
 !-----------------------------------------------------------------------
 !  ORGANISATION OF RANDOM NUMBERS
@@ -4357,14 +4083,14 @@ subroutine daten
 !      &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
 10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
      &' AND THEREFORE IGNORED')
-10410 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
-     &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
-     &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
-     &'  -   DEVIATION=',f15.7)
+! 10410 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
+!      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
+!      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
+!      &'  -   DEVIATION=',f15.7)
 !10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
 !     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
-10430 format(/5x,'No cut on random distribution'//)
-10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
+! 10430 format(/5x,'No cut on random distribution'//)
+! 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
@@ -6973,9 +6699,9 @@ subroutine STRNUL( iel )
       mzu(iel)=0
       icext(iel)=0
       icextal(iel)=0
-      extalign(iel,1)=zero
-      extalign(iel,2)=zero
-      extalign(iel,3)=zero
+      ! extalign(iel,1)=zero
+      ! extalign(iel,2)=zero
+      ! extalign(iel,3)=zero
       sigmoff(iel)=zero
       tiltc(iel)=one
       tilts(iel)=zero
@@ -7047,9 +6773,9 @@ integer function INEELS( iEl )
       ic(i)=ic(i-1)
       icext(i)=icext(i-1)
       icextal(i)=icextal(i-1)
-      extalign(i,1)=extalign(i-1,1)
-      extalign(i,2)=extalign(i-1,2)
-      extalign(i,3)=extalign(i-1,3)
+      ! extalign(i,1)=extalign(i-1,1)
+      ! extalign(i,2)=extalign(i-1,2)
+      ! extalign(i,3)=extalign(i-1,3)
       ! do ii=1,40
       !   exterr(i,ii)=exterr(i-1,ii)
       ! enddo
@@ -10960,11 +10686,15 @@ subroutine ord
       izu=izu+2
       xrms(ix)=one
       zrms(ix)=one
-      zfz(izu)=extalign(i,1)
+      ! zfz(izu)=extalign(i,1)
+      zfz(izu)=fluc_errAlign(1,icextal(i))
       izu=izu+1
-      zfz(izu)=extalign(i,2)
-      tiltc(i)=cos_mb(extalign(i,3)*c1m3)
-      tilts(i)=sin_mb(extalign(i,3)*c1m3)
+      ! zfz(izu)=extalign(i,2)
+      zfz(izu)=fluc_errAlign(2,icextal(i))
+      ! tiltc(i)=cos_mb(extalign(i,3)*c1m3)
+      ! tilts(i)=sin_mb(extalign(i,3)*c1m3)
+      tiltc(i)=cos_mb(fluc_errAlign(3,icextal(i))*c1m3)
+      tilts(i)=sin_mb(fluc_errAlign(3,icextal(i))*c1m3)
     else
       izu=izu+3
     endif
@@ -11051,9 +10781,9 @@ subroutine orglat
       ilf(i)=ic(i)
       icext1(i)=icext(i)
       icextal1(i)=icextal(i)
-      extalig1(i,1)=extalign(i,1)
-      extalig1(i,2)=extalign(i,2)
-      extalig1(i,3)=extalign(i,3)
+      ! extalig1(i,1)=extalign(i,1)
+      ! extalig1(i,2)=extalign(i,2)
+      ! extalig1(i,3)=extalign(i,3)
       ! do ii=1,40
       !   exterr1(i,ii)=exterr(i,ii)
       ! end do
@@ -11063,9 +10793,9 @@ subroutine orglat
       ic(i-kanf1)=ic(i)
       icext(i-kanf1)=icext(i)
       icextal(i-kanf1)=icextal(i)
-      extalign(i-kanf1,1)=extalign(i,1)
-      extalign(i-kanf1,2)=extalign(i,2)
-      extalign(i-kanf1,3)=extalign(i,3)
+      ! extalign(i-kanf1,1)=extalign(i,1)
+      ! extalign(i-kanf1,2)=extalign(i,2)
+      ! extalign(i-kanf1,3)=extalign(i,3)
       ! do ii=1,40
       !   exterr(i-kanf1,ii)=exterr(i,ii)
       ! end do
@@ -11075,9 +10805,9 @@ subroutine orglat
       ic(iu-kanf1+i)=ilf(i)
       icext(iu-kanf1+i)=icext1(i)
       icextal(iu-kanf1+i)=icextal1(i)
-      extalign(iu-kanf1+i,1)=extalig1(i,1)
-      extalign(iu-kanf1+i,2)=extalig1(i,2)
-      extalign(iu-kanf1+i,3)=extalig1(i,3)
+      ! extalign(iu-kanf1+i,1)=extalig1(i,1)
+      ! extalign(iu-kanf1+i,2)=extalig1(i,2)
+      ! extalign(iu-kanf1+i,3)=extalig1(i,3)
       ! do ii=1,40
       !   exterr(iu-kanf1+i,ii)=exterr1(i,ii)
       ! end do
