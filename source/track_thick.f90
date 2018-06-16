@@ -38,9 +38,6 @@ subroutine trauthck(nthinerr)
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-!#ifdef COLLIMAT
-!+ca database
-!#endif
   save
 
 #ifdef COLLIMAT
@@ -612,7 +609,6 @@ subroutine thck4d(nthinerr)
           write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
                          "due to lack of test cases. Please contact developers!"
           call prror(-1)
-!+ca dumplines
         end if
 
       end if
@@ -1307,7 +1303,6 @@ subroutine thck6d(nthinerr)
         write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
                        "due to lack of test cases. Please contact developers!"
         call prror(-1)
-!+ca dumplines
       end if
 
 #ifdef FLUKA

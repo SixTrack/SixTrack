@@ -38,16 +38,6 @@ subroutine trauthin(nthinerr)
   logical lopen
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-#endif
   save
 
   do i=1,npart
@@ -1240,17 +1230,6 @@ subroutine thin6d(nthinerr)
 
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
-
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dbcommon
-!+ca dbthin6d
-!+ca database
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-#endif
 
   dimension dpsv3(npart)
 
