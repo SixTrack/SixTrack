@@ -14,17 +14,21 @@ module mod_fluc
 
   implicit none
 
-  real(kind=fPrec), allocatable, public, save :: fluc_errAlign(:,:) ! The alignemnt errors from fort.8
+  real(kind=fPrec), allocatable, public, save :: fluc_errAlign(:,:) ! The alignemnt errors from fort.8/fort.30
   character(len=:), allocatable, public, save :: fluc_bezAlign(:)   ! The name of the element
   integer,          allocatable, public, save :: fluc_ixAlign(:)    ! The index of the element
-  integer,                       public, save :: fluc_nAlign        ! Number of multipoles in fort.8
+  integer,                       public, save :: fluc_nAlign        ! Number of multipoles in fort.8/fort.30
 
   real(kind=fPrec), allocatable, public, save :: fluc_errExt(:,:)   ! The errors from fort.16
   character(len=:), allocatable, public, save :: fluc_bezExt(:)     ! The name of the element
   integer,          allocatable, public, save :: fluc_ixExt(:)      ! The index of the element
   integer,                       public, save :: fluc_nExt          ! Number of multipoles in fort.16
 
+  real(kind=fPrec), allocatable, public, save :: fluc_errZFZ(:)     ! The additional errors from fort.30
+  integer,          allocatable, public, save :: fluc_iZFZ(:)       ! The index of the element in the zfz array
+
   integer,                       public, save :: fluc_mRead         ! Flag determining what files to read
+  logical,                       public, save :: fluc_hasFort30     ! Flag determining if fort.30 was read
 
   integer, public, save :: fluc_iSeed1
   integer, public, save :: fluc_iSeed2
@@ -87,8 +91,8 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
     return
   end if
 
-  if(fluc_mRead < 0 .or. fluc_mRead > 7) then
-    write(lout,"(a,i0)") "FLUC> ERROR I/O options (mout) must be a number between 0 and 7, got ",fluc_mRead
+  if(fluc_mRead < 0 .or. fluc_mRead > 15) then
+    write(lout,"(a,i0)") "FLUC> ERROR I/O options (mout) must be a number between 0 and 15, got ",fluc_mRead
     iErr = .true.
     return
   end if
@@ -107,27 +111,15 @@ subroutine fluc_readInputs
 
   implicit none
 
-  select case(fluc_mRead)
-  case(1)
-    call fluc_readFort16
-  case(2)
-    mout2=1
-  case(3)
-    call fluc_readFort16
-    mout2=1
-  case(4)
-    call fluc_readFort8
-  case(5)
-    call fluc_readFort8
-    call fluc_readFort16
-  case(6)
-    mout2=1
-    call fluc_readFort8
-  case(7)
-    mout2=1
-    call fluc_readFort16
-    call fluc_readFort8
-  end select
+  fluc_hasFort30 = .false.
+
+  fluc_nExt      = 0 ! For fort.16
+  fluc_nAlign    = 0 ! For fort.8 and fort.30
+
+  if(iand(fluc_mRead, 1) == 1) call fluc_readFort16
+  if(iand(fluc_mRead, 2) == 2) mout2 = 1
+  if(iand(fluc_mRead, 4) == 4) call fluc_readFort8
+  if(iand(fluc_mRead, 8) == 8) call fluc_readFort30
 
   call fluc_moreRandomness
 
@@ -143,6 +135,7 @@ subroutine fluc_moreRandomness
 
   implicit none
 
+  integer            :: i
   integer, parameter :: newRnd = 5000
   real(kind=fPrec)   :: tmpRnd(newRnd)
 
@@ -154,6 +147,14 @@ subroutine fluc_moreRandomness
   call alloc(zfz, nzfz+newRnd, zero, "zfz")
   zfz(nzfz+1:nzfz+newRnd) = tmpRnd(1:newRnd)
   nzfz = nzfz + newRnd
+
+  if(fluc_hasFort30) then
+    do i=1,fluc_nAlign
+      if(fluc_iZFZ(i) > 0) then
+        zfz(fluc_iZFZ(i)) = fluc_errZFZ(i)
+      end if
+    end do
+  end if
 
 end subroutine fluc_moreRandomness
 
@@ -193,6 +194,10 @@ subroutine fluc_randomReport
 
 end subroutine fluc_randomReport
 
+! ================================================================================================ !
+!  Reading alignment errors from fort.8
+!  Last modified: 2018-06-15
+! ================================================================================================ !
 subroutine fluc_readFort8
 
   use mod_alloc
@@ -213,7 +218,6 @@ subroutine fluc_readFort8
   integer i, j
 
   lineNo      = 0
-  fluc_nAlign = 0
 
   inquire(unit=8, opened=isOpen)
   if(isOpen) close(8)
@@ -230,7 +234,7 @@ subroutine fluc_readFort8
   read(8,"(a)",end=20,iostat=ioStat) inLine
   lineNo = lineNo + 1
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "FLUC> ERROR fort.16 iostat = ",ioStat
+    write(lout,"(a,i0)") "FLUC> ERROR fort.8 iostat = ",ioStat
     goto 30
   end if
 
@@ -249,6 +253,8 @@ subroutine fluc_readFort8
     call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
     call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
     call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
+    call alloc(fluc_errZFZ,           mAlign+50,zero,       "fluc_errZFZ")
+    call alloc(fluc_iZFZ,             mAlign+50,0,          "fluc_iZFZ")
   end if
 
   if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
@@ -305,6 +311,10 @@ subroutine fluc_readFort8
 
 end subroutine fluc_readFort8
 
+! ================================================================================================ !
+!  Reading multipole errors from fort.16
+!  Last modified: 2018-06-14
+! ================================================================================================ !
 subroutine fluc_readFort16
 
   use mod_alloc
@@ -327,8 +337,6 @@ subroutine fluc_readFort16
   mType  = 0
   lineNo = 0
   lMode  = 0
-
-  fluc_nExt = 0
 
   inquire(unit=16, opened=isOpen)
   if(isOpen) close(16)
@@ -461,8 +469,131 @@ subroutine fluc_readFort16
 
 end subroutine fluc_readFort16
 
-! The code for reading fort.30 has not been implementet, as it seemed to be out of date anyway.
-! Pasting it here for reference in case it needs to be put back in.
+! ================================================================================================ !
+!  Reading single random kick errors from fort.30
+!  Last modified: 2018-06-17
+!  Note: There were no tests in the test suite for reading these file when the code was moved here
+!    from daten. The implementation is therefore not tested. The values read are appended to the
+!    end of the arrays used for alignement errors from fort.8 and to an additional array for the
+!    values to overwrite in zfz.
+! ================================================================================================ !
+subroutine fluc_readFort30
+
+  use mod_alloc
+  use mod_units
+  use string_tools
+  use parpro,              only : mNameLen,str_nmSpace,mmul
+  use numerical_constants, only : zero
+  use mod_common,          only : il,bez,icextal,nblz,nblo,ic,kp,kz
+  use mod_settings,        only : st_debug
+
+  implicit none
+
+  character(len=1024) :: inLine
+  character(len=:), allocatable :: lnSplit(:)
+  real(kind=fPrec) alignx, alignz, tilt
+  integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing, iZ
+  logical iErr, isOpen, inSing
+  integer i, j
+
+  lineNo = 0
+  nAlign = fluc_nAlign
+
+  inquire(unit=30, opened=isOpen)
+  if(isOpen) close(30)
+  call units_openUnits(unit=30,fileName="fort.30",formatted=.true.,mode="r",err=iErr)
+  if(iErr) then
+    write(lout,"(a)") "FLUC> ERROR Failed to open fort.30"
+    goto 30
+  end if
+  rewind(30)
+
+  write(lout,"(a)") "FLUC> Reading single (random) kick errors from fort.30"
+
+10 continue
+  read(30,"(a)",end=20,iostat=ioStat) inLine
+  lineNo = lineNo + 1
+  if(ioStat /= 0) then
+    write(lout,"(a,i0)") "FLUC> ERROR fort.30 iostat = ",ioStat
+    goto 30
+  end if
+
+  call chr_split(inLine, lnSplit, nSplit, iErr)
+  if(iErr) goto 30
+  if(nSplit == 0) goto 10
+
+  if(allocated(fluc_ixAlign)) then
+    mAlign = size(fluc_ixAlign,1)
+  else
+    mAlign = 0
+  end if
+
+  fluc_nAlign = fluc_nAlign + 1
+  if(fluc_nAlign > mAlign) then
+    call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
+    call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
+    call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
+    call alloc(fluc_errZFZ,           mAlign+50,zero,       "fluc_errZFZ")
+    call alloc(fluc_iZFZ,             mAlign+50,0,          "fluc_iZFZ")
+  end if
+
+  if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
+  if(nSplit > 1) call chr_cast(lnSplit(2),fluc_errZFZ(fluc_nAlign),    iErr)
+  if(nSplit > 2) call chr_cast(lnSplit(3),fluc_errAlign(1,fluc_nAlign),iErr)
+  if(nSplit > 3) call chr_cast(lnSplit(4),fluc_errAlign(2,fluc_nAlign),iErr)
+  if(nSplit > 4) call chr_cast(lnSplit(5),fluc_errAlign(3,fluc_nAlign),iErr)
+
+  goto 10
+
+20 continue
+  close(30)
+  if(fluc_nAlign == 0) then
+    write(lout,"(a)") "FLUC> Reading of fort.30 requested in FLUC block, but no elements read."
+    return
+  end if
+  fluc_hasFort30 = .true.
+
+  ! We require that the elements in fort.30 have the same order as in the STRUcture block.
+  ! A repeated element name implies it is the next one of that name in the sequenc, so we will
+  ! iterate over the index array ic() and check for a match in order to build the index icext.
+  iZ = 0
+  do iStru=1,nblz
+    iSing = ic(iStru)
+    if(iSing <= nblo) cycle
+    iSing = iSing - nblo
+    if(kp(iSing) == 6)  cycle
+    if(kz(iSing) == 0)  cycle
+    if(kz(iSing) == 15) cycle
+    if(kz(iSing) == 20) cycle
+    if(kz(iSing) == 22) cycle
+    if(bez(iSing) == fluc_bezAlign(nAlign)) then
+      fluc_ixAlign(nAlign) = iStru
+      icextal(iStru) = nAlign
+      iZ = iZ + 3
+      fluc_iZFZ(nAlign) = iZ - 2
+      nAlign = nAlign + 1
+      if(kz(iSing) == 11) iZ = iZ + 2*mmul
+      if(nAlign > fluc_nAlign) exit
+    end if
+  end do
+  if(nAlign /= fluc_nAlign+1) then
+    write(lout,"(a)")       "FLUC> ERROR Did not find all the elements in fort.30 in the structure."
+    write(lout,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
+    write(lout,"(a)")       "FLUC>       or too many references to the same element name."
+    write(lout,"(2(a,i0))") "FLUC>       Found ",(nAlign-1)," elements out of ",fluc_nAlign
+    call prror(-1)
+  end if
+
+  write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nAlign," values from fort.30"
+
+  return
+
+30 continue
+  write(lout,"(a,i0,a)") "FLUC> ERROR fort.30:",lineNo," '"//trim(inLine)//"'"
+  call prror(-1)
+
+end subroutine fluc_readFort30
+! The original code for reading fort.30 is pasted here for reference.
 ! -------------------------------------------------------------------------------------------------
 ! izu=0
 ! iexnum=0
@@ -537,5 +668,90 @@ end subroutine fluc_readFort16
 ! 1593   continue
 ! 1591   continue
 ! endif
+
+! ================================================================================================ !
+!  Write modified geometry file fort.4
+!  Last modified: 2018-06-17
+! ================================================================================================ !
+subroutine fluc_writeFort4
+
+  use floatPrecision
+  use mod_common,          only : ncororb,sm,ek
+  use numerical_constants, only : zero,pieni
+  use string_tools
+
+  implicit none
+
+  character(len=:), allocatable :: lnSplit(:)
+  character(len=1024) inLine
+  character(len=mNameLen) idat
+  real(kind=fPrec) rdum1, rdum2, rel1
+  integer          lineNo2, nSplit, ii, ikz
+  logical          iErr
+
+  ii      = 0
+  lineNo2 = 0
+
+  rewind(2)
+10 continue
+  read(2,"(a)",end=90) inLine
+  lineNo2 = lineNo2 + 1
+  if(inLine(:1) == "/" .or. inLine(:1) == "!") then
+    write(4,"(a)") trim(inLine)
+    goto 10
+  elseif(inLine(:4) == "SING") then
+    write(4,"(a)") trim(inLine)
+  else
+    return
+  end if
+
+20 continue
+  read(2,"(a)",end=90) inLine
+  lineNo2 = lineNo2 + 1
+  if(inLine(:1) == "/" .or. inLine(:1) == "!") then
+    write(4,"(a)") trim(inLine)
+  else
+    ii = ii + 1
+    if(inLine(:4) /= "NEXT") then
+      ikz   = 0
+      rdum1 = zero
+      rdum2 = zero
+      rel1  = zero
+      call chr_split(inLine,lnSplit,nSplit,iErr)
+      if(nSplit == 0) goto 20
+      if(nSplit > 0) idat = trim(lnSplit(1))
+      if(nSplit > 1) call chr_cast(lnSplit(2),ikz,  iErr)
+      if(nSplit > 2) call chr_cast(lnSplit(3),rdum1,iErr)
+      if(nSplit > 3) call chr_cast(lnSplit(4),rdum2,iErr)
+      if(nSplit > 4) call chr_cast(lnSplit(5),rel1, iErr)
+      if(ikz == 11) then
+        write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,rdum1,rdum2,rel1
+      else
+        if(abs(rel1) <= pieni) then
+          if(ncororb(ii) == 0) then
+            write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,sm(ii),rdum2,rel1
+          else
+            write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,sm(ii),ek(ii),rel1
+          end if
+        else
+          write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,rdum1,ek(ii),rel1
+        end if
+      end if
+    else
+      write(4,"(a)") trim(inLine)
+      goto 30
+    end if
+  end if
+  goto 20
+
+30 continue
+  read(2,"(a)",end=90) inLine
+  lineNo2 = lineNo2 + 1
+  write(4,"(a)") trim(inLine)
+  goto 30
+
+90 continue
+  return
+end subroutine fluc_writeFort4
 
 end module mod_fluc

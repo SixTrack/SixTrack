@@ -30,7 +30,7 @@ subroutine trauthin(nthinerr)
   use mod_commons
   use mod_commont
   use mod_commond
-  use mod_fluc, only : fluc_errAlign
+  use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
@@ -52,7 +52,7 @@ subroutine trauthin(nthinerr)
 #include "include/beams1.f90"
 
   do 290 i=1,iu
-    if(mout2.eq.1.and.i.eq.1) call write4
+    if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
     ix=ic(i)
     if(ix.gt.nblo) goto 30
     !BLOC
