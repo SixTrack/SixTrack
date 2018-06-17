@@ -434,7 +434,7 @@ subroutine runda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
-  use mod_fluc,    only : fluc_errAlign
+  use mod_fluc,    only : fluc_errAlign,fluc_writeFort4
 
   implicit none
 
@@ -571,7 +571,7 @@ subroutine runda
       else
         i=i480
       endif
-      if(mout2.eq.1.and.i480.eq.nsta.and.n.eq.1) call write4
+      if(mout2.eq.1.and.i480.eq.nsta.and.n.eq.1) call fluc_writeFort4
       if(iflag.eq.1) then
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
