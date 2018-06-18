@@ -1152,6 +1152,9 @@ subroutine daten
              end if
           endif
 
+        elseif(ch(:5).eq.'DEBUG') then
+          aperture_debug = .true.
+
         elseif(ch(:4).eq.'SAVE') then
           ! P.G.Ortega and A.Mereghetti, 02-03-2018
           ! flag for saving particles at aperture check
