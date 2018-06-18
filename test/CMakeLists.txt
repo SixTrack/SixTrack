@@ -29,10 +29,9 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
-## "Totally untested": bnl
 ##
 
-#List of tests that does not produce a valid fort.10
+# List of tests that do not produce a valid fort.10
 SET(TESTS_NOFORT10
   orbit6d-element-trombone
   orbit6d-element-quadrupole
@@ -61,7 +60,7 @@ SET(TESTS_NOFORT10
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
   scatter_collimation
-  )
+)
 
 if(NOT COLLIMAT)
 if(LIBARCHIVE)
@@ -72,11 +71,6 @@ if(NAFF)
   SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
 endif()
 
-#only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
-if(BNLELENS)
-  SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
-endif(BNLELENS)
-
 #Needs at least 2048 particles to run correctly
 if(BIGNPART OR HUGENPART)
   SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
@@ -84,10 +78,6 @@ endif()
 #Needs more than 2048 particles to run correctly
 if(HUGENPART)
   SET(SIXTRACK_TESTS beam-HO_6D-simple-newstyle-coupling ${SIXTRACK_TESTS})
-endif()
-
-if(BIGNBLZ OR HUGENBLZ)
-  SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
 endif()
 
 #These tests are always included
@@ -105,6 +95,7 @@ SET(SIXTRACK_TESTS
   elensidealthin6d_DYNK
   eric
   exact
+  fcc
   frs60
   frs
   javier
@@ -169,22 +160,20 @@ SET(SIXTRACK_TESTS
   ${SIXTRACK_TESTS}
 )
 else()
-  if(BIGNBLZ OR HUGENBLZ)
-    set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
-  endif()
+  set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
 endif(NOT COLLIMAT)
 
 #Collimation tests (needs backtrk)
 #use extra checks on fort.999 and other collimation loss files
 if(COLLIMAT AND BACKTRK)
-  if(BIGNBLZ OR HUGENBLZ AND HUGENPART)
+  if(HUGENPART)
     if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
       SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
     endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
     # if(NOT FLUKA OR NOT G4COLLIMAT)
     #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
     # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-  endif(BIGNBLZ OR HUGENBLZ AND HUGENPART)
+  endif(HUGENPART)
 endif(COLLIMAT AND BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
