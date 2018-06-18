@@ -1,9 +1,0 @@
-#!/bin/sh
-BNL=bnlin
-BNL1=bnl1in
-for f in `ls $BNL`
-do
-  echo "================="
-  echo "$f"
-  diff $BNL/$f $BNL1/$f
-done
