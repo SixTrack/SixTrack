@@ -48,7 +48,7 @@ module aperture
 
   ! save (i.e. do not kill) lost particles
   logical, save :: apflag                          ! save or not
-  integer, save :: plost(npart)                    ! particle ID
+  integer, allocatable, save :: plost(:)           ! particle ID (npart)
 
   integer, save :: aperture_napxStart              ! initial napx
 
@@ -64,15 +64,16 @@ module aperture
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
   ! variables for back-tracking
-  logical, save :: lbacktracking                   ! activate back-tracking
-  real(kind=fPrec), save :: xLast(2,npart)         ! position after last thick element [mm]
-  real(kind=fPrec), save :: yLast(2,npart)         ! angles after last thick element [mrad]
-  real(kind=fPrec), save :: ejfvLast(npart)        ! linear momentum [MeV/c]
-  real(kind=fPrec), save :: ejvLast(npart)         ! total energy [MeV]
-  real(kind=fPrec), save :: nucmLast(npart)        ! nuclear mass [GeV/c2]
-  real(kind=fPrec), save :: sigmvLast(npart)       ! lag [mm]
-  real(kind=fPrec), save :: dpsvLast(npart)        !
-  integer, save :: naaLast(npart), nzzLast(npart)  ! nuclear mass and atomic number []
+  logical, save :: lbacktracking                      ! activate back-tracking
+  real(kind=fPrec), allocatable, save :: xLast(:,:)   ! position after last thick element [mm] (2,npart)
+  real(kind=fPrec), allocatable, save :: yLast(:,:)   ! angles after last thick element [mrad] (2,npart)
+  real(kind=fPrec), allocatable, save :: ejfvLast(:)  ! linear momentum [MeV/c] (npart)
+  real(kind=fPrec), allocatable, save :: ejvLast(:)   ! total energy [MeV] (npart)
+  real(kind=fPrec), allocatable, save :: nucmLast(:)  ! nuclear mass [GeV/c2] (npart)
+  real(kind=fPrec), allocatable, save :: sigmvLast(:) ! lag [mm] (npart)
+  real(kind=fPrec), allocatable, save :: dpsvLast(:)  ! (npart)
+  integer, allocatable, save :: naaLast(:)            ! nuclear mass [] (npart)
+  integer, allocatable, save :: nzzLast(:)            ! atomic number [] (npart)
   real(kind=fPrec), save :: bktpre                 ! precision of back-tracking [m]
   integer, save :: iLast, ixLast                   ! indeces of last aperture marker
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
@@ -117,19 +118,48 @@ subroutine aperture_allocate_arrays
   implicit none
   integer stat
 
-  call alloc(kape,nele,0,'kape')
-  call alloc(lapeofftlt,nele,.FALSE.,'lapeofftlt')
-  call alloc(ape,9,nele,zero,'ape')
+  call alloc(kape,       nele, 0, 'kape')
+  call alloc(lapeofftlt, nele, .FALSE., 'lapeofftlt')
+  call alloc(ape,9,      nele, zero, 'ape')
+
+  call alloc(plost,     npart, 0, "plost")        ! particle ID (npart)
+  call alloc(xLast, 2,  npart, zero, "xLast")     ! position after last thick element [mm] (2,npart)
+  call alloc(yLast, 2,  npart, zero, "yLast")     ! angles after last thick element [mrad] (2,npart)
+  call alloc(ejfvLast,  npart, zero, "ejfvLast")  ! linear momentum [MeV/c] (npart)
+  call alloc(ejvLast,   npart, zero, "ejvLast")   ! total energy [MeV] (npart) (set as the reference energy?)
+  call alloc(nucmLast,  npart, zero, "nucmLast")  ! nuclear mass [GeV/c2] (npart) (set as the reference mass?)
+  call alloc(sigmvLast, npart, zero, "sigmvLast") ! lag [mm] (npart)
+  call alloc(dpsvLast,  npart, zero, "dpsvLast")  ! (npart)
+  call alloc(naaLast,   npart, 0, "naaLast")      ! nuclear mass [] (npart)
+  call alloc(nzzLast,   npart, 0, "nzzLast")     ! atomic number [] (npart)
 end subroutine aperture_allocate_arrays
 
 
-subroutine aperture_expand_arrays(nele_new)
+subroutine aperture_expand_arrays(nele_new, npart_new)
   implicit none
   integer, intent(in) :: nele_new
+  integer, intent(in) :: npart_new
 
-  call resize(kape,nele_new,0,'kape')
-  call resize(lapeofftlt,nele_new,.FALSE.,'lapeofftlt')
-  call resize(ape,9,nele_new,zero,'ape')
+  integer :: i
+
+  call resize(kape,       nele_new, 0, 'kape')
+  call resize(lapeofftlt, nele_new, .FALSE., 'lapeofftlt')
+  call resize(ape,9,      nele_new, zero, 'ape')
+
+  call resize(plost,     npart_new, 0, "plost")        ! particle ID (npart)
+  call resize(xLast, 2,  npart_new, zero, "xLast")     ! position after last thick element [mm] (2,npart)
+  call resize(yLast, 2,  npart_new, zero, "yLast")     ! angles after last thick element [mrad] (2,npart)
+  call resize(ejfvLast,  npart_new, zero, "ejfvLast")  ! linear momentum [MeV/c] (npart)
+  call resize(ejvLast,   npart_new, zero, "ejvLast")   ! total energy [MeV] (npart)
+  call resize(nucmLast,  npart_new, zero, "nucmLast")  ! nuclear mass [GeV/c2] (npart)
+  call resize(sigmvLast, npart_new, zero, "sigmvLast") ! lag [mm] (npart)
+  call resize(dpsvLast,  npart_new, zero, "dpsvLast")  ! (npart)
+  call resize(naaLast,   npart_new, 0, "naaLast")      ! nuclear mass [] (npart)
+  call resize(nzzLast,   npart_new, 0 , "nzzLast")     ! atomic number [] (npart)
+
+  do i=npart, npart_new
+    plost(i) = i
+  end do
 
 end subroutine aperture_expand_arrays
 
@@ -147,26 +177,26 @@ subroutine aperture_comnul
      plost(ii)=0
   end do
 
-  ldmpaper      = .false.
-  aperunit      = 0
-  aper_filename = char(0)
-  ldmpaperMem   = .false.
-  loadunit      = 3 ! default: read aperture markers in fort.3
-  load_file     = char(0)
+  ldmpaper            = .false.
+  aperunit            = 0
+  aper_filename(1:16) = ' '
+  ldmpaperMem         = .false.
+  loadunit            = 3 ! default: read aperture markers in fort.3
+  load_file(1:16)     = ' '
 
   lbacktracking = .false. ! backtracking off by default
   do ii=1,npart
      do jj=1,2
-        xLast(jj,ii)=zero
-        yLast(jj,ii)=zero
+        xLast(jj,ii) = zero
+        yLast(jj,ii) = zero
      end do
-     ejfvLast(jj)=zero
-     ejvLast(jj)=zero
-     nucmLast(jj)=zero
-     sigmvLast(jj)=zero
-     dpsvLast(jj)=zero
-     naaLast(jj)=0
-     nzzLast(jj)=0
+     ejfvLast(jj)  = zero
+     ejvLast(jj)   = zero
+     nucmLast(jj)  = zero
+     sigmvLast(jj) = zero
+     dpsvLast(jj)  = zero
+     naaLast(jj)   = 0
+     nzzLast(jj)   = 0
   end do
   bktpre=c1m1 ! default precision: 0.1m
   iLast = 0
@@ -177,15 +207,15 @@ subroutine aperture_comnul
 
   mxsec = 0
   do ii=1,nxsec
-     xsecunit(ii)=0
-     xsec_filename(ii)=char(0)
-     sLocMin(ii)=zero
-     sLocMax(ii)=zero
-     sLocDel(ii)=zero
-     nAzimuts(ii)=nAzimutDef
+     xsecunit(ii) = 0
+     xsec_filename(ii)(1:16) = ' '
+     sLocMin(ii) = zero
+     sLocMax(ii) = zero
+     sLocDel(ii) = zero
+     nAzimuts(ii) = nAzimutDef
   enddo
 
-  aperture_napxStart=0
+  aperture_napxStart = 0
 
   return
 
@@ -2528,6 +2558,20 @@ subroutine compactArrays(llostp)
                 tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
               end do
             end do
+
+! Backtracking + aperture arrays
+            plost(jj) = plost(jj1)
+            xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
+            xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
+            yLast(1,jj)   =  yLast(1,jj1)   ! angles after last thick element [mrad] (2,npart)
+            yLast(2,jj)   =  yLast(2,jj1)   ! angles after last thick element [mrad] (2,npart)
+            ejfvLast(jj)  =  ejfvLast(jj1)  ! linear momentum [MeV/c] (npart)
+            ejvLast(jj)   =  ejvLast(jj1)   ! total energy [MeV] (npart)
+            nucmLast(jj)  =  nucmLast(jj1)  ! nuclear mass [GeV/c2] (npart)
+            sigmvLast(jj) =  sigmvLast(jj1) ! lag [mm] (npart)
+            dpsvLast(jj)  =  dpsvLast(jj1)  ! (npart)
+            naaLast(jj)   =  naaLast(jj1)            ! nuclear mass [] (npart)
+            nzzLast(jj)   =  nzzLast(jj1)            ! atomic number [] (npart)
 
 #ifdef COLLIMAT
 ! If collimation is enabled, all the collimation arrays must also be compressed

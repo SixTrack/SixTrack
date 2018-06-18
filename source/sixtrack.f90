@@ -41,7 +41,7 @@ subroutine daten
   use mathlib_bouncer
   use sixtrack_input
   use parpro
-  use parpro_scale
+!  use parpro_scale
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_settings
   use mod_common
@@ -6664,7 +6664,7 @@ integer function INEELS( iEl )
   use numerical_constants
   use crcoall
   use parpro
-  use parpro_scale
+!  use parpro_scale
   use mod_common
   use mod_commont
   use mod_commonmn
@@ -6726,7 +6726,7 @@ integer function INEESE()
   use crcoall
 
   use parpro
-  use parpro_scale
+!  use parpro_scale
   use mod_common
   use mod_commont
   use mod_commonmn

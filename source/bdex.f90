@@ -523,6 +523,8 @@ contains
              if (j.gt.npart) then
                 write(lout,*) "BDEX> ERROR: j=",j,">",npart
                 call prror(-1)
+ !               No longer error, but expand the npart array instead
+!                 call expand_arrays(nele, j, nblz, nblo)
              endif
              napx=j
              if (bdex_debug) then

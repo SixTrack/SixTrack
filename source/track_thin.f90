@@ -559,7 +559,7 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
-  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
   logical llost
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
@@ -2206,7 +2206,7 @@ subroutine callcrp()
   use checkpoint_restart
 #endif
   implicit none
-  integer ia,ia2,ie,nthinerr
+  integer ia,ia2,ie
 #ifdef CR
   integer ncalls
 #endif
