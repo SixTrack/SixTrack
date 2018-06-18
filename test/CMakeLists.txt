@@ -29,10 +29,9 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
-## "Totally untested": bnl
 ##
 
-#List of tests that does not produce a valid fort.10
+# List of tests that do not produce a valid fort.10
 SET(TESTS_NOFORT10
   orbit6d-element-trombone
   orbit6d-element-quadrupole
@@ -61,7 +60,7 @@ SET(TESTS_NOFORT10
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
   scatter_collimation
-  )
+)
 
 if(NOT COLLIMAT)
 if(LIBARCHIVE)
