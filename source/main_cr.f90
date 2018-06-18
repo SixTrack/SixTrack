@@ -70,7 +70,7 @@ program maincr
   use aperture
   use mod_ranecu
   use mod_alloc,      only : alloc_init
-  use mod_fluc,       only : fluc_randomReport, fluc_errAlign
+  use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -858,9 +858,11 @@ end interface
         if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
         if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
         if(icextal(i) > 0) then
-          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+        else if(icextal(i) < 0) then
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errZFZ(4,-icextal(i))
         else
-          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
         end if
       endif
 
