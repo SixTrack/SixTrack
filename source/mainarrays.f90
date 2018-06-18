@@ -16,7 +16,7 @@ module parpro_scale
   use aperture,     only : aperture_allocate_arrays,     aperture_expand_arrays
   use elens,        only : elens_allocate_arrays,        elens_expand_arrays
   use dump,         only : dump_expand_arrays
-  use scatter,      only : scatter_allocate_arrays,      scatter_expand_arrays
+  use scatter,      only : scatter_expand_arrays
   use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
   use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
   use wire,         only : wire_expand_arrays
@@ -50,10 +50,10 @@ subroutine allocate_arrays
 
   call dump_expand_arrays(nele,nblz)
   call wire_expand_arrays(nele,nblz)
+  call scatter_expand_arrays(nele)
 
   call aperture_allocate_arrays
   call elens_allocate_arrays
-  call scatter_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
   call hions_allocate_arrays
