@@ -460,7 +460,7 @@ subroutine runda
   c5m4=5.0e-4_fPrec
 #endif
   if(mout2.eq.1) then
-    call units_openUnits(unit=99,fileName="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
+    call units_openUnit(unit=99,fileName="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
   end if
   do i=1,100
     jj(i)=0
