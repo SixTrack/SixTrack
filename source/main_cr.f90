@@ -70,7 +70,7 @@ program maincr
   use aperture
   use mod_ranecu
   use mod_alloc,      only : alloc_init
-  use mod_fluc,       only : fluc_randomReport, fluc_errAlign
+  use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -266,10 +266,10 @@ end interface
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
   if(isOpen) close(lout)
-  call units_openUnits(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
+  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
-  call units_openUnits(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
 606 continue
   read(93,"(a1024)",end=607) arecord
   goto 606
@@ -285,10 +285,10 @@ end interface
 #endif
   ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
   ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
-  ! call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  ! call units_openUnit(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   ! if(fErr) goto 602
   ! stxt = "SIXTRACR reruns on: "
-  call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   if(fErr) then
 #ifdef BOINC
     ! No fort.6 so we do an unzip of Sixin.zip
@@ -306,9 +306,9 @@ end interface
       call f_read_archive(trim(filename),".")
       goto 611
     end if
-    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
 #else
-    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
     stxt = "SIXTRACR starts on: "
@@ -317,82 +317,82 @@ end interface
     stxt = "SIXTRACR reruns on: "
     rerun=.true.
   end if
-  call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
   if(fErr) then
-    call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
   else
     fort95 = .true.
   end if
-  call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
   if(fErr) then
-    call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
   else
     fort96 = .true.
   end if
-  call units_openUnits(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
 #else
   lout = output_unit
 #endif
 
   ! Open Regular File Units
-  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-! call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr) ! Now opened in mod_fluc
-  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
-  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr) ! Now opened in mod_fluc
-! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
-  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=22,fileName="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Used by FLUC, but deprecated
-  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
-! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnit(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnit(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+! call units_openUnit(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr) ! Handled by mod_fluc
+  call units_openUnit(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
+! call units_openUnit(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
+  call units_openUnit(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
+  call units_openUnit(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
+! call units_openUnit(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
+  call units_openUnit(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
+  call units_openUnit(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=22,fileName="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=23,fileName="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=24,fileName="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=25,fileName="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=26,fileName="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnit(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
+  call units_openUnit(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
+! call units_openUnit(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnit(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
 #ifdef STF
   ! Open Single Track File
-  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
+    call units_openUnit(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
   end do
 #endif
 
-  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
 
   ! Eric for the DA coefficients in BINARY
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
 
 #ifdef DEBUG
-  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
-  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
 #endif
 
   ! Heavy Ion Output
-  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
-  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
-  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
+  call units_openUnit(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
+  call units_openUnit(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
+  call units_openUnit(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
 
   ! ---------------------------------------------------------------------------------------------- !
   ! Write Header
@@ -616,7 +616,7 @@ end interface
   ! Postprocessing is on, but there are no particles
   if(ipos.eq.1.and.napx.eq.0) then
     ! Now we open fort.10 unless already opened for BOINC
-    call units_openUnits(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,recl=8195)
+    call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,recl=8195)
 
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
@@ -858,9 +858,11 @@ end interface
         if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
         if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
         if(icextal(i) > 0) then
-          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+        else if(icextal(i) < 0) then
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errZFZ(4,-icextal(i))
         else
-          write(31,"(a16,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
         end if
       endif
 
