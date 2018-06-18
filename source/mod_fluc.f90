@@ -14,21 +14,22 @@ module mod_fluc
 
   implicit none
 
-  real(kind=fPrec), allocatable, public, save :: fluc_errAlign(:,:) ! The alignemnt errors from fort.8/fort.30
+  real(kind=fPrec), allocatable, public, save :: fluc_errAlign(:,:) ! The alignemnt errors from fort.8
   character(len=:), allocatable, public, save :: fluc_bezAlign(:)   ! The name of the element
   integer,          allocatable, public, save :: fluc_ixAlign(:)    ! The index of the element
-  integer,                       public, save :: fluc_nAlign        ! Number of multipoles in fort.8/fort.30
+  integer,                       public, save :: fluc_nAlign        ! Number of multipoles in fort.8
 
   real(kind=fPrec), allocatable, public, save :: fluc_errExt(:,:)   ! The errors from fort.16
   character(len=:), allocatable, public, save :: fluc_bezExt(:)     ! The name of the element
   integer,          allocatable, public, save :: fluc_ixExt(:)      ! The index of the element
   integer,                       public, save :: fluc_nExt          ! Number of multipoles in fort.16
 
-  real(kind=fPrec), allocatable, public, save :: fluc_errZFZ(:)     ! The additional errors from fort.30
-  integer,          allocatable, public, save :: fluc_iZFZ(:)       ! The index of the element in the zfz array
+  real(kind=fPrec), allocatable, public, save :: fluc_errZFZ(:,:)   ! The alignemnt errors from fort.30
+  character(len=:), allocatable, public, save :: fluc_bezZFZ(:)     ! The name of the element
+  integer,          allocatable, public, save :: fluc_ixZFZ(:)      ! The index of the element
+  integer,                       public, save :: fluc_nZFZ          ! Number of multipoles in fort.30
 
   integer,                       public, save :: fluc_mRead         ! Flag determining what files to read
-  logical,                       public, save :: fluc_hasFort30     ! Flag determining if fort.30 was read
 
   integer, public, save :: fluc_iSeed1
   integer, public, save :: fluc_iSeed2
@@ -111,10 +112,9 @@ subroutine fluc_readInputs
 
   implicit none
 
-  fluc_hasFort30 = .false.
-
-  fluc_nExt      = 0 ! For fort.16
-  fluc_nAlign    = 0 ! For fort.8 and fort.30
+  fluc_nExt   = 0 ! For fort.16
+  fluc_nAlign = 0 ! For fort.8
+  fluc_nZFZ   = 0 ! For fort.30
 
   if(iand(fluc_mRead, 1) == 1) call fluc_readFort16
   if(iand(fluc_mRead, 2) == 2) mout2 = 1
@@ -147,14 +147,6 @@ subroutine fluc_moreRandomness
   call alloc(zfz, nzfz+newRnd, zero, "zfz")
   zfz(nzfz+1:nzfz+newRnd) = tmpRnd(1:newRnd)
   nzfz = nzfz + newRnd
-
-  if(fluc_hasFort30) then
-    do i=1,fluc_nAlign
-      if(fluc_iZFZ(i) > 0) then
-        zfz(fluc_iZFZ(i)) = fluc_errZFZ(i)
-      end if
-    end do
-  end if
 
 end subroutine fluc_moreRandomness
 
@@ -253,8 +245,6 @@ subroutine fluc_readFort8
     call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
     call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
     call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
-    call alloc(fluc_errZFZ,           mAlign+50,zero,       "fluc_errZFZ")
-    call alloc(fluc_iZFZ,             mAlign+50,0,          "fluc_iZFZ")
   end if
 
   if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
@@ -471,7 +461,7 @@ end subroutine fluc_readFort16
 
 ! ================================================================================================ !
 !  Reading single random kick errors from fort.30
-!  Last modified: 2018-06-17
+!  Last modified: 2018-06-18
 !  Note: There were no tests in the test suite for reading these file when the code was moved here
 !    from daten. The implementation is therefore not tested. The values read are appended to the
 !    end of the arrays used for alignement errors from fort.8 and to an additional array for the
@@ -492,12 +482,11 @@ subroutine fluc_readFort30
   character(len=1024) :: inLine
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
-  integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing, iZ
+  integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
   logical iErr, isOpen, inSing
   integer i, j
 
   lineNo = 0
-  nAlign = fluc_nAlign
 
   inquire(unit=30, opened=isOpen)
   if(isOpen) close(30)
@@ -522,41 +511,39 @@ subroutine fluc_readFort30
   if(iErr) goto 30
   if(nSplit == 0) goto 10
 
-  if(allocated(fluc_ixAlign)) then
-    mAlign = size(fluc_ixAlign,1)
+  if(allocated(fluc_ixZFZ)) then
+    mZFZ = size(fluc_ixZFZ,1)
   else
-    mAlign = 0
+    mZFZ = 0
   end if
 
-  fluc_nAlign = fluc_nAlign + 1
-  if(fluc_nAlign > mAlign) then
-    call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
-    call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
-    call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
-    call alloc(fluc_errZFZ,           mAlign+50,zero,       "fluc_errZFZ")
-    call alloc(fluc_iZFZ,             mAlign+50,0,          "fluc_iZFZ")
+  fluc_nZFZ = fluc_nZFZ + 1
+  if(fluc_nZFZ > mZFZ) then
+    call alloc(fluc_errZFZ,4,       mZFZ+50,zero,       "fluc_errZFZ")
+    call alloc(fluc_bezZFZ,mNameLen,mZFZ+50,str_nmSpace,"fluc_bezZFZ")
+    call alloc(fluc_ixZFZ,          mZFZ+50,0,          "fluc_ixZFZ")
   end if
 
-  if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
-  if(nSplit > 1) call chr_cast(lnSplit(2),fluc_errZFZ(fluc_nAlign),    iErr)
-  if(nSplit > 2) call chr_cast(lnSplit(3),fluc_errAlign(1,fluc_nAlign),iErr)
-  if(nSplit > 3) call chr_cast(lnSplit(4),fluc_errAlign(2,fluc_nAlign),iErr)
-  if(nSplit > 4) call chr_cast(lnSplit(5),fluc_errAlign(3,fluc_nAlign),iErr)
+  if(nSplit > 0) fluc_bezZFZ(fluc_nZFZ) = trim(lnSplit(1))
+  if(nSplit > 1) call chr_cast(lnSplit(2),fluc_errZFZ(1,fluc_nZFZ),iErr)
+  if(nSplit > 2) call chr_cast(lnSplit(3),fluc_errZFZ(2,fluc_nZFZ),iErr)
+  if(nSplit > 3) call chr_cast(lnSplit(4),fluc_errZFZ(3,fluc_nZFZ),iErr)
+  if(nSplit > 4) call chr_cast(lnSplit(5),fluc_errZFZ(4,fluc_nZFZ),iErr)
 
   goto 10
 
 20 continue
   close(30)
-  if(fluc_nAlign == 0) then
+  if(fluc_nZFZ == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.30 requested in FLUC block, but no elements read."
     return
   end if
-  fluc_hasFort30 = .true.
 
   ! We require that the elements in fort.30 have the same order as in the STRUcture block.
   ! A repeated element name implies it is the next one of that name in the sequenc, so we will
   ! iterate over the index array ic() and check for a match in order to build the index icext.
-  iZ = 0
+  iZ   = 0
+  nZFZ = 1
   do iStru=1,nblz
     iSing = ic(iStru)
     if(iSing <= nblo) cycle
@@ -566,25 +553,25 @@ subroutine fluc_readFort30
     if(kz(iSing) == 15) cycle
     if(kz(iSing) == 20) cycle
     if(kz(iSing) == 22) cycle
-    if(bez(iSing) == fluc_bezAlign(nAlign)) then
-      fluc_ixAlign(nAlign) = iStru
-      icextal(iStru) = nAlign
+    if(bez(iSing) == fluc_bezZFZ(nZFZ)) then
+      fluc_ixZFZ(nZFZ) = iStru
+      icextal(iStru)   = -nZFZ ! Note: This overwrites the mapping index from the fort.8 array to the fort.30 negative index
       iZ = iZ + 3
-      fluc_iZFZ(nAlign) = iZ - 2
-      nAlign = nAlign + 1
+      fluc_ixZFZ(nZFZ) = iZ - 2
+      nZFZ = nZFZ + 1
       if(kz(iSing) == 11) iZ = iZ + 2*mmul
-      if(nAlign > fluc_nAlign) exit
+      if(nZFZ > fluc_nZFZ) exit
     end if
   end do
-  if(nAlign /= fluc_nAlign+1) then
+  if(nZFZ /= fluc_nZFZ+1) then
     write(lout,"(a)")       "FLUC> ERROR Did not find all the elements in fort.30 in the structure."
     write(lout,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
     write(lout,"(a)")       "FLUC>       or too many references to the same element name."
-    write(lout,"(2(a,i0))") "FLUC>       Found ",(nAlign-1)," elements out of ",fluc_nAlign
+    write(lout,"(2(a,i0))") "FLUC>       Found ",(nZFZ-1)," elements out of ",fluc_nZFZ
     call prror(-1)
   end if
 
-  write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nAlign," values from fort.30"
+  write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nZFZ," values from fort.30"
 
   return
 
@@ -593,81 +580,6 @@ subroutine fluc_readFort30
   call prror(-1)
 
 end subroutine fluc_readFort30
-! The original code for reading fort.30 is pasted here for reference.
-! -------------------------------------------------------------------------------------------------
-! izu=0
-! iexnum=0
-! if(mout4.eq.1) then
-!   read(30,10020,end=1591)
-!   rewind 30
-!   do 1590 i=1,mper*mbloz
-!     ix=ic(i)
-!     if(ix.gt.nblo) then
-!       ix=ix-nblo
-!       kpz=kp(ix)
-!       kzz=kz(ix)
-!       if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 1590
-!       if(kzz.eq.15) goto 1590
-!       izu=izu+3
-!       read(30,10020,end=1591,iostat=ierro) ch
-!       if(ierro.gt.0) call prror(87)
-!       lineno30=lineno30+1
-!       call intepr(1,1,ch,ch1)
-!       read(ch1,*) ilm0(1),zfz(izu-2)
-!       iexnum=iexnum+1
-!       if(kz(ix).eq.11) izu=izu+2*mmul
-!     endif
-! 1590   continue
-!   if(iexnum.gt.0) then
-!     write(lout,*)
-!     write(lout,*)'          Single (random) kick errors read in from external file'
-!     write(lout,*)
-!     write(lout,*) '        From file fort.30 :',iexnum,' values read in.'
-!     write(lout,*)
-!   endif
-!   iexread=0
-!   ifiend8=0
-!   iexnum=0
-!   rewind 30
-!   do 1593 i=1,mper*mbloz
-!     ix=ic(i)
-!     if(ix.gt.nblo) then
-!       ix=ix-nblo
-!       if(iexread.eq.0) then
-! 1595         ilm0(1)=' '
-! ! READ IN HORIZONTAL AND VERTICAL MISALIGNMENT AND TILT
-!         if(ifiend8.eq.0) then
-!           read(30,10020,end=1594,iostat=ierro) ch
-!           if(ierro.gt.0) call prror(87)
-!           lineno30=lineno30+1
-!         else
-!           goto 1594
-!         endif
-!         call intepr(1,1,ch,ch1)
-!         read(ch1,*) ilm0(1),dummy,alignx,alignz,tilt
-!         if(((abs(alignx)+abs(alignz))+abs(tilt)).le.pieni) goto 1595
-!         iexnum=iexnum+1
-!         bezext(iexnum)=ilm0(1)
-!         iexread=1
-!         goto 1596
-! 1594         ifiend8=1
-!         do 1597 j=1,iexnum
-!           if(bez(ix).eq.bezext(j)) call prror(87)
-! 1597         continue
-! 1596         continue
-!       endif
-!       if(ilm0(1).eq.bez(ix)) then
-!         icextal(i)=ix
-!         extalign(i,1)=alignx
-!         extalign(i,2)=alignz
-!         extalign(i,3)=tilt
-!         iexread=0
-!         goto 1593
-!       endif
-!     endif
-! 1593   continue
-! 1591   continue
-! endif
 
 ! ================================================================================================ !
 !  Write modified geometry file fort.4

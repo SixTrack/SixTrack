@@ -10454,7 +10454,7 @@ end
 !  mapping also position of errors for a given element in lattice
 ! ================================================================================================ !
 subroutine ord
-  
+
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
@@ -10464,7 +10464,7 @@ subroutine ord
   use mod_commons
   use mod_commont
   use mod_fluc
-  
+
   implicit none
   integer i,inz,iran,ix,izu,j,jra,jra3,k,kpz,kzz,kzz1,kzz2,nra1
   dimension jra(nele,5),iran(nele),inz(nele)
@@ -10507,8 +10507,6 @@ subroutine ord
         if(izu > nran) call prror(30)
         if(izu > nzfz) then
           call fluc_moreRandomness
-          ! write(lout,"(2(a,i0))") "ORD> ERROR nzfz is ",nzfz," need ",izu
-          ! call prror(-1)
         endif
       end do
     else ! iorg.gt.0
@@ -10587,55 +10585,54 @@ subroutine ord
       if(izu > nran) call prror(30)
       if(izu > nzfz) then
         call fluc_moreRandomness
-        ! write(lout,"(2(a,i0))") "ORD> ERROR nzfz is ",nzfz," need ",izu
-        ! call prror(-1)
-      endif
-  end do
-  endif
+      end if
+    end do
+  end if
 
-!     misalignments
-  izu=0
+  ! Misalignments
+  izu = 0
   do i=1,iu
-    ix=ic(i)
-    ! skip blocks:
-    if(ix.le.nblo) cycle
-    ix=ix-nblo
-    kpz=kp(ix)
-    kzz=kz(ix)
-    ! skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
-    if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22.or.kzz.eq.15) cycle
-    if(icextal(i).ne.0) then
-      izu=izu+2
-      xrms(ix)=one
-      zrms(ix)=one
-      ! zfz(izu)=extalign(i,1)
-      zfz(izu)=fluc_errAlign(1,icextal(i))
-      izu=izu+1
-      ! zfz(izu)=extalign(i,2)
-      zfz(izu)=fluc_errAlign(2,icextal(i))
-      ! tiltc(i)=cos_mb(extalign(i,3)*c1m3)
-      ! tilts(i)=sin_mb(extalign(i,3)*c1m3)
-      tiltc(i)=cos_mb(fluc_errAlign(3,icextal(i))*c1m3)
-      tilts(i)=sin_mb(fluc_errAlign(3,icextal(i))*c1m3)
+    ix = ic(i)
+    if(ix.le.nblo) cycle ! Skip blocks
+    ix  = ix-nblo
+    kpz = kp(ix)
+    kzz = kz(ix)
+    ! Skip RF cavity, inactive non-linear elements, BB lenses, phase-trombones, wires
+    if(kpz == 6 .or. kzz == 0 .or. kzz == 20 .or. kzz == 22 .or. kzz == 15) cycle
+    if(icextal(i) > 0) then
+      ! Use values from fort.8
+      izu        = izu+3
+      xrms(ix)   = one
+      zrms(ix)   = one
+      zfz(izu-1) = fluc_errAlign(1,icextal(i))
+      zfz(izu)   = fluc_errAlign(2,icextal(i))
+      tiltc(i)   = cos_mb(fluc_errAlign(3,icextal(i))*c1m3)
+      tilts(i)   = sin_mb(fluc_errAlign(3,icextal(i))*c1m3)
+    else if(icextal(i) < 0) then
+      ! Use values from fort.30
+      izu        = izu+3
+      xrms(ix)   = one
+      zrms(ix)   = one
+      zfz(izu-2) = fluc_errZFZ(1,-icextal(i))
+      zfz(izu-1) = fluc_errZFZ(2,-icextal(i))
+      zfz(izu)   = fluc_errZFZ(3,-icextal(i))
+      tiltc(i)   = cos_mb(fluc_errZFZ(4,-icextal(i))*c1m3)
+      tilts(i)   = sin_mb(fluc_errZFZ(4,-icextal(i))*c1m3)
     else
-      izu=izu+3
-    endif
-    if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).ne.0) then
+      izu = izu+3
+    end if
+    if(kzz == 11 .and. abs(ek(ix)) > pieni .and. icext(i) /= 0) then
       do j=1,mmul
-        ! izu=izu+1
-        ! zfz(izu)=exterr(i,20+j)
-        ! izu=izu+1
-        ! zfz(izu)=exterr(i,j)
-        izu=izu+1
-        zfz(izu)=fluc_errExt(20+j,icext(i))
-        izu=izu+1
-        zfz(izu)=fluc_errExt(j,icext(i))
+        izu     = izu+1
+        zfz(izu)= fluc_errExt(20+j,icext(i))
+        izu     = izu+1
+        zfz(izu)= fluc_errExt(j,icext(i))
       end do
-    else if(kzz.eq.11.and.abs(ek(ix)).gt.pieni.and.icext(i).eq.0) then
-      izu=izu+2*mmul
-    endif
+    else if(kzz == 11 .and. abs(ek(ix)) > pieni .and. icext(i) == 0) then
+      izu = izu+2*mmul
+    end if
   end do
-  return
+
 end subroutine ord
 
 ! ================================================================================================ !
