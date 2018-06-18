@@ -102,7 +102,7 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   use aperture,     only : aperture_allocate_arrays,     aperture_expand_arrays
   use elens,        only : elens_allocate_arrays,        elens_expand_arrays
   use dump,         only : dump_expand_arrays
-  use scatter,      only : scatter_allocate_arrays,      scatter_expand_arrays
+  use scatter,      only : scatter_expand_arrays
   use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
   use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
   use wire,         only : wire_expand_arrays

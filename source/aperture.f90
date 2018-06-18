@@ -901,7 +901,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
     ! Number of iterations for bisection method (ln(2x/precision)/ln(2)+1)
     if(lback) then
-      niter=nint(1.442695040889_fPrec*log_mb(two*length/bktpre)+2)
+      niter=nint(inv_ln2*log_mb(two*length/bktpre)+2)
     end if
 
     do j=1,napx
