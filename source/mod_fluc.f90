@@ -213,7 +213,7 @@ subroutine fluc_readFort8
 
   inquire(unit=8, opened=isOpen)
   if(isOpen) close(8)
-  call units_openUnits(unit=8,fileName="fort.8",formatted=.true.,mode="r",err=iErr)
+  call units_openUnit(unit=8,fileName="fort.8",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.8"
     goto 30
@@ -330,7 +330,7 @@ subroutine fluc_readFort16
 
   inquire(unit=16, opened=isOpen)
   if(isOpen) close(16)
-  call units_openUnits(unit=16,fileName="fort.16",formatted=.true.,mode="r",err=iErr)
+  call units_openUnit(unit=16,fileName="fort.16",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.16"
     goto 30
@@ -490,7 +490,7 @@ subroutine fluc_readFort30
 
   inquire(unit=30, opened=isOpen)
   if(isOpen) close(30)
-  call units_openUnits(unit=30,fileName="fort.30",formatted=.true.,mode="r",err=iErr)
+  call units_openUnit(unit=30,fileName="fort.30",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.30"
     goto 30
@@ -591,18 +591,21 @@ subroutine fluc_writeFort4
   use mod_common,          only : ncororb,sm,ek
   use numerical_constants, only : zero,pieni
   use string_tools
+  use mod_units
 
   implicit none
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=1024) inLine
-  character(len=mNameLen) idat
-  real(kind=fPrec) rdum1, rdum2, rel1
-  integer          lineNo2, nSplit, ii, ikz
+  character(len=mNameLen) elemName
+  real(kind=fPrec) inVal(6)
+  integer          lineNo2, nSplit, ii, iKZ
   logical          iErr
 
   ii      = 0
   lineNo2 = 0
+
+  call units_openUnit(unit=4,fileName="fort.4",formatted=.true.,mode="w",err=iErr)
 
   rewind(2)
 10 continue
@@ -625,28 +628,29 @@ subroutine fluc_writeFort4
   else
     ii = ii + 1
     if(inLine(:4) /= "NEXT") then
-      ikz   = 0
-      rdum1 = zero
-      rdum2 = zero
-      rel1  = zero
+      iKZ      = 0
+      inVal(:) = zero
       call chr_split(inLine,lnSplit,nSplit,iErr)
       if(nSplit == 0) goto 20
-      if(nSplit > 0) idat = trim(lnSplit(1))
-      if(nSplit > 1) call chr_cast(lnSplit(2),ikz,  iErr)
-      if(nSplit > 2) call chr_cast(lnSplit(3),rdum1,iErr)
-      if(nSplit > 3) call chr_cast(lnSplit(4),rdum2,iErr)
-      if(nSplit > 4) call chr_cast(lnSplit(5),rel1, iErr)
+      if(nSplit > 0) elemName = trim(lnSplit(1))
+      if(nSplit > 1) call chr_cast(lnSplit(2),iKZ,     iErr)
+      if(nSplit > 2) call chr_cast(lnSplit(3),inVal(1),iErr)
+      if(nSplit > 3) call chr_cast(lnSplit(4),inVal(2),iErr)
+      if(nSplit > 4) call chr_cast(lnSplit(5),inVal(3),iErr)
+      if(nSplit > 5) call chr_cast(lnSplit(6),inVal(4),iErr)
+      if(nSplit > 6) call chr_cast(lnSplit(7),inVal(5),iErr)
+      if(nSplit > 7) call chr_cast(lnSplit(8),inVal(6),iErr)
       if(ikz == 11) then
-        write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,rdum1,rdum2,rel1
+        write(4,"(a48,1x,i2,6(1x,e22.15))") elemName,iKZ,inVal(1),inVal(2),inVal(3),inVal(4),inVal(5),inVal(6)
       else
-        if(abs(rel1) <= pieni) then
+        if(abs(inVal(3)) <= pieni) then
           if(ncororb(ii) == 0) then
-            write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,sm(ii),rdum2,rel1
+            write(4,"(a48,1x,i2,6(1x,e22.15))") elemName,iKZ,sm(ii),inVal(2),inVal(3),inVal(4),inVal(5),inVal(6)
           else
-            write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,sm(ii),ek(ii),rel1
+            write(4,"(a48,1x,i2,6(1x,e22.15))") elemName,iKZ,sm(ii),ek(ii),inVal(3),inVal(4),inVal(5),inVal(6)
           end if
         else
-          write(4,"(a48,1x,i2,2(1x,d22.15),1x,d17.10)") idat,ikz,rdum1,ek(ii),rel1
+          write(4,"(a48,1x,i2,6(1x,e22.15))") elemName,iKZ,inVal(1),ek(ii),inVal(3),inVal(4),inVal(5),inVal(6)
         end if
       end if
     else
@@ -663,6 +667,7 @@ subroutine fluc_writeFort4
   goto 30
 
 90 continue
+  close(4)
   return
 end subroutine fluc_writeFort4
 

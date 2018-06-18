@@ -83,13 +83,13 @@ program mainda
   ! Open files
   fErr = .false.
   call units_initUnits
-  call units_openUnits(unit=2,  fileName="fort.2",  formatted=.true., mode="r",err=fErr)
-  call units_openUnits(unit=3,  fileName="fort.3",  formatted=.true., mode="r",err=fErr)
-  call units_openUnits(unit=12, fileName="fort.12", formatted=.true., mode="w",err=fErr)
-  call units_openUnits(unit=18, fileName="fort.18", formatted=.true., mode="w",err=fErr)
-  call units_openUnits(unit=19, fileName="fort.19", formatted=.true., mode="w",err=fErr)
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=2,  fileName="fort.2",  formatted=.true., mode="r",err=fErr)
+  call units_openUnit(unit=3,  fileName="fort.3",  formatted=.true., mode="r",err=fErr)
+  call units_openUnit(unit=12, fileName="fort.12", formatted=.true., mode="w",err=fErr)
+  call units_openUnit(unit=18, fileName="fort.18", formatted=.true., mode="w",err=fErr)
+  call units_openUnit(unit=19, fileName="fort.19", formatted=.true., mode="w",err=fErr)
+  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
 
   ! Print Header Info
   tlim=1e7
