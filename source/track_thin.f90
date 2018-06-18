@@ -11,6 +11,8 @@ subroutine trauthin(nthinerr)
   use scatter, only : scatter_elemPointer
   use dynk, only : ldynk, dynk_isused, dynk_pretrack
 
+  use mod_alloc
+
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -32,13 +34,43 @@ subroutine trauthin(nthinerr)
   use mod_commond
   use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
-  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
-    r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
+  real(kind=fPrec) benkcc,r0,r000,r0a
   logical lopen
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
+
+  real(kind=fPrec), allocatable :: crkveb(:) !(npart)
+  real(kind=fPrec), allocatable :: cikveb(:) !(npart)
+  real(kind=fPrec), allocatable :: rho2b(:) !(npart)
+  real(kind=fPrec), allocatable :: tkb(:) !(npart
+  real(kind=fPrec), allocatable :: r2b(:) !(npart)
+  real(kind=fPrec), allocatable :: rb(:) !(npart)
+  real(kind=fPrec), allocatable :: rkb(:) !(npart)
+  real(kind=fPrec), allocatable :: xrb(:) !(npart)
+  real(kind=fPrec), allocatable :: zrb(:) !(npart
+  real(kind=fPrec), allocatable :: xbb(:) !(npart)
+  real(kind=fPrec), allocatable :: zbb(:) !(npart)
+  real(kind=fPrec), allocatable :: crxb(:) !(npart)
+  real(kind=fPrec), allocatable :: crzb(:) !(npart)
+  real(kind=fPrec), allocatable :: cbxb(:) !(npart)
+  real(kind=fPrec), allocatable :: cbzb(:) !(npart)
+  integer :: nbeaux(nbb)
   save
+
+  call alloc(crkveb, npart, zero, "crkveb") !(npart)
+  call alloc(cikveb, npart, zero, "cikveb") !(npart)
+  call alloc(rho2b, npart, zero, "rho2b") !(npart)
+  call alloc(tkb, npart, zero, "tkb") !(npart
+  call alloc(r2b, npart, zero, "r2b") !(npart)
+  call alloc(rb, npart, zero, "rb") !(npart)
+  call alloc(rkb, npart, zero, "rkb") !(npart)
+  call alloc(xrb, npart, zero, "xrb") !(npart)
+  call alloc(zrb, npart, zero, "zrb") !(npart
+  call alloc(xbb, npart, zero, "xbb") !(npart)
+  call alloc(zbb, npart, zero, "zbb") !(npart)
+  call alloc(crxb, npart, zero, "crxb") !(npart)
+  call alloc(crzb, npart, zero, "crzb") !(npart)
+  call alloc(cbxb, npart, zero, "cbxb") !(npart)
+  call alloc(cbzb, npart, zero, "cbzb") !(npart)
 
   do i=1,npart
     nlostp(i)=i
@@ -503,6 +535,22 @@ subroutine trauthin(nthinerr)
 #ifdef COLLIMAT
   call collimate_exit()
 #endif
+
+  call dealloc(crkveb, "crkveb")
+  call dealloc(cikveb, "cikveb")
+  call dealloc(rho2b, "rho2b")
+  call dealloc(tkb, "tkb")
+  call dealloc(r2b, "r2b")
+  call dealloc(rb, "rb")
+  call dealloc(rkb, "rkb")
+  call dealloc(xrb, "xrb")
+  call dealloc(zrb, "zrb")
+  call dealloc(xbb, "xbb")
+  call dealloc(zbb, "zbb")
+  call dealloc(crxb, "crxb")
+  call dealloc(crzb, "crzb")
+  call dealloc(cbxb, "cbxb")
+  call dealloc(cbzb, "cbzb")
   return
 
 end subroutine trauthin
