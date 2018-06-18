@@ -2560,6 +2560,8 @@ subroutine compactArrays(llostp)
             end do
 
 ! Backtracking + aperture arrays
+! These should get reset each time, but potentially there could be a collimator losing particles before the next usage
+! So we compress these for now
             plost(jj) = plost(jj1)
             xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
             xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
@@ -2570,8 +2572,8 @@ subroutine compactArrays(llostp)
             nucmLast(jj)  =  nucmLast(jj1)  ! nuclear mass [GeV/c2] (npart)
             sigmvLast(jj) =  sigmvLast(jj1) ! lag [mm] (npart)
             dpsvLast(jj)  =  dpsvLast(jj1)  ! (npart)
-            naaLast(jj)   =  naaLast(jj1)            ! nuclear mass [] (npart)
-            nzzLast(jj)   =  nzzLast(jj1)            ! atomic number [] (npart)
+            naaLast(jj)   =  naaLast(jj1)   ! nuclear mass [] (npart)
+            nzzLast(jj)   =  nzzLast(jj1)   ! atomic number [] (npart)
 
 #ifdef COLLIMAT
 ! If collimation is enabled, all the collimation arrays must also be compressed
