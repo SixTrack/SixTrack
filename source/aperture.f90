@@ -159,10 +159,6 @@ subroutine aperture_expand_arrays(nele_new, npart_new)
   call resize(naaLast,   npart_new, 0, "naaLast")      ! nuclear mass [] (npart)
   call resize(nzzLast,   npart_new, 0 , "nzzLast")     ! atomic number [] (npart)
 
-  do i=npart, npart_new
-    plost(i) = 0
-  end do
-
 end subroutine aperture_expand_arrays
 
 
@@ -946,7 +942,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             end select
 
             ! - aperture at current step
-            call interp_aperture( iLast,ixLast, i,ix, kapert,aprr, slos )
+            call interp_aperture( iLast, ixLast, i, ix, kapert, aprr, slos )
 
             ! Check aperture
             if( lapeofftlt(ix).or.lapeofftlt(ixLast) ) then
@@ -1147,11 +1143,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
            pstop(nlostp(j))=.true.
            ! Record for postpr
            if(.not.limifound.or.kape(ix).eq.0) then
-              aperv(nlostp(j),1) = aper(1)
-              aperv(nlostp(j),2) = aper(2)
+             aperv(nlostp(j),1) = aper(1)
+             aperv(nlostp(j),2) = aper(2)
            else
-              aperv(nlostp(j),1) = min(ape(1,ix),ape(3,ix))
-              aperv(nlostp(j),2) = min(ape(2,ix),ape(4,ix))
+             aperv(nlostp(j),1) = min(ape(1,ix),ape(3,ix))
+             aperv(nlostp(j),2) = min(ape(2,ix),ape(4,ix))
            end if
            ixv(nlostp(j))     = ix
            xvl(1,nlostp(j))   = xlos(1)
