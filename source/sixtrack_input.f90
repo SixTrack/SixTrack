@@ -283,7 +283,7 @@ end subroutine sixin_parseInputLineSETT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
 
-  use parpro_scale
+!  use parpro_scale
 
   implicit none
 
@@ -424,7 +424,7 @@ end subroutine sixin_parseInputLineSING
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
 
-  use parpro_scale
+!  use parpro_scale
 
   implicit none
 
@@ -560,7 +560,7 @@ end subroutine sixin_parseInputLineBLOC
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
 
-  use parpro_scale
+!  use parpro_scale
 
   implicit none
 
@@ -728,7 +728,7 @@ end subroutine sixin_parseInputLineDISP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
-  use parpro_scale
+!  use parpro_scale
 
   implicit none
 
@@ -877,7 +877,7 @@ end subroutine sixin_parseInputLineINIT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
-  use parpro_scale
+!  use parpro_scale
   use mod_commont
   use mod_commond
 

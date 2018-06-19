@@ -57,8 +57,9 @@ module numerical_constants
 
   implicit none
 
-! real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
-! real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
+  real(kind=fPrec), parameter :: eulergamma = 0.577215664901532860606512090082402431042159335939923598805_fPrec
+!  real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
+  real(kind=fPrec), parameter :: inv_ln2    = 1.442695040888963407359924681001892137426645954152985934135_fPrec
 
   real(kind=fPrec), parameter :: pieni  = 1e-38_fPrec
 

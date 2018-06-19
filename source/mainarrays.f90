@@ -4,7 +4,38 @@
 ! It is split off from parpro as a separate module
 ! in order to avoid circular dependencies.
 ! ================================================================================================ !
-module parpro_scale
+!module parpro_scale
+!
+!  use parpro
+!  use crcoall
+!
+!  use mod_common,   only : mod_common_expand_arrays
+!  use mod_commont,  only : mod_commont_expand_arrays
+!  use mod_commonmn, only : mod_commonmn_expand_arrays
+!  use mod_commond2, only : mod_commond2_expand_arrays
+!  use aperture,     only : aperture_allocate_arrays,     aperture_expand_arrays
+!  use elens,        only : elens_allocate_arrays,        elens_expand_arrays
+!  use dump,         only : dump_expand_arrays
+!  use scatter,      only : scatter_allocate_arrays,      scatter_expand_arrays
+!  use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
+!  use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
+!  use wire,         only : wire_expand_arrays
+!  use mod_hions,    only : hions_allocate_arrays,        hions_expand_arrays
+!
+!#ifdef FLUKA
+!  use mod_fluka,    only : fluka_mod_expand_arrays
+!#endif
+!
+!#ifdef COLLIMAT
+!  use collimation,  only : collimation_allocate_arrays,  collimation_expand_arrays
+!#endif
+!
+!implicit none
+!
+!contains
+
+! Allocate arrays scaling with the main memory parameters nele, npart, etc.
+subroutine allocate_arrays
 
   use parpro
   use crcoall
@@ -29,14 +60,6 @@ module parpro_scale
 #ifdef COLLIMAT
   use collimation,  only : collimation_allocate_arrays,  collimation_expand_arrays
 #endif
-
-implicit none
-
-contains
-
-! Allocate arrays scaling with the main memory parameters nele, npart, etc.
-subroutine allocate_arrays
-
   implicit none
 
   nele = nele_initial
@@ -69,6 +92,29 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
 
   use mod_alloc, only : alloc_log
 
+  use parpro
+  use crcoall
+
+  use mod_common,   only : mod_common_expand_arrays
+  use mod_commont,  only : mod_commont_expand_arrays
+  use mod_commonmn, only : mod_commonmn_expand_arrays
+  use mod_commond2, only : mod_commond2_expand_arrays
+  use aperture,     only : aperture_allocate_arrays,     aperture_expand_arrays
+  use elens,        only : elens_allocate_arrays,        elens_expand_arrays
+  use dump,         only : dump_expand_arrays
+  use scatter,      only : scatter_expand_arrays
+  use bdex,         only : bdex_allocate_arrays,         bdex_expand_arrays
+  use dynk,         only : dynk_allocate_arrays,         dynk_expand_arrays
+  use wire,         only : wire_expand_arrays
+  use mod_hions,    only : hions_allocate_arrays,        hions_expand_arrays
+
+#ifdef FLUKA
+  use mod_fluka,    only : fluka_mod_expand_arrays
+#endif
+
+#ifdef COLLIMAT
+  use collimation,  only : collimation_allocate_arrays,  collimation_expand_arrays
+#endif
   implicit none
 
   integer, intent(in) :: nele_request, npart_request, nblz_request, nblo_request
@@ -91,7 +137,7 @@ subroutine expand_arrays(nele_request, npart_request, nblz_request, nblo_request
   call dump_expand_arrays(nele_new,nblz_new)
   call wire_expand_arrays(nele_new,nblz_new)
 
-  call aperture_expand_arrays(nele_new)
+  call aperture_expand_arrays(nele_new, npart_new)
   call elens_expand_arrays(nele_new)
   call scatter_expand_arrays(nele_new)
   call bdex_expand_arrays(nele_new)
@@ -117,6 +163,7 @@ end subroutine expand_arrays
 
 ! Kicks off the allocation of the thick tracking arrays
 subroutine allocate_thickarrays
+  use parpro
   use mod_commonmn, only : mod_commonmn_allocate_thickarrays
   use mod_commons,  only : mod_commons_allocate_thickarrays
   implicit none
@@ -126,6 +173,7 @@ end subroutine allocate_thickarrays
 
 ! Kicks off the allocation of the thick tracking arrays
 subroutine expand_thickarrays(nele_request, npart_request, nblz_request, nblo_request)
+  use parpro
   use mod_commonmn, only : mod_commonmn_expand_thickarrays
   use mod_commons,  only : mod_commons_expand_thickarrays
   use mod_alloc
@@ -150,4 +198,4 @@ subroutine expand_thickarrays(nele_request, npart_request, nblz_request, nblo_re
 
 end subroutine expand_thickarrays
 
-end module parpro_scale
+!end module parpro_scale
