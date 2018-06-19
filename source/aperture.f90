@@ -142,8 +142,6 @@ subroutine aperture_expand_arrays(nele_new, npart_new)
   integer, intent(in) :: nele_new
   integer, intent(in) :: npart_new
 
-  integer :: i
-
   call resize(kape,       nele_new, 0, 'kape')
   call resize(lapeofftlt, nele_new, .FALSE., 'lapeofftlt')
   call resize(ape,9,      nele_new, zero, 'ape')
@@ -886,13 +884,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       lback=.true.
 
       ! Length between elements
-      length = dcum(i)-dcum(iLast)
+      length = dcum(i) - dcum(iLast)
 
       ! - pay attention to overflow:
-      if( length .lt. zero ) length = length+tlen
+      if( length .lt. zero ) then
+        length = length+tlen
+      end if
 
       ! - pay attention to too short thick elements
-      if( length .le. bktpre ) lback=.false.
+      if( length .le. bktpre ) then
+        lback=.false.
+      end if
+
     end if
 
     ! Number of iterations for bisection method (ln(2x/precision)/ln(2)+1)
@@ -915,8 +918,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           ylos(2)=yLast(2,j)
 
           ! actual algorithm
-          llos    = llostp(j)
-          step    = one
+          llos = llostp(j)
+          step = one
 
           do jj=1,niter
             ! current step (bisection method):
@@ -935,10 +938,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             ! - particle coordinates at current step
             select case(iBckTypeLast)
             case (0)
-               ! back-track along a drift
-               xlos(1) = xLast(1,j) -yLast(1,j)*(one-step)*length
-               xlos(2) = xLast(2,j) -yLast(2,j)*(one-step)*length
-               slos    = dcum(iLast)-(one-step)*length
+              ! back-track along a drift
+              xlos(1) = xLast(1,j)  - yLast(1,j)*(one-step)*length
+              xlos(2) = xLast(2,j)  - yLast(2,j)*(one-step)*length
+              slos    = dcum(iLast) - (one-step)*length
             end select
 
             ! - aperture at current step

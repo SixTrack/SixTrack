@@ -2179,12 +2179,18 @@ subroutine thin6d(nthinerr)
       ! on-line aperture check
       ! always in main code
       call lostpart( n, i, ix, llost, nthinerr )
+
       ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) return
+      if(nthinerr.ne.0) then
+        return
+      end if
+
       ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
       ! last modified: 07-03-2018
       ! store infos of last aperture marker
-      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+      if( lbacktracking.and.kape(ix).ne.0 ) then
+        call aperture_saveLastMarker(i,ix)
+      end if
 
 645   continue
 
@@ -2198,20 +2204,26 @@ subroutine thin6d(nthinerr)
     call collimate_end_turn
 #endif
 
-    if(nthinerr.ne.0) return
+    if(nthinerr.ne.0) then
+      return
+    end if
 
 #ifndef COLLIMAT
-    if(ntwin.ne.2) call dist1
+    if(ntwin.ne.2) then
+      call dist1
+    end if
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call write6(n)
+    if(mod(n,nwr(4)).eq.0) then
+      call write6(n)
+    end if
 #endif
 #endif
 
 #ifdef FLUKA
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     increase napxto, to get an estimation of particles*turns
-!     inserted in main code by the 'fluka' compilation flag
+!   A.Mereghetti, for the FLUKA Team
+!   last modified: 14-06-2014
+!   increase napxto, to get an estimation of particles*turns
+!   inserted in main code by the 'fluka' compilation flag
     napxto = napxto + napx
 #endif
 
@@ -2223,8 +2235,9 @@ subroutine thin6d(nthinerr)
 660 continue !END loop over turns
 
 #ifdef COLLIMAT
-  close(99)
-  close(53)
+! These unit numbers could now be anything!
+!  close(99)
+!  close(53)
 
 #endif
 
