@@ -2575,7 +2575,7 @@ subroutine collimate_do_collimator(stracki)
 
 !++  Write beam ellipse at selected collimator
   if (((db_name1(icoll).eq.name_sel(1:mNameLen)) .or.&
-       (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. dowrite_dist) then
+       (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
     do j = 1, napx
       write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
