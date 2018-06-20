@@ -25,12 +25,11 @@ program mainda
   use, intrinsic :: iso_fortran_env, only : output_unit
   use crcoall
   use parpro
-  use parpro_scale
   use mod_common
   use mod_commons
   use mod_commont
   use mod_commond
-  use tuneshift_corr
+! use tuneshift_corr
   use mod_units
   use mod_alloc, only : alloc_init
   use mod_fluc,  only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
@@ -493,10 +492,10 @@ program mainda
   ndim=nvar2/2
   call mydaini(3,nord,nvar,ndim,nvar2,nord1)
   if(inorm.eq.1) call daliesix
-  if(icorr.eq.1) then
-    if(nctype.eq.0) call coruord
-    if(nctype.eq.1) call coruglo
-  end if
+! if(icorr.eq.1) then
+!   if(nctype.eq.0) call coruord
+!   if(nctype.eq.1) call coruglo
+! end if
   if(nsix.eq.2) then
     call umschr(19,18)
     nvar2=6
