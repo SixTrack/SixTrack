@@ -80,7 +80,7 @@ OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use in
 # and we have OFF
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
 OPTION(DA "Deprecated. Replaced by SIXDA" OFF)
-OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" OFF)
+OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 OPTION(COLLIMAT "Collimation code" OFF)
 OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
@@ -177,9 +177,9 @@ endif()
 if(API)
 	SET(SIXTRACK_FEATURES "api_${SIXTRACK_FEATURES}")
 endif()
-if(SIXDA)
-	SET(SIXTRACK_FEATURES "da_${SIXTRACK_FEATURES}")
-endif()
+# if(SIXDA)
+# 	SET(SIXTRACK_FEATURES "da_${SIXTRACK_FEATURES}")
+# endif()
 if(COLLIMAT)
 	SET(SIXTRACK_FEATURES "collimat_${SIXTRACK_FEATURES}")
 endif()
@@ -279,7 +279,8 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 
 # Create the sixtrack binary name string
-set(SIXTRACK_BINARY_NAME "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}" )
+set(SIXTRACK_BINARY_NAME    "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEATURES}")
+set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEATURES}")
 
 ###################################################################################################
 # Setting the c pre-processor definitons
@@ -293,7 +294,7 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 # Select which fortran files to generate and compile
 ###################################################################################################
 
-list(APPEND FORS_F90
+list(APPEND FORT90_LIB
 	sixtrack core_tools constants sixtrack_input mod_units
 	close strings string_tools common_modules mainarrays
 	file_units mod_alloc zipf matrix_inv lielib beam6d
@@ -302,62 +303,72 @@ list(APPEND FORS_F90
 	aperture postprocessing mod_fluc
 )
 
-if(SIXDA)
-	list(APPEND FORS_F90 main_da)
-	# list(APPEND FORS_F90 main_da tshift_corr)
-	list(APPEND FORS_DAFOR_F90 sixda)
-else()
-	list(APPEND FORS_F90 main_cr sixve track_thin track_thick)
-endif()
+# Files unique to DA or CR version
+list(APPEND FORT90_DA main_da)
+list(APPEND FORT90_CR main_cr sixve track_thin track_thick)
 
 # List of files that must be treated by DAFOR
-list(APPEND FORS_DAFOR_F90 beam6d_fox six_fox)
+list(APPEND DAFOR_F90    beam6d_fox six_fox)
+list(APPEND DAFOR_F90_DA sixda)
 
 if(CR)
-	list(APPEND FORS_F90 checkpoint_restart)
+	list(APPEND FORT90_CR checkpoint_restart)
 endif(CR)
 
 if(DEBUG)
-	list(APPEND FORS_F90 debug_dumps)
+	list(APPEND FORT90_LIB debug_dumps)
 endif(DEBUG)
 
 if(COLLIMAT)
-	list(APPEND FORS_F90 ranlux collimation)
+	list(APPEND FORT90_CR ranlux collimation)
 endif(COLLIMAT)
 
 if(HDF5)
-	list(APPEND FORS_F90 hdf5_output hdf5_sixtrack)
+	list(APPEND FORT90_CR hdf5_output hdf5_sixtrack)
 endif(HDF5)
 
 if(BEAMGAS)
-	LIST(APPEND FORS_F90 beamgas)
+	LIST(APPEND FORT90_CR beamgas)
 endif(BEAMGAS)
 
 if(FLUKA)
-	LIST(APPEND FORS_F90 fluka)
+	LIST(APPEND FORT90_CR fluka)
 endif(FLUKA)
 
 if(ROOT)
-	LIST(APPEND FORS_F90 root_output)
+	LIST(APPEND FORT90_CR root_output)
 endif(ROOT)
 
-foreach(loop IN LISTS FORS_F90)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
+foreach(loop IN LISTS FORT90_LIB)
+	list(APPEND SIXTRACK_SOURCES ${loop}.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
 endforeach()
-foreach(loop IN LISTS FORS_DAFOR_F90)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} ${loop}.f90)
+foreach(loop IN LISTS FORT90_CR)
+	list(APPEND SIXTRACK_SOURCES_CR ${loop}.f90)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
+endforeach()
+foreach(loop IN LISTS FORT90_DA)
+	list(APPEND SIXTRACK_SOURCES_DA ${loop}.f90)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
+endforeach()
+foreach(loop IN LISTS DAFOR_F90)
+	list(APPEND SIXTRACK_SOURCES ${loop}.f90)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}a.f90)
+	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
+endforeach()
+foreach(loop IN LISTS DAFOR_F90_DA)
+	list(APPEND SIXTRACK_SOURCES_DA ${loop}.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}a.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
 endforeach()
 
 if(BOINC AND NOT API)
-	#We have a BOINC build but no API, load the fake API substitute for debugging.
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} boinc_dummy.f90)
+	# We have a BOINC build but no API, load the fake API substitute for debugging.
+	list(APPEND SIXTRACK_SOURCES_CR boinc_dummy.f90)
 endif(BOINC AND NOT API)
 
 if(FLUKA)
-	set(SIXTRACK_SOURCES ${SIXTRACK_SOURCES} mod_fluka.f90)
+	list(APPEND SIXTRACK_SOURCES_CR mod_fluka.f90)
 endif(FLUKA)
 
 if(LIBARCHIVE)
@@ -966,15 +977,21 @@ endif()
 ###################################################################################################
 # Settings for what exactly to build
 ###################################################################################################
-#add the source files that will be used to build sixtrack
-add_executable(SixTrack ${SIXTRACK_SOURCES})
-SET_TARGET_PROPERTIES(SixTrack PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
+# Add the source files that will be used to build sixtrack
+add_library(SixTrackLib   STATIC ${SIXTRACK_SOURCES})
+add_executable(SixTrackCR ${SIXTRACK_SOURCES_CR})
+add_executable(SixTrackDA ${SIXTRACK_SOURCES_DA})
+target_link_libraries(SixTrackCR SixTrackLib)
+target_link_libraries(SixTrackDA SixTrackLib)
+SET_TARGET_PROPERTIES(SixTrackCR PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}"    LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
+SET_TARGET_PROPERTIES(SixTrackDA PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME_DA}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 
 # Pre-processor flags
 foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_COMPILE)
 	if(${loop})
 		message(STATUS "Adding preprocessor definition -D${loop} to target SixTrack")
-		target_compile_definitions(SixTrack PUBLIC -D${loop})
+		# target_compile_definitions(SixTrack   PUBLIC -D${loop})
+		# target_compile_definitions(SixTrackDA PUBLIC -D${loop})
 		list(APPEND PREPRO_FLAGS -D${loop})
 	endif()
 endforeach()
@@ -1004,7 +1021,7 @@ endif()
 
 if(HDF5)
 	if(HDF5_FOUND)
-		SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+		SET_TARGET_PROPERTIES(SixTrackCR PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
 	else()
 		MESSAGE(FATAL_ERROR "HDF5 build requested, but could not find the HDF5 package.")
 	endif(HDF5_FOUND)
@@ -1072,7 +1089,7 @@ if(BOINC)
 		add_library(boinc_api_fortran STATIC IMPORTED)
 		set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 		# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-		target_link_libraries(SixTrack boinc_api_fortran)
+		target_link_libraries(SixTrackCR boinc_api_fortran)
 		
 		#add the libs
 		add_library(boinc STATIC IMPORTED)
@@ -1080,23 +1097,23 @@ if(BOINC)
 		
 		add_library(boinc_api STATIC IMPORTED)
 		set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-		target_link_libraries(SixTrack boinc_api)
+		target_link_libraries(SixTrackCR boinc_api)
 		
-		target_link_libraries(SixTrack boinc)
+		target_link_libraries(SixTrackCR boinc)
 		
 		find_library(stdc++ STATIC stdc++)
 		find_library(pthread STATIC pthread)
-		target_link_libraries(SixTrack stdc++ pthread)
+		target_link_libraries(SixTrackLib stdc++ pthread)
 
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 			find_library(nsl STATIC nsl)
-			target_link_libraries(SixTrack nsl)
+			target_link_libraries(SixTrackCR nsl)
 		endif()
 
 		#fix osx linking to the correct c++ stdlib
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			find_library(c++ STATIC c++)
-			target_link_libraries(SixTrack c++)
+			target_link_libraries(SixTrackCR c++)
 		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 	else()
@@ -1111,7 +1128,7 @@ endif()
 if(FLUKA)
 	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mod_fluka.f90 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/mod_fluka.f90 ${CMAKE_BINARY_DIR}/mod_fluka.f90 DEPENDS copy_input_files)
 	add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
-	target_link_libraries(SixTrack flukaIO)
+	target_link_libraries(SixTrackCR flukaIO)
 endif(FLUKA)
 
 if(LIBARCHIVE)
@@ -1139,7 +1156,7 @@ if(LIBARCHIVE)
 	target_link_libraries(libArchiveTester libArchive_wrapper)
 
 	#See also further down for SixTestWrapper linking
-	target_link_libraries(SixTrack libArchive_wrapper)
+	target_link_libraries(SixTrackCR libArchive_wrapper)
 	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
@@ -1153,14 +1170,16 @@ if(LIBARCHIVE)
 	add_library(z STATIC IMPORTED)
 	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
 	
-	target_link_libraries(SixTrack libarchive z pthread)
+	target_link_libraries(SixTrackCR libarchive z pthread)
 	target_link_libraries(libArchiveTester libarchive z pthread)
 	
 	add_definitions( -DLIBARCHIVE )
 endif()
 
 #We need to build dafor before we build SixTrack, but crlibm and so on can be built at the same time.
-add_dependencies(SixTrack copy_input_files generate_input)
+add_dependencies(SixTrackLib copy_input_files generate_input)
+add_dependencies(SixTrackCR SixTrackLib)
+add_dependencies(SixTrackDA SixTrackLib)
 
 ###################################################################################################
 # Running dafor
@@ -1172,23 +1191,27 @@ add_dependencies(run_prepro dafor)
 add_dependencies(generate_input run_prepro)
 
 ## Run the preprocessor on all .f90 files and output them to the build directory
-foreach(loop IN ITEMS ${FORS_F90})
+foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 		DEPENDS run_prepro
 	)
 endforeach()
-foreach(loop IN ITEMS ${FORS_DAFOR_F90})
+foreach(loop IN ITEMS ${DAFOR_F90} ${DAFOR_F90_DA})
 	add_custom_command(
 		TARGET run_prepro POST_BUILD
 		COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
 	)
 endforeach()
 
-foreach(loop IN LISTS FORS_DAFOR_F90)
+foreach(loop IN LISTS DAFOR_F90 DAFOR_F90_DA)
 	message(STATUS "Will run dafor to generate ${loop}.f90 from ${loop}a.f90")
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90 COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log DEPENDS run_prepro)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
+		COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log
+		DEPENDS run_prepro
+	)
 endforeach()
 
 ###################################################################################################
@@ -1198,14 +1221,14 @@ set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/6.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
 	target_link_libraries(dafor ${MSYS_QUADMATH})
-	target_link_libraries(SixTrack ${MSYS_QUADMATH})
+	target_link_libraries(SixTrackLib ${MSYS_QUADMATH})
 endif()
 
 #same with OSX, using gfortran from homebrew
 if(STATIC)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/ /usr/local/opt/gcc/lib/gcc/7/ /usr/local/opt/gcc/lib/gcc/8/)
-		target_link_libraries(SixTrack ${lquadmath})
+		target_link_libraries(SixTrackLib ${lquadmath})
 	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(STATIC)
 
@@ -1214,7 +1237,7 @@ if(CERNLIB)
 		#running on lxplus and friends
 #		SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "`cernlib -u graflib packlib_noshift kernlib_noshift` -lg2c -lpthread")
 #	else()
-                #Use precompiled CERNLIB from lib32 folder
+		# Use precompiled CERNLIB from lib32 folder
 		add_library(g2c STATIC IMPORTED)
 		add_library(graflib STATIC IMPORTED)
 		add_library(grafX11 STATIC IMPORTED)
@@ -1239,36 +1262,36 @@ if(CERNLIB)
 		find_library(dl STATIC dl)
 		find_library(gcc_eh STATIC gcc_eh)
 
-		target_link_libraries(SixTrack graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl pthread gcc_eh)
+		target_link_libraries(SixTrackLib graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl pthread gcc_eh)
 #	endif()
 endif(CERNLIB)
 
 #if we are using crlibm, link to the crlibm library
 if(CRLIBM)
-	target_link_libraries(SixTrack crlibm roundctl)
+	target_link_libraries(SixTrackLib crlibm roundctl)
 endif(CRLIBM)
 
 #if we are using merlinscatter, link to the merlinscatter library
 if(MERLINSCATTER)
-	target_link_libraries(SixTrack merlinscatter)
+	target_link_libraries(SixTrackCR merlinscatter)
 endif(MERLINSCATTER)
 #if we are using naff, link to the naff library
 if(NAFF)
-	target_link_libraries(SixTrack naff)
+	target_link_libraries(SixTrackCR naff)
 endif(NAFF)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
-	target_link_libraries(SixTrack root_output)
+	target_link_libraries(SixTrackCR root_output)
 endif(ROOT)
 
 if(HDF5)
-	target_link_libraries(SixTrack ${HDF5_LIBRARIES})
+	target_link_libraries(SixTrackCR ${HDF5_LIBRARIES})
 endif(HDF5)
 
 if(G4COLLIMAT)
 	find_library(pthread STATIC pthread)
-	target_link_libraries(SixTrack g4collimat ${Geant4_LIBRARIES} pthread)
+	target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} pthread)
 endif(G4COLLIMAT)
 
 #Again for naglib, I assume we are on lxplus or have CERN afs access.
@@ -1321,8 +1344,12 @@ endif(G4COLLIMAT)
 # endif(NAGLIB)
 
 IF(COVERAGE)
-	target_compile_options(SixTrack PRIVATE -fprofile-arcs -ftest-coverage)
-	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+	target_compile_options(SixTrackLib PRIVATE -fprofile-arcs -ftest-coverage)
+	target_compile_options(SixTrackCR  PRIVATE -fprofile-arcs -ftest-coverage)
+	target_compile_options(SixTrackDA  PRIVATE -fprofile-arcs -ftest-coverage)
+	SET_TARGET_PROPERTIES(SixTrackLib  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+	SET_TARGET_PROPERTIES(SixTrackCR   PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+	SET_TARGET_PROPERTIES(SixTrackDA   PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 ENDIF(COVERAGE)
 
 SET(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
@@ -1415,4 +1442,4 @@ SET(CPACK_PACKAGE_VERSION_MINOR ${SixTrack_VERSION_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${SixTrack_VERSION_PATCH})
 INCLUDE(CPack)
 
-install(TARGETS SixTrack RUNTIME DESTINATION bin )
+install(TARGETS SixTrackCR RUNTIME DESTINATION bin )
