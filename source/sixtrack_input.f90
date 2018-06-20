@@ -55,9 +55,17 @@ module sixtrack_input
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
+    module procedure sixin_echoVal_real32
     module procedure sixin_echoVal_real64
+    module procedure sixin_echoVal_real128
     module procedure sixin_echoVal_char
   end interface sixin_echoVal
+
+  private :: sixin_echoVal_int
+  private :: sixin_echoVal_real32
+  private :: sixin_echoVal_real64
+  private :: sixin_echoVal_real128
+  private :: sixin_echoVal_char
 
 contains
 
@@ -185,6 +193,22 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
   write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" =  ",varVal
 end subroutine sixin_echoVal_int
 
+subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
+  character(len=*),  intent(in) :: varName
+  real(kind=real32), intent(in) :: varVal
+  character(len=*),  intent(in) :: blockName
+  integer,           intent(in) :: lineNo
+  character(len=2) :: lineNm
+  if(lineNo == -1) then
+    lineNm = "PP"
+  else if(lineNo < 10) then
+    write(lineNm,"(i1,1x)") lineNo
+  else
+    write(lineNm,"(i2)") lineNo
+  end if
+  write(lout,"(a,e13.6)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = ",varVal
+end subroutine sixin_echoVal_real32
+
 subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
   character(len=*),  intent(in) :: varName
   real(kind=real64), intent(in) :: varVal
@@ -200,6 +224,22 @@ subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
   end if
   write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = ",varVal
 end subroutine sixin_echoVal_real64
+
+subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
+  character(len=*),   intent(in) :: varName
+  real(kind=real128), intent(in) :: varVal
+  character(len=*),   intent(in) :: blockName
+  integer,            intent(in) :: lineNo
+  character(len=2) :: lineNm
+  if(lineNo == -1) then
+    lineNm = "PP"
+  else if(lineNo < 10) then
+    write(lineNm,"(i1,1x)") lineNo
+  else
+    write(lineNm,"(i2)") lineNo
+  end if
+  write(lout,"(a,e41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = ",varVal
+end subroutine sixin_echoVal_real128
 
 subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
   character(len=*), intent(in) :: varName
