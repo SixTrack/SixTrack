@@ -292,7 +292,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 ###################################################################################################
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT CPSS BOINC BEAMGAS STF BIGNPART HUGENPART MERLINSCATTER NAFF G4COLLIMAT FLUKA)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM CERNLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB NAGLIB CR DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
 ###################################################################################################
@@ -595,6 +595,9 @@ if(32BITM)
 	if(FLUKA)
 		message(FATAL_ERROR "Cannot use FLUKA with single precision math.")
 	endif(FLUKA)
+    if(CRLIBM)
+		message(FATAL_ERROR "Cannot use CRLIBM with single precision math.")
+    endif(CRLIBM)
 endif(32BITM)
 
 if(64BITM)
@@ -616,6 +619,9 @@ if(128BITM)
 	if(FLUKA)
 		message(FATAL_ERROR "Cannot use FLUKA with quad precision math.")
 	endif(FLUKA)
+    if(CRLIBM)
+		message(FATAL_ERROR "Cannot use CRLIBM with quad precision math.")
+    endif(CRLIBM)
 endif(128BITM)
 
 if(NOT SIXDA)
