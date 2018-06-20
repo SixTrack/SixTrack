@@ -111,7 +111,7 @@ double do_cosh(double x, int rounding_mode){
 
   
   y.d = b_hi;
-  /*   first, y�  */
+  /*   first, y²  */
   square_b_hi = b_hi * b_hi;
   /* effective computation of the polynomial approximation */
   
@@ -120,7 +120,7 @@ double do_cosh(double x, int rounding_mode){
     tsb_hi = 0;
   }
   else {
-    /*   second, cosh(y) = y� * (1/2 + y� * (1/24 + y� * 1/720)) */
+    /*   second, cosh(y) = y² * (1/2 + y² * (1/24 + y² * 1/720)) */
     /*tcb_hi = (square_y_hi)* (c2.d + square_y_hi * (c4.d + square_y_hi * (c6.d + square_y_hi * c8.d)));*/
     tcb_hi = (square_b_hi)* (c2.d + square_b_hi * (c4.d + square_b_hi * c6.d));
     tsb_hi = square_b_hi * (s3.d + square_b_hi * (s5.d + square_b_hi * s7.d));
@@ -396,7 +396,7 @@ double do_sinh(double x, int rounding_mode){
   /* since b_hi was between -2^-1 and 2^1, we now have b_hi between -2^-9 and 2^-9 */
   
   y.d = b_hi;
-  /*   first, y� = square_y_hi + square_y_lo  */
+  /*   first, y² = square_y_hi + square_y_lo  */
   square_y_hi = b_hi * b_hi;
   /* effective computation of the polyomial approximation */
   if (((y.i[HI_ENDIAN])&(0x7FFFFFFF)) <= (two_minus_30.i[HI_ENDIAN])) {
@@ -405,7 +405,7 @@ double do_sinh(double x, int rounding_mode){
   }
   else {
     tsb_hi = square_y_hi * (s3.d + square_y_hi * (s5.d + square_y_hi * s7.d));
-    /*   second, cosh(y) = y� * (1/2 + y� * (1/24 + y� * 1/720)) */
+    /*   second, cosh(y) = y² * (1/2 + y² * (1/24 + y² * 1/720)) */
     /*   tcb_hi = (square_y_hi)* (c2.d + square_y_hi * (c4.d + square_y_hi * (c6.d + (square_y_hi * c8.d))));*/
     tcb_hi = (square_y_hi)* (c2.d + square_y_hi * (c4.d + square_y_hi * c6.d));
   }
