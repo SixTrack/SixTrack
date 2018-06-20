@@ -453,11 +453,6 @@ module mod_commond
   ! common /norf/
   integer,                 save :: nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
 
-  ! common /tcorr/
-  real(kind=fPrec),        save :: weig1,weig2,dpmax
-  integer,                 save :: icorr,nctype,namp,nmom,nmom1,nmom2
-  character(len=mNameLen), save :: coel(10)
-
 end module mod_commond
 
 ! ================================================================================================ !

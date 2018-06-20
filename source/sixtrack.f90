@@ -180,10 +180,6 @@ subroutine daten
         ilm0(i)=' '
       end do
 
-      do i=1,10
-        coel(i)=' '
-      end do
-
       do i=1,ncom
         do j=1,20
           icel(i,j)=' '
@@ -472,8 +468,6 @@ subroutine daten
     goto 1320
   case("NORM")
     goto 1400
-  case("CORR")
-    goto 1410
   case("BEAM")
     goto 1600
   case("TROM")
@@ -694,6 +688,10 @@ subroutine daten
       call dist_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
+
+  case("CORR") ! Tuneshift Corrections
+    write(lout,"(a)") "INPUT> ERROR CORR module is deprecated."
+    goto 9999
 
   case("RIPP") ! Power Supply Ripple Block
     write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
@@ -2215,129 +2213,6 @@ subroutine daten
       endif
       if(idptr.lt.0.or.idptr.gt.6) idptr=0
       endif
-!-----------------------------------------------------------------------
-!  TUNESHIFT CORRECTIONS
-!-----------------------------------------------------------------------
- 1410 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1410
-      if(ch(:4).eq.next) goto 110
-      icorr=1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-      read(ch1,*,round='nearest') nctype,ncor
-#endif
-#ifndef FIO
-      read(ch1,*) nctype,ncor
-#endif
-      if(ncor.gt.mcor) call prror(65)
-      if(ncor.gt.0) then
-      read(3,10020,end=1530,iostat=ierro) ch
-      lineno3=lineno3+1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call intepr(3,1,ch,ch1)
-! coel are character strings so should be OK
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest') (coel(i),i=1,ncor)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) (coel(i),i=1,ncor)
-#endif
-      do 1430 j1=1,ncor
-        do 1420 j2=1,il
-          if(coel(j1).eq.bez(j2)) then
-            if(el(j2).ne.zero.or.kz(j2).gt.10) call prror(67)
-            ipar(j1)=j2
-            goto 1430
-          endif
- 1420   continue
-        call prror(66)
- 1430 continue
-      else
-      call prror(70)
-      endif
-      if(nctype.eq.0) then
-      read(3,*) namp,nmom,dummy,dummy,dummy
-      lineno3=lineno3+1
-      if(namp+nmom.eq.0) call prror(71)
-      if(namp*nmom.ne.0) call prror(72)
-      if(namp.lt.0.or.namp.gt.2) call prror(73)
-      if(nmom.lt.0.or.nmom.eq.1.or.nmom.gt.3) call prror(74)
-      if(namp.eq.1.or.nmom.eq.2) then
-        nord=6
-      else
-        nord=7
-      endif
-      else
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(3,*, round='nearest') nmom1,nmom2,weig1,weig2,dpmax
-      lineno3=lineno3+1
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(3,*) nmom1,nmom2,weig1,weig2,dpmax
-      lineno3=lineno3+1
-#endif
-#ifdef CRLIBM
-      read(3,*) ch1
-      lineno3=lineno3+1
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) nmom1
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) nmom2
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        weig1=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        weig2=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        dpmax=fround(errno,fields,5)
-        nf=nf-1
-      endif
-#endif
-#endif
-      if(nmom1.lt.2.or.nmom1.gt.3) call prror(75)
-      if(nmom1.gt.nmom2) call prror(76)
-      if(nmom2.lt.2.or.nmom2.gt.3) call prror(77)
-      nord=2*(nmom2+1)
-      endif
-!-----------------------------------------------------------------------
-      idial=1
-      numlr=0
-      napx=1
-      imc=1
-      preda=1.d-38
-      nsix=1
-      nvar=5
-      nvar2=nvar
-      nvar=nvar2+ncor
-!-----------------------------------------------------------------------
-      inorm=1
-      nordf=nord+1
-      nvarf=nvar
-!-----------------------------------------------------------------------
-      goto 1410
 !-----------------------------------------------------------------------
 !  Beam-Beam Element
 !-----------------------------------------------------------------------
@@ -6140,15 +6015,15 @@ subroutine comnul
       imod1=0
       imod2=0
 !-----------------------------------------------------------------------
-      icorr=0
-      nctype=0
-      namp=0
-      nmom=0
-      nmom1=0
-      nmom2=0
-      weig1=zero
-      weig2=zero
-      dpmax=zero
+      ! icorr=0
+      ! nctype=0
+      ! namp=0
+      ! nmom=0
+      ! nmom1=0
+      ! nmom2=0
+      ! weig1=zero
+      ! weig2=zero
+      ! dpmax=zero
 !-----------------------------------------------------------------------
       pi=zero
       pi2=zero
@@ -6249,7 +6124,6 @@ subroutine comnul
 
       do 60 i=1,10
         dtr(i)=zero
-        coel(i)=' '
    60 continue
 
       do 70 i=1,12

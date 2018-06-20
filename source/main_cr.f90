@@ -1445,7 +1445,6 @@ end interface
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &
         nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
         ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
         clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
         dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
@@ -1509,7 +1508,6 @@ end interface
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &
         nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
         ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
         clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
         dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
