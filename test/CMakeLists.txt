@@ -163,6 +163,13 @@ else()
   set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
 endif(NOT COLLIMAT)
 
+# Tests that require SixDA executable
+SET(SIXTRACK_DA_TESTS
+  frs_da
+  thick4_da
+  ${SIXTRACK_DA_TESTS}
+)
+
 #Collimation tests (needs backtrk)
 #use extra checks on fort.999 and other collimation loss files
 if(COLLIMAT AND BACKTRK)
@@ -232,7 +239,31 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     SET( DUMP_BIN_FILE dump_ip3 )
   endif()
 
-  ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE})
+  ADD_TEST(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+  )
+
+  #some tests take a very long time (set a 2 day timeout)
+  set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
+
+endforeach()
+
+# DA Tests
+foreach(TST IN ITEMS ${SIXTRACK_DA_TESTS})
+
+  SET(FORT10 0)
+  SET(FORT90 0)
+  SET(STF_ENABLE 0)
+  SET(SIXOUT_NUMFILES 0)
+  SET(CR_ENABLE 0)
+  SET(CR_KILL_TIME 0)
+  SET(DUMP_BIN_FILE NONE)
+
+  ADD_TEST(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+  )
 
   #some tests take a very long time (set a 2 day timeout)
   set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
@@ -240,7 +271,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 endforeach()
 
 #test files
-foreach(TST IN ITEMS ${SIXTRACK_TESTS})
+foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
   add_custom_target(test_copy_${TST})
   add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/${TST}/)
 
@@ -289,7 +320,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
   endif(NOT BOINC)
 
-  add_dependencies( SixTrack test_copy_${TST})
+  add_dependencies( SixTrackLib test_copy_${TST})
 endforeach()
 
 #add labels to tests
@@ -297,6 +328,7 @@ endforeach()
 SET(FAST_TESTS
   orbit6d-element-quadrupole
   thick4
+  thick4_da
   thick6dblocks
   thick6ddynk
   exact
@@ -332,6 +364,7 @@ SET(FAST_TESTS
   fileunits_DYNK_DUMP
   geometry
   fcc
+  frs_da
   elensidealthin6d_DYNK_RANDU
   elensidealthin6d_DYNK_RANDON
   elensidealthin6d_DYNK_ONOFF
@@ -389,7 +422,7 @@ SET(PERF_TESTS
   perf1
 )
 
-foreach(TST IN ITEMS ${SIXTRACK_TESTS})
+foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
   list(FIND FAST_TESTS ${TST} LABEL_FAST)
   list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)

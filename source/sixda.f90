@@ -1796,3 +1796,8 @@ subroutine anfb(tas)
   &'OO  INITIAL COORDINATES  OO'/ t10,2('O'),23x,2('O')/t10,27('O')  &
   &//131('-')//)
 end subroutine anfb
+
+! FixMe: Dummy routine for dynk when compiled as SixDA
+subroutine synuthck
+  return
+end subroutine synuthck

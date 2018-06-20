@@ -2890,10 +2890,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
                 !Also update sigmv with the new beta0 = e0f/e0
                 sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j)
               end do
-! FIXME: This is a dirty fix for DA version to make it compile.
-#ifndef SIXDA
               if(ithick.eq.1) call synuthck
-#endif
         end if
         ldoubleElement = .true.
     end if
