@@ -9,7 +9,7 @@ module checkpoint_restart
   ! common /crdata/
   integer,             public, save :: sixrecs
   integer,             public, save :: binrec
-  integer,             public, save :: binrecs((npart+1)/2)
+  integer,             public, save :: binrecs((npart+1)/2) !((npart+1)/2)
   integer,             public, save :: bnlrec
   integer,             public, save :: bllrec
   integer,             public, save :: numlcr
@@ -29,25 +29,25 @@ module checkpoint_restart
 
   ! common /crio/
   real(kind=fPrec),    public, save :: cre0
-  real(kind=fPrec),    public, save :: crxv(2,npart)
-  real(kind=fPrec),    public, save :: cryv(2,npart)
-  real(kind=fPrec),    public, save :: crsigmv(npart)
-  real(kind=fPrec),    public, save :: crdpsv(npart)
-  real(kind=fPrec),    public, save :: crdpsv1(npart)
-  real(kind=fPrec),    public, save :: crejv(npart)
-  real(kind=fPrec),    public, save :: crejfv(npart)
-  real(kind=fPrec),    public, save :: craperv(npart,2)
-  real(kind=fPrec),    public, save :: crxvl(2,npart)
-  real(kind=fPrec),    public, save :: cryvl(2,npart)
-  real(kind=fPrec),    public, save :: crdpsvl(npart)
-  real(kind=fPrec),    public, save :: crejvl(npart)
-  real(kind=fPrec),    public, save :: crsigmvl(npart)
+  real(kind=fPrec),    public, save :: crxv(2,npart)    !(2,npart)
+  real(kind=fPrec),    public, save :: cryv(2,npart)    !(2,npart)
+  real(kind=fPrec),    public, save :: crsigmv(npart)   !(npart)
+  real(kind=fPrec),    public, save :: crdpsv(npart)    !(npart)
+  real(kind=fPrec),    public, save :: crdpsv1(npart)   !(npart)
+  real(kind=fPrec),    public, save :: crejv(npart)     !(npart)
+  real(kind=fPrec),    public, save :: crejfv(npart)    !(npart)
+  real(kind=fPrec),    public, save :: craperv(npart,2) !(npart,2)
+  real(kind=fPrec),    public, save :: crxvl(2,npart)   !(2,npart)
+  real(kind=fPrec),    public, save :: cryvl(2,npart)   !(2,npart)
+  real(kind=fPrec),    public, save :: crdpsvl(npart)   !(npart)
+  real(kind=fPrec),    public, save :: crejvl(npart)    !(npart)
+  real(kind=fPrec),    public, save :: crsigmvl(npart)  !(npart)
 
   real,                public, save :: crtime3
 
   integer,             public, save :: crsixrecs
   integer,             public, save :: crbinrec
-  integer,             public, save :: crbinrecs((npart+1)/2)
+  integer,             public, save :: crbinrecs((npart+1)/2) !(npart+1)/2)
   integer,             public, save :: crbnlrec
   integer,             public, save :: crbllrec
   integer,             public, save :: cril
@@ -55,12 +55,12 @@ module checkpoint_restart
   integer,             public, save :: crnuml
   integer,             public, save :: crnapxo
   integer,             public, save :: crnapx
-  integer,             public, save :: crnumxv(npart)
-  integer,             public, save :: crnnumxv(npart)
-  integer,             public, save :: crnlostp(npart)
+  integer,             public, save :: crnumxv(npart)  !(npart)
+  integer,             public, save :: crnnumxv(npart) !(npart)
+  integer,             public, save :: crnlostp(npart) !(npart)
 
   logical,             public, save :: crsythck
-  logical,             public, save :: crpstop(npart)
+  logical,             public, save :: crpstop(npart) !(npart)
 
   ! Others. Keep length in sync with includes/version.f90
   character(len=8),    public, save :: cr_version

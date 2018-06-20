@@ -877,8 +877,6 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   real(kind=fPrec), intent(in) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
   real(kind=fPrec), intent(in) :: loc_clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
 
-  integer, parameter :: samplenumber = 1
-
   ! Temporary variables
   integer j,k,l,m,n
   character(len=mNameLen) localBez
@@ -956,7 +954,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2, napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4, napx, xv(1,:))
@@ -970,12 +968,12 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #endif
       if (lhighprec) then
         do j=1,napx
-          write(unit,1983) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1983) nlostp(j),nturn,localDcum, &
             xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
         end do
       else
         do j=1,napx
-          write(unit,1984) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1984) nlostp(j),nturn,localDcum, &
             xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
         end do
       end if
@@ -1005,7 +1003,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
@@ -1020,12 +1018,12 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #endif
       if (lhighprec) then
         do j=1,napx
-          write(unit,1985) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+          write(unit,1985) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
             sigmv(j),(ejv(j)-e0)/e0,localKtrack
         end do
       else
         do j=1,napx
-          write(unit,1986) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+          write(unit,1986) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
             sigmv(j),(ejv(j)-e0)/e0,localKtrack
         end do
       end if
@@ -1055,7 +1053,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
@@ -1069,7 +1067,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+        write(unit) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
 
@@ -1374,15 +1372,15 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
       if (fmt .eq. 7) then
         if (lhighprec) then
-          write(unit,1985) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1985) nlostp(j),nturn,localDcum, &
             nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
         else
-          write(unit,1986) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1986) nlostp(j),nturn,localDcum, &
             nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
         end if
 
       else if (fmt .eq. 8) then
-        write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+        write(unit) nlostp(j),nturn,localDcum, &
           nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
 
       else if (fmt .eq. 9) then

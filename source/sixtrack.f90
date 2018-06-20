@@ -41,7 +41,7 @@ subroutine daten
   use mathlib_bouncer
   use sixtrack_input
   use parpro
-  use parpro_scale
+!  use parpro_scale
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_settings
   use mod_common
@@ -1151,6 +1151,9 @@ subroutine daten
                 ldmpaperMem=.true.
              end if
           endif
+
+        elseif(ch(:5).eq.'DEBUG') then
+          aperture_debug = .true.
 
         elseif(ch(:4).eq.'SAVE') then
           ! P.G.Ortega and A.Mereghetti, 02-03-2018
@@ -5591,9 +5594,7 @@ subroutine envars(j,dpp,rv)
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
                    hp,hs,rho,rhoc,rhoi,rv,si,siq,sm1,sm12,sm2,sm23,sm3,sm5,sm6,wf,wfa,wfhi
-#ifdef SIXDA
   integer jm,k,m,na,ne
-#endif
   save
 
   dpd  = one+dpp
@@ -5603,10 +5604,8 @@ subroutine envars(j,dpp,rv)
       do l=1,2
         al(ll,l,j,i) = zero
         as(ll,l,j,i) = zero
-#ifdef SIXDA
         at(ll,l,j,i) = zero
         a2(ll,l,j,i) = zero
-#endif
       end do
     end do
 
@@ -5896,7 +5895,6 @@ subroutine envars(j,dpp,rv)
     end select
   end do
 
-#ifdef SIXDA
   do k=1,mblo
     jm=mel(k)
     do m=1,jm
@@ -5918,7 +5916,6 @@ subroutine envars(j,dpp,rv)
       end do
     end do
   end do
-#endif
   return
 
 end subroutine envars
@@ -6664,7 +6661,7 @@ integer function INEELS( iEl )
   use numerical_constants
   use crcoall
   use parpro
-  use parpro_scale
+!  use parpro_scale
   use mod_common
   use mod_commont
   use mod_commonmn
@@ -6726,7 +6723,7 @@ integer function INEESE()
   use crcoall
 
   use parpro
-  use parpro_scale
+!  use parpro_scale
   use mod_common
   use mod_commont
   use mod_commonmn

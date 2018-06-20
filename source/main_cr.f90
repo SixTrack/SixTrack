@@ -88,7 +88,7 @@ program maincr
 
   use crcoall
   use parpro
-  use parpro_scale
+!  use parpro_scale
   use mod_settings
   use mod_common
   use mod_commonmn
@@ -109,7 +109,7 @@ interface
 
     use floatPrecision
     use parpro
-    use parpro_scale
+!    use parpro_scale
     use mod_commond
 
     implicit none
@@ -1441,9 +1441,6 @@ end interface
         sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
         ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
         as,al,sigm,dps,idz,dp1,itra,                                      &
-#ifdef SIXDA
-        at,a2,                                                            &
-#endif
         x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &
@@ -1508,9 +1505,6 @@ end interface
         sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
         ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
         as,al,sigm,dps,idz,dp1,itra,                                      &
-#ifdef SIXDA
-        at,a2,                                                            &
-#endif
         x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &

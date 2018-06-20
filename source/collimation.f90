@@ -2575,7 +2575,7 @@ subroutine collimate_do_collimator(stracki)
 
 !++  Write beam ellipse at selected collimator
   if (((db_name1(icoll).eq.name_sel(1:mNameLen)) .or.&
-       (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. dowrite_dist) then
+       (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
     do j = 1, napx
       write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
@@ -5514,17 +5514,15 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   use parpro
   implicit none
 
-
-  real(kind=fPrec) sx, sz
 !
 ! BLOCK DBCOLLIM
 ! This block is common to collimaterhic and collimate2
 ! It is NOT compatible with block DBCOMMON, as some variable names overlap...
 
 
-  logical onesided,hit
+  logical onesided
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-  integer nprim,j,nabs,nhit,np
+  integer np
 
   integer, allocatable :: lhit_pos(:) !(npart)
   integer, allocatable :: lhit_turn(:) !(npart)
@@ -5542,7 +5540,6 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec), allocatable :: indiv(:) !(npart)
   real(kind=fPrec), allocatable :: lint(:) !(npart)
   real(kind=fPrec), allocatable :: impact(:) !(npart)
-  real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
 
   real(kind=fPrec) c_length    !length in m
   real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -5551,20 +5548,9 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec) c_tilt(2)   !tilt in radian
   character(len=4) c_material  !material
 
-  real(kind=fPrec) x00,z00,p,sp,s,enom
-
-!AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
-!           sheet beam distribution  (smear in x and y)
-!
-
-      real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk
-!JUNE2005
-      real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
-!JUNE2005
-!DEBUG
-      integer event
-!DEBUG
-      save
+  real(kind=fPrec) enom
+  real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
+  save
 !=======================================================================
   write(lout,*) 'collimateRHIC is no longer supported!'
   call prror(-1)

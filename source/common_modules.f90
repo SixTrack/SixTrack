@@ -59,7 +59,7 @@ module parpro
   integer, parameter :: mmul = 20   ! Maximum order of multipoles
   integer, parameter :: nelb = 280  ! Maximum elements per BLOC
   integer, parameter :: nbb  = 500  ! Beam-beam lenses
-  
+
   ! Dummy Strings
   character(len=mDivLen),  parameter :: str_divLine = repeat("-",132)
   character(len=mStrLen),  parameter :: str_dSpace  = repeat(" ",mStrLen)
@@ -107,7 +107,7 @@ end module parbeam
 module mod_settings
 
   use parpro, only : mDivLen, mStrLen, mNameLen
-  
+
   implicit none
 
   ! PRINT Flag (fort.3)
@@ -773,35 +773,79 @@ module mod_lie_dab
   real(kind=fPrec), save :: xintex(0:20)
 
   ! From dabnew
-#ifdef SIXDA
-  integer, parameter :: lda = 10000
-  integer, parameter :: lst = 20050000
-  integer, parameter :: lea = 100000
-  integer, parameter :: lia = 5000000
-#else
-  integer, parameter :: lda = 10000
-  integer, parameter :: lst = 200000
-  integer, parameter :: lea = 500
-  integer, parameter :: lia = 10000
-#endif
-  integer, parameter :: lno = 120
+  integer, save      :: lda = -1
+  integer, save      :: lst = -1
+  integer, save      :: lea = -1
+  integer, save      :: lia = -1
+  integer, save      :: lno = -1
   integer, parameter :: lnv = 40
 
-  integer,           save :: ndat,nda,ndamaxi,lfi
-  integer,           save :: nst,nomax,nvmax,nmmax,nocut
-  integer,           save :: idano(lda),idanv(lda),idapo(lda)
-  integer,           save :: idalm(lda),idall(lda)
-  integer,           save :: i1(lst),i2(lst)
-  integer,           save :: ie1(lea),ie2(lea),ieo(lea)
-  integer,           save :: ia1(0:lia),ia2(0:lia),ifi(lea)
-  logical,           save :: allvec(lda)
-  character(len=10), save :: daname(lda)
-  real(kind=fPrec),  save :: cc(lst),eps,epsmac,facint(0:lno)
+  integer,                       save :: ndat,nda,ndamaxi,lfi
+  integer,                       save :: nst,nomax,nvmax,nmmax,nocut
+  integer,          allocatable, save :: idano(:),idanv(:),idapo(:)
+  integer,          allocatable, save :: idalm(:),idall(:)
+  integer,          allocatable, save :: i1(:),i2(:)
+  integer,          allocatable, save :: ie1(:),ie2(:),ieo(:),ifi(:)
+  integer,          allocatable, save :: ia1(:),ia2(:)
+  logical,          allocatable, save :: allvec(:)
+  character(len=:), allocatable, save :: daname(:)
+  real(kind=fPrec), allocatable, save :: cc(:),facint(:)
+  real(kind=fPrec),              save :: eps,epsmac
 
   ! dascr variables
   integer,           save :: idao
   integer,           save :: iscrda(100)
   integer,           save :: iscrri(100)
   real(kind=fPrec),  save :: rscrri(100)
+
+contains
+
+subroutine mld_allocArrays(da_version)
+
+  use mod_alloc
+  use numerical_constants, only : zero
+
+  implicit none
+
+  logical, intent(in) :: da_version
+
+  if(da_version) then
+    lda = 10000
+    lst = 20050000
+    lea = 100000
+    lia = 5000000
+    lno = 120
+  else
+    lda = 10000
+    lst = 200000
+    lea = 500
+    lia = 10000
+    lno = 120
+  end if
+
+  call alloc(idano,lda,0,"idano")
+  call alloc(idanv,lda,0,"idanv")
+  call alloc(idapo,lda,0,"idapo")
+  call alloc(idalm,lda,0,"idalm")
+  call alloc(idall,lda,0,"idall")
+
+  call alloc(i1,lst,0,"i1")
+  call alloc(i2,lst,0,"i2")
+
+  call alloc(ie1,lea,0,"ie1")
+  call alloc(ie2,lea,0,"ie2")
+  call alloc(ieo,lea,0,"ieo")
+  call alloc(ifi,lea,0,"ifi")
+
+  call alloc(ia1,lia,0,"ia1",0)
+  call alloc(ia2,lia,0,"ia2",0)
+
+  call alloc(allvec,   lda,.false.,     "allvec")
+  call alloc(daname,10,lda,"          ","daname")
+
+  call alloc(cc,    lst,zero,"cc")
+  call alloc(facint,lno,zero,"facint",0)
+
+end subroutine mld_allocArrays
 
 end module mod_lie_dab

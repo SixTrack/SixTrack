@@ -114,28 +114,29 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
   implicit none
 
 ! interface variables:
-  integer napx, npart
+  integer, intent(inout) :: napx
+  integer, intent(in) :: npart
   real(kind=fPrec) enom, pnom, clight
-  real(kind=fPrec) x, y, xp, yp, s, pc
+  real(kind=fPrec) :: x(npart)  !(npart)
+  real(kind=fPrec) :: y(npart)  !(npart)
+  real(kind=fPrec) :: xp(npart) !(npart)
+  real(kind=fPrec) :: yp(npart) !(npart)
+  real(kind=fPrec) :: s(npart)  !(npart)
+  real(kind=fPrec) :: pc(npart) !(npart)
   real(kind=fPrec) m0
 
 ! temporary variables:
   integer id, gen
-  integer(kind=int16) aa, zz
-  real(kind=fPrec) weight, z, zp, m, dt
+  integer(kind=int16) :: aa(npart) !(npart)
+  integer(kind=int16) :: zz(npart) !(npart)
+  real(kind=fPrec) weight, z, zp
+  real(kind=fPrec) :: dt(npart)
+  real(kind=fPrec) :: m(npart) !(npart)
+
   integer jj
   character(240) tmp_line
 
-  character comment_char
-  parameter ( comment_char = '*' )
-
-  dimension x ( npart ), y ( npart )
-  dimension xp( npart ), yp( npart )
-  dimension s ( npart ), pc( npart )
-  dimension dt( npart )
-! P. HERMES hisix
-  dimension aa( npart ), zz( npart )
-  dimension m ( npart )
+  character, parameter :: comment_char = '*'
 
   write(lout,*) ''
   write(lout,*) "Reading particles from ", dist_filename
