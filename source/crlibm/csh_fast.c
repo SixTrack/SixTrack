@@ -21,7 +21,8 @@ extern void  exp_SC(scs_t,double);
 
 void scs_div_2(scs_t num) {
   /* small function to divide by 2 any SCS number */
-  unsigned int carry, new_value, mask, old_value;
+  unsigned int carry, mask, old_value;
+  // unsigned int new_value;
   int i;
   carry = 0x00000000;
   mask = ((0x1) << SCS_NB_BITS)-1;/*we now have a mask for the used bits in a word*/
@@ -30,7 +31,7 @@ void scs_div_2(scs_t num) {
     /* first, a loop to rotate all numbers to the right*/
     for(i = 0; i < SCS_NB_WORDS; i++) {
       old_value = num->h_word[i];
-      new_value = (old_value & mask);/* to keep only used bits */
+      // new_value = (old_value & mask);/* to keep only used bits */
       num->h_word[i] = (old_value & !mask) | carry | ((old_value >> 1) & mask);
       carry = old_value & 0x00000001;/* it can be interesting to keep the last bit of each number =) */
       carry = carry << (SCS_NB_BITS-1);
@@ -110,7 +111,7 @@ double do_cosh(double x, int rounding_mode){
 
   
   y.d = b_hi;
-  /*   first, y²  */
+  /*   first, yï¿½  */
   square_b_hi = b_hi * b_hi;
   /* effective computation of the polynomial approximation */
   
@@ -119,7 +120,7 @@ double do_cosh(double x, int rounding_mode){
     tsb_hi = 0;
   }
   else {
-    /*   second, cosh(y) = y² * (1/2 + y² * (1/24 + y² * 1/720)) */
+    /*   second, cosh(y) = yï¿½ * (1/2 + yï¿½ * (1/24 + yï¿½ * 1/720)) */
     /*tcb_hi = (square_y_hi)* (c2.d + square_y_hi * (c4.d + square_y_hi * (c6.d + square_y_hi * c8.d)));*/
     tcb_hi = (square_b_hi)* (c2.d + square_b_hi * (c4.d + square_b_hi * c6.d));
     tsb_hi = square_b_hi * (s3.d + square_b_hi * (s5.d + square_b_hi * s7.d));
@@ -395,7 +396,7 @@ double do_sinh(double x, int rounding_mode){
   /* since b_hi was between -2^-1 and 2^1, we now have b_hi between -2^-9 and 2^-9 */
   
   y.d = b_hi;
-  /*   first, y² = square_y_hi + square_y_lo  */
+  /*   first, yï¿½ = square_y_hi + square_y_lo  */
   square_y_hi = b_hi * b_hi;
   /* effective computation of the polyomial approximation */
   if (((y.i[HI_ENDIAN])&(0x7FFFFFFF)) <= (two_minus_30.i[HI_ENDIAN])) {
@@ -404,7 +405,7 @@ double do_sinh(double x, int rounding_mode){
   }
   else {
     tsb_hi = square_y_hi * (s3.d + square_y_hi * (s5.d + square_y_hi * s7.d));
-    /*   second, cosh(y) = y² * (1/2 + y² * (1/24 + y² * 1/720)) */
+    /*   second, cosh(y) = yï¿½ * (1/2 + yï¿½ * (1/24 + yï¿½ * 1/720)) */
     /*   tcb_hi = (square_y_hi)* (c2.d + square_y_hi * (c4.d + square_y_hi * (c6.d + (square_y_hi * c8.d))));*/
     tcb_hi = (square_y_hi)* (c2.d + square_y_hi * (c4.d + square_y_hi * c6.d));
   }

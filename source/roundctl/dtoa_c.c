@@ -570,7 +570,7 @@ Balloc
 #else
 		len = (sizeof(Bigint) + (x-1)*sizeof(ULong) + sizeof(double) - 1)
 			/sizeof(double);
-		if (k <= Kmax && pmem_next - private_mem + len <= PRIVATE_mem) {
+		if (k <= Kmax && pmem_next - private_mem + len <= (unsigned int)PRIVATE_mem) {
 			rv = (Bigint*)pmem_next;
 			pmem_next += len;
 			}
@@ -2523,6 +2523,7 @@ strtod_cr
 		case '-':
 			sign = 1;
 			/* no break */
+			__attribute__ ((fallthrough));
 		case '+':
 			if (*++s)
 				goto break2;
@@ -2634,6 +2635,7 @@ strtod_cr
 		switch(c = *++s) {
 			case '-':
 				esign = 1;
+				__attribute__ ((fallthrough));
 			case '+':
 				c = *++s;
 			}
@@ -3731,6 +3733,7 @@ dtoa_cr
 		}
 #endif
 
+	j1 = 0;
 	u.d = dd;
 	if (word0(&u) & Sign_bit) {
 		/* set sign for everything, including 0's and NaNs */
@@ -3890,6 +3893,7 @@ dtoa_cr
 		case 2:
 			leftright = 0;
 			/* no break */
+			__attribute__ ((fallthrough));
 		case 4:
 			if (ndigits <= 0)
 				ndigits = 1;
@@ -3898,6 +3902,7 @@ dtoa_cr
 		case 3:
 			leftright = 0;
 			/* no break */
+			__attribute__ ((fallthrough));
 		case 5:
 			i = ndigits + k + 1;
 			ilim = i;
