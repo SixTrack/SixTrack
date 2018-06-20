@@ -6,6 +6,7 @@ subroutine daliesix
   use crcoall
   use parpro
   use mod_commond
+  use mod_lie_dab, only : mld_allocArrays
 
   implicit none
 
@@ -42,6 +43,7 @@ subroutine daliesix
   mf4=24
   mf5=25
   call idprset(-102)
+  call mld_allocArrays(.true.)
   call lieinit(no,nv,ndim,ndpt,0,nis)
   call etall(damap,nd2)
   call etall(xy,nd2)
@@ -165,7 +167,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use parpro
   use mod_commond
   use mod_common,  only : iqmodc,ichromc,ilinc
-  use mod_lie_dab, only : iscrri,iscrda
+  use mod_lie_dab, only : iscrri,iscrda,mld_allocArrays
 
   implicit none
 
@@ -193,6 +195,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 
   call daeps(preda)
   call idprset(-102)
+  call mld_allocArrays(.true.)
   call lieinit(nord,nvar,ndimf,ndpt,0,nis)
   write(lout,10000) nord,nvar,nndim
   call daall(iscrda,100,'$$IS      ',nord,nvar)

@@ -739,7 +739,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use parpro
   use mod_common, only : ichromc,ilinc,iqmodc
   use mod_commond
-  use mod_lie_dab, only : iscrda
+  use mod_lie_dab, only : iscrda,mld_allocArrays
   implicit none
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
   real(kind=fPrec) am
@@ -765,6 +765,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !--------------------
   call daeps(preda)
   call idprset(-102)
+  call mld_allocArrays(.false.)
   call lieinit(nord,nvar,ndimf,ndpt,0,nis)
 #ifdef DEBUG
 !     call dumpbin('alieinit',1,11)
