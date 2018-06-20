@@ -1093,28 +1093,7 @@ subroutine daten
 !     P.G.Ortega and A.Mereghetti, 02-03-2018
 !     'next': echo aperture profiles
       if(ch(:4).eq.next) then
-        if ( limifound ) then
-          write(lout,10320)
-          call dump_aperture_header(lout)
-          do ii=1,il
-            if ( kape(ii).ne.0 ) call dump_aperture_marker( lout, ii, 1 )
-          enddo
-!         A.Mereghetti and P.Garcia Ortega, 12-06-2014
-!         echo precision for back-tracking
-          if (lbacktracking) then
-            write(lout,*)' --> back-tracking at aperture LIMIs is on, with precision [m]:',bktpre
-          else
-            write(lout,*)' --> no back-tracking, only checks at aperture LIMIs'
-          endif
-        else
-          write(lout,'(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
-          lbacktracking=.false.
-        endif
-        if (mxsec.gt.0) then
-           do i=1,mxsec
-              if (sLocDel(i).eq.zero) sLocDel(i)=bktpre
-           enddo
-        endif
+        call aper_inputParsingDone
         goto 110
 
       else
@@ -1126,135 +1105,19 @@ subroutine daten
         endif
 
         if(ch(:4).eq.'LOAD') then
-          ! P.G.Ortega and A.Mereghetti, 02-03-2018
-          ! reading apertures from external file
-          if(getfields_nfields.lt.3) then
-            write(lout,*) 'ERROR in LIMI block: wrong number of input parameters for keyword LOAD: ninput = ', &
-                          getfields_nfields, ' != 3 (min)'
-            call prror(-1)
-          endif
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) loadunit
-          read (getfields_fields(3)(1:getfields_lfields(3)),*) load_file
-          inquire( file=load_file, exist=lexist )
-          if (.not.lexist ) then
-             write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND IN THE RUNNING FOLDER"
-             call prror(-1)
-          endif
-          open(loadunit,file=load_file,form='formatted')
-          write(lout,*) 'APERTURES READ FROM FILE: ',load_file,' - UNIT: ',loadunit
-
+          call aper_parseInputLine(ch,1,inErr)
         elseif(ch(:4).eq.'PRIN') then
-          ! P.G.Ortega and A.Mereghetti, 02-03-2018
-          ! flag for dumping the aperture model
-          if(getfields_nfields.lt.3) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &         'parameters for keyword PRIN: ninput = ', getfields_nfields, ' != 3 (min)'
-            call prror(-1)
-          endif
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) aperunit
-          read (getfields_fields(3)(1:getfields_lfields(3)),*) aper_filename
-          ldmpaper  = .true.
-          if(getfields_nfields.ge.4) then
-             if (getfields_fields(4)(1:getfields_lfields(4)).eq.'MEM') then
-                ldmpaperMem=.true.
-             end if
-          endif
-
+          call aper_parseInputLine(ch,1,inErr)
         elseif(ch(:5).eq.'DEBUG') then
-          aperture_debug = .true.
-
+          call aper_parseInputLine(ch,1,inErr)
         elseif(ch(:4).eq.'SAVE') then
-          ! P.G.Ortega and A.Mereghetti, 02-03-2018
-          ! flag for saving particles at aperture check
-          apflag  = .true.
-
+          call aper_parseInputLine(ch,1,inErr)
         elseif(ch(:10).eq.'BACKTRKOFF') then
-          ! A.Mereghetti, 07-03-2018
-          ! switch off back tracking
-          lbacktracking=.false.
-
+          call aper_parseInputLine(ch,1,inErr)
         elseif(ch(:4).eq.'PREC') then
-          ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
-          ! set precision for back-tracking
-          if(getfields_nfields.lt.2) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &         'parameters for keyword PREC: ninput = ', getfields_nfields, ' != 2 (min)'
-            call prror(-1)
-          endif
-#ifndef CRLIBM
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) tmplen
-#endif
-#ifdef CRLIBM
-          tmplen=round_near (errno,getfields_lfields(2)+1, getfields_fields(2))
-          if (errno.ne.0) call rounderr(errno,getfields_fields,2,tmplen)
-#endif
-          if ( tmplen.le.zero ) then
-            write(lout,*) 'WARNING: Wrong precision value: ', tmplen
-            write(lout,*) '  in LIMI input block, ignoring...'
-            write(lout,*) '  Using default [m]: ', bktpre
-          else
-            bktpre = tmplen
-          endif
-
+          call aper_parseInputLine(ch,1,inErr)
         elseif(ch(:4).eq.'XSEC') then
-          ! A.Mereghetti, 22-03-2018
-          ! ask for xsec at specific locations
-          ! example input line:        XSEC 155 myCrossSec.dat 12355.78 12356.78 0.1 180
-          if(getfields_nfields.lt.4) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &         'parameters for keyword XSEC: ninput = ', getfields_nfields, ' != 4 (min)'
-            call prror(-1)
-          endif
-          mxsec=mxsec+1
-          if (mxsec.gt.nxsec) then
-            write(lout,*)'ERROR in LIMI block: too many xsecs! asked:',mxsec,' - max:',nxsec
-            call prror(-1)
-          end if
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) xsecunit(mxsec)
-          read (getfields_fields(3)(1:getfields_lfields(3)),*) xsec_filename(mxsec)
-#ifndef CRLIBM
-          read (getfields_fields(4)(1:getfields_lfields(4)),*) sLocMin(mxsec)
-#endif
-#ifdef CRLIBM
-          sLocMin(mxsec)=round_near (errno,getfields_lfields(4)+1, getfields_fields(4))
-          if (errno.ne.0) call rounderr(errno,getfields_fields,4,sLocMin(mxsec))
-#endif
-          if (sLocMin(mxsec).lt.zero) then
-             write(lout,*)'ERROR in LIMI block: negative min s-value for xsecs!'
-             call prror(-1)
-          endif
-
-          if(getfields_nfields.ge.5) then
-#ifndef CRLIBM
-             read (getfields_fields(5)(1:getfields_lfields(5)),*) sLocMax(mxsec)
-#endif
-#ifdef CRLIBM
-             sLocMax(mxsec)=round_near (errno,getfields_lfields(5)+1, getfields_fields(5))
-             if (errno.ne.0) call rounderr(errno,getfields_fields,5,sLocMax(mxsec))
-#endif
-             if (sLocMax(mxsec).lt.zero) then
-                write(lout,*)'ERROR in LIMI block: negative max s-value for xsecs!'
-                call prror(-1)
-             endif
-          endif
-          if(getfields_nfields.ge.6) then
-#ifndef CRLIBM
-             read (getfields_fields(6)(1:getfields_lfields(6)),*) sLocDel(mxsec)
-#endif
-#ifdef CRLIBM
-             sLocDel(mxsec)=round_near (errno,getfields_lfields(6)+1, getfields_fields(6))
-             if (errno.ne.0) call rounderr(errno,getfields_fields,6,sLocDel(mxsec))
-#endif
-             if (sLocDel(mxsec).lt.zero) sLocDel(mxsec)=-sLocDel(mxsec) ! increasing s-val
-          endif
-          if (sLocMax(mxsec).eq.zero) sLocMax(mxsec)=sLocMin(mxsec)
-          if (sLocMax(mxsec).lt.sLocMin(mxsec)) then
-             ! swap sMin and sMax
-             tmpflts(1)=sLocMax(mxsec)
-             sLocMax(mxsec)=sLocMin(mxsec)
-             sLocMin(mxsec)=tmpflts(1)
-          endif
-          if(getfields_nfields.ge.7) read (getfields_fields(7)(1:getfields_lfields(7)),*) nAzimuts(mxsec)
+          call aper_parseInputLine(ch,1,inErr)
 
         else
 
@@ -3903,7 +3766,7 @@ subroutine daten
 10300 format(//131('-')//t10,'DATA BLOCK COMBINATION OF ELEMENTS',      &
      &'  THE FOLLOWING ELEMENTS ARE RELATED IN STRENGTHS--->'/ t10,     &
      &'ELEMENT RELATED TO ELEMENT BY THE RATIO'/)
-10320 format(//131('-')//t10,'DATA BLOCK APERTURE LIMITATIONS'/ /t10)
+! 10320 format(//131('-')//t10,'DATA BLOCK APERTURE LIMITATIONS'/ /t10)
 10340 format(t10,'NO CAVITIES SPECIFIED'/)
 10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
      &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
