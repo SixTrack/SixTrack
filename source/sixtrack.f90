@@ -450,8 +450,6 @@ subroutine daten
   select case(idat)
   case("ITER")
     goto 940
-  case("LIMI")
-    goto 950
   case("ORBI")
     goto 980
   case("COMB")
@@ -708,6 +706,17 @@ subroutine daten
     write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
     goto 9999
 
+  case("LIMI") ! Aperture Limitations
+    if(openBlock) then
+      lbacktracking = .true.
+      loadunit      = 3
+    elseif(closeBlock) then
+      call aper_inputParsingDone
+    else
+      call aper_inputUnitWrapper(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
   case("COLL") ! Collimation Block
     if(openBlock) then
 #ifndef COLLIMAT
@@ -1063,253 +1072,6 @@ subroutine daten
       if(iclr.ne.4) goto 940
       iclr=0
       goto 110
-!-----------------------------------------------------------------------
-!  APERTURE LIMITATIONS
-!  A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!  JMolson (CERN, BE-ABP-HSS)
-!  last modified: 02-03-2018
-!  original LIMI block extended to deal with RectEllipse, Octagon and
-!     RaceTrack aperture types, and with offset/tilting of profile
-!  Possibility to read the apertures from external file with LOAD keyword
-!-----------------------------------------------------------------------
-  950 continue
-!     LIMI block naturally activates backtracking, unless explicitly
-!       requested by user
-      lbacktracking=.true.
-      loadunit=3 ! stream to fort.3
-  951 continue
-!     loadunit is initialised to 3 in aperture_comnul
-      read(loadunit,10020,end=952,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 951 ! skip comment lines
-
-      ! We don't support FIO, since it's not supported by any compilers...
-#ifdef FIO
-      write(lout,*)'ERROR in LIMI block: fortran IO format currently not supported!'
-      call prror(-1)
-#endif
-
-!     P.G.Ortega and A.Mereghetti, 02-03-2018
-!     'next': echo aperture profiles
-      if(ch(:4).eq.next) then
-        call aper_inputParsingDone
-        goto 110
-
-      else
-
-        call getfields_split( ch, getfields_fields, getfields_lfields,getfields_nfields, getfields_lerr )
-        if ( getfields_lerr ) then
-          write(lout,*) 'ERROR in LIMI block: getfields_lerr=', getfields_lerr, ' at line: ',ch
-          call prror(-1)
-        endif
-
-        if(ch(:4).eq.'LOAD') then
-          call aper_parseInputLine(ch,1,inErr)
-        elseif(ch(:4).eq.'PRIN') then
-          call aper_parseInputLine(ch,1,inErr)
-        elseif(ch(:5).eq.'DEBUG') then
-          call aper_parseInputLine(ch,1,inErr)
-        elseif(ch(:4).eq.'SAVE') then
-          call aper_parseInputLine(ch,1,inErr)
-        elseif(ch(:10).eq.'BACKTRKOFF') then
-          call aper_parseInputLine(ch,1,inErr)
-        elseif(ch(:4).eq.'PREC') then
-          call aper_parseInputLine(ch,1,inErr)
-        elseif(ch(:4).eq.'XSEC') then
-          call aper_parseInputLine(ch,1,inErr)
-
-        else
-
-          read (getfields_fields(1)(1:getfields_lfields(1)),*) idat
-          lapefound=.false.
-          do j=1,il
-            if(idat.eq.bez(j)) then
-              lapefound=.true.
-              read (getfields_fields(2)(1:getfields_lfields(2)),*) irel
-              select case(irel)
-
-              case (apeName(1)) !Circle
-                if(getfields_nfields.lt.3) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(1)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 3 (min)'
-                  call prror(-1)
-                endif
-                do i=1,1
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initCR( j, tmpflts(1) )
-
-              case (apeName(2)) !Rectangle
-                if(getfields_nfields.lt.4) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(2)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 4 (min)'
-                  call prror(-1)
-                endif
-                do i=1,2
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initRE( j, tmpflts(1), tmpflts(2) )
-
-              case (apeName(3)) !Ellipse
-                if(getfields_nfields.lt.4) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(3)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 4 (min)'
-                  call prror(-1)
-                endif
-                do i=1,2
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initEL( j, tmpflts(1), tmpflts(2) )
-
-              case (apeName(4)) !Rectellipse
-                if(getfields_nfields.lt.6) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(4)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 6 (min)'
-                  call prror(-1)
-                endif
-                ! parse the float descriptors
-                do i=1,4
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initRL( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
-
-              case (apeName(5)) !Octagon
-                if(getfields_nfields.lt.6) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(5)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 6 (min)'
-                  call prror(-1)
-                endif
-                do i=1,4
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initOC( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
-
-              case (apeName(6)) !Racetrack
-                if(getfields_nfields.lt.5) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(6)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 5 (min)'
-                  call prror(-1)
-                endif
-                do i=1,3
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initRT( j, tmpflts(1), tmpflts(2), tmpflts(3) )
-
-              case (apeName(-1)) !Transition
-                if(getfields_nfields.lt.8) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(-1)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 8 (min)'
-                  call prror(-1)
-                endif
-                do i=1,6
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initTR( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4), tmpflts(5), tmpflts(6) )
-
-              case default
-                write(lout,*) 'Aperture profile not identified for element ',idat
-                write(lout,*) '  value:', irel
-                call prror(-1)
-              end select
-
-              if(kape(j).eq.-1)then
-                do i=7,9
-                  tmpflts(i)=zero
-                  if(getfields_nfields.ge.i+2) then
-#ifndef CRLIBM
-                    read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                    tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                    if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                  endif
-                end do
-              else
-                do i=5,7
-                  tmpflts(i+2)=zero
-                  if(getfields_nfields.ge.i+2) then
-#ifndef CRLIBM
-                    read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i+2)
-#endif
-#ifdef CRLIBM
-                    tmpflts(i+2)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                    if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i+2))
-#endif
-                  endif
-                end do
-              end if
-              call aperture_initroffpos( j, tmpflts(7), tmpflts(8), tmpflts(9) )
-              limifound=.true.
-              exit
-            end if
-          end do
-
-          if(.not.lapefound) then
-            write(lout,*) 'WARNING: Unidentified element ', idat
-            write(lout,*) '  in LIMI input block, ignoring...'
-          end if
-        end if ! specific non-NEXT keywords
-      end if ! any non-NEXT keywords
-      goto 951 ! go to next line to be parsed
-
-  952 continue
-      if ( loadunit.ne.3 ) then
-        close(loadunit)
-        goto 951
-      endif
-      goto 1530
-
 !-----------------------------------------------------------------------
 !  ORBIT CORRECTION
 !-----------------------------------------------------------------------

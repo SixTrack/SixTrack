@@ -62,6 +62,8 @@ module aperture
   ! load aperture markers from external file:
   integer, save :: loadunit                        ! fortran unit
   character(len=16), save :: load_file             ! file name
+  ! File unit for aperture losses
+  integer, save :: losses_unit
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
@@ -227,6 +229,8 @@ end subroutine aperture_comnul
 !  Last modified: 2018-05-15
 ! ================================================================================================ !
 subroutine aperture_init
+  
+  use file_units
 
   implicit none
 
@@ -265,16 +269,17 @@ subroutine aperture_init
     setFields(15) = h5_dataField(name="PARTID",       type=h5_typeInt)
 #endif
     call h5_createFormat("aperLostPart", setFields, aper_fmtLostPart)
-    call h5_createDataSet("lostpart", h5_aperID, aper_fmtLostPart, aper_setLostPart)
+    call h5_createDataSet("losses", h5_aperID, aper_fmtLostPart, aper_setLostPart)
   else
 #endif
-    inquire(unit=999, opened=isOpen)
+    call funit_requestUnit("aperture_losses.dat",losses_unit)
+    inquire(unit=losses_unit, opened=isOpen) ! Was 999
     if(isOpen) then
-      write(lout,"(a)") "APER> ERROR Unit 999 is already open."
+      write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
       call prror(-1)
     end if
-    open(unit=999)
-    write(999,"(a)") "# turn block bezid bez slos "// &
+    open(unit=losses_unit,file="aperture_losses.dat")
+    write(losses_unit,"(a)") "# turn block bezid bez slos "// &
 #ifdef FLUKA
       "fluka_uid fluka_gen fluka_weight "// &
 #else
@@ -1110,9 +1115,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 #endif
         ! Print to unit 999 (fort.999)
 #ifdef FLUKA
-        write(999,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
+        write(losses_unit,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
 #else
-        write(999,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
+        write(losses_unit,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
 #endif
 
      &         turn, i, ix, bez(ix), slos,                                     &
@@ -1175,7 +1180,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 #ifdef HDF5
   if(.not. h5_useForAPER) then
 #endif
-    flush(999)
+    flush(losses_unit)
 #ifdef HDF5
   end if
 #endif
@@ -2506,9 +2511,70 @@ subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk
   return
 end subroutine intersectTR
 
+! ================================================================================================ !
+!  APERTURE LIMITATIONS PARSING
+!  A. Mereghetti, P. Garcia Ortega and D. Sinuela Pastor, for the FLUKA Team
+!  J. Molson, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-06-20
+!  Input parsing split up, updated and moved from DATEN by VKBO.
+!  Original LIMI block extended to deal with RectEllipse, Octagon and RaceTrack aperture types,
+!    and with offset/tilting of profile.
+!  Possibility to read the apertures from external file with LOAD keyword
+! ================================================================================================ !
+subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
+
+  use parpro, only : mInputLn
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=mInputLn) unitLine
+  integer                 iErro, lineNo
+
+  save :: lineNo
+
+  if(loadunit == 3) then
+    ! If we're in fort.3, let daten handle line reading and error reporting.
+    call aper_parseInputLine(inLine, iLine, iErr)
+    lineNo = 0
+    return
+  end if
+
+  ! Otherwise, iterate through LOAD file
+10 continue
+  read(loadunit,"(a)",end=90,iostat=iErro) unitLine
+  if(iErro > 0) then
+    write(lout,"(a,i0)") "LIMI> ERROR Could not read from unit ",loadunit
+    call prror(-1)
+  end if
+  lineNo = lineNo + 1
+
+  if(len_trim(unitLine) == 0) goto 10 ! Empty line, ignore
+  if(unitLine(1:1) == "/")    goto 10 ! Comment line, ignore
+  if(unitLine(1:1) == "!")    goto 10 ! Comment line, ignore
+
+  call aper_parseInputLine(inLine, iLine, iErr)
+  if(iErr) then
+    write(lout,"(a)")      "LIMI> ERROR in external LIMI file."
+    write(lout,"(a,i0,a)") "LIMI> Line ",lineNo,": '"//trim(unitLine)//"'"
+    return
+  end if
+  goto 10
+
+90 continue
+  write(lout,"(a,i0,a)") "LIMI> Read ",lineNo," lines from external file."
+  close(loadunit)
+  return
+
+end subroutine aper_inputUnitWrapper
+
 subroutine aper_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
+  use file_units
 
   implicit none
 
@@ -2517,9 +2583,9 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) tmplen
-  integer          nSplit
-  logical          spErr, lExist
+  real(kind=fPrec) tmplen,tmpflts(3)
+  integer          nSplit, i
+  logical          spErr, lExist, apeFound
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -2541,6 +2607,10 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
 
     call chr_cast(lnSplit(2),loadunit,iErr)
     load_file = trim(lnSplit(3))
+    
+    if(loadunit < 0) then
+      call funit_requestUnit("aperLoadFile",loadunit)
+    end if
 
     inquire(file=load_file, exist=lExist)
     if(.not.lexist) then
@@ -2563,6 +2633,10 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2),aperunit,iErr)
     aper_filename = trim(lnSplit(3))
 
+    if(aperunit < 0) then
+      call funit_requestUnit("aperPrintFile",aperunit)
+    end if
+    
     ldmpaper = .true.
     if(nSplit > 3) then
       if(lnSPlit(4) == "MEM") then
@@ -2654,13 +2728,162 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
 
     if(nSplit > 6) call chr_cast(lnSplit(6),nAzimuts(mxsec),iErr)
 
+  case default
+
+    apeFound = .false.
+    do i=1,il
+      if(bez(i) == lnSplit(1)) then
+        call aper_parseElement(inLine, i, iErr)
+        apeFound = .true.
+        if(kape(i) == -1) then
+          if(nSplit > 8)  call chr_cast(lnSplit(9), tmpflts(1),iErr)
+          if(nSplit > 9)  call chr_cast(lnSplit(10),tmpflts(2),iErr)
+          if(nSplit > 10) call chr_cast(lnSplit(11),tmpflts(3),iErr)
+        else
+          if(nSplit > 6)  call chr_cast(lnSplit(7), tmpflts(1),iErr)
+          if(nSplit > 7)  call chr_cast(lnSplit(8), tmpflts(2),iErr)
+          if(nSplit > 8)  call chr_cast(lnSplit(9), tmpflts(3),iErr)
+        end if
+        call aperture_initroffpos(i,tmpflts(1),tmpflts(2),tmpflts(3))
+        limifound = .true.
+      end if
+    end do
+    if(.not.apeFound) then
+      write(lout,"(a)") "LIMI> WARNING Unidentified element '"//lnSplit(1)//"', ignoring..."
+    end if
+
   end select
 
 end subroutine aper_parseInputLine
 
+subroutine aper_parseElement(inLine, iElem, iErr)
+
+  use string_tools
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iElem
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  real(kind=fPrec) tmpflts(6)
+  integer          nSplit, i
+  logical          spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "LIMI> ERROR Failed to parse element."
+    iErr = .true.
+    return
+  end if
+  
+  if(nSplit < 2) then
+    write(lout,"(a)") "LIMI> ERROR Invalid entry."
+    iErr = .true.
+    return
+  end if
+  
+  select case(lnSplit(2))
+
+  case(apeName(1)) ! Circle
+    if(nSplit < 3) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(1)//&
+        "' aperture marker. Expected 3, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)
+    call aperture_initCR(iElem,tmpflts(1))
+
+  case(apeName(2)) ! Rectangle
+    if(nSplit < 4) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(2)//&
+        "' aperture marker. Expected 4, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)
+    call chr_cast(lnSplit(4),tmpflts(2),iErr)
+    call aperture_initRE(iElem,tmpflts(1),tmpflts(2))
+
+  case(apeName(3)) ! Ellipse
+    if(nSplit < 4) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(3)//&
+        "' aperture marker. Expected 4, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)
+    call chr_cast(lnSplit(4),tmpflts(2),iErr)
+    call aperture_initEL(iElem,tmpflts(1),tmpflts(2))
+
+  case(apeName(4)) ! Rectellipse
+    if(nSplit < 6) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(4)//&
+        "' aperture marker. Expected 6, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)
+    call chr_cast(lnSplit(4),tmpflts(2),iErr)
+    call chr_cast(lnSplit(5),tmpflts(3),iErr)
+    call chr_cast(lnSplit(6),tmpflts(4),iErr)
+    call aperture_initRL(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
+
+  case(apeName(5)) ! Octagon
+    if(nSplit < 6) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(5)//&
+        "' aperture marker. Expected 6, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)
+    call chr_cast(lnSplit(4),tmpflts(2),iErr)
+    call chr_cast(lnSplit(5),tmpflts(3),iErr)
+    call chr_cast(lnSplit(6),tmpflts(4),iErr)
+    call aperture_initOC(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
+
+  case(apeName(6)) ! Racetrack
+    if(nSplit < 5) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(6)//&
+        "' aperture marker. Expected 5, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)
+    call chr_cast(lnSplit(4),tmpflts(2),iErr)
+    call chr_cast(lnSplit(5),tmpflts(3),iErr)
+    call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3))
+
+  case(apeName(-1)) ! Transition
+    if(nSplit < 8) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(-1)//&
+        "' aperture marker. Expected 8, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)
+    call chr_cast(lnSplit(4),tmpflts(2),iErr)
+    call chr_cast(lnSplit(5),tmpflts(3),iErr)
+    call chr_cast(lnSplit(6),tmpflts(4),iErr)
+    call chr_cast(lnSplit(7),tmpflts(5),iErr)
+    call chr_cast(lnSplit(8),tmpflts(6),iErr)
+    call aperture_initTR(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4),tmpflts(5),tmpflts(6))
+
+  case default
+    write(lout,"(a)") "LIMI> ERROR Aperture profile not identified for element '"//lnSplit(1)//"' value '"//lnSplit(2)//"'"
+    iErr = .true.
+    return
+    
+  end select
+
+end subroutine aper_parseElement
+
 subroutine aper_inputParsingDone
 
   use parpro
+  use mod_settings
 
   implicit none
 
@@ -2671,10 +2894,12 @@ subroutine aper_inputParsingDone
     write(lout,"(a)") ""
     write(lout,"(a)") "    DATA BLOCK APERTURE LIMITATIONS"
     write(lout,"(a)") ""
-    call dump_aperture_header(lout)
-    do ii=1,il
-      if ( kape(ii).ne.0 ) call dump_aperture_marker( lout, ii, 1 )
-    enddo
+    if(st_quiet < 2) then ! Only print if quiet flag is less than 2 (default is 0).
+      call dump_aperture_header(lout)
+      do ii=1,il
+        if ( kape(ii).ne.0 ) call dump_aperture_marker( lout, ii, 1 )
+      enddo
+    end if
     ! A.Mereghetti and P.Garcia Ortega, 12-06-2014
     ! echo precision for back-tracking
     if (lbacktracking) then
@@ -2689,12 +2914,15 @@ subroutine aper_inputParsingDone
     lbacktracking = .false.
   endif
   if (mxsec > 0) then
-     do i=1,mxsec
-        if (sLocDel(i) == zero) sLocDel(i)=bktpre
-     enddo
+    do i=1,mxsec
+      if (sLocDel(i) == zero) sLocDel(i)=bktpre
+    enddo
   endif
 
 end subroutine aper_inputParsingDone
+! ================================================================================================ !
+!  END APERTURE LIMITATIONS PARSING
+! ================================================================================================ !
 
 end module aperture
 
