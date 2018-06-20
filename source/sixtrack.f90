@@ -31,8 +31,9 @@
 ! ================================================================================================ !
 !  DATEN - INPUT PARSING
 ! ~~~~~~~~~~~~~~~~~~~~~~~
-!  Last modified: 2018-06-13
-!  Reads input data from file fort.2, fort.3, fort.8, fort.16, fort.30 and fort.35
+!  Rewritten by V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-06-21
+!  Reads input data from files fort.2 and fort.3
 ! ================================================================================================ !
 subroutine daten
 
@@ -86,16 +87,16 @@ subroutine daten
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
-  real(kind=fPrec) dummy,emitnx,emitny,tilt,xang,xstr,xplane
+  real(kind=fPrec) emitnx,emitny,tilt,xang,xstr,xplane
 
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
 
   character(len=mNameLen) diff,sync,ende
-  character(len=mNameLen) iter,limi,orbi,deco
+  character(len=mNameLen) iter,orbi,deco
   character(len=mNameLen) beze,go,comb,sear
   character(len=mNameLen) cavi,disp,reso
-  character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
+  character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel
   character(len=mNameLen) iele,ilm0,idum,norm
   character(len=mNameLen) kl,kr,orga,post,beam,trom
   character(len=60) ihead
@@ -139,7 +140,6 @@ subroutine daten
   character(len=nchars) tmpch
   integer tmpi1,tmpi2,tmpi3
   real(kind=fPrec) tmpflt
-  real(kind=fPrec) tmpflts(9)
 
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
@@ -147,7 +147,7 @@ subroutine daten
   dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
   data ende,next,iter,line,diff /'ENDE','NEXT','ITER','LINE','DIFF'/
-  data limi,orbi,go,sear,reso,post,deco /'LIMI','ORBI','GO','SEAR','RESO','POST','DECO'/
+  data orbi,go,sear,reso,post,deco /'ORBI','GO','SEAR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
   character(len=4) fluk
@@ -156,9 +156,6 @@ subroutine daten
 #ifdef CRLIBM
   real(kind=fPrec) round_near
 #endif
-
-  logical lapefound
-  logical lexist
 
   ! New variables for sixtrack_input module
   character(len=4) currBlock
@@ -173,8 +170,6 @@ subroutine daten
   save
 
 ! ================================================================================================ !
-
-      if(mmul.lt.10.or.mmul.gt.20) call prror(85)
 
       do i=1,40
         ilm0(i)=' '
@@ -3443,14 +3438,14 @@ subroutine daten
          call parseChebyFile(tmpi1)
       end do
 
-      call dealloc(sixin_bez0,mNameLen,'sixin_bez0')
+      call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
   return
 
 9999 continue
-  ! Error handling for sixtrack_input module
+  ! Error handling for fort.2 and fort.3
   if(nUnit == 2) then
     write(lout,"(a)")      "INPUT> ERROR in fort.2"
     write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(ch)//"'"
@@ -3462,10 +3457,7 @@ subroutine daten
   return
 
 10000 format(11(a4,1x))
-! 10010 format(a4,8x,a60)
 10020 format(a)
-! 10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-!      &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
      &'OO  PREPROCESSING  OO', /t10,2('O'),17x,2('O')/t10,21('O'))
 10050 format(//131('-')//t43,'*** RING PARAMETERS ***'/)
@@ -3477,7 +3469,6 @@ subroutine daten
      &'   ')
 10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
      &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-!10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
 10142 format(t30,'SYNCHROTRON OSCILLATIONS'//                           &
@@ -3517,10 +3508,6 @@ subroutine daten
      &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
      &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
      &'PRECISION FOR C.-O. RMS',t47,d10.3/)
-! 10180 format(t5/t10,a60)
-! 10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
-! 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
-!      &'EXTRA GEOMETRY STRENGTH FILE--')
 10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
 10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
      &'BLOCKS PER PERIOD',t49,i5//)
@@ -3528,23 +3515,12 @@ subroutine daten
 10300 format(//131('-')//t10,'DATA BLOCK COMBINATION OF ELEMENTS',      &
      &'  THE FOLLOWING ELEMENTS ARE RELATED IN STRENGTHS--->'/ t10,     &
      &'ELEMENT RELATED TO ELEMENT BY THE RATIO'/)
-! 10320 format(//131('-')//t10,'DATA BLOCK APERTURE LIMITATIONS'/ /t10)
 10340 format(t10,'NO CAVITIES SPECIFIED'/)
 10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
      &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
      &'DOM NUMBERS      |   SAME MULTIPOLECOEFFICIENTS  |'/131('-'))
-! 10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
-!      &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
 10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
      &' AND THEREFORE IGNORED')
-! 10410 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
-!      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
-!      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
-!      &'  -   DEVIATION=',f15.7)
-!10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-!     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
-! 10430 format(/5x,'No cut on random distribution'//)
-! 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
@@ -3555,7 +3531,6 @@ subroutine daten
      &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
      &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
      &'       MEAN            RMS-VALUE'/)
-!10240 format(t10,a16,3(2x,d16.10),2x,i10)
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
