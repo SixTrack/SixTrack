@@ -93,7 +93,7 @@ subroutine daten
 
   character(len=mNameLen) diff,sync,ende
   character(len=mNameLen) iter,limi,orbi,deco
-  character(len=mNameLen) beze,go,comb,sear,subr
+  character(len=mNameLen) beze,go,comb,sear
   character(len=mNameLen) cavi,disp,reso
   character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
   character(len=mNameLen) iele,ilm0,idum,norm
@@ -147,7 +147,7 @@ subroutine daten
   dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
   data ende,next,iter,line,diff /'ENDE','NEXT','ITER','LINE','DIFF'/
-  data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
+  data limi,orbi,go,sear,reso,post,deco /'LIMI','ORBI','GO','SEAR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
   character(len=4) fluk
@@ -250,7 +250,6 @@ subroutine daten
       imtr0=0
       nlin=0
       kanf=1
-      isub=0
       irmod2=0
       iorg=0
       ise=0
@@ -311,6 +310,9 @@ subroutine daten
   mmac        = 1
   mcut        = 0
   mout2       = 0
+  
+  ! SUB-RESONANCE CALCULATION
+  isub        = 0
 
   ! HIONS MODULE
   zz0         = 1
@@ -454,8 +456,6 @@ subroutine daten
     goto 980
   case("COMB")
     goto 1030
-  case("SUBR")
-    goto 1110
   case("RESO")
     goto 1120
   case("SEAR")
@@ -676,6 +676,16 @@ subroutine daten
       call fluc_readInputs
     else
       call fluc_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
+  case("SUBR") ! Sub-Resonance Calculation
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      isub = 1
+    else
+      call sixin_parseInputLineSUBR(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -1614,65 +1624,6 @@ subroutine daten
  1090 continue
       goto 1050
  1100 write(lout,10290) ncom
-      goto 110
-!-----------------------------------------------------------------------
-!  SUBRESONANCE CALCULATION
-!-----------------------------------------------------------------------
- 1110 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1110
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & nta,nte,qxt,qzt,tam1,tam2,ipt,totl
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) nta,nte,qxt,qzt,tam1,tam2,ipt,totl
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) nta
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) nte
-        qxt=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qzt=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam1=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam2=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(7),*) ipt
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        totl=fround(errno,fields,8)
-        nf=nf-1
-      endif
-#endif
-#endif
-      if(nta.lt.2) call prror(37)
-      if(nte.lt.nta.or.nte.gt.9) call prror(37)
-      isub=1
       goto 110
 
 !-----------------------------------------------------------------------

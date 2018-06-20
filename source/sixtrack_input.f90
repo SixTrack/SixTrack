@@ -1739,4 +1739,66 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineMULT
 
+! ================================================================================================ !
+!  Parse Sub-Resonance Calculation Line
+!  Rewritten from code from DATEN
+! ================================================================================================ !
+subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer          nSplit
+  logical          spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "SUBR> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine == 1) then
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),nta, iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nte, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),qxt, iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),qzt, iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),tam1,iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),tam2,iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7),ipt, iErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8),totl,iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("nta", nta, "SUBR",iLine)
+      call sixin_echoVal("nte", nte, "SUBR",iLine)
+      call sixin_echoVal("qxt", qxt, "SUBR",iLine)
+      call sixin_echoVal("qzt", qzt, "SUBR",iLine)
+      call sixin_echoVal("tam1",tam1,"SUBR",iLine)
+      call sixin_echoVal("tam2",tam2,"SUBR",iLine)
+      call sixin_echoVal("ipt", ipt, "SUBR",iLine)
+      call sixin_echoVal("totl",totl,"SUBR",iLine)
+    end if
+    if(iErr) return
+
+    if(nta < 2 .or. nte < nta .or. nte > 9) then
+      write(lout,"(a)") "SUBR> ERROR Chosen orderas of resonances can not be calculated."
+      iErr = .true.
+      return
+    end if
+
+  else
+
+    write(lout,"(a,i0)") "SUBR> ERROR Unexpected line number ",iLine
+    iErr = .true.
+    return
+
+  end if
+
+end subroutine sixin_parseInputLineSUBR
+
 end module sixtrack_input
