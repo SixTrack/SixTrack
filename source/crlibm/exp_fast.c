@@ -273,7 +273,7 @@ double exp_ru(double x){
   int           exp_R11;
 
   /*
-   * 1) Premiére réduction d'argument
+   * 1) Première réduction d'argument
    */
 
   db.d = x;
@@ -362,7 +362,7 @@ double exp_rd(double x){
   int    exp_R11;
 
   /*
-   * 1) Premiére réduction d'argument
+   * 1) Première réduction d'argument
    */
   db.d = x;
   hx   = db.i[HI_ENDIAN];
