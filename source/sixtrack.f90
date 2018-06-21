@@ -31,8 +31,9 @@
 ! ================================================================================================ !
 !  DATEN - INPUT PARSING
 ! ~~~~~~~~~~~~~~~~~~~~~~~
-!  Last modified: 2018-06-13
-!  Reads input data from file fort.2, fort.3, fort.8, fort.16, fort.30 and fort.35
+!  Rewritten by V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-06-21
+!  Reads input data from files fort.2 and fort.3
 ! ================================================================================================ !
 subroutine daten
 
@@ -86,16 +87,16 @@ subroutine daten
     izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
-  real(kind=fPrec) dummy,emitnx,emitny,tilt,xang,xstr,xplane
+  real(kind=fPrec) emitnx,emitny,tilt,xang,xstr,xplane
 
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
 
   character(len=mNameLen) diff,sync,ende
-  character(len=mNameLen) iter,limi,orbi,deco
-  character(len=mNameLen) beze,go,comb,sear,subr
+  character(len=mNameLen) iter,orbi,deco
+  character(len=mNameLen) beze,go,comb,sear
   character(len=mNameLen) cavi,disp,reso
-  character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel,irel
+  character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel
   character(len=mNameLen) iele,ilm0,idum,norm
   character(len=mNameLen) kl,kr,orga,post,beam,trom
   character(len=60) ihead
@@ -139,7 +140,6 @@ subroutine daten
   character(len=nchars) tmpch
   integer tmpi1,tmpi2,tmpi3
   real(kind=fPrec) tmpflt
-  real(kind=fPrec) tmpflts(9)
 
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
@@ -147,7 +147,7 @@ subroutine daten
   dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
   data ende,next,iter,line,diff /'ENDE','NEXT','ITER','LINE','DIFF'/
-  data limi,orbi,go,sear,subr,reso,post,deco /'LIMI','ORBI','GO','SEAR','SUBR','RESO','POST','DECO'/
+  data orbi,go,sear,reso,post,deco /'ORBI','GO','SEAR','RESO','POST','DECO'/
   data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
   data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
   character(len=4) fluk
@@ -156,9 +156,6 @@ subroutine daten
 #ifdef CRLIBM
   real(kind=fPrec) round_near
 #endif
-
-  logical lapefound
-  logical lexist
 
   ! New variables for sixtrack_input module
   character(len=4) currBlock
@@ -174,14 +171,8 @@ subroutine daten
 
 ! ================================================================================================ !
 
-      if(mmul.lt.10.or.mmul.gt.20) call prror(85)
-
       do i=1,40
         ilm0(i)=' '
-      end do
-
-      do i=1,10
-        coel(i)=' '
       end do
 
       do i=1,ncom
@@ -254,7 +245,6 @@ subroutine daten
       imtr0=0
       nlin=0
       kanf=1
-      isub=0
       irmod2=0
       iorg=0
       ise=0
@@ -315,6 +305,9 @@ subroutine daten
   mmac        = 1
   mcut        = 0
   mout2       = 0
+  
+  ! SUB-RESONANCE CALCULATION
+  isub        = 0
 
   ! HIONS MODULE
   zz0         = 1
@@ -452,14 +445,10 @@ subroutine daten
   select case(idat)
   case("ITER")
     goto 940
-  case("LIMI")
-    goto 950
   case("ORBI")
     goto 980
   case("COMB")
     goto 1030
-  case("SUBR")
-    goto 1110
   case("RESO")
     goto 1120
   case("SEAR")
@@ -472,8 +461,6 @@ subroutine daten
     goto 1320
   case("NORM")
     goto 1400
-  case("CORR")
-    goto 1410
   case("BEAM")
     goto 1600
   case("TROM")
@@ -684,6 +671,16 @@ subroutine daten
       call fluc_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
+    
+  case("SUBR") ! Sub-Resonance Calculation
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      isub = 1
+    else
+      call sixin_parseInputLineSUBR(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
@@ -695,11 +692,26 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("CORR") ! Tuneshift Corrections
+    write(lout,"(a)") "INPUT> ERROR CORR module is deprecated."
+    goto 9999
+
   case("RIPP") ! Power Supply Ripple Block
     write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
     write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
     goto 9999
 
+  case("LIMI") ! Aperture Limitations
+    if(openBlock) then
+      lbacktracking = .true.
+      loadunit      = 3
+    elseif(closeBlock) then
+      call aper_inputParsingDone
+    else
+      call aper_inputUnitWrapper(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+    
   case("COLL") ! Collimation Block
     if(openBlock) then
 #ifndef COLLIMAT
@@ -1056,390 +1068,6 @@ subroutine daten
       iclr=0
       goto 110
 !-----------------------------------------------------------------------
-!  APERTURE LIMITATIONS
-!  A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!  JMolson (CERN, BE-ABP-HSS)
-!  last modified: 02-03-2018
-!  original LIMI block extended to deal with RectEllipse, Octagon and
-!     RaceTrack aperture types, and with offset/tilting of profile
-!  Possibility to read the apertures from external file with LOAD keyword
-!-----------------------------------------------------------------------
-  950 continue
-!     LIMI block naturally activates backtracking, unless explicitly
-!       requested by user
-      lbacktracking=.true.
-      loadunit=3 ! stream to fort.3
-  951 continue
-!     loadunit is initialised to 3 in aperture_comnul
-      read(loadunit,10020,end=952,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 951 ! skip comment lines
-
-      ! We don't support FIO, since it's not supported by any compilers...
-#ifdef FIO
-      write(lout,*)'ERROR in LIMI block: fortran IO format currently not supported!'
-      call prror(-1)
-#endif
-
-!     P.G.Ortega and A.Mereghetti, 02-03-2018
-!     'next': echo aperture profiles
-      if(ch(:4).eq.next) then
-        if ( limifound ) then
-          write(lout,10320)
-          call dump_aperture_header(lout)
-          do ii=1,il
-            if ( kape(ii).ne.0 ) call dump_aperture_marker( lout, ii, 1 )
-          enddo
-!         A.Mereghetti and P.Garcia Ortega, 12-06-2014
-!         echo precision for back-tracking
-          if (lbacktracking) then
-            write(lout,*)' --> back-tracking at aperture LIMIs is on, with precision [m]:',bktpre
-          else
-            write(lout,*)' --> no back-tracking, only checks at aperture LIMIs'
-          endif
-        else
-          write(lout,'(t10,"NO SINGLE ELEMENT IS ASSIGNED AN APETURE MODEL!")')
-          lbacktracking=.false.
-        endif
-        if (mxsec.gt.0) then
-           do i=1,mxsec
-              if (sLocDel(i).eq.zero) sLocDel(i)=bktpre
-           enddo
-        endif
-        goto 110
-
-      else
-
-        call getfields_split( ch, getfields_fields, getfields_lfields,getfields_nfields, getfields_lerr )
-        if ( getfields_lerr ) then
-          write(lout,*) 'ERROR in LIMI block: getfields_lerr=', getfields_lerr, ' at line: ',ch
-          call prror(-1)
-        endif
-
-        if(ch(:4).eq.'LOAD') then
-          ! P.G.Ortega and A.Mereghetti, 02-03-2018
-          ! reading apertures from external file
-          if(getfields_nfields.lt.3) then
-            write(lout,*) 'ERROR in LIMI block: wrong number of input parameters for keyword LOAD: ninput = ', &
-                          getfields_nfields, ' != 3 (min)'
-            call prror(-1)
-          endif
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) loadunit
-          read (getfields_fields(3)(1:getfields_lfields(3)),*) load_file
-          inquire( file=load_file, exist=lexist )
-          if (.not.lexist ) then
-             write(lout,*) "APERTURE LOAD FILE ",load_file," NOT FOUND IN THE RUNNING FOLDER"
-             call prror(-1)
-          endif
-          open(loadunit,file=load_file,form='formatted')
-          write(lout,*) 'APERTURES READ FROM FILE: ',load_file,' - UNIT: ',loadunit
-
-        elseif(ch(:4).eq.'PRIN') then
-          ! P.G.Ortega and A.Mereghetti, 02-03-2018
-          ! flag for dumping the aperture model
-          if(getfields_nfields.lt.3) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &         'parameters for keyword PRIN: ninput = ', getfields_nfields, ' != 3 (min)'
-            call prror(-1)
-          endif
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) aperunit
-          read (getfields_fields(3)(1:getfields_lfields(3)),*) aper_filename
-          ldmpaper  = .true.
-          if(getfields_nfields.ge.4) then
-             if (getfields_fields(4)(1:getfields_lfields(4)).eq.'MEM') then
-                ldmpaperMem=.true.
-             end if
-          endif
-
-        elseif(ch(:5).eq.'DEBUG') then
-          aperture_debug = .true.
-
-        elseif(ch(:4).eq.'SAVE') then
-          ! P.G.Ortega and A.Mereghetti, 02-03-2018
-          ! flag for saving particles at aperture check
-          apflag  = .true.
-
-        elseif(ch(:10).eq.'BACKTRKOFF') then
-          ! A.Mereghetti, 07-03-2018
-          ! switch off back tracking
-          lbacktracking=.false.
-
-        elseif(ch(:4).eq.'PREC') then
-          ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
-          ! set precision for back-tracking
-          if(getfields_nfields.lt.2) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &         'parameters for keyword PREC: ninput = ', getfields_nfields, ' != 2 (min)'
-            call prror(-1)
-          endif
-#ifndef CRLIBM
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) tmplen
-#endif
-#ifdef CRLIBM
-          tmplen=round_near (errno,getfields_lfields(2)+1, getfields_fields(2))
-          if (errno.ne.0) call rounderr(errno,getfields_fields,2,tmplen)
-#endif
-          if ( tmplen.le.zero ) then
-            write(lout,*) 'WARNING: Wrong precision value: ', tmplen
-            write(lout,*) '  in LIMI input block, ignoring...'
-            write(lout,*) '  Using default [m]: ', bktpre
-          else
-            bktpre = tmplen
-          endif
-
-        elseif(ch(:4).eq.'XSEC') then
-          ! A.Mereghetti, 22-03-2018
-          ! ask for xsec at specific locations
-          ! example input line:        XSEC 155 myCrossSec.dat 12355.78 12356.78 0.1 180
-          if(getfields_nfields.lt.4) then
-            write(lout,*)'ERROR in LIMI block: wrong number of input ',   &
-     &         'parameters for keyword XSEC: ninput = ', getfields_nfields, ' != 4 (min)'
-            call prror(-1)
-          endif
-          mxsec=mxsec+1
-          if (mxsec.gt.nxsec) then
-            write(lout,*)'ERROR in LIMI block: too many xsecs! asked:',mxsec,' - max:',nxsec
-            call prror(-1)
-          end if
-          read (getfields_fields(2)(1:getfields_lfields(2)),*) xsecunit(mxsec)
-          read (getfields_fields(3)(1:getfields_lfields(3)),*) xsec_filename(mxsec)
-#ifndef CRLIBM
-          read (getfields_fields(4)(1:getfields_lfields(4)),*) sLocMin(mxsec)
-#endif
-#ifdef CRLIBM
-          sLocMin(mxsec)=round_near (errno,getfields_lfields(4)+1, getfields_fields(4))
-          if (errno.ne.0) call rounderr(errno,getfields_fields,4,sLocMin(mxsec))
-#endif
-          if (sLocMin(mxsec).lt.zero) then
-             write(lout,*)'ERROR in LIMI block: negative min s-value for xsecs!'
-             call prror(-1)
-          endif
-
-          if(getfields_nfields.ge.5) then
-#ifndef CRLIBM
-             read (getfields_fields(5)(1:getfields_lfields(5)),*) sLocMax(mxsec)
-#endif
-#ifdef CRLIBM
-             sLocMax(mxsec)=round_near (errno,getfields_lfields(5)+1, getfields_fields(5))
-             if (errno.ne.0) call rounderr(errno,getfields_fields,5,sLocMax(mxsec))
-#endif
-             if (sLocMax(mxsec).lt.zero) then
-                write(lout,*)'ERROR in LIMI block: negative max s-value for xsecs!'
-                call prror(-1)
-             endif
-          endif
-          if(getfields_nfields.ge.6) then
-#ifndef CRLIBM
-             read (getfields_fields(6)(1:getfields_lfields(6)),*) sLocDel(mxsec)
-#endif
-#ifdef CRLIBM
-             sLocDel(mxsec)=round_near (errno,getfields_lfields(6)+1, getfields_fields(6))
-             if (errno.ne.0) call rounderr(errno,getfields_fields,6,sLocDel(mxsec))
-#endif
-             if (sLocDel(mxsec).lt.zero) sLocDel(mxsec)=-sLocDel(mxsec) ! increasing s-val
-          endif
-          if (sLocMax(mxsec).eq.zero) sLocMax(mxsec)=sLocMin(mxsec)
-          if (sLocMax(mxsec).lt.sLocMin(mxsec)) then
-             ! swap sMin and sMax
-             tmpflts(1)=sLocMax(mxsec)
-             sLocMax(mxsec)=sLocMin(mxsec)
-             sLocMin(mxsec)=tmpflts(1)
-          endif
-          if(getfields_nfields.ge.7) read (getfields_fields(7)(1:getfields_lfields(7)),*) nAzimuts(mxsec)
-
-        else
-
-          read (getfields_fields(1)(1:getfields_lfields(1)),*) idat
-          lapefound=.false.
-          do j=1,il
-            if(idat.eq.bez(j)) then
-              lapefound=.true.
-              read (getfields_fields(2)(1:getfields_lfields(2)),*) irel
-              select case(irel)
-
-              case (apeName(1)) !Circle
-                if(getfields_nfields.lt.3) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(1)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 3 (min)'
-                  call prror(-1)
-                endif
-                do i=1,1
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initCR( j, tmpflts(1) )
-
-              case (apeName(2)) !Rectangle
-                if(getfields_nfields.lt.4) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(2)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 4 (min)'
-                  call prror(-1)
-                endif
-                do i=1,2
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initRE( j, tmpflts(1), tmpflts(2) )
-
-              case (apeName(3)) !Ellipse
-                if(getfields_nfields.lt.4) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(3)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 4 (min)'
-                  call prror(-1)
-                endif
-                do i=1,2
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initEL( j, tmpflts(1), tmpflts(2) )
-
-              case (apeName(4)) !Rectellipse
-                if(getfields_nfields.lt.6) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(4)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 6 (min)'
-                  call prror(-1)
-                endif
-                ! parse the float descriptors
-                do i=1,4
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initRL( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
-
-              case (apeName(5)) !Octagon
-                if(getfields_nfields.lt.6) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(5)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 6 (min)'
-                  call prror(-1)
-                endif
-                do i=1,4
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initOC( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4) )
-
-              case (apeName(6)) !Racetrack
-                if(getfields_nfields.lt.5) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(6)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 5 (min)'
-                  call prror(-1)
-                endif
-                do i=1,3
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initRT( j, tmpflts(1), tmpflts(2), tmpflts(3) )
-
-              case (apeName(-1)) !Transition
-                if(getfields_nfields.lt.8) then
-                  write(lout,*)'ERROR in LIMI block: wrong number of input parameters '//   &
-           &        'for declaring a '//apeName(-1)//' aperture marker: ninput = ',          &
-           &        getfields_nfields, ' != 8 (min)'
-                  call prror(-1)
-                endif
-                do i=1,6
-#ifndef CRLIBM
-                  read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                  tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                  if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                enddo
-                call aperture_initTR( j, tmpflts(1), tmpflts(2), tmpflts(3), tmpflts(4), tmpflts(5), tmpflts(6) )
-
-              case default
-                write(lout,*) 'Aperture profile not identified for element ',idat
-                write(lout,*) '  value:', irel
-                call prror(-1)
-              end select
-
-              if(kape(j).eq.-1)then
-                do i=7,9
-                  tmpflts(i)=zero
-                  if(getfields_nfields.ge.i+2) then
-#ifndef CRLIBM
-                    read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i)
-#endif
-#ifdef CRLIBM
-                    tmpflts(i)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                    if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i))
-#endif
-                  endif
-                end do
-              else
-                do i=5,7
-                  tmpflts(i+2)=zero
-                  if(getfields_nfields.ge.i+2) then
-#ifndef CRLIBM
-                    read (getfields_fields(i+2)(1:getfields_lfields(i+2)),*) tmpflts(i+2)
-#endif
-#ifdef CRLIBM
-                    tmpflts(i+2)=round_near (errno,getfields_lfields(i+2)+1, getfields_fields(i+2))
-                    if (errno.ne.0) call rounderr(errno,getfields_fields,i+2,tmpflts(i+2))
-#endif
-                  endif
-                end do
-              end if
-              call aperture_initroffpos( j, tmpflts(7), tmpflts(8), tmpflts(9) )
-              limifound=.true.
-              exit
-            end if
-          end do
-
-          if(.not.lapefound) then
-            write(lout,*) 'WARNING: Unidentified element ', idat
-            write(lout,*) '  in LIMI input block, ignoring...'
-          end if
-        end if ! specific non-NEXT keywords
-      end if ! any non-NEXT keywords
-      goto 951 ! go to next line to be parsed
-
-  952 continue
-      if ( loadunit.ne.3 ) then
-        close(loadunit)
-        goto 951
-      endif
-      goto 1530
-
-!-----------------------------------------------------------------------
 !  ORBIT CORRECTION
 !-----------------------------------------------------------------------
   980 read(3,10020,end=1530,iostat=ierro) ch
@@ -1616,65 +1244,6 @@ subroutine daten
  1090 continue
       goto 1050
  1100 write(lout,10290) ncom
-      goto 110
-!-----------------------------------------------------------------------
-!  SUBRESONANCE CALCULATION
-!-----------------------------------------------------------------------
- 1110 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1110
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & nta,nte,qxt,qzt,tam1,tam2,ipt,totl
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) nta,nte,qxt,qzt,tam1,tam2,ipt,totl
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) nta
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) nte
-        qxt=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qzt=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam1=fround(errno,fields,5)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam2=fround(errno,fields,6)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(7),*) ipt
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        totl=fround(errno,fields,8)
-        nf=nf-1
-      endif
-#endif
-#endif
-      if(nta.lt.2) call prror(37)
-      if(nte.lt.nta.or.nte.gt.9) call prror(37)
-      isub=1
       goto 110
 
 !-----------------------------------------------------------------------
@@ -2215,129 +1784,6 @@ subroutine daten
       endif
       if(idptr.lt.0.or.idptr.gt.6) idptr=0
       endif
-!-----------------------------------------------------------------------
-!  TUNESHIFT CORRECTIONS
-!-----------------------------------------------------------------------
- 1410 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1410
-      if(ch(:4).eq.next) goto 110
-      icorr=1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-      read(ch1,*,round='nearest') nctype,ncor
-#endif
-#ifndef FIO
-      read(ch1,*) nctype,ncor
-#endif
-      if(ncor.gt.mcor) call prror(65)
-      if(ncor.gt.0) then
-      read(3,10020,end=1530,iostat=ierro) ch
-      lineno3=lineno3+1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      call intepr(3,1,ch,ch1)
-! coel are character strings so should be OK
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest') (coel(i),i=1,ncor)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) (coel(i),i=1,ncor)
-#endif
-      do 1430 j1=1,ncor
-        do 1420 j2=1,il
-          if(coel(j1).eq.bez(j2)) then
-            if(el(j2).ne.zero.or.kz(j2).gt.10) call prror(67)
-            ipar(j1)=j2
-            goto 1430
-          endif
- 1420   continue
-        call prror(66)
- 1430 continue
-      else
-      call prror(70)
-      endif
-      if(nctype.eq.0) then
-      read(3,*) namp,nmom,dummy,dummy,dummy
-      lineno3=lineno3+1
-      if(namp+nmom.eq.0) call prror(71)
-      if(namp*nmom.ne.0) call prror(72)
-      if(namp.lt.0.or.namp.gt.2) call prror(73)
-      if(nmom.lt.0.or.nmom.eq.1.or.nmom.gt.3) call prror(74)
-      if(namp.eq.1.or.nmom.eq.2) then
-        nord=6
-      else
-        nord=7
-      endif
-      else
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(3,*, round='nearest') nmom1,nmom2,weig1,weig2,dpmax
-      lineno3=lineno3+1
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(3,*) nmom1,nmom2,weig1,weig2,dpmax
-      lineno3=lineno3+1
-#endif
-#ifdef CRLIBM
-      read(3,*) ch1
-      lineno3=lineno3+1
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) nmom1
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) nmom2
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        weig1=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        weig2=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        dpmax=fround(errno,fields,5)
-        nf=nf-1
-      endif
-#endif
-#endif
-      if(nmom1.lt.2.or.nmom1.gt.3) call prror(75)
-      if(nmom1.gt.nmom2) call prror(76)
-      if(nmom2.lt.2.or.nmom2.gt.3) call prror(77)
-      nord=2*(nmom2+1)
-      endif
-!-----------------------------------------------------------------------
-      idial=1
-      numlr=0
-      napx=1
-      imc=1
-      preda=1.d-38
-      nsix=1
-      nvar=5
-      nvar2=nvar
-      nvar=nvar2+ncor
-!-----------------------------------------------------------------------
-      inorm=1
-      nordf=nord+1
-      nvarf=nvar
-!-----------------------------------------------------------------------
-      goto 1410
 !-----------------------------------------------------------------------
 !  Beam-Beam Element
 !-----------------------------------------------------------------------
@@ -3992,14 +3438,14 @@ subroutine daten
          call parseChebyFile(tmpi1)
       end do
 
-      call dealloc(sixin_bez0,mNameLen,'sixin_bez0')
+      call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
   return
 
 9999 continue
-  ! Error handling for sixtrack_input module
+  ! Error handling for fort.2 and fort.3
   if(nUnit == 2) then
     write(lout,"(a)")      "INPUT> ERROR in fort.2"
     write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(ch)//"'"
@@ -4011,10 +3457,7 @@ subroutine daten
   return
 
 10000 format(11(a4,1x))
-! 10010 format(a4,8x,a60)
 10020 format(a)
-! 10030 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-!      &'OO  SIXTRACK-INPUT  OO', /t10,2('O'),18x,2('O')/t10,22('O'))
 10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
      &'OO  PREPROCESSING  OO', /t10,2('O'),17x,2('O')/t10,21('O'))
 10050 format(//131('-')//t43,'*** RING PARAMETERS ***'/)
@@ -4026,7 +3469,6 @@ subroutine daten
      &'   ')
 10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
      &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-!10110 format(t10,i3,' ---',i3,' --- ',30i3)
 10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
 10130 format(/131('-')/)
 10142 format(t30,'SYNCHROTRON OSCILLATIONS'//                           &
@@ -4066,10 +3508,6 @@ subroutine daten
      &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
      &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
      &'PRECISION FOR C.-O. RMS',t47,d10.3/)
-! 10180 format(t5/t10,a60)
-! 10190 format(t10,'PROGRAM MODE : FREE FORMAT INPUT')
-! 10200 format(t10,'PROGRAM MODE : FREE FORMAT INPUT --READ FROM ',       &
-!      &'EXTRA GEOMETRY STRENGTH FILE--')
 10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
 10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
      &'BLOCKS PER PERIOD',t49,i5//)
@@ -4077,23 +3515,12 @@ subroutine daten
 10300 format(//131('-')//t10,'DATA BLOCK COMBINATION OF ELEMENTS',      &
      &'  THE FOLLOWING ELEMENTS ARE RELATED IN STRENGTHS--->'/ t10,     &
      &'ELEMENT RELATED TO ELEMENT BY THE RATIO'/)
-10320 format(//131('-')//t10,'DATA BLOCK APERTURE LIMITATIONS'/ /t10)
 10340 format(t10,'NO CAVITIES SPECIFIED'/)
 10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
      &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
      &'DOM NUMBERS      |   SAME MULTIPOLECOEFFICIENTS  |'/131('-'))
-! 10370 format(t10,'DESIRED TUNE TO ADJUST IS ZERO'/ t10,                 &
-!      &'DATA BLOCK TUNE ADJUSTMENT  IGNORED')
 10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
      &' AND THEREFORE IGNORED')
-! 10410 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
-!      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
-!      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
-!      &'  -   DEVIATION=',f15.7)
-!10420 format(t10,22('O')/t10,2('O'),18x,2('O')/t10,                     &
-!     &'OO   NORMAL FORMS   OO', /t10,2('O'),18x,2('O')/t10,22('O'))
-! 10430 format(/5x,'No cut on random distribution'//)
-! 10440 format(/5x,'Random distribution has been cut to: ',i4,' sigma.'//)
 10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
 10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
      &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
@@ -4104,7 +3531,6 @@ subroutine daten
      &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
      &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
      &'       MEAN            RMS-VALUE'/)
-!10240 format(t10,a16,3(2x,d16.10),2x,i10)
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
@@ -6140,15 +5566,15 @@ subroutine comnul
       imod1=0
       imod2=0
 !-----------------------------------------------------------------------
-      icorr=0
-      nctype=0
-      namp=0
-      nmom=0
-      nmom1=0
-      nmom2=0
-      weig1=zero
-      weig2=zero
-      dpmax=zero
+      ! icorr=0
+      ! nctype=0
+      ! namp=0
+      ! nmom=0
+      ! nmom1=0
+      ! nmom2=0
+      ! weig1=zero
+      ! weig2=zero
+      ! dpmax=zero
 !-----------------------------------------------------------------------
       pi=zero
       pi2=zero
@@ -6249,7 +5675,6 @@ subroutine comnul
 
       do 60 i=1,10
         dtr(i)=zero
-        coel(i)=' '
    60 continue
 
       do 70 i=1,12

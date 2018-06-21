@@ -85,25 +85,26 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblz_new
 
-  call alloc(ldump,                  nele_new, .false.,    "ldump",      -1)
-  call alloc(ndumpt,                 nele_new, 0,          "ndumpt",     -1)
-  call alloc(dumpfirst,              nele_new, 0,          "dumpfirst",  -1)
-  call alloc(dumplast,               nele_new, 0,          "dumplast",   -1)
-  call alloc(dumpunit,               nele_new, 0,          "dumpunit",   -1)
-  call alloc(dumpfmt,                nele_new, 0,          "dumpfmt",    -1)
+  call alloc(ldump,               nele_new, .false.,    "ldump",      -1)
+  call alloc(ndumpt,              nele_new, 0,          "ndumpt",     -1)
+  call alloc(dumpfirst,           nele_new, 0,          "dumpfirst",  -1)
+  call alloc(dumplast,            nele_new, 0,          "dumplast",   -1)
+  call alloc(dumpunit,            nele_new, 0,          "dumpunit",   -1)
+  call alloc(dumpfmt,             nele_new, 0,          "dumpfmt",    -1)
   call alloc(dump_fname, mStrLen, nele_new, str_dZeros, "dump_fname", -1)
   
-  call alloc(dumptas,                nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
-  call alloc(dumptasinv,             nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
-  call alloc(dumpclo,                nblz_new, 6,    zero, "dumpclo",    -1,1)
+  call alloc(dumptas,             nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
+  call alloc(dumptasinv,          nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
+  call alloc(dumpclo,             nblz_new, 6,    zero, "dumpclo",    -1,1)
 
 #ifdef CR
-  call alloc(dumpfilepos,nele_new,-1,'dumpfilepos',-1)
-  call alloc(dumpfilepos_cr,nele_new,-1,'dumpfilepos_cr',-1)
+  call alloc(dumpfilepos,         nele_new,-1,          "dumpfilepos",   -1)
+  call alloc(dumpfilepos_cr,      nele_new,-1,          "dumpfilepos_cr",-1)
 #endif
 
 #ifdef HDF5
-  call alloc(dump_hdf5DataSet,nele_new,0,"dump_hdf5Format",-1)
+  call alloc(dump_hdf5DataSet,    nele_new,0,           "dump_hdf5DataSet",-1)
+  call alloc(dump_hdf5Format,     9,       0,           "dump_hdf5Format")
 #endif
 
 end subroutine dump_expand_arrays

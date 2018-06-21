@@ -206,6 +206,7 @@ end interface
 
   !----------------------------------------------------------------------------------------------- !
   ! Features
+  featList = ""
 #ifdef TILT
   featList = featList//" TILT"
 #endif
@@ -222,6 +223,9 @@ end interface
   featList = featList//" CRLIBM"
   call disable_xp()
 #endif
+#ifdef FIO
+  featList = featList//" FIO"
+#endif
 #ifdef CR
   featList = featList//" CR"
   stxt = ""
@@ -234,9 +238,12 @@ end interface
   call h5_initHDF5()
 #endif
 #ifdef BOINC
-  featList = featList//" BOINC LIBARCHIVE"
+  featList = featList//" BOINC"
   call boinc_init()
 ! call boinc_init_graphics()
+#endif
+#ifdef LIBARCHIVE
+  featList = featList//" LIBARCHIVE"
 #endif
 
   call units_initUnits
@@ -274,7 +281,7 @@ end interface
   read(93,"(a1024)",end=607) arecord
   goto 606
 607 continue
-  backspace (93,iostat=ierro)
+  backspace(93,iostat=ierro)
 #ifdef BOINC
   ! and if BOINC issue an informatory message
   if(start) then
@@ -1438,7 +1445,6 @@ end interface
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &
         nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
         ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
         clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
         dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
@@ -1502,7 +1508,6 @@ end interface
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &
         nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
         ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
         clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
         dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &

@@ -329,7 +329,7 @@ if(COLLIMAT)
 endif(COLLIMAT)
 
 if(HDF5)
-	list(APPEND FORT90_CR hdf5_output hdf5_sixtrack)
+	list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
 endif(HDF5)
 
 if(BEAMGAS)
@@ -341,7 +341,7 @@ if(FLUKA)
 endif(FLUKA)
 
 if(ROOT)
-	LIST(APPEND FORT90_CR root_output)
+	LIST(APPEND FORT90_LIB root_output)
 endif(ROOT)
 
 foreach(loop IN LISTS FORT90_LIB)
@@ -1022,7 +1022,7 @@ endif()
 
 if(HDF5)
 	if(HDF5_FOUND)
-		SET_TARGET_PROPERTIES(SixTrackCR PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
 	else()
 		MESSAGE(FATAL_ERROR "HDF5 build requested, but could not find the HDF5 package.")
 	endif(HDF5_FOUND)

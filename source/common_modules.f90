@@ -31,9 +31,10 @@ module parpro
   integer, parameter :: ntr   = 20
 
   ! Maximum length of element names
-  integer, parameter :: mNameLen = 48
-  integer, parameter :: mStrLen  = 161
-  integer, parameter :: mDivLen  = 132
+  integer, parameter :: mNameLen = 48     ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mStrLen  = 161    ! Standard string length
+  integer, parameter :: mDivLen  = 132    ! Length of lout output lines
+  integer, parameter :: mInputLn = 1024   ! Buffer size for single lines read from input files
 
   ! Max number of particles
   ! See also: subroutine wzsubv
@@ -452,11 +453,6 @@ module mod_commond
 
   ! common /norf/
   integer,                 save :: nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
-
-  ! common /tcorr/
-  real(kind=fPrec),        save :: weig1,weig2,dpmax
-  integer,                 save :: icorr,nctype,namp,nmom,nmom1,nmom2
-  character(len=mNameLen), save :: coel(10)
 
 end module mod_commond
 

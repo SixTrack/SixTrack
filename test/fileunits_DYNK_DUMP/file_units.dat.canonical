@@ -7,8 +7,9 @@
   1005  dump_ip5.dat
   1006  dump_all.dat
   1007  StartDUMP.dat
-  1008  symplecticity_check.txt
+  1008  aperture_losses.dat
   1009  symplecticity_check.txt
   1010  symplecticity_check.txt
   1011  symplecticity_check.txt
-  1012  file_units.dat
+  1012  symplecticity_check.txt
+  1013  file_units.dat

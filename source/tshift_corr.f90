@@ -30,6 +30,11 @@ module tuneshift_corr
   real(kind=fPrec), private, save :: hda2(0:4,5,0:8000)
   real(kind=fPrec), private, save :: hdp(0:1,5,0:8000)
 
+  ! common /tcorr/
+! real(kind=fPrec),        save :: weig1,weig2,dpmax
+! integer,                 save :: icorr,nctype,namp,nmom,nmom1,nmom2
+! character(len=mNameLen), save :: coel(10)
+
 contains
 
 !-----------------------------------------------------------------------
