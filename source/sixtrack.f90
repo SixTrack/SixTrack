@@ -3680,6 +3680,7 @@ end subroutine errf
 ! ================================================================================================ !
 subroutine wzsubv(n,vx,vy,vu,vv)
 
+  use parpro, only : npart
   use floatPrecision
   use numerical_constants
   implicit none
@@ -3689,18 +3690,6 @@ subroutine wzsubv(n,vx,vy,vu,vv)
   real(kind=fPrec) a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,vd34i,vd34r,vp,vq,vqsq,vr,vsimag,vsreal,vt,  &
     vtdd13i,vtdd13r,vtdd24i,vtdd24r,vtdddi,vtdddr,vti,vtr,vu,vusum,vusum3,vv,vvsum,vvsum3,vw1i,vw1r,&
     vw2i,vw2r,vw3i,vw3r,vw4i,vw4r,vx,vxh,vxhrel,vy,vyh,vyhrel
-  integer npart
-#if !defined(BIGNPART) && !defined(HUGENPART)
-  parameter(npart = 64)
-#endif
-#if defined(BIGNPART) && !defined(HUGENPART)
-! See also module parpro
-  parameter(npart = 2048)
-#endif
-#if !defined(BIGNPART) && defined(HUGENPART)
-! See also module parpro
-  parameter(npart = 65536)
-#endif
   integer idim,kstep,nx,ny
   real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
   parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
