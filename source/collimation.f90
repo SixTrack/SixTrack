@@ -1848,39 +1848,38 @@ subroutine collimate_start_sample(nsample)
 
     else
 #endif
-    call funit_requestUnit('all_impacts.dat', all_impacts_unit)
-    call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
-    call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
-    call funit_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
-    call funit_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
-    call funit_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
+      call funit_requestUnit('all_impacts.dat', all_impacts_unit)
+      call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
+      call funit_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
+      call funit_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
 
-    open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
-    open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
-    open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
-! RB: adding output files FLUKA_impacts_all.dat and coll_scatter.dat
-    open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
-    open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
-    open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
+      open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
+      open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
+      open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
+      open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
 
-    if (firstrun) then
-      write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
-      write(all_absorptions_unit,'(a)') '# 1=name 2=turn 3=s'
-      write(FLUKA_impacts_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-      write(FirstImpacts_unit,*)                                                   &
- &     '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
- &     '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
- &     '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
-
-! RB: write headers in new output files
-      write(FLUKA_impacts_all_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-      write(coll_scatter_unit,*) &
- &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)" &
- &     ,", 5=dp, 6=dx', 7=dy'"
-    end if ! if (firstrun) then
+      if (firstrun) then
+        write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
+        write(all_absorptions_unit,'(a)') '# 1=name 2=turn 3=s'
+        write(FirstImpacts_unit,*)                                                   &
+        '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
+        '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
+        '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
+        write(coll_scatter_unit,*) &
+        "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)", &
+        ", 5=dp, 6=dx', 7=dy'"
+      end if ! if (firstrun) then
 #ifdef HDF5
     end if
 #endif
+    call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
+    call funit_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
+    open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
+    open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
+    if (firstrun) then
+      write(FLUKA_impacts_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
+      write(FLUKA_impacts_all_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
+    end if ! if (firstrun) then
   end if ! if(dowrite_impact) then
 
   if(name_sel(1:3).eq.'COL') then
@@ -2574,8 +2573,7 @@ subroutine collimate_do_collimator(stracki)
   end if
 
 !++  Write beam ellipse at selected collimator
-  if (((db_name1(icoll).eq.name_sel(1:mNameLen)) .or.&
-       (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
+  if (((db_name1(icoll).eq.name_sel(1:mNameLen)) .or. (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
     do j = 1, napx
       write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
