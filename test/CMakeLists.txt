@@ -71,15 +71,6 @@ if(NAFF)
   SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
 endif()
 
-#Needs at least 2048 particles to run correctly
-if(BIGNPART OR HUGENPART)
-  SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
-endif()
-#Needs more than 2048 particles to run correctly
-if(HUGENPART)
-  SET(SIXTRACK_TESTS beam-HO_6D-simple-newstyle-coupling ${SIXTRACK_TESTS})
-endif()
-
 #These tests are always included
 SET(SIXTRACK_TESTS
   bbe51
@@ -99,6 +90,7 @@ SET(SIXTRACK_TESTS
   frs60
   frs
   javier
+  javier_bignpart
   lostevery
   lost
   lostnumxv
@@ -145,6 +137,7 @@ SET(SIXTRACK_TESTS
   beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-newstyle-coupling
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
   beam-HO_LR-ibbc-oldstyle
@@ -171,14 +164,12 @@ endif()
 #Collimation tests (needs backtrk)
 #use extra checks on fort.999 and other collimation loss files
 if(COLLIMAT AND BACKTRK)
-  if(HUGENPART)
-    if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-      SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-    endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-    # if(NOT FLUKA OR NOT G4COLLIMAT)
-    #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-    # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-  endif(HUGENPART)
+  if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+    SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+  endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+  # if(NOT FLUKA OR NOT G4COLLIMAT)
+  #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+  # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
 endif(COLLIMAT AND BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test

@@ -3138,14 +3138,7 @@ subroutine daten
          call prror(-1)
       endif
 #endif
-! If we don't have the HION block, we need to set some variables - default to the proton values
-      if(has_hion .eqv. .false.) then
-        zz0 = 1
-        aa0 = 1
-        nucm0 = pma
-        write(lout,*) 'No HION block found, will default to the proton values: [Z,A,M]', zz0, aa0, nucm0
-      end if
-
+      call hions_postInput
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il   ! converting 6D lenses to 4D
           if (beam_expflag .eq. 1) then
@@ -5703,24 +5696,15 @@ subroutine comnul
         end do
       end do
 
-!--NUMBER OF PARTICLES--------------------------------------------------
-      do i=1,npart
-        do i1=1,6
-          do i2=1,6
-            tasau(i,i1,i2)=zero
-          enddo
-        enddo
-      enddo
-
 !--NUMBER OF ELEMENTS---------------------------------------------------
       do i=1,nele
-        kz(i)=0
-        kp(i)=0
-        imtr(i)=0
-        kpa(i)=0
-        isea(i)=0
-        ncororb(i)=0
-        iratioe(i)=0
+        ! kz(i)=0
+        ! kp(i)=0
+        ! imtr(i)=0
+        ! kpa(i)=0
+        ! isea(i)=0
+        ! ncororb(i)=0
+        ! iratioe(i)=0
         itionc(i)=0
         dki(i,1)=zero
         dki(i,2)=zero

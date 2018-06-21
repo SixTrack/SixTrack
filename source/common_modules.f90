@@ -381,7 +381,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 ! call alloc(bezb,    mNameLen,    nele_new,       str_nmZeros, "bezb")
   call alloc(bezl,    mNameLen,    nele_new,       str_nmZeros, "bezl")
   call alloc(ncororb,              nele_new,       0,           "ncororb")
-  call alloc(ratioe,               nele_new,       zero,        "ratioe")
+  call alloc(ratioe,               nele_new,       one,         "ratioe")
   call alloc(iratioe,              nele_new,       0,           "iratioe")
   call alloc(isea,                 nele_new,       0,           "isea")
   call alloc(dki,                  nele_new, 3,    zero,        "dki")
@@ -701,7 +701,7 @@ contains
 subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
-  use numerical_constants, only : zero
+  use numerical_constants, only : zero, one
 
   implicit none
 
@@ -730,7 +730,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(ejfv,             npart_new,      zero,    "ejfv")
   call alloc(xlv,              npart_new,      zero,    "xlv")
   call alloc(zlv,              npart_new,      zero,    "zlv")
-  call alloc(rvv,              npart_new,      zero,    "rvv")
+  call alloc(rvv,              npart_new,      one,     "rvv")
   call alloc(ejf0v,            npart_new,      zero,    "ejf0v")
   call alloc(numxv,            npart_new,      0,       "numxv")
   call alloc(nms,              npart_new,      0,       "nms")
@@ -770,7 +770,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(fi,               npart_new,      zero,    "fi")
   call alloc(hi1,              npart_new,      zero,    "hi1")
   call alloc(dpsvl,            npart_new,      zero,    "dpsvl")
-  call alloc(oidpsv,           npart_new,      zero,    "oidpsv")
+  call alloc(oidpsv,           npart_new,      one,     "oidpsv")
   call alloc(sigmvl,           npart_new,      zero,    "sigmvl")
   call alloc(ejvl,             npart_new,      zero,    "ejvl")
   call alloc(ampv,             npart_new,      zero,    "ampv")
