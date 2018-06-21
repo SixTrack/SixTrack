@@ -11,7 +11,7 @@
 #include "tan.h"
 #include "coefpi2.h"
 
-void tan(scs_ptr);
+// void tan(scs_ptr);
 void cotan(scs_ptr);
 int rem_pio2_scs(scs_ptr, scs_ptr);
 
