@@ -3138,14 +3138,7 @@ subroutine daten
          call prror(-1)
       endif
 #endif
-! If we don't have the HION block, we need to set some variables - default to the proton values
-      if(has_hion .eqv. .false.) then
-        zz0 = 1
-        aa0 = 1
-        nucm0 = pma
-        write(lout,*) 'No HION block found, will default to the proton values: [Z,A,M]', zz0, aa0, nucm0
-      end if
-
+      call hions_postInput
       if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
         do j=1,il   ! converting 6D lenses to 4D
           if (beam_expflag .eq. 1) then
@@ -3687,6 +3680,7 @@ end subroutine errf
 ! ================================================================================================ !
 subroutine wzsubv(n,vx,vy,vu,vv)
 
+  use parpro, only : npart
   use floatPrecision
   use numerical_constants
   implicit none
@@ -3696,18 +3690,6 @@ subroutine wzsubv(n,vx,vy,vu,vv)
   real(kind=fPrec) a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,vd34i,vd34r,vp,vq,vqsq,vr,vsimag,vsreal,vt,  &
     vtdd13i,vtdd13r,vtdd24i,vtdd24r,vtdddi,vtdddr,vti,vtr,vu,vusum,vusum3,vv,vvsum,vvsum3,vw1i,vw1r,&
     vw2i,vw2r,vw3i,vw3r,vw4i,vw4r,vx,vxh,vxhrel,vy,vyh,vyhrel
-  integer npart
-#if !defined(BIGNPART) && !defined(HUGENPART)
-  parameter(npart = 64)
-#endif
-#if defined(BIGNPART) && !defined(HUGENPART)
-! See also module parpro
-  parameter(npart = 2048)
-#endif
-#if !defined(BIGNPART) && defined(HUGENPART)
-! See also module parpro
-  parameter(npart = 65536)
-#endif
   integer idim,kstep,nx,ny
   real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
   parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
@@ -5703,24 +5685,15 @@ subroutine comnul
         end do
       end do
 
-!--NUMBER OF PARTICLES--------------------------------------------------
-      do i=1,npart
-        do i1=1,6
-          do i2=1,6
-            tasau(i,i1,i2)=zero
-          enddo
-        enddo
-      enddo
-
 !--NUMBER OF ELEMENTS---------------------------------------------------
       do i=1,nele
-        kz(i)=0
-        kp(i)=0
-        imtr(i)=0
-        kpa(i)=0
-        isea(i)=0
-        ncororb(i)=0
-        iratioe(i)=0
+        ! kz(i)=0
+        ! kp(i)=0
+        ! imtr(i)=0
+        ! kpa(i)=0
+        ! isea(i)=0
+        ! ncororb(i)=0
+        ! iratioe(i)=0
         itionc(i)=0
         dki(i,1)=zero
         dki(i,2)=zero

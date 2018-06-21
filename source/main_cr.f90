@@ -438,11 +438,6 @@ end interface
       tlim=1e7
       call timest(tlim)
       call timex(time0)
-  !     do 10 i=1,nblz
-  !       xsi(i)=zero
-  !       zsi(i)=zero
-  !       smi(i)=zero
-  !  10 continue
       do 20 i=1,mmul
         cr(i)=zero
         ci(i)=zero
@@ -454,104 +449,6 @@ end interface
         qw(i)=zero
         qwc(i)=zero
    30 continue
-      do 60 i=1,npart
-        nnumxv(i)=0
-        xv(1,i)=zero
-        xv(2,i)=zero
-        yv(1,i)=zero
-        yv(2,i)=zero
-        dam(i)=zero
-        ekkv(i)=zero
-        sigmv(i)=zero
-        dpsv(i)=zero
-        dp0v(i)=zero
-        ejv(i)=zero
-        ejfv(i)=zero
-        xlv(i)=zero
-        zlv(i)=zero
-        rvv(i)=one
-!Heavy ion variables
-! P. HERMES for hiSix
-        mtc(i) = one
-        naa(i) = 1
-        nzz(i) = 1
-        nucm(i)= pmap
-        moidpsv(i) = one
-        omoidpsv(i) = zero
-        ejf0v(i)=zero
-        dpd(i)=zero
-        dpsq(i)=zero
-        fok(i)=zero
-        rho(i)=zero
-        fok1(i)=zero
-        si(i)=zero
-        co(i)=zero
-        g(i)=zero
-        gl(i)=zero
-        sm1(i)=zero
-        sm2(i)=zero
-        sm3(i)=zero
-        sm12(i)=zero
-        as3(i)=zero
-        as4(i)=zero
-        as6(i)=zero
-        sm23(i)=zero
-        rhoc(i)=zero
-        siq(i)=zero
-        aek(i)=zero
-        afok(i)=zero
-        hp(i)=zero
-        hm(i)=zero
-        hc(i)=zero
-        hs(i)=zero
-        wf(i)=zero
-        wfa(i)=zero
-        wfhi(i)=zero
-        rhoi(i)=zero
-        hi(i)=zero
-        fi(i)=zero
-        hi1(i)=zero
-        xvl(1,i)=zero
-        xvl(2,i)=zero
-        yvl(1,i)=zero
-        yvl(2,i)=zero
-        ejvl(i)=zero
-        dpsvl(i)=zero
-        oidpsv(i)=one
-        sigmvl(i)=zero
-        iv(i)=0
-        aperv(i,1)=zero
-        aperv(i,2)=zero
-        ixv(i)=0
-        clov(1,i)=zero
-        clov(2,i)=zero
-        clo6v(1,i)=zero
-        clo6v(2,i)=zero
-        clo6v(3,i)=zero
-        clopv(1,i)=zero
-        clopv(2,i)=zero
-        clop6v(1,i)=zero
-        clop6v(2,i)=zero
-        clop6v(3,i)=zero
-        alf0v(i,1)=zero
-        alf0v(i,2)=zero
-        bet0v(i,1)=zero
-        bet0v(i,2)=zero
-        ampv(i)=zero
-        do i1=1,6
-          do i2=1,6
-            tas(i,i1,i2)=zero
-          end do
-        end do
-
-        qwcs(i,1)=zero
-        qwcs(i,2)=zero
-        qwcs(i,3)=zero
-        di0xs(i)=zero
-        di0zs(i)=zero
-        dip0xs(i)=zero
-        dip0zs(i)=zero
-   60 continue
       qwc(3)=zero
       call comnul
       commen=' '
@@ -561,14 +458,6 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
-#ifdef FLUKA
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     initialise fluka module
-!     inserted in main code by the 'fluka' compilation flag
-      call fluka_mod_init(npart, nele, clight)
-#endif
 
 #ifdef ROOT
       call SixTrackRootFortranInit
@@ -576,6 +465,9 @@ end interface
 
   call daten
 
+#ifdef FLUKA
+  call fluka_mod_init(npart, nele, clight)
+#endif
 #ifdef HDF5
   if(h5_isActive) then
     call h5_openFile()

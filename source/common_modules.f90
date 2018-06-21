@@ -36,26 +36,16 @@ module parpro
   integer, parameter :: mDivLen  = 132    ! Length of lout output lines
   integer, parameter :: mInputLn = 1024   ! Buffer size for single lines read from input files
 
-  ! Max number of particles
-  ! See also: subroutine wzsubv
-#if !defined(BIGNPART) && !defined(HUGENPART)
-  integer, parameter :: npart = 64
-#endif
-#if defined(BIGNPART) && !defined(HUGENPART)
-  integer, parameter :: npart = 2048
-#endif
-#if !defined(BIGNPART) && defined(HUGENPART)
-  integer, parameter :: npart = 65536
-#endif
+  integer :: nzfz  = -1   ! Maximum number of multipole random numbers
+  integer :: nele  = -1   ! Maximum number of SINGle elements
+  integer :: nblo  = -1   ! Maximum number of BLOCs
+  integer :: nblz  = -1   ! Maximum number of STRUcture elements
+  integer :: npart = -1   ! Maximum number of particles
 
-  integer :: nzfz = -1   ! Number of multipole random numbers
-  integer :: nele = -1   ! Number of SINGle elements
-  integer :: nblo = -1   ! Number of BLOCs
-  integer :: nblz = -1   ! Number of STRUcture elements
-
-  integer, parameter :: nele_initial = 500
-  integer, parameter :: nblo_initial = 100
-  integer, parameter :: nblz_initial = 1000
+  integer, parameter :: nele_initial  = 500
+  integer, parameter :: nblo_initial  = 100
+  integer, parameter :: nblz_initial  = 1000
+  integer, parameter :: npart_initial = 2
 
   integer, parameter :: mmul = 20   ! Maximum order of multipoles
   integer, parameter :: nelb = 280  ! Maximum elements per BLOC
@@ -201,7 +191,7 @@ module mod_common
   integer,                       save :: mout2
   integer,          allocatable, save :: icext(:),icextal(:) ! (nblz)
 ! real(kind=fPrec), allocatable, save :: exterr(:,:)         ! (nblz,40)
-  real(kind=fPrec), allocatable, save :: extalign(:,:)       ! (nblz,3)
+! real(kind=fPrec), allocatable, save :: extalign(:,:)       ! (nblz,3)
   real(kind=fPrec), allocatable, save :: tiltc(:),tilts(:)   ! (nblz)
 
   ! common /beo/
@@ -284,7 +274,8 @@ module mod_common
 
   ! common /beam/
   real(kind=fPrec),              save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb)
-  real(kind=fPrec),              save :: clobeam(6,nbb),beamoff(6,nbb),track6d(6,npart)
+  real(kind=fPrec),              save :: clobeam(6,nbb),beamoff(6,nbb)
+  real(kind=fPrec), allocatable, save :: track6d(:,:) ! (6,npart)
   real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
   integer,                       save :: nbeam,ibbc,ibeco,ibtyp,lhc
   real(kind=fPrec), allocatable, save :: parbe(:,:) ! (nele,18)
@@ -313,7 +304,7 @@ module mod_common
   real(kind=fPrec), save :: aml6(6,6),edcor(2)
 
   ! common /postr2/
-  integer,          save :: nnumxv(npart)
+  integer,          allocatable, save :: nnumxv(:) ! (npart)
 
   ! common /correct/
   integer,          save :: ichromc,ilinc,iqmodc
@@ -346,7 +337,7 @@ module mod_common
 
 contains
 
-subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
+subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
   use mod_alloc
   use mod_settings
@@ -357,6 +348,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblo_new
   integer, intent(in) :: nblz_new
+  integer, intent(in) :: npart_new
 
   call alloc(ed,                   nele_new,       zero,        "ed")
   call alloc(el,                   nele_new,       zero,        "el")
@@ -389,7 +381,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
 ! call alloc(bezb,    mNameLen,    nele_new,       str_nmZeros, "bezb")
   call alloc(bezl,    mNameLen,    nele_new,       str_nmZeros, "bezl")
   call alloc(ncororb,              nele_new,       0,           "ncororb")
-  call alloc(ratioe,               nele_new,       zero,        "ratioe")
+  call alloc(ratioe,               nele_new,       one,         "ratioe")
   call alloc(iratioe,              nele_new,       0,           "iratioe")
   call alloc(isea,                 nele_new,       0,           "isea")
   call alloc(dki,                  nele_new, 3,    zero,        "dki")
@@ -431,6 +423,9 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new)
   call alloc(bbi,                  nblz_new, mmul, zero,        "bbi")
   call alloc(dcum,                 nblz_new+1,     zero,        "dcum", 0)
   call alloc(sigmoff,              nblz_new,       zero,        "sigmoff")
+  
+  call alloc(nnumxv,               npart_new,      0,           "nnumxv")
+  call alloc(track6d, 6,           npart_new,      zero,        "track6d")
 
 end subroutine mod_common_expand_arrays
 
@@ -489,7 +484,7 @@ end module mod_common_da2
 
 ! ================================================================================================ !
 !  TRACKING COMMON VARIABLES
-!  Last modified: 2018-06-13
+!  Last modified: 2018-06-21
 ! ================================================================================================ !
 module mod_commont
 
@@ -499,29 +494,40 @@ module mod_commont
   implicit none
 
   ! common /tra/
-  real(kind=fPrec), save :: x(mpa,2),y(mpa,2),amp(2),bet0(2),alf0(2),clo(2),clop(2)
+  real(kind=fPrec), save :: x(mpa,2)
+  real(kind=fPrec), save :: y(mpa,2)
+  real(kind=fPrec), save :: amp(2)
+  real(kind=fPrec), save :: bet0(2)
+  real(kind=fPrec), save :: alf0(2)
+  real(kind=fPrec), save :: clo(2)
+  real(kind=fPrec), save :: clop(2)
+  
   ! common /chrom/
   real(kind=fPrec), save :: cro(2)
-  integer,          save :: is(2),ichrom
+  integer,          save :: is(2)
+  integer,          save :: ichrom
 
   ! common /tasm/
   real(kind=fPrec), save :: tasm(6,6)
 
   ! common /track/
-  integer,          save :: nwri
-  real(kind=fPrec), save :: dpsv1(npart)
-
-  integer,          allocatable, save :: ktrack(:) ! (nblz)
-  real(kind=fPrec), allocatable, save :: strack(:),strackc(:),stracks(:) ! (nblz)
-  real(kind=fPrec), allocatable, save :: strackx(:),strackz(:) ! (nblz)
+  integer,                       save :: nwri
+  integer,          allocatable, save :: ktrack(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: strack(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: strackc(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: stracks(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: strackx(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: strackz(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: dpsv1(:)   ! (npart)
 
   ! Substitute variables for x,y and is for DA version
-  real(kind=fPrec), save :: xxtr(mpa,2),yytr(mpa,2)
+  real(kind=fPrec), save :: xxtr(mpa,2)
+  real(kind=fPrec), save :: yytr(mpa,2)
   integer,          save :: issss(2)
 
 contains
 
-subroutine mod_commont_expand_arrays(nblz_new)
+subroutine mod_commont_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
   use numerical_constants, only : zero
@@ -529,13 +535,16 @@ subroutine mod_commont_expand_arrays(nblz_new)
   implicit none
 
   integer, intent(in) :: nblz_new
+  integer, intent(in) :: npart_new
 
-  call alloc(ktrack,  nblz_new, 0,    "ktrack")
-  call alloc(strack,  nblz_new, zero, "strack")
-  call alloc(strackc, nblz_new, zero, "strackc")
-  call alloc(stracks, nblz_new, zero, "stracks")
-  call alloc(strackx, nblz_new, zero, "strackx")
-  call alloc(strackz, nblz_new, zero, "strackz")
+  call alloc(ktrack,  nblz_new,  0,    "ktrack")
+  call alloc(strack,  nblz_new,  zero, "strack")
+  call alloc(strackc, nblz_new,  zero, "strackc")
+  call alloc(stracks, nblz_new,  zero, "stracks")
+  call alloc(strackx, nblz_new,  zero, "strackx")
+  call alloc(strackz, nblz_new,  zero, "strackz")
+  
+  call alloc(dpsv1,   npart_new, zero, "dpsv1")
 
 end subroutine mod_commont_expand_arrays
 
@@ -567,39 +576,120 @@ module mod_commonmn
   implicit none
 
   ! common /main1/
-  real(kind=fPrec), allocatable, save :: ekv(:,:)    ! (npart,nele)
-  real(kind=fPrec), allocatable, save :: aaiv(:,:,:) ! (mmul,nmac,nblz)
-  real(kind=fPrec), allocatable, save :: bbiv(:,:,:) ! (mmul,nmac,nblz)
-  real(kind=fPrec), allocatable, save :: smiv(:,:)   ! (nmac,nblz)
-  real(kind=fPrec), allocatable, save :: zsiv(:,:)   ! (nmac,nblz)
-  real(kind=fPrec), allocatable, save :: xsiv(:,:)   ! (nmac,nblz)
+  real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
+  real(kind=fPrec), allocatable, save :: aaiv(:,:,:)  ! (mmul,nmac,nblz)
+  real(kind=fPrec), allocatable, save :: bbiv(:,:,:)  ! (mmul,nmac,nblz)
+  real(kind=fPrec), allocatable, save :: smiv(:,:)    ! (nmac,nblz)
+  real(kind=fPrec), allocatable, save :: zsiv(:,:)    ! (nmac,nblz)
+  real(kind=fPrec), allocatable, save :: xsiv(:,:)    ! (nmac,nblz)
 
-  real(kind=fPrec), save :: fokqv(npart),xsv(npart),zsv(npart),qw(2),   &
-    qwc(3),clo0(2),clop0(2),eps(2),epsa(2),ekk(2),cr(mmul),ci(mmul),    &
-    xv(2,npart),yv(2,npart),dam(npart),ekkv(npart),sigmv(npart),        &
-    dpsv(npart),dp0v(npart),sigmv6(npart),dpsv6(npart),ejv(npart),      &
-    ejfv(npart),xlv(npart),zlv(npart),rvv(npart),pttemp,temptr(6),      &
-    ejf0v(npart)
-  integer, save :: numxv(npart),nms(npart),nlostp(npart),kxxa
-  logical, save :: pstop(npart)
+  real(kind=fPrec), allocatable, save :: fokqv(:)     ! (npart)
+  real(kind=fPrec), allocatable, save :: xsv(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: zsv(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: xv(:,:)      ! (2,npart)
+  real(kind=fPrec), allocatable, save :: yv(:,:)      ! (2,npart)
+  real(kind=fPrec), allocatable, save :: dam(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: ekkv(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: sigmv(:)     ! (npart)
+  real(kind=fPrec), allocatable, save :: dpsv(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: dp0v(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: sigmv6(:)    ! (npart)
+  real(kind=fPrec), allocatable, save :: dpsv6(:)     ! (npart)
+  real(kind=fPrec), allocatable, save :: ejv(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: ejfv(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: xlv(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: zlv(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: rvv(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: ejf0v(:)     ! (npart)
+  
+  integer,          allocatable, save :: numxv(:)     ! (npart)
+  integer,          allocatable, save :: nms(:)       ! (npart)
+  integer,          allocatable, save :: nlostp(:)    ! (npart)
+  
+  logical,          allocatable, save :: pstop(:)     ! (npart)
+  
+  real(kind=fPrec),              save :: qw(2)
+  real(kind=fPrec),              save :: qwc(3)
+  real(kind=fPrec),              save :: clo0(2)
+  real(kind=fPrec),              save :: clop0(2)
+  real(kind=fPrec),              save :: eps(2)
+  real(kind=fPrec),              save :: epsa(2)
+  real(kind=fPrec),              save :: ekk(2)
+  real(kind=fPrec),              save :: cr(mmul)
+  real(kind=fPrec),              save :: ci(mmul)
+  real(kind=fPrec),              save :: pttemp
+  real(kind=fPrec),              save :: temptr(6)
+  integer,                       save :: kxxa
 
   ! common /main2/
-  real(kind=fPrec), save :: dpd(npart),dpsq(npart),fok(npart),rho(npart),&
-       fok1(npart),si(npart),co(npart),g(npart),gl(npart),sm1(npart),    &
-       sm2(npart),sm3(npart),sm12(npart),as3(npart),as4(npart),          &
-       as6(npart),sm23(npart),rhoc(npart),siq(npart),aek(npart),         &
-       afok(npart),hp(npart),hm(npart),hc(npart),hs(npart),wf(npart),    &
-       wfa(npart),wfhi(npart),rhoi(npart),hi(npart),fi(npart),hi1(npart),&
-       xvl(2,npart),yvl(2,npart),ejvl(npart),dpsvl(npart),oidpsv(npart), &
-       sigmvl(npart),aperv(npart,2),clov(2,npart),                       &
-       clopv(2,npart),alf0v(npart,2),bet0v(npart,2),ampv(npart)
-  integer, save :: iv(npart),ixv(npart)
+  real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: dpsq(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: fok(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: rho(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: fok1(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: si(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: co(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: g(:)         ! (npart)
+  real(kind=fPrec), allocatable, save :: gl(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: sm1(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: sm2(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: sm3(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: sm12(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: as3(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: as4(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: as6(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: sm23(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: rhoc(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: siq(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: aek(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: afok(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: hp(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: hm(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: hc(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: hs(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: wf(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: wfa(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: wfhi(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: rhoi(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: hi(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: fi(:)        ! (npart)
+  real(kind=fPrec), allocatable, save :: hi1(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: dpsvl(:)     ! (npart)
+  real(kind=fPrec), allocatable, save :: oidpsv(:)    ! (npart)
+  real(kind=fPrec), allocatable, save :: sigmvl(:)    ! (npart)
+  real(kind=fPrec), allocatable, save :: ejvl(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: ampv(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: xvl(:,:)     ! (2,npart)
+  real(kind=fPrec), allocatable, save :: yvl(:,:)     ! (2,npart)
+  real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
+  real(kind=fPrec), allocatable, save :: clov(:,:)    ! (2,npart)
+  real(kind=fPrec), allocatable, save :: clopv(:,:)   ! (2,npart)
+  real(kind=fPrec), allocatable, save :: alf0v(:,:)   ! (npart,2)
+  real(kind=fPrec), allocatable, save :: bet0v(:,:)   ! (npart,2)
+  
+  integer,          allocatable, save :: iv(:)        ! (npart)
+  integer,          allocatable, save :: ixv(:)       ! (npart)
 
-  !common /main3/
-  real(kind=fPrec), save :: clo6v(3,npart),clop6v(3,npart),tas(npart,6,6),qwcs(npart,3),di0xs(npart)
-  real(kind=fPrec), save :: di0zs(npart),dip0xs(npart),dip0zs(npart),xau(2,6),cloau(6)
-  real(kind=fPrec), save :: di0au(4),tau(6,6),tasau(npart,6,6),wx(3),x1(6),x2(6),fake(2,20)
-  real(kind=fPrec), allocatable, save :: hv(:,:,:,:),bl1v(:,:,:,:) !(6,2,npart,nblo)
+  ! common /main3/
+  real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
+  real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
+  real(kind=fPrec), allocatable, save :: tasau(:,:,:)  ! (npart,6,6)
+  real(kind=fPrec), allocatable, save :: tas(:,:,:)    ! (npart,6,6)
+  real(kind=fPrec), allocatable, save :: clo6v(:,:)    ! (3,npart)
+  real(kind=fPrec), allocatable, save :: clop6v(:,:)   ! (3,npart)
+  real(kind=fPrec), allocatable, save :: qwcs(:,:)     ! (npart,3)
+  real(kind=fPrec), allocatable, save :: di0xs(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: di0zs(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: dip0xs(:)     ! (npart)
+  real(kind=fPrec), allocatable, save :: dip0zs(:)     ! (npart)
+  real(kind=fPrec),              save :: di0au(4)
+  real(kind=fPrec),              save :: tau(6,6)
+  real(kind=fPrec),              save :: wx(3)
+  real(kind=fPrec),              save :: x1(6)
+  real(kind=fPrec),              save :: x2(6)
+  real(kind=fPrec),              save :: fake(2,20)
+  real(kind=fPrec),              save :: xau(2,6)
+  real(kind=fPrec),              save :: cloau(6)
 
   ! common /main4/
   integer,          save :: numx
@@ -608,21 +698,102 @@ module mod_commonmn
 
 contains
 
-subroutine mod_commonmn_expand_arrays(nblz_new)
+subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
-  use numerical_constants, only : zero
+  use numerical_constants, only : zero, one
 
   implicit none
 
   integer, intent(in) :: nblz_new
+  integer, intent(in) :: npart_new
 
-  call alloc(aaiv, mmul, nmac, nblz_new, zero, "aaiv")
-  call alloc(bbiv, mmul, nmac, nblz_new, zero, "bbiv")
-  call alloc(smiv,       nmac, nblz_new, zero, "smiv")
-  call alloc(zsiv,       nmac, nblz_new, zero, "zsiv")
-  call alloc(xsiv,       nmac, nblz_new, zero, "xsiv")
-
+  call alloc(aaiv, mmul, nmac, nblz_new,       zero,    "aaiv")
+  call alloc(bbiv, mmul, nmac, nblz_new,       zero,    "bbiv")
+  call alloc(smiv,       nmac, nblz_new,       zero,    "smiv")
+  call alloc(zsiv,       nmac, nblz_new,       zero,    "zsiv")
+  call alloc(xsiv,       nmac, nblz_new,       zero,    "xsiv")
+  
+  call alloc(fokqv,            npart_new,      zero,    "fokqv")
+  call alloc(xsv,              npart_new,      zero,    "xsv")
+  call alloc(zsv,              npart_new,      zero,    "zsv")
+  call alloc(xv,         2,    npart_new,      zero,    "xv")
+  call alloc(yv,         2,    npart_new,      zero,    "yv")
+  call alloc(dam,              npart_new,      zero,    "dam")
+  call alloc(ekkv,             npart_new,      zero,    "ekkv")
+  call alloc(sigmv,            npart_new,      zero,    "sigmv")
+  call alloc(dpsv,             npart_new,      zero,    "dpsv")
+  call alloc(dp0v,             npart_new,      zero,    "dp0v")
+  call alloc(sigmv6,           npart_new,      zero,    "sigmv6")
+  call alloc(dpsv6,            npart_new,      zero,    "dpsv6")
+  call alloc(ejv,              npart_new,      zero,    "ejv")
+  call alloc(ejfv,             npart_new,      zero,    "ejfv")
+  call alloc(xlv,              npart_new,      zero,    "xlv")
+  call alloc(zlv,              npart_new,      zero,    "zlv")
+  call alloc(rvv,              npart_new,      one,     "rvv")
+  call alloc(ejf0v,            npart_new,      zero,    "ejf0v")
+  call alloc(numxv,            npart_new,      0,       "numxv")
+  call alloc(nms,              npart_new,      0,       "nms")
+  call alloc(nlostp,           npart_new,      0,       "nlostp")
+  call alloc(pstop,            npart_new,      .false., "pstop")
+  
+  call alloc(dpd,              npart_new,      zero,    "dpd")
+  call alloc(dpsq,             npart_new,      zero,    "dpsq")
+  call alloc(fok,              npart_new,      zero,    "fok")
+  call alloc(rho,              npart_new,      zero,    "rho")
+  call alloc(fok1,             npart_new,      zero,    "fok1")
+  call alloc(si,               npart_new,      zero,    "si")
+  call alloc(co,               npart_new,      zero,    "co")
+  call alloc(g,                npart_new,      zero,    "g")
+  call alloc(gl,               npart_new,      zero,    "gl")
+  call alloc(sm1,              npart_new,      zero,    "sm1")
+  call alloc(sm2,              npart_new,      zero,    "sm2")
+  call alloc(sm3,              npart_new,      zero,    "sm3")
+  call alloc(sm12,             npart_new,      zero,    "sm12")
+  call alloc(as3,              npart_new,      zero,    "as3")
+  call alloc(as4,              npart_new,      zero,    "as4")
+  call alloc(as6,              npart_new,      zero,    "as6")
+  call alloc(sm23,             npart_new,      zero,    "sm23")
+  call alloc(rhoc,             npart_new,      zero,    "rhoc")
+  call alloc(siq,              npart_new,      zero,    "siq")
+  call alloc(aek,              npart_new,      zero,    "aek")
+  call alloc(afok,             npart_new,      zero,    "afok")
+  call alloc(hp,               npart_new,      zero,    "hp")
+  call alloc(hm,               npart_new,      zero,    "hm")
+  call alloc(hc,               npart_new,      zero,    "hc")
+  call alloc(hs,               npart_new,      zero,    "hs")
+  call alloc(wf,               npart_new,      zero,    "wf")
+  call alloc(wfa,              npart_new,      zero,    "wfa")
+  call alloc(wfhi,             npart_new,      zero,    "wfhi")
+  call alloc(rhoi,             npart_new,      zero,    "rhoi")
+  call alloc(hi,               npart_new,      zero,    "hi")
+  call alloc(fi,               npart_new,      zero,    "fi")
+  call alloc(hi1,              npart_new,      zero,    "hi1")
+  call alloc(dpsvl,            npart_new,      zero,    "dpsvl")
+  call alloc(oidpsv,           npart_new,      one,     "oidpsv")
+  call alloc(sigmvl,           npart_new,      zero,    "sigmvl")
+  call alloc(ejvl,             npart_new,      zero,    "ejvl")
+  call alloc(ampv,             npart_new,      zero,    "ampv")
+  call alloc(xvl,       2,     npart_new,      zero,    "xvl")
+  call alloc(yvl,       2,     npart_new,      zero,    "yvl")
+  call alloc(aperv,            npart_new, 2,   zero,    "aperv")
+  call alloc(clov,      2,     npart_new,      zero,    "clov")
+  call alloc(clopv,     2,     npart_new,      zero,    "clopv")
+  call alloc(alf0v,            npart_new, 2,   zero,    "alf0v")
+  call alloc(bet0v,            npart_new, 2,   zero,    "bet0v")
+  call alloc(iv,               npart_new,      0,       "iv")
+  call alloc(ixv,              npart_new,      0,       "ixv")
+  
+  call alloc(tasau,            npart_new, 6,6, zero,    "tasau")
+  call alloc(tas,              npart_new, 6,6, zero,    "tas")
+  call alloc(clo6v,     3,     npart_new,      zero,    "clo6v")
+  call alloc(clop6v,    3,     npart_new,      zero,    "clop6v")
+  call alloc(qwcs,             npart_new, 3,   zero,    "qwcs")
+  call alloc(di0xs,            npart_new,      zero,    "di0xs")
+  call alloc(di0zs,            npart_new,      zero,    "di0zs")
+  call alloc(dip0xs,           npart_new,      zero,    "dip0xs")
+  call alloc(dip0zs,           npart_new,      zero,    "dip0zs")
+  
 end subroutine mod_commonmn_expand_arrays
 
 subroutine mod_commonmn_allocate_thickarrays

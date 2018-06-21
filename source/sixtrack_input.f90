@@ -977,6 +977,10 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
+    
+    if(napx*2 > npart) then
+      call expand_arrays(nele, napx*2, nblz, nblo)
+    end if
 
   case(2)
 
