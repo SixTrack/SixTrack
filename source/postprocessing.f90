@@ -1923,10 +1923,10 @@ subroutine postpr(nfile)
         sumda(22)=real(nnumxv(ifipa),fPrec)                              !hr06
         sumda(23)=real(nnumxv(ilapa),fPrec)                              !hr06
       endif
-#ifdef SIXDA
-      sumda(22)=real(ia,fPrec)                                           !hr06
-      sumda(23)=real(ia,fPrec)                                           !hr06
-#endif
+! #ifdef SIXDA
+!       sumda(22)=real(ia,fPrec)                                           !hr06
+!       sumda(23)=real(ia,fPrec)                                           !hr06
+! #endif
 #ifdef CR
 ! TRY a FIX for nnuml
 ! should be redumdant now
