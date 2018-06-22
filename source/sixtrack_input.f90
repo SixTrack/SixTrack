@@ -2137,4 +2137,92 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineORBI
 
+! ================================================================================================ !
+!  Parse Combination of Elements Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-22
+! ================================================================================================ !
+subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) elemName, elemComb(20)
+  integer nSplit, nComb, i, j, ii, ico
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "COMB> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine > ncom) then
+    write(lout,"(a,i0)") "COMB> ERROR Maximum number of combinations is ",ncom
+    iErr = .true.
+    return
+  end if
+  
+  if(nSplit < 3 .or. nSplit > 41 .or. mod(nSplit,2) /= 1) then
+    write(lout,"(a,i0)") "COMB> ERROR Expected an element name + max 20 pairs, got ",nSplit
+    iErr = .true.
+    return
+  end if
+  
+  icoe        = iLine
+  elemName    = trim(lnSplit(1))
+  nComb       = (nSplit-1)/2
+  elemComb(:) = str_nmSpace
+  do i=1,nComb
+    call chr_cast(lnSplit(2*i),ratio(icoe,i),iErr)
+    elemComb(i) = trim(lnSplit(2*i+1))
+  end do
+  
+  do i=1,il
+    if(elemName == bez(i)) then
+      kp(i)        = 5
+      icomb0(icoe) = i
+      ratioe(i)    = one
+    end if
+    do j=1,nComb
+      if(elemComb(j) == bez(i)) then
+        icomb(icoe,j) = i
+        ratioe(i)     = ratio(icoe,j)
+      endif
+    end do
+  end do
+  
+  ii = icomb0(icoe)
+  if(ii == 0) return
+  
+  do i=1,nComb
+    ico = icomb(icoe,i)
+    if(ico == ii) then
+      call prror(92)
+    end if
+    if(ico == 0) cycle
+    ! write(lout,10310) bez(jj),bez(ico),ratio(ii,m)
+    iratioe(ico) = ii
+    if(el(ii) <= pieni) then
+      if(el(ico) <= pieni) then
+        ed(ico) = ed(ii)*ratio(icoe,i)
+      else
+        ek(ico) = ed(ii)*ratio(icoe,i)
+      end if
+    else
+      if(el(ico) <= pieni) then
+        ed(ico) = ek(ii)*ratio(icoe,i)
+      else
+        ek(ico) = ek(ii)*ratio(icoe,i)
+      end if
+    end if
+  end do
+
+end subroutine sixin_parseInputLineCOMB
+
 end module sixtrack_input
