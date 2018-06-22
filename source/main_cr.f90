@@ -109,7 +109,6 @@ interface
 
     use floatPrecision
     use parpro
-!    use parpro_scale
     use mod_commond
 
     implicit none
@@ -263,9 +262,9 @@ end interface
   bnlrec   = 0
   bllrec   = 0
   crtime3  = 0.0
-  do i=1,(npart+1)/2
-    binrecs(i) = 0
-  end do
+  ! do i=1,(npart+1)/2
+  !   binrecs(i) = 0
+  ! end do
 
 #ifdef BOINC
 611 continue

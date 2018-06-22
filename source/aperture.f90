@@ -117,47 +117,26 @@ module aperture
 
 contains
 
-
-subroutine aperture_allocate_arrays
-  implicit none
-  integer stat
-
-  call alloc(kape,       nele, 0, 'kape')
-  call alloc(lapeofftlt, nele, .FALSE., 'lapeofftlt')
-  call alloc(ape,9,      nele, zero, 'ape')
-
-  call alloc(plost,     npart, 0, "plost")        ! particle ID (npart)
-  call alloc(xLast, 2,  npart, zero, "xLast")     ! position after last thick element [mm] (2,npart)
-  call alloc(yLast, 2,  npart, zero, "yLast")     ! angles after last thick element [mrad] (2,npart)
-  call alloc(ejfvLast,  npart, zero, "ejfvLast")  ! linear momentum [MeV/c] (npart)
-  call alloc(ejvLast,   npart, zero, "ejvLast")   ! total energy [MeV] (npart) (set as the reference energy?)
-  call alloc(nucmLast,  npart, zero, "nucmLast")  ! nuclear mass [GeV/c2] (npart) (set as the reference mass?)
-  call alloc(sigmvLast, npart, zero, "sigmvLast") ! lag [mm] (npart)
-  call alloc(dpsvLast,  npart, zero, "dpsvLast")  ! (npart)
-  call alloc(naaLast,   npart, 0, "naaLast")      ! nuclear mass [] (npart)
-  call alloc(nzzLast,   npart, 0, "nzzLast")     ! atomic number [] (npart)
-end subroutine aperture_allocate_arrays
-
-
 subroutine aperture_expand_arrays(nele_new, npart_new)
+
   implicit none
   integer, intent(in) :: nele_new
   integer, intent(in) :: npart_new
 
-  call resize(kape,       nele_new, 0, 'kape')
-  call resize(lapeofftlt, nele_new, .FALSE., 'lapeofftlt')
-  call resize(ape,9,      nele_new, zero, 'ape')
+  call alloc(kape,       nele_new, 0, 'kape')
+  call alloc(lapeofftlt, nele_new, .false., 'lapeofftlt')
+  call alloc(ape, 9,     nele_new, zero, 'ape')
 
-  call resize(plost,     npart_new, 0, "plost")        ! particle ID (npart)
-  call resize(xLast, 2,  npart_new, zero, "xLast")     ! position after last thick element [mm] (2,npart)
-  call resize(yLast, 2,  npart_new, zero, "yLast")     ! angles after last thick element [mrad] (2,npart)
-  call resize(ejfvLast,  npart_new, zero, "ejfvLast")  ! linear momentum [MeV/c] (npart)
-  call resize(ejvLast,   npart_new, zero, "ejvLast")   ! total energy [MeV] (npart)
-  call resize(nucmLast,  npart_new, zero, "nucmLast")  ! nuclear mass [GeV/c2] (npart)
-  call resize(sigmvLast, npart_new, zero, "sigmvLast") ! lag [mm] (npart)
-  call resize(dpsvLast,  npart_new, zero, "dpsvLast")  ! (npart)
-  call resize(naaLast,   npart_new, 0, "naaLast")      ! nuclear mass [] (npart)
-  call resize(nzzLast,   npart_new, 0 , "nzzLast")     ! atomic number [] (npart)
+  call alloc(plost,     npart_new, 0, "plost")        ! particle ID (npart)
+  call alloc(xLast, 2,  npart_new, zero, "xLast")     ! position after last thick element [mm] (2,npart)
+  call alloc(yLast, 2,  npart_new, zero, "yLast")     ! angles after last thick element [mrad] (2,npart)
+  call alloc(ejfvLast,  npart_new, zero, "ejfvLast")  ! linear momentum [MeV/c] (npart)
+  call alloc(ejvLast,   npart_new, zero, "ejvLast")   ! total energy [MeV] (npart)
+  call alloc(nucmLast,  npart_new, zero, "nucmLast")  ! nuclear mass [GeV/c2] (npart)
+  call alloc(sigmvLast, npart_new, zero, "sigmvLast") ! lag [mm] (npart)
+  call alloc(dpsvLast,  npart_new, zero, "dpsvLast")  ! (npart)
+  call alloc(naaLast,   npart_new, 0, "naaLast")      ! nuclear mass [] (npart)
+  call alloc(nzzLast,   npart_new, 0, "nzzLast")      ! atomic number [] (npart)
 
 end subroutine aperture_expand_arrays
 
@@ -186,19 +165,19 @@ subroutine aperture_comnul
   load_file(1:16)     = ' '
 
   lbacktracking = .false. ! backtracking off by default
-  do ii=1,npart
-    do jj=1,2
-      xLast(jj,ii) = zero
-      yLast(jj,ii) = zero
-    end do
-    ejfvLast(jj)  = zero
-    ejvLast(jj)   = zero
-    nucmLast(jj)  = zero
-    sigmvLast(jj) = zero
-    dpsvLast(jj)  = zero
-    naaLast(jj)   = 0
-    nzzLast(jj)   = 0
-  end do
+  ! do ii=1,npart
+  !   do jj=1,2
+  !     xLast(jj,ii) = zero
+  !     yLast(jj,ii) = zero
+  !   end do
+  !   ejfvLast(jj)  = zero
+  !   ejvLast(jj)   = zero
+  !   nucmLast(jj)  = zero
+  !   sigmvLast(jj) = zero
+  !   dpsvLast(jj)  = zero
+  !   naaLast(jj)   = 0
+  !   nzzLast(jj)   = 0
+  ! end do
 
   bktpre=c1m1 ! default precision: 0.1m
   iLast = 0
@@ -229,7 +208,7 @@ end subroutine aperture_comnul
 !  Last modified: 2018-05-15
 ! ================================================================================================ !
 subroutine aperture_init
-  
+
   use file_units
 
   implicit none
@@ -2607,7 +2586,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
 
     call chr_cast(lnSplit(2),loadunit,iErr)
     load_file = trim(lnSplit(3))
-    
+
     if(loadunit < 0) then
       call funit_requestUnit("aperLoadFile",loadunit)
     end if
@@ -2636,7 +2615,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     if(aperunit < 0) then
       call funit_requestUnit("aperPrintFile",aperunit)
     end if
-    
+
     ldmpaper = .true.
     if(nSplit > 3) then
       if(lnSPlit(4) == "MEM") then
@@ -2777,13 +2756,13 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     iErr = .true.
     return
   end if
-  
+
   if(nSplit < 2) then
     write(lout,"(a)") "LIMI> ERROR Invalid entry."
     iErr = .true.
     return
   end if
-  
+
   select case(lnSplit(2))
 
   case(apeName(1)) ! Circle
@@ -2875,7 +2854,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     write(lout,"(a)") "LIMI> ERROR Aperture profile not identified for element '"//lnSplit(1)//"' value '"//lnSplit(2)//"'"
     iErr = .true.
     return
-    
+
   end select
 
 end subroutine aper_parseElement

@@ -11,25 +11,26 @@ subroutine allocate_arrays
   use parpro
   use crcoall
 
-  use mod_common,   only : mod_common_expand_arrays
-  use mod_commont,  only : mod_commont_expand_arrays
-  use mod_commonmn, only : mod_commonmn_expand_arrays
-  use mod_commond2, only : mod_commond2_expand_arrays
-  use aperture,     only : aperture_allocate_arrays
-  use elens,        only : elens_allocate_arrays
-  use dump,         only : dump_expand_arrays
-  use scatter,      only : scatter_expand_arrays
-  use bdex,         only : bdex_allocate_arrays
-  use dynk,         only : dynk_allocate_arrays
-  use wire,         only : wire_expand_arrays
-  use mod_hions,    only : hions_allocate_arrays
-
-#ifdef FLUKA
-  use mod_fluka,    only : fluka_mod_expand_arrays
+  use mod_common,         only : mod_common_expand_arrays
+  use mod_commont,        only : mod_commont_expand_arrays
+  use mod_commonmn,       only : mod_commonmn_expand_arrays
+  use mod_commond2,       only : mod_commond2_expand_arrays
+  use aperture,           only : aperture_expand_arrays
+  use elens,              only : elens_allocate_arrays
+  use dump,               only : dump_expand_arrays
+  use scatter,            only : scatter_expand_arrays
+  use bdex,               only : bdex_allocate_arrays
+  use dynk,               only : dynk_allocate_arrays
+  use wire,               only : wire_expand_arrays
+  use mod_hions,          only : hions_allocate_arrays
+#ifdef CR
+  use checkpoint_restart, only : cr_expand_arrays
 #endif
-
+#ifdef FLUKA
+  use mod_fluka,          only : fluka_mod_expand_arrays
+#endif
 #ifdef COLLIMAT
-  use collimation,  only : collimation_allocate_arrays
+  use collimation,        only : collimation_allocate_arrays
 #endif
   implicit none
 
@@ -46,13 +47,15 @@ subroutine allocate_arrays
   call dump_expand_arrays(nele,nblz)
   call wire_expand_arrays(nele,nblz)
   call scatter_expand_arrays(nele)
+  call aperture_expand_arrays(nele,npart)
 
-  call aperture_allocate_arrays
   call elens_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
   call hions_allocate_arrays
-
+#ifdef CR
+  call cr_expand_arrays(npart)
+#endif
 #ifdef COLLIMAT
   call collimation_allocate_arrays
 #endif
@@ -67,25 +70,26 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use parpro
   use crcoall
 
-  use mod_common,   only : mod_common_expand_arrays
-  use mod_commont,  only : mod_commont_expand_arrays
-  use mod_commonmn, only : mod_commonmn_expand_arrays
-  use mod_commond2, only : mod_commond2_expand_arrays
-  use aperture,     only : aperture_expand_arrays
-  use elens,        only : elens_expand_arrays
-  use dump,         only : dump_expand_arrays
-  use scatter,      only : scatter_expand_arrays
-  use bdex,         only : bdex_expand_arrays
-  use dynk,         only : dynk_expand_arrays
-  use wire,         only : wire_expand_arrays
-  use mod_hions,    only : hions_expand_arrays
-
-#ifdef FLUKA
-  use mod_fluka,    only : fluka_mod_expand_arrays
+  use mod_common,         only : mod_common_expand_arrays
+  use mod_commont,        only : mod_commont_expand_arrays
+  use mod_commonmn,       only : mod_commonmn_expand_arrays
+  use mod_commond2,       only : mod_commond2_expand_arrays
+  use aperture,           only : aperture_expand_arrays
+  use elens,              only : elens_expand_arrays
+  use dump,               only : dump_expand_arrays
+  use scatter,            only : scatter_expand_arrays
+  use bdex,               only : bdex_expand_arrays
+  use dynk,               only : dynk_expand_arrays
+  use wire,               only : wire_expand_arrays
+  use mod_hions,          only : hions_expand_arrays
+#ifdef CR
+  use checkpoint_restart, only : cr_expand_arrays
 #endif
-
+#ifdef FLUKA
+  use mod_fluka,          only : fluka_mod_expand_arrays
+#endif
 #ifdef COLLIMAT
-  use collimation,  only : collimation_expand_arrays
+  use collimation,        only : collimation_expand_arrays
 #endif
   implicit none
 
@@ -104,19 +108,20 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 
   call dump_expand_arrays(nele_new,nblz_new)
   call wire_expand_arrays(nele_new,nblz_new)
-
-  call aperture_expand_arrays(nele_new, npart_new)
-  call elens_expand_arrays(nele_new)
   call scatter_expand_arrays(nele_new)
+  call aperture_expand_arrays(nele_new, npart_new)
+
+  call elens_expand_arrays(nele_new)
   call bdex_expand_arrays(nele_new)
   call dynk_expand_arrays(nele_new)
 
   call hions_expand_arrays(npart_new)
-
+#ifdef CR
+  call cr_expand_arrays(npart_new)
+#endif
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)
 #endif
-
 #ifdef COLLIMAT
   call collimation_expand_arrays(npart_new, nblz_new)
 #endif
