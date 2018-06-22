@@ -2056,6 +2056,8 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "ORBI> ERROR Expected 2 parameters for line > 2, got ",nSplit
+      write(lout,"(a)")    "ORBI>       If your file has for instance HCOR=name, replace the = with a space."
+      write(lout,"(a)")    "ORBI>       Name/value pairs with = is no longer supported in SixTrack for consistency between blocks."
       iErr = .true.
       return
     end if
@@ -2075,7 +2077,7 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
       return
     end if
 
-    select case(lnSplit(1)(1:4))
+    select case(lnSplit(1))
 
     case("HCOR")
       if(kp(iElem) == -4 .or. kp(iElem) == 3 .or. kp(iElem) == -3) then
