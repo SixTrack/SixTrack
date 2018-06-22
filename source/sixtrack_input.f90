@@ -1936,8 +1936,7 @@ subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=mNameLen) elemOne
-  integer nSplit, i, j0, j1, imo
+  integer nSplit
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -2013,5 +2012,127 @@ subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
   end select
 
 end subroutine sixin_parseInputLineITER
+
+! ================================================================================================ !
+!  Parse Orbit Correction Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-22
+! ================================================================================================ !
+subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit, i, iElem
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "ORBI> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine == 1) then
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),sigma0(1), iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),sigma0(2), iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ncorru,    iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),ncorrep,   iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("sigmax", sigma0(1), "ORBI",iLine)
+      call sixin_echoVal("sigmay", sigma0(2), "ORBI",iLine)
+      call sixin_echoVal("ncorru", ncorru,    "ORBI",iLine)
+      call sixin_echoVal("ncorrep",ncorrep,   "ORBI",iLine)
+    end if
+    if(iErr) return
+
+  else
+
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "ORBI> ERROR Expected 2 parameters for line > 2, got ",nSplit
+      iErr = .true.
+      return
+    end if
+
+    ! Look up element
+    iElem = -1
+    do i=1,il
+      if(lnSplit(2) == bez(i)) then
+        iElem = i
+        exit
+      end if
+    end do
+
+    if(iElem == -1) then
+      write(lout,"(a)") "ORBI> ERROR Unknown element name '"//lnSplit(2)//"'"
+      iErr = .true.
+      return
+    end if
+
+    select case(lnSplit(1)(1:4))
+
+    case("HCOR")
+      if(kp(iElem) == -4 .or. kp(iElem) == 3 .or. kp(iElem) == -3) then
+        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        iErr = .true.
+        return
+      end if
+      if(kz(iElem) /= 1 .and. kz(iElem) /= 11) then
+        write(lout,"(a)") "ORBI> ERROR For closed orbit correctors only dipoles of legth zero or multipole lenses are allowed."
+        iErr = .true.
+        return
+      end if
+      kp(iElem) = 4
+
+    case("VCOR")
+      if(kp(iElem) == 4 .or. kp(iElem) == 3 .or. kp(iElem) == -3) then
+        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        iErr = .true.
+        return
+      end if
+      if(kz(iElem) /= -1 .and. kz(iElem) /= 11) then
+        write(lout,"(a)") "ORBI> ERROR For closed orbit correctors only dipoles of legth zero or multipole lenses are allowed."
+        iErr = .true.
+        return
+      end if
+      kp(iElem) = -4
+
+    case("HMON")
+      if(kp(iElem) == 4 .or. kp(iElem) == -4 .or. kp(iElem) == -3) then
+        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        iErr = .true.
+        return
+      end if
+      kp(iElem) = 3
+
+    case("VMON")
+      if(kp(iElem) == 4 .or. kp(iElem) == -4 .or. kp(iElem) == 3) then
+        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        iErr = .true.
+        return
+      end if
+      kp(iElem) = -3
+
+    case default
+      write(lout,"(a)") "ORBI> ERROR Only correctors with the keywords HCOR/VCOR"
+      write(lout,"(a)") "ORBI>       or monitors with the keywords HMON/VMON are allowed."
+      iErr = .true.
+      return
+
+    end select
+
+  end if
+
+end subroutine sixin_parseInputLineORBI
 
 end module sixtrack_input

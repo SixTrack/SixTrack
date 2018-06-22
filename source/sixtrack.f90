@@ -382,7 +382,7 @@ subroutine daten
 
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
-!  NOTE: The following blocks are not covered by tests: SUBR, ORGA
+!  NOTE: The following blocks are not covered by tests: SUBR, ORGA, ORBI
 !  NOTE: The following blocks are partially covered:    LIMI
 ! ================================================================================================ !
 
@@ -448,8 +448,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("ORBI")
-    goto 980
   case("COMB")
     goto 1030
   case("RESO")
@@ -703,6 +701,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("ORBI") ! Orbit Correction
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineORBI(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -882,84 +890,85 @@ subroutine daten
 !-----------------------------------------------------------------------
 !  ORBIT CORRECTION
 !-----------------------------------------------------------------------
-  980 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 980
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & sigma0,ncorru,ncorrep
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) sigma0,ncorru,ncorrep
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        sigma0(1)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sigma0(2)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) ncorru
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(3),*) ncorrep
-        nf=nf-1
-      endif
-#endif
-#endif
-      iclo=1
-  990 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 990
-      iele=idum
-      call intepr(4,1,ch,ch1)
-! integers so should be OK
-      read(ch1,*) idat,iele
-      if(idat.eq.next) goto 110
-      if(idat.ne.'HMON='.and.idat.ne.'HCOR='.and. idat.ne.'VMON='.and.  &
-     &idat.ne.'VCOR=') call prror(44)
-      if(idat.eq.'HMON='.or.idat.eq.'VMON=') goto 1010
-      do 1000 j=1,il
-      if(iele.ne.bez(j)) goto 1000
-      if(idat.eq.'HCOR=') then
-        if(kp(j).eq.-4.or.kp(j).eq.3.or.kp(j).eq.-3) call prror(83)
-        if(kz(j).ne.1.and.kz(j).ne.11) call prror(82)
-        kp(j)=4
-      endif
-      if(idat.eq.'VCOR=') then
-        if(kp(j).eq.4.or.kp(j).eq.3.or.kp(j).eq.-3) call prror(83)
-        if(kz(j).ne.-1.and.kz(j).ne.11) call prror(82)
-        kp(j)=-4
-      endif
- 1000 continue
-      goto 990
- 1010 do 1020 j=1,il
-      if(iele.ne.bez(j)) goto 1020
-      if(idat.eq.'HMON=') then
-        if(kp(j).eq.4.or.kp(j).eq.-4.or.kp(j).eq.-3) call prror(83)
-        kp(j)=3
-      endif
-      if(idat.eq.'VMON=') then
-        if(kp(j).eq.4.or.kp(j).eq.-4.or.kp(j).eq.3) call prror(83)
-        kp(j)=-3
-      endif
- 1020 continue
-      goto 990
+!   980 read(3,10020,end=1530,iostat=ierro) ch
+!       if(ierro.gt.0) call prror(58)
+!       lineno3=lineno3+1
+!       if(ch(1:1).eq.'/') goto 980
+!       ch1(:nchars+3)=ch(:nchars)//' / '
+!       call sixin_parseInputLineORBI(ch,1,inErr)
+! ! #ifdef FIO
+! ! #ifdef CRLIBM
+! !       call enable_xp()
+! ! #endif
+! !       read(ch1,*,round='nearest')                                       &
+! !      & sigma0,ncorru,ncorrep
+! ! #ifdef CRLIBM
+! !       call disable_xp()
+! ! #endif
+! ! #endif
+! ! #ifndef FIO
+! ! #ifndef CRLIBM
+! !       read(ch1,*) sigma0,ncorru,ncorrep
+! ! #endif
+! ! #ifdef CRLIBM
+! !       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+! !       if (nf.gt.0) then
+! !         sigma0(1)=fround(errno,fields,1)
+! !         nf=nf-1
+! !       endif
+! !       if (nf.gt.0) then
+! !         sigma0(2)=fround(errno,fields,1)
+! !         nf=nf-1
+! !       endif
+! !       if (nf.gt.0) then
+! !         read(fields(2),*) ncorru
+! !         nf=nf-1
+! !       endif
+! !       if (nf.gt.0) then
+! !         read(fields(3),*) ncorrep
+! !         nf=nf-1
+! !       endif
+! ! #endif
+! ! #endif
+!       iclo=1
+!   990 read(3,10020,end=1530,iostat=ierro) ch
+!       if(ierro.gt.0) call prror(58)
+!       lineno3=lineno3+1
+!       if(ch(1:1).eq.'/') goto 990
+!       iele=idum
+!       call intepr(4,1,ch,ch1)
+! ! integers so should be OK
+!       read(ch1,*) idat,iele
+!       if(idat.eq.next) goto 110
+!       if(idat.ne.'HMON='.and.idat.ne.'HCOR='.and. idat.ne.'VMON='.and.  &
+!      &idat.ne.'VCOR=') call prror(44)
+!       if(idat.eq.'HMON='.or.idat.eq.'VMON=') goto 1010
+!       do 1000 j=1,il
+!       if(iele.ne.bez(j)) goto 1000
+!       if(idat.eq.'HCOR=') then
+!         if(kp(j).eq.-4.or.kp(j).eq.3.or.kp(j).eq.-3) call prror(83)
+!         if(kz(j).ne.1.and.kz(j).ne.11) call prror(82)
+!         kp(j)=4
+!       endif
+!       if(idat.eq.'VCOR=') then
+!         if(kp(j).eq.4.or.kp(j).eq.3.or.kp(j).eq.-3) call prror(83)
+!         if(kz(j).ne.-1.and.kz(j).ne.11) call prror(82)
+!         kp(j)=-4
+!       endif
+!  1000 continue
+!       goto 990
+!  1010 do 1020 j=1,il
+!       if(iele.ne.bez(j)) goto 1020
+!       if(idat.eq.'HMON=') then
+!         if(kp(j).eq.4.or.kp(j).eq.-4.or.kp(j).eq.-3) call prror(83)
+!         kp(j)=3
+!       endif
+!       if(idat.eq.'VMON=') then
+!         if(kp(j).eq.4.or.kp(j).eq.-4.or.kp(j).eq.3) call prror(83)
+!         kp(j)=-3
+!       endif
+!  1020 continue
+!       goto 990
 
 !-----------------------------------------------------------------------
 !  COMBINATION OF ELEMENTS
