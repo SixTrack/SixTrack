@@ -1922,4 +1922,96 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineORGA
 
+! ================================================================================================ !
+!  Parse Iteration Errors Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-22
+! ================================================================================================ !
+subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) elemOne
+  integer nSplit, i, j0, j1, imo
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "ITER> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  select case(iLine)
+
+  case(1)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),itco,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),dma, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),dmap,iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("itco",itco,"ITER",iLine)
+      call sixin_echoVal("dma", dma, "ITER",iLine)
+      call sixin_echoVal("dmap",dmap,"ITER",iLine)
+    end if
+    if(iErr) return
+
+  case(2)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),itqv,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),dkq, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),dqq, iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("itqv",itqv,"ITER",iLine)
+      call sixin_echoVal("dkq", dkq, "ITER",iLine)
+      call sixin_echoVal("dqq", dqq,"ITER",iLine)
+    end if
+    if(iErr) return
+
+  case(3)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),itcro,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),dsm0, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),dech, iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("itcro",itcro,"ITER",iLine)
+      call sixin_echoVal("dsm0", dsm0, "ITER",iLine)
+      call sixin_echoVal("dech", dech, "ITER",iLine)
+    end if
+    if(iErr) return
+
+  case(4)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),de0,    iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),ded,    iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),dsi,    iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),aper(1),iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),aper(2),iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("de0",    de0,    "ITER",iLine)
+      call sixin_echoVal("ded",    ded,    "ITER",iLine)
+      call sixin_echoVal("dsi",    dsi,    "ITER",iLine)
+      call sixin_echoVal("aper(1)",aper(1),"ITER",iLine)
+      call sixin_echoVal("aper(2)",aper(2),"ITER",iLine)
+    end if
+    if(iErr) return
+
+  case default
+    write(lout,"(a,i0)") "ITER> ERROR Unexpected line number ",iLine
+    iErr = .true.
+    return
+
+  end select
+
+end subroutine sixin_parseInputLineITER
+
 end module sixtrack_input

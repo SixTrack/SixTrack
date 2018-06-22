@@ -305,10 +305,10 @@ subroutine daten
   mmac        = 1
   mcut        = 0
   mout2       = 0
-  
+
   ! SUB-RESONANCE CALCULATION
   isub        = 0
-  
+
   ! ORGANISATION OF RANDOM NUMBERS
   sixin_iorg  = 0
 
@@ -382,6 +382,8 @@ subroutine daten
 
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
+!  NOTE: The following blocks are not covered by tests: SUBR, ORGA
+!  NOTE: The following blocks are partially covered:    LIMI
 ! ================================================================================================ !
 
   currBlock   = "NONE"  ! The current block being parsed
@@ -446,8 +448,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("ITER")
-    goto 940
   case("ORBI")
     goto 980
   case("COMB")
@@ -672,7 +672,7 @@ subroutine daten
       call fluc_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("SUBR") ! Sub-Resonance Calculation
     if(openBlock) then
       continue
@@ -682,7 +682,7 @@ subroutine daten
       call sixin_parseInputLineSUBR(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("ORGA") ! Organisation of Random Numbers
     if(openBlock) then
       continue
@@ -690,6 +690,16 @@ subroutine daten
       continue
     else
       call sixin_parseInputLineORGA(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("ITER") ! Iteration Errors
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineITER(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -722,7 +732,7 @@ subroutine daten
       call aper_inputUnitWrapper(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("COLL") ! Collimation Block
     if(openBlock) then
 #ifndef COLLIMAT
@@ -869,154 +879,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  ITERATION ERRORS FOR CLOSED ORBIT ,TUNE ADJUSTMENT AND CHROMATICITY
-!-----------------------------------------------------------------------
-  940 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-      iclr=iclr+1
-      else
-      goto 940
-      endif
-      if(ch(:4).eq.next) then
-      iclr=0
-      goto 110
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & itco,dma,dmap
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.1) read(ch1,*) itco,dma,dmap
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itco
-        endif
-        if (nf.gt.0) then
-          dma=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dmap=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & itqv,dkq,dqq
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.2) read(ch1,*) itqv,dkq,dqq
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itqv
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dkq=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dqq=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
-     & itcro,dsm0,dech
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.3) read(ch1,*) itcro,dsm0,dech
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itcro
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dsm0=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dech=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & de0,ded,dsi,aper(1),aper(2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.4) read(ch1,*) de0,ded,dsi,aper(1),aper(2)
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.4) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          de0=fround(errno,fields,1)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          ded=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dsi=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          aper(1)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          aper(2)=fround(errno,fields,5)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-      if(iclr.ne.4) goto 940
-      iclr=0
-      goto 110
 !-----------------------------------------------------------------------
 !  ORBIT CORRECTION
 !-----------------------------------------------------------------------
