@@ -791,6 +791,9 @@ bool CheckFort10(char* argv[])
 		std::cout << "checkf10 finished running and returned: " << waitpidStatus << std::endl;
 		return waitpidStatus;
 	}
+
+    //If we hit here, there is a problem!
+    return true;
 #else
 	int status = _spawnl(_P_WAIT, argv[2], "checkf10", (char*) 0);
 	if(status == -1)
@@ -1277,6 +1280,7 @@ void *pthread_wait_sixtrack(void* InputStruct)
 	{
 		std::cout << "SixTrack CR was killed: " << waitpidStatus << std::endl;
 	}
+    pthread_exit(NULL);
 }
 
 void *pthread_kill_sixtrack(void* InputStruct)
@@ -1328,6 +1332,7 @@ void *pthread_kill_sixtrack(void* InputStruct)
 		int res = kill(sixpid, SIGKILL);
 		std::cout << "Kill thread - kill() result: " << res << std::endl;
 	}
+    pthread_exit(NULL);
 }
 #else
 DWORD winthread_wait_sixtrack(LPVOID InputStruct)
@@ -1460,7 +1465,7 @@ size_t StripCR(std::string FileName)
 
 		while(sbuffer->sgetc() != EOF)
 		{
-			if(cbuffer = sbuffer->sbumpc())
+			if( (cbuffer = sbuffer->sbumpc()) )
 			{
 				if(cbuffer == '\r')
 				{
