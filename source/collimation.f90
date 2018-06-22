@@ -6862,6 +6862,8 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 !               DE     -> [ MeV ]
 
   use crcoall
+  use parpro
+  use string_tools
   implicit none
 
   integer :: j,mynp
@@ -6876,24 +6878,48 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 
   integer stat
 
+  character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
+  integer nSplit
+  logical spErr
+  
   save
 
-  write(lout,*) "Reading input bunch from file ", filename_dis
+  write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
   call funit_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,*) "Error in subroutine readdis: Could not open the file."
-    write(lout,*) "Got iostat=",stat
+    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
   do j=1,mynp
-    read(filename_dis_unit,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+    read(filename_dis_unit,"(a)",end=10,err=20) inLine
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      goto 20
+    end if
+    if(nSplit /= 6) then
+      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      goto 20
+    end if
+    call chr_cast(lnSplit(1),myx(j), spErr)
+    call chr_cast(lnSplit(2),myxp(j),spErr)
+    call chr_cast(lnSplit(3),myy(j), spErr)
+    call chr_cast(lnSplit(4),myyp(j),spErr)
+    call chr_cast(lnSplit(5),mys(j), spErr)
+    call chr_cast(lnSplit(6),myp(j), spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      goto 20
+    end if
   end do
 
  10   mynp = j - 1
-  write(lout,*) "Number of particles read from the file = ",mynp
+  write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",mynp
 
   close(filename_dis_unit)
 
@@ -6901,7 +6927,7 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 
  20   continue
 
-  write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
+  write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
   call prror(-1)
 
 end subroutine readdis
@@ -6920,6 +6946,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use parpro
   use mod_common
   use mod_commonmn
+  use string_tools
   implicit none
 
   integer :: j,mynp
@@ -6941,30 +6968,54 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
   real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
   real(kind=fPrec) myemitz
+  
+  character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
+  integer nSplit
+  logical spErr
 
   if (iclo6.eq.0) then
-    write(lout,*) "ERROR DETECTED: Incompatible flag           "
-    write(lout,*) "in line 2 of the TRACKING block             "
-    write(lout,*) "of fort.3 for calculating the closed orbit  "
-    write(lout,*) "(iclo6 must not be =0). When using an input "
-    write(lout,*) "distribution in normalized coordinates for  "
-    write(lout,*) "collimation the closed orbit is needed for a"
-    write(lout,*) "correct TAS matrix for coordinate transform."
+    write(lout,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
+    write(lout,"(a)") "COLL> in line 2 of the TRACKING block             "
+    write(lout,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
+    write(lout,"(a)") "COLL> (iclo6 must not be =0). When using an input "
+    write(lout,"(a)") "COLL> distribution in normalized coordinates for  "
+    write(lout,"(a)") "COLL> collimation the closed orbit is needed for a"
+    write(lout,"(a)") "COLL> correct TAS matrix for coordinate transform."
     call prror(-1)
   endif
 
-  write(lout,*) "Reading input bunch from file ", filename_dis
+  write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
   call funit_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,*) "Error in subroutine readdis: Could not open the file."
-    write(lout,*) "Got iostat=",stat
+    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
   do j=1,mynp
-    read(filename_dis_unit,*,end=10,err=20) normx, normxp, normy, normyp, norms, normp
+    read(filename_dis_unit,"(a)",end=10,err=20) inLine
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      goto 20
+    end if
+    if(nSplit /= 6) then
+      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      goto 20
+    end if
+    call chr_cast(lnSplit(1),normx, spErr)
+    call chr_cast(lnSplit(2),normxp,spErr)
+    call chr_cast(lnSplit(3),normy, spErr)
+    call chr_cast(lnSplit(4),normyp,spErr)
+    call chr_cast(lnSplit(5),norms, spErr)
+    call chr_cast(lnSplit(6),normp, spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      goto 20
+    end if
 ! A normalized distribution with x,xp,y,yp,z,zp is read and
 ! transformed with the TAS matrix T , which is the transformation matrix
 ! from normalized to physical coordinates it is scaled with the geometric
@@ -7048,13 +7099,13 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   end do
 
 10   mynp = j - 1
-  write(lout,*) "Number of particles read from the file = ",mynp
+  write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",mynp
 
   close(filename_dis_unit)
   return
 
 20 continue
-   write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
+   write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
    call prror(-1)
 
 end subroutine readdis_norm
@@ -7969,6 +8020,7 @@ end function ran_gauss
 subroutine readcollimator
   use crcoall
   use parpro
+  use string_tools, only : chr_cast
 
 #ifdef ROOT
   use iso_c_binding
@@ -7978,6 +8030,8 @@ subroutine readcollimator
   implicit none
 
   integer J,ios
+  character(len=1024) inVal
+  logical cErr
 
 #ifdef ROOT
 ! Temp variables to avoid fotran array -> C nightmares
@@ -7992,14 +8046,14 @@ subroutine readcollimator
   call funit_requestUnit(coll_db, coll_db_unit)
   open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
   if(ios.ne.0)then
-    write(lout,*) "Error in subroutine readcollimator: Could not open the file ",coll_db
-    write(lout,*) "Got iostat=",ios
+    write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"
+    write(lout,"(a,i0)") "COLL>       Got iostat = ",ios
     call prror(-1)
   end if
 
   read(coll_db_unit,*)
   read(coll_db_unit,*,iostat=ios) db_ncoll
-  write(lout,*) 'number of collimators = ',db_ncoll
+  write(lout,"(a,i0)") "COLL> Number of collimators = ",db_ncoll
 !     write(*,*) 'ios = ',ios
   if(ios.ne.0) then
     write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
@@ -8007,7 +8061,7 @@ subroutine readcollimator
   end if
 
   if(db_ncoll.gt.max_ncoll) then
-    write(lout,*) 'ERR> db_ncoll > max_ncoll '
+    write(lout,"(a)") "COLL> ERROR db_ncoll > max_ncoll"
     call prror(-1)
   end if
 
@@ -8028,9 +8082,10 @@ subroutine readcollimator
       call prror(-1)
     end if
 
-    read(coll_db_unit,*,iostat=ios) db_nsig(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_nsig(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
@@ -8041,33 +8096,38 @@ subroutine readcollimator
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_length(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_length(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_rotation(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_rotation(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_offset(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_offset(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_bx(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_bx(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_by(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_by(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
