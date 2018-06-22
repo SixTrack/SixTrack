@@ -83,8 +83,8 @@ subroutine daten
 
   implicit none
 
-  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imo,imod,imtr0,iw,iw0,ix,  &
-    izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
+  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imod,imtr0,iw,iw0,ix,  &
+    izu,j,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
   real(kind=fPrec) emitnx,emitny,tilt,xang,xstr,xplane
@@ -308,6 +308,9 @@ subroutine daten
   
   ! SUB-RESONANCE CALCULATION
   isub        = 0
+  
+  ! ORGANISATION OF RANDOM NUMBERS
+  sixin_iorg  = 0
 
   ! HIONS MODULE
   zz0         = 1
@@ -453,8 +456,6 @@ subroutine daten
     goto 1120
   case("SEAR")
     goto 1200
-  case("ORGA")
-    goto 880
   case("POST")
     goto 1280
   case("DECO")
@@ -681,6 +682,16 @@ subroutine daten
       call sixin_parseInputLineSUBR(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
+    
+  case("ORGA") ! Organisation of Random Numbers
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineORGA(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
@@ -858,67 +869,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  ORGANISATION OF RANDOM NUMBERS
-!-----------------------------------------------------------------------
-  880 write(lout,10130)
-      write(lout,10350)
-
-      do i=1,3
-        do j=1,nele
-          bezr(i,j)=idum !Initialize all bezr to idum=' '
-        end do
-      end do
-
-  900 iorg=iorg+1
-  910 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 910
-      if(ch(:4).eq.next) goto 110
-      call intepr(3,1,ch,ch1)
-      ! bezr are character strings, should be OK
-      read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
-      if(idat.ne.next) then !Isn't this already checked for above?
-         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)     &
-     &        write(lout,10360) idat
-         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)     &
-     &        write(lout,10390) idat,bezr(2,iorg)
-         if(idat.ne.mult)                                               &
-     &        bezr(1,iorg)=idat
-         if(idat.eq.mult.and.                                           &
-     &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
-            write(lout,10400) bezr(2,iorg),bezr(3,iorg)
-            sixin_im=sixin_im+1
-            j0=0
-            j1=0
-
-            do i=1,il
-               if(bez(i).eq.bezr(2,iorg)) j1=i
-               if(bez(i).eq.bezr(3,iorg)) j0=i
-            end do
-
-            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)      &
-     &              call prror(29)
-
-            irm(j0)=sixin_im
-            benkc(j0)=benkc(j1)
-            r00(j0)=r00(j1)
-            imo=irm(j1)
-            nmu(j0)=nmu(j1)
-
-            do i1=1,nmu(j0)
-               bk0(sixin_im,i1)=bk0(imo,i1)
-               bka(sixin_im,i1)=bka(imo,i1)
-               ak0(sixin_im,i1)=ak0(imo,i1)
-               aka(sixin_im,i1)=aka(imo,i1)
-            end do
-
-         endif
-         goto 900
-      endif
-      write(lout,10130)
-      goto 110
 !-----------------------------------------------------------------------
 !  ITERATION ERRORS FOR CLOSED ORBIT ,TUNE ADJUSTMENT AND CHROMATICITY
 !-----------------------------------------------------------------------
@@ -3528,12 +3478,6 @@ subroutine daten
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
 10310 format(t10,a16,10x,a16,6x,f20.15)
-10360 format(5x,'| ELEMENT  |           ',a16,'           |           ',&
-     &'    |               |               |               |')
-10390 format(5x,'| ELEMENTS |                              |    ',a16,  &
-     &'   |    ',a16,'   |               |               |')
-10400 format(5x,'| ELEMENTS |                              |          ' &
-     &,'     |               |    ',a16,'   |    ',a16,'   |')
 10490 format(t10,a16,4x,a40,2x,1pe16.9)
 10510 format(t10,a16,4x,i8,12x,i8,4x,1pe16.9)
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &

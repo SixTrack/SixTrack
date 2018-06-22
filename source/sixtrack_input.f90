@@ -53,6 +53,9 @@ module sixtrack_input
   ! Multipole Coefficients
   integer,                       public, save :: sixin_im
 
+  ! Organisation of Random Numbers
+  integer,                       public, save :: sixin_iorg
+
   interface sixin_echoVal
     module procedure sixin_echoVal_int
     module procedure sixin_echoVal_real32
@@ -319,7 +322,8 @@ end subroutine sixin_parseInputLineSETT
 
 ! ================================================================================================ !
 !  Parse Single Element Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-05-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
 
@@ -460,7 +464,8 @@ end subroutine sixin_parseInputLineSING
 
 ! ================================================================================================ !
 !  Parse Block Definitions Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-05-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
 
@@ -596,7 +601,8 @@ end subroutine sixin_parseInputLineBLOC
 
 ! ================================================================================================ !
 !  Parse Structure Input Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-05-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
 
@@ -676,7 +682,8 @@ end subroutine sixin_parseInputLineSTRU
 
 ! ================================================================================================ !
 !  Parse Displacement Block Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-05-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDISP(inLine, iErr)
 
@@ -764,7 +771,8 @@ end subroutine sixin_parseInputLineDISP
 
 ! ================================================================================================ !
 !  Parse Initial Coordinates Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
@@ -913,7 +921,8 @@ end subroutine sixin_parseInputLineINIT
 
 ! ================================================================================================ !
 !  Parse Tracking Parameters Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
@@ -977,7 +986,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
-    
+
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
@@ -1079,7 +1088,8 @@ end subroutine sixin_parseInputLineTRAC
 
 ! ================================================================================================ !
 !  Parse Differential Algebra Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
@@ -1201,7 +1211,8 @@ end subroutine sixin_parseInputLineDIFF
 
 ! ================================================================================================ !
 !  Parse Chromaticity Adjustment Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
@@ -1279,7 +1290,8 @@ end subroutine sixin_parseInputLineCHRO
 
 ! ================================================================================================ !
 !  Parse Tune Adjustment Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
 
@@ -1419,7 +1431,8 @@ end subroutine sixin_parseInputLineTUNE
 
 ! ================================================================================================ !
 !  Parse Linear Optics Calculation Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
 
@@ -1498,7 +1511,8 @@ end subroutine sixin_parseInputLineLINE
 
 ! ================================================================================================ !
 !  Parse Synchrotron Oscillations Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
@@ -1647,7 +1661,8 @@ end subroutine sixin_parseInputLineSYNC
 
 ! ================================================================================================ !
 !  Parse Multipole Coefficient Line for KZ=11
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-18
 ! ================================================================================================ !
 subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
@@ -1745,7 +1760,9 @@ end subroutine sixin_parseInputLineMULT
 
 ! ================================================================================================ !
 !  Parse Sub-Resonance Calculation Line
-!  Rewritten from code from DATEN
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-20
+!  Note: This block is not covered by any tests
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
 
@@ -1804,5 +1821,105 @@ subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
   end if
 
 end subroutine sixin_parseInputLineSUBR
+
+! ================================================================================================ !
+!  Parse Organisation of Random Numbers Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-22
+!  Note: This block is not covered by any tests
+! ================================================================================================ !
+subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) elemOne
+  integer nSplit, i, j0, j1, imo
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "ORGA> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  sixin_iorg = sixin_iorg + 1
+  elemOne    = str_nmSpace
+  if(nSplit > 0) elemOne            = trim(lnSplit(1))
+  if(nSplit > 1) bezr(2,sixin_iorg) = trim(lnSplit(2))
+  if(nSplit > 2) bezr(3,sixin_iorg) = trim(lnSplit(3))
+
+  if(sixin_iorg == 1) then
+    write(lout,"(a)") "ORGA>               |"//&
+    " Own Random Num   |"                    //&
+    " Same Random Numbers                 |" //&
+    " Same Multipole Coefficients         |"
+    write(lout,"(a)") "ORGA>               +"//&
+    "------------------+"                    //&
+    "------------------+------------------+" //&
+    "------------------+------------------+"
+  end if
+
+  if(elemOne /= "MULT" .and. elemOne /= str_nmSpace) then
+    if(bezr(2,sixin_iorg) == str_nmSpace) then
+      write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
+        " "//elemOne(1:16)//" |"                         //&
+        "                  |"                            //&
+        "                  |"                            //&
+        "                  |"                            //&
+        "                  |"
+     else
+      write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
+        "                  |"                            //&
+        " "//elemOne(1:16)//" |"                         //&
+        " "//bezr(2,sixin_iorg)(1:16)//" |"              //&
+        "                  |"                            //&
+        "                  |"
+     end if
+  end if
+  if(elemOne /= "MULT") bezr(1,sixin_iorg) = elemOne
+  if(elemOne == "MULT" .and. bezr(2,sixin_iorg) /= str_nmSpace .and. bezr(3,sixin_iorg) /= str_nmSpace) then
+    write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
+      "                  |"                            //&
+      "                  |"                            //&
+      "                  |"                            //&
+      " "//bezr(2,sixin_iorg)(1:16)//" |"              //&
+      " "//bezr(3,sixin_iorg)(1:16)//" |"
+    sixin_im = sixin_im + 1
+
+    j0 = 0
+    j1 = 0
+
+    do i=1,il
+      if(bez(i) == bezr(2,sixin_iorg)) j1 = i
+      if(bez(i) == bezr(3,sixin_iorg)) j0 = i
+    end do
+    if(j0 == 0 .or. j1 == 0 .or. kz(j0) == 11 .or. kz(j1) == 11) then
+      write(lout,"(a)") "ORGA> ERROR Multipole coefficients cannot be set equal."
+      iErr = .true.
+      return
+    end if
+
+    irm(j0)   = sixin_im
+    benkc(j0) = benkc(j1)
+    r00(j0)   = r00(j1)
+    imo       = irm(j1)
+    nmu(j0)   = nmu(j1)
+
+    do i=1,nmu(j0)
+      bk0(sixin_im,i)=bk0(imo,i)
+      bka(sixin_im,i)=bka(imo,i)
+      ak0(sixin_im,i)=ak0(imo,i)
+      aka(sixin_im,i)=aka(imo,i)
+    end do
+
+  end if
+
+end subroutine sixin_parseInputLineORGA
 
 end module sixtrack_input
