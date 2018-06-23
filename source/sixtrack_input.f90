@@ -2167,13 +2167,13 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  
-  if(nSplit < 3 .or. nSplit > 41 .or. mod(nSplit,2) /= 1) then
-    write(lout,"(a,i0)") "COMB> ERROR Expected an element name + max 20 pairs, got ",nSplit
+
+  if(nSplit < 3 .or. nSplit > 41 .or. modulo(nSplit,2) /= 1) then
+    write(lout,"(a,i0)") "COMB> ERROR Expected one element name + 1 to 20 pairs, got ",nSplit
     iErr = .true.
     return
   end if
-  
+
   icoe        = iLine
   elemName    = trim(lnSplit(1))
   nComb       = (nSplit-1)/2
@@ -2182,7 +2182,10 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
     call chr_cast(lnSplit(2*i),ratio(icoe,i),iErr)
     elemComb(i) = trim(lnSplit(2*i+1))
   end do
-  
+  if(st_debug) then
+    call sixin_echoVal("element",elemName,"COMB",iLine)
+  end if
+
   do i=1,il
     if(elemName == bez(i)) then
       kp(i)        = 5
@@ -2193,20 +2196,24 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
       if(elemComb(j) == bez(i)) then
         icomb(icoe,j) = i
         ratioe(i)     = ratio(icoe,j)
-      endif
+      end if
     end do
   end do
-  
+
   ii = icomb0(icoe)
-  if(ii == 0) return
-  
+  if(ii == 0) then
+    write(lout,"(a)") "COMB> ERROR Element '"//trim(elemName)//"' not found."
+    iErr = .true.
+    return
+  end if
+
   do i=1,nComb
     ico = icomb(icoe,i)
     if(ico == ii) then
       call prror(92)
     end if
     if(ico == 0) cycle
-    ! write(lout,10310) bez(jj),bez(ico),ratio(ii,m)
+    write(lout,"(a,e13.6)") "COMB> "//bez(ii)(1:20)//" : "//bez(ico)(1:20)//" : ",ratio(icoe,i)
     iratioe(ico) = ii
     if(el(ii) <= pieni) then
       if(el(ico) <= pieni) then

@@ -448,8 +448,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("COMB")
-    goto 1030
   case("RESO")
     goto 1120
   case("SEAR")
@@ -711,6 +709,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("COMB") ! Combination of Elements
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineCOMB(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -886,103 +894,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  COMBINATION OF ELEMENTS
-!-----------------------------------------------------------------------
- 1030 ii=0
-
-      do jj=1,ncom
-        do ll=1,20
-          icel(jj,ll)=idum
-        end do
-      end do
-
-      write(lout,10130)
-      write(lout,10300)
- 1050 ii=ii+1
-      if(ii.gt.ncom) goto 1100
- 1060 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1060
-      if(ch(:4).eq.next) goto 110
-      icoe=ii
-      call intepr(5,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & idat,(ratio(ii,l),icel(ii,l),l=1,20)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) idat,(ratio(ii,l),icel(ii,l),l=1,20)
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-
-      do l=1,20
-        if (nf.gt.0) then
-          ratio(ii,l)=fround(errno,fields,l*2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(l*2+1),*) icel(ii,l)
-          nf=nf-1
-        endif
-      end do
-#endif
-#endif
-      do j=1,il
-        if(idat.ne.bez(j)) goto 1070
-        kp(j)=5
-        icomb0(ii)=j
-        ratioe(j)=one
-
- 1070   do l=1,20
-          if(bez(j).eq.icel(ii,l)) then
-            icomb(ii,l)=j
-            ratioe(j)=ratio(ii,l)
-          endif
-        end do
-      end do
-
-
-      jj=icomb0(ii)
-      if(jj.eq.0) goto 1050
-      do 1090 m=1,20
-        ico=icomb(ii,m)
-        if(ico.eq.jj) call prror(92)
-        if(ico.eq.0) goto 1090
-        write(lout,10310) bez(jj),bez(ico),ratio(ii,m)
-        iratioe(ico)=jj
-        if(el(jj).le.pieni) then
-          if(el(ico).le.pieni) then
-            ed(ico)=ed(jj)*ratio(ii,m)
-          else
-            ek(ico)=ed(jj)*ratio(ii,m)
-          endif
-        else
-          if(el(ico).le.pieni) then
-            ed(ico)=ek(jj)*ratio(ii,m)
-          else
-            ek(ico)=ek(jj)*ratio(ii,m)
-          endif
-        endif
- 1090 continue
-      goto 1050
- 1100 write(lout,10290) ncom
-      goto 110
 
 !-----------------------------------------------------------------------
 !  RESONANCE-COMPENSATION
@@ -3265,7 +3176,6 @@ subroutine daten
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
-10310 format(t10,a16,10x,a16,6x,f20.15)
 10490 format(t10,a16,4x,a40,2x,1pe16.9)
 10510 format(t10,a16,4x,i8,12x,i8,4x,1pe16.9)
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
