@@ -382,7 +382,7 @@ subroutine daten
 
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
-!  NOTE: The following blocks are not covered by tests: SUBR, ORGA, ORBI
+!  NOTE: The following blocks are not covered by tests: SUBR, ORGA, ORBI, COMB
 !  NOTE: The following blocks are partially covered:    LIMI
 ! ================================================================================================ !
 
@@ -448,8 +448,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("RESO")
-    goto 1120
   case("SEAR")
     goto 1200
   case("POST")
@@ -719,6 +717,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("RESO") ! Resonance Compensation
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineRESO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -898,149 +906,149 @@ subroutine daten
 !-----------------------------------------------------------------------
 !  RESONANCE-COMPENSATION
 !-----------------------------------------------------------------------
- 1120 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1120
-      ch1(:nchars+3)=ch(:nchars)//' / '
-! all integers so should be OK
-      read(ch1,*) nre
-      if(nre.ne.0) read(ch1,*) nre,npp,nrr(1),nrr(2),nrr(3),            &
-     &ipr(1),ipr(2),ipr(3)
-      if(nre.ne.0.and.(npp.lt.2.or.npp.gt.nrco)) call prror(46)
-      if(nre.lt.0.or.nre.gt.3) call prror(47)
-      if(abs(nrr(1)).gt.npp.or.abs(nrr(2)).gt.npp                       &
-     &.or.abs(nrr(3)).gt.npp) call prror(48)
- 1130 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1130
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      read(ch1,*) nur
-      if(nur.ne.0) read(ch1,*) nur,nu(1),nu(2),nu(3)
-      if(nur.lt.0.or.nur.gt.3) call prror(49)
-      if(nu(1).gt.9.or.nu(2).gt.9.or.nu(3).gt.9                         &
-     &.or.nu(1).lt.0.or.nu(2).lt.0.or.nu(3).lt.0) call prror(50)
- 1140 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1140
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & totl,qxt,qzt,tam1,tam2
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) totl,qxt,qzt,tam1,tam2
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        totl=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qxt=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qzt=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam1=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam2=fround(errno,fields,5)
-        nf=nf-1
-      endif
-#endif
-#endif
- 1150 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1150
-      call intepr(3,1,ch,ch1)
-! ilm0 are character strings so should be OK
-      read(ch1,*) (ilm0(i),i=1,6)
- 1160 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1160
-      call intepr(6,1,ch,ch1)
-      read(ch1,*) nch
-      if(nch.ne.0) read(ch1,*) nch,ilm0(7),ilm0(8)
- 1170 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1170
-      call intepr(7,1,ch,ch1)
-      read(ch1,*) nqc
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(nqc.ne.0) read(ch1,*,round='nearest')                          &
-     & nqc,ilm0(9),ilm0(10),qw0
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(nqc.ne.0) read(ch1,*) nqc,ilm0(9),ilm0(10),qw0
-#endif
-#ifdef CRLIBM
-      if(nqc.ne.0) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) nqc
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(2),*) ilm0(9)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) ilm0(10)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(1)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(2)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-      do 1190 k=1,10
-      do 1180 j=1,il
-        if(ilm0(k).ne.bez(j)) goto 1180
-        ire(k)=j
-        if(nre.eq.1.and.k.lt.3.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nre.eq.2.and.k.lt.5.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nre.eq.3.and.k.lt.7.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nch.eq.1.and.(k.eq.7.or.k.eq.8).and.kz(j).ne.3) call prror(11)
-        if(nqc.eq.1.and.(k.eq.9.or.k.eq.10).and.kz(j).ne.2) call prror(8)
-        goto 1190
- 1180 continue
-      if((nre.eq.1.and.k.lt.3).or.(nre.eq.2.and.k.lt.5).or.             &
-     &(nre.eq.3.and.k.lt.7).or.(nch.eq.1.and.(k.eq.7.or.k.eq.8)).or.    &
-     &(nqc.eq.1.and.(k.eq.9.or.k.eq.10))) call prror(3)
- 1190 continue
-      irmod2=1
-      goto 110
+!  1120 read(3,10020,end=1530,iostat=ierro) ch
+!       if(ierro.gt.0) call prror(58)
+!       lineno3=lineno3+1
+!       if(ch(1:1).eq.'/') goto 1120
+!       ch1(:nchars+3)=ch(:nchars)//' / '
+! ! all integers so should be OK
+!     !   read(ch1,*) nre
+!     !   if(nre.ne.0) read(ch1,*) nre,npp,nrr(1),nrr(2),nrr(3),            &
+!     !  &ipr(1),ipr(2),ipr(3)
+!     !   if(nre.ne.0.and.(npp.lt.2.or.npp.gt.nrco)) call prror(46)
+!     !   if(nre.lt.0.or.nre.gt.3) call prror(47)
+!     !   if(abs(nrr(1)).gt.npp.or.abs(nrr(2)).gt.npp                       &
+!     !  &.or.abs(nrr(3)).gt.npp) call prror(48)
+! !  1130 read(3,10020,end=1530,iostat=ierro) ch
+! !       if(ierro.gt.0) call prror(58)
+! !       lineno3=lineno3+1
+! !       if(ch(1:1).eq.'/') goto 1130
+! !       ch1(:nchars+3)=ch(:nchars)//' / '
+! !       read(ch1,*) nur
+! !       if(nur.ne.0) read(ch1,*) nur,nu(1),nu(2),nu(3)
+! !       if(nur.lt.0.or.nur.gt.3) call prror(49)
+! !       if(nu(1).gt.9.or.nu(2).gt.9.or.nu(3).gt.9                         &
+! !      &.or.nu(1).lt.0.or.nu(2).lt.0.or.nu(3).lt.0) call prror(50)
+! !  1140 read(3,10020,end=1530,iostat=ierro) ch
+! !       if(ierro.gt.0) call prror(58)
+! !       lineno3=lineno3+1
+! !       if(ch(1:1).eq.'/') goto 1140
+! !       ch1(:nchars+3)=ch(:nchars)//' / '
+! ! #ifdef FIO
+! ! #ifdef CRLIBM
+! !       call enable_xp()
+! ! #endif
+! !       read(ch1,*,round='nearest')                                       &
+! !      & totl,qxt,qzt,tam1,tam2
+! ! #ifdef CRLIBM
+! !       call disable_xp()
+! ! #endif
+! ! #endif
+! ! #ifndef FIO
+! ! #ifndef CRLIBM
+! !       read(ch1,*) totl,qxt,qzt,tam1,tam2
+! ! #endif
+! ! #ifdef CRLIBM
+! !       call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+! !       if (nf.gt.0) then
+! !         totl=fround(errno,fields,1)
+! !         nf=nf-1
+! !       endif
+! !       if (nf.gt.0) then
+! !         qxt=fround(errno,fields,2)
+! !         nf=nf-1
+! !       endif
+! !       if (nf.gt.0) then
+! !         qzt=fround(errno,fields,3)
+! !         nf=nf-1
+! !       endif
+! !       if (nf.gt.0) then
+! !         tam1=fround(errno,fields,4)
+! !         nf=nf-1
+! !       endif
+! !       if (nf.gt.0) then
+! !         tam2=fround(errno,fields,5)
+! !         nf=nf-1
+! !       endif
+! ! #endif
+! ! #endif
+! !  1150 read(3,10020,end=1530,iostat=ierro) ch
+! !       if(ierro.gt.0) call prror(58)
+! !       lineno3=lineno3+1
+! !       if(ch(1:1).eq.'/') goto 1150
+! !       call intepr(3,1,ch,ch1)
+! ! ! ilm0 are character strings so should be OK
+! !       read(ch1,*) (ilm0(i),i=1,6)
+! !  1160 read(3,10020,end=1530,iostat=ierro) ch
+! !       if(ierro.gt.0) call prror(58)
+! !       lineno3=lineno3+1
+! !       if(ch(1:1).eq.'/') goto 1160
+! !       call intepr(6,1,ch,ch1)
+! !       read(ch1,*) nch
+! !       if(nch.ne.0) read(ch1,*) nch,ilm0(7),ilm0(8)
+! !  1170 read(3,10020,end=1530,iostat=ierro) ch
+! !       if(ierro.gt.0) call prror(58)
+! !       lineno3=lineno3+1
+! !       if(ch(1:1).eq.'/') goto 1170
+! !       call intepr(7,1,ch,ch1)
+! !       read(ch1,*) nqc
+! ! #ifdef FIO
+! ! #ifdef CRLIBM
+! !       call enable_xp()
+! ! #endif
+! !       if(nqc.ne.0) read(ch1,*,round='nearest')                          &
+! !      & nqc,ilm0(9),ilm0(10),qw0
+! ! #ifdef CRLIBM
+! !       call disable_xp()
+! ! #endif
+! ! #endif
+! ! #ifndef FIO
+! ! #ifndef CRLIBM
+! !       if(nqc.ne.0) read(ch1,*) nqc,ilm0(9),ilm0(10),qw0
+! ! #endif
+! ! #ifdef CRLIBM
+! !       if(nqc.ne.0) then
+! !         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+! !         if (nf.gt.0) then
+! !           read(fields(1),*) nqc
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(2),*) ilm0(9)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(3),*) ilm0(10)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           qw0(1)=fround(errno,fields,4)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           qw0(2)=fround(errno,fields,4)
+! !           nf=nf-1
+! !         endif
+! !       endif
+! ! #endif
+! ! #endif
+!       do 1190 k=1,10
+!       do 1180 j=1,il
+!         if(ilm0(k).ne.bez(j)) goto 1180
+!         ire(k)=j
+!         if(nre.eq.1.and.k.lt.3.and.abs(kz(j)).ne.npp) call prror(39)
+!         if(nre.eq.2.and.k.lt.5.and.abs(kz(j)).ne.npp) call prror(39)
+!         if(nre.eq.3.and.k.lt.7.and.abs(kz(j)).ne.npp) call prror(39)
+!         if(nch.eq.1.and.(k.eq.7.or.k.eq.8).and.kz(j).ne.3) call prror(11)
+!         if(nqc.eq.1.and.(k.eq.9.or.k.eq.10).and.kz(j).ne.2) call prror(8)
+!         goto 1190
+!  1180 continue
+!       if((nre.eq.1.and.k.lt.3).or.(nre.eq.2.and.k.lt.5).or.             &
+!      &(nre.eq.3.and.k.lt.7).or.(nch.eq.1.and.(k.eq.7.or.k.eq.8)).or.    &
+!      &(nqc.eq.1.and.(k.eq.9.or.k.eq.10))) call prror(3)
+!  1190 continue
+!       irmod2=1
+!       goto 110
 
 !-----------------------------------------------------------------------
 !  SEARCH FOR OPTIMUM PLACES TO COMPENSATE RESONANCES
