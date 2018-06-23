@@ -384,7 +384,7 @@ subroutine daten
 
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
-!  NOTE: The following blocks are not covered by tests: SUBR, ORGA, ORBI, COMB, RESO
+!  NOTE: The following blocks are not covered by tests: SUBR, ORGA, ORBI, COMB, RESO, SEAR
 !  NOTE: The following blocks are partially covered:    LIMI
 ! ================================================================================================ !
 
@@ -450,8 +450,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("SEAR")
-    goto 1200
   case("POST")
     goto 1280
   case("DECO")
@@ -671,7 +669,9 @@ subroutine daten
 
   case("SUBR") ! Sub-Resonance Calculation
     if(openBlock) then
-      continue
+      write(lout,"(a)") "SUBR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "SUBR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SUBR>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       isub = 1
     else
@@ -681,7 +681,9 @@ subroutine daten
 
   case("ORGA") ! Organisation of Random Numbers
     if(openBlock) then
-      continue
+      write(lout,"(a)") "ORGA> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "ORGA>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORGA>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
     else
@@ -701,7 +703,9 @@ subroutine daten
 
   case("ORBI") ! Orbit Correction
     if(openBlock) then
-      continue
+      write(lout,"(a)") "ORBI> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "ORBI>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORBI>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
     else
@@ -711,7 +715,9 @@ subroutine daten
 
   case("COMB") ! Combination of Elements
     if(openBlock) then
-      continue
+      write(lout,"(a)") "COMB> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "COMB>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "COMB>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
     else
@@ -721,11 +727,25 @@ subroutine daten
 
   case("RESO") ! Resonance Compensation
     if(openBlock) then
-      continue
+      write(lout,"(a)") "RESO> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "RESO>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "RESO>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
     else
       call sixin_parseInputLineRESO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("SEAR") ! Search for Optimum Places to Compensate Resonances
+    if(openBlock) then
+      write(lout,"(a)") "SEAR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "SEAR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SEAR>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineSEAR(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -904,110 +924,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  SEARCH FOR OPTIMUM PLACES TO COMPENSATE RESONANCES
-!-----------------------------------------------------------------------
- 1200 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1200
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & qxt,qzt,tam1,tam2,totl
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) qxt,qzt,tam1,tam2,totl
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        qxt=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qzt=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam1=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-          tam2=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        totl=fround(errno,fields,5)
-        nf=nf-1
-      endif
-#endif
-#endif
- 1210 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1210
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & mesa,mp,m21,m22,m23,ise1,ise2,ise3
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) mesa,mp,m21,m22,m23,ise1,ise2,ise3
-#endif
-      if(mp.lt.2.or.mp.gt.9) call prror(37)
-      if(abs(m21).gt.mp.or.abs(m22).gt.mp                               &
-     &.or.abs(m23).gt.mp) call prror(48)
-      ise=1
-      k0=0
-
- 1220 do m=1,40
-        ilm0(m)=idum
-      end do
-
- 1240 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-
-      lineno3=lineno3+1
-
-      if(ch(1:1).eq.'/') goto 1240
-      call intepr(3,1,ch,ch1)
-
-! character strings so should be OK
-      read(ch1,*) idat,(ilm0(m),m=2,40)
-      if(idat.eq.next) goto 110
-      ilm0(1)=idat
-      ka=k0+1
-      ke=k0+40
-      do 1260 k=ka,ke
-      if(k.gt.nele) call prror(2)
-      if(k.gt.mesa) goto 110
-      ki=k-k0
-      if(ilm0(ki).eq.idum) goto 1270
-      do 1250 j=1,il
-        if(ilm0(ki).ne.bez(j)) goto 1250
-        isea(k)=j
-        if(abs(kz(j)).ne.mp) call prror(39)
-        goto 1260
- 1250 continue
-      call prror(3)
- 1260 continue
- 1270 k0=k-1
-      goto 1220
 
 !-----------------------------------------------------------------------
 !  POSTPROCESSING

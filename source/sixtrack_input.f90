@@ -2249,12 +2249,12 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
   character(len=mNameLen) name(10)
   integer nSplit, j, k
   logical spErr
-  
+
   save :: name
-  
+
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "COMB> ERROR Failed to parse input line."
+    write(lout,"(a)") "RESO> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2285,15 +2285,21 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       call sixin_echoVal("ipr(3)",ipr(3),"RESO",iLine)
     end if
     if(iErr) return
-    
+
     if(nre /= 0 .and. (npp < 2 .or. npp > nrco)) then
-      call prror(46)
+      write(lout,"(a,i0)") "RESO> ERROR Order of compensation can not be larger than ",nrco
+      iErr = .true.
+      return
     end if
     if(nre < 0 .or. nre > 3) then
-      call prror(47)
+      write(lout,"(a)") "RESO> ERROR Only up to 3 resonances can be compensated."
+      iErr = .true.
+      return
     end if
     if(abs(nrr(1)) > npp .or. abs(nrr(2)) > npp .or. abs(nrr(3)) > npp) then
-      call prror(48)
+      write(lout,"(a)") "RESO> ERROR Resonance type is out of the range of the resonance order."
+      iErr = .true.
+      return
     end if
 
   case(2)
@@ -2312,12 +2318,17 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
     if(iErr) return
 
     if(nur < 0 .or. nur > 3) then
-      call prror(49)
+      write(lout,"(a)") "RESO> ERROR Only up to 3 sub-resonances can be compensated."
+      iErr = .true.
+      return
     end if
     if(nu(1) > 9 .or. nu(2) > 9 .or. nu(3) > 9 .or. nu(1) < 0 .or. nu(2) < 0 .or. nu(3) < 0) then
+      write(lout,"(a)") "RESO> ERROR The multipole order for the sub-resonance compensation should not exceed 9."
+      iErr = .true.
+      return
       call prror(50)
     end if
-   
+
   case(3)
 
     if(nSplit > 0) call chr_cast(lnSplit(1),totl,iErr)
@@ -2325,7 +2336,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),qzt, iErr)
     if(nSplit > 3) call chr_cast(lnSplit(4),tam1,iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5),tam2,iErr)
-    
+
     if(st_debug) then
       call sixin_echoVal("totl",totl,"RESO",iLine)
       call sixin_echoVal("qxt", qxt, "RESO",iLine)
@@ -2334,9 +2345,9 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       call sixin_echoVal("tam2",tam2,"RESO",iLine)
     end if
     if(iErr) return
-    
+
   case(4)
-    
+
     name(:) = str_nmSpace
 
     if(nSplit > 0) name(1) = trim(lnSplit(1))
@@ -2345,7 +2356,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
     if(nSplit > 3) name(4) = trim(lnSplit(4))
     if(nSplit > 4) name(5) = trim(lnSplit(5))
     if(nSplit > 5) name(6) = trim(lnSplit(6))
-    
+
     if(st_debug) then
       call sixin_echoVal("namel",name(1),"RESO",iLine)
       call sixin_echoVal("name2",name(2),"RESO",iLine)
@@ -2355,24 +2366,24 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       call sixin_echoVal("name6",name(6),"RESO",iLine)
     end if
     if(iErr) return
-  
+
   case(5)
-    
+
     if(nSplit > 0) call chr_cast(lnSplit(1),nch,iErr)
     if(nch /= 0) then
       if(nSplit > 1) name(7) = trim(lnSplit(2))
       if(nSplit > 2) name(8) = trim(lnSplit(3))
     end if
-    
+
     if(st_debug) then
       call sixin_echoVal("nch",  nch,    "RESO",iLine)
       call sixin_echoVal("name7",name(7),"RESO",iLine)
       call sixin_echoVal("name8",name(8),"RESO",iLine)
     end if
     if(iErr) return
-  
+
   case(6)
-    
+
     if(nSplit > 0) call chr_cast(lnSplit(1),nqc,iErr)
     if(nqc /= 0) then
       if(nSplit > 1) name(9)  = trim(lnSplit(2))
@@ -2380,7 +2391,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       if(nSplit > 3) call chr_cast(lnSplit(4),qw0(1),iErr)
       if(nSplit > 4) call chr_cast(lnSplit(5),qw0(2),iErr)
     end if
-    
+
     if(st_debug) then
       call sixin_echoVal("nqc",   nqc,     "RESO",iLine)
       call sixin_echoVal("name9", name(9), "RESO",iLine)
@@ -2389,7 +2400,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       call sixin_echoVal("qw0(2)",qw0(2),  "RESO",iLine)
     end if
     if(iErr) return
-  
+
     outer: do k=1,10
       inner: do j=1,il
         if(name(k) /= bez(j)) cycle inner
@@ -2413,12 +2424,12 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
           return
         end if
         if(nch == 1 .and. (k == 7 .or. k == 8)  .and. kz(j) /= 3) then
-          write(lout,"(a)") "RESO> ERROR Elements specified for chromaticity correction are not sextupoles."
+          write(lout,"(a)") "RESO> ERROR Elements specified for resonance compensation are not sextupoles."
           iErr = .true.
           return
         end if
         if(nqc == 1 .and. (k == 9 .or. k == 10) .and. kz(j) /= 2) then
-          write(lout,"(a)") "RESO> ERROR Elements specified for tune variation are not quadrupoles."
+          write(lout,"(a)") "RESO> ERROR Elements specified for resonance compensation are not quadrupoles."
           iErr = .true.
           return
         end if
@@ -2429,14 +2440,14 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
          (nre == 3 .and.  k < 7) .or. &
          (nch == 1 .and. (k == 7 .or. k == 8)) .or. &
          (nqc == 1 .and. (k == 9 .or. k == 10))) then
-        write(lout,"(a)") "RESO> ERROR Element for resonance compensation is not in the element list."
+        write(lout,"(a)") "RESO> ERROR Element is not in the element list."
         iErr = .true.
         return
       end if
     end do outer
-    
+
     irmod2 = 1
-    
+
   case default
     write(lout,"(a,i0)") "RESO> ERROR Unexpected line number ",iLine
     iErr = .true.
@@ -2445,5 +2456,114 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
   end select
 
 end subroutine sixin_parseInputLineRESO
+
+! ================================================================================================ !
+!  Parse Search for Optimum Places to Compensate Resonances Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-23
+! ================================================================================================ !
+subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) name(40)
+  integer nSplit, j, k, k0, ka, ke, ki
+  logical spErr
+
+  save :: name, k0
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "SEAR> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  select case(iLine)
+
+  case(1)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),qxt, iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),qzt, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),tam1,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),tam2,iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),totl,iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("qxt", qxt, "SEAR",iLine)
+      call sixin_echoVal("qzt", qzt, "SEAR",iLine)
+      call sixin_echoVal("tam1",tam1,"SEAR",iLine)
+      call sixin_echoVal("tam2",tam2,"SEAR",iLine)
+      call sixin_echoVal("totl",totl,"SEAR",iLine)
+    end if
+    if(iErr) return
+
+  case(2)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),mesa,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),mp,  iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),m21, iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),m22, iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),m23, iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),ise1,iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7),ise2,iErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8),ise3,iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("mesa",mesa,"SEAR",iLine)
+      call sixin_echoVal("mp",  mp,  "SEAR",iLine)
+      call sixin_echoVal("m21", m21, "SEAR",iLine)
+      call sixin_echoVal("m22", m22, "SEAR",iLine)
+      call sixin_echoVal("m23", m23, "SEAR",iLine)
+      call sixin_echoVal("ise1",ise1,"SEAR",iLine)
+      call sixin_echoVal("ise2",ise2,"SEAR",iLine)
+      call sixin_echoVal("ise3",ise3,"SEAR",iLine)
+    end if
+    if(iErr) return
+
+    k0 = 0
+
+  case default
+
+    name(:) = str_nmSpace
+
+    ka = k0 + 1
+    ke = k0 + nSplit
+    do k=ka,ke
+      if(k > nele) then
+        write(lout,"(a)") "SEAR> ERROR Cannot have more elements than in the single elements block."
+        iErr = .true.
+        return
+      end if
+      if(k > mesa) return
+      ki = k-k0
+      do j=1,il
+        if(bez(j) == lnSplit(ki)) then
+          isea(k) = j
+          if(abs(kz(j)) /= mp) then
+            write(lout,"(a)") "SEAR> ERROR With the specified elements the resonance cannot be compensated."
+            write(lout,"(a)") "SEAR> ERROR Resonance order and element type # must be the same."
+            iErr = .true.
+            return
+          end if
+          exit
+        end if
+      end do
+      if(isea(k) == 0) then
+        write(lout,"(a)") "SEAR> ERROR Element is not in the element list."
+        iErr = .true.
+        return
+      end if
+    end do
+    k0 = k-1
+
+  end select
+
+end subroutine sixin_parseInputLineSEAR
 
 end module sixtrack_input
