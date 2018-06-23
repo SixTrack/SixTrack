@@ -83,11 +83,11 @@ subroutine daten
 
   implicit none
 
-  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imo,imod,imtr0,iw,iw0,ix,  &
-    izu,j,j0,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
+  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imod,imtr0,iw,iw0,ix,  &
+    izu,j,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
-  real(kind=fPrec) emitnx,emitny,tilt,xang,xstr,xplane
+  real(kind=fPrec) tilt,xang,xstr,xplane
 
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
@@ -185,8 +185,6 @@ subroutine daten
         ic0(i)=' '
       end do
 
-      emitnx=zero
-      emitny=zero
       ihead=' '
       sixtit=' '
       nbidu=0
@@ -245,10 +243,8 @@ subroutine daten
       imtr0=0
       nlin=0
       kanf=1
-      irmod2=0
       iorg=0
       ise=0
-      iskew=0
       preda=c1m38
 
 ! ================================================================================================ !
@@ -256,64 +252,77 @@ subroutine daten
 ! ================================================================================================ !
 
   ! SixTrack Settings
-  st_print    = .false.
-  st_debug    = .false.
-  st_quiet    = 0
+  st_print     = .false.
+  st_debug     = .false.
+  st_quiet     = 0
 
   ! TRACKING PARAMETERS
-  numl        = 1
-  napx        = 0
-  amp0        = zero
-  amp(1)      = c1m3
-  ird         = 0
-  imc         = 0
-  numlcp      = 1000
-  numlmax     = 1000000000
+  numl         = 1
+  napx         = 0
+  amp0         = zero
+  amp(1)       = c1m3
+  ird          = 0
+  imc          = 0
+  numlcp       = 1000
+  numlmax      = 1000000000
 
-  idz(:)      = 1
-  idfor       = 0
-  irew        = 0
-  iclo        = 0
+  idz(:)       = 1
+  idfor        = 0
+  irew         = 0
+  iclo         = 0
 
-  nde(:)      = 0
-  nwr(:)      = 1
-  nwr(4)      = 10000
-  ntwin       = 1
+  nde(:)       = 0
+  nwr(:)       = 1
+  nwr(4)       = 10000
+  ntwin        = 1
 
   ! CHROMATICITY ADJUSTMENTS
-  ichrom      = 0
+  ichrom       = 0
 
   ! TUNE ADJUSTMENTS
-  iqmod       = 0
+  iqmod        = 0
 
   ! LINEAR OPTICS CALCULATION
-  ilin        = 0
-  sixin_ilin0 = 1
+  ilin         = 0
+  sixin_ilin0  = 1
 
   ! SYNCHROTRON OSCILLATIONS
-  sixin_alc   = c1m3
-  sixin_harm  = one
-  sixin_phag  = zero
-  idp         = 0
-  ncy         = 0
+  sixin_alc    = c1m3
+  sixin_harm   = one
+  sixin_phag   = zero
+  idp          = 0
+  ncy          = 0
 
   ! MULTIPOLE COEFFICIENTS
-  sixin_im    = 0
+  sixin_im     = 0
 
   ! RANDOM FLUCTUATIONS
-  izu0        = 0
-  mmac        = 1
-  mcut        = 0
-  mout2       = 0
-  
+  izu0         = 0
+  mmac         = 1
+  mcut         = 0
+  mout2        = 0
+
   ! SUB-RESONANCE CALCULATION
-  isub        = 0
+  isub         = 0
+
+  ! ORGANISATION OF RANDOM NUMBERS
+  sixin_iorg   = 0
+  
+  ! RESONANCE COMPENSATION
+  irmod2       = 0
+  
+  ! DECOUPLING OF MOTION
+  iskew        = 0
+  
+  ! BEAM-BEAM ELEMENT
+  sixin_emitNX = zero
+  sixin_emitNY = zero
 
   ! HIONS MODULE
-  zz0         = 1
-  aa0         = 1
-  nucm0       = pmap
-  has_hion    = .false.
+  zz0          = 1
+  aa0          = 1
+  nucm0        = pmap
+  has_hion     = .false.
 
   ! COLLIMATION MODULE
 #ifdef COLLIMAT
@@ -443,26 +452,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("ITER")
-    goto 940
-  case("ORBI")
-    goto 980
-  case("COMB")
-    goto 1030
-  case("RESO")
-    goto 1120
-  case("SEAR")
-    goto 1200
-  case("ORGA")
-    goto 880
-  case("POST")
-    goto 1280
-  case("DECO")
-    goto 1320
-  case("NORM")
-    goto 1400
-  case("BEAM")
-    goto 1600
   case("TROM")
     goto 1700
   case("FLUK")
@@ -671,14 +660,134 @@ subroutine daten
       call fluc_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("SUBR") ! Sub-Resonance Calculation
     if(openBlock) then
-      continue
+      write(lout,"(a)") "SUBR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "SUBR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SUBR>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       isub = 1
     else
       call sixin_parseInputLineSUBR(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("ORGA") ! Organisation of Random Numbers
+    if(openBlock) then
+      write(lout,"(a)") "ORGA> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "ORGA>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORGA>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineORGA(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("ITER") ! Iteration Errors
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineITER(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("ORBI") ! Orbit Correction
+    if(openBlock) then
+      write(lout,"(a)") "ORBI> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "ORBI>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORBI>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineORBI(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("COMB") ! Combination of Elements
+    if(openBlock) then
+      write(lout,"(a)") "COMB> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "COMB>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "COMB>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineCOMB(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("RESO") ! Resonance Compensation
+    if(openBlock) then
+      write(lout,"(a)") "RESO> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "RESO>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "RESO>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineRESO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("SEAR") ! Search for Optimum Places to Compensate Resonances
+    if(openBlock) then
+      write(lout,"(a)") "SEAR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "SEAR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SEAR>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineSEAR(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("DECO") ! Decoupling of Motion in the Transverse Planes
+    if(openBlock) then
+      write(lout,"(a)") "DECO> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "DECO>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "DECO>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineDECO(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("NORM") ! Normal Forms
+    if(openBlock) then
+      write(lout,"(a)") "NORM> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "NORM>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "NORM>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineNORM(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("POST") ! Post-Processing
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLinePOST(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("BEAM") ! Beam-Beam Element
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      if(beam_expflag == 1) then
+        call sixin_parseInputLineBEAM_EXP(ch,blockLine,inErr)
+      else
+        call sixin_parseInputLineBEAM(ch,blockLine,inErr)
+      end if
       if(inErr) goto 9999
     end if
 
@@ -711,7 +820,7 @@ subroutine daten
       call aper_inputUnitWrapper(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("COLL") ! Collimation Block
     if(openBlock) then
 #ifndef COLLIMAT
@@ -858,1391 +967,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  ORGANISATION OF RANDOM NUMBERS
-!-----------------------------------------------------------------------
-  880 write(lout,10130)
-      write(lout,10350)
-
-      do i=1,3
-        do j=1,nele
-          bezr(i,j)=idum !Initialize all bezr to idum=' '
-        end do
-      end do
-
-  900 iorg=iorg+1
-  910 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 910
-      if(ch(:4).eq.next) goto 110
-      call intepr(3,1,ch,ch1)
-      ! bezr are character strings, should be OK
-      read(ch1,*) idat,bezr(2,iorg),bezr(3,iorg)
-      if(idat.ne.next) then !Isn't this already checked for above?
-         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).eq.idum)     &
-     &        write(lout,10360) idat
-         if(idat.ne.mult.and.idat.ne.idum.and.bezr(2,iorg).ne.idum)     &
-     &        write(lout,10390) idat,bezr(2,iorg)
-         if(idat.ne.mult)                                               &
-     &        bezr(1,iorg)=idat
-         if(idat.eq.mult.and.                                           &
-     &        bezr(2,iorg).ne.idum.and.bezr(3,iorg).ne.idum) then
-            write(lout,10400) bezr(2,iorg),bezr(3,iorg)
-            sixin_im=sixin_im+1
-            j0=0
-            j1=0
-
-            do i=1,il
-               if(bez(i).eq.bezr(2,iorg)) j1=i
-               if(bez(i).eq.bezr(3,iorg)) j0=i
-            end do
-
-            if(j0.eq.0.or.j1.eq.0.or.kz(j0).ne.11.or.kz(j1).ne.11)      &
-     &              call prror(29)
-
-            irm(j0)=sixin_im
-            benkc(j0)=benkc(j1)
-            r00(j0)=r00(j1)
-            imo=irm(j1)
-            nmu(j0)=nmu(j1)
-
-            do i1=1,nmu(j0)
-               bk0(sixin_im,i1)=bk0(imo,i1)
-               bka(sixin_im,i1)=bka(imo,i1)
-               ak0(sixin_im,i1)=ak0(imo,i1)
-               aka(sixin_im,i1)=aka(imo,i1)
-            end do
-
-         endif
-         goto 900
-      endif
-      write(lout,10130)
-      goto 110
-!-----------------------------------------------------------------------
-!  ITERATION ERRORS FOR CLOSED ORBIT ,TUNE ADJUSTMENT AND CHROMATICITY
-!-----------------------------------------------------------------------
-  940 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-      iclr=iclr+1
-      else
-      goto 940
-      endif
-      if(ch(:4).eq.next) then
-      iclr=0
-      goto 110
-      endif
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.1) read(ch1,*,round='nearest')                         &
-     & itco,dma,dmap
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.1) read(ch1,*) itco,dma,dmap
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.1) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itco
-        endif
-        if (nf.gt.0) then
-          dma=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dmap=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & itqv,dkq,dqq
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.2) read(ch1,*) itqv,dkq,dqq
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itqv
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dkq=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dqq=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
-     & itcro,dsm0,dech
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.3) read(ch1,*) itcro,dsm0,dech
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) itcro
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dsm0=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dech=fround(errno,fields,3)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & de0,ded,dsi,aper(1),aper(2)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.4) read(ch1,*) de0,ded,dsi,aper(1),aper(2)
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.4) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          de0=fround(errno,fields,1)
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          ded=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dsi=fround(errno,fields,3)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          aper(1)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          aper(2)=fround(errno,fields,5)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-      if(iclr.ne.4) goto 940
-      iclr=0
-      goto 110
-!-----------------------------------------------------------------------
-!  ORBIT CORRECTION
-!-----------------------------------------------------------------------
-  980 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 980
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & sigma0,ncorru,ncorrep
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) sigma0,ncorru,ncorrep
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        sigma0(1)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        sigma0(2)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(2),*) ncorru
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        read(fields(3),*) ncorrep
-        nf=nf-1
-      endif
-#endif
-#endif
-      iclo=1
-  990 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 990
-      iele=idum
-      call intepr(4,1,ch,ch1)
-! integers so should be OK
-      read(ch1,*) idat,iele
-      if(idat.eq.next) goto 110
-      if(idat.ne.'HMON='.and.idat.ne.'HCOR='.and. idat.ne.'VMON='.and.  &
-     &idat.ne.'VCOR=') call prror(44)
-      if(idat.eq.'HMON='.or.idat.eq.'VMON=') goto 1010
-      do 1000 j=1,il
-      if(iele.ne.bez(j)) goto 1000
-      if(idat.eq.'HCOR=') then
-        if(kp(j).eq.-4.or.kp(j).eq.3.or.kp(j).eq.-3) call prror(83)
-        if(kz(j).ne.1.and.kz(j).ne.11) call prror(82)
-        kp(j)=4
-      endif
-      if(idat.eq.'VCOR=') then
-        if(kp(j).eq.4.or.kp(j).eq.3.or.kp(j).eq.-3) call prror(83)
-        if(kz(j).ne.-1.and.kz(j).ne.11) call prror(82)
-        kp(j)=-4
-      endif
- 1000 continue
-      goto 990
- 1010 do 1020 j=1,il
-      if(iele.ne.bez(j)) goto 1020
-      if(idat.eq.'HMON=') then
-        if(kp(j).eq.4.or.kp(j).eq.-4.or.kp(j).eq.-3) call prror(83)
-        kp(j)=3
-      endif
-      if(idat.eq.'VMON=') then
-        if(kp(j).eq.4.or.kp(j).eq.-4.or.kp(j).eq.3) call prror(83)
-        kp(j)=-3
-      endif
- 1020 continue
-      goto 990
-
-!-----------------------------------------------------------------------
-!  COMBINATION OF ELEMENTS
-!-----------------------------------------------------------------------
- 1030 ii=0
-
-      do jj=1,ncom
-        do ll=1,20
-          icel(jj,ll)=idum
-        end do
-      end do
-
-      write(lout,10130)
-      write(lout,10300)
- 1050 ii=ii+1
-      if(ii.gt.ncom) goto 1100
- 1060 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1060
-      if(ch(:4).eq.next) goto 110
-      icoe=ii
-      call intepr(5,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & idat,(ratio(ii,l),icel(ii,l),l=1,20)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) idat,(ratio(ii,l),icel(ii,l),l=1,20)
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-
-      if (nf.gt.0) then
-        read(fields(1),*) idat
-        nf=nf-1
-      endif
-
-      do l=1,20
-        if (nf.gt.0) then
-          ratio(ii,l)=fround(errno,fields,l*2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(l*2+1),*) icel(ii,l)
-          nf=nf-1
-        endif
-      end do
-#endif
-#endif
-      do j=1,il
-        if(idat.ne.bez(j)) goto 1070
-        kp(j)=5
-        icomb0(ii)=j
-        ratioe(j)=one
-
- 1070   do l=1,20
-          if(bez(j).eq.icel(ii,l)) then
-            icomb(ii,l)=j
-            ratioe(j)=ratio(ii,l)
-          endif
-        end do
-      end do
-
-
-      jj=icomb0(ii)
-      if(jj.eq.0) goto 1050
-      do 1090 m=1,20
-        ico=icomb(ii,m)
-        if(ico.eq.jj) call prror(92)
-        if(ico.eq.0) goto 1090
-        write(lout,10310) bez(jj),bez(ico),ratio(ii,m)
-        iratioe(ico)=jj
-        if(el(jj).le.pieni) then
-          if(el(ico).le.pieni) then
-            ed(ico)=ed(jj)*ratio(ii,m)
-          else
-            ek(ico)=ed(jj)*ratio(ii,m)
-          endif
-        else
-          if(el(ico).le.pieni) then
-            ed(ico)=ek(jj)*ratio(ii,m)
-          else
-            ek(ico)=ek(jj)*ratio(ii,m)
-          endif
-        endif
- 1090 continue
-      goto 1050
- 1100 write(lout,10290) ncom
-      goto 110
-
-!-----------------------------------------------------------------------
-!  RESONANCE-COMPENSATION
-!-----------------------------------------------------------------------
- 1120 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1120
-      ch1(:nchars+3)=ch(:nchars)//' / '
-! all integers so should be OK
-      read(ch1,*) nre
-      if(nre.ne.0) read(ch1,*) nre,npp,nrr(1),nrr(2),nrr(3),            &
-     &ipr(1),ipr(2),ipr(3)
-      if(nre.ne.0.and.(npp.lt.2.or.npp.gt.nrco)) call prror(46)
-      if(nre.lt.0.or.nre.gt.3) call prror(47)
-      if(abs(nrr(1)).gt.npp.or.abs(nrr(2)).gt.npp                       &
-     &.or.abs(nrr(3)).gt.npp) call prror(48)
- 1130 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1130
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      read(ch1,*) nur
-      if(nur.ne.0) read(ch1,*) nur,nu(1),nu(2),nu(3)
-      if(nur.lt.0.or.nur.gt.3) call prror(49)
-      if(nu(1).gt.9.or.nu(2).gt.9.or.nu(3).gt.9                         &
-     &.or.nu(1).lt.0.or.nu(2).lt.0.or.nu(3).lt.0) call prror(50)
- 1140 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1140
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & totl,qxt,qzt,tam1,tam2
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) totl,qxt,qzt,tam1,tam2
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        totl=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qxt=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qzt=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam1=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam2=fround(errno,fields,5)
-        nf=nf-1
-      endif
-#endif
-#endif
- 1150 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1150
-      call intepr(3,1,ch,ch1)
-! ilm0 are character strings so should be OK
-      read(ch1,*) (ilm0(i),i=1,6)
- 1160 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1160
-      call intepr(6,1,ch,ch1)
-      read(ch1,*) nch
-      if(nch.ne.0) read(ch1,*) nch,ilm0(7),ilm0(8)
- 1170 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1170
-      call intepr(7,1,ch,ch1)
-      read(ch1,*) nqc
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(nqc.ne.0) read(ch1,*,round='nearest')                          &
-     & nqc,ilm0(9),ilm0(10),qw0
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(nqc.ne.0) read(ch1,*) nqc,ilm0(9),ilm0(10),qw0
-#endif
-#ifdef CRLIBM
-      if(nqc.ne.0) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) nqc
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(2),*) ilm0(9)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) ilm0(10)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(1)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qw0(2)=fround(errno,fields,4)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-      do 1190 k=1,10
-      do 1180 j=1,il
-        if(ilm0(k).ne.bez(j)) goto 1180
-        ire(k)=j
-        if(nre.eq.1.and.k.lt.3.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nre.eq.2.and.k.lt.5.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nre.eq.3.and.k.lt.7.and.abs(kz(j)).ne.npp) call prror(39)
-        if(nch.eq.1.and.(k.eq.7.or.k.eq.8).and.kz(j).ne.3) call prror(11)
-        if(nqc.eq.1.and.(k.eq.9.or.k.eq.10).and.kz(j).ne.2) call prror(8)
-        goto 1190
- 1180 continue
-      if((nre.eq.1.and.k.lt.3).or.(nre.eq.2.and.k.lt.5).or.             &
-     &(nre.eq.3.and.k.lt.7).or.(nch.eq.1.and.(k.eq.7.or.k.eq.8)).or.    &
-     &(nqc.eq.1.and.(k.eq.9.or.k.eq.10))) call prror(3)
- 1190 continue
-      irmod2=1
-      goto 110
-
-!-----------------------------------------------------------------------
-!  SEARCH FOR OPTIMUM PLACES TO COMPENSATE RESONANCES
-!-----------------------------------------------------------------------
- 1200 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1200
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & qxt,qzt,tam1,tam2,totl
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) qxt,qzt,tam1,tam2,totl
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        qxt=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qzt=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        tam1=fround(errno,fields,3)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-          tam2=fround(errno,fields,4)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        totl=fround(errno,fields,5)
-        nf=nf-1
-      endif
-#endif
-#endif
- 1210 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1210
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & mesa,mp,m21,m22,m23,ise1,ise2,ise3
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      read(ch1,*) mesa,mp,m21,m22,m23,ise1,ise2,ise3
-#endif
-      if(mp.lt.2.or.mp.gt.9) call prror(37)
-      if(abs(m21).gt.mp.or.abs(m22).gt.mp                               &
-     &.or.abs(m23).gt.mp) call prror(48)
-      ise=1
-      k0=0
-
- 1220 do m=1,40
-        ilm0(m)=idum
-      end do
-
- 1240 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-
-      lineno3=lineno3+1
-
-      if(ch(1:1).eq.'/') goto 1240
-      call intepr(3,1,ch,ch1)
-
-! character strings so should be OK
-      read(ch1,*) idat,(ilm0(m),m=2,40)
-      if(idat.eq.next) goto 110
-      ilm0(1)=idat
-      ka=k0+1
-      ke=k0+40
-      do 1260 k=ka,ke
-      if(k.gt.nele) call prror(2)
-      if(k.gt.mesa) goto 110
-      ki=k-k0
-      if(ilm0(ki).eq.idum) goto 1270
-      do 1250 j=1,il
-        if(ilm0(ki).ne.bez(j)) goto 1250
-        isea(k)=j
-        if(abs(kz(j)).ne.mp) call prror(39)
-        goto 1260
- 1250 continue
-      call prror(3)
- 1260 continue
- 1270 k0=k-1
-      goto 1220
-
-!-----------------------------------------------------------------------
-!  POSTPROCESSING
-!-----------------------------------------------------------------------
- 1280 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-      iclr=iclr+1
-      else
-      goto 1280
-      endif
-      ch1(:83)=ch(:80)//' / '
-
-      !Line 1
-      if(iclr.eq.1) toptit(1)=ch
-
-
-      !Line 2
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & iav,nstart,nstop,iwg,dphix,dphiz,                                &
-     &iskip,iconv,imad,cma1,cma2
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.2) read(ch1,*) iav,nstart,nstop,iwg,dphix,dphiz,       &
-     &iskip,iconv,imad,cma1,cma2
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iav
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(2),*) nstart
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) nstop
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(4),*) iwg
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dphix=fround(errno,fields,5)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dphiz=fround(errno,fields,6)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(8),*) iconv
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(9),*) imad
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cma1=fround(errno,fields,10)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cma2=fround(errno,fields,11)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-
-      !Line 3
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
-     & qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.3) read(ch1,*) qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          qx0=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qz0=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) ivox
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(4),*) ivoz
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(5),*) ires
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dres=fround(errno,fields,6)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(7),*) ifh
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dfft=fround(errno,fields,8)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
-
-      !Line 4
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & kwtype,itf,icr,idis,icow,istw,iffw,                              &
-     &nprint,ndafi
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      if(iclr.eq.4) read(ch1,*) kwtype,itf,icr,idis,icow,istw,iffw,     &
-     &nprint,ndafi
-#endif
-
-#ifdef STF
-      if (imad.eq.1) then
-         write(lout,*) "ERROR in daten::POST:"
-         write(lout,*) "imad not supported for STF version."
-         call prror(-1)
-      endif
-#endif
-
-      kwtype=0
-      icr=0
-      if(iskip.le.0) iskip=1
-      if(iclr.ne.4) goto 1280
-      if(nprint.ne.1) nprint=0
-      iclr=0
-      if(nstart.lt.0) nstart=0
-      if(nstop.lt.0) nstop=0
-      if(nstop.lt.nstart) then
-         nstart=0
-         nstop=0
-      endif
-      if(iconv.ne.1) iconv=0
-      if(abs(cma1).le.pieni) cma1=one
-      cma1=cma1*c1e3
-      if(abs(cma2).le.pieni) cma2=one
-      ipos=1
-      goto 110
-!-----------------------------------------------------------------------
-!  DECOUPLING ROUTINE
-!-----------------------------------------------------------------------
- 1320 iskew=1
- 1330 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1330
-      call intepr(3,1,ch,ch1)
-! character strings again
-      read(ch1,*) idat,(ilm0(m),m=2,4)
-      if(idat.eq.next) then
-      iskew=0
-      goto 110
-      endif
-      ilm0(1)=idat
-      do 1350 i=1,2
- 1340 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1340
-      if(ch(:4).eq.next) then
-        iskew=2
-        goto 1360
-      endif
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & ilm0(4+i),qwsk(i)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) ilm0(4+i),qwsk(i)
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        read(fields(1),*) ilm0(4+i)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        qwsk(i)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-#endif
-#endif
- 1350 continue
- 1360 continue
-
-      do i=1,6
-      do j=1,il
-        if(iskew.eq.2.and.i.gt.4) goto 1380
-        if(ilm0(i).eq.bez(j)) then
-          if(i.le.4) then
-            if(kz(j).ne.-2) call prror(62)
-          else
-            if(kz(j).ne.2) call prror(8)
-          endif
-          nskew(i)=j
-          do i2=1,6
-            if(nskew(i2).ne.0.and.(nskew(i2).eq.nskew(i)) .and.(i2.ne.i)&
-     &) call prror(63)
-          end do
-        endif
-      end do
-      end do
- 1380 continue
-      goto 110
-
-!-----------------------------------------------------------------------
-!  NORMAL FORMS
-!-----------------------------------------------------------------------
- 1400 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1400
-      if(ch(:4).eq.next) then
-      goto 110
-      else
-      if(idial.eq.0.and.numl.ne.0) then
-        write(lout,10130)
-        write(lout,*)
-        call prror(78)
-      endif
-      inorm=1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-      read(ch1,*,round='nearest')                                       &
-     & nordf,nvarf,nord1,idptr
-#endif
-#ifndef FIO
-      read(ch1,*) nordf,nvarf,nord1,idptr
-#endif
-      if(nord.ne.0.and.nordf.gt.nord+1) imod1=1
-      if(nvar.ne.0.and.nvarf.gt.nvar) then
-        nvarf=nvar
-        imod2=1
-      endif
-      if(idptr.lt.0.or.idptr.gt.6) idptr=0
-      endif
-!-----------------------------------------------------------------------
-!  Beam-Beam Element
-!-----------------------------------------------------------------------
-      ! ! ! Read 1st line of BEAM block ! ! !
- 1600 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1600
-      if(ch(:4).eq.next) goto 110
-
-      if (nbeam.ge.1) then
-         write(lout,*)                                                  &
-     &        "ERROR: There can only be one BEAM block in fort.3"
-         call prror(-1)
-      endif
-
-      if (ch(:6) .eq."EXPERT") then
-         beam_expflag = 1
-
- 1601    read(3,10020,end=1530,iostat=ierro) ch
-         if(ierro.gt.0) call prror(58)
-         lineno3=lineno3+1
-         if(ch(1:1).eq.'/') goto 1601
-         if(ch(:4).eq.next) goto 110
-         ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-         call enable_xp()
-#endif
-         read(ch1,*,round='nearest')                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#ifdef CRLIBM
-         call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         read(ch1,*)                                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#endif
-#ifdef CRLIBM
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.ne.9) then
-            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-            write(lout,'(a,I3)')                                        &
-     &           "First line should have 9 fields, got", nf
-            call prror(-1)
-         endif
-
-         partnum = fround(errno,fields,1)
-         emitnx  = fround(errno,fields,2)
-         emitny  = fround(errno,fields,3)
-         sigz    = fround(errno,fields,4)
-         sige    = fround(errno,fields,5)
-         read(fields(6),*) ibeco
-         read(fields(7),*) ibtyp
-         read(fields(8),*) lhc
-         read(fields(9),*) ibbc
-#endif
-#endif
-         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
-         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
-         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
-         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
-         nbeam=1
-         if(ibtyp.eq.1) call wzset !Initialize complex error function for FAST BB kick
-
-         ! ! ! Read other lines of BEAM block ! ! !
- 1660    read(3,10020,end=1530,iostat=ierro) ch
-         if(ierro.gt.0) call prror(58)
-         lineno3=lineno3+1
-         if(ch(1:1).eq.'/') goto 1660
-         if(ch(:4).eq.next) goto 110
-
-#ifdef FIO
-!+if crlibm
-!         call enable_xp()
-!+ei
-!         read(ch1,*,round='nearest')                                       &
-!     &      idat,i,xang,xplane,separx,separy,
-!     &      mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
-!     &      mm9,mm10,mm11
-!+if crlibm
-!         call disable_xp()
-!+ei
-        write(lout,*)                                                   &
-     &       'ERROR in BEAM block (EXPERT mode): '//                    &
-     &       'fortran IO currently not supported.'
-        call prror(-1)
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         call intepr(1,1,ch,ch1)
-         read(ch1,*) idat,i
-
-         if (i.gt.0) then !6D
-            call intepr(1,1,ch,ch1)
-            read(ch1,*) idat,i,xang,xplane,separx,separy
-
- 1661       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1661
-            read(ch,*) mm1,mm2,mm3,mm4,mm5
-
- 1662       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1662
-            read(ch,*) mm6,mm7,mm8,mm9,mm10,mm11
-
-         else if (i.eq.0) then  !4D
-            call intepr(1,1,ch,ch1)
-            read(ch1,*) idat,i,xang,xplane,separx,separy
-         else
-            write(lout,'(a)') "ERROR when reading BEAM block:"
-            write(lout,'(a,i5,a,a16)')                                  &
-     &           "Expected number of slices >= 0; but got",             &
-     &           i, " in element ",idat
-            call prror(-1)
-         endif
-#endif
-#ifdef CRLIBM
-         call intepr(1,1,ch,ch1)
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (.not.(nf.eq.6 .or. nf.eq.7)) then
-            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-            write(lout,'(a,I3)')                                        &
-     &           "First line of an element definition should "//        &
-     &           "have 6 or 7 fields, got", nf
-            call prror(-1)
-         endif
-
-         read(fields(2),*) i !read number of slices
-
-         if (i.gt.0) then  !6D
-            if (nf.ne.6) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "First line of a 6D element definition should "//   &
-     &              "have 6 fields, got", nf
-               call prror(-1)
-            endif
-
-            read(fields(1),*) idat !Name
-            read(fields(2),*) i    !slices (ibsix)
-            xang=fround(errno,fields,3)
-            xplane=fround(errno,fields,4)
-            separx=fround(errno,fields,5)
-            separy=fround(errno,fields,6)
-
- 1661       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1661
-            ch1(:nchars+3)=ch(:nchars)//' / '
-            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-
-            if (nf.ne.5) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "Second line of a 6D element definition should "//  &
-     &              "have 5 fields, got", nf
-               call prror(-1)
-            endif
-
-            mm1=fround(errno,fields,1)
-            mm2=fround(errno,fields,2)
-            mm3=fround(errno,fields,3)
-            mm4=fround(errno,fields,4)
-            mm5=fround(errno,fields,5)
-
- 1662       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            ch1(:nchars+3)=ch(:nchars)//' / '
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1662
-            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-
-            if (nf.ne.6) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "Third line of a 6D element definition should "//   &
-     &              "have 5 fields, got", nf
-               call prror(-1)
-            endif
-
-            mm6=fround(errno,fields,1)
-            mm7=fround(errno,fields,2)
-            mm8=fround(errno,fields,3)
-            mm9=fround(errno,fields,4)
-            mm10=fround(errno,fields,5)
-            mm11=fround(errno,fields,6)
-
-         else if(i.eq.0) then ! 4D
-            if (nf.ne.7) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "First line of a 6D element definition should "//   &
-     &              "have 7 fields, got", nf
-               call prror(-1)
-            endif
-
-            read(fields(1),*) idat
-            xang=fround(errno,fields,3)
-            xplane=fround(errno,fields,4)
-            separx=fround(errno,fields,5)
-            separy=fround(errno,fields,6)
-            mm1=fround(errno,fields,7)
-         else
-            read(fields(1),*) idat
-            write(lout,'(a)') "ERROR when reading BEAM block:"
-            write(lout,'(a,i5,a,a16)')                                  &
-     &           "Expected number of slices >= 0; but got",             &
-     &           i, " in element ",idat
-            call prror(-1)
-         endif
-#endif
-#endif
-
-         do j=1,il !loop over single lements
-            if(idat.eq.bez(j)) then
-               if(kz(j).ne.20) then
-                  write(lout,'(a)') "ERROR when reading BEAM block:"
-                  write(lout,'(a,a16,a,i5,a)')                          &
-     &                 "Found element named ",bez(j),                   &
-     &                 " but type is",kz(j), ", expected type 20!"
-                  call prror(-1)
-               else
-
-                  if(parbe(j,5).ne.zero .or. parbe(j,6).ne.zero         &
-     &                 .or. ptnfac(j).ne.zero                           &
-     &                 .or. bbbx(j).ne.zero .or. bbby(j).ne.zero        &
-     &                 .or. bbbs(j).ne.zero ) then
-                     !Note: Data moved from ed/ek/el to parbe/ptnfac in initialize_element
-                     write(lout,'(a)') "ERROR when reading BEAM block:"
-                     write(lout,'(a,a16,a)')                            &
-     &                    "Using EXPERT mode, but element ", bez(j),    &
-     &                    " does not have ed=ek=el=bbbx=bbby=bbbs=0.0"//&
-     &                    " in the SINGLE ELEMENTS list."
-                     call prror(-1)
-                  endif
-                  if (i.gt.0) then ! 6D, allow 1 or more slices
-                     parbe(j,17)=1      ! Is 6D
-                     parbe(j,2)=real(i,fPrec) ! Number of slices
-                     parbe(j,1)=xang
-                     parbe(j,3)=xplane
-                     parbe(j,5)=separx
-                     parbe(j,6)=separy
-                     parbe(j,7)=mm1
-                     parbe(j,8)=mm2
-                     parbe(j,9)=mm3
-                     parbe(j,10)=mm4
-                     parbe(j,11)=mm5
-                     parbe(j,12)=mm6
-                     parbe(j,13)=mm7
-                     parbe(j,14)=mm8
-                     parbe(j,15)=mm9
-                     parbe(j,16)=mm10
-                     ptnfac(j)=mm11
-                     goto 1660
-                  else if(i.eq.0) then ! 4D, single slice only
-                     parbe(j,17)=0      ! Type is 4D
-                     parbe(j,2)=real(i,fPrec) ! Number of slices is always 0
-                     parbe(j,1)=xang    ! not the crossing angle but sigmaxx
-                     parbe(j,3)=xplane  ! not the xplane but sigmayy
-                     parbe(j,5)=separx
-                     parbe(j,6)=separy
-                     ptnfac(j)=mm1
-                     goto 1660
-                  endif
-               endif
-            endif
-         end do
-         goto 1660
-
-      else ! Old-style BEAM block
-         write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
-         write (lout,'(a)') " Check the file 'beam_expert.txt'"//       &
-     &        " for conversion to the new 'EXPERT' format."
-         write (lout,'(a)') " To convert to the new format,"//          &
-     &        " copy-paste these lines into the BEAM"//                 &
-     &        " block in fort.3, replacing line 2 onwards."
-         write (lout,'(a)') " Then write EXPERT on the first line"//    &
-     &        " of the BEAM block, above the current first line."
-         write(lout,'(a)') " Finally, in the SINGLE ELEMENTS list"//    &
-     &        " (normally in fort.2) set the parameters of all"//       &
-     &        " beam-beam lenses (type 20) to 0.0."
-         write(lout,'(a)') " "
-         write(lout,'(a)') " This procedure produces a new"//           &
-     &        " set of input files that should have bit-for-bit"//      &
-     &        " identical results to this one."
-         write(lout,'(a)') " The easiest way to check this is"//        &
-     &        " to run both simulations side-by-side and compare"//     &
-     &        " the standard output in a text diff tool like meld."
-         write(lout,'(a)') " If the results are not identical,"//       &
-     &        " this is a bug; please report it to the developers!"
-#ifndef CRLIBM
-         write(lout,'(a)') " "
-         write(lout,'(a)') "NOTE: THIS SIXTRACK BINARY WAS"//           &
-     &        " NOT COMPILED WITH CRLIBM, CONVERSION WILL NOT BE EXACT."
-#endif
-         write(lout,'(a)') " "
-
-         ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-         call enable_xp()
-#endif
-         read(ch1,*,round='nearest')                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#ifdef CRLIBM
-         call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         read(ch1,*)                                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#endif
-#ifdef CRLIBM
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.ne.9) then
-            write(lout,'(a)')                                           &
-     &           "WARNING in DATEN reading BEAM (not EXPERT)"
-            write(lout,'(a,i4)') "First line should have 9 fields,"//   &
-     &           " got ", nf
-            !Treating this as a warning, or else we would invalidate
-            !lots of working input files
-            !call prror(-1)
-         endif
-
-         if (nf.gt.0) then
-            partnum=fround(errno,fields,1)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            emitnx=fround(errno,fields,2)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            emitny=fround(errno,fields,3)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            sigz=fround(errno,fields,4)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            sige=fround(errno,fields,5)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(6),*) ibeco
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(7),*) ibtyp
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(8),*) lhc
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(9),*) ibbc
-            nf=nf-1
-         endif
-#endif
-#endif
-         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
-         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
-         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
-         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
-         nbeam=1
-         if(ibtyp.eq.1) call wzset
-
-         ! ! ! Read other lines of BEAM block ! ! !
- 1610    read(3,10020,end=1530,iostat=ierro) ch
-         if(ierro.gt.0) call prror(58)
-         lineno3=lineno3+1
-         if(ch(1:1).eq.'/') goto 1610
-         if(ch(:4).eq.next) goto 110  ! Done yet?
-
-         !Check number of arguments gotten
-         call getfields_split( ch, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-         if ( getfields_lerr ) call prror(-1)
-         beam_xstr = .false.
-         if (getfields_nfields .eq. 5) then
-            beam_xstr=.true.
-         elseif (getfields_nfields .eq. 4) then
-            beam_xstr=.false.
-         else
-            write(lout,*) "ERROR in parsing BEAM block"
-            write(lout,*) "Number of arguments in data line 2,..."
-            write(lout,*) " is expected to be 4 or 5"
-            call prror(-1)
-         end if
-         call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-         call enable_xp()
-#endif
-         read(ch1,*,round='nearest')                                       &
-     &      idat,i,xang,xplane,xstr
-#ifdef CRLIBM
-         call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         read(ch1,*) idat,i,xang,xplane,xstr
-#endif
-#ifdef CRLIBM
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.gt.0) then
-            read(fields(1),*) idat
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(2),*) i
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            xang=fround(errno,fields,3)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            xplane=fround(errno,fields,4)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            xstr=fround(errno,fields,5)
-            nf=nf-1
-         endif
-#endif
-#endif
-         if ( .not. beam_xstr ) then
-            write(lout,*) "WARNING in parsing BEAM block"
-            write(lout,*) "No xstr present, assuming xstr=xang"
-            xstr = xang
-         endif
-
-         if(i.lt.0) i=0
-         do 1620 j=1,il
-            if(idat.eq.bez(j).and.kz(j).eq.20) then
-               ibb6d=1
-               parbe(j,2)=real(i,fPrec) !hr12
-               parbe(j,1)=xang
-               parbe(j,3)=xplane
-               parbe(j,18)=xstr
-               goto 1610
-            endif
- 1620    continue
-         goto 1610
-      endif
 !-----------------------------------------------------------------------
 !  TROMBONE ELEMENT KZ=22
 !-----------------------------------------------------------------------
@@ -3114,16 +1838,16 @@ subroutine daten
 771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
         if(nbeam.ge.1) parbe14=                                         &!hr05
-     &(((((-one*crad)*partnum)/four)/pi)/emitnx)*c1e6                    !hr05
+     &(((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6                    !hr05
         gammar=pma/e0
         crad=(((two*crad)*partnum)*gammar)*c1e6                          !hr05
-        emitx=emitnx*gammar
-        emity=emitny*gammar
+        emitx=sixin_emitNX*gammar
+        emity=sixin_emitNY*gammar
 #ifdef COLLIMAT
-        remitx_dist=emitnx0_dist*gammar
-        remity_dist=emitny0_dist*gammar
-        remitx_collgap=emitnx0_collgap*gammar
-        remity_collgap=emitny0_collgap*gammar
+        remitx_dist=sixin_emitNX0_dist*gammar
+        remity_dist=sixin_emitNY0_dist*gammar
+        remitx_collgap=sixin_emitNX0_collgap*gammar
+        remity_collgap=sixin_emitNY0_collgap*gammar
 #endif
       endif
 #ifdef COLLIMAT
@@ -3249,7 +1973,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             else !Beams have opposite charge
                write(lout,                                              &
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
@@ -3272,7 +1996,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             endif
 
          elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
@@ -3298,7 +2022,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             else !Beams have opposite charge
                ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
                write(lout,                                              &
@@ -3321,7 +2045,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             endif
          else
             write(lout,'(a)') "ERROR in subroutine daten"
@@ -3527,13 +2251,6 @@ subroutine daten
 10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
 10270 format(t28,6(1x,a16))
 10280 format(t3,i6,1x,5(a16,1x))
-10310 format(t10,a16,10x,a16,6x,f20.15)
-10360 format(5x,'| ELEMENT  |           ',a16,'           |           ',&
-     &'    |               |               |               |')
-10390 format(5x,'| ELEMENTS |                              |    ',a16,  &
-     &'   |    ',a16,'   |               |               |')
-10400 format(5x,'| ELEMENTS |                              |          ' &
-     &,'     |               |    ',a16,'   |    ',a16,'   |')
 10490 format(t10,a16,4x,a40,2x,1pe16.9)
 10510 format(t10,a16,4x,i8,12x,i8,4x,1pe16.9)
 10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
@@ -5503,6 +4220,9 @@ subroutine comnul
   ak0(:,:)   = zero ! mod_common
   bka(:,:)   = zero ! mod_common
   aka(:,:)   = zero ! mod_common
+  
+  ! POSTPROCESSING
+  toptit(:)  = " "  ! mod_common
 
   ! TODO
       nur=0
@@ -5648,7 +4368,6 @@ subroutine comnul
         ipr(i)=0
         nrr(i)=0
         nu(i)=0
-        toptit(i)=' '
    40 continue
 
       do 50 i=1,6

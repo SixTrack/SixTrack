@@ -582,9 +582,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real32 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -595,9 +593,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -606,9 +602,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -617,9 +611,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -654,9 +646,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real32 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -667,9 +657,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -678,9 +666,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -689,9 +675,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -726,9 +710,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real64 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -739,9 +721,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -750,9 +730,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -761,9 +739,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -798,9 +774,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real64 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -811,9 +785,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -822,9 +794,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -833,9 +803,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real64 width error = ",readErr
     rErr = .true.
   end if
 #endif
@@ -870,9 +838,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real128 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -883,9 +849,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -894,9 +858,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -905,9 +867,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -942,9 +902,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Overfow/Underflow in round_near"
-    write (lout,"(a,i2)") "TYPECAST> Error value: ",cErr
+    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real128 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -955,9 +913,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO overriding CRLIBM"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -966,9 +922,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input with FIO"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -977,9 +931,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to real"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -1008,9 +960,7 @@ subroutine str_toInt16(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int16 width error ",readErr
     rErr = .true.
   end if
 
@@ -1030,9 +980,7 @@ subroutine chr_toInt16(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int16 width error ",readErr
     rErr = .true.
   end if
 
@@ -1052,9 +1000,7 @@ subroutine str_toInt32(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int32 width error ",readErr
     rErr = .true.
   end if
 
@@ -1074,9 +1020,7 @@ subroutine chr_toInt32(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int32 width error ",readErr
     rErr = .true.
   end if
 
@@ -1096,9 +1040,7 @@ subroutine str_toInt64(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int64 width error ",readErr
     rErr = .true.
   end if
 
@@ -1118,9 +1060,7 @@ subroutine chr_toInt64(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to integer"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int64 width error ",readErr
     rErr = .true.
   end if
 
@@ -1146,9 +1086,7 @@ subroutine str_toLog(theString, theValue, rErr)
   tmpString = chr_trimZero(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to logical"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
     rErr = .true.
   end if
 
@@ -1168,9 +1106,7 @@ subroutine chr_toLog(theString, theValue, rErr)
   tmpString = chr_trimZero(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a)")    "TYPECAST> ERROR Data Input"
-    write (lout,"(a)")    "TYPECAST> Failed to cast '"//tmpString//"' to logical"
-    write (lout,"(a,i2)") "TYPECAST> iostat value: ",readErr
+    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
     rErr = .true.
   end if
 
